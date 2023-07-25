@@ -71,7 +71,7 @@ namespace OpenMS::DIAHelpers
     // Helper for integrate window returns the sum of all intensities, sum of all ion mobilities and sum of all mz
     // no expensive division calls
     // assumes mz, im and intensity should already be initiated.
-    void _integrateWindowHelper(const OpenSwath::SpectrumPtr& spectrum,
+    void integrateWindow_(const OpenSwath::SpectrumPtr& spectrum,
                 double & mz,
                 double & im,
                 double & intensity,
@@ -273,7 +273,7 @@ namespace OpenMS::DIAHelpers
       im = 0;
       intensity = 0;
 
-      _integrateWindowHelper(spectrum, mz, im, intensity, range_mz, range_im, centroided);
+      integrateWindow_(spectrum, mz, im, intensity, range_mz, range_im, centroided);
 
       // Post processing get the weighted average mz and im by dividing my intensity
       if (intensity > 0.)
@@ -316,7 +316,7 @@ namespace OpenMS::DIAHelpers
       {
         for (const auto& s : spectra)
         {
-          _integrateWindowHelper(s, mz, im, intensity, range_mz, range_im, centroided);
+          integrateWindow_(s, mz, im, intensity, range_mz, range_im, centroided);
         }
 
         // Post processing get the weighted average mz and im by dividing my intensity

@@ -39,7 +39,8 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/RangeManager.h>
+//#include <OpenMS/KERNEL/RangeManager.h>
+//class RangeMobility;
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 namespace OpenMS

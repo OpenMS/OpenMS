@@ -323,7 +323,6 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
                                                               double RT, int nr_spectra_to_add, RangeMobility im_range))- extra)
 {
 
-
   // im range from 2-4
   RangeMobility im_range(3); // use this empty im range as input for all examples
   im_range.minSpanIfSingular(2); //
@@ -342,7 +341,6 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
 
     // test resample - IM filtering should occur
     {
-
       sc.initialize(1.0, 1, 0.005, 0.0, su, "resample", true);
 
       SpectrumSequence sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 1, im_range);
@@ -363,7 +361,6 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
       TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[0], 2.);
       TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[1], 3.);
       TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[2], 4.);
-
     }
     // test simple, since downstream functions are IM aware no filtering needs to occur.
     {
@@ -410,7 +407,6 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
 
     // test resample - IM filtering should occur, also IM information is not needed so is cleared
     {
-
       sc.initialize(1.0, 1, 0.005, 0.0, su, "resample", true);
       SpectrumSequence sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range);
 
@@ -430,7 +426,6 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
     }
     // test simple, since downstream functions are IM aware no filtering needs to occur. Should just return all the original spectra
     {
-
       sc.initialize(1.0, 1, 0.005, 0.0, su, "simple", true);
       SpectrumSequence sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range);
 
@@ -447,7 +442,6 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
       TEST_EQUAL(sp[2]->getMZArray()->data.size(), 3);
       TEST_EQUAL(sp[2]->getIntensityArray()->data.size(), 3);
       TEST_EQUAL(sp[2]->getDriftTimeArray()->data.size(), 3);
-
 
       // Spectrum #1
       TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[0], 101.);
@@ -467,7 +461,6 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
       TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[2], 3.);
       TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[3], 4.);
       TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[4], 5.);
-
 
       // Spectrum #2
       TEST_REAL_SIMILAR(sp[1]->getMZArray()->data[0], 101.);
@@ -508,7 +501,6 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
 
     // Test resampling, IM filtering should occur and the 4th spectrum should not be selected
     {
-
       sc.initialize(1.0, 1, 0.005, 0.0, su, "resample", true);
 
       SpectrumSequence sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range);
@@ -529,7 +521,6 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
 
     // test simple, since downstream functions are IM aware no filtering needs to occur. Should just return all the original spectra, but the 4th spectrum should not be selected
     {
-
       sc.initialize(1.0, 1, 0.005, 0.0, su, "simple", true);
       SpectrumSequence sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range);
 
@@ -546,7 +537,6 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
       TEST_EQUAL(sp[2]->getMZArray()->data.size(), 3);
       TEST_EQUAL(sp[2]->getIntensityArray()->data.size(), 3);
       TEST_EQUAL(sp[2]->getDriftTimeArray()->data.size(), 3);
-
 
       // Spectrum #1
       TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[0], 101.);
@@ -566,7 +556,6 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
       TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[2], 3.);
       TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[3], 4.);
       TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[4], 5.);
-
 
       // Spectrum #2
       TEST_REAL_SIMILAR(sp[1]->getMZArray()->data[0], 101.);

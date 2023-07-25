@@ -164,7 +164,6 @@ namespace OpenMS
 
     if (!filter_zeros)
     {
-
       OPENMS_POSTCONDITION( std::adjacent_find(added_spec->getMZArray()->data.begin(),
            added_spec->getMZArray()->data.end(), std::greater<double>()) == added_spec->getMZArray()->data.end(),
            "Postcondition violated: m/z vector needs to be sorted!" )

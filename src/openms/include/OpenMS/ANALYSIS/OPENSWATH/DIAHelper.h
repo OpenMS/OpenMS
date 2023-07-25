@@ -35,17 +35,18 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-
 #include <vector>
+
+class RangeMZ;
+class RangeMobility;
 
 namespace OpenMS
 {
   class TheoreticalSpectrumGenerator;
   namespace DIAHelpers
   {
-    using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>; ///< a vector of spectrum pointers that DIA scores can operate on, allows for clever integration of only the target region
+    using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>; ///<a vector of spectrum pointers that DIA scores can operate on, allows for clever integration of only the target region
 
     /**
       @brief Helper functions for the DIA scoring of OpenSWATH
@@ -174,7 +175,7 @@ namespace OpenMS
     /**
       @brief Helper function for integrating a spectrum.
     */
-    void _integrateWindowHelper(const OpenSwath::SpectrumPtr& spectrum,
+    void integrateWindow_(const OpenSwath::SpectrumPtr& spectrum,
                                 double & mz,
                                 double & im,
                                 double & intensity,

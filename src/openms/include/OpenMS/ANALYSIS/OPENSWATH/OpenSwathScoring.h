@@ -45,15 +45,15 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 
-// helpers
-#include <OpenMS/KERNEL/RangeManager.h>
-
 #include <vector>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 
 //logging
 #include <OpenMS/CONCEPT/LogStream.h>
+
+class RangeMZ;
+class RangeMobility;
 
 namespace OpenMS
 {
@@ -71,7 +71,7 @@ namespace OpenMS
 
     enum SpectrumAdditionMethod
     {
-      SIMPLE,
+      ADDITION,
       RESAMPLE
     };
 

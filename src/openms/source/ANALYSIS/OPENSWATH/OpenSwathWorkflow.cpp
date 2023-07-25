@@ -503,7 +503,7 @@ namespace OpenMS
     const TransformationDescription& trafo,
     const ChromExtractParams & cp,
     const ChromExtractParams & cp_ms1,
-    Param & feature_finder_param,
+    Param & feature_finder_param, //TODO can I put this constant again
     const OpenSwath::LightTargetedExperiment& transition_exp,
     FeatureMap& out_featureFile,
     bool store_features,

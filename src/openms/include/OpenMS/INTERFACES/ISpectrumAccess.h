@@ -129,4 +129,3 @@ public:
 
 } //end namespace Interfaces
 } //end namespace OpenMS
-

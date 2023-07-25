@@ -98,7 +98,6 @@ OpenSwath::SpectrumPtr prepareIMSpectrum()
   };
 
   std::vector<double> imVector = {
-
     2, 3, 2, 3, 4, 2, 3,
     2, 3, 2, 3, 6, 2, 3, 3, // Note the interfering signal has an IM of 6 while all others have IM range of 2-4
     2, 3, 2, 3, 4, 2, 3,
@@ -123,7 +122,6 @@ OpenSwath::SpectrumPtr prepareIMSpectrum()
   sptr->getDataArrays().push_back( im );
   return sptr;
 }
-
 
 OpenSwath::SpectrumPtr prepareSpectrum()
 {
@@ -195,7 +193,6 @@ SpectrumSequence prepareShiftedSpectrum()
   SpectrumSequence out;
   out.push_back(sptr);
   return out;
-
 }
 
 SpectrumSequence prepareShiftedSpectrumIM()
@@ -213,7 +210,6 @@ SpectrumSequence prepareShiftedSpectrumIM()
   SpectrumSequence out;
   out.push_back(sptr);
   return out;
-
 }
 
 

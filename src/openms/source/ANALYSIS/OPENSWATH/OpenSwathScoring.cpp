@@ -58,7 +58,7 @@ namespace OpenMS
     rt_normalization_factor_(1.0),
     spacing_for_spectra_resampling_(0.005),
     add_up_spectra_(1),
-    spectra_addition_method_(SIMPLE),
+    spectra_addition_method_(ADDITION),
     im_drift_extra_pcnt_(0.0)
   {
   }
@@ -79,7 +79,7 @@ namespace OpenMS
     this->add_up_spectra_ = add_up_spectra;
     if (spectrum_addition_method == "simple")
     {
-      this->spectra_addition_method_ = SIMPLE;
+      this->spectra_addition_method_ = ADDITION;
     }
     else if (spectrum_addition_method == "resample")
     {
@@ -137,6 +137,7 @@ namespace OpenMS
     std::vector<OpenSwath::SpectrumPtr> spectra = fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_, im_range);
 
     // set the DIA parameters
+    // TODO Cache these parameters
     double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
     bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
 
@@ -527,9 +528,9 @@ namespace OpenMS
   {
 
     SpectrumSequence all_spectra = swathmap->getMultipleSpectra(RT, nr_spectra_to_add);
-    if (spectra_addition_method_ == SIMPLE)
+    if (spectra_addition_method_ == ADDITION)
     {
-      return all_spectra;
+      return all_spectra; // return vector, addition is done later
     }
     else // (spectra_addition_method_ == RESAMPLE)
     {
@@ -558,7 +559,7 @@ namespace OpenMS
         // multiple SWATH maps for a single precursor -> this is SONAR data, in all cases only return a single spectrum
         SpectrumSequence all_spectra;
 
-        if (spectra_addition_method_ == SIMPLE)
+        if (spectra_addition_method_ == ADDITION)
         {
           for (size_t i = 0; i < swath_maps.size(); ++i)
           {
@@ -580,7 +581,7 @@ namespace OpenMS
         // multiple SWATH maps for a single precursor -> this is SONAR data, in all cases only return a single spectrum
         SpectrumSequence all_spectra;
 
-        if (spectra_addition_method_ == SIMPLE)
+        if (spectra_addition_method_ == ADDITION)
         {
           for (size_t i = 0; i < swath_maps.size(); ++i)
           {
@@ -598,7 +599,6 @@ namespace OpenMS
         }
         return { SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true) };
       }
-
     }
   }
 }

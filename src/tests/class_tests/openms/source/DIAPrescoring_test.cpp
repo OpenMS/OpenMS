@@ -4,7 +4,7 @@
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 
 // ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
@@ -304,12 +304,10 @@ START_SECTION ( test score function missing first transition due to different io
   mock_tr2.transition_name = "group2";
   mock_tr2.library_intensity = 5.;
 
-
   double PRECURSOR_ION_MOBILITY = 7;
   double ION_MOBILITY_WIDTH = 2;
 
   OpenSwath::SpectrumPtr sptr = (OpenSwath::SpectrumPtr)(new OpenSwath::Spectrum);
-
   std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
   OpenSwath::BinaryDataArrayPtr data1(new OpenSwath::BinaryDataArray);
   OpenSwath::BinaryDataArrayPtr data2(new OpenSwath::BinaryDataArray);
@@ -321,7 +319,6 @@ START_SECTION ( test score function missing first transition due to different io
     3, 7, 15, 30, 15, 7, 3,      // peak at 500
     1, 3, 9, 15, 9, 3, 1,        // peak at 501
     3, 9, 3,                     // peak at 502
-
 
     10, 20, 50, 100, 50, 20, 10, // peak at 600
     3, 7, 15, 30, 15, 7, 3,      // peak at 601

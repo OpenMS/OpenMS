@@ -188,7 +188,6 @@ namespace OpenMS
       double mz_end = mz_range.getMax();
       while ( ( *mz_it < mz_end ) && (mz_it < mz_arr_end) )
       {
-
         if (im_range.contains(*im_it))
         {
           intensity += (*int_it);
@@ -337,7 +336,7 @@ namespace OpenMS
     scores.im_ms1_sum_contrast_shape = mrmscore_.calcXcorrPrecursorContrastSumFragShapeScore();
   }
 
-  void IonMobilityScoring::driftScoringMS1(const std::vector<OpenSwath::SpectrumPtr>& spectra,
+  void IonMobilityScoring::driftScoringMS1(const SpectrumSequence & spectra,
                                            const std::vector<TransitionType> & transitions,
                                            OpenSwath_Scores & scores,
                                            const double drift_target,

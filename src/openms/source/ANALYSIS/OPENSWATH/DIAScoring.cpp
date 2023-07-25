@@ -143,7 +143,6 @@ namespace OpenMS
                                       double& ppm_score_weighted,
                                       std::vector<double>& diff_ppm) const
   {
-
     // Calculate the difference of the theoretical mass and the actually measured mass
     ppm_score = 0;
     ppm_score_weighted = 0;
@@ -345,7 +344,6 @@ namespace OpenMS
         RangeMZ mz_range(transitions[k].getProductMZ() + iso * C13C12_MASSDIFF_U / abs_charge);
         mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
         double mz, intensity, im;
-
         DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
         isotopes_int.push_back(intensity);
       }

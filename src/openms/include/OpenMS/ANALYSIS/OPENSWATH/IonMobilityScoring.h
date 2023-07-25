@@ -40,14 +40,15 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
-
-#include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 
 // scoring
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 
 #include <vector>
+
+class RangeMobility;
+class RangeMZ;
 
 namespace OpenMS
 {
@@ -132,7 +133,7 @@ namespace OpenMS
       @return Populates additional scores in the @p scores object
 
     */
-    static void driftScoringMS1(const std::vector<OpenSwath::SpectrumPtr>& spectra,
+    static void driftScoringMS1(const SpectrumSequence& spectra,
                                 const std::vector<TransitionType> & transitions,
                                 OpenSwath_Scores & scores,
                                 const double drift_target,
@@ -189,7 +190,6 @@ namespace OpenMS
 
 
   private:
-
     /**
      * @brief helper function to computeIonMobilogram. Discretizes ion mobility values into a grid.
     **/
@@ -217,7 +217,6 @@ namespace OpenMS
                  std::vector< double >& al_im_values,
                  double eps,
                  Size & max_peak_idx);
-
 
   };
 }

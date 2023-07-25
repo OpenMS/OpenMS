@@ -238,7 +238,6 @@ namespace OpenMS
 #pragma omp critical
 #endif
       {
-
         RangeMobility im_range;
         if (ms1_im_)
         {
@@ -249,9 +248,7 @@ namespace OpenMS
         {
           std::vector<OpenSwath::SpectrumPtr> fetchSpectrumArr = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, im_range);
           sp_ms2 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : *new(OpenSwath::SpectrumPtr);
-
         }
-
       }
 
       for (const auto& tr : transition_group->getTransitions())

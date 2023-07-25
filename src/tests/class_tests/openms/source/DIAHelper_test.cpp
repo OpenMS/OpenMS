@@ -614,7 +614,6 @@ START_SECTION([EXTRA] simulateSpectrumFromAASequence_test)
   std::vector<double> masses1;
   std::vector<std::pair<double, double> > tmp, out;
   OpenMS::DIAHelpers::simulateSpectrumFromAASequence(a, masses1, tmp, &generator);
-
   std::copy(masses1.begin(), masses1.end(),
       std::ostream_iterator<double>(std::cout, " "));
   std::cout << std::endl;
