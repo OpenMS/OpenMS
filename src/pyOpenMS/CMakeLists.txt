@@ -382,9 +382,7 @@ set(_pyopenms_files
   create_cpp_extension.py
   mac_fix_dependencies.rb
   version.py
-  run_nose.py
-  run_memleaks.py
-  doCythonCompileOnly.py
+    doCythonCompileOnly.py
 )
 
 foreach(pyfile ${_pyopenms_files})
