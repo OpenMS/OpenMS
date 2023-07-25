@@ -405,29 +405,32 @@ add_custom_target(
   DEPENDS prepare_knime_payload_binaries
 )
 
-set(FOLDER_STRUCTURE_MESSAGE "You can clone all Thirdparty binaries from our OpenMS/THIRDPARTY Git submodule/repository but you have to flatten the folder structure such that it is only one level deep with the versions specific for your platform. Do not change the folder names.")
+set(FOLDER_STRUCTURE_MESSAGE "You can clone all third-party binaries from our OpenMS/THIRDPARTY Git submodule/repository but you have to flatten the folder structure such that it is only one level deep with the versions specific for your platform. Do not change the folder names.")
 
 # check if we have valid search engines
-## TODO check if we still need this. Maintenance. Maybe check for non-empty and otherwise just copy everything.
-## Would also allow custom packages.
 if(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY})
-  message(FATAL_ERROR "Please specify the path to the search engines to build the KNIME packages. ${FOLDER_STRUCTURE_MESSAGE} Then call cmake again with cmake -D SEARCH_ENGINES_DIRECTORY=<Path-To-Checkedout-SE>.")
-elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/XTandem OR NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/MSGFPlus)
-  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout. ${FOLDER_STRUCTURE_MESSAGE}")
-elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/Fido)
-  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (Fido is missing). ${FOLDER_STRUCTURE_MESSAGE}")
-elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/LuciPHOr2)
-  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (LuciPHOr2 is missing). ${FOLDER_STRUCTURE_MESSAGE}")
-elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/Percolator)
-  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (Percolator is missing). ${FOLDER_STRUCTURE_MESSAGE}")
+
+  message(WARNING "SEARCH_ENGINES_DIRECTORY not specified or found. Will proceed without shipping third-party executables.
+If this is unintended, please specify the path to the search engines to build the KNIME packages and make sure it exists.
+${FOLDER_STRUCTURE_MESSAGE}
+Then call cmake again with cmake -D SEARCH_ENGINES_DIRECTORY=<Path-To-Checkedout-SE>.")
+
+  # add dummy target
+  add_custom_target(
+          prepare_knime_payload_searchengines
+  )
+
+elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/Comet OR NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/Percolator)
+  message(FATAL_ERROR "The given SEARCH_ENGINES_DIRECTORY folder seems to have an invalid layout. ${FOLDER_STRUCTURE_MESSAGE}")
+else()
+  add_custom_target(
+          prepare_knime_payload_searchengines
+          COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SE_PATH=${SEARCH_ENGINES_DIRECTORY} -D TARGET_DIRECTORY=${TP_PAYLOAD_BIN_PATH} -P ${SCRIPT_DIRECTORY}copy_searchengines.cmake
+          # We need the folder layout from the bin target
+          DEPENDS prepare_knime_payload_binaries
+  )
 endif()
 
-add_custom_target(
-  prepare_knime_payload_searchengines
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SE_PATH=${SEARCH_ENGINES_DIRECTORY} -D TARGET_DIRECTORY=${TP_PAYLOAD_BIN_PATH} -P ${SCRIPT_DIRECTORY}copy_searchengines.cmake
-  # We need the folder layout from the bin target
-  DEPENDS prepare_knime_payload_binaries
-)
 
 # the complete payload target
 add_custom_target(

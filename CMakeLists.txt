@@ -438,13 +438,15 @@ endif()
 
 #------------------------------------------------------------------------------
 # lib naming when building with msvc & convenience location of build.bat
+# TODO only for msvc or generally on Windows?
 if (MSVC)
-	## use OpenMSd.dll in debug mode
-	SET(CMAKE_DEBUG_POSTFIX d)
-	## copy build.bat to root of binary dir to enable convenient invocation (instead of typing path to source dir all the time)
-	if(NOT ("${PROJECT_SOURCE_DIR}" STREQUAL "${PROJECT_BINARY_DIR}"))
-		file(COPY "${PROJECT_SOURCE_DIR}/tools/build.bat" DESTINATION "${PROJECT_BINARY_DIR}")
-	endif()
+	## use OpenMSd.dll etc. in debug mode
+    if(NOT DEFINED CMAKE_DEBUG_POSTFIX)
+        set(CMAKE_DEBUG_POSTFIX "d")
+    endif()
+    if(NOT ("${PROJECT_SOURCE_DIR}" STREQUAL "${PROJECT_BINARY_DIR}"))
+        file(COPY "${PROJECT_SOURCE_DIR}/tools/build.bat" DESTINATION "${PROJECT_BINARY_DIR}")
+    endif()
 endif()
 
 
