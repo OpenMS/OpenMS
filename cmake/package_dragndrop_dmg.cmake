@@ -43,8 +43,24 @@ set(CPACK_GENERATOR "DragNDrop")
 ## We want to package the whole top-level dir so a user can drag'n'drop it via the image.
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 0) ## dmg seems to be component-aware and makes an ALL-IN-ONE package
 set(CPACK_COMPONENT_INCLUDE_TOPLEVEL_DIRECTORY 1) ## Therefore _only_ use the second.. weird stuff.
-## we make sure it is called like we want although this is the standard name I think.
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-macOS")  
+
+set(MACOS_TARGET_ARCHS ${CMAKE_OSX_ARCHITECTURES})
+if (NOT MACOS_TARGET_ARCHS)
+  # Warning: if cmake is a subprocess of a process that is run under Rosetta, it will yield
+  #  x86_64 (but probably also build for it. Therefore it should be fine.)
+  set(MACOS_TARGET_ARCHS ${CMAKE_HOST_SYSTEM_PROCESSOR})
+endif()
+if (MACOS_TARGET_ARCHS STREQUAL "x86_64")
+  set(ARCH_SUFFIX "Intel")
+elseif (MACOS_TARGET_ARCHS STREQUAL "arm64")
+  set(ARCH_SUFFIX "Silicon")
+elseif ("x86_64" IN_LIST MACOS_TARGET_ARCHS AND "arm64" IN_LIST MACOS_TARGET_ARCHS)
+  set(ARCH_SUFFIX "Universal")
+else ()
+  set(ARCH_SUFFIX "Unknown")
+endif()
+
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-macOS-${ARCH_SUFFIX}")
 
 ## Note: That the mac app bundles (TOPPView) take care of themselves
 ##       when installed as dmg (see src/openms_gui/add_mac_bundle.cmake)
