@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -115,8 +115,14 @@ elseif (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE")
   endif()
   
-elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang") # using regular Clang or AppleClang
+
   set(CMAKE_COMPILER_IS_CLANG true CACHE INTERNAL "Is CLang compiler (clang++)")
+  ## Clang since v14.0 will use ffp-contract=on by default, i.e. use fused-multiply-add ops, which change results (by usually giving higher precision).
+  ## This should not affect us, since we do not use/allow -mfma flags (or -march=native) on x64, thus Clang cannot use these instructions in the first place for runtime code
+  ## It may use them for compile time FMA though, even if the host does not have the FMA instruction set - ** its magic**!
+  ## Then again, Apple-clang uses FMA on AppleSilicon by default, for compile and runtime FMA, and we need to switch it off:
+  add_compile_options(-ffp-contract=off)
   # add clang specific warning levels
   # we should not use -Weverything routinely https://quuxplusone.github.io/blog/2018/12/06/dont-use-weverything/
   add_compile_options(-Wall -Wextra)

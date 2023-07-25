@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -338,6 +338,8 @@ namespace OpenMS
       const int best_speci = pepts[0].second;
       auto best_spec = specs_list[map_index2file_index[best_mapi]][best_speci];
 
+      if (best_spec.empty()) continue; // some Bruker files have MS2 spectra without peaks. skip those during exprot
+
       // write block output header
       writeMSMSBlockHeader_(
         output_file,
@@ -349,6 +351,8 @@ namespace OpenMS
         best_speci,
         best_spec.getRT()
       );
+
+      // OPENMS_LOG_DEBUG << "Best spectrum (index/RT): " << best_speci << "\t" << best_spec.getRT() << std::endl;
 
       // store outputted spectra in MSExperiment
       MSExperiment exp;

@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -3219,6 +3219,68 @@ set_tests_properties("UTILS_ProteomicsLFQ_7_out_3" PROPERTIES DEPENDS "UTILS_Pro
 add_test("UTILS_ProteomicsLFQ_7_out_4" ${DIFF} -in1 BSA_sub.tsv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_7_out.tsv )
 set_tests_properties("UTILS_ProteomicsLFQ_7_out_4" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_7")
 
+# test empty id
+add_test("UTILS_ProteomicsLFQ_8" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2_empty.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+         -Alignment:align_algorithm:max_rt_shift 0
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -transfer_ids false
+         -mass_recalibration false
+         -out_cxml BSA_sub_8.consensusXML.tmp
+         -out_msstats BSA_sub_8.csv.tmp
+         -out BSA_sub_8.mzTab.tmp
+         -out_triqler BSA_sub_8.tsv.tmp
+         -threads 1
+         -proteinFDR 0.8
+         -test
+         )
+add_test("UTILS_ProteomicsLFQ_8_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 BSA_sub_8.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.consensusXML )
+set_tests_properties("UTILS_ProteomicsLFQ_8_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_8")
+add_test("UTILS_ProteomicsLFQ_8_out_2" ${DIFF}  -whitelist "software" "location" -in1 BSA_sub_8.csv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.csv )
+set_tests_properties("UTILS_ProteomicsLFQ_8_out_2" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_8")
+add_test("UTILS_ProteomicsLFQ_8_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 BSA_sub_8.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.mzTab )
+set_tests_properties("UTILS_ProteomicsLFQ_8_out_3" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_8")
+add_test("UTILS_ProteomicsLFQ_8_out_4" ${DIFF} -in1 BSA_sub_8.tsv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.tsv )
+set_tests_properties("UTILS_ProteomicsLFQ_8_out_4" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_8")
+
+# test single file, no experimental design (regression)
+add_test("UTILS_ProteomicsLFQ_9" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         -Alignment:align_algorithm:max_rt_shift 0
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only false
+         -transfer_ids false
+         -mass_recalibration false
+         -out_cxml BSA_sub_9.consensusXML.tmp
+         -out_msstats BSA_sub_9.csv.tmp
+         -out BSA_sub_9.mzTab.tmp
+         -out_triqler BSA_sub_9.tsv.tmp
+         -threads 1
+         -proteinFDR 0.8
+         -test
+         )
+add_test("UTILS_ProteomicsLFQ_9_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 BSA_sub_9.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.consensusXML )
+set_tests_properties("UTILS_ProteomicsLFQ_9_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_9")
+add_test("UTILS_ProteomicsLFQ_9_out_2" ${DIFF}  -whitelist "software" "location" -in1 BSA_sub_9.csv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.csv )
+set_tests_properties("UTILS_ProteomicsLFQ_9_out_2" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_9")
+add_test("UTILS_ProteomicsLFQ_9_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 BSA_sub_9.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.mzTab )
+set_tests_properties("UTILS_ProteomicsLFQ_9_out_3" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_9")
+add_test("UTILS_ProteomicsLFQ_9_out_4" ${DIFF} -in1 BSA_sub_9.tsv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.tsv )
+set_tests_properties("UTILS_ProteomicsLFQ_9_out_4" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_9")
+
 
 #------------------------------------------------------------------------------
 # NucleicAcidSearchEngine:
@@ -3286,3 +3348,24 @@ set_tests_properties("UTILS_PSMFeatureExtractor_2_out" PROPERTIES DEPENDS "UTILS
 add_test("UTILS_PSMFeatureExtractor_3" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -out_type idXML -out PSMFeatureExtractor_3_out.tmp)
 add_test("UTILS_PSMFeatureExtractor_3_out" ${DIFF} -whitelist "InferenceEngineVersion" "date=" -in1 PSMFeatureExtractor_3_out.tmp -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_3_out.idXML)
 set_tests_properties("UTILS_PSMFeatureExtractor_3_out" PROPERTIES DEPENDS "UTILS_PSMFeatureExtractor_3")
+
+
+#------------------------------------------------------------------------------
+# TOPP tests with json
+#------------------------------------------------------------------------------
+# MassTraceExtractor test
+add_test("TOPP_MassTraceExtractor_1_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor.ini.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_1_json.tmp)
+add_test("TOPP_MassTraceExtractor_1_out_json" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_1_json.tmp -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_1_output.featureXML )
+set_tests_properties("TOPP_MassTraceExtractor_1_out_json" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_1_json")
+add_test("TOPP_MassTraceExtractor_2_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_2.ini.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_2_json.tmp)
+add_test("TOPP_MassTraceExtractor_2_out_json" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_2_json.tmp -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_2_output.featureXML )
+set_tests_properties("TOPP_MassTraceExtractor_2_out_json" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_2_json")
+
+#------------------------------------------------------------------------------
+# CompNovo tests
+add_test("TOPP_CompNovo_1_json" ${TOPP_BIN_PATH}/CompNovo -test -in ${DATA_DIR_TOPP}/CompNovo_1_input.mzML -ini ${DATA_DIR_TOPP}/CompNovo_1.ini.json -out CompNovo_1_output.tmp)
+add_test("TOPP_CompNovo_1_out1_json" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 CompNovo_1_output.tmp -in2 ${DATA_DIR_TOPP}/CompNovo_1_output.idXML )
+set_tests_properties("TOPP_CompNovo_1_out1_json" PROPERTIES DEPENDS "TOPP_CompNovo_1_json")
+add_test("TOPP_CompNovoCID_1_json" ${TOPP_BIN_PATH}/CompNovoCID -test -in ${DATA_DIR_TOPP}/CompNovoCID_1_input.mzML -ini ${DATA_DIR_TOPP}/CompNovoCID_1.ini.json -out CompNovoCID_1_output.tmp)
+add_test("TOPP_CompNovoCID_1_out1_json" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 CompNovoCID_1_output.tmp -in2 ${DATA_DIR_TOPP}/CompNovoCID_1_output.idXML )
+set_tests_properties("TOPP_CompNovoCID_1_out1_json" PROPERTIES DEPENDS "TOPP_CompNovoCID_1_json")

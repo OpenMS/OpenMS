@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -141,7 +141,7 @@ using namespace OpenMS;
   parameter (this is recommended!).
 
   The assay library (transition list) is provided through the @p -tr parameter and can be in one of the following formats:
-  
+
     <ul>
       <li> @ref OpenMS::TraMLFile "TraML" </li>
       <li> @ref OpenMS::TransitionTSVFile "OpenSWATH TSV transition lists" </li>
@@ -264,7 +264,7 @@ using namespace OpenMS;
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Precursor m/z</td>
     </tr>
-    
+
     <tr>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> masserror_ppm </td>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float List </td>
@@ -417,7 +417,7 @@ using namespace OpenMS;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 class TOPPOpenSwathWorkflow
-  : public TOPPOpenSwathBase 
+  : public TOPPOpenSwathBase
 {
 public:
 
@@ -474,7 +474,7 @@ protected:
     // additional QC data
     registerOutputFile_("out_qc", "<file>", "", "Optional QC meta data (charge distribution in MS1). Only works with mzML input files.", false, true);
     setValidFormats_("out_qc", ListUtils::create<String>("json"));
-    
+
 
     // misc options
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the upper edge of a Swath window to still consider a precursor, in Thomson", false, true);
@@ -703,7 +703,7 @@ protected:
 
     String readoptions = getStringOption_("readOptions");
     String mz_correction_function = getStringOption_("mz_correction_function");
-    
+
     // make sure tmp is a directory with proper separator at the end (downstream methods simply do path + filename)
     // (do not use QDir::separator(), since its platform specific (/ or \) while absolutePath() will always use '/')
     String tmp_dir = String(QDir(getStringOption_("tempDirectory").c_str()).absolutePath()).ensureLastChar('/');
@@ -821,6 +821,20 @@ protected:
       }
     }
 
+    // If pasef flag is set, validate that IM is present
+    if (pasef)
+    {
+      auto transitions = transition_exp.getTransitions();
+
+      for ( Size k=0; k < (Size)transitions.size(); k++ )
+      {
+        if (transitions[k].precursor_im == -1)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Transition " + transitions[k].getNativeID() +  " does not have a valid IM value, this must be set to use the -pasef flag");
+        }
+      }
+    }
+
     ///////////////////////////////////
     // Load the SWATH files
     ///////////////////////////////////
@@ -834,7 +848,7 @@ protected:
       MSDataTransformingConsumer qc_consumer; // apply some transformation
       qc_consumer.setSpectraProcessingFunc(qc.getSpectraProcessingFunc());
       qc_consumer.setExperimentalSettingsFunc(qc.getExpSettingsFunc());
-      if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions, 
+      if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions,
                           swath_windows_file, min_upper_edge_dist, force,
                           sort_swath_maps, sonar, prm, pasef, &qc_consumer))
       {
@@ -844,7 +858,7 @@ protected:
     }
     else
     {
-      if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions, 
+      if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions,
                           swath_windows_file, min_upper_edge_dist, force,
                           sort_swath_maps, sonar, prm, pasef))
       {

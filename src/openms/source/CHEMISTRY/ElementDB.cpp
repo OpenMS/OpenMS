@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -121,7 +121,7 @@ namespace OpenMS
                              bool replace_existing)
   {
     if (hasElement(an) && !replace_existing)
-    {
+    {      
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Element with atomic number ") + an + " already exists");
     }
     buildElement_(name, symbol, an, abundance, mass);
@@ -158,15 +158,15 @@ namespace OpenMS
   }
 
   
-  template<class CONT, class KEY, class REPL>
-  void checkedAddNoReplace(CONT& container, const KEY& key, REPL replacement)
+  template<class CONT, class KEY>
+  void addIfUniqueOrThrow(CONT& container, const KEY& key, unique_ptr<const Element>& replacement)
   {
     auto elem = container.find(key);
     if (elem != container.end())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(key), "Already exists!");
     }
-    container[key] = replacement;
+    container[key] = replacement.get();
   }
 
   void ElementDB::storeElements_()
@@ -604,11 +604,11 @@ namespace OpenMS
     map<unsigned int, double> uranium_mass = {{234u,  234.040950}, {235u,  235.043928}, {238u,   238.05079}};
     buildElement_("Uranium", "U", 92u, uranium_abundance, uranium_mass);
 
-    // special case for deuterium and tritium
+    // special case for deuterium and tritium: add symbol alias
     const Element* deuterium = getElement("(2)H");
-    checkedAddNoReplace(symbols_, "D", deuterium);
+    symbols_["D"] = deuterium;
     const Element* tritium = getElement("(3)H");
-    checkedAddNoReplace(symbols_, "T", tritium);
+    symbols_["T"] = tritium;
 
     // Pu, Am, Cm, Bk, Cf, Es, Fm, Md, No, Lr, Rf, Db, Sg, Bh, Hs, Mt, Ds, Rg, Cn, Nh, Fl, Mc, Lv, Ts and Og Abundances are not known.
 
@@ -621,12 +621,11 @@ namespace OpenMS
     double avg_weight = calculateAvgWeight_(abundance, mass);
     double mono_weight = calculateMonoWeight_(abundance, mass);
 
-    Element* e = new Element(name, symbol, an, avg_weight, mono_weight, isotopes);
-    addElementToMaps_(name, symbol, an, e);
+    addElementToMaps_(name, symbol, an, make_unique<const Element>(name, symbol, an, avg_weight, mono_weight, isotopes));
     storeIsotopes_(name, symbol, an, mass, isotopes);
   }
 
-  void overwrite(const Element* old, std::unique_ptr<const Element>& new_e)
+  void overwrite(const Element* old, unique_ptr<const Element>& new_e)
   {
     if (old->getSymbol() != new_e->getSymbol())
     { // -- this would invalidate the lookup, since e_ptr->getSymbols().at("O")->getSymbol() == 'P'
@@ -644,10 +643,9 @@ namespace OpenMS
     }
     // ... overwrite
     *(const_cast<Element*>(old)) = *new_e;
-    new_e.release();
   }
 
-  void ElementDB::addElementToMaps_(const string& name, const string& symbol, const unsigned int an, const Element* e)
+  void ElementDB::addElementToMaps_(const string& name, const string& symbol, const unsigned int an, unique_ptr<const Element> e)
   {
     // overwrite existing element if it already exists
     // find() has to be protected here in a parallel context
@@ -656,15 +654,15 @@ namespace OpenMS
       // in order to ensure that existing elements are still valid and memory
       // addresses do not change, we have to modify the Element in place
       // instead of replacing it.
-      unique_ptr<const Element> pe;
-      pe.reset(e);
-      overwrite(atomic_numbers_[an], pe);
+      overwrite(atomic_numbers_[an], e);
+      // do not release 'e' here; it needs to be deleted when it goes out if scope
     }
     else
     {
-      checkedAddNoReplace(names_, name, e);
-      checkedAddNoReplace(symbols_, symbol, e);
-      checkedAddNoReplace(atomic_numbers_, an, e);
+      addIfUniqueOrThrow(names_, name, e);
+      addIfUniqueOrThrow(symbols_, symbol, e);
+      addIfUniqueOrThrow(atomic_numbers_, an, e);
+      e.release(); // allocation will be cleaned up by ~ElementDB now
     }
   }
 
@@ -685,16 +683,17 @@ namespace OpenMS
       iso_container.push_back(Peak1D(atomic_mass, 1.0));
       iso_isotopes.set(iso_container);  
 
-      auto iso_e = make_unique<const Element>(iso_name, iso_symbol, an, iso_avg_weight, iso_mono_weight, iso_isotopes);
+      auto iso_element = make_unique<const Element>(iso_name, iso_symbol, an, iso_avg_weight, iso_mono_weight, iso_isotopes);
       if (auto has_elem = names_.find(iso_name); has_elem != names_.end())
       { // already exists: overwrite (affects all maps, since they all point to the same thing)
-        overwrite(has_elem->second, iso_e);
+        overwrite(has_elem->second, iso_element);
+        // do not release 'iso_element' here; it needs to be deleted when it goes out if scope
       }
       else
       {
-        auto ele = iso_e.release();
-        checkedAddNoReplace(names_, iso_name, ele);
-        checkedAddNoReplace(symbols_, iso_symbol, ele);
+        addIfUniqueOrThrow(names_, iso_name, iso_element);
+        addIfUniqueOrThrow(symbols_, iso_symbol, iso_element);
+        iso_element.release(); // allocation will be cleaned up by ~ElementDB now
       }
     } 
   }

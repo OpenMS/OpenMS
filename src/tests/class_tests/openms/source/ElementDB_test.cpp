@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -129,7 +129,7 @@ START_SECTION(void addElement(const std::string& name,
   TEST_REAL_SIMILAR(oxygen->getAverageWeight(), 15.99940532316)
   map<unsigned int, double> oxygen_abundance = {{16u, 0.7}, {19u, 0.3}};
   map<unsigned int, double> oxygen_mass = {{16u, 15.994915000000001}, {19u, 19.01}};
-  e_ptr->addElement("Oxygen", "O", 8u, oxygen_abundance, oxygen_mass, true);
+  e_ptr->addElement("Oxygen", "O", 8u, oxygen_abundance, oxygen_mass, true); // true: replace existing
 
   const Element * new_oxygen = e_ptr->getElement(8);
   // ptr addresses cannot change, otherwise we are in trouble since EmpiricalFormula uses those
@@ -138,7 +138,7 @@ START_SECTION(void addElement(const std::string& name,
 
   // cannot add invalid element (name and symbol conflict when compared existing element 
   // -- this would invalidate the lookup, since e_ptr->getSymbols().at("O")->getSymbol() == 'P'
-  TEST_EXCEPTION(Exception::InvalidValue, e_ptr->addElement("Oxygen", "P", 8u, oxygen_abundance, oxygen_mass, true))
+  TEST_EXCEPTION(Exception::InvalidValue, e_ptr->addElement("Oxygen", "P", 8u, oxygen_abundance, oxygen_mass, true)) // true: replace existing
 
 }
 END_SECTION
