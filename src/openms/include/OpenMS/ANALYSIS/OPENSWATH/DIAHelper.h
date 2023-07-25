@@ -45,7 +45,7 @@ namespace OpenMS
   class TheoreticalSpectrumGenerator;
   namespace DIAHelpers
   {
-    using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>; // a vector of spectrum pointers that DIA scores can operate on, allows for clever integration of only the target region
+    using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>; ///< a vector of spectrum pointers that DIA scores can operate on, allows for clever integration of only the target region
 
     /**
       @brief Helper functions for the DIA scoring of OpenSWATH
@@ -56,7 +56,7 @@ namespace OpenMS
       @brief Integrate intensity in a spectrum from in @p mz_range (and @p im_range if defined)
       returning the intensity-weighted m/z and im values as well as the total intensity.
 
-      @note If there is no signal, mz and im will be set to -1 and intensity to 0
+      @note If there is no signal, @p mz and @p im will be set to -1 and intensity to 0
       @return Returns true if a signal was found (and false if no signal was found)
 
     */
@@ -67,7 +67,7 @@ namespace OpenMS
       @brief Integrate intensity in SpectrumSequence in range @p mz_range (and @p im_range if defined)
       returning the intensity-weighted m/z and im values as well as the total intensity.
 
-      @note If there is no signal, mz and im will be set to -1 and intensity to 0
+      @note If there is no signal, @p mz and @p im will be set to -1 and intensity to 0
       @return Returns true if a signal was found (and false if no signal was found)
     */
     OPENMS_DLLAPI bool integrateWindow(const SpectrumSequence& spectrum,
