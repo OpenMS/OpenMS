@@ -327,7 +327,7 @@ START_SECTION([EXTRA] forward void dia_isotope_scores(const std::vector<Transiti
   imrmfeature_test->m_intensity = 0.7f;
   std::vector<OpenSwath::LightTransition> transitions;
 
-  RangeMobility empty_im_range;
+  OpenMS::RangeMobility empty_im_range;
 
   // Try with transition at 600 m/z
   transitions.push_back(mock_tr2);
@@ -359,7 +359,7 @@ START_SECTION([EXTRA] forward with IM void dia_isotope_scores(const std::vector<
   std::vector<OpenSwath::LightTransition> transitions;
 
   // im_range 2-4
-  RangeMobility im_range(3);
+  OpenMS::RangeMobility im_range(3);
   im_range.minSpanIfSingular(2); // im_range from 2-4
 
   // Try with transition at 600 m/z
@@ -411,7 +411,7 @@ END_SECTION
 
 START_SECTION([EXTRA] forward negative charge: void dia_isotope_scores(const std::vector<TransitionType> & transitions, std::vector<SpectrumType> spectrum, OpenSwath::IMRMFeature * mrmfeature, int putative_fragment_charge, const RangeMobility& im_range, double & isotope_corr, double & isotope_overlap))
   {
-    RangeMobility empty_im_range;
+    OpenMS::RangeMobility empty_im_range;
     SpectrumSequence sptr = prepareSpectrumSequence();
     MockMRMFeature * imrmfeature_test = new MockMRMFeature();
     getMRMFeatureTest(imrmfeature_test);
@@ -441,7 +441,7 @@ END_SECTION
 
 START_SECTION([EXTRA] backward void dia_isotope_scores(const std::vector<TransitionType> & transitions, std::vector<SpectrumType> spectrum, OpenSwath::IMRMFeature * mrmfeature, int putative_fragment_charge, const RangeMobility& im_range, double & isotope_corr, double & isotope_overlap))
 {
-  RangeMobility empty_im_range;
+  OpenMS::RangeMobility empty_im_range;
   SpectrumSequence sptr = prepareSpectrumSequence();
   MockMRMFeature * imrmfeature_test = new MockMRMFeature();
   getMRMFeatureTest(imrmfeature_test);
@@ -471,7 +471,7 @@ END_SECTION
 START_SECTION([EXTRA] backward with IM void dia_isotope_scores(const std::vector<TransitionType> & transitions, std::vector<SpectrumType> spectrum, OpenSwath::IMRMFeature * mrmfeature, int putative_fragment_charge, const RangeMobility& im_range, double & isotope_corr, double & isotope_overlap))
 {
   // IM range from 2-4
-  RangeMobility im_range(3);
+  OpenMS::RangeMobility im_range(3);
   im_range.minSpanIfSingular(2);
 
   SpectrumSequence sptr = prepareIMSpectrumSequence();
@@ -503,7 +503,7 @@ END_SECTION
 
 START_SECTION ( void dia_isotope_scores(const std::vector< TransitionType > &transitions, std::vector<SpectrumType> spectrum, OpenSwath::IMRMFeature *mrmfeature, const RangeMobility& im_range, double &isotope_corr, double &isotope_overlap) )
 {
-  RangeMobility empty_im_range;
+  OpenMS::RangeMobility empty_im_range;
   SpectrumSequence sptr = prepareSpectrumSequence();
 
   MockMRMFeature * imrmfeature_test = new MockMRMFeature();
@@ -528,7 +528,7 @@ END_SECTION
 
 START_SECTION ( [EXTRA] with IM void dia_isotope_scores(const std::vector< TransitionType > &transitions, std::vector<SpectrumType> spectrum, OpenSwath::IMRMFeature *mrmfeature, const RangeMobility& im_range, double &isotope_corr, double &isotope_overlap) )
 {
-  RangeMobility im_range(3);
+  OpenMS::RangeMobility im_range(3);
   im_range.minSpanIfSingular(2);
   SpectrumSequence sptr = prepareIMSpectrumSequence();
 
@@ -560,7 +560,7 @@ START_SECTION(void dia_ms1_isotope_scores(double precursor_mz, std::vector<Spect
   DIAScoring diascoring;
   diascoring.setParameters(p_dia);
 
-  RangeMobility empty_im_range;
+  OpenMS::RangeMobility empty_im_range;
 
   // Check for charge 1+ and m/z at 500
   {
@@ -622,7 +622,7 @@ START_SECTION([EXTRA] with IM void dia_ms1_isotope_scores(double precursor_mz, s
   diascoring.setParameters(p_dia);
 
   // IM range 2-4
-  RangeMobility im_range(3);
+  OpenMS::RangeMobility im_range(3);
   im_range.minSpanIfSingular(2);
 
   // Check for charge 1+ and m/z at 500
@@ -682,7 +682,7 @@ START_SECTION (void dia_massdiff_score(const std::vector< TransitionType > &tran
 {
   SpectrumSequence sptr = prepareShiftedSpectrum();
 
-  RangeMobility empty_im_range;
+  OpenMS::RangeMobility empty_im_range;
   MockMRMFeature * imrmfeature_test = new MockMRMFeature();
   getMRMFeatureTest(imrmfeature_test);
   delete imrmfeature_test;
@@ -712,7 +712,7 @@ START_SECTION ([EXTRA] with IM void dia_massdiff_score(const std::vector< Transi
   SpectrumSequence sptr = prepareShiftedSpectrumIM();
 
   // IM range from 2-4
-  RangeMobility im_range(3);
+  OpenMS::RangeMobility im_range(3);
   im_range.minSpanIfSingular(2);
 
 
@@ -744,7 +744,7 @@ START_SECTION ( bool DIAScoring::dia_ms1_massdiff_score(double precursor_mz, tra
 {
   SpectrumSequence sptr = prepareShiftedSpectrum();
   DIAScoring diascoring;
-  RangeMobility empty_imRange;
+  OpenMS::RangeMobility empty_imRange;
   diascoring.setParameters(p_dia_large);
   double ppm_score = 0;
 
@@ -765,7 +765,7 @@ START_SECTION ( [EXTRA] with IM bool DIAScoring::dia_ms1_massdiff_score(double p
   DIAScoring diascoring;
 
   // im_range 2-4
-  RangeMobility imRange(3);
+  OpenMS::RangeMobility imRange(3);
   imRange.minSpanIfSingular(2);
   diascoring.setParameters(p_dia_large);
   double ppm_score = 0;
@@ -789,7 +789,7 @@ START_SECTION ( void dia_by_ion_score(std::vector<SpectrumType> spectrum, AASequ
   OpenSwath::BinaryDataArrayPtr data1 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
   OpenSwath::BinaryDataArrayPtr data2 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
 
-  RangeMobility empty_imRange;
+  OpenMS::RangeMobility empty_imRange;
   std::vector<double> intensity(6, 100);
   std::vector<double> mz {
     // four of the naked b/y ions
@@ -854,7 +854,7 @@ START_SECTION( void score_with_isotopes(std::vector<SpectrumType> spectrum, cons
 
   DIAScoring diascoring;
   diascoring.setParameters(p_dia);
-  RangeMobility empty_imRange;
+  OpenMS::RangeMobility empty_imRange;
 
   double dotprod, manhattan;
   diascoring.score_with_isotopes(sptr,transitions, empty_imRange, dotprod,manhattan);
@@ -888,7 +888,7 @@ START_SECTION( [EXTRA] with IM void score_with_isotopes(std::vector<SpectrumType
   diascoring.setParameters(p_dia);
 
   // im range from 2-4
-  RangeMobility imRange(3);
+  OpenMS::RangeMobility imRange(3);
   imRange.minSpanIfSingular(2);
 
   double dotprod, manhattan;

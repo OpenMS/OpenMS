@@ -173,7 +173,7 @@ protected:
         swath_map);
       OpenSwath::IDataFrameWriter* dfw = new OpenSwath::CSVWriter(fname);
       OpenMS::DiaPrescore dp;
-      RangeMobility im_range; // create empty IM range object
+      OpenMS::RangeMobility im_range; // create empty IM range object
       dp.operator()(spectrumAccess, transition_exp_used, im_range, dfw); //note IM not supported here yet
       delete dfw;
     }         //end of for loop

@@ -146,7 +146,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
                                                               double RT, int nr_spectra_to_add, RangeMobility im_range)))
 {
 
-  RangeMobility im_range_empty; // use this empty im range as input for all examples
+  OpenMS::RangeMobility im_range_empty; // use this empty im range as input for all examples
   // test result for empty map
   {
     boost::shared_ptr<PeakMap > swath_map (new PeakMap);
@@ -324,7 +324,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
 {
 
   // im range from 2-4
-  RangeMobility im_range(3); // use this empty im range as input for all examples
+  OpenMS::RangeMobility im_range(3); // use this empty im range as input for all examples
   im_range.minSpanIfSingular(2); //
 
 

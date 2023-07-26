@@ -46,12 +46,11 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 
 #include <vector>
-
-class RangeMobility;
-class RangeMZ;
-
 namespace OpenMS
 {
+
+  class RangeMobility;
+  class RangeMZ;
 
   /** @brief A class that calls the ion mobility scoring routines
    *

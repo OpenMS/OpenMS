@@ -37,12 +37,10 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 #include <vector>
-
-class RangeMZ;
-class RangeMobility;
-
 namespace OpenMS
 {
+  class RangeMZ;
+  class RangeMobility;
   class TheoreticalSpectrumGenerator;
   namespace DIAHelpers
   {

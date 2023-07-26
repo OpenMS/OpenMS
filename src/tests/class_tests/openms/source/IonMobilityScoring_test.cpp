@@ -229,7 +229,7 @@ START_SECTION(([EXTRA]
   OpenSwath_Scores scores;
 
   double drift_target = 1.0;
-  RangeMobility im_range_1(1.0);
+  OpenMS::RangeMobility im_range_1(1.0);
   im_range_1.minSpanIfSingular(1.);
   double im_drift_extra_pcnt_ = 0.25;
 
@@ -300,7 +300,7 @@ START_SECTION(([EXTRA]
   // Test #4: deal with exactly one entry in mobilogram
   dia_extract_window_ = 0.3;
   drift_target = 1.05;
-  RangeMobility im_range_2(drift_target);
+  OpenMS::RangeMobility im_range_2(drift_target);
   im_range_2.minSpanIfSingular(0.1);
   IonMobilityScoring::driftScoring(sptrArr2, transitions, scores,
                                    drift_target, im_range_2,
@@ -316,7 +316,7 @@ START_SECTION(([EXTRA]
 
   // Test #5: deal with one zero transitions
   dia_extract_window_ = 0.3;
-  RangeMobility im_range_3;
+  OpenMS::RangeMobility im_range_3;
   im_range_3.setMin(1.0);
   im_range_3.setMax(1.3);
   drift_target = 1.1;
@@ -334,7 +334,7 @@ START_SECTION(([EXTRA]
 
   // Test #6: deal with all-zero transitions
   // IM range from 2.5 to 3.5
-  RangeMobility im_range_4(3.0);
+  OpenMS::RangeMobility im_range_4(3.0);
   im_range_4.minSpanIfSingular(1.);
 
   IonMobilityScoring::driftScoring(sptrArr2, transitions, scores,
@@ -367,7 +367,7 @@ START_SECTION([EXTRA]
 
   // IM range from 0.5 to 1.5
   double drift_target = 1.0;
-  RangeMobility im_range(drift_target);
+  OpenMS::RangeMobility im_range(drift_target);
   im_range.minSpanIfSingular(1.);
   double im_drift_extra_pcnt_ = 0.25;
 
@@ -431,7 +431,7 @@ START_SECTION(([EXTRA]
   OpenSwath_Scores scores;
 
   // IM from 0.5 to 1.5
-  RangeMobility im_range_1(1);
+  OpenMS::RangeMobility im_range_1(1);
   im_range_1.minSpanIfSingular(1.);
   double im_drift_extra_pcnt_ = 0.25;
 
@@ -514,7 +514,7 @@ START_SECTION(([EXTRA]
   dia_extract_window_ = 0.3;
 
   // IM Span from 1.0 to 1.1
-  RangeMobility im_range_2(1.05);
+  OpenMS::RangeMobility im_range_2(1.05);
   im_range_2.minSpanIfSingular(0.1);
 
   IonMobilityScoring::driftScoringMS1Contrast(sptrArr_3, sptrArrMS1_3, transitions, scores,
@@ -530,7 +530,7 @@ START_SECTION(([EXTRA]
   // deal with one zero transitions
   dia_extract_window_ = 0.3;
   //Im Span from 1.0 to 1.3
-  RangeMobility im_range_3(1.15);
+  OpenMS::RangeMobility im_range_3(1.15);
   im_range_3.minSpanIfSingular(0.3);
   IonMobilityScoring::driftScoringMS1Contrast(sptrArr_3, sptrArrMS1_3, transitions, scores,
                                    im_range_3,
@@ -544,7 +544,7 @@ START_SECTION(([EXTRA]
 
   // deal with all-zero transitions
   // IM span from 2.5 to 3.5
-  RangeMobility im_range_4(3.);
+  OpenMS::RangeMobility im_range_4(3.);
   im_range_4.minSpanIfSingular(1.);
 
   IonMobilityScoring::driftScoringMS1Contrast(sptrArr_3, sptrArrMS1_3, transitions, scores,
