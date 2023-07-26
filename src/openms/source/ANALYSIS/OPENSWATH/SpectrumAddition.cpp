@@ -37,40 +37,38 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <numeric> // std::iota
 
 namespace OpenMS
 {
 
-  void sortSpectrumByMZ(OpenSwath::Spectrum& spec)
+  void SpectrumAddition::sortSpectrumByMZ(OpenSwath::Spectrum& spec)
   {
-    //sort index list
-    std::vector<std::pair<double, Size> > sorted_indices;
-    sorted_indices.reserve(spec.getMZArray()->data.size());
-    auto mz_it = spec.getMZArray()->data.begin();
-    for (Size i = 0; i < spec.getMZArray()->data.size(); ++i)
-    {
-      sorted_indices.emplace_back(*mz_it, i);
-      ++mz_it;
-    }
-    std::stable_sort(sorted_indices.begin(), sorted_indices.end());
+    // Based off of https://stackoverflow.com/questions/1577475/c-sorting-and-keeping-track-of-indexes/43922758#43922758
 
-    // extract list of indices
-    std::vector<Size> select_indices;
-    select_indices.reserve(sorted_indices.size());
-    for (const auto& sidx : sorted_indices)
-    {
-      select_indices.push_back(sidx.second);
-    }
+    //initialize
+    //std::vector<std::pair<double, Size> > sorted_indices;
+    std::vector<size_t> sorted_indices(spec.getMZArray()->data.size());
+    std::iota(sorted_indices.begin(), sorted_indices.end(), 0);
 
+    // sort indexes based on comparing values in v
+    // using std::stable_sort instead of std::sort
+    // to avoid unnecessary index re-orderings
+    // when v contains elements of equal values
+    auto mzArr = spec.getMZArray()->data.begin();
+    std::stable_sort(sorted_indices.begin(), sorted_indices.end(),
+       [mzArr](size_t i1, size_t i2) {return mzArr[i1] < mzArr[i2];});
+
+    // apply sorting across all arrays
     for (auto& da : spec.getDataArrays() )
     {
       if (da->data.empty()) continue;
       OpenSwath::BinaryDataArrayPtr tmp(new OpenSwath::BinaryDataArray);
       tmp->description = da->description;
-      tmp->data.reserve(select_indices.size());
-      for (Size i = 0; i < select_indices.size(); ++i)
+      tmp->data.reserve(sorted_indices.size());
+      for (Size i = 0; i < sorted_indices.size(); ++i)
       {
-        tmp->data.push_back( da->data[ select_indices[i] ] );
+        tmp->data.push_back( da->data[ sorted_indices[i] ] );
       }
       da = tmp;
     }

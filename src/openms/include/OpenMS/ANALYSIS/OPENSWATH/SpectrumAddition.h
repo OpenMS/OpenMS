@@ -76,6 +76,8 @@ public:
                                            double sampling_rate,
                                            bool filter_zeros);
 
+    // sorts a spectrumPtr object by mz
+    static void sortSpectrumByMZ(OpenSwath::Spectrum&);
   };
 }
 
