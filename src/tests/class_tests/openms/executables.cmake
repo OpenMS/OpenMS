@@ -241,6 +241,7 @@ set(format_executables_list
   OSWFile_test
   PTMXMLFile_test
   ParamCTDFile_test
+  ParamCWLFile_test
   ParamXMLFile_test
   PeakFileOptions_test
   PeakTypeEstimator_test
@@ -248,6 +249,7 @@ set(format_executables_list
   PepNovoOutfile_test
   PepXMLFileMascot_test
   PepXMLFile_test
+  PercolatorInfile_test
   PercolatorOutfile_test
   ProtXMLFile_test
   SVOutStream_test

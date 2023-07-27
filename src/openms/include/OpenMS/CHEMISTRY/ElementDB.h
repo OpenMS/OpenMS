@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 #include <map>
+#include <memory>
 #include <unordered_map>
 #include <string>
 
@@ -147,7 +148,7 @@ protected:
     void buildElement_(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
     /// add element objects to documentation maps
-    void addElementToMaps_(const std::string& name, const std::string& symbol, const unsigned int an, const Element* e);
+    void addElementToMaps_(const std::string& name, const std::string& symbol, const unsigned int an, std::unique_ptr<const Element> e);
 
     /// constructs isotope objects
     void storeIsotopes_(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& Z_to_mass, const IsotopeDistribution& isotopes);

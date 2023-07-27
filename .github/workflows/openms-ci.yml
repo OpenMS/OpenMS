@@ -24,11 +24,12 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        version: '5.12.6' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715
+        version: '5.15.2' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715, > 5.15.2 is not available on official archives (https://github.com/miurahr/aqtinstall/issues/636)
         host: 'windows' # default: win64_msvc2017_64
         target: 'desktop'
         install-deps: 'true'
         cache: 'false'
+        aqtversion: '==3.1.*'
 
     # https://github.com/marketplace/actions/visual-studio-shell
     - name: Set up Visual Studio shell
@@ -105,7 +106,7 @@ jobs:
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
           ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
       env:
-          #OS_PREFIX_PATH: "${{ env.Qt5_Dir }}/lib/cmake;${{ env.Qt5_Dir }}"
+          #OS_PREFIX_PATH: "${{ env.Qt5_DIR }}/lib/cmake;${{ env.Qt5_DIR }}"
           CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Ninja"
@@ -178,12 +179,13 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        version: '5.12.7'
+        version: '5.15.2' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715, > 5.15.2 is not available on official archives (https://github.com/miurahr/aqtinstall/issues/636)
         host: 'mac'
         target: 'desktop'
         install-deps: 'true'
         cache: 'false'
         setup-python: 'false' # see https://github.com/jurplel/install-qt-action/issues/130
+        aqtversion: '==3.1.*'
 
     - name: Install build tools
       run: brew install autoconf automake libtool ninja
@@ -213,17 +215,18 @@ jobs:
           done
 
           # create symlinks like brew https://github.com/Homebrew/homebrew-core/blob/master/Formula/qt.rb#L61
-          pushd $Qt5_Dir/include
-            for f in $Qt5_Dir/lib/*.framework/Headers
+          # Warning: Qt5_DIR will change meaning in the new jurplel/install-qt-action. Use QT_ROOT_DIR instead
+          # https://github.com/jurplel/install-qt-action/blob/master/README_upgrade_guide.md
+          pushd $Qt5_DIR/include
+            for f in $Qt5_DIR/lib/*.framework/Headers
             do
               lnknm=$(basename "${f%/*}" ".framework")
               ln -s $f $lnknm
             done
-            for f in $Qt5_Dir/lib/*.framework/Versions/5/Qt*
+            for f in $Qt5_DIR/lib/*.framework/Versions/5/Qt*
             do
               install_name_tool -id $f $f
             done
-            otool -L /Users/runner/work/OpenMS/Qt/5.12.7/clang_64/lib/QtCore.framework/Versions/5/QtCore
           popd
 
     - name: Add THIRDPARTY
@@ -459,7 +462,7 @@ jobs:
             mkdir $GITHUB_WORKSPACE/OpenMS/bld/
             ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
       env:
-          OS_PREFIX_PATH: "${{ env.Qt5_Dir }}/lib/cmake;${{ env.Qt5_Dir }}"
+          OS_PREFIX_PATH: "${{ env.Qt5_DIR }}/lib/cmake;${{ env.Qt5_DIR }}"
           CONTRIB_BUILD_DIRECTORY: "/contrib-build"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Ninja"

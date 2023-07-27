@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -130,6 +130,9 @@ START_SECTION(DRange(CoordinateType minx, CoordinateType miny, CoordinateType ma
 	TEST_REAL_SIMILAR(r2.minPosition()[1],2.0f);
 	TEST_REAL_SIMILAR(r2.maxPosition()[0],3.0f);
 	TEST_REAL_SIMILAR(r2.maxPosition()[1],4.0f);
+  DRange<2> r {2, 3, -2, -3}; // min > max
+  TEST_EQUAL(r.minPosition(), DPosition<2>(-2, -3))
+  TEST_EQUAL(r.maxPosition(), DPosition<2>(2, 3))
 END_SECTION
 
 START_SECTION(bool operator == (const DRange& rhs) const )
@@ -429,6 +432,38 @@ p2[1]=4.0f;
   TEST_REAL_SIMILAR(other.maxPosition()[0], 5.0f);
 END_SECTION
 
+START_SECTION(DRange<D>& extend(typename Base::PositionType addition))
+  DRange<2> r(p1, p2);
+  /*
+  p1[0]=-1.0f;
+  p1[1]=-2.0f;
+  p2[0]=3.0f;
+  p2[1]=4.0f;
+  */
+  auto other = r.extend({2.0, 3.0});
+  TEST_REAL_SIMILAR(r.minPosition()[0], -2.0f);
+  TEST_REAL_SIMILAR(r.maxPosition()[0], 4.0f);
+  TEST_REAL_SIMILAR(r.minPosition()[1], -3.5f);
+  TEST_REAL_SIMILAR(r.maxPosition()[1], 5.5f);
+  TEST_REAL_SIMILAR(other.minPosition()[0], -2.0f);
+  TEST_REAL_SIMILAR(other.maxPosition()[0], 4.0f);
+
+  // test shrinking to a single point
+  r.extend({-200.0, 0.0});
+  TEST_REAL_SIMILAR(r.minPosition()[0], 1.0f);
+  TEST_REAL_SIMILAR(r.maxPosition()[0], 1.0f);
+  TEST_REAL_SIMILAR(r.minPosition()[1], -3.5f);
+  TEST_REAL_SIMILAR(r.maxPosition()[1], 5.5f);
+END_SECTION
+
+START_SECTION(DRange<D>& ensureMinSpan(typename  Base::PositionType min_span))
+  DRange<2> r(-0.1, 10, 0.1, 20);
+  r.ensureMinSpan({1.0, 3.0});
+  TEST_REAL_SIMILAR(r.minPosition()[0], -0.5f);
+  TEST_REAL_SIMILAR(r.maxPosition()[0], 0.5f);
+  TEST_REAL_SIMILAR(r.minPosition()[1], 10.0f);
+  TEST_REAL_SIMILAR(r.maxPosition()[1], 20.0f);
+END_SECTION
 
 START_SECTION(DRange<D>& swapDimensions())
 	DRange<2> r(p1, p2);

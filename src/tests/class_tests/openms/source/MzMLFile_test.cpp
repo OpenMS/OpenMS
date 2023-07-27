@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1048,7 +1048,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
     //this will be set when writing (forced by mzML)
     empty[0].setNativeID("spectrum=0");
     empty[0].getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
-    empty[0].getDataProcessing().push_back( DataProcessingPtr(new DataProcessing) );
+    empty[0].getDataProcessing().emplace_back( new DataProcessing() );
     empty[0].getDataProcessing()[0]->getProcessingActions().insert(DataProcessing::CONVERSION_MZML);
     empty[0].getAcquisitionInfo().setMethodOfCombination("no combination");
     empty[0].getAcquisitionInfo().resize(1);

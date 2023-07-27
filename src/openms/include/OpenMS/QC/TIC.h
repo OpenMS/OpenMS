@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,19 +62,18 @@ namespace OpenMS
     virtual ~TIC() = default;
 
     // stores TIC values calculated by compute function
-    struct OPENMS_DLLAPI Result
-    {
-      std::vector<UInt> intensities;  // TIC intensities
+    struct OPENMS_DLLAPI Result {
+      std::vector<UInt> intensities; // TIC intensities
       std::vector<float> relative_intensities;
       std::vector<float> retention_times; // TIC RTs in seconds
-      UInt area = 0;  // Area under TIC
-      UInt fall = 0;  // MS1 signal fall (10x) count
-      UInt jump = 0;  // MS1 signal jump (10x) count
+      UInt area = 0;                      // Area under TIC
+      UInt fall = 0;                      // MS1 signal fall (10x) count
+      UInt jump = 0;                      // MS1 signal jump (10x) count
 
       bool operator==(const Result& rhs) const;
     };
 
-    
+
     /**
     @brief Compute Total Ion Count and applies the resampling algorithm, if a bin size in RT seconds greater than 0 is given.
 
@@ -90,9 +89,9 @@ namespace OpenMS
 
     const String& getName() const override;
 
-    const std::vector<MSChromatogram>& getResults() const ;
+    const std::vector<MSChromatogram>& getResults() const;
 
-    QCBase::Status requires() const override;
+    QCBase::Status requirements() const override;
 
     /// append QC data for given metrics to mzTab's MTD section
     void addMetaDataMetricsToMzTab(MzTabMetaData& meta, std::vector<Result>& tics);
@@ -100,4 +99,4 @@ namespace OpenMS
   private:
     const String name_ = "TIC";
   };
-}
+} // namespace OpenMS

@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -352,7 +352,7 @@ if (APPLE) ## On APPLE use our script because the executables' install_names nee
   add_custom_command(
     TARGET prepare_knime_payload_libs POST_BUILD
     COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH} -f -e "@rpath" -n
-    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_TP_BIN_PATH} -f -e "@rpath" -n
+    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${TP_PAYLOAD_BIN_PATH} -f -e "@rpath" -n
   ) # -p ${PAYLOAD_LIB_PATH}/plugins not applicable for now
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD

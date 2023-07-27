@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -28,26 +28,40 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche $
+# $Maintainer: Chris Bielow $
+# $Authors: Stephan Aiche, Chris Bielow $
 # --------------------------------------------------------------------------
 
 project("OpenMS-3rd-party-libs")
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 
 # evergreen Bayesian inference library (0.9)
 add_subdirectory(evergreen/src)
 
-## Note these libraries will not be compiled
-## but we only expose their sources
+option(USE_EXTERNAL_JSON "Use an external NLohmann::json library" OFF)
+message(STATUS "Option USE_EXTERNAL_JSON: ${USE_EXTERNAL_JSON}")
+if(USE_EXTERNAL_JSON)
+    find_package(nlohmann_json REQUIRED GLOBAL)  ## global propagates the target up to the parent project
+    message(STATUS "External 'NLohmann::json' at: '${nlohmann_json_DIR}'")
+else()
+    set(JSON_BuildTests OFF CACHE INTERNAL "")
+    add_subdirectory(nlohmann_json)
+endif()
 
-# eol-bspline lib
+option(USE_EXTERNAL_SQLITECPP "Use an external SQLiteCpp library" OFF)
+message(STATUS "Option USE_EXTERNAL_SQLITECPP: ${USE_EXTERNAL_SQLITECPP}")
+if(USE_EXTERNAL_SQLITECPP)
+    find_package(SQLiteCpp REQUIRED GLOBAL)      ## global propagates the target up to the parent project
+    message(STATUS "External 'SQLiteCpp' at: '${SQLiteCpp_DIR}'")
+else()
+    add_subdirectory(SQLiteCpp)
+endif()
+
+
 add_subdirectory(eol-bspline)
 add_subdirectory(IsoSpec)
-add_subdirectory(json)
 add_subdirectory(GTE)
 add_subdirectory(simde)
-add_subdirectory(SQLiteCpp)
 add_subdirectory(Quadtree)
 
 

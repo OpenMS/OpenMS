@@ -58,6 +58,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         void setSpectra(libcpp_vector[ MSSpectrum ] & spectra) nogil except +
         libcpp_vector[MSSpectrum] getSpectra() nogil except +
         void get2DPeakData(double min_rt, double max_rt, double min_mz, double max_mz, libcpp_vector[float] & rt, libcpp_vector[float] & mz, libcpp_vector[float] & intensity) nogil except + # wrap-ignore
+        void get2DPeakDataIon(double min_rt, double max_rt, double min_mz, double max_mz, libcpp_vector[float] & rt, libcpp_vector[float] & mz, libcpp_vector[float] & intensity, libcpp_vector[float] & ion_mobility) nogil except + # wrap-ignore
 
         # COMMENT: Chromatogram functions
         MSChromatogram getChromatogram(Size id_) nogil except + # wrap-ignore

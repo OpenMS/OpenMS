@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -79,63 +79,63 @@ DeconvolvedSpectrum deconv_spec1(1);
 deconv_spec1.setOriginalSpectrum(sample_spec);
 
 PeakGroup tmp_pg = PeakGroup(15, 18, true);
-auto p1 = new Peak1D(1000.8455675085044, 8347717.5);
-FLASHDeconvHelperStructs::LogMzPeak tmp_p1(*p1, true);
+Peak1D p1(1000.8455675085044, 8347717.5);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p1(p1, true);
 tmp_p1.abs_charge = 18;
 tmp_p1.isotopeIndex = 8;
 
-p1 = new Peak1D(1000.9013094439375, 10087364);
-FLASHDeconvHelperStructs::LogMzPeak tmp_p2(*p1, true);
+p1 = Peak1D(1000.9013094439375, 10087364);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p2(p1, true);
 tmp_p2.abs_charge = 18;
 tmp_p2.isotopeIndex = 9;
 
-p1 = new Peak1D(1000.9570513793709, 11094268);
-FLASHDeconvHelperStructs::LogMzPeak tmp_p3(*p1, true);
+p1 = Peak1D(1000.9570513793709, 11094268);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p3(p1, true);
 tmp_p3.abs_charge = 18;
 tmp_p3.isotopeIndex = 10;
 
-p1 = new Peak1D(1001.0127933148044, 11212854);
-FLASHDeconvHelperStructs::LogMzPeak tmp_p4(*p1, true);
+p1 = Peak1D(1001.0127933148044, 11212854);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p4(p1, true);
 tmp_p4.abs_charge = 18;
 tmp_p4.isotopeIndex = 11;
 
-p1 = new Peak1D(1001.0685352502376, 10497022);
-FLASHDeconvHelperStructs::LogMzPeak tmp_p5(*p1, true);
+p1 = Peak1D(1001.0685352502376, 10497022);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p5(p1, true);
 tmp_p5.abs_charge = 18;
 tmp_p5.isotopeIndex = 12;
 
-p1 = new Peak1D(1001.124277185671, 9162559);
-FLASHDeconvHelperStructs::LogMzPeak tmp_p6(*p1, true);
+p1 = Peak1D(1001.124277185671, 9162559);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p6(p1, true);
 tmp_p6.abs_charge = 18;
 tmp_p6.isotopeIndex = 13;
 
-p1 = new Peak1D(1059.6595846286061, 8347717.5);
-FLASHDeconvHelperStructs::LogMzPeak tmp_p7(*p1, true);
+p1 = Peak1D(1059.6595846286061, 8347717.5);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p7(p1, true);
 tmp_p7.abs_charge = 17;
 tmp_p7.isotopeIndex = 8;
 
-p1 = new Peak1D(1059.7186055014179, 10087364);
-FLASHDeconvHelperStructs::LogMzPeak tmp_p8(*p1, true);
+p1 = Peak1D(1059.7186055014179, 10087364);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p8(p1, true);
 tmp_p8.abs_charge = 17;
 tmp_p8.isotopeIndex = 9;
 
-p1 = new Peak1D(1059.7776263742296, 11094268);
-FLASHDeconvHelperStructs::LogMzPeak tmp_p9(*p1, true);
+p1 = Peak1D(1059.7776263742296, 11094268);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p9(p1, true);
 tmp_p9.abs_charge = 17;
 tmp_p9.isotopeIndex = 10;
 
-p1 = new Peak1D(1059.8366472470416, 11212854);
-FLASHDeconvHelperStructs::LogMzPeak tmp_p10(*p1, true);
+p1 = Peak1D(1059.8366472470416, 11212854);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p10(p1, true);
 tmp_p10.abs_charge = 17;
 tmp_p10.isotopeIndex = 11;
 
-p1 = new Peak1D(1059.8956681198531, 10497022);
-FLASHDeconvHelperStructs::LogMzPeak tmp_p11(*p1, true);
+p1 = Peak1D(1059.8956681198531, 10497022);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p11(p1, true);
 tmp_p11.abs_charge = 17;
 tmp_p11.isotopeIndex = 12;
 
-p1 = new Peak1D(1059.9546889926651, 9162559);
-FLASHDeconvHelperStructs::LogMzPeak tmp_p12(*p1, true);
+p1 = Peak1D(1059.9546889926651, 9162559);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p12(p1, true);
 tmp_p12.abs_charge = 17;
 tmp_p12.isotopeIndex = 13;
 
@@ -151,7 +151,6 @@ tmp_pg.push_back(tmp_p9);
 tmp_pg.push_back(tmp_p10);
 tmp_pg.push_back(tmp_p11);
 tmp_pg.push_back(tmp_p12);
-tmp_pg.updateMonomassAndIsotopeIntensities();
 deconv_spec1.push_back(tmp_pg);
 
 sample_spec.setRT(55.0);
