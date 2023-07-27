@@ -35,6 +35,17 @@
 project("OpenMS-3rd-party-libs")
 cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 
+function(cat IN_FILE OUT_FILE)
+    file(READ ${IN_FILE} CONTENTS)
+    file(APPEND ${OUT_FILE} "${CONTENTS}")
+endfunction()
+
+# Prepare a temporary file to "cat" to:
+set(TPLICENSEFILE ${OPENMS_HOST_BINARY_DIRECTORY}/thirdparty_licenses.txt)
+file(WRITE ${TPLICENSEFILE} "The OpenMS library links statically to the following libraries with the following licenses:\n")
+## TODO install it somewhere? Append to main license to show in installer?
+##  At least we can use it in conda-forge after configuration
+
 # evergreen Bayesian inference library (0.9)
 add_subdirectory(evergreen/src)
 
@@ -56,7 +67,6 @@ if(USE_EXTERNAL_SQLITECPP)
 else()
     add_subdirectory(SQLiteCpp)
 endif()
-
 
 add_subdirectory(eol-bspline)
 add_subdirectory(IsoSpec)

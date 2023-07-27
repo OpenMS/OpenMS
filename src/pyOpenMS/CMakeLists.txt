@@ -408,7 +408,7 @@ endif()
 if (OpenMP_FOUND)
   list(APPEND INCLUDE_DIRS_EXTEND ${OpenMP_CXX_INCLUDE_DIR})
 # Unfortunately this does not work, since CMake somehow calls the library on macOS "libomp".
-# Althought the library name should clearly be just "omp". We do it manually in setup.py now.
+# Although the library name should clearly be just "omp". We do it manually in setup.py now.
 # Might need regular updates..
 # foreach(LIB ${OpenMP_CXX_LIB_NAMES}) # such as gomp, pthreads, omp, ...
 #   list(APPEND LIBRARIES_EXTEND ${LIB})
