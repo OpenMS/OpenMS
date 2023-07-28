@@ -45,21 +45,22 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <algorithm>
-#include <iterator>
-#include <cmath>
-#include <vector>
-
-#include <simde/x86/ssse3.h>
-#include <simde/x86/sse2.h>
-#include <simde/x86/sse.h>
 
 #include <QByteArray>
 #include <zlib.h>
 
-
-#include <string>
+#include <algorithm>
+#include <array>
+#include <cmath>
 #include <iostream>
+#include <iterator>
+#include <string>
+#include <vector>
+
+
+#include <simde/x86/ssse3.h>
+#include <simde/x86/sse2.h>
+#include <simde/x86/sse.h>
 
 #ifdef OPENMS_COMPILER_MSVC
 #pragma comment(linker, "/export:compress")
@@ -191,17 +192,15 @@ private:
     };
 
     
-     const simde__m128i mask1_ = simde_mm_set1_epi32(0x3F000000);//00111111 00000000 00000000 00000000
-     const simde__m128i mask2_ = simde_mm_set1_epi32(0x003F0000);//00000000 00111111 00000000 00000000
-     const simde__m128i mask3_ = simde_mm_set1_epi32(0x00003F00);//00000000 00000000 00111111 00000000
-     const simde__m128i mask4_ = simde_mm_set1_epi32(0x0000003F);//00000000 00000000 00000000 00111111
+    const simde__m128i mask1_ = simde_mm_set1_epi32(0x3F000000);//00111111 00000000 00000000 00000000
+    const simde__m128i mask2_ = simde_mm_set1_epi32(0x003F0000);//00000000 00111111 00000000 00000000
+    const simde__m128i mask3_ = simde_mm_set1_epi32(0x00003F00);//00000000 00000000 00111111 00000000
+    const simde__m128i mask4_ = simde_mm_set1_epi32(0x0000003F);//00000000 00000000 00000000 00111111
 
-     const simde__m128i mask1d_ = simde_mm_set1_epi32(0xFF000000);//00111111 00000000 00000000 00000000
-     const simde__m128i mask2d_ = simde_mm_set1_epi32(0x00FF0000);//00000000 00111111 00000000 00000000
-     const simde__m128i mask3d_ = simde_mm_set1_epi32(0x0000FF00);//00000000 00000000 00111111 00000000
-     const simde__m128i mask4d_ = simde_mm_set1_epi32(0x000000FF);//00000000 00000000 00000000 00111111
-
-
+    const simde__m128i mask1d_ = simde_mm_set1_epi32(0xFF000000); // 11111111 00000000 00000000 00000000
+    const simde__m128i mask2d_ = simde_mm_set1_epi32(0x00FF0000); // 00000000 11111111 00000000 00000000
+    const simde__m128i mask3d_ = simde_mm_set1_epi32(0x0000FF00); // 00000000 00000000 11111111 00000000
+    const simde__m128i mask4d_ = simde_mm_set1_epi32(0x000000FF); // 00000000 00000000 00000000 11111111
 
     //difference between base64 encoding and ascii encoding, used to cast from base64 binaries to characters
     
@@ -273,6 +272,21 @@ private:
            ((n << 56) & 0xFF00000000000000);
   }
   //TODO: add simd registerwise endianizer
+
+
+  inline simde__m128i operator|(const simde__m128i& left, const simde__m128i& right)
+  {
+    return simde_mm_or_si128(left, right);
+  }
+  inline simde__m128i& operator|=(simde__m128i& left, const simde__m128i& right)
+  {
+    left = simde_mm_or_si128(left, right);
+    return left;
+  }
+  inline simde__m128i operator&(const simde__m128i left, const simde__m128i& right)
+  {
+    return simde_mm_and_si128(left, right);
+  }
 
   ///encode the first 12 bytes of a 128 bit simde integer type to base64
   void Base64::registerEncoder_(simde__m128i &data)
@@ -413,7 +427,7 @@ private:
   void Base64::stringSimdDecoder_(const std::string & in, std::string & out)
   {
     out.clear();
-    out.resize((in.size() / 4) * 3);
+    //out.resize((in.size() / 4) * 3);
     const char* inPtr = &in[0];
 
     //padding count:
@@ -617,7 +631,7 @@ private:
   }
 
   template <typename ToType>
-  void Base64::decodeUncompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
+  void Base64::decodeUncompressed_(const String& in, ByteOrder /*from_byte_order*/ , std::vector<ToType>& out)  // TODO byte order not needed?
   {
     out.clear();
 
@@ -640,13 +654,6 @@ private:
 
     src_size -= padding;
 
-    UInt a;
-    UInt b;
-
-    UInt offset = 0;
-    int inc = 1;
-    UInt written = 0;
-
     const Size element_size = sizeof(ToType);
     Base64 unit;
     String s;
@@ -654,9 +661,6 @@ private:
     const char* cptr = s.data();
     const ToType * fptr = reinterpret_cast<const ToType*>(cptr);
     out.assign(fptr,fptr+s.size()/element_size);
-
-    
-
   }
 
   template <typename FromType>
