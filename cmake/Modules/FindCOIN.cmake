@@ -43,21 +43,24 @@ include(${CMAKE_CURRENT_LIST_DIR}/SelectLibraryConfigurations.cmake)
 set(COIN_ROOT_DIR "" CACHE PATH "COIN root directory")
 
 # find for vcpkg
-find_path(COIN_INCLUDE_DIR coin-or/CoinUtilsConfig.h
-        HINTS
-        ${COIN_ROOT_DIR}/include
-        )
+find_path(COIN_VCPKG_INCLUDE_DIR coin-or/CoinUtilsConfig.h
+  HINTS
+  ${COIN_ROOT_DIR}/include
+)
 
-if (NOT COIN_INCLUDE_DIR)
-  # find the coin include directory from contrib or system
-  find_path(COIN_INCLUDE_DIR coin-or/CoinUtilsConfig.h coin/CoinUtilsConfig.h coinutils/coin/CoinUtilsConfig.h
-          HINTS
-          ${COIN_ROOT_DIR}/include
-          )
-  if (COIN_INCLUDE_DIR)
-    set(CF_COIN_INCLUDE_SUBDIR_DEF 1 CACHE BOOL "If the subdir for including coin-or headers is coin (1) or coin-or (undefined).")
-  endif()
-endif()
+# find for contrib and system
+find_path(COIN_SYS_INCLUDE_DIR coin/CoinUtilsConfig.h coinutils/coin/CoinUtilsConfig.h
+  HINTS
+  ${COIN_ROOT_DIR}/include
+)
+
+if (COIN_SYS_INCLUDE_DIR)
+  set(COIN_INCLUDE_DIR ${COIN_SYS_INCLUDE_DIR})
+  set(CF_COIN_INCLUDE_SUBDIR_IS_COIN 1 CACHE BOOL "If the subdir for including coin-or headers is coin (1) or coin-or (undefined).")
+elseif (COIN_VCPKG_INCLUDE_DIR)
+  set(COIN_INCLUDE_DIR ${COIN_VCPKG_INCLUDE_DIR})
+  set(CF_COIN_INCLUDE_SUBDIR_IS_COIN 0 CACHE BOOL "If the subdir for including coin-or headers is coin (1) or coin-or (0).")
+endif() # find_package_handle_standard_args will handle missingness
 
 # helper macro to find specific coin sub-libraries
 macro(_coin_find_lib _libname _lib_file_names _lib_file_names_debug)
@@ -91,7 +94,7 @@ macro(_coin_find_lib _libname _lib_file_names _lib_file_names_debug)
     # create final library to be exported
     select_library_configurations(COIN_${_libname})
     if(NOT TARGET COIN_${_libname})
-      add_library(CoinOR::${_libname} UNKNOWN IMPORTED) # TODO we could try to infer shared/static
+      add_library(CoinOR::${_libname} UNKNOWN IMPORTED) # TODO we could try to infer shared/static instead of UNKNOWN
       set_property(TARGET CoinOR::${_libname} PROPERTY IMPORTED_LOCATION "${COIN_${_libname}_LIBRARY_RELEASE}")
       set_property(TARGET CoinOR::${_libname} PROPERTY IMPORTED_LOCATION_DEBUG "${COIN_${_libname}_LIBRARY_DEBUG}")
       set_property(TARGET CoinOR::${_libname} PROPERTY INCLUDE_DIRECTORIES "${COIN_INCLUDE_DIR}" ${_libspecific_include})
@@ -126,6 +129,7 @@ _coin_find_lib("COINUTILS" "libCoinUtils;CoinUtils" "libCoinUtilsd;CoinUtils")
 _coin_find_lib("OSI" "libOsi;Osi" "libOsid;Osi")
 _coin_find_lib("OSI_CLP" "libOsiClp;OsiClp" "libOsiClpd;OsiClp")
 
+# TODO allow for COMPONENTS and version parsing/checking
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(COIN DEFAULT_MSG
   COIN_INCLUDE_DIR
