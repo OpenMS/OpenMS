@@ -273,7 +273,8 @@ private:
   }
   //TODO: add simd registerwise endianizer
 
-
+  // these operators are defined for GCC/clang, but not in MSVC (TODO: maybe use SFINAE, but that is overkill for the moment)
+  #ifdef _MSC_VER 
   inline simde__m128i operator|(const simde__m128i& left, const simde__m128i& right)
   {
     return simde_mm_or_si128(left, right);
@@ -287,6 +288,7 @@ private:
   {
     return simde_mm_and_si128(left, right);
   }
+  #endif
 
   ///encode the first 12 bytes of a 128 bit simde integer type to base64
   void Base64::registerEncoder_(simde__m128i &data)
@@ -379,7 +381,7 @@ private:
           // TODO check integer overflow
       out.resize((Size)(in.size() / 3) * 4 + 16); //resize output array, so the register encoder doesnt write memory to unallocated memory
       uint8_t padding = (3 - in.size() % 3 ) % 3;
-      const size_t loop = in.size() / 12;
+      const int loop = in.size() / 12;
      
       in.resize(in.size() + 4, '\0');
       //otherwise there are cases where register encoder isnt allowed to access last bytes   
@@ -387,7 +389,7 @@ private:
       Base64 unit;
       simde__m128i data{};
       //loop  through input as long as it's safe to access memory
-      for(size_t i = 0; i < loop; i++)
+      for(int i = 0; i < loop; i++)
       {
           //each time the last 4 out of 16 byte string data get lost through processing, therefore jumps of 12 bytes (/characters)
           data = simde_mm_lddqu_si128((simde__m128i*) & in[12*i] );
@@ -441,7 +443,7 @@ private:
     //not final size (final rezize later to cutoff unwanted characters)
     out.resize(outsize);
     char* outPtr = &out[0];
-    size_t loop= in.size()  / 16;
+    int loop= in.size()  / 16;
 
     for(int i = 0; i < loop; i++)
     {
@@ -451,13 +453,14 @@ private:
     }
 
     size_t read = loop * 16;
-    size_t written = loop *12 ;
-    std::string appendix(16 - (in.size()%16) , 'x');
-    std::string rest = in.substr(read) + appendix;
+    std::array<char, 16> rest;
+    std::fill(rest.begin(), rest.end(), 'x');
+    std::copy(in.begin() + read, in.end(), rest.begin());
 
     simde__m128i data = simde_mm_lddqu_si128((simde__m128i*) &rest[0] );
     registerDecoder_(data);
-    simde_mm_storeu_si128((simde__m128 *) (outPtr + written), data);
+    size_t written = loop * 12;
+    simde_mm_storeu_si128((simde__m128*)(outPtr + written), data);
 
     //cutting off decoding of appendix
     outsize = (in.size() / 4) * 3 - g;
