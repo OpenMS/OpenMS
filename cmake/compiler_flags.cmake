@@ -48,6 +48,34 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   add_definitions(-D_LIBCPP_DISABLE_AVAILABILITY)  
 endif()
 
+########
+########    deal with SSE4/AVX flags
+########
+set(x64_CPU "x86|AMD64") ## CMake returns 'x86-64' on Linux and 'AMD64' on Windows..
+message(STATUS "Processor is : ${CMAKE_SYSTEM_PROCESSOR}")
+if (MSVC)
+  ## enable 'AVX2' on x86-64, and 'neon' on arm, to achive faster base64 en-/decoding via SIMDe
+  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}") 
+    ## for SIMDe we need to use explicit compiler flags, which in turn define macros (like '#define __AVX__'), which SIMDe will check for and only then create vectorized code
+    ## Disabling AVX/AVX2 will actually make the SIMDe code slower compared to the non-SSE version (for Base64 encoding/decoding at least)
+    add_compile_options(/arch:AVX2)  ## note: MSVC lacks flags for SSE3/SSE4 (only unofficial ones like /d2archSSE42 are available, but SIMDe does not care about them)
+  elseif (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+    add_compile_options(/arch:neon)
+  endif()
+else()  ## GCC/Clang/AppleClang
+  ## enable SSE3 on x86, 'neon' on arm to achive faster base64 en-/decoding
+  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}") 
+    add_compile_options(-mssse3)
+  elseif (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+    add_compile_options(-neon)
+  endif()
+endif()
+
+
+####
+####  more flags...
+####
+
 if (CMAKE_COMPILER_IS_GNUCXX)
 
   add_compile_options(-Wall -Wextra
@@ -58,15 +86,6 @@ if (CMAKE_COMPILER_IS_GNUCXX)
     -Wno-unused-function
     -Wno-variadic-macros
     )
-  ## enable 'ssse3' on x86, 'neon' on arm, 'sse1' else, to achive faster base64 en-/decoding
-  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86") 
-    add_compile_options(-mssse3)#needed for simde instructions
-  elseif (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
-    add_compile_options(-neon)  
-  else()
-    add_compile_options(-sse1)
-  endif() 
-  
   
   option(ENABLE_GCC_WERROR "Enable -Werror on gcc compilers" OFF)
   if (ENABLE_GCC_WERROR)
@@ -79,7 +98,6 @@ if (CMAKE_COMPILER_IS_GNUCXX)
   if (CMAKE_GENERATOR STREQUAL "Eclipse CDT4 - Unix Makefiles")
     add_compile_options(-fmessage-length=0)
   endif()
-
   
 elseif (MSVC)
 	# do not use add_definitions
@@ -120,14 +138,6 @@ elseif (MSVC)
 	## use multiple CPU cores (if available)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 
-  ## enable 'AVX2' on x86, 'neon' on arm, to achive faster base64 en-/decoding
-  message(STATUS "Processor is : ${CMAKE_SYSTEM_PROCESSOR}\n\n")
-  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86|AMD64") 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX2")
-  elseif (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:neon")
-  endif()
-  
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang") # using regular Clang or AppleClang
 
   set(CMAKE_COMPILER_IS_CLANG true CACHE INTERNAL "Is CLang compiler (clang++)")
@@ -171,16 +181,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang") # using regular Clang or AppleCla
                   -Wno-covered-switch-default
                   -Wno-date-time
                   -Wno-missing-noreturn
-                  
                   )
-  ## enable 'ssse3' on x86, 'neon' on arm, 'sse1' else, to achive faster base64 en-/decoding
-  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86") 
-    add_compile_options(-mssse3)#needed for simde instructions
-  elseif (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
-    add_compile_options(-neon)  
-  else()
-    add_compile_options(-sse1)
-  endif()                
 else()
   set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
 endif()
