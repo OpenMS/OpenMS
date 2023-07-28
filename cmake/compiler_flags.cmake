@@ -120,13 +120,12 @@ elseif (MSVC)
 	## use multiple CPU cores (if available)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 
-  ## enable 'ssse3' on x86, 'neon' on arm, 'sse1' else, to achive faster base64 en-/decoding
-  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86") 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:ssse3")
+  ## enable 'AVX2' on x86, 'neon' on arm, to achive faster base64 en-/decoding
+  message(STATUS "Processor is : ${CMAKE_SYSTEM_PROCESSOR}\n\n")
+  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86|AMD64") 
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX2")
   elseif (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:neon")
-  else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:sse1")
   endif()
   
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang") # using regular Clang or AppleClang
