@@ -281,6 +281,12 @@ setup(
     zip_safe=False,
 
     url="https://openms.de",
+    project_urls={
+        "Documentation": "https://pyopenms.readthedocs.io",
+        "Source Code": "https://github.com/OpenMS/OpenMS/tree/develop/src/pyOpenMS",
+        "Tracker": "https://github.com/OpenMS/OpenMS/issues"
+        "Documentation Source": "https://github.com/OpenMS/pyopenms-docs",
+    },
 
     author="Uwe Schmitt and the OpenMS team",
     author_email="uschmitt@mineway.de",
