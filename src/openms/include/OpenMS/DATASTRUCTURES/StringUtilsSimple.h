@@ -641,7 +641,7 @@ namespace OpenMS
           _BitScanForward(&offset, non_space);
           return p + offset;
 #else
-          return p + __builtin_ffs(r) - 1;
+          return p + __builtin_ffs(non_space) - 1;
 #endif
         }
       }
@@ -651,8 +651,10 @@ namespace OpenMS
           ++p;
         else
           return p;
+        
+      return p_end;
     }
-    inline const int skipWhitespace(const std::string_view& data)
+    inline int skipWhitespace(const std::string_view& data)
     {
       auto pos = skipWhitespace(data.data(), data.data() + data.size());
       return pos - data.data();
@@ -683,7 +685,7 @@ namespace OpenMS
           _BitScanForward(&offset, spaces);
           return p + offset;
 #else
-          return p + __builtin_ffs(r) - 1;
+          return p + __builtin_ffs(spaces) - 1;
 #endif
         }
       }
@@ -693,12 +695,15 @@ namespace OpenMS
           return p;
         else
           ++p;
+        
+      return p_end;
     }
-    inline const int skipNonWhitespace(const std::string_view& data)
+    inline int skipNonWhitespace(const std::string_view& data)
     {
       auto pos = skipNonWhitespace(data.data(), data.data() + data.size());
       return pos - data.data();
     }
+    
     static inline String& removeWhitespaces(String& this_s)
     {
       auto start = skipNonWhitespace(std::string_view(this_s.data()));
