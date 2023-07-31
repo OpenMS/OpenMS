@@ -38,11 +38,17 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <string>
-#include <sstream>
-#include <vector>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <sstream>
+#include <string_view>
+#include <string>
+#include <vector>
+
+#include <simde/x86/sse4.2.h>
+#include <simde/x86/sse2.h>
+#include <simde/x86/sse.h>
+
 
 namespace OpenMS
 {
@@ -609,11 +615,95 @@ namespace OpenMS
         this_s.append(1, end);
       return this_s;
     }
-  
+    // skip ahead until a whitespace or @p end is reached
+    inline const char* skipWhitespace(const char* p, const char* p_end)
+    {
+      const __m128i w0 = _mm_set1_epi8(' ');
+      const __m128i w1 = _mm_set1_epi8('\t');
+      const __m128i w2 = _mm_set1_epi8('\n');
+      const __m128i w3 = _mm_set1_epi8('\r');
+
+      for (; p <= p_end - 16; p += 16)
+      {
+        const __m128i s = _mm_loadu_si128(reinterpret_cast<const __m128i*>(p));
+        __m128i x = _mm_cmpeq_epi8(s, w0);
+        x = _mm_or_si128(x, _mm_cmpeq_epi8(s, w1));
+        __m128i y = _mm_cmpeq_epi8(s, w2);
+        y = _mm_or_si128(x, _mm_cmpeq_epi8(s, w3));
+        x = _mm_or_si128(x, y);
+        // invert (i.e any non-spaces will be '1') and convert to a 16-bit int
+        // (do not try to convert first and then invert -- not the same!)
+        auto non_space = static_cast<uint16_t>(~_mm_movemask_epi8(x)); // 16 bit is paramount here. Do not use 32!
+        if (non_space != 0)
+        {       // some characters are whitespace
+#ifdef _MSC_VER // Find the index of first non-whitespace
+          unsigned long offset;
+          _BitScanForward(&offset, non_space);
+          return p + offset;
+#else
+          return p + __builtin_ffs(r) - 1;
+#endif
+        }
+      }
+      // the remainder
+      while (p != p_end)
+        if (*p == ' ' || *p == '\n' || *p == '\r' || *p == '\t')
+          ++p;
+        else
+          return p;
+    }
+    inline const int skipWhitespace(const std::string_view& data)
+    {
+      auto pos = skipWhitespace(data.data(), data.data() + data.size());
+      return pos - data.data();
+    }
+
+    inline const char* skipNonWhitespace(const char* p, const char* p_end)
+    {
+      const __m128i w0 = _mm_set1_epi8(' ');
+      const __m128i w1 = _mm_set1_epi8('\t');
+      const __m128i w2 = _mm_set1_epi8('\n');
+      const __m128i w3 = _mm_set1_epi8('\r');
+
+      for (; p <= p_end - 16; p += 16)
+      {
+        const __m128i s = _mm_loadu_si128(reinterpret_cast<const __m128i*>(p));
+        __m128i x = _mm_cmpeq_epi8(s, w0);
+        x = _mm_or_si128(x, _mm_cmpeq_epi8(s, w1));
+        __m128i y = _mm_cmpeq_epi8(s, w2);
+        y = _mm_or_si128(x, _mm_cmpeq_epi8(s, w3));
+        x = _mm_or_si128(x, y);
+        // convert to a 16-bit int (i.e any spaces will be '1')
+        // (do not try to convert first and then invert -- not the same!)
+        auto spaces = static_cast<uint16_t>(_mm_movemask_epi8(x)); // 16 bit is paramount here. Do not use 32!
+        if (spaces != 0)
+        {       // some characters are whitespace
+#ifdef _MSC_VER // Find the index of first whitespace
+          unsigned long offset;
+          _BitScanForward(&offset, spaces);
+          return p + offset;
+#else
+          return p + __builtin_ffs(r) - 1;
+#endif
+        }
+      }
+      // the remainder
+      while (p != p_end)
+        if (*p == ' ' || *p == '\n' || *p == '\r' || *p == '\t')
+          return p;
+        else
+          ++p;
+    }
+    inline const int skipNonWhitespace(const std::string_view& data)
+    {
+      auto pos = skipNonWhitespace(data.data(), data.data() + data.size());
+      return pos - data.data();
+    }
     static inline String& removeWhitespaces(String& this_s)
     {
-      std::string::const_iterator it = this_s.begin();
-      std::string::iterator dest = this_s.begin();
+      auto start = skipNonWhitespace(std::string_view(this_s.data()));
+      std::string::const_iterator it = this_s.begin() + start;
+      std::string::iterator dest = this_s.begin() + start;
       std::string::const_iterator it_end = this_s.end();
       bool has_spaces(false);
       while (it != it_end)
