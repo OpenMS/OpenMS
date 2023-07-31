@@ -28,16 +28,9 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Chris Bielow, Moritz Berger, Moritz Aubermann $
-# $Authors: Stephan Aiche $
+# $Maintainer: Chris Bielow $
+# $Authors: Chris Bielow $
 # --------------------------------------------------------------------------
 
-project("OpenMS-simde")
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
-
-# export include directory
-set(SIMDE_INCLUDE_DIRECTORY
-${PROJECT_SOURCE_DIR}
-  CACHE
-  INTERNAL "simde include directories" FORCE
-)
+add_library(SIMDe INTERFACE)
+target_include_directories(SIMDe INTERFACE ".")
