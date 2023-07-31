@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm, Moritz Aubermann $
+// $Authors: Marc Sturm, Chris Bielow, Moritz Aubermann $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -84,7 +84,7 @@ public:
     /// Byte order type
     enum ByteOrder
     {
-      BYTEORDER_BIGENDIAN,                  ///< Big endian type
+      BYTEORDER_BIGENDIAN,              ///< Big endian type
       BYTEORDER_LITTLEENDIAN            ///< Little endian type
     };
 	
@@ -158,23 +158,6 @@ public:
     */
     static void decodeSingleString(const String& in, QByteArray& base64_uncompressed, bool zlib_compression);
 
-    bool testfunction(std::string s){
-      std::string t;
-      std::string a;
-      Base64 unit;
-      unit.stringSimdEncoder_(s,t);
-      unit.stringSimdDecoder_(t,a);
-      std::cout << a << std::endl;
-      if(s==a)
-      {
-        return true;
-      }
-      else
-      {
-        return false;
-      }
-    }
-
 private:
 
     ///Internal class needed for type-punning
@@ -192,10 +175,10 @@ private:
     };
 
     
-    const simde__m128i mask1_ = simde_mm_set1_epi32(0x3F000000);//00111111 00000000 00000000 00000000
-    const simde__m128i mask2_ = simde_mm_set1_epi32(0x003F0000);//00000000 00111111 00000000 00000000
-    const simde__m128i mask3_ = simde_mm_set1_epi32(0x00003F00);//00000000 00000000 00111111 00000000
-    const simde__m128i mask4_ = simde_mm_set1_epi32(0x0000003F);//00000000 00000000 00000000 00111111
+    const simde__m128i mask1_ = simde_mm_set1_epi32(0x3F000000); //00111111 00000000 00000000 00000000
+    const simde__m128i mask2_ = simde_mm_set1_epi32(0x003F0000); //00000000 00111111 00000000 00000000
+    const simde__m128i mask3_ = simde_mm_set1_epi32(0x00003F00); //00000000 00000000 00111111 00000000
+    const simde__m128i mask4_ = simde_mm_set1_epi32(0x0000003F); //00000000 00000000 00000000 00111111
 
     const simde__m128i mask1d_ = simde_mm_set1_epi32(0xFF000000); // 11111111 00000000 00000000 00000000
     const simde__m128i mask2d_ = simde_mm_set1_epi32(0x00FF0000); // 00000000 11111111 00000000 00000000
@@ -210,8 +193,6 @@ private:
     const simde__m128i difference_plus_ = simde_mm_set1_epi8('+');
     const simde__m128i difference_slash_ = simde_mm_set1_epi8('/');
 
-
-
     const simde__m128i shuffle_mask_1_ = simde_mm_setr_epi8(2, 2, 1, 0, 5, 5, 4, 3, 8, 8, 7, 6, 11, 11, 10, 9);
     const simde__m128i shuffle_mask_2_ = simde_mm_setr_epi8(3,2,1,0,7,6,5,4,11,10,9,8,15,14,13,12);
 
@@ -221,7 +202,6 @@ private:
     //decoding shuffle masks:
     //shuffle_mask_2 gets used
     const simde__m128i shuffle_mask_d_2_ = simde_mm_setr_epi8(3,2,1,7,6,5,11,10,9,15,14,13,0,4,8,12);
-    
 
     static const char encoder_[];
     static const char decoder_[];
@@ -253,7 +233,7 @@ private:
   /// Endianizes a 32 bit type from big endian to little endian and vice versa
   inline UInt32 endianize32(const UInt32& n)
   {
-    return ((n & 0x000000ff) << 24) | 
+    return ((n & 0x000000ff) << 24) |
            ((n & 0x0000ff00) <<  8) |
            ((n & 0x00ff0000) >>  8) |
            ((n & 0xff000000) >> 24);
@@ -263,18 +243,18 @@ private:
   inline UInt64 endianize64(const UInt64& n)
   {
     return ((n >> 56) & 0x00000000000000FF) |
-           ((n >> 40) & 0x000000000000FF00) | 
-           ((n >> 24) & 0x0000000000FF0000) | 
+           ((n >> 40) & 0x000000000000FF00) |
+           ((n >> 24) & 0x0000000000FF0000) |
            ((n >>  8) & 0x00000000FF000000) |
            ((n <<  8) & 0x000000FF00000000) |
            ((n << 24) & 0x0000FF0000000000) |
-           ((n << 40) & 0x00FF000000000000) | 
+           ((n << 40) & 0x00FF000000000000) |
            ((n << 56) & 0xFF00000000000000);
   }
   //TODO: add simd registerwise endianizer
 
   // these operators are defined for GCC/clang, but not in MSVC (TODO: maybe use SFINAE, but that is overkill for the moment)
-  #ifdef _MSC_VER 
+  #ifdef _MSC_VER
   inline simde__m128i operator|(const simde__m128i& left, const simde__m128i& right)
   {
     return simde_mm_or_si128(left, right);
@@ -290,35 +270,35 @@ private:
   }
   #endif
 
-  ///encode the first 12 bytes of a 128 bit simde integer type to base64
+  /// Encode the first 12 bytes of a 128 bit simde integer type to base64
   void Base64::registerEncoder_(simde__m128i &data)
   {
     
-    if(! OPENMS_IS_BIG_ENDIAN)
+    if constexpr(!OPENMS_IS_BIG_ENDIAN)
     {
       data = simde_mm_shuffle_epi8(data, shuffle_mask_1_);
-    //by shuffling every 3 8bit ASCII Letters now take up 4 bytes, "ABC" gets shuffled to "CCBA" to match the 4 bytes of the Base64 Encoding, and deal with little Endianness.
+    // by shuffling every 3 8bit ASCII Letters now take up 4 bytes, "ABC" gets shuffled to "CCBA" to match the 4 bytes of the Base64 Encoding, and deal with little Endianness.
     }
     else
     {
       data = simde_mm_shuffle_epi8(data, shuffle_mask_big_endian_);
     }
-    //shifting and masking data, so now every 6 bit of the ASCII encoding have their own byte. 
-    //shifting over 32 bits takes endianness into account, which needs to be accounted for when shuffeling
+    // shifting and masking data, so now every 6 bit of the ASCII encoding have their own byte. 
+    // shifting over 32 bits takes endianness into account, which needs to be accounted for when shuffeling
     data =   (simde_mm_srli_epi32(data, 2 ) & mask1_) |
              (simde_mm_srli_epi32(data, 4 ) & mask2_) |
              (simde_mm_srli_epi32(data, 6 ) & mask3_) |
              (data & mask4_);
 
-    if(! OPENMS_IS_BIG_ENDIAN)  //otherwise the data already is ordered correctly
+    if constexpr(!OPENMS_IS_BIG_ENDIAN) // otherwise the data already is ordered correctly
     {      
       data = simde_mm_shuffle_epi8(data, shuffle_mask_2_);
     }
 
-    //masking data and adding/substracting to match base64 codes to fitting characters
+    // masking data and adding/substracting to match base64 codes to fitting characters
     simde__m128i capital_mask = simde_mm_cmplt_epi8(data, _mm_set1_epi8(26)); // (a < b) ? 0xFF : 0x00
     simde__m128i all_mask= capital_mask;
-    simde__m128i lower_case_mask = simde_mm_andnot_si128(all_mask, simde_mm_cmplt_epi8(data,simde_mm_set1_epi8(52))); //not allMask and  b where b is 0xFF if binaries are smaller than 52
+    simde__m128i lower_case_mask = simde_mm_andnot_si128(all_mask, simde_mm_cmplt_epi8(data,simde_mm_set1_epi8(52))); // not allMask and  b where b is 0xFF if binaries are smaller than 52
     all_mask |= lower_case_mask;
     simde__m128i number_mask = simde_mm_andnot_si128(all_mask, simde_mm_cmplt_epi8(data, simde_mm_set1_epi8(62)));
     all_mask |= number_mask;
@@ -336,50 +316,49 @@ private:
 
   void Base64::registerDecoder_(simde__m128i & data)
   {
-    //ASCII letters must be translated over to base64. This cannot be achieved by just adding/substracting a single value
-    //from each letter since in ASCII Alphabet capital letters aren't followed up by small Letters, and small Letters not by numbers (..).
+    // ASCII letters must be translated over to base64. This cannot be achieved by just adding/substracting a single value
+    // from each letter since in ASCII Alphabet capital letters aren't followed up by small Letters, and small Letters not by numbers (..).
 
-    //Therefore certain kinds of characters must be masked out for further processing:
+    // Therefore certain kinds of characters must be masked out for further processing:
 
-    //plusMask equals 0xFF for each corresponding plus, otherwise its 0
+    // plusMask equals 0xFF for each corresponding plus, otherwise its 0
     simde__m128i plusMask = simde_mm_cmpeq_epi8(data, difference_plus_);
     simde__m128i allMask = plusMask;
-    //slashMask similar to plusMask
+    // slashMask similar to plusMask
     simde__m128i slashMask = simde_mm_cmpeq_epi8(data, difference_slash_);
     allMask |= slashMask;
-    //for number mask: all characters less than '9' plus 1 must be numbers, '+' or '/' because input is Base64
-    //therefore "not allMask and less than '9' + 1 (see allNumbers in header) " applied on data sets all bytes corresponding to numbers in the mask to 0xFF
+    // for number mask: all characters less than '9' plus 1 must be numbers, '+' or '/' because input is Base64
+    // therefore "not allMask and less than '9' + 1 (see allNumbers in header) " applied on data sets all bytes corresponding to numbers in the mask to 0xFF
     simde__m128i numberMask = simde_mm_andnot_si128(allMask, simde_mm_cmplt_epi8(data, simde_mm_set1_epi8('9' + 1)));
     allMask |= numberMask;
     simde__m128i bigLetterMask = simde_mm_andnot_si128(allMask, simde_mm_cmplt_epi8(data, simde_mm_set1_epi8('Z'+1)));
     allMask |= bigLetterMask;
     simde__m128i smallLetterMask = simde_mm_andnot_si128(allMask, simde_mm_cmplt_epi8(data, simde_mm_set1_epi8('z'+ 1)));
 
-    //match ASCII characters with coresponding Base64 codes:
+    // match ASCII characters with coresponding Base64 codes:
     data =  plusMask    & simde_mm_set1_epi8(62)|
             slashMask   & simde_mm_set1_epi8(63)|
             numberMask  & simde_mm_add_epi8( data, simde_mm_set1_epi8(4))|
             bigLetterMask & simde_mm_sub_epi8( data, simde_mm_set1_epi8(65))| //ASCII 'A' is 65, Base64 'A' is 0
             smallLetterMask & simde_mm_sub_epi8(data, simde_mm_set1_epi8(71));
 
-    //convert little endian to big endian:
+    // convert little endian to big endian:
     data = simde_mm_shuffle_epi8(data, shuffle_mask_2_);
 
-    //the actual magic (conversion base64 to ASCII) happens here by shifting and masking:
+    // the actual magic (conversion base64 to ASCII) happens here by shifting and masking:
     data =  simde_mm_slli_epi32((data & mask1d_),2)   |
             simde_mm_slli_epi32((data & mask2d_),4)   |
             simde_mm_slli_epi32((data & mask3d_),6)   |
             simde_mm_slli_epi32((data & mask4d_),8);
 
-    //convert big endian to little endian
+    // convert big endian to little endian
     data= simde_mm_shuffle_epi8(data, shuffle_mask_d_2_);
 
   }
 
-  void Base64::stringSimdEncoder_(std::string & in, std::string & out)
+  void Base64::stringSimdEncoder_(std::string& in, std::string& out)
   {
-          // TODO check integer overflow
-      out.resize((Size)(in.size() / 3) * 4 + 16); //resize output array, so the register encoder doesnt write memory to unallocated memory
+      out.resize((Size)(in.size() / 3) * 4 + 16); // resize output array, so the register encoder doesnt write memory to unallocated memory
       uint8_t padding = (3 - in.size() % 3 ) % 3;
       const int loop = in.size() / 12;
      
@@ -407,20 +386,20 @@ private:
       unit.registerEncoder_(data);
       simde_mm_storeu_si128((simde__m128*) & out[written], data);
       
-      in.resize(in.size() -4); //remove null bytes
+      in.resize(in.size() - 4); //remove null bytes
 
       //resizing out and add padding if necessary
-      if(padding) 
+      if (padding)
       {
         size_t newsize = ceil((double)in.size() / 3.) * 4; 
         out.resize(newsize );
         for(size_t j = newsize - 1; j >= newsize -padding; j--)
         {
             out[j] = '=';
-        }      
+        }
       }
       else
-      {        
+      {
           out.resize((in.size() / 3) * 4);
       }
     
@@ -429,15 +408,12 @@ private:
   void Base64::stringSimdDecoder_(const std::string & in, std::string & out)
   {
     out.clear();
-    //out.resize((in.size() / 4) * 3);
     const char* inPtr = &in[0];
 
     //padding count:
     uint8_t g = 0;
-    if( in[in.size() -1] == '=')
-        g++;
-    if( in[in.size() -2] == '=')
-        g++;
+    if( in[in.size() -1] == '=') g++;
+    if( in[in.size() -2] == '=') g++;
 
     unsigned outsize = (in.size() / 16) * 12 + 16;
     //not final size (final rezize later to cutoff unwanted characters)
@@ -457,7 +433,7 @@ private:
     std::fill(rest.begin(), rest.end(), 'x');
     std::copy(in.begin() + read, in.end(), rest.begin());
 
-    simde__m128i data = simde_mm_lddqu_si128((simde__m128i*) &rest[0] );
+    simde__m128i data = simde_mm_lddqu_si128((simde__m128i*) &rest[0]);
     registerDecoder_(data);
     size_t written = loop * 12;
     simde_mm_storeu_si128((simde__m128*)(outPtr + written), data);
@@ -472,13 +448,14 @@ private:
   {
     out.clear();
     if (in.empty())
+    {
       return;
+    }
 
-    //initialize
+    // initialize
     const Size element_size = sizeof(FromType);
     const Size input_bytes = element_size * in.size();
-    String compressed;
-    //Change endianness if necessary
+    // change endianness if necessary
     if ((OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_BIGENDIAN))
     {
       if (element_size == 4)
@@ -504,9 +481,10 @@ private:
       /////////////////////////endianize registerwise
     }
 
-    //encode with compression
+    // encode with compression
     if (zlib_compression)
     {
+      String compressed;
       unsigned long sourceLen =   (unsigned long)in.size();
       unsigned long compressed_length =       //compressBound((unsigned long)in.size());
                                         sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11; // taken from zlib's compress.c, as we cannot use compressBound*
@@ -537,17 +515,14 @@ private:
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compression error?");
       }
 
-      String(compressed).swap(compressed);
       Base64 unit;
       unit.stringSimdEncoder_(compressed, out);   //resize output array in order to have enough space for all characters
     }
-    //encode without compression
-    else
+    else // encode without compression
     {
       String str((char*)in.data(), input_bytes);
       Base64 unit;
       unit.stringSimdEncoder_(str, out);
-
     }
 
   }
@@ -571,17 +546,16 @@ private:
     out.clear();
     if (in.empty()) return;
 
-    const Size element_size = sizeof(ToType);
+    constexpr Size element_size = sizeof(ToType);
 
     String decompressed;
 
-//  
     String s;
     Base64 unit;
     unit.stringSimdDecoder_(in,s);
     QByteArray bazip = QByteArray::fromRawData(s.c_str(), (int) s.size());
-//
-    /////////////////////////////////////////////////////////////////////////////////////if faster: first encode then call fromRawData
+
+   /////////////////////////////////////////////////////////////////////////////////////if faster: first encode then call fromRawData
    // QByteArray qt_byte_array = QByteArray::fromRawData(in.c_str(), (int) in.size());
    // QByteArray bazip = QByteArray::fromBase64(qt_byte_array);
     QByteArray czip;
@@ -615,7 +589,7 @@ private:
     // change endianness if necessary
     if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
     {
-      if (element_size == 4) // 32 bit
+      if constexpr(element_size == 4) // 32 bit
       {
         UInt32 * p = reinterpret_cast<UInt32 *>(byte_buffer);
         std::transform(p, p + float_count, p, endianize32);
@@ -673,13 +647,13 @@ private:
     if (in.empty())
       return;
 
-    //initialize
+    // initialize
     const Size element_size = sizeof(FromType);
     const Size input_bytes = element_size * in.size();
     String compressed;
     Byte * it;
     Byte * end;
-    //Change endianness if necessary
+    // change endianness if necessary
     if ((OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_BIGENDIAN))
     {
       if (element_size == 4)
@@ -702,7 +676,7 @@ private:
       }
     }
 
-    //encode with compression (use Qt because of zlib support)
+    // encode with compression (use Qt because of zlib support)
     if (zlib_compression)
     {
       unsigned long sourceLen =   (unsigned long)input_bytes;
@@ -716,18 +690,14 @@ private:
         compressed.reserve(compressed_length);
       }
 
-      String(compressed).swap(compressed);
-
       Base64 unit;
-      unit.stringSimdEncoder_(compressed,out);      
+      unit.stringSimdEncoder_(compressed, out);
     }
-    //encode without compression
-    else
+    else // encode without compression
     {
       String str((char*)in.data(), input_bytes);
       Base64 unit;
       unit.stringSimdEncoder_(str,out);
-
     }
   }
 
@@ -753,7 +723,7 @@ private:
 
     void * byte_buffer;
     Size buffer_size;
-    const Size element_size = sizeof(ToType);
+    constexpr Size element_size = sizeof(ToType);
 
     String decompressed;
 
@@ -778,10 +748,10 @@ private:
     byte_buffer = reinterpret_cast<void *>(&decompressed[0]);
     buffer_size = decompressed.size();
 
-    //change endianness if necessary
+    // change endianness if necessary
     if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
     {
-      if (element_size == 4)
+      if constexpr(element_size == 4)
       {
         const Int32 * float_buffer = reinterpret_cast<const Int32 *>(byte_buffer);
         if (buffer_size % element_size != 0)
@@ -821,7 +791,7 @@ private:
     }
     else
     {
-      if (element_size == 4)
+      if constexpr(element_size == 4)
       {
         const Int * float_buffer = reinterpret_cast<const Int *>(byte_buffer);
         if (buffer_size % element_size != 0)
@@ -899,7 +869,7 @@ private:
       inc = 1;
     }
 
-    //reserve enough space in the output vector
+    // reserve enough space in the output vector
     out.reserve((UInt)(std::ceil((4.0 * src_size) / 3.0) + 6.0));
 
     // sort all read bytes correctly into a char[4] (double) or

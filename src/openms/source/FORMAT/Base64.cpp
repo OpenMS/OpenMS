@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow, Moritz Aubermann $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/Base64.h>
@@ -37,7 +37,6 @@
 #include <QtCore/QList>
 #include <QtCore/QString>
 
-#include<iostream>
 using namespace std;
 
 namespace OpenMS
