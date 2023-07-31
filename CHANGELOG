@@ -18,6 +18,9 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 ----                                OpenMS 3.1.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
+- require some advanced instruction sets for x64 CPUs: SSE3 (g++/clang) or AVX (MSVC); and NEON for ARM64 CPUs (#6976)
+- Base64 encoding/decoding using the SIMDe library (#6976)
+
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.0     (releases 4/2022)                  ----
