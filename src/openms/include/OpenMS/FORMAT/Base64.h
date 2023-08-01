@@ -336,11 +336,11 @@ private:
     simde__m128i smallLetterMask = simde_mm_andnot_si128(allMask, simde_mm_cmplt_epi8(data, simde_mm_set1_epi8('z'+ 1)));
 
     // match ASCII characters with coresponding Base64 codes:
-    data =  plusMask    & simde_mm_set1_epi8(62)|
-            slashMask   & simde_mm_set1_epi8(63)|
-            numberMask  & simde_mm_add_epi8( data, simde_mm_set1_epi8(4))|
-            bigLetterMask & simde_mm_sub_epi8( data, simde_mm_set1_epi8(65))| //ASCII 'A' is 65, Base64 'A' is 0
-            smallLetterMask & simde_mm_sub_epi8(data, simde_mm_set1_epi8(71));
+    data =  (plusMask    & simde_mm_set1_epi8(62))                               |
+            (slashMask   & simde_mm_set1_epi8(63))                               |
+            (numberMask  & simde_mm_add_epi8( data, simde_mm_set1_epi8(4)))      |
+            (bigLetterMask & simde_mm_sub_epi8( data, simde_mm_set1_epi8(65)))   | //ASCII 'A' is 65, Base64 'A' is 0
+            (smallLetterMask & simde_mm_sub_epi8(data, simde_mm_set1_epi8(71))) ;
 
     // convert little endian to big endian:
     data = simde_mm_shuffle_epi8(data, shuffle_mask_2_);
@@ -651,8 +651,7 @@ private:
     const Size element_size = sizeof(FromType);
     const Size input_bytes = element_size * in.size();
     String compressed;
-    Byte * it;
-    Byte * end;
+
     // change endianness if necessary
     if ((OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_BIGENDIAN))
     {
