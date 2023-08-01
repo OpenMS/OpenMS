@@ -575,6 +575,16 @@ namespace OpenMS
               String
       */
       inline const std::string   MSM_SUM_FORMULA = "Sum_Formula";
+      
+      /** User parameter for the unit type of the m/z tolerance. (Required for SearchDatabase)
+              String
+      */
+      inline const std::string   UNIT_DA = "Da";
+
+      /** User parameter for the unit type of the m/z tolerance. (Required for SearchDatabase)
+              String
+      */
+      inline const std::string   UNIT_PPM = "ppm";
     }
 
     //@}

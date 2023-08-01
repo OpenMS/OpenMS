@@ -21,6 +21,7 @@ ConsensusMapMergerAlgorithm.h
 FalseDiscoveryRate.h
 FIAMSDataProcessor.h
 FIAMSScheduler.h
+FragmentIndex.h
 HiddenMarkovModel.h
 IDBoostGraph.h
 IDDecoyProbability.h

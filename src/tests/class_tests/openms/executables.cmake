@@ -502,6 +502,7 @@ set(analysis_executables_list
   FIAMSScheduler_test
   FLASHDeconvAlgorithm_test
   FLASHDeconvHelperStructs_test
+  FragmentIndex_test
   HiddenMarkovModel_test
   IDBoostGraph_test
   IDMapper_test
@@ -578,6 +579,7 @@ set(analysis_executables_list
   ReactionMonitoringTransition_test
   RNPxlModificationsGenerator_test
   SVMWrapper_test
+  SearchDatabase_speed_test
   SimpleSearchEngineAlgorithm_test
   SimplePairFinder_test
   SimpleSVM_test
