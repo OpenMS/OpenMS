@@ -284,7 +284,7 @@ setup(
     project_urls={
         "Documentation": "https://pyopenms.readthedocs.io",
         "Source Code": "https://github.com/OpenMS/OpenMS/tree/develop/src/pyOpenMS",
-        "Tracker": "https://github.com/OpenMS/OpenMS/issues"
+        "Tracker": "https://github.com/OpenMS/OpenMS/issues",
         "Documentation Source": "https://github.com/OpenMS/pyopenms-docs",
     },
 
