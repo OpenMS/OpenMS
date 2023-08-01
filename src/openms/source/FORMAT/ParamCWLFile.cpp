@@ -62,7 +62,7 @@ namespace OpenMS
     auto traces = param.begin().getTrace();
     std::string toolNamespace = traces.front().name + ":1:";
 
-    std::ifstream ifs{filename};
+    std::ifstream ifs {filename};
     if (!ifs.good())
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
@@ -94,14 +94,30 @@ namespace OpenMS
         auto value = entry.value;
         if (entry.value.valueType() == ParamValue::ValueType::STRING_VALUE)
         {
-          if ((entry.valid_strings.size() == 2 && entry.valid_strings[0] == "true" && entry.valid_strings[1] == "false")
-             || (entry.valid_strings.size() == 2 && entry.valid_strings[0] == "false" && entry.valid_strings[1] == "true"))
+          if ((entry.valid_strings.size() == 2 && entry.valid_strings[0] == "true" && entry.valid_strings[1] == "false") ||
+              (entry.valid_strings.size() == 2 && entry.valid_strings[0] == "false" && entry.valid_strings[1] == "true"))
           {
             value = node.get<bool>() ? "true" : "false";
           }
-          else if (entry.tags.count("input file") || entry.tags.count("output file"))
+          else if (entry.tags.count("input file"))
           {
-            value = node["path"].get<std::string>();
+            // If this is an input file and 'is_executable' is set. this can be of 'class: File' or 'type: string'
+            if (entry.tags.count("is_executable"))
+            {
+              if (node.is_object())
+              {
+                value = node["path"].get<std::string>();
+              }
+              else
+              {
+                value = node.get<std::string>();
+              }
+            }
+            // Just a normal input file
+            else
+            {
+              value = node["path"].get<std::string>();
+            }
           }
           else
           {
@@ -118,7 +134,7 @@ namespace OpenMS
         }
         else if (entry.value.valueType() == ParamValue::ValueType::STRING_LIST)
         {
-          if (entry.tags.count("input file") || entry.tags.count("output file"))
+          if (entry.tags.count("input file"))
           {
             value = node["path"].get<std::vector<std::string>>();
           }
@@ -143,7 +159,7 @@ namespace OpenMS
         param.setValue(key, value);
       }
     }
-    catch(const json::exception& e)
+    catch (const json::exception& e)
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", e.what());
     }

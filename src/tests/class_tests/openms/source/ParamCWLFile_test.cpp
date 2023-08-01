@@ -32,16 +32,15 @@
 // $Authors: Simon Gene Gottlieb $
 // --------------------------------------------------------------------------
 
-#include <fstream>
-
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <fstream>
 
 ///////////////////////////
 
-#include <OpenMS/FORMAT/ParamCWLFile.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/FORMAT/ParamCWLFile.h>
 
 ///////////////////////////
 
@@ -82,9 +81,12 @@ START_SECTION((bool ParamCWLFile::load(const std::string& filename, Param& param
   param.setValue("test:1:int", 0);
   param.setValue("test:1:double", 0.);
   param.setValue("test:1:string", "");
-  param.setValue("test:1:int_list", std::vector<int>{});
-  param.setValue("test:1:double_list", std::vector<double>{});
-  param.setValue("test:1:string_list", std::vector<std::string>{});
+  param.setValue("test:1:int_list", std::vector<int> {});
+  param.setValue("test:1:double_list", std::vector<double> {});
+  param.setValue("test:1:string_list", std::vector<std::string> {});
+  param.setValue("test:1:file_output", std::string {}, "some description", {"output file"});
+  param.setValue("test:1:is_executable_v1", std::string {}, "test is executable tag, giving a string", {"is_executable", "input file"});
+  param.setValue("test:1:is_executable_v2", std::string {}, "test is executable tag, giving a type: File", {"is_executable", "input file"});
 
 
   // create matching json file
@@ -99,7 +101,13 @@ START_SECTION((bool ParamCWLFile::load(const std::string& filename, Param& param
          "  \"string\": \"Hello OpenMS\",\n"
          "  \"int_list\": [10, 11, 12],\n"
          "  \"double_list\": [13.25, 15.125],\n"
-         "  \"string_list\": [\"SeqAn\", \"rocks\"]\n"
+         "  \"string_list\": [\"SeqAn\", \"rocks\"],\n"
+         "  \"file_output\": \"/some/made/up/path\",\n"
+         "  \"is_executable_v1\": \"/some/made/up/path\",\n"
+         "  \"is_executable_v2\": {\n"
+         "        \"class\": \"File\",\n"
+         "        \"path\": \"/some/made/up/path\"\n"
+         "  }\n"
          "}\n";
   ofs.close();
   ParamCWLFile::load(filename.c_str(), param);
