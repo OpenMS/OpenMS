@@ -25,46 +25,46 @@ cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace "
         SpectralMatch(SpectralMatch &) except + nogil 
 
         double getObservedPrecursorMass() except + nogil 
-        void setObservedPrecursorMass(double)except + nogil 
+        void setObservedPrecursorMass(double) except + nogil 
 
         double getObservedPrecursorRT() except + nogil 
-        void setObservedPrecursorRT(double)except + nogil 
+        void setObservedPrecursorRT(double) except + nogil 
 
         double getFoundPrecursorMass() except + nogil 
-        void setFoundPrecursorMass(double)except + nogil 
+        void setFoundPrecursorMass(double) except + nogil 
 
         Int getFoundPrecursorCharge() except + nogil 
-        void setFoundPrecursorCharge(Int)except + nogil 
+        void setFoundPrecursorCharge(Int) except + nogil 
 
         double getMatchingScore() except + nogil 
-        void setMatchingScore(double)except + nogil 
+        void setMatchingScore(double) except + nogil 
 
         Size getObservedSpectrumIndex() except + nogil 
-        void setObservedSpectrumIndex(Size)except + nogil 
+        void setObservedSpectrumIndex(Size) except + nogil 
 
         Size getMatchingSpectrumIndex() except + nogil 
-        void setMatchingSpectrumIndex(Size)except + nogil 
+        void setMatchingSpectrumIndex(Size) except + nogil 
 
         String getPrimaryIdentifier() except + nogil 
-        void setPrimaryIdentifier(String)except + nogil 
+        void setPrimaryIdentifier(String) except + nogil 
 
         String getSecondaryIdentifier() except + nogil 
-        void setSecondaryIdentifier(String)except + nogil 
+        void setSecondaryIdentifier(String) except + nogil 
 
         String getCommonName() except + nogil 
-        void setCommonName(String)except + nogil 
+        void setCommonName(String) except + nogil 
 
         String getSumFormula() except + nogil 
-        void setSumFormula(String)except + nogil 
+        void setSumFormula(String) except + nogil 
 
         String getInchiString() except + nogil 
-        void setInchiString(String)except + nogil 
+        void setInchiString(String) except + nogil 
 
         String getSMILESString() except + nogil 
-        void setSMILESString(String)except + nogil 
+        void setSMILESString(String) except + nogil 
 
         String getPrecursorAdduct() except + nogil 
-        void setPrecursorAdduct(String)except + nogil 
+        void setPrecursorAdduct(String) except + nogil 
 
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace"OpenMS::MetaboliteSpectralMatching":

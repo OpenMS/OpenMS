@@ -34,34 +34,34 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
       
         DecoyTransitionType getDecoyTransitionType() except + nogil  # wrap-doc:Returns the type of transition (target or decoy)
 
-        void setCompoundRef(const String & compound_ref)except + nogil 
-        String  getCompoundRef()except + nogil 
+        void setCompoundRef(const String & compound_ref) except + nogil 
+        String  getCompoundRef() except + nogil 
 
         bool hasPrecursorCVTerms() except + nogil  # wrap-doc:Returns true if precursor CV Terms exist (means it is safe to call getPrecursorCVTermList)
-        void setPrecursorCVTermList(CVTermList & list_)except + nogil  # wrap-doc:Sets a list of precursor CV Terms
-        void addPrecursorCVTerm(CVTerm & cv_term)except + nogil  # wrap-doc:Adds precursor CV Term
-        CVTermList getPrecursorCVTermList()except + nogil  # wrap-doc:Obtains the list of CV Terms for the precursor
+        void setPrecursorCVTermList(CVTermList & list_) except + nogil  # wrap-doc:Sets a list of precursor CV Terms
+        void addPrecursorCVTerm(CVTerm & cv_term) except + nogil  # wrap-doc:Adds precursor CV Term
+        CVTermList getPrecursorCVTermList() except + nogil  # wrap-doc:Obtains the list of CV Terms for the precursor
 
-        void addProductCVTerm(CVTerm & cv_term)except + nogil 
+        void addProductCVTerm(CVTerm & cv_term) except + nogil 
 
-        libcpp_vector[ TraMLProduct ]  getIntermediateProducts()except + nogil 
-        void addIntermediateProduct(TraMLProduct product)except + nogil 
-        void setIntermediateProducts(libcpp_vector[ TraMLProduct ] & products)except + nogil 
+        libcpp_vector[ TraMLProduct ]  getIntermediateProducts() except + nogil 
+        void addIntermediateProduct(TraMLProduct product) except + nogil 
+        void setIntermediateProducts(libcpp_vector[ TraMLProduct ] & products) except + nogil 
 
-        void setProduct(TraMLProduct product)except + nogil 
-        TraMLProduct getProduct()except + nogil 
-        void setRetentionTime(RetentionTime rt)except + nogil 
-        RetentionTime getRetentionTime()except + nogil 
+        void setProduct(TraMLProduct product) except + nogil 
+        TraMLProduct getProduct() except + nogil 
+        void setRetentionTime(RetentionTime rt) except + nogil 
+        RetentionTime getRetentionTime() except + nogil 
 
-        void setPrediction(Prediction & prediction)except + nogil  # wrap-doc:Sets prediction
-        void addPredictionTerm(CVTerm & prediction)except + nogil  # wrap-doc:Adds prediction term
+        void setPrediction(Prediction & prediction) except + nogil  # wrap-doc:Sets prediction
+        void addPredictionTerm(CVTerm & prediction) except + nogil  # wrap-doc:Adds prediction term
         bool hasPrediction() except + nogil  # wrap-doc:Returns true if a Prediction object exists (means it is safe to call getPrediction)
-        Prediction getPrediction()except + nogil  # wrap-doc:Obtains the Prediction object 
+        Prediction getPrediction() except + nogil  # wrap-doc:Obtains the Prediction object 
 
-        void setDecoyTransitionType(DecoyTransitionType & d)except + nogil  # wrap-doc:Sets the type of transition (target or decoy)
+        void setDecoyTransitionType(DecoyTransitionType & d) except + nogil  # wrap-doc:Sets the type of transition (target or decoy)
 
-        double getLibraryIntensity()except + nogil  # wrap-doc:Returns the library intensity (ion count or normalized ion count from a spectral library)
-        void setLibraryIntensity(double intensity)except + nogil  # wrap-doc:Sets the library intensity (ion count or normalized ion count from a spectral library)
+        double getLibraryIntensity() except + nogil  # wrap-doc:Returns the library intensity (ion count or normalized ion count from a spectral library)
+        void setLibraryIntensity(double intensity) except + nogil  # wrap-doc:Sets the library intensity (ion count or normalized ion count from a spectral library)
 
         int getProductChargeState() except + nogil  # wrap-doc:Returns the charge state of the product
         bool isProductChargeStateSet() except + nogil  # wrap-doc:Returns true if charge state of product is already set

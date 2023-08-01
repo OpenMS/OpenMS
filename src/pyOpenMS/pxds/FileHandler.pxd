@@ -28,7 +28,7 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
         FileHandler() except + nogil 
         FileHandler(FileHandler) except + nogil  # wrap-ignore
 
-        bool loadExperiment(String, MSExperiment &)except + nogil
+        bool loadExperiment(String, MSExperiment &) except + nogil
             # wrap-doc:
             #  Loads a file into an MSExperiment
             #  
@@ -45,7 +45,7 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             #  :raises:
             #    Exception: ParseError is thrown if an error occurs during parsing
 
-        void storeExperiment(String, MSExperiment)except + nogil
+        void storeExperiment(String, MSExperiment) except + nogil
             # wrap-doc:
             #  Stores an MSExperiment to a file\n
             #  
