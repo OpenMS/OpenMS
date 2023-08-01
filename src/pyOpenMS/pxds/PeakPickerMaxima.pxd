@@ -26,11 +26,11 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerMaxima.h>" namespac
             #  appropriate preprocessing steps (e.g. noise reduction and baseline
             #  subtraction), it might be also applied to low resolution data
 
-        PeakPickerMaxima(double signal_to_noise, double spacing_difference, double sn_window_length) nogil except +
-        PeakPickerMaxima(PeakPickerMaxima &) nogil except + # compiler 
+        PeakPickerMaxima(double signal_to_noise, double spacing_difference, double sn_window_length) except + nogil 
+        PeakPickerMaxima(PeakPickerMaxima &) except + nogil  # compiler 
 
         void findMaxima(libcpp_vector[double] mz_array, libcpp_vector[double]
-                        int_array, libcpp_vector[PeakCandidate]& pc) nogil except +
+                        int_array, libcpp_vector[PeakCandidate]& pc) except + nogil 
             # wrap-doc:
                 #  Will find local maxima in raw data
                 #  
@@ -41,14 +41,14 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerMaxima.h>" namespac
                 #  :param check_spacings: Check spacing constraints (recommended settings: yes for spectra, no for chromatograms)
 
         void pick(libcpp_vector[double] mz_array, libcpp_vector[double]
-                        int_array, libcpp_vector[PeakCandidate]& pc) nogil except +
+                        int_array, libcpp_vector[PeakCandidate]& pc) except + nogil 
           
 cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerMaxima.h>" namespace "OpenMS::PeakPickerMaxima":
     
     cdef cppclass PeakCandidate "OpenMS::PeakPickerMaxima::PeakCandidate":
 
-        PeakCandidate() nogil except +
-        PeakCandidate(PeakCandidate &) nogil except + # compiler
+        PeakCandidate() except + nogil 
+        PeakCandidate(PeakCandidate &) except + nogil  # compiler
         int pos
         int left_boundary
         int right_boundary

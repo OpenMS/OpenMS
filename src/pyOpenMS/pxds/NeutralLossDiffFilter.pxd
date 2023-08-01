@@ -10,9 +10,9 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/NeutralLossDiffFilter.h>" names
         # wrap-doc:
         #  NeutralLossDiffFilter returns the total intensity ob peak pairs whose m/z difference can be explained by a neutral loss
 
-        NeutralLossDiffFilter() nogil except +
-        NeutralLossDiffFilter(NeutralLossDiffFilter &) nogil except +
-        double apply(MSSpectrum & ) nogil except +
-        # POINTER # FilterFunctor * create() nogil except +
-        String getProductName() nogil except +
+        NeutralLossDiffFilter() except + nogil 
+        NeutralLossDiffFilter(NeutralLossDiffFilter &) except + nogil 
+        double apply(MSSpectrum & ) except + nogil 
+        # POINTER # FilterFunctor * create() except + nogil 
+        String getProductName() except + nogil 
 

@@ -7,8 +7,8 @@ from ConvexHull2D cimport *
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>" namespace "OpenMS::FeatureFinderAlgorithmPickedHelperStructs":
 
     cdef cppclass TheoreticalIsotopePattern "OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern":
-        TheoreticalIsotopePattern() nogil except + # compiler
-        TheoreticalIsotopePattern(TheoreticalIsotopePattern &) nogil except + # compiler
+        TheoreticalIsotopePattern() except + nogil  # compiler
+        TheoreticalIsotopePattern(TheoreticalIsotopePattern &) except + nogil  # compiler
 
         libcpp_vector[ double ] intensity
         Size optional_begin
@@ -16,54 +16,54 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
         double max
         Size trimmed_left
 
-        Size size() nogil except +
+        Size size() except + nogil 
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>" namespace "OpenMS::FeatureFinderAlgorithmPickedHelperStructs":
 
     # Since this is a templated class, we cannot tell Cython what the C++
     # equivalent would be and we need to name it MassTrace
     cdef cppclass MassTrace:
-        MassTrace() nogil except + # compiler
-        MassTrace(MassTrace &) nogil except + # compiler
+        MassTrace() except + nogil  # compiler
+        MassTrace(MassTrace &) except + nogil  # compiler
 
         # POINTER # PeakType * max_peak
         double max_rt
         double theoretical_int
         # POINTER # libcpp_vector[ libcpp_pair[ double, PeakType * ] ] peaks
-        ConvexHull2D getConvexhull() nogil except +
-        void updateMaximum() nogil except +
-        double getAvgMZ() nogil except +
-        bool isValid() nogil except +
+        ConvexHull2D getConvexhull() except + nogil 
+        void updateMaximum() except + nogil 
+        double getAvgMZ() except + nogil 
+        bool isValid() except + nogil 
 
     # Since this is a templated class, we cannot tell Cython what the C++
     # equivalent would be and we need to name it MassTraces
     cdef cppclass MassTraces:
-        MassTraces() nogil except + # compiler
-        MassTraces(MassTraces &) nogil except + # compiler
+        MassTraces() except + nogil  # compiler
+        MassTraces(MassTraces &) except + nogil  # compiler
 
         Size max_trace
         double baseline
-        Size getPeakCount() nogil except +
-        bool isValid(double seed_mz, double trace_tolerance) nogil except +
-        Size getTheoreticalmaxPosition() nogil except +
-        void updateBaseline() nogil except +
-        libcpp_pair[ double, double ] getRTBounds() nogil except +
+        Size getPeakCount() except + nogil 
+        bool isValid(double seed_mz, double trace_tolerance) except + nogil 
+        Size getTheoreticalmaxPosition() except + nogil 
+        void updateBaseline() except + nogil 
+        libcpp_pair[ double, double ] getRTBounds() except + nogil 
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>" namespace "OpenMS::FeatureFinderAlgorithmPickedHelperStructs":
 
     cdef cppclass Seed "OpenMS::FeatureFinderAlgorithmPickedHelperStructs::Seed":
-        Seed() nogil except + # compiler
-        Seed(Seed &) nogil except + # compiler
+        Seed() except + nogil  # compiler
+        Seed(Seed &) except + nogil  # compiler
         Size spectrum
         Size peak
         float intensity
-        bool operator<(Seed & rhs) nogil except +
+        bool operator<(Seed & rhs) except + nogil 
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>" namespace "OpenMS::FeatureFinderAlgorithmPickedHelperStructs":
 
     cdef cppclass IsotopePattern "OpenMS::FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern":
-        IsotopePattern(Size size) nogil except +
-        IsotopePattern(IsotopePattern &) nogil except + # compiler
+        IsotopePattern(Size size) except + nogil 
+        IsotopePattern(IsotopePattern &) except + nogil  # compiler
 
         # TODO STL attributes -- Signed size does not work either!
         # vector.from_py:33:13: 'ptrdiff_t' is not a type identifier

@@ -8,16 +8,16 @@ cdef extern from "<OpenMS/SIMULATION/LABELING/SILACLabeler.h>" namespace "OpenMS
     cdef cppclass SILACLabeler :
         # TODO BaseLabeler inheritance
         #  BaseLabeler
-        SILACLabeler() nogil except + # wrap-doc:Simulate SILAC experiments
-        SILACLabeler(SILACLabeler &) nogil except + # compiler
+        SILACLabeler() except + nogil  # wrap-doc:Simulate SILAC experiments
+        SILACLabeler(SILACLabeler &) except + nogil  # compiler
 
-        void preCheck(Param & param) nogil except +
-        ## void setUpHook(SimTypes::FeatureMapSimVector & ) nogil except +
-        ## void postDigestHook(SimTypes::FeatureMapSimVector & ) nogil except +
-        ## void postRTHook(SimTypes::FeatureMapSimVector & ) nogil except +
-        ## void postDetectabilityHook(SimTypes::FeatureMapSimVector & ) nogil except +
-        ## void postIonizationHook(SimTypes::FeatureMapSimVector & ) nogil except +
-        ## void postRawMSHook(SimTypes::FeatureMapSimVector & ) nogil except +
-        ## void postRawTandemMSHook(SimTypes::FeatureMapSimVector & , SimTypes::MSSimExperiment & ) nogil except +
-        ## # POINTER # BaseLabeler * create() nogil except +
-        String getProductName() nogil except + # wrap-doc:Name of the model (needed by Factory)
+        void preCheck(Param & param) except + nogil 
+        ## void setUpHook(SimTypes::FeatureMapSimVector & ) except + nogil 
+        ## void postDigestHook(SimTypes::FeatureMapSimVector & ) except + nogil 
+        ## void postRTHook(SimTypes::FeatureMapSimVector & ) except + nogil 
+        ## void postDetectabilityHook(SimTypes::FeatureMapSimVector & ) except + nogil 
+        ## void postIonizationHook(SimTypes::FeatureMapSimVector & ) except + nogil 
+        ## void postRawMSHook(SimTypes::FeatureMapSimVector & ) except + nogil 
+        ## void postRawTandemMSHook(SimTypes::FeatureMapSimVector & , SimTypes::MSSimExperiment & ) except + nogil 
+        ## # POINTER # BaseLabeler * create() except + nogil 
+        String getProductName() except + nogil  # wrap-doc:Name of the model (needed by Factory)

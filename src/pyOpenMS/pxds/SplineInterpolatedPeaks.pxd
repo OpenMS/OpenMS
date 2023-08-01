@@ -9,34 +9,34 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>" na
     cdef cppclass SplineInterpolatedPeaks "OpenMS::SplineInterpolatedPeaks":
 
         # private
-        SplineInterpolatedPeaks() nogil except + # wrap-ignore
+        SplineInterpolatedPeaks() except + nogil  # wrap-ignore
 
-        SplineInterpolatedPeaks(libcpp_vector[double] mz, libcpp_vector[double] intensity) nogil except +
+        SplineInterpolatedPeaks(libcpp_vector[double] mz, libcpp_vector[double] intensity) except + nogil 
 
-        SplineInterpolatedPeaks(MSSpectrum raw_spectrum) nogil except +
+        SplineInterpolatedPeaks(MSSpectrum raw_spectrum) except + nogil 
 
-        SplineInterpolatedPeaks(MSChromatogram raw_chromatogram) nogil except +
+        SplineInterpolatedPeaks(MSChromatogram raw_chromatogram) except + nogil 
 
-        SplineInterpolatedPeaks(SplineInterpolatedPeaks &) nogil except + # compiler
+        SplineInterpolatedPeaks(SplineInterpolatedPeaks &) except + nogil  # compiler
 
-        double getPosMin() nogil except +
+        double getPosMin() except + nogil 
 
-        double getPosMax() nogil except +
+        double getPosMax() except + nogil 
 
-        int size() nogil except +
+        int size() except + nogil 
         
-        SplineSpectrum_Navigator getNavigator(double scaling) nogil except +
+        SplineSpectrum_Navigator getNavigator(double scaling) except + nogil 
 
 
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>" namespace "OpenMS::SplineInterpolatedPeaks":
     
     cdef cppclass SplineSpectrum_Navigator "OpenMS::SplineInterpolatedPeaks::Navigator":
         
-            SplineSpectrum_Navigator() nogil except +
-            SplineSpectrum_Navigator(SplineSpectrum_Navigator) nogil except + # compiler
+            SplineSpectrum_Navigator() except + nogil 
+            SplineSpectrum_Navigator(SplineSpectrum_Navigator) except + nogil  # compiler
             
-            SplineSpectrum_Navigator(libcpp_vector[SplinePackage]* packages, double posMax, double scaling)  nogil except +
+            SplineSpectrum_Navigator(libcpp_vector[SplinePackage]* packages, double posMax, double scaling)  except + nogil 
 
-            double eval(double pos) nogil except +
+            double eval(double pos) except + nogil 
 
-            double getNextPos(double pos) nogil except +
+            double getNextPos(double pos) except + nogil 

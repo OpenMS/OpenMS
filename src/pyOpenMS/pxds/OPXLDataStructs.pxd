@@ -3,8 +3,8 @@ from Types cimport *
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS":
 
     cdef cppclass OPXLDataStructs "OpenMS::OPXLDataStructs":
-        OPXLDataStructs() nogil except + # compiler
-        OPXLDataStructs(OPXLDataStructs &) nogil except + # compiler
+        OPXLDataStructs() except + nogil  # compiler
+        OPXLDataStructs(OPXLDataStructs &) except + nogil  # compiler
 
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::OPXLDataStructs":
     cdef enum ProteinProteinCrossLinkType "OpenMS::OPXLDataStructs::ProteinProteinCrossLinkType":

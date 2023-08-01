@@ -9,9 +9,9 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/ComplementMarker.h>" namespace 
         # wrap-inherits:
         #  PeakMarker
 
-        ComplementMarker() nogil except + # wrap-doc:ComplementMarker marks peak pairs which could represent y - b ion pairs
-        ComplementMarker(ComplementMarker &) nogil except +
+        ComplementMarker() except + nogil  # wrap-doc:ComplementMarker marks peak pairs which could represent y - b ion pairs
+        ComplementMarker(ComplementMarker &) except + nogil 
 
-        void apply(libcpp_map[ double, bool ] & , MSSpectrum & ) nogil except +
-        PeakMarker * create() nogil except + # wrap-ignore
-        # String getProductName() nogil except +
+        void apply(libcpp_map[ double, bool ] & , MSSpectrum & ) except + nogil 
+        PeakMarker * create() except + nogil  # wrap-ignore
+        # String getProductName() except + nogil 

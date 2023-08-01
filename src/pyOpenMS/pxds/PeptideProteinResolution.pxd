@@ -26,11 +26,11 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "Op
             #  Maybe extend it to work with MS1 features. Separate resolution and adding
             #  groups to output
 
-        PeptideProteinResolution(bool statistics) nogil except +
-        PeptideProteinResolution(PeptideProteinResolution &) nogil except + # compiler
+        PeptideProteinResolution(bool statistics) except + nogil 
+        PeptideProteinResolution(PeptideProteinResolution &) except + nogil  # compiler
 
         void buildGraph(ProteinIdentification & protein, 
-                        libcpp_vector[ PeptideIdentification ] & peptides) nogil except +
+                        libcpp_vector[ PeptideIdentification ] & peptides) except + nogil 
             # wrap-doc:
                 #  Initialize and store the graph (= maps), needs sorted groups for
                 #  correct functionality. Therefore sorts the indist. protein groups
@@ -42,7 +42,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "Op
                 #  :param skip_sort: Skips sorting of groups, nothing is modified then
 
         void resolveGraph(ProteinIdentification & protein,
-                          libcpp_vector[ PeptideIdentification ] & peptides) nogil except +
+                          libcpp_vector[ PeptideIdentification ] & peptides) except + nogil 
             # wrap-doc:
                 #  Applies resolveConnectedComponent to every component of the graph and
                 #  is able to write statistics when specified. Parameters will
@@ -52,7 +52,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "Op
                 #  :param protein: ProteinIdentification object storing IDs and groups
                 #  :param peptides: vector of ProteinIdentifications with links to the proteins
 
-        PeptideProteinResolution_ConnectedComponent findConnectedComponent(Size & root_prot_grp) nogil except +
+        PeptideProteinResolution_ConnectedComponent findConnectedComponent(Size & root_prot_grp) except + nogil 
             # wrap-doc:
                 #  Does a BFS on the two maps (= two parts of the graph; indist. prot. groups
                 #  and peptides), switching from one to the other in each step
@@ -64,7 +64,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "Op
         void resolveConnectedComponent(PeptideProteinResolution_ConnectedComponent & conn_comp,
                                        ProteinIdentification & protein,
                                        libcpp_vector[ PeptideIdentification ] &
-                                       peptides) nogil except +
+                                       peptides) except + nogil 
             # wrap-doc:
                 #  Resolves connected components based on posterior probabilities and adds them
                 #  as additional protein_groups to the output idXML.
@@ -85,12 +85,12 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "Op
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "OpenMS::PeptideProteinResolution":        
         # static members
-        void run(libcpp_vector[ ProteinIdentification ] & proteins, libcpp_vector[ PeptideIdentification ] & peptides) nogil except +  #wrap-attach:PeptideProteinResolution
+        void run(libcpp_vector[ ProteinIdentification ] & proteins, libcpp_vector[ PeptideIdentification ] & peptides) except + nogil   #wrap-attach:PeptideProteinResolution
 
 cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "OpenMS":
     
     cdef cppclass PeptideProteinResolution_ConnectedComponent "OpenMS::ConnectedComponent":
-        PeptideProteinResolution_ConnectedComponent() nogil except +
-        PeptideProteinResolution_ConnectedComponent(PeptideProteinResolution_ConnectedComponent) nogil except + #wrap-ignore
+        PeptideProteinResolution_ConnectedComponent() except + nogil 
+        PeptideProteinResolution_ConnectedComponent(PeptideProteinResolution_ConnectedComponent) except + nogil  #wrap-ignore
         libcpp_set[ size_t ] prot_grp_indices
         libcpp_set[ size_t ] pep_indices

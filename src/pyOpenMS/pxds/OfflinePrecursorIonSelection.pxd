@@ -17,14 +17,14 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>" nam
     cdef cppclass OfflinePrecursorIonSelection(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
-        OfflinePrecursorIonSelection() nogil except +
-        OfflinePrecursorIonSelection(OfflinePrecursorIonSelection &) nogil except + # compiler
+        OfflinePrecursorIonSelection() except + nogil 
+        OfflinePrecursorIonSelection(OfflinePrecursorIonSelection &) except + nogil  # compiler
 
         void makePrecursorSelectionForKnownLCMSMap(FeatureMap & features,
                                                    MSExperiment & experiment,
                                                    MSExperiment & ms2,
                                                    libcpp_set[ int ] & charges_set, bool
-                                                   feature_based) nogil except +
+                                                   feature_based) except + nogil 
             # wrap-doc:
                 #  Makes the precursor selection for a given feature map, either feature or scan based
                 #  
@@ -38,9 +38,9 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>" nam
         # TODO nested STL
         void getMassRanges(FeatureMap & features, 
                            MSExperiment & experiment,
-                           libcpp_vector[ libcpp_vector[ libcpp_pair[ Size, Size ] ] ] & indices) nogil except + # wrap-ignore
+                           libcpp_vector[ libcpp_vector[ libcpp_pair[ Size, Size ] ] ] & indices) except + nogil  # wrap-ignore
 
-        void createProteinSequenceBasedLPInclusionList(String include_, String rt_model_file, String pt_model_file, FeatureMap & precursors) nogil except +
-        void setLPSolver(SOLVER solver) nogil except +
-        SOLVER getLPSolver() nogil except +
+        void createProteinSequenceBasedLPInclusionList(String include_, String rt_model_file, String pt_model_file, FeatureMap & precursors) except + nogil 
+        void setLPSolver(SOLVER solver) except + nogil 
+        SOLVER getLPSolver() except + nogil 
 

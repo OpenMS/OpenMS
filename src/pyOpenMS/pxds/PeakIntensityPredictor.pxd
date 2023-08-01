@@ -24,11 +24,11 @@ cdef extern from "<OpenMS/ANALYSIS/PIP/PeakIntensityPredictor.h>" namespace "Ope
             #  the given sequences and creates a vector space in which the LocalLinearMap
             #  performs
 
-        PeakIntensityPredictor() nogil except +
+        PeakIntensityPredictor() except + nogil 
         # private
-        PeakIntensityPredictor(PeakIntensityPredictor) nogil except + #wrap-ignore
-        double predict(AASequence & sequence) nogil except + # wrap-doc:Returns predicted peak heights (intensities) of a single peptide
-        double predict(AASequence & sequence, libcpp_vector[ double ] & add_info) nogil except +
+        PeakIntensityPredictor(PeakIntensityPredictor) except + nogil  #wrap-ignore
+        double predict(AASequence & sequence) except + nogil  # wrap-doc:Returns predicted peak heights (intensities) of a single peptide
+        double predict(AASequence & sequence, libcpp_vector[ double ] & add_info) except + nogil 
             # wrap-doc:
             #  Returns predicted peak heights (intensities) of a single peptide
             #  
@@ -38,6 +38,6 @@ cdef extern from "<OpenMS/ANALYSIS/PIP/PeakIntensityPredictor.h>" namespace "Ope
             #  - 1: y coordinates of associated cluster (2nd column)
             #  - 2: error (RMSE) of the peptide to the associated next prototype (cluster center)
 
-        libcpp_vector[ double ] predict(libcpp_vector[ AASequence ] & sequences) nogil except +
-        libcpp_vector[ double ] predict(libcpp_vector[ AASequence ] & sequences, libcpp_vector[ libcpp_vector[ double ] ] & add_info) nogil except +
+        libcpp_vector[ double ] predict(libcpp_vector[ AASequence ] & sequences) except + nogil 
+        libcpp_vector[ double ] predict(libcpp_vector[ AASequence ] & sequences, libcpp_vector[ libcpp_vector[ double ] ] & add_info) except + nogil 
 
