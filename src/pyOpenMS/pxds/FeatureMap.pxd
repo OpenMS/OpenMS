@@ -62,11 +62,11 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
 
         void updateRanges() except + nogil  # TODO
 
-        libcpp_vector[ProteinIdentification] getProteinIdentifications() nogil except+
-        void setProteinIdentifications(libcpp_vector[ProteinIdentification]) nogil except+ # wrap-doc:Sets the protein identifications
+        libcpp_vector[ProteinIdentification] getProteinIdentifications() except + nogil
+        void setProteinIdentifications(libcpp_vector[ProteinIdentification]) except + nogil # wrap-doc:Sets the protein identifications
 
-        libcpp_vector[PeptideIdentification] getUnassignedPeptideIdentifications() nogil except+
-        void setUnassignedPeptideIdentifications(libcpp_vector[PeptideIdentification]) nogil except+ # wrap-doc:Sets the unassigned peptide identifications
+        libcpp_vector[PeptideIdentification] getUnassignedPeptideIdentifications() except + nogil
+        void setUnassignedPeptideIdentifications(libcpp_vector[PeptideIdentification]) except + nogil # wrap-doc:Sets the unassigned peptide identifications
 
         Size applyMemberFunction(Size(* fun)()) except + nogil # wrap-ignore
 
