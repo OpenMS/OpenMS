@@ -7,38 +7,38 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>" n
 
     cdef cppclass AbsoluteQuantitationMethod:
 
-        AbsoluteQuantitationMethod() nogil except + # compiler
-        AbsoluteQuantitationMethod(AbsoluteQuantitationMethod &) nogil except + # compiler
+        AbsoluteQuantitationMethod() except + nogil  # compiler
+        AbsoluteQuantitationMethod(AbsoluteQuantitationMethod &) except + nogil  # compiler
 
-        void setLLOD(double llod) nogil except +
-        void setULOD(double ulod) nogil except +
-        double getLLOD() nogil except +
-        double getULOD() nogil except +
+        void setLLOD(double llod) except + nogil 
+        void setULOD(double ulod) except + nogil 
+        double getLLOD() except + nogil 
+        double getULOD() except + nogil 
 
-        void setLLOQ(double lloq) nogil except +
-        void setULOQ(double uloq) nogil except +
-        double getLLOQ() nogil except +
-        double getULOQ() nogil except +
+        void setLLOQ(double lloq) except + nogil 
+        void setULOQ(double uloq) except + nogil 
+        double getLLOQ() except + nogil 
+        double getULOQ() except + nogil 
 
-        bool checkLOD(double value) nogil except +
-        bool checkLOQ(double value) nogil except +
+        bool checkLOD(double value) except + nogil 
+        bool checkLOQ(double value) except + nogil 
         
-        void setComponentName(const String& component_name) nogil except +
-        void setISName(const String& IS_name) nogil except +
-        void setFeatureName(const String& feature_name) nogil except +
-        String getComponentName() nogil except +
-        String getISName() nogil except +
-        String getFeatureName() nogil except +
+        void setComponentName(const String& component_name) except + nogil 
+        void setISName(const String& IS_name) except + nogil 
+        void setFeatureName(const String& feature_name) except + nogil 
+        String getComponentName() except + nogil 
+        String getISName() except + nogil 
+        String getFeatureName() except + nogil 
 
-        void setConcentrationUnits(const String& concentration_units) nogil except +
-        String getConcentrationUnits() nogil except +
+        void setConcentrationUnits(const String& concentration_units) except + nogil 
+        String getConcentrationUnits() except + nogil 
 
-        void setTransformationModel(const String& transformation_model) nogil except +
-        void setTransformationModelParams(Param transformation_model_param) nogil except +
-        String getTransformationModel() nogil except +
-        Param getTransformationModelParams() nogil except +
+        void setTransformationModel(const String& transformation_model) except + nogil 
+        void setTransformationModelParams(Param transformation_model_param) except + nogil 
+        String getTransformationModel() except + nogil 
+        Param getTransformationModelParams() except + nogil 
 
-        void setNPoints(Int n_points) nogil except +
-        void setCorrelationCoefficient(double correlation_coefficient) nogil except +
-        Int getNPoints() nogil except +
-        double getCorrelationCoefficient() nogil except +
+        void setNPoints(Int n_points) except + nogil 
+        void setCorrelationCoefficient(double correlation_coefficient) except + nogil 
+        Int getNPoints() except + nogil 
+        double getCorrelationCoefficient() except + nogil 

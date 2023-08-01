@@ -11,9 +11,9 @@ cdef extern from "<OpenMS/SIMULATION/SimTypes.h>" namespace "OpenMS::SimTypes":
 
     cdef cppclass SimRandomNumberGenerator:
 
-        SimRandomNumberGenerator() nogil except + # compiler
-        SimRandomNumberGenerator(SimRandomNumberGenerator &) nogil except + # compiler
-        void initialize(bool biological_random, bool technical_random) nogil except +
+        SimRandomNumberGenerator() except + nogil  # compiler
+        SimRandomNumberGenerator(SimRandomNumberGenerator &) except + nogil  # compiler
+        void initialize(bool biological_random, bool technical_random) except + nogil 
 
     cdef cppclass SimProtein:
         SimProtein(FASTAEntry entry, MetaInfoInterface meta)

@@ -10,38 +10,38 @@ from ProgressLogger cimport *
 cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "OpenMS":
 
     cdef cppclass AccurateMassSearchResult "OpenMS::AccurateMassSearchResult":
-        AccurateMassSearchResult() nogil except +
-        AccurateMassSearchResult(AccurateMassSearchResult &) nogil except + # wrap-ignore
-        double getObservedMZ() nogil except +
-        void setObservedMZ(double & m) nogil except +
-        double getCalculatedMZ() nogil except +
-        void setCalculatedMZ(double & m) nogil except +
-        double getQueryMass() nogil except +
-        void setQueryMass(double & m) nogil except +
-        double getFoundMass() nogil except +
-        void setFoundMass(double & m) nogil except +
-        double getCharge() nogil except +
-        void setCharge(double & ch) nogil except +
-        double getMZErrorPPM() nogil except +
-        void setMZErrorPPM(double & ppm) nogil except +
-        double getObservedRT() nogil except +
-        void setObservedRT(double & rt) nogil except +
-        double getObservedIntensity() nogil except +
-        void setObservedIntensity(double & intensity) nogil except +
-        double getMatchingIndex() nogil except +
-        void setMatchingIndex(double & idx) nogil except +
-        String getFoundAdduct() nogil except +
-        void setFoundAdduct(const String & add) nogil except +
-        String getFormulaString() nogil except +
-        void setEmpiricalFormula(const String & ep) nogil except +
-        libcpp_vector[ String ] getMatchingHMDBids() nogil except +
-        void setMatchingHMDBids(libcpp_vector[ String ] & match_ids) nogil except +
-        double getIsotopesSimScore() nogil except +
-        void setIsotopesSimScore(double & sim_score) nogil except +
-        libcpp_vector[double] getIndividualIntensities() nogil except +
-        void setIndividualIntensities(libcpp_vector[double]) nogil except +
-        Size getSourceFeatureIndex() nogil except +
-        void setSourceFeatureIndex(Size) nogil except +
+        AccurateMassSearchResult() except + nogil 
+        AccurateMassSearchResult(AccurateMassSearchResult &) except + nogil  # wrap-ignore
+        double getObservedMZ() except + nogil 
+        void setObservedMZ(double & m) except + nogil 
+        double getCalculatedMZ() except + nogil 
+        void setCalculatedMZ(double & m) except + nogil 
+        double getQueryMass() except + nogil 
+        void setQueryMass(double & m) except + nogil 
+        double getFoundMass() except + nogil 
+        void setFoundMass(double & m) except + nogil 
+        double getCharge() except + nogil 
+        void setCharge(double & ch) except + nogil 
+        double getMZErrorPPM() except + nogil 
+        void setMZErrorPPM(double & ppm) except + nogil 
+        double getObservedRT() except + nogil 
+        void setObservedRT(double & rt) except + nogil 
+        double getObservedIntensity() except + nogil 
+        void setObservedIntensity(double & intensity) except + nogil 
+        double getMatchingIndex() except + nogil 
+        void setMatchingIndex(double & idx) except + nogil 
+        String getFoundAdduct() except + nogil 
+        void setFoundAdduct(const String & add) except + nogil 
+        String getFormulaString() except + nogil 
+        void setEmpiricalFormula(const String & ep) except + nogil 
+        libcpp_vector[ String ] getMatchingHMDBids() except + nogil 
+        void setMatchingHMDBids(libcpp_vector[ String ] & match_ids) except + nogil 
+        double getIsotopesSimScore() except + nogil 
+        void setIsotopesSimScore(double & sim_score) except + nogil 
+        libcpp_vector[double] getIndividualIntensities() except + nogil 
+        void setIndividualIntensities(libcpp_vector[double]) except + nogil 
+        Size getSourceFeatureIndex() except + nogil 
+        void setSourceFeatureIndex(Size) except + nogil 
         # errors when returning references to vector
-        libcpp_vector[ double] getMasstraceIntensities() nogil except +
-        void setMasstraceIntensities(libcpp_vector[ double ] & ) nogil except +
+        libcpp_vector[ double] getMasstraceIntensities() except + nogil 
+        void setMasstraceIntensities(libcpp_vector[ double ] & ) except + nogil 

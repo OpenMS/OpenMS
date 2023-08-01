@@ -15,13 +15,13 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace 
         #  DefaultParamHandler
         # wrap-doc:
         # This class implements different precursor ion selection strategies
-        PrecursorIonSelection() nogil except +
-        PrecursorIonSelection(PrecursorIonSelection &) nogil except +
+        PrecursorIonSelection() except + nogil 
+        PrecursorIonSelection(PrecursorIonSelection &) except + nogil 
 
-        double  getMaxScore() nogil except +
-        void setMaxScore(double & max_score) nogil except +
-        void sortByTotalScore(FeatureMap & features) nogil except + # wrap-doc:Sort features by total score
-        void getNextPrecursors(FeatureMap & features, FeatureMap & next_features, UInt number) nogil except +
+        double  getMaxScore() except + nogil 
+        void setMaxScore(double & max_score) except + nogil 
+        void sortByTotalScore(FeatureMap & features) except + nogil  # wrap-doc:Sort features by total score
+        void getNextPrecursors(FeatureMap & features, FeatureMap & next_features, UInt number) except + nogil 
             # wrap-doc:
                 #  Returns features with highest score for MS/MS
                 #  
@@ -31,7 +31,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace 
                 #  :param number: Number of features to be reported
 
         # TODO immutable types by reference
-        # void getNextPrecursorsSeq(FeatureMap & features, FeatureMap & next_features, UInt number, double & rt) nogil except +
+        # void getNextPrecursorsSeq(FeatureMap & features, FeatureMap & next_features, UInt number, double & rt) except + nogil 
 
         void getNextPrecursors(libcpp_vector[ int ] & solution_indices,
                                libcpp_vector[ IndexTriple ] & variable_indices,
@@ -39,8 +39,8 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace 
                                FeatureMap & features,
                                FeatureMap & new_features,
                                UInt step_size,
-                               PSLPFormulation & ilp) nogil except +
-        void rescore(FeatureMap & features, libcpp_vector[ PeptideIdentification ] & new_pep_ids, libcpp_vector[ ProteinIdentification ] & prot_ids, PrecursorIonSelectionPreprocessing & preprocessed_db, bool check_meta_values) nogil except +
+                               PSLPFormulation & ilp) except + nogil 
+        void rescore(FeatureMap & features, libcpp_vector[ PeptideIdentification ] & new_pep_ids, libcpp_vector[ ProteinIdentification ] & prot_ids, PrecursorIonSelectionPreprocessing & preprocessed_db, bool check_meta_values) except + nogil 
             # wrap-doc:
                 #  Change scoring of features using peptide identifications from all spectra
                 #  
@@ -51,7 +51,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace 
                 #  :param preprocessed_db: Information from preprocessed database
                 #  :param check_meta_values: True if the FeatureMap should be checked for the presence of required meta values
 
-        void simulateRun(FeatureMap & features, libcpp_vector[ PeptideIdentification ] & pep_ids, libcpp_vector[ ProteinIdentification ] & prot_ids, PrecursorIonSelectionPreprocessing & preprocessed_db, String path, MSExperiment & experiment, String precursor_path) nogil except +
+        void simulateRun(FeatureMap & features, libcpp_vector[ PeptideIdentification ] & pep_ids, libcpp_vector[ ProteinIdentification ] & prot_ids, PrecursorIonSelectionPreprocessing & preprocessed_db, String path, MSExperiment & experiment, String precursor_path) except + nogil 
             # wrap-doc:
                 #  Simulate the iterative precursor ion selection
                 #  
@@ -63,11 +63,11 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace 
                 #  :param step_size: Number of MS/MS spectra considered per iteration
                 #  :param path: Path to output file
 
-        void setLPSolver(SOLVER solver) nogil except +
-        SOLVER getLPSolver() nogil except +
-        void reset() nogil except +
+        void setLPSolver(SOLVER solver) except + nogil 
+        SOLVER getLPSolver() except + nogil 
+        void reset() except + nogil 
         # TODO not implemented but part of the API
-        # libcpp_map[ String, libcpp_set[ String ] ]  getPeptideProteinCounter() nogil except +
+        # libcpp_map[ String, libcpp_set[ String ] ]  getPeptideProteinCounter() except + nogil 
 
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace "OpenMS::PrecursorIonSelection":
     cdef enum PrecursorIonSelection_Type "OpenMS::PrecursorIonSelection::Type":
@@ -83,12 +83,12 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace 
 # cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace "OpenMS::PrecursorIonSelection":
 #    
 #    cdef cppclass SeqTotalScoreMore :
-#        SeqTotalScoreMore(SeqTotalScoreMore) nogil except + #wrap-ignore
-#        bool operator()(Feature & left, Feature & right) nogil except + # wrap-cast:evaluate
+#        SeqTotalScoreMore(SeqTotalScoreMore) except + nogil  #wrap-ignore
+#        bool operator()(Feature & left, Feature & right) except + nogil  # wrap-cast:evaluate
 # 
 # cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace "OpenMS::PrecursorIonSelection":
 #    
 #    cdef cppclass TotalScoreMore :
-#        TotalScoreMore(TotalScoreMore) nogil except + #wrap-ignore
-#        bool operator()(Feature & left, Feature & right) nogil except + # wrap-cast:evaluate
+#        TotalScoreMore(TotalScoreMore) except + nogil  #wrap-ignore
+#        bool operator()(Feature & left, Feature & right) except + nogil  # wrap-cast:evaluate
 # 

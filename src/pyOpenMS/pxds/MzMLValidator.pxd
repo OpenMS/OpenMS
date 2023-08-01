@@ -7,9 +7,9 @@ cdef extern from "<OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>" namespace "OpenMS:
     
     cdef cppclass Internal_MzMLValidator "OpenMS::Internal::MzMLValidator":
         # private
-        Internal_MzMLValidator() nogil except + # wrap-ignore
+        Internal_MzMLValidator() except + nogil  # wrap-ignore
         # private
-        Internal_MzMLValidator(Internal_MzMLValidator &) nogil except + # wrap-ignore
+        Internal_MzMLValidator(Internal_MzMLValidator &) except + nogil  # wrap-ignore
 
-        Internal_MzMLValidator(CVMappings &mapping, ControlledVocabulary &cv) nogil except +
-        # ~MzMLValidator() nogil except +
+        Internal_MzMLValidator(CVMappings &mapping, ControlledVocabulary &cv) except + nogil 
+        # ~MzMLValidator() except + nogil 

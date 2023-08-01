@@ -9,9 +9,9 @@ from Types cimport *
 cdef extern from "<OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringCID.h>" namespace "OpenMS":
     
     cdef cppclass CompNovoIonScoringCID "OpenMS::CompNovoIonScoringCID":
-        CompNovoIonScoringCID() nogil except +
-        CompNovoIonScoringCID(CompNovoIonScoringCID &) nogil except +
+        CompNovoIonScoringCID() except + nogil 
+        CompNovoIonScoringCID(CompNovoIonScoringCID &) except + nogil 
         # TODO OpenMS Map type
         # void scoreSpectrum(libcpp_map[ double, IonScore ] & CID_ion_scores,
-        #  MSSpectrum &CID_spec, double precursor_weight, Size charge) nogil except +
+        #  MSSpectrum &CID_spec, double precursor_weight, Size charge) except + nogil 
 

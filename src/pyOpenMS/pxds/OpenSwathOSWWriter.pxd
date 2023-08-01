@@ -7,12 +7,12 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>" namespace "O
     
     cdef cppclass OpenSwathOSWWriter "OpenMS::OpenSwathOSWWriter":
 
-        OpenSwathOSWWriter(String output_filename, UInt64 run_id, String input_filename, bool ms1_scores, bool sonar, bool uis_scores) nogil except +
-        OpenSwathOSWWriter(OpenSwathOSWWriter &) nogil except + # compiler
+        OpenSwathOSWWriter(String output_filename, UInt64 run_id, String input_filename, bool ms1_scores, bool sonar, bool uis_scores) except + nogil 
+        OpenSwathOSWWriter(OpenSwathOSWWriter &) except + nogil  # compiler
 
-        bool isActive() nogil except +
-        void writeHeader() nogil except + # wrap-doc:Initializes file by generating SQLite tables
-        String prepareLine(LightCompound & compound, LightTransition * tr, FeatureMap & output, String id_) nogil except +
+        bool isActive() except + nogil 
+        void writeHeader() except + nogil  # wrap-doc:Initializes file by generating SQLite tables
+        String prepareLine(LightCompound & compound, LightTransition * tr, FeatureMap & output, String id_) except + nogil 
             # wrap-doc:
                 #  Prepare a single line (feature) for output
                 #  
@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>" namespace "O
                 #  :param id: The transition group identifier (peptide/metabolite id)
                 #  :return: A String to be written using writeLines
 
-        void writeLines(libcpp_vector[ String ] to_osw_output) nogil except +
+        void writeLines(libcpp_vector[ String ] to_osw_output) except + nogil 
             # wrap-doc:
                 #  Write data to disk
                 #  

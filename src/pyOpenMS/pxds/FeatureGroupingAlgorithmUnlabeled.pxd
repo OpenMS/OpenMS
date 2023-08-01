@@ -8,13 +8,13 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled
     cdef cppclass FeatureGroupingAlgorithmUnlabeled(FeatureGroupingAlgorithm) :
         # wrap-inherits:
         #  FeatureGroupingAlgorithm
-        FeatureGroupingAlgorithmUnlabeled() nogil except +
+        FeatureGroupingAlgorithmUnlabeled() except + nogil 
         # private
-        FeatureGroupingAlgorithmUnlabeled(FeatureGroupingAlgorithmUnlabeled &) nogil except + # wrap-ignore
-        void group(libcpp_vector[ FeatureMap ] & maps, ConsensusMap & out) nogil except +
-        # POINTER # FeatureGroupingAlgorithm * create() nogil except +
-        String getProductName() nogil except +
-        void addToGroup(int map_id, FeatureMap feature_map) nogil except +
-        void setReference(int map_id, FeatureMap map) nogil except +
-        ConsensusMap getResultMap() nogil except +
+        FeatureGroupingAlgorithmUnlabeled(FeatureGroupingAlgorithmUnlabeled &) except + nogil  # wrap-ignore
+        void group(libcpp_vector[ FeatureMap ] & maps, ConsensusMap & out) except + nogil 
+        # POINTER # FeatureGroupingAlgorithm * create() except + nogil 
+        String getProductName() except + nogil 
+        void addToGroup(int map_id, FeatureMap feature_map) except + nogil 
+        void setReference(int map_id, FeatureMap map) except + nogil 
+        ConsensusMap getResultMap() except + nogil 
 

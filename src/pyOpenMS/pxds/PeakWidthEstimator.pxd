@@ -15,10 +15,10 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>" n
             #  estimated for arbitrary m/z using a spline interpolationThis struct can be used to store both peak or feature indices`
 
         # private
-        # PeakWidthEstimator() nogil except +
-        PeakWidthEstimator(PeakWidthEstimator &) nogil except + # compiler
+        # PeakWidthEstimator() except + nogil 
+        PeakWidthEstimator(PeakWidthEstimator &) except + nogil  # compiler
         PeakWidthEstimator(MSExperiment exp_picked,
-                           libcpp_vector[libcpp_vector[PeakBoundary] ] & boundaries) nogil except +
+                           libcpp_vector[libcpp_vector[PeakBoundary] ] & boundaries) except + nogil 
 
-        double getPeakWidth(double mz) nogil except + # wrap-doc:Returns the estimated peak width at m/z
+        double getPeakWidth(double mz) except + nogil  # wrap-doc:Returns the estimated peak width at m/z
 

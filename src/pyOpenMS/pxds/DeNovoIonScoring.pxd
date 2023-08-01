@@ -11,16 +11,16 @@ cdef extern from "<OpenMS/ANALYSIS/DENOVO/DeNovoIonScoring.h>" namespace "OpenMS
         # wrap-ignore
         # ABSTRACT CLASS
         # no-pxd-import
-        DeNovoIonScoring() nogil except +
-        DeNovoIonScoring(DeNovoIonScoring &) nogil except +
-        void getIonScores(libcpp_vector[ DeNovoIonScore ] &ion_scores, MSSpectrum &spec) nogil except +
-        void getIonScores(libcpp_vector[ libcpp_vector[ DeNovoIonScore ] ] &ion_scores, MSExperiment &exp) nogil except + #wrap-ignore
+        DeNovoIonScoring() except + nogil 
+        DeNovoIonScoring(DeNovoIonScoring &) except + nogil 
+        void getIonScores(libcpp_vector[ DeNovoIonScore ] &ion_scores, MSSpectrum &spec) except + nogil 
+        void getIonScores(libcpp_vector[ libcpp_vector[ DeNovoIonScore ] ] &ion_scores, MSExperiment &exp) except + nogil  #wrap-ignore
 
 cdef extern from "<OpenMS/ANALYSIS/DENOVO/DeNovoIonScoring.h>" namespace "OpenMS::DeNovoIonScoring":
     
     cdef cppclass DeNovoIonScore "OpenMS::DeNovoIonScoring::IonScore":
-        DeNovoIonScore() nogil except +
-        DeNovoIonScore(DeNovoIonScore) nogil except +
+        DeNovoIonScore() except + nogil 
+        DeNovoIonScore(DeNovoIonScore) except + nogil 
 
         # score
         double score

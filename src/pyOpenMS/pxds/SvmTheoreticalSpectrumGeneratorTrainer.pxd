@@ -13,8 +13,8 @@ cdef extern from "<OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGeneratorTrainer.h>" n
         # wrap-inherits:
         #   DefaultParamHandler
 
-        SvmTheoreticalSpectrumGeneratorTrainer() nogil except +
-        SvmTheoreticalSpectrumGeneratorTrainer(SvmTheoreticalSpectrumGeneratorTrainer &) nogil except +
+        SvmTheoreticalSpectrumGeneratorTrainer() except + nogil 
+        SvmTheoreticalSpectrumGeneratorTrainer(SvmTheoreticalSpectrumGeneratorTrainer &) except + nogil 
 
-        void trainModel(MSExperiment & spectra, libcpp_vector[AASequence] & annotations, String filename, int precursor_charge) nogil except +
-        void normalizeIntensity(MSSpectrum & S) nogil except +
+        void trainModel(MSExperiment & spectra, libcpp_vector[AASequence] & annotations, String filename, int precursor_charge) except + nogil 
+        void normalizeIntensity(MSSpectrum & S) except + nogil 

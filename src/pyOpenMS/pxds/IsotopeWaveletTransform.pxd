@@ -13,10 +13,10 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
         # wrap-instances:
         #  IsotopeWaveletTransform := IsotopeWaveletTransform[Peak1D]
 
-        IsotopeWaveletTransform(double min_mz, double max_mz, UInt max_charge, Size max_scan_size, bool hr_data, String intenstype) nogil except +
-        IsotopeWaveletTransform(IsotopeWaveletTransform &) nogil except + # compiler
+        IsotopeWaveletTransform(double min_mz, double max_mz, UInt max_charge, Size max_scan_size, bool hr_data, String intenstype) except + nogil 
+        IsotopeWaveletTransform(IsotopeWaveletTransform &) except + nogil  # compiler
 
-        void getTransform(MSSpectrum &c_trans, MSSpectrum &c_ref, UInt c) nogil except +
+        void getTransform(MSSpectrum &c_trans, MSSpectrum &c_ref, UInt c) except + nogil 
             # wrap-doc:
                 #  Computes the isotope wavelet transform of charge state `c`
                 #  
@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
                 #  :param c_ref: The reference spectrum
                 #  :param c: The charge state minus 1 (e.g. c=2 means charge state 3) at which you want to compute the transform
 
-        void getTransformHighRes(MSSpectrum &c_trans, MSSpectrum &c_ref, UInt c) nogil except +
+        void getTransformHighRes(MSSpectrum &c_trans, MSSpectrum &c_ref, UInt c) except + nogil 
             # wrap-doc:
                 #  Computes the isotope wavelet transform of charge state `c`
                 #  
@@ -34,7 +34,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
                 #  :param c_ref: The reference spectrum
                 #  :param c: The charge state minus 1 (e.g. c=2 means charge state 3) at which you want to compute the transform
 
-        void identifyCharge(MSSpectrum &candidates, MSSpectrum &ref, UInt scan_index, UInt c, double ampl_cutoff, bool check_PPMs) nogil except +
+        void identifyCharge(MSSpectrum &candidates, MSSpectrum &ref, UInt scan_index, UInt c, double ampl_cutoff, bool check_PPMs) except + nogil 
             # wrap-doc:
                 #  Given an isotope wavelet transformed spectrum 'candidates', this function assigns to every significant
                 #  pattern its corresponding charge state and a score indicating the reliability of the prediction. The result of this
@@ -57,8 +57,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
                 #  :param check_PPMs: If enabled, the algorithm will check each monoisotopic mass candidate for its plausibility
                 #      by computing the ppm difference between this mass and the averagine model
 
-        void initializeScan(MSSpectrum &c_ref, UInt c) nogil except +# TODO
-        void updateBoxStates(MSExperiment &map_, Size scan_index, UInt RT_interleave, UInt RT_votes_cutoff, Int front_bound, Int end_bound) nogil except +
+        void initializeScan(MSSpectrum &c_ref, UInt c) except + nogil # TODO
+        void updateBoxStates(MSExperiment &map_, Size scan_index, UInt RT_interleave, UInt RT_votes_cutoff, Int front_bound, Int end_bound) except + nogil 
             # wrap-doc:
                 #  A function keeping track of currently open and closed sweep line boxes
                 #  This function is used by the isotope wavelet feature finder and must be called for each processed scan
@@ -69,8 +69,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
                 #      This information is necessary to sweep across the map after each scan has been evaluated
                 #  :param RT_votes_cutoff: See the IsotopeWaveletFF class
 
-        # void mergeFeatures(IsotopeWaveletTransform[ PeakT ] *later_iwt, UInt RT_interleave, UInt RT_votes_cutoff) nogil except +
-        FeatureMap mapSeeds2Features(MSExperiment &map_, UInt RT_votes_cutoff) nogil except +
+        # void mergeFeatures(IsotopeWaveletTransform[ PeakT ] *later_iwt, UInt RT_interleave, UInt RT_votes_cutoff) except + nogil 
+        FeatureMap mapSeeds2Features(MSExperiment &map_, UInt RT_votes_cutoff) except + nogil 
             # wrap-doc:
                 #  Filters the candidates further more and maps the internally used data structures to the OpenMS framework
                 #  
@@ -79,9 +79,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
                 #  :param max_charge: The maximal charge state under consideration
                 #  :param RT_votes_cutoff: See the IsotopeWaveletFF class
 
-        ## std::multimap[ double, Box ] getClosedBoxes() nogil except +
-        ## double getLinearInterpolation(typename MSSpectrum::const_iterator &left_iter, double mz_pos, typename MSSpectrum::const_iterator &right_iter) nogil except +
-        double getLinearInterpolation(double mz_a, double intens_a, double mz_pos, double mz_b, double intens_b) nogil except +
+        ## std::multimap[ double, Box ] getClosedBoxes() except + nogil 
+        ## double getLinearInterpolation(typename MSSpectrum::const_iterator &left_iter, double mz_pos, typename MSSpectrum::const_iterator &right_iter) except + nogil 
+        double getLinearInterpolation(double mz_a, double intens_a, double mz_pos, double mz_b, double intens_b) except + nogil 
             # wrap-doc:
                 #  Computes a linear (intensity) interpolation
                 #  
@@ -92,11 +92,11 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
                 #  :param mz_b: The m/z value of the point right to the query
                 #  :param intens_b: The intensity value of the point left to the query
 
-        double getSigma() nogil except +# TODO
-        void setSigma(double sigma) nogil except +# TODO
-        void computeMinSpacing(MSSpectrum &c_ref) nogil except +# TODO
-        double getMinSpacing() nogil except +# TODO
-        Size getMaxScanSize() nogil except +# TODO
+        double getSigma() except + nogil # TODO
+        void setSigma(double sigma) except + nogil # TODO
+        void computeMinSpacing(MSSpectrum &c_ref) except + nogil # TODO
+        double getMinSpacing() except + nogil # TODO
+        Size getMaxScanSize() except + nogil # TODO
 
 # TODO C++ compiler errors
 # pyopenms/pyopenms.cpp: error: template argument 1 is invalid
@@ -104,29 +104,29 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
 # cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>" namespace "OpenMS::IsotopeWaveletTransform":
 
 #    cdef cppclass TransSpectrum "OpenMS::IsotopeWaveletTransform::TransSpectrum":
-#        TransSpectrum() nogil except +
-#        TransSpectrum(TransSpectrum) nogil except + #wrap-ignore
+#        TransSpectrum() except + nogil 
+#        TransSpectrum(TransSpectrum) except + nogil  #wrap-ignore
 
-#        # POINTER #  TransSpectrum(MSSpectrum * reference) nogil except +
-#        void destroy() nogil except +
-#        double getRT() nogil except +
-#        double getMZ(UInt i) nogil except +
-#        double getRefIntensity(UInt i) nogil except +
-#        double getTransIntensity(UInt i) nogil except +
-#        void setTransIntensity(UInt i, double intens) nogil except +
-#        Size size() nogil except +
-#        # POINTER # MSSpectrum * getRefSpectrum() nogil except +
-#        # POINTER # MSSpectrum * getRefSpectrum() nogil except +
-#        # NAMESPACE # MSSpectrum::const_iterator MZBegin(double mz) nogil except +
-#        # NAMESPACE # MSSpectrum::const_iterator MZEnd(double mz) nogil except +
-#        # NAMESPACE # MSSpectrum::const_iterator end() nogil except +
-#        # NAMESPACE # MSSpectrum::const_iterator begin() nogil except +
+#        # POINTER #  TransSpectrum(MSSpectrum * reference) except + nogil 
+#        void destroy() except + nogil 
+#        double getRT() except + nogil 
+#        double getMZ(UInt i) except + nogil 
+#        double getRefIntensity(UInt i) except + nogil 
+#        double getTransIntensity(UInt i) except + nogil 
+#        void setTransIntensity(UInt i, double intens) except + nogil 
+#        Size size() except + nogil 
+#        # POINTER # MSSpectrum * getRefSpectrum() except + nogil 
+#        # POINTER # MSSpectrum * getRefSpectrum() except + nogil 
+#        # NAMESPACE # MSSpectrum::const_iterator MZBegin(double mz) except + nogil 
+#        # NAMESPACE # MSSpectrum::const_iterator MZEnd(double mz) except + nogil 
+#        # NAMESPACE # MSSpectrum::const_iterator end() except + nogil 
+#        # NAMESPACE # MSSpectrum::const_iterator begin() except + nogil 
 #
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>" namespace "OpenMS::IsotopeWaveletTransform":
 
     cdef cppclass BoxElement "OpenMS::IsotopeWaveletTransform::BoxElement":
-        BoxElement(BoxElement) nogil except + #wrap-ignore
+        BoxElement(BoxElement) except + nogil  #wrap-ignore
         double mz
         UInt c
         double score
