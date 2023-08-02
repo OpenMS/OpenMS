@@ -77,10 +77,10 @@ namespace OpenMS
     main_grid->addWidget(editor_, 1, 0, 1, 1);
 
     QHBoxLayout* hbox = new QHBoxLayout;
-    QPushButton* load_button = new QPushButton(tr("&Load from file"));
+    QPushButton* load_button = new QPushButton(tr("&Load config from .INI file"));
     connect(load_button, SIGNAL(clicked()), this, SLOT(loadINI_()));
     hbox->addWidget(load_button);
-    QPushButton* store_button = new QPushButton(tr("&Store to file"));
+    QPushButton* store_button = new QPushButton(tr("&Store config to .INI file"));
     connect(store_button, SIGNAL(clicked()), this, SLOT(storeINI_()));
     hbox->addWidget(store_button);
     hbox->addStretch();
