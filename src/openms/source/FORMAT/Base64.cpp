@@ -37,7 +37,6 @@
 #include <QtCore/QList>
 #include <QtCore/QString>
 
-#pragma warning(disable : 4100 4189)
 #include <simde/x86/ssse3.h>
 
 using namespace std;

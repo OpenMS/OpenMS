@@ -100,7 +100,6 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   Eigen3::Eigen
   GTE
   Quadtree
-  SIMDe
   SQLiteCpp
   ZLIB::ZLIB
   nlohmann_json::nlohmann_json
@@ -141,6 +140,7 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
                    PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
                                     ${ISOSPEC_INCLUDE_DIRECTORY}
+                                    ${SIMDE_INCLUDE_DIRECTORY}
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}

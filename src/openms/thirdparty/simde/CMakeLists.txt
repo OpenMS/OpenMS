@@ -32,5 +32,6 @@
 # $Authors: Chris Bielow $
 # --------------------------------------------------------------------------
 
-add_library(SIMDe INTERFACE)
-target_include_directories(SIMDe INTERFACE ".")
+project("SIMDe")
+set(SIMDE_INCLUDE_DIRECTORY "${PROJECT_SOURCE_DIR}" CACHE PATH "Directory for SIMDe headers")
+message(STATUS "Using local SIMDe at ${SIMDE_INCLUDE_DIRECTORY}")
