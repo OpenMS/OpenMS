@@ -442,9 +442,6 @@ set(chemistry_executables_list
   Ribonucleotide_test
   SimpleTSGXLMS_test
   SpectrumAnnotator_test
-  SvmTheoreticalSpectrumGeneratorSet_test
-  SvmTheoreticalSpectrumGeneratorTrainer_test
-  SvmTheoreticalSpectrumGenerator_test
   Tagger_test
   TheoreticalSpectrumGeneratorXLMS_test
   TheoreticalSpectrumGenerator_test
@@ -511,7 +508,6 @@ set(analysis_executables_list
   ILPDCWrapper_test
   IsotopeLabelingMDVs_test
   IncludeExcludeTarget_test
-  InclusionExclusionList_test
   IsobaricChannelExtractor_test
   IsobaricIsotopeCorrector_test
   IsobaricNormalizer_test
@@ -551,7 +547,6 @@ set(analysis_executables_list
   MetaboliteSpectralMatching_test
   ModifiedPeptideGenerator_test
   NeedlemanWunsch_test
-  OfflinePrecursorIonSelection_test
   PeptideIndexing_test
   PeptideAndProteinQuant_test
   PeptideProteinResolution_test
@@ -566,12 +561,9 @@ set(analysis_executables_list
   OPXLSpectrumProcessingAlgorithms_test
   PoseClusteringAffineSuperimposer_test
   PoseClusteringShiftSuperimposer_test
-  PrecursorIonSelectionPreprocessing_test
-  PrecursorIonSelection_test
   PrecursorPurity_test
   ProtonDistributionModel_test
   ProteinResolver_test
-  PSLPFormulation_test
   PSProteinInference_test
   QTClusterFinder_test
   QuantitativeExperimentalDesign_test
@@ -664,24 +656,6 @@ set(ionmobility_executables_list
   IMTypes_test
 )
 
-set(simulation_executables_list
-  DetectabilitySimulation_test
-  DigestSimulation_test
-  EGHModel_test
-  EGHFitter1D_test
-  IonizationSimulation_test
-  MSSim_test
-  RTSimulation_test
-  RawMSSignalSimulation_test
-  RawTandemMSSignalSimulation_test
-  BaseLabeler_test
-  ITRAQLabeler_test
-  LabelFreeLabeler_test
-  O18Labeler_test
-  SILACLabeler_test
-  ICPLLabeler_test
-)
-
 if(NOT DISABLE_OPENSWATH)
   set(swath_executables_list
     MRMAssay_test
@@ -760,7 +734,6 @@ set(TEST_executables
     ${applications_executables_list}
     ${transformations_executables_list}
     ${ionmobility_executables_list}
-    ${simulation_executables_list}
     ${swath_executables_list}
     ${qc_executables_list}
 )

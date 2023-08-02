@@ -18,6 +18,7 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 ----                                OpenMS 3.1.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
+- Removed old tools and associated code in the library for InclusionExclusionListCreator, SvmTheoreticalSpectrumGenerator, PrecursorIonSelector, and MSSimulator
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.0     (released 7/2023)                  ----

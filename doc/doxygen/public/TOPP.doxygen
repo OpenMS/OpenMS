@@ -158,10 +158,8 @@
   <b>Targeted Experiments and OpenSWATH</b>
   - @subpage UTILS_OpenSwathWorkflow - Complete workflow to run OpenSWATH.
   - @subpage UTILS_AssayGeneratorMetabo - Generates an assay library using DDA data (Metabolomics).
-  - @subpage TOPP_InclusionExclusionListCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments.
   - @subpage TOPP_MRMMapper - MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML).
   - @subpage UTILS_MRMTransitionGroupPicker - Picks peaks in MRM chromatograms.
-  - @subpage TOPP_PrecursorIonSelector - A tool for precursor ion selection based on identification results.
   - @subpage TOPP_OpenSwathAnalyzer - Picks peaks and finds features in an SRM experiment.
   - @subpage TOPP_OpenSwathAssayGenerator - Generates filtered and optimized assays using TraML files.
   - @subpage TOPP_OpenSwathChromatogramExtractor - Extract chromatograms (XIC) from a MS2 map file.

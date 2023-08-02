@@ -1694,17 +1694,6 @@ def testProteinResolver():
     assert pyopenms.ProteinResolver().getResults is not None
 
 @report
-def testSvmTheoreticalSpectrumGeneratorTrainer():
-    """
-    @tests: SvmTheoreticalSpectrumGeneratorTrainer
-     SvmTheoreticalSpectrumGeneratorTrainer.__init__
-    """
-    ff = pyopenms.SvmTheoreticalSpectrumGeneratorTrainer()
-
-    assert pyopenms.SvmTheoreticalSpectrumGeneratorTrainer().trainModel is not None
-    assert pyopenms.SvmTheoreticalSpectrumGeneratorTrainer().normalizeIntensity is not None
-
-@report
 def testPosteriorErrorProbabilityModel():
     """
     @tests: PosteriorErrorProbabilityModel

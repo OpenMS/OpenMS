@@ -47,7 +47,6 @@ x    IDMerger.cpp         # 200 lines
 x    IDPosteriorErrorProbability.cpp # 300 lines PosteriorErrorProbabilityModel is wrapped
 xx   IDRipper.cpp         # TODO - not yet done on my side, needs hand-wrapping
 x    IDRTCalibration.cpp # 100 lines
-x    InclusionExclusionListCreator.cpp # TODO should we wrap this? 347 lines
 ok   InternalCalibration.cpp
 ok   MapAlignerIdentification.cpp
 ok   MapAlignerPoseClustering.cpp
@@ -73,7 +72,6 @@ ok   PeakPickerWavelet.cpp
 x    PepNovoAdapter.cpp   # 300 lines
 x    PeptideIndexer.cpp   # 500 lines
 xx   PhosphoScoring.cpp # AScore.pxd TODO , RichPeakSpectrum doesn't work
-n    PrecursorIonSelector.cpp
 x    PrecursorMassCorrector.cpp #Isotope Wavelet is wrapped, 200 lines
 x    ProteinInference.cpp    # 200 lines
 x    ProteinQuantifier.cpp # PeptideAndProteinQuant is wrapped, 600 lines
@@ -122,7 +120,6 @@ n    INIUpdater.cpp
 n    LabeledEval.cpp
 n    MassCalculator.cpp
 n    MRMPairFinder.cpp
-?    MSSimulator.cpp  # 250 lines =
 n    OpenMSInfo.cpp
 n    OpenSwathDIAPreScoring.cpp
 ?    OpenSwathMzMLFileCacher.cpp
@@ -138,7 +135,6 @@ x    RTEvaluation.cpp  # 300 lines
 ok   SemanticValidator.cpp
 x    SequenceCoverageCalculator.cpp # 200 lines
 x    SpecLibCreator.cpp # 200 lines
-ok   SvmTheoreticalSpectrumGeneratorTrainer.cpp
 n    TransformationEvaluation.cpp
 x    XMLValidator.cpp # 80 lines
 
@@ -213,13 +209,6 @@ ok  IDPosteriorErrorProbability - Estimates posterior error probabilities using 
 x   IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards. # all in TOPP tool
 x   PeptideIndexer - Refreshes the protein references for all peptide hits. # all in TOPP tool
 x   ProteinInference - Infer proteins from a list of (high-confidence) peptides. # all in TOPP tool
-
-
-Targeted Experiments
-
-x   InclusionExclusionListCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments. # most in TOPP tools except OfflinePrecursorSelection
-x   PrecursorIonSelector - A tool for precursor ion selection based on identification results.
-
 
 Peptide Property Prediction
 

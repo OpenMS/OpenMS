@@ -31,7 +31,6 @@ MetaboliteSpectralMatcher
 MetaProSIP
 MRMPairFinder
 MSFraggerAdapter
-MSSimulator
 MSstatsConverter
 MultiplexResolver
 MzMLSplitter
@@ -61,7 +60,6 @@ SiriusAdapter
 SpecLibCreator
 SpectraSTSearchAdapter
 StaticModification
-SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
 TransformationEvaluation
 TriqlerConverter

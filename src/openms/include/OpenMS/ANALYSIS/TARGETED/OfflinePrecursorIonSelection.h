@@ -39,7 +39,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS

@@ -42,7 +42,6 @@ IDMerger
 IDPosteriorErrorProbability
 IDRipper
 IDRTCalibration
-InclusionExclusionListCreator
 InternalCalibration
 IsobaricAnalyzer
 LuciphorAdapter
@@ -77,7 +76,6 @@ PepNovoAdapter
 PeptideIndexer
 PercolatorAdapter
 PhosphoScoring
-PrecursorIonSelector
 PrecursorMassCorrector
 ProteinInference
 ProteinQuantifier
