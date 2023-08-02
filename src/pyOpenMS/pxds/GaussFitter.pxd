@@ -7,27 +7,27 @@ cdef extern from "<OpenMS/MATH/STATISTICS/GaussFitter.h>" namespace "OpenMS::Mat
 
     cdef cppclass GaussFitter:
 
-        GaussFitter() nogil except + # wrap-doc:Implements a fitter for Gaussian functions
+        GaussFitter() except + nogil  # wrap-doc:Implements a fitter for Gaussian functions
         # private
-        GaussFitter(GaussFitter) nogil except + # wrap-ignore
+        GaussFitter(GaussFitter) except + nogil  # wrap-ignore
 
         # sets the initial parameters used by the fit method as inital guess for the gaussian
-        void setInitialParameters(GaussFitResult & result) nogil except + # wrap-doc:Sets the initial parameters used by the fit method as initial guess for the Gaussian
+        void setInitialParameters(GaussFitResult & result) except + nogil  # wrap-doc:Sets the initial parameters used by the fit method as initial guess for the Gaussian
 
         #  @brief Fits a gaussian distribution to the given data points
         #  @param points the data points used for the gaussian fitting
         #  @exception Exception::UnableToFit is thrown if fitting cannot be performed
-        GaussFitResult fit(libcpp_vector[DPosition2] points) nogil except + # wrap-doc:Fits a Gaussian distribution to the given data points
+        GaussFitResult fit(libcpp_vector[DPosition2] points) except + nogil  # wrap-doc:Fits a Gaussian distribution to the given data points
 
 cdef extern from "<OpenMS/MATH/STATISTICS/GaussFitter.h>" namespace "OpenMS::Math::GaussFitter":
 
     cdef cppclass GaussFitResult:
 
-        GaussFitResult() nogil except +
-        GaussFitResult(double, double, double) nogil except +
-        GaussFitResult(GaussFitResult &) nogil except + # compiler
+        GaussFitResult() except + nogil 
+        GaussFitResult(double, double, double) except + nogil 
+        GaussFitResult(GaussFitResult &) except + nogil  # compiler
 
-        double eval(double) nogil except +
+        double eval(double) except + nogil 
 
         # parameter A of gaussian distribution (amplitude)
         double A

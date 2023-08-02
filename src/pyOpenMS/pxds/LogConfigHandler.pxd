@@ -12,11 +12,11 @@ cdef extern from "<OpenMS/CONCEPT/LogConfigHandler.h>" namespace "OpenMS":
     #  cdef AutowrapPtrHolder[_LogConfigHandler] inst
 
         # private
-        LogConfigHandler() nogil except + # wrap-ignore
+        LogConfigHandler() except + nogil  # wrap-ignore
         # private
-        LogConfigHandler(LogConfigHandler) nogil except + # wrap-ignore
+        LogConfigHandler(LogConfigHandler) except + nogil  # wrap-ignore
 
-        Param parse(const StringList & setting) nogil except +
+        Param parse(const StringList & setting) except + nogil 
         #wrap-doc:
         #  Translates the given list of parameter settings into a LogStream configuration
         #  
@@ -41,7 +41,7 @@ cdef extern from "<OpenMS/CONCEPT/LogConfigHandler.h>" namespace "OpenMS":
         #  :raises ParseError: In case of an invalid configuration.
         #  :return: Param object containing all settings, that can be applied using the LogConfigHandler.configure() method
 
-        void configure(const Param & param) nogil except +
+        void configure(const Param & param) except + nogil 
         # wrap-doc:
         #  Applies the given parameters (@p param) to the current configuration
         #  
@@ -66,7 +66,7 @@ cdef extern from "<OpenMS/CONCEPT/LogConfigHandler.h>" namespace "OpenMS":
         #  :raises IllegalArgument: If a stream should be registered, that was already registered with a different type.
 
 
-        void setLogLevel(const String & log_level) nogil except +
+        void setLogLevel(const String & log_level) except + nogil 
         # wrap-doc:
         #  Sets a minimum log_level by removing all streams from loggers lower than that level.
         #  Valid levels are from low to high: "DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR"
@@ -75,4 +75,4 @@ cdef extern from "<OpenMS/CONCEPT/LogConfigHandler.h>" namespace "OpenMS":
 ## wrap static methods
 cdef extern from "<OpenMS/CONCEPT/LogConfigHandler.h>" namespace "OpenMS::LogConfigHandler":
     
-    LogConfigHandler* getInstance() nogil except + # wrap-ignore
+    LogConfigHandler* getInstance() except + nogil  # wrap-ignore

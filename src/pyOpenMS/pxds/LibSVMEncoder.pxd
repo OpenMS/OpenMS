@@ -13,8 +13,8 @@ cdef extern from "<OpenMS/FORMAT/LibSVMEncoder.h>" namespace "OpenMS":
                 #  sequences. Additionally the vectors can be encoded into
                 #  the libsvm format
 
-        LibSVMEncoder() nogil except +
-        LibSVMEncoder(LibSVMEncoder &) nogil except + # compiler
+        LibSVMEncoder() except + nogil 
+        LibSVMEncoder(LibSVMEncoder &) except + nogil  # compiler
 
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/FORMAT/LibSVMEncoder.h>" namespace "OpenMS::LibSVMEncoder":
@@ -23,4 +23,4 @@ cdef extern from "<OpenMS/FORMAT/LibSVMEncoder.h>" namespace "OpenMS::LibSVMEnco
         libcpp_vector[double] predictPeptideRT(libcpp_vector[String] sequences,
                                                const SVMWrapper & svm,
                                                const String & allowed_characters,
-                                               UInt maximum_sequence_length) nogil except + # wrap-attach:LibSVMEncoder
+                                               UInt maximum_sequence_length) except + nogil  # wrap-attach:LibSVMEncoder

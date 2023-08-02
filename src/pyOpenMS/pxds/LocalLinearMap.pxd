@@ -19,25 +19,25 @@ cdef extern from "<OpenMS/ANALYSIS/PIP/LocalLinearMap.h>" namespace "OpenMS":
             #  codebook vectors and the linear mappings (codebooks.data, linearMapping.data)
             #  This is the default model used by PeakIntensityPredictor
 
-        LocalLinearMap() nogil except +
+        LocalLinearMap() except + nogil 
         # private
-        LocalLinearMap(LocalLinearMap &) nogil except + # wrap-ignore
-        LLMParam getLLMParam() nogil except + # wrap-doc:Returns parameters of the LocalLinearMap model
-        Matrix[ double ]  getCodebooks() nogil except + # wrap-doc:Returns position of the codebook vectors (18-dim)
-        Matrix[ double ]  getMatrixA() nogil except + # wrap-doc:Returns linear mappings of the codebooks
-        libcpp_vector[ double ]  getVectorWout() nogil except + # wrap-doc:Returns linear bias
+        LocalLinearMap(LocalLinearMap &) except + nogil  # wrap-ignore
+        LLMParam getLLMParam() except + nogil  # wrap-doc:Returns parameters of the LocalLinearMap model
+        Matrix[ double ]  getCodebooks() except + nogil  # wrap-doc:Returns position of the codebook vectors (18-dim)
+        Matrix[ double ]  getMatrixA() except + nogil  # wrap-doc:Returns linear mappings of the codebooks
+        libcpp_vector[ double ]  getVectorWout() except + nogil  # wrap-doc:Returns linear bias
 
         # TODO STL attributes unsigned int 
-        # Matrix[ UInt ]  getCord() nogil except +
-        void normalizeVector(libcpp_vector[ double ] & aaIndexVariables) nogil except + # wrap-doc:Calculates and returns the normalized amino acid index variables from string representation of peptide
-        # libcpp_vector[ double ] neigh(Matrix[ unsigned int ] & cord, Size win, double radius) nogil except +
+        # Matrix[ UInt ]  getCord() except + nogil 
+        void normalizeVector(libcpp_vector[ double ] & aaIndexVariables) except + nogil  # wrap-doc:Calculates and returns the normalized amino acid index variables from string representation of peptide
+        # libcpp_vector[ double ] neigh(Matrix[ unsigned int ] & cord, Size win, double radius) except + nogil 
 
 
 cdef extern from "<OpenMS/ANALYSIS/PIP/LocalLinearMap.h>" namespace "OpenMS::LocalLinearMap":
     
     cdef cppclass LLMParam "OpenMS::LocalLinearMap::LLMParam":
-        LLMParam() nogil except +
-        LLMParam(LLMParam) nogil except + #wrap-ignore
+        LLMParam() except + nogil 
+        LLMParam(LLMParam) except + nogil  #wrap-ignore
         UInt xdim
         UInt ydim
         double radius

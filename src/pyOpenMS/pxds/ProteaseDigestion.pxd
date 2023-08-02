@@ -52,15 +52,15 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS":
         #        print(result_digest_unmodified[4].getString()) # LVNELTEFAK
         #        print(len(result_digest_unmodified)) # 42 peptides
 
-      ProteaseDigestion() nogil except +
+      ProteaseDigestion() except + nogil 
 
-      ProteaseDigestion(ProteaseDigestion &) nogil except + 
+      ProteaseDigestion(ProteaseDigestion &) except + nogil  
 
-      void setEnzyme(String name) nogil except + # wrap-doc:Sets the enzyme for the digestion (by name)
+      void setEnzyme(String name) except + nogil  # wrap-doc:Sets the enzyme for the digestion (by name)
 
-      Size digest(AASequence & protein, libcpp_vector[AASequence] & output) nogil except +
+      Size digest(AASequence & protein, libcpp_vector[AASequence] & output) except + nogil 
 
-      Size digest(AASequence & protein, libcpp_vector[AASequence] & output, Size min_length, Size max_length) nogil except +
+      Size digest(AASequence & protein, libcpp_vector[AASequence] & output, Size min_length, Size max_length) except + nogil 
           # wrap-doc:
           #    Performs the enzymatic digestion of a protein.
           #    
@@ -71,10 +71,10 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS":
           #    :param max_length: Maximal length of reported products (0 = no restriction)
           #    :return: Number of discarded digestion products (which are not matching length restrictions)
 
-      Size peptideCount(AASequence & protein) nogil except + # wrap-doc:Returns the number of peptides a digestion of protein would yield under the current enzyme and missed cleavage settings
+      Size peptideCount(AASequence & protein) except + nogil  # wrap-doc:Returns the number of peptides a digestion of protein would yield under the current enzyme and missed cleavage settings
 
       bool isValidProduct(AASequence protein, Size pep_pos, Size pep_length,
-                          bool ignore_missed_cleavages, bool methionine_cleavage) nogil except +
+                          bool ignore_missed_cleavages, bool methionine_cleavage) except + nogil 
           # wrap-doc:
           #    Variant of EnzymaticDigestion::isValidProduct() with support for n-term protein cleavage and random D|P cleavage
           #    
@@ -90,6 +90,6 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS":
           #    :return: True if peptide has correct n/c terminals (according to enzyme, specificity and above flags)
 
       bool isValidProduct(String protein, Size pep_pos, Size pep_length,
-                          bool ignore_missed_cleavages, bool methionine_cleavage) nogil except + # wrap-doc:Forwards to isValidProduct using protein.toUnmodifiedString()
+                          bool ignore_missed_cleavages, bool methionine_cleavage) except + nogil  # wrap-doc:Forwards to isValidProduct using protein.toUnmodifiedString()
 
 

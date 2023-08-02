@@ -7,9 +7,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>" namespac
     cdef cppclass EmgFitter1D(LevMarqFitter1D):
         # wrap-inherits:
         #  LevMarqFitter1D
-        EmgFitter1D() nogil except + # wrap-doc:Exponentially modified gaussian distribution fitter (1-dim.) using Levenberg-Marquardt algorithm (Eigen implementation) for parameter optimization
-        EmgFitter1D(EmgFitter1D &) nogil except +
-        # float fit1d(libcpp_vector[Peak1D] range_, InterpolationModel * & model) nogil except + # wrap-ignore
-        # Fitter1D * create() nogil except +
-        String getProductName() nogil except + # wrap-doc:Name of the model (needed by Factory)
+        EmgFitter1D() except + nogil  # wrap-doc:Exponentially modified gaussian distribution fitter (1-dim.) using Levenberg-Marquardt algorithm (Eigen implementation) for parameter optimization
+        EmgFitter1D(EmgFitter1D &) except + nogil 
+        # float fit1d(libcpp_vector[Peak1D] range_, InterpolationModel * & model) except + nogil  # wrap-ignore
+        # Fitter1D * create() except + nogil 
+        String getProductName() except + nogil  # wrap-doc:Name of the model (needed by Factory)
 

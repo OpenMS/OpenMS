@@ -7,9 +7,9 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/ComplementFilter.h>" namespace 
         # wrap-inherits:
         #  FilterFunctor
 
-        ComplementFilter() nogil except + # wrap-doc:Total intensity of peak pairs that could result from complementing fragments of charge state 1
-        ComplementFilter(ComplementFilter &) nogil except +
-        double apply(MSSpectrum & ) nogil except + # wrap-doc:Returns the total intensity of peak pairs which could result from complementing fragments
+        ComplementFilter() except + nogil  # wrap-doc:Total intensity of peak pairs that could result from complementing fragments of charge state 1
+        ComplementFilter(ComplementFilter &) except + nogil 
+        double apply(MSSpectrum & ) except + nogil  # wrap-doc:Returns the total intensity of peak pairs which could result from complementing fragments
 
-        # POINTER # FilterFunctor * create() nogil except +
-        String getProductName() nogil except + # wrap-doc:Returns the name for registration at the factory
+        # POINTER # FilterFunctor * create() except + nogil 
+        String getProductName() except + nogil  # wrap-doc:Returns the name for registration at the factory

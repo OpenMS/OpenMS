@@ -16,8 +16,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
         # wrap-inherits:
         #   ProgressLogger
 
-        ChromatogramExtractorAlgorithm() nogil except +
-        ChromatogramExtractorAlgorithm(ChromatogramExtractorAlgorithm &) nogil except + # compiler
+        ChromatogramExtractorAlgorithm() except + nogil 
+        ChromatogramExtractorAlgorithm(ChromatogramExtractorAlgorithm &) except + nogil  # compiler
 
         # abstract base class ISpectrumAccess given as first input arg
         void extractChromatograms(
@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
             double mz_extraction_window,
             bool ppm,
             double im_extraction_window,
-            String filter) nogil except +
+            String filter) except + nogil 
             # wrap-doc:
             #    Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates
             #      
@@ -49,8 +49,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
 
     cdef cppclass ExtractionCoordinates:
 
-        ExtractionCoordinates() nogil except +
-        ExtractionCoordinates(ExtractionCoordinates) nogil except +
+        ExtractionCoordinates() except + nogil 
+        ExtractionCoordinates(ExtractionCoordinates) except + nogil 
 
         double mz # mz around which should be extracted
         double mz_precursor # precursor m/z value (is currently ignored by the algorithm)
