@@ -8,8 +8,8 @@ find_package_handle_standard_args(
 )
 
 if(NOT TARGET SIMDe)
-    add_library(SIMDe INTERFACE IMPORTED)
-    target_include_directories(SIMDe INTERFACE "${SIMDe_INCLUDE_DIR}")
+  add_library(SIMDe INTERFACE)
+  target_include_directories(SIMDe SYSTEM INTERFACE ${SIMDe_INCLUDE_DIR})
 endif()
 
 mark_as_advanced(SIMDe_INCLUDE_DIR)

@@ -32,6 +32,8 @@
 # $Authors: Chris Bielow $
 # --------------------------------------------------------------------------
 
-project("SIMDe")
-set(SIMDE_INCLUDE_DIRECTORY "${PROJECT_SOURCE_DIR}" CACHE PATH "Directory for SIMDe headers")
-message(STATUS "Using local SIMDe at ${SIMDE_INCLUDE_DIRECTORY}")
+project("OpenMS-simde")
+cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
+
+add_library(SIMDe INTERFACE)
+target_include_directories(SIMDe SYSTEM INTERFACE ${PROJECT_SOURCE_DIR})

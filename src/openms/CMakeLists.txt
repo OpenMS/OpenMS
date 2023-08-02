@@ -98,12 +98,13 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   Boost::iostreams
   Boost::regex
   Eigen3::Eigen
-  GTE
-  Quadtree
+  GTE 
+  Quadtree 
+  SIMDe
   SQLiteCpp
   ZLIB::ZLIB
   nlohmann_json::nlohmann_json
-)
+  )
 
 ## ----------
 ## No need to for this at the moment: no Qt plugins required anymore. Left here for reference.
@@ -140,7 +141,6 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
                    PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
                                     ${ISOSPEC_INCLUDE_DIRECTORY}
-                                    ${SIMDE_INCLUDE_DIRECTORY}
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}
