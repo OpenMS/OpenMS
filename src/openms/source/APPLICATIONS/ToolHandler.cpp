@@ -122,11 +122,7 @@ namespace OpenMS
     tools_map["ProteinInference"] = Internal::ToolDescription("ProteinInference", "Identification");
     tools_map["ProteinQuantifier"] = Internal::ToolDescription("ProteinQuantifier", "Quantitation");
     tools_map["ProteinResolver"] = Internal::ToolDescription("ProteinResolver", "Quantitation");
-    tools_map["PTModel"] = Internal::ToolDescription("PTModel", "Peptide property prediction");
-    tools_map["PTPredict"] = Internal::ToolDescription("PTPredict", "Peptide property prediction");
     tools_map["QualityControl"] = Internal::ToolDescription("QualityControl", "Quality Control");
-    tools_map["RTModel"] = Internal::ToolDescription("RTModel", "Peptide property prediction");
-    tools_map["RTPredict"] = Internal::ToolDescription("RTPredict", "Peptide property prediction");
     tools_map["SeedListGenerator"] = Internal::ToolDescription("SeedListGenerator", "Quantitation");
     tools_map["SpecLibSearcher"] = Internal::ToolDescription("SpecLibSearcher", "Identification");
     tools_map["SpectraFilterBernNorm"] = Internal::ToolDescription("SpectraFilterBernNorm", "Identification");

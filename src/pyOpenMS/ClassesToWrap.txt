@@ -76,11 +76,7 @@ x    PrecursorMassCorrector.cpp #Isotope Wavelet is wrapped, 200 lines
 x    ProteinInference.cpp    # 200 lines
 x    ProteinQuantifier.cpp # PeptideAndProteinQuant is wrapped, 600 lines
 xx   ProteinResolver.cpp   # 500 lines, has a
-x    PTModel.cpp  # 400 lines
-x    PTPredict.cpp # 200 lines
 ok   Resampler.cpp
-x    RTModel.cpp   # 800 lines
-x    RTPredict.cpp # 600 lines
 xx   SeedListGenerator.cpp # TODO more work required overloading methods
 x    SequestAdapter.cpp   # 1200 lines
 x    SpecLibSearcher.cpp
@@ -209,14 +205,6 @@ ok  IDPosteriorErrorProbability - Estimates posterior error probabilities using 
 x   IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards. # all in TOPP tool
 x   PeptideIndexer - Refreshes the protein references for all peptide hits. # all in TOPP tool
 x   ProteinInference - Infer proteins from a list of (high-confidence) peptides. # all in TOPP tool
-
-Peptide Property Prediction
-
-x   PTModel - Trains a model for the prediction of proteotypic peptides from a training set. # most in TOPP tool
-x   PTPredict - Predicts the likelihood of peptides to be proteotypic using a model trained by PTModel. # most in TOPP tool
-x   RTModel - Trains a model for the retention time prediction of peptides from a training set. # most in TOPP tool
-x   RTPredict - Predicts retention times for peptides using a model trained by RTModel. # most in TOPP tool
-
 
 Map Alignment
 
