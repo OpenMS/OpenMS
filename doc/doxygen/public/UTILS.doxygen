@@ -62,7 +62,6 @@
   <b>Algorithm Evaluation</b>
   - @subpage UTILS_FFEval - Evaluation tool for feature detection algorithms.
   - @subpage UTILS_LabeledEval - Evaluation tool for isotope-labeled quantitation experiments.
-  - @subpage UTILS_RTEvaluation - Application that evaluates true positives (TP), true negatives (TN), false positives (FP), and false negatives (FN) for an idXML file with predicted RTs.
   - @subpage UTILS_TransformationEvaluation - Simple evaluation of transformations (e.g. RT transformations produced by a MapAligner tool).
 
   <b>Protein/Peptide Identification</b>

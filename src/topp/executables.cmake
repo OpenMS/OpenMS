@@ -80,11 +80,7 @@ PrecursorMassCorrector
 ProteinInference
 ProteinQuantifier
 ProteinResolver
-PTModel
-PTPredict
 QualityControl
-RTModel
-RTPredict
 SeedListGenerator
 SpecLibSearcher
 SpectraFilterBernNorm
