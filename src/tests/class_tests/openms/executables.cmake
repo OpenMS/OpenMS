@@ -204,7 +204,6 @@ set(format_executables_list
   InspectInfile_test
   InspectOutfile_test
   KroenikFile_test
-  LibSVMEncoder_test
   MRMFeatureQCFile_test
   MS2File_test
   MSPFile_test
@@ -569,7 +568,6 @@ set(analysis_executables_list
   QuantitativeExperimentalDesign_test
   ReactionMonitoringTransition_test
   RNPxlModificationsGenerator_test
-  SVMWrapper_test
   SimpleSearchEngineAlgorithm_test
   SimplePairFinder_test
   SimpleSVM_test

@@ -734,17 +734,6 @@ PyOpenMSChecker:
         - getModelDescription
         - setModelDescription
 
-    # Not part of the public interface
-    OpenMS::SVMWrapper:
-        # External lib
-        - performCrossValidation
-        - getDecisionValues
-        - scaleData
-        - computeKernelMatrix
-        - getSVCProbabilities
-        - getLabels
-        - kernelOligo
-        - mergePartitions
     OpenMS::FeatureDistance:
         - infinity
     OpenMS::Digestion:
@@ -1175,7 +1164,6 @@ PyOpenMSChecker:
     - OpenMS::SpecArrayFile
     - OpenMS::PersistentObject
     - OpenMS::MascotRemoteQuery
-    - OpenMS::LibSVMEncoder
     - OpenMS::CsvFile
     - OpenMS::ToolDescriptionFile
     - OpenMS::PTMXMLFile
