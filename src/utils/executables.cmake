@@ -52,7 +52,6 @@ RNADigestor
 RNAMassCalculator
 RNPxlXICFilter
 RNPxlSearch
-RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine

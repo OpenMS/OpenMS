@@ -127,7 +127,6 @@ x    QCMerger.cpp       # 200 lines
 x    QCShrinker.cpp     # 100 lines
 x    RNPxl.cpp     # 1300 lines
 x    RNPxlXICFilter.cpp # 200 lines
-x    RTEvaluation.cpp  # 300 lines
 ok   SemanticValidator.cpp
 x    SequenceCoverageCalculator.cpp # 200 lines
 x    SpecLibCreator.cpp # 200 lines
