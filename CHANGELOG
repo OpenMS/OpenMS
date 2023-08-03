@@ -19,7 +19,8 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 ------------------------------------------------------------------------------------------
 
 - Removed old tools and associated code in the library for InclusionExclusionListCreator, SvmTheoreticalSpectrumGenerator, PrecursorIonSelector, and MSSimulator
-- Removed old RT and PT predict code and tools RTModel, RTPredict, PTModel, PTPredict, RTEvaluation and associated library code (SVMWrapper and LibSVMEncoder)
+- Removed old RT and PT predict code and tools RTModel, RTPredict, PTModel, PTPredict, RTEvaluation and associated library code (SVMWrapper and LibSVMEncoder).
+  Note: general SVC and SVR is still supported with the SimpleSVM class.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.0     (released 7/2023)                  ----
