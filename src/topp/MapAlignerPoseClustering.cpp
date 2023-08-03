@@ -198,6 +198,7 @@ protected:
         }
       }
       OPENMS_LOG_INFO << " done" << std::endl;
+      OPENMS_LOG_INFO << "Reference file: " << in_files[reference_index] << std::endl;
       file = in_files[reference_index];
     }
 
@@ -223,17 +224,14 @@ protected:
       algorithm.setReference(map_ref);
     }
 
-    ProgressLogger plog;
-    plog.setLogType(log_type_);
-
-    plog.startProgress(0, in_files.size(), "Aligning input maps");
-    Size progress(0); // thread-safe progress
     // TODO: it should all work on featureXML files, since we might need them for output anyway. Converting to consensusXML is just wasting memory!
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic, 1)
 #endif
     for (int i = 0; i < static_cast<int>(in_files.size()); ++i)
     {
+      OPENMS_LOG_INFO << "Aligning file " << i+1 << "/" << in_files.size() << ": " << in_files[i] << " ...";
+
       TransformationDescription trafo;
       if (in_type == FileTypes::FEATUREXML)
       {
@@ -299,11 +297,10 @@ protected:
 #pragma omp critical (MAPose_Progress)
 #endif
       {
-        plog.setProgress(++progress); // thread safe progress counter
+        OPENMS_LOG_INFO << " done" << std::endl;
       }
     }
 
-    plog.endProgress();
     return EXECUTION_OK;
   }
 
