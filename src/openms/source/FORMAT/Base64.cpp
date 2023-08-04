@@ -262,16 +262,14 @@ namespace OpenMS
     std::string str;
     std::string compressed;
 
-    
-
-      for (Size i = 0; i < in.size(); ++i)
-      {          
-        str = str.append(in[i]);
-        if (append_null_byte)
-        {
-          str.push_back('\0');
-        }
+    for (Size i = 0; i < in.size(); ++i)
+    {          
+      str = str.append(in[i]);
+      if (append_null_byte)
+      {
+        str.push_back('\0');
       }
+    }
 
     if (zlib_compression)
     {      
