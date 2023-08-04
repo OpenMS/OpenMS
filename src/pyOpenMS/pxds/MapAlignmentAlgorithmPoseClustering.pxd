@@ -14,20 +14,20 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClusteri
         #   DefaultParamHandler
         #   ProgressLogger
 
-        MapAlignmentAlgorithmPoseClustering() nogil except +
+        MapAlignmentAlgorithmPoseClustering() except + nogil 
 
         # private
-        MapAlignmentAlgorithmPoseClustering(MapAlignmentAlgorithmPoseClustering &) nogil except + # wrap-ignore
+        MapAlignmentAlgorithmPoseClustering(MapAlignmentAlgorithmPoseClustering &) except + nogil  # wrap-ignore
 
         void align(FeatureMap,
                    TransformationDescription &
-                   ) nogil except +
+                   ) except + nogil 
 
         void align(MSExperiment,
                    TransformationDescription &
-                   ) nogil except +
+                   ) except + nogil 
 
-        void setReference (FeatureMap) nogil except + # wrap-doc:Sets the reference for the alignment
-        void setReference (MSExperiment) nogil except +
+        void setReference (FeatureMap) except + nogil  # wrap-doc:Sets the reference for the alignment
+        void setReference (MSExperiment) except + nogil 
 
 

@@ -25,11 +25,11 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
         Int  max_int
         Int  min_int
 
-        ParamEntry() nogil except + # TODO
-        ParamEntry(ParamEntry &) nogil except +
-        ParamEntry(libcpp_string n, ParamValue v, libcpp_string d, libcpp_vector[libcpp_string] t) nogil except +
-        ParamEntry(libcpp_string n, ParamValue v, libcpp_string d) nogil except +
+        ParamEntry() except + nogil  # TODO
+        ParamEntry(ParamEntry &) except + nogil 
+        ParamEntry(libcpp_string n, ParamValue v, libcpp_string d, libcpp_vector[libcpp_string] t) except + nogil 
+        ParamEntry(libcpp_string n, ParamValue v, libcpp_string d) except + nogil 
 
         # TODO: wrap bool isValid(libcpp_string & message) maybe as libcpp_pair[bool, libcpp_str] isValid() if possible
-        bool operator==(ParamEntry) nogil except +
+        bool operator==(ParamEntry) except + nogil 
 

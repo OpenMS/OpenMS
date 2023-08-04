@@ -31,7 +31,6 @@ MetaboliteSpectralMatcher
 MetaProSIP
 MRMPairFinder
 MSFraggerAdapter
-MSSimulator
 MSstatsConverter
 MultiplexResolver
 MzMLSplitter
@@ -53,7 +52,6 @@ RNADigestor
 RNAMassCalculator
 RNPxlXICFilter
 RNPxlSearch
-RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
@@ -61,7 +59,6 @@ SiriusAdapter
 SpecLibCreator
 SpectraSTSearchAdapter
 StaticModification
-SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
 TransformationEvaluation
 TriqlerConverter

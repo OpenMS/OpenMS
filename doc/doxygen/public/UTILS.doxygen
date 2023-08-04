@@ -62,7 +62,6 @@
   <b>Algorithm Evaluation</b>
   - @subpage UTILS_FFEval - Evaluation tool for feature detection algorithms.
   - @subpage UTILS_LabeledEval - Evaluation tool for isotope-labeled quantitation experiments.
-  - @subpage UTILS_RTEvaluation - Application that evaluates true positives (TP), true negatives (TN), false positives (FP), and false negatives (FN) for an idXML file with predicted RTs.
   - @subpage UTILS_TransformationEvaluation - Simple evaluation of transformations (e.g. RT transformations produced by a MapAligner tool).
 
   <b>Protein/Peptide Identification</b>
@@ -126,8 +125,6 @@
   - @subpage UTILS_ImageCreator - Creates images from MS1 data (with MS2 data points indicated as dots).
   - @subpage UTILS_MassCalculator - Calculates masses and mass-to-charge ratios of peptide sequences.
   - @subpage UTILS_MetaProSIP - Performs proteinSIP on peptide features for elemental flux analysis.
-  - @subpage UTILS_MSSimulator - A highly configurable simulator for mass spectrometry experiments.
-  - @subpage UTILS_SvmTheoreticalSpectrumGeneratorTrainer - A trainer for SVM models as input for SvmTheoreticalSpectrumGenerator.
   - @subpage UTILS_TICCalculator - Calculates the TIC of a raw mass spectrometric file.
   - @subpage UTILS_MSstatsConverter - Converter to input for MSstats.
 

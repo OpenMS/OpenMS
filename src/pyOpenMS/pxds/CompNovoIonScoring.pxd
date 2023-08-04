@@ -9,10 +9,10 @@ from libcpp.map cimport map as libcpp_map
 cdef extern from "<OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>" namespace "OpenMS":
     
     cdef cppclass CompNovoIonScoring "OpenMS::CompNovoIonScoring":
-        CompNovoIonScoring() nogil except +
-        CompNovoIonScoring(CompNovoIonScoring &) nogil except +
+        CompNovoIonScoring() except + nogil 
+        CompNovoIonScoring(CompNovoIonScoring &) except + nogil 
         # TODO -> replace type ... 
         # TODO OpenMS Map type
         # void scoreSpectra(libcpp_map[ double, IonScore ] &CID_ion_scores, MSSpectrum & CID_spec,
-        #  MSSpectrum &ETD_spec, double precursor_weight, Size charge) nogil except +
+        #  MSSpectrum &ETD_spec, double precursor_weight, Size charge) except + nogil 
 

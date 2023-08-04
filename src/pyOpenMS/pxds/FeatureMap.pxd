@@ -34,49 +34,49 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         #  
         #  This class supports direct iteration in Python.
 
-        FeatureMap() nogil except +
-        FeatureMap(FeatureMap &) nogil except +
+        FeatureMap() except + nogil 
+        FeatureMap(FeatureMap &) except + nogil 
 
-        bool operator==(FeatureMap) nogil except +
-        bool operator!=(FeatureMap) nogil except +
+        bool operator==(FeatureMap) except + nogil 
+        bool operator!=(FeatureMap) except + nogil 
 
-        int size()  nogil except +
-        Feature & operator[](size_t)      nogil except + #wrap-upper-limit:size()
-        void push_back(Feature spec) nogil except +
-        void push_back(MRMFeature spec) nogil except +
+        int size()  except + nogil 
+        Feature & operator[](size_t)      except + nogil  #wrap-upper-limit:size()
+        void push_back(Feature spec) except + nogil 
+        void push_back(MRMFeature spec) except + nogil 
 
-        void sortByIntensity() nogil except + # wrap-doc:Sorts the peaks according to ascending intensity
-        void sortByIntensity(bool reverse) nogil except + # wrap-doc:Sorts the peaks according to ascending intensity. Order is reversed if argument is `true` ( reverse = true )
-        void sortByPosition() nogil except + # wrap-doc:Sorts features by position. Lexicographical comparison (first RT then m/z) is done
-        void sortByRT() nogil except + # wrap-doc:Sorts features by RT position
-        void sortByMZ() nogil except + # wrap-doc:Sorts features by m/z position
-        void sortByOverallQuality() nogil except + # wrap-doc:Sorts features by ascending overall quality. Order is reversed if argument is `true` ( reverse = true )
+        void sortByIntensity() except + nogil  # wrap-doc:Sorts the peaks according to ascending intensity
+        void sortByIntensity(bool reverse) except + nogil  # wrap-doc:Sorts the peaks according to ascending intensity. Order is reversed if argument is `true` ( reverse = true )
+        void sortByPosition() except + nogil  # wrap-doc:Sorts features by position. Lexicographical comparison (first RT then m/z) is done
+        void sortByRT() except + nogil  # wrap-doc:Sorts features by RT position
+        void sortByMZ() except + nogil  # wrap-doc:Sorts features by m/z position
+        void sortByOverallQuality() except + nogil  # wrap-doc:Sorts features by ascending overall quality. Order is reversed if argument is `true` ( reverse = true )
 
-        void swap(FeatureMap &) nogil except + 
-        void swapFeaturesOnly(FeatureMap swapfrom) nogil except + # wrap-doc:Swaps the feature content (plus its range information) of this map 
-        void clear() nogil except + # wrap-doc:Clears all data and meta data
-        void clear(bool clear_meta_data) nogil except + # wrap-doc:Clears all data and meta data. If 'true' is passed as an argument, all meta data is cleared in addition to the data
+        void swap(FeatureMap &) except + nogil  
+        void swapFeaturesOnly(FeatureMap swapfrom) except + nogil  # wrap-doc:Swaps the feature content (plus its range information) of this map 
+        void clear() except + nogil  # wrap-doc:Clears all data and meta data
+        void clear(bool clear_meta_data) except + nogil  # wrap-doc:Clears all data and meta data. If 'true' is passed as an argument, all meta data is cleared in addition to the data
 
-        FeatureMap operator+(FeatureMap) nogil except +
-        FeatureMap iadd(FeatureMap) nogil except + # wrap-as:operator+=
+        FeatureMap operator+(FeatureMap) except + nogil 
+        FeatureMap iadd(FeatureMap) except + nogil  # wrap-as:operator+=
 
-        void updateRanges() nogil except + # TODO
+        void updateRanges() except + nogil  # TODO
 
-        libcpp_vector[ProteinIdentification] getProteinIdentifications() nogil except+
-        void setProteinIdentifications(libcpp_vector[ProteinIdentification]) nogil except+ # wrap-doc:Sets the protein identifications
+        libcpp_vector[ProteinIdentification] getProteinIdentifications() except + nogil
+        void setProteinIdentifications(libcpp_vector[ProteinIdentification]) except + nogil # wrap-doc:Sets the protein identifications
 
-        libcpp_vector[PeptideIdentification] getUnassignedPeptideIdentifications() nogil except+
-        void setUnassignedPeptideIdentifications(libcpp_vector[PeptideIdentification]) nogil except+ # wrap-doc:Sets the unassigned peptide identifications
+        libcpp_vector[PeptideIdentification] getUnassignedPeptideIdentifications() except + nogil
+        void setUnassignedPeptideIdentifications(libcpp_vector[PeptideIdentification]) except + nogil # wrap-doc:Sets the unassigned peptide identifications
 
-        Size applyMemberFunction(Size(* fun)()) nogil except +# wrap-ignore
+        Size applyMemberFunction(Size(* fun)()) except + nogil # wrap-ignore
 
-        libcpp_vector[DataProcessing] getDataProcessing() nogil except +
-        void setDataProcessing(libcpp_vector[DataProcessing])   nogil except + # wrap-doc:Sets the description of the applied data processing
+        libcpp_vector[DataProcessing] getDataProcessing() except + nogil 
+        void setDataProcessing(libcpp_vector[DataProcessing])   except + nogil  # wrap-doc:Sets the description of the applied data processing
 
-        void setPrimaryMSRunPath(StringList& s) nogil except + # wrap-doc:Sets the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
-        void setPrimaryMSRunPath(StringList& s, MSExperiment& e) nogil except + # wrap-doc:Sets the file path to the primary MS run using the mzML annotated in the MSExperiment argument `e`
-        void getPrimaryMSRunPath(StringList& toFill) nogil except + # wrap-doc:Returns the file path to the first MS run
+        void setPrimaryMSRunPath(StringList& s) except + nogil  # wrap-doc:Sets the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
+        void setPrimaryMSRunPath(StringList& s, MSExperiment& e) except + nogil  # wrap-doc:Sets the file path to the primary MS run using the mzML annotated in the MSExperiment argument `e`
+        void getPrimaryMSRunPath(StringList& toFill) except + nogil  # wrap-doc:Returns the file path to the first MS run
 
-        libcpp_vector[Feature].iterator begin() nogil except +    # wrap-iter-begin:__iter__(Feature)
-        libcpp_vector[Feature].iterator end()   nogil except +    # wrap-iter-end:__iter__(Feature)
+        libcpp_vector[Feature].iterator begin() except + nogil     # wrap-iter-begin:__iter__(Feature)
+        libcpp_vector[Feature].iterator end()   except + nogil     # wrap-iter-end:__iter__(Feature)
 

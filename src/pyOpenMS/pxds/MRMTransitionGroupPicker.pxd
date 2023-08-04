@@ -17,22 +17,22 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>" namesp
     cdef cppclass MRMTransitionGroupPicker(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
-        MRMTransitionGroupPicker() nogil except +
-        MRMTransitionGroupPicker(MRMTransitionGroupPicker &) nogil except +
+        MRMTransitionGroupPicker() except + nogil 
+        MRMTransitionGroupPicker(MRMTransitionGroupPicker &) except + nogil 
 
-        void pickTransitionGroup(MRMTransitionGroup[MSChromatogram, LightTransition] transition_group) nogil except +
-        void pickTransitionGroup(MRMTransitionGroup[MSChromatogram, ReactionMonitoringTransition] transition_group) nogil except +
+        void pickTransitionGroup(MRMTransitionGroup[MSChromatogram, LightTransition] transition_group) except + nogil 
+        void pickTransitionGroup(MRMTransitionGroup[MSChromatogram, ReactionMonitoringTransition] transition_group) except + nogil 
 
         MRMFeature createMRMFeature(MRMTransitionGroup[ MSChromatogram, LightTransition] transition_group,
                                     libcpp_vector[ MSChromatogram ] & picked_chroms,
                                     libcpp_vector[ MSChromatogram ] & smoothed_chroms,
                                     const int chr_idx,
-                                    const int peak_idx) nogil except +
+                                    const int peak_idx) except + nogil 
 
         void remove_overlapping_features(libcpp_vector[ MSChromatogram ] & picked_chroms,
                                          double best_left, 
-                                         double best_right) nogil except +
+                                         double best_right) except + nogil 
 
-        void findLargestPeak(libcpp_vector[ MSChromatogram ] & picked_chroms, int & chr_idx, int & peak_idx) nogil except +
+        void findLargestPeak(libcpp_vector[ MSChromatogram ] & picked_chroms, int & chr_idx, int & peak_idx) except + nogil 
 
-        void findWidestPeakIndices(libcpp_vector[ MSChromatogram ] & picked_chroms, Int & chrom_idx, Int & point_idx) nogil except +
+        void findWidestPeakIndices(libcpp_vector[ MSChromatogram ] & picked_chroms, Int & chrom_idx, Int & point_idx) except + nogil 

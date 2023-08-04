@@ -11,31 +11,31 @@ cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS":
 
     cdef cppclass ControlledVocabulary:
 
-        ControlledVocabulary() nogil except +
-        ControlledVocabulary(ControlledVocabulary &) nogil except + # compiler
+        ControlledVocabulary() except + nogil 
+        ControlledVocabulary(ControlledVocabulary &) except + nogil  # compiler
 
         # Returns the CV name (set in the load method)
-        String name() nogil except + # wrap-doc:Returns the CV name (set in the load method)
+        String name() except + nogil  # wrap-doc:Returns the CV name (set in the load method)
 
-        void loadFromOBO(String name, String filename) nogil except + # wrap-doc:Loads the CV from an OBO file
+        void loadFromOBO(String name, String filename) except + nogil  # wrap-doc:Loads the CV from an OBO file
 
         # Returns true if the term is in the CV. Returns false otherwise.
-        bool exists(String id) nogil except + # wrap-doc:Returns true if the term is in the CV. Returns false otherwise.
+        bool exists(String id) except + nogil  # wrap-doc:Returns true if the term is in the CV. Returns false otherwise.
 
         # Returns true if a term with the given name is in the CV. Returns false otherwise.
-        bool hasTermWithName(String name) nogil except + # wrap-doc:Returns true if a term with the given name is in the CV. Returns false otherwise
+        bool hasTermWithName(String name) except + nogil  # wrap-doc:Returns true if a term with the given name is in the CV. Returns false otherwise
 
-        CVTerm_ControlledVocabulary getTerm(String id) nogil except + # wrap-doc:Returns a term specified by ID
+        CVTerm_ControlledVocabulary getTerm(String id) except + nogil  # wrap-doc:Returns a term specified by ID
 
-        CVTerm_ControlledVocabulary getTermByName(String name, String desc) nogil except + # wrap-doc:Returns a term specified by name
+        CVTerm_ControlledVocabulary getTermByName(String name, String desc) except + nogil  # wrap-doc:Returns a term specified by name
 
         # returns all the terms stored in the CV
         # TODO OpenMS Map type
-        # Map[String, CVTerm_ControlledVocabulary] getTerms() nogil except +
+        # Map[String, CVTerm_ControlledVocabulary] getTerms() except + nogil 
 
-        void getAllChildTerms(libcpp_set[String] terms, String parent) nogil except + # wrap-doc:Writes all child terms recursively into terms
+        void getAllChildTerms(libcpp_set[String] terms, String parent) except + nogil  # wrap-doc:Writes all child terms recursively into terms
 
-        bool isChildOf(String child, String parent) nogil except + # wrap-doc:Returns True if `child` is a child of `parent`
+        bool isChildOf(String child, String parent) except + nogil  # wrap-doc:Returns True if `child` is a child of `parent`
 
 cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS::ControlledVocabulary":
 
@@ -54,13 +54,13 @@ cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS::Con
       libcpp_set[String] units  #< unit accession ids, defined by relationship has units
 
       #Default constructor
-      CVTerm_ControlledVocabulary() nogil except +
-      CVTerm_ControlledVocabulary(CVTerm_ControlledVocabulary rhs) nogil except +
+      CVTerm_ControlledVocabulary() except + nogil 
+      CVTerm_ControlledVocabulary(CVTerm_ControlledVocabulary rhs) except + nogil 
 
-      String toXMLString(String ref, String value) nogil except + # wrap-doc:Get mzidentml formatted string. i.e. a cvparam xml element, ref should be the name of the ControlledVocabulary (i.e. cv.name()) containing the CVTerm (e.g. PSI-MS for the psi-ms.obo - gets loaded in all cases like that??), value can be empty if not available
-      String toXMLString(String ref, DataValue value) nogil except + # wrap-doc:Get mzidentml formatted string. i.e. a cvparam xml element, ref should be the name of the ControlledVocabulary (i.e. cv.name()) containing the CVTerm (e.g. PSI-MS for the psi-ms.obo - gets loaded in all cases like that??), value can be empty if not available
-      String getXRefTypeName(XRefType_CVTerm_ControlledVocabulary type) nogil except +
-      bool isHigherBetterScore(CVTerm_ControlledVocabulary term) nogil except +
+      String toXMLString(String ref, String value) except + nogil  # wrap-doc:Get mzidentml formatted string. i.e. a cvparam xml element, ref should be the name of the ControlledVocabulary (i.e. cv.name()) containing the CVTerm (e.g. PSI-MS for the psi-ms.obo - gets loaded in all cases like that??), value can be empty if not available
+      String toXMLString(String ref, DataValue value) except + nogil  # wrap-doc:Get mzidentml formatted string. i.e. a cvparam xml element, ref should be the name of the ControlledVocabulary (i.e. cv.name()) containing the CVTerm (e.g. PSI-MS for the psi-ms.obo - gets loaded in all cases like that??), value can be empty if not available
+      String getXRefTypeName(XRefType_CVTerm_ControlledVocabulary type) except + nogil 
+      bool isHigherBetterScore(CVTerm_ControlledVocabulary term) except + nogil 
 
 cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS::ControlledVocabulary::CVTerm":
 

@@ -12,10 +12,10 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>" namespace "
             #  Use the IDMapper class to add protein and peptide information to a
             #  quantitative ConsensusMap prior to this step
 
-        ProteinInference() nogil except +
-        ProteinInference(ProteinInference &) nogil except +
+        ProteinInference() except + nogil 
+        ProteinInference(ProteinInference &) except + nogil 
 
-        void infer(ConsensusMap & consensus_map, UInt reference_map) nogil except +
+        void infer(ConsensusMap & consensus_map, UInt reference_map) except + nogil 
             # wrap-doc:
             #  Given a peptide quantitation, infer corresponding protein quantities
             #  
