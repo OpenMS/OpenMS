@@ -189,11 +189,15 @@ private:
     template <typename ToType>
     static void decodeIntegersCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
 
-    inline void stringSimdEncoder_(std::string& in, std::string& out);
+    static inline void stringSimdEncoder_(std::string& in, std::string& out);
 
-    inline void stringSimdDecoder_(const std::string& in, std::string& out);
+    static inline void stringSimdDecoder_(const std::string& in, std::string& out);
   };
 
+  // Possible optimization: add simd registerwise endianizer (this will only be beneficial for ARM, since mzML + x64 CPU does not need to convert since both use LITTLE_ENDIAN).
+  // mzXML(!), which is outdated uses BIG_ENDIAN, i.e. "network", in its base64 encoding, so there x64 will benefit, but not ARM.
+  // However: the code below gets optimized to the bswap instruction by most compilers, which is very fast (1 cycle latency + 1 ops)
+  // and it is doubtful that SSE4's _mm_shuffle_epi8 will do better, see https://dev.to/wunk/fast-array-reversal-with-simd-j3p
   /// Endianizes a 32 bit type from big endian to little endian and vice versa
   inline UInt32 endianize32(const UInt32& n)
   {
@@ -215,8 +219,6 @@ private:
            ((n << 40) & 0x00FF000000000000) |
            ((n << 56) & 0xFF00000000000000);
   }
-  //TODO: add simd registerwise endianizer
-
 
   template <typename FromType>
   void Base64::encode(std::vector<FromType> & in, ByteOrder to_byte_order, String & out, bool zlib_compression)
@@ -290,14 +292,12 @@ private:
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compression error?");
       }
 
-      Base64 unit;
-      unit.stringSimdEncoder_(compressed, out);   //resize output array in order to have enough space for all characters
+      stringSimdEncoder_(compressed, out);   //resize output array in order to have enough space for all characters
     }
     else // encode without compression
     {
       String str((char*)in.data(), input_bytes);
-      Base64 unit;
-      unit.stringSimdEncoder_(str, out);
+      stringSimdEncoder_(str, out);
     }
 
   }
@@ -315,6 +315,22 @@ private:
     }
   }
 
+  template <int type_size>
+  inline void invertEndianess(void* byte_buffer, const size_t element_count);
+  template<>
+  inline void invertEndianess<4>(void* byte_buffer, const size_t element_count)
+  {
+    UInt32* p = reinterpret_cast<UInt32*>(byte_buffer);
+    std::transform(p, p + element_count, p, endianize32);
+  }
+  template<int type_size>
+  inline void invertEndianess<8>(void* byte_buffer, const size_t element_count)
+  {
+    UInt64* p = reinterpret_cast<UInt64*>(byte_buffer);
+    std::transform(p, p + element_count, p, endianize64);
+  }
+
+
   template <typename ToType>
   void Base64::decodeCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
   {
@@ -326,8 +342,7 @@ private:
     String decompressed;
 
     String s;
-    Base64 unit;
-    unit.stringSimdDecoder_(in,s);
+    stringSimdDecoder_(in, s);
     QByteArray bazip = QByteArray::fromRawData(s.c_str(), (int) s.size());
 
    /////////////////////////////////////////////////////////////////////////////////////if faster: first encode then call fromRawData
@@ -364,18 +379,7 @@ private:
     // change endianness if necessary
     if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
     {
-      if constexpr(element_size == 4) // 32 bit
-      {
-        UInt32 * p = reinterpret_cast<UInt32 *>(byte_buffer);
-        std::transform(p, p + float_count, p, endianize32);
-      }
-      else // 64 bit
-      {
-        UInt64 * p = reinterpret_cast<UInt64 *>(byte_buffer);
-        std::transform(p, p + float_count, p, endianize64);
-      }
-
-      ////////////////////////////////use faster register endianizer
+      invertEndianess<element_size>(byte_buffer, float_count);
     }
 
     // copy values
@@ -383,11 +387,11 @@ private:
   }
 
   template <typename ToType>
-  void Base64::decodeUncompressed_(const String& in, ByteOrder /*from_byte_order*/ , std::vector<ToType>& out)  // TODO byte order not needed?
+  void Base64::decodeUncompressed_(const String& in, ByteOrder from_byte_order , std::vector<ToType>& out)
   {
     out.clear();
 
-    // The length of a base64 string is a always a multiple of 4 (always 3
+    // The length of a base64 string is always a multiple of 4 (always 3
     // bytes are encoded as 4 characters)
     if (in.size() < 4)
     {
@@ -406,13 +410,19 @@ private:
 
     src_size -= padding;
 
-    const Size element_size = sizeof(ToType);
-    Base64 unit;
+    constexpr Size element_size = sizeof(ToType);
     String s;
-    unit.stringSimdDecoder_(in,s);
+    stringSimdDecoder_(in,s);
+
+    // change endianness if necessary (mzML is always LITTLE_ENDIAN; x64 is LITTLE_ENDIAN)
+    if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
+    {
+      invertEndianess<element_size>((void*)s.data(), src_size / element_size);
+    }
+
     const char* cptr = s.data();
     const ToType * fptr = reinterpret_cast<const ToType*>(cptr);
-    out.assign(fptr,fptr+s.size()/element_size);
+    out.assign(fptr,fptr + s.size()/element_size);
   }
 
   template <typename FromType>
@@ -464,14 +474,12 @@ private:
         compressed.reserve(compressed_length);
       }
 
-      Base64 unit;
-      unit.stringSimdEncoder_(compressed, out);
+      stringSimdEncoder_(compressed, out);
     }
     else // encode without compression
     {
       String str((char*)in.data(), input_bytes);
-      Base64 unit;
-      unit.stringSimdEncoder_(str,out);
+      stringSimdEncoder_(str, out);
     }
   }
 
