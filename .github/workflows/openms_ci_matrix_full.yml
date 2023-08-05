@@ -1,0 +1,422 @@
+# This is a basic workflow to help you get started with Actions
+
+name: openms-ci
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events
+on:
+  push:
+    branches:
+      - nightly
+      - release/*
+  pull_request:
+    branches:
+      - develop
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build-and-test:
+    strategy:
+      matrix:
+        include:
+          - os: windows-2022
+          - compiler: default
+          - os: macos
+          - compiler: default
+          - os: ubuntu-22.04
+          - compiler: default
+          - os: ubuntu-22.04
+          - compiler: clang-15
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        path: OpenMS
+
+    - name: Extract branch/PR infos
+      shell: bash
+      run: |
+        cd OpenMS
+        RUN_NAME_LOCAL=$(echo ${GITHUB_REF#refs/heads/} | tr / -)
+        echo "RUN_NAME=${RUN_NAME_LOCAL}" >> $GITHUB_ENV
+        echo "BASE_REF=$(gh pr view --json baseRefName -q .baseRefName || echo ${RUN_NAME_LOCAL})" >> $GITHUB_ENV
+      id: extract_branch
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+    - id: set-vars
+      name: Set extra variables
+      run: |
+        if [ "${{ matrix.os }}" == "ubuntu-*" ]; then
+          echo "tp_folder=Linux" >> $GITHUB_OUTPUT
+          echo "xvfb=xvfb-run" >> $GITHUB_OUTPUT
+          echo "static_boost=OFF" >> $GITHUB_OUTPUT
+          COMPILER=${{ matrix.compiler }}
+          echo "compiler_ver=${COMPILER%%-*}" >> $GITHUB_OUTPUT
+        fi
+        
+        if [ "${{ matrix.os }}" == "windows-*" ]; then
+          echo "tp_folder=Windows" >> $GITHUB_OUTPUT
+          echo "contrib_os=windows" >> $GITHUB_OUTPUT
+          echo "contrib_os_ver=" >> $GITHUB_OUTPUT
+          echo "contrib_compiler=msvc14.2/" >> $GITHUB_OUTPUT
+          echo "tp_folder=Windows" >> $GITHUB_OUTPUT
+          echo "xvfb=" >> $GITHUB_OUTPUT
+          echo "static_boost=ON" >> $GITHUB_OUTPUT
+        fi
+
+        if [ "${{ matrix.os }}" == "macos-*" ]; then
+          echo "tp_folder=macOS" >> $GITHUB_OUTPUT
+          echo "contrib_os=macOS" >> $GITHUB_OUTPUT
+          echo "contrib_os_ver=10.15.5/" >> $GITHUB_OUTPUT
+          echo "contrib_compiler=appleclang-11.0.0/" >> $GITHUB_OUTPUT
+          echo "xvfb=" >> $GITHUB_OUTPUT
+          echo "static_boost=ON" >> $GITHUB_OUTPUT
+        fi
+      shell: bash
+
+    - if: startsWith(matrix.os, 'windows')
+      name: Emulate a Visual Studio shell (Windows)
+      uses: egor-tensin/vs-shell@v2
+      with:
+        arch: x64
+
+    - name: Setup build tools (and system contrib on Linux)
+      shell: bash
+      run: |
+        if [ "${{ matrix.os }}" == "ubuntu-*" ]; then
+          sudo add-apt-repository universe
+          sudo apt update   
+          sudo apt-get install -y build-essential cmake autoconf patch libtool git automake ninja-build xvfb ccache
+          sudo apt-get install -y qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
+          sudo apt-get install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
+        fi
+        
+        if [ "${{ matrix.os }}" == "windows-*" ]; then
+          choco install ccache ninja cmake
+          ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
+          # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
+          echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
+        fi
+
+        if [ "${{ matrix.os }}" == "macos-*" ]; then
+          brew install ccache autoconf automake libtool ninja && brew link --overwrite ccache
+        fi
+
+    - if: startsWith(matrix.os, 'ubuntu') && startsWith(matrix.compiler, 'clang')
+      name: Set up Clang
+      uses: egor-tensin/setup-clang@v1
+      with:
+        version: ${{ steps.set-vars.outputs.compiler_ver }}
+        platform: x64   
+
+    - if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
+      name: Install Qt (Windows and macOS)
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: '5.15.2' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715, > 5.15.2 is not available on official archives (https://github.com/miurahr/aqtinstall/issues/636)
+        cache: 'false'
+        aqtversion: '==3.1.*'
+        archives: 'qtsvg qtimageformats qtbase'
+
+    - if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
+      name: Cache contrib (Windows and macOS)
+      id: cache-contrib
+      uses: actions/cache@v3
+      with:
+        path: ${{ github.workspace }}/OpenMS/contrib
+        key: ${{ runner.os }}-contrib3
+
+    - if: (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && steps.cache-contrib.outputs.cache-hit != 'true'
+      name: Download contrib build from archive (Windows and macOS)
+      run: |
+          cd OpenMS/contrib
+          curl -o contribbld.tar.gz https://abibuilder.cs.uni-tuebingen.de/archive/openms/contrib/${{ steps.set-vars.outputs.contrib_os }}/${{ steps.set-vars.outputs.contrib_os_ver }}x64/${{ steps.set-vars.outputs.contrib_compiler }}/contrib_build.tar.gz
+          tar -xzf contribbld.tar.gz
+          rm contribbld.tar.gz
+
+    - if: startsWith(matrix.os, 'macos')
+      name: Fix contrib install names (macOS)
+      shell: bash
+      run: |
+          shopt -s nullglob # ensure that for loop is only executated if there is at least one .dylib file
+          for lib in $GITHUB_WORKSPACE/OpenMS/contrib/lib/*.dylib
+          do
+            install_name_tool -id $lib $lib
+          done
+
+          # create symlinks like brew https://github.com/Homebrew/homebrew-core/blob/master/Formula/qt.rb#L61
+          # Warning: Qt5_DIR will change meaning in the new jurplel/install-qt-action. Use QT_ROOT_DIR instead
+          # https://github.com/jurplel/install-qt-action/blob/master/README_upgrade_guide.md
+          pushd $Qt5_DIR/include
+            for f in $Qt5_DIR/lib/*.framework/Headers
+            do
+              lnknm=$(basename "${f%/*}" ".framework")
+              ln -s $f $lnknm
+            done
+            for f in $Qt5_DIR/lib/*.framework/Versions/5/Qt*
+            do
+              install_name_tool -id $f $f
+            done
+          popd
+
+    - name: Setup ccache cache
+      uses: actions/cache@v3
+      with:
+        path: .ccache
+        key: ${{ runner.os }}-ccache-${{ env.RUN_NAME }}-${{ github.run_number }}
+        # Restoring: From current branch, otherwise from base branch, otherwise from any branch.
+        restore-keys: |
+          ${{ runner.os }}-ccache-${{ env.RUN_NAME }}
+          ${{ runner.os }}-ccache-${{ env.BASE_REF }}
+          ${{ runner.os }}-ccache-
+
+    - name: Add THIRDPARTY
+      shell: bash
+      run: |
+          # initialize THIRDPARTY
+          cd OpenMS
+          git submodule update --init THIRDPARTY
+          cd ..
+          # add third-party binaries to PATH
+          # use flat THIRDPARTY structure
+          mkdir -p _thirdparty
+          cp -R OpenMS/THIRDPARTY/${{ steps.set-vars.outputs.tp_folder }}/64bit/* _thirdparty/
+          cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
+          # add third-party binaries to PATH
+          for thirdpartytool in ${{ github.workspace }}/_thirdparty/*
+          do
+            echo $thirdpartytool >> $GITHUB_PATH
+          done
+
+    - name: Build
+      shell: bash
+      run: |
+          mkdir $GITHUB_WORKSPACE/OpenMS/bld/
+          ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
+      env:
+          OS_PREFIX_PATH: "${{ env.Qt5_DIR }}/lib/cmake;${{ env.Qt5_DIR }}"
+          CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
+          CI_PROVIDER: "GitHub-Actions"
+          CMAKE_GENERATOR: "Ninja"
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          BUILD_NAME: "${{ env.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ matrix.compiler }}-class-topp-${{ github.run_number }}"
+          ENABLE_STYLE_TESTING: "OFF"
+          ENABLE_TOPP_TESTING: "ON"
+          ENABLE_CLASS_TESTING: "ON"
+          WITH_GUI: "ON"
+          ADDRESS_SANITIZER: "Off"
+          BUILD_TYPE: "Release"
+          OPENMP: "Off"
+          USE_STATIC_BOOST: ${{ steps.set-vars.outputs.static_boost }}
+          #  BUILD_FLAGS: "-p:CL_MPCount=2" # For VS Generator and MSBuild
+          BUILD_FLAGS: "-j2" # Ninja will otherwise use all cores (doesn't go well in GHA)
+          CMAKE_CCACHE_EXE: "ccache"
+          CCACHE_BASEDIR: ${{ github.workspace }}
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
+          CCACHE_COMPRESS: true
+          CCACHE_COMPRESSLEVEL: 12
+          CCACHE_MAXSIZE: 400M
+          # TODO evaluate those options (we had them only on Linux before)
+          CCACHE_SLOPPINESS: time_macros,include_file_ctime,include_file_mtime
+          CCACHE_COMPILERCHECK: content
+
+    - name: Test
+      shell: bash
+      run: ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
+      env:
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          CI_PROVIDER: "GitHub-Actions"
+          BUILD_NAME: "${{ env.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-class-topp-${{ github.run_number }}"
+
+    # TODO for packages
+    # IF BRANCH IS NIGHTLY OR RELEASE: 
+    # - ENABLE PACKAGE WITH CMAKE OPTION
+    # - BUILD (try to use a cmake script to upload build logs to CDash as well, see e.g. OpenMS/tools/ci/citest.cmake)
+    # - UPLOAD ARTIFACTS TO ARCHIVE (BUT: maybe do it in a separate job in this workflow. See Note about "BIG PROBLEM" below)
+
+    - name: Set up JDK 17 for ant
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Generate KNIME descriptors and payloads
+      shell: bash
+      run: |
+        cd $GITHUB_WORKSPACE/OpenMS/bld/
+        cmake -DSEARCH_ENGINE_DIRECTORY="$GITHUB_WORKSPACE/_thirdparty" -DENABLE_PREPARE_KNIME_PACKAGE=ON .
+        cmake --build . --target prepare_knime_package
+        
+    # TODO evaluate GH artifacts (limits?? speed?) vs SSH on archive
+    # TODO add secrets to GH
+    - name: Upload payloads and descriptors
+      shell: bash
+      env:
+        PASS: ${{ secrets.PASS }}
+        USER: ${{ secrets.USER }}
+        HOST: ${{ secrets.HOST }}
+        PATH: ${{ secrets.PATH }}
+      run: |
+        sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/OpenMS/bld/knime/* "$USER@$HOST:$PATH/knime-plugin/descriptorsAndPayloads/${{ env.RUN_NAME }}"
+
+
+
+  # BIG PROBLEM: The above matrix would always upload once one matrix config build is successful. You cannot wait on the others.
+  # Maybe use GH artifacts (limits?) as "temporary storage" and only upload officially in a subsequent job that depends on the full matrix success and downloads the temporary artifacts.
+  # This is how we do it in Jenkins, too. Or create a temporary folder on our build archive if GH limits are bad.
+
+  # TODO run job only if trigger was nightly or release
+  build-knime-updatesite:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      # TODO how to make sure it's downloading from the same run? Maybe if something cancels/fails, just downloading the latest is not the best?
+      #  GH artifacts would solve it.
+      # TODO add secrets to GH
+      - name: Download payloads and descriptors from all platforms
+        shell: bash
+        env:
+          PASS: ${{ secrets.PASS }}
+          USER: ${{ secrets.USER }}
+          HOST: ${{ secrets.HOST }}
+          PATH: ${{ secrets.PATH }}
+        run: |
+          mkdir -p plugin-source
+          sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" "$USER@$HOST:$PATH/knime-plugin/descriptorsAndPayloads/${{ env.RUN_NAME }}/*" plugin-source/
+      
+      - name: Set up JDK 17 for ant
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Generate plugin sources
+        shell: bash
+        run: |
+            ## Setup functions
+            function git_last_change_date {
+              pushd $1 > /dev/null
+              DATE=$(date -j -f "%Y-%m-%d %H:%M:%S" "`git log -1 --format="%cd" --date=iso`" "+%Y%m%d%H%M" 2> /dev/null)
+              popd > /dev/null
+              echo $DATE
+            }
+
+            function replace_qualifier {
+              find $1 -name MANIFEST.MF -exec sed -i -e "s/qualifier/$2/g" {} \;
+            }
+
+            ## replace only first occurence of SNAPSHOT (second is the version of the parent pom).
+            function replace_snapshot {
+              find $1 -name pom.xml -exec sed -i -e "1 h;1! H;\$! d;$ {g;s/-SNAPSHOT/\.$2/;}" {} \;
+            }
+
+            ## Setup variables
+            ## GKN git clone (see SCM subfolder settings above)
+            GKN_PLUGIN_PATH=${GITHUB_WORKSPACE}/GenericKnimeNodes
+
+            ## Source and build dir (choose)
+            PLUGIN_SOURCE=${GITHUB_WORKSPACE}/plugin-source
+            mkdir ${PLUGIN_SOURCE}
+
+            ## Merge payloads and descriptors into one folder
+            touch rsync.log
+            for d in compiler*
+            do
+              rsync -avh --progress $d/build/knime/ ${PLUGIN_SOURCE}/ >> rsync.log
+              rm -rf $d
+            done
+
+            PLUGIN_SOURCE_CONTRIB_PLUGINS=${PLUGIN_SOURCE}/de.openms.feature/contributing-plugins
+            mkdir -p ${PLUGIN_SOURCE_CONTRIB_PLUGINS}
+            PLUGIN_SOURCE_THIRDPARTY_CONTRIB_PLUGINS=${PLUGIN_SOURCE}/de.openms.thirdparty.feature/contributing-plugins
+            mkdir -p ${PLUGIN_SOURCE_THIRDPARTY_CONTRIB_PLUGINS}
+            PLUGIN_BUILD=${GITHUB_WORKSPACE}/plugin-build
+            mkdir ${PLUGIN_BUILD}
+
+            ## We check exemplarily in de.openms.lib. It should never happen that one platform produced one plugin but not the other.
+            pushd ${PLUGIN_SOURCE}/de.openms.feature/de.openms.lib/
+              amount=$(ls -1 payload | wc -l)
+              if [ $amount -le 2 ]; then
+                  echo "Not enough payloads for each platform. Aborting..."
+                  exit 1
+              fi
+            popd
+
+            ## Clone the contributing plugins into the plugin source folder and update their "last modified" date to
+            ## the last git commit
+            pushd ${PLUGIN_SOURCE_CONTRIB_PLUGINS}
+
+              git clone https://github.com/OpenMS/de.openms.knime --branch develop --single-branch .
+              CONTRIBUTING_DATE=$(git_last_change_date .)
+              
+              # TODO just iterate over all folders?
+              replace_qualifier de.openms.knime.startupCheck ${CONTRIBUTING_DATE}
+              replace_qualifier de.openms.knime.mzTab ${CONTRIBUTING_DATE}
+              replace_qualifier de.openms.knime.textexporter_reader ${CONTRIBUTING_DATE}
+              replace_qualifier de.openms.knime.importers ${CONTRIBUTING_DATE}
+              replace_qualifier de.openms.knime.qchandling ${CONTRIBUTING_DATE}
+              replace_qualifier de.openms.thirdparty.knime.startupCheck ${CONTRIBUTING_DATE}
+              replace_snapshot de.openms.knime.startupCheck ${CONTRIBUTING_DATE}
+              replace_snapshot de.openms.knime.mzTab ${CONTRIBUTING_DATE}
+              replace_snapshot de.openms.knime.textexporter_reader ${CONTRIBUTING_DATE}
+              replace_snapshot de.openms.knime.importers ${CONTRIBUTING_DATE}
+              replace_snapshot de.openms.knime.qchandling ${CONTRIBUTING_DATE}
+              replace_snapshot de.openms.thirdparty.knime.startupCheck ${CONTRIBUTING_DATE}
+              
+              # move to thirdparty feature so they get installed together
+              mv de.openms.thirdparty.knime.startupCheck ${PLUGIN_SOURCE_THIRDPARTY_CONTRIB_PLUGINS}/de.openms.thirdparty.knime.startupCheck
+              rm -r .git
+              rm -r de.openms.knime.startupCheck.test
+
+            popd
+
+            git clone https://github.com/genericworkflownodes/de.openms.knime.dynamicJSViewers --branch master --single-branch
+            CONTRIBUTING_DATE=$(git_last_change_date de.openms.knime.dynamicJSViewers)
+            mv de.openms.knime.dynamicJSViewers/de.openms.knime.dynamicJSViewers.feature ${PLUGIN_SOURCE}/
+            mkdir ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins
+            rm -rf ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/.settings
+            mv de.openms.knime.dynamicJSViewers/de.openms.knime.dynamicJSViewers ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins/
+
+            pushd ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins/
+              replace_qualifier de.openms.knime.dynamicJSViewers ${CONTRIBUTING_DATE}
+              replace_snapshot de.openms.knime.dynamicJSViewers ${CONTRIBUTING_DATE}
+            popd
+
+            rm -rf de.openms.knime.dynamicJSViewers
+
+            # build the plugin source code
+            cd ${GKN_PLUGIN_PATH}
+            ant -Dplugin.dir=${PLUGIN_SOURCE} -Dgenerate.extra.arguments="-r -u" -Dcustom.plugin.generator.target=${PLUGIN_BUILD}
+
+      - name: Build KNIME update site
+        shell: bash
+        run: |
+          # fix folder structure
+          mv plugin-build/.mvn ./
+          mv plugin-build/* ./
+
+          git clone --depth 1 --branch master https://github.com/genericworkflownodes/buildresources
+
+          # a special class that maps node names from old openms to openms thirdparty (we should be able to remove it future releases)
+          cp buildresources/de.openms.thirdparty/src/de/openms/thirdparty/knime/OpenMSNodeFactoryClassMapper.java de.openms.thirdparty/src/de/openms/thirdparty/knime/
+          # insert contents of the snippet before </plugin> in the plugin.xml. The snippet registers the class mapper.
+          cat buildresources/de.openms.thirdparty/plugin.xml.snippet
+          f1="$(cat buildresources/de.openms.thirdparty/plugin.xml.snippet)"
+          awk -vf1="$f1" '/<\/plugin>/{print f1;print;next}1' de.openms.thirdparty/plugin.xml > buildresources/my.tmp && mv buildresources/my.tmp de.openms.thirdparty/plugin.xml
+
+          rm -r buildresources
+          rm -r plugin-build
+
+          # remove poms since we will do a full pomless build. poms are only necessary if you want to develop on a single plugin, e.g., in eclipse.
+          find . -mindepth 2 -name "pom.xml*" -exec rm {} \;
+
+          # TODO correctly parameterize (e.g. together with the Java install step above)
+          KNIME="5.1"
+          JAVA_VER=17
+          # TODO check if correct maven version is installed
+          mvn "-Dknime.version=${KNIME}" "-Djava.majorversion=${JAVAVER}" "-Dgkn.update.site=https://abibuilder.cs.uni-tuebingen.de/archive/gkn/updateSite/${KNIME}/" clean verify
+
