@@ -105,7 +105,6 @@ x    DeMeanderize.cpp  # 100 lines
 ok   Digestor.cpp
 ok   DigestorMotif.cpp
 x    ERPairFinder.cpp   # 400 lines
-n    FFEval.cpp
 n    FuzzyDiff.cpp
 ok   IDDecoyProbability.cpp
 x    IDExtractor.cpp  # 200 lines
