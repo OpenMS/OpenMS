@@ -113,7 +113,6 @@ n    IDMassAccuracy.cpp
 n    IDSplitter.cpp
 n    ImageCreator.cpp
 n    INIUpdater.cpp
-n    LabeledEval.cpp
 n    MassCalculator.cpp
 n    MRMPairFinder.cpp
 n    OpenMSInfo.cpp
@@ -130,7 +129,6 @@ x    RNPxlXICFilter.cpp # 200 lines
 ok   SemanticValidator.cpp
 x    SequenceCoverageCalculator.cpp # 200 lines
 x    SpecLibCreator.cpp # 200 lines
-n    TransformationEvaluation.cpp
 x    XMLValidator.cpp # 80 lines
 
 
