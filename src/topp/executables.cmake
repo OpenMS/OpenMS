@@ -72,7 +72,6 @@ OpenSwathFeatureXMLToTSV
 OpenSwathRTNormalizer
 PeakPickerHiRes
 PeakPickerWavelet
-PepNovoAdapter
 PeptideIndexer
 PercolatorAdapter
 PhosphoScoring

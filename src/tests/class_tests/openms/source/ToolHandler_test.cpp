@@ -105,7 +105,7 @@ END_SECTION
 
 START_SECTION((static String getCategory(const String &toolname)))
 {
-  TEST_EQUAL(ToolHandler::getCategory("PepNovoAdapter"), "Identification")
+  TEST_EQUAL(ToolHandler::getCategory("SimpleSearchEngine"), "Identification")
   TEST_EQUAL(ToolHandler::getCategory("DOESNOTEXIST"), "")
 }
 END_SECTION

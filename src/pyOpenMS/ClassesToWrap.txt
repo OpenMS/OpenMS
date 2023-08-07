@@ -69,7 +69,6 @@ ok   OpenSwathFeatureXMLToTSV.cpp
 ok   OpenSwathRTNormalizer.cpp
 ok   PeakPickerHiRes.cpp
 ok   PeakPickerWavelet.cpp
-x    PepNovoAdapter.cpp   # 300 lines
 x    PeptideIndexer.cpp   # 500 lines
 xx   PhosphoScoring.cpp # AScore.pxd TODO , RichPeakSpectrum doesn't work
 x    PrecursorMassCorrector.cpp #Isotope Wavelet is wrapped, 200 lines
@@ -188,7 +187,6 @@ Protein/Peptide Identification
 ok  CompNovo - Performs a peptide/protein identification with the CompNovo engine.
 x   MascotAdapter - Identifies MS/MS spectra using Mascot (external).
 x   MascotAdapterOnline - Identifies MS/MS spectra using Mascot (external).
-x   PepNovoAdapter - Identifies MS/MS spectra using PepNovo (external).
 x   XTandemAdapter - Identifies MS/MS spectra using XTandem (external).
 x   SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library. # too much code in TOPP tool
 
