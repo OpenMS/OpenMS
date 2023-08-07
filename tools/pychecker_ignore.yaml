@@ -459,8 +459,6 @@ PyOpenMSChecker:
     # immutable types by reference
     OpenMS::SequestOutfile:
         - readOutHeader
-    OpenMS::PeakPickerRapid:
-        - computeTPG
     OpenMS::ProteinResolver:
         # pointers
         - getPeptideIdentification
