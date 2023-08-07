@@ -59,11 +59,6 @@
   - @subpage UTILS_SemanticValidator - SemanticValidator for analysisXML and mzML files.
   - @subpage UTILS_XMLValidator - Validates XML files against an XSD schema.
 
-  <b>Algorithm Evaluation</b>
-  - @subpage UTILS_FFEval - Evaluation tool for feature detection algorithms.
-  - @subpage UTILS_LabeledEval - Evaluation tool for isotope-labeled quantitation experiments.
-  - @subpage UTILS_TransformationEvaluation - Simple evaluation of transformations (e.g. RT transformations produced by a MapAligner tool).
-
   <b>Protein/Peptide Identification</b>
   - @subpage UTILS_DatabaseFilter - Filters a protein database in FASTA format according to one or multiple filtering criteria.
   - @subpage UTILS_DecoyDatabase - Creates decoy peptide databases from normal ones.

@@ -190,7 +190,6 @@ namespace OpenMS
     util_map["Epifany"] = Internal::ToolDescription("Epifany", util_category);
     util_map["ERPairFinder"] = Internal::ToolDescription("ERPairFinder", util_category);
     util_map["FeatureFinderMetaboIdent"] = Internal::ToolDescription("FeatureFinderMetaboIdent", util_category);
-    util_map["FFEval"] = Internal::ToolDescription("FFEval", util_category);
     util_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", util_category);
     util_map["IDDecoyProbability"] = Internal::ToolDescription("IDDecoyProbability", util_category);
     util_map["IDExtractor"] = Internal::ToolDescription("IDExtractor", util_category);
@@ -198,7 +197,6 @@ namespace OpenMS
     util_map["IDScoreSwitcher"] = Internal::ToolDescription("IDScoreSwitcher", util_category);
     util_map["IDSplitter"] = Internal::ToolDescription("IDSplitter", util_category);
     util_map["JSONExporter"] = Internal::ToolDescription("JSONExporter",util_category);
-    util_map["LabeledEval"] = Internal::ToolDescription("LabeledEval", util_category);
     util_map["NovorAdapter"] = Internal::ToolDescription("NovorAdapter", util_category);
     util_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", util_category);
     util_map["MetaboliteAdductDecharger"] = Internal::ToolDescription("MetaboliteAdductDecharger", util_category);
@@ -240,8 +238,7 @@ namespace OpenMS
     util_map["SimpleSearchEngine"] = Internal::ToolDescription("SimpleSearchEngine", util_category);
     util_map["SiriusAdapter"] = Internal::ToolDescription("SiriusAdapter", util_category);
     util_map["StaticModification"] = Internal::ToolDescription("StaticModification", util_category);
-    util_map["TICCalculator"] = Internal::ToolDescription("TICCalculator", util_category);
-    util_map["TransformationEvaluation"] = Internal::ToolDescription("TransformationEvaluation", util_category);
+    util_map["TICCalculator"] = Internal::ToolDescription("TICCalculator", util_category);    
     util_map["TriqlerConverter"] = Internal::ToolDescription("TriqlerConverter", util_category);
     util_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", util_category);
     // STOP! insert your tool in alphabetical order for easier maintenance (only tools requiring the GUI lib should be added below)
