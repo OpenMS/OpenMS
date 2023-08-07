@@ -16,7 +16,6 @@ DigestorMotif
 Epifany
 ERPairFinder
 FeatureFinderMetaboIdent
-FFEval
 FuzzyDiff
 IDDecoyProbability
 IDExtractor
@@ -24,7 +23,6 @@ IDMassAccuracy
 IDScoreSwitcher
 IDSplitter
 JSONExporter
-LabeledEval
 MassCalculator
 MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
@@ -60,7 +58,6 @@ SpecLibCreator
 SpectraSTSearchAdapter
 StaticModification
 TICCalculator
-TransformationEvaluation
 TriqlerConverter
 XMLValidator
 )
