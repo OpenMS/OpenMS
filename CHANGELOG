@@ -23,6 +23,7 @@ Cleanup of old and unused code in the library:
   Note: general SVC and SVR is still supported with the SimpleSVM class.
 - Removed old RT and PT predict code and tools RTModel, RTPredict, PTModel, PTPredict, RTEvaluation and associated library code (SVMWrapper and LibSVMEncoder).
 - Removed PepNovoAdapter
+- Removed CompNovoAdapter and library code
 - Removed simplistic evaluation tools FFEval, LabeledEval, TransformationEvaluation
 
 ------------------------------------------------------------------------------------------
