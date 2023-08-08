@@ -179,7 +179,6 @@ x   SeedListGenerator - Generates seed lists for feature detection. # needs more
 
 Protein/Peptide Identification
 
-ok  CompNovo - Performs a peptide/protein identification with the CompNovo engine.
 x   MascotAdapter - Identifies MS/MS spectra using Mascot (external).
 x   MascotAdapterOnline - Identifies MS/MS spectra using Mascot (external).
 x   XTandemAdapter - Identifies MS/MS spectra using XTandem (external).

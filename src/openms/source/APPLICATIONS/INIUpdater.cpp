@@ -95,8 +95,7 @@ namespace OpenMS
   bool INIUpdater::getNewToolName(const String & old_name, const String & tools_type, String & new_name)
   {
     new_name = "";
-    // try with type (as some new tools for one type might have the exact same name as old ones with several types
-    //                e.g., CompNovo
+    // try with type (as some new tools for one type might have the exact same name as old ones with several types)
     TDE old_withtype(old_name, ListUtils::create<String>(tools_type));
     if (map_.find(old_withtype) != map_.end())
     {
