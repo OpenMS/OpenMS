@@ -17,10 +17,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
         # wrap-inherits:
         #  DefaultParamHandler
 
-        FIAMSDataProcessor() nogil except + # wrap-doc:Data processing for FIA-MS data
-        FIAMSDataProcessor(FIAMSDataProcessor &) nogil except +
+        FIAMSDataProcessor() except + nogil  # wrap-doc:Data processing for FIA-MS data
+        FIAMSDataProcessor(FIAMSDataProcessor &) except + nogil 
 
-        bool run(MSExperiment & experiment, float & n_seconds, MzTab & output, bool load_cached_spectrum) nogil except +
+        bool run(MSExperiment & experiment, float & n_seconds, MzTab & output, bool load_cached_spectrum) except + nogil 
             # wrap-doc:
                 #  Run the full analysis for the experiment for the given time interval\n
                 #  
@@ -42,9 +42,9 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
                 #  :param output: Output of the accurate mass search results
                 #  :return: A boolean indicating if the picked spectrum was loaded from the cached file
 
-        # void cutForTime(MSExperiment & experiment, float & n_seconds, libcpp_vector[ MSSpectrum ] & output) nogil except +
-        # NAMESPACE # MSSpectrum mergeAlongTime(libcpp_vector[ OpenMS::MSSpectrum ] & input_) nogil except +
-        MSSpectrum extractPeaks(MSSpectrum & input_) nogil except +
+        # void cutForTime(MSExperiment & experiment, float & n_seconds, libcpp_vector[ MSSpectrum ] & output) except + nogil 
+        # NAMESPACE # MSSpectrum mergeAlongTime(libcpp_vector[ OpenMS::MSSpectrum ] & input_) except + nogil 
+        MSSpectrum extractPeaks(MSSpectrum & input_) except + nogil 
             # wrap-doc:
                 #  Pick peaks from the summed spectrum
                 #  
@@ -52,7 +52,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
                 #  :param input: Input vector of spectra
                 #  :return: A spectrum with picked peaks
 
-        FeatureMap convertToFeatureMap(MSSpectrum & input_) nogil except +
+        FeatureMap convertToFeatureMap(MSSpectrum & input_) except + nogil 
             # wrap-doc:
                 #  Convert a spectrum to a feature map with the corresponding polarity\n
                 #  
@@ -62,7 +62,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
                 #  :param input: Input a picked spectrum
                 #  :return: A feature map with the peaks converted to features and polarity from the parameters
 
-        MSSpectrum trackNoise(MSSpectrum & input_) nogil except +
+        MSSpectrum trackNoise(MSSpectrum & input_) except + nogil 
             # wrap-doc:
                 #  Estimate noise for each peak\n
                 #  
@@ -71,6 +71,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
                 #  
                 #  :param input: Input a picked spectrum
                 #  :return: A spectrum object storing logSN information
-        # NAMESPACE # void runAccurateMassSearch(FeatureMap & input_, OpenMS::MzTab & output) nogil except +
-        # libcpp_vector[ float ] getMZs() nogil except +
-        # libcpp_vector[ float ] getBinSizes() nogil except +
+        # NAMESPACE # void runAccurateMassSearch(FeatureMap & input_, OpenMS::MzTab & output) except + nogil 
+        # libcpp_vector[ float ] getMZs() except + nogil 
+        # libcpp_vector[ float ] getBinSizes() except + nogil 

@@ -179,9 +179,6 @@ PyOpenMSChecker:
     OpenMS::SeedListGenerator:
         # STL wrapped key
         - generateSeedLists
-    OpenMS::SvmTheoreticalSpectrumGenerator:
-        # boost rng
-        - simulate
     OpenMS::TransformationModelInterpolated:
         - TransformationModelInterpolated
     OpenMS::Param:
@@ -338,13 +335,6 @@ PyOpenMSChecker:
     OpenMS::IsobaricQuantifierStatistics:
         # STL attributes
         - empty_channels
-    OpenMS::PrecursorIonSelectionPreprocessing:
-        # TODO STL map
-        - getProtMasses
-        - getProteinRTMap
-        - getProteinPTMap
-        - getProteinPeptideSequenceMap
-        - getFixedModifications
     OpenMS::CompNovoIonScoringCID:
         - scoreSpectrum
     OpenMS::DIAScoring:
@@ -469,8 +459,6 @@ PyOpenMSChecker:
     # immutable types by reference
     OpenMS::SequestOutfile:
         - readOutHeader
-    OpenMS::PeakPickerRapid:
-        - computeTPG
     OpenMS::ProteinResolver:
         # pointers
         - getPeptideIdentification
@@ -744,17 +732,6 @@ PyOpenMSChecker:
         - getModelDescription
         - setModelDescription
 
-    # Not part of the public interface
-    OpenMS::SVMWrapper:
-        # External lib
-        - performCrossValidation
-        - getDecisionValues
-        - scaleData
-        - computeKernelMatrix
-        - getSVCProbabilities
-        - getLabels
-        - kernelOligo
-        - mergePartitions
     OpenMS::FeatureDistance:
         - infinity
     OpenMS::Digestion:
@@ -1185,7 +1162,6 @@ PyOpenMSChecker:
     - OpenMS::SpecArrayFile
     - OpenMS::PersistentObject
     - OpenMS::MascotRemoteQuery
-    - OpenMS::LibSVMEncoder
     - OpenMS::CsvFile
     - OpenMS::ToolDescriptionFile
     - OpenMS::PTMXMLFile
@@ -1235,19 +1211,6 @@ PyOpenMSChecker:
     - OpenMS::RichPeak1D
     - OpenMS::FeatureHandle::FeatureHandleMutable_
     - OpenMS::FeatureHandle::IndexLess
-
-    # SIMULATION - Simulator internals (we might want to wrap those)
-    - OpenMS::LabelFreeLabeler
-    - OpenMS::ITRAQLabeler
-    - OpenMS::ICPLLabeler
-    - OpenMS::RawMSSignalSimulation
-    - OpenMS::IonizationSimulation
-    - OpenMS::RawTandemMSSignalSimulation
-    - OpenMS::RTSimulation
-    - OpenMS::EGHModel
-    - OpenMS::EGHFitter1D
-    - OpenMS::O18Labeler
-    - OpenMS::DetectabilitySimulation
 
     # DATASTRUCTURES
     - OpenMS::GridFeature

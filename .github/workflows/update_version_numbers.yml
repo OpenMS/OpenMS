@@ -15,10 +15,10 @@ jobs:
   updating_package_version_number:
     runs-on: macos-latest
     steps:
-# Getting files (OpenMS)
+      # Getting files (OpenMS)
       - uses: actions/checkout@v3
 
-# Update files with new package version numbers
+      # Update files with new package version numbers
       - name: update files
         run: |
           # setting variables
@@ -44,7 +44,26 @@ jobs:
           # update INIs in tests topp:
           find ./src/tests/topp/ -type f -name '*.ini' -exec grep -q "<ITEM name=\"version\" value=\".*\" type=\"string\"" {} \; -exec sed -i '' "s#<ITEM name=\"version\" value=\".*\" type=\"string\"#<ITEM name=\"version\" value=\"$package_version\" type=\"string\"#g" {} \;
 
-# Check for changes
+          # Update Changelog
+          # Define the new section using a here-doc
+          section_header=$(cat <<EOF
+          ------------------------------------------------------------------------------------------
+          ----                                OpenMS ${package_version}     (under development)              ----
+          ------------------------------------------------------------------------------------------
+          
+          
+          .    # ends with a period for preserve trailing newlines
+          EOF
+          )
+          section_header=${section_header%.*}   # remove the period
+
+          # Get the line number of the first line starting with more than 10 "-"
+          line_num=$(grep -n "^-\{10,\}" CHANGELOG | head -n 1 | cut -d ":" -f 1)
+
+          # Use perl to insert the text at the specified line number in the file
+          perl -i -pe "print '${section_header}' if \$. == ${line_num}" CHANGELOG
+
+      # Check for changes
       - name: check for changed files
         id: changed-files
         run: |
@@ -54,13 +73,15 @@ jobs:
             echo "changes_exist=true" >> $GITHUB_ENV
           fi
 
-# Commit and PR updated files
+      # Commit and PR updated files
       - name: Commit and PR updated files
         if: env.changes_exist
         uses: peter-evans/create-pull-request@v4
         with:
           commit-message: 'Updated OpenMS package version number'
-          committer: ${{ github.actor	}}
+          committer: GitHub <noreply@github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          signoff: false
           branch: update_package_number
           delete-branch: true
-          title: '[ByGitAction] Updated OpenMS package version number'
+          title: '[ByGHAction] Updated OpenMS package version numbers'

@@ -11,11 +11,11 @@ cdef extern from "<OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>" namespa
         # wrap-inherits:
         #  DefaultParamHandler
 
-        TheoreticalSpectrumGeneratorXLMS() nogil except +
-        TheoreticalSpectrumGeneratorXLMS(TheoreticalSpectrumGeneratorXLMS &) nogil except +
+        TheoreticalSpectrumGeneratorXLMS() except + nogil 
+        TheoreticalSpectrumGeneratorXLMS(TheoreticalSpectrumGeneratorXLMS &) except + nogil 
 
         void getLinearIonSpectrum(MSSpectrum& spectrum, AASequence peptide,
-                Size link_pos, bool frag_alpha, int charge, Size link_pos_2) nogil except +
+                Size link_pos, bool frag_alpha, int charge, Size link_pos_2) except + nogil 
         # wrap-doc:
                 #      Generates fragment ions not containing the cross-linker for one peptide
                 #      
@@ -34,7 +34,7 @@ cdef extern from "<OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>" namespa
 
         void getXLinkIonSpectrum(MSSpectrum& spectrum, AASequence peptide,
                 Size link_pos, double precursor_mass, bool frag_alpha,
-                int mincharge, int maxcharge, Size link_pos_2) nogil except +
+                int mincharge, int maxcharge, Size link_pos_2) except + nogil 
         # wrap-doc:
                 #      Generates fragment ions containing the cross-linker for one peptide
                 #      
@@ -59,7 +59,7 @@ cdef extern from "<OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>" namespa
                 #      :param link_pos_2: A second position for the linker, in case it is a loop link
 
         void getXLinkIonSpectrum(MSSpectrum& spectrum, ProteinProteinCrossLink crosslink,
-                bool frag_alpha, int mincharge, int maxcharge) nogil except +
+                bool frag_alpha, int mincharge, int maxcharge) except + nogil 
         # wrap-doc:
                 #      Generates fragment ions containing the cross-linker for a pair of peptides
                 #      

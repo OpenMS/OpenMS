@@ -18,26 +18,26 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>" names
         #   ProgressLogger
         #   DefaultParamHandler
 
-        ElutionPeakDetection() nogil except +
-        ElutionPeakDetection(ElutionPeakDetection &) nogil except + # compiler
+        ElutionPeakDetection() except + nogil 
+        ElutionPeakDetection(ElutionPeakDetection &) except + nogil  # compiler
 
         void detectPeaks(Kernel_MassTrace & in_,
                          libcpp_vector[Kernel_MassTrace] & out
-                         ) nogil except + # TODO
+                         ) except + nogil  # TODO
 
         void detectPeaks(libcpp_vector[Kernel_MassTrace] & in_,
                          libcpp_vector[Kernel_MassTrace] & out
-                        ) nogil except + # TODO
+                        ) except + nogil  # TODO
 
         void filterByPeakWidth(libcpp_vector[Kernel_MassTrace] & in_,
                                libcpp_vector[Kernel_MassTrace] & out
-                              ) nogil except + # TODO
+                              ) except + nogil  # TODO
 
-        double computeMassTraceNoise(Kernel_MassTrace &) nogil except + # wrap-doc:Compute noise level (as RMSE of the actual signal and the smoothed signal)
-        double computeMassTraceSNR(Kernel_MassTrace &) nogil except + # wrap-doc:Compute the signal to noise ratio (estimated by computeMassTraceNoise)
-        double computeApexSNR(Kernel_MassTrace &) nogil except + # wrap-doc:Compute the signal to noise ratio at the apex (estimated by computeMassTraceNoise)
+        double computeMassTraceNoise(Kernel_MassTrace &) except + nogil  # wrap-doc:Compute noise level (as RMSE of the actual signal and the smoothed signal)
+        double computeMassTraceSNR(Kernel_MassTrace &) except + nogil  # wrap-doc:Compute the signal to noise ratio (estimated by computeMassTraceNoise)
+        double computeApexSNR(Kernel_MassTrace &) except + nogil  # wrap-doc:Compute the signal to noise ratio at the apex (estimated by computeMassTraceNoise)
 
-        void findLocalExtrema(Kernel_MassTrace & , Size & , libcpp_vector[ size_t ] & , libcpp_vector[ size_t ] & ) nogil except + # TODO
+        void findLocalExtrema(Kernel_MassTrace & , Size & , libcpp_vector[ size_t ] & , libcpp_vector[ size_t ] & ) except + nogil  # TODO
 
-        void smoothData(Kernel_MassTrace & mt, int win_size) nogil except + # TODO
+        void smoothData(Kernel_MassTrace & mt, int win_size) except + nogil  # TODO
 

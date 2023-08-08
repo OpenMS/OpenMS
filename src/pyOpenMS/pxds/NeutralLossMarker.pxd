@@ -11,9 +11,9 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/NeutralLossMarker.h>" namespace
         # wrap-doc:
         #  NeutralLossMarker marks peak pairs which could represent an ion an its neutral loss (water, ammonia)
         
-        NeutralLossMarker() nogil except +
-        NeutralLossMarker(NeutralLossMarker &) nogil except +
-        void apply(libcpp_map[ double, bool ] & , MSSpectrum & ) nogil except +
-        PeakMarker * create() nogil except + # wrap-ignore
-        # String getProductName() nogil except +
+        NeutralLossMarker() except + nogil 
+        NeutralLossMarker(NeutralLossMarker &) except + nogil 
+        void apply(libcpp_map[ double, bool ] & , MSSpectrum & ) except + nogil 
+        PeakMarker * create() except + nogil  # wrap-ignore
+        # String getProductName() except + nogil 
 

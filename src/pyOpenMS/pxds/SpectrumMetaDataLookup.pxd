@@ -12,11 +12,11 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS"
         # wrap-inherits:
         #  SpectrumLookup
 
-        SpectrumMetaDataLookup() nogil except +
+        SpectrumMetaDataLookup() except + nogil 
         # private
-        SpectrumMetaDataLookup(SpectrumMetaDataLookup) nogil except + # wrap-ignore
+        SpectrumMetaDataLookup(SpectrumMetaDataLookup) except + nogil  # wrap-ignore
 
-        void readSpectra(MSExperiment spectra, String scan_regexp, bool get_precursor_rt) nogil except +
+        void readSpectra(MSExperiment spectra, String scan_regexp, bool get_precursor_rt) except + nogil 
         # wrap-doc:
                 #  Read spectra and store their meta data
                 #  
@@ -25,14 +25,14 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS"
                 #  :param scan_regexp: Regular expression for matching scan numbers in spectrum native IDs (must contain the named group "?<SCAN>")
                 #  :param get_precursor_rt: Assign precursor retention times? (This relies on all precursor spectra being present and in the right order.)
 
-        void getSpectrumMetaData(Size index, SpectrumMetaData& meta) nogil except +
+        void getSpectrumMetaData(Size index, SpectrumMetaData& meta) except + nogil 
         # wrap-doc:
                 #  Look up meta data of a spectrum
                 #  
                 #  :param index: Index of the spectrum
                 #  :param meta: Meta data output
 
-        void getSpectrumMetaData(String spectrum_ref, SpectrumMetaData& meta) nogil except +
+        void getSpectrumMetaData(String spectrum_ref, SpectrumMetaData& meta) except + nogil 
         # wrap-doc:
                 #  Extract meta data from a spectrum
                 #  
@@ -41,7 +41,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS"
                 #  :param scan_regexp: Regular expression for extracting scan number from spectrum native ID
                 #  :param precursor_rts: RTs of potential precursor spectra of different MS levels
 
-        void getSpectrumMetaData(String spectrum_ref, SpectrumMetaData& meta, unsigned char flags) nogil except +
+        void getSpectrumMetaData(String spectrum_ref, SpectrumMetaData& meta, unsigned char flags) except + nogil 
         # wrap-doc:
                 #  Extract meta data via a spectrum reference
                 #  
@@ -49,7 +49,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS"
                 #  :param metadata: Meta data output
                 #  :param flags: What meta data to extract
 
-        void setSpectraDataRef(const String & spectra_data) nogil except +
+        void setSpectraDataRef(const String & spectra_data) except + nogil 
 
 #
 ## wrap static methods
@@ -60,23 +60,23 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS:
     ###   boost::regex& scan_regexp 
     ###   std::map<Size, double>& precursor_rts 
     void getSpectrumMetaData(MSSpectrum spectrum,
-                             SpectrumMetaData& meta) nogil except + # wrap-attach:SpectrumMetaDataLookup
+                             SpectrumMetaData& meta) except + nogil  # wrap-attach:SpectrumMetaDataLookup
 
     bool addMissingRTsToPeptideIDs(libcpp_vector[PeptideIdentification], 
-                                   String filename, bool stop_on_error) nogil except + # wrap-attach:SpectrumMetaDataLookup
+                                   String filename, bool stop_on_error) except + nogil  # wrap-attach:SpectrumMetaDataLookup
 
     bool addMissingSpectrumReferences(libcpp_vector[PeptideIdentification], 
                                    String filename, bool stop_on_error, 
                                    bool override_spectra_data, 
                                    bool override_spectra_references,
-                                   libcpp_vector[ProteinIdentification] proteins) nogil except + # wrap-attach:SpectrumMetaDataLookup
+                                   libcpp_vector[ProteinIdentification] proteins) except + nogil  # wrap-attach:SpectrumMetaDataLookup
 
 cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS::SpectrumMetaDataLookup":
 
     cdef cppclass SpectrumMetaData "OpenMS::SpectrumMetaDataLookup::SpectrumMetaData":
 
-      SpectrumMetaData() nogil except +
-      SpectrumMetaData(SpectrumMetaData &) nogil except +
+      SpectrumMetaData() except + nogil 
+      SpectrumMetaData(SpectrumMetaData &) except + nogil 
 
       double rt
       double precursor_rt

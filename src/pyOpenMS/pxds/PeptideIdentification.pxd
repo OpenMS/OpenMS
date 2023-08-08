@@ -25,43 +25,43 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
         #  This information can be used to map the peptide hits to an MSExperiment, a FeatureMap
         #  or a ConsensusMap using the IDMapper class
 
-        PeptideIdentification() nogil except +
-        PeptideIdentification(PeptideIdentification &) nogil except +
-        bool operator==(PeptideIdentification) nogil except +
-        bool operator!=(PeptideIdentification) nogil except +
+        PeptideIdentification() except + nogil 
+        PeptideIdentification(PeptideIdentification &) except + nogil 
+        bool operator==(PeptideIdentification) except + nogil 
+        bool operator!=(PeptideIdentification) except + nogil 
 
-        libcpp_vector[PeptideHit] getHits() nogil except + # wrap-doc:Returns the peptide hits as const
-        void insertHit(PeptideHit) nogil except + # wrap-doc:Appends a peptide hit
-        void setHits(libcpp_vector[PeptideHit]) nogil except + # wrap-doc:Sets the peptide hits
+        libcpp_vector[PeptideHit] getHits() except + nogil  # wrap-doc:Returns the peptide hits as const
+        void insertHit(PeptideHit) except + nogil  # wrap-doc:Appends a peptide hit
+        void setHits(libcpp_vector[PeptideHit]) except + nogil  # wrap-doc:Sets the peptide hits
 
-        double getSignificanceThreshold()   nogil except + # wrap-doc:Returns the peptide significance threshold value
-        void setSignificanceThreshold(double value) nogil except + # wrap-doc:Setting of the peptide significance threshold value
+        double getSignificanceThreshold()   except + nogil  # wrap-doc:Returns the peptide significance threshold value
+        void setSignificanceThreshold(double value) except + nogil  # wrap-doc:Setting of the peptide significance threshold value
 
-        String     getScoreType() nogil except +
-        void       setScoreType(String) nogil except +
-        bool       isHigherScoreBetter() nogil except +
-        void       setHigherScoreBetter(bool) nogil except +
-        String     getIdentifier() nogil except +
-        void       setIdentifier(String) nogil except +
+        String     getScoreType() except + nogil 
+        void       setScoreType(String) except + nogil 
+        bool       isHigherScoreBetter() except + nogil 
+        void       setHigherScoreBetter(bool) except + nogil 
+        String     getIdentifier() except + nogil 
+        void       setIdentifier(String) except + nogil 
 
-        bool       hasMZ() nogil except +
-        double     getMZ() nogil except +
-        void       setMZ(double) nogil except +
+        bool       hasMZ() except + nogil 
+        double     getMZ() except + nogil 
+        void       setMZ(double) except + nogil 
 
-        bool       hasRT() nogil except +
-        double     getRT() nogil except +
-        void       setRT(double) nogil except +
+        bool       hasRT() except + nogil 
+        double     getRT() except + nogil 
+        void       setRT(double) except + nogil 
 
-        String     getBaseName() nogil except +
-        void       setBaseName(String) nogil except +
+        String     getBaseName() except + nogil 
+        void       setBaseName(String) except + nogil 
 
-        String     getExperimentLabel() nogil except +
-        void       setExperimentLabel(String) nogil except +
+        String     getExperimentLabel() except + nogil 
+        void       setExperimentLabel(String) except + nogil 
 
-        void       assignRanks() nogil except +
-        void       sort() nogil except +
-        void sortByRank() nogil except +
-        bool       empty() nogil except +
+        void       assignRanks() except + nogil 
+        void       sort() except + nogil 
+        void sortByRank() except + nogil 
+        bool       empty() except + nogil 
 
-        libcpp_vector[PeptideHit] getReferencingHits(libcpp_vector[PeptideHit], libcpp_set[String] &) nogil except + # wrap-doc:Returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)
+        libcpp_vector[PeptideHit] getReferencingHits(libcpp_vector[PeptideHit], libcpp_set[String] &) except + nogil  # wrap-doc:Returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)
 

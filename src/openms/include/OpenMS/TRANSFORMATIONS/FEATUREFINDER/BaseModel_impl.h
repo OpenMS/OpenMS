@@ -43,7 +43,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
-#include <OpenMS/SIMULATION/EGHModel.h>
 
 namespace OpenMS
 {
@@ -63,7 +62,6 @@ namespace OpenMS
     Factory<BaseModel<1> >::registerProduct(IsotopeModel::getProductName(), &IsotopeModel::create);
     Factory<BaseModel<1> >::registerProduct(ExtendedIsotopeModel::getProductName(), &ExtendedIsotopeModel::create);
     Factory<BaseModel<1> >::registerProduct(EmgModel::getProductName(), &EmgModel::create);
-    Factory<BaseModel<1> >::registerProduct(EGHModel::getProductName(), &EGHModel::create);
 
     return;
   }
