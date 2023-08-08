@@ -28,46 +28,46 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
         #  
         #  Get access to the underlying features through getFeatureList()
 
-        ConsensusFeature() nogil except +
-        ConsensusFeature(ConsensusFeature &) nogil except +
-        ConsensusFeature(UInt64, Peak2D, UInt64) nogil except +
-        ConsensusFeature(UInt64, BaseFeature) nogil except +
-        ConsensusFeature(UInt64, ConsensusFeature) nogil except +
+        ConsensusFeature() except + nogil 
+        ConsensusFeature(ConsensusFeature &) except + nogil 
+        ConsensusFeature(UInt64, Peak2D, UInt64) except + nogil 
+        ConsensusFeature(UInt64, BaseFeature) except + nogil 
+        ConsensusFeature(UInt64, ConsensusFeature) except + nogil 
 
-        void computeConsensus()    nogil except + # wrap-doc:Computes and updates the consensus position, intensity, and charge
-        void computeMonoisotopicConsensus()    nogil except + # wrap-doc:Computes and updates the consensus position, intensity, and charge
-        void computeDechargeConsensus(FeatureMap, bool)    nogil except + # wrap-doc:Computes the uncharged parent RT & mass, assuming the handles are charge variants
+        void computeConsensus()    except + nogil  # wrap-doc:Computes and updates the consensus position, intensity, and charge
+        void computeMonoisotopicConsensus()    except + nogil  # wrap-doc:Computes and updates the consensus position, intensity, and charge
+        void computeDechargeConsensus(FeatureMap, bool)    except + nogil  # wrap-doc:Computes the uncharged parent RT & mass, assuming the handles are charge variants
 
-        void insert(UInt64 map_idx, Peak2D, UInt64 element_idx) nogil except +
-        void insert(UInt64 map_idx, BaseFeature) nogil except +
-        void insert(UInt64 map_idx, ConsensusFeature) nogil except +
+        void insert(UInt64 map_idx, Peak2D, UInt64 element_idx) except + nogil 
+        void insert(UInt64 map_idx, BaseFeature) except + nogil 
+        void insert(UInt64 map_idx, ConsensusFeature) except + nogil 
 
-        libcpp_vector[FeatureHandle] getFeatureList() nogil except +
+        libcpp_vector[FeatureHandle] getFeatureList() except + nogil 
 
-        Size size() nogil except +
+        Size size() except + nogil 
 
-        bool operator==(ConsensusFeature) nogil except +
-        bool operator!=(ConsensusFeature) nogil except +
+        bool operator==(ConsensusFeature) except + nogil 
+        bool operator!=(ConsensusFeature) except + nogil 
 
-        void addRatio(Ratio r) nogil except + # wrap-doc:Connects a ratio to the ConsensusFeature.
-        void setRatios(libcpp_vector[Ratio] rs) nogil except + # wrap-doc:Connects the ratios to the ConsensusFeature.
-        libcpp_vector[Ratio] getRatios() nogil except + # wrap-doc:Get the ratio vector.
+        void addRatio(Ratio r) except + nogil  # wrap-doc:Connects a ratio to the ConsensusFeature.
+        void setRatios(libcpp_vector[Ratio] rs) except + nogil  # wrap-doc:Connects the ratios to the ConsensusFeature.
+        libcpp_vector[Ratio] getRatios() except + nogil  # wrap-doc:Get the ratio vector.
 
-        void clear() nogil except +
-        bool empty() nogil except +
+        void clear() except + nogil 
+        bool empty() except + nogil 
 
         # # Returns the position range of the contained elements
-        # DRange2 getPositionRange() nogil except +
+        # DRange2 getPositionRange() except + nogil 
         # # Returns the intensity range of the contained elements
-        # DRange1 getIntensityRange() nogil except +
+        # DRange1 getIntensityRange() except + nogil 
 
 cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS::ConsensusFeature":
 
     # slim struct to feed the need for systematically storing of ratios ( @see MSQuantifications ).
     cdef cppclass Ratio:
 
-      Ratio() nogil except +
-      Ratio(Ratio rhs) nogil except +
+      Ratio() except + nogil 
+      Ratio(Ratio rhs) except + nogil 
 
       double ratio_value_
       String denominator_ref_

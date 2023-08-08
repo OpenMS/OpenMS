@@ -9,22 +9,22 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestionLogModel.h>" namespace "Op
     # wrap-doc:
     # Class for the Log L model of enzymatic digestion of proteins
     
-      EnzymaticDigestionLogModel() nogil except +
-      EnzymaticDigestionLogModel(EnzymaticDigestionLogModel &) nogil except + 
+      EnzymaticDigestionLogModel() except + nogil 
+      EnzymaticDigestionLogModel(EnzymaticDigestionLogModel &) except + nogil  
 
       # not wrapped due to name clash with Enzyme.h
-      # Enzyme getEnzyme()  nogil except +
-      # void setEnzyme(Enzyme enzyme) nogil except +
-      # Enzyme getEnzymeByName(String name) nogil except +
+      # Enzyme getEnzyme()  except + nogil 
+      # void setEnzyme(Enzyme enzyme) except + nogil 
+      # Enzyme getEnzymeByName(String name) except + nogil 
 
-      String getEnzymeName() nogil except + # wrap-doc:Returns the enzyme for the digestion
-      void setEnzyme(String name) nogil except + # wrap-doc:Sets the enzyme for the digestion
+      String getEnzymeName() except + nogil  # wrap-doc:Returns the enzyme for the digestion
+      void setEnzyme(String name) except + nogil  # wrap-doc:Sets the enzyme for the digestion
 
-      double getLogThreshold() nogil except + # wrap-doc:Returns the threshold which needs to be exceeded to call a cleavage (only for the trained cleavage model on real data)
-      void setLogThreshold(double threshold) nogil except + # wrap-doc:Sets the threshold which needs to be exceeded to call a cleavage (only for the trained cleavage model on real data). Default is 0.25
+      double getLogThreshold() except + nogil  # wrap-doc:Returns the threshold which needs to be exceeded to call a cleavage (only for the trained cleavage model on real data)
+      void setLogThreshold(double threshold) except + nogil  # wrap-doc:Sets the threshold which needs to be exceeded to call a cleavage (only for the trained cleavage model on real data). Default is 0.25
 
-      void digest(AASequence & protein, libcpp_vector[AASequence] & output) nogil except + # wrap-doc:Performs the enzymatic digestion of a protein
-      Size peptideCount(AASequence & protein) nogil except + 
+      void digest(AASequence & protein, libcpp_vector[AASequence] & output) except + nogil  # wrap-doc:Performs the enzymatic digestion of a protein
+      Size peptideCount(AASequence & protein) except + nogil  
           # wrap-doc:
           #  Returns the number of peptides a digestion of `protein` would yield under the current enzyme and missed cleavage settings
           #  

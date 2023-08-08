@@ -85,7 +85,6 @@ namespace OpenMS
     tools_map["IDRipper"] = Internal::ToolDescription("IDRipper", "File Handling");
     tools_map["IDRTCalibration"] = Internal::ToolDescription("IDRTCalibration", "ID Processing");
     tools_map["IsobaricAnalyzer"] = Internal::ToolDescription("IsobaricAnalyzer", "Quantitation");
-    tools_map["InclusionExclusionListCreator"] = Internal::ToolDescription("InclusionExclusionListCreator", "Targeted Experiments");
     tools_map["InternalCalibration"] = Internal::ToolDescription("InternalCalibration", "Signal processing and preprocessing");
     tools_map["LuciphorAdapter"] = Internal::ToolDescription("LuciphorAdapter", "ID Processing");
     tools_map["MapAlignerIdentification"] = Internal::ToolDescription("MapAlignerIdentification", "Map Alignment");
@@ -115,20 +114,14 @@ namespace OpenMS
     tools_map["OpenSwathRTNormalizer"] = Internal::ToolDescription("OpenSwathRTNormalizer", "Targeted Experiments");
     tools_map["PeakPickerHiRes"] = Internal::ToolDescription("PeakPickerHiRes", "Signal processing and preprocessing");
     tools_map["PeakPickerWavelet"] = Internal::ToolDescription("PeakPickerWavelet", "Signal processing and preprocessing");
-    tools_map["PepNovoAdapter"] = Internal::ToolDescription("PepNovoAdapter", "Identification");
     tools_map["PeptideIndexer"] = Internal::ToolDescription("PeptideIndexer", "ID Processing");
     tools_map["PercolatorAdapter"] = Internal::ToolDescription("PercolatorAdapter", "ID Processing");
     tools_map["PhosphoScoring"] = Internal::ToolDescription("PhosphoScoring", "ID Processing");
-    tools_map["PrecursorIonSelector"] = Internal::ToolDescription("PrecursorIonSelector", "Targeted Experiments");
     tools_map["PrecursorMassCorrector"] = Internal::ToolDescription("PrecursorMassCorrector", "Signal processing and preprocessing");
     tools_map["ProteinInference"] = Internal::ToolDescription("ProteinInference", "Identification");
     tools_map["ProteinQuantifier"] = Internal::ToolDescription("ProteinQuantifier", "Quantitation");
     tools_map["ProteinResolver"] = Internal::ToolDescription("ProteinResolver", "Quantitation");
-    tools_map["PTModel"] = Internal::ToolDescription("PTModel", "Peptide property prediction");
-    tools_map["PTPredict"] = Internal::ToolDescription("PTPredict", "Peptide property prediction");
     tools_map["QualityControl"] = Internal::ToolDescription("QualityControl", "Quality Control");
-    tools_map["RTModel"] = Internal::ToolDescription("RTModel", "Peptide property prediction");
-    tools_map["RTPredict"] = Internal::ToolDescription("RTPredict", "Peptide property prediction");
     tools_map["SeedListGenerator"] = Internal::ToolDescription("SeedListGenerator", "Quantitation");
     tools_map["SpecLibSearcher"] = Internal::ToolDescription("SpecLibSearcher", "Identification");
     tools_map["SpectraFilterBernNorm"] = Internal::ToolDescription("SpectraFilterBernNorm", "Identification");
@@ -196,7 +189,6 @@ namespace OpenMS
     util_map["Epifany"] = Internal::ToolDescription("Epifany", util_category);
     util_map["ERPairFinder"] = Internal::ToolDescription("ERPairFinder", util_category);
     util_map["FeatureFinderMetaboIdent"] = Internal::ToolDescription("FeatureFinderMetaboIdent", util_category);
-    util_map["FFEval"] = Internal::ToolDescription("FFEval", util_category);
     util_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", util_category);
     util_map["IDDecoyProbability"] = Internal::ToolDescription("IDDecoyProbability", util_category);
     util_map["IDExtractor"] = Internal::ToolDescription("IDExtractor", util_category);
@@ -204,7 +196,6 @@ namespace OpenMS
     util_map["IDScoreSwitcher"] = Internal::ToolDescription("IDScoreSwitcher", util_category);
     util_map["IDSplitter"] = Internal::ToolDescription("IDSplitter", util_category);
     util_map["JSONExporter"] = Internal::ToolDescription("JSONExporter",util_category);
-    util_map["LabeledEval"] = Internal::ToolDescription("LabeledEval", util_category);
     util_map["NovorAdapter"] = Internal::ToolDescription("NovorAdapter", util_category);
     util_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", util_category);
     util_map["MetaboliteAdductDecharger"] = Internal::ToolDescription("MetaboliteAdductDecharger", util_category);
@@ -213,7 +204,6 @@ namespace OpenMS
     util_map["MRMTransitionGroupPicker"] = Internal::ToolDescription("MRMTransitionGroupPicker", util_category);
     util_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", util_category);
     util_map["MSFraggerAdapter"] = Internal::ToolDescription("MSFraggerAdapter", util_category);
-    util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", util_category);
     util_map["MSstatsConverter"] = Internal::ToolDescription("MSstatsConverter", util_category);
     util_map["MultiplexResolver"] = Internal::ToolDescription("MultiplexResolver", util_category);
     util_map["MzMLSplitter"] = Internal::ToolDescription("MzMLSplitter", util_category);
@@ -227,7 +217,6 @@ namespace OpenMS
     util_map["PeakPickerIterative"] = Internal::ToolDescription("PeakPickerIterative", "Signal processing and preprocessing");
     util_map["ProteomicsLFQ"] = Internal::ToolDescription("ProteomicsLFQ", util_category);
     util_map["TargetedFileConverter"] = Internal::ToolDescription("TargetedFileConverter", "Targeted Experiments");
-    //util_map["PeakPickerRapid"] = Internal::ToolDescription("PeakPickerRapid", "Signal processing and preprocessing");
     util_map["PSMFeatureExtractor"] = Internal::ToolDescription("PSMFeatureExtractor", util_category);
     util_map["QCCalculator"] = Internal::ToolDescription("QCCalculator", util_category);
     util_map["QCEmbedder"] = Internal::ToolDescription("QCEmbedder", util_category);
@@ -240,7 +229,6 @@ namespace OpenMS
     util_map["RNAMassCalculator"] = Internal::ToolDescription("RNAMassCalculator", util_category);
     util_map["RNPxlSearch"] = Internal::ToolDescription("RNPxlSearch", util_category);
     util_map["RNPxlXICFilter"] = Internal::ToolDescription("RNPxlXICFilter", util_category);
-    util_map["RTEvaluation"] = Internal::ToolDescription("RTEvaluation", util_category);
     util_map["SemanticValidator"] = Internal::ToolDescription("SemanticValidator", util_category);
     util_map["SequenceCoverageCalculator"] = Internal::ToolDescription("SequenceCoverageCalculator", util_category);
     util_map["SpecLibCreator"] = Internal::ToolDescription("SpecLibCreator", util_category);
@@ -248,9 +236,7 @@ namespace OpenMS
     util_map["SimpleSearchEngine"] = Internal::ToolDescription("SimpleSearchEngine", util_category);
     util_map["SiriusAdapter"] = Internal::ToolDescription("SiriusAdapter", util_category);
     util_map["StaticModification"] = Internal::ToolDescription("StaticModification", util_category);
-    util_map["SvmTheoreticalSpectrumGeneratorTrainer"] = Internal::ToolDescription("SvmTheoreticalSpectrumGeneratorTrainer", util_category);
-    util_map["TICCalculator"] = Internal::ToolDescription("TICCalculator", util_category);
-    util_map["TransformationEvaluation"] = Internal::ToolDescription("TransformationEvaluation", util_category);
+    util_map["TICCalculator"] = Internal::ToolDescription("TICCalculator", util_category);    
     util_map["TriqlerConverter"] = Internal::ToolDescription("TriqlerConverter", util_category);
     util_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", util_category);
     // STOP! insert your tool in alphabetical order for easier maintenance (only tools requiring the GUI lib should be added below)

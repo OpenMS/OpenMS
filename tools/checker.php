@@ -679,7 +679,6 @@ foreach ($files_todo as $f)
       "Param.h",
       "IsotopeWaveletConstants.h",
       "include/OpenMS/openms_package_version.h",
-      "include/OpenMS/SIMULATION/SimTypes.h",
       "include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
       "include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h",
       "include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h",

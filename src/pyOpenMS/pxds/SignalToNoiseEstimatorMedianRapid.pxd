@@ -6,19 +6,19 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian
     
     cdef cppclass SignalToNoiseEstimatorMedianRapid "OpenMS::SignalToNoiseEstimatorMedianRapid":
 
-        SignalToNoiseEstimatorMedianRapid(SignalToNoiseEstimatorMedianRapid &) nogil except + # compiler
-        SignalToNoiseEstimatorMedianRapid(double window_length) nogil except +
-        NoiseEstimator estimateNoise(shared_ptr[Spectrum]) nogil except +
-        NoiseEstimator estimateNoise(shared_ptr[Chromatogram]) nogil except +
-        NoiseEstimator estimateNoise(libcpp_vector[ double ] mz_array, libcpp_vector[ double ] int_array) nogil except +
+        SignalToNoiseEstimatorMedianRapid(SignalToNoiseEstimatorMedianRapid &) except + nogil  # compiler
+        SignalToNoiseEstimatorMedianRapid(double window_length) except + nogil 
+        NoiseEstimator estimateNoise(shared_ptr[Spectrum]) except + nogil 
+        NoiseEstimator estimateNoise(shared_ptr[Chromatogram]) except + nogil 
+        NoiseEstimator estimateNoise(libcpp_vector[ double ] mz_array, libcpp_vector[ double ] int_array) except + nogil 
 
 cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>" namespace "OpenMS::SignalToNoiseEstimatorMedianRapid":
     
     cdef cppclass NoiseEstimator "OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator":
 
-        NoiseEstimator() nogil except +
-        NoiseEstimator(NoiseEstimator &) nogil except + # compiler
-        NoiseEstimator(double nr_windows_, double mz_start_, double win_len_) nogil except +
+        NoiseEstimator() except + nogil 
+        NoiseEstimator(NoiseEstimator &) except + nogil  # compiler
+        NoiseEstimator(double nr_windows_, double mz_start_, double win_len_) except + nogil 
 
         int nr_windows
         double mz_start
@@ -26,6 +26,6 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian
         libcpp_vector[ double ] result_windows_even
         libcpp_vector[ double ] result_windows_odd
 
-        double get_noise_value(double mz) nogil except +
-        double get_noise_even(double mz) nogil except +
-        double get_noise_odd(double mz) nogil except +
+        double get_noise_value(double mz) except + nogil 
+        double get_noise_even(double mz) except + nogil 
+        double get_noise_odd(double mz) except + nogil 

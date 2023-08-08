@@ -7,9 +7,9 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>" namespace "O
     cdef cppclass StablePairFinder(BaseGroupFinder) :
         # wrap-inherits:
         #  BaseGroupFinder
-        StablePairFinder() nogil except +
+        StablePairFinder() except + nogil 
         # copy constructor of 'StablePairFinder' is implicitly deleted because base class 'OpenMS::BaseGroupFinder' has an inaccessible copy constructor public BaseGroupFinder
-        StablePairFinder(StablePairFinder &) nogil except + # wrap-ignore
-        void run(libcpp_vector[ ConsensusMap ] & input_maps, ConsensusMap & result_map) nogil except +
-        # POINTER # BaseGroupFinder * create() nogil except +
-        String getProductName() nogil except +
+        StablePairFinder(StablePairFinder &) except + nogil  # wrap-ignore
+        void run(libcpp_vector[ ConsensusMap ] & input_maps, ConsensusMap & result_map) except + nogil 
+        # POINTER # BaseGroupFinder * create() except + nogil 
+        String getProductName() except + nogil 

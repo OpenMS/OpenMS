@@ -348,7 +348,6 @@ STATSHELPERS
 STREAMTYPE
 SVC
 SVG
-SVMWRAPPER
 SVR
 TARGETEDEXPERIMENT
 TARGETEDEXPERIMENTHELPER
@@ -1066,7 +1065,6 @@ PercentRSD
 PrimaryRunPaths
 ProtGroups
 ProtID's
-RTPredict
 RTPrediction
 SavitzkyGolay
 ScanNr
@@ -2363,7 +2361,6 @@ OpenSuse
 PYOPENMS
 PageDown
 PageUp
-PeakPickerRapid
 PeakPickers
 PeakPicking
 QMAKE

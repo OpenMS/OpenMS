@@ -31,22 +31,22 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>" namespace "
         #  - peakShape
         #  - SignalToNoise
 
-        PeakPickerCWT() nogil except +
-        PeakPickerCWT(PeakPickerCWT &) nogil except + # compiler
+        PeakPickerCWT() except + nogil 
+        PeakPickerCWT(PeakPickerCWT &) except + nogil  # compiler
 
-        void pick(MSSpectrum & input, MSSpectrum & output) nogil except +
+        void pick(MSSpectrum & input, MSSpectrum & output) except + nogil 
             # wrap-doc:
                 #  Applies the peak picking algorithm to a single spectrum
                 #  
                 #  Picks the peaks in the input spectrum and writes the resulting peaks to the output container
 
-        void pickExperiment(MSExperiment & input, MSExperiment & output) nogil except +
+        void pickExperiment(MSExperiment & input, MSExperiment & output) except + nogil 
              # wrap-doc:
                 #  Picks the peaks in an MSExperiment
                 #  
                 #  Picks the peaks successive in every scan in the spectrum range. The detected peaks are stored in the output MSExperiment
 
-        double estimatePeakWidth(MSExperiment & input) nogil except +
+        double estimatePeakWidth(MSExperiment & input) except + nogil 
             # wrap-doc:
                 #  Estimates average peak width that can then be used for peak picking
                 #  

@@ -12,8 +12,8 @@ cdef extern from "<OpenMS/FORMAT/DTAFile.h>" namespace "OpenMS":
 
     cdef cppclass DTAFile:
 
-        DTAFile() nogil except +
-        DTAFile(DTAFile &) nogil except + # compiler
+        DTAFile() except + nogil 
+        DTAFile(DTAFile &) except + nogil  # compiler
 
-        void load(String filename, MSSpectrum & spectrum) nogil except +
-        void store(String filename, MSSpectrum & spectrum) nogil except +
+        void load(String filename, MSSpectrum & spectrum) except + nogil 
+        void store(String filename, MSSpectrum & spectrum) except + nogil 

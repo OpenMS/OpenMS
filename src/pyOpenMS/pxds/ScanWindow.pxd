@@ -8,8 +8,8 @@ cdef extern from "<OpenMS/METADATA/ScanWindow.h>" namespace "OpenMS":
         # wrap-inherits:
         #  MetaInfoInterface
 
-        ScanWindow() nogil except +
-        ScanWindow(ScanWindow &) nogil except +
+        ScanWindow() except + nogil 
+        ScanWindow(ScanWindow &) except + nogil 
 
         double begin
         double end

@@ -12,24 +12,24 @@ cdef extern from "<OpenMS/FORMAT/MzXMLFile.h>" namespace "OpenMS":
         # wrap-inherits:
         #  ProgressLogger
 
-        MzXMLFile() nogil except +
-        MzXMLFile(MzXMLFile &) nogil except + #compiler
+        MzXMLFile() except + nogil 
+        MzXMLFile(MzXMLFile &) except + nogil  #compiler
 
-        void load(String filename, MSExperiment & exp) nogil except + 
+        void load(String filename, MSExperiment & exp) except + nogil  
             # wrap-doc:
                 #  Loads a MSExperiment from a MzXML file
                 #  
                 #  
                 #  :param exp: MSExperiment
 
-        void store(String filename, MSExperiment & exp) nogil except +
+        void store(String filename, MSExperiment & exp) except + nogil 
             # wrap-doc:
                 #  Stores a MSExperiment in a MzXML file
                 #  
                 #  
                 #  :param exp: MSExperiment
 
-        void transform(String, IMSDataConsumer[Peak1D, ChromatogramPeak] *) nogil except + # wrap-ignore
+        void transform(String, IMSDataConsumer[Peak1D, ChromatogramPeak] *) except + nogil  # wrap-ignore
 
-        PeakFileOptions getOptions() nogil except + # wrap-doc:Returns the options for loading/storing
-        void setOptions(PeakFileOptions) nogil except + # wrap-doc:Sets options for loading/storing
+        PeakFileOptions getOptions() except + nogil  # wrap-doc:Returns the options for loading/storing
+        void setOptions(PeakFileOptions) except + nogil  # wrap-doc:Sets options for loading/storing

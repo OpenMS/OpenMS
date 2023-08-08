@@ -158,10 +158,8 @@
   <b>Targeted Experiments and OpenSWATH</b>
   - @subpage UTILS_OpenSwathWorkflow - Complete workflow to run OpenSWATH.
   - @subpage UTILS_AssayGeneratorMetabo - Generates an assay library using DDA data (Metabolomics).
-  - @subpage TOPP_InclusionExclusionListCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments.
   - @subpage TOPP_MRMMapper - MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML).
   - @subpage UTILS_MRMTransitionGroupPicker - Picks peaks in MRM chromatograms.
-  - @subpage TOPP_PrecursorIonSelector - A tool for precursor ion selection based on identification results.
   - @subpage TOPP_OpenSwathAnalyzer - Picks peaks and finds features in an SRM experiment.
   - @subpage TOPP_OpenSwathAssayGenerator - Generates filtered and optimized assays using TraML files.
   - @subpage TOPP_OpenSwathChromatogramExtractor - Extract chromatograms (XIC) from a MS2 map file.
@@ -169,12 +167,6 @@
   - @subpage TOPP_OpenSwathDecoyGenerator - Generates decoys according to different models for a specific TraML.
   - @subpage TOPP_OpenSwathFeatureXMLToTSV - Converts a featureXML to a tsv.
   - @subpage TOPP_OpenSwathRTNormalizer - This tool will align an SRM / SWATH run to a normalized retention time space.
-
-  <b>Peptide Property Prediction</b>
-  - @subpage TOPP_PTModel - Trains a model for the prediction of proteotypic peptides from a training set.
-  - @subpage TOPP_PTPredict - Predicts the likelihood of peptides to be proteotypic using a model trained by PTModel.
-  - @subpage TOPP_RTModel - Trains a model for the retention time prediction of peptides from a training set.
-  - @subpage TOPP_RTPredict - Predicts retention times for peptides using a model trained by RTModel.
 
   <b>Cross-linking</b>
   - @subpage TOPP_OpenPepXL - Search for peptide pairs linked with a labeled cross-linker.
