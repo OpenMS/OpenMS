@@ -14,8 +14,6 @@ Autwrap has wrapped 366 classes, 3794 methods and 62 enums
 In total, 153 classes are wrapped at the current moment.
 
 ok   BaselineFilter.cpp # morph filter
-ok   CompNovo.cpp
-ok   CompNovoCID.cpp
 ok   ConsensusID.cpp
 ok   ConsensusMapNormalizer.cpp # all 3 algos
 n    DBExporter.cpp
