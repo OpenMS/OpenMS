@@ -13,9 +13,9 @@ cdef extern from "<OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h>"
         #  DefaultParamHandler
         # wrap-doc:
         #  An algorithm to decharge small molecule features (i.e. as found by FeatureFinder)
-        MetaboliteFeatureDeconvolution() nogil except +
-        MetaboliteFeatureDeconvolution(MetaboliteFeatureDeconvolution &) nogil except +
-        void compute(FeatureMap & fm_in, FeatureMap & fm_out, ConsensusMap & cons_map, ConsensusMap & cons_map_p) nogil except +
+        MetaboliteFeatureDeconvolution() except + nogil 
+        MetaboliteFeatureDeconvolution(MetaboliteFeatureDeconvolution &) except + nogil 
+        void compute(FeatureMap & fm_in, FeatureMap & fm_out, ConsensusMap & cons_map, ConsensusMap & cons_map_p) except + nogil 
             # wrap-doc:
                 #  Compute a zero-charge feature map from a set of charged features
                 #  

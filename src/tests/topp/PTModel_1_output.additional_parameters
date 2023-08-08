@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
-<PARAMETERS version="1.7.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_7_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <ITEM name="kernel_type" value="19" type="int" description="" required="false" advanced="false" />
-  <ITEM name="border_length" value="22" type="int" description="" required="false" advanced="false" />
-  <ITEM name="k_mer_length" value="1" type="int" description="" required="false" advanced="false" />
-  <ITEM name="sigma" value="5" type="double" description="" required="false" advanced="false" />
-</PARAMETERS>

@@ -79,7 +79,7 @@ START_SECTION((static ToolListType getUtilList()))
 {
   ToolListType list = ToolHandler::getUtilList();
   TEST_EQUAL(list.find("SemanticValidator") != list.end(), true)
-  TEST_EQUAL(list.find("FFEval") != list.end(), true)
+  TEST_EQUAL(list.find("SimpleSearchEngine") != list.end(), true)
   TEST_EQUAL(list.size() > 10, true)  // assume we have over 10 tools in there
 }
 END_SECTION
@@ -105,7 +105,7 @@ END_SECTION
 
 START_SECTION((static String getCategory(const String &toolname)))
 {
-  TEST_EQUAL(ToolHandler::getCategory("PepNovoAdapter"), "Identification")
+  TEST_EQUAL(ToolHandler::getCategory("IDFilter"), "ID Processing")
   TEST_EQUAL(ToolHandler::getCategory("DOESNOTEXIST"), "")
 }
 END_SECTION

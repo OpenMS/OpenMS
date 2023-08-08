@@ -10,22 +10,22 @@ cdef extern from "<OpenMS/MATH/MISC/RANSAC.h>" namespace "OpenMS::Math":
         #  RANSAC := RANSAC[RansacModelLinear]
         #  RANSACQuadratic := RANSAC[RansacModelQuadratic]
 
-        RANSAC() nogil except +
-        RANSAC(UInt64 seed) nogil except +
-        RANSAC(RANSAC[TModelType] &) nogil except + # wrap-ignore
+        RANSAC() except + nogil 
+        RANSAC(UInt64 seed) except + nogil 
+        RANSAC(RANSAC[TModelType] &) except + nogil  # wrap-ignore
         
         libcpp_vector[libcpp_pair[double,double]] ransac(
             libcpp_vector[libcpp_pair[double,double]] pairs,
             size_t n, size_t k, double t, size_t d, bool relative_d
-            ) nogil except +
+            ) except + nogil 
 
     cdef cppclass RANSACParam:
 
-        RANSACParam() nogil except + # wrap-doc:A simple struct to carry all the parameters required for a RANSAC run
-        RANSACParam(RANSACParam) nogil except + # wrap-ignore
-        RANSACParam(size_t p_n, size_t p_k, double p_t, size_t p_d, bool p_relative_d) nogil except +
+        RANSACParam() except + nogil  # wrap-doc:A simple struct to carry all the parameters required for a RANSAC run
+        RANSACParam(RANSACParam) except + nogil  # wrap-ignore
+        RANSACParam(size_t p_n, size_t p_k, double p_t, size_t p_d, bool p_relative_d) except + nogil 
 
-        String toString() nogil except +
+        String toString() except + nogil 
 
         size_t n #; //< data points; The minimum number of data points required to fit the model
         size_t k # ; //< iterations; The maximum number of iterations allowed in the algorithm 

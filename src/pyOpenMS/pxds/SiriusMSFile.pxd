@@ -6,16 +6,16 @@ from libcpp.vector cimport vector as libcpp_vector
 cdef extern from "<OpenMS/ANALYSIS/ID/SiriusMSConverter.h>" namespace "OpenMS":
     
     cdef cppclass SiriusMSFile:
-        SiriusMSFile() nogil except +
-        SiriusMSFile(SiriusMSFile &) nogil except + # compiler
+        SiriusMSFile() except + nogil 
+        SiriusMSFile(SiriusMSFile &) except + nogil  # compiler
 
     cdef cppclass SiriusMSFile_CompoundInfo "OpenMS::SiriusMSFile::CompoundInfo":
-        SiriusMSFile_CompoundInfo() nogil except +
-        SiriusMSFile_CompoundInfo(SiriusMSFile_CompoundInfo &) nogil except + # compiler
+        SiriusMSFile_CompoundInfo() except + nogil 
+        SiriusMSFile_CompoundInfo(SiriusMSFile_CompoundInfo &) except + nogil  # compiler
 
     cdef cppclass SiriusMSFile_AccessionInfo "OpenMS::SiriusMSFile::AccessionInfo":
-        SiriusMSFile_AccessionInfo() nogil except +
-        SiriusMSFile_AccessionInfo(SiriusMSFile_AccessionInfo &) nogil except + # compiler
+        SiriusMSFile_AccessionInfo() except + nogil 
+        SiriusMSFile_AccessionInfo(SiriusMSFile_AccessionInfo &) except + nogil  # compiler
 
 cdef extern from "<OpenMS/ANALYSIS/ID/SiriusMSConverter.h>" namespace "OpenMS::SiriusMSFile":
 
@@ -26,4 +26,4 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusMSConverter.h>" namespace "OpenMS::S
                    bool feature_only,
                    int isotope_pattern_iterations,
                    bool no_mt_info,
-                   libcpp_vector[ SiriusMSFile_CompoundInfo ]& v_cmpinfo) nogil except + # wrap-attach:SiriusMSFile
+                   libcpp_vector[ SiriusMSFile_CompoundInfo ]& v_cmpinfo) except + nogil  # wrap-attach:SiriusMSFile

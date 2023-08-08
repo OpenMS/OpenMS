@@ -26,9 +26,9 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDRipper.h>" namespace "OpenMS::IDRipper":
 
         IdentificationRuns(
                 libcpp_vector[ProteinIdentification] & prot_ids
-                ) nogil except +
+                ) except + nogil 
 
-        IdentificationRuns(IdentificationRuns) nogil except +   # wrap-ignore
+        IdentificationRuns(IdentificationRuns) except + nogil    # wrap-ignore
 
     cdef cppclass RipFileIdentifier:
 
@@ -37,30 +37,30 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDRipper.h>" namespace "OpenMS::IDRipper":
                 PeptideIdentification & pep_id,
                 libcpp_map[String, unsigned int] & file_origin_map,
                 OriginAnnotationFormat origin_annotation_fmt,
-                bool split_ident_runs) nogil except +
+                bool split_ident_runs) except + nogil 
 
-        RipFileIdentifier(RipFileIdentifier) nogil except +   # wrap-ignore
+        RipFileIdentifier(RipFileIdentifier) except + nogil    # wrap-ignore
 
-        UInt getIdentRunIdx() nogil except +
+        UInt getIdentRunIdx() except + nogil 
 
-        UInt getFileOriginIdx() nogil except +
+        UInt getFileOriginIdx() except + nogil 
 
-        String getOriginFullname() nogil except +
+        String getOriginFullname() except + nogil 
 
-        String getOutputBasename() nogil except +
+        String getOutputBasename() except + nogil 
 
     cdef cppclass RipFileContent:
 
         RipFileContent(
                 libcpp_vector[ProteinIdentification] & prot_idents,
                 libcpp_vector[PeptideIdentification] & pep_idents
-                ) nogil except +
+                ) except + nogil 
 
-        RipFileContent(RipFileContent) nogil except +   # wrap-ignore
+        RipFileContent(RipFileContent) except + nogil    # wrap-ignore
 
-        libcpp_vector[ProteinIdentification] getProteinIdentifications() nogil except +
+        libcpp_vector[ProteinIdentification] getProteinIdentifications() except + nogil 
 
-        libcpp_vector[PeptideIdentification] getPeptideIdentifications() nogil except +
+        libcpp_vector[PeptideIdentification] getPeptideIdentifications() except + nogil 
 
 
 cdef extern from "<OpenMS/ANALYSIS/ID/IDRipper.h>" namespace "OpenMS":
@@ -69,10 +69,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDRipper.h>" namespace "OpenMS":
         # wrap-inherits:
         #   DefaultParamHandler
         
-        IDRipper() nogil except + # wrap-doc:Ripping protein/peptide identification according their file origin
+        IDRipper() except + nogil  # wrap-doc:Ripping protein/peptide identification according their file origin
         # private
 
-        IDRipper(IDRipper) nogil except +   # wrap-ignore
+        IDRipper(IDRipper) except + nogil    # wrap-ignore
 
         void rip(
                 libcpp_vector[RipFileIdentifier] & rfis,
@@ -81,5 +81,5 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDRipper.h>" namespace "OpenMS":
                 libcpp_vector[PeptideIdentification] & peptides,
                 bool full_split,
                 bool split_ident_runs
-                ) nogil except +
+                ) except + nogil 
 

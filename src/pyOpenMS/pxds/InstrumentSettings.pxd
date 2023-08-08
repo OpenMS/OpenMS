@@ -8,18 +8,18 @@ cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS":
         # wrap-inherits:
         #   MetaInfoInterface
 
-        InstrumentSettings() nogil except + # wrap-doc:Description of the settings a MS Instrument was run with
-        InstrumentSettings(InstrumentSettings &) nogil except +
+        InstrumentSettings() except + nogil  # wrap-doc:Description of the settings a MS Instrument was run with
+        InstrumentSettings(InstrumentSettings &) except + nogil 
 
-        Polarity getPolarity()     nogil except + # wrap-doc:Returns the polarity
-        void setPolarity(Polarity)  nogil except + # wrap-doc:Sets the polarity
+        Polarity getPolarity()     except + nogil  # wrap-doc:Returns the polarity
+        void setPolarity(Polarity)  except + nogil  # wrap-doc:Sets the polarity
 
-        ScanMode getScanMode() nogil except + # wrap-doc:Returns the scan mode
-        void setScanMode(ScanMode scan_mode) nogil except + # wrap-doc:Sets the scan mode
-        bool getZoomScan() nogil except + # wrap-doc:Returns if this scan is a zoom (enhanced resolution) scan
-        void setZoomScan(bool zoom_scan) nogil except + # wrap-doc:Sets if this scan is a zoom (enhanced resolution) scan
-        libcpp_vector[ ScanWindow ]  getScanWindows() nogil except + # wrap-doc:Returns the m/z scan windows
-        void setScanWindows(libcpp_vector[ ScanWindow ] scan_windows) nogil except + # wrap-doc:Sets the m/z scan windows
+        ScanMode getScanMode() except + nogil  # wrap-doc:Returns the scan mode
+        void setScanMode(ScanMode scan_mode) except + nogil  # wrap-doc:Sets the scan mode
+        bool getZoomScan() except + nogil  # wrap-doc:Returns if this scan is a zoom (enhanced resolution) scan
+        void setZoomScan(bool zoom_scan) except + nogil  # wrap-doc:Sets if this scan is a zoom (enhanced resolution) scan
+        libcpp_vector[ ScanWindow ]  getScanWindows() except + nogil  # wrap-doc:Returns the m/z scan windows
+        void setScanWindows(libcpp_vector[ ScanWindow ] scan_windows) except + nogil  # wrap-doc:Sets the m/z scan windows
 
 cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS::InstrumentSettings":
 

@@ -12,19 +12,19 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian
         # wrap-instances:
         #  SignalToNoiseEstimatorMedian := SignalToNoiseEstimatorMedian[MSSpectrum]
 
-        SignalToNoiseEstimatorMedian() nogil except +
-        SignalToNoiseEstimatorMedian(SignalToNoiseEstimatorMedian &) nogil except + # compiler
+        SignalToNoiseEstimatorMedian() except + nogil 
+        SignalToNoiseEstimatorMedian(SignalToNoiseEstimatorMedian &) except + nogil  # compiler
 
-        void init(MSSpectrum & spectrum) nogil except +
-        double getSignalToNoise(Size index) nogil except +
+        void init(MSSpectrum & spectrum) except + nogil 
+        double getSignalToNoise(Size index) except + nogil 
 
-        double getSparseWindowPercent() nogil except +
-        double getHistogramRightmostPercent() nogil except +
+        double getSparseWindowPercent() except + nogil 
+        double getHistogramRightmostPercent() except + nogil 
 
         # Functions for SignalToNoiseEstimatorMedianChrom[MSChromatogram]
         # use wrap-ignore because autowrap cannot handle them at the moment
         # see addons/SignalToNoiseEstimatorMedianChrom.pyx for the implementation
-        void init(MSChromatogram & spectrum) nogil except + #wrap-ignore
+        void init(MSChromatogram & spectrum) except + nogil  #wrap-ignore
 
 cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>" namespace "OpenMS::SignalToNoiseEstimatorMedian":
 
