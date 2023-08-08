@@ -18,9 +18,10 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 ----                                OpenMS 3.1.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
+Cleanup of old and unused code in the library:
 - Removed old tools and associated code in the library for InclusionExclusionListCreator, SvmTheoreticalSpectrumGenerator, PrecursorIonSelector, and MSSimulator
-- Removed old RT and PT predict code and tools RTModel, RTPredict, PTModel, PTPredict, RTEvaluation and associated library code (SVMWrapper and LibSVMEncoder).
   Note: general SVC and SVR is still supported with the SimpleSVM class.
+- Removed old RT and PT predict code and tools RTModel, RTPredict, PTModel, PTPredict, RTEvaluation and associated library code (SVMWrapper and LibSVMEncoder).
 - Removed PepNovoAdapter
 - Removed simplistic evaluation tools FFEval, LabeledEval, TransformationEvaluation
 
