@@ -323,7 +323,7 @@ private:
     UInt32* p = reinterpret_cast<UInt32*>(byte_buffer);
     std::transform(p, p + element_count, p, endianize32);
   }
-  template<int type_size>
+  template<>
   inline void invertEndianess<8>(void* byte_buffer, const size_t element_count)
   {
     UInt64* p = reinterpret_cast<UInt64*>(byte_buffer);
