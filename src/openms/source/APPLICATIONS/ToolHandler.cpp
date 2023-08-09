@@ -211,6 +211,11 @@ namespace OpenMS
     tools_map["TriqlerConverter"] = Internal::ToolDescription("TriqlerConverter", util_category);
     tools_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", util_category);
 
+    // ATTENTION: tools requiring the GUI lib
+#ifdef WITH_GUI
+    tools_map["ImageCreator"] = Internal::ToolDescription("ImageCreator", util_category);
+    tools_map["INIUpdater"] = Internal::ToolDescription("INIUpdater", util_category);
+#endif
 
     // INTERNAL tools
     // this operation is expensive, as we need to parse configuration files (*.ttd)
