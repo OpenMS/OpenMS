@@ -1519,32 +1519,6 @@ def testFeatureFinderAlgorithmIsotopeWavelet():
     assert ff.getName() == "test"
 
 @report
-def testCompNovoIdentification():
-    """
-    @tests: CompNovoIdentification
-     CompNovoIdentification.__init__
-    """
-    ff = pyopenms.CompNovoIdentification()
-    p = ff.getDefaults()
-    _testParam(p)
-
-    assert pyopenms.CompNovoIdentification().getIdentification is not None
-    assert pyopenms.CompNovoIdentification().getIdentifications is not None
-
-@report
-def testCompNovoIdentificationCID():
-    """
-    @tests: CompNovoIdentificationCID
-     CompNovoIdentificationCID.__init__
-    """
-    ff = pyopenms.CompNovoIdentificationCID()
-    p = ff.getDefaults()
-    _testParam(p)
-
-    assert pyopenms.CompNovoIdentificationCID().getIdentification is not None
-    assert pyopenms.CompNovoIdentificationCID().getIdentifications is not None
-
-@report
 def testExperimentalSettings():
     """
     @tests: ExperimentalSettings
