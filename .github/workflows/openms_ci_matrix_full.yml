@@ -367,8 +367,16 @@ jobs:
           PATH: ${{ secrets.IBMI_PATH }}
         run: |
           echo "Upload"
-          folder=
-          #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:$PATH/OpenMSInstaller/${{ env.RUN_NAME }}"
+          if [ "${{ env.RUN_NAME }}" == "nightly" ]; then
+            folder=nightly
+          elif [ "${{ env.RUN_NAME }}" == "release/*" ]; then
+            tmpfolder=${{ env.RUN_NAME }}
+            folder=${tmpfolder/release/RC}
+          else
+            folder=experimental/${{ env.RUN_NAME }}
+          fi
+          echo $folder
+          #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:$PATH/OpenMSInstaller/${folder}"
 
         # TODO create softlinks to latest nightly
         # TODO create and upload file hashes, at least for release candidate
@@ -379,6 +387,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-test
     steps:
+      - name: Extract branch/PR infos
+        shell: bash
+        run: echo "RUN_NAME=${{ github.event.pull_request && github.head_ref || github.ref_name }}" >> $GITHUB_ENV
+
       # WOW, you cannot download with wildcard. INCREDIBLY ANNOYING https://github.com/actions/download-artifact/issues/6
       # Maybe in the next 3 years......
       - name: Download macos installer artifacts
@@ -536,5 +548,13 @@ jobs:
           PATH: ${{ secrets.IBMI_PATH }}
         run: |
           echo "Upload"
-          # TODO convert branch to correct subfolder
+          if [ "${{ env.RUN_NAME }}" == "nightly" ]; then
+            folder=nightly
+          elif [ "${{ env.RUN_NAME }}" == "release/*" ]; then
+            tmpfolder=${{ env.RUN_NAME }}
+            folder=${tmpfolder/release/RC}
+          else
+            folder=experimental/${{ env.RUN_NAME }}
+          fi
+          echo $folder
           #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:$PATH/knime-plugin/updateSite/${{ env.RUN_NAME }}"
