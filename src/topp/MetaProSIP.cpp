@@ -107,7 +107,7 @@ class MetaProSIP :
 {
 public:
   MetaProSIP()
-    : TOPPBase("MetaProSIP", "Performs proteinSIP on peptide features for elemental flux analysis.", false),
+    : TOPPBase("MetaProSIP", "Performs proteinSIP on peptide features for elemental flux analysis."),
     ADDITIONAL_ISOTOPES(5),
     FEATURE_STRING("feature"),
     UNASSIGNED_ID_STRING("id"),

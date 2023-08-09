@@ -67,7 +67,7 @@ class TOPPFuzzyDiff :
 {
 public:
   TOPPFuzzyDiff() :
-    TOPPBase("FuzzyDiff", "Compares two files, tolerating numeric differences.", false)
+    TOPPBase("FuzzyDiff", "Compares two files, tolerating numeric differences.")
   {
   }
 

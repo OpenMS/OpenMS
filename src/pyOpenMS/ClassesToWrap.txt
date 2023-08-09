@@ -2,7 +2,7 @@
 n = will probably not be wrapped (even though technically possible - most likely deprecated code, abstract base class or some other reason - 14 TOPP tools, 15 Utils)
 x = cannot not be wrapped (too much code in TOPP tools; 32 TOPP tools, 16 Utils)
 xx = is not yet wrapped, must be done (5 TOPP tools, no Utils)
-ok = is done (42 TOPP tools out of 98 are currently ok, plus 8 utils)
+ok = is done (42 TOPP tools out of 98 are currently ok, plus 8 from the utils category)
 ?  = not yet clear (5 TOPP tools, 2 Utils)
 
 Autwrap has wrapped 366 classes, 3794 methods and 62 enums

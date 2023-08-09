@@ -83,7 +83,7 @@ class TOPPXMLValidator :
 {
 public:
   TOPPXMLValidator() :
-    TOPPBase("XMLValidator", "Validates XML files against an XSD schema.", false)
+    TOPPBase("XMLValidator", "Validates XML files against an XSD schema.")
   {
   }
 

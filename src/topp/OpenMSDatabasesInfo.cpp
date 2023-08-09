@@ -65,7 +65,7 @@ class OpenMSDatabasesInfo final :
 {
 public:
   OpenMSDatabasesInfo() :
-      TOPPBase("OpenMSDatabasesInfo", "Prints the content of OpenMS' enzyme and modification databases to TSV", false)
+      TOPPBase("OpenMSDatabasesInfo", "Prints the content of OpenMS' enzyme and modification databases to TSV")
   {
   }
 

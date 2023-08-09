@@ -83,12 +83,11 @@
 
 #include <QtCore/QProcess>
 
-#include <boost/regex.hpp>
-
 #include <algorithm>
 #include <iostream>
 #include <vector>
 #include <map>
+#include <regex>
 
 // multithreading
 #ifdef _OPENMP
@@ -145,7 +144,7 @@ class NucleicAcidSearchEngine :
 
 public:
   NucleicAcidSearchEngine() :
-    TOPPBase("NucleicAcidSearchEngine", "Annotate nucleic acid identifications to MS/MS spectra.", false),
+    TOPPBase("NucleicAcidSearchEngine", "Annotate nucleic acid identifications to MS/MS spectra."),
     fragment_ion_codes_({"a-B", "a", "b", "c", "d", "w", "x", "y", "z"}),
     resolve_ambiguous_mods_(false)
   {
@@ -293,7 +292,7 @@ protected:
   {
     set<ConstRibonucleotidePtr> modifications;
     auto db_ptr = RibonucleotideDB::getInstance();
-    boost::regex double_digits(R"((\d)(?=\d))");
+    std::regex double_digits(R"((\d)(?=\d))");
     for (String m : mod_names)
     {
       ConstRibonucleotidePtr mod = 0;
@@ -304,7 +303,7 @@ protected:
       catch (Exception::ElementNotFound& /*e*/)
       {
         // commas between numbers were removed - try reinserting them:
-        m = boost::regex_replace(m, double_digits, "$&,");
+        m = std::regex_replace(m, double_digits, "$&,");
         mod = db_ptr->getRibonucleotide(m);
       }
       if (resolve_ambiguous_mods_ && mod->isAmbiguous())

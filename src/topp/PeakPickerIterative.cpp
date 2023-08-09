@@ -92,7 +92,7 @@ class TOPPPeakPickerIterative
  public:
 
   TOPPPeakPickerIterative()
-    : TOPPBase("PeakPickerIterative","Finds mass spectrometric peaks in profile mass spectra.", false)
+    : TOPPBase("PeakPickerIterative","Finds mass spectrometric peaks in profile mass spectra.")
   {
   }
 

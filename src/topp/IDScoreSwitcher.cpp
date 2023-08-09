@@ -73,7 +73,7 @@ class TOPPIDScoreSwitcher :
 public:
 
   TOPPIDScoreSwitcher() :
-    TOPPBase("IDScoreSwitcher", "Switches between different scores of peptide or protein hits in identification data", false)
+    TOPPBase("IDScoreSwitcher", "Switches between different scores of peptide or protein hits in identification data")
   {
   }
 

@@ -116,7 +116,7 @@ public TOPPBase
 {
 public:
   Epifany() :
-  TOPPBase("Epifany", "Runs a Bayesian protein inference.", false)
+  TOPPBase("Epifany", "Runs a Bayesian protein inference.")
   {
   }
 

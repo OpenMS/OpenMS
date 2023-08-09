@@ -126,7 +126,7 @@ class TOPPERPairFinder :
 {
 public:
   TOPPERPairFinder() :
-    TOPPBase("ERPairFinder", "Util which can be used to evaluate pair ratios on enhanced resolution (zoom) scans.", false)
+    TOPPBase("ERPairFinder", "Util which can be used to evaluate pair ratios on enhanced resolution (zoom) scans.")
   {
 
   }

@@ -581,7 +581,7 @@ private:
   
 public:
   TOPPMultiplexResolver() :
-    TOPPBase("MultiplexResolver", "Completes peptide multiplets and resolves conflicts within them.", false),
+    TOPPBase("MultiplexResolver", "Completes peptide multiplets and resolves conflicts within them."),
     missed_cleavages_(0), mass_tolerance_(0.1)
   {
   }

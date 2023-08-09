@@ -135,7 +135,7 @@ class TOPPFeatureFinderMetaboIdent :
 {
 public:
   TOPPFeatureFinderMetaboIdent() :
-    TOPPBase("FeatureFinderMetaboIdent", "Detects features in MS1 data based on metabolite identifications.", false)
+    TOPPBase("FeatureFinderMetaboIdent", "Detects features in MS1 data based on metabolite identifications.")
   {
   }
 

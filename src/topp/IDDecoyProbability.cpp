@@ -90,7 +90,7 @@ class TOPPIDDecoyProbability :
 {
 public:
   TOPPIDDecoyProbability() :
-    TOPPBase("IDDecoyProbability", "Estimates peptide probabilities using a decoy search strategy.\nWARNING: This util is deprecated.", false)
+    TOPPBase("IDDecoyProbability", "Estimates peptide probabilities using a decoy search strategy.\nWARNING: This util is deprecated.")
   {
   }
 

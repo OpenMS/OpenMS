@@ -117,7 +117,7 @@ class RNPxlSearch :
 
 public:
   RNPxlSearch() :
-    TOPPBase("RNPxlSearch", "Annotate RNA/DNA-peptide cross-links in MS/MS spectra.", false)
+    TOPPBase("RNPxlSearch", "Annotate RNA/DNA-peptide cross-links in MS/MS spectra.")
   {
   }
 

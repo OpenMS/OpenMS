@@ -118,7 +118,7 @@ class TOPPAssayGeneratorMetabo :
 {
 public:
   TOPPAssayGeneratorMetabo() :
-    TOPPBase("AssayGeneratorMetabo", "Assay library generation from DDA data (Metabolomics)", false)
+    TOPPBase("AssayGeneratorMetabo", "Assay library generation from DDA data (Metabolomics)")
     {}
 
 private:

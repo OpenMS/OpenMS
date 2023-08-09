@@ -75,7 +75,7 @@ using namespace std;
 class JSONExporter: public TOPPBase
 {
   public:
-  JSONExporter(): TOPPBase("JSONExporter", "Exports .oms (SQLite) files in JSON format", false)
+  JSONExporter(): TOPPBase("JSONExporter", "Exports .oms (SQLite) files in JSON format")
   {
   }
 

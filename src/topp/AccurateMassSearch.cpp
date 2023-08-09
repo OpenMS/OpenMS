@@ -90,7 +90,7 @@ class TOPPAccurateMassSearch :
 {
 public:
   TOPPAccurateMassSearch() :
-    TOPPBase("AccurateMassSearch", "Match MS signals to molecules from a database by mass.", false)
+    TOPPBase("AccurateMassSearch", "Match MS signals to molecules from a database by mass.")
   {
   }
 

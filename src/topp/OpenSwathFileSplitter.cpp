@@ -75,7 +75,7 @@ using namespace OpenMS;
 class TOPPOpenSwathFileSplitter : public TOPPBase
 {
 public:
-  TOPPOpenSwathFileSplitter() : TOPPBase("OpenSwathFileSplitter", "Splits SWATH files into n files, each containing one window.", false)
+  TOPPOpenSwathFileSplitter() : TOPPBase("OpenSwathFileSplitter", "Splits SWATH files into n files, each containing one window.")
   {
   }
 

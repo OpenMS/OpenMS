@@ -78,7 +78,7 @@ class TOPPMSstatsConverter final :
 {
 public:
   TOPPMSstatsConverter() :
-          TOPPBase("MSstatsConverter", "Converter to input for MSstats", false)
+          TOPPBase("MSstatsConverter", "Converter to input for MSstats")
   {
   }
 

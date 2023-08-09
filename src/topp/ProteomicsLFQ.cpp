@@ -142,7 +142,7 @@ class ProteomicsLFQ :
 {
 public:
   ProteomicsLFQ() :
-    TOPPBase("ProteomicsLFQ", "A standard proteomics LFQ pipeline.", false)
+    TOPPBase("ProteomicsLFQ", "A standard proteomics LFQ pipeline.")
   {
   }
 

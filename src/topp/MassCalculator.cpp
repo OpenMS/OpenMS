@@ -85,7 +85,7 @@ class TOPPMassCalculator :
 public:
 
   TOPPMassCalculator() :
-    TOPPBase("MassCalculator", "Calculates masses and mass-to-charge ratios of peptide sequences", false), use_avg_mass_(false), output_(nullptr), format_(), res_type_(Residue::Full)
+    TOPPBase("MassCalculator", "Calculates masses and mass-to-charge ratios of peptide sequences"), use_avg_mass_(false), output_(nullptr), format_(), res_type_(Residue::Full)
   {
     for (Size i = 0; i < Residue::SizeOfResidueType; i++)
     {

@@ -111,7 +111,7 @@ class TOPPMRMPairFinder :
 {
 public:
   TOPPMRMPairFinder() :
-    TOPPBase("MRMPairFinder", "Util which can be used to evaluate labeled pair ratios on MRM features.", false)
+    TOPPBase("MRMPairFinder", "Util which can be used to evaluate labeled pair ratios on MRM features.")
   {
 
   }

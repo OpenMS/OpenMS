@@ -74,7 +74,7 @@ class TOPPIDSplitter :
 public:
 
   TOPPIDSplitter() :
-    TOPPBase("IDSplitter", "Splits protein/peptide identifications off of annotated data files", false)
+    TOPPBase("IDSplitter", "Splits protein/peptide identifications off of annotated data files")
   {
   }
 

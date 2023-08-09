@@ -64,7 +64,7 @@ class TOPPDeMeanderize :
 {
 public:
   TOPPDeMeanderize() :
-    TOPPBase("DeMeanderize", "Orders the spectra of MALDI spotting plates correctly.", false)
+    TOPPBase("DeMeanderize", "Orders the spectra of MALDI spotting plates correctly.")
   {
 
   }

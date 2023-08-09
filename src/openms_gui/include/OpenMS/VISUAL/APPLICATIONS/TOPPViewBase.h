@@ -447,9 +447,9 @@ protected:
     /// Log output window
     LogWindow* log_;
 
-    /// Determines TVToolDiscovery scans for tool/utils and generates new params.
+    /// Determines TVToolDiscovery scans for tools and generates new params.
     TOOL_SCAN scan_mode_;    
-    /// Scans for tools/utils and generates a param for each.
+    /// Scans for tools and generates a param for each.
     TVToolDiscovery tool_scanner_;
 
     /// Verbosity of TV 

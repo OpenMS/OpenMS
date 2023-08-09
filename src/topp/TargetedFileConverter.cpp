@@ -79,7 +79,7 @@ class TOPPTargetedFileConverter :
 public:
 
   TOPPTargetedFileConverter() :
-    TOPPBase("TargetedFileConverter", "Converts different transition files for targeted proteomics / metabolomics analysis.", false)
+    TOPPBase("TargetedFileConverter", "Converts different transition files for targeted proteomics / metabolomics analysis.")
   {
   }
 

@@ -89,7 +89,7 @@ class TOPPRNAMassCalculator :
 public:
 
   TOPPRNAMassCalculator() :
-    TOPPBase("RNAMassCalculator", "Calculates masses, mass-to-charge ratios and sum formulas of RNA sequences", false), use_avg_mass_(false), output_(nullptr), format_(), frag_type_(NASequence::NASFragmentType::Full)
+    TOPPBase("RNAMassCalculator", "Calculates masses, mass-to-charge ratios and sum formulas of RNA sequences", true), use_avg_mass_(false), output_(nullptr), format_(), frag_type_(NASequence::NASFragmentType::Full)
   {
     frag_type_names_["full"] = NASequence::NASFragmentType::Full;
     frag_type_names_["internal"] = NASequence::NASFragmentType::Internal;

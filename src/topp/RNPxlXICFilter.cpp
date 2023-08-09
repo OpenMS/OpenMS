@@ -81,7 +81,7 @@ class TOPPRNPxlXICFilter :
 {
 public:
   TOPPRNPxlXICFilter() :
-    TOPPBase("RNPxlXICFilter", "Remove MS2 spectra from treatment based on the fold change between control and treatment.", false)
+    TOPPBase("RNPxlXICFilter", "Remove MS2 spectra from treatment based on the fold change between control and treatment.")
   {
   }
 

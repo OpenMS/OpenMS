@@ -99,7 +99,7 @@ class TOPPIDMassAccuracy :
 {
 public:
   TOPPIDMassAccuracy() :
-    TOPPBase("IDMassAccuracy", "Calculates a distribution of the mass error from given mass spectra and IDs.", false)
+    TOPPBase("IDMassAccuracy", "Calculates a distribution of the mass error from given mass spectra and IDs.")
   {
 
   }

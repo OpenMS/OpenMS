@@ -83,7 +83,7 @@ class StaticModification :
 {
 public:
   StaticModification() :
-    TOPPBase("StaticModification", "Applies a set of modifications to all PeptideIDs in an idXML file.", false)
+    TOPPBase("StaticModification", "Applies a set of modifications to all PeptideIDs in an idXML file.")
   {
   }
 

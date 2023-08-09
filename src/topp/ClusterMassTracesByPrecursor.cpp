@@ -95,7 +95,7 @@ class TOPPCorrelateMasstraces
  public:
 
   TOPPCorrelateMasstraces()
-    : TOPPBase("ClusterMassTracesByPrecursor", "Correlate precursor masstraces with fragment ion masstraces in SWATH maps based on their elution profile.", false)
+    : TOPPBase("ClusterMassTracesByPrecursor", "Correlate precursor masstraces with fragment ion masstraces in SWATH maps based on their elution profile.")
   {
   }
 

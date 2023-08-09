@@ -41,7 +41,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
-#include <boost/regex.hpp>
+#include <regex>
 
 using namespace OpenMS;
 using namespace std;
@@ -90,7 +90,7 @@ class TOPPDecoyDatabase :
 {
 public:
   TOPPDecoyDatabase() :
-    TOPPBase("DecoyDatabase", "Create decoy sequence database from forward sequence database.", false)
+    TOPPBase("DecoyDatabase", "Create decoy sequence database from forward sequence database.")
   {
   }
 
@@ -274,12 +274,16 @@ protected:
           {
             quick_seq.pop_back();
           }
+
           vector<String> tokenized;
-          boost::smatch m;
-          while (boost::regex_search(quick_seq, m, boost::regex(R"([^\[]|(\[[^\[\]]*\]))")))
+          std::smatch m;
+          std::string pattern = R"([^\[]|(\[[^\[\]]*\]))";
+          std::regex re(pattern);
+
+          while (std::regex_search(quick_seq, m, re))
           {
-            tokenized.emplace_back(m.str(0));
-            quick_seq = m.suffix();
+              tokenized.emplace_back(m.str(0));
+              quick_seq = m.suffix();
           }
 
           if (shuffle)

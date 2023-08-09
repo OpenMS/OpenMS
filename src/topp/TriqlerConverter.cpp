@@ -78,7 +78,7 @@ class TOPPTriqlerConverter final :
 {
 public:
   TOPPTriqlerConverter() :
-          TOPPBase("TriqlerConverter", "Converter to input for Triqler", false)
+          TOPPBase("TriqlerConverter", "Converter to input for Triqler")
   {
   }
 

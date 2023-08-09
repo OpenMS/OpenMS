@@ -74,7 +74,7 @@ class TOPPDatabaseFilter :
 {
 public:
   TOPPDatabaseFilter() :
-    TOPPBase("DatabaseFilter", "Filters a protein database (FASTA format) based on identified proteins", false)
+    TOPPBase("DatabaseFilter", "Filters a protein database (FASTA format) based on identified proteins")
   {
   }
 

@@ -87,7 +87,7 @@ class TOPPSpectraSTSearchAdapter :
   static const String param_user_mod_file;
 
   TOPPSpectraSTSearchAdapter() :
-    TOPPBase("SpectraSTSearchAdapter", "Interface to the SEARCH Mode of the SpectraST executable", false)
+    TOPPBase("SpectraSTSearchAdapter", "Interface to the SEARCH Mode of the SpectraST executable")
   {
   }
 

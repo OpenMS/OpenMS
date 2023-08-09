@@ -139,16 +139,6 @@ namespace OpenMS
     // can be disabled to allow unit tests
     if (toolhandler_test_)
     {
-      // check if tool entries are in Utils and TOPP (duplication)
-      if (ToolHandler::checkDuplicated(tool_name_))
-      {
-        throw Exception::InvalidValue(__FILE__,
-                                      __LINE__,
-                                      OPENMS_PRETTY_FUNCTION,
-                                      String("The '" + tool_name_ + "' has entries in the UTILS and TOPP category. Please add it to the correct category in the ToolHandler."),
-                                      tool_name_);
-      }
-
       // check if tool is in official tools list
       if (official_ && tool_name_ != "GenericWrapper" && !ToolHandler::getTOPPToolList().count(tool_name_))
       {
@@ -156,16 +146,6 @@ namespace OpenMS
                                       __LINE__,
                                       OPENMS_PRETTY_FUNCTION,
                                       String("If '" + tool_name_ + "' is an official TOPP tool, add it to the tools list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to false."),
-                                      tool_name_);
-      }
-
-      // check if tool is in util list
-      if (!official_ && !ToolHandler::getUtilList().count(tool_name_))
-      {
-        throw Exception::InvalidValue(__FILE__,
-                                      __LINE__,
-                                      OPENMS_PRETTY_FUNCTION,
-                                      String("If '" + tool_name_ + "' is a Util, add it to the util list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to true."),
                                       tool_name_);
       }
     }
@@ -2351,7 +2331,7 @@ namespace OpenMS
   String TOPPBase::getDocumentationURL() const
   {
     VersionInfo::VersionDetails ver = VersionInfo::getVersionStruct();
-    String tool_prefix = official_ ? "TOPP_" : "UTILS_";
+    String tool_prefix = "TOPP_";
     // it is only empty if the GIT_BRANCH inferred or set during CMake config was release/* or master
     // see https://github.com/OpenMS/OpenMS/blob/develop/CMakeLists.txt#L122
     if (ver.pre_release_identifier.empty())
@@ -2396,7 +2376,7 @@ namespace OpenMS
 
       std::string docurl = getDocumentationURL();
       std::string category;
-      if (official_ || ToolHandler::getUtilList().count(tool_name_))
+      if (official_)
       { // we can only get the docurl/category from registered/official tools
         category = ToolHandler::getCategory(tool_name_);
       }

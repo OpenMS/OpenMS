@@ -92,7 +92,7 @@ class TOPPMetaboliteSpectralMatcher :
 {
 public:
   TOPPMetaboliteSpectralMatcher() :
-      TOPPBase("MetaboliteSpectralMatcher", "Perform a spectral library search.", false)
+      TOPPBase("MetaboliteSpectralMatcher", "Perform a spectral library search.")
   {
   }
 

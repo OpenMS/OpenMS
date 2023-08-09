@@ -89,7 +89,7 @@ class TOPPINIUpdater :
 {
 public:
   TOPPINIUpdater() :
-    TOPPBase("INIUpdater", "Update INI and TOPPAS files to new OpenMS version.", false),
+    TOPPBase("INIUpdater", "Update INI and TOPPAS files to new OpenMS version."),
     failed_(),
     tmp_files_()
   {

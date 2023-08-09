@@ -314,7 +314,7 @@ int main(int argc, char** argv)
 {
   if (argc != 2)
   {
-    cerr << "Please specify the path where the TOPP/UTIL binaries are located." << endl;
+    cerr << "Please specify the path where the TOPP binaries are located." << endl;
     return EXIT_FAILURE;
   }
 
@@ -333,7 +333,7 @@ int main(int argc, char** argv)
   //UTILS
   ToolListType util_tools = ToolHandler::getUtilList();
 
-  bool errors_occured = generate(topp_tools, "TOPP_", binary_directory) || generate(util_tools, "UTILS_", binary_directory);
+  bool errors_occured = generate(topp_tools, "TOPP_", binary_directory);
 
   if (errors_occured)
   {

@@ -69,7 +69,7 @@ class TOPPSequenceCoverageCalculator :
 {
 public:
   TOPPSequenceCoverageCalculator() :
-    TOPPBase("SequenceCoverageCalculator", "Prints information about idXML files.", false)
+    TOPPBase("SequenceCoverageCalculator", "Prints information about idXML files.")
   {
 
   }

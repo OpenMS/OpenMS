@@ -88,7 +88,7 @@ class TOPPOpenSwathMzMLFileCacher
  public:
 
   TOPPOpenSwathMzMLFileCacher()
-    : TOPPBase("OpenSwathMzMLFileCacher","This tool caches the spectra and chromatogram data of an mzML to disk.", false)
+    : TOPPBase("OpenSwathMzMLFileCacher","This tool caches the spectra and chromatogram data of an mzML to disk.")
   {
   }
 

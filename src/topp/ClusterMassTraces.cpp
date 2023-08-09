@@ -88,7 +88,7 @@ class TOPPClusterMassTraces
  public:
 
   TOPPClusterMassTraces()
-    : TOPPBase("ClusterMassTraces","Creates pseudo spectra.", false)
+    : TOPPBase("ClusterMassTraces","Creates pseudo spectra.")
   {
   }
 

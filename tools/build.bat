@@ -41,7 +41,6 @@ set SLN=OpenMS_host.sln
 IF "%~3"=="a" set SLN=OpenMS_host.sln
 IF "%~3"=="c" set SLN=src\tests\class_tests\OpenMS_class_tests.sln
 IF "%~3"=="t" set SLN=src\topp\openms_topp.sln
-IF "%~3"=="u" set SLN=src\utils\openms_utils.sln
 IF "%~3"=="g" set SLN=src\openms_gui\openms_gui.sln
 IF "%~3"=="d" set SLN=doc\OpenMS_doc.sln
 

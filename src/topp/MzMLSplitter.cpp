@@ -75,7 +75,7 @@ using namespace std;
 class TOPPMzMLSplitter : public TOPPBase
 {
 public:
-  TOPPMzMLSplitter() : TOPPBase("MzMLSplitter", "Splits an mzML file into multiple parts", false)
+  TOPPMzMLSplitter() : TOPPBase("MzMLSplitter", "Splits an mzML file into multiple parts")
   {
   }
 

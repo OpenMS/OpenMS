@@ -118,7 +118,7 @@ class TOPPMRMTransitionGroupPicker
 public:
 
   TOPPMRMTransitionGroupPicker() 
-    : TOPPBase("MRMTransitionGroupPicker", "Picks peaks in SRM/MRM chromatograms.", false)
+    : TOPPBase("MRMTransitionGroupPicker", "Picks peaks in SRM/MRM chromatograms.")
   {
   }
 

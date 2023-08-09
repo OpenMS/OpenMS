@@ -75,7 +75,7 @@ class TOPPIDExtractor :
 {
 public:
   TOPPIDExtractor() :
-    TOPPBase("IDExtractor", "Extracts 'n' peptides randomly or best 'n' from idXML files.", false)
+    TOPPBase("IDExtractor", "Extracts 'n' peptides randomly or best 'n' from idXML files.")
   {
 
   }

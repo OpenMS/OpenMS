@@ -78,7 +78,7 @@ class TOPPRNADigestor :
 {
 public:
   TOPPRNADigestor() :
-    TOPPBase("RNADigestor", "Digests an RNA sequence database in-silico.", false)
+    TOPPBase("RNADigestor", "Digests an RNA sequence database in-silico.")
   {
   }
 

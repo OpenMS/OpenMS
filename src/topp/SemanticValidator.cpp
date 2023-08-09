@@ -77,7 +77,7 @@ class TOPPSemanticValidator :
 {
 public:
   TOPPSemanticValidator() :
-    TOPPBase("SemanticValidator", "SemanticValidator for semantically validating certain XML files.", false)
+    TOPPBase("SemanticValidator", "SemanticValidator for semantically validating certain XML files.")
   {
   }
 

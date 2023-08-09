@@ -104,7 +104,7 @@ class PSMFeatureExtractor :
 {
 public:
   PSMFeatureExtractor() :
-    TOPPBase("PSMFeatureExtractor", "Computes extra features for each input PSM.", false)
+    TOPPBase("PSMFeatureExtractor", "Computes extra features for each input PSM.")
   {
   }
 
