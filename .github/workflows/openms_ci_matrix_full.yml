@@ -324,6 +324,7 @@ jobs:
       shell: bash
       run: |
         cd $GITHUB_WORKSPACE/OpenMS/bld/
+        # TODO use CTest or script to upload to CDash?
         cmake -DSEARCH_ENGINE_DIRECTORY="$GITHUB_WORKSPACE/_thirdparty" -DENABLE_PREPARE_KNIME_PACKAGE=ON .
         cmake --build . --target prepare_knime_package
         
@@ -360,10 +361,10 @@ jobs:
       - name: Upload installer
         shell: bash
         env:
-          PASS: ${{ secrets.PASS }}
-          USER: ${{ secrets.USER }}
-          HOST: ${{ secrets.HOST }}
-          PATH: ${{ secrets.PATH }}
+          PASS: ${{ secrets.IBMI_PASS }}
+          USER: ${{ secrets.IBMI_USER }}
+          HOST: ${{ secrets.IBMI_HOST }}
+          PATH: ${{ secrets.IBMI_PATH }}
         run: |
           echo "Upload"
           folder=
@@ -529,10 +530,10 @@ jobs:
       - name: Upload installer
         shell: bash
         env:
-          PASS: ${{ secrets.PASS }}
-          USER: ${{ secrets.USER }}
-          HOST: ${{ secrets.HOST }}
-          PATH: ${{ secrets.PATH }}
+          PASS: ${{ secrets.IBMI_PASS }}
+          USER: ${{ secrets.IBMI_USER }}
+          HOST: ${{ secrets.IBMI_HOST }}
+          PATH: ${{ secrets.IBMI_PATH }}
         run: |
           echo "Upload"
           # TODO convert branch to correct subfolder
