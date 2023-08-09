@@ -189,9 +189,9 @@ private:
     template <typename ToType>
     static void decodeIntegersCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
 
-    static inline void stringSimdEncoder_(std::string& in, std::string& out);
+    static void stringSimdEncoder_(std::string& in, std::string& out);
 
-    static inline void stringSimdDecoder_(const std::string& in, std::string& out);
+    static void stringSimdDecoder_(const std::string& in, std::string& out);
   };
 
   // Possible optimization: add simd registerwise endianizer (this will only be beneficial for ARM, since mzML + x64 CPU does not need to convert since both use LITTLE_ENDIAN).
