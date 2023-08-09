@@ -330,8 +330,6 @@ int main(int argc, char** argv)
   ToolListType topp_tools = ToolHandler::getTOPPToolList(true); // include GenericWrapper (can be called with --help without error, even though it has a type)
   topp_tools["TOPPView"] = Internal::ToolDescription(); // these two need to be excluded from writing an INI file later!
   topp_tools["TOPPAS"] = Internal::ToolDescription();
-  //UTILS
-  ToolListType util_tools = ToolHandler::getUtilList();
 
   bool errors_occured = generate(topp_tools, "TOPP_", binary_directory);
 
