@@ -1012,7 +1012,7 @@ namespace OpenMS
     {
       if (!defaults[j].empty() && !ListUtils::contains(valids, defaults[j]))
       {
-        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
       }
     }
     p.valid_strings = strings;
@@ -1074,7 +1074,7 @@ namespace OpenMS
     {
       if (defaults[j] < min)
       {
-        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPPS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
       }
     }
     p.min_int = min;
@@ -1098,7 +1098,7 @@ namespace OpenMS
     {
       if (defaults[j] > max)
       {
-        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPPS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
       }
     }
     p.max_int = max;
@@ -1122,7 +1122,7 @@ namespace OpenMS
     {
       if (defaults[j] < min)
       {
-        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPPS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
       }
     }
     p.min_float = min;
@@ -1146,7 +1146,7 @@ namespace OpenMS
     {
       if (defaults[j] > max)
       {
-        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPPS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
       }
     }
     p.max_float = max;

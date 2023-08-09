@@ -336,7 +336,7 @@ int main(int argc, char** argv)
   if (errors_occured)
   {
     // errors occurred while generating the TOPP CLI docu .. tell the user
-    cerr << "Errors occurred while generating the command line documentation for some of the TOPP tools/UTILS." << endl;
+    cerr << "Errors occurred while generating the command line documentation for some of the TOPP tools." << endl;
     return EXIT_FAILURE;
   }
   else

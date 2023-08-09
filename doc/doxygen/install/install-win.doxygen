@@ -311,7 +311,7 @@
     @note Since the call can be a bit lengthy, there is a batch file in
     <tt>OpenMS/tools/build.bat</tt> and in the root of your build tree (copied
     there by cmake for convenience), which allows to build the most important
-    targets (TOPP, UTILS, Gui, Tests, Doc) in Release or Debug using very short
+    targets (TOPP, Gui, Tests, Doc) in Release or Debug using very short
     notation. Call it without arguments to see its usage help text. For example
     to build only the %OpenMS library in release mode, call
 

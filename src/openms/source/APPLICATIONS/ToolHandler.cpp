@@ -244,7 +244,6 @@ namespace OpenMS
 
   StringList ToolHandler::getTypes(const String& toolname)
   {
-    // for internal tools, query TOPP and UTILS for a match
     Internal::ToolDescription ret;
     ToolListType tools;
     if (toolname == "GenericWrapper")

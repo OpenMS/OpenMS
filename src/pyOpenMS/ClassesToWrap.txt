@@ -92,7 +92,7 @@ ok   TOFCalibration.cpp
 x    XTandemAdapter.cpp  # 300 lines
 
 
-UTILS
+tools categorized as utilities
 
 so far, 3 are wrapped
 

@@ -194,7 +194,7 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E make_directory doxygen/parameters/output/
                       COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}
                       COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "Building TOPP/UTILS docu:"
+                      COMMAND ${CMAKE_COMMAND} -E echo "Building TOPP docu:"
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${TOPPDOCUMENTER_EXECUTABLE} ${BINARY_PATH}
                       COMMAND ${CMAKE_COMMAND} -E echo ""
@@ -217,7 +217,7 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E make_directory doxygen/parameters/output/
                       COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${CMAKE_COMMAND} -E env "PATH=${DEP_BIN_DIRS}${pathsep}${DEP_LIB_DIRS}${pathsep}$ENV{PATH}" ${DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}
                       COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "Building TOPP/UTILS docu:"
+                      COMMAND ${CMAKE_COMMAND} -E echo "Building TOPP docu:"
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${CMAKE_COMMAND} -E env "PATH=${DEP_BIN_DIRS}${pathsep}${DEP_LIB_DIRS}${pathsep}$ENV{PATH}" ${TOPPDOCUMENTER_EXECUTABLE} ${BINARY_PATH}
                       COMMAND ${CMAKE_COMMAND} -E echo ""
@@ -299,7 +299,7 @@ if(ENABLE_DOCS)
     add_custom_target(doc_minimal ${_DOC_MINIMAL_ALL}
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                      COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation without class/TOPP/UTILS documentation"
+                      COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation without class/TOPP documentation"
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E remove_directory html
                       COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile_noclass
@@ -313,7 +313,7 @@ if(ENABLE_DOCS)
                       COMMENT "Build the doxygen documentation"
                       VERBATIM)
     #------------------------------------------------------------------------------
-    # add virtual dependency of doc_minimal on TOPP & UTILS
+    # add virtual dependency of doc_minimal on TOPP
     # this is not necessary but defers the generation of doc_minimal to a later
     # stage to avoid confusion if doc_minimal is build first
     add_dependencies(doc_minimal TOPP)
