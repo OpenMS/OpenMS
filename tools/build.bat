@@ -14,7 +14,7 @@ IF "%~1"=="" (
   ECHO   Usage: build ^<target^(- for all^)^> [[^<[r]elease^|[d]ebug^|[rd]RelWithDebug^|[rm]MinSizeRel^>] ^<Sln:[a]ll^|[c]lass-test^|[t]opp^|[u]til^|[g]ui^|[d]oc^>]
   ECHO.
   ECHO  e.g.
-  ECHO          // build all targets from all projects ^(TOPP, UTILS, tests, GUI^) in release mode
+  ECHO          // build all targets from all projects ^(TOPP, tests, GUI^) in release mode
   ECHO          build -
   ECHO.
   ECHO          // build all targets ^(-^) from Class tests in Release mode
