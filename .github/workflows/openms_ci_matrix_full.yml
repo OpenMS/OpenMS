@@ -30,13 +30,22 @@ jobs:
       matrix:
         include:
           - os: windows-2022
-            compiler: default
+            # cl.exe is currently the only supported. Needs a VS shell to be set up (especially if used without VS CMake Generator)
+            # clang.exe is also installed but untested (might crash with our VS specific compiler definitions)
+            # clang-cl.exe might be used instead.
+            compiler: cl.exe
             compiler_ver: default
 
-          - os: macos-latest
+          - os: macos-13
+            # Since the appleclang version is dependent on the XCode versions that are installed
+            #  on the GH runners, use this as the choice for a specific version
+            # TODO currently unused but XCode/appleclang is the default
             compiler: xcode
-            compiler_ver: default
+            # TODO implement support for other versions
+            compiler_ver: 14.2
 
+          # Make sure the compilers are available in that version on the GH runners
+          # We are not installing anything.
           - os: ubuntu-22.04
             compiler: g++
             compiler_ver: 10
@@ -79,6 +88,7 @@ jobs:
           else
             echo "pkg_type=none" >> $GITHUB_OUTPUT
           fi
+          echo "cxx_compiler=${{ matrix.compiler }}-${{ matrix.compiler_ver }}" >> $GITHUB_OUTPUT
         fi
         
         if [ "${{ matrix.os }}" == "windows-*" ]; then
@@ -94,6 +104,7 @@ jobs:
           else
             echo "pkg_type=none" >> $GITHUB_OUTPUT
           fi
+          echo "cxx_compiler=${{ matrix.compiler }}" >> $GITHUB_OUTPUT
         fi
 
         if [ "${{ matrix.os }}" == "macos-*" ]; then
@@ -108,6 +119,15 @@ jobs:
           else
             echo "pkg_type=none" >> $GITHUB_OUTPUT
           fi
+          if [ "${{ matrix.compiler }}" == "xcode" ]; then
+            sudo xcode-select -s '/Applications/Xcode_${{ matrix.compiler_ver }}.app/Contents/Developer'
+            echo "cxx_compiler=clang++" >> $GITHUB_OUTPUT
+          elif [ "${{ matrix.compiler }}" == "clang++" ]; then
+            echo "cxx_compiler=$(brew --prefix llvm@${{ matrix.compiler_ver }})/bin/clang++" >> $GITHUB_OUTPUT
+          else
+            echo "Unsupported compiler"
+            exit 1
+          fi
         fi
       shell: bash
 
@@ -115,6 +135,7 @@ jobs:
       name: Emulate a Visual Studio shell (Windows)
       uses: egor-tensin/vs-shell@v2
       with:
+        # NOTE: x64 is hardcoded. No support for 32bit
         arch: x64
 
     - name: Setup build tools (and system contrib on Linux)
@@ -237,7 +258,9 @@ jobs:
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
           ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
       env:
-          CMAKE_CXX_COMPILER: ${{ matrix.compiler }}
+          # TODO allow actual choice of compiler instead of using default.
+          #  Problem: not all compilers are always in the PATH.
+          #CMAKE_CXX_COMPILER: ${{ matrix.compiler }}
           OS_PREFIX_PATH: "${{ env.Qt5_DIR }}/lib/cmake;${{ env.Qt5_DIR }}"
           CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
@@ -295,13 +318,6 @@ jobs:
           - ${{ github.workspace }}/OpenMS/bld/*.exe
           - ${{ github.workspace }}/OpenMS/bld/*.deb
           - ${{ github.workspace }}/OpenMS/bld/*.dmg
-
-    - if: ${{ steps.set-vars.outputs.pkg_type }} != "none" || ${{ inputs.knime }}
-      name: Set up JDK 17 for ant
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
         
     - if: ${{ steps.set-vars.outputs.pkg_type }} != "none" || ${{ inputs.knime }}
       name: Generate KNIME descriptors and payloads
@@ -313,7 +329,7 @@ jobs:
         
 
     - if: ${{ steps.set-vars.outputs.pkg_type }} != "none"
-      name: Upload packages as artifacts
+      name: Upload KNIME payload and descriptors as artifacts
       uses: actions/upload-artifact@v3
       with:
         name: knime-${{ steps.set-vars.outputs.tp_folder }}
@@ -350,7 +366,7 @@ jobs:
           PATH: ${{ secrets.PATH }}
         run: |
           echo "Upload"
-          # TODO convert branch to correct subfolder
+          folder=
           #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:$PATH/OpenMSInstaller/${{ env.RUN_NAME }}"
 
         # TODO create softlinks to latest nightly
@@ -377,8 +393,8 @@ jobs:
         with:
           name: knime-Linux
 
-      
-      - name: Set up JDK 17 for ant
+      # Should be the default. 
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
