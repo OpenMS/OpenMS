@@ -18,15 +18,15 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 ----                                OpenMS 3.1.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
-
 - require some advanced instruction sets for x64 CPUs: SSE3 (g++/clang) or AVX (MSVC); and NEON for ARM64 CPUs (#6978)
 - Base64 encoding/decoding using the SIMDe library (#6978)
 
-Cleanup of old and unused code in the library:
+Cleanup of old/unused tools and code:
 - Removed old tools and associated code in the library for InclusionExclusionListCreator, SvmTheoreticalSpectrumGenerator, PrecursorIonSelector, and MSSimulator
   Note: general SVC and SVR is still supported with the SimpleSVM class.
 - Removed old RT and PT predict code and tools RTModel, RTPredict, PTModel, PTPredict, RTEvaluation and associated library code (SVMWrapper and LibSVMEncoder).
 - Removed PepNovoAdapter
+- Removed CompNovoAdapter and library code
 - Removed simplistic evaluation tools FFEval, LabeledEval, TransformationEvaluation
 
 ------------------------------------------------------------------------------------------
