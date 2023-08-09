@@ -3,8 +3,18 @@
 name: openms-ci
 
 # Controls when the action will run. Triggers the workflow on push or pull request
-# events
+# events or manually via workflow_dispatch
 on:
+  workflow_dispatch:
+    inputs:
+      package:
+        type: boolean
+        description: Build and upload packages/installer?
+        default: false
+      knime:
+        type: boolean
+        description: Build and upload KNIME plugins and update site?
+        default: false
   push:
     branches:
       - nightly
@@ -20,13 +30,20 @@ jobs:
       matrix:
         include:
           - os: windows-2022
-          - compiler: default
-          - os: macos
-          - compiler: default
+            compiler: default
+            compiler_ver: default
+
+          - os: macos-latest
+            compiler: xcode
+            compiler_ver: default
+
           - os: ubuntu-22.04
-          - compiler: default
+            compiler: g++
+            compiler_ver: 10
+
           - os: ubuntu-22.04
-          - compiler: clang-15
+            compiler: clang++
+            compiler_ver: 15
 
     runs-on: ${{ matrix.os }}
 
@@ -50,12 +67,18 @@ jobs:
     - id: set-vars
       name: Set extra variables
       run: |
+        DO_PACKAGE=$( [[ ( ${{ inputs.package }} || "${{ steps.extract_branch.outputs.BASE_REF }}" == "nightly" || \
+          "${{ steps.extract_branch.outputs.BASE_REF }}" == "release*" ) && "${{ matrix.compiler }}" != "clang++" ]] && echo true || echo false)
+        
         if [ "${{ matrix.os }}" == "ubuntu-*" ]; then
           echo "tp_folder=Linux" >> $GITHUB_OUTPUT
           echo "xvfb=xvfb-run" >> $GITHUB_OUTPUT
           echo "static_boost=OFF" >> $GITHUB_OUTPUT
-          COMPILER=${{ matrix.compiler }}
-          echo "compiler_ver=${COMPILER%%-*}" >> $GITHUB_OUTPUT
+          if [ $DO_PACKAGE ]; then
+            echo "pkg_type=deb" >> $GITHUB_OUTPUT
+          else
+            echo "pkg_type=none" >> $GITHUB_OUTPUT
+          fi
         fi
         
         if [ "${{ matrix.os }}" == "windows-*" ]; then
@@ -66,15 +89,25 @@ jobs:
           echo "tp_folder=Windows" >> $GITHUB_OUTPUT
           echo "xvfb=" >> $GITHUB_OUTPUT
           echo "static_boost=ON" >> $GITHUB_OUTPUT
+          if [ $DO_PACKAGE ]; then
+            echo "pkg_type=nsis" >> $GITHUB_OUTPUT
+          else
+            echo "pkg_type=none" >> $GITHUB_OUTPUT
+          fi
         fi
 
         if [ "${{ matrix.os }}" == "macos-*" ]; then
-          echo "tp_folder=macOS" >> $GITHUB_OUTPUT
+          echo "tp_folder=MacOS" >> $GITHUB_OUTPUT
           echo "contrib_os=macOS" >> $GITHUB_OUTPUT
           echo "contrib_os_ver=10.15.5/" >> $GITHUB_OUTPUT
           echo "contrib_compiler=appleclang-11.0.0/" >> $GITHUB_OUTPUT
           echo "xvfb=" >> $GITHUB_OUTPUT
           echo "static_boost=ON" >> $GITHUB_OUTPUT
+          if [ $DO_PACKAGE ]; then
+            echo "pkg_type=dmg" >> $GITHUB_OUTPUT
+          else
+            echo "pkg_type=none" >> $GITHUB_OUTPUT
+          fi
         fi
       shell: bash
 
@@ -92,7 +125,12 @@ jobs:
           sudo apt update   
           sudo apt-get install -y build-essential cmake autoconf patch libtool git automake ninja-build xvfb ccache
           sudo apt-get install -y qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
-          sudo apt-get install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
+          sudo apt-get install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev \
+           libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
+
+          if [  ${{ steps.set-vars.outputs.pkg_type }} != "none" ]; then
+            sudo apt-get install -y doxygen ghostscript graphviz
+          fi
         fi
         
         if [ "${{ matrix.os }}" == "windows-*" ]; then
@@ -100,18 +138,19 @@ jobs:
           ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
           # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
           echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
+
+          if [ ${{ steps.set-vars.outputs.pkg_type }} != "none" ]; then
+            choco install doxygen.portable ghostscript graphviz
+          fi
         fi
 
         if [ "${{ matrix.os }}" == "macos-*" ]; then
           brew install ccache autoconf automake libtool ninja && brew link --overwrite ccache
-        fi
 
-    - if: startsWith(matrix.os, 'ubuntu') && startsWith(matrix.compiler, 'clang')
-      name: Set up Clang
-      uses: egor-tensin/setup-clang@v1
-      with:
-        version: ${{ steps.set-vars.outputs.compiler_ver }}
-        platform: x64   
+          if [  ${{ steps.set-vars.outputs.pkg_type }} != "none" ]; then
+            brew install -y doxygen ghostscript graphviz
+          fi
+        fi
 
     - if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
       name: Install Qt (Windows and macOS)
@@ -142,7 +181,7 @@ jobs:
       name: Fix contrib install names (macOS)
       shell: bash
       run: |
-          shopt -s nullglob # ensure that for loop is only executated if there is at least one .dylib file
+          shopt -s nullglob # ensure that for loop is only executed if there is at least one .dylib file
           for lib in $GITHUB_WORKSPACE/OpenMS/contrib/lib/*.dylib
           do
             install_name_tool -id $lib $lib
@@ -198,6 +237,7 @@ jobs:
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
           ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
       env:
+          CMAKE_CXX_COMPILER: ${{ matrix.compiler }}
           OS_PREFIX_PATH: "${{ env.Qt5_DIR }}/lib/cmake;${{ env.Qt5_DIR }}"
           CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
@@ -207,13 +247,15 @@ jobs:
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
+          PACKAGE_TYPE: ${{ steps.set-vars.outputs.pkg_type }}
+          SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
-          OPENMP: "Off"
+          OPENMP: "ON"
           USE_STATIC_BOOST: ${{ steps.set-vars.outputs.static_boost }}
           #  BUILD_FLAGS: "-p:CL_MPCount=2" # For VS Generator and MSBuild
-          BUILD_FLAGS: "-j2" # Ninja will otherwise use all cores (doesn't go well in GHA)
+          BUILD_FLAGS: "-j2" # Ninja will otherwise use all cores (doesn't go well in GHA). TODO make dependent on runner
           CMAKE_CCACHE_EXE: "ccache"
           CCACHE_BASEDIR: ${{ github.workspace }}
           CCACHE_DIR: ${{ github.workspace }}/.ccache
@@ -231,53 +273,75 @@ jobs:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CI_PROVIDER: "GitHub-Actions"
           BUILD_NAME: "${{ env.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-class-topp-${{ github.run_number }}"
+          # The rest of the vars should be saved in the CMakeCache
 
-    # TODO for packages
-    # IF BRANCH IS NIGHTLY OR RELEASE: 
-    # - ENABLE PACKAGE WITH CMAKE OPTION
-    # - BUILD (try to use a cmake script to upload build logs to CDash as well, see e.g. OpenMS/tools/ci/citest.cmake)
-    # - UPLOAD ARTIFACTS TO ARCHIVE (BUT: maybe do it in a separate job in this workflow. See Note about "BIG PROBLEM" below)
 
-    - name: Set up JDK 17 for ant
+    - if: ${{ steps.set-vars.outputs.pkg_type }} != "none"
+      name: Package
+      shell: bash
+      run: ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cipackage.cmake
+      env:
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          CI_PROVIDER: "GitHub-Actions"
+          BUILD_NAME: "${{ env.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-class-topp-${{ github.run_number }}"
+
+    # WARNING: Here you have to make sure that only one matrix configuration per OS produces packages. See set-vars steps.
+    - if: ${{ steps.set-vars.outputs.pkg_type }} != "none"
+      name: Upload packages as artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: installer-${{ steps.set-vars.outputs.tp_folder }}
+        path: |
+          - ${{ github.workspace }}/OpenMS/bld/*.exe
+          - ${{ github.workspace }}/OpenMS/bld/*.deb
+          - ${{ github.workspace }}/OpenMS/bld/*.dmg
+
+    - if: ${{ steps.set-vars.outputs.pkg_type }} != "none" || ${{ inputs.knime }}
+      name: Set up JDK 17 for ant
       uses: actions/setup-java@v3
       with:
         java-version: '17'
         distribution: 'temurin'
         
-    - name: Generate KNIME descriptors and payloads
+    - if: ${{ steps.set-vars.outputs.pkg_type }} != "none" || ${{ inputs.knime }}
+      name: Generate KNIME descriptors and payloads
       shell: bash
       run: |
         cd $GITHUB_WORKSPACE/OpenMS/bld/
         cmake -DSEARCH_ENGINE_DIRECTORY="$GITHUB_WORKSPACE/_thirdparty" -DENABLE_PREPARE_KNIME_PACKAGE=ON .
         cmake --build . --target prepare_knime_package
         
-    # TODO evaluate GH artifacts (limits?? speed?) vs SSH on archive
-    # TODO add secrets to GH
-    - name: Upload payloads and descriptors
-      shell: bash
-      env:
-        PASS: ${{ secrets.PASS }}
-        USER: ${{ secrets.USER }}
-        HOST: ${{ secrets.HOST }}
-        PATH: ${{ secrets.PATH }}
-      run: |
-        sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/OpenMS/bld/knime/* "$USER@$HOST:$PATH/knime-plugin/descriptorsAndPayloads/${{ env.RUN_NAME }}"
 
+    - if: ${{ steps.set-vars.outputs.pkg_type }} != "none"
+      name: Upload packages as artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: knime-${{ steps.set-vars.outputs.tp_folder }}
+        path: |
+          - ${{ github.workspace }}/OpenMS/bld/knime/**/*
 
-
-  # BIG PROBLEM: The above matrix would always upload once one matrix config build is successful. You cannot wait on the others.
-  # Maybe use GH artifacts (limits?) as "temporary storage" and only upload officially in a subsequent job that depends on the full matrix success and downloads the temporary artifacts.
-  # This is how we do it in Jenkins, too. Or create a temporary folder on our build archive if GH limits are bad.
-
-  # TODO run job only if trigger was nightly or release
-  build-knime-updatesite:
+  deploy-installer:
+    if: ${{ github.ref == 'refs/heads/nightly' }} || ${{ contains(github.ref, 'release/') }} || ${{ inputs.package }}
     runs-on: ubuntu-latest
     needs: build-and-test
+
     steps:
-      # TODO how to make sure it's downloading from the same run? Maybe if something cancels/fails, just downloading the latest is not the best?
-      #  GH artifacts would solve it.
-      # TODO add secrets to GH
-      - name: Download payloads and descriptors from all platforms
+      # WOW, you cannot download with wildcard. INCREDIBLY ANNOYING https://github.com/actions/download-artifact/issues/6
+      # Maybe in the next 3 years......
+      - name: Download macos installer artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: installer-MacOS
+      - name: Download win installer artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: installer-Windows
+      - name: Download lnx installer artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: installer-Linux
+          
+      - name: Upload installer
         shell: bash
         env:
           PASS: ${{ secrets.PASS }}
@@ -285,8 +349,34 @@ jobs:
           HOST: ${{ secrets.HOST }}
           PATH: ${{ secrets.PATH }}
         run: |
-          mkdir -p plugin-source
-          sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" "$USER@$HOST:$PATH/knime-plugin/descriptorsAndPayloads/${{ env.RUN_NAME }}/*" plugin-source/
+          echo "Upload"
+          # TODO convert branch to correct subfolder
+          #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:$PATH/OpenMSInstaller/${{ env.RUN_NAME }}"
+
+        # TODO create softlinks to latest nightly
+        # TODO create and upload file hashes, at least for release candidate
+
+
+  build-deploy-knime-updatesite:
+    if: ${{ github.ref == 'refs/heads/nightly' }} || ${{ contains(github.ref, 'release/') }} || ${{ inputs.knime }}
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      # WOW, you cannot download with wildcard. INCREDIBLY ANNOYING https://github.com/actions/download-artifact/issues/6
+      # Maybe in the next 3 years......
+      - name: Download macos installer artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: knime-MacOS
+      - name: Download win installer artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: knime-Windows
+      - name: Download lnx installer artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: knime-Linux
+
       
       - name: Set up JDK 17 for ant
         uses: actions/setup-java@v3
@@ -420,3 +510,14 @@ jobs:
           # TODO check if correct maven version is installed
           mvn "-Dknime.version=${KNIME}" "-Djava.majorversion=${JAVAVER}" "-Dgkn.update.site=https://abibuilder.cs.uni-tuebingen.de/archive/gkn/updateSite/${KNIME}/" clean verify
 
+      - name: Upload installer
+        shell: bash
+        env:
+          PASS: ${{ secrets.PASS }}
+          USER: ${{ secrets.USER }}
+          HOST: ${{ secrets.HOST }}
+          PATH: ${{ secrets.PATH }}
+        run: |
+          echo "Upload"
+          # TODO convert branch to correct subfolder
+          #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:$PATH/knime-plugin/updateSite/${{ env.RUN_NAME }}"
