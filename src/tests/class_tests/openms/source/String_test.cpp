@@ -942,7 +942,7 @@ START_SECTION((String& removeWhitespaces()))
   TEST_EQUAL(s,"test");
 
   const std::string test(16 * 1024 + 1, 'x'); // not a multiple of 16, so any SSE code needs to deal with a remainder
-  s = test + std::string(' ', 100);
+  s = test + std::string(100, ' ');
   std::random_device rd;
   std::mt19937 g(rd());
   std::shuffle(s.begin(), s.end(), g);
