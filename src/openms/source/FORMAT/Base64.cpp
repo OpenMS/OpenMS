@@ -262,7 +262,7 @@ namespace OpenMS
     std::string str;
     for (Size i = 0; i < in.size(); ++i)
     {          
-      str = str.append(in[i]);
+      str.append(in[i]);
       if (append_null_byte)
       {
         str.push_back('\0');
