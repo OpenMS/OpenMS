@@ -948,6 +948,10 @@ namespace OpenMS::Math
         // end issue #740
         return (-1) * log10(getScore_({"EValue","expect"}, hit, current_score_type));
       }
+      else if (engine == "PERCOLATOR")
+      {
+        return getScore_({"MS:1001492"}, hit, current_score_type); // SVM score
+      }
       else if (engine == "SPECTRAST")
       {
         return 100 * getScore_({"f-val"}, hit, current_score_type); // f-val
