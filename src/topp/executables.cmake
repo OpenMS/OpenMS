@@ -5,8 +5,6 @@ set(directory source/APPLICATIONS/TOPP)
 set(TOPP_executables
 BaselineFilter
 CometAdapter
-CompNovo
-CompNovoCID
 ConsensusID
 ConsensusMapNormalizer
 DatabaseSuitability

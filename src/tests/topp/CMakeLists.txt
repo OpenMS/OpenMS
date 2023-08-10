@@ -2292,15 +2292,6 @@ add_test("TOPP_ConsensusID_8_out1" ${DIFF} -whitelist "?xml-stylesheet" "Identif
 set_tests_properties("TOPP_ConsensusID_8_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_8")
 
 #------------------------------------------------------------------------------
-# CompNovo tests
-add_test("TOPP_CompNovo_1" ${TOPP_BIN_PATH}/CompNovo -test -in ${DATA_DIR_TOPP}/CompNovo_1_input.mzML -ini ${DATA_DIR_TOPP}/CompNovo_1.ini -out CompNovo_1_output.tmp)
-add_test("TOPP_CompNovo_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 CompNovo_1_output.tmp -in2 ${DATA_DIR_TOPP}/CompNovo_1_output.idXML )
-set_tests_properties("TOPP_CompNovo_1_out1" PROPERTIES DEPENDS "TOPP_CompNovo_1")
-add_test("TOPP_CompNovoCID_1" ${TOPP_BIN_PATH}/CompNovoCID -test -in ${DATA_DIR_TOPP}/CompNovoCID_1_input.mzML -ini ${DATA_DIR_TOPP}/CompNovoCID_1.ini -out CompNovoCID_1_output.tmp)
-add_test("TOPP_CompNovoCID_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 CompNovoCID_1_output.tmp -in2 ${DATA_DIR_TOPP}/CompNovoCID_1_output.idXML )
-set_tests_properties("TOPP_CompNovoCID_1_out1" PROPERTIES DEPENDS "TOPP_CompNovoCID_1")
-
-#------------------------------------------------------------------------------
 # PrecursorMassCorrector tests
 add_test("TOPP_PrecursorMassCorrector_1" ${TOPP_BIN_PATH}/PrecursorMassCorrector -test -in ${DATA_DIR_TOPP}/PrecursorMassCorrector_1_input.mzML -ini ${DATA_DIR_TOPP}/PrecursorMassCorrector_1.ini -out PrecursorMassCorrector_1_output.tmp)
 add_test("TOPP_PrecursorMassCorrector_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} "location=" -in1 PrecursorMassCorrector_1_output.tmp -in2 ${DATA_DIR_TOPP}/PrecursorMassCorrector_1_output.mzML )
@@ -3287,12 +3278,3 @@ set_tests_properties("TOPP_MassTraceExtractor_1_out_json" PROPERTIES DEPENDS "TO
 add_test("TOPP_MassTraceExtractor_2_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_2.ini.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_2_json.tmp)
 add_test("TOPP_MassTraceExtractor_2_out_json" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_2_json.tmp -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_2_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_2_out_json" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_2_json")
-
-#------------------------------------------------------------------------------
-# CompNovo tests
-add_test("TOPP_CompNovo_1_json" ${TOPP_BIN_PATH}/CompNovo -test -in ${DATA_DIR_TOPP}/CompNovo_1_input.mzML -ini ${DATA_DIR_TOPP}/CompNovo_1.ini.json -out CompNovo_1_output.tmp)
-add_test("TOPP_CompNovo_1_out1_json" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 CompNovo_1_output.tmp -in2 ${DATA_DIR_TOPP}/CompNovo_1_output.idXML )
-set_tests_properties("TOPP_CompNovo_1_out1_json" PROPERTIES DEPENDS "TOPP_CompNovo_1_json")
-add_test("TOPP_CompNovoCID_1_json" ${TOPP_BIN_PATH}/CompNovoCID -test -in ${DATA_DIR_TOPP}/CompNovoCID_1_input.mzML -ini ${DATA_DIR_TOPP}/CompNovoCID_1.ini.json -out CompNovoCID_1_output.tmp)
-add_test("TOPP_CompNovoCID_1_out1_json" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 CompNovoCID_1_output.tmp -in2 ${DATA_DIR_TOPP}/CompNovoCID_1_output.idXML )
-set_tests_properties("TOPP_CompNovoCID_1_out1_json" PROPERTIES DEPENDS "TOPP_CompNovoCID_1_json")
