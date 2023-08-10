@@ -45,9 +45,9 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/ZlibCompression.h>
 
 #include <QByteArray>
-#include <zlib.h>
 
 #include <algorithm>
 #include <array>
@@ -262,38 +262,8 @@ private:
     if (zlib_compression)
     {
       String compressed;
-      unsigned long sourceLen =   (unsigned long)in.size();
-      unsigned long compressed_length =       //compressBound((unsigned long)in.size());
-                                        sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11; // taken from zlib's compress.c, as we cannot use compressBound*
-      //
-      // (*) compressBound is not defined in the QtCore lib, which forces the linker under windows to link in our zlib.
-      //     This leads to multiply defined symbols as compress() is then defined twice.
-
-      int zlib_error;
-      do
-      {
-        compressed.resize(compressed_length); // reserve enough space -- we may not need all of it.
-        zlib_error = compress(reinterpret_cast<Bytef *>(&compressed[0]), &compressed_length, reinterpret_cast<Bytef *>(&in[0]), (unsigned long)input_bytes);
-
-        switch (zlib_error)
-        {
-        case Z_MEM_ERROR:
-          throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, compressed_length);
-          break;
-
-        case Z_BUF_ERROR:
-          compressed_length *= 2;
-        }
-      }
-      while (zlib_error == Z_BUF_ERROR);
-
-      if (zlib_error != Z_OK)
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compression error?");
-      }
-      compressed.resize(compressed_length); // cut down to the actual data
-
-      stringSimdEncoder_(compressed, out);   //resize output array in order to have enough space for all characters
+      ZlibCompression::compressData((void*)in.data(), input_bytes, compressed);
+      stringSimdEncoder_(compressed, out);
     }
     else // encode without compression
     {
@@ -436,7 +406,6 @@ private:
     // initialize
     const Size element_size = sizeof(FromType);
     const Size input_bytes = element_size * in.size();
-    String compressed;
 
     // change endianness if necessary
     if ((OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_BIGENDIAN))
@@ -464,17 +433,8 @@ private:
     // encode with compression (use Qt because of zlib support)
     if (zlib_compression)
     {
-      unsigned long sourceLen =   (unsigned long)input_bytes;
-      unsigned long compressed_length =       //compressBound((unsigned long)in.size());
-                                        sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11; // taken from zlib's compress.c, as we cannot use compressBound*
-
-      compressed.resize(compressed_length);
-      while (compress(reinterpret_cast<Bytef *>(&compressed[0]), &compressed_length, reinterpret_cast<Bytef *>(&in[0]), (unsigned long)input_bytes) != Z_OK)
-      {
-        compressed_length *= 2;
-        compressed.reserve(compressed_length);
-      }
-
+      String compressed;
+      ZlibCompression::compressData((void*)in.data(), input_bytes, compressed);
       stringSimdEncoder_(compressed, out);
     }
     else // encode without compression

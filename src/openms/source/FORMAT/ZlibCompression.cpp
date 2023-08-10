@@ -44,25 +44,30 @@ namespace OpenMS
 
   void ZlibCompression::compressString(std::string& str, std::string& compressed)
   {
+    compressData(reinterpret_cast<Bytef*>(&str[0]), str.size(), compressed);
+  }
+
+  void ZlibCompression::compressData(const void* raw_data, const size_t in_length, std::string& compressed)
+  {
     compressed.clear();
 
-    unsigned long sourceLen =   (unsigned long)str.size();
-    unsigned long compressed_length = //compressBound((unsigned long)str.size());
-                                      sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11; // taken from zlib's compress.c, as we cannot use compressBound*
+    const unsigned long sourceLen = (unsigned long)in_length;
+    unsigned long compressed_length =                         // compressBound((unsigned long)str.size());
+      sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11; // taken from zlib's compress.c, as we cannot use compressBound*
 
     int zlib_error;
     do
     {
       compressed.resize(compressed_length); // reserve enough space -- we may not need all of it
-      zlib_error = compress(reinterpret_cast<Bytef*>(&compressed[0]), &compressed_length, reinterpret_cast<Bytef*>(&str[0]), (unsigned long) str.size());
+      zlib_error = compress(reinterpret_cast<Bytef*>(&compressed[0]), &compressed_length, (Bytef*)raw_data, sourceLen);
 
       switch (zlib_error)
       {
-      case Z_MEM_ERROR:
-        throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, compressed_length);
+        case Z_MEM_ERROR:
+          throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, compressed_length);
 
-      case Z_BUF_ERROR:
-        compressed_length *= 2;
+        case Z_BUF_ERROR:
+          compressed_length *= 2;
       }
     } while (zlib_error == Z_BUF_ERROR);
 

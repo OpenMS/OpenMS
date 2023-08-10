@@ -270,41 +270,15 @@ namespace OpenMS
     }
 
     if (zlib_compression)
-    {      
-      unsigned long sourceLen =   (unsigned long)str.size();
-      unsigned long compressed_length = //compressBound((unsigned long)str.size());
-                                        sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11; // taken from zlib's compress.c, as we cannot use compressBound*
-
-      int zlib_error;
-      std::string compressed;
-      do
-      {
-        compressed.resize(compressed_length); // reserve enough space -- we may not need all of it.
-        zlib_error = compress(reinterpret_cast<Bytef*>(&compressed[0]), &compressed_length, reinterpret_cast<Bytef*>(&str[0]), (unsigned long) str.size());
-
-        switch (zlib_error)
-        {
-        case Z_MEM_ERROR:
-          throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, compressed_length);
-
-        case Z_BUF_ERROR:
-          compressed_length *= 2;
-        }
-      } while (zlib_error == Z_BUF_ERROR);
-
-      if (zlib_error != Z_OK)
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compression error?");
-      }
-      compressed.resize(compressed_length); // cut down to the actual data
+    {
+      String compressed;
+      ZlibCompression::compressString(str, compressed);
       Base64::stringSimdEncoder_(compressed, out);
-      
     }
     else
     {
       Base64::stringSimdEncoder_(str, out);
     }
-
   }
   
 
