@@ -21,51 +21,33 @@
  * SOFTWARE.
  *
  * Copyright:
- *   2021      Evan Nemerson <evan@nemerson.com>
+ *   2023      Michael R. Crusoe <crusoe@debian.org>
  */
 
-#if !defined(SIMDE_ARM_SVE_PTEST_H)
-#define SIMDE_ARM_SVE_PTEST_H
+#if !defined(SIMDE_X86_AVX512_KAND_H)
+#define SIMDE_X86_AVX512_KAND_H
 
 #include "types.h"
 
 HEDLEY_DIAGNOSTIC_PUSH
 SIMDE_DISABLE_UNWANTED_DIAGNOSTICS
+SIMDE_BEGIN_DECLS_
 
 SIMDE_FUNCTION_ATTRIBUTES
-simde_bool
-simde_svptest_first(simde_svbool_t pg, simde_svbool_t op) {
-  #if defined(SIMDE_ARM_SVE_NATIVE)
-    return svptest_first(pg, op);
-  #elif defined(SIMDE_X86_AVX512BW_NATIVE) && (!defined(HEDLEY_MSVC_VERSION) || HEDLEY_MSVC_VERSION_CHECK(19,20,0))
-    if (HEDLEY_LIKELY(pg.value & 1))
-      return op.value & 1;
-
-    if (pg.value == 0 || op.value == 0)
-      return 0;
-
-    #if defined(_MSC_VER)
-      unsigned long r = 0;
-      _BitScanForward64(&r, HEDLEY_STATIC_CAST(uint64_t, pg.value));
-      return (op.value >> r) & 1;
-    #else
-      return (op.value >> __builtin_ctzll(HEDLEY_STATIC_CAST(unsigned long long, pg.value))) & 1;
-    #endif
+simde__mmask16
+simde_mm512_kand (simde__mmask16 a, simde__mmask16 b) {
+  #if defined(SIMDE_X86_AVX512F_NATIVE)
+    return _mm512_kand(a, b);
   #else
-    for (int i = 0 ; i < HEDLEY_STATIC_CAST(int, simde_svcntb()) ; i++) {
-      if (pg.values_i8[i]) {
-        return !!op.values_i8[i];
-      }
-    }
-
-    return 0;
+    return a & b;
   #endif
 }
-#if defined(SIMDE_ARM_SVE_ENABLE_NATIVE_ALIASES)
-  #undef simde_svptest_first
-  #define svptest_first(pg, op) simde_svptest_first(pg, op)
+#if defined(SIMDE_X86_AVX512F_ENABLE_NATIVE_ALIASES)
+  #undef _mm512_kand
+  #define _mm512_kand(a, b) simde_mm512_kand((a), (b))
 #endif
 
+SIMDE_END_DECLS_
 HEDLEY_DIAGNOSTIC_POP
 
-#endif /* SIMDE_ARM_SVE_PTEST_H */
+#endif /* !defined(SIMDE_X86_AVX512_KAND_H) */

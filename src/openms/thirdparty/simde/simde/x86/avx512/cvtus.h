@@ -21,51 +21,47 @@
  * SOFTWARE.
  *
  * Copyright:
- *   2021      Evan Nemerson <evan@nemerson.com>
+ *   2023      Michael R. Crusoe <crusoe@debian.org>
  */
 
-#if !defined(SIMDE_ARM_SVE_PTEST_H)
-#define SIMDE_ARM_SVE_PTEST_H
+#if !defined(SIMDE_X86_AVX512_CVTUS_H)
+#define SIMDE_X86_AVX512_CVTUS_H
 
 #include "types.h"
+#include "mov.h"
+#include "storeu.h"
+#include "loadu.h"
 
 HEDLEY_DIAGNOSTIC_PUSH
 SIMDE_DISABLE_UNWANTED_DIAGNOSTICS
+SIMDE_BEGIN_DECLS_
 
 SIMDE_FUNCTION_ATTRIBUTES
-simde_bool
-simde_svptest_first(simde_svbool_t pg, simde_svbool_t op) {
-  #if defined(SIMDE_ARM_SVE_NATIVE)
-    return svptest_first(pg, op);
-  #elif defined(SIMDE_X86_AVX512BW_NATIVE) && (!defined(HEDLEY_MSVC_VERSION) || HEDLEY_MSVC_VERSION_CHECK(19,20,0))
-    if (HEDLEY_LIKELY(pg.value & 1))
-      return op.value & 1;
-
-    if (pg.value == 0 || op.value == 0)
-      return 0;
-
-    #if defined(_MSC_VER)
-      unsigned long r = 0;
-      _BitScanForward64(&r, HEDLEY_STATIC_CAST(uint64_t, pg.value));
-      return (op.value >> r) & 1;
-    #else
-      return (op.value >> __builtin_ctzll(HEDLEY_STATIC_CAST(unsigned long long, pg.value))) & 1;
-    #endif
+void
+simde_mm512_mask_cvtusepi32_storeu_epi8 (void* base_addr, simde__mmask16 k, simde__m512i a) {
+  #if defined(SIMDE_X86_AVX512F_NATIVE)
+    _mm512_mask_cvtusepi32_storeu_epi8(base_addr, k, a);
   #else
-    for (int i = 0 ; i < HEDLEY_STATIC_CAST(int, simde_svcntb()) ; i++) {
-      if (pg.values_i8[i]) {
-        return !!op.values_i8[i];
-      }
+    simde__m256i_private r_ = simde__m256i_to_private(simde_mm256_loadu_epi8(base_addr));
+    simde__m512i_private a_ = simde__m512i_to_private(a);
+
+    SIMDE_VECTORIZE
+    for (size_t i = 0 ; i < (sizeof(a_.u32) / sizeof(a_.u32[0])) ; i++) {
+      r_.i8[i] = ((k>>i) &1 ) ?
+        ((a_.u32[i] > UINT8_MAX)
+          ? (HEDLEY_STATIC_CAST(int8_t, UINT8_MAX))
+          : HEDLEY_STATIC_CAST(int8_t, a_.u32[i])) : r_.i8[i];
     }
 
-    return 0;
+    simde_mm256_storeu_epi8(base_addr, simde__m256i_from_private(r_));
   #endif
 }
-#if defined(SIMDE_ARM_SVE_ENABLE_NATIVE_ALIASES)
-  #undef simde_svptest_first
-  #define svptest_first(pg, op) simde_svptest_first(pg, op)
+#if defined(SIMDE_X86_AVX512F_ENABLE_NATIVE_ALIASES)
+  #undef _mm512_mask_cvtusepi32_storeu_epi8
+  #define _mm512_mask_cvtusepi32_storeu_epi8(base_addr, k, a) simde_mm512_mask_cvtusepi32_storeu_epi8((base_addr), (k), (a))
 #endif
 
+SIMDE_END_DECLS_
 HEDLEY_DIAGNOSTIC_POP
 
-#endif /* SIMDE_ARM_SVE_PTEST_H */
+#endif /* !defined(SIMDE_X86_AVX512_CVTUS_H) */

@@ -434,6 +434,91 @@ simde_math_fpclassify(double v) {
   #endif
 }
 
+#define SIMDE_MATH_FP_QNAN      0x01
+#define SIMDE_MATH_FP_PZERO     0x02
+#define SIMDE_MATH_FP_NZERO     0x04
+#define SIMDE_MATH_FP_PINF      0x08
+#define SIMDE_MATH_FP_NINF      0x10
+#define SIMDE_MATH_FP_DENORMAL  0x20
+#define SIMDE_MATH_FP_NEGATIVE  0x40
+#define SIMDE_MATH_FP_SNAN      0x80
+
+static HEDLEY_INLINE
+uint8_t
+simde_math_fpclassf(float v, const int imm8) {
+  union {
+    float f;
+    uint32_t u;
+  } fu;
+  fu.f = v;
+  uint32_t bits = fu.u;
+  uint8_t NegNum = (bits >> 31) & 1;
+  uint32_t const ExpMask = 0x3F800000; // [30:23]
+  uint32_t const MantMask = 0x007FFFFF; // [22:0]
+  uint8_t ExpAllOnes = ((bits & ExpMask) == ExpMask);
+  uint8_t ExpAllZeros = ((bits & ExpMask) == 0);
+  uint8_t MantAllZeros = ((bits & MantMask) == 0);
+  uint8_t ZeroNumber = ExpAllZeros & MantAllZeros;
+  uint8_t SignalingBit = (bits >> 22) & 1;
+
+  uint8_t result = 0;
+  uint8_t qNaN_res = ExpAllOnes & (!MantAllZeros) & SignalingBit;
+  uint8_t Pzero_res = (!NegNum) & ExpAllZeros & MantAllZeros;
+  uint8_t Nzero_res = NegNum & ExpAllZeros & MantAllZeros;
+  uint8_t Pinf_res = (!NegNum) & ExpAllOnes & MantAllZeros;
+  uint8_t Ninf_res = NegNum & ExpAllOnes & MantAllZeros;
+  uint8_t Denorm_res = ExpAllZeros & (!MantAllZeros);
+  uint8_t FinNeg_res = NegNum & (!ExpAllOnes) & (!ZeroNumber);
+  uint8_t sNaN_res = ExpAllOnes & (!MantAllZeros) & (!SignalingBit);
+  result = (((imm8 >> 0) & qNaN_res)   | \
+            ((imm8 >> 1) & Pzero_res)  | \
+            ((imm8 >> 2) & Nzero_res)  | \
+            ((imm8 >> 3) & Pinf_res)   | \
+            ((imm8 >> 4) & Ninf_res)   | \
+            ((imm8 >> 5) & Denorm_res) | \
+            ((imm8 >> 6) & FinNeg_res) | \
+            ((imm8 >> 7) & sNaN_res));
+  return result;
+}
+
+static HEDLEY_INLINE
+uint8_t
+simde_math_fpclass(double v, const int imm8) {
+  union {
+    double d;
+    uint64_t u;
+  } du;
+  du.d = v;
+  uint64_t bits = du.u;
+  uint8_t NegNum = (bits >> 63) & 1;
+  uint64_t const ExpMask =  0x3FF0000000000000; // [62:52]
+  uint64_t const MantMask = 0x000FFFFFFFFFFFFF; // [51:0]
+  uint8_t ExpAllOnes = ((bits & ExpMask) == ExpMask);
+  uint8_t ExpAllZeros = ((bits & ExpMask) == 0);
+  uint8_t MantAllZeros = ((bits & MantMask) == 0);
+  uint8_t ZeroNumber = ExpAllZeros & MantAllZeros;
+  uint8_t SignalingBit = (bits >> 51) & 1;
+
+  uint8_t result = 0;
+  uint8_t qNaN_res = ExpAllOnes & (!MantAllZeros) & SignalingBit;
+  uint8_t Pzero_res = (!NegNum) & ExpAllZeros & MantAllZeros;
+  uint8_t Nzero_res = NegNum & ExpAllZeros & MantAllZeros;
+  uint8_t Pinf_res = (!NegNum) & ExpAllOnes & MantAllZeros;
+  uint8_t Ninf_res = NegNum & ExpAllOnes & MantAllZeros;
+  uint8_t Denorm_res = ExpAllZeros & (!MantAllZeros);
+  uint8_t FinNeg_res = NegNum & (!ExpAllOnes) & (!ZeroNumber);
+  uint8_t sNaN_res = ExpAllOnes & (!MantAllZeros) & (!SignalingBit);
+  result = (((imm8 >> 0) & qNaN_res)   | \
+            ((imm8 >> 1) & Pzero_res)  | \
+            ((imm8 >> 2) & Nzero_res)  | \
+            ((imm8 >> 3) & Pinf_res)   | \
+            ((imm8 >> 4) & Ninf_res)   | \
+            ((imm8 >> 5) & Denorm_res) | \
+            ((imm8 >> 6) & FinNeg_res) | \
+            ((imm8 >> 7) & sNaN_res));
+  return result;
+}
+
 /*** Manipulation functions ***/
 
 #if !defined(simde_math_nextafter)
@@ -703,6 +788,20 @@ simde_math_fpclassify(double v) {
     #define simde_math_copysignf(x, y) std::copysignf(x, y)
   #elif defined(SIMDE_MATH_HAVE_MATH_H)
     #define simde_math_copysignf(x, y) copysignf(x, y)
+  #endif
+#endif
+
+#if !defined(simde_math_signbit)
+  #if SIMDE_MATH_BUILTIN_LIBM(signbit)
+    #if (!defined(__clang__) || SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0))
+      #define simde_math_signbit(x) __builtin_signbit(x)
+    #else
+      #define simde_math_signbit(x) __builtin_signbit(HEDLEY_STATIC_CAST(double, (x)))
+    #endif
+  #elif defined(SIMDE_MATH_HAVE_CMATH)
+    #define simde_math_signbit(x) std::signbit(x)
+  #elif defined(SIMDE_MATH_HAVE_MATH_H)
+    #define simde_math_signbit(x) signbit(x)
   #endif
 #endif
 
@@ -1166,7 +1265,7 @@ simde_math_fpclassify(double v) {
 
 #if !defined(simde_math_roundeven)
   #if \
-      HEDLEY_HAS_BUILTIN(__builtin_roundeven) || \
+     (!defined(HEDLEY_EMSCRIPTEN_VERSION) && HEDLEY_HAS_BUILTIN(__builtin_roundeven)) || \
       HEDLEY_GCC_VERSION_CHECK(10,0,0)
     #define simde_math_roundeven(v) __builtin_roundeven(v)
   #elif defined(simde_math_round) && defined(simde_math_fabs)
@@ -1186,7 +1285,7 @@ simde_math_fpclassify(double v) {
 
 #if !defined(simde_math_roundevenf)
   #if \
-      HEDLEY_HAS_BUILTIN(__builtin_roundevenf) || \
+     (!defined(HEDLEY_EMSCRIPTEN_VERSION) && HEDLEY_HAS_BUILTIN(__builtin_roundevenf)) || \
       HEDLEY_GCC_VERSION_CHECK(10,0,0)
     #define simde_math_roundevenf(v) __builtin_roundevenf(v)
   #elif defined(simde_math_roundf) && defined(simde_math_fabsf)
@@ -1398,9 +1497,6 @@ simde_math_fpclassify(double v) {
   }
   #define simde_math_cdfnormf simde_math_cdfnormf
 #endif
-
-HEDLEY_DIAGNOSTIC_PUSH
-SIMDE_DIAGNOSTIC_DISABLE_FLOAT_EQUAL_
 
 #if !defined(simde_math_cdfnorminv) && defined(simde_math_log) && defined(simde_math_sqrt)
   /*https://web.archive.org/web/20150910081113/http://home.online.no/~pjacklam/notes/invnorm/impl/sprouse/ltqnorm.c*/
@@ -1674,8 +1770,6 @@ SIMDE_DIAGNOSTIC_DISABLE_FLOAT_EQUAL_
 
   #define simde_math_erfcinvf simde_math_erfcinvf
 #endif
-
-HEDLEY_DIAGNOSTIC_POP
 
 static HEDLEY_INLINE
 double
