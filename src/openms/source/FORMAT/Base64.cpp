@@ -260,8 +260,6 @@ namespace OpenMS
       return;
     }
     std::string str;
-    std::string compressed;
-
     for (Size i = 0; i < in.size(); ++i)
     {          
       str = str.append(in[i]);
@@ -278,9 +276,10 @@ namespace OpenMS
                                         sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11; // taken from zlib's compress.c, as we cannot use compressBound*
 
       int zlib_error;
+      std::string compressed;
       do
       {
-        compressed.resize(compressed_length);
+        compressed.resize(compressed_length); // reserve enough space -- we may not need all of it.
         zlib_error = compress(reinterpret_cast<Bytef*>(&compressed[0]), &compressed_length, reinterpret_cast<Bytef*>(&str[0]), (unsigned long) str.size());
 
         switch (zlib_error)
@@ -297,15 +296,13 @@ namespace OpenMS
       {
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compression error?");
       }
-
-      Base64 unit;
-      unit.stringSimdEncoder_(compressed, out);
+      compressed.resize(compressed_length); // cut down to the actual data
+      Base64::stringSimdEncoder_(compressed, out);
       
     }
     else
     {
-      Base64 unit;
-      unit.stringSimdEncoder_(str,out);
+      Base64::stringSimdEncoder_(str, out);
     }
 
   }

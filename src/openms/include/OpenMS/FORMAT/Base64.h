@@ -272,7 +272,7 @@ private:
       int zlib_error;
       do
       {
-        compressed.resize(compressed_length);
+        compressed.resize(compressed_length); // reserve enough space -- we may not need all of it.
         zlib_error = compress(reinterpret_cast<Bytef *>(&compressed[0]), &compressed_length, reinterpret_cast<Bytef *>(&in[0]), (unsigned long)input_bytes);
 
         switch (zlib_error)
@@ -291,6 +291,7 @@ private:
       {
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compression error?");
       }
+      compressed.resize(compressed_length); // cut down to the actual data
 
       stringSimdEncoder_(compressed, out);   //resize output array in order to have enough space for all characters
     }
