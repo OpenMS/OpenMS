@@ -417,7 +417,7 @@ private:
     // change endianness if necessary (mzML is always LITTLE_ENDIAN; x64 is LITTLE_ENDIAN)
     if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
     {
-      invertEndianess<element_size>((void*)s.data(), src_size / element_size);
+      invertEndianess<element_size>((void*)s.data(), s.size() / element_size);
     }
 
     const char* cptr = s.data();
