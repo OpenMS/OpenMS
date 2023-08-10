@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ZlibCompression.h>
+#include <QByteArray>
 
 #include <zlib.h>
 
@@ -52,7 +53,7 @@ namespace OpenMS
     int zlib_error;
     do
     {
-      compressed.resize(compressed_length);
+      compressed.resize(compressed_length); // reserve enough space -- we may not need all of it
       zlib_error = compress(reinterpret_cast<Bytef*>(&compressed[0]), &compressed_length, reinterpret_cast<Bytef*>(&str[0]), (unsigned long) str.size());
 
       switch (zlib_error)
@@ -69,7 +70,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compression error?");
     }
-    compressed.resize(compressed_length);
+    compressed.resize(compressed_length); // cut down to the actual data
   }
 
   void ZlibCompression::compressString(const QByteArray& raw_data, QByteArray& compressed_data)

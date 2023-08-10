@@ -40,7 +40,8 @@
 
 #include <string>
 #include <vector>
-#include <QByteArray>
+
+class QByteArray;
 
 namespace OpenMS
 {
