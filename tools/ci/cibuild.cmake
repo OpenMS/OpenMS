@@ -10,14 +10,93 @@ set(CTEST_SOURCE_DIRECTORY "$ENV{SOURCE_DIRECTORY}")
 set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/bld")
 set(CTEST_CONFIGURATION_TYPE "$ENV{BUILD_TYPE}")
 set(CTEST_BUILD_CONFIGURATION "$ENV{BUILD_TYPE}")
+set(CTEST_CMAKE_GENERATOR "$ENV{CMAKE_GENERATOR}")
+# custom build flags
+set(CTEST_BUILD_FLAGS "$ENV{BUILD_FLAGS}")
 
 # cdash server (fu-berlin) SSL certificate sometimes is revoked. Keeps CI running.
 set (CTEST_CURL_OPTIONS       CURLOPT_SSL_VERIFYHOST_OFF CURLOPT_SSL_VERIFYPEER_OFF )
+# customize reporting of errors in CDash
+set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS 1000)
+set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000)
+
+set (CTEST_CUSTOM_WARNING_EXCEPTION
+    # Suppress warnings imported from qt
+    ".*qsharedpointer_impl.h:595:43.*"
+    )
 
 message(STATUS "CTEST_SOURCE_DIRECTORY: ${CTEST_SOURCE_DIRECTORY}")
 message(STATUS "CTEST_BINARY_DIRECTORY: ${CTEST_BINARY_DIRECTORY}")
 
-set(INITIAL_CACHE
+# function to set a cache variable from an env variable if it exists only
+function(add_env_var_to_cache_if_exists VAR_NAME)
+  if (DEFINED ENV{${VAR_NAME}})
+    set(INITIAL_CACHE
+"${INITIAL_CACHE}
+${VAR_NAME}=$ENV{${VAR_NAME}}"
+    )
+  endif()
+endfunction()
+
+# same but for multiple variables
+function(add_env_vars_to_cache_if_exists VAR_NAMES)
+  foreach(VAR_NAME IN LISTS VAR_NAMES)
+    add_env_var_to_cache_if_exists(${VAR_NAME})
+  endforeach()
+endfunction()
+
+function(add_env_var_to_cache_with_default VAR_NAME DEFAULT)
+  if (DEFINED ENV{${VAR_NAME}})
+    set(INITIAL_CACHE
+"${INITIAL_CACHE}
+${VAR_NAME}=$ENV{${VAR_NAME}}"
+    )
+  else()
+      set(INITIAL_CACHE
+"${INITIAL_CACHE}
+${VAR_NAME}=$ENV{${DEFAULT}}"
+    )
+  endif()
+endfunction()
+
+set(INITIAL_CACHE "")
+
+if(DEFINED ENV{CMAKE_CCACHE_EXE})
+  set(INITIAL_CACHE 
+"${INITIAL_CACHE}
+CMAKE_CXX_COMPILER_LAUNCHER=$ENV{CMAKE_CCACHE_EXE}
+CMAKE_C_COMPILER_LAUNCHER=$ENV{CMAKE_CCACHE_EXE}"
+  )
+endif()
+
+add_env_vars_to_cache_if_exists(
+  "ADDRESS_SANITIZER"
+  "CMAKE_PREFIX_PATH"
+  "CMAKE_BUILD_TYPE"
+  "CMAKE_GENERATOR_PLATFORM"
+  "Boost_DEBUG"
+  "BOOST_USE_STATIC"
+  "OPENMS_CONTRIB_LIBS"
+  "ENABLE_CLASS_TESTING"
+  "ENABLE_GCC_WERROR"
+  "ENABLE_STYLE_TESTING"
+  "ENABLE_TOPP_TESTING"
+  "ENABLE_TUTORIALS"
+  "ENABLE_UPDATE_CHECK"
+  "MT_ENABLE_OPENMP"
+  "SEARCH_ENGINES_DIRECTORY"
+  "PACKAGE_TYPE"
+  "PYOPENMS"
+  "PY_MEMLEAK_DISABLE"
+  "PY_NO_OPTIMIZATION"
+  "PY_NO_OUTPUT"
+  "PY_NUM_MODULES"
+  "PY_NUM_THREADS"
+  "WITH_GUI"
+  "WITH_THERMORAWFILEPARSER_TEST"
+ )
+
+set(OLD_VALUES
 "
 GIT_TRACKING=OFF
 OPENMS_GIT_SHORT_SHA1=ci
@@ -50,44 +129,13 @@ ADDRESS_SANITIZER=$ENV{ADDRESS_SANITIZER}
 WITH_THERMORAWFILEPARSER_TEST=Off"
 )
 
-set(OWN_OPTIONS "")
-if($ENV{CMAKE_GENERATOR} MATCHES ".*Visual Studio.*")
-  set(INITIAL_CACHE 
-"${INITIAL_CACHE}
-CMAKE_GENERATOR_PLATFORM=x64"
-  )
-  set(OWN_OPTIONS "-DCMAKE_CXX_RELEASE_FLAGS='/MD /Od /Ob0 /DNDEBUG /EHsc'")
-endif()
-
-if(DEFINED ENV{CMAKE_CCACHE_EXE})
-  set(INITIAL_CACHE 
-"${INITIAL_CACHE}
-CMAKE_CXX_COMPILER_LAUNCHER=$ENV{CMAKE_CCACHE_EXE}
-CMAKE_C_COMPILER_LAUNCHER=$ENV{CMAKE_CCACHE_EXE}"
-  )
-endif()
-
 # create cache
 file(WRITE "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" ${INITIAL_CACHE})
 
-# customize reporting of errors in CDash
-set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS 1000)
-set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000)
-
-set (CTEST_CUSTOM_WARNING_EXCEPTION
-    # Suppress warnings imported from qt
-    ".*qsharedpointer_impl.h:595:43.*"
-    )
-
-# try to speed up the builds so we don't get killed
-set(CTEST_BUILD_FLAGS "$ENV{BUILD_FLAGS}")
-
-## speed up compile time on GCC
-if (CMAKE_COMPILER_IS_GNUCXX)
-	add_compile_options(-O0)
+set(OWN_OPTIONS "")
+if($ENV{CMAKE_GENERATOR} MATCHES ".*Visual Studio.*")
+  set(OWN_OPTIONS "-DCMAKE_CXX_RELEASE_FLAGS='/MD /Od /Ob0 /DNDEBUG /EHsc'")
 endif()
-
-set(CTEST_CMAKE_GENERATOR "$ENV{CMAKE_GENERATOR}")
 
 # run the classical CTest suite
 ctest_start(Continuous) # TODO think about adding GROUP GitHub-Actions to separate visually

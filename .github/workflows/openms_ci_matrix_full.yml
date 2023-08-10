@@ -260,9 +260,9 @@ jobs:
       env:
           # TODO allow actual choice of compiler instead of using default.
           #  Problem: not all compilers are always in the PATH.
-          #CMAKE_CXX_COMPILER: ${{ matrix.compiler }}
-          OS_PREFIX_PATH: "${{ env.Qt5_DIR }}/lib/cmake;${{ env.Qt5_DIR }}"
-          CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
+          CMAKE_CXX_COMPILER: ${{ steps.set-vars.outputs.cxx_compiler }}
+          CMAKE_PREFIX_PATH: "${{ env.Qt5_DIR }}/lib/cmake;${{ env.Qt5_DIR }}"
+          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Ninja"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
@@ -270,13 +270,15 @@ jobs:
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
+          ENABLE_TUTORIALS: "OFF"
+          ENABLE_GCC_WERROR: "OFF" # TODO think about that
           PACKAGE_TYPE: ${{ steps.set-vars.outputs.pkg_type }}
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
           OPENMP: "ON"
-          USE_STATIC_BOOST: ${{ steps.set-vars.outputs.static_boost }}
+          BOOST_USE_STATIC: ${{ steps.set-vars.outputs.static_boost }}
           #  BUILD_FLAGS: "-p:CL_MPCount=2" # For VS Generator and MSBuild
           BUILD_FLAGS: "-j2" # Ninja will otherwise use all cores (doesn't go well in GHA). TODO make dependent on runner
           CMAKE_CCACHE_EXE: "ccache"
@@ -288,6 +290,7 @@ jobs:
           # TODO evaluate those options (we had them only on Linux before)
           CCACHE_SLOPPINESS: time_macros,include_file_ctime,include_file_mtime
           CCACHE_COMPILERCHECK: content
+          WITH_THERMORAWFILEPARSER_TEST: "OFF"
 
     - name: Test
       shell: bash
@@ -383,6 +386,11 @@ jobs:
 
 
   build-deploy-knime-updatesite:
+    env:
+      KNIME: 5.1
+      JAVA_VER: 17
+      PLUGIN_BUILD: ${{ github.workspace }}/plugin-build
+      PLUGIN_SOURCE: ${{ github.workspace }}/plugin-source
     if: ${{ github.ref == 'refs/heads/nightly' }} || ${{ contains(github.ref, 'release/') }} || ${{ inputs.knime }}
     runs-on: ubuntu-latest
     needs: build-and-test
@@ -407,10 +415,10 @@ jobs:
           name: knime-Linux
 
       # Should be the default. 
-      - name: Set up JDK 17
+      - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: ${{ env.JAVA_VER }}
           distribution: 'temurin'
 
       - name: Generate plugin sources
@@ -438,8 +446,8 @@ jobs:
             GKN_PLUGIN_PATH=${GITHUB_WORKSPACE}/GenericKnimeNodes
 
             ## Source and build dir (choose)
-            PLUGIN_SOURCE=${GITHUB_WORKSPACE}/plugin-source
             mkdir ${PLUGIN_SOURCE}
+            mkdir ${PLUGIN_BUILD}
 
             ## Merge payloads and descriptors into one folder
             touch rsync.log
@@ -453,8 +461,6 @@ jobs:
             mkdir -p ${PLUGIN_SOURCE_CONTRIB_PLUGINS}
             PLUGIN_SOURCE_THIRDPARTY_CONTRIB_PLUGINS=${PLUGIN_SOURCE}/de.openms.thirdparty.feature/contributing-plugins
             mkdir -p ${PLUGIN_SOURCE_THIRDPARTY_CONTRIB_PLUGINS}
-            PLUGIN_BUILD=${GITHUB_WORKSPACE}/plugin-build
-            mkdir ${PLUGIN_BUILD}
 
             ## We check exemplarily in de.openms.lib. It should never happen that one platform produced one plugin but not the other.
             pushd ${PLUGIN_SOURCE}/de.openms.feature/de.openms.lib/
@@ -513,10 +519,13 @@ jobs:
 
       - name: Build KNIME update site
         shell: bash
+        env:
+          KNIME: 5.1
+
         run: |
           # fix folder structure
-          mv plugin-build/.mvn ./
-          mv plugin-build/* ./
+          mv ${PLUGIN_BUILD}/.mvn ./
+          mv ${PLUGIN_BUILD}/* ./
 
           git clone --depth 1 --branch master https://github.com/genericworkflownodes/buildresources
 
@@ -530,14 +539,11 @@ jobs:
           rm -r buildresources
           rm -r plugin-build
 
-          # remove poms since we will do a full pomless build. poms are only necessary if you want to develop on a single plugin, e.g., in eclipse.
+          # remove maven pom.xmls since we will do a full pomless build. poms are only necessary if you want to develop on a single plugin, e.g., in eclipse.
           find . -mindepth 2 -name "pom.xml*" -exec rm {} \;
 
-          # TODO correctly parameterize (e.g. together with the Java install step above)
-          KNIME="5.1"
-          JAVA_VER=17
           # TODO check if correct maven version is installed
-          mvn "-Dknime.version=${KNIME}" "-Djava.majorversion=${JAVAVER}" "-Dgkn.update.site=https://abibuilder.cs.uni-tuebingen.de/archive/gkn/updateSite/${KNIME}/" clean verify
+          mvn "-Dknime.version=${KNIME}" "-Djava.majorversion=${JAVA_VER}" "-Dgkn.update.site=https://abibuilder.cs.uni-tuebingen.de/archive/gkn/updateSite/${KNIME}/" clean verify
 
       - name: Upload installer
         shell: bash
