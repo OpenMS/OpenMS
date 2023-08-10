@@ -96,6 +96,8 @@ add_env_vars_to_cache_if_exists(
   "WITH_THERMORAWFILEPARSER_TEST"
  )
 
+# Unused now! If you want to set a variable to a non-default, you have to set it in your environment.
+# To make build scripts/workflows clearer from the outside.
 set(OLD_VALUES
 "
 GIT_TRACKING=OFF
