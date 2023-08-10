@@ -621,6 +621,13 @@ namespace OpenMS::Math
       return (negative_prior_ * x_neg) / ((negative_prior_ * x_neg) + (1 - negative_prior_) * x_pos);
     }
 
+    double PosteriorErrorProbabilityModel::computePValue(double score) const
+    {
+      // apply the same transformation that was applied before fitting
+      score = score + fabs(smallest_score_) + 0.001;
+      return getGumbelCCDF_(score, incorrectly_assigned_fit_param_);
+    }
+
     TextFile PosteriorErrorProbabilityModel::initPlots(vector<double>& x_scores)
     {
       std::vector<DPosition<2> > points;
@@ -1155,7 +1162,7 @@ namespace OpenMS::Math
                     }
                     //TODO implement something to check the quality of fit and set data_might_not_be_well_fit
                   }
-                  hit.setScore(score);
+                  hit.setMetaValue("p-value", PEP_model.computePValue(score));
                   if (prob_correct)
                   {
                     hit.setScore(1.0 - score);

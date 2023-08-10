@@ -215,11 +215,19 @@ public:
         return negative_prior_;
       }
 
-      ///computes the gumbel density at position x with parameters params.
+      ///computes the gumbel density at position @p x with parameters @p params.
       static double getGumbel_(double x, const GaussFitter::GaussFitResult & params)
       {
         double z = exp((params.x0 - x) / params.sigma);
         return (z * exp(-1 * z)) / params.sigma;
+      }
+
+      ///computes the gumbel complementary cumulative distribution probability (probability of observing ascore greater than @p x given parameters @p params )
+      static double getGumbelCCDF_(double x, const GaussFitter::GaussFitResult & params)
+      {
+        double z = (x - params.x0) / params.sigma;
+        double cdf = exp(-exp(-z));
+        return 1. - cdf;
       }
 
       /**
@@ -227,6 +235,12 @@ public:
           @note: fit has to be used before using this function. Otherwise this function will compute nonsense.
       */
       double computeProbability(double score) const;
+
+      /**
+          Returns the computed p-value for a given score.
+          @note: fit has to be used before using this function. Otherwise this function will compute nonsense.
+      */
+      double computePValue(double score) const;
 
       /// initializes the plots
       TextFile initPlots(std::vector<double> & x_scores);
