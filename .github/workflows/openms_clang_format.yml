@@ -31,3 +31,8 @@ jobs:
       with:
         source: ${{ steps.changed_files.outputs.all_changed_files }}
         clangFormatVersion: 16
+
+    - name: Set workflow status to warning
+      if: ${{ failure() }}
+      run: echo "Linting issues detected. This is a warning."
+      continue-on-error: true
