@@ -58,7 +58,7 @@ namespace OpenMS
       p.setValue("use_all_hits", "true");
     }
     fdr.setParameters(p);
-    fdr.apply(peptide_ids, true); // also calculate "peptide q-value"
+    fdr.apply(peptide_ids, true); // also calculate Constants::UserParam::PEPTIDE_Q_VALUE
   }
 
   void NuXLFDR::splitIntoPeptidesAndXLs(const vector<PeptideIdentification>& peptide_ids, vector<PeptideIdentification>& pep_pi, vector<PeptideIdentification>& xl_pi) const
@@ -224,7 +224,7 @@ namespace OpenMS
     {
       auto chechBadPeptideQValue = [&peptide_peptide_qvalue_threshold](PeptideHit& ph)->bool
       {
-        return (double)ph.getMetaValue("peptide q-value") >= peptide_peptide_qvalue_threshold; 
+        return (double)ph.getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE) >= peptide_peptide_qvalue_threshold; 
       }; // of lambda
 
       for (auto & pid : pep_pi)
@@ -270,7 +270,7 @@ namespace OpenMS
       {
         auto chechBadPeptideQValue = [&xl_peptidelevel_FDR](PeptideHit& ph)->bool
         {
-          return (double)ph.getMetaValue("peptide q-value") >= xl_peptidelevel_FDR;
+          return (double)ph.getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE) >= xl_peptidelevel_FDR;
         }; // of lambda
 
         for (auto & pid : xl_pi)

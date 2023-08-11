@@ -353,10 +353,10 @@ namespace OpenMS
 /*
 Output format:
 +----------------------+-----+--------+---------+------+--------------------------+---------------------+---------------------------+-----------------------+------------------------+------------------------------+------------------------------+-------------------------------+------------------------------+---------------------------+---------------------------+----------------------------------+----------------------------------+---------------+-------------------------+
-|      accession       |  AA |   pos. |   start |  end |  adducts (loc. + unique) |  NT (loc. + unique) |   charges (loc. + unique) |  CSMs (loc. + unique) |   CSMs (loc. + shared) |   precursors (loc. + unique) |   precursors (loc. + shared) |   adducts (\wo loc. + unique) |  charges (\wo loc. + unique) |  CSMs (\wo loc. + unique) |  CSMs (\wo loc. + shared) |   precursors (\wo loc. + unique) |   precursors (\wo loc. + shared) |   ambiguities |         peptide         |
+|      accession       |  AA |   pos. |   start |  end |  adducts (loc. + unique) |  NT (loc. + unique) |   charges (loc. + unique) |  CSMs (loc. + unique) |   CSMs (loc. + shared) |   precursors (loc. + unique) |   precursors (loc. + shared) |   adducts (\wo loc. + unique) |  charges (\wo loc. + unique) |  CSMs (\wo loc. + unique) |  CSMs (\wo loc. + shared) |   precursors (\wo loc. + unique) |   precursors (\wo loc. + shared) |   ambiguities |         peptide         | peptide-XL q-value
 +----------------------+-----+--------+---------+------+--------------------------+---------------------+---------------------------+-----------------------+------------------------+------------------------------+------------------------------+-------------------------------+------------------------------+---------------------------+---------------------------+----------------------------------+----------------------------------+---------------+-------------------------+
-| sp|P19338|NUCL_HUMAN |   P |    302 |     297 |  317 |  U                       |  U                  |                         3 |                     1 |                      0 |                            1 |                            0 |                               |                              |                         0 |                         0 |                                0 |                                0 |               |   VEGTEPTTAFNLFVGNLNFNK |
-| sp|P19338|NUCL_HUMAN |   F |    309 |     297 |  317 |  U,U-H2O1                |   U                 |                       2,3 |                     3 |                      0 |                            3 |                            0 |                               |                              |                         0 |                         0 |                                0 |                                0 |               |   VEGTEPTTAFNLFVGNLNFNK |
+| sp|P19338|NUCL_HUMAN |   P |    302 |     297 |  317 |  U                       |  U                  |                         3 |                     1 |                      0 |                            1 |                            0 |                               |                              |                         0 |                         0 |                                0 |                                0 |               |   VEGTEPTTAFNLFVGNLNFNK |  0.0
+| sp|P19338|NUCL_HUMAN |   F |    309 |     297 |  317 |  U,U-H2O1                |   U                 |                       2,3 |                     3 |                      0 |                            3 |                            0 |                               |                              |                         0 |                         0 |                                0 |                                0 |               |   VEGTEPTTAFNLFVGNLNFNK |  0.0
 +----------------------+-----+--------+---------+------+--------------------------+---------------------+---------------------------+-----------------------+------------------------+------------------------------+------------------------------+-------------------------------+------------------------------+---------------------------+---------------------------+----------------------------------+----------------------------------+---------------+-------------------------+
 */
   
@@ -375,7 +375,7 @@ Output format:
     std::map<std::string, vector<LocalizedXL>> peptide2XL; // observed peptide -> adduct,NA,charge tuples    
   };
 
-  struct  RegionLevelLocalization
+  struct RegionLevelLocalization
   {
     struct UnlocalizedXL
     {
@@ -394,11 +394,12 @@ Output format:
     size_t CSMs_of_shared_peptides = 0; // XL spectral count of shared peptides
     size_t CSMs_of_unique_peptides = 0; // XL spectral count of unique peptides
     map<size_t, AALevelLocalization> aa_level_localization; // position in protein to loc info
-    map<pair<size_t, size_t>, RegionLevelLocalization> region_level_localization;      
+    map<pair<size_t, size_t>, RegionLevelLocalization> region_level_localization;
   };
 
   // all proteins
   using ProteinsReport = map<std::string, ProteinReport>; //< protein accession to details
+  std::unordered_map<String, double> peptide_seq2XLFDR;
 
   ProteinsReport getProteinReportEntries(
 //    vector<ProteinIdentification>& prot_ids, 
@@ -422,10 +423,14 @@ Output format:
       const String& NT = ph.getMetaValue("NuXL:NT"); // XLed nucleotide
       const int charge = ph.getCharge();
       const AASequence& peptide_sequence = ph.getSequence();
-
+      
       // get mapping of peptide sequence to protein(s)
       const std::vector<PeptideEvidence>& ph_evidences = ph.getPeptideEvidences();
       const std::string peptide_sequence_string = peptide_sequence.toUnmodifiedString();
+
+      // the peptide-level FDR in the group of cross-linked peptides
+      double peptide_XL_level_qvalue = (double)ph.getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE, 0.0);
+      peptide_seq2XLFDR[peptide_sequence_string] = peptide_XL_level_qvalue;
 
       // loop over all target proteins the peptide maps to
       const std::set<std::string>& proteins = peptide2proteins.at(peptide_sequence_string);
@@ -477,7 +482,6 @@ Output format:
           xl.NT = NT;
           xl.charge = charge;          
           report[acc].aa_level_localization[xl_pos_in_protein].peptide2XL[peptide_sequence_string].push_back(xl);
-
         }
         else
         { // not localized? annotate region
@@ -605,8 +609,9 @@ Output format:
       ambiguities.erase(accession);
       l += ListUtils::concatenate(ambiguities, ",") + "\t";
 
-      // add peptide sequence
-      l += peptide;
+      // add peptide sequence and sequence level FDR (in the group of XLs)
+      l += peptide + "\t";
+      l += peptide_seq2XLFDR[peptide];
       tsv_file.addLine(l);
     }
     return printed_peptides;
@@ -672,9 +677,9 @@ Output format:
       auto ambiguities = peptide2proteins[peptide];
       protein2proteins[accession].insert(ambiguities.begin(), ambiguities.end()); // note: add same protein to group as well
       ambiguities.erase(accession);
-      l += ListUtils::concatenate(ambiguities, ",") + "\t";
-      // add peptide sequence
-      l += peptide;
+      l += ListUtils::concatenate(ambiguities, ",") + "\t";      
+      l += peptide + "\t"; // add peptide sequence
+      l += peptide_seq2XLFDR[peptide];
       tsv_file.addLine(l);
     }
   }
@@ -798,7 +803,7 @@ Output format:
                      "CSMs (loc. + unique)\tCSMs (loc. + shared)\tprecursors (loc. + unique)\tprecursors (loc. + shared)\t" +
                      "adducts (\\wo loc. + unique)\tcharges (\\wo loc. + unique)\t" + 
                      "CSMs (\\wo loc. + unique)\tCSMs (\\wo loc. + shared)\tprecursors (\\wo loc. + unique)\tprecursors (\\wo loc. + shared)\t" +
-                     "ambiguities\tpeptide"
+                     "ambiguities\tpeptide\tq-value (peptide seq. level)"
       );
 
     map<string, set<string>> protein2proteins;

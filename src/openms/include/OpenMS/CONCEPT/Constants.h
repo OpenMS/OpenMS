@@ -337,6 +337,11 @@ namespace OpenMS
       */
       inline const std::string   ISOTOPE_ERROR = "isotope_error";
 
+      /** User parameter name to indicate a peptide q-value
+              String
+      */
+      inline const std::string   PEPTIDE_Q_VALUE = "peptide q-value";
+
       // Cross-Linking Mass Spectrometry user parameters
       /** Name of OpenPepXL main score (PSI CV term)
               String

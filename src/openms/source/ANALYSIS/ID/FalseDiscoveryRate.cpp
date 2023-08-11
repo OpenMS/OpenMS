@@ -414,7 +414,7 @@ namespace OpenMS
                 }
                 if (q_value)
                 {
-                  hit.setMetaValue("peptide q-value", peptide_fdr);
+                  hit.setMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE, peptide_fdr);
                 }
                 else
                 {
@@ -1249,7 +1249,7 @@ namespace OpenMS
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
     //TODO Check naming conventions. Ontology?
-    const string& score_type = q_value ? "peptide q-value" : "peptide FDR";
+    const string& score_type = q_value ? Constants::UserParam::PEPTIDE_Q_VALUE : "peptide FDR";
     bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
     // since we do not support multiple runs here yet, we take the orientation of the first ID
     bool higher_better = true;
@@ -1293,7 +1293,7 @@ namespace OpenMS
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
     //TODO Check naming conventions. Ontology?
-    const string& score_type = q_value ? "peptide q-value" : "peptide FDR";
+    const string& score_type = q_value ? Constants::UserParam::PEPTIDE_Q_VALUE : "peptide FDR";
     bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
     // since we do not support multiple runs here yet, we take the orientation of the first ID
     bool higher_better = ids[0].isHigherScoreBetter();
