@@ -465,13 +465,6 @@ namespace OpenMS
     //Param category_param = param_.copy("tool_categories:", true);
 
     ToolListType tools_list = ToolHandler::getTOPPToolList(true);
-    ToolListType util_list = ToolHandler::getUtilList();
-    // append utils
-    for (ToolListType::iterator it = util_list.begin(); it != util_list.end(); ++it)
-    {
-      it->second.category = "Utils";
-      tools_list.insert(*it);
-    }
 
     // any tool without a category gets into "unassigned" bin
     for (ToolListType::iterator it = tools_list.begin(); it != tools_list.end(); ++it)

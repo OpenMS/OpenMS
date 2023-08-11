@@ -10,7 +10,6 @@ INI file - parameter configuration file, holding custom parameter settings for T
 INIFileEditor - graphical parameter editor for INI files
 Parameters - list of algorithm or TOPP tool parameters that changed in this release
 PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
-UTIL - An executable, just like a TOPP tool, but usually experimental or of lesser importance to common pipelines
 #<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit https://github.com/OpenMS/OpenMS/pull/4957 for details
 
 
