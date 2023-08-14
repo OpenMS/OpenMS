@@ -78,6 +78,7 @@ ProteinInference
 ProteinQuantifier
 ProteinResolver
 QualityControl
+SageAdapter
 SeedListGenerator
 SpecLibSearcher
 SpectraFilterBernNorm
