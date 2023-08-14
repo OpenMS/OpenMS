@@ -179,9 +179,6 @@ PyOpenMSChecker:
     OpenMS::SeedListGenerator:
         # STL wrapped key
         - generateSeedLists
-    OpenMS::SvmTheoreticalSpectrumGenerator:
-        # boost rng
-        - simulate
     OpenMS::TransformationModelInterpolated:
         - TransformationModelInterpolated
     OpenMS::Param:
@@ -252,9 +249,6 @@ PyOpenMSChecker:
     OpenMS::PepXMLFileMascot:
         # TODO map
         - load
-    OpenMS::CompNovoIonScoring:
-        # TODO map
-        - scoreSpectra
     OpenMS::OptimizePick:
         - optimize
         - peaks
@@ -338,15 +332,6 @@ PyOpenMSChecker:
     OpenMS::IsobaricQuantifierStatistics:
         # STL attributes
         - empty_channels
-    OpenMS::PrecursorIonSelectionPreprocessing:
-        # TODO STL map
-        - getProtMasses
-        - getProteinRTMap
-        - getProteinPTMap
-        - getProteinPeptideSequenceMap
-        - getFixedModifications
-    OpenMS::CompNovoIonScoringCID:
-        - scoreSpectrum
     OpenMS::DIAScoring:
         - dia_isotope_scores
         - dia_massdiff_score
@@ -469,8 +454,6 @@ PyOpenMSChecker:
     # immutable types by reference
     OpenMS::SequestOutfile:
         - readOutHeader
-    OpenMS::PeakPickerRapid:
-        - computeTPG
     OpenMS::ProteinResolver:
         # pointers
         - getPeptideIdentification
@@ -599,8 +582,6 @@ PyOpenMSChecker:
 
     OpenMS::InternalCalibration::LockMass:
         - LockMass
-    OpenMS::DeNovoIonScoring::IonScore:
-        - IonScore
     OpenMS::TargetedExperimentHelper::Interpretation:
         - Interpretation
     OpenMS::TargetedExperimentHelper::Instrument:
@@ -744,17 +725,6 @@ PyOpenMSChecker:
         - getModelDescription
         - setModelDescription
 
-    # Not part of the public interface
-    OpenMS::SVMWrapper:
-        # External lib
-        - performCrossValidation
-        - getDecisionValues
-        - scaleData
-        - computeKernelMatrix
-        - getSVCProbabilities
-        - getLabels
-        - kernelOligo
-        - mergePartitions
     OpenMS::FeatureDistance:
         - infinity
     OpenMS::Digestion:
@@ -1185,7 +1155,6 @@ PyOpenMSChecker:
     - OpenMS::SpecArrayFile
     - OpenMS::PersistentObject
     - OpenMS::MascotRemoteQuery
-    - OpenMS::LibSVMEncoder
     - OpenMS::CsvFile
     - OpenMS::ToolDescriptionFile
     - OpenMS::PTMXMLFile
@@ -1235,19 +1204,6 @@ PyOpenMSChecker:
     - OpenMS::RichPeak1D
     - OpenMS::FeatureHandle::FeatureHandleMutable_
     - OpenMS::FeatureHandle::IndexLess
-
-    # SIMULATION - Simulator internals (we might want to wrap those)
-    - OpenMS::LabelFreeLabeler
-    - OpenMS::ITRAQLabeler
-    - OpenMS::ICPLLabeler
-    - OpenMS::RawMSSignalSimulation
-    - OpenMS::IonizationSimulation
-    - OpenMS::RawTandemMSSignalSimulation
-    - OpenMS::RTSimulation
-    - OpenMS::EGHModel
-    - OpenMS::EGHFitter1D
-    - OpenMS::O18Labeler
-    - OpenMS::DetectabilitySimulation
 
     # DATASTRUCTURES
     - OpenMS::GridFeature
@@ -1307,10 +1263,6 @@ PyOpenMSChecker:
     - OpenMS::BinnedSpectrum::getBins
     - OpenMS::ClusterFunctor
     - OpenMS::ClusterFunctor::InsufficientInput
-    - OpenMS::CompNovoIdentificationBase
-    - OpenMS::CompNovoIdentificationBase::Permut
-    - OpenMS::CompNovoIonScoringBase
-    - OpenMS::CompNovoIonScoringBase::IonScore
     - OpenMS::ConstRefVector
     - OpenMS::ConstRefVector::ConstRefVectorConstIterator
     - OpenMS::ConstRefVector::ConstRefVectorIterator

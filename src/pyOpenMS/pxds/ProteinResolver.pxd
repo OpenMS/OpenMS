@@ -11,28 +11,28 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         # wrap-inherits:
         #   DefaultParamHandler
 
-        ProteinResolver() nogil except +
-        ProteinResolver(ProteinResolver &) nogil except +
+        ProteinResolver() except + nogil 
+        ProteinResolver(ProteinResolver &) except + nogil 
 
-        void resolveConsensus(ConsensusMap & consensus) nogil except +
-        void resolveID(libcpp_vector[PeptideIdentification] & peptide_identifications) nogil except +
-        void setProteinData(libcpp_vector[FASTAEntry] & protein_data) nogil except +
-        libcpp_vector[ResolverResult] getResults() nogil except +
+        void resolveConsensus(ConsensusMap & consensus) except + nogil 
+        void resolveID(libcpp_vector[PeptideIdentification] & peptide_identifications) except + nogil 
+        void setProteinData(libcpp_vector[FASTAEntry] & protein_data) except + nogil 
+        libcpp_vector[ResolverResult] getResults() except + nogil 
 
-        void countTargetDecoy(libcpp_vector[ MSDGroup ] & msd_groups, ConsensusMap & consensus) nogil except +
-        void countTargetDecoy(libcpp_vector[ MSDGroup ] & msd_groups, libcpp_vector[ PeptideIdentification ] & peptide_nodes) nogil except +
-        void clearResult() nogil except +
+        void countTargetDecoy(libcpp_vector[ MSDGroup ] & msd_groups, ConsensusMap & consensus) except + nogil 
+        void countTargetDecoy(libcpp_vector[ MSDGroup ] & msd_groups, libcpp_vector[ PeptideIdentification ] & peptide_nodes) except + nogil 
+        void clearResult() except + nogil 
 
-        PeptideIdentification getPeptideIdentification(ConsensusMap & consensus, PeptideEntry * peptide) nogil except +
-        PeptideHit getPeptideHit(ConsensusMap & consensus, PeptideEntry * peptide) nogil except +
-        PeptideIdentification getPeptideIdentification(libcpp_vector[ PeptideIdentification ] & peptide_nodes, PeptideEntry * peptide) nogil except +
-        PeptideHit getPeptideHit(libcpp_vector[ PeptideIdentification ] & peptide_nodes, PeptideEntry * peptide) nogil except +
+        PeptideIdentification getPeptideIdentification(ConsensusMap & consensus, PeptideEntry * peptide) except + nogil 
+        PeptideHit getPeptideHit(ConsensusMap & consensus, PeptideEntry * peptide) except + nogil 
+        PeptideIdentification getPeptideIdentification(libcpp_vector[ PeptideIdentification ] & peptide_nodes, PeptideEntry * peptide) except + nogil 
+        PeptideHit getPeptideHit(libcpp_vector[ PeptideIdentification ] & peptide_nodes, PeptideEntry * peptide) except + nogil 
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver":
     
     cdef cppclass ISDGroup "OpenMS::ProteinResolver::ISDGroup":
-        ISDGroup() nogil except + # compiler
-        ISDGroup(ISDGroup &) nogil except + # compiler
+        ISDGroup() except + nogil  # compiler
+        ISDGroup(ISDGroup &) except + nogil  # compiler
 
         # NAMESPACE # # POINTER # std::list[ ProteinEntry * ] proteins
         # NAMESPACE # # POINTER # std::list[ PeptideEntry * ] peptides
@@ -42,8 +42,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver":
     
     cdef cppclass MSDGroup "OpenMS::ProteinResolver::MSDGroup":
-        MSDGroup() nogil except + # compiler
-        MSDGroup(MSDGroup &) nogil except + # compiler
+        MSDGroup() except + nogil  # compiler
+        MSDGroup(MSDGroup &) except + nogil  # compiler
 
         # NAMESPACE # # POINTER # std::list[ ProteinEntry * ] proteins
         # NAMESPACE # # POINTER # std::list[ PeptideEntry * ] peptides
@@ -57,8 +57,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver":
 
     cdef cppclass ResolverResult "OpenMS::ProteinResolver::ResolverResult":
-        ResolverResult() nogil except + # compiler
-        ResolverResult(ResolverResult &) nogil except + # compiler
+        ResolverResult() except + nogil  # compiler
+        ResolverResult(ResolverResult &) except + nogil  # compiler
 
         String identifier
         libcpp_vector[ISDGroup] * isds
@@ -74,8 +74,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver":
     
     cdef cppclass PeptideEntry "OpenMS::ProteinResolver::PeptideEntry":
-        PeptideEntry() nogil except + # compiler
-        PeptideEntry(PeptideEntry &) nogil except + # compiler
+        PeptideEntry() except + nogil  # compiler
+        PeptideEntry(PeptideEntry &) except + nogil  # compiler
 
         # NAMESPACE # # POINTER # std::list[ ProteinEntry * ] proteins
         bool traversed
@@ -98,8 +98,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver":
     
     cdef cppclass ProteinEntry "OpenMS::ProteinResolver::ProteinEntry":
-        ProteinEntry() nogil except + # compiler
-        ProteinEntry(ProteinEntry &) nogil except + # compiler
+        ProteinEntry() except + nogil  # compiler
+        ProteinEntry(ProteinEntry &) except + nogil  # compiler
 
         # NAMESPACE # # POINTER # std::list[ PeptideEntry * ] peptides
         bool traversed

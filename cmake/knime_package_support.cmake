@@ -119,7 +119,7 @@ endif()
 # pseudo-ctd target
 add_custom_target(
     create_knime_folders
-    DEPENDS TOPP UTILS
+    DEPENDS TOPP
 )
 
 foreach (PATH IN LISTS TOP_LEVEL_DIRS)
@@ -169,10 +169,10 @@ add_custom_target(
 
 # list of all tools that can generate CTDs and do not include GUI libraries
 # TODO make a new category for Adapters
-set(CTD_executables ${TOPP_TOOLS} ${UTILS_TOOLS})
+set(CTD_executables ${TOPP_TOOLS})
 
 # remove tools that do not produce CTDs or should not be shipped (because of dependencies or specifics that can not be resolved in KNIME)
-list(REMOVE_ITEM CTD_executables OpenMSInfo Resampler ExecutePipeline INIUpdater ImageCreator GenericWrapper InspectAdapter MascotAdapter SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter)
+list(REMOVE_ITEM CTD_executables OpenMSInfo Resampler ExecutePipeline INIUpdater ImageCreator GenericWrapper MascotAdapter OpenSwathMzMLFileCacher)
 
 # TODO do regex with "Adapter". Safe enough?
 set(THIRDPARTY_ADAPTERS

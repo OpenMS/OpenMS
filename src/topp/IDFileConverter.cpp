@@ -155,7 +155,7 @@ class TOPPIDFileConverter :
 {
 public:
   TOPPIDFileConverter() :
-    TOPPBase("IDFileConverter", "Converts identification engine file formats.", true)
+    TOPPBase("IDFileConverter", "Converts identification engine file formats.")
   {
   }
 

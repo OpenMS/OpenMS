@@ -38,11 +38,10 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 #
 # README:
 #
-# This file contains the declarations of all TOPP/UTILS tests that are executed by CTest
+# This file contains the declarations of all TOPP tests that are executed by CTest
 #
 # In order to add a test do the following:
 # - add specific tests for your tool (this usually involves FuzzyDiff) - see below for examples
-# - for UTILS we do not require any tests, but you are encouraged to provide them!
 #
 # Test names (the first argument of 'add_test') must be distinct.
 # If not, the first definition of the test is overwritten!
@@ -81,13 +80,14 @@ set(INDEX_WHITELIST "offset" "indexListOffset")
 set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini)
 
 #------------------------------------------------------------------------------
-# WRITE_INI test for each TOPP/UTILS tool, checking -write_ini functionality
+# WRITE_INI test for each TOPP tool, checking -write_ini functionality
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
 # TOPP
 set(TOPP_executables_INI ${TOPP_TOOLS})
 list(REMOVE_ITEM TOPP_executables_INI GenericWrapper) # GenericWrapper (has a -type flag)
+list(REMOVE_ITEM TOPP_executables_INI OpenMSInfo)
 add_test("TOPPWRITEINI_GenericWrapper" ${TOPP_BIN_PATH}/GenericWrapper -test -type RAWFileConvert -write_ini "GenericWrapper.ini.tmp")
 foreach (i ${TOPP_executables_INI})
   add_test("TOPPWRITEINI_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ini "${i}.ini.tmp")
@@ -96,32 +96,14 @@ foreach (i ${TOPP_executables_INI})
 endforeach(i)
 
 #------------------------------------------------------------------------------
-# UTILS
-set(UTILS_executables_INI ${UTILS_TOOLS})
-list(REMOVE_ITEM UTILS_executables_INI OpenMSInfo)
-
-foreach (i ${UTILS_executables_INI})
-  add_test("UTILSWRITEINI_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ini "${i}.ini.tmp")
-  add_test("UTILSWRITEINI_${i}_SectionName" ${CMAKE_COMMAND} -test -DNAME=${i} -DFILE=${i}.ini.tmp -P "${DATA_DIR_TOPP}/check_ini.cmake")
-  set_tests_properties("UTILSWRITEINI_${i}_SectionName" PROPERTIES DEPENDS "UTILSWRITEINI_${i}")
-endforeach(i)
-
-#------------------------------------------------------------------------------
 # WRITECTD test to check whether -write_ctd works
 #------------------------------------------------------------------------------
-
-#------------------------------------------------------------------------------
-# UTILS
-set(UTILS_executables_CTD ${UTILS_TOOLS})
-list(REMOVE_ITEM UTILS_executables_CTD OpenMSInfo)
-foreach (i ${UTILS_executables_CTD})
-  add_test("UTILSWRITECTD_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ctd)
-endforeach()
 
 #------------------------------------------------------------------------------
 # TOPP
 set(TOPP_executables_CTD ${TOPP_TOOLS})
 list(REMOVE_ITEM TOPP_executables_CTD GenericWrapper)
+list(REMOVE_ITEM UTILS_executables_CTD OpenMSInfo)
 foreach (i ${TOPP_executables_CTD})
   add_test("TOPPWRITECTD_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ctd)
 endforeach()
@@ -1994,65 +1976,6 @@ set_tests_properties("TOPP_RNPxlSearch_4_out1" PROPERTIES DEPENDS "TOPP_RNPxlSea
 set_tests_properties("TOPP_RNPxlSearch_4_out2" PROPERTIES DEPENDS "TOPP_RNPxlSearch_4")
 
 #------------------------------------------------------------------------------
-# RTModel tests
-add_test("TOPP_RTModel_1" ${TOPP_BIN_PATH}/RTModel -test -in ${DATA_DIR_TOPP}/RTModel_1_input.idXML -out RTModel_1_output.tmp.txt -ini ${DATA_DIR_TOPP}/RTModel_1_parameters.ini)
-add_test("TOPP_RTModel_1_out1" ${DIFF} -in1 RTModel_1_output.tmp.txt -in2 ${DATA_DIR_TOPP}/RTModel_1_output.model )
-set_tests_properties("TOPP_RTModel_1_out1" PROPERTIES DEPENDS "TOPP_RTModel_1")
-add_test("TOPP_RTModel_2" ${TOPP_BIN_PATH}/RTModel -test -in_positive ${DATA_DIR_TOPP}/RTModel_2_input_positive.idXML -in_negative ${DATA_DIR_TOPP}/RTModel_2_input_negative.idXML -out RTModel_2_output.tmp.txt -ini ${DATA_DIR_TOPP}/RTModel_2_parameters.ini)
-add_test("TOPP_RTModel_2_out1" ${DIFF} -in1 RTModel_2_output.tmp.txt -in2 ${DATA_DIR_TOPP}/RTModel_2_output.model )
-set_tests_properties("TOPP_RTModel_2_out1" PROPERTIES DEPENDS "TOPP_RTModel_2")
-add_test("TOPP_RTModel_2_out2" ${DIFF} -in1 RTModel_2_output.tmp.txt_samples -in2 ${DATA_DIR_TOPP}/RTModel_2_output.samples )
-set_tests_properties("TOPP_RTModel_2_out2" PROPERTIES DEPENDS "TOPP_RTModel_2")
-add_test("TOPP_RTModel_2_out3" ${DIFF} -in1 RTModel_2_output.tmp.txt_additional_parameters -in2 ${DATA_DIR_TOPP}/RTModel_2_output.additional_parameters )
-set_tests_properties("TOPP_RTModel_2_out3" PROPERTIES DEPENDS "TOPP_RTModel_2")
-add_test("TOPP_RTModel_3" ${TOPP_BIN_PATH}/RTModel -test -in ${DATA_DIR_TOPP}/RTModel_3_input.idXML -out RTModel_3_output.tmp.txt -ini ${DATA_DIR_TOPP}/RTModel_3_parameters.ini)
-add_test("TOPP_RTModel_3_out1" ${DIFF} -in1 RTModel_3_output.tmp.txt -in2 ${DATA_DIR_TOPP}/RTModel_3_output.model )
-set_tests_properties("TOPP_RTModel_3_out1" PROPERTIES DEPENDS "TOPP_RTModel_3")
-add_test("TOPP_RTModel_3_out2" ${DIFF} -in1 RTModel_3_output.tmp.txt_samples -in2 ${DATA_DIR_TOPP}/RTModel_3_output.samples )
-set_tests_properties("TOPP_RTModel_3_out2" PROPERTIES DEPENDS "TOPP_RTModel_3")
-add_test("TOPP_RTModel_4" ${TOPP_BIN_PATH}/RTModel -test -in ${DATA_DIR_TOPP}/RTModel_4_input.txt -out RTModel_4_output.tmp.txt -ini ${DATA_DIR_TOPP}/RTModel_4_parameters.ini)
-add_test("TOPP_RTModel_4_out1" ${DIFF} -in1 RTModel_4_output.tmp.txt -in2 ${DATA_DIR_TOPP}/RTModel_4_output.model )
-set_tests_properties("TOPP_RTModel_4_out1" PROPERTIES DEPENDS "TOPP_RTModel_4")
-add_test("TOPP_RTModel_4_out2" ${DIFF} -in1 RTModel_4_output.tmp.txt_samples -in2 ${DATA_DIR_TOPP}/RTModel_4_output.samples )
-set_tests_properties("TOPP_RTModel_4_out2" PROPERTIES DEPENDS "TOPP_RTModel_4")
-
-#------------------------------------------------------------------------------
-# PTModel tests
-add_test("TOPP_PTModel_1" ${TOPP_BIN_PATH}/PTModel -test -in_positive ${DATA_DIR_TOPP}/PTModel_1_input_positive.idXML -in_negative ${DATA_DIR_TOPP}/PTModel_1_input_negative.idXML -out PTModel_1_output.tmp.txt -ini ${DATA_DIR_TOPP}/PTModel_1_parameters.ini)
-add_test("TOPP_PTModel_1_out1" ${DIFF} -whitelist "probA" "probB" -in1 PTModel_1_output.tmp.txt -in2 ${DATA_DIR_TOPP}/PTModel_1_output.model )
-set_tests_properties("TOPP_PTModel_1_out1" PROPERTIES DEPENDS "TOPP_PTModel_1")
-add_test("TOPP_PTModel_1_out2" ${DIFF} -in1 PTModel_1_output.tmp.txt_samples -in2 ${DATA_DIR_TOPP}/PTModel_1_output.samples )
-set_tests_properties("TOPP_PTModel_1_out2" PROPERTIES DEPENDS "TOPP_PTModel_1")
-add_test("TOPP_PTModel_1_out3" ${DIFF} -in1 PTModel_1_output.tmp.txt_additional_parameters -in2 ${DATA_DIR_TOPP}/PTModel_1_output.additional_parameters )
-set_tests_properties("TOPP_PTModel_1_out3" PROPERTIES DEPENDS "TOPP_PTModel_1")
-
-#------------------------------------------------------------------------------
-# PTPredict tests
-add_test("TOPP_PTPredict_1" ${TOPP_BIN_PATH}/PTPredict -test -in ${DATA_DIR_TOPP}/PTPredict_1_input.idXML -out PTPredict_1_output.tmp.idXML -svm_model ${DATA_DIR_TOPP}/PTPredict_1_input.model)
-add_test("TOPP_PTPredict_1_out1" ${DIFF} -in1 PTPredict_1_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/PTPredict_1_output.idXML )
-set_tests_properties("TOPP_PTPredict_1_out1" PROPERTIES DEPENDS "TOPP_PTPredict_1")
-
-#------------------------------------------------------------------------------
-# RTPredict tests
-add_test("TOPP_RTPredict_1" ${TOPP_BIN_PATH}/RTPredict -test -in_id ${DATA_DIR_TOPP}/RTPredict_1_input.idXML -out_id:file RTPredict_1_output.tmp.idXML -total_gradient_time 3000 -svm_model ${DATA_DIR_TOPP}/RTPredict_1_input.model)
-add_test("TOPP_RTPredict_1_out1" ${DIFF} -in1 RTPredict_1_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/RTPredict_1_output.idXML )
-set_tests_properties("TOPP_RTPredict_1_out1" PROPERTIES DEPENDS "TOPP_RTPredict_1")
-add_test("TOPP_RTPredict_2" ${TOPP_BIN_PATH}/RTPredict -test -in_id ${DATA_DIR_TOPP}/RTPredict_2_input.idXML -out_id:positive RTPredict_2_output_positive.tmp.idXML -out_id:negative RTPredict_2_output_negative.tmp.idXML -svm_model ${DATA_DIR_TOPP}/RTPredict_2_input.model -in_oligo_params ${DATA_DIR_TOPP}/RTPredict_2_input.model_additional_parameters.paramXML -in_oligo_trainset ${DATA_DIR_TOPP}/RTPredict_2_input.model_samples)
-add_test("TOPP_RTPredict_2_out1" ${DIFF} -in1 RTPredict_2_output_positive.tmp.idXML -in2 ${DATA_DIR_TOPP}/RTPredict_2_output_positive.idXML )
-set_tests_properties("TOPP_RTPredict_2_out1" PROPERTIES DEPENDS "TOPP_RTPredict_2")
-add_test("TOPP_RTPredict_2_out2" ${DIFF} -in1 RTPredict_2_output_negative.tmp.idXML -in2 ${DATA_DIR_TOPP}/RTPredict_2_output_negative.idXML )
-set_tests_properties("TOPP_RTPredict_2_out2" PROPERTIES DEPENDS "TOPP_RTPredict_2")
-add_test("TOPP_RTPredict_3" ${TOPP_BIN_PATH}/RTPredict -test -in_id ${DATA_DIR_TOPP}/RTPredict_3_input.idXML -out_id:file RTPredict_3_output.tmp.idXML -total_gradient_time 1 -svm_model ${DATA_DIR_TOPP}/RTPredict_3_input.model -in_oligo_params ${DATA_DIR_TOPP}/RTPredict_3_input.model_additional_parameters.paramXML -in_oligo_trainset ${DATA_DIR_TOPP}/RTPredict_3_input.model_samples)
-add_test("TOPP_RTPredict_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "predicted_RT_p_value" -in1 RTPredict_3_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/RTPredict_3_output.idXML )
-set_tests_properties("TOPP_RTPredict_3_out1" PROPERTIES DEPENDS "TOPP_RTPredict_3")
-add_test("TOPP_RTPredict_4" ${TOPP_BIN_PATH}/RTPredict -test -in_text ${DATA_DIR_TOPP}/RTPredict_4_input.txt -out_text:file RTPredict_4_output.tmp.csv -total_gradient_time 1 -svm_model ${DATA_DIR_TOPP}/RTPredict_4_input.model -in_oligo_params ${DATA_DIR_TOPP}/RTPredict_4_input.model_additional_parameters.paramXML -in_oligo_trainset ${DATA_DIR_TOPP}/RTPredict_4_input.model_samples)
-add_test("TOPP_RTPredict_4_out1" ${DIFF} -in1 RTPredict_4_output.tmp.csv -in2 ${DATA_DIR_TOPP}/RTPredict_4_output.txt )
-set_tests_properties("TOPP_RTPredict_4_out1" PROPERTIES DEPENDS "TOPP_RTPredict_4")
-add_test("TOPP_RTPredict_5" ${TOPP_BIN_PATH}/RTPredict -test -in_id ${DATA_DIR_TOPP}/RTPredict_5_input.idXML -out_text:file RTPredict_5_output.tmp.csv -total_gradient_time 1 -svm_model ${DATA_DIR_TOPP}/RTPredict_5_input.model -in_oligo_params ${DATA_DIR_TOPP}/RTPredict_5_input.model_additional_parameters.paramXML -in_oligo_trainset ${DATA_DIR_TOPP}/RTPredict_5_input.model_samples)
-add_test("TOPP_RTPredict_5_out1" ${DIFF} -in1 RTPredict_5_output.tmp.csv -in2 ${DATA_DIR_TOPP}/RTPredict_5_output.txt )
-set_tests_properties("TOPP_RTPredict_5_out1" PROPERTIES DEPENDS "TOPP_RTPredict_5")
-
-#------------------------------------------------------------------------------
 # SeedListGenerator tests
 add_test("TOPP_SeedListGenerator_1" ${TOPP_BIN_PATH}/SeedListGenerator -test -in ${DATA_DIR_TOPP}/PepXMLFile_test.mzML -out_prefix SeedListGenerator_1_output_tmp)
 add_test("TOPP_SeedListGenerator_1_out1" ${DIFF} -in1 SeedListGenerator_1_output_tmp_0.featureXML -in2 ${DATA_DIR_TOPP}/SeedListGenerator_1_output.featureXML )
@@ -2336,24 +2259,6 @@ add_test("TOPP_ConsensusID_8_out1" ${DIFF} -whitelist "?xml-stylesheet" "Identif
 set_tests_properties("TOPP_ConsensusID_8_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_8")
 
 #------------------------------------------------------------------------------
-# PrecursorIonSelector tests
-add_test("TOPP_PrecursorIonSelector_1" ${TOPP_BIN_PATH}/PrecursorIonSelector -test -in ${DATA_DIR_TOPP}/PrecursorIonSelector_features.featureXML -sim_results PrecursorIonSelector_1_output.tmp.txt -ini ${DATA_DIR_TOPP}/PrecursorIonSelector_1_parameters.ini -db_path ${DATA_DIR_TOPP}/PrecursorIonSelector_db.fasta -ids ${DATA_DIR_TOPP}/PrecursorIonSelector_ids.idXML)
-add_test("TOPP_PrecursorIonSelector_1_out1" ${DIFF} -in1 PrecursorIonSelector_1_output.tmp.txt -in2 ${DATA_DIR_TOPP}/PrecursorIonSelector_1_output.txt )
-set_tests_properties("TOPP_PrecursorIonSelector_1_out1" PROPERTIES DEPENDS "TOPP_PrecursorIonSelector_1")
-add_test("TOPP_PrecursorIonSelector_2" ${TOPP_BIN_PATH}/PrecursorIonSelector -test -in ${DATA_DIR_TOPP}/PrecursorIonSelector_features.featureXML -out PrecursorIonSelector_2_output.tmp.featureXML -ini ${DATA_DIR_TOPP}/PrecursorIonSelector_2_parameters.ini -db_path ${DATA_DIR_TOPP}/PrecursorIonSelector_db.fasta -ids ${DATA_DIR_TOPP}/PrecursorIonSelector_ids.idXML)
-add_test("TOPP_PrecursorIonSelector_2_out1" ${DIFF} -in1 PrecursorIonSelector_2_output.tmp.featureXML -in2 ${DATA_DIR_TOPP}/PrecursorIonSelector_2_output.featureXML )
-set_tests_properties("TOPP_PrecursorIonSelector_2_out1" PROPERTIES DEPENDS "TOPP_PrecursorIonSelector_2")
-
-#------------------------------------------------------------------------------
-# CompNovo tests
-add_test("TOPP_CompNovo_1" ${TOPP_BIN_PATH}/CompNovo -test -in ${DATA_DIR_TOPP}/CompNovo_1_input.mzML -ini ${DATA_DIR_TOPP}/CompNovo_1.ini -out CompNovo_1_output.tmp.idXML)
-add_test("TOPP_CompNovo_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 CompNovo_1_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/CompNovo_1_output.idXML )
-set_tests_properties("TOPP_CompNovo_1_out1" PROPERTIES DEPENDS "TOPP_CompNovo_1")
-add_test("TOPP_CompNovoCID_1" ${TOPP_BIN_PATH}/CompNovoCID -test -in ${DATA_DIR_TOPP}/CompNovoCID_1_input.mzML -ini ${DATA_DIR_TOPP}/CompNovoCID_1.ini -out CompNovoCID_1_output.tmp.idXML)
-add_test("TOPP_CompNovoCID_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 CompNovoCID_1_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/CompNovoCID_1_output.idXML )
-set_tests_properties("TOPP_CompNovoCID_1_out1" PROPERTIES DEPENDS "TOPP_CompNovoCID_1")
-
-#------------------------------------------------------------------------------
 # PrecursorMassCorrector tests
 add_test("TOPP_PrecursorMassCorrector_1" ${TOPP_BIN_PATH}/PrecursorMassCorrector -test -in ${DATA_DIR_TOPP}/PrecursorMassCorrector_1_input.mzML -ini ${DATA_DIR_TOPP}/PrecursorMassCorrector_1.ini -out PrecursorMassCorrector_1_output.tmp.mzML)
 add_test("TOPP_PrecursorMassCorrector_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} "location=" -in1 PrecursorMassCorrector_1_output.tmp.mzML -in2 ${DATA_DIR_TOPP}/PrecursorMassCorrector_1_output.mzML )
@@ -2497,27 +2402,6 @@ set_tests_properties("TOPP_ProteinQuantifier_14_out2" PROPERTIES DEPENDS "TOPP_P
 add_test("TOPP_ProteinQuantifier_15" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_15_output.tmp.csv -method iBAQ)
 add_test("TOPP_ProteinQuantifier_15_out1" ${DIFF} -in1 ProteinQuantifier_15_output.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_15_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_15_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_15")
-
-#------------------------------------------------------------------------------
-# InclusionExclusionListCreator tests
-add_test("TOPP_InclusionExclusionListCreator_1" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -include ${DATA_DIR_TOPP}/InclusionExclusionListCreator.featureXML -out InclusionExclusionListCreator_1_output.tmp.csv)
-add_test("TOPP_InclusionExclusionListCreator_1_out1" ${DIFF} -in1 InclusionExclusionListCreator_1_output.tmp.csv -in2 ${DATA_DIR_TOPP}/InclusionExclusionListCreator_1_output.txt )
-set_tests_properties("TOPP_InclusionExclusionListCreator_1_out1" PROPERTIES DEPENDS "TOPP_InclusionExclusionListCreator_1")
-add_test("TOPP_InclusionExclusionListCreator_2" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -exclude ${DATA_DIR_TOPP}/InclusionExclusionListCreator.featureXML -out InclusionExclusionListCreator_2_output.tmp.csv -ini ${DATA_DIR_TOPP}/InclusionExclusionListCreator_2.ini)
-add_test("TOPP_InclusionExclusionListCreator_2_out1" ${DIFF} -in1 InclusionExclusionListCreator_2_output.tmp.csv -in2 ${DATA_DIR_TOPP}/InclusionExclusionListCreator_2_output.txt )
-set_tests_properties("TOPP_InclusionExclusionListCreator_2_out1" PROPERTIES DEPENDS "TOPP_InclusionExclusionListCreator_2")
-add_test("TOPP_InclusionExclusionListCreator_3" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -include ${DATA_DIR_TOPP}/InclusionExclusionListCreator.fasta -out InclusionExclusionListCreator_3_output.tmp.csv -inclusion_charges 1 2 -rt_model ${DATA_DIR_TOPP}/InclusionExclusionListCreator_rt.model)
-add_test("TOPP_InclusionExclusionListCreator_3_out1" ${DIFF} -in1 InclusionExclusionListCreator_3_output.tmp.csv -in2 ${DATA_DIR_TOPP}/InclusionExclusionListCreator_3_output.txt )
-set_tests_properties("TOPP_InclusionExclusionListCreator_3_out1" PROPERTIES DEPENDS "TOPP_InclusionExclusionListCreator_3")
-add_test("TOPP_InclusionExclusionListCreator_4" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -exclude ${DATA_DIR_TOPP}/InclusionExclusionListCreator.fasta -out InclusionExclusionListCreator_4_output.tmp.csv -exclusion_charges 1 2 -rt_model ${DATA_DIR_TOPP}/InclusionExclusionListCreator_rt.model  -ini ${DATA_DIR_TOPP}/InclusionExclusionListCreator_4.ini)
-add_test("TOPP_InclusionExclusionListCreator_4_out1" ${DIFF} -in1 InclusionExclusionListCreator_4_output.tmp.csv -in2 ${DATA_DIR_TOPP}/InclusionExclusionListCreator_4_output.txt )
-set_tests_properties("TOPP_InclusionExclusionListCreator_4_out1" PROPERTIES DEPENDS "TOPP_InclusionExclusionListCreator_4")
-add_test("TOPP_InclusionExclusionListCreator_5" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -exclude ${DATA_DIR_TOPP}/InclusionExclusionListCreator.idXML -out InclusionExclusionListCreator_5_output.tmp.csv -exclusion_charges 1 2 -rt_model ${DATA_DIR_TOPP}/InclusionExclusionListCreator_rt.model)
-add_test("TOPP_InclusionExclusionListCreator_5_out1" ${DIFF} -in1 InclusionExclusionListCreator_5_output.tmp.csv -in2 ${DATA_DIR_TOPP}/InclusionExclusionListCreator_5_output.txt )
-set_tests_properties("TOPP_InclusionExclusionListCreator_5_out1" PROPERTIES DEPENDS "TOPP_InclusionExclusionListCreator_5")
-add_test("TOPP_InclusionExclusionListCreator_6" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -exclude ${DATA_DIR_TOPP}/InclusionExclusionListCreator.idXML -out InclusionExclusionListCreator_6_output.tmp.csv -exclusion_charges 1 2 -rt_model ${DATA_DIR_TOPP}/InclusionExclusionListCreator_rt.model  -ini ${DATA_DIR_TOPP}/InclusionExclusionListCreator_6.ini)
-add_test("TOPP_InclusionExclusionListCreator_6_out1" ${DIFF} -in1 InclusionExclusionListCreator_6_output.tmp.csv -in2 ${DATA_DIR_TOPP}/InclusionExclusionListCreator_6_output.txt )
-set_tests_properties("TOPP_InclusionExclusionListCreator_6_out1" PROPERTIES DEPENDS "TOPP_InclusionExclusionListCreator_6")
 
 #------------------------------------------------------------------------------
 # PeptideIndexer tests
@@ -3361,12 +3245,3 @@ set_tests_properties("TOPP_MassTraceExtractor_1_out_json" PROPERTIES DEPENDS "TO
 add_test("TOPP_MassTraceExtractor_2_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_2.ini.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_2_json.tmp)
 add_test("TOPP_MassTraceExtractor_2_out_json" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_2_json.tmp -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_2_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_2_out_json" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_2_json")
-
-#------------------------------------------------------------------------------
-# CompNovo tests
-add_test("TOPP_CompNovo_1_json" ${TOPP_BIN_PATH}/CompNovo -test -in ${DATA_DIR_TOPP}/CompNovo_1_input.mzML -ini ${DATA_DIR_TOPP}/CompNovo_1.ini.json -out CompNovo_1_output.tmp)
-add_test("TOPP_CompNovo_1_out1_json" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 CompNovo_1_output.tmp -in2 ${DATA_DIR_TOPP}/CompNovo_1_output.idXML )
-set_tests_properties("TOPP_CompNovo_1_out1_json" PROPERTIES DEPENDS "TOPP_CompNovo_1_json")
-add_test("TOPP_CompNovoCID_1_json" ${TOPP_BIN_PATH}/CompNovoCID -test -in ${DATA_DIR_TOPP}/CompNovoCID_1_input.mzML -ini ${DATA_DIR_TOPP}/CompNovoCID_1.ini.json -out CompNovoCID_1_output.tmp)
-add_test("TOPP_CompNovoCID_1_out1_json" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 CompNovoCID_1_output.tmp -in2 ${DATA_DIR_TOPP}/CompNovoCID_1_output.idXML )
-set_tests_properties("TOPP_CompNovoCID_1_out1_json" PROPERTIES DEPENDS "TOPP_CompNovoCID_1_json")

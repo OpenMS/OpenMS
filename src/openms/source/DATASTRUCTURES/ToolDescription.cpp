@@ -114,7 +114,7 @@ namespace OpenMS
       unique_check.insert(types.begin(), types.end());
       if (unique_check.size() != types.size())
       {
-        OPENMS_LOG_ERROR << "A type appears at least twice for the TOPP/UTIL '" << name << "'. Types given are '" << ListUtils::concatenate(types, ", ") << "'\n";
+        OPENMS_LOG_ERROR << "A type appears at least twice for the TOPP tool '" << name << "'. Types given are '" << ListUtils::concatenate(types, ", ") << "'\n";
         if (name == "GenericWrapper")
         {
           OPENMS_LOG_ERROR << "Check the .ttd files in your share/ folder and remove duplicate types!\n";

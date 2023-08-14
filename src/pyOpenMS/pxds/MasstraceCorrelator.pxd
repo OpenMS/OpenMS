@@ -16,15 +16,15 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>" namespace "
         # wrap-inherits:
         #  DefaultParamHandler
         #  ProgressLogger
-        MasstraceCorrelator() nogil except +
-        MasstraceCorrelator(MasstraceCorrelator &) nogil except + # compiler
+        MasstraceCorrelator() except + nogil 
+        MasstraceCorrelator(MasstraceCorrelator &) except + nogil  # compiler
 
         void createPseudoSpectra(const ConsensusMap & map_,
                                  MSExperiment & pseudo_spectra,
                                  Size min_peak_nr,
                                  double min_correlation,
                                  int max_lag,
-                                 double max_rt_apex_difference) nogil except +
+                                 double max_rt_apex_difference) except + nogil 
         # wrap-doc:
             #  Compute pseudo-spectra from a set of (MS2) masstraces
             #  
@@ -45,10 +45,10 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>" namespace "
         #                     double pearson_score,
         #                     double min_corr,
         #                     int max_lag,
-        #                     double mindiff) nogil except +
+        #                     double mindiff) except + nogil 
 
         # void createConsensusMapCache(const ConsensusMap & map_,
         #                             libcpp_vector[ MasstracePointsType ] & feature_points,
         #                             libcpp_vector[ libcpp_pair[ double, double ] ] & max_intensities,
-        #                             libcpp_vector[ double ] & rt_cache) nogil except +
+        #                             libcpp_vector[ double ] & rt_cache) except + nogil 
 

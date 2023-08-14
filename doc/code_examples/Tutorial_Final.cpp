@@ -52,7 +52,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page UTILS_DatabaseFilter DatabaseFilter
+   @page TOPP_DatabaseFilter DatabaseFilter
 
    @brief The DatabaseFilter tool filters a protein database in fasta format according to one or multiple filtering criteria.
 
@@ -63,9 +63,9 @@ using namespace std;
        ID: Filter database according to the set of proteinIDs contained in an identification file (idXML, mzIdentML)
 
    <B>The command line parameters of this tool are:</B>
-   @verbinclude UTILS_DatabaseFilter.cli
+   @verbinclude TOPP_DatabaseFilter.cli
    <B>INI file documentation of this tool:</B>
-   @htmlinclude UTILS_DatabaseFilter.html
+   @htmlinclude TOPP_DatabaseFilter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -76,7 +76,7 @@ class TOPPDatabaseFilter :
 {
 public:
  TOPPDatabaseFilter() :
-   TOPPBase("DatabaseFilter", "Filters a protein database (FASTA format) based on identified proteins", false)
+   TOPPBase("DatabaseFilter", "Filters a protein database (FASTA format) based on identified proteins", false) // false: mark as unofficial tool
  {
  }
 

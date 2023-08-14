@@ -13,10 +13,10 @@ cdef extern from "<OpenMS/FORMAT/MzDataFile.h>" namespace "OpenMS":
         # wrap-inherits:
         #  ProgressLogger
 
-        MzDataFile() nogil except + # wrap-doc:File adapter for MzData files
-        MzDataFile(MzDataFile &) nogil except +
+        MzDataFile() except + nogil  # wrap-doc:File adapter for MzData files
+        MzDataFile(MzDataFile &) except + nogil 
 
-        void load(const String& filename, MSExperiment & map) nogil except +
+        void load(const String& filename, MSExperiment & map) except + nogil 
             # wrap-doc:
             #  Loads a map from a MzData file
             #  
@@ -28,7 +28,7 @@ cdef extern from "<OpenMS/FORMAT/MzDataFile.h>" namespace "OpenMS":
             #  :raises:
             #    Exception: ParseError is thrown if an error occurs during parsing
 
-        void store(const String& filename, MSExperiment & map) nogil except +
+        void store(const String& filename, MSExperiment & map) except + nogil 
             # wrap-doc:
             #  Stores a map in a MzData file
             #  
@@ -38,10 +38,10 @@ cdef extern from "<OpenMS/FORMAT/MzDataFile.h>" namespace "OpenMS":
             #  :raises:
             #    Exception: UnableToCreateFile is thrown if the file could not be created
 
-        PeakFileOptions getOptions() nogil except + # wrap-doc:Returns the options for loading/storing
-        void setOptions(PeakFileOptions) nogil except + # wrap-doc:Sets options for loading/storing
+        PeakFileOptions getOptions() except + nogil  # wrap-doc:Returns the options for loading/storing
+        void setOptions(PeakFileOptions) except + nogil  # wrap-doc:Sets options for loading/storing
 
-        bool isSemanticallyValid(const String& filename, StringList & errors, StringList & warnings) nogil except +
+        bool isSemanticallyValid(const String& filename, StringList & errors, StringList & warnings) except + nogil 
             # wrap-doc:
             #  Checks if a file is valid with respect to the mapping file and the controlled vocabulary
             #  

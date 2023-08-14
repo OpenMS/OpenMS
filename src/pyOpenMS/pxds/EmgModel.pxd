@@ -6,10 +6,10 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>" namespace "
     cdef cppclass EmgModel(InterpolationModel):
         # wrap-inherits:
         #  InterpolationModel
-        EmgModel() nogil except + # wrap-doc:Exponentially modified gaussian distribution model for elution profiles
-        EmgModel(EmgModel &) nogil except +
-        # BaseModel[ 1 ] * create() nogil except +
-        String getProductName() nogil except + # wrap-doc:Name of the model 
+        EmgModel() except + nogil  # wrap-doc:Exponentially modified gaussian distribution model for elution profiles
+        EmgModel(EmgModel &) except + nogil 
+        # BaseModel[ 1 ] * create() except + nogil 
+        String getProductName() except + nogil  # wrap-doc:Name of the model 
 
         # inherited from parent class - no second definition necessary!
         # void setOffset(CoordinateType offset) # wrap-ignore

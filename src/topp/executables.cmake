@@ -5,8 +5,6 @@ set(directory source/APPLICATIONS/TOPP)
 set(TOPP_executables
 BaselineFilter
 CometAdapter
-CompNovo
-CompNovoCID
 ConsensusID
 ConsensusMapNormalizer
 DatabaseSuitability
@@ -42,7 +40,6 @@ IDMerger
 IDPosteriorErrorProbability
 IDRipper
 IDRTCalibration
-InclusionExclusionListCreator
 InternalCalibration
 IsobaricAnalyzer
 LuciphorAdapter
@@ -73,20 +70,14 @@ OpenSwathFeatureXMLToTSV
 OpenSwathRTNormalizer
 PeakPickerHiRes
 PeakPickerWavelet
-PepNovoAdapter
 PeptideIndexer
 PercolatorAdapter
 PhosphoScoring
-PrecursorIonSelector
 PrecursorMassCorrector
 ProteinInference
 ProteinQuantifier
 ProteinResolver
-PTModel
-PTPredict
 QualityControl
-RTModel
-RTPredict
 SeedListGenerator
 SpecLibSearcher
 SpectraFilterBernNorm
@@ -105,10 +96,88 @@ XFDR
 XTandemAdapter
 )
 
+## util category
+set(TOPP_executables
+${TOPP_executables}
+AccurateMassSearch
+AssayGeneratorMetabo
+ClusterMassTraces
+ClusterMassTracesByPrecursor
+CVInspector
+DatabaseFilter
+DecoyDatabase
+DeMeanderize
+Digestor
+DigestorMotif
+Epifany
+ERPairFinder
+FeatureFinderMetaboIdent
+FuzzyDiff
+IDDecoyProbability
+IDExtractor
+IDMassAccuracy
+IDScoreSwitcher
+IDSplitter
+JSONExporter
+MassCalculator
+MetaboliteAdductDecharger
+MetaboliteSpectralMatcher
+MetaProSIP
+MRMPairFinder
+MSFraggerAdapter
+MSstatsConverter
+MultiplexResolver
+MzMLSplitter
+NovorAdapter
+NucleicAcidSearchEngine
+OpenMSDatabasesInfo
+OpenMSInfo
+PeakPickerIterative
+PSMFeatureExtractor
+QCCalculator
+QCEmbedder
+QCExporter
+QCExtractor
+QCImporter
+QCMerger
+QCShrinker
+ProteomicsLFQ
+RNADigestor
+RNAMassCalculator
+RNPxlXICFilter
+RNPxlSearch
+SemanticValidator
+SequenceCoverageCalculator
+SimpleSearchEngine
+SiriusAdapter
+SpecLibCreator
+SpectraSTSearchAdapter
+StaticModification
+TICCalculator
+TriqlerConverter
+XMLValidator
+)
+
+if(NOT DISABLE_OPENSWATH)
+  set(TOPP_executables
+    ${TOPP_executables}
+    TargetedFileConverter
+    OpenSwathDIAPreScoring
+    OpenSwathMzMLFileCacher
+    OpenSwathWorkflow
+    OpenSwathFileSplitter
+    OpenSwathRewriteToFeatureXML
+    MRMTransitionGroupPicker
+  )
+endif(NOT DISABLE_OPENSWATH)
+
 ## all targets requiring OpenMS_GUI
 set(TOPP_executables_with_GUIlib
 ExecutePipeline
 Resampler
+# util category
+ImageCreator
+INIUpdater
 )
 
 ### add filenames to Visual Studio solution tree

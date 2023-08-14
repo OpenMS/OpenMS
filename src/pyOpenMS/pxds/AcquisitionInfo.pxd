@@ -10,18 +10,18 @@ cdef extern from "<OpenMS/METADATA/AcquisitionInfo.h>" namespace "OpenMS":
         # wrap-inherits:
         #   MetaInfoInterface
         
-        AcquisitionInfo() nogil except +
-        AcquisitionInfo(AcquisitionInfo &) nogil except +
+        AcquisitionInfo() except + nogil 
+        AcquisitionInfo(AcquisitionInfo &) except + nogil 
 
-        bool operator==(AcquisitionInfo) nogil except +
-        bool operator!=(AcquisitionInfo) nogil except +
+        bool operator==(AcquisitionInfo) except + nogil 
+        bool operator!=(AcquisitionInfo) except + nogil 
 
-        String getMethodOfCombination() nogil except + # wrap-doc:Returns the method of combination
-        void setMethodOfCombination(String method) nogil except + # wrap-doc:Sets the method of combination
+        String getMethodOfCombination() except + nogil  # wrap-doc:Returns the method of combination
+        void setMethodOfCombination(String method) except + nogil  # wrap-doc:Sets the method of combination
 
-        Size size() nogil except + #wrap-doc:Number a Acquisition objects
-        Acquisition& operator[](size_t) nogil except + # wrap-upper-limit:size()
-        void push_back(Acquisition)  nogil except + #wrap-doc:Append a Acquisition object
-        void resize(size_t n) nogil except +
+        Size size() except + nogil  #wrap-doc:Number a Acquisition objects
+        Acquisition& operator[](size_t) except + nogil  # wrap-upper-limit:size()
+        void push_back(Acquisition)  except + nogil  #wrap-doc:Append a Acquisition object
+        void resize(size_t n) except + nogil 
     
         # libcpp.vector uneccessary - iteration is possible w/o, no assignment w/ or w/o

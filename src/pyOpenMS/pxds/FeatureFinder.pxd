@@ -14,16 +14,16 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>" namesp
         #   ProgressLogger
         #
 
-        FeatureFinder() nogil except +
+        FeatureFinder() except + nogil 
 
-        FeatureFinder(FeatureFinder &) nogil except + # compiler
+        FeatureFinder(FeatureFinder &) except + nogil  # compiler
 
         void run(String algorithm_name,
                  MSExperiment & input_map,
                  FeatureMap & feats,
                  Param & param,
                  FeatureMap & seeds
-                 ) nogil except +
+                 ) except + nogil 
             # wrap-doc:
             #  Executes the FeatureFinder using the given algorithm\n
             #  There are several constraints for the `input_map`.  They are tested before the algorithm starts.  It must only contain MS 1 level scans and you have to call updateRanges() before passing it to this method
@@ -38,4 +38,4 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>" namesp
             #  :param param: Algorithm parameters
             #  :param seeds: List of seeds to use
 
-        Param getParameters(String algorithm_name) nogil except + # wrap-doc:Returns the default parameters for the algorithm with name `algorithm_name`
+        Param getParameters(String algorithm_name) except + nogil  # wrap-doc:Returns the default parameters for the algorithm with name `algorithm_name`

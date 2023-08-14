@@ -9,8 +9,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerSH.h>" namespace "O
         # wrap-inherits:
         #  DefaultParamHandler
         #  ProgressLogger
-        PeakPickerSH() nogil except + 
-        PeakPickerSH(PeakPickerSH &) nogil except + # compiler
-        void pick(MSSpectrum & input_, MSSpectrum & output, float fWindowWidth) nogil except + # wrap-doc:Applies the peak-picking algorithm to one spectrum
-        void pickExperiment(MSExperiment & input_, MSExperiment & output) nogil except + # wrap-doc:Applies the peak-picking algorithm to a map (MSExperiment)
+        PeakPickerSH() except + nogil  
+        PeakPickerSH(PeakPickerSH &) except + nogil  # compiler
+        void pick(MSSpectrum & input_, MSSpectrum & output, float fWindowWidth) except + nogil  # wrap-doc:Applies the peak-picking algorithm to one spectrum
+        void pickExperiment(MSExperiment & input_, MSExperiment & output) except + nogil  # wrap-doc:Applies the peak-picking algorithm to a map (MSExperiment)
 

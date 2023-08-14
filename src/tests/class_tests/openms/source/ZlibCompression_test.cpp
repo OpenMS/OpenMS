@@ -39,6 +39,8 @@
 #include <OpenMS/FORMAT/ZlibCompression.h>
 ///////////////////////////
 
+#include <QByteArray>
+
 #define MULTI_LINE_STRING(...) #__VA_ARGS__ 
 
 

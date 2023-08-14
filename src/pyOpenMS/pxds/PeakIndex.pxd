@@ -10,15 +10,15 @@ cdef extern from "<OpenMS/KERNEL/PeakIndex.h>" namespace "OpenMS":
                 #  
                 #  This struct can be used to store both peak or feature indices
                 
-        PeakIndex() nogil except +
-        PeakIndex(PeakIndex &) nogil except + # compiler
+        PeakIndex() except + nogil 
+        PeakIndex(PeakIndex &) except + nogil  # compiler
         Size peak
         Size spectrum
-        PeakIndex(Size peak) nogil except +
-        PeakIndex(Size spectrum, Size peak) nogil except +
-        bool isValid() nogil except + # wrap-doc:Returns if the current peak ref is valid
-        void clear() nogil except + # wrap-doc:Invalidates the current index
-        Feature getFeature(FeatureMap & map_) nogil except +
+        PeakIndex(Size peak) except + nogil 
+        PeakIndex(Size spectrum, Size peak) except + nogil 
+        bool isValid() except + nogil  # wrap-doc:Returns if the current peak ref is valid
+        void clear() except + nogil  # wrap-doc:Invalidates the current index
+        Feature getFeature(FeatureMap & map_) except + nogil 
             # wrap-doc:
                 #  Returns the feature (or consensus feature) corresponding to this index
                 #  
@@ -30,7 +30,7 @@ cdef extern from "<OpenMS/KERNEL/PeakIndex.h>" namespace "OpenMS":
                 #  :raises:
                 #    Exception: Precondition is thrown if this index is invalid for the `map` (only in debug mode)
 
-        Peak1D getPeak(MSExperiment & map_) nogil except +
+        Peak1D getPeak(MSExperiment & map_) except + nogil 
             # wrap-doc:
                 #  Returns a peak corresponding to this index
                 #  
@@ -42,7 +42,7 @@ cdef extern from "<OpenMS/KERNEL/PeakIndex.h>" namespace "OpenMS":
                 #  :raises:
                 #    Exception: Precondition is thrown if this index is invalid for the `map` (only in debug mode)
 
-        MSSpectrum getSpectrum(MSExperiment & map_) nogil except +
+        MSSpectrum getSpectrum(MSExperiment & map_) except + nogil 
             # wrap-doc:
                 #  Returns a spectrum corresponding to this index
                 #  
@@ -54,6 +54,6 @@ cdef extern from "<OpenMS/KERNEL/PeakIndex.h>" namespace "OpenMS":
                 #  :raises:
                 #    Exception: Precondition is thrown if this index is invalid for the `map` (only in debug mode)
 
-        bool operator==(PeakIndex & rhs) nogil except +
-        bool operator!=(PeakIndex & rhs) nogil except +
+        bool operator==(PeakIndex & rhs) except + nogil 
+        bool operator!=(PeakIndex & rhs) except + nogil 
 
