@@ -3120,7 +3120,7 @@ add_test("UTILS_ProteomicsLFQ_8" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -targeted_only true
          -transfer_ids false
          -mass_recalibration false
-         -out_cxml BSA_sub_8.consensusXML.tmp
+         -out_cxml BSA_sub_8.tmp.consensusXML
          -out_msstats BSA_sub_8.csv.tmp
          -out BSA_sub_8.mzTab.tmp
          -out_triqler BSA_sub_8.tsv.tmp
@@ -3128,7 +3128,7 @@ add_test("UTILS_ProteomicsLFQ_8" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -proteinFDR 0.8
          -test
          )
-add_test("UTILS_ProteomicsLFQ_8_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 BSA_sub_8.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.consensusXML )
+add_test("UTILS_ProteomicsLFQ_8_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 BSA_sub_8.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.consensusXML )
 set_tests_properties("UTILS_ProteomicsLFQ_8_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_8")
 add_test("UTILS_ProteomicsLFQ_8_out_2" ${DIFF}  -whitelist "software" "location" -in1 BSA_sub_8.csv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.csv )
 set_tests_properties("UTILS_ProteomicsLFQ_8_out_2" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_8")
@@ -3149,7 +3149,7 @@ add_test("UTILS_ProteomicsLFQ_9" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -targeted_only false
          -transfer_ids false
          -mass_recalibration false
-         -out_cxml BSA_sub_9.consensusXML.tmp
+         -out_cxml BSA_sub_9.tmp.consensusXML
          -out_msstats BSA_sub_9.csv.tmp
          -out BSA_sub_9.mzTab.tmp
          -out_triqler BSA_sub_9.tsv.tmp
@@ -3157,7 +3157,7 @@ add_test("UTILS_ProteomicsLFQ_9" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -proteinFDR 0.8
          -test
          )
-add_test("UTILS_ProteomicsLFQ_9_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 BSA_sub_9.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.consensusXML )
+add_test("UTILS_ProteomicsLFQ_9_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 BSA_sub_9.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.consensusXML )
 set_tests_properties("UTILS_ProteomicsLFQ_9_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_9")
 add_test("UTILS_ProteomicsLFQ_9_out_2" ${DIFF}  -whitelist "software" "location" -in1 BSA_sub_9.csv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.csv )
 set_tests_properties("UTILS_ProteomicsLFQ_9_out_2" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_9")
@@ -3239,9 +3239,9 @@ set_tests_properties("UTILS_PSMFeatureExtractor_3_out" PROPERTIES DEPENDS "UTILS
 # TOPP tests with json
 #------------------------------------------------------------------------------
 # MassTraceExtractor test
-add_test("TOPP_MassTraceExtractor_1_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor.ini.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_1_json.tmp)
-add_test("TOPP_MassTraceExtractor_1_out_json" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_1_json.tmp -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_1_output.featureXML )
+add_test("TOPP_MassTraceExtractor_1_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor.ini.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_1_json.tmp.featureXML)
+add_test("TOPP_MassTraceExtractor_1_out_json" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_1_json.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_1_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_1_out_json" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_1_json")
-add_test("TOPP_MassTraceExtractor_2_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_2.ini.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_2_json.tmp)
-add_test("TOPP_MassTraceExtractor_2_out_json" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_2_json.tmp -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_2_output.featureXML )
+add_test("TOPP_MassTraceExtractor_2_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_2.ini.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_2_json.tmp.featureXML)
+add_test("TOPP_MassTraceExtractor_2_out_json" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_2_json.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_2_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_2_out_json" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_2_json")
