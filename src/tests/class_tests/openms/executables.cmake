@@ -462,12 +462,6 @@ set(analysis_executables_list
   BasicProteinInferenceAlgorithm_test
   BayesianProteinInferenceAlgorithm_test
   ClusterProxyKD_test
-  CompNovoIdentificationBase_test
-  CompNovoIdentificationCID_test
-  CompNovoIdentification_test
-  CompNovoIonScoringBase_test
-  CompNovoIonScoringCID_test
-  CompNovoIonScoring_test
   ConfidenceScoring_test
   ConsensusIDAlgorithmAverage_test
   ConsensusIDAlgorithmBest_test
@@ -481,10 +475,6 @@ set(analysis_executables_list
   ConsensusMapMergerAlgorithm_test
   #DataAccessHelper_test
   DeconvolvedSpectrum_test
-  DeNovoAlgorithm_test
-  DeNovoIdentification_test
-  DeNovoIonScoring_test
-  DeNovoPostScoring_test
   FalseDiscoveryRate_test
   FeatureDeconvolution_test
   FeatureDistance_test

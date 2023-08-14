@@ -35,9 +35,18 @@
 project("OpenMS-3rd-party-libs")
 cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 
-# evergreen Bayesian inference library (0.9)
-add_subdirectory(evergreen/src)
+##
+## internal packages (not checked if they exist externally)
+##
+add_subdirectory(evergreen/src) # evergreen Bayesian inference library (0.9)
+add_subdirectory(eol-bspline)
+add_subdirectory(IsoSpec)
+add_subdirectory(GTE)
+add_subdirectory(Quadtree)
 
+##
+## external packages (with fallback option to local version)
+##
 option(USE_EXTERNAL_JSON "Use an external NLohmann::json library" OFF)
 message(STATUS "Option USE_EXTERNAL_JSON: ${USE_EXTERNAL_JSON}")
 if(USE_EXTERNAL_JSON)
@@ -57,9 +66,14 @@ else()
     add_subdirectory(SQLiteCpp)
 endif()
 
+option(USE_EXTERNAL_SIMDE "Use an external SIMDe library" OFF)
+message(STATUS "Option USE_EXTERNAL_SIMDE: ${USE_EXTERNAL_SIMDE}")
+if(USE_EXTERNAL_SIMDE)
+    find_package(SIMDe REQUIRED GLOBAL)  ## global propagates the target up to the parent project
+    message(STATUS "External 'SIMDe' at: '${SIMDe_INCLUDE_DIR}'")
+else()
+    add_subdirectory(simde)
+endif()
 
-add_subdirectory(eol-bspline)
-add_subdirectory(IsoSpec)
-add_subdirectory(GTE)
-add_subdirectory(Quadtree)
+
 

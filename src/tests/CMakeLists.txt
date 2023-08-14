@@ -36,7 +36,7 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("OpenMS_tests")
 
 option(ENABLE_STYLE_TESTING "Enables checking of code convention violations (cpplint) and static code analysis (cppchecker). Note that this will disable the regular test system." OFF)
-option(ENABLE_TOPP_TESTING "Enables tests for TOPP/UTILS. Should be disabled only on time constraints (e.g. chunking during continuous integration)." ON)
+option(ENABLE_TOPP_TESTING "Enables tests for TOPP. Should be disabled only on time constraints (e.g. chunking during continuous integration)." ON)
 option(ENABLE_CLASS_TESTING "Enables tests for library classes. Should be disabled only on time constraints (e.g. chunking during continuous integration)." ON)
 option(ENABLE_PIPELINE_TESTING "Enables the additional testing of various TOPPAS pipelines when 'make test' is called." ON)
 

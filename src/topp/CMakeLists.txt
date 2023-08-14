@@ -64,6 +64,8 @@ endif()
 
 # special requirements of some tools
 target_link_libraries(FileMerger Boost::regex)
+target_link_libraries(DecoyDatabase Boost::regex)
+target_link_libraries(NucleicAcidSearchEngine Boost::regex)
 
 # collection target
 add_custom_target(TOPP)

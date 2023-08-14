@@ -38,11 +38,10 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 #
 # README:
 #
-# This file contains the declarations of all TOPP/UTILS tests that are executed by CTest
+# This file contains the declarations of all TOPP tests that are executed by CTest
 #
 # In order to add a test do the following:
 # - add specific tests for your tool (this usually involves FuzzyDiff) - see below for examples
-# - for UTILS we do not require any tests, but you are encouraged to provide them!
 #
 # Test names (the first argument of 'add_test') must be distinct.
 # If not, the first definition of the test is overwritten!
@@ -81,13 +80,14 @@ set(INDEX_WHITELIST "offset" "indexListOffset")
 set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini)
 
 #------------------------------------------------------------------------------
-# WRITE_INI test for each TOPP/UTILS tool, checking -write_ini functionality
+# WRITE_INI test for each TOPP tool, checking -write_ini functionality
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
 # TOPP
 set(TOPP_executables_INI ${TOPP_TOOLS})
 list(REMOVE_ITEM TOPP_executables_INI GenericWrapper) # GenericWrapper (has a -type flag)
+list(REMOVE_ITEM TOPP_executables_INI OpenMSInfo)
 add_test("TOPPWRITEINI_GenericWrapper" ${TOPP_BIN_PATH}/GenericWrapper -test -type RAWFileConvert -write_ini "GenericWrapper.ini.tmp")
 foreach (i ${TOPP_executables_INI})
   add_test("TOPPWRITEINI_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ini "${i}.ini.tmp")
@@ -96,32 +96,14 @@ foreach (i ${TOPP_executables_INI})
 endforeach(i)
 
 #------------------------------------------------------------------------------
-# UTILS
-set(UTILS_executables_INI ${UTILS_TOOLS})
-list(REMOVE_ITEM UTILS_executables_INI OpenMSInfo)
-
-foreach (i ${UTILS_executables_INI})
-  add_test("UTILSWRITEINI_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ini "${i}.ini.tmp")
-  add_test("UTILSWRITEINI_${i}_SectionName" ${CMAKE_COMMAND} -test -DNAME=${i} -DFILE=${i}.ini.tmp -P "${DATA_DIR_TOPP}/check_ini.cmake")
-  set_tests_properties("UTILSWRITEINI_${i}_SectionName" PROPERTIES DEPENDS "UTILSWRITEINI_${i}")
-endforeach(i)
-
-#------------------------------------------------------------------------------
 # WRITECTD test to check whether -write_ctd works
 #------------------------------------------------------------------------------
-
-#------------------------------------------------------------------------------
-# UTILS
-set(UTILS_executables_CTD ${UTILS_TOOLS})
-list(REMOVE_ITEM UTILS_executables_CTD OpenMSInfo)
-foreach (i ${UTILS_executables_CTD})
-  add_test("UTILSWRITECTD_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ctd)
-endforeach()
 
 #------------------------------------------------------------------------------
 # TOPP
 set(TOPP_executables_CTD ${TOPP_TOOLS})
 list(REMOVE_ITEM TOPP_executables_CTD GenericWrapper)
+list(REMOVE_ITEM UTILS_executables_CTD OpenMSInfo)
 foreach (i ${TOPP_executables_CTD})
   add_test("TOPPWRITECTD_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ctd)
 endforeach()
@@ -2276,15 +2258,6 @@ add_test("TOPP_ConsensusID_8_out1" ${DIFF} -whitelist "?xml-stylesheet" "Identif
 set_tests_properties("TOPP_ConsensusID_8_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_8")
 
 #------------------------------------------------------------------------------
-# CompNovo tests
-add_test("TOPP_CompNovo_1" ${TOPP_BIN_PATH}/CompNovo -test -in ${DATA_DIR_TOPP}/CompNovo_1_input.mzML -ini ${DATA_DIR_TOPP}/CompNovo_1.ini -out CompNovo_1_output.tmp)
-add_test("TOPP_CompNovo_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 CompNovo_1_output.tmp -in2 ${DATA_DIR_TOPP}/CompNovo_1_output.idXML )
-set_tests_properties("TOPP_CompNovo_1_out1" PROPERTIES DEPENDS "TOPP_CompNovo_1")
-add_test("TOPP_CompNovoCID_1" ${TOPP_BIN_PATH}/CompNovoCID -test -in ${DATA_DIR_TOPP}/CompNovoCID_1_input.mzML -ini ${DATA_DIR_TOPP}/CompNovoCID_1.ini -out CompNovoCID_1_output.tmp)
-add_test("TOPP_CompNovoCID_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 CompNovoCID_1_output.tmp -in2 ${DATA_DIR_TOPP}/CompNovoCID_1_output.idXML )
-set_tests_properties("TOPP_CompNovoCID_1_out1" PROPERTIES DEPENDS "TOPP_CompNovoCID_1")
-
-#------------------------------------------------------------------------------
 # PrecursorMassCorrector tests
 add_test("TOPP_PrecursorMassCorrector_1" ${TOPP_BIN_PATH}/PrecursorMassCorrector -test -in ${DATA_DIR_TOPP}/PrecursorMassCorrector_1_input.mzML -ini ${DATA_DIR_TOPP}/PrecursorMassCorrector_1.ini -out PrecursorMassCorrector_1_output.tmp)
 add_test("TOPP_PrecursorMassCorrector_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} "location=" -in1 PrecursorMassCorrector_1_output.tmp -in2 ${DATA_DIR_TOPP}/PrecursorMassCorrector_1_output.mzML )
@@ -3271,12 +3244,3 @@ set_tests_properties("TOPP_MassTraceExtractor_1_out_json" PROPERTIES DEPENDS "TO
 add_test("TOPP_MassTraceExtractor_2_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_2.ini.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_2_json.tmp)
 add_test("TOPP_MassTraceExtractor_2_out_json" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_2_json.tmp -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_2_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_2_out_json" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_2_json")
-
-#------------------------------------------------------------------------------
-# CompNovo tests
-add_test("TOPP_CompNovo_1_json" ${TOPP_BIN_PATH}/CompNovo -test -in ${DATA_DIR_TOPP}/CompNovo_1_input.mzML -ini ${DATA_DIR_TOPP}/CompNovo_1.ini.json -out CompNovo_1_output.tmp)
-add_test("TOPP_CompNovo_1_out1_json" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 CompNovo_1_output.tmp -in2 ${DATA_DIR_TOPP}/CompNovo_1_output.idXML )
-set_tests_properties("TOPP_CompNovo_1_out1_json" PROPERTIES DEPENDS "TOPP_CompNovo_1_json")
-add_test("TOPP_CompNovoCID_1_json" ${TOPP_BIN_PATH}/CompNovoCID -test -in ${DATA_DIR_TOPP}/CompNovoCID_1_input.mzML -ini ${DATA_DIR_TOPP}/CompNovoCID_1.ini.json -out CompNovoCID_1_output.tmp)
-add_test("TOPP_CompNovoCID_1_out1_json" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 CompNovoCID_1_output.tmp -in2 ${DATA_DIR_TOPP}/CompNovoCID_1_output.idXML )
-set_tests_properties("TOPP_CompNovoCID_1_out1_json" PROPERTIES DEPENDS "TOPP_CompNovoCID_1_json")

@@ -389,8 +389,8 @@ $sourcePaths = array("src/openms/source",
                      "src/tests/class_tests/openms/source",
                      "src/tests/class_tests/openms_gui/source",
                      "src/tests/class_tests/openswathalgo/",
-                     "src/topp",
-                     "src/utils");
+                     "src/topp"
+                    );
 
 exec("cd $src_path && find ".implode(" ", $includePaths)." -name \"*.h\" ! -name \"ui_*.h\" ! -name \"nnls.h\" ! -name \"MSNumpress*.h\"", $files);
 exec("cd $src_path && find ".implode(" ", $sourcePaths)." -name \"*.cpp\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.cpp\" ! -name \"moc_*.cpp\" ! -name \"*Template.cpp\" ! -name \"MSNumpress*.cpp\"", $files);
@@ -669,8 +669,6 @@ foreach ($files_todo as $f)
       "include/OpenMS/APPLICATIONS/TOPPViewBase.h",
       "include/OpenMS/APPLICATIONS/TOPPASBase.h",
       "include/OpenMS/APPLICATIONS/INIFileEditorWindow.h",
-      "include/OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationBase.h",
-      "include/OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h",
       "_registerChildren.h",
       "DataReducer.h",
       "SchemaFile.h",
@@ -736,7 +734,7 @@ foreach ($files_todo as $f)
       "TestExternalCode.cpp",
     );
 
-    if (!in_array($basename, $ignore) && !beginsWith($f, "src/topp/") && !beginsWith($f, "src/utils/") && !beginsWith($f, "src/openms_gui/source/VISUAL/APPLICATIONS/GUITOOLS/"))
+    if (!in_array($basename, $ignore) && !beginsWith($f, "src/topp/") && !beginsWith($f, "src/openms_gui/source/VISUAL/APPLICATIONS/GUITOOLS/"))
     {
       $message = "";
       $result = true;
@@ -1026,8 +1024,6 @@ foreach ($files_todo as $f)
       "src/openms/include/OpenMS/VISUAL/PlotCanvas.h",
       "src/openms/include/OpenMS/APPLICATIONS/TOPPViewBase.h",
       "src/openms/include/OpenMS/APPLICATIONS/TOPPASBase.h",
-      "src/openms/include/OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationBase.h",
-      "src/openms/include/OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h",
       "src/openms/include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h",
       "src/openms/include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h",
     );

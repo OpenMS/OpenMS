@@ -98,7 +98,7 @@ class LuciphorAdapter :
 {
 public:
   LuciphorAdapter() :
-    TOPPBase("LuciphorAdapter", "Modification site localisation using LuciPHOr2.", true),
+    TOPPBase("LuciphorAdapter", "Modification site localisation using LuciPHOr2."),
     // parameter choices (the order of the values must be the same as in the LuciPHOr2 parameters!):
     fragment_methods_(ListUtils::create<String>("CID,HCD")),
     fragment_error_units_(ListUtils::create<String>("Da,ppm")),
