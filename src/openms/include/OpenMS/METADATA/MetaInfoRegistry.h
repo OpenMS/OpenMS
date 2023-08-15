@@ -163,7 +163,7 @@ public:
 private:
     /// internal counter, that stores the next index to assign
     UInt next_index_;
-    using MapString2IndexType = std::map<std::string, UInt>;
+    using MapString2IndexType = std::unordered_map<std::string, UInt>;
     using MapIndex2StringType = std::unordered_map<UInt, std::string>;
     
     /// map from name to index
