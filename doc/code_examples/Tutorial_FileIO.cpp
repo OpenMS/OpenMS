@@ -44,7 +44,7 @@ int main(int argc, const char** argv)
   // temporary data storage
   PeakMap map;
 
-  // convert MzXML to MzML we use FileHandler to do the actual work.
+  // convert MzXML to MzML. Internally we use FileHandler to do the actual work.
   // Here we limit the input type to be MZXML only
   FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_FileIO.mzXML", map, {FileTypes::MZXML});
   FileHandler().storeExperiment("Tutorial_FileIO.mzML", map, {FileTypes::MZML});
@@ -52,7 +52,13 @@ int main(int argc, const char** argv)
   // we can also load an experiment from a file without any restrictions on the file type:
   FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_Spectrum1D.dta", map);
 
-  // We use verious FileHandler functions to load other types.
+  // if we want to allow all types that can store MS2 data we can do the following:
+  FileHandler().loadExperiment(tutorial_data_path + "data/Tutorial_FileIO.mzXML", map, FileTypeList::typesWithProperties({FileTypes::FileProperties::PROVIDES_MS2}));
+  // The curly braces can contain multiple file properties. The FileTypeList that is created is the intersection of these properties
+  // so: FileTypeList::typesWithProperties({FileTypes::FileProperties::PROVIDES_MS2, FileTypes::FileProperties::PROVIDES_MS2})
+  // returns only fileTypes which can store both MS1 and MS2 spectra
+
+  // We use various FileHandler functions to load other types.
   FeatureMap feat;
   FileHandler().loadFeatures(tutorial_data_path + "/data/Tutorial_Labeled.featureXML", feat);
 
