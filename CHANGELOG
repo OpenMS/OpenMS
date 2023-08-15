@@ -29,7 +29,8 @@ Cleanup of old/unused tools and code:
 - Removed simplistic evaluation tools FFEval, LabeledEval, TransformationEvaluation
 
 Library:
-- Extend FileHandler to replace file specific load and store operations with datatype specific operations
+- Extend FileHandler to replace file specific load and store operations for our major datastructures (Experiment, Features, Identifications, etc.)
+  decoupling the type of the file from the program logic (as much as is possible in our fallen world). 
 
 
 ------------------------------------------------------------------------------------------
@@ -63,6 +64,9 @@ e.g.
     Faster compile time (#6618)
     Improving code quality by fixing lots of linting warnings and leaks (e.g. #6839, #6831, #6829)
 
+Documentation:
+
+    website redesign (visit openms.org)
     OpenMS user documentation is moved to openms.readthedocs.io/en/latest.
     OpenMS API reference and advanced developer documentation remains inside OpenMS doxygen
     documentation (https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/)
