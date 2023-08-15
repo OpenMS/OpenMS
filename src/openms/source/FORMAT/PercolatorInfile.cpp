@@ -106,7 +106,7 @@ namespace OpenMS
     }
 
     // get column indices of extra scores
-    unordered_set<String> found_extra_scores; // additional (non-main) scores that should be stored in the PeptideHit
+    std::set<String> found_extra_scores; // additional (non-main) scores that should be stored in the PeptideHit, order important for comparable idXML
     for (const String& s : extra_scores)
     {
       if (auto it = std::find(header.begin(), header.end(), s); it != header.end())
