@@ -55,7 +55,7 @@
 				<UserParam type="string" name="SageAdapter:1:specificity" value="auto"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2023-08-15T10:10:28" search_engine="Sage" search_engine_version="sage (0.13.4)" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2023-08-15T12:15:54" search_engine="Sage" search_engine_version="sage (0.13.4)" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="sp|Q99536|VAT1_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -68,14 +68,14 @@
 				<UserParam type="int" name="ScanNr" value="30069"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="ln(-poisson)" value="1.1030057965071456"/>
-				<UserParam type="string" name="ln(matched_intensity_pct)" value="3.865689"/>
 				<UserParam type="string" name="ln(delta_best)" value="0.0"/>
 				<UserParam type="string" name="ln(delta_next)" value="4.568750819879955"/>
+				<UserParam type="string" name="ln(matched_intensity_pct)" value="3.865689"/>
 				<UserParam type="string" name="longest_b" value="7"/>
-				<UserParam type="string" name="scored_candidates" value="1"/>
-				<UserParam type="string" name="matched_peaks" value="31"/>
-				<UserParam type="string" name="longest_y_pct" value="0.57894737"/>
 				<UserParam type="string" name="longest_y" value="11"/>
+				<UserParam type="string" name="longest_y_pct" value="0.57894737"/>
+				<UserParam type="string" name="matched_peaks" value="31"/>
+				<UserParam type="string" name="scored_candidates" value="1"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="id_merge_index" value="0"/>
