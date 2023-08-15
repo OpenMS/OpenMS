@@ -244,7 +244,7 @@ public:
       @brief Loads a file into a ConsensusMap
 
       @param filename the file name of the file to load.
-      @param map The ConsensMap to load the data into.
+      @param map The ConsensusMap to load the data into.
       @param allowed_types a @p vector<FileTypes::Files> containing the types supported where this function is called. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @param log Progress logging mode
 
