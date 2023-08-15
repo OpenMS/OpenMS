@@ -471,7 +471,7 @@ protected:
         arguments_consensus << "consensus";
         arguments_consensus << "-l" << consensus_output_file.toQString();
         arguments_consensus << "-f" << tmp_dir.getPath().toQString();
-        arguments_consensus << "-o" <<  consensus_out.toQString();
+        arguments_consensus << "-o" << consensus_out.toQString();
         Int min_cluster_size = getIntOption_("min_cluster_size");
         arguments_consensus << "-M" << String(min_cluster_size).toQString();
 
