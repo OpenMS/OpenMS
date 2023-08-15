@@ -55,7 +55,7 @@ then
     exit 1
 fi
 
-# directories containing TOPP/UTILS binaries
+# directories containing TOPP binaries
 BIN_DIR_OLD=$1
 BIN_DIR_NEW=$2
 

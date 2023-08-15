@@ -389,8 +389,8 @@ $sourcePaths = array("src/openms/source",
                      "src/tests/class_tests/openms/source",
                      "src/tests/class_tests/openms_gui/source",
                      "src/tests/class_tests/openswathalgo/",
-                     "src/topp",
-                     "src/utils");
+                     "src/topp"
+                    );
 
 exec("cd $src_path && find ".implode(" ", $includePaths)." -name \"*.h\" ! -name \"ui_*.h\" ! -name \"nnls.h\" ! -name \"MSNumpress*.h\"", $files);
 exec("cd $src_path && find ".implode(" ", $sourcePaths)." -name \"*.cpp\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.cpp\" ! -name \"moc_*.cpp\" ! -name \"*Template.cpp\" ! -name \"MSNumpress*.cpp\"", $files);
@@ -734,7 +734,7 @@ foreach ($files_todo as $f)
       "TestExternalCode.cpp",
     );
 
-    if (!in_array($basename, $ignore) && !beginsWith($f, "src/topp/") && !beginsWith($f, "src/utils/") && !beginsWith($f, "src/openms_gui/source/VISUAL/APPLICATIONS/GUITOOLS/"))
+    if (!in_array($basename, $ignore) && !beginsWith($f, "src/topp/") && !beginsWith($f, "src/openms_gui/source/VISUAL/APPLICATIONS/GUITOOLS/"))
     {
       $message = "";
       $result = true;

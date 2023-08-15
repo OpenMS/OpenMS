@@ -972,6 +972,10 @@ namespace OpenMS::Math
       {
         return getScore_({"hyperscore"}, hit, current_score_type); //TODO evaluate transformations
       }
+      else if (engine == "SAGE")
+      {
+        return getScore_({"hyperscore"}, hit, current_score_type);
+      }
       else if (engine == "MSFRAGGER")
       {
         return (-1) * log10(getScore_({"expect"}, hit, current_score_type));
@@ -991,7 +995,7 @@ namespace OpenMS::Math
       std::set<Int> charges;
       const StringList search_engines = {"XTandem","OMSSA","MASCOT","SpectraST","MyriMatch",
                                          "SimTandem","MSGFPlus","MS-GF+","Comet","MSFragger",
-                                         "tide-search","SimpleSearchEngine",
+                                         "tide-search","Sage","SimpleSearchEngine",
                                          "OpenMS/ConsensusID_best","OpenMS/ConsensusID_worst","OpenMS/ConsensusID_average"};
 
       if (split_charge)

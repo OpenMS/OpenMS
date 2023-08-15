@@ -44,9 +44,9 @@
 namespace OpenMS
 {
   /**
-     @brief Scans for tools/utils and generates a param for each asynchronously.
+     @brief Scans for tools and generates a param for each asynchronously.
 
-     @details All tools and utils listed in the ToolHandler class are considered.
+     @details All tools listed in the ToolHandler class are considered.
 
      @code
      TVToolDiscovery scanner;
@@ -135,7 +135,7 @@ namespace OpenMS
     /// The filepath to search pugins in
     std::string plugin_path_;
 
-    /// The futures for asyncronous loading of the tools/utils and plugins
+    /// The futures for asyncronous loading of the tools and plugins
     std::vector<std::future<Param>> tool_param_futures_;
     std::vector<std::future<Param>> plugin_param_futures_;
 

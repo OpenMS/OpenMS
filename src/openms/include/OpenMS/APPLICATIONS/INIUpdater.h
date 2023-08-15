@@ -46,7 +46,7 @@ namespace OpenMS
      @brief Updates an INI
   */
 
-  /// map each old TOPP/UTIL to its new Name
+  /// map each old TOPP tool to its new Name
   typedef std::map<Internal::ToolDescriptionInternal, Internal::ToolDescriptionInternal> ToolMapping;
 
   class OPENMS_DLLAPI INIUpdater

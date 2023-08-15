@@ -63,157 +63,157 @@ END_SECTION
 
 START_SECTION((static String numberLength(double d, UInt n)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String number(double d, UInt n)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String& fillLeft(String &this_s, char c, UInt size)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String& fillRight(String &this_s, char c, UInt size)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static bool hasPrefix(const String &this_s, const String &string)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static bool hasSuffix(const String &this_s, const String &string)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static bool hasSubstring(const String &this_s, const String &string)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static bool has(const String &this_s, Byte byte)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String prefix(const String &this_s, size_t length)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String suffix(const String &this_s, size_t length)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String prefix(const String &this_s, Int length)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String suffix(const String &this_s, Int length)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String prefix(const String &this_s, char delim)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String suffix(const String &this_s, char delim)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String substr(const String &this_s, size_t pos, size_t n)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String chop(const String &this_s, Size n)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String& trim(String &this_s)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String& quote(String &this_s, char q, String::QuotingMethod method)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String& unquote(String &this_s, char q, String::QuotingMethod method)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String& simplify(String &this_s)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String random(UInt length)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String& reverse(String &this_s)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static bool split(const String &this_s, const char splitter, std::vector< String > &substrings, bool quote_protect)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static bool split(const String &this_s, const String &splitter, std::vector< String > &substrings)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static bool split_quoted(const String &this_s, const String &splitter, std::vector< String > &substrings, char q, String::QuotingMethod method)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static QString toQString(const String &this_s)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
@@ -366,49 +366,49 @@ END_SECTION
 
 START_SECTION((static String& toUpper(String &this_s)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String& firstToUpper(String &this_s)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String& toLower(String &this_s)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String& substitute(String &this_s, char from, char to)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String& substitute(String &this_s, const String &from, const String &to)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String& remove(String &this_s, char what)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String& ensureLastChar(String &this_s, char end)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 START_SECTION((static String& removeWhitespaces(String &this_s)))
 {
-  // TODO
+  NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
