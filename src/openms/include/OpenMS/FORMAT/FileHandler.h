@@ -273,7 +273,7 @@ public:
       @brief Loads an identification file into a proteinIdentifications and peptideIdentifications
 
       @param filename the file name of the file to load.
-      @param additional_proteins The protein vector to load the data into.
+      @param additional_proteins The proteinIdentification vector to load the data into.
       @param additional_peptides The peptide vector to load the data into.
       @param allowed_types a @p vector<FileTypes::Files> containing the types supported where this function is called. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @param log Progress logging mode      
