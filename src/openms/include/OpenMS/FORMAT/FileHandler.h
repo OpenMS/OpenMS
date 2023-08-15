@@ -270,7 +270,7 @@ public:
     void storeConsensusFeatures(const String& filename, const ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
-      @brief Loads an identification file into a into proteins and peptides
+      @brief Loads an identification file into a proteinIdentifications and peptideIdentifications
 
       @param filename the file name of the file to load.
       @param additional_proteins The protein vector to load the data into.
