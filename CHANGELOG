@@ -31,7 +31,6 @@ Cleanup of old/unused tools and code:
 
 Library:
 - Extend FileHandler to replace file specific load and store operations for our major datastructures (Experiment, Features, Identifications, etc.)
-  decoupling the type of the file from the program logic (as much as is possible in our fallen world). 
 
 
 ------------------------------------------------------------------------------------------
