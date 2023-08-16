@@ -1091,7 +1091,6 @@ namespace OpenMS
     {
       if (!check_types_(allowed_types, filename))
       {
-        //OPENMS_LOG_ERROR << "File " << filename << " type is not supported by this tool" << endl;
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not allowed for storing Consensus Features");
       }
     }

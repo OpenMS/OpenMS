@@ -26,7 +26,6 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/XMLHandler.h>" namespace "OpenMS::Inte
         # NAMESPACE # # POINTER # void startElement(XMLCh *uri, XMLCh *localname, XMLCh *qname, xercesc::Attributes & attrs) except + nogil 
         # POINTER # void endElement(XMLCh *uri, XMLCh *localname, XMLCh *qname) except + nogil 
         # NAMESPACE # void writeTo(std::ostream & ) except + nogil 
-        String errorString() except + nogil 
 
 cdef extern from "<OpenMS/FORMAT/HANDLERS/XMLHandler.h>" namespace "OpenMS::Internal::XMLHandler":
     cdef enum ActionMode "OpenMS::Internal::XMLHandler::ActionMode":
