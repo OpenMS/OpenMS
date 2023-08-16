@@ -513,7 +513,6 @@ set(analysis_executables_list
   KDTreeFeatureMaps_test
   KDTreeFeatureNode_test
   LabeledPairFinder_test
-  LocalLinearMap_test
   TargetedExperiment_test
   TargetedExperimentHelper_test
   MRMFeaturePicker_test
@@ -540,7 +539,6 @@ set(analysis_executables_list
   PeptideAndProteinQuant_test
   PeptideProteinResolution_test
   PeakGroup_test
-  PeakIntensityPredictor_test
   PScore_test
   HyperScore_test
   MorpheusScore_test
