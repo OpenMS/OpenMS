@@ -1878,16 +1878,6 @@ def testProteaseDigestion():
     #assert ff.getEnzyme() == enz.TRYPSIN
 
 @report
-def testEnzymaticDigestionLogModel():
-    ff = pyopenms.EnzymaticDigestionLogModel()
-    assert pyopenms.EnzymaticDigestionLogModel().getLogThreshold is not None
-    assert pyopenms.EnzymaticDigestionLogModel().setLogThreshold is not None
-    assert pyopenms.EnzymaticDigestionLogModel().digest is not None
-    assert pyopenms.EnzymaticDigestionLogModel().peptideCount is not None
-    ff.setLogThreshold(0.25)
-    assert ff.getLogThreshold() == 0.25
-
-@report
 def testIDDecoyProbability():
     """
     @tests: IDDecoyProbability

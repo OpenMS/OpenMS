@@ -41,6 +41,7 @@
 
 #include <regex>
 #include <functional>
+#include <unordered_set>
 
 namespace OpenMS
 {
@@ -80,7 +81,13 @@ namespace OpenMS
     return scan_identifier.removeWhitespaces();
   }
 
-  vector<PeptideIdentification> PercolatorInfile::load(const String& pin_file, bool higher_score_better, const String& score_name, String decoy_prefix)
+  vector<PeptideIdentification> PercolatorInfile::load(
+    const String& pin_file, 
+    bool higher_score_better, 
+    const String& score_name,
+    const StringList& extra_scores,
+    StringList& filenames, 
+    String decoy_prefix)
   {
     CsvFile csv(pin_file, '\t');
     StringList header;
@@ -88,10 +95,30 @@ namespace OpenMS
 
     unordered_map<String, size_t> to_idx; // map column name to column index
     {
-      size_t idx{};
+      int idx{}; 
       for (const auto& h : header) { to_idx[h] = idx++; }
     }
 
+    int file_name_column_index{-1};
+    if (auto it = std::find(header.begin(), header.end(), "FileName"); it != header.end())
+    {
+      file_name_column_index = it - header.begin();
+    }
+
+    // get column indices of extra scores
+    std::set<String> found_extra_scores; // additional (non-main) scores that should be stored in the PeptideHit, order important for comparable idXML
+    for (const String& s : extra_scores)
+    {
+      if (auto it = std::find(header.begin(), header.end(), s); it != header.end())
+      {
+        found_extra_scores.insert(s);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "Extra score: " << s << " not found in Percolator input file." << endl;
+      }
+    }    
+    
     // charge columns are not standardized so we check for the format and create hash to lookup column name to charge mapping
     std::regex charge_one_hot_pattern("^charge\\d+$");
     std::regex sage_one_hot_pattern("^z=\\d+$");
@@ -120,6 +147,9 @@ namespace OpenMS
     vector<PeptideIdentification> pids;
     pids.reserve(n_rows);
     String spec_id;
+    String raw_file_name("UNKNOWN");
+    unordered_map<String, size_t> map_filename_to_idx; // fast lookup of filename to index in filenames vector
+
     for (size_t i = 1; i != n_rows; ++i)
     {
       StringList row;      
@@ -130,12 +160,24 @@ namespace OpenMS
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: line " + String(i) + " of file '" + pin_file + "' does not have the same number of columns as the header!", String(i));
       }
 
+      if (file_name_column_index >= 0)
+      {
+        raw_file_name = row[file_name_column_index];
+        if (map_filename_to_idx.find(raw_file_name) == map_filename_to_idx.end())
+        {
+          filenames.push_back(raw_file_name);
+          map_filename_to_idx[raw_file_name] = filenames.size() - 1;
+        }
+      }   
+
       const String& sSpecId = row[to_idx.at("SpecId")];
       if (sSpecId != spec_id)
       {
         pids.resize(pids.size() + 1);
         pids.back().setHigherScoreBetter(higher_score_better);
         pids.back().setScoreType(score_name);
+        pids.back().setMetaValue("id_merge_index", map_filename_to_idx.at(raw_file_name));
+        pids.back().setRT(row[to_idx.at("retentiontime")].toDouble() * 60.0);
       }
 
       int sScanNr = row[to_idx.at("ScanNr")].toInt();
@@ -157,6 +199,11 @@ namespace OpenMS
         }
       }
 
+      if (charge != 0)
+      {
+        pids.back().setMZ((row[to_idx.at("ExpMass")].toDouble() - std::fabs(charge) * Constants::PROTON_MASS_U) / std::fabs(charge));
+      }
+
       sProteins.split(';', accessions);
 
       // deduce decoy state from accessions if decoy_prefix is set
@@ -165,13 +212,18 @@ namespace OpenMS
         target_decoy = std::all_of(accessions.begin(), accessions.end(), [&decoy_prefix](const String& acc) { return acc.hasPrefix(decoy_prefix); }) ? "decoy" : "target" ;
       }          
 
-      // needs to handle strings like: [+42]-MVLVQDLLHPTAASEAR, [+304.207]-ETC[+57.0215]RQLGLGTNIYNAER
+      // needs to handle strings like: [+42]-MVLVQDLLHPTAASEAR, [+304.207]-ETC[+57.0215]RQLGLGTNIYNAER etc.
       sPeptide.substitute("]-", "]."); // we can parse [+42].MVLVQDLLHPTAASEAR
+      sPeptide.substitute("-[", ".["); // we can parse MVLVQDLLHPTAASEAR.[+111]
       AASequence aa_seq = AASequence::fromString(sPeptide);
       PeptideHit ph(score, rank, charge, std::move(aa_seq));
       ph.setMetaValue("SpecId", sSpecId);
       ph.setMetaValue("ScanNr", sScanNr);
       ph.setMetaValue("target_decoy", target_decoy);
+      for (const auto name : found_extra_scores)
+      {
+        ph.setMetaValue(name, row[to_idx.at(name)]);
+      }
       ph.setRank(rank);
 
       // add link to protein (we only know the accession but not start/end, aa_before/after in protein at this point)
@@ -458,4 +510,3 @@ namespace OpenMS
   }
 
 }
-

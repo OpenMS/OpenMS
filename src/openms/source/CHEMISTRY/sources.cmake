@@ -10,7 +10,6 @@ DecoyGenerator.cpp
 Element.cpp
 ElementDB.cpp
 EmpiricalFormula.cpp
-EnzymaticDigestionLogModel.cpp
 EnzymaticDigestion.cpp
 DigestionEnzyme.cpp
 DigestionEnzymeProtein.cpp
