@@ -42,7 +42,7 @@
   @image html TOPPView.png
 
   More information about TOPPView can be found on the OpenMS ReadTheDocs
-  page: https://openms.readthedocs.io/en/latest/docs/tutorials/TOPP/toppview-introduction.html
+  page: https://openms.readthedocs.io/en/latest/openms-applications-and-tools/visualize-with-openms.html
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_TOPPView.cli
