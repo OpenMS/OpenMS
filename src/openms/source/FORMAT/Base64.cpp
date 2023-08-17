@@ -112,7 +112,7 @@ namespace OpenMS
     }
 
     // masking data and adding/substracting to match base64 codes to fitting characters
-    simde__m128i capital_mask = simde_mm_cmplt_epi8(data, _mm_set1_epi8(26)); // (a < b) ? 0xFF : 0x00
+    simde__m128i capital_mask = simde_mm_cmplt_epi8(data, simde_mm_set1_epi8(26)); // (a < b) ? 0xFF : 0x00
     simde__m128i all_mask = capital_mask;
     simde__m128i lower_case_mask = simde_mm_andnot_si128(all_mask, simde_mm_cmplt_epi8(data, simde_mm_set1_epi8(52))); // not allMask and  b where b is 0xFF if binaries are smaller than 52
     all_mask |= lower_case_mask;
