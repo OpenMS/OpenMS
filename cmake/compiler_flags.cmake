@@ -53,13 +53,14 @@ endif()
 ########
 set(x64_CPU "x86|AMD64") ## CMake returns 'x86-64' on Linux and 'AMD64' on Windows..
 message(STATUS "Processor is : ${CMAKE_SYSTEM_PROCESSOR}")
+# if we support more ISA's in the future (MIPS, SPARC), then also update OpenMSOSInfo::getActiveSIMDExtensions
 if (MSVC)
   ## enable 'AVX' on x86-64, to achive faster base64 en-/decoding via SIMDe
   ## note: MSVC lacks flags for SSE3/SSE4 (only unofficial ones like /d2archSSE42 are available, but SIMDe does not care about them)
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}") 
     ## for SIMDe we need to use explicit compiler flags, which in turn define macros (like '#define __AVX__'), which SIMDe will check for and only then create vectorized code
     ## Disabling AVX will actually make the SIMDe code slower compared to the non-SSE version (for Base64 encoding/decoding at least)
-    add_compile_options(/arch:AVX)  
+    add_compile_options(/arch:AVX)
   endif()
 else()  ## GCC/Clang/AppleClang
   ## enable SSE3 on x86, to achive faster base64 en-/decoding
