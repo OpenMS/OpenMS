@@ -170,6 +170,7 @@ namespace OpenMS
         #ifdef _OPENMP
         omp_set_num_threads(num_threads);
         #endif
+        (void)num_threads; // avoid 'unreferenced formal parameter' C4100 on Windows
       }
     };
 
