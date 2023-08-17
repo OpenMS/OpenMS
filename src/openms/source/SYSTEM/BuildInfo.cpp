@@ -29,69 +29,53 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Marc Sturm, Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
+//
 
-#include <OpenMS/config.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/BuildInfo.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/openms_data_path.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#ifdef _OPENMP
-  #include "omp.h"
-#endif
 
-#include <iostream>
+#include <simde/simde-arch.h>
 
-using namespace OpenMS;
 using namespace std;
 
-// We do not want this class to show up in the docu:
-/// @cond TOPPCLASSES
-
-int main(int /*argc*/, const char ** /*argv*/)
+namespace OpenMS
 {
-  cout << "OpenMS Version:" << "\n";
-  cout << "==================" << "\n";
-  cout << "Version      : " << VersionInfo::getVersion() << "\n";
-  cout << "Build time   : " << VersionInfo::getTime() << "\n";
-  cout << "Git sha1     : " << VersionInfo::getRevision() << "\n";
-  cout << "Git branch   : " << VersionInfo::getBranch() << "\n";
-  cout << "\n";
-  cout << "Installation information:" << "\n";
-  cout << "==================" << "\n";
-  cout << "Data path    : " << File::getOpenMSDataPath() << "\n";
-  cout << "Temp path    : " << File::getTempDirectory() << "\n";
-  cout << "Userdata path: " << File::getUserDirectory() << "\n";
 
-  cout << "\n";
-  cout << "Build information:" << "\n";
-  cout << "==================" << "\n";
-  cout << "Source path  : " << OPENMS_SOURCE_PATH << "\n";
-  cout << "Binary path  : " << OPENMS_BINARY_PATH << "\n";
-  cout << "Binary arch  : " << Internal::OpenMSOSInfo::getBinaryArchitecture() << "\n";
-  cout << "Build type   : " << Internal::OpenMSBuildInfo::getBuildType() << "\n";
-  #ifdef _OPENMP
-  cout << "OpenMP       : " << "enabled (maxThreads = " << Internal::OpenMSBuildInfo::getOpenMPMaxNumThreads() << ")" << "\n";
-  #else
-  cout << "OpenMP       : " << "disabled" << "\n";
-  #endif
-  cout << "SIMD extensions : " << Internal::OpenMSOSInfo::getActiveSIMDExtensions() << "\n";
-  cout << "\n";
+  String Internal::OpenMSOSInfo::getActiveSIMDExtensions()
+  {
+    StringList ret;
+#ifdef SIMDE_ARCH_ARM_NEON
+    ret.push_back("neon");
+#endif
+#ifdef SIMDE_ARCH_X86_SSE
+    ret.push_back("SSE");
+#endif
+#ifdef SIMDE_ARCH_X86_SSE2
+    ret.push_back("SSE2");
+#endif
+#ifdef SIMDE_ARCH_X86_SSE3
+    ret.push_back("SSE3");
+#endif
+#ifdef SIMDE_ARCH_X86_SSE4_1
+    ret.push_back("SSE4.1");
+#endif
+#ifdef SIMDE_ARCH_X86_SSE4_2
+    ret.push_back("SSE4.2");
+#endif
+#ifdef SIMDE_ARCH_X86_AVX
+    ret.push_back("AVX");
+#endif
+#ifdef SIMDE_ARCH_X86_AVX2
+    ret.push_back("AVX2");
+#endif
+#ifdef SIMDE_ARCH_X86_FMA
+    ret.push_back("FMA");
+#endif
 
-  Internal::OpenMSOSInfo info = Internal::OpenMSOSInfo::getOSInfo();
+    return ListUtils::concatenate(ret, ", ");
+  }
 
-  cout << "OS Information:" << "\n";
-  cout << "==================" << "\n";
-  cout << "Name: " << info.getOSAsString() << "\n";
-  cout << "Version: " << info.getOSVersionAsString() << "\n";
-  cout << "Architecture: " << info.getArchAsString() << "\n";
-  cout << "\n";
-
-
-  return 0;
-}
-
-/// @endcond
+} // namespace OpenMS
