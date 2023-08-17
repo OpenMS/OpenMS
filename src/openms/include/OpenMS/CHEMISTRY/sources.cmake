@@ -11,7 +11,6 @@ DecoyGenerator.h
 Element.h
 ElementDB.h
 EmpiricalFormula.h
-EnzymaticDigestionLogModel.h
 EnzymaticDigestion.h
 DigestionEnzyme.h
 DigestionEnzymeProtein.h

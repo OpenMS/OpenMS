@@ -411,7 +411,6 @@ set(chemistry_executables_list
   ElementDB_test
   Element_test
   EmpiricalFormula_test
-  EnzymaticDigestionLogModel_test
   EnzymaticDigestion_test
   FineIsotopeDistribution_test
   IMSAlphabetParser_test
