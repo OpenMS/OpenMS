@@ -17,6 +17,7 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ----                                OpenMS 3.1.0     (released: under development)    ----
 ------------------------------------------------------------------------------------------
 
+- Major change: removed the distinction between TOPP tool and util and the TOPP and UTIL build targets were merged to a single TOPP target. All utils are considered tools now and categorized as "Utilities".
 - Added SageAdapter. Support for standard identification tasks with sage (https://github.com/lazear/sage).
 - require some advanced instruction sets for x64 CPUs: SSE3 (g++/clang) or AVX (MSVC); and NEON for ARM64 CPUs (#6978)
   and report them via the OpenMSInfo tool (#7022)
@@ -30,6 +31,7 @@ Cleanup of old/unused tools and code:
 - Removed PepNovoAdapter
 - Removed CompNovoAdapter and library code
 - Removed simplistic evaluation tools FFEval, LabeledEval, TransformationEvaluation
+- Removed EnzymaticDigestionLogModel
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.0     (released 7/2023)                  ----
