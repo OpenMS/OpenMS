@@ -224,7 +224,7 @@ protected:
     registerStringOption_("best:spectrum_per_peptide", "<String>", "false", "Keep one spectrum per peptide. Value determines if same sequence but different charges or modifications are treated as separate peptides or the same peptide. (default: false = filter disabled).", false);
     setValidStrings_("best:spectrum_per_peptide", {"false", "sequence", "sequence+charge", "sequence+modification", "sequence+charge+modification"});    
     registerIntOption_("best:n_protein_hits", "<integer>", 0, "Keep only the 'n' highest scoring protein hits (for n > 0).", false);
-    setMinInt_("best:n_protein_hits", 0);    
+    setMinInt_("best:n_protein_hits", 0);
     registerFlag_("best:strict", "Keep only the highest scoring peptide hit.\n"
                                  "Similar to n_peptide_hits=1, but if there are ties between two or more highest scoring hits, none are kept.");
     registerStringOption_("best:n_to_m_peptide_hits", "[min]:[max]", ":", "Peptide hit rank range to extracts", false, true);
