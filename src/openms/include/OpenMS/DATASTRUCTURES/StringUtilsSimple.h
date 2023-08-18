@@ -45,11 +45,6 @@
 #include <string>
 #include <vector>
 
-#include <simde/x86/sse4.2.h>
-#include <simde/x86/sse2.h>
-#include <simde/x86/sse.h>
-
-
 namespace OpenMS
 {
   class String;
@@ -615,89 +610,33 @@ namespace OpenMS
         this_s.append(1, end);
       return this_s;
     }
-    // skip ahead until a whitespace or @p end is reached
-    inline const char* skipWhitespace(const char* p, const char* p_end)
-    {
-      const __m128i w0 = _mm_set1_epi8(' ');
-      const __m128i w1 = _mm_set1_epi8('\t');
-      const __m128i w2 = _mm_set1_epi8('\n');
-      const __m128i w3 = _mm_set1_epi8('\r');
 
-      for (; p <= p_end - 16; p += 16)
-      {
-        const __m128i s = _mm_loadu_si128(reinterpret_cast<const __m128i*>(p));
-        __m128i x = _mm_cmpeq_epi8(s, w0);
-        x = _mm_or_si128(x, _mm_cmpeq_epi8(s, w1));
-        __m128i y = _mm_cmpeq_epi8(s, w2);
-        y = _mm_or_si128(x, _mm_cmpeq_epi8(s, w3));
-        x = _mm_or_si128(x, y);
-        // invert (i.e any non-spaces will be '1') and convert to a 16-bit int
-        // (do not try to convert first and then invert -- not the same!)
-        auto non_space = static_cast<uint16_t>(~_mm_movemask_epi8(x)); // 16 bit is paramount here. Do not use 32!
-        if (non_space != 0)
-        {       // some characters are whitespace
-#ifdef _MSC_VER // Find the index of first non-whitespace
-          unsigned long offset;
-          _BitScanForward(&offset, non_space);
-          return p + offset;
-#else
-          return p + __builtin_ffs(non_space) - 1;
-#endif
-        }
-      }
-      // the remainder
-      while (p != p_end)
-        if (*p == ' ' || *p == '\n' || *p == '\r' || *p == '\t')
-          ++p;
-        else
-          return p;
-        
-      return p_end;
-    }
+    /**
+     @brief Get the first non-whitespace character (anything but \n, \t, \r, ' ') in the string pointed to by @p p (where @p p_end is past the end of the string).
+
+     If only whitespaces are contained, then @p p_end is returned.
+    */
+    OPENMS_DLLAPI const char* skipWhitespace(const char* p, const char* p_end);
+
+    /**
+     @brief Get the number of whitespace characters (\n, \t, \r, ' ') in the prefix of @p data
+    */
     inline int skipWhitespace(const std::string_view& data)
     {
       auto pos = skipWhitespace(data.data(), data.data() + data.size());
       return pos - data.data();
     }
 
-    inline const char* skipNonWhitespace(const char* p, const char* p_end)
-    {
-      const __m128i w0 = _mm_set1_epi8(' ');
-      const __m128i w1 = _mm_set1_epi8('\t');
-      const __m128i w2 = _mm_set1_epi8('\n');
-      const __m128i w3 = _mm_set1_epi8('\r');
+    /**
+     @brief Get the first whitespace character (\n, \t, \r, ' ') in the string pointed to by @p p (where @p p_end is past the end of the string).
 
-      for (; p <= p_end - 16; p += 16)
-      {
-        const __m128i s = _mm_loadu_si128(reinterpret_cast<const __m128i*>(p));
-        __m128i x = _mm_cmpeq_epi8(s, w0);
-        x = _mm_or_si128(x, _mm_cmpeq_epi8(s, w1));
-        __m128i y = _mm_cmpeq_epi8(s, w2);
-        y = _mm_or_si128(x, _mm_cmpeq_epi8(s, w3));
-        x = _mm_or_si128(x, y);
-        // convert to a 16-bit int (i.e any spaces will be '1')
-        // (do not try to convert first and then invert -- not the same!)
-        auto spaces = static_cast<uint16_t>(_mm_movemask_epi8(x)); // 16 bit is paramount here. Do not use 32!
-        if (spaces != 0)
-        {       // some characters are whitespace
-#ifdef _MSC_VER // Find the index of first whitespace
-          unsigned long offset;
-          _BitScanForward(&offset, spaces);
-          return p + offset;
-#else
-          return p + __builtin_ffs(spaces) - 1;
-#endif
-        }
-      }
-      // the remainder
-      while (p != p_end)
-        if (*p == ' ' || *p == '\n' || *p == '\r' || *p == '\t')
-          return p;
-        else
-          ++p;
-        
-      return p_end;
-    }
+     If only non-whitespaces are contained, then @p p_end is returned.
+    */
+    OPENMS_DLLAPI const char* skipNonWhitespace(const char* p, const char* p_end);
+
+    /**
+     @brief return the number of non-whitespace characters (anything but \n, \t, \r, ' ') in the prefix of @p data
+    */
     inline int skipNonWhitespace(const std::string_view& data)
     {
       auto pos = skipNonWhitespace(data.data(), data.data() + data.size());
