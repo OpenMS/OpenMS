@@ -364,10 +364,10 @@ jobs:
       - name: Upload installer
         shell: bash
         env:
-          PASS: ${{ secrets.IBMI_PASS }}
-          USER: ${{ secrets.IBMI_USER }}
-          HOST: ${{ secrets.IBMI_HOST }}
-          PATH: ${{ secrets.IBMI_PATH }}
+          PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+          HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          #PATH: ${{ secrets.IBMI_PATH }} # We rrsync already puts us in the correct path
         run: |
           echo "Upload"
           if [ "${{ env.RUN_NAME }}" == "nightly" ]; then
@@ -379,7 +379,7 @@ jobs:
             folder=experimental/${{ env.RUN_NAME }}
           fi
           echo $folder
-          #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:$PATH/OpenMSInstaller/${folder}"
+          sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
 
         # TODO create softlinks to latest nightly
         # TODO create and upload file hashes, at least for release candidate
@@ -548,10 +548,10 @@ jobs:
       - name: Upload installer
         shell: bash
         env:
-          PASS: ${{ secrets.IBMI_PASS }}
-          USER: ${{ secrets.IBMI_USER }}
-          HOST: ${{ secrets.IBMI_HOST }}
-          PATH: ${{ secrets.IBMI_PATH }}
+          PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+          HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          #PATH: ${{ secrets.IBMI_PATH }} # rrsync handles this
         run: |
           echo "Upload"
           if [ "${{ env.RUN_NAME }}" == "nightly" ]; then
@@ -563,4 +563,4 @@ jobs:
             folder=experimental/${{ env.RUN_NAME }}
           fi
           echo $folder
-          #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:$PATH/knime-plugin/updateSite/${{ env.RUN_NAME }}"
+          sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/knime-plugin/updateSite/${{ env.RUN_NAME }}"
