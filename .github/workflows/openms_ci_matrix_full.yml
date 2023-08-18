@@ -76,7 +76,9 @@ jobs:
     - id: set-vars
       name: Set extra variables
       run: |
-        DO_PACKAGE= true
+        echo "DO_PACKAGE=true" >> $GITHUB_OUTPUT
+        # DO_PACKAGE=$( [[ ( "${{ inputs.package }}" || "${{ steps.extract_branch.outputs.BASE_REF }}" == "nightly" || \
+        #    "${{ steps.extract_branch.outputs.BASE_REF }}" == "release*" ) && "${{ matrix.compiler }}" != "clang++" ]] && echo true || echo false)
         if [ "${{ matrix.os }}" == "ubuntu-*" ]; then
           echo "tp_folder=Linux" >> $GITHUB_OUTPUT
           echo "xvfb=xvfb-run" >> $GITHUB_OUTPUT
@@ -94,7 +96,6 @@ jobs:
           echo "contrib_os=windows" >> $GITHUB_OUTPUT
           echo "contrib_os_ver=" >> $GITHUB_OUTPUT
           echo "contrib_compiler=msvc14.2/" >> $GITHUB_OUTPUT
-          echo "tp_folder=Windows" >> $GITHUB_OUTPUT
           echo "xvfb=" >> $GITHUB_OUTPUT
           echo "static_boost=ON" >> $GITHUB_OUTPUT
           if [ $DO_PACKAGE ]; then
