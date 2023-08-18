@@ -55,7 +55,7 @@ The most important CMake variables are:
   </tr>
   <tr>
     <td valign="top">\c ENABLE_UPDATE_CHECK=On/Off</td>
-    <td>Check online for %OpenMS Updates upon invocation of any TOPP/UTIL.
+    <td>Check online for %OpenMS Updates upon invocation of any TOPP tool.
     (Default: On)</td>
   </tr>
   <tr>

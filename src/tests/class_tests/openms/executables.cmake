@@ -94,7 +94,6 @@ set(metadata_executables_list
   ExperimentalSettings_test
   Gradient_test
   HPLC_test
-  DocumentIDTagger_test
   Identification_test
   IdentificationData_test
   IdentificationDataConverter_test
@@ -412,7 +411,6 @@ set(chemistry_executables_list
   ElementDB_test
   Element_test
   EmpiricalFormula_test
-  EnzymaticDigestionLogModel_test
   EnzymaticDigestion_test
   FineIsotopeDistribution_test
   IMSAlphabetParser_test
@@ -462,12 +460,6 @@ set(analysis_executables_list
   BasicProteinInferenceAlgorithm_test
   BayesianProteinInferenceAlgorithm_test
   ClusterProxyKD_test
-  CompNovoIdentificationBase_test
-  CompNovoIdentificationCID_test
-  CompNovoIdentification_test
-  CompNovoIonScoringBase_test
-  CompNovoIonScoringCID_test
-  CompNovoIonScoring_test
   ConfidenceScoring_test
   ConsensusIDAlgorithmAverage_test
   ConsensusIDAlgorithmBest_test
@@ -481,10 +473,6 @@ set(analysis_executables_list
   ConsensusMapMergerAlgorithm_test
   #DataAccessHelper_test
   DeconvolvedSpectrum_test
-  DeNovoAlgorithm_test
-  DeNovoIdentification_test
-  DeNovoIonScoring_test
-  DeNovoPostScoring_test
   FalseDiscoveryRate_test
   FeatureDeconvolution_test
   FeatureDistance_test
@@ -523,7 +511,6 @@ set(analysis_executables_list
   KDTreeFeatureMaps_test
   KDTreeFeatureNode_test
   LabeledPairFinder_test
-  LocalLinearMap_test
   TargetedExperiment_test
   TargetedExperimentHelper_test
   MRMFeaturePicker_test
@@ -550,7 +537,6 @@ set(analysis_executables_list
   PeptideAndProteinQuant_test
   PeptideProteinResolution_test
   PeakGroup_test
-  PeakIntensityPredictor_test
   PScore_test
   HyperScore_test
   MorpheusScore_test

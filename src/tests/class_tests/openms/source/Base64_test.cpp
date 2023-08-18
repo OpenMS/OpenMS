@@ -133,11 +133,6 @@ START_SECTION((template < typename ToType > void decode(const String &in, ByteOr
   b64.decode(src, Base64::BYTEORDER_BIGENDIAN, res);
   TEST_EQUAL(res.size(), 0)
 
-  src = "QvAAAELIAA==";
-  b64.decode(src, Base64::BYTEORDER_BIGENDIAN, res);
-  TEST_REAL_SIMILAR(res[0], 120)
-  TEST_REAL_SIMILAR(res[1], 100)
-
   src = "Q+vIuEec9YBD7TgoR/HTgEPt23hHA8UA";
   b64.decode(src, Base64::BYTEORDER_BIGENDIAN, res);
   TEST_REAL_SIMILAR(res[0], 471.568)

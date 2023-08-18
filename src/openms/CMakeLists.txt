@@ -90,17 +90,21 @@ set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5
 
 ## setup the argumentes to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
 set(OPENMS_DEP_PRIVATE_LIBRARIES 
-  GTE Quadtree ${LPTARGET} 
-  Eigen3::Eigen
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
-  Boost::iostreams
-  Boost::date_time
-  Boost::boost
-  Boost::regex
+  ${LPTARGET} 
   BZip2::BZip2
-  ZLIB::ZLIB
+  Boost::boost
+  Boost::date_time
+  Boost::iostreams
+  Boost::regex
+  Eigen3::Eigen
+  GTE 
+  Quadtree 
+  SIMDe
   SQLiteCpp
-  nlohmann_json::nlohmann_json)
+  ZLIB::ZLIB
+  nlohmann_json::nlohmann_json
+  )
 
 ## ----------
 ## No need to for this at the moment: no Qt plugins required anymore. Left here for reference.
