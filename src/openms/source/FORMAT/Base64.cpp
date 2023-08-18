@@ -37,13 +37,12 @@
 #include <QtCore/QList>
 #include <QtCore/QString>
 
-#include <simde/x86/ssse3.h>
+#include <OpenMS/SYSTEM/SIMDe.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-
   const simde__m128i mask1_ = simde_mm_set1_epi32(0x3F000000); // 00111111 00000000 00000000 00000000
   const simde__m128i mask2_ = simde_mm_set1_epi32(0x003F0000); // 00000000 00111111 00000000 00000000
   const simde__m128i mask3_ = simde_mm_set1_epi32(0x00003F00); // 00000000 00000000 00111111 00000000
@@ -71,24 +70,6 @@ namespace OpenMS
   // decoding shuffle masks:
   // shuffle_mask_2 gets used
   const simde__m128i shuffle_mask_d_2_ = simde_mm_setr_epi8(3, 2, 1, 7, 6, 5, 11, 10, 9, 15, 14, 13, 0, 4, 8, 12);
-
-
-  // these operators are defined for GCC/clang, but not in MSVC (TODO: maybe use SFINAE, but that is overkill for the moment)
-#ifdef _MSC_VER
-  inline simde__m128i operator|(const simde__m128i& left, const simde__m128i& right)
-  {
-    return simde_mm_or_si128(left, right);
-  }
-  inline simde__m128i& operator|=(simde__m128i& left, const simde__m128i& right)
-  {
-    left = simde_mm_or_si128(left, right);
-    return left;
-  }
-  inline simde__m128i operator&(const simde__m128i left, const simde__m128i& right)
-  {
-    return simde_mm_and_si128(left, right);
-  }
-#endif
 
   /// Encode the first 12 bytes of a 128 bit simde integer type to base64
   void registerEncoder_(simde__m128i& data)
