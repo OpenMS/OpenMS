@@ -52,7 +52,7 @@ namespace OpenMS
     enum OpenMS_Architecture {ARCH_UNKNOWN, ARCH_32BIT, ARCH_64BIT};
     std::string OpenMS_ArchNames[] = {"unknown", "32 bit", "64 bit"};
 
-    class OpenMSOSInfo
+    class OPENMS_DLLAPI OpenMSOSInfo
     {
       OpenMS_OS os_;
       String os_version_;
@@ -97,6 +97,9 @@ namespace OpenMS
             return OpenMS_ArchNames[ARCH_UNKNOWN];
         }
       }
+
+      /// @brief Obtain a list of SIMD extensions which are currently in use (i.e. used by the compiler during optimization, as well as for SIMDe code within OpenMS)
+      static String getActiveSIMDExtensions();
 
       /// @brief Constructs and returns an OpenMSOSInfo object
       static OpenMSOSInfo getOSInfo()
@@ -167,6 +170,7 @@ namespace OpenMS
         #ifdef _OPENMP
         omp_set_num_threads(num_threads);
         #endif
+        (void)num_threads; // avoid 'unreferenced formal parameter' C4100 on Windows
       }
     };
 

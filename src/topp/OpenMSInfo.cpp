@@ -78,6 +78,7 @@ int main(int /*argc*/, const char ** /*argv*/)
   #else
   cout << "OpenMP       : " << "disabled" << "\n";
   #endif
+  cout << "SIMD extensions : " << Internal::OpenMSOSInfo::getActiveSIMDExtensions() << "\n";
   cout << "\n";
 
   Internal::OpenMSOSInfo info = Internal::OpenMSOSInfo::getOSInfo();

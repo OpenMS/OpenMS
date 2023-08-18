@@ -28,42 +28,54 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
+//
 
-#include <OpenMS/ANALYSIS/PIP/PeakIntensityPredictor.h>
+#include <OpenMS/SYSTEM/BuildInfo.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <iostream>
 
-using namespace OpenMS;
+#include <simde/simde-arch.h>
+
 using namespace std;
 
-Int main()
+namespace OpenMS
 {
-  //Create a vector for the predicted values that is large enough to hold them all
-  vector<AASequence> peptides;
-  peptides.push_back(AASequence::fromString("IVGLMPHPEHAVEK"));
-  peptides.push_back(AASequence::fromString("LADNISNAMQGISEATEPR"));
-  peptides.push_back(AASequence::fromString("ELDHSDTIEVIVNPEDIDYDAASEQAR"));
-  peptides.push_back(AASequence::fromString("AVDTVR"));
-  peptides.push_back(AASequence::fromString("AAWQVK"));
-  peptides.push_back(AASequence::fromString("FLGTQGR"));
-  peptides.push_back(AASequence::fromString("NYPSDWSDVDTK"));
-  peptides.push_back(AASequence::fromString("GSPSFGPESISTETWSAEPYGR"));
-  peptides.push_back(AASequence::fromString("TELGFDPEAHFAIDDEVIAHTR"));
 
-  //Create new predictor model with vector of AASequences
-  PeakIntensityPredictor model;
-
-  //Perform prediction with LLM model
-  vector<double> predicted = model.predict(peptides);
-
-  //for each element in peptides print sequence as well as corresponding predicted peak intensity value.
-  for (Size i = 0; i < peptides.size(); i++)
+  String Internal::OpenMSOSInfo::getActiveSIMDExtensions()
   {
-    cout << "Intensity of " << peptides[i] << " is " << predicted[i] << endl;
+    StringList ret;
+#ifdef SIMDE_ARCH_ARM_NEON
+    ret.push_back("neon");
+#endif
+#ifdef SIMDE_ARCH_X86_SSE
+    ret.push_back("SSE");
+#endif
+#ifdef SIMDE_ARCH_X86_SSE2
+    ret.push_back("SSE2");
+#endif
+#ifdef SIMDE_ARCH_X86_SSE3
+    ret.push_back("SSE3");
+#endif
+#ifdef SIMDE_ARCH_X86_SSE4_1
+    ret.push_back("SSE4.1");
+#endif
+#ifdef SIMDE_ARCH_X86_SSE4_2
+    ret.push_back("SSE4.2");
+#endif
+#ifdef SIMDE_ARCH_X86_AVX
+    ret.push_back("AVX");
+#endif
+#ifdef SIMDE_ARCH_X86_AVX2
+    ret.push_back("AVX2");
+#endif
+#ifdef SIMDE_ARCH_X86_FMA
+    ret.push_back("FMA");
+#endif
+
+    return ListUtils::concatenate(ret, ", ");
   }
 
-  return 0;
-} //end of main
+} // namespace OpenMS
