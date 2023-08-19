@@ -132,7 +132,7 @@ jobs:
     - name: Setup build tools (and system contrib on Linux)
       shell: bash
       run: |
-        if [[ "${{ matrix.os }}" == "ubuntu-*" ]]; then
+        if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
           sudo add-apt-repository universe
           sudo apt update   
           sudo apt-get install -y build-essential cmake autoconf patch libtool git automake ninja-build xvfb ccache
@@ -145,7 +145,7 @@ jobs:
           fi
         fi
         
-        if [[ "${{ matrix.os }}" == "windows-*" ]]; then
+        if [[ "${{ matrix.os }}" == windows-* ]]; then
           choco install ccache ninja cmake
           ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
           # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
@@ -156,7 +156,7 @@ jobs:
           fi
         fi
 
-        if [[ "${{ matrix.os }}" == "macos-*" ]]; then
+        if [[ "${{ matrix.os }}" == macos-* ]]; then
           brew install ccache autoconf automake libtool ninja && brew link --overwrite ccache
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
