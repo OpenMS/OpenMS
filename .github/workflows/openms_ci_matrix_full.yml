@@ -63,20 +63,13 @@ jobs:
 
     - name: Extract branch/PR infos
       shell: bash
-      run: |
-        cd OpenMS
-        RUN_NAME_LOCAL=$(echo ${GITHUB_REF#refs/heads/} | tr / -)
-        echo "RUN_NAME=${RUN_NAME_LOCAL}" >> $GITHUB_ENV
-        echo "BASE_REF=$(gh pr view --json baseRefName -q .baseRefName || echo ${RUN_NAME_LOCAL})" >> $GITHUB_ENV
+      run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_OUTPUT
       id: extract_branch
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 
     - id: set-vars
       name: Set extra variables
       run: |
-        DO_PACKAGE=$( [[ ( "${{ inputs.package }}" || "${{ steps.extract_branch.outputs.BASE_REF }}" == "nightly" || "${{ steps.extract_branch.outputs.BASE_REF }}" == "release*" ) && "${{ matrix.compiler }}" != "clang++" ]] && echo true || echo false)
+        DO_PACKAGE=$( [[ ( "${{ inputs.package }}" || "${{ steps.extract_branch.outputs.RUN_NAME }}" == "nightly" || "${{ steps.extract_branch.outputs.RUN_NAME }}" == "release*" ) && "${{ matrix.compiler }}" != "clang++" ]] && echo true || echo false)
         if [[ "${{ matrix.os }}" == "ubuntu-*" ]]; then
           echo "tp_folder=Linux" >> $GITHUB_OUTPUT
           echo "xvfb=xvfb-run" >> $GITHUB_OUTPUT
@@ -263,7 +256,7 @@ jobs:
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Ninja"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
-          BUILD_NAME: "${{ env.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ matrix.compiler }}-class-topp-${{ github.run_number }}"
+          BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ matrix.compiler }}-class-topp-${{ github.run_number }}"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
@@ -295,7 +288,7 @@ jobs:
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CI_PROVIDER: "GitHub-Actions"
-          BUILD_NAME: "${{ env.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-class-topp-${{ github.run_number }}"
+          BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-class-topp-${{ github.run_number }}"
           # The rest of the vars should be saved in the CMakeCache
 
 
@@ -306,7 +299,7 @@ jobs:
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CI_PROVIDER: "GitHub-Actions"
-          BUILD_NAME: "${{ env.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-class-topp-${{ github.run_number }}"
+          BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-class-topp-${{ github.run_number }}"
 
     # WARNING: Here you have to make sure that only one matrix configuration per OS produces packages. See set-vars steps.
     - if: ${{ steps.set-vars.outputs.pkg_type }} != "none"
@@ -367,13 +360,13 @@ jobs:
           #PATH: ${{ secrets.IBMI_PATH }} # We rrsync already puts us in the correct path
         run: |
           echo "Upload"
-          if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
+          if [[ "${{ steps.extract_branch.outputs.RUN_NAME }}" == "nightly" ]]; then
             folder=nightly
-          elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
+          elif [[ "${{ steps.extract_branch.outputs.RUN_NAME }}" == "release/*" ]]; then
             tmpfolder=${{ env.RUN_NAME }}
             folder=${tmpfolder/release/RC}
           else
-            folder=experimental/${{ env.RUN_NAME }}
+            folder=experimental/${{ steps.extract_branch.outputs.RUN_NAME }}
           fi
           echo $folder
           sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
@@ -394,7 +387,7 @@ jobs:
     steps:
       - name: Extract branch/PR infos
         shell: bash
-        run: echo "RUN_NAME=${{ github.event.pull_request && github.head_ref || github.ref_name }}" >> $GITHUB_ENV
+        run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
 
       # WOW, you cannot download with wildcard. INCREDIBLY ANNOYING https://github.com/actions/download-artifact/issues/6
       # Maybe in the next 3 years......
