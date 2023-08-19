@@ -69,7 +69,7 @@ CMAKE_C_COMPILER_LAUNCHER=$ENV{CMAKE_CCACHE_EXE}"
   )
 endif()
 
-add_env_vars_to_cache_if_exists(
+set(VARS_TO_LOAD
   "ADDRESS_SANITIZER"
   "CMAKE_PREFIX_PATH"
   "CMAKE_BUILD_TYPE"
@@ -95,6 +95,8 @@ add_env_vars_to_cache_if_exists(
   "WITH_GUI"
   "WITH_THERMORAWFILEPARSER_TEST"
  )
+
+add_env_vars_to_cache_if_exists("${VARS_TO_LOAD}")
 
 # Unused now! If you want to set a variable to a non-default, you have to set it in your environment.
 # To make build scripts/workflows clearer from the outside.
