@@ -76,10 +76,8 @@ jobs:
     - id: set-vars
       name: Set extra variables
       run: |
-        echo "DO_PACKAGE=true" >> $GITHUB_OUTPUT
-        # DO_PACKAGE=$( [[ ( "${{ inputs.package }}" || "${{ steps.extract_branch.outputs.BASE_REF }}" == "nightly" || \
-        #    "${{ steps.extract_branch.outputs.BASE_REF }}" == "release*" ) && "${{ matrix.compiler }}" != "clang++" ]] && echo true || echo false)
-        if [ "${{ matrix.os }}" == "ubuntu-*" ]; then
+        DO_PACKAGE=$( [[ ( "${{ inputs.package }}" || "${{ steps.extract_branch.outputs.BASE_REF }}" == "nightly" || "${{ steps.extract_branch.outputs.BASE_REF }}" == "release*" ) && "${{ matrix.compiler }}" != "clang++" ]] && echo true || echo false)
+        if [[ "${{ matrix.os }}" == "ubuntu-*" ]]; then
           echo "tp_folder=Linux" >> $GITHUB_OUTPUT
           echo "xvfb=xvfb-run" >> $GITHUB_OUTPUT
           echo "static_boost=OFF" >> $GITHUB_OUTPUT
@@ -91,7 +89,7 @@ jobs:
           echo "cxx_compiler=${{ matrix.compiler }}-${{ matrix.compiler_ver }}" >> $GITHUB_OUTPUT
         fi
         
-        if [ "${{ matrix.os }}" == "windows-*" ]; then
+        if [[ "${{ matrix.os }}" == "windows-*" ]]; then
           echo "tp_folder=Windows" >> $GITHUB_OUTPUT
           echo "contrib_os=windows" >> $GITHUB_OUTPUT
           echo "contrib_os_ver=" >> $GITHUB_OUTPUT
@@ -106,7 +104,7 @@ jobs:
           echo "cxx_compiler=${{ matrix.compiler }}" >> $GITHUB_OUTPUT
         fi
 
-        if [ "${{ matrix.os }}" == "macos-*" ]; then
+        if [[ "${{ matrix.os }}" == "macos-*" ]]; then
           echo "tp_folder=MacOS" >> $GITHUB_OUTPUT
           echo "contrib_os=macOS" >> $GITHUB_OUTPUT
           echo "contrib_os_ver=10.15.5/" >> $GITHUB_OUTPUT
@@ -118,10 +116,10 @@ jobs:
           else
             echo "pkg_type=none" >> $GITHUB_OUTPUT
           fi
-          if [ "${{ matrix.compiler }}" == "xcode" ]; then
+          if [[ "${{ matrix.compiler }}" == "xcode" ]]; then
             sudo xcode-select -s '/Applications/Xcode_${{ matrix.compiler_ver }}.app/Contents/Developer'
             echo "cxx_compiler=clang++" >> $GITHUB_OUTPUT
-          elif [ "${{ matrix.compiler }}" == "clang++" ]; then
+          elif [[ "${{ matrix.compiler }}" == "clang++" ]]; then
             echo "cxx_compiler=$(brew --prefix llvm@${{ matrix.compiler_ver }})/bin/clang++" >> $GITHUB_OUTPUT
           else
             echo "Unsupported compiler"
@@ -140,7 +138,7 @@ jobs:
     - name: Setup build tools (and system contrib on Linux)
       shell: bash
       run: |
-        if [ "${{ matrix.os }}" == "ubuntu-*" ]; then
+        if [[ "${{ matrix.os }}" == "ubuntu-*" ]]; then
           sudo add-apt-repository universe
           sudo apt update   
           sudo apt-get install -y build-essential cmake autoconf patch libtool git automake ninja-build xvfb ccache
@@ -148,26 +146,26 @@ jobs:
           sudo apt-get install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev \
            libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
-          if [  ${{ steps.set-vars.outputs.pkg_type }} != "none" ]; then
+          if [[  ${{ steps.set-vars.outputs.pkg_type }} != "none" ]]; then
             sudo apt-get install -y doxygen ghostscript graphviz
           fi
         fi
         
-        if [ "${{ matrix.os }}" == "windows-*" ]; then
+        if [[ "${{ matrix.os }}" == "windows-*" ]]; then
           choco install ccache ninja cmake
           ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
           # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
           echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
 
-          if [ ${{ steps.set-vars.outputs.pkg_type }} != "none" ]; then
+          if [[ ${{ steps.set-vars.outputs.pkg_type }} != "none" ]]; then
             choco install doxygen.portable ghostscript graphviz
           fi
         fi
 
-        if [ "${{ matrix.os }}" == "macos-*" ]; then
+        if [[ "${{ matrix.os }}" == "macos-*" ]]; then
           brew install ccache autoconf automake libtool ninja && brew link --overwrite ccache
 
-          if [  ${{ steps.set-vars.outputs.pkg_type }} != "none" ]; then
+          if [[  ${{ steps.set-vars.outputs.pkg_type }} != "none" ]]; then
             brew install -y doxygen ghostscript graphviz
           fi
         fi
@@ -369,9 +367,9 @@ jobs:
           #PATH: ${{ secrets.IBMI_PATH }} # We rrsync already puts us in the correct path
         run: |
           echo "Upload"
-          if [ "${{ env.RUN_NAME }}" == "nightly" ]; then
+          if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
             folder=nightly
-          elif [ "${{ env.RUN_NAME }}" == "release/*" ]; then
+          elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
             tmpfolder=${{ env.RUN_NAME }}
             folder=${tmpfolder/release/RC}
           else
@@ -553,9 +551,9 @@ jobs:
           #PATH: ${{ secrets.IBMI_PATH }} # rrsync handles this
         run: |
           echo "Upload"
-          if [ "${{ env.RUN_NAME }}" == "nightly" ]; then
+          if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
             folder=nightly
-          elif [ "${{ env.RUN_NAME }}" == "release/*" ]; then
+          elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
             tmpfolder=${{ env.RUN_NAME }}
             folder=${tmpfolder/release/RC}
           else
