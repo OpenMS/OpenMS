@@ -40,7 +40,7 @@ endfunction()
 
 # same but for multiple variables
 function(add_env_vars_to_cache_if_exists VAR_NAMES)
-  foreach(VAR_NAME IN LISTS VAR_NAMES)
+  foreach(VAR_NAME ${VAR_NAMES})
     add_env_var_to_cache_if_exists(${VAR_NAME})
   endforeach()
 endfunction()
