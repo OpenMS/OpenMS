@@ -74,7 +74,7 @@ jobs:
           echo "tp_folder=Linux" >> $GITHUB_OUTPUT
           echo "xvfb=xvfb-run" >> $GITHUB_OUTPUT
           echo "static_boost=OFF" >> $GITHUB_OUTPUT
-          if [ $DO_PACKAGE ]; then
+          if [ "$DO_PACKAGE" = true ]; then
             echo "pkg_type=deb" >> $GITHUB_OUTPUT
           else
             echo "pkg_type=none" >> $GITHUB_OUTPUT
@@ -89,7 +89,7 @@ jobs:
           echo "contrib_compiler=msvc14.2/" >> $GITHUB_OUTPUT
           echo "xvfb=" >> $GITHUB_OUTPUT
           echo "static_boost=ON" >> $GITHUB_OUTPUT
-          if [ $DO_PACKAGE ]; then
+          if [ "$DO_PACKAGE" = true ]; then
             echo "pkg_type=nsis" >> $GITHUB_OUTPUT
           else
             echo "pkg_type=none" >> $GITHUB_OUTPUT
@@ -104,7 +104,7 @@ jobs:
           echo "contrib_compiler=appleclang-11.0.0/" >> $GITHUB_OUTPUT
           echo "xvfb=" >> $GITHUB_OUTPUT
           echo "static_boost=ON" >> $GITHUB_OUTPUT
-          if [ $DO_PACKAGE ]; then
+          if [ "$DO_PACKAGE" = true ]; then
             echo "pkg_type=dmg" >> $GITHUB_OUTPUT
           else
             echo "pkg_type=none" >> $GITHUB_OUTPUT
