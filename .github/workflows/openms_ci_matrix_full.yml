@@ -139,7 +139,7 @@ jobs:
           sudo apt-get install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev \
            libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
-          if [[  ${{ steps.set-vars.outputs.pkg_type }} != "none" ]]; then
+          if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             sudo apt-get install -y doxygen ghostscript graphviz
           fi
         fi
@@ -150,7 +150,7 @@ jobs:
           # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
           echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
 
-          if [[ ${{ steps.set-vars.outputs.pkg_type }} != "none" ]]; then
+          if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             choco install doxygen.portable ghostscript graphviz
           fi
         fi
@@ -158,7 +158,7 @@ jobs:
         if [[ "${{ matrix.os }}" == "macos-*" ]]; then
           brew install ccache autoconf automake libtool ninja && brew link --overwrite ccache
 
-          if [[  ${{ steps.set-vars.outputs.pkg_type }} != "none" ]]; then
+          if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             brew install -y doxygen ghostscript graphviz
           fi
         fi
