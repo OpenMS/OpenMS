@@ -70,7 +70,8 @@ jobs:
       name: Set extra variables
       run: |
         DO_PACKAGE=$( [[ ( "${{ inputs.package }}" || "${{ steps.extract_branch.outputs.RUN_NAME }}" == "nightly" || "${{ steps.extract_branch.outputs.RUN_NAME }}" == "release*" ) && "${{ matrix.compiler }}" != "clang++" ]] && echo true || echo false)
-        if [[ "${{ matrix.os }}" == "ubuntu-*" ]]; then
+        echo $DO_PACKAGE
+        if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
           echo "tp_folder=Linux" >> $GITHUB_OUTPUT
           echo "xvfb=xvfb-run" >> $GITHUB_OUTPUT
           echo "static_boost=OFF" >> $GITHUB_OUTPUT
@@ -82,7 +83,8 @@ jobs:
           echo "cxx_compiler=${{ matrix.compiler }}-${{ matrix.compiler_ver }}" >> $GITHUB_OUTPUT
         fi
         
-        if [[ "${{ matrix.os }}" == "windows-*" ]]; then
+        if [[ "${{ matrix.os }}" == 
+windows-* ]]; then
           echo "tp_folder=Windows" >> $GITHUB_OUTPUT
           echo "contrib_os=windows" >> $GITHUB_OUTPUT
           echo "contrib_os_ver=" >> $GITHUB_OUTPUT
@@ -97,7 +99,7 @@ jobs:
           echo "cxx_compiler=${{ matrix.compiler }}" >> $GITHUB_OUTPUT
         fi
 
-        if [[ "${{ matrix.os }}" == "macos-*" ]]; then
+        if [[ "${{ matrix.os }}" == macos-* ]]; then
           echo "tp_folder=MacOS" >> $GITHUB_OUTPUT
           echo "contrib_os=macOS" >> $GITHUB_OUTPUT
           echo "contrib_os_ver=10.15.5/" >> $GITHUB_OUTPUT
