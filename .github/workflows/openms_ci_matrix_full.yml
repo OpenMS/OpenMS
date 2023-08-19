@@ -83,8 +83,7 @@ jobs:
           echo "cxx_compiler=${{ matrix.compiler }}-${{ matrix.compiler_ver }}" >> $GITHUB_OUTPUT
         fi
         
-        if [[ "${{ matrix.os }}" == 
-windows-* ]]; then
+        if [[ "${{ matrix.os }}" == windows-* ]]; then
           echo "tp_folder=Windows" >> $GITHUB_OUTPUT
           echo "contrib_os=windows" >> $GITHUB_OUTPUT
           echo "contrib_os_ver=" >> $GITHUB_OUTPUT
