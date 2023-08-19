@@ -30,7 +30,7 @@ message(STATUS "CTEST_BINARY_DIRECTORY: ${CTEST_BINARY_DIRECTORY}")
 
 # function to set a cache variable from an env variable if it exists only
 function(add_env_var_to_cache_if_exists VAR_NAME)
-message(${VAR_NAME})
+message("4: ${VAR_NAME}")
   if (DEFINED ENV{${VAR_NAME}})
     set(INITIAL_CACHE
 "${INITIAL_CACHE}
@@ -41,8 +41,9 @@ endfunction()
 
 # same but for multiple variables
 function(add_env_vars_to_cache_if_exists VAR_NAMES)
+message("2: ${VAR_NAMES}")
   foreach(VAR_NAME ${VAR_NAMES})
-message(${VAR_NAMES})
+message("3: ${VAR_NAME}")
     add_env_var_to_cache_if_exists(${VAR_NAME})
   endforeach()
 endfunction()
@@ -98,6 +99,7 @@ set(VARS_TO_LOAD
   "WITH_THERMORAWFILEPARSER_TEST"
  )
 
+message("1: ${VARS_TO_LOAD}")
 add_env_vars_to_cache_if_exists("${VARS_TO_LOAD}")
 
 # Unused now! If you want to set a variable to a non-default, you have to set it in your environment.
