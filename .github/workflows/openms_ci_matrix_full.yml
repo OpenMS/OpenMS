@@ -335,7 +335,7 @@ jobs:
           - ${{ github.workspace }}/OpenMS/bld/knime/**/*
 
   deploy-installer:
-    if: ${{ github.ref == 'refs/heads/nightly' }} || ${{ contains(github.ref, 'release/') }} || ${{ inputs.package }}
+    if: github.ref == 'refs/heads/nightly' || contains(github.ref, 'release/') || inputs.package
     runs-on: ubuntu-latest
     needs: build-and-test
 
@@ -385,7 +385,7 @@ jobs:
       JAVA_VER: 17
       PLUGIN_BUILD: ${{ github.workspace }}/plugin-build
       PLUGIN_SOURCE: ${{ github.workspace }}/plugin-source
-    if: ${{ github.ref == 'refs/heads/nightly' }} || ${{ contains(github.ref, 'release/') }} || ${{ inputs.knime }}
+    if: github.ref == 'refs/heads/nightly' || contains(github.ref, 'release/') || inputs.knime
     runs-on: ubuntu-latest
     needs: build-and-test
     steps:
