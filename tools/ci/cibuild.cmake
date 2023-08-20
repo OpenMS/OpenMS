@@ -29,41 +29,38 @@ message(STATUS "CTEST_SOURCE_DIRECTORY: ${CTEST_SOURCE_DIRECTORY}")
 message(STATUS "CTEST_BINARY_DIRECTORY: ${CTEST_BINARY_DIRECTORY}")
 
 # function to set a cache variable from an env variable if it exists only
-function(add_env_var_to_cache_if_exists VAR_NAME)
+macro(add_env_var_to_cache_if_exists VAR_NAME)
 message("4: ${VAR_NAME}")
   if (DEFINED ENV{${VAR_NAME}})
     set(INITIAL_CACHE
 "${INITIAL_CACHE}
 ${VAR_NAME}=$ENV{${VAR_NAME}}"
-    PARENT_SCOPE
     )
   endif()
-endfunction()
+endmacro()
 
 # same but for multiple variables
-function(add_env_vars_to_cache_if_exists VAR_NAMES)
+macro(add_env_vars_to_cache_if_exists VAR_NAMES)
 message("2: ${VAR_NAMES}")
   foreach(VAR_NAME ${VAR_NAMES})
 message("3: ${VAR_NAME}")
     add_env_var_to_cache_if_exists(${VAR_NAME})
   endforeach()
-endfunction()
+endmacro()
 
-function(add_env_var_to_cache_with_default VAR_NAME DEFAULT)
+macro(add_env_var_to_cache_with_default VAR_NAME DEFAULT)
   if (DEFINED ENV{${VAR_NAME}})
     set(INITIAL_CACHE
 "${INITIAL_CACHE}
 ${VAR_NAME}=$ENV{${VAR_NAME}}"
-    PARENT_SCOPE
     )
   else()
       set(INITIAL_CACHE
 "${INITIAL_CACHE}
 ${VAR_NAME}=$ENV{${DEFAULT}}"
-    PARENT_SCOPE
     )
   endif()
-endfunction()
+endmacro()
 
 set(INITIAL_CACHE "")
 
