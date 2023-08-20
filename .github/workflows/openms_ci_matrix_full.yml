@@ -88,7 +88,7 @@ jobs:
           echo "tp_folder=Windows" >> $GITHUB_OUTPUT
           echo "contrib_os=windows" >> $GITHUB_OUTPUT
           echo "contrib_os_ver=" >> $GITHUB_OUTPUT
-          echo "contrib_compiler=msvc14.2/" >> $GITHUB_OUTPUT
+          echo "contrib_compiler=msvc-14.2/" >> $GITHUB_OUTPUT
           echo "xvfb=" >> $GITHUB_OUTPUT
           echo "static_boost=ON" >> $GITHUB_OUTPUT
           if [ "$DO_PACKAGE" = true ]; then
