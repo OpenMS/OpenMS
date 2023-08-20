@@ -186,7 +186,7 @@ jobs:
       name: Download contrib build from archive (Windows and macOS)
       run: |
           cd OpenMS/contrib
-          curl -o contribbld.tar.gz https://abibuilder.cs.uni-tuebingen.de/archive/openms/contrib/${{ steps.set-vars.outputs.contrib_os }}/${{ steps.set-vars.outputs.contrib_os_ver }}x64/${{ steps.set-vars.outputs.contrib_compiler }}/contrib_build.tar.gz
+          curl -L -o contribbld.tar.gz https://abibuilder.cs.uni-tuebingen.de/archive/openms/contrib/${{ steps.set-vars.outputs.contrib_os }}/${{ steps.set-vars.outputs.contrib_os_ver }}x64/${{ steps.set-vars.outputs.contrib_compiler }}contrib_build.tar.gz
           tar -xzf contribbld.tar.gz
           rm contribbld.tar.gz
 
