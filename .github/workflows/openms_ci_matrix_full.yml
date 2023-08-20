@@ -27,6 +27,7 @@ on:
 jobs:
   build-and-test:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: windows-2022
