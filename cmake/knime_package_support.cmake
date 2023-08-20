@@ -389,13 +389,13 @@ else()
   endforeach()
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD
-          COMMAND find ${PAYLOAD_BIN_PATH} -depth 1 -type f -exec ${CMAKE_STRIP} -s {} \;
-          COMMAND find "${TP_PAYLOAD_BIN_PATH}" -depth 1 -type f -exec ${CMAKE_STRIP} -s {} \;
+          COMMAND find \"${PAYLOAD_BIN_PATH}\" -depth 1 -type f -exec ${CMAKE_STRIP} -s {} \\\;
+          COMMAND find \"${TP_PAYLOAD_BIN_PATH}\" -depth 1 -type f -exec ${CMAKE_STRIP} -s {} \\\;
           VERBATIM
   )
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD
-          COMMAND find "${PAYLOAD_LIB_PATH}" -type f -name "*.so" -exec ${CMAKE_STRIP} -x {} \;
+          COMMAND find \"${PAYLOAD_LIB_PATH}\" -type f -name "*.so" -exec ${CMAKE_STRIP} -x {} \\\;
           VERBATIM
   )
 endif()
