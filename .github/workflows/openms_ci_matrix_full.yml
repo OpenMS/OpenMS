@@ -320,7 +320,7 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/OpenMS/bld/
         # TODO use CTest or script to upload to CDash?
-        cmake -DSEARCHENGINES_DIRECTORY="$GITHUB_WORKSPACE/_thirdparty" -DENABLE_PREPARE_KNIME_PACKAGE=ON .
+        cmake -DSEARCH_ENGINES_DIRECTORY="$GITHUB_WORKSPACE/_thirdparty" -DENABLE_PREPARE_KNIME_PACKAGE=ON .
         cmake --build . --target prepare_knime_package
         
 
