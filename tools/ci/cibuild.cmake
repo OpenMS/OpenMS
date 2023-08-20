@@ -35,6 +35,7 @@ message("4: ${VAR_NAME}")
     set(INITIAL_CACHE
 "${INITIAL_CACHE}
 ${VAR_NAME}=$ENV{${VAR_NAME}}"
+    PARENT_SCOPE
     )
   endif()
 endfunction()
@@ -53,11 +54,13 @@ function(add_env_var_to_cache_with_default VAR_NAME DEFAULT)
     set(INITIAL_CACHE
 "${INITIAL_CACHE}
 ${VAR_NAME}=$ENV{${VAR_NAME}}"
+    PARENT_SCOPE
     )
   else()
       set(INITIAL_CACHE
 "${INITIAL_CACHE}
 ${VAR_NAME}=$ENV{${DEFAULT}}"
+    PARENT_SCOPE
     )
   endif()
 endfunction()
