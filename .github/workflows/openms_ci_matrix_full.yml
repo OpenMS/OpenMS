@@ -189,6 +189,7 @@ jobs:
           curl -L -o contribbld.tar.gz https://abibuilder.cs.uni-tuebingen.de/archive/openms/contrib/${{ steps.set-vars.outputs.contrib_os }}/${{ steps.set-vars.outputs.contrib_os_ver }}x64/${{ steps.set-vars.outputs.contrib_compiler }}contrib_build.tar.gz
           7z x -so contribbld.tar.gz | 7z x -si -ttar
           rm contribbld.tar.gz
+          ls -la
 
     - if: startsWith(matrix.os, 'macos')
       name: Fix contrib install names (macOS)
