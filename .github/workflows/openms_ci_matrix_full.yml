@@ -231,11 +231,11 @@ jobs:
       uses: actions/cache@v3
       with:
         path: .ccache
-        key: ${{ runner.os }}-ccache-${{ env.RUN_NAME }}-${{ github.run_number }}
-        # Restoring: From current branch, otherwise from base branch, otherwise from any branch.
+        key: ${{ runner.os }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ github.run_number }}
+        # Restoring: From current branch/PR, otherwise from nightly, otherwise from any branch.
         restore-keys: |
-          ${{ runner.os }}-ccache-${{ env.RUN_NAME }}
-          ${{ runner.os }}-ccache-${{ env.BASE_REF }}
+          ${{ runner.os }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}
+          ${{ runner.os }}-ccache-nightly
           ${{ runner.os }}-ccache-
 
     - name: Add THIRDPARTY
@@ -396,7 +396,7 @@ jobs:
           if [[ "${{ steps.extract_branch.outputs.RUN_NAME }}" == "nightly" ]]; then
             folder=nightly
           elif [[ "${{ steps.extract_branch.outputs.RUN_NAME }}" == "release/*" ]]; then
-            tmpfolder=${{ env.RUN_NAME }}
+            tmpfolder=${{ steps.extract_branch.outputs.RUN_NAME }}
             folder=${tmpfolder/release/RC}
           else
             folder=experimental/${{ steps.extract_branch.outputs.RUN_NAME }}
@@ -586,4 +586,4 @@ jobs:
             folder=experimental/${{ env.RUN_NAME }}
           fi
           echo $folder
-          #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/knime-plugin/updateSite/${{ env.RUN_NAME }}"
+          #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/knime-plugin/updateSite/$folder"
