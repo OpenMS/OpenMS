@@ -341,9 +341,9 @@ jobs:
       with:
         name: installer-${{ steps.set-vars.outputs.tp_folder }}
         path: |
-          - ${{ github.workspace }}/OpenMS/bld/*.exe
-          - ${{ github.workspace }}/OpenMS/bld/*.deb
-          - ${{ github.workspace }}/OpenMS/bld/*.dmg
+          ${{ github.workspace }}/OpenMS/bld/*.exe
+          ${{ github.workspace }}/OpenMS/bld/*.deb
+          ${{ github.workspace }}/OpenMS/bld/*.dmg
         
     - if: steps.set-vars.outputs.pkg_type != 'none' || inputs.knime
       name: Generate KNIME descriptors and payloads
@@ -360,8 +360,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: knime-${{ steps.set-vars.outputs.tp_folder }}
-        path: |
-          - ${{ github.workspace }}/OpenMS/bld/knime/**/*
+        path: ${{ github.workspace }}/OpenMS/bld/knime/**/*
 
   deploy-installer:
     if: github.ref == 'refs/heads/nightly' || contains(github.ref, 'release/') || inputs.package
