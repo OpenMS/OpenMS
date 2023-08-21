@@ -131,7 +131,17 @@ jobs:
         # NOTE: x64 is hardcoded. No support for 32bit
         arch: x64
 
+    - if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
+      name: Install Qt (Windows and macOS)
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: '5.15.2' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715, > 5.15.2 is not available on official archives (https://github.com/miurahr/aqtinstall/issues/636)
+        cache: 'false'
+        aqtversion: '==3.1.*'
+        archives: 'qtsvg qtimageformats qtbase'
+
     - name: Setup build tools (and system contrib on Linux)
+      id: tools-prefix
       shell: bash
       run: |
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
@@ -142,12 +152,16 @@ jobs:
           sudo apt-get install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev \
            libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
+          echo "cmake_prefix=" >> $GITHUB_OUTPUT
+          
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             sudo apt-get install -y doxygen ghostscript graphviz
           fi
         fi
         
         if [[ "${{ matrix.os }}" == windows-* ]]; then
+          # Qt5_DIR set by Install Qt5 step
+          echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
           choco install ccache ninja cmake
           ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
           # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
@@ -159,6 +173,8 @@ jobs:
         fi
 
         if [[ "${{ matrix.os }}" == macos-* ]]; then
+          # Qt5_DIR set by Install Qt5 step
+          echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
           brew install ccache autoconf automake libtool ninja && brew link --overwrite ccache
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
@@ -166,14 +182,7 @@ jobs:
           fi
         fi
 
-    - if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
-      name: Install Qt (Windows and macOS)
-      uses: jurplel/install-qt-action@v3
-      with:
-        version: '5.15.2' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715, > 5.15.2 is not available on official archives (https://github.com/miurahr/aqtinstall/issues/636)
-        cache: 'false'
-        aqtversion: '==3.1.*'
-        archives: 'qtsvg qtimageformats qtbase'
+
 
     - if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
       name: Cache contrib (Windows and macOS)
@@ -250,6 +259,8 @@ jobs:
     - name: Build
       shell: bash
       run: |
+          # do not fail immediately
+          set +x
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
           ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
           retVal=$?
@@ -262,7 +273,7 @@ jobs:
           # TODO allow actual choice of compiler instead of using default.
           #  Problem: not all compilers are always in the PATH.
           CMAKE_CXX_COMPILER: ${{ steps.set-vars.outputs.cxx_compiler }}
-          CMAKE_PREFIX_PATH: "${{ env.Qt5_DIR }}/lib/cmake;${{ env.Qt5_DIR }}"
+          CMAKE_PREFIX_PATH: ${{ steps.tools-prefix.outputs.cmake_prefix }}
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Ninja"
@@ -307,6 +318,8 @@ jobs:
       name: Package
       shell: bash
       run: |
+          # do not fail immediately
+          set +x
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cipackage.cmake
           retVal=$?
           if [ $retVal -ne 0 ]; then
