@@ -273,7 +273,6 @@ jobs:
           ENABLE_CLASS_TESTING: "ON"
           ENABLE_TUTORIALS: "OFF"
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
-          PACKAGE_TYPE: ${{ steps.set-vars.outputs.pkg_type }}
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
           ADDRESS_SANITIZER: "Off"
@@ -295,7 +294,8 @@ jobs:
 
     - name: Test
       shell: bash
-      run: ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
+      run: |
+          ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CI_PROVIDER: "GitHub-Actions"
@@ -306,9 +306,18 @@ jobs:
     - if: steps.set-vars.outputs.pkg_type != 'none'
       name: Package
       shell: bash
-      run: ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cipackage.cmake
+      run: |
+          ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cipackage.cmake
+          retVal=$?
+          if [ $retVal -ne 0 ]; then
+              echo "\033[0;31m Errors in packaging:"
+              find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec cat {} \;
+          fi
+          exit $retVal
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          PACKAGE_TYPE: ${{ steps.set-vars.outputs.pkg_type }}
+          SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/_thirdparty"
           CI_PROVIDER: "GitHub-Actions"
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ matrix.compiler }}-class-topp-${{ github.run_number }}"
 
