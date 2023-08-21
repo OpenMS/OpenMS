@@ -2,6 +2,8 @@
 ## this script REQUIRES the previous execution of the cibuild.cmake script!!
 ##
 
+# TODO (in all cmake scripts) explicitly require certain variables to be in the ENV (e.g. by using a macro). Otherwise you might have random hard to debug failures if not set.
+
 # define build name&co for easier identification on CDash
 set(CTEST_BUILD_NAME "$ENV{BUILD_NAME}_Package")
 set(CTEST_SITE "$ENV{CI_PROVIDER}")
@@ -22,18 +24,15 @@ set (CTEST_CURL_OPTIONS       CURLOPT_SSL_VERIFYHOST_OFF CURLOPT_SSL_VERIFYPEER_
 message(STATUS "CTEST_SOURCE_DIRECTORY: ${CTEST_SOURCE_DIRECTORY}")
 message(STATUS "CTEST_BINARY_DIRECTORY: ${CTEST_BINARY_DIRECTORY}")
 
+#TODO set the Model to Continuous or Nightly depending on branch
 ctest_start(Nightly GROUP Package)
 
 # build the dist target for packages
-if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
-  if(NOT "$ENV{PYOPENMS}" STREQUAL "ON")
-    ctest_configure(OPTIONS ${CONFIGURE_OPTIONS} RETURN_VALUE _reconfig_package_ret_val)
-    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "dist" NUMBER_ERRORS _build_errors)
-    ctest_submit(PARTS Build)
-  endif()
-else()
-  set(_build_errors 0)
-endif()
+# we assume the configuration is correct for this. So please no KNIME, PYOPENMS, STYLE or COVERAGE.
+
+ctest_configure(OPTIONS ${CONFIGURE_OPTIONS} RETURN_VALUE _reconfig_package_ret_val)
+ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "dist" NUMBER_ERRORS _build_errors)
+ctest_submit(PARTS Build)
 
 string(REPLACE "+" "%2B" BUILD_NAME_SAFE ${CTEST_BUILD_NAME})
 string(REPLACE "." "%2E" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
