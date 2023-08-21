@@ -19,6 +19,10 @@ foreach(VAR ${VARS_TO_LOAD})
   endif()
 endforeach()
 
+if(APPLE)
+  list(APPEND CONFIGURE_OPTIONS "-DCPACK_COMMAND_HDIUTIL=\"/usr/bin/sudo /usr/bin/hdiutil -debug\"")
+endif()
+
 # cdash server (fu-berlin) SSL certificate sometimes is revoked. Keeps CI running.
 set (CTEST_CURL_OPTIONS       CURLOPT_SSL_VERIFYHOST_OFF CURLOPT_SSL_VERIFYPEER_OFF )
 
