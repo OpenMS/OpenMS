@@ -262,7 +262,7 @@ jobs:
           # do not fail immediately
           set +e
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
-          ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
+          ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
           retVal=$?
           if [ $retVal -ne 0 ]; then
               echo "\033[0;31m Errors in build:"
