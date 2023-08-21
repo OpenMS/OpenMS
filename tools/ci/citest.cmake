@@ -26,7 +26,7 @@ set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000)
 
 ctest_start(APPEND)
 
-## build lib&executables, run tests
+## run tests
 ## for pyopenms build, only run pyopenms tests
 if("$ENV{PYOPENMS}" STREQUAL "ON")
   ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" INCLUDE "pyopenms" PARALLEL_LEVEL 3 RETURN_VALUE _test_errors)
