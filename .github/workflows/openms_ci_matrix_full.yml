@@ -206,6 +206,9 @@ jobs:
       name: Fix contrib install names (macOS)
       shell: bash
       run: |
+          #lol, Microsoft wants us to kill a security system process such that they don't have to fix their bugs. ridiculous once again.
+          echo killing...; sudo pkill -9 XProtect >/dev/null || true;
+          echo waiting...; while pgrep XProtect; do sleep 3; done;
           shopt -s nullglob # ensure that for loop is only executed if there is at least one .dylib file
           for lib in $GITHUB_WORKSPACE/OpenMS/contrib/lib/*.dylib
           do
