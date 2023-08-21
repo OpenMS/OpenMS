@@ -260,7 +260,7 @@ jobs:
       shell: bash
       run: |
           # do not fail immediately
-          set +x
+          set +e
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
           ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
           retVal=$?
@@ -319,7 +319,7 @@ jobs:
       shell: bash
       run: |
           # do not fail immediately
-          set +x
+          set +e
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cipackage.cmake
           retVal=$?
           if [ $retVal -ne 0 ]; then
