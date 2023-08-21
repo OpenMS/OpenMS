@@ -71,6 +71,8 @@ jobs:
       name: Set extra variables
       run: |
         DO_PACKAGE=$( [[ ( "${{ inputs.package }}" || "${{ steps.extract_branch.outputs.RUN_NAME }}" == "nightly" || "${{ steps.extract_branch.outputs.RUN_NAME }}" == "release*" ) && "${{ matrix.compiler }}" != "clang++" ]] && echo true || echo false)
+        echo "Forcing package"
+        echo "DO_PACKAGE=true" >> $GITHUB_OUTPUT
         echo $DO_PACKAGE
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
           echo "tp_folder=Linux" >> $GITHUB_OUTPUT
