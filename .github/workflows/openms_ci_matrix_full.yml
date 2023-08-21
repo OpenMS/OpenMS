@@ -161,7 +161,7 @@ jobs:
           brew install ccache autoconf automake libtool ninja && brew link --overwrite ccache
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            brew install -y doxygen ghostscript graphviz
+            brew install doxygen ghostscript graphviz
           fi
         fi
 
