@@ -1,5 +1,6 @@
-# This is a basic workflow to help you get started with Actions
-
+# This does the whole cmake build of OpenMS on github's runners. It is intended to replace our current Jenkins based jobs.
+# For Nightly and Release branches it builds the packages and submits them to our archive. 
+# NB: The actual upload is currently commented out so that this can get merged to develop. It will be re-added presently.
 name: openms-ci-full
 
 # Controls when the action will run. Triggers the workflow on push or pull request
@@ -373,7 +374,7 @@ jobs:
             folder=experimental/${{ steps.extract_branch.outputs.RUN_NAME }}
           fi
           echo $folder
-          sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
+          #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
 
         # TODO create softlinks to latest nightly
         # TODO create and upload file hashes, at least for release candidate
@@ -557,4 +558,4 @@ jobs:
             folder=experimental/${{ env.RUN_NAME }}
           fi
           echo $folder
-          sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/knime-plugin/updateSite/${{ env.RUN_NAME }}"
+          #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/knime-plugin/updateSite/${{ env.RUN_NAME }}"
