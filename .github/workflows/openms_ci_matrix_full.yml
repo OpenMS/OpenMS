@@ -50,7 +50,7 @@ jobs:
           # We are not installing anything.
           - os: ubuntu-22.04
             compiler: g++
-            compiler_ver: 10
+            compiler_ver: 11
 
           - os: ubuntu-22.04
             compiler: clang++
