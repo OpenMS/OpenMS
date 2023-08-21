@@ -190,7 +190,7 @@ namespace OpenMS
       StringList accessions;
 
       int charge = 0;
-      for (const auto&[name, z] : col_name_to_charge)
+      for (const auto& [name, z] : col_name_to_charge)
       {
         if (row[to_idx.at(name)] == "1")
         {
@@ -220,7 +220,7 @@ namespace OpenMS
       ph.setMetaValue("SpecId", sSpecId);
       ph.setMetaValue("ScanNr", sScanNr);
       ph.setMetaValue("target_decoy", target_decoy);
-      for (const auto name : found_extra_scores)
+      for (const auto& name : found_extra_scores)
       {
         ph.setMetaValue(name, row[to_idx.at(name)]);
       }
