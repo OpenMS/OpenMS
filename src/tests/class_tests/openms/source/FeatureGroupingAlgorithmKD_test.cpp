@@ -69,12 +69,12 @@ START_SECTION((static String getProductName()))
 END_SECTION
 
 START_SECTION((virtual void group(const std::vector<FeatureMap>& maps, ConsensusMap& out)))
-  // This is tested in the UTILS test
+  // This is tested in the tool
   NOT_TESTABLE;
 END_SECTION
 
 START_SECTION((virtual void group(const std::vector<ConsensusMap>& maps, ConsensusMap& out)))
-  // This is tested in the UTILS test
+  // This is tested in the tool
   NOT_TESTABLE;
 END_SECTION
 

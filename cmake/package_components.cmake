@@ -49,7 +49,7 @@ cpack_add_component(library
                 )
 cpack_add_component(applications
                 DISPLAY_NAME "OpenMS binaries"
-                DESCRIPTION "OpenMS binaries including TOPP tools/utils, TOPPView and TOPPAS."
+                DESCRIPTION "OpenMS binaries including TOPP tools, TOPPView and TOPPAS."
                 INSTALL_TYPES recommended full minimal
                 )
 cpack_add_component(doc

@@ -392,7 +392,7 @@ public:
         
         const MSSpectrum& spectrum = it.getSpectrum();
         bool has_IM = spectrum.containsIMData();
-        double peak_IM{-1.0};
+        float peak_IM{-1.0f};
         if (has_IM)
         {
           const auto& im_data = spectrum.getIMData();
@@ -402,7 +402,7 @@ public:
             peak_IM = spectrum.getFloatDataArrays()[im_data.first][peak_index];
           }          
         }
-        ion_mobility.back().push_back(peak_IM);        
+        ion_mobility.back().push_back(peak_IM);
         mz.back().push_back((float)it->getMZ());
         intensity.back().push_back(it->getIntensity());
       }

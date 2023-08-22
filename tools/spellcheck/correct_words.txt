@@ -2361,7 +2361,6 @@ OpenSuse
 PYOPENMS
 PageDown
 PageUp
-PeakPickerRapid
 PeakPickers
 PeakPicking
 QMAKE

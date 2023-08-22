@@ -51,11 +51,6 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
-#include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentification.h>
-#include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationCID.h>
-#include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
-#include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringCID.h>
-#include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
@@ -464,10 +459,6 @@ int main(int argc, char** argv)
   DOCME(WindowMower);
   DOCME(ZhangSimilarityScore);
   DOCME(MorphologicalFilter);
-  DOCME(CompNovoIonScoring);
-  DOCME(CompNovoIonScoringCID);
-  DOCME(CompNovoIdentification);
-  DOCME(CompNovoIdentificationCID);
   DOCME(MassDecompositionAlgorithm);
   DOCME(MRMFragmentSelection);
   DOCME(ProtonDistributionModel);

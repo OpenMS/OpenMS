@@ -8,10 +8,6 @@
 
  @section general General
 
- @subsection difference_between_tool_and_util What is the difference between an OpenMS tool and util?
-
- A tool starts its lifecycle in <code>UTILS</code> and may exist without being thoroughly tested. Tools may be promoted from <code>UTILS</code> to <code>TOOLS</code> if they are stable enough, are fully tested, fully documented, and a test workflow exists.
-
  @subsection written_class_for_openms I have written a class for OpenMS. What should I do?
 
  Follow the @subpage coding_conventions coding conventions.
@@ -134,10 +130,10 @@
 
  @section working_in_ides Working in IDEs
 
- <h2><a class="anchor" id="why_are_there_no_source_test_and_source_app_topp_utils_folders"></a>Why are there no <code>source/TEST</code> and <code>source/APPLICATIONS/TOPP|UTILS</code> folder?</h2>
+ <h2><a class="anchor" id="why_are_there_no_source_test_and_source_app_topp_utils_folders"></a>Why are there no <code>source/TEST</code> and <code>source/APPLICATIONS/TOPP</code> folder?</h2>
 
  All source files added to an IDE are associated with their targets. Find the source files for each test within
- its own subproject. The same is true for the <code>TOPP</code> and <code>UTILS</code> classes.
+ its own subproject. The same is true for the <code>TOPP</code> classes.
 
  @subsection im_getting_the_error_error_c2471 I'm getting the error "Error C2471: cannot update program database"
 

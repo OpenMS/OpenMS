@@ -165,9 +165,6 @@ PyOpenMSChecker:
         - evaluate
         - getParameters
         - invert
-    OpenMS::LocalLinearMap:
-        - getCord
-        - neigh
     OpenMS::DocumentIdentifier:
         - swap
     OpenMS::ModifiedPeptideGenerator:
@@ -249,9 +246,6 @@ PyOpenMSChecker:
     OpenMS::PepXMLFileMascot:
         # TODO map
         - load
-    OpenMS::CompNovoIonScoring:
-        # TODO map
-        - scoreSpectra
     OpenMS::OptimizePick:
         - optimize
         - peaks
@@ -335,8 +329,6 @@ PyOpenMSChecker:
     OpenMS::IsobaricQuantifierStatistics:
         # STL attributes
         - empty_channels
-    OpenMS::CompNovoIonScoringCID:
-        - scoreSpectrum
     OpenMS::DIAScoring:
         - dia_isotope_scores
         - dia_massdiff_score
@@ -459,8 +451,6 @@ PyOpenMSChecker:
     # immutable types by reference
     OpenMS::SequestOutfile:
         - readOutHeader
-    OpenMS::PeakPickerRapid:
-        - computeTPG
     OpenMS::ProteinResolver:
         # pointers
         - getPeptideIdentification
@@ -589,8 +579,6 @@ PyOpenMSChecker:
 
     OpenMS::InternalCalibration::LockMass:
         - LockMass
-    OpenMS::DeNovoIonScoring::IonScore:
-        - IonScore
     OpenMS::TargetedExperimentHelper::Interpretation:
         - Interpretation
     OpenMS::TargetedExperimentHelper::Instrument:
@@ -1272,10 +1260,6 @@ PyOpenMSChecker:
     - OpenMS::BinnedSpectrum::getBins
     - OpenMS::ClusterFunctor
     - OpenMS::ClusterFunctor::InsufficientInput
-    - OpenMS::CompNovoIdentificationBase
-    - OpenMS::CompNovoIdentificationBase::Permut
-    - OpenMS::CompNovoIonScoringBase
-    - OpenMS::CompNovoIonScoringBase::IonScore
     - OpenMS::ConstRefVector
     - OpenMS::ConstRefVector::ConstRefVectorConstIterator
     - OpenMS::ConstRefVector::ConstRefVectorIterator
