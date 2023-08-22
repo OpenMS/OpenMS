@@ -1076,7 +1076,6 @@ namespace OpenMS
       ParamXMLFile paramFile;
       // TODO: if closing multiple TOPPAS instances simultaneously, we might write to this file concurrently
       //       thus destroying its integrity. Think about using boost filelocks
-      //       see OpenMS/METADATA/DocumentIDTagger.h for example
       //       and also implement in TOPPView (and other GUI's which write to user directory)
       paramFile.store(string(param_.getValue("PreferencesFile")), save_param);
     }
