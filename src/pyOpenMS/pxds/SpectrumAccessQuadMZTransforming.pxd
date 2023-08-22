@@ -11,11 +11,11 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTran
         # wrap-inherits:
         #  SpectrumAccessTransforming
 
-        SpectrumAccessQuadMZTransforming() nogil except + # wrap-pass-constructor
-        SpectrumAccessQuadMZTransforming(SpectrumAccessQuadMZTransforming &) nogil except + # compiler
+        SpectrumAccessQuadMZTransforming() except + nogil  # wrap-pass-constructor
+        SpectrumAccessQuadMZTransforming(SpectrumAccessQuadMZTransforming &) except + nogil  # compiler
 
-        # SpectrumAccessQuadMZTransforming(shared_ptr[ ISpectrumAccess] sptr, double a, double b, double c, bool ppm) nogil except +
-        SpectrumAccessQuadMZTransforming(shared_ptr[ SpectrumAccessOpenMS ], double a, double b, double c, bool ppm) nogil except +
-        SpectrumAccessQuadMZTransforming(shared_ptr[ SpectrumAccessOpenMSCached ], double a, double b, double c, bool ppm) nogil except +
-        SpectrumAccessQuadMZTransforming(shared_ptr[ SpectrumAccessOpenMSInMemory ], double a, double b, double c, bool ppm) nogil except +
+        # SpectrumAccessQuadMZTransforming(shared_ptr[ ISpectrumAccess] sptr, double a, double b, double c, bool ppm) except + nogil 
+        SpectrumAccessQuadMZTransforming(shared_ptr[ SpectrumAccessOpenMS ], double a, double b, double c, bool ppm) except + nogil 
+        SpectrumAccessQuadMZTransforming(shared_ptr[ SpectrumAccessOpenMSCached ], double a, double b, double c, bool ppm) except + nogil 
+        SpectrumAccessQuadMZTransforming(shared_ptr[ SpectrumAccessOpenMSInMemory ], double a, double b, double c, bool ppm) except + nogil 
 

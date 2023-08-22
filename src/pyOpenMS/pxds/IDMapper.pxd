@@ -17,14 +17,14 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
         # wrap-inherits:
         #   DefaultParamHandler
 
-        IDMapper() nogil except + # wrap-doc:Annotates an MSExperiment, FeatureMap or ConsensusMap with peptide identifications
-        IDMapper(IDMapper &) nogil except +
+        IDMapper() except + nogil  # wrap-doc:Annotates an MSExperiment, FeatureMap or ConsensusMap with peptide identifications
+        IDMapper(IDMapper &) except + nogil 
 
         void annotate(MSExperiment & map_,
                       libcpp_vector[PeptideIdentification] & ids,
                       libcpp_vector[ProteinIdentification] & protein_ids,
                       bool clear_ids,
-                      bool mapMS1) nogil except +
+                      bool mapMS1) except + nogil 
             # wrap-doc:
                 #  Mapping method for peak maps\n
                 #  
@@ -44,7 +44,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
         void annotate(MSExperiment & map_,
                       FeatureMap & fmap,
                       bool clear_ids,
-                      bool mapMS1) nogil except +
+                      bool mapMS1) except + nogil 
             # wrap-doc:
                 #  Mapping method for peak maps\n
                 #  
@@ -65,7 +65,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                       libcpp_vector[ProteinIdentification] & protein_ids,
                       bool use_centroid_rt,
                       bool use_centroid_mz,
-                      MSExperiment & spectra) nogil except +
+                      MSExperiment & spectra) except + nogil 
             # wrap-doc:
                 #  Mapping method for peak maps\n
                 #  
@@ -90,7 +90,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                       libcpp_vector[ProteinIdentification] & protein_ids,
                       bool measure_from_subelements,
                       bool annotate_ids_with_subelements, 
-                      MSExperiment & spectra) nogil except +
+                      MSExperiment & spectra) except + nogil 
             # wrap-doc:
                 #  Mapping method for peak maps\n
                 #  
@@ -113,7 +113,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
 
         IDMapper_SpectraIdentificationState mapPrecursorsToIdentifications(MSExperiment spectra,
                                                                            libcpp_vector[ PeptideIdentification ] & ids, 
-                                                                           double mz_tol, double rt_tol) nogil except +
+                                                                           double mz_tol, double rt_tol) except + nogil 
             # wrap-doc:
                 #  Mapping of peptide identifications to spectra\n
                 #  This helper function partitions all spectra into those that had: 
@@ -137,8 +137,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS::IDMapper":
 cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS::IDMapper":
 
     cdef cppclass IDMapper_SpectraIdentificationState "OpenMS::IDMapper::SpectraIdentificationState":
-        IDMapper_SpectraIdentificationState()  nogil except +
-        IDMapper_SpectraIdentificationState(IDMapper_SpectraIdentificationState) nogil except + #wrap-ignore
+        IDMapper_SpectraIdentificationState()  except + nogil 
+        IDMapper_SpectraIdentificationState(IDMapper_SpectraIdentificationState) except + nogil  #wrap-ignore
 
         libcpp_vector[size_t] no_precursors
         libcpp_vector[size_t] identified

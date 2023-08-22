@@ -140,7 +140,7 @@ private:
 
 public:
   TOPPFeatureFinderMultiplex() :
-    TOPPBase("FeatureFinderMultiplex", "Determination of peak ratios in LC-MS data", true)
+    TOPPBase("FeatureFinderMultiplex", "Determination of peak ratios in LC-MS data")
   {
   }
 

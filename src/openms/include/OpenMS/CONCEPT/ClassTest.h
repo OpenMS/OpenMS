@@ -980,8 +980,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
           stdcout << " +  line " << TEST::test_line <<                                    \
             ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
             "): OK\n";                                                                      \
-          break;                                                                            \
         }                                                                                 \
+        break;                                                                            \
       case 2:                                                                             \
         stdcout << " -  line " << TEST::test_line <<                                    \
           ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \

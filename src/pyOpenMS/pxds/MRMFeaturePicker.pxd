@@ -5,15 +5,15 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeaturePicker.h>" namespace "Ope
 
     cdef cppclass MRMFeaturePicker:
 
-        MRMFeaturePicker() nogil except +
-        MRMFeaturePicker(MRMFeaturePicker &) nogil except + # compiler
+        MRMFeaturePicker() except + nogil 
+        MRMFeaturePicker(MRMFeaturePicker &) except + nogil  # compiler
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeaturePicker.h>" namespace "OpenMS::MRMFeaturePicker":
 
     cdef cppclass MRMFP_ComponentParams "OpenMS::MRMFeaturePicker::ComponentParams":
 
-        MRMFP_ComponentParams() nogil except +
-        MRMFP_ComponentParams(MRMFP_ComponentParams &) nogil except +
+        MRMFP_ComponentParams() except + nogil 
+        MRMFP_ComponentParams(MRMFP_ComponentParams &) except + nogil 
 
         String component_name
         String component_group_name
@@ -21,8 +21,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeaturePicker.h>" namespace "Ope
 
     cdef cppclass MRMFP_ComponentGroupParams "OpenMS::MRMFeaturePicker::ComponentGroupParams":
 
-        MRMFP_ComponentGroupParams() nogil except +
-        MRMFP_ComponentGroupParams(MRMFP_ComponentGroupParams &) nogil except +
+        MRMFP_ComponentGroupParams() except + nogil 
+        MRMFP_ComponentGroupParams(MRMFP_ComponentGroupParams &) except + nogil 
 
         String component_group_name
         Param params

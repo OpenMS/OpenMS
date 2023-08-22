@@ -8,9 +8,9 @@ cdef extern from "<OpenMS/FORMAT/IndexedMzMLFileLoader.h>" namespace "OpenMS":
 
     cdef cppclass IndexedMzMLFileLoader:
 
-        IndexedMzMLFileLoader() nogil except + # wrap-doc:A class to load an indexedmzML file
+        IndexedMzMLFileLoader() except + nogil  # wrap-doc:A class to load an indexedmzML file
  
-        bool load(String, OnDiscMSExperiment &) nogil except +
+        bool load(String, OnDiscMSExperiment &) except + nogil 
             # wrap-doc:
                 #  Load a file\n
                 #  
@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/FORMAT/IndexedMzMLFileLoader.h>" namespace "OpenMS":
                 #  :param exp: Object which will contain the data after the call
                 #  :return: Indicates whether parsing was successful (if it is false, the file most likely was not an mzML or not indexed)
 
-        void store(String, OnDiscMSExperiment &) nogil except +
+        void store(String, OnDiscMSExperiment &) except + nogil 
             # wrap-doc:
                 #  Store a file from an on-disc data-structure
                 #  
@@ -29,7 +29,7 @@ cdef extern from "<OpenMS/FORMAT/IndexedMzMLFileLoader.h>" namespace "OpenMS":
                 #  :param filename: Filename determines where the file will be stored 
                 #  :param exp: MS data to be stored
 
-        void store(String, MSExperiment &) nogil except +
+        void store(String, MSExperiment &) except + nogil 
             # wrap-doc:
                 #  Store a file from an in-memory data-structure
                 #  
@@ -37,6 +37,6 @@ cdef extern from "<OpenMS/FORMAT/IndexedMzMLFileLoader.h>" namespace "OpenMS":
                 #  :param filename: Filename determines where the file will be stored 
                 #  :param exp: MS data to be stored
 
-        PeakFileOptions getOptions() nogil except + # wrap-doc:Returns the options for loading/storing
-        void setOptions(PeakFileOptions) nogil except + # wrap-doc:Returns the options for loading/storing
+        PeakFileOptions getOptions() except + nogil  # wrap-doc:Returns the options for loading/storing
+        void setOptions(PeakFileOptions) except + nogil  # wrap-doc:Returns the options for loading/storing
 

@@ -35,6 +35,7 @@
 project("OpenMS-3rd-party-libs")
 cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 
+# For use in the subdirs to cat their license
 function(cat IN_FILE OUT_FILE)
     file(READ ${IN_FILE} CONTENTS)
     file(APPEND ${OUT_FILE} "${CONTENTS}")
@@ -46,10 +47,19 @@ file(WRITE ${TPLICENSEFILE} "The OpenMS library links statically to the followin
 ## TODO install it somewhere? Append to main license to show in installer?
 ##  At least we can use it in conda-forge after configuration
 
-# evergreen Bayesian inference library (0.9)
-add_subdirectory(evergreen/src)
+##
+## internal packages (not checked if they exist externally)
+##
+add_subdirectory(evergreen/src) # evergreen Bayesian inference library (0.9)
+add_subdirectory(eol-bspline)
+add_subdirectory(IsoSpec)
+add_subdirectory(GTE)
+add_subdirectory(Quadtree)
 
-option(USE_EXTERNAL_JSON "Use an external NLohmann::json library" OFF)
+##
+## external packages (with fallback option to local version)
+##
+option(USE_EXTERNAL_JSON "Use an external nlohmann::json library" OFF)
 message(STATUS "Option USE_EXTERNAL_JSON: ${USE_EXTERNAL_JSON}")
 if(USE_EXTERNAL_JSON)
     find_package(nlohmann_json REQUIRED GLOBAL)  ## global propagates the target up to the parent project
@@ -68,8 +78,11 @@ else()
     add_subdirectory(SQLiteCpp)
 endif()
 
-add_subdirectory(eol-bspline)
-add_subdirectory(IsoSpec)
-add_subdirectory(GTE)
-add_subdirectory(Quadtree)
-
+option(USE_EXTERNAL_SIMDE "Use an external SIMDe library" OFF)
+message(STATUS "Option USE_EXTERNAL_SIMDE: ${USE_EXTERNAL_SIMDE}")
+if(USE_EXTERNAL_SIMDE)
+    find_package(SIMDe REQUIRED GLOBAL)  ## global propagates the target up to the parent project
+    message(STATUS "External 'SIMDe' at: '${SIMDe_INCLUDE_DIR}'")
+else()
+    add_subdirectory(simde)
+endif()

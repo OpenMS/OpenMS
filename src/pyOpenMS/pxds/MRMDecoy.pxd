@@ -9,8 +9,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>" namespace "OpenMS":
         # wrap-inherits:
         #   ProgressLogger
 
-        MRMDecoy() nogil except +
-        MRMDecoy(MRMDecoy &) nogil except + # compiler
+        MRMDecoy() except + nogil 
+        MRMDecoy(MRMDecoy &) except + nogil  # compiler
 
         void generateDecoys(TargetedExperiment& exp,
                             TargetedExperiment& dec,
@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>" namespace "OpenMS":
                             libcpp_vector[size_t] fragment_charges,
                             bool enable_specific_losses,
                             bool enable_unspecific_losses,
-                            int round_decPow) nogil except +
+                            int round_decPow) except + nogil 
             # wrap-doc:
                 #  Generate decoys from a TargetedExperiment
                 #  
@@ -53,7 +53,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>" namespace "OpenMS":
         libcpp_vector[size_t] findFixedResidues(const String & sequence,
                                                 bool keepN,
                                                 bool keepC,
-                                                const String & keep_const_pattern) nogil except +
+                                                const String & keep_const_pattern) except + nogil 
             # wrap-doc:
                 #  Find all residues in a sequence that should not be reversed / shuffled
                 #  

@@ -1583,7 +1583,7 @@ namespace OpenMS
     {
       cerr << "Unable to load INI File: '" << filename << "'" << endl;
     }
-    // Scan for tools/utils if scan_mode is set to FORCE_SCAN or if the tool/util params could not be added for whatever reason
+    // Scan for tools if scan_mode is set to FORCE_SCAN or if the tool/util params could not be added for whatever reason
     if (!tool_params_added && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
     {
       tool_scanner_.loadToolParams();

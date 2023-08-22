@@ -314,7 +314,7 @@ int main(int argc, char** argv)
 {
   if (argc != 2)
   {
-    cerr << "Please specify the path where the TOPP/UTIL binaries are located." << endl;
+    cerr << "Please specify the path where the TOPP binaries are located." << endl;
     return EXIT_FAILURE;
   }
 
@@ -330,15 +330,13 @@ int main(int argc, char** argv)
   ToolListType topp_tools = ToolHandler::getTOPPToolList(true); // include GenericWrapper (can be called with --help without error, even though it has a type)
   topp_tools["TOPPView"] = Internal::ToolDescription(); // these two need to be excluded from writing an INI file later!
   topp_tools["TOPPAS"] = Internal::ToolDescription();
-  //UTILS
-  ToolListType util_tools = ToolHandler::getUtilList();
 
-  bool errors_occured = generate(topp_tools, "TOPP_", binary_directory) || generate(util_tools, "UTILS_", binary_directory);
+  bool errors_occured = generate(topp_tools, "TOPP_", binary_directory);
 
   if (errors_occured)
   {
     // errors occurred while generating the TOPP CLI docu .. tell the user
-    cerr << "Errors occurred while generating the command line documentation for some of the TOPP tools/UTILS." << endl;
+    cerr << "Errors occurred while generating the command line documentation for some of the TOPP tools." << endl;
     return EXIT_FAILURE;
   }
   else
