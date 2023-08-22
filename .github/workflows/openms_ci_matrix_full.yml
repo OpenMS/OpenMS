@@ -269,7 +269,10 @@ jobs:
           retVal=$?
           if [ $retVal -ne 0 ]; then
               echo "\033[0;31m Errors in build:"
+              # TODO upload logs as artifact?
               find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec cat {} \;
+              # remove for next steps
+              find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec rm {} \;
           fi
           exit $retVal
       env:
@@ -327,7 +330,12 @@ jobs:
           retVal=$?
           if [ $retVal -ne 0 ]; then
               echo "\033[0;31m Errors in packaging:"
+              # TODO upload logs as artifact?
               find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec cat {} \;
+              # remove for next steps
+              find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec rm {} \;
+              # only on win
+              cat OpenMS/bld/_CPack_Packages/win64/NSIS/NSISOutput.log || true
           fi
           exit $retVal
       env:
