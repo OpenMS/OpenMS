@@ -52,7 +52,7 @@ namespace OpenMS
       simde__m128i x = simde_mm_cmpeq_epi8(s, w0);
       x = simde_mm_or_si128(x, simde_mm_cmpeq_epi8(s, w1));
       simde__m128i y = simde_mm_cmpeq_epi8(s, w2);
-      y = simde_mm_or_si128(x, simde_mm_cmpeq_epi8(s, w3));
+      y = simde_mm_or_si128(y, simde_mm_cmpeq_epi8(s, w3));
       x = simde_mm_or_si128(x, y);
       // invert (i.e any non-spaces will be '1') and convert to a 16-bit int
       // (do not try to convert first and then invert -- not the same!)
