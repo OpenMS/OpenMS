@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -390,9 +390,6 @@ public:
       /// Writes the contents to a stream.
       virtual void writeTo(std::ostream & /*os*/);
 
-      /// Returns the last error description
-      String errorString();
-
       /// handler which support partial loading, implement this method
       virtual LOADDETAIL getLoadDetail() const;
 
@@ -469,9 +466,6 @@ public:
       void checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids) const;
 
 protected:
-      /// Error message of the last error
-      mutable String error_message_;
-
       /// File name
       String file_;
 

@@ -11,13 +11,13 @@ cdef extern from "<OpenMS/FORMAT/MascotXMLFile.h>" namespace "OpenMS":
     cdef cppclass MascotXMLFile(XMLFile) :
         # wrap-inherits:
         #  XMLFile
-        MascotXMLFile() nogil except +
-        MascotXMLFile(MascotXMLFile &) nogil except +
+        MascotXMLFile() except + nogil 
+        MascotXMLFile(MascotXMLFile &) except + nogil 
 
         void load(const String & filename,
                   ProteinIdentification & protein_identification,
                   libcpp_vector[ PeptideIdentification ] & id_data,
-                  SpectrumMetaDataLookup & rt_mapping) nogil except +
+                  SpectrumMetaDataLookup & rt_mapping) except + nogil 
             # wrap-doc:
                 #  Loads data from a Mascot XML file
                 #  
@@ -36,9 +36,9 @@ cdef extern from "<OpenMS/FORMAT/MascotXMLFile.h>" namespace "OpenMS":
         #          ProteinIdentification & protein_identification,
         #          libcpp_vector[ PeptideIdentification ] & id_data,
         #          libcpp_map[ String, libcpp_vector[ AASequence ] ] & peptides,
-        #          SpectrumMetaDataLookup & rt_mapping) nogil except +
+        #          SpectrumMetaDataLookup & rt_mapping) except + nogil 
 
-        void initializeLookup(SpectrumMetaDataLookup & lookup, MSExperiment& experiment, const String & scan_regex) nogil except +
+        void initializeLookup(SpectrumMetaDataLookup & lookup, MSExperiment& experiment, const String & scan_regex) except + nogil 
             # wrap-doc:
                 #  Initializes a helper object for looking up spectrum meta data (RT, m/z)
                 #  

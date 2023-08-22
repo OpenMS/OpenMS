@@ -41,7 +41,7 @@ import shutil
 import time
 
 if OPEN_MS_GIT_BRANCH == "nightly":
-    package_name = "pyopenms_nightly"
+    package_name = "pyopenms"
     package_version = OPEN_MS_VERSION + ".dev" + OPENMS_GIT_LC_DATE_FORMAT
 else:
     package_name = "pyopenms"
@@ -241,9 +241,6 @@ for module in mnames:
 		## TODO just take over compile definitions from OpenMS (CMake)
     ))
 
-share_data = []
-share_data.append("License.txt")
-
 # enforce 64bit-only build as OpenMS is not available in 32bit on osx
 if sys.platform == "darwin":
     os.environ['ARCHFLAGS'] = "-arch x86_64"
@@ -272,9 +269,9 @@ setup(
     maintainer_email="open-ms-general@lists.sourceforge.net",
     license="http://opensource.org/licenses/BSD-3-Clause",
     platforms=["any"],
-    description="Python wrapper for C++ LCMS library OpenMS",
+    description="Python wrapper for C++ LC-MS library OpenMS",
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: BSD License",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
@@ -285,6 +282,12 @@ setup(
     zip_safe=False,
 
     url="https://openms.de",
+    project_urls={
+        "Documentation": "https://pyopenms.readthedocs.io",
+        "Source Code": "https://github.com/OpenMS/OpenMS/tree/develop/src/pyOpenMS",
+        "Tracker": "https://github.com/OpenMS/OpenMS/issues",
+        "Documentation Source": "https://github.com/OpenMS/pyopenms-docs",
+    },
 
     author="Uwe Schmitt and the OpenMS team",
     author_email="uschmitt@mineway.de",

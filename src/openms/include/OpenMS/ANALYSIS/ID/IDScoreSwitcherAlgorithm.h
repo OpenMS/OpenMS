@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -249,7 +249,7 @@ namespace OpenMS
     /// a map from ScoreType to their names as used around OpenMS
     std::map<ScoreType, std::set<String>> type_to_str_ =
         {
-            {ScoreType::RAW, {"XTandem", "OMSSA", "SEQUEST:xcorr", "Mascot", "mvh"}},
+            {ScoreType::RAW, {"XTandem", "OMSSA", "SEQUEST:xcorr", "Mascot", "mvh", "Sage"}},
             //TODO find out reasonable raw scores for SES that provide E-Values as main score or see below
             //TODO there is no test for spectraST idXML, so I don't know its score
             //TODO check if we should combine RAW and RAW_EVAL:

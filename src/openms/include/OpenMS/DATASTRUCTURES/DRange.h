@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -128,6 +128,7 @@ public:
       min_[1] = miny;
       max_[0] = maxx;
       max_[1] = maxy;
+      Base::normalize_();
     }
 
     /// Assignment operator
@@ -317,6 +318,46 @@ public:
         min_[i] -= extra;
         max_[i] += extra;
       }
+      return *this;
+    }
+
+    /**
+     @brief Extends the range in all dimensions by a certain amount.
+
+     Extends the range, while maintaining the original center position.
+     If a negative @p addition is given, the range shrinks and may result in min==max (but never min>max).
+
+     Examples (for D=1):
+       addition = 0.5 extends the range by 1 in total, i.e. 0.5 left and right.
+   
+     @param addition Additive for each dimension (can be negative). Resulting invalid min/max are not fixed automatically!
+     @return A reference to self
+    */
+    DRange<D>& extend(typename Base::PositionType addition)
+    {
+      addition /= 2;
+      min_ -= addition;
+      max_ += addition;
+      for (UInt i = 0; i != D; ++i)
+      {
+        // invalid range --> reduce to single center point
+        if (min_[i] > max_[i]) min_[i] = max_[i] = (min_[i] + max_[i]) / 2;
+      }
+      return *this;
+    }
+
+    DRange<D>& ensureMinSpan(typename Base::PositionType min_span)
+    {
+      typename Base::PositionType extend_by {};
+      for (UInt i = 0; i != D; ++i)
+      {
+        // invalid range --> reduce to single center point
+        if (max_[i] - min_[i] < min_span[i])
+        {
+          extend_by[i] = min_span[i] - (max_[i] - min_[i]); // add whatever is missing to get to min_span
+        }
+      }
+      extend(extend_by);
       return *this;
     }
 

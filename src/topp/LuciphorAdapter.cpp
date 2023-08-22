@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,9 +65,9 @@
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
             <td VALIGN="middle" ROWSPAN=2> &rarr; LuciphorAdapter &rarr;</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter</td>
@@ -98,7 +98,7 @@ class LuciphorAdapter :
 {
 public:
   LuciphorAdapter() :
-    TOPPBase("LuciphorAdapter", "Modification site localisation using LuciPHOr2.", true),
+    TOPPBase("LuciphorAdapter", "Modification site localisation using LuciPHOr2."),
     // parameter choices (the order of the values must be the same as in the LuciPHOr2 parameters!):
     fragment_methods_(ListUtils::create<String>("CID,HCD")),
     fragment_error_units_(ListUtils::create<String>("Da,ppm")),

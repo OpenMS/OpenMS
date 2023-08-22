@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -105,15 +105,15 @@ END_SECTION
 START_SECTION((bool operator==(const PeakIndex &rhs) const))
 {
   PeakIndex i1, i2;
-	TEST_EQUAL(i1==i2, true)
+	TEST_TRUE(i1 == i2)
 	i1.peak = 1;
 	TEST_EQUAL(i1==i2, false)
 	i2.peak = 1;
-	TEST_EQUAL(i1==i2, true)
+	TEST_TRUE(i1 == i2)
 	i1.spectrum = 2;
 	TEST_EQUAL(i1==i2, false)
 	i2.spectrum = 2;
-	TEST_EQUAL(i1==i2, true)
+	TEST_TRUE(i1 == i2)
 }
 END_SECTION
 
@@ -122,11 +122,11 @@ START_SECTION((bool operator!=(const PeakIndex &rhs) const))
   PeakIndex i1, i2;
 	TEST_EQUAL(i1!=i2, false)
 	i1.peak = 1;
-	TEST_EQUAL(i1!=i2, true)
+	TEST_FALSE(i1 == i2)
 	i2.peak = 1;
 	TEST_EQUAL(i1!=i2, false)
 	i1.spectrum = 2;
-	TEST_EQUAL(i1!=i2, true)
+	TEST_FALSE(i1 == i2)
 	i2.spectrum = 2;
 	TEST_EQUAL(i1!=i2, false)
 }

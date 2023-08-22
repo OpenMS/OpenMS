@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -64,4 +64,8 @@ foreach(_file ${_ISOSPEC_SOURCES})
     ${PROJECT_SOURCE_DIR}/IsoSpec/${_file}
   )
 endforeach()
+
+get_filename_component(ISOSPEC_FOLDER "${CMAKE_CURRENT_LIST_FILE}" PATH)
+file(APPEND ${TPLICENSEFILE} "\nIsoSpec:\n")
+cat(${ISOSPEC_FOLDER}/LICENSE ${TPLICENSEFILE})
 

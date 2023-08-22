@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -312,14 +312,4 @@
 	@brief Dialogs for user interaction.
 
 	@ingroup Visual
-*/
-
-// ----------------------------- Simulation -------------------------------
-
-/**
-  @defgroup Simulation Simulation
-
-  @brief Simulation classes
-  
-  This module contains all classes involved in simulating different aspects of Mass Spectrometry Experiments.
 */

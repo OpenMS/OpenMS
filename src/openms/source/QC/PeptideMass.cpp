@@ -3,7 +3,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,22 +33,23 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/QC/PeptideMass.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/QC/PeptideMass.h>
 
 namespace OpenMS
 {
   void PeptideMass::compute(FeatureMap& features)
   {
-    features.applyFunctionOnPeptideIDs([](PeptideIdentification& pi)
-    {
-      if (pi.getHits().empty())
-      {
-        return;
-      }
-      auto& hit = pi.getHits()[0];
-      hit.setMetaValue("mass", (pi.getMZ() - Constants::PROTON_MASS_U) * hit.getCharge());
-    }, true);
+    features.applyFunctionOnPeptideIDs(
+      [](PeptideIdentification& pi) {
+        if (pi.getHits().empty())
+        {
+          return;
+        }
+        auto& hit = pi.getHits()[0];
+        hit.setMetaValue("mass", (pi.getMZ() - Constants::PROTON_MASS_U) * hit.getCharge());
+      },
+      true);
   }
 
   const String& PeptideMass::getName() const
@@ -57,8 +58,8 @@ namespace OpenMS
     return name;
   }
 
-  QCBase::Status PeptideMass::requires() const
+  QCBase::Status PeptideMass::requirements() const
   {
     return QCBase::Status() | QCBase::Requires::POSTFDRFEAT;
   }
-}
+} // namespace OpenMS

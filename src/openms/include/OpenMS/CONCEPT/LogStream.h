@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -399,6 +399,11 @@ public:
         @param s the stream to be removed
       */
       void remove(std::ostream & s);
+
+      /**
+        Remove all streams associated to this LogStream, effectively silencing it.
+      */
+      void removeAllStreams();
 
       /// Add a notification target
       void insertNotification(std::ostream & s,

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,18 +35,18 @@
 /**
   @mainpage %OpenMS / TOPP documentation
 
-  <TABLE width="100%" bgcolor="#e8eef2" border="0">
-    <TR>
-      <TD width="50%" bgcolor="#cccccc">
+  <TABLE width="100%" border="0" class="doxtable">
+    <TR valign="top">
+      <TH width="50%">
         <H3>The %OpenMS PiPeline (TOPP)</H3>
         Information for TOPP users.
         <BR>&nbsp;
-      </TD>
-      <TD width="50%" bgcolor="#cccccc">
+      </TH>
+      <TH width="50%">
         <H3>%OpenMS library</H3>
           Information for developers (please make sure to read the Developer Quickstart Guide).
         <BR>&nbsp;
-      </TD>
+      </TH>
     </TR>
 
     <TR>
@@ -56,7 +56,7 @@
         Documentation:
         <UL>
           <LI> @subpage TOPP_documentation
-          <LI> @subpage UTILS_documentation
+          <LI> @subpage TOPP_documentation
         </UL>
 
         Misc:
@@ -86,7 +86,6 @@
 
         Documentation:
         <UL>
-          <LI> @subpage OpenMS_tutorial
           <LI> <a class="el" href="https://pyopenms.readthedocs.io/en/latest/index.html" target="_blank">Developer Python Quickstart Guide (online)</a>
           <LI> @subpage external_code
         </UL>

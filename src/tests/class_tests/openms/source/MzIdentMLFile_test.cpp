@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -388,8 +388,8 @@ START_SECTION(([EXTRA] compability issues))
 //  vector<PeptideIdentification> peptide_ids2;
 //  mzidfile.load(filename, protein_ids2, peptide_ids2);
 
-//  TEST_EQUAL(protein_ids == protein_ids2, true)
-//  TEST_EQUAL(peptide_ids == peptide_ids2, true)
+//  TEST_TRUE(protein_ids == protein_ids2)
+//  TEST_TRUE(peptide_ids == peptide_ids2)
 
 //  Misplaced Elements ignored in ParamGroup
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -212,7 +212,7 @@ START_SECTION((virtual bool operator==(const ChargePair &i) const))
 	TEST_EQUAL(cp3==cp4, false);
 	ChargePair cp5(34,15, 4,5, cmp, 12.34, false);
 	ChargePair cp6(34,15, 4,5, cmp, 12.34, false);
-	TEST_EQUAL(cp5==cp6, true);
+	TEST_TRUE(cp5 == cp6);
 	
 }
 END_SECTION
@@ -221,10 +221,10 @@ START_SECTION((virtual bool operator!=(const ChargePair &i) const))
 {
 	ChargePair cp1(34,45, 4,5, cmp, 12.34, false);
 	ChargePair cp2(34,15, 4,5, cmp, 12.34, false);
-	TEST_EQUAL(cp1!=cp2, true);
+	TEST_FALSE(cp1 == cp2);
 	ChargePair cp3(34,15, 4,5, cmp, 12.34, true);
 	ChargePair cp4(34,15, 4,5, cmp, 12.34, false);
-	TEST_EQUAL(cp3!=cp4, true);
+	TEST_FALSE(cp3 == cp4);
 	ChargePair cp5(34,15, 4,5, cmp, 12.34, false);
 	ChargePair cp6(34,15, 4,5, cmp, 12.34, false);
 	TEST_EQUAL(cp5!=cp6, false);

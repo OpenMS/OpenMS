@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,9 +58,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+            <th ALIGN = "center"> potential predecessor tools </td>
             <td VALIGN="middle" ROWSPAN=4> &rarr; MapAlignerIdentification &rarr;</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter @n (or another search engine adapter) </td>
@@ -211,11 +211,13 @@ private:
   void storeTransformationDescriptions_(const vector<TransformationDescription>&
                                         transformations, StringList& trafos)
   {
+    OPENMS_PRECONDITION(transformations.size() == trafos.size(), "Transformation descriptions and list of transformation files need to be equal.");
     // custom progress logger for this task:
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
     progresslogger.startProgress(0, trafos.size(),
                                  "writing transformation files");
+    OPENMS_LOG_INFO << "Writing " << transformations.size() << " transformations " << " to " << trafos.size() << " files.";
     for (Size i = 0; i < transformations.size(); ++i)
     {
       TransformationXMLFile().store(trafos[i], transformations[i]);

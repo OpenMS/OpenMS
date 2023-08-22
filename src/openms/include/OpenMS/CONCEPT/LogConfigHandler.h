@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -117,9 +117,15 @@ public:
     std::ostream & getStream(const String & stream_name);
 
     /**
+      @brief Sets a minimum @p log_level by removing all streams from loggers lower than that level.
+      order of log_level: "DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR"
+     */
+    void setLogLevel(const String & log_level);
+
+    /**
       @brief Returns the instance of LogConfigHandler.
      */
-    static LogConfigHandler & getInstance();
+    static LogConfigHandler * getInstance();
 
     /// Destructor
     virtual ~LogConfigHandler();

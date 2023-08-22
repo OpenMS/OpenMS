@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,7 +82,7 @@ START_SECTION((ReactionMonitoringTransition(const ReactionMonitoringTransition &
   tr1.addPrecursorCVTerm(charge_cv);
   tr1.setPrecursorMZ(42.0);
 	tr2 = ReactionMonitoringTransition(tr1);
-  TEST_EQUAL(tr1 == tr2, true)
+  TEST_TRUE(tr1 == tr2)
   ReactionMonitoringTransition::Prediction p;
   p.contact_ref = "dummy";
   tr1.setPrediction(p);
@@ -90,7 +90,7 @@ START_SECTION((ReactionMonitoringTransition(const ReactionMonitoringTransition &
   tr1.setDetectingTransition(false);
   tr1.setQuantifyingTransition(false);
 	tr3 = ReactionMonitoringTransition(tr1);
-  TEST_EQUAL(tr1 == tr3, true)
+  TEST_TRUE(tr1 == tr3)
   TEST_EQUAL(tr1 == tr2, false)
 
 
@@ -114,7 +114,7 @@ START_SECTION((ReactionMonitoringTransition(ReactionMonitoringTransition &&rhs))
 
   auto orig = tr1;
 	tr2 = ReactionMonitoringTransition(std::move(tr1));
-  TEST_EQUAL(orig == tr2, true);
+  TEST_TRUE(orig == tr2);
 
   TEST_EQUAL(tr2.hasPrecursorCVTerms(), true);
   TEST_EQUAL(tr2.hasPrediction(), true);
@@ -134,7 +134,7 @@ START_SECTION((ReactionMonitoringTransition(ReactionMonitoringTransition &&rhs))
   orig.setQuantifyingTransition(false);
   tr1 = orig;
 	tr3 = ReactionMonitoringTransition(std::move(tr1));
-  TEST_EQUAL(orig == tr3, true)
+  TEST_TRUE(orig == tr3)
   TEST_EQUAL(orig == tr2, false)
 
 
@@ -148,12 +148,12 @@ START_SECTION((ReactionMonitoringTransition& operator=(const ReactionMonitoringT
   tr1.addPrecursorCVTerm(charge_cv);
   tr1.setPrecursorMZ(42.0);
 	tr2 = tr1;
-  TEST_EQUAL(tr1 == tr2, true)
+  TEST_TRUE(tr1 == tr2)
   ReactionMonitoringTransition::Prediction p;
   p.contact_ref = "dummy";
   tr1.setPrediction(p);
   tr3 = tr1;
-  TEST_EQUAL(tr1 == tr3, true)
+  TEST_TRUE(tr1 == tr3)
   TEST_EQUAL(tr1 == tr2, false)
 
   tr1.setDetectingTransition(false);
@@ -162,7 +162,7 @@ START_SECTION((ReactionMonitoringTransition& operator=(const ReactionMonitoringT
   tr1.setQuantifyingTransition(false);
   TEST_EQUAL(tr1 == tr3, false)
   tr3 = tr1;
-  TEST_EQUAL(tr1 == tr3, true)
+  TEST_TRUE(tr1 == tr3)
 }
 END_SECTION
 
@@ -360,17 +360,17 @@ END_SECTION
 START_SECTION((bool operator==(const ReactionMonitoringTransition &rhs) const ))
 {
   ReactionMonitoringTransition tr1, tr2;
-  TEST_EQUAL(tr1 == tr2, true)
+  TEST_TRUE(tr1 == tr2)
 
   tr1.addPrecursorCVTerm(charge_cv);
   TEST_EQUAL(tr1 == tr2, false)
   tr2.addPrecursorCVTerm(charge_cv);
-  TEST_EQUAL(tr1 == tr2, true)
+  TEST_TRUE(tr1 == tr2)
 
   tr1.setDetectingTransition(false);
   TEST_EQUAL(tr1 == tr2, false)
   tr2.setDetectingTransition(false);
-  TEST_EQUAL(tr1 == tr2, true)
+  TEST_TRUE(tr1 == tr2)
 
 }
 END_SECTION
@@ -381,7 +381,7 @@ START_SECTION((bool operator!=(const ReactionMonitoringTransition &rhs) const ))
   TEST_EQUAL(tr1 != tr2, false)
 
   tr1.addPrecursorCVTerm(charge_cv);
-  TEST_EQUAL(tr1 != tr2, true)
+  TEST_FALSE(tr1 == tr2)
 }
 END_SECTION
 

@@ -48,6 +48,10 @@ OPENMS_FINDBINARY(MARACLUSTER_BINARY "maracluster" "MaRaCluster")
 OPENMS_FINDBINARY(COMET_BINARY "comet.exe" "Comet")
 
 #------------------------------------------------------------------------------
+# Sage
+OPENMS_FINDBINARY(SAGE_BINARY "sage;sage.exe" "Sage")
+
+#------------------------------------------------------------------------------
 # X!Tandem
 OPENMS_FINDBINARY(XTANDEM_BINARY "tandem;tandem.exe" "X! Tandem")
 openms_check_tandem_version(${XTANDEM_BINARY} xtandem_valid)
@@ -129,6 +133,13 @@ if (NOT (${MSGFPLUS_BINARY} STREQUAL "MSGFPLUS_BINARY-NOTFOUND"))
   set_tests_properties("TOPP_MSGFPlusAdapter_PROFILE" PROPERTIES WILL_FAIL 1) 
 endif()
 
+#------------------------------------------------------------------------------
+if (NOT (${SAGE_BINARY} STREQUAL "SAGE_BINARY-NOTFOUND"))
+  ### NOT needs to be added after the binarys have been included
+  add_test("TOPP_SageAdapter_1" ${TOPP_BIN_PATH}/SageAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/SageAdapter_1.ini -database  ${DATA_DIR_TOPP}/THIRDPARTY/SageAdapter_1.fasta -in  ${DATA_DIR_TOPP}/THIRDPARTY/SageAdapter_1.mzML -out SageAdapter_1_out.tmp.idXML -sage_executable "${SAGE_BINARY}")
+  add_test("TOPP_SageAdapter_1_out1" ${DIFF} -in1 SageAdapter_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SageAdapter_1_out.idXML -whitelist "search_engine_version" "IdentificationRun date" "spectra_data" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"SageAdapter:1:in\" value=" "UserParam type=\"string\" name=\"SageAdapter:1:database\" value=" "UserParam type=\"string\" name=\"SageAdapter:1:sage_executable\" value=")
+  set_tests_properties("TOPP_SageAdapter_1_out1" PROPERTIES DEPENDS "TOPP_SageAdapter_1")
+  endif()
 
 #------------------------------------------------------------------------------
 if (NOT (${COMET_BINARY} STREQUAL "COMET_BINARY-NOTFOUND"))
@@ -276,24 +287,6 @@ if (WITH_THERMORAWFILEPARSER_TEST)
   endif()
 endif()
 
-# TODO the following tests are waiting for better implementations of InspectAdapter and associated classes
-#add_test("TOPP_InspectAdapter_3" ${TOPP_BIN_PATH}/InspectAdapter -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -trie_dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test2.trie -in ${DATA_DIR_TOPP}/InspectAdapter.out -dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test.fasta -out InspectAdapter_4_output.tmp -inspect_out)
-#add_test("TOPP_InspectAdapter_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 InspectAdapter_4_output.tmp -in2 ${DATA_DIR_TOPP}/InspectAdapter_4_output.idXML )
-#set_tests_properties("TOPP_InspectAdapter_3_out1" PROPERTIES DEPENDS "TOPP_InspectAdapter_3")
-
-### PepNovoAdapter tests
-#The PepNovoAdapter now only works as a frontend and cannot be run without an installation of PepNovo.Therefore no test possible
-#add_test("TOPP_PepNovoAdapter_1" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_1_parameters.ini -in ${DATA_DIR_TOPP}/PepNovo.mzXML -pepnovo_in -out PepNovoAdapter_3_output.tmp -dta_list ${DATA_DIR_TOPP}/tmp/dta_list.txt -model_directory ${DATA_DIR_TOPP}/tmp/ -temp_data_directory ${DATA_DIR_TOPP}/tmp/)
-#add_test("TOPP_PepNovoAdapter_1_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/tmp/PepNovo_PTMs_.txt -in2 ${DATA_DIR_TOPP}/tmp/PepNovo_PTMs.txt)
-#TODO ANDREAS - We have to clean up the /tmp/ directory to run this test multiple times
-#add_test("TOPP_PepNovoAdapter_2" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_1_parameters.ini -in ${DATA_DIR_TOPP}/PepNovo.mzData -pepnovo_in -out PepNovoAdapter_4_output.tmp -temp_data_directory ${DATA_DIR_TOPP})
-#add_test("TOPP_PepNovoAdapter_2_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/PepNovo_PTMs_.txt -in2 ${DATA_DIR_TOPP}/PepNovo_PTMs.txt)
-#add_test("TOPP_PepNovoAdapter_3" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_5_parameters.ini -in ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.pepnovo_out -out PepNovoAdapter_5_output.tmp -pepnovo_out -dta_list ${DATA_DIR_TOPP}/tmp/dta_list.txt -model_directory ${DATA_DIR_TOPP}/tmp/ -temp_data_directory ${DATA_DIR_TOPP}/tmp/ -modifications_xml_file ${DATA_DIR_TOPP}/PepNovo_PTMs.xml -mz_files ${DATA_DIR_TOPP}/PepNovo.mzXML)
-#add_test("TOPP_PepNovoAdapter_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "date_group_1" -in1 PepNovoAdapter_5_output.tmp -in2 ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.idXML)
-## MS2 profile spectra are not allowed
-#add_test("TOPP_PepNovoAdapter_PROFILE" ${TOPP_BIN_PATH}/PepNovoAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MS2_profile.mzML -pepnovo_in -out PepNovoAdapter_output.tmp)
-#set_tests_properties("TOPP_PepNovoAdapter_PROFILE" PROPERTIES WILL_FAIL 1)
-
 #------------------------------------------------------------------------------
 if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
   # Note: Following test are performed without adduct/id information, since these are obtained by the MetaboliteAdductDecharger/AccurateMassSearch
@@ -341,7 +334,7 @@ if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
     # test internal .ms using assigned ms2
     add_test("TOPP_SiriusAdapter_8" ${TOPP_BIN_PATH}/SiriusAdapter -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML  -in_featureinfo ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_multids.featureXML -out_sirius SiriusAdapter_8_output.tmp -preprocessing:feature_only -sirius:candidates 5 -sirius:profile qtof -sirius:db all -read_sirius_stdout)
     if (APPLE) # mzTab was created on the CI macOS
-      add_test("TOPP_SiriusAdapter_8_out" ${DIFF} -in1 SiriusAdapter_8_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_8_output.mzTab -whitelist "MTD" "373.041532365868022")
+      add_test("TOPP_SiriusAdapter_8_out" ${DIFF} -in1 SiriusAdapter_8_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_8_output.mzTab -whitelist "MTD")
       set_tests_properties("TOPP_SiriusAdapter_8_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_8")
     endif()
     set_tests_properties("TOPP_SiriusAdapter_8" PROPERTIES DEPENDS "TOPP_SiriusAdapter_7")
@@ -349,7 +342,7 @@ if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
     add_test("TOPP_SiriusAdapter_9" ${TOPP_BIN_PATH}/SiriusAdapter -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML  -in_featureinfo ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_multids.featureXML -out_sirius SiriusAdapter_9_output.tmp -sirius:candidates 5 -sirius:profile qtof -sirius:db all -read_sirius_stdout)
     set_tests_properties("TOPP_SiriusAdapter_9" PROPERTIES DEPENDS "TOPP_SiriusAdapter_8")
     if (APPLE) # mzTab was created on the CI macOS
-      add_test("TOPP_SiriusAdapter_9_out" ${DIFF} -in1 SiriusAdapter_9_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_9_output.mzTab -whitelist "MTD" "373.041532365868022" "213.074829537142989" "522.38651805643201") # ranks of the compound at "522.38651805643201" m/z shifts depending on OS (Linux C28H49N7O or windows/macOS C25H47N9O3))
+      add_test("TOPP_SiriusAdapter_9_out" ${DIFF} -in1 SiriusAdapter_9_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_9_output.mzTab -whitelist "MTD")
       set_tests_properties("TOPP_SiriusAdapter_9_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_9")
     endif()
     # test internal .ms using all ms2 (without feature information)

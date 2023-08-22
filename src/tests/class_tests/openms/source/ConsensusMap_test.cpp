@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -334,24 +334,30 @@ START_SECTION((ConsensusMap& appendColumns(const ConsensusMap &rhs)))
 }
 END_SECTION
 
-
-START_SECTION((ConsensusMap& operator = (const ConsensusMap& source)))
+const ConsensusMap map_const_1 = []() {
   ConsensusMap map1;
-  map1.setMetaValue("meta",String("value"));
+  map1.resize(3);
+  map1.setMetaValue("meta", String("value"));
   map1.setIdentifier("lsid");
   map1.getColumnHeaders()[0].filename = "blub";
   map1.getColumnHeaders()[0].size = 47;
   map1.getColumnHeaders()[0].label = "label";
-	map1.getColumnHeaders()[0].setMetaValue("meta",String("meta"));
-	map1.getDataProcessing().resize(1);
-	map1.setExperimentType("labeled_MS2");
-	map1.getProteinIdentifications().resize(1);
-	map1.getUnassignedPeptideIdentifications().resize(1);
+  map1.getColumnHeaders()[0].setMetaValue("meta", String("meta"));
+  map1.getDataProcessing().resize(1);
+  map1.setExperimentType("labeled_MS2");
+  map1.getProteinIdentifications().resize(1);
+  map1.getUnassignedPeptideIdentifications().resize(1);
+  return map1;
+}();
 
+
+
+START_SECTION((ConsensusMap& operator = (const ConsensusMap& source)))
   //assignment
   ConsensusMap map2;
-  map2 = map1;
-  TEST_EQUAL(map2.getIdentifier(),"lsid")
+  map2 = map_const_1;
+  TEST_EQUAL(map2.size(), 3)
+  TEST_EQUAL(map2.getIdentifier(), "lsid")
   TEST_EQUAL(map2.getMetaValue("meta").toString(),"value")
 
   TEST_EQUAL(map2.getColumnHeaders()[0].filename == "blub", true)
@@ -361,34 +367,22 @@ START_SECTION((ConsensusMap& operator = (const ConsensusMap& source)))
   TEST_EQUAL(map2.getExperimentType(), "labeled_MS2")
 
   TEST_EQUAL(map2.getDataProcessing().size(),1)
-	TEST_EQUAL(map2.getProteinIdentifications().size(),1);
-	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
+	TEST_EQUAL(map2.getProteinIdentifications().size(),1)
+	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1)
 
   //assignment of empty object
-  map2 = ConsensusMap();
+  ConsensusMap map2_empty;
+  map2 = map2_empty;
   TEST_EQUAL(map2.getIdentifier(),"")
   TEST_EQUAL(map2.getColumnHeaders().size(),0)
   TEST_EQUAL(map2.getExperimentType(),"label-free") // default
   TEST_EQUAL(map2.getDataProcessing().size(),0)
-	TEST_EQUAL(map2.getProteinIdentifications().size(),0);
-	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),0);
+	TEST_EQUAL(map2.getProteinIdentifications().size(),0)
+	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),0)
 END_SECTION
 
 START_SECTION((ConsensusMap(const ConsensusMap& source)))
-  ConsensusMap map1;
-  map1.setMetaValue("meta",String("value"));
-  map1.setIdentifier("lsid");
-  map1.getColumnHeaders()[0].filename = "blub";
-  map1.getColumnHeaders()[0].size = 47;
-  map1.getColumnHeaders()[0].label = "label";
-	map1.getColumnHeaders()[0].setMetaValue("meta",String("meta"));
-	map1.getDataProcessing().resize(1);
-	map1.setExperimentType("labeled_MS2");
-	map1.getProteinIdentifications().resize(1);
-	map1.getUnassignedPeptideIdentifications().resize(1);
-
-  ConsensusMap map2(map1);
-
+  ConsensusMap map2(map_const_1);
   TEST_EQUAL(map2.getIdentifier(),"lsid")
   TEST_EQUAL(map2.getMetaValue("meta").toString(),"value")
   TEST_EQUAL(map2.getColumnHeaders()[0].filename == "blub", true)
@@ -401,7 +395,56 @@ START_SECTION((ConsensusMap(const ConsensusMap& source)))
 	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
 END_SECTION
 
-START_SECTION((ConsensusMap(Base::size_type n)))
+
+
+START_SECTION((ConsensusMap& operator = (ConsensusMap&& source)))
+  static_assert(std::is_move_assignable_v<ConsensusMap>);
+  //assignment
+  ConsensusMap map2;
+  map2 = ConsensusMap(map_const_1); // move
+  TEST_EQUAL(map2.size(), 3)
+  TEST_EQUAL(map2.getIdentifier(), "lsid")
+  TEST_EQUAL(map2.getMetaValue("meta").toString(),"value")
+
+  TEST_EQUAL(map2.getColumnHeaders()[0].filename == "blub", true)
+  TEST_EQUAL(map2.getColumnHeaders()[0].label == "label", true)
+  TEST_EQUAL(map2.getColumnHeaders()[0].size == 47, true)
+	TEST_EQUAL(map2.getColumnHeaders()[0].getMetaValue("meta") == "meta", true)
+  TEST_EQUAL(map2.getExperimentType(), "labeled_MS2")
+
+  TEST_EQUAL(map2.getDataProcessing().size(),1)
+	TEST_EQUAL(map2.getProteinIdentifications().size(),1)
+	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1)
+
+  //assignment of empty object
+  ConsensusMap map2_empty;
+  map2 = std::move(map2_empty); // move
+  TEST_EQUAL(map2.getIdentifier(), "")
+  TEST_EQUAL(map2.getColumnHeaders().size(), 0)
+  TEST_EQUAL(map2.getExperimentType(), "label-free") // default
+  TEST_EQUAL(map2.getDataProcessing().size(), 0)
+  TEST_EQUAL(map2.getProteinIdentifications().size(), 0)
+  TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(), 0)
+  END_SECTION
+
+START_SECTION((ConsensusMap(ConsensusMap && source)))
+  static_assert(std::is_move_constructible_v<ConsensusMap>);
+  ConsensusMap mp_source(map_const_1);
+  ConsensusMap map2(std::move(mp_source));
+  TEST_EQUAL(map2.getIdentifier(),"lsid")
+  TEST_EQUAL(map2.getMetaValue("meta").toString(),"value")
+  TEST_EQUAL(map2.getColumnHeaders()[0].filename == "blub", true)
+  TEST_EQUAL(map2.getColumnHeaders()[0].label == "label", true)
+  TEST_EQUAL(map2.getColumnHeaders()[0].size == 47, true)
+	TEST_EQUAL(map2.getColumnHeaders()[0].getMetaValue("meta") == "meta", true)
+  TEST_EQUAL(map2.getExperimentType(),"labeled_MS2")
+  TEST_EQUAL(map2.getDataProcessing().size(),1)
+	TEST_EQUAL(map2.getProteinIdentifications().size(),1);
+	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
+END_SECTION
+
+
+START_SECTION((ConsensusMap(size_type n)))
   ConsensusMap cons_map(5);
 
   TEST_EQUAL(cons_map.size(),5)
@@ -474,7 +517,7 @@ END_SECTION
 START_SECTION((bool operator == (const ConsensusMap& rhs) const))
 	ConsensusMap empty,edit;
 
-	TEST_EQUAL(empty==edit, true);
+	TEST_TRUE(empty == edit);
 
 	edit.setIdentifier("lsid");;
 	TEST_EQUAL(empty==edit, false);
@@ -525,42 +568,42 @@ START_SECTION((bool operator != (const ConsensusMap& rhs) const))
 	TEST_EQUAL(empty!=edit, false);
 
 	edit.setIdentifier("lsid");;
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit);
 
 	edit = empty;
 	edit.push_back(ConsensusFeature(feature1));
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit);
 
 	edit = empty;
 	edit.getDataProcessing().resize(1);
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit);
 
 	edit = empty;
 	edit.setMetaValue("bla", 4.1);
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit);
 
 	edit = empty;
 	edit.getColumnHeaders()[0].filename = "bla";
-	TEST_EQUAL(empty!=edit, true)
+	TEST_FALSE(empty == edit)
 
 	edit = empty;
 	edit.setExperimentType("labeled_MS2");
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit);
 
 	edit = empty;
 	edit.getProteinIdentifications().resize(10);
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit);
 
 	edit = empty;
 	edit.getUnassignedPeptideIdentifications().resize(10);
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit);
 
 	edit = empty;
 	edit.push_back(ConsensusFeature(feature1));
 	edit.push_back(ConsensusFeature(feature2));
 	edit.updateRanges();
 	edit.clear(false);
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit);
 END_SECTION
 
 

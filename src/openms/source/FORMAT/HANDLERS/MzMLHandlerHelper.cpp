@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,20 +43,20 @@ namespace OpenMS::Internal
 
     void MzMLHandlerHelper::warning(int mode, const String & msg, UInt line, UInt column)
     {
-      String error_message_;
+      String error_message;
       if (mode == 0)
       {
-        error_message_ =  String("While loading '") + "': " + msg;
+        error_message =  String("While loading '") + "': " + msg;
       }
       else if (mode == 1)
       {
-        error_message_ =  String("While storing '") + "': " + msg;
+        error_message =  String("While storing '") + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
-        error_message_ += String("( in line ") + line + " column " + column + ")";
+        error_message += String("( in line ") + line + " column " + column + ")";
       }
-      OPENMS_LOG_WARN << error_message_ << std::endl;
+      OPENMS_LOG_WARN << error_message << std::endl;
     }
 
   String MzMLHandlerHelper::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, const String& indent, bool use_numpress)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -83,11 +83,7 @@ namespace OpenMS
       map_[TDE("MapAligner", ListUtils::create<String>("pose_clustering"))] = TDE("MapAlignerPoseClustering", ListUtils::create<String>(""));
       map_[TDE("MapAligner", ListUtils::create<String>("spectrum_alignment"))] = TDE("MapAlignerSpectrum", ListUtils::create<String>(""));
 
-      map_[TDE("CompNovo", ListUtils::create<String>("CompNovo"))] = TDE("CompNovo", ListUtils::create<String>(""));
-      map_[TDE("CompNovo", ListUtils::create<String>("CompNovoCID"))] = TDE("CompNovoCID", ListUtils::create<String>(""));
-
       // SpectraFilter ...
-      // PILISModel ...
 
       map_[TDE("PeakPicker", ListUtils::create<String>("wavelet"))] = TDE("PeakPickerWavelet", ListUtils::create<String>(""));
       map_[TDE("PeakPicker", ListUtils::create<String>("high_res"))] = TDE("PeakPickerHiRes", ListUtils::create<String>(""));
@@ -99,8 +95,7 @@ namespace OpenMS
   bool INIUpdater::getNewToolName(const String & old_name, const String & tools_type, String & new_name)
   {
     new_name = "";
-    // try with type (as some new tools for one type might have the exact same name as old ones with several types
-    //                e.g., CompNovo
+    // try with type (as some new tools for one type might have the exact same name as old ones with several types)
     TDE old_withtype(old_name, ListUtils::create<String>(tools_type));
     if (map_.find(old_withtype) != map_.end())
     {
@@ -118,8 +113,7 @@ namespace OpenMS
 
     // default to ToolHandler
     const auto& topp = ToolHandler::getTOPPToolList(true);
-    const auto& utils = ToolHandler::getUtilList();
-    if (topp.find(old_name) != topp.end() || utils.find(old_name) != utils.end())
+    if (topp.find(old_name) != topp.end())
     {
       new_name = old_name;
       return true;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -94,7 +94,7 @@ START_SECTION((static ChargeDistribution getChargeDistribution(const std::vector
   auto cd = SwathQC::getChargeDistribution(swath_maps, 10, 0.04);
   SwathQC::ChargeDistribution cde = { {1,17}, {2,4}, {5,1}, {6,2}, {8,2}, {9,1}, {10,5} };
   TEST_EQUAL(cd.size(), cde.size());
-  TEST_EQUAL(cd == cde, true)
+  TEST_TRUE(cd == cde)
 }
 END_SECTION
 

@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -52,9 +52,24 @@ if(NOT DEFINED CPACK_PKGBUILD_IDENTITY_NAME)
   message(WARNING "CPACK_PKGBUILD_IDENTITY_NAME not set. PKG will not be signed. Make sure to specify an identity with a Developer ID: Installer certificate (not Application certificate).")
 endif()
 
+set(MACOS_TARGET_ARCHS ${CMAKE_OSX_ARCHITECTURES})
+if (NOT MACOS_TARGET_ARCHS)
+  # Warning: if cmake is a subprocess of a process that is run under Rosetta, it will yield
+  #  x86_64 (but probably also build for it. Therefore it should be fine.)
+  set(MACOS_TARGET_ARCHS ${CMAKE_HOST_SYSTEM_PROCESSOR})
+endif()
+if (MACOS_TARGET_ARCHS STREQUAL "x86_64")
+  set(ARCH_SUFFIX "Intel")
+elseif (MACOS_TARGET_ARCHS STREQUAL "arm64")
+  set(ARCH_SUFFIX "Silicon")
+elseif ("x86_64" IN_LIST MACOS_TARGET_ARCHS AND "arm64" IN_LIST MACOS_TARGET_ARCHS)
+  set(ARCH_SUFFIX "Universal")
+else ()
+  set(ARCH_SUFFIX "Unknown")
+  message(WARNING "Couldn't determine MACOS_TARGET_ARCHS.")
+endif()
 
-## we make sure it is called like we want although this is the standard name I think.
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-macOS")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-macOS-${ARCH_SUFFIX}")
 
 ## Additionally install TOPPShell into root of install folder
 ########################################################### TOPPShell

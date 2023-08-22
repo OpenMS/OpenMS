@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,15 +50,7 @@
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
-#include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>
-#include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
-#include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
-#include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentification.h>
-#include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationCID.h>
-#include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
-#include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringCID.h>
-#include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
@@ -91,17 +83,12 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
-#include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
-#include <OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>
 #include <OpenMS/MATH/MISC/EmgGradientDescent.h>
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>
-//#include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGeneratorSet.h>
-#include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGeneratorTrainer.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
@@ -171,21 +158,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
-#include <OpenMS/SIMULATION/DigestSimulation.h>
-#include <OpenMS/SIMULATION/IonizationSimulation.h>
-#include <OpenMS/SIMULATION/DetectabilitySimulation.h>
-#include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
-#include <OpenMS/SIMULATION/MSSim.h>
-#include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
-#include <OpenMS/SIMULATION/RTSimulation.h>
-#include <OpenMS/SIMULATION/EGHFitter1D.h>
-#include <OpenMS/SIMULATION/EGHModel.h>
-#include <OpenMS/SIMULATION/LABELING/O18Labeler.h>
-#include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
-#include <OpenMS/SIMULATION/LABELING/ITRAQLabeler.h>
-#include <OpenMS/SIMULATION/LABELING/SILACLabeler.h>
-#include <OpenMS/SIMULATION/LABELING/ICPLLabeler.h>
-#include <OpenMS/SIMULATION/LABELING/LabelFreeLabeler.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/QC/DBSuitability.h>
 
@@ -232,8 +204,8 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
   {
     f << "<B>Parameters of this class are:</B><BR><BR>\n";
   }
-  f << R"(<table border="1" style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;" width="100%" cellpadding="4">)" << endl;
-  f << "<tr style=\"border-bottom:1px solid black; background:#fffff0\"><th>Name</th><th>Type</th><th>Default</th><th>Restrictions</th><th>Description</th></tr>" << endl;
+  f << R"(<table class="doxtable" border="1" width="100%" cellpadding="4">)" << endl;
+  f << "<tr><th>Name</th><th>Type</th><th>Default</th><th>Restrictions</th><th>Description</th></tr>" << endl;
   String type, description, restrictions;
   for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
   {
@@ -408,10 +380,8 @@ int main(int argc, char** argv)
   DOCME(ConsensusIDAlgorithmRanks);
   DOCME(ConsensusIDAlgorithmWorst);
   DOCME(DBSuitability);
-  DOCME(DetectabilitySimulation);
   DOCME(DiaPrescore);
   DOCME(DIAScoring);
-  DOCME(DigestSimulation);
   DOCME(ElutionModelFitter);
   DOCME(EmgFitter1D);
   DOCME(EmgGradientDescent)
@@ -433,7 +403,6 @@ int main(int argc, char** argv)
   DOCME(GoodDiffFilter);
   DOCME(IDMapper);
   DOCME(IDRipper);
-  DOCME(InclusionExclusionList);
   DOCME(InterpolationModel);
   DOCME(IsotopeDiffFilter);
   DOCME(IsotopeFitter1D);
@@ -448,8 +417,7 @@ int main(int argc, char** argv)
   DOCME(LabeledPairFinder);
   DOCME(LinearResampler);
   DOCME(MSPFile);
-  DOCME(MSSim);
-  DOCME(MapAlignmentAlgorithmPoseClustering);
+    DOCME(MapAlignmentAlgorithmPoseClustering);
   DOCME(MapAlignmentAlgorithmSpectrumAlignment);
   DOCME(MRMDecoy);
   DOCME(MRMFeatureFinderScoring);
@@ -467,7 +435,6 @@ int main(int argc, char** argv)
   DOCME(PeakPickerHiRes);
   DOCME(PeakPickerMRM);
   DOCME(PeptideIndexing);
-  DOCME(PSLPFormulation);
   DOCME(PoseClusteringAffineSuperimposer);
   DOCME(PoseClusteringShiftSuperimposer);
   DOCME(QTClusterFinder);
@@ -484,9 +451,6 @@ int main(int argc, char** argv)
   DOCME(SqrtMower);
   DOCME(SteinScottImproveScore);
   DOCME(SpectraMerger);
-  DOCME(SvmTheoreticalSpectrumGenerator);
-  //DOCME(SvmTheoreticalSpectrumGeneratorSet);
-  DOCME(SvmTheoreticalSpectrumGeneratorTrainer);
   DOCME(TICFilter);
   DOCME(TheoreticalSpectrumGenerator);
   DOCME(ThresholdMower);
@@ -494,27 +458,13 @@ int main(int argc, char** argv)
   DOCME(TwoDOptimization);
   DOCME(WindowMower);
   DOCME(ZhangSimilarityScore);
-  DOCME(PrecursorIonSelection);
-  DOCME(PrecursorIonSelectionPreprocessing);
   DOCME(MorphologicalFilter);
-  DOCME(CompNovoIonScoring);
-  DOCME(CompNovoIonScoringCID);
-  DOCME(CompNovoIdentification);
-  DOCME(CompNovoIdentificationCID);
   DOCME(MassDecompositionAlgorithm);
   DOCME(MRMFragmentSelection);
   DOCME(ProtonDistributionModel);
   DOCME(MascotRemoteQuery);
   DOCME(MascotGenericFile);
-  DOCME(OfflinePrecursorIonSelection);
-  DOCME(Fitter1D);
-  DOCME(EGHModel);
-  DOCME(EGHFitter1D);
-  DOCME(O18Labeler);
-  DOCME(ITRAQLabeler);
-  DOCME(SILACLabeler);
-  DOCME(ICPLLabeler);
-  DOCME(LabelFreeLabeler);
+  DOCME(Fitter1D);  
   DOCME(PeptideAndProteinQuant);
   DOCME(Math::PosteriorErrorProbabilityModel);
   // workarounds for documenting model parameters in MapAligners:
@@ -539,15 +489,9 @@ int main(int argc, char** argv)
   DOCME2(SignalToNoiseEstimatorMeanIterative, SignalToNoiseEstimatorMeanIterative<>());
   DOCME2(SignalToNoiseEstimatorMedian, SignalToNoiseEstimatorMedian<>());
   DOCME2(SignalToNoiseEstimator, SignalToNoiseEstimatorMedian<>()); //SignalToNoiseEstimator is a base class, get parameters from subclass SignalToNoiseEstimatorMedian
-  DOCME2(IonizationSimulation, IonizationSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
-  DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
-  DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
-  DOCME2(RTSimulation, RTSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
   DOCME2(GaussTraceFitter, (GaussTraceFitter()));
   DOCME2(EGHTraceFitter, (EGHTraceFitter()));
   DOCME2(TraceFitter, (GaussTraceFitter())); //TraceFitter is an abstract base class, get parameters from subclass GaussTraceFitter
-  DOCME2(BaseLabeler, (ICPLLabeler())); //BaseLabeler is an abstract base class, get parameters from subclass ICPLLabeler
-  DOCME2(BaseModel, (EGHModel())); //BaseModel is an abstract base class, get parameters from subclass EGHModel
   DOCME2(BinnedSpectrumCompareFunctor, (BinnedSharedPeakCount())); //BaseModel is a base class, get parameters from subclass BinnedSharedPeakCount
 
   // handle GUI documentation separately

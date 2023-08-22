@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,11 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/FORMAT/CsvFile.h>
+
+#include <regex>
+#include <functional>
+#include <unordered_set>
 
 namespace OpenMS
 {
@@ -76,6 +81,162 @@ namespace OpenMS
     return scan_identifier.removeWhitespaces();
   }
 
+  vector<PeptideIdentification> PercolatorInfile::load(
+    const String& pin_file, 
+    bool higher_score_better, 
+    const String& score_name,
+    const StringList& extra_scores,
+    StringList& filenames, 
+    String decoy_prefix)
+  {
+    CsvFile csv(pin_file, '\t');
+    StringList header;
+    csv.getRow(0, header);
+
+    unordered_map<String, size_t> to_idx; // map column name to column index
+    {
+      int idx{}; 
+      for (const auto& h : header) { to_idx[h] = idx++; }
+    }
+
+    int file_name_column_index{-1};
+    if (auto it = std::find(header.begin(), header.end(), "FileName"); it != header.end())
+    {
+      file_name_column_index = it - header.begin();
+    }
+
+    // get column indices of extra scores
+    std::set<String> found_extra_scores; // additional (non-main) scores that should be stored in the PeptideHit, order important for comparable idXML
+    for (const String& s : extra_scores)
+    {
+      if (auto it = std::find(header.begin(), header.end(), s); it != header.end())
+      {
+        found_extra_scores.insert(s);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "Extra score: " << s << " not found in Percolator input file." << endl;
+      }
+    }    
+    
+    // charge columns are not standardized so we check for the format and create hash to lookup column name to charge mapping
+    std::regex charge_one_hot_pattern("^charge\\d+$");
+    std::regex sage_one_hot_pattern("^z=\\d+$");
+    String charge_prefix;
+    unordered_map<String, int> col_name_to_charge;
+    for (const String& c : header)
+    {
+      if (std::regex_match(c, charge_one_hot_pattern))
+      {
+        col_name_to_charge[c] = c.substr(6).toInt();
+        charge_prefix = "charge";
+      }
+      else if (std::regex_match(c, sage_one_hot_pattern))
+      {
+        col_name_to_charge[c] = c.substr(2).toInt();
+        charge_prefix = "z=";
+      }
+      else if (c == "z=other") // SAGE
+      {
+        col_name_to_charge[c] = 0;
+      }
+    }
+
+    auto n_rows = csv.rowCount();
+    
+    vector<PeptideIdentification> pids;
+    pids.reserve(n_rows);
+    String spec_id;
+    String raw_file_name("UNKNOWN");
+    unordered_map<String, size_t> map_filename_to_idx; // fast lookup of filename to index in filenames vector
+
+    for (size_t i = 1; i != n_rows; ++i)
+    {
+      StringList row;      
+      csv.getRow(i, row);
+
+      if (row.size() != header.size())
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: line " + String(i) + " of file '" + pin_file + "' does not have the same number of columns as the header!", String(i));
+      }
+
+      if (file_name_column_index >= 0)
+      {
+        raw_file_name = row[file_name_column_index];
+        if (map_filename_to_idx.find(raw_file_name) == map_filename_to_idx.end())
+        {
+          filenames.push_back(raw_file_name);
+          map_filename_to_idx[raw_file_name] = filenames.size() - 1;
+        }
+      }   
+
+      const String& sSpecId = row[to_idx.at("SpecId")];
+      if (sSpecId != spec_id)
+      {
+        pids.resize(pids.size() + 1);
+        pids.back().setHigherScoreBetter(higher_score_better);
+        pids.back().setScoreType(score_name);
+        pids.back().setMetaValue("id_merge_index", map_filename_to_idx.at(raw_file_name));
+        pids.back().setRT(row[to_idx.at("retentiontime")].toDouble() * 60.0);
+      }
+
+      int sScanNr = row[to_idx.at("ScanNr")].toInt();
+
+      String sPeptide = row[to_idx.at("Peptide")];
+      const double score = row[to_idx.at(score_name)].toDouble();
+      String target_decoy = row[to_idx.at("Label")].toInt() == 1 ? "target" : "decoy";
+      const String& sProteins = row[to_idx.at("Proteins")];
+      int rank = to_idx.count("rank") ? row[to_idx.at("rank")].toInt() : 1;
+      StringList accessions;
+
+      int charge = 0;
+      for (const auto& [name, z] : col_name_to_charge)
+      {
+        if (row[to_idx.at(name)] == "1")
+        {
+          charge = z;
+          break;
+        }
+      }
+
+      if (charge != 0)
+      {
+        pids.back().setMZ((row[to_idx.at("ExpMass")].toDouble() - std::fabs(charge) * Constants::PROTON_MASS_U) / std::fabs(charge));
+      }
+
+      sProteins.split(';', accessions);
+
+      // deduce decoy state from accessions if decoy_prefix is set
+      if (!decoy_prefix.empty())
+      {
+        target_decoy = std::all_of(accessions.begin(), accessions.end(), [&decoy_prefix](const String& acc) { return acc.hasPrefix(decoy_prefix); }) ? "decoy" : "target" ;
+      }          
+
+      // needs to handle strings like: [+42]-MVLVQDLLHPTAASEAR, [+304.207]-ETC[+57.0215]RQLGLGTNIYNAER etc.
+      sPeptide.substitute("]-", "]."); // we can parse [+42].MVLVQDLLHPTAASEAR
+      sPeptide.substitute("-[", ".["); // we can parse MVLVQDLLHPTAASEAR.[+111]
+      AASequence aa_seq = AASequence::fromString(sPeptide);
+      PeptideHit ph(score, rank, charge, std::move(aa_seq));
+      ph.setMetaValue("SpecId", sSpecId);
+      ph.setMetaValue("ScanNr", sScanNr);
+      ph.setMetaValue("target_decoy", target_decoy);
+      for (const auto& name : found_extra_scores)
+      {
+        ph.setMetaValue(name, row[to_idx.at(name)]);
+      }
+      ph.setRank(rank);
+
+      // add link to protein (we only know the accession but not start/end, aa_before/after in protein at this point)
+      for (const String& accession : accessions)
+      {
+        ph.addPeptideEvidence(PeptideEvidence(accession));
+      }
+      
+      pids.back().insertHit(std::move(ph));
+    }
+    return pids;
+  }
+
 
   TextFile PercolatorInfile::preparePin_(
     const vector<PeptideIdentification>& peptide_ids, 
@@ -106,7 +267,12 @@ namespace OpenMS
     for (const PeptideIdentification& pep_id : peptide_ids)
     {
       index++;
+      // try to make a file and scan unique identifier
       String scan_identifier = getScanIdentifier(pep_id, index);
+      String file_identifier = pep_id.getMetaValue("file_origin", String());
+
+      file_identifier += (String)pep_id.getMetaValue("id_merge_index", String());
+
       Int scan_number = SpectrumLookup::extractScanNumber(scan_identifier, scan_regex, true);
       
       double exp_mass = pep_id.getMZ();
@@ -121,7 +287,7 @@ namespace OpenMS
           continue;
         }
         PeptideHit hit(psm); // make a copy of the hit to store temporary features
-        hit.setMetaValue("SpecId", scan_identifier);
+        hit.setMetaValue("SpecId", file_identifier + scan_identifier);
         hit.setMetaValue("ScanNr", scan_number);
         
         if (!hit.metaValueExists("target_decoy") 
@@ -344,4 +510,3 @@ namespace OpenMS
   }
 
 }
-

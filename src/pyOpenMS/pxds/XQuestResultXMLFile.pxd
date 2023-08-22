@@ -14,12 +14,12 @@ cdef extern from "<OpenMS/FORMAT/XQuestResultXMLFile.h>" namespace "OpenMS":
         # wrap-inherits:
         #  XMLFile
 
-        XQuestResultXMLFile() nogil except +
-        XQuestResultXMLFile(XQuestResultXMLFile &) nogil except +
+        XQuestResultXMLFile() except + nogil 
+        XQuestResultXMLFile(XQuestResultXMLFile &) except + nogil 
 
         void load(const String & filename,
                 libcpp_vector[ PeptideIdentification ] & pep_ids,
-                libcpp_vector[ ProteinIdentification ] & prot_ids) nogil except +
+                libcpp_vector[ ProteinIdentification ] & prot_ids) except + nogil 
         # wrap-doc:
                 #  Load the content of the xquest.xml file into the provided data structures
                 #  
@@ -29,17 +29,17 @@ cdef extern from "<OpenMS/FORMAT/XQuestResultXMLFile.h>" namespace "OpenMS":
 
         void store(const String & filename,
                 libcpp_vector[ ProteinIdentification ] & poid,
-                libcpp_vector[ PeptideIdentification ] & peid) nogil except + # wrap-doc:Stores the identifications in a xQuest XML file
+                libcpp_vector[ PeptideIdentification ] & peid) except + nogil  # wrap-doc:Stores the identifications in a xQuest XML file
 
-        int getNumberOfHits() nogil except + # wrap-doc:Returns the total number of hits in the file
-        double getMinScore() nogil except + # wrap-doc:Returns minimum score among the hits in the file
-        double getMaxScore() nogil except + # wrap-doc:Returns maximum score among the hits in the file
+        int getNumberOfHits() except + nogil  # wrap-doc:Returns the total number of hits in the file
+        double getMinScore() except + nogil  # wrap-doc:Returns minimum score among the hits in the file
+        double getMaxScore() except + nogil  # wrap-doc:Returns maximum score among the hits in the file
 
         void writeXQuestXMLSpec(const String& out_file, const String& base_name,
                                 OPXL_PreprocessedPairSpectra preprocessed_pair_spectra,
                                 libcpp_vector[ libcpp_pair[ size_t, size_t ] ] spectrum_pairs,
                                 libcpp_vector[ libcpp_vector[ CrossLinkSpectrumMatch ] ] all_top_csms,
-                                MSExperiment spectra, const bool& test_mode) nogil except +
+                                MSExperiment spectra, const bool& test_mode) except + nogil 
                 # wrap-doc:
                         #  Writes spec.xml output containing matching peaks between heavy and light spectra after comparing and filtering
                         #  
@@ -52,7 +52,7 @@ cdef extern from "<OpenMS/FORMAT/XQuestResultXMLFile.h>" namespace "OpenMS":
 
         void writeXQuestXMLSpec(const String& out_file, const String& base_name,
                                 libcpp_vector[ libcpp_vector[ CrossLinkSpectrumMatch] ] all_top_csms,
-                                MSExperiment spectra, const bool& test_mode) nogil except +
+                                MSExperiment spectra, const bool& test_mode) except + nogil 
                 # wrap-doc:
                         #  Writes spec.xml output containing spectra for visualization. This version of the function is meant to be used for label-free linkers
                         #  

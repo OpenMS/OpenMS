@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -270,25 +270,25 @@ START_SECTION((bool operator==(const BaseFeature &rhs) const))
 {
   BaseFeature p1;
   BaseFeature p2(p1);
-  TEST_EQUAL(p1 == p2, true)
+  TEST_TRUE(p1 == p2)
 
   p1.setIntensity(5.0f);
   p1.setQuality((QualityType)0.9);
   TEST_EQUAL(p1 == p2, false)
   p2.setIntensity(5.0f);
   p2.setQuality((QualityType)0.9);
-  TEST_EQUAL(p1 == p2, true)
+  TEST_TRUE(p1 == p2)
 
   p1.getPosition()[0] = 5;
   TEST_EQUAL(p1 == p2, false)
   p2.getPosition()[0] = 5;
-  TEST_EQUAL(p1 == p2, true)
+  TEST_TRUE(p1 == p2)
 
   vector<PeptideIdentification> peptides(1);
   p1.setPeptideIdentifications(peptides);
   TEST_EQUAL(p1 == p2, false);
   p2.setPeptideIdentifications(peptides);
-  TEST_EQUAL(p1 == p2, true);
+  TEST_TRUE(p1 == p2);
 }
 END_SECTION
 
@@ -298,18 +298,18 @@ START_SECTION((bool operator!=(const BaseFeature& rhs) const))
   TEST_EQUAL(p1 != p2, false)
 
   p1.setIntensity(5.0f);
-  TEST_EQUAL(p1 != p2, true)
+  TEST_FALSE(p1 == p2)
   p2.setIntensity(5.0f);
   TEST_EQUAL(p1 != p2, false)
 
   p1.getPosition()[0] = 5;
-  TEST_EQUAL(p1 != p2, true)
+  TEST_FALSE(p1 == p2)
   p2.getPosition()[0] = 5;
   TEST_EQUAL(p1 != p2, false)
 
   vector<PeptideIdentification> peptides(1);
   p1.setPeptideIdentifications(peptides);
-  TEST_EQUAL(p1 != p2, true);
+  TEST_FALSE(p1 == p2);
   p2.setPeptideIdentifications(peptides);
   TEST_EQUAL(p1 != p2, false);
 END_SECTION

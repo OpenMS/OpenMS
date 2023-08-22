@@ -17,15 +17,15 @@ cdef extern from "<OpenMS/METADATA/DataArrays.h>" namespace "OpenMS::DataArrays"
         #  The representation of extra float data attached to a spectrum or chromatogram.
         #  Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
 
-        FloatDataArray() nogil except +
-        FloatDataArray(FloatDataArray &) nogil except + # compiler
+        FloatDataArray() except + nogil 
+        FloatDataArray(FloatDataArray &) except + nogil  # compiler
 
-        Size size() nogil except +
-        void resize(size_t n) nogil except +
-        void reserve(size_t n) nogil except +
-        float& operator[](size_t) nogil except + # wrap-ignore
-        void clear() nogil except +
-        void push_back(float) nogil except +
+        Size size() except + nogil 
+        void resize(size_t n) except + nogil 
+        void reserve(size_t n) except + nogil 
+        float& operator[](size_t) except + nogil  # wrap-ignore
+        void clear() except + nogil 
+        void push_back(float) except + nogil 
 
         libcpp_vector[float].iterator begin() nogil # wrap-ignore
         libcpp_vector[float].iterator end()   nogil # wrap-ignore

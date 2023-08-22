@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <memory>
 #include <unordered_map>
 
 namespace OpenMS
@@ -47,19 +48,19 @@ namespace OpenMS
       The information in this class comes primarily from the Modomics database (http://modomics.genesilico.pl/modifications/) and is read from a tab-separated text file in @p data/CHEMISTRY/Modomics.tsv.
       In addition, OpenMS-specific (as well as potentially user-supplied) modification definitions are read from the file @p data/CHEMISTRY/Custom_RNA_modifications.tsv.
   */
-  class OPENMS_DLLAPI RibonucleotideDB
+  class OPENMS_DLLAPI RibonucleotideDB final
   {
   public:
     using ConstRibonucleotidePtr = const Ribonucleotide *;
 
     /// const iterator type definition
-    typedef std::vector<ConstRibonucleotidePtr>::const_iterator ConstIterator;
+    typedef std::vector<std::unique_ptr<Ribonucleotide>>::const_iterator ConstIterator;
 
     /// replacement for constructor (singleton pattern)
     static RibonucleotideDB* getInstance();
 
     /// destructor
-    virtual ~RibonucleotideDB();
+    ~RibonucleotideDB() = default;
 
     /// copy constructor not available
     RibonucleotideDB(const RibonucleotideDB& other) = delete;
@@ -108,11 +109,14 @@ namespace OpenMS
     /// read (modified) nucleotides from input file
     void readFromFile_(const std::string& path);
 
+    /// read from a newer version of Modomics that uses a JSON file
+    void readFromJSON_(const std::string& path);
+
     /// create a (modified) nucleotide from an input row
-    ConstRibonucleotidePtr parseRow_(const std::string& row, Size line_count);
+    const std::unique_ptr<Ribonucleotide>  parseRow_(const std::string& row, Size line_count);
 
     /// list of known (modified) nucleotides
-    std::vector<ConstRibonucleotidePtr> ribonucleotides_;
+    std::vector<std::unique_ptr<Ribonucleotide>> ribonucleotides_;
 
     /// mapping of codes (short names) to indexes into @p ribonucleotides_
     std::unordered_map<std::string, Size> code_map_;

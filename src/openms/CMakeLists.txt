@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -88,17 +88,23 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 # all the dependency libraries are linked into libOpenMS.so
 set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network)
 
+## setup the argumentes to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
 set(OPENMS_DEP_PRIVATE_LIBRARIES 
-  GTE Quadtree ${LPTARGET} 
-  Eigen3::Eigen
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
-  Boost::iostreams
-  Boost::date_time
-  Boost::boost
-  Boost::regex
+  ${LPTARGET} 
   BZip2::BZip2
+  Boost::boost
+  Boost::date_time
+  Boost::iostreams
+  Boost::regex
+  Eigen3::Eigen
+  GTE 
+  Quadtree 
+  SIMDe
+  SQLiteCpp
   ZLIB::ZLIB
-  SQLiteCpp)
+  nlohmann_json::nlohmann_json
+  )
 
 ## ----------
 ## No need to for this at the moment: no Qt plugins required anymore. Left here for reference.
@@ -135,7 +141,6 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
                    PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
                                     ${ISOSPEC_INCLUDE_DIRECTORY}
-                                    ${JSON_INCLUDE_DIRECTORY}
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}

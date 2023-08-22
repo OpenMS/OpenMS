@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -381,26 +381,12 @@ set(_pyopenms_files
   setup.py
   create_cpp_extension.py
   mac_fix_dependencies.rb
-  version.py
-  run_nose.py
-  run_memleaks.py
   doCythonCompileOnly.py
 )
 
 foreach(pyfile ${_pyopenms_files})
   configure_file(${PROJECT_SOURCE_DIR}/${pyfile} ${CMAKE_BINARY_DIR}/pyOpenMS/${pyfile} COPYONLY)
 endforeach()
-
-set(_sub_pyopenms_files
-  License.txt
-  version.py
-)
-
-# list of files located in pyOpenMS/pyopenms
-foreach(pyfile ${_sub_pyopenms_files})
-  configure_file(${PROJECT_SOURCE_DIR}/${pyfile} ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/${pyfile} COPYONLY)
-endforeach()
-
 
 
 #------------------------------------------------------------------------------
@@ -422,7 +408,7 @@ endif()
 if (OpenMP_FOUND)
   list(APPEND INCLUDE_DIRS_EXTEND ${OpenMP_CXX_INCLUDE_DIR})
 # Unfortunately this does not work, since CMake somehow calls the library on macOS "libomp".
-# Althought the library name should clearly be just "omp". We do it manually in setup.py now.
+# Although the library name should clearly be just "omp". We do it manually in setup.py now.
 # Might need regular updates..
 # foreach(LIB ${OpenMP_CXX_LIB_NAMES}) # such as gomp, pthreads, omp, ...
 #   list(APPEND LIBRARIES_EXTEND ${LIB})
@@ -620,6 +606,9 @@ endif()
 
 if(LINUX OR APPLE)
   set(EXTRA_WARNINGS "-Wno-unused-member-function" "-Wno-builtin-macro-redefined" "-Wno-unused" "-Wno-zero-as-null-pointer-constant")
+  if(${Python_VERSION} VERSION_GREATER_EQUAL "3.8" AND ${Python_VERSION} VERSION_LESS "3.9")
+    list(APPEND EXTRA_WARNINGS "-Wno-deprecated-declarations") # https://github.com/cython/cython/issues/3474
+  endif()
 else()
   set(EXTRA_WARNINGS "")
 endif()
@@ -699,9 +688,13 @@ IF(LINUX AND PY_NO_OUTPUT)
             DEPENDS prepare_pyopenms_libs pyopenms_compile
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSE()
-    IF(APPLE)
+    IF(APPLE AND NOT NO_DEPENDENCIES)
         add_custom_target(pyopenms
             COMMAND ./mac_fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -f -v
+            # ad hoc signature is represented by a dash
+            # https://developer.apple.com/documentation/security/seccodesignatureflags/kseccodesignatureadhoc
+            COMMAND codesign --force --sign "-" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/Qt*
+            COMMAND codesign --force --sign "-" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/*.dylib
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg
             COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip

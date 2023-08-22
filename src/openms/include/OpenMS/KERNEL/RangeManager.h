@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -898,6 +898,9 @@ namespace OpenMS
   {
   public:
     using ThisRangeType = typename RangeManager<RangeBases...>::ThisRangeType;
+
+    /// D'tor
+    virtual ~RangeManagerContainer() = default; // required since we have virtual methods
 
     /// implement this function to reflect the underlying data of the derived class (e.g. an MSSpectrum)
     /// Usually, call clearRanges() internally and then populate the dimensions.

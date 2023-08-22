@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,13 +39,14 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+
+#include <algorithm>
 #include <iostream>
 #include <iomanip>
+#include <random>
 #include <vector>
 
 #include <QtCore/QString>
-
-#include <boost/math/special_functions/fpclassify.hpp>
 
 using namespace OpenMS;
 using namespace std;
@@ -918,6 +919,7 @@ START_SECTION((String& ensureLastChar(char end)))
 END_SECTION
 
 START_SECTION((String& removeWhitespaces()))
+{
   String s;
 
   s.removeWhitespaces();
@@ -938,6 +940,15 @@ START_SECTION((String& removeWhitespaces()))
   s = "\n\r\t t\ne \ts\rt \n\r\t";
   s.removeWhitespaces();
   TEST_EQUAL(s,"test");
+
+  const std::string test(16 * 1024 + 1, 'x'); // not a multiple of 16, so any SSE code needs to deal with a remainder
+  s = test + std::string(100, ' ');
+  std::random_device rd;
+  std::mt19937 g(rd());
+  std::shuffle(s.begin(), s.end(), g);
+  s.removeWhitespaces();
+  TEST_EQUAL(s, test);
+}
 END_SECTION
 
 const String fixed("test");

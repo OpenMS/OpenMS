@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,9 +76,9 @@ using namespace std;
   <CENTER>
   <table>
   <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <th ALIGN = "center"> pot. predecessor tools </td>
   <td VALIGN="middle" ROWSPAN=3> &rarr; FileConverter &rarr;</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  <th ALIGN = "center"> pot. successor tools </td>
   </tr>
   <tr>
   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_GenericWrapper (e.g. for calling external converters) </td>
@@ -285,7 +285,9 @@ protected:
       ConsensusXMLFile().load(in, cm);
       cm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
-          (out_type != FileTypes::CONSENSUSXML))
+          (out_type != FileTypes::CONSENSUSXML) &&
+          (out_type != FileTypes::OMS)
+          )
       {
         // You you will lose information and waste memory. Enough reasons to issue a warning!
         writeLogWarn_("Warning: Converting consensus features to peaks. You will lose information!");
@@ -728,13 +730,21 @@ protected:
     }
     else if (out_type == FileTypes::OMS)
     {
-      if (in_type != FileTypes::FEATUREXML)
+      if (in_type == FileTypes::FEATUREXML)
       {
-        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert featureXML files to oms format.";
-        return INCOMPATIBLE_INPUT_DATA;
+        IdentificationDataConverter::importFeatureIDs(fm);
+        OMSFile().store(out, fm);
       }
-      IdentificationDataConverter::importFeatureIDs(fm);
-      OMSFile().store(out, fm);
+      else if (in_type == FileTypes::CONSENSUSXML)
+      {
+        IdentificationDataConverter::importConsensusIDs(cm);
+        OMSFile().store(out, cm);        
+      }
+      else
+      {        
+        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert featureXML and consensusXML files to oms format.";
+        return INCOMPATIBLE_INPUT_DATA;
+      }      
     }
     else
     {

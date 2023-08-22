@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -145,7 +145,7 @@ END_SECTION
 START_SECTION(bool operator== (const DataProcessing& rhs) const)
   DataProcessing edit, empty;
   
-  TEST_EQUAL(edit==empty, true);
+  TEST_TRUE(edit == empty);
   
   edit.setCompletionTime(time);
   TEST_EQUAL(edit==empty, false);
@@ -169,19 +169,19 @@ START_SECTION(bool operator!= (const DataProcessing& rhs) const)
   TEST_EQUAL(edit!=empty, false);
   
   edit.setCompletionTime(time);
-  TEST_EQUAL(edit!=empty, true);
+  TEST_FALSE(edit == empty);
   
   edit = empty;
   edit.getProcessingActions().insert(DataProcessing::DEISOTOPING);
-  TEST_EQUAL(edit!=empty, true);
+  TEST_FALSE(edit == empty);
   
   edit = empty;
   edit.getSoftware().setName("name");
-  TEST_EQUAL(edit!=empty, true);
+  TEST_FALSE(edit == empty);
   
   edit = empty;
   edit.setMetaValue("label",String("label"));
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 END_SECTION
 
 

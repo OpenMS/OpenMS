@@ -13,11 +13,11 @@ cdef extern from "<OpenMS/METADATA/SampleTreatment.h>" namespace "OpenMS":
         # wrap-inherits:
         #  MetaInfoInterface
 
-        SampleTreatment(SampleTreatment &) nogil except + # wrap-doc:Base class for sample treatments (Digestion, Modification, Tagging, ...)
-        SampleTreatment(const String & type_) nogil except +
+        SampleTreatment(SampleTreatment &) except + nogil  # wrap-doc:Base class for sample treatments (Digestion, Modification, Tagging, ...)
+        SampleTreatment(const String & type_) except + nogil 
 
-        bool operator==(SampleTreatment & rhs) nogil except +
-        String getType() nogil except + # wrap-doc:Returns the treatment type
-        String getComment() nogil except + # wrap-doc:Returns the description of the sample treatment
-        void setComment(const String & comment) nogil except + # wrap-doc:Sets the description of the sample treatment
-        # POINTER # SampleTreatment * clone() nogil except +
+        bool operator==(SampleTreatment & rhs) except + nogil 
+        String getType() except + nogil  # wrap-doc:Returns the treatment type
+        String getComment() except + nogil  # wrap-doc:Returns the description of the sample treatment
+        void setComment(const String & comment) except + nogil  # wrap-doc:Sets the description of the sample treatment
+        # POINTER # SampleTreatment * clone() except + nogil 

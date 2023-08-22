@@ -4,7 +4,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_NewTool
+    @page TOPP_NewTool
 
     @brief Template for a new Tool
 
@@ -53,9 +53,9 @@ using namespace std;
     And more scientific applications.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_NewTool.cli
+    @verbinclude TOPP_NewTool.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_NewTool.html
+    @htmlinclude TOPP_NewTool.html
 */
 
 // We do not want this class to show up in the docu:

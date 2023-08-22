@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -242,9 +242,9 @@ START_SECTION((std::set< String > ExperimentalDesign::SampleSection::getFactors(
   TEST_EQUAL(lfacst.size(), 3)
   TEST_EQUAL(lfacstns.size(), 3)
 
-  TEST_EQUAL(lfac == lfacst, true)
-  TEST_EQUAL(lfac == lfacstns, true)
-  TEST_EQUAL(facplex == facplexst, true)
+  TEST_TRUE(lfac == lfacst)
+  TEST_TRUE(lfac == lfacstns)
+  TEST_TRUE(facplex == facplexst)
 
   auto l = lfac.begin();
   TEST_EQUAL(*l++, "MSstats_BioReplicate")

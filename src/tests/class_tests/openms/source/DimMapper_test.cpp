@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -166,7 +166,7 @@ START_SECTION(DimMapper(const DimMapper& rhs))
 {
   DimMapper3 d1(unitsIMR);
   auto d2(d1);
-  TEST_EQUAL(d2 == d1, true);
+  TEST_TRUE(d2 == d1);
 }
 END_SECTION
 
@@ -177,7 +177,7 @@ START_SECTION(DimMapper& operator=(const DimMapper& rhs))
   DimMapper3 d2(unitsRMI);
   TEST_EQUAL(d2 == d1, false);
   d1 = d2;
-  TEST_EQUAL(d2 == d1, true);
+  TEST_TRUE(d2 == d1);
 }
 END_SECTION
 

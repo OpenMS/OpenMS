@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -344,7 +344,7 @@ namespace OpenMS
 
       if (!ignore_charge_)
       {
-        OPENMS_LOG_WARN << "IDMapper is configured to validate charges. Because the data looks like TMT/iTRAQ and this option will be ignored."  << std::endl;
+        OPENMS_LOG_WARN << "IDMapper is configured to validate charges. Because the data looks like TMT/iTRAQ this option will be ignored."  << std::endl;
       }
 
       for (auto& cf : map)
@@ -352,8 +352,9 @@ namespace OpenMS
         const auto first_channel = *cf.getFeatures().begin();                  
         String filename = File::basename(map.getColumnHeaders()[first_channel.getMapIndex()].filename); // all channels are associated with same file in TMT/iTRAQ
 
-        String cf_scan_id = (native_id_type == NATIVE_ID_TYPE::MS2IDMS3TMT) ? cf.getMetaValue("id_scan_id", "") : cf.getMetaValue("scan_id", "");
-        if (cf.metaValueExists(cf_scan_id)) 
+        String cf_scan_id_key_name = (native_id_type == NATIVE_ID_TYPE::MS2IDMS3TMT) ? "id_scan_id" : "scan_id";
+        String cf_scan_id = cf.getMetaValue(cf_scan_id_key_name, "");
+        if (!cf_scan_id.empty()) 
         {
           if (auto run_it = file2nativeid2pepid.find(filename); run_it != file2nativeid2pepid.end()) // TMT/iTRAQ run has identifications
           {
@@ -362,14 +363,19 @@ namespace OpenMS
               cf.getPeptideIdentifications().push_back(*scanid_it->second);
               ++id_matches_single; // in TMT we only match to single consensus feature
             }
-          } // else identification file does not contained scan id (e.g. was removed)          
-        }
-        else // else identification file does not contained identifications for this run
-        {
-          OPENMS_LOG_WARN << "ConsensusMap for TMT/iTRAQ experiment contains scan identifier '" << cf_scan_id 
+          } // else identification file does not contained scan id (e.g. was removed)  
+          else
+          {
+            OPENMS_LOG_WARN << "ConsensusMap for TMT/iTRAQ experiment contains scan identifier '" << cf_scan_id 
                           << "' quantified in file '" << filename 
                           << "' but there is no matching identification."
-                          << std::endl;
+                          << std::endl;            
+          }        
+        }
+        else // missing spectrum id annotation
+        {
+            OPENMS_LOG_WARN << "ConsensusMap for TMT/iTRAQ experiment is missing the scan identifier meta value '" << cf_scan_id << "'"
+                          << std::endl;            
         } 
       }
     }

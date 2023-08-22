@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -741,15 +741,7 @@ namespace OpenMS
 
   void DBSuitability::SuitabilityData::clear()
   {
-    num_top_novo = 0;
-    num_top_db = 0;
-    num_re_ranked = 0;
-    cut_off = DBL_MAX;
-    suitability = 0;
-    suitability_no_rerank = 0;
-    num_top_novo_corr = 0;
-    suitability_corr = 0;
-    suitability_corr_no_rerank = 0;
+    *this = SuitabilityData();
   }
 
   void DBSuitability::SuitabilityData::setCorrectionFactor(double factor)

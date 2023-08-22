@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,6 +53,7 @@ using namespace Internal;
 void convertINI2HTML(const Param& p, ostream& os)
 {
   // the .css file is included via the Header.html (see doc/doxygen/common/Header.html)
+  // TODO add some general description on how to handle subsections, what each column means, what the tags mean, etc.
   os << "<div class=\"ini_global\">\n";
   os << "<div class=\"legend\">\n";
   os << "<b>Legend:</b><br>\n";
@@ -77,6 +78,7 @@ void convertINI2HTML(const Param& p, ostream& os)
         d.substitute("\n", "<br>");
         os << indentation
            << R"(<div class="node"><span class="node_name">)"
+           // TODO replace/remove weird "(TOPPAS) instance 1" nodes that only confuse people.
            << (String().fillLeft('+', (UInt) indentation.size() / 2) + it2->name)
            << "</span><span class=\"node_description\">"
            << (d)
@@ -128,7 +130,7 @@ void convertINI2HTML(const Param& p, ostream& os)
       if (*tag_it == "required")
         continue;
       if (!list.empty())
-        list += ",";
+        list += ", ";
       list += *tag_it;
     }
     os << "<span class=\"item_tags\">" << (list) << "</span>";
@@ -140,6 +142,8 @@ void convertINI2HTML(const Param& p, ostream& os)
     case ParamValue::INT_VALUE:
     case ParamValue::INT_LIST:
     {
+      // TODO think about doing the same infinity replacement
+      // for default values. A single ":" looks weird.
       bool min_set = (it->min_int != -numeric_limits<Int>::max());
       bool max_set = (it->max_int != numeric_limits<Int>::max());
       if (max_set || min_set)
@@ -181,7 +185,11 @@ void convertINI2HTML(const Param& p, ostream& os)
     case ParamValue::STRING_LIST:
       if (!it->valid_strings.empty())
       {
-        restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ",");
+        // make sure browsers can word wrap with additional whitespace
+        // TODO: If param name is *modification* just add a link to 
+        //  a page with all modifications otherwise you get a HUGE list.
+        //  Also think about a different separator, in case the restrictions have commas.
+        restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");
       }
       break;
 
@@ -306,7 +314,7 @@ int main(int argc, char** argv)
 {
   if (argc != 2)
   {
-    cerr << "Please specify the path where the TOPP/UTIL binaries are located." << endl;
+    cerr << "Please specify the path where the TOPP binaries are located." << endl;
     return EXIT_FAILURE;
   }
 
@@ -322,15 +330,13 @@ int main(int argc, char** argv)
   ToolListType topp_tools = ToolHandler::getTOPPToolList(true); // include GenericWrapper (can be called with --help without error, even though it has a type)
   topp_tools["TOPPView"] = Internal::ToolDescription(); // these two need to be excluded from writing an INI file later!
   topp_tools["TOPPAS"] = Internal::ToolDescription();
-  //UTILS
-  ToolListType util_tools = ToolHandler::getUtilList();
 
-  bool errors_occured = generate(topp_tools, "TOPP_", binary_directory) || generate(util_tools, "UTILS_", binary_directory);
+  bool errors_occured = generate(topp_tools, "TOPP_", binary_directory);
 
   if (errors_occured)
   {
     // errors occurred while generating the TOPP CLI docu .. tell the user
-    cerr << "Errors occurred while generating the command line documentation for some of the TOPP tools/UTILS." << endl;
+    cerr << "Errors occurred while generating the command line documentation for some of the TOPP tools." << endl;
     return EXIT_FAILURE;
   }
   else

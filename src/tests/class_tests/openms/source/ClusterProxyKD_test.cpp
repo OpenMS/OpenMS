@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -106,14 +106,14 @@ START_SECTION((bool operator!=(const ClusterProxyKD& rhs) const))
   TEST_EQUAL(proxy_0 != proxy_0, false)
   TEST_EQUAL(proxy_1 != proxy_1, false)
   TEST_EQUAL(proxy_1 != proxy_5, false)
-  TEST_EQUAL(proxy_0 != proxy_1, true)
-  TEST_EQUAL(proxy_1 != proxy_2, true)
+  TEST_FALSE(proxy_0 == proxy_1)
+  TEST_FALSE(proxy_1 == proxy_2)
 END_SECTION
 
 START_SECTION((bool operator==(const ClusterProxyKD& rhs) const))
-  TEST_EQUAL(proxy_0 == proxy_0, true)
-  TEST_EQUAL(proxy_1 == proxy_1, true)
-  TEST_EQUAL(proxy_1 == proxy_5, true)
+  TEST_TRUE(proxy_0 == proxy_0)
+  TEST_TRUE(proxy_1 == proxy_1)
+  TEST_TRUE(proxy_1 == proxy_5)
   TEST_EQUAL(proxy_0 == proxy_1, false)
   TEST_EQUAL(proxy_1 == proxy_2, false)
 END_SECTION

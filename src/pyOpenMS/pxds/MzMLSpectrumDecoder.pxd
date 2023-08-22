@@ -13,9 +13,9 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>" namespace "Ope
                 #  <spectrum> to </spectrum> tag). It returns the data contained in the
                 #  binaryDataArray for Intensity / mass-to-charge or Intensity / time
                 
-        MzMLSpectrumDecoder() nogil except + # compiler
-        MzMLSpectrumDecoder(MzMLSpectrumDecoder &) nogil except + # compiler
-        void domParseChromatogram(String in_, shared_ptr[Chromatogram] & cptr) nogil except +
+        MzMLSpectrumDecoder() except + nogil  # compiler
+        MzMLSpectrumDecoder(MzMLSpectrumDecoder &) except + nogil  # compiler
+        void domParseChromatogram(String in_, shared_ptr[Chromatogram] & cptr) except + nogil 
             # wrap-doc:
                 #  Extract data from a string which contains a full mzML chromatogram
                 #  
@@ -28,7 +28,7 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>" namespace "Ope
                 #  :param in: Input string containing the raw XML
                 #  :param cptr: Resulting chromatogram
 
-        void domParseSpectrum(String in_, shared_ptr[Spectrum] & cptr) nogil except +
+        void domParseSpectrum(String in_, shared_ptr[Spectrum] & cptr) except + nogil 
             # wrap-doc:
                 #  Extract data from a string which contains a full mzML spectrum
                 #  
@@ -40,5 +40,5 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>" namespace "Ope
                 #  :param in: Input string containing the raw XML
                 #  :param cptr: Resulting spectrum
 
-        void setSkipXMLChecks(bool only) nogil except + # wrap-doc:Whether to skip some XML checks (e.g. removing whitespace inside base64 arrays) and be fast instead
+        void setSkipXMLChecks(bool only) except + nogil  # wrap-doc:Whether to skip some XML checks (e.g. removing whitespace inside base64 arrays) and be fast instead
 

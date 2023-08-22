@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -121,7 +121,7 @@ START_SECTION((bool operator == (const CVMappings& rhs) const))
   cvm.setMappingRules(rules);
 	TEST_EQUAL(cvm == cvm_copy, false)
   cvm_copy = cvm;
-	TEST_EQUAL(cvm == cvm_copy, true)
+	TEST_TRUE(cvm == cvm_copy)
 
   CVReference ref1, ref2;
   ref1.setIdentifier("Ref1");
@@ -132,7 +132,7 @@ START_SECTION((bool operator == (const CVMappings& rhs) const))
   cvm.setCVReferences(refs);
 	TEST_EQUAL(cvm == cvm_copy, false)
   cvm_copy = cvm;
-	TEST_EQUAL(cvm == cvm_copy, true)
+	TEST_TRUE(cvm == cvm_copy)
 }
 END_SECTION
 
@@ -144,7 +144,7 @@ START_SECTION((bool operator != (const CVMappings& rhs) const))
   rules.push_back(r1);
   rules.push_back(r2);
   cvm.setMappingRules(rules);
-  TEST_EQUAL(cvm != cvm_copy, true)
+  TEST_FALSE(cvm == cvm_copy)
   cvm_copy = cvm;
   TEST_EQUAL(cvm != cvm_copy, false)
 
@@ -155,7 +155,7 @@ START_SECTION((bool operator != (const CVMappings& rhs) const))
   refs.push_back(ref1);
   refs.push_back(ref2);
   cvm.setCVReferences(refs);
-  TEST_EQUAL(cvm != cvm_copy, true)
+  TEST_FALSE(cvm == cvm_copy)
   cvm_copy = cvm;
   TEST_EQUAL(cvm != cvm_copy, false)
 }

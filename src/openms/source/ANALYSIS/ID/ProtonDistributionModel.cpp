@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -484,22 +484,8 @@ namespace OpenMS
       }
 
       // search for entries > 1
-      bool has_greater_one(false);
-      for (const double& it : p_bb)
-      {
-        if (it > 1.0)
-        {
-          has_greater_one = true;
-        }
-      }
-
-      for (const double& it : p_sc)
-      {
-        if (it > 1.0)
-        {
-          has_greater_one = true;
-        }
-      }
+      bool has_greater_one = std::any_of(p_bb.begin(), p_bb.end(), [](const double v) { return v > 1.0; });
+      has_greater_one |= std::any_of(p_sc.begin(), p_sc.end(), [](const double v) { return v > 1.0; });
 
       if (!has_greater_one)
       {
@@ -769,17 +755,17 @@ namespace OpenMS
               if (peptide[i].getSideChainBasicity() != 0)
               {
                 double gb_i_sc = peptide[i].getSideChainBasicity();
-                double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
-                sc_charge_[i] += prob;
+                double probi = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
+                sc_charge_[i] += probi;
 
-                double add_E = exp(gb_i_sc * 1000 / Constants::R / T);
+                double add_Ei = exp(gb_i_sc * 1000 / Constants::R / T);
                 if (i < fixed_site - 1)
                 {
-                  sum_E_n_term += add_E;
+                  sum_E_n_term += add_Ei;
                 }
                 else
                 {
-                  sum_E_c_term += add_E;
+                  sum_E_c_term += add_Ei;
                 }
               }
             }
@@ -812,17 +798,17 @@ namespace OpenMS
         {
           // fixed site at side chain
           Int r_ij = abs((Int)i - (Int)fixed_site);
-          double prob = exp(-(-gb_i - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
-          bb_charge_[i] += prob;
+          double probi = exp(-(-gb_i - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
+          bb_charge_[i] += probi;
 
-          double add_E = exp(gb_i * 1000 / Constants::R / T);
+          double add_Ei = exp(gb_i * 1000 / Constants::R / T);
           if (i <= fixed_site)
           {
-            sum_E_n_term += add_E;
+            sum_E_n_term += add_Ei;
           }
           else
           {
-            sum_E_c_term += add_E;
+            sum_E_c_term += add_Ei;
           }
 
           if (i != fixed_site && i != peptide.size())
@@ -1100,9 +1086,9 @@ namespace OpenMS
               {
                 //gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
                 gb_i_sc = peptide[i].getSideChainBasicity();
-                double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
-                sc_charge_[i] += prob;
-                bb_charge_[j] += prob;
+                double probi = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
+                sc_charge_[i] += probi;
+                bb_charge_[j] += probi;
               }
             }
 
@@ -1112,16 +1098,16 @@ namespace OpenMS
               {
                 //gb_j_sc = gb_sc_[peptide[j].getOneLetterCode()];
                 double gb_j_sc = peptide[j].getSideChainBasicity();
-                double prob = exp(-(-gb_i - gb_j_sc + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
-                bb_charge_[i] += prob;
-                sc_charge_[j] += prob;
+                double probi = exp(-(-gb_i - gb_j_sc + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
+                bb_charge_[i] += probi;
+                sc_charge_[j] += probi;
 
                 // both protons at sidechains
                 if (gb_i_sc != 0)
                 {
-                  double prob = exp(-(-gb_i_sc - gb_j_sc + COULOMB_REPULSION / (r_ij + 2)) * 1000 / (Constants::R * T) -500) / q;
-                  sc_charge_[i] += prob;
-                  sc_charge_[j] += prob;
+                  double prob_s = exp(-(-gb_i_sc - gb_j_sc + COULOMB_REPULSION / (r_ij + 2)) * 1000 / (Constants::R * T) -500) / q;
+                  sc_charge_[i] += prob_s;
+                  sc_charge_[j] += prob_s;
                 }
               }
             }

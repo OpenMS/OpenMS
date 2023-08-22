@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -221,7 +221,7 @@ namespace OpenMS
         //   return our_form - five_prime_to_full + OH_form + (H_form * charge) + local_three_prime;
 
       case AminusB:
-        return our_form + (H_form * charge) + local_five_prime + aminusB_ion_to_full - seq_.back()->getFormula() + seq_.back()->getBaselossFormula() - ((seq_.back()->getCode().back() == '*') ? EmpiricalFormula("SO-1") : EmpiricalFormula("") );
+        return our_form + (H_form * charge) + local_five_prime + aminusB_ion_to_full - seq_.back()->getFormula() + seq_.back()->getBaselossFormula();
 
       case AIon:
         return our_form + (H_form * charge) + local_five_prime + a_ion_to_full;

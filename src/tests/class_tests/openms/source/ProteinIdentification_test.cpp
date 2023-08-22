@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -158,7 +158,7 @@ END_SECTION
 START_SECTION((bool operator==(const ProteinIdentification& rhs) const))
 	ProteinIdentification search1;
 	ProteinIdentification search2;
-	TEST_EQUAL(search1 == search2, true)
+	TEST_TRUE(search1 == search2)
 
 	search1.setDateTime(DateTime::now());
 	TEST_EQUAL(search1 == search2, false)
@@ -211,7 +211,7 @@ START_SECTION((bool operator!=(const ProteinIdentification& rhs) const))
 	TEST_EQUAL(search1 != search2, false)
 
 	search1.setDateTime(DateTime::now());
-	TEST_EQUAL(search1 != search2, true)
+	TEST_FALSE(search1 == search2)
 
 	//rest does not need to be tested, as it is tested in the operator== test implicitly!
 END_SECTION
@@ -222,7 +222,7 @@ START_SECTION((const DateTime& getDateTime() const))
 	DateTime date = DateTime::now();
 	hits.setDateTime(date);
 	const DateTime& date_time = hits.getDateTime();
-	TEST_EQUAL(date_time == date, true)
+	TEST_TRUE(date_time == date)
 END_SECTION
 
 
@@ -591,7 +591,7 @@ START_SECTION(([ProteinIdentification::ProteinGroup] bool operator==(const Prote
   TEST_NOT_EQUAL(p == p_c, true)
 
   p_c = p;
-  TEST_EQUAL(p == p_c, true)
+  TEST_TRUE(p == p_c)
 END_SECTION
 
 
@@ -659,7 +659,7 @@ END_SECTION
 START_SECTION(([ProteinIdentification::SearchParameters] bool operator!=(const SearchParameters& rhs) const))
   ProteinIdentification::SearchParameters sp, sp_n;
   sp_n.charges = "1,2,3";
-  TEST_EQUAL(sp != sp_n, true)
+  TEST_FALSE(sp == sp_n)
 END_SECTION
 
 

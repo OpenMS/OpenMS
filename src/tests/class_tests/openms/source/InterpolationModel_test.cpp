@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -169,7 +169,7 @@ START_SECTION((InterpolationModel(const InterpolationModel &source)))
   fp3.setCutOff(0.1);
 
   fp1 = TestModel();
-	TEST_EQUAL(fp2==fp3, true)
+	TEST_TRUE(fp2 == fp3)
 END_SECTION
 
 START_SECTION(([EXTRA]IntensityType getCutOff() const))

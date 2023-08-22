@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -447,9 +447,9 @@ protected:
     /// Log output window
     LogWindow* log_;
 
-    /// Determines TVToolDiscovery scans for tool/utils and generates new params.
+    /// Determines TVToolDiscovery scans for tools and generates new params.
     TOOL_SCAN scan_mode_;    
-    /// Scans for tools/utils and generates a param for each.
+    /// Scans for tools and generates a param for each.
     TVToolDiscovery tool_scanner_;
 
     /// Verbosity of TV 

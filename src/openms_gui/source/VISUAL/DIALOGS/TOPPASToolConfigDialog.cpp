@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -77,10 +77,10 @@ namespace OpenMS
     main_grid->addWidget(editor_, 1, 0, 1, 1);
 
     QHBoxLayout* hbox = new QHBoxLayout;
-    QPushButton* load_button = new QPushButton(tr("&Load from file"));
+    QPushButton* load_button = new QPushButton(tr("&Load config from .INI file"));
     connect(load_button, SIGNAL(clicked()), this, SLOT(loadINI_()));
     hbox->addWidget(load_button);
-    QPushButton* store_button = new QPushButton(tr("&Store to file"));
+    QPushButton* store_button = new QPushButton(tr("&Store config to .INI file"));
     connect(store_button, SIGNAL(clicked()), this, SLOT(storeINI_()));
     hbox->addWidget(store_button);
     hbox->addStretch();

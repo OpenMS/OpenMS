@@ -8,51 +8,51 @@ from TargetedExperimentHelper cimport *
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h>" namespace "OpenMS":
     
     cdef cppclass IncludeExcludeTarget :
-        IncludeExcludeTarget() nogil except + # wrap-doc:This class stores a SRM/MRM transition
-        IncludeExcludeTarget(IncludeExcludeTarget &) nogil except + # TODO
-        void setName(const String & name) nogil except + # TODO
-        String  getName() nogil except + # TODO
-        void setPeptideRef(const String & peptide_ref) nogil except + # TODO
-        String  getPeptideRef() nogil except + # TODO
-        void setCompoundRef(const String & compound_ref) nogil except + # TODO
-        String  getCompoundRef() nogil except + # TODO
-        void setPrecursorMZ(double mz) nogil except + # TODO
-        double getPrecursorMZ() nogil except + # TODO
-        void setPrecursorCVTermList(CVTermList & list_) nogil except + # TODO
-        void addPrecursorCVTerm(CVTerm & cv_term) nogil except + # TODO
-        CVTermList  getPrecursorCVTermList() nogil except + # TODO
-        void setProductMZ(double mz) nogil except + # TODO
-        double getProductMZ() nogil except + # TODO
-        void setProductCVTermList(CVTermList & list_) nogil except + # TODO
-        void addProductCVTerm(CVTerm & cv_term) nogil except + # TODO
-        CVTermList  getProductCVTermList() nogil except + # TODO
-        void setInterpretations(libcpp_vector[ CVTermList ] & interpretations) nogil except + # TODO
-        libcpp_vector[ CVTermList ]  getInterpretations() nogil except + # TODO
-        void addInterpretation(CVTermList & interpretation) nogil except + # TODO
-        void setConfigurations(libcpp_vector[ Configuration ] & configuration) nogil except + # TODO
-        libcpp_vector[ Configuration ]  getConfigurations() nogil except + # TODO
-        void addConfiguration(Configuration & configuration) nogil except + # TODO
-        void setPrediction(CVTermList & prediction) nogil except + # TODO
-        void addPredictionTerm(CVTerm & prediction) nogil except + # TODO
-        CVTermList  getPrediction() nogil except + # TODO
-        void setRetentionTime(RetentionTime rt) nogil except + # TODO
-        RetentionTime  getRetentionTime() nogil except + # TODO
-        bool operator==(IncludeExcludeTarget & rhs) nogil except + # TODO
-        bool operator!=(IncludeExcludeTarget & rhs) nogil except + # TODO
+        IncludeExcludeTarget() except + nogil  # wrap-doc:This class stores a SRM/MRM transition
+        IncludeExcludeTarget(IncludeExcludeTarget &) except + nogil  # TODO
+        void setName(const String & name) except + nogil  # TODO
+        String  getName() except + nogil  # TODO
+        void setPeptideRef(const String & peptide_ref) except + nogil  # TODO
+        String  getPeptideRef() except + nogil  # TODO
+        void setCompoundRef(const String & compound_ref) except + nogil  # TODO
+        String  getCompoundRef() except + nogil  # TODO
+        void setPrecursorMZ(double mz) except + nogil  # TODO
+        double getPrecursorMZ() except + nogil  # TODO
+        void setPrecursorCVTermList(CVTermList & list_) except + nogil  # TODO
+        void addPrecursorCVTerm(CVTerm & cv_term) except + nogil  # TODO
+        CVTermList  getPrecursorCVTermList() except + nogil  # TODO
+        void setProductMZ(double mz) except + nogil  # TODO
+        double getProductMZ() except + nogil  # TODO
+        void setProductCVTermList(CVTermList & list_) except + nogil  # TODO
+        void addProductCVTerm(CVTerm & cv_term) except + nogil  # TODO
+        CVTermList  getProductCVTermList() except + nogil  # TODO
+        void setInterpretations(libcpp_vector[ CVTermList ] & interpretations) except + nogil  # TODO
+        libcpp_vector[ CVTermList ]  getInterpretations() except + nogil  # TODO
+        void addInterpretation(CVTermList & interpretation) except + nogil  # TODO
+        void setConfigurations(libcpp_vector[ Configuration ] & configuration) except + nogil  # TODO
+        libcpp_vector[ Configuration ]  getConfigurations() except + nogil  # TODO
+        void addConfiguration(Configuration & configuration) except + nogil  # TODO
+        void setPrediction(CVTermList & prediction) except + nogil  # TODO
+        void addPredictionTerm(CVTerm & prediction) except + nogil  # TODO
+        CVTermList  getPrediction() except + nogil  # TODO
+        void setRetentionTime(RetentionTime rt) except + nogil  # TODO
+        RetentionTime  getRetentionTime() except + nogil  # TODO
+        bool operator==(IncludeExcludeTarget & rhs) except + nogil  # TODO
+        bool operator!=(IncludeExcludeTarget & rhs) except + nogil  # TODO
 
         # from CVTermsList
-        void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except + # TODO
-        void replaceCVTerm(CVTerm & term)               nogil except + # TODO
+        void setCVTerms(libcpp_vector[CVTerm] & terms)  except + nogil  # TODO
+        void replaceCVTerm(CVTerm & term)               except + nogil  # TODO
 
         void replaceCVTerms(libcpp_vector[CVTerm] cv_terms,
                             String accession
-                           ) nogil except + # TODO
+                           ) except + nogil  # TODO
 
         void replaceCVTerms(libcpp_map[String, libcpp_vector[CVTerm] ] cv_term_map
-                           ) nogil except + # TODO
+                           ) except + nogil  # TODO
 
-        libcpp_map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except + # TODO
-        void addCVTerm(CVTerm & term)                   nogil except + # TODO
+        libcpp_map[String, libcpp_vector[CVTerm] ] getCVTerms() except + nogil  # TODO
+        void addCVTerm(CVTerm & term)                   except + nogil  # TODO
 
-        bool hasCVTerm(String accession)  nogil except + # TODO
-        bool empty()                      nogil except + # TODO
+        bool hasCVTerm(String accession)  except + nogil  # TODO
+        bool empty()                      except + nogil  # TODO

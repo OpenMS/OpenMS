@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,7 +74,7 @@ START_SECTION((template<typename T_In, T_Out> static T_Out findCommonMetaKeys(co
     
     // exceeds 100% --> should be corrected to 100% internally
     std::vector<String> common2 = MetaInfoInterfaceUtils::findCommonMetaKeys<std::vector<PeptideHit>, std::vector<String> >(hits.begin(), hits.end(), 1110.0);
-    TEST_EQUAL(common==common2, true);
+    TEST_TRUE(common == common2);
   }
   
   // occurrence of at least 50 (i.e. 50% min_frequency)
@@ -86,7 +86,7 @@ START_SECTION((template<typename T_In, T_Out> static T_Out findCommonMetaKeys(co
     set50_expected.insert("commonMeta1");
     set50_expected.insert("commonMeta2");
     set50_expected.insert("meta50pc");
-    TEST_EQUAL(set50==set50_expected, true);
+    TEST_TRUE(set50 == set50_expected);
   }
 
   // ALL keys (i.e. 0% min_frequency)
@@ -99,11 +99,11 @@ START_SECTION((template<typename T_In, T_Out> static T_Out findCommonMetaKeys(co
     set0_expected.insert("commonMeta2");
     set0_expected.insert("meta50pc");
     set0_expected.insert("metaSingle");
-    TEST_EQUAL(set0==set0_expected, true);
+    TEST_TRUE(set0 == set0_expected);
 
     // exceeds 0% --> should be corrected to 0% internally
     std::set<String> set0_2 = MetaInfoInterfaceUtils::findCommonMetaKeys<std::vector<PeptideHit>, std::set<String> >(hits.begin(), hits.end(), -10.0);
-    TEST_EQUAL(set0==set0_2, true);
+    TEST_TRUE(set0 == set0_2);
   }
   
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -273,22 +273,22 @@ END_SECTION
 
 START_SECTION((bool operator==(const DPosition &point) const))
 	DPosition<3> p1,p2;
-	TEST_EQUAL(p1==p2, true)
+	TEST_TRUE(p1 == p2)
 
 	p1[0]=1.234;
 	TEST_EQUAL(p1==p2, false)
 	p2[0]=1.234;
-	TEST_EQUAL(p1==p2, true)
+	TEST_TRUE(p1 == p2)
 
 	p1[1]=1.345;
 	TEST_EQUAL(p1==p2, false)
 	p2[1]=1.345;
-	TEST_EQUAL(p1==p2, true)
+	TEST_TRUE(p1 == p2)
 
 	p1[2]=1.456;
 	TEST_EQUAL(p1==p2, false)
 	p2[2]=1.456;
-	TEST_EQUAL(p1==p2, true)
+	TEST_TRUE(p1 == p2)
 END_SECTION
 
 START_SECTION((bool operator!=(const DPosition &point) const))
@@ -296,17 +296,17 @@ START_SECTION((bool operator!=(const DPosition &point) const))
 	TEST_EQUAL(p1!=p2, false)
 
 	p1[0]=1.234;
-	TEST_EQUAL(p1!=p2, true)
+	TEST_FALSE(p1 == p2)
 	p2[0]=1.234;
 	TEST_EQUAL(p1!=p2, false)
 
 	p1[1]=1.345;
-	TEST_EQUAL(p1!=p2, true)
+	TEST_FALSE(p1 == p2)
 	p2[1]=1.345;
 	TEST_EQUAL(p1!=p2, false)
 
 	p1[2]=1.456;
-	TEST_EQUAL(p1!=p2, true)
+	TEST_FALSE(p1 == p2)
 	p2[2]=1.456;
 	TEST_EQUAL(p1!=p2, false)
 END_SECTION
@@ -370,9 +370,9 @@ START_SECTION((DPosition operator-() const))
   DPosition<3> p1, p2;
   p1[0] = 5.0;
 	p2 = -p1;
-  TEST_EQUAL(p1!=p2, true);
+  TEST_FALSE(p1 == p2);
 	p2 = -p2;
-	TEST_EQUAL(p1==p2, true);
+	TEST_TRUE(p1 == p2);
 END_SECTION
 
 START_SECTION((DPosition operator-(const DPosition &point) const))
@@ -567,9 +567,9 @@ START_SECTION(([EXTRA] Test char DPosition))
   DPosition<3,char> pb2;
   pa1[0] = 'a';
   pb2 = -pa1;
-  TEST_EQUAL(pa1!=pb2, true)
+  TEST_FALSE(pa1 == pb2)
   pb2 = -pb2;
-  TEST_EQUAL(pa1==pb2, true)
+  TEST_TRUE(pa1 == pb2)
 
   DPosition<1,char> pa('a');
   DPosition<1,char> pb('b');

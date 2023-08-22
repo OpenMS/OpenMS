@@ -4,7 +4,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -293,7 +293,7 @@ def handleFramework(frameworkPath, targetPath, rpaths)
         debug "Already fixed #{libname}"
       end
   else
-    debug "RPath but no lib found. Assuming fixed already: #{libname}"
+    debug "RPath but no lib found. Assuming fixed already: #{frameworkPath}"
     if !$EXTRACTFW
       # But at least adjust the libname which is used in handleDependencies to fix loading.
       # get framework path (name of dir containing .framework)
@@ -332,38 +332,50 @@ def handleDyLib(dylibPath, targetPath, rpaths)
     end
   end
 
-  # copy if necessary
-  newDyLibPath,libname=copyLib(dylibPath, targetPath)
+  if not dylibPath.to_s.start_with?("@rpath")
+   # copy if necessary
+   newDyLibPath,libname=copyLib(dylibPath, targetPath)
 
-  if not $handledLibraries.include?(libname)
-    # run otool
-    otoolD_out=`otool -D #{dylibPath}`.strip.split(/\n/)
-    has_install_name = otoolD_out.length() > 1
-    otool_out=`otool -L #{dylibPath}`.strip.split(/\n/)
+   if not $handledLibraries.include?(libname)
+     # run otool
+     otoolD_out=`otool -D #{dylibPath}`.strip.split(/\n/)
+     has_install_name = otoolD_out.length() > 1
+     otool_out=`otool -L #{dylibPath}`.strip.split(/\n/)
 
-    # update install_name (-id) of current DyLib
-    if has_install_name
-      # strips first two lines
-      id, otool_out = extractInstallName(otool_out)
-      fixId(newDyLibPath, libname)
-      debug "Fix install_name of DYLIB #{dylibPath} --> #{id}"
-    else
-      otool_out.delete_at(0).strip
-    end
+     # update install_name (-id) of current DyLib
+     if has_install_name
+       # strips first two lines
+       id, otool_out = extractInstallName(otool_out)
+       fixId(newDyLibPath, libname)
+       debug "Fix install_name of DYLIB #{dylibPath} --> #{id}"
+     else
+       otool_out.delete_at(0).strip
+     end
 
-    # check the actual dependencies (lines 3++)
-    handleDependencies(otool_out, targetPath, newDyLibPath, rpaths)
+     # check the actual dependencies (lines 3++)
+     handleDependencies(otool_out, targetPath, newDyLibPath, rpaths)
 
-    # mark as processed
-    $handledLibraries.add(libname)
+     # mark as processed
+     $handledLibraries.add(libname)
+   else
+     debug "Already fixed #{libname}. Only change load path."
+   end
+
+   # readjust
+   $currentIndent-=1
+
+   return newDyLibPath,libname
+
   else
-    debug "Already fixed #{libname}. Only change load path."
+
+   debug "RPath but no lib found. Assuming fixed already: #{dylibPath}"
+   libname=File.basename(dylibPath)
+   $currentIndent-=1
+
+   newDyLibPath="#{targetPath}/#{libname}"
+   return newDyLibPath,libname
+
   end
-
-  # readjust
-  $currentIndent-=1
-
-  return newDyLibPath,libname
 end
 
 ###############################################################################

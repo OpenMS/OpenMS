@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -97,7 +97,7 @@ START_SECTION((std::vector<std::pair<std::string::size_type, std::string> > find
   String sequence = "TRESTPEPTIKDE";
   MRMDecoy::IndexType tryptic_results = gen.findFixedResidues_helper(sequence);
   MRMDecoy::IndexType tryptic_expect = {1, 5, 7, 10};
-  TEST_EQUAL(tryptic_results == tryptic_expect, true)
+  TEST_TRUE(tryptic_results == tryptic_expect)
 }
 
 END_SECTION
@@ -109,7 +109,7 @@ START_SECTION((std::vector<std::pair<std::string::size_type, std::string> > find
   String sequence = "TRESTPEPTIKDE";
   MRMDecoy::IndexType tryptic_results = gen.findFixedAndTermResidues_helper(sequence);
   MRMDecoy::IndexType tryptic_expect = {0, 1, 5, 7, 10, 12};
-  TEST_EQUAL(tryptic_results == tryptic_expect, true)
+  TEST_TRUE(tryptic_results == tryptic_expect)
 }
 
 END_SECTION

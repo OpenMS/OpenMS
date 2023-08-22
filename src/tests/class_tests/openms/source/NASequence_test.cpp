@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -249,10 +249,10 @@ START_SECTION((void setFivePrimeMod(const RibonucleotideChainEnd* r)))
 {
   NASequence aaa = NASequence::fromString("AAA");
   TEST_EQUAL(aaa.hasFivePrimeMod(), false);
-  aaa.setFivePrimeMod(db->getRibonucleotide("(pN)"));  // 5' phosphate
+  aaa.setFivePrimeMod(db->getRibonucleotide("pN"));  // 5' phosphate
   TEST_EQUAL(aaa.hasFivePrimeMod(), true);
-  TEST_EQUAL(aaa.getFivePrimeMod()->getCode(), "(pN)");
-  TEST_STRING_EQUAL(aaa.toString(), "[(pN)]AAA");
+  TEST_EQUAL(aaa.getFivePrimeMod()->getCode(), "pN");
+  TEST_STRING_EQUAL(aaa.toString(), "[pN]AAA");
 }
 END_SECTION
 
@@ -267,10 +267,10 @@ START_SECTION((void setThreePrimeMod(const RibonucleotideChainEnd* r)))
 {
   NASequence aaa = NASequence::fromString("AAA");
   TEST_EQUAL(aaa.hasThreePrimeMod(), false);
-  aaa.setThreePrimeMod(db->getRibonucleotide("(pN)"));
+  aaa.setThreePrimeMod(db->getRibonucleotide("N2'3'cp"));
   TEST_EQUAL(aaa.hasThreePrimeMod(), true);
-  TEST_EQUAL(aaa.getThreePrimeMod()->getCode(), "(pN)");
-  TEST_STRING_EQUAL(aaa.toString(), "AAA[(pN)]");
+  TEST_EQUAL(aaa.getThreePrimeMod()->getCode(), "N2'3'cp");
+  TEST_STRING_EQUAL(aaa.toString(), "AAA[N2'3'cp]");
 }
 END_SECTION
 
@@ -307,6 +307,11 @@ START_SECTION((EmpiricalFormula getFormula(NASequence::NASFragmentType type = NA
   NASequence thiolseq = NASequence::fromString("*[dA*][dA]");
   TEST_EQUAL(thiolseq.getFormula(NASequence::WIon, -1), EmpiricalFormula("C20H25N10O9P2S2"));
   TEST_EQUAL(thiolseq.getFormula(NASequence::YIon, -1), EmpiricalFormula("C20H24N10O7P1S1"));
+  // Test for a-B ions
+  thiolseq = NASequence::fromString("[dA][dA*]");
+  TEST_EQUAL(thiolseq.getFormula(NASequence::AminusB, 0), EmpiricalFormula("C15H18N5O7P1"));
+  thiolseq = NASequence::fromString("[dA][dA*][dA*]");
+  TEST_EQUAL(thiolseq.getFormula(NASequence::AminusB, 0), EmpiricalFormula("C25H30N10O11P2S1"));
 }
 END_SECTION
 

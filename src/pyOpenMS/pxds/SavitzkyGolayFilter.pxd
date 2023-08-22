@@ -12,8 +12,8 @@ cdef extern from "<OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>" namespace 
         #   DefaultParamHandler
         #   ProgressLogger
 
-        SavitzkyGolayFilter() nogil except +
-        SavitzkyGolayFilter(SavitzkyGolayFilter &) nogil except + # compiler
+        SavitzkyGolayFilter() except + nogil 
+        SavitzkyGolayFilter(SavitzkyGolayFilter &) except + nogil  # compiler
 
-        void filter(MSSpectrum & spectrum) nogil except + # wrap-doc:Removed the noise from an MSSpectrum containing profile data
-        void filterExperiment(MSExperiment & exp) nogil except + # wrap-doc:Removed the noise from an MSExperiment containing profile data
+        void filter(MSSpectrum & spectrum) except + nogil  # wrap-doc:Removed the noise from an MSSpectrum containing profile data
+        void filterExperiment(MSExperiment & exp) except + nogil  # wrap-doc:Removed the noise from an MSExperiment containing profile data

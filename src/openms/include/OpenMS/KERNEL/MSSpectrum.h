@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,7 +85,9 @@ public:
       Size start; ///< inclusive
       Size end; ///< not inclusive
       bool is_sorted; ///< are the Peaks in [start, end) sorted yet?
-      Chunk(Size start, Size end, bool sorted) : start(start), end(end), is_sorted(sorted) {}
+      Chunk(Size p_start, Size p_end, bool p_sorted) : start(p_start), end(p_end), is_sorted(p_sorted)
+      {
+      }
     };
 
     struct Chunks {

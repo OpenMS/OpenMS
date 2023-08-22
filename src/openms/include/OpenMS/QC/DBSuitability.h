@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -139,7 +139,7 @@ namespace OpenMS
       /// worse databases will have less IDs than good databases
       /// this punishes worse databases more than good ones and will result in
       /// a worse suitability
-      double corr_factor;
+      double corr_factor = -1;
 
       /// number of top deNovo hits multiplied by the correction factor
       double num_top_novo_corr = 0;

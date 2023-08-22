@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,6 +48,8 @@ namespace OpenMS
       if (lower < tr.getPrecursorMZ() && tr.getPrecursorMZ() < upper &&
           std::fabs(upper - tr.getPrecursorMZ()) >= min_upper_edge_dist)
       {
+
+         OPENMS_LOG_DEBUG << "Adding Precursor with m/z " << tr.getPrecursorMZ() <<  " to swath with mz lower of " << lower << " m/z upper of " << upper;
         transition_exp_used.addTransition(tr);
       }
     }
@@ -59,6 +61,8 @@ namespace OpenMS
   void OpenSwathHelper::selectSwathTransitionsPasef(const OpenSwath::LightTargetedExperiment& transition_exp, std::vector<int>& tr_win_map,
                                                double min_upper_edge_dist, const std::vector< OpenSwath::SwathMap > & swath_maps)
   {
+      OPENMS_PRECONDITION(std::any_of(transition_exp.transitions.begin(), transition_exp.transitions.end(), [](auto i){return i.getPrecursorIM()!=-1;}), "All transitions must have a valid IM value (not -1)");
+
       tr_win_map.resize(transition_exp.transitions.size(), -1);
       for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
       {
@@ -169,7 +173,7 @@ namespace OpenMS
 
   std::pair<double,double> OpenSwathHelper::estimateRTRange(const OpenSwath::LightTargetedExperiment & exp)
   {
-    if (exp.getCompounds().empty()) 
+    if (exp.getCompounds().empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Input list of targets is empty.");
@@ -185,7 +189,7 @@ namespace OpenMS
   }
 
   std::map<std::string, double> OpenSwathHelper::simpleFindBestFeature(
-      const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
+      const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
       bool useQualCutoff, double qualCutoff)
   {
     std::map<std::string, double> result;
@@ -197,7 +201,7 @@ namespace OpenMS
       auto bestf = trgroup_it.second.getBestFeature();
 
       // Skip if we did not find a feature or do not exceed a certain quality
-      if (useQualCutoff && bestf.getOverallQuality() < qualCutoff ) 
+      if (useQualCutoff && bestf.getOverallQuality() < qualCutoff )
       {
         continue;
       }

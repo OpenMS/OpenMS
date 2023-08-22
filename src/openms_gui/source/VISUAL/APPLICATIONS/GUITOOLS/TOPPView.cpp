@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,7 +42,7 @@
   @image html TOPPView.png
 
   More information about TOPPView can be found on the OpenMS ReadTheDocs
-  page: https://openms.readthedocs.io/en/latest/docs/tutorials/TOPP/toppview-introduction.html
+  page: https://openms.readthedocs.io/en/latest/openms-applications-and-tools/visualize-with-openms.html
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_TOPPView.cli
@@ -96,8 +96,8 @@ void print_usage()
        << "Options are:" << "\n"
        << "  --help           Shows this help" << "\n"
        << "  -ini <File>      Sets the INI file (default: ~/.TOPPView.ini)" << "\n"
-       << "  --force          Forces scan for new tools/utils" << "\n"
-       << "  --skip_tool_scan Skips scan for new tools/utils" << "\n"
+       << "  --force          Forces scan for new tools" << "\n"
+       << "  --skip_tool_scan Skips scan for new tools" << "\n"
        << "\n"
        << "Hints:" << "\n"
        << " - To open several files in one window put a '+' in between the files." << "\n"

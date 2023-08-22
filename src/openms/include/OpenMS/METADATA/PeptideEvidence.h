@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,7 +64,7 @@ public:
     PeptideEvidence();
 
     /// Constructor
-    PeptideEvidence(const String& accession, Int start, Int end, char aa_before, char aa_after);
+    explicit PeptideEvidence(const String& accession, Int start=UNKNOWN_POSITION, Int end=UNKNOWN_POSITION, char aa_before=UNKNOWN_AA, char aa_after=UNKNOWN_AA);
 
     /// Copy constructor
     PeptideEvidence(const PeptideEvidence&) = default;

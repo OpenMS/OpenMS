@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,7 +87,8 @@ namespace OpenMS
   /// Helper function to add a meta value to an element in a multi-index container
   template <typename RefType, typename ContainerType>
   void setMetaValue_(const RefType ref, const String& key, const DataValue& value,
-                      ContainerType& container, bool no_checks, const IdentificationData::AddressLookup& lookup = IdentificationData::AddressLookup())
+                     ContainerType& container, bool no_checks,
+                     const IdentificationData::AddressLookup& lookup = IdentificationData::AddressLookup())
   {
     if (!no_checks && ((lookup.empty() && !isValidReference_(ref, container)) ||
                         (!lookup.empty() && !isValidHashedReference_(ref, lookup))))
@@ -147,7 +148,7 @@ namespace OpenMS
     }
 
     ProcessingStepRef step_ref;
-  };  
+  };
 
   template <typename ElementType>
   struct IdentificationData::ModifyMultiIndexAddScore
@@ -168,7 +169,7 @@ namespace OpenMS
         element.addScore(score_type_ref, value,
                           element.steps_and_scores.back().processing_step_opt);
       }
-    }  
+    }
     ScoreTypeRef score_type_ref;
     double value;
   };
@@ -1230,7 +1231,7 @@ namespace OpenMS
     return trans;
   }
 
-
+  // copy constructor
   IdentificationData::IdentificationData(const IdentificationData& other):
     MetaInfoInterface(other)
   {
@@ -1244,6 +1245,56 @@ namespace OpenMS
     no_checks_ = other.no_checks_;
   }
 
+  // copy assignment
+  IdentificationData& IdentificationData::operator=(const IdentificationData& other)
+  {
+    if (this != &other)
+    {
+      IdentificationData tmp(other);
+      tmp.swap(*this);
+    }
+
+    return *this;
+  }
+
+  // move constructor
+  IdentificationData::IdentificationData(IdentificationData&& other) noexcept
+  {
+    *this = std::move(other);
+  }
+
+  // move assignment
+  IdentificationData& IdentificationData::operator=(IdentificationData&& other) noexcept
+  {
+    MetaInfoInterface::operator=(std::move(other));
+    input_files_ = std::move(other.input_files_);
+    processing_softwares_ = std::move(other.processing_softwares_);
+    processing_steps_ = std::move(other.processing_steps_);
+    db_search_params_ = std::move(other.db_search_params_);
+    db_search_steps_ = std::move(other.db_search_steps_);
+    score_types_ = std::move(other.score_types_);
+    observations_ = std::move(other.observations_);
+    parents_ = std::move(other.parents_);
+    parent_groups_ = std::move(other.parent_groups_);
+    identified_peptides_ = std::move(other.identified_peptides_);
+    identified_compounds_ = std::move(other.identified_compounds_);
+    identified_oligos_ = std::move(other.identified_oligos_);
+    adducts_ = std::move(other.adducts_);
+    observation_matches_ = std::move(other.observation_matches_);
+    observation_match_groups_ = std::move(other.observation_match_groups_);
+    current_step_ref_ = std::move(other.current_step_ref_);
+    no_checks_ = std::move(other.no_checks_);
+
+    // look-up tables:
+    observation_lookup_ = std::move(other.observation_lookup_);
+    parent_lookup_ = std::move(other.parent_lookup_);
+    identified_peptide_lookup_ = std::move(other.identified_peptide_lookup_);
+    identified_compound_lookup_ = std::move(other.identified_compound_lookup_);
+    identified_oligo_lookup_ = std::move(other.identified_oligo_lookup_);
+    observation_match_lookup_ = std::move(other.observation_match_lookup_);
+
+    return *this;
+  }
 
   void IdentificationData::swap(IdentificationData& other)
   {
@@ -1302,7 +1353,7 @@ namespace OpenMS
     switch (var.getMoleculeType())
     {
       case MoleculeType::PROTEIN:
-        setMetaValue_(var.getIdentifiedPeptideRef(), key, value, 
+        setMetaValue_(var.getIdentifiedPeptideRef(), key, value,
                       identified_peptides_, no_checks_, identified_peptide_lookup_);
         break;
       case MoleculeType::COMPOUND:
@@ -1314,6 +1365,22 @@ namespace OpenMS
                       identified_oligos_, no_checks_, identified_oligo_lookup_);
     }
   }
+
+
+  void IdentificationData::removeMetaValue(const ObservationMatchRef ref, const String& key)
+  {
+    if (!no_checks_ && ((observation_match_lookup_.empty() && !isValidReference_(ref, observation_matches_)) ||
+                       (!observation_match_lookup_.empty() && !isValidHashedReference_(ref, observation_match_lookup_))))
+    {
+      String msg = "invalid reference to an observation match";
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
+    }
+    observation_matches_.modify(ref, [&key](ObservationMatch& element)
+    {
+      element.removeMetaValue(key);
+    });
+  }
+
 
   IdentificationData::IdentifiedMolecule IdentificationData::RefTranslator::translate(IdentifiedMolecule old) const
   {

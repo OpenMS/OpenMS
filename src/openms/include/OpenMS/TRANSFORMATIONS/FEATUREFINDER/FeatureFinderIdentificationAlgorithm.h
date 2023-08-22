@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -276,9 +276,9 @@ protected:
   void checkNumObservations_(Size n_pos, Size n_neg, const String& note = "") const;
 
   void getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
-                          std::map<Size, Int>& training_labels);
+                          std::map<Size, double>& training_labels);
 
-  void getRandomSample_(std::map<Size, Int>& training_labels) const;
+  void getRandomSample_(std::map<Size, double>& training_labels) const;
 
   void classifyFeatures_(FeatureMap& features);
 

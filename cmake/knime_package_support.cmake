@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -119,7 +119,7 @@ endif()
 # pseudo-ctd target
 add_custom_target(
     create_knime_folders
-    DEPENDS TOPP UTILS
+    DEPENDS TOPP
 )
 
 foreach (PATH IN LISTS TOP_LEVEL_DIRS)
@@ -169,10 +169,10 @@ add_custom_target(
 
 # list of all tools that can generate CTDs and do not include GUI libraries
 # TODO make a new category for Adapters
-set(CTD_executables ${TOPP_TOOLS} ${UTILS_TOOLS})
+set(CTD_executables ${TOPP_TOOLS})
 
 # remove tools that do not produce CTDs or should not be shipped (because of dependencies or specifics that can not be resolved in KNIME)
-list(REMOVE_ITEM CTD_executables OpenMSInfo Resampler ExecutePipeline INIUpdater ImageCreator GenericWrapper InspectAdapter MascotAdapter SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter)
+list(REMOVE_ITEM CTD_executables OpenMSInfo Resampler ExecutePipeline INIUpdater ImageCreator GenericWrapper MascotAdapter OpenSwathMzMLFileCacher)
 
 # TODO do regex with "Adapter". Safe enough?
 set(THIRDPARTY_ADAPTERS
@@ -207,6 +207,18 @@ foreach(TOOL ${CTD_executables})
     )
   endif()
 endforeach()
+
+# Note: We expose FileConverter twice.
+# Once as FileConverter in the OpenMS (core) plugin without raw file support (see first if-case in foreach above)
+# Once in the Thirdparty plugin as RawFileConverter with raw file support (see below).
+# We rename the filename to show a different node name in KNIME but leave the tool name inside the CTD unchanged, so it finds the tool binary.
+# TODO change description and accepting file types?
+add_custom_command(
+  TARGET  create_ctds POST_BUILD
+  COMMAND ${TOPP_BIN_PATH}/FileConverter -write_ctd ${CTD_TP_PATH}
+  COMMAND ${CMAKE_COMMAND} -E rename ${CTD_TP_PATH}/FileConverter.ctd ${CTD_TP_PATH}/RawFileConverter.ctd
+  COMMAND ${CMAKE_COMMAND} -DSCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=RawFileConverter -DCTD_FILE=${CTD_TP_PATH}/RawFileConverter.ctd -P ${SCRIPT_DIRECTORY}change_exec_name_in_ctd.cmake
+)
 
 # remove those parts of the CTDs we cannot or do not want to model in KNIME
 # e.g. paths to executables that we ship and whose directories are in path environment
@@ -333,21 +345,24 @@ foreach (KNIME_TOOLS_DEPENDENCY OpenMS OpenSwathAlgo)
 endforeach()
 
 # assemble the libraries
-if (APPLE) ## On APPLE use our script because the executables' install_names need to be changed
+if (APPLE) ## On APPLE use our script because the executables' install_names need to be changed. Probably can be changed as soon as all
+  ## of our dynamically built dependencies build with rpath enabled on brew. Qt recently did the switch for example. This is because if the default install_name of
+  ## Qt is /usr/local/qt5/QtCore, then this will be hardcoded in our libOpenMS and tools, even if we use @rpath throughout all of our
+  ## cmake build system. See e.g., https://discourse.cmake.org/t/how-to-get-an-lc-rpath-and-rpath-prefix-on-a-dylib-on-macos/5540
   add_custom_command(
     TARGET prepare_knime_payload_libs POST_BUILD
-    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH} -f -e "" -n
-    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_TP_BIN_PATH} -f -e "" -n
+    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH} -f -e "@rpath" -n
+    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${TP_PAYLOAD_BIN_PATH} -f -e "@rpath" -n
   ) # -p ${PAYLOAD_LIB_PATH}/plugins not applicable for now
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD
-          COMMAND find ${PAYLOAD_BIN_PATH} -depth 1 -type f -exec ${CMAKE_STRIP} -S {} "\;"
-          COMMAND find ${TP_PAYLOAD_BIN_PATH} -depth 1 -type f -exec ${CMAKE_STRIP} -S {} "\;"
+          COMMAND find "${PAYLOAD_BIN_PATH}" -maxdepth 1 -type f -exec ${CMAKE_STRIP} -S {} "\;"
+          COMMAND find "${TP_PAYLOAD_BIN_PATH}" -maxdepth 1 -type f -exec ${CMAKE_STRIP} -S {} "\;"
   )
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD
-          COMMAND find ${PAYLOAD_LIB_PATH} -type f -name "*.dylib" -exec ${CMAKE_STRIP} -x {} "\;"
-          COMMAND find ${PAYLOAD_LIB_PATH} -type f -name "Qt*" -exec ${CMAKE_STRIP} -x {} "\;"
+          COMMAND find "${PAYLOAD_LIB_PATH}" -type f -name "*.dylib" -exec ${CMAKE_STRIP} -x {} "\;"
+          COMMAND find "${PAYLOAD_LIB_PATH}" -type f -name "Qt*" -exec ${CMAKE_STRIP} -x {} "\;"
   )
 elseif(WIN32)
   # on Win everything should be linked statically for distribution except Qt
@@ -373,12 +388,12 @@ else()
   endforeach()
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD
-          COMMAND find ${PAYLOAD_BIN_PATH} -depth 1 -type f -exec ${CMAKE_STRIP} -s {} "\;"
-          COMMAND find ${TP_PAYLOAD_BIN_PATH} -depth 1 -type f -exec ${CMAKE_STRIP} -s {} "\;"
+          COMMAND find "${PAYLOAD_BIN_PATH}" -maxdepth 1 -type f -exec ${CMAKE_STRIP} -s {} "\;"
+          COMMAND find "${TP_PAYLOAD_BIN_PATH}" -maxdepth 1 -type f -exec ${CMAKE_STRIP} -s {} "\;"
   )
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD
-          COMMAND find ${PAYLOAD_LIB_PATH} -type f -name "*.so" -exec ${CMAKE_STRIP} -x {} "\;"
+          COMMAND find "${PAYLOAD_LIB_PATH}" -type f -name "*.so" -exec ${CMAKE_STRIP} -x {} "\;"
   )
 endif()
 
@@ -386,32 +401,36 @@ endif()
 add_custom_target(
   prepare_knime_payload_ini
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D TARGET_DIR=${PAYLOAD_PATH} -D TEMPLATE_FOLDER=${SCRIPT_DIRECTORY} -P ${SCRIPT_DIRECTORY}copy_binaries_ini.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D TARGET_DIR=${TP_PAYLOAD_PATH} -D TEMPLATE_FOLDER=${SCRIPT_DIRECTORY} -P ${SCRIPT_DIRECTORY}copy_binaries_ini.cmake
   DEPENDS prepare_knime_payload_binaries
 )
 
-set(FOLDER_STRUCTURE_MESSAGE "You can clone all Thirdparty binaries from our OpenMS/THIRDPARTY Git submodule/repository but you have to flatten the folder structure such that it is only one level deep with the versions specific for your platform. Do not change the folder names.")
+set(FOLDER_STRUCTURE_MESSAGE "You can clone all third-party binaries from our OpenMS/THIRDPARTY Git submodule/repository but you have to flatten the folder structure such that it is only one level deep with the versions specific for your platform. Do not change the folder names.")
 
 # check if we have valid search engines
-## TODO check if we still need this. Maintenance. Maybe check for non-empty and otherwise just copy everything.
-## Would also allow custom packages.
 if(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY})
-  message(FATAL_ERROR "Please specify the path to the search engines to build the KNIME packages. ${FOLDER_STRUCTURE_MESSAGE} Then call cmake again with cmake -D SEARCH_ENGINES_DIRECTORY=<Path-To-Checkedout-SE>.")
-elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/XTandem OR NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/MSGFPlus)
-  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout. ${FOLDER_STRUCTURE_MESSAGE}")
-elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/Fido)
-  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (Fido is missing). ${FOLDER_STRUCTURE_MESSAGE}")
-elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/LuciPHOr2)
-  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (LuciPHOr2 is missing). ${FOLDER_STRUCTURE_MESSAGE}")
-elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/Percolator)
-  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (Percolator is missing). ${FOLDER_STRUCTURE_MESSAGE}")
+
+  message(WARNING "SEARCH_ENGINES_DIRECTORY not specified or found. Will proceed without shipping third-party executables.
+If this is unintended, please specify the path to the search engines to build the KNIME packages and make sure it exists.
+${FOLDER_STRUCTURE_MESSAGE}
+Then call cmake again with cmake -D SEARCH_ENGINES_DIRECTORY=<Path-To-Checkedout-SE>.")
+
+  # add dummy target
+  add_custom_target(
+          prepare_knime_payload_searchengines
+  )
+
+elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/Comet OR NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/Percolator)
+  message(FATAL_ERROR "The given SEARCH_ENGINES_DIRECTORY folder seems to have an invalid layout. ${FOLDER_STRUCTURE_MESSAGE}")
+else()
+  add_custom_target(
+          prepare_knime_payload_searchengines
+          COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SE_PATH=${SEARCH_ENGINES_DIRECTORY} -D TARGET_DIRECTORY=${TP_PAYLOAD_BIN_PATH} -P ${SCRIPT_DIRECTORY}copy_searchengines.cmake
+          # We need the folder layout from the bin target
+          DEPENDS prepare_knime_payload_binaries
+  )
 endif()
 
-add_custom_target(
-  prepare_knime_payload_searchengines
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SE_PATH=${SEARCH_ENGINES_DIRECTORY} -D TARGET_DIRECTORY=${TP_PAYLOAD_BIN_PATH} -P ${SCRIPT_DIRECTORY}copy_searchengines.cmake
-  # We need the folder layout from the bin target
-  DEPENDS prepare_knime_payload_binaries
-)
 
 # the complete payload target
 add_custom_target(

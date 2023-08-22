@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,8 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
@@ -56,12 +56,9 @@ namespace OpenMS
 
   @ingroup FeatureFinder
   */
-  class OPENMS_DLLAPI Fitter1D :
-    public DefaultParamHandler,
-    public FeatureFinderDefs
+  class OPENMS_DLLAPI Fitter1D : public DefaultParamHandler, public FeatureFinderDefs
   {
-public:
-
+  public:
     /// IndexSet
     typedef IsotopeCluster::IndexSet IndexSet;
     /// IndexSet with charge information
@@ -87,7 +84,7 @@ public:
     ~Fitter1D() override;
 
     /// assignment operator
-    virtual Fitter1D& operator=(const Fitter1D& source);
+    Fitter1D& operator=(const Fitter1D& source);
 
     /// return interpolation model
     virtual QualityType fit1d(const RawDataArrayType& /* range */, std::unique_ptr<InterpolationModel>& /* model */);
@@ -95,18 +92,15 @@ public:
     /// register all derived classes here
     static void registerChildren();
 
-protected:
-
+  protected:
     /// standard derivation in bounding box
-    CoordinateType tolerance_stdev_box_;    
+    CoordinateType tolerance_stdev_box_;
     /// basic statistics
     Math::BasicStatistics<> statistics_;
     /// interpolation step size
     CoordinateType interpolation_step_;
 
     void updateMembers_() override;
-
   };
 
-}
-
+} // namespace OpenMS

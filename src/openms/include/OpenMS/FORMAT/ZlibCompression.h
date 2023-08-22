@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,7 +40,8 @@
 
 #include <string>
 #include <vector>
-#include <QByteArray>
+
+class QByteArray;
 
 namespace OpenMS
 {
@@ -65,6 +66,17 @@ public:
       * 
     */
     static void compressString(std::string& raw_data, std::string& compressed_data);
+
+    /**
+     * @brief Compresses data using zlib directly
+     *
+     * @param raw_data Data to be compressed
+     * @param in_length Length of @p raw_data in bytes
+     * @param compressed_data Compressed result data
+     *
+     */
+    static void compressData(const void* raw_data, const size_t in_length, std::string& compressed_data);
+
 
     /**
       * @brief Compresses data using Qt

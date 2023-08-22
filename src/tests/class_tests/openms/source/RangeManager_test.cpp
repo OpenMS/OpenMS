@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -413,7 +413,7 @@ END_SECTION
 
 START_SECTION((bool operator==(const RangeManager& rhs) const))
   RM rm0 , rm;
-  TEST_EQUAL(rm==rm0, true);
+  TEST_TRUE(rm == rm0);
   rm0.updateRanges();
   TEST_EQUAL(rm==rm0, false);
 END_SECTION
@@ -422,7 +422,7 @@ START_SECTION((bool operator!=(const RangeManager& rhs) const))
   RM rm0 , rm;
   TEST_EQUAL(rm!=rm0, false);
   rm0.updateRanges();
-  TEST_EQUAL(rm!=rm0, true);
+  TEST_FALSE(rm == rm0);
 END_SECTION
 
 START_SECTION((virtual void updateRanges()=0))

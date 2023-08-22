@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,9 +56,9 @@ using namespace std;
   <center>
   <table>
   <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <th ALIGN = "center"> pot. predecessor tools </td>
   <td VALIGN="middle" ROWSPAN=4> &rarr; NoiseFilterSGolay &rarr;</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  <th ALIGN = "center"> pot. successor tools </td>
   </tr>
   <tr>
   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>

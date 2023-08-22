@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,13 +46,13 @@
   <b>File Converter</b>
   - @subpage TOPP_FileConverter - Converts between different MS file formats.
   - @subpage TOPP_IDFileConverter - Converts between different identification file formats.  
-  - @subpage UTILS_TargetedFileConverter - Converts targeted files (such as tsv or TraML files).
-  - @subpage UTILS_MSstatsConverter - Convert to MSstats input file format.
-  - @subpage UTILS_TriqlerConverter - Convert to Triqler input file format.
+  - @subpage TOPP_TargetedFileConverter - Converts targeted files (such as tsv or TraML files).
+  - @subpage TOPP_MSstatsConverter - Convert to MSstats input file format.
+  - @subpage TOPP_TriqlerConverter - Convert to Triqler input file format.
   
   <b>File Handling</b>  
   - @subpage TOPP_FileFilter - Extracts or manipulates portions of data from peak, feature or consensus feature files.
-  - @subpage UTILS_DatabaseFilter - Filter protein databases.
+  - @subpage TOPP_DatabaseFilter - Filter protein databases.
   - @subpage TOPP_FileInfo - Shows basic information about the file, such as data ranges and file type.  
   - @subpage TOPP_FileMerger - Merges several MS files into one file.
   - @subpage TOPP_IDMerger -  Merges several protein/peptide identification files into one file.  
@@ -125,19 +125,17 @@
   - @subpage TOPP_ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps.
   - @subpage TOPP_ProteinResolver - A peptide-centric algorithm for protein inference.
   - @subpage TOPP_SeedListGenerator - Generates seed lists for feature detection.
-  - @subpage UTILS_MetaProSIP - Detect labeled peptides from protein-SIP experiments.
-  - @subpage UTILS_ProteomicsLFQ - Perform label-free quantification in a single tool.
+  - @subpage TOPP_MetaProSIP - Detect labeled peptides from protein-SIP experiments.
+  - @subpage TOPP_ProteomicsLFQ - Perform label-free quantification in a single tool.
 
   <b>Protein/Peptide Identification</b>
   - @subpage TOPP_CometAdapter - Identifies MS/MS spectra using Comet (external).
-  - @subpage TOPP_CompNovo - Performs a peptide/protein identification with the CompNovo engine.
-  - @subpage TOPP_CompNovoCID - Performs a peptide/protein identification with the CompNovo engine in CID mode.
   - @subpage TOPP_MascotAdapter - Identifies MS/MS spectra using Mascot (external).
   - @subpage TOPP_MascotAdapterOnline - Identifies MS/MS spectra using Mascot (external).
   - @subpage TOPP_MSGFPlusAdapter - Identifies MS/MS spectra using MSGFPlus (external).
   - @subpage TOPP_PepNovoAdapter - Identifies MS/MS spectra using PepNovo (external).
   - @subpage TOPP_SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
-  - @subpage UTILS_SimpleSearchEngine - A simple database search engine for annotating MS/MS spectra.
+  - @subpage TOPP_SimpleSearchEngine - A simple database search engine for annotating MS/MS spectra.
   - @subpage TOPP_XTandemAdapter - Identifies MS/MS spectra using XTandem (external).
 
   <b>Protein/Peptide Processing</b>
@@ -156,12 +154,10 @@
   - @subpage TOPP_PercolatorAdapter - Applies the percolator algorithm to protein/peptide identifications.
 
   <b>Targeted Experiments and OpenSWATH</b>
-  - @subpage UTILS_OpenSwathWorkflow - Complete workflow to run OpenSWATH.
-  - @subpage UTILS_AssayGeneratorMetabo - Generates an assay library using DDA data (Metabolomics).
-  - @subpage TOPP_InclusionExclusionListCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments.
+  - @subpage TOPP_OpenSwathWorkflow - Complete workflow to run OpenSWATH.
+  - @subpage TOPP_AssayGeneratorMetabo - Generates an assay library using DDA data (Metabolomics).
   - @subpage TOPP_MRMMapper - MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML).
-  - @subpage UTILS_MRMTransitionGroupPicker - Picks peaks in MRM chromatograms.
-  - @subpage TOPP_PrecursorIonSelector - A tool for precursor ion selection based on identification results.
+  - @subpage TOPP_MRMTransitionGroupPicker - Picks peaks in MRM chromatograms.
   - @subpage TOPP_OpenSwathAnalyzer - Picks peaks and finds features in an SRM experiment.
   - @subpage TOPP_OpenSwathAssayGenerator - Generates filtered and optimized assays using TraML files.
   - @subpage TOPP_OpenSwathChromatogramExtractor - Extract chromatograms (XIC) from a MS2 map file.
@@ -169,12 +165,6 @@
   - @subpage TOPP_OpenSwathDecoyGenerator - Generates decoys according to different models for a specific TraML.
   - @subpage TOPP_OpenSwathFeatureXMLToTSV - Converts a featureXML to a tsv.
   - @subpage TOPP_OpenSwathRTNormalizer - This tool will align an SRM / SWATH run to a normalized retention time space.
-
-  <b>Peptide Property Prediction</b>
-  - @subpage TOPP_PTModel - Trains a model for the prediction of proteotypic peptides from a training set.
-  - @subpage TOPP_PTPredict - Predicts the likelihood of peptides to be proteotypic using a model trained by PTModel.
-  - @subpage TOPP_RTModel - Trains a model for the retention time prediction of peptides from a training set.
-  - @subpage TOPP_RTPredict - Predicts retention times for peptides using a model trained by RTModel.
 
   <b>Cross-linking</b>
   - @subpage TOPP_OpenPepXL - Search for peptide pairs linked with a labeled cross-linker.
@@ -192,4 +182,93 @@
 
   <b>Top down</b>
   - @subpage TOPP_FLASHDeconv - Computes a feature deconvolution from Top down MS data.
+
+
+  Besides TOPP, %OpenMS offers a range of other tools categorized as utilities.
+  They are not part of typical analysis pipelines, but they still might be very helpful to you.
+  The tools categorized as utilities are divided into several subgroups:
+
+  <b>Maintenance</b>
+  - @subpage TOPP_INIUpdater - Updates INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have change
+<!-- Documentation missing:
+  - @subpage TOPP_OpenMSInfo - Print build system information.
+-->
+
+  <b>Signal Processing and Preprocessing</b>
+  - @subpage TOPP_PeakPickerIterative - A tool for peak detection in profile data.
+
+  <b>File Handling</b>
+  - @subpage TOPP_FuzzyDiff - Compares two files, tolerating numeric differences.
+  - @subpage TOPP_IDSplitter - Splits protein/peptide identifications off of annotated data files.
+  - @subpage TOPP_MzMLSplitter - Splits an mzML file into multiple parts.
+  - @subpage TOPP_SemanticValidator - SemanticValidator for analysisXML and mzML files.
+  - @subpage TOPP_XMLValidator - Validates XML files against an XSD schema.
+
+  <b>Protein/Peptide Identification</b>
+  - @subpage TOPP_DatabaseFilter - Filters a protein database in FASTA format according to one or multiple filtering criteria.
+  - @subpage TOPP_DecoyDatabase - Creates decoy peptide databases from normal ones.
+  - @subpage TOPP_Digestor - Digests a protein database in-silico.
+  - @subpage TOPP_DigestorMotif - Digests a protein database in-silico (optionally allowing only peptides with a specific motif) and produces statistical data for all peptides.
+  - @subpage TOPP_Epifany - Bayesian protein inference based on PSM probabilities.
+  - @subpage TOPP_IDExtractor - Extracts n peptides randomly or best n from idXML files.
+  - @subpage TOPP_IDMassAccuracy - Calculates a distribution of the mass error from given mass spectra and IDs.
+  - @subpage TOPP_IDScoreSwitcher - Switches between different scores of peptide or protein hits in identification data.
+  - @subpage TOPP_MSFraggerAdapter - Peptide Identification with MSFragger.
+  - @subpage TOPP_NovorAdapter - De novo sequencing from tandem mass spectrometry data.
+  - @subpage TOPP_PSMFeatureExtractor - Creates search engine specific features for PercolatorAdapter input.
+  - @subpage TOPP_SequenceCoverageCalculator - Prints information about idXML files.
+  - @subpage TOPP_SpecLibCreator - Creates an MSP-formatted spectral library.
+  - @subpage TOPP_SpectraSTSearchAdapter - An interface to the 'SEARCH' mode of the SpectraST program (external, beta).
+  - @subpage TOPP_StaticModification - Allows to attach a set of fixed modifications to an idXML file (MS/MS search results), e.g. to add 15N (N15) labeling post-hoc.
+
+  <b>Cross-linking</b>
+  - @subpage TOPP_RNPxlSearch - Annotates RNA-to-peptide cross-links in MS/MS spectra.
+  - @subpage TOPP_RNPxlXICFilter - Removes MS2 spectra from treatment based on the fold change between control and treatment for RNA-to-peptide cross-linking experiments.
+
+  <b>Quantitation</b>
+  - @subpage TOPP_ERPairFinder - Evaluates pair ratios on enhanced resolution (zoom) scans.
+  - @subpage TOPP_FeatureFinderMetaboIdent - Detects features in MS1 data corresponding to small molecule identifications.
+  - @subpage TOPP_ProteomicsLFQ - A standard Proteomics LFQ pipeline.
+  - @subpage TOPP_MetaboliteAdductDecharger - Decharges and merges different feature charge variants of the same small molecule.
+  - @subpage TOPP_MultiplexResolver - Resolves conflicts between identifications and quantifications in multiplex data.
+
+  <b>Metabolite Identification</b>
+  - @subpage TOPP_AccurateMassSearch - Finds potential HMDB IDs within the given mass error window.
+  - @subpage TOPP_MetaboliteSpectralMatcher - Identifies small molecules from tandem MS spectra.
+  - @subpage TOPP_SiriusAdapter - De novo metabolite identification.
+
+  <b>Targeted Experiments and OpenSWATH</b>
+  - @subpage TOPP_ClusterMassTracesByPrecursor - Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps.
+  - @subpage TOPP_MRMPairFinder - Evaluates labeled pair ratios on MRM features.
+  - @subpage TOPP_OpenSwathDIAPreScoring - SWATH (data-independent acquisition) pre-scoring.
+  - @subpage TOPP_OpenSwathFileSplitter - A tool for splitting a single SWATH / DIA file into a set of files, each containing one SWATH window.
+  - @subpage TOPP_OpenSwathMzMLFileCacher - Caching of large mzML files.
+  - @subpage TOPP_OpenSwathRewriteToFeatureXML - Rewrites results from mProphet back into featureXML.
+
+  <b>RNA</b>
+  - @subpage TOPP_NucleicAcidSearchEngine - Search MzML files for oligonucleotides and their modifications.
+  - @subpage TOPP_RNADigestor - Digests an RNA sequence database in-silico.
+  - @subpage TOPP_RNAMassCalculator - Calculates masses and mass-to-charge ratios of RNA sequences.
+
+  <b>Quality Control</b>
+  - @subpage TOPP_QCCalculator - Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a qcML file.
+  - @subpage TOPP_QCEmbedder - Embeds tables or plots generated externally as attachments to existing quality parameters in qcML files.
+  - @subpage TOPP_QCExporter - Extracts several quality parameter from several runs/sets from a qcML file into a tabular (text) format - counterpart to QCImporter.
+  - @subpage TOPP_QCExtractor - Extracts a table attachment of a given quality parameter from a qcML file as tabular (text) format.
+  - @subpage TOPP_QCImporter - Imports several quality parameters from a tabular (text) format into a qcML file - counterpart to QCExporter.
+  - @subpage TOPP_QCMerger - Merges two qcML files together.
+  - @subpage TOPP_QCShrinker - Removes extra verbose table attachments from a qcML file that are not needed anymore, e.g. for a final report.
+
+  <b>Misc</b>
+  - @subpage TOPP_ClusterMassTraces - Cluster mass traces occurring in the same map together.
+  - @subpage TOPP_DeMeanderize - Orders the spectra of MALDI spotting plates correctly.
+  - @subpage TOPP_ImageCreator - Creates images from MS1 data (with MS2 data points indicated as dots).
+  - @subpage TOPP_MassCalculator - Calculates masses and mass-to-charge ratios of peptide sequences.
+  - @subpage TOPP_MetaProSIP - Performs proteinSIP on peptide features for elemental flux analysis.
+  - @subpage TOPP_TICCalculator - Calculates the TIC of a raw mass spectrometric file.
+  - @subpage TOPP_MSstatsConverter - Converter to input for MSstats.
+
+  <b>Deprecated</b>
+  - @subpage TOPP_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy. WARNING: This utility is deprecated.
+
 */

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -360,11 +360,11 @@ START_SECTION((bool operator!= (const ExperimentalSettings& rhs) const))
 
   edit = empty;
 	edit.setComment("bla");
-  TEST_EQUAL(edit!=empty, true);
+  TEST_FALSE(edit == empty);
 
   edit = empty;
 	edit.setFractionIdentifier("bla2");
-  TEST_EQUAL(edit!=empty, true);
+  TEST_FALSE(edit == empty);
 
   edit = empty;
   edit.getSample().setName("bla2");
@@ -380,7 +380,7 @@ START_SECTION((bool operator!= (const ExperimentalSettings& rhs) const))
 
   edit = empty;
 	edit.getProteinIdentifications().push_back(id);
-  TEST_EQUAL(edit!=empty, true);
+  TEST_FALSE(edit == empty);
 
 	edit = empty;
 	edit.setMetaValue("label",String("label"));
@@ -399,7 +399,7 @@ START_SECTION((const std::vector<ProteinIdentification>& getProteinIdentificatio
 	
 	settings.getProteinIdentifications().push_back(id);
 	const ProteinIdentification& test_id = settings.getProteinIdentifications()[0];
-	TEST_EQUAL(id == test_id, true)
+	TEST_TRUE(id == test_id)
 END_SECTION
 
 START_SECTION((std::vector<ProteinIdentification>& getProteinIdentifications()))
@@ -414,7 +414,7 @@ START_SECTION((std::vector<ProteinIdentification>& getProteinIdentifications()))
 	
 	settings.getProteinIdentifications().push_back(id);
 	ProteinIdentification& test_id = settings.getProteinIdentifications()[0];
-	TEST_EQUAL(id == test_id, true)
+	TEST_TRUE(id == test_id)
 END_SECTION
 
 START_SECTION((void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)))

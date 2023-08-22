@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -337,7 +337,7 @@ END_SECTION
 START_SECTION((bool operator== (const Precursor& rhs) const))
 	Precursor tmp,tmp2;
 	
-	TEST_EQUAL(tmp==tmp2, true);
+	TEST_TRUE(tmp == tmp2);
 	
 	tmp2.setActivationEnergy(47.11);
 	TEST_EQUAL(tmp==tmp2, false);
@@ -389,47 +389,47 @@ START_SECTION((bool operator!= (const Precursor& rhs) const))
 	TEST_EQUAL(tmp!=tmp2, false);
 	
 	tmp2.setActivationEnergy(47.11);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 	
 	tmp2 = tmp;
 	tmp.setDriftTime(5.0);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
   tmp.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
 	tmp.getActivationMethods().insert(Precursor::CID);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 	
 	tmp2 = tmp;	tmp2 = tmp;
   tmp.setIsolationWindowUpperOffset(22.7);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;	tmp2 = tmp;
   tmp.setIsolationWindowLowerOffset(22.8);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;	tmp2 = tmp;
   tmp.setDriftTimeWindowUpperOffset(22.7);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;	tmp2 = tmp;
   tmp.setDriftTimeWindowLowerOffset(22.8);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
   tmp.setCharge(13);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
   tmp.getPossibleChargeStates().resize(5);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
 	tmp.setMetaValue("label",String("label"));
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 END_SECTION
 
 START_SECTION(double getUnchargedMass() const)

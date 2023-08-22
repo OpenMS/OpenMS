@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -214,12 +214,12 @@ namespace OpenMS
     template <typename IteratorType>
     double MeanAbsoluteDeviation(IteratorType begin, IteratorType end, double mean_of_numbers)
     {
-      double mean {0};
+      double mean_value {0};
       for (IteratorType it = begin; it != end; ++it)
       {
-        mean += fabs(*it - mean_of_numbers);
+        mean_value += fabs(*it - mean_of_numbers);
       }
-      return mean / std::distance(begin, end);
+      return mean_value / std::distance(begin, end);
     }
 
     /**
@@ -295,7 +295,7 @@ namespace OpenMS
                            double mean = std::numeric_limits<double>::max())
     {
       checkIteratorsNotNULL(begin, end);
-      double sum = 0.0;
+      double sum_value = 0.0;
       if (mean == std::numeric_limits<double>::max())
       {
         mean = Math::mean(begin, end);
@@ -303,15 +303,15 @@ namespace OpenMS
       for (IteratorType iter=begin; iter!=end; ++iter)
       {
         double diff = *iter - mean;
-        sum += diff * diff;
+        sum_value += diff * diff;
       }
-      return sum / (std::distance(begin, end)-1);
+      return sum_value / (std::distance(begin, end)-1);
     }
 
     /**
        @brief Calculates the standard deviation of a range of values.
 
-  The @p mean can be provided explicitly to save computation time. If left at default, it will be computed internally.
+       The @p mean can be provided explicitly to save computation time. If left at default, it will be computed internally.
 
        @exception Exception::InvalidRange is thrown if the range is empty
 
@@ -337,16 +337,16 @@ namespace OpenMS
                          double mean = std::numeric_limits<double>::max())
     {
       checkIteratorsNotNULL(begin, end);
-      double sum = 0.0;
+      double sum_value = 0.0;
       if (mean == std::numeric_limits<double>::max())
       {
         mean = Math::mean(begin, end);
       }
       for (IteratorType iter=begin; iter!=end; ++iter)
       {
-        sum += *iter - mean;
+        sum_value += *iter - mean;
       }
-      return sum / std::distance(begin, end);
+      return sum_value / std::distance(begin, end);
     }
 
     /**
@@ -365,7 +365,7 @@ namespace OpenMS
       //no data or different lengths
       checkIteratorsNotNULL(begin_a, end_a);
 
-      double sum = 0.0;
+      double sum_value = 0.0;
       double mean_a = Math::mean(begin_a, end_a);
       double mean_b = Math::mean(begin_b, end_b);
       IteratorType1 iter_a = begin_a;
@@ -374,12 +374,12 @@ namespace OpenMS
       {
         /* assure both ranges have the same number of elements */
         checkIteratorsAreValid(begin_b, end_b, begin_a, end_a);
-        sum += (*iter_a - mean_a) * (*iter_b - mean_b);
+        sum_value += (*iter_a - mean_a) * (*iter_b - mean_b);
       }
       /* assure both ranges have the same number of elements */
       checkIteratorsEqual(iter_b, end_b);
       Size n = std::distance(begin_a, end_a);
-      return sum / (n-1);
+      return sum_value / (n-1);
     }
 
     /**
