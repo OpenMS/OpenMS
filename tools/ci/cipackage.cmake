@@ -2,7 +2,7 @@
 ## this script REQUIRES the previous execution of the cibuild.cmake script!!
 ##
 
-# TODO (in all cmake scripts) explicitly require certain variables to be in the ENV (e.g. by using a macro). Otherwise you might have random hard to debug failures if not set.
+# TODO (in all cmake scripts) explicitly require certain variables to be in the ENV (e.g. by using a macro). Otherwise, you might have random hard-to-debug failures if not set.
 
 # define build name&co for easier identification on CDash
 set(CTEST_BUILD_NAME "$ENV{BUILD_NAME}_Package")
@@ -20,7 +20,7 @@ foreach(VAR ${VARS_TO_LOAD})
 endforeach()
 
 if(APPLE)
-  list(APPEND CONFIGURE_OPTIONS "-DCPACK_COMMAND_HDIUTIL=\"/usr/bin/sudo /usr/bin/hdiutil -debug\"")
+  list(APPEND CONFIGURE_OPTIONS "-DCPACK_COMMAND_HDIUTIL='/usr/bin/sudo /usr/bin/hdiutil -debug'")
 endif()
 
 # cdash server (fu-berlin) SSL certificate sometimes is revoked. Keeps CI running.
