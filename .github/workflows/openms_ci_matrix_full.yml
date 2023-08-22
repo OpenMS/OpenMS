@@ -50,7 +50,7 @@ jobs:
           # We are not installing anything.
           - os: ubuntu-22.04
             compiler: g++
-            compiler_ver: 10
+            compiler_ver: 11
 
           - os: ubuntu-22.04
             compiler: clang++
@@ -108,7 +108,7 @@ jobs:
           echo "xvfb=" >> $GITHUB_OUTPUT
           echo "static_boost=ON" >> $GITHUB_OUTPUT
           if [ "$DO_PACKAGE" = true ]; then
-            echo "pkg_type=dmg" >> $GITHUB_OUTPUT
+            echo "pkg_type=pkg" >> $GITHUB_OUTPUT
           else
             echo "pkg_type=none" >> $GITHUB_OUTPUT
           fi
@@ -131,7 +131,17 @@ jobs:
         # NOTE: x64 is hardcoded. No support for 32bit
         arch: x64
 
+    - if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
+      name: Install Qt (Windows and macOS)
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: '5.15.2' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715, > 5.15.2 is not available on official archives (https://github.com/miurahr/aqtinstall/issues/636)
+        cache: 'false'
+        aqtversion: '==3.1.*'
+        archives: 'qtsvg qtimageformats qtbase'
+
     - name: Setup build tools (and system contrib on Linux)
+      id: tools-prefix
       shell: bash
       run: |
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
@@ -142,12 +152,16 @@ jobs:
           sudo apt-get install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev \
            libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
+          echo "cmake_prefix=" >> $GITHUB_OUTPUT
+          
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             sudo apt-get install -y doxygen ghostscript graphviz
           fi
         fi
         
         if [[ "${{ matrix.os }}" == windows-* ]]; then
+          # Qt5_DIR set by Install Qt5 step
+          echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
           choco install ccache ninja cmake
           ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
           # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
@@ -155,10 +169,15 @@ jobs:
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             choco install doxygen.portable ghostscript graphviz
+            # TODO save this zip somewhere on our infrastructure or github since the project is deprecated
+            curl -L -o UltraModernUI_2.0b6.zip  https://github.com/SuperPat45/UltraModernUI/releases/download/2.0b6/UltraModernUI_2.0b6.zip
+            7z -y x UltraModernUI_2.0b6.zip -o"C:/Program Files (x86)/NSIS/"
           fi
         fi
 
         if [[ "${{ matrix.os }}" == macos-* ]]; then
+          # Qt5_DIR set by Install Qt5 step
+          echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
           brew install ccache autoconf automake libtool ninja && brew link --overwrite ccache
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
@@ -166,14 +185,7 @@ jobs:
           fi
         fi
 
-    - if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
-      name: Install Qt (Windows and macOS)
-      uses: jurplel/install-qt-action@v3
-      with:
-        version: '5.15.2' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715, > 5.15.2 is not available on official archives (https://github.com/miurahr/aqtinstall/issues/636)
-        cache: 'false'
-        aqtversion: '==3.1.*'
-        archives: 'qtsvg qtimageformats qtbase'
+
 
     - if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
       name: Cache contrib (Windows and macOS)
@@ -222,11 +234,11 @@ jobs:
       uses: actions/cache@v3
       with:
         path: .ccache
-        key: ${{ runner.os }}-ccache-${{ env.RUN_NAME }}-${{ github.run_number }}
-        # Restoring: From current branch, otherwise from base branch, otherwise from any branch.
+        key: ${{ runner.os }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ github.run_number }}
+        # Restoring: From current branch/PR, otherwise from nightly, otherwise from any branch.
         restore-keys: |
-          ${{ runner.os }}-ccache-${{ env.RUN_NAME }}
-          ${{ runner.os }}-ccache-${{ env.BASE_REF }}
+          ${{ runner.os }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}
+          ${{ runner.os }}-ccache-nightly
           ${{ runner.os }}-ccache-
 
     - name: Add THIRDPARTY
@@ -250,19 +262,24 @@ jobs:
     - name: Build
       shell: bash
       run: |
+          # do not fail immediately
+          set +e
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
-          ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
+          ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
           retVal=$?
           if [ $retVal -ne 0 ]; then
               echo "\033[0;31m Errors in build:"
+              # TODO upload logs as artifact?
               find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec cat {} \;
+              # remove for next steps
+              find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec rm {} \;
           fi
           exit $retVal
       env:
           # TODO allow actual choice of compiler instead of using default.
           #  Problem: not all compilers are always in the PATH.
           CMAKE_CXX_COMPILER: ${{ steps.set-vars.outputs.cxx_compiler }}
-          CMAKE_PREFIX_PATH: "${{ env.Qt5_DIR }}/lib/cmake;${{ env.Qt5_DIR }}"
+          CMAKE_PREFIX_PATH: ${{ steps.tools-prefix.outputs.cmake_prefix }}
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Ninja"
@@ -307,11 +324,24 @@ jobs:
       name: Package
       shell: bash
       run: |
+          # do not fail immediately
+          set +e
+          if [[ "${{ matrix.os }}" == macos-* ]]; then
+            #lol, Microsoft wants us to kill a security system process such that they don't have to fix their bugs. ridiculous once again.
+            #echo killing...; sudo pkill -9 XProtect >/dev/null || true;
+            #echo waiting...; while pgrep XProtect; do sleep 3; done;
+            echo ""
+          fi
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cipackage.cmake
           retVal=$?
           if [ $retVal -ne 0 ]; then
               echo "\033[0;31m Errors in packaging:"
+              # TODO upload logs as artifact?
               find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec cat {} \;
+              # remove for next steps
+              find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec rm {} \;
+              # only on win
+              cat OpenMS/bld/_CPack_Packages/win64/NSIS/NSISOutput.log || true
           fi
           exit $retVal
       env:
@@ -328,9 +358,9 @@ jobs:
       with:
         name: installer-${{ steps.set-vars.outputs.tp_folder }}
         path: |
-          - ${{ github.workspace }}/OpenMS/bld/*.exe
-          - ${{ github.workspace }}/OpenMS/bld/*.deb
-          - ${{ github.workspace }}/OpenMS/bld/*.dmg
+          ${{ github.workspace }}/OpenMS/bld/*.exe
+          ${{ github.workspace }}/OpenMS/bld/*.deb
+          ${{ github.workspace }}/OpenMS/bld/*.pkg
         
     - if: steps.set-vars.outputs.pkg_type != 'none' || inputs.knime
       name: Generate KNIME descriptors and payloads
@@ -347,8 +377,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: knime-${{ steps.set-vars.outputs.tp_folder }}
-        path: |
-          - ${{ github.workspace }}/OpenMS/bld/knime/**/*
+        path: ${{ github.workspace }}/OpenMS/bld/knime/**/*
 
   deploy-installer:
     if: github.ref == 'refs/heads/nightly' || contains(github.ref, 'release/') || inputs.package
@@ -383,7 +412,7 @@ jobs:
           if [[ "${{ steps.extract_branch.outputs.RUN_NAME }}" == "nightly" ]]; then
             folder=nightly
           elif [[ "${{ steps.extract_branch.outputs.RUN_NAME }}" == "release/*" ]]; then
-            tmpfolder=${{ env.RUN_NAME }}
+            tmpfolder=${{ steps.extract_branch.outputs.RUN_NAME }}
             folder=${tmpfolder/release/RC}
           else
             folder=experimental/${{ steps.extract_branch.outputs.RUN_NAME }}
@@ -573,4 +602,4 @@ jobs:
             folder=experimental/${{ env.RUN_NAME }}
           fi
           echo $folder
-          #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/knime-plugin/updateSite/${{ env.RUN_NAME }}"
+          #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/knime-plugin/updateSite/$folder"

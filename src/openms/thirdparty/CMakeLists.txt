@@ -35,6 +35,18 @@
 project("OpenMS-3rd-party-libs")
 cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 
+# For use in the subdirs to cat their license
+function(cat IN_FILE OUT_FILE)
+    file(READ ${IN_FILE} CONTENTS)
+    file(APPEND ${OUT_FILE} "${CONTENTS}")
+endfunction()
+
+# Prepare a temporary file to "cat" to:
+set(TPLICENSEFILE ${OPENMS_HOST_BINARY_DIRECTORY}/thirdparty_licenses.txt)
+file(WRITE ${TPLICENSEFILE} "The OpenMS library links statically to the following libraries with the following licenses:\n")
+## TODO install it somewhere? Append to main license to show in installer?
+##  At least we can use it in conda-forge after configuration
+
 ##
 ## internal packages (not checked if they exist externally)
 ##
@@ -47,7 +59,7 @@ add_subdirectory(Quadtree)
 ##
 ## external packages (with fallback option to local version)
 ##
-option(USE_EXTERNAL_JSON "Use an external NLohmann::json library" OFF)
+option(USE_EXTERNAL_JSON "Use an external nlohmann::json library" OFF)
 message(STATUS "Option USE_EXTERNAL_JSON: ${USE_EXTERNAL_JSON}")
 if(USE_EXTERNAL_JSON)
     find_package(nlohmann_json REQUIRED GLOBAL)  ## global propagates the target up to the parent project
@@ -74,6 +86,3 @@ if(USE_EXTERNAL_SIMDE)
 else()
     add_subdirectory(simde)
 endif()
-
-
-

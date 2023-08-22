@@ -6,6 +6,9 @@ cmake_minimum_required(VERSION 3.10)
 ##
 project(nlohmann_json VERSION 3.11.2 LANGUAGES CXX)
 
+file(APPEND ${TPLICENSEFILE} "\nlohmann-json:\n")
+cat(${PROJECT_SOURCE_DIR}/LICENSE.MIT ${TPLICENSEFILE})
+
 ##
 ## MAIN_PROJECT CHECK
 ## determine if nlohmann_json is built as a subproject (using add_subdirectory) or if it is the main project

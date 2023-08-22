@@ -60,3 +60,6 @@ foreach(_file ${_EOL_BSPLINE_SOURCES})
     ${PROJECT_SOURCE_DIR}/BSpline/${_file}
   )
 endforeach()
+
+file(APPEND ${TPLICENSEFILE} "\neol-bspline:\n")
+cat(${PROJECT_SOURCE_DIR}/LICENSE ${TPLICENSEFILE})

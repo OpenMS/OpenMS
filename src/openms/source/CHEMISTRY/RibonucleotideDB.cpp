@@ -213,7 +213,7 @@ namespace OpenMS
     }
     if ( std::abs(ribo->getMonoMass() - ribo->getFormula().getMonoWeight()) >= 0.01)
     {
-      OPENMS_LOG_WARN << "Average mass of " << code << " differs substantially from its formula mass.\n";
+      OPENMS_LOG_DEBUG << "Average mass of " << code << " differs substantially from its formula mass.\n";
     }
 
     // Handle base loss formula

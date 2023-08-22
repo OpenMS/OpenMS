@@ -1037,7 +1037,8 @@ namespace OpenMS
     {
       std::sort(previously_deconved_mono_masses_for_dummy_.begin(), previously_deconved_mono_masses_for_dummy_.end());
       previously_deconved_mass_bins_for_dummy_ = boost::dynamic_bitset<>(mass_bins_.size());
-
+      // always positive
+      unsigned bin_offset = (Size)round(tol_div_factor);
       for (double m : previously_deconved_mono_masses_for_dummy_)
       {
         if (m <= 0)
@@ -1045,8 +1046,7 @@ namespace OpenMS
           continue;
         }
         Size j = getBinNumber_(log(m), mass_bin_min_value_, bin_mul_factors_[ms_level_ - 1]);
-        int bin_offset = (int)round(tol_div_factor);
-        if (j >= bin_offset && j < (int)previously_deconved_mass_bins_for_dummy_.size() - bin_offset - 1)
+        if (j >= bin_offset && j < previously_deconved_mass_bins_for_dummy_.size() - bin_offset - 1)
         {
           for (int k = -bin_offset; k <= bin_offset; k++)
             previously_deconved_mass_bins_for_dummy_[j + k] = true;
