@@ -490,7 +490,9 @@ jobs:
 
             ## Merge payloads and descriptors into one folder
             touch rsync.log
-            for d in compiler*
+            ls -la
+            
+            for d in knime*
             do
               rsync -avh --progress $d/build/knime/ ${PLUGIN_SOURCE}/ >> rsync.log
               rm -rf $d
