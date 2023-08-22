@@ -170,7 +170,7 @@ jobs:
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             choco install doxygen.portable ghostscript graphviz
             # TODO save this zip somewhere on our infrastructure or github since the project is deprecated
-            wget https://github.com/SuperPat45/UltraModernUI/releases/download/2.0b6/UltraModernUI_2.0b6.zip
+            curl -L -o UltraModernUI_2.0b6.zip  https://github.com/SuperPat45/UltraModernUI/releases/download/2.0b6/UltraModernUI_2.0b6.zip
             7z -y x UltraModernUI_2.0b6.zip -o"C:/Program Files (x86)/NSIS/"
           fi
         fi
