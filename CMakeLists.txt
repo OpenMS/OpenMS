@@ -344,9 +344,10 @@ endif()
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/bin")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/lib")
-set(OPENMS_BINARY_DIR "${OPENMS_HOST_BINARY_DIRECTORY}/bin")
+# Some alternative variable names for internal use
+set(OPENMS_BINARY_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 set(OPENMS_SHARE_DIR "${PROJECT_SOURCE_DIR}/share/OpenMS")
-set(OPENMS_WIN32_DLL_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(OPENMS_WIN32_DLL_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 #------------------------------------------------------------------------------
 # define installation subdirectories to allow for custom installations
@@ -375,14 +376,14 @@ set(QT_PLUGIN_PATH_REL_TO_BIN ${INSTALL_LIB_PATH_REL_TO_BIN}/${INSTALL_PLUGIN_SU
 if(UNIX)
 	# use, i.e. don't skip the full RPATH for the build tree
 	if(NOT DEFINED CMAKE_SKIP_BUILD_RPATH)
-	  SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+	  SET(CMAKE_SKIP_BUILD_RPATH FALSE)
   endif()
 
   if(NOT DEFINED CMAKE_MACOSX_RPATH)
-    SET(CMAKE_MACOSX_RPATH  TRUE)
+    SET(CMAKE_MACOSX_RPATH TRUE) # should be CMake default
   endif()
 
-	# when building, don't use the install RPATH already
+	# usually when building, don't use the install RPATH already
 	# (but later on when installing)
 	if(NOT DEFINED CMAKE_BUILD_WITH_INSTALL_RPATH)
 		if (ENABLE_PREPARE_KNIME_PACKAGE)
@@ -414,8 +415,8 @@ if(UNIX)
   #  SET(CMAKE_INSTALL_NAME_DIR "$<INSTALL_PREFIX>/${INSTALL_LIB_DIR}")
   #endif()
   
-# our default RPATH to be added when installing. Can be changed per-target later, e.g. in app bundles
-if(NOT DEFINED CMAKE_INSTALL_RPATH)
+  # our default RPATH to be added when installing. Can be changed per-target later, e.g. in app bundles
+  if(NOT DEFINED CMAKE_INSTALL_RPATH)
     if (APPLE)
       if(NOT "${PACKAGE_TYPE}" STREQUAL "pkg")
         # currently our fix_dependencies.rb script used e.g. for dmg installer,
@@ -423,25 +424,27 @@ if(NOT DEFINED CMAKE_INSTALL_RPATH)
         # so it can find libOpenMS for one of our executables, even if it is linked as @rpath/libOpenMS.
         # Disadvantage: even on the target machine, they will have the build folder baked in.
         # Alternative: copy all our libs first so they do not need to be found.
-        SET(CMAKE_INSTALL_RPATH "@executable_path/../${INSTALL_LIB_DIR}/;${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+        SET(CMAKE_INSTALL_RPATH "@executable_path/${INSTALL_LIB_PATH_REL_TO_BIN}/;${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
       else()
-        SET(CMAKE_INSTALL_RPATH "@executable_path/../${INSTALL_LIB_DIR}/")
+        SET(CMAKE_INSTALL_RPATH "@executable_path/${INSTALL_LIB_PATH_REL_TO_BIN}/")
       endif()
     else() # linux and variants
-      SET(CMAKE_INSTALL_RPATH "$ORIGIN/../${INSTALL_LIB_DIR}/")
+      SET(CMAKE_INSTALL_RPATH "$ORIGIN/${INSTALL_LIB_PATH_REL_TO_BIN}/")
     endif()
 	endif()
 endif()
 
 #------------------------------------------------------------------------------
 # lib naming when building with msvc & convenience location of build.bat
+# TODO only for msvc or generally on Windows?
 if (MSVC)
-	## use OpenMSd.dll in debug mode
-	SET(CMAKE_DEBUG_POSTFIX d)
-	## copy build.bat to root of binary dir to enable convenient invocation (instead of typing path to source dir all the time)
-	if(NOT ("${PROJECT_SOURCE_DIR}" STREQUAL "${PROJECT_BINARY_DIR}"))
-		file(COPY "${PROJECT_SOURCE_DIR}/tools/build.bat" DESTINATION "${PROJECT_BINARY_DIR}")
-	endif()
+	## use OpenMSd.dll etc. in debug mode
+    if(NOT DEFINED CMAKE_DEBUG_POSTFIX)
+        set(CMAKE_DEBUG_POSTFIX "d")
+    endif()
+    if(NOT ("${PROJECT_SOURCE_DIR}" STREQUAL "${PROJECT_BINARY_DIR}"))
+        file(COPY "${PROJECT_SOURCE_DIR}/tools/build.bat" DESTINATION "${PROJECT_BINARY_DIR}")
+    endif()
 endif()
 
 
@@ -464,9 +467,10 @@ add_subdirectory(doc)
 # GKN Package building
 #------------------------------------------------------------------------------
 # We will use this path for the KNIME packages and the installers
-set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "The location where thirdparty search engines (X!Tandem, MSGF+, Fido) are located. This directory should have the same structure as the search engine repository at https://github.com/OpenMS/THIRDPARTY after flattening for your platform.")
+set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "The location where third-party search engines (X!Tandem, MSGF+, Fido) are located. This directory should have the same structure as the search engine repository at https://github.com/OpenMS/THIRDPARTY after flattening for your platform.")
 
-set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare KNIME packages will be generated. Main target will be 'prepare_knime_package'.")
+set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare KNIME packages will be generated. Main target will be 'prepare_knime_package'.
+ Note, this will build all binaries with install RPATHs already in the build folder, so they may not be relocatable anymore. Only enable if needed.")
 if (ENABLE_PREPARE_KNIME_PACKAGE)
 	include(${OPENMS_HOST_DIRECTORY}/cmake/knime_package_support.cmake)
 endif()
