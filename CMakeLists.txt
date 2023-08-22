@@ -62,10 +62,8 @@ if (NOT CMAKE_SIZEOF_VOID_P)
 endif()
 
 #------------------------------------------------------------------------------
-# Include the standard Dart testing module
-# for Nightly Build log
+# Enable testing with CTest
 enable_testing()
-include(Dart)
 
 #------------------------------------------------------------------------------
 # entries meant to be configured using CMake cache
