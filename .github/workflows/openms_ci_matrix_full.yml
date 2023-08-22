@@ -147,30 +147,30 @@ jobs:
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
           sudo add-apt-repository universe
           sudo apt update   
-          sudo apt-get install -y build-essential cmake autoconf patch libtool git automake ninja-build xvfb ccache
-          sudo apt-get install -y qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
-          sudo apt-get install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev \
+          sudo apt-get -qq install -y build-essential cmake autoconf patch libtool git automake ninja-build xvfb ccache
+          sudo apt-get -qq install -y qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
+          sudo apt-get -qq install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev \
            libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
           echo "cmake_prefix=" >> $GITHUB_OUTPUT
           
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            sudo apt-get install -y doxygen ghostscript graphviz
+            sudo apt-get -qq install -y doxygen ghostscript graphviz
           fi
         fi
         
         if [[ "${{ matrix.os }}" == windows-* ]]; then
           # Qt5_DIR set by Install Qt5 step
           echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
-          choco install ccache ninja cmake
+          choco --no-progress install ccache ninja cmake
           ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
           # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
           echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            choco install doxygen.portable ghostscript graphviz
+            choco --no-progress install doxygen.portable ghostscript graphviz
             # TODO save this zip somewhere on our infrastructure or github since the project is deprecated
-            curl -L -o UltraModernUI_2.0b6.zip  https://github.com/SuperPat45/UltraModernUI/releases/download/2.0b6/UltraModernUI_2.0b6.zip
+            curl --no-progress-meter -L -o UltraModernUI_2.0b6.zip  https://github.com/SuperPat45/UltraModernUI/releases/download/2.0b6/UltraModernUI_2.0b6.zip
             7z -y x UltraModernUI_2.0b6.zip -o"C:/Program Files (x86)/NSIS/"
           fi
         fi
@@ -178,10 +178,10 @@ jobs:
         if [[ "${{ matrix.os }}" == macos-* ]]; then
           # Qt5_DIR set by Install Qt5 step
           echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
-          brew install ccache autoconf automake libtool ninja && brew link --overwrite ccache
+          brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            brew install doxygen ghostscript graphviz
+            brew install --quiet doxygen ghostscript graphviz
           fi
         fi
 
@@ -200,7 +200,7 @@ jobs:
       shell: bash
       run: |
           cd OpenMS/contrib
-          curl -L -o contribbld.tar.gz https://abibuilder.cs.uni-tuebingen.de/archive/openms/contrib/${{ steps.set-vars.outputs.contrib_os }}/${{ steps.set-vars.outputs.contrib_os_ver }}x64/${{ steps.set-vars.outputs.contrib_compiler }}contrib_build.tar.gz
+          curl --no-progress-meter -L -o contribbld.tar.gz https://abibuilder.cs.uni-tuebingen.de/archive/openms/contrib/${{ steps.set-vars.outputs.contrib_os }}/${{ steps.set-vars.outputs.contrib_os_ver }}x64/${{ steps.set-vars.outputs.contrib_compiler }}contrib_build.tar.gz
           7z x -so contribbld.tar.gz | 7z x -si -ttar
           rm contribbld.tar.gz
           ls -la
@@ -486,6 +486,7 @@ jobs:
             ## Setup variables
             ## GKN git clone (see SCM subfolder settings above)
             GKN_PLUGIN_PATH=${GITHUB_WORKSPACE}/GenericKnimeNodes
+            git clone -q https://github.com/genericworkflownodes/GenericKnimeNodes/ --branch develop --single-branch $GKN_PLUGIN_PATH
 
             ## Source and build dir (choose)
             mkdir ${PLUGIN_BUILD}
@@ -519,7 +520,7 @@ jobs:
             ## the last git commit
             pushd ${PLUGIN_SOURCE_CONTRIB_PLUGINS}
 
-              git clone https://github.com/OpenMS/de.openms.knime --branch develop --single-branch .
+              git clone -q https://github.com/OpenMS/de.openms.knime --branch develop --single-branch .
               CONTRIBUTING_DATE=$(git_last_change_date .)
               
               # TODO just iterate over all folders?
@@ -543,7 +544,7 @@ jobs:
 
             popd
 
-            git clone https://github.com/genericworkflownodes/de.openms.knime.dynamicJSViewers --branch master --single-branch
+            git clone -q https://github.com/genericworkflownodes/de.openms.knime.dynamicJSViewers --branch master --single-branch
             CONTRIBUTING_DATE=$(git_last_change_date de.openms.knime.dynamicJSViewers)
             mv de.openms.knime.dynamicJSViewers/de.openms.knime.dynamicJSViewers.feature ${PLUGIN_SOURCE}/
             mkdir ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins
