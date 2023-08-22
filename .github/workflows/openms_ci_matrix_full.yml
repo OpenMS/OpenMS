@@ -444,14 +444,17 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: knime-MacOS
+          path: ${{ env.PLUGIN_SOURCE }}
       - name: Download win installer artifacts
         uses: actions/download-artifact@v3
         with:
           name: knime-Windows
+          path: ${{ env.PLUGIN_SOURCE }}
       - name: Download lnx installer artifacts
         uses: actions/download-artifact@v3
         with:
           name: knime-Linux
+          path: ${{ env.PLUGIN_SOURCE }}
 
       # Should be the default. 
       - name: Set up JDK
@@ -485,18 +488,18 @@ jobs:
             GKN_PLUGIN_PATH=${GITHUB_WORKSPACE}/GenericKnimeNodes
 
             ## Source and build dir (choose)
-            mkdir ${PLUGIN_SOURCE}
             mkdir ${PLUGIN_BUILD}
 
             ## Merge payloads and descriptors into one folder
             touch rsync.log
             ls -la
-            
-            for d in knime*
-            do
-              rsync -avh --progress $d/build/knime/ ${PLUGIN_SOURCE}/ >> rsync.log
-              rm -rf $d
-            done
+
+            # Not needed if download-artifact merges correctly
+            #for d in knime*
+            #do
+            #  rsync -avh --progress $d/build/knime/ ${PLUGIN_SOURCE}/ >> rsync.log
+            #  rm -rf $d
+            #done
 
             PLUGIN_SOURCE_CONTRIB_PLUGINS=${PLUGIN_SOURCE}/de.openms.feature/contributing-plugins
             mkdir -p ${PLUGIN_SOURCE_CONTRIB_PLUGINS}
