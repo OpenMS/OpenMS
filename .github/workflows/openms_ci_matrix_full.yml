@@ -108,7 +108,7 @@ jobs:
           echo "xvfb=" >> $GITHUB_OUTPUT
           echo "static_boost=ON" >> $GITHUB_OUTPUT
           if [ "$DO_PACKAGE" = true ]; then
-            echo "pkg_type=dmg" >> $GITHUB_OUTPUT
+            echo "pkg_type=pkg" >> $GITHUB_OUTPUT
           else
             echo "pkg_type=none" >> $GITHUB_OUTPUT
           fi
@@ -328,8 +328,8 @@ jobs:
           set +e
           if [[ "${{ matrix.os }}" == macos-* ]]; then
             #lol, Microsoft wants us to kill a security system process such that they don't have to fix their bugs. ridiculous once again.
-            echo killing...; sudo pkill -9 XProtect >/dev/null || true;
-            echo waiting...; while pgrep XProtect; do sleep 3; done;
+            #echo killing...; sudo pkill -9 XProtect >/dev/null || true;
+            #echo waiting...; while pgrep XProtect; do sleep 3; done;
           fi
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cipackage.cmake
           retVal=$?
@@ -359,7 +359,7 @@ jobs:
         path: |
           ${{ github.workspace }}/OpenMS/bld/*.exe
           ${{ github.workspace }}/OpenMS/bld/*.deb
-          ${{ github.workspace }}/OpenMS/bld/*.dmg
+          ${{ github.workspace }}/OpenMS/bld/*.pkg
         
     - if: steps.set-vars.outputs.pkg_type != 'none' || inputs.knime
       name: Generate KNIME descriptors and payloads
