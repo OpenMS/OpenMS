@@ -330,6 +330,7 @@ jobs:
             #lol, Microsoft wants us to kill a security system process such that they don't have to fix their bugs. ridiculous once again.
             #echo killing...; sudo pkill -9 XProtect >/dev/null || true;
             #echo waiting...; while pgrep XProtect; do sleep 3; done;
+            echo ""
           fi
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cipackage.cmake
           retVal=$?
