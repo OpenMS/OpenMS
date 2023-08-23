@@ -467,12 +467,6 @@ jobs:
         shell: bash
         run: |
             ## Setup functions
-            function git_last_change_date {
-              pushd $1 > /dev/null
-              DATE=$(date -j -f "%Y-%m-%d %H:%M:%S" "`git log -1 --format="%cd" --date=iso`" "+%Y%m%d%H%M" 2> /dev/null)
-              popd > /dev/null
-              echo $DATE
-            }
 
             function replace_qualifier {
               find $1 -name MANIFEST.MF -exec sed -i -e "s/qualifier/$2/g" {} \;
@@ -509,7 +503,7 @@ jobs:
             pushd ${PLUGIN_SOURCE_CONTRIB_PLUGINS}
 
               git clone -q https://github.com/OpenMS/de.openms.knime --branch develop --single-branch .
-              CONTRIBUTING_DATE=$(git_last_change_date .)
+              CONTRIBUTING_DATE=$(git log -1 --format="%cd" --date="format:%Y%m%d%H%M")
               echo "Setting qualifier/SNAPSHOT for de.openms.knime contrib plugins to ${CONTRIBUTING_DATE}!"
               git log -1 --format="%cd" --date=iso
               
@@ -536,8 +530,10 @@ jobs:
 
             ## New contrib plugin: de.openms.knime.dynamicJSViewers
             git clone -q https://github.com/genericworkflownodes/de.openms.knime.dynamicJSViewers --branch master --single-branch
-            CONTRIBUTING_DATE=$(git_last_change_date de.openms.knime.dynamicJSViewers)
-            
+            pushd de.openms.knime.dynamicJSViewers
+              CONTRIBUTING_DATE=$(git log -1 --format="%cd" --date="format:%Y%m%d%H%M")
+            popd
+
             mv de.openms.knime.dynamicJSViewers/de.openms.knime.dynamicJSViewers.feature ${PLUGIN_SOURCE}/
             mkdir ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins
             rm -rf ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/.settings
