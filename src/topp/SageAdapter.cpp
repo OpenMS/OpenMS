@@ -67,7 +67,7 @@ using namespace std;
 
     @brief Identifies peptides in MS/MS spectra via sage.
 
-    Setting the "threads" parameter to a non-zero value indicates how many files to load and search in parallel. Setting it to 0 defaults tp # of CPUs/2 (default in sage).
+    Setting the "threads" parameter to a non-zero value indicates how many files to load and search in parallel. Setting it to 0 defaults to # of CPUs/2 (default in sage).
 
 <CENTER>
     <table>
