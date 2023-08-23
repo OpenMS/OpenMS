@@ -49,6 +49,15 @@ int main(int argc, const char** argv)
   FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_FileIO.mzXML", map, {FileTypes::MZXML});
   FileHandler().storeExperiment("Tutorial_FileIO.mzML", map, {FileTypes::MZML});
 
+  // The FileHandler object can also hold options for how to load the file
+  FileHandler f = FileHandler();
+  PeakFileOptions opts = PeakFileOptions();
+  // Here we set the MZ range to load to 100-200
+  opts.setMZRange(DRange<1>(100,200));
+  f.setOptions(opts);
+  f.loadExperiment(tutorial_data_path + "/data/Tutorial_FileIO.mzXML", map, {FileTypes::MZXML});
+
+
   // we can also load an experiment from a file without any restrictions on the file type:
   FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_Spectrum1D.dta", map);
 
