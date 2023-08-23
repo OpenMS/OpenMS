@@ -76,7 +76,7 @@ public:
     /**
       @brief Implement ProgressLoggerImpl::endProgress().
     */
-    void endProgress(const int /* current_recursion_depth */) const override;
+    void endProgress(const int current_recursion_depth, UInt64 bytes_processed = 0) const override;
 
     /// d'tor
     ~GUIProgressLoggerImpl() override;

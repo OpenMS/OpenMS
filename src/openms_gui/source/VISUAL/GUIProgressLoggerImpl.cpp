@@ -99,7 +99,7 @@ namespace OpenMS
     return ++current_;
   }
 
-  void GUIProgressLoggerImpl::endProgress(const int /* current_recursion_depth */) const
+  void GUIProgressLoggerImpl::endProgress(const int /* current_recursion_depth */, UInt64 /* bytes_processed */) const
   {
     if (dlg_)
     {
