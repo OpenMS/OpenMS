@@ -4,8 +4,8 @@ from String cimport *
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>" namespace "OpenMS::SiriusMzTabWriter":
     
     cdef cppclass SiriusAdapterHit "OpenMS::SiriusMzTabWriter::SiriusAdapterHit":
-        SiriusAdapterHit() nogil except +
-        SiriusAdapterHit(SiriusAdapterHit &) nogil except + # compiler
+        SiriusAdapterHit() except + nogil 
+        SiriusAdapterHit(SiriusAdapterHit &) except + nogil  # compiler
 
         String formula
         String adduct

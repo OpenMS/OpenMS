@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/QuantitativeExperimentalDesign.h
     cdef cppclass QuantitativeExperimentalDesign(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
-        QuantitativeExperimentalDesign() nogil except +
+        QuantitativeExperimentalDesign() except + nogil 
         # private
-        QuantitativeExperimentalDesign(QuantitativeExperimentalDesign) nogil except + #wrap-ignore
-        void applyDesign2Resolver(ProteinResolver & resolver, TextFile & file_, StringList & fileNames) nogil except +
+        QuantitativeExperimentalDesign(QuantitativeExperimentalDesign) except + nogil  #wrap-ignore
+        void applyDesign2Resolver(ProteinResolver & resolver, TextFile & file_, StringList & fileNames) except + nogil 

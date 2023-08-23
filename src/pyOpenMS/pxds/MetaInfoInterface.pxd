@@ -23,30 +23,30 @@ cdef extern from "<OpenMS/METADATA/MetaInfoInterface.h>" namespace "OpenMS":
         #    exp.getKeys(k) # explore available key-value pairs
         #    exp.getMetaValue("someMetaName")
 
-        MetaInfoInterface() nogil except +
-        MetaInfoInterface(MetaInfoInterface &) nogil except +
+        MetaInfoInterface() except + nogil 
+        MetaInfoInterface(MetaInfoInterface &) except + nogil 
 
-        bool operator==(MetaInfoInterface) nogil except +
-        bool operator!=(MetaInfoInterface) nogil except +
-        bool isMetaEmpty() nogil except + # wrap-doc:Returns if the MetaInfo is empty
-        void clearMetaInfo() nogil except + # wrap-doc:Removes all meta values
+        bool operator==(MetaInfoInterface) except + nogil 
+        bool operator!=(MetaInfoInterface) except + nogil 
+        bool isMetaEmpty() except + nogil  # wrap-doc:Returns if the MetaInfo is empty
+        void clearMetaInfo() except + nogil  # wrap-doc:Removes all meta values
 
-        MetaInfoRegistry metaRegistry() nogil except + # wrap-doc:Returns a reference to the MetaInfoRegistry
+        MetaInfoRegistry metaRegistry() except + nogil  # wrap-doc:Returns a reference to the MetaInfoRegistry
 
         # Cython has a problem with inheritance of overloaded methods, so we
         # can only declare one of the methods here (most people will want
         # to use the String-based methods).
         #
-        void getKeys(libcpp_vector[String] & keys) nogil except + # wrap-doc:Fills the given vector with a list of all keys for which a value is set
+        void getKeys(libcpp_vector[String] & keys) except + nogil  # wrap-doc:Fills the given vector with a list of all keys for which a value is set
         #void getKeys(libcpp_vector[unsigned int] & keys)
-        DataValue getMetaValue(String) nogil except + # wrap-doc:Returns the value corresponding to a string, or DataValue::EMPTY if not found
-        #DataValue getMetaValue(String, DataValue) nogil except +
-        #DataValue getMetaValue(unsigned int) nogil except +
-        #DataValue getMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except + # wrap-doc:Sets the DataValue corresponding to a name
-        #void setMetaValue(unsigned int, DataValue) nogil except +
-        bool metaValueExists(String) nogil except + # wrap-doc:Returns whether an entry with the given name exists
-        #bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except + # wrap-doc:Removes the DataValue corresponding to `name` if it exists
-        #void removeMetaValue(unsigned int) nogil except +
+        DataValue getMetaValue(String) except + nogil  # wrap-doc:Returns the value corresponding to a string, or DataValue::EMPTY if not found
+        #DataValue getMetaValue(String, DataValue) except + nogil 
+        #DataValue getMetaValue(unsigned int) except + nogil 
+        #DataValue getMetaValue(unsigned int, DataValue) except + nogil 
+        void setMetaValue(String, DataValue) except + nogil  # wrap-doc:Sets the DataValue corresponding to a name
+        #void setMetaValue(unsigned int, DataValue) except + nogil 
+        bool metaValueExists(String) except + nogil  # wrap-doc:Returns whether an entry with the given name exists
+        #bool metaValueExists(unsigned int) except + nogil 
+        void removeMetaValue(String) except + nogil  # wrap-doc:Removes the DataValue corresponding to `name` if it exists
+        #void removeMetaValue(unsigned int) except + nogil 
 

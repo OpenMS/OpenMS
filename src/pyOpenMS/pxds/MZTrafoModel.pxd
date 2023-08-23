@@ -24,12 +24,12 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
                 #  
                 #  Outlier detection before model building via the RANSAC algorithm is supported for LINEAR and QUADRATIC models
 
-        MZTrafoModel()  nogil except +
-        MZTrafoModel(MZTrafoModel &) nogil except + # compiler
-        MZTrafoModel(bool) nogil except +
-        bool isTrained() nogil except + # wrap-doc:Returns true if the model have coefficients (i.e. was trained successfully)
-        double getRT() nogil except + # wrap-doc:Get RT associated with the model (training region)
-        double predict(double mz) nogil except +
+        MZTrafoModel()  except + nogil 
+        MZTrafoModel(MZTrafoModel &) except + nogil  # compiler
+        MZTrafoModel(bool) except + nogil 
+        bool isTrained() except + nogil  # wrap-doc:Returns true if the model have coefficients (i.e. was trained successfully)
+        double getRT() except + nogil  # wrap-doc:Get RT associated with the model (training region)
+        double predict(double mz) except + nogil 
             # wrap-doc:
                 #  Apply the model to an uncalibrated m/z value
                 #  
@@ -42,7 +42,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
                 #  :param mz: The uncalibrated m/z value
                 #  :return: The calibrated m/z value
 
-        bool train(CalibrationData cd, MZTrafoModel_MODELTYPE md, bool use_RANSAC, double rt_left, double rt_right) nogil except +
+        bool train(CalibrationData cd, MZTrafoModel_MODELTYPE md, bool use_RANSAC, double rt_left, double rt_right) except + nogil 
             # wrap-doc:
                 #  Train a model using calibrant data
                 #  
@@ -64,7 +64,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
                 #  :param rt_right: Filter 'cd' by RT; all calibrants with RT > 'rt_right' are removed
                 #  :return: True if model was build, false otherwise
                 
-        bool train(libcpp_vector[double] error_mz, libcpp_vector[double] theo_mz, libcpp_vector[double] weights, MZTrafoModel_MODELTYPE md, bool use_RANSAC) nogil except +
+        bool train(libcpp_vector[double] error_mz, libcpp_vector[double] theo_mz, libcpp_vector[double] weights, MZTrafoModel_MODELTYPE md, bool use_RANSAC) except + nogil 
             # wrap-doc:
                 #  Train a model using calibrant data
                 #  
@@ -89,7 +89,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
                 #  :param use_RANSAC: Remove outliers before computing the model?
                 #  :return: True if model was build, false otherwise
 
-        void getCoefficients(double& intercept, double& slope, double& power) nogil except +
+        void getCoefficients(double& intercept, double& slope, double& power) except + nogil 
             # wrap-doc:
                 #  Get model coefficients
                 #  
@@ -101,8 +101,8 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
                 #  :param slope: The slope
                 #  :param power: The coefficient for x*x (will be 0 for linear models)
 
-        void setCoefficients(MZTrafoModel) nogil except + # wrap-doc:Copy model coefficients from another model
-        void setCoefficients(double, double, double) nogil except +
+        void setCoefficients(MZTrafoModel) except + nogil  # wrap-doc:Copy model coefficients from another model
+        void setCoefficients(double, double, double) except + nogil 
             # wrap-doc:
                 #  Manually set model coefficients
                 #  
@@ -115,7 +115,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
                 #  :param slope: The slope
                 #  :param power: The x*x coefficient (for quadratic models)
 
-        String toString() nogil except +
+        String toString() except + nogil 
         
 cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "OpenMS::MZTrafoModel":
 
@@ -127,11 +127,11 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
         SIZE_OF_MODELTYPE
     
     # static members
-    # libcpp_string names_of_modeltype[] nogil except +
-    MZTrafoModel_MODELTYPE nameToEnum(libcpp_string name) nogil except + # wrap-attach:MZTrafoModel
-    libcpp_string enumToName(MZTrafoModel_MODELTYPE mt) nogil except + # wrap-attach:MZTrafoModel
-    void setRANSACParams(RANSACParam p) nogil except + # wrap-attach:MZTrafoModel
-    void setCoefficientLimits(double offset, double scale, double power) nogil except + # wrap-attach:MZTrafoModel
-    bool isValidModel(MZTrafoModel& trafo) nogil except + # wrap-attach:MZTrafoModel
-    Size findNearest(libcpp_vector[MZTrafoModel]& tms, double rt) nogil except + # wrap-attach:MZTrafoModel
+    # libcpp_string names_of_modeltype[] except + nogil 
+    MZTrafoModel_MODELTYPE nameToEnum(libcpp_string name) except + nogil  # wrap-attach:MZTrafoModel
+    libcpp_string enumToName(MZTrafoModel_MODELTYPE mt) except + nogil  # wrap-attach:MZTrafoModel
+    void setRANSACParams(RANSACParam p) except + nogil  # wrap-attach:MZTrafoModel
+    void setCoefficientLimits(double offset, double scale, double power) except + nogil  # wrap-attach:MZTrafoModel
+    bool isValidModel(MZTrafoModel& trafo) except + nogil  # wrap-attach:MZTrafoModel
+    Size findNearest(libcpp_vector[MZTrafoModel]& tms, double rt) except + nogil  # wrap-attach:MZTrafoModel
     

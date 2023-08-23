@@ -27,6 +27,7 @@ JavaInfo.h
 NetworkGetRequest.h
 PythonInfo.h
 RWrapper.h
+SIMDe.h
 StopWatch.h
 SysInfo.h
 UpdateCheck.h

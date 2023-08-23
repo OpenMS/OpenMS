@@ -1191,6 +1191,7 @@ namespace OpenMS::Internal
         }
         spectrum_data.char_rest_ = "";
         PeakType peak;
+        assert(data.size() == 2 * spectrum_data.peak_count_);
         //push_back the peaks into the container
         for (Size n = 0; n < (2 * spectrum_data.peak_count_); n += 2)
         {
@@ -1217,6 +1218,7 @@ namespace OpenMS::Internal
         }
         spectrum_data.char_rest_ = "";
         PeakType peak;
+        assert(data.size() == 2 * spectrum_data.peak_count_);
         //push_back the peaks into the container
         for (Size n = 0; n < (2 * spectrum_data.peak_count_); n += 2)
         {

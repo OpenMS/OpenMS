@@ -9,9 +9,9 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/GoodDiffFilter.h>" namespace "O
         # wrap-doc:
         #  It counts the number ob peak pairs whose m/z difference can be explained by a amino acid loss
 
-        GoodDiffFilter() nogil except +
-        GoodDiffFilter(GoodDiffFilter &) nogil except +
+        GoodDiffFilter() except + nogil 
+        GoodDiffFilter(GoodDiffFilter &) except + nogil 
 
-        double apply(MSSpectrum & ) nogil except +
-        # POINTER # FilterFunctor * create() nogil except +
-        String getProductName() nogil except + # wrap-doc:Returns the final product name 
+        double apply(MSSpectrum & ) except + nogil 
+        # POINTER # FilterFunctor * create() except + nogil 
+        String getProductName() except + nogil  # wrap-doc:Returns the final product name 

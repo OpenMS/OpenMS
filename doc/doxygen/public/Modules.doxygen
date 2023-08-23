@@ -313,13 +313,3 @@
 
 	@ingroup Visual
 */
-
-// ----------------------------- Simulation -------------------------------
-
-/**
-  @defgroup Simulation Simulation
-
-  @brief Simulation classes
-  
-  This module contains all classes involved in simulating different aspects of Mass Spectrometry Experiments.
-*/

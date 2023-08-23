@@ -44,7 +44,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_NewTool
+    @page TOPP_NewTool
 
     @brief Template for a new Tool
 
@@ -53,9 +53,9 @@ using namespace std;
     And more scientific applications.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_NewTool.cli
+    @verbinclude TOPP_NewTool.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_NewTool.html
+    @htmlinclude TOPP_NewTool.html
 */
 
 // We do not want this class to show up in the docu:

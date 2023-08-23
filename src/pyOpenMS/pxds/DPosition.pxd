@@ -16,39 +16,39 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DPosition.h>" namespace "OpenMS":
 
     cdef cppclass DPosition1 "OpenMS::DPosition<1> ":
         # wrap-ignore
-        DPosition1()  nogil except + # TODO
-        DPosition1(double)  nogil except +
-        DPosition1(DPosition1 &)  nogil except +
+        DPosition1()  except + nogil  # TODO
+        DPosition1(double)  except + nogil 
+        DPosition1(DPosition1 &)  except + nogil 
 
-        double & operator[](Size index) nogil except +
-        bool operator==(DPosition1) nogil except +
-        bool operator!=(DPosition1) nogil except +
+        double & operator[](Size index) except + nogil 
+        bool operator==(DPosition1) except + nogil 
+        bool operator!=(DPosition1) except + nogil 
 
-        bool operator<(DPosition1) nogil except +
-        bool operator<=(DPosition1) nogil except +
+        bool operator<(DPosition1) except + nogil 
+        bool operator<=(DPosition1) except + nogil 
 
-        bool operator>(DPosition1) nogil except +
-        bool operator>=(DPosition1) nogil except +
+        bool operator>(DPosition1) except + nogil 
+        bool operator>=(DPosition1) except + nogil 
 
-        void clear() nogil except +
-        Size size() nogil except +
+        void clear() except + nogil 
+        Size size() except + nogil 
 
     cdef cppclass DPosition2 "OpenMS::DPosition<2> ":
         # wrap-ignore
-        DPosition2()  nogil except + # TODO
-        DPosition2(DPosition2 &)  nogil except +
-        DPosition2(double)  nogil except +
-        DPosition2(double, double)  nogil except +
+        DPosition2()  except + nogil  # TODO
+        DPosition2(DPosition2 &)  except + nogil 
+        DPosition2(double)  except + nogil 
+        DPosition2(double, double)  except + nogil 
 
-        double & operator[](Size index) nogil except +
-        bool operator==(DPosition2) nogil except +
-        bool operator!=(DPosition2) nogil except +
+        double & operator[](Size index) except + nogil 
+        bool operator==(DPosition2) except + nogil 
+        bool operator!=(DPosition2) except + nogil 
 
-        bool operator<(DPosition2) nogil except +
-        bool operator<=(DPosition2) nogil except +
+        bool operator<(DPosition2) except + nogil 
+        bool operator<=(DPosition2) except + nogil 
 
-        bool operator>(DPosition2) nogil except +
-        bool operator>=(DPosition2) nogil except +
+        bool operator>(DPosition2) except + nogil 
+        bool operator>=(DPosition2) except + nogil 
 
-        void clear() nogil except +
-        Size size() nogil except +
+        void clear() except + nogil 
+        Size size() except + nogil 

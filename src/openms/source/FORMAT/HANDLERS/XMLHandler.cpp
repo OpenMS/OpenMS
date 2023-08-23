@@ -104,70 +104,73 @@ namespace OpenMS::Internal
 
     void XMLHandler::fatalError(ActionMode mode, const String & msg, UInt line, UInt column) const
     {
+      String error_message;
       if (mode == LOAD)
       {
-        error_message_ =  String("While loading '") + file_ + "': " + msg;
+        error_message =  String("While loading '") + file_ + "': " + msg;
 	      // test if file has the wrong extension and is therefore passed to the wrong parser
         // only makes sense if we are loading/parsing a file
 	      FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
         FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
         if (ft_name != ft_content)
         {
-          error_message_ += String("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
+          error_message += String("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
                           + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
                           + "Rename the file to fix this.";
         }
       }
       else if (mode == STORE)
       {
-        error_message_ =  String("While storing '") + file_ + "': " + msg;
+        error_message =  String("While storing '") + file_ + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
-        error_message_ += String("( in line ") + line + " column " + column + ")";
+        error_message += String("( in line ") + line + " column " + column + ")";
       }
 
-      OPENMS_LOG_FATAL_ERROR << error_message_ << std::endl;
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, error_message_);
+      OPENMS_LOG_FATAL_ERROR << error_message << std::endl;
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, error_message);
     }
 
     void XMLHandler::error(ActionMode mode, const String & msg, UInt line, UInt column) const
     {
+      String error_message;
       if (mode == LOAD)
       {
-        error_message_ =  String("Non-fatal error while loading '") + file_ + "': " + msg;
+        error_message =  String("Non-fatal error while loading '") + file_ + "': " + msg;
       }
       else if (mode == STORE)
       {
-        error_message_ =  String("Non-fatal error while storing '") + file_ + "': " + msg;
+        error_message =  String("Non-fatal error while storing '") + file_ + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
-        error_message_ += String("( in line ") + line + " column " + column + ")";
+        error_message += String("( in line ") + line + " column " + column + ")";
       }
-      OPENMS_LOG_ERROR << error_message_ << std::endl;
+      OPENMS_LOG_ERROR << error_message << std::endl;
     }
 
     void XMLHandler::warning(ActionMode mode, const String & msg, UInt line, UInt column) const
     {
+      String error_message;
       if (mode == LOAD)
       {
-        error_message_ =  String("While loading '") + file_ + "': " + msg;
+        error_message =  String("While loading '") + file_ + "': " + msg;
       }
       else if (mode == STORE)
       {
-        error_message_ =  String("While storing '") + file_ + "': " + msg;
+        error_message =  String("While storing '") + file_ + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
-        error_message_ += String("( in line ") + line + " column " + column + ")";
+        error_message += String("( in line ") + line + " column " + column + ")";
       }
 
 // warn only in Debug mode but suppress warnings in release mode (more happy users)
 #ifdef OPENMS_ASSERTIONS
-      OPENMS_LOG_WARN << error_message_ << std::endl;
+      OPENMS_LOG_WARN << error_message << std::endl;
 #else
-      OPENMS_LOG_DEBUG << error_message_ << std::endl;
+      OPENMS_LOG_DEBUG << error_message << std::endl;
 #endif
 
     }
@@ -186,11 +189,6 @@ namespace OpenMS::Internal
 
     void XMLHandler::writeTo(std::ostream & /*os*/)
     {
-    }
-
-    String XMLHandler::errorString()
-    {
-      return error_message_;
     }
 
     SignedSize XMLHandler::cvStringToEnum_(const Size section, const String & term, const char * message, const SignedSize result_on_error)

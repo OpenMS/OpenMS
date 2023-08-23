@@ -465,13 +465,6 @@ namespace OpenMS
     //Param category_param = param_.copy("tool_categories:", true);
 
     ToolListType tools_list = ToolHandler::getTOPPToolList(true);
-    ToolListType util_list = ToolHandler::getUtilList();
-    // append utils
-    for (ToolListType::iterator it = util_list.begin(); it != util_list.end(); ++it)
-    {
-      it->second.category = "Utils";
-      tools_list.insert(*it);
-    }
 
     // any tool without a category gets into "unassigned" bin
     for (ToolListType::iterator it = tools_list.begin(); it != tools_list.end(); ++it)
@@ -1083,7 +1076,6 @@ namespace OpenMS
       ParamXMLFile paramFile;
       // TODO: if closing multiple TOPPAS instances simultaneously, we might write to this file concurrently
       //       thus destroying its integrity. Think about using boost filelocks
-      //       see OpenMS/METADATA/DocumentIDTagger.h for example
       //       and also implement in TOPPView (and other GUI's which write to user directory)
       paramFile.store(string(param_.getValue("PreferencesFile")), save_param);
     }
