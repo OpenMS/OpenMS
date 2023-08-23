@@ -36,18 +36,81 @@
 
 ///////////////////////////
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringUtilsSimple.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
+using namespace StringUtils;
 
 START_TEST(StringUtils, "$Id$")
 
+string whitespaces = "\t\r\n "; ///< all whitespaces we need to test
+
+START_SECTION(inline const char* skipWhitespace(const char* p, const char* p_end))
+{
+  // postfix with 16x, to enable SIMD on the prefix
+  #define x16 "xxxxxxxxxxxxxxxx"
+  #define s16 "                "
+  for (const char whitespace : whitespaces)
+  {
+    String at1 = "0 2  3456789101112" x16;
+    at1.substitute(' ', whitespace);
+    TEST_EQUAL(skipWhitespace(at1), 0);
+    TEST_EQUAL(skipWhitespace(std::string_view(at1.data() + 1)), 1);
+    TEST_EQUAL(skipWhitespace(std::string_view(at1.data() + 2)), 0);
+    TEST_EQUAL(skipWhitespace(std::string_view(at1.data() + 3)), 2);
+    String at2 = s16 s16 "1" x16;
+    at2.substitute(' ', whitespace);
+    TEST_EQUAL(skipWhitespace(std::string_view(at2.data())), 32);
+    TEST_EQUAL(skipWhitespace(std::string_view(at2.data() + 2)), 30);
+    String at1_noSSE = "0 2  34";
+    at1_noSSE.substitute(' ', whitespace);
+    TEST_EQUAL(skipWhitespace(std::string_view(at1_noSSE.data())), 0);
+    TEST_EQUAL(skipWhitespace(std::string_view(at1_noSSE.data() + 1)), 1);
+    TEST_EQUAL(skipWhitespace(std::string_view(at1_noSSE.data() + 2)), 0);
+    TEST_EQUAL(skipWhitespace(std::string_view(at1_noSSE.data() + 3)), 2);
+  }
+}
+END_SECTION
+
+START_SECTION(inline const char* skipNonWhitespace(const char* p, const char* p_end))
+{
+  // postfix with 16x, to enable SIMD on the prefix
+  #define x16 "xxxxxxxxxxxxxxxx"
+  #define s16 "                "
+  for (const char whitespace : whitespaces)
+  {
+    String at1 = "0 2  3456789101112" x16;
+    at1.substitute(' ', whitespace);
+    TEST_EQUAL(skipNonWhitespace(at1), 1);
+    TEST_EQUAL(skipNonWhitespace(std::string_view(at1.data() + 1)), 0);
+    TEST_EQUAL(skipNonWhitespace(std::string_view(at1.data() + 2)), 1);
+    TEST_EQUAL(skipNonWhitespace(std::string_view(at1.data() + 3)), 0);
+    TEST_EQUAL(skipNonWhitespace(std::string_view(at1.data() + 5)), 13 + 16);
+    String at2 = x16 x16 " " x16;
+    at2.substitute(' ', whitespace);
+    TEST_EQUAL(skipNonWhitespace(std::string_view(at2.data())), 32);
+    TEST_EQUAL(skipNonWhitespace(std::string_view(at2.data() + 31)), 1);
+    TEST_EQUAL(skipNonWhitespace(std::string_view(at2.data() + 33)), 16);
+    String at1_noSSE = "0 2  34";
+    at1_noSSE.substitute(' ', whitespace);
+    TEST_EQUAL(skipNonWhitespace(std::string_view(at1_noSSE.data())), 1);
+    TEST_EQUAL(skipNonWhitespace(std::string_view(at1_noSSE.data() + 1)), 0);
+    TEST_EQUAL(skipNonWhitespace(std::string_view(at1_noSSE.data() + 2)), 1);
+    TEST_EQUAL(skipNonWhitespace(std::string_view(at1_noSSE.data() + 3)), 0);
+    TEST_EQUAL(skipNonWhitespace(std::string_view(at1_noSSE.data() + 5)), 2);
+  }
+}
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
 StringUtilsHelper* ptr = nullptr;
 StringUtilsHelper* null_ptr = nullptr;
+
+
+
 START_SECTION(StringUtilsHelper())
 {
 	ptr = new StringUtilsHelper();
