@@ -848,8 +848,15 @@ protected:
     }
     catch(Exception::MissingInformation&)
     {
-      OPENMS_LOG_FATAL_ERROR << "ProteomicsLFQ expects a Posterior Error Probability score in all Peptide IDs. ID file: " << id_file_abs_path << endl;
-      return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+      if (getStringOption_("protein_inference") == "bayesian")
+      {
+        OPENMS_LOG_FATAL_ERROR << "ProteomicsLFQ with Bayesian inference expects a Posterior Error Probability score in all Peptide IDs. Affected ID file: " << id_file_abs_path << endl;
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+      } 
+      else
+      {
+        OPENMS_LOG_WARN << "A probabilistic score is recommended for protein inference in ProteomicsLFQ but none was found that applies to all IDs. Affected ID file: " << id_file_abs_path << endl;
+      }
     }
     return EXECUTION_OK;
   }
