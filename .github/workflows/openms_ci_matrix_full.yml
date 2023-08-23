@@ -511,7 +511,7 @@ jobs:
               git clone -q https://github.com/OpenMS/de.openms.knime --branch develop --single-branch .
               CONTRIBUTING_DATE=$(git_last_change_date .)
               echo "Setting qualifier/SNAPSHOT for de.openms.knime contrib plugins to ${CONTRIBUTING_DATE}!"
-              git log -1 --format="%cd" --date=iso`" "+%Y%m%d%H%M"
+              git log -1 --format="%cd" --date=iso
               
               # TODO just iterate over all folders?
               replace_qualifier de.openms.knime.startupCheck ${CONTRIBUTING_DATE}
