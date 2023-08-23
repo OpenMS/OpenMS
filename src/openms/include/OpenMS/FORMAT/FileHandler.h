@@ -198,6 +198,22 @@ public:
                         ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = false,
                         const bool compute_hash = false);
 
+
+        /**
+      @brief Loads a single MSSpectrum from a file
+
+      @param filename The file name of the file to load.
+      @param spec The spectrum to load the data into.
+      @param allowed_types a @p vector<FileTypes::Files> containing the types supported where this function is called. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
+      @return true if the file could be loaded, false otherwise
+
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing
+    */
+    void loadSpectrum(const String& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
+
+
+
     /**
       @brief Stores an MSExperiment to a file
 

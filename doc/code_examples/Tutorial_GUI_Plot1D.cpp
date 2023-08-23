@@ -51,7 +51,9 @@ Int main(int argc, const char** argv)
   QApplication app(argc, const_cast<char**>(argv));
 
   PeakMap exp;
-  FileHandler().loadExperiment(tutorial_data_path, exp, {FileTypes::DTA});
+  MSSpectrum spec;
+  FileHandler().loadSpectrum(tutorial_data_path, spec, {FileTypes::DTA});
+  exp.addSpectrum(spec);
   LayerDataBase::ExperimentSharedPtrType exp_sptr(new PeakMap(exp));
   LayerDataBase::ODExperimentSharedPtrType on_disc_exp_sptr(new OnDiscMSExperiment());
   auto* widget = new Plot1DWidget(Param(), DIM::Y, nullptr);

@@ -645,6 +645,41 @@ namespace OpenMS
     return String((QString)crypto.result().toHex());
   }
 
+  void FileHandler::loadSpectrum(const String& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types)
+  {
+    // If we have a restricted set of file types check that we match them
+    if (allowed_types.size() != 0)
+    {
+      if (!check_types_(allowed_types, filename))
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not allowed for loading a spectrum");
+      }
+    }
+    
+    // determine file type
+    FileTypes::Type type = getType(filename);
+
+    switch (type)
+    {
+      case FileTypes::DTA: 
+      {
+        DTAFile().load(filename, spec);
+      }
+      break;
+
+      case FileTypes::XMASS: 
+      {
+        XMassFile().load(filename, spec);
+      }
+      break;
+
+      default: 
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading a spectrum");
+      }
+    }
+  }
+
 
   void FileHandler::loadExperiment(const String& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log, const bool rewrite_source_file,
                                    const bool compute_hash)
