@@ -67,6 +67,8 @@ using namespace std;
 
     @brief Identifies peptides in MS/MS spectra via sage.
 
+    Setting the "threads" parameter to a non-zero value indicates how many files to load and search in parallel. Setting it to 0 defaults tp # of CPUs/2 (default in sage).
+
 <CENTER>
     <table>
         <tr>
@@ -383,7 +385,6 @@ protected:
       "The Sage executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
 
     registerStringOption_("decoy_prefix", "<prefix>", "DECOY_", "Prefix on protein accession used to distinguish decoy from target proteins.", false, false);
-    registerIntOption_("batch_size", "<int>", 0, "Number of files to load and search in parallel (default = # of CPUs/2)", false, false);
     
     registerStringOption_("precursor_tol_unit", "<unit>", "ppm", "Unit of precursor tolerance (ppm or Da)", false, false);
     setValidStrings_("precursor_tol_unit", ListUtils::create<String>("ppm,Da"));
@@ -452,7 +453,7 @@ protected:
     String output_file = getStringOption_("out");
     String output_folder = File::path(output_file);
     String fasta_file = getStringOption_("database");
-    int batch = getIntOption_("batch_size");
+    int batch = getIntOption_("threads");
     String decoy_prefix = getStringOption_("decoy_prefix");
 
     // create config
