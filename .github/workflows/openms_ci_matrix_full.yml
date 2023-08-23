@@ -463,7 +463,7 @@ jobs:
           java-version: ${{ env.JAVA_VER }}
           distribution: 'temurin'
 
-      - name: Generate plugin sources
+      - name: Generate KNIME plugin sources
         shell: bash
         run: |
             ## Setup functions
@@ -576,10 +576,10 @@ jobs:
           # remove maven pom.xmls since we will do a full pomless build. poms are only necessary if you want to develop on a single plugin, e.g., in eclipse.
           find . -mindepth 2 -name "pom.xml*" -exec rm {} \;
 
-          # TODO check if correct maven version is installed
+          # Build update site. Downloads necessary plugins from the dependency update sites from KNIME and GKN (for the correct KNIME version)
           mvn --no-transfer-progress "-Dknime.version=${KNIME}" "-Djava.majorversion=${JAVA_VER}" "-Dgkn.update.site=https://abibuilder.cs.uni-tuebingen.de/archive/gkn/updateSite/${KNIME}/" clean verify
 
-      - name: Upload installer
+      - name: Upload KNIME update site
         shell: bash
         env:
           PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
