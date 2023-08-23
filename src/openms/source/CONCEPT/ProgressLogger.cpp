@@ -38,6 +38,7 @@
 #include <OpenMS/CONCEPT/Factory.h>
 
 #include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <QtCore/QString>
 
@@ -74,7 +75,6 @@ public:
       begin_ = begin;
       current_ = begin_;
       end_ = end;
-      if (current_recursion_depth) cout << '\n';
       cout << string(2 * current_recursion_depth, ' ') << "Progress of '" << label << "':" << endl;
       stop_watch_.reset();
       stop_watch_.start();
@@ -104,14 +104,15 @@ public:
       return current_;
     }
 
-    void endProgress(const int current_recursion_depth) const override
+    void endProgress(const int current_recursion_depth, UInt64 bytes_processed) const override
     {
       stop_watch_.stop();
-      if (current_recursion_depth)
+      String IO_stats;
+      if (bytes_processed)
       {
-        cout << '\n';
+        IO_stats = ", " + bytesToHumanReadable(bytes_processed / stop_watch_.getClockTime()) + "/sec";
       }
-      cout << '\r' << string(2 * current_recursion_depth, ' ') << "-- done [took " << StopWatch::toString(stop_watch_.getCPUTime()) << " (CPU), " << StopWatch::toString(stop_watch_.getClockTime()) << " (Wall)] -- " << endl;
+      cout << '\r' << string(2 * current_recursion_depth, ' ') << "-- done [took " << StopWatch::toString(stop_watch_.getCPUTime()) << " (CPU), " << StopWatch::toString(stop_watch_.getClockTime()) << " (Wall)" << IO_stats << "] -- " << endl;
     }
 
 private:
@@ -150,7 +151,7 @@ public:
       return 0;
     }
     
-    void endProgress(const int /* current_recursion_depth */) const override
+    void endProgress(const int /* current_recursion_depth */, UInt64 /*bytes_processed*/) const override
     {
     }
 
@@ -277,13 +278,13 @@ public:
     current_logger_->setProgress(p, recursion_depth_);
   }
 
-  void ProgressLogger::endProgress() const
+  void ProgressLogger::endProgress(UInt64 bytes_processed) const
   {
     if (recursion_depth_)
     {
       --recursion_depth_;
     }
-    current_logger_->endProgress(recursion_depth_);
+    current_logger_->endProgress(recursion_depth_, bytes_processed);
   }
 
 
