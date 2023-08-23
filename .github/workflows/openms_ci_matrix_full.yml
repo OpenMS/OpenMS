@@ -488,20 +488,8 @@ jobs:
             GKN_PLUGIN_PATH=${GITHUB_WORKSPACE}/GenericKnimeNodes
             git clone -q https://github.com/genericworkflownodes/GenericKnimeNodes/ --branch develop --single-branch $GKN_PLUGIN_PATH
 
-            ## Source and build dir (choose)
+            ## Create folders
             mkdir ${PLUGIN_BUILD}
-
-            ## Merge payloads and descriptors into one folder
-            touch rsync.log
-            ls -la
-
-            # Not needed if download-artifact merges correctly
-            #for d in knime*
-            #do
-            #  rsync -avh --progress $d/build/knime/ ${PLUGIN_SOURCE}/ >> rsync.log
-            #  rm -rf $d
-            #done
-
             PLUGIN_SOURCE_CONTRIB_PLUGINS=${PLUGIN_SOURCE}/de.openms.feature/contributing-plugins
             mkdir -p ${PLUGIN_SOURCE_CONTRIB_PLUGINS}
             PLUGIN_SOURCE_THIRDPARTY_CONTRIB_PLUGINS=${PLUGIN_SOURCE}/de.openms.thirdparty.feature/contributing-plugins
@@ -522,6 +510,8 @@ jobs:
 
               git clone -q https://github.com/OpenMS/de.openms.knime --branch develop --single-branch .
               CONTRIBUTING_DATE=$(git_last_change_date .)
+              echo "Setting qualifier/SNAPSHOT for de.openms.knime contrib plugins to ${CONTRIBUTING_DATE}!"
+              git log -1 --format="%cd" --date=iso`" "+%Y%m%d%H%M"
               
               # TODO just iterate over all folders?
               replace_qualifier de.openms.knime.startupCheck ${CONTRIBUTING_DATE}
@@ -544,14 +534,17 @@ jobs:
 
             popd
 
+            ## New contrib plugin: de.openms.knime.dynamicJSViewers
             git clone -q https://github.com/genericworkflownodes/de.openms.knime.dynamicJSViewers --branch master --single-branch
             CONTRIBUTING_DATE=$(git_last_change_date de.openms.knime.dynamicJSViewers)
+            
             mv de.openms.knime.dynamicJSViewers/de.openms.knime.dynamicJSViewers.feature ${PLUGIN_SOURCE}/
             mkdir ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins
             rm -rf ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/.settings
             mv de.openms.knime.dynamicJSViewers/de.openms.knime.dynamicJSViewers ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins/
 
             pushd ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins/
+              echo "Setting qualifier/SNAPSHOT for de.openms.knime.dynamicJSViewers to ${CONTRIBUTING_DATE}"
               replace_qualifier de.openms.knime.dynamicJSViewers ${CONTRIBUTING_DATE}
               replace_snapshot de.openms.knime.dynamicJSViewers ${CONTRIBUTING_DATE}
             popd
@@ -588,7 +581,7 @@ jobs:
           find . -mindepth 2 -name "pom.xml*" -exec rm {} \;
 
           # TODO check if correct maven version is installed
-          mvn "-Dknime.version=${KNIME}" "-Djava.majorversion=${JAVA_VER}" "-Dgkn.update.site=https://abibuilder.cs.uni-tuebingen.de/archive/gkn/updateSite/${KNIME}/" clean verify
+          mvn --no-transfer-progress "-Dknime.version=${KNIME}" "-Djava.majorversion=${JAVA_VER}" "-Dgkn.update.site=https://abibuilder.cs.uni-tuebingen.de/archive/gkn/updateSite/${KNIME}/" clean verify
 
       - name: Upload installer
         shell: bash
