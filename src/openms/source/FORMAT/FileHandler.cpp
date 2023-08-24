@@ -835,14 +835,10 @@ namespace OpenMS
 
   void FileHandler::storeExperiment(const String& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
-    FileTypes::Type ftype;
-    if (allowed_types.size() == 1)
-    {
+    auto ftype = getTypeByFileName(filename);
+    if (ftype == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
+    { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
       ftype = allowed_types[0];
-    }
-    else
-    {
-      ftype = getTypeByFileName(filename);
     }
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
@@ -1006,16 +1002,10 @@ namespace OpenMS
 
   void FileHandler::storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
-    FileTypes::Type ftype;
-
-    ftype = getTypeByFileName(filename);
-    if (allowed_types.size() == 1)
-    {
+    auto ftype = getTypeByFileName(filename);
+    if (ftype == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
+    { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
       ftype = allowed_types[0];
-    }
-    else
-    {
-      ftype = getTypeByFileName(filename);
     }
 
     // If we have a restricted set of file types check that we match them
@@ -1120,14 +1110,10 @@ namespace OpenMS
 
   void FileHandler::storeConsensusFeatures(const String& filename, const ConsensusMap& map,  const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
-    FileTypes::Type ftype;
-    if (allowed_types.size() == 1)
-    {
+    auto ftype = getTypeByFileName(filename);
+    if (ftype == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
+    { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
       ftype = allowed_types[0];
-    }
-    else
-    {
-      ftype = getTypeByFileName(filename);
     }
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
@@ -1245,14 +1231,10 @@ namespace OpenMS
 
   void FileHandler::storeIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
- FileTypes::Type ftype;
- if (allowed_types.size() == 1)
-    {
+    auto ftype = getTypeByFileName(filename);
+    if (ftype == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
+    { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
       ftype = allowed_types[0];
-    }
-    else
-    {
-      ftype = getTypeByFileName(filename);
     }
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
@@ -1334,14 +1316,10 @@ namespace OpenMS
 
   void FileHandler::storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
-    FileTypes::Type ftype;
-    if (allowed_types.size() == 1)
-    {
+    auto ftype = getTypeByFileName(filename);
+    if (ftype == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
+    { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
       ftype = allowed_types[0];
-    }
-    else
-    {
-      ftype = getTypeByFileName(filename);
     }
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
@@ -1398,14 +1376,10 @@ namespace OpenMS
 
   void FileHandler::storeQuantifications(const String& filename, const MSQuantifications& map,  const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
-    FileTypes::Type ftype;
-    if (allowed_types.size() == 1)
-    {
+    auto ftype = getTypeByFileName(filename);
+    if (ftype == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
+    { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
       ftype = allowed_types[0];
-    }
-    else
-    {
-     ftype = getTypeByFileName(filename);
     }
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
@@ -1461,14 +1435,10 @@ namespace OpenMS
 
   void FileHandler::storeTransformations(const String& filename, const TransformationDescription& map,  const std::vector<FileTypes::Type> allowed_types)
   {
-    FileTypes::Type ftype;
-    if (allowed_types.size() == 1)
-    {
+    auto ftype = getTypeByFileName(filename);
+    if (ftype == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
+    { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
       ftype = allowed_types[0];
-    }
-    else
-    {
-      ftype = getTypeByFileName(filename);
     }
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
@@ -1509,9 +1479,11 @@ namespace OpenMS
                const std::vector<FileTypes::Type> allowed_types
              )
   {
-    FileTypes::Type ftype;
-    ftype = getTypeByFileName(filename);
-
+    auto ftype = getTypeByFileName(filename);
+    if (ftype == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
+    { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
+      ftype = allowed_types[0];
+    }
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
