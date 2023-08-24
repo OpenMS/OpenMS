@@ -149,10 +149,10 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
 
   END_SECTION
 
-  START_SECTION(static FileTypes::FileTypeList typesWithProperties(const std::unordered_set<FileProperties>& features))
+  START_SECTION(static FileTypes::FileTypeList typesWithProperties(const std::vector<FileProperties>& features))
   {
-    std::unordered_set<FileTypes::FileProperties> f;
-    f.insert(FileTypes::READABLE);
+    std::vector<FileTypes::FileProperties> f;
+    f.push_back(FileTypes::READABLE);
     FileTypeList g = FileTypeList::typesWithProperties(f);
     TEST_EQUAL(g.getTypes().size(), 2);
   }

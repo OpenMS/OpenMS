@@ -52,8 +52,8 @@ namespace OpenMS
     FileTypes::Type type;
     String name;
     String description;
-    std::unordered_set<FileTypes::FileProperties> features;
-    TypeNameBinding(FileTypes::Type ptype, String pname, String pdescription, std::unordered_set<FileTypes::FileProperties> pfeatures)
+    std::vector<FileTypes::FileProperties> features;
+    TypeNameBinding(FileTypes::Type ptype, String pname, String pdescription, std::vector<FileTypes::FileProperties> pfeatures)
       : type(ptype), name(std::move(pname)), description(std::move(pdescription)), features(pfeatures)
     {
       // Check that there are no double-spaces in the description, since Qt will replace "  " with " " in filters supplied to QFileDialog::getSaveFileName.
@@ -164,7 +164,7 @@ namespace OpenMS
     return r == FileTypes::Type::UNKNOWN ? fallback : r;
   }
 
-  std::vector<FileTypes::Type> FileTypeList::typesWithProperties(std::unordered_set<FileTypes::FileProperties> haveFeatures)
+  std::vector<FileTypes::Type> FileTypeList::typesWithProperties(std::vector<FileTypes::FileProperties> haveFeatures)
   {
     std::vector<FileTypes::Type> compatible;
     // Copy our type_with_annotation__s to a list
@@ -173,7 +173,7 @@ namespace OpenMS
     for (auto i : haveFeatures)
     {
       // Remove any types that lack the feature
-      goodTypes.erase(std::remove_if(goodTypes.begin(), goodTypes.end(),[i](auto j) { return (j.features.find(i) == j.features.end()); }), goodTypes.end());
+      goodTypes.erase(std::remove_if(goodTypes.begin(), goodTypes.end(),[i](auto j) { return (std::find(j.features.begin(),j.features.end(),i) == j.features.end()); }), goodTypes.end());
     }
     
     for (auto t : goodTypes)
