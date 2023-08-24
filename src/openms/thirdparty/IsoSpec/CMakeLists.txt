@@ -65,3 +65,7 @@ foreach(_file ${_ISOSPEC_SOURCES})
   )
 endforeach()
 
+get_filename_component(ISOSPEC_FOLDER "${CMAKE_CURRENT_LIST_FILE}" PATH)
+file(APPEND ${TPLICENSEFILE} "\nIsoSpec:\n")
+cat(${ISOSPEC_FOLDER}/LICENSE ${TPLICENSEFILE})
+

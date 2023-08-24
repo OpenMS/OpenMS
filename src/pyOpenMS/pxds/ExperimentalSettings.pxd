@@ -21,51 +21,51 @@ cdef extern from "<OpenMS/METADATA/ExperimentalSettings.h>" namespace "OpenMS":
         #  Description of the experimental settings, provides meta-information
         #  about an LC-MS/MS injection.
 
-        ExperimentalSettings() nogil except +
-        ExperimentalSettings(ExperimentalSettings &) nogil except +
+        ExperimentalSettings() except + nogil 
+        ExperimentalSettings(ExperimentalSettings &) except + nogil 
 
         
-        libcpp_vector[SourceFile] getSourceFiles() nogil except + # wrap-doc:Returns a reference to the source data file
+        libcpp_vector[SourceFile] getSourceFiles() except + nogil  # wrap-doc:Returns a reference to the source data file
         
-        void setSourceFiles(libcpp_vector[SourceFile] source_files) nogil except + # wrap-doc:Sets the source data file
+        void setSourceFiles(libcpp_vector[SourceFile] source_files) except + nogil  # wrap-doc:Sets the source data file
 
         
-        DateTime getDateTime() nogil except + # wrap-doc:Returns the date the experiment was performed
+        DateTime getDateTime() except + nogil  # wrap-doc:Returns the date the experiment was performed
         
-        void setDateTime(DateTime date_time) nogil except + # wrap-doc:Sets the date the experiment was performed
+        void setDateTime(DateTime date_time) except + nogil  # wrap-doc:Sets the date the experiment was performed
 
         
-        Sample getSample() nogil except + # wrap-doc:Returns a reference to the sample description
+        Sample getSample() except + nogil  # wrap-doc:Returns a reference to the sample description
         
-        void setSample(Sample sample) nogil except + # wrap-doc:Sets the sample description
+        void setSample(Sample sample) except + nogil  # wrap-doc:Sets the sample description
 
         
-        libcpp_vector[ContactPerson] getContacts() nogil except + # wrap-doc:Returns a reference to the list of contact persons
+        libcpp_vector[ContactPerson] getContacts() except + nogil  # wrap-doc:Returns a reference to the list of contact persons
         
-        void setContacts(libcpp_vector[ContactPerson] contacts) nogil except + # wrap-doc:Sets the list of contact persons
+        void setContacts(libcpp_vector[ContactPerson] contacts) except + nogil  # wrap-doc:Sets the list of contact persons
 
         
-        Instrument getInstrument() nogil except + # wrap-doc:Returns a reference to the MS instrument description
+        Instrument getInstrument() except + nogil  # wrap-doc:Returns a reference to the MS instrument description
         
-        void setInstrument(Instrument instrument) nogil except + # wrap-doc:Sets the MS instrument description
+        void setInstrument(Instrument instrument) except + nogil  # wrap-doc:Sets the MS instrument description
 
         
-        HPLC getHPLC() nogil except + # wrap-doc:Returns a reference to the description of the HPLC run
+        HPLC getHPLC() except + nogil  # wrap-doc:Returns a reference to the description of the HPLC run
         
-        void setHPLC(HPLC hplc) nogil except + # wrap-doc:Sets the description of the HPLC run
+        void setHPLC(HPLC hplc) except + nogil  # wrap-doc:Sets the description of the HPLC run
 
         
-        String getComment() nogil except + # wrap-doc:Returns the free-text comment
+        String getComment() except + nogil  # wrap-doc:Returns the free-text comment
         
-        void setComment(String comment) nogil except + # wrap-doc:Sets the free-text comment
+        void setComment(String comment) except + nogil  # wrap-doc:Sets the free-text comment
 
         
-        libcpp_vector[ProteinIdentification] getProteinIdentifications() nogil except + # wrap-doc:Returns a reference to the protein ProteinIdentification vector
+        libcpp_vector[ProteinIdentification] getProteinIdentifications() except + nogil  # wrap-doc:Returns a reference to the protein ProteinIdentification vector
         
-        void setProteinIdentifications(libcpp_vector[ProteinIdentification] protein_identifications) nogil except + # wrap-doc:Sets the protein ProteinIdentification vector
+        void setProteinIdentifications(libcpp_vector[ProteinIdentification] protein_identifications) except + nogil  # wrap-doc:Sets the protein ProteinIdentification vector
 
         
-        String getFractionIdentifier() nogil except + # wrap-doc:Returns fraction identifier
+        String getFractionIdentifier() except + nogil  # wrap-doc:Returns fraction identifier
         
-        void setFractionIdentifier(String fraction_identifier) nogil except + # wrap-doc:Sets the fraction identifier
+        void setFractionIdentifier(String fraction_identifier) except + nogil  # wrap-doc:Sets the fraction identifier
 

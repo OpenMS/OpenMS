@@ -15,10 +15,10 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFileMascot.h>" namespace "OpenMS":
             #  
             #  A schema for this format can be found at http://www.matrixscience.com/xmlns/schema/pepXML_v18/pepXML_v18.xsd
 
-        PepXMLFileMascot() nogil except +
+        PepXMLFileMascot() except + nogil 
         # copy constructor of 'PepXMLFileMascot' is implicitly deleted because base class 'Internal::XMLHandler' has a deleted copy constructor protected Internal::XMLHandler,
-        PepXMLFileMascot(PepXMLFileMascot &) nogil except + # wrap-ignore
+        PepXMLFileMascot(PepXMLFileMascot &) except + nogil  # wrap-ignore
 
         # TODO map
-        # void load(const String & filename, libcpp_map[ String, libcpp_vector[ AASequence ] ] & peptides) nogil except +
+        # void load(const String & filename, libcpp_map[ String, libcpp_vector[ AASequence ] ] & peptides) except + nogil 
 

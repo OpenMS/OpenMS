@@ -10,13 +10,13 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>" namesp
     
     cdef cppclass SpectraSTSimilarityScore:
         #  PeakSpectrumCompareFunctor inheritance
-        SpectraSTSimilarityScore() nogil except +
-        SpectraSTSimilarityScore(SpectraSTSimilarityScore &) nogil except +
+        SpectraSTSimilarityScore() except + nogil 
+        SpectraSTSimilarityScore(SpectraSTSimilarityScore &) except + nogil 
         # TODO operator ()
-        # double operator()(MSSpectrum & spec1, MSSpectrum & spec2) nogil except +
-        # double operator()(BinnedSpectrum & bin1, BinnedSpectrum & bin2) nogil except +
-        # double operator()(MSSpectrum & spec) nogil except +
-        bool preprocess(MSSpectrum & spec, float remove_peak_intensity_threshold, UInt cut_peaks_below, Size min_peak_number, Size max_peak_number) nogil except +
+        # double operator()(MSSpectrum & spec1, MSSpectrum & spec2) except + nogil 
+        # double operator()(BinnedSpectrum & bin1, BinnedSpectrum & bin2) except + nogil 
+        # double operator()(MSSpectrum & spec) except + nogil 
+        bool preprocess(MSSpectrum & spec, float remove_peak_intensity_threshold, UInt cut_peaks_below, Size min_peak_number, Size max_peak_number) except + nogil 
         # wrap-doc:
                 #  Preprocesses the spectrum
                 #  
@@ -25,8 +25,8 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>" namesp
                 #  
                 #  :returns: true if spectrum passes filtering
 
-        BinnedSpectrum transform(MSSpectrum & spec) nogil except + # wrap-doc:Spectrum is transformed into a binned spectrum with bin size 1 and spread 1 and the intensities are normalized
-        double dot_bias(BinnedSpectrum & bin1, BinnedSpectrum & bin2, double dot_product) nogil except +
+        BinnedSpectrum transform(MSSpectrum & spec) except + nogil  # wrap-doc:Spectrum is transformed into a binned spectrum with bin size 1 and spread 1 and the intensities are normalized
+        double dot_bias(BinnedSpectrum & bin1, BinnedSpectrum & bin2, double dot_product) except + nogil 
         # wrap-doc:
                 #  Calculates how much of the dot product is dominated by a few peaks
                 #  
@@ -34,7 +34,7 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>" namesp
                 #  :param bin1: First spectrum in binned representation
                 #  :param bin2: Second spectrum in binned representation
 
-        double delta_D(double top_hit, double runner_up) nogil except +
+        double delta_D(double top_hit, double runner_up) except + nogil 
         # wrap-doc:
                 #  Calculates the normalized distance between top_hit and runner_up
                 #  
@@ -42,7 +42,7 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>" namesp
                 #  :param runner_up: A match with a worse score than top_hit, e.g. the second best score
                 #  :returns: normalized distance
 
-        double compute_F(double dot_product, double delta_D, double dot_bias) nogil except +
+        double compute_F(double dot_product, double delta_D, double dot_bias) except + nogil 
         # wrap-doc:
                 #  Computes the overall all score
                 #  
@@ -51,5 +51,5 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>" namesp
                 #  :param dot_bias: the bias
                 #  :returns: The SpectraST similarity score
 
-        # POINTER # MSSpectrumCompareFunctor * create() nogil except +
-        String getProductName() nogil except + # wrap-doc:Reimplemented from PeakSpectrumCompareFunctor
+        # POINTER # MSSpectrumCompareFunctor * create() except + nogil 
+        String getProductName() except + nogil  # wrap-doc:Reimplemented from PeakSpectrumCompareFunctor

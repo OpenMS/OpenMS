@@ -38,11 +38,12 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <string>
-#include <sstream>
-#include <vector>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <sstream>
+#include <string_view>
+#include <string>
+#include <vector>
 
 namespace OpenMS
 {
@@ -609,11 +610,44 @@ namespace OpenMS
         this_s.append(1, end);
       return this_s;
     }
-  
+
+    /**
+     @brief Get the first non-whitespace character (anything but \n, \t, \r, ' ') in the string pointed to by @p p (where @p p_end is past the end of the string).
+
+     If only whitespaces are contained, then @p p_end is returned.
+    */
+    OPENMS_DLLAPI const char* skipWhitespace(const char* p, const char* p_end);
+
+    /**
+     @brief Get the number of whitespace characters (\n, \t, \r, ' ') in the prefix of @p data
+    */
+    inline int skipWhitespace(const std::string_view& data)
+    {
+      auto pos = skipWhitespace(data.data(), data.data() + data.size());
+      return pos - data.data();
+    }
+
+    /**
+     @brief Get the first whitespace character (\n, \t, \r, ' ') in the string pointed to by @p p (where @p p_end is past the end of the string).
+
+     If only non-whitespaces are contained, then @p p_end is returned.
+    */
+    OPENMS_DLLAPI const char* skipNonWhitespace(const char* p, const char* p_end);
+
+    /**
+     @brief return the number of non-whitespace characters (anything but \n, \t, \r, ' ') in the prefix of @p data
+    */
+    inline int skipNonWhitespace(const std::string_view& data)
+    {
+      auto pos = skipNonWhitespace(data.data(), data.data() + data.size());
+      return pos - data.data();
+    }
+    
     static inline String& removeWhitespaces(String& this_s)
     {
-      std::string::const_iterator it = this_s.begin();
-      std::string::iterator dest = this_s.begin();
+      auto start = skipNonWhitespace(std::string_view(this_s.data()));
+      std::string::const_iterator it = this_s.begin() + start;
+      std::string::iterator dest = this_s.begin() + start;
       std::string::const_iterator it_end = this_s.end();
       bool has_spaces(false);
       while (it != it_end)

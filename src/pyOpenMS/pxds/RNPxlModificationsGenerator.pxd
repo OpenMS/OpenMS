@@ -12,8 +12,8 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>" namespa
 
     cdef cppclass RNPxlModificationsGenerator:
 
-        RNPxlModificationsGenerator() nogil except + # compiler
-        RNPxlModificationsGenerator(RNPxlModificationsGenerator &) nogil except + # compiler
+        RNPxlModificationsGenerator() except + nogil  # compiler
+        RNPxlModificationsGenerator(RNPxlModificationsGenerator &) except + nogil  # compiler
 
         RNPxlModificationMassesResult initModificationMassesRNA(
             StringList target_nucleotides,
@@ -23,14 +23,14 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>" namespa
             StringList modifications,
             String sequence_restriction, 
             bool cysteine_adduct, 
-            Int max_length) nogil except +
+            Int max_length) except + nogil 
 
 cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>" namespace "OpenMS":
 
     cdef cppclass RNPxlModificationMassesResult:
 
-        RNPxlModificationMassesResult() nogil except + # compiler
-        RNPxlModificationMassesResult(RNPxlModificationMassesResult &) nogil except + # compiler
+        RNPxlModificationMassesResult() except + nogil  # compiler
+        RNPxlModificationMassesResult(RNPxlModificationMassesResult &) except + nogil  # compiler
 
         # libcpp_map[String, double] mod_masses # empirical formula -> mass
         # libcpp_map[String, libcpp_set[String] ] mod_combinations # empirical formula -> nucleotide formula(s) (formulas if modifications lead to ambiguities)

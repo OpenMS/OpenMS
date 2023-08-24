@@ -236,7 +236,6 @@ namespace OpenMS
     QStringList list;
 
     const auto& tools = ToolHandler::getTOPPToolList();
-    const auto& utils = ToolHandler::getUtilList();
     plugin_params_ = tool_scanner_->getPluginParams();
 
     for (auto& pair : tools)
@@ -247,15 +246,7 @@ namespace OpenMS
         list << pair.first.toQString();
       }
     }
-    for (auto& pair : utils)
-    {
-      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ":"));
-      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
-      {
-        list << pair.first.toQString();
-      }
-    }
-    //TODO: Plugins get added to the list just like tools/utils and can't be differentiated in the GUI
+    //TODO: Plugins get added to the list just like tools and can't be differentiated in the GUI
     for (const auto& name : tool_scanner_->getPlugins())
     {
       std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));

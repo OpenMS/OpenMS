@@ -14,15 +14,15 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>" namespac
     cdef cppclass TwoDOptimization(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
-        TwoDOptimization() nogil except +
-        TwoDOptimization(TwoDOptimization &) nogil except +
+        TwoDOptimization() except + nogil 
+        TwoDOptimization(TwoDOptimization &) except + nogil 
 
-        double getMZTolerance() nogil except + # wrap-doc:Returns the matching epsilon
-        void setMZTolerance(double tolerance_mz) nogil except + # wrap-doc:Sets the matching epsilon
-        double getMaxPeakDistance() nogil except + # wrap-doc:Returns the maximal peak distance in a cluster
-        void setMaxPeakDistance(double max_peak_distance) nogil except + # wrap-doc:Sets the maximal peak distance in a cluster
-        UInt getMaxIterations() nogil except + # wrap-doc:Returns the maximal number of iterations
-        void setMaxIterations(UInt max_iteration) nogil except + # wrap-doc:Sets the maximal number of iterations
-        # NAMESPACE # OptimizationFunctions::PenaltyFactorsIntensity  getPenalties() nogil except +
-        # NAMESPACE # void setPenalties(OptimizationFunctions::PenaltyFactorsIntensity & penalties) nogil except +
-        # TEMPLATE # void optimize(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment & ms_exp, bool real2D) nogil except +
+        double getMZTolerance() except + nogil  # wrap-doc:Returns the matching epsilon
+        void setMZTolerance(double tolerance_mz) except + nogil  # wrap-doc:Sets the matching epsilon
+        double getMaxPeakDistance() except + nogil  # wrap-doc:Returns the maximal peak distance in a cluster
+        void setMaxPeakDistance(double max_peak_distance) except + nogil  # wrap-doc:Sets the maximal peak distance in a cluster
+        UInt getMaxIterations() except + nogil  # wrap-doc:Returns the maximal number of iterations
+        void setMaxIterations(UInt max_iteration) except + nogil  # wrap-doc:Sets the maximal number of iterations
+        # NAMESPACE # OptimizationFunctions::PenaltyFactorsIntensity  getPenalties() except + nogil 
+        # NAMESPACE # void setPenalties(OptimizationFunctions::PenaltyFactorsIntensity & penalties) except + nogil 
+        # TEMPLATE # void optimize(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment & ms_exp, bool real2D) except + nogil 

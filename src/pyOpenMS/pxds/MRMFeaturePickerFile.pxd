@@ -21,10 +21,10 @@ cdef extern from "<OpenMS/FORMAT/MRMFeaturePickerFile.h>" namespace "OpenMS":
                 #  > orn.orn_1.Heavy,orn,3,21
                 #  > orn.orn_1.Light,orn,3,13
 
-        MRMFeaturePickerFile() nogil except +
-        MRMFeaturePickerFile(MRMFeaturePickerFile &) nogil except + # compiler
+        MRMFeaturePickerFile() except + nogil 
+        MRMFeaturePickerFile(MRMFeaturePickerFile &) except + nogil  # compiler
 
-        void load(const String& filename, libcpp_vector[MRMFP_ComponentParams]& cp_list, libcpp_vector[MRMFP_ComponentGroupParams]& cgp_list) nogil except +
+        void load(const String& filename, libcpp_vector[MRMFP_ComponentParams]& cp_list, libcpp_vector[MRMFP_ComponentGroupParams]& cgp_list) except + nogil 
             # wrap-doc:
                 #  Loads the file's data and saves it into vectors of `ComponentParams` and `ComponentGroupParams`
                 #  

@@ -9,10 +9,10 @@ cdef extern from "<OpenMS/METADATA/Acquisition.h>" namespace "OpenMS":
 		# wrap-inherits:
 		#  MetaInfoInterface
 
-		Acquisition() nogil except +
-		Acquisition(Acquisition &) nogil except +
+		Acquisition() except + nogil 
+		Acquisition(Acquisition &) except + nogil 
 
-		bool operator==(Acquisition &rhs) nogil except +
-		bool operator!=(Acquisition &rhs) nogil except +
-		String getIdentifier() nogil except +
-		void setIdentifier(const String &identifier) nogil except +
+		bool operator==(Acquisition &rhs) except + nogil 
+		bool operator!=(Acquisition &rhs) except + nogil 
+		String getIdentifier() except + nogil 
+		void setIdentifier(const String &identifier) except + nogil 

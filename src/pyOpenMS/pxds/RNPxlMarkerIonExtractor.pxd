@@ -10,8 +10,8 @@ ctypedef libcpp_map[String, libcpp_vector[ libcpp_pair[double, double] ] ] Marke
 cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>" namespace "OpenMS":
     
     cdef cppclass RNPxlMarkerIonExtractor "OpenMS::RNPxlMarkerIonExtractor":
-        RNPxlMarkerIonExtractor() nogil except + # compiler
-        RNPxlMarkerIonExtractor(RNPxlMarkerIonExtractor &) nogil except + # compiler
-        # MarkerIonsType extractMarkerIons(MSSpectrum & s, double marker_tolerance) nogil except +
+        RNPxlMarkerIonExtractor() except + nogil  # compiler
+        RNPxlMarkerIonExtractor(RNPxlMarkerIonExtractor &) except + nogil  # compiler
+        # MarkerIonsType extractMarkerIons(MSSpectrum & s, double marker_tolerance) except + nogil 
         libcpp_map[String, libcpp_vector[ libcpp_pair[double, double] ] ] extractMarkerIons(MSSpectrum & s,
-                                                                                            double marker_tolerance) nogil except +
+                                                                                            double marker_tolerance) except + nogil 

@@ -94,7 +94,6 @@ set(metadata_executables_list
   ExperimentalSettings_test
   Gradient_test
   HPLC_test
-  DocumentIDTagger_test
   Identification_test
   IdentificationData_test
   IdentificationDataConverter_test
@@ -204,7 +203,6 @@ set(format_executables_list
   InspectInfile_test
   InspectOutfile_test
   KroenikFile_test
-  LibSVMEncoder_test
   MRMFeatureQCFile_test
   MS2File_test
   MSPFile_test
@@ -413,7 +411,6 @@ set(chemistry_executables_list
   ElementDB_test
   Element_test
   EmpiricalFormula_test
-  EnzymaticDigestionLogModel_test
   EnzymaticDigestion_test
   FineIsotopeDistribution_test
   IMSAlphabetParser_test
@@ -442,9 +439,6 @@ set(chemistry_executables_list
   Ribonucleotide_test
   SimpleTSGXLMS_test
   SpectrumAnnotator_test
-  SvmTheoreticalSpectrumGeneratorSet_test
-  SvmTheoreticalSpectrumGeneratorTrainer_test
-  SvmTheoreticalSpectrumGenerator_test
   Tagger_test
   TheoreticalSpectrumGeneratorXLMS_test
   TheoreticalSpectrumGenerator_test
@@ -466,12 +460,6 @@ set(analysis_executables_list
   BasicProteinInferenceAlgorithm_test
   BayesianProteinInferenceAlgorithm_test
   ClusterProxyKD_test
-  CompNovoIdentificationBase_test
-  CompNovoIdentificationCID_test
-  CompNovoIdentification_test
-  CompNovoIonScoringBase_test
-  CompNovoIonScoringCID_test
-  CompNovoIonScoring_test
   ConfidenceScoring_test
   ConsensusIDAlgorithmAverage_test
   ConsensusIDAlgorithmBest_test
@@ -485,10 +473,6 @@ set(analysis_executables_list
   ConsensusMapMergerAlgorithm_test
   #DataAccessHelper_test
   DeconvolvedSpectrum_test
-  DeNovoAlgorithm_test
-  DeNovoIdentification_test
-  DeNovoIonScoring_test
-  DeNovoPostScoring_test
   FalseDiscoveryRate_test
   FeatureDeconvolution_test
   FeatureDistance_test
@@ -511,7 +495,6 @@ set(analysis_executables_list
   ILPDCWrapper_test
   IsotopeLabelingMDVs_test
   IncludeExcludeTarget_test
-  InclusionExclusionList_test
   IsobaricChannelExtractor_test
   IsobaricIsotopeCorrector_test
   IsobaricNormalizer_test
@@ -528,7 +511,6 @@ set(analysis_executables_list
   KDTreeFeatureMaps_test
   KDTreeFeatureNode_test
   LabeledPairFinder_test
-  LocalLinearMap_test
   TargetedExperiment_test
   TargetedExperimentHelper_test
   MRMFeaturePicker_test
@@ -551,12 +533,10 @@ set(analysis_executables_list
   MetaboliteSpectralMatching_test
   ModifiedPeptideGenerator_test
   NeedlemanWunsch_test
-  OfflinePrecursorIonSelection_test
   PeptideIndexing_test
   PeptideAndProteinQuant_test
   PeptideProteinResolution_test
   PeakGroup_test
-  PeakIntensityPredictor_test
   PScore_test
   HyperScore_test
   MorpheusScore_test
@@ -566,18 +546,14 @@ set(analysis_executables_list
   OPXLSpectrumProcessingAlgorithms_test
   PoseClusteringAffineSuperimposer_test
   PoseClusteringShiftSuperimposer_test
-  PrecursorIonSelectionPreprocessing_test
-  PrecursorIonSelection_test
   PrecursorPurity_test
   ProtonDistributionModel_test
   ProteinResolver_test
-  PSLPFormulation_test
   PSProteinInference_test
   QTClusterFinder_test
   QuantitativeExperimentalDesign_test
   ReactionMonitoringTransition_test
   RNPxlModificationsGenerator_test
-  SVMWrapper_test
   SimpleSearchEngineAlgorithm_test
   SimplePairFinder_test
   SimpleSVM_test
@@ -664,24 +640,6 @@ set(ionmobility_executables_list
   IMTypes_test
 )
 
-set(simulation_executables_list
-  DetectabilitySimulation_test
-  DigestSimulation_test
-  EGHModel_test
-  EGHFitter1D_test
-  IonizationSimulation_test
-  MSSim_test
-  RTSimulation_test
-  RawMSSignalSimulation_test
-  RawTandemMSSignalSimulation_test
-  BaseLabeler_test
-  ITRAQLabeler_test
-  LabelFreeLabeler_test
-  O18Labeler_test
-  SILACLabeler_test
-  ICPLLabeler_test
-)
-
 if(NOT DISABLE_OPENSWATH)
   set(swath_executables_list
     MRMAssay_test
@@ -760,7 +718,6 @@ set(TEST_executables
     ${applications_executables_list}
     ${transformations_executables_list}
     ${ionmobility_executables_list}
-    ${simulation_executables_list}
     ${swath_executables_list}
     ${qc_executables_list}
 )

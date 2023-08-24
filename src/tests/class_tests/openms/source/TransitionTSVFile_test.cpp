@@ -68,14 +68,14 @@ END_SECTION
 
 START_SECTION( void convertTargetedExperimentToTSV(const char * filename, OpenMS::TargetedExperiment & targeted_exp))
 {
-  // see TOPP / UTILS tool test
+  // see TOPP tool test
   NOT_TESTABLE
 }
 END_SECTION
 
 START_SECTION( void convertTSVToTargetedExperiment(const char * filename, OpenMS::TargetedExperiment & targeted_exp))
 {
-  // see TOPP / UTILS tool test
+  // see TOPP tool test
   NOT_TESTABLE
 }
 END_SECTION

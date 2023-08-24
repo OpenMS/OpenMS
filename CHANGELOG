@@ -10,46 +10,98 @@ INI file - parameter configuration file, holding custom parameter settings for T
 INIFileEditor - graphical parameter editor for INI files
 Parameters - list of algorithm or TOPP tool parameters that changed in this release
 PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
-UTIL - An executable, just like a TOPP tool, but usually experimental or of lesser importance to common pipelines
 #<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit https://github.com/OpenMS/OpenMS/pull/4957 for details
 
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.1.0     (under development)              ----
+----                                OpenMS 3.1.0     (released: under development)    ----
 ------------------------------------------------------------------------------------------
 
+- Major change: removed the distinction between TOPP tool and util and the TOPP and UTIL build targets were merged to a single TOPP target. All utils are considered tools now and categorized as "Utilities".
+- Added SageAdapter. Support for standard identification tasks with sage (https://github.com/lazear/sage).
+- require some advanced instruction sets for x64 CPUs: SSE3 (g++/clang) or AVX (MSVC); and NEON for ARM64 CPUs (#6978)
+  and report them via the OpenMSInfo tool (#7022)
+- Base64 encoding/decoding using the SIMDe library (#6978)
+- fix a crash when loading mzML data with multiple threads which contains non-MS spectra, e.g. 'electromagnetic radiation spectrum' (#7011)
+
+Cleanup of old/unused tools and code:
+- Removed old tools and associated code in the library for InclusionExclusionListCreator, SvmTheoreticalSpectrumGenerator, PrecursorIonSelector, and MSSimulator
+  Note: general SVC and SVR is still supported with the SimpleSVM class.
+- Removed old RT and PT predict code and tools RTModel, RTPredict, PTModel, PTPredict, RTEvaluation and associated library code (SVMWrapper and LibSVMEncoder).
+- Removed PepNovoAdapter
+- Removed CompNovoAdapter and library code
+- Removed simplistic evaluation tools FFEval, LabeledEval, TransformationEvaluation
+- Removed EnzymaticDigestionLogModel
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.0     (releases 4/2022)                  ----
+----                                OpenMS 3.0     (released 7/2023)                  ----
 ------------------------------------------------------------------------------------------
-
-- full release
-- OpenSwath: Add support for diaPASEF data with overlapping m/z and IM windows, and add new outputs on ion mobility features (delta_im)
-- OpenSwath: Fix duplicated transition error when multiple genes map to a single peptide (#5653)
-- TOPPView: TheoreticalSpectrumGenerationDialog now supports generation of isotope patterns for metabolites
-- pyopenms: pyopenms-extra is renamed to pyopenms-docs.
-- Add extractSpectra to TargetedSpectraExtractor with support of MS1 features
-- TargetedSpectraExtractor::searchSpectrum added an option to add unknown features to the result featureMap
-- Fixed race condition when logging messages.
-- Added the support for 'no cleavage' for XTandemAdapter and CometAdapter (#6133).
-- ParamEditor with more convenient StringList editing  (#5135)
-- TOPPAS: add a `recent files` submenu
-- removed InspectAdapter
-- removed OMSSAAdapter
-- removed MyriMatchAdapter
-- removed Crux
-- OpenMS documentation is moved to openms.readthedocs.io/en/latest. OpenMS API
-reference and advanced developer documentation remains inside OpenMS doxygen
-documentation.
-- Add support for user defined ribonucleotides with phosphorothioate linkages
-- Add support for JSON based ribonucleotides and updated to latest Modomics database
-- fix bug in GaussFilter when using ppm as width (#6830)
-- Add support to load parameter values from a JSON formatted .json file. (Accessible via -ini. This will be
-  helpful for Common Workflow Language users and others)
 
 New Tools:
-- FLASHDeconv -- Ultra-fast high-quality deconvolution enables online processing of top-down MS data (TOPP)
-- FLASHDeconvWizard -- An GUI assistant for FLASHDeconv execution.
+
+    FLASHDeconv -- Ultra-fast high-quality deconvolution enables online processing of top-down MS data (TOPP)
+    FLASHDeconvWizard -- A GUI assistant for FLASHDeconv execution.
+
+New Features:
+
+e.g.
+
+    TMT18plex support (#6390)
+    ProteinQuantifier supports iBAQ (#6107)
+    OpenSwath: Add support for diaPASEF data with overlapping m/z and IM windows, and add new outputs on ion mobility features (delta_im), IM calibration (#5911, #6234, #6268)
+    OpenSwathDecoyGenerator speed improvement and remove duplicates (#6054)
+    NucleicAcidSearchEngine (NASE): user defined ribonucleotides with phosphorothioate linkages (#6337), JSON based ribonucleotides and updated to latest Modomics database (#6482)
+    TargetedSpectraExtractor: more features (#6106)
+    TOPPView: TheoreticalSpectrumGenerationDialog now supports generation of isotope patterns for metabolites (#6023); faster loading of external drag'n'drop data (#6837)
+    colored commandline/console on all platforms (#6275)
+    support for 'no cleavage' for XTandemAdapter and CometAdapter (#6133).
+    Percolator pin file reader (#6824)
+    JSON export for OMS files(SQLite) (#6114)
+    ParamEditor with more convenient StringList editing (#5135)
+    load parameter values from a JSON formatted .json file. (Accessible via -ini. This will be
+    helpful for Common Workflow Language users and others)
+    FileFilter can remove convex hulls of features and consensusFeatures to reduce file size (#6140)
+    Faster compile time (#6618)
+    Improving code quality by fixing lots of linting warnings and leaks (e.g. #6839, #6831, #6829)
+
+Documentation
+
+    website redesign (visit openms.org)
+    OpenMS user documentation is moved to openms.readthedocs.io/en/latest.
+    OpenMS API reference and advanced developer documentation remains inside OpenMS doxygen
+    documentation (https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/)
+    pyopenms: pyopenms-extra is renamed to pyopenms-docs.
+
+Bug fixes
+
+e.g.
+
+    GaussFilter when using ppm as width (#6830)
+    NASE a-B ion masses (#6718), ID-Mapper for TMT data (#6758)
+    FeatureFinderMetaboliteIdentification speed improvements (#6619)
+    IDRipper speed improvements (#6584)
+    Honor MissedCleavages in SimpleSearchEngine (#6889)
+    TOPPView: fixed lots of display glitches, e.g. axis labels, goto dialog and easier re-use of components, etc (#6673, #6616, #6592, #6703, #6793)
+    mzTab fixes for empty IDs (#6445)
+    Fix GNPS error for empty scans in Bruker files (#6898)
+    PrecursorPurity: handle unknown charge (#6283)
+    OpenSwath: Fix duplicated transition error when multiple genes map to a single peptide (#5653)
+    Fixed race condition when logging messages.
+
+Removed tools:
+
+    InspectAdapter
+    OMSSAAdapter
+    MyriMatchAdapter
+    CruxAdapter
+
+Supported compilers (when building from source):
+
+    g++ (7.0 or later, tested up to v13.0)
+    clang (?, tested up to v16)
+    Visual Studio (2019(v16.8.4) or later)
+
+Full changelog: [OpenMS 2.8 &rarr; 3.0](https://github.com/OpenMS/OpenMS/compare/Release2.8.0...Release3.0.0)
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.8     (released 2/2022)                  ----

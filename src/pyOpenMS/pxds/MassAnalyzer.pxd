@@ -8,50 +8,50 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS":
         # wrap-inherits:
         #   MetaInfoInterface
 
-        MassAnalyzer() nogil except +
-        MassAnalyzer(MassAnalyzer &) nogil except +
+        MassAnalyzer() except + nogil 
+        MassAnalyzer(MassAnalyzer &) except + nogil 
 
-        AnalyzerType getType() nogil except + # wrap-doc:Returns the analyzer type
-        void setType(AnalyzerType type) nogil except + # wrap-doc:Sets the analyzer type
+        AnalyzerType getType() except + nogil  # wrap-doc:Returns the analyzer type
+        void setType(AnalyzerType type) except + nogil  # wrap-doc:Sets the analyzer type
 
-        ResolutionMethod getResolutionMethod() nogil except + # wrap-doc:Returns the method used for determination of the resolution
-        void setResolutionMethod(ResolutionMethod resolution_method) nogil except + # wrap-doc:Sets the method used for determination of the resolution
+        ResolutionMethod getResolutionMethod() except + nogil  # wrap-doc:Returns the method used for determination of the resolution
+        void setResolutionMethod(ResolutionMethod resolution_method) except + nogil  # wrap-doc:Sets the method used for determination of the resolution
 
-        ResolutionType getResolutionType() nogil except + # wrap-doc:Returns the resolution type
-        void setResolutionType(ResolutionType resolution_type) nogil except + # wrap-doc:Sets the resolution type
+        ResolutionType getResolutionType() except + nogil  # wrap-doc:Returns the resolution type
+        void setResolutionType(ResolutionType resolution_type) except + nogil  # wrap-doc:Sets the resolution type
 
-        ScanDirection getScanDirection() nogil except + # wrap-doc:Returns the direction of scanning
-        void setScanDirection(ScanDirection scan_direction) nogil except + # wrap-doc:Sets the direction of scanning
+        ScanDirection getScanDirection() except + nogil  # wrap-doc:Returns the direction of scanning
+        void setScanDirection(ScanDirection scan_direction) except + nogil  # wrap-doc:Sets the direction of scanning
 
-        ScanLaw getScanLaw() nogil except + # wrap-doc:Returns the scan law
-        void setScanLaw(ScanLaw scan_law) nogil except + # wrap-doc:Sets the scan law
+        ScanLaw getScanLaw() except + nogil  # wrap-doc:Returns the scan law
+        void setScanLaw(ScanLaw scan_law) except + nogil  # wrap-doc:Sets the scan law
 
-        ReflectronState getReflectronState() nogil except + # wrap-doc:Returns the reflectron state (for TOF)
-        void setReflectronState(ReflectronState reflecton_state) nogil except + # wrap-doc:Sets the reflectron state (for TOF)
+        ReflectronState getReflectronState() except + nogil  # wrap-doc:Returns the reflectron state (for TOF)
+        void setReflectronState(ReflectronState reflecton_state) except + nogil  # wrap-doc:Sets the reflectron state (for TOF)
 
-        double getResolution() nogil except + # wrap-doc:Returns the resolution. The maximum m/z value at which two peaks can be resolved, according to one of the standard measures
-        void setResolution(double resolution) nogil except + # wrap-doc:Sets the resolution
+        double getResolution() except + nogil  # wrap-doc:Returns the resolution. The maximum m/z value at which two peaks can be resolved, according to one of the standard measures
+        void setResolution(double resolution) except + nogil  # wrap-doc:Sets the resolution
 
-        double getAccuracy() nogil except + # wrap-doc:Returns the mass accuracy i.e. how much the theoretical mass may differ from the measured mass (in ppm)
-        void setAccuracy(double accuracy) nogil except + # wrap-doc:Sets the accuracy i.e. how much the theoretical mass may differ from the measured mass (in ppm)
+        double getAccuracy() except + nogil  # wrap-doc:Returns the mass accuracy i.e. how much the theoretical mass may differ from the measured mass (in ppm)
+        void setAccuracy(double accuracy) except + nogil  # wrap-doc:Sets the accuracy i.e. how much the theoretical mass may differ from the measured mass (in ppm)
 
-        double getScanRate() nogil except + # wrap-doc:Returns the scan rate (in s)
-        void setScanRate(double scan_rate) nogil except + # wrap-doc:Sets the scan rate (in s)
+        double getScanRate() except + nogil  # wrap-doc:Returns the scan rate (in s)
+        void setScanRate(double scan_rate) except + nogil  # wrap-doc:Sets the scan rate (in s)
 
-        double getScanTime() nogil except + # wrap-doc:Returns the scan time for a single scan (in s)
-        void setScanTime(double scan_time) nogil except + # wrap-doc:Sets the scan time for a single scan (in s)
+        double getScanTime() except + nogil  # wrap-doc:Returns the scan time for a single scan (in s)
+        void setScanTime(double scan_time) except + nogil  # wrap-doc:Sets the scan time for a single scan (in s)
 
-        double getTOFTotalPathLength() nogil except + # wrap-doc:Returns the path length for a TOF mass analyzer (in meter)
-        void setTOFTotalPathLength(double TOF_total_path_length) nogil except + # wrap-doc:Sets the path length for a TOF mass analyzer (in meter)
+        double getTOFTotalPathLength() except + nogil  # wrap-doc:Returns the path length for a TOF mass analyzer (in meter)
+        void setTOFTotalPathLength(double TOF_total_path_length) except + nogil  # wrap-doc:Sets the path length for a TOF mass analyzer (in meter)
 
-        double getIsolationWidth() nogil except + # wrap-doc:Returns the isolation width i.e. in which m/z range the precursor ion is selected for MS to the n (in m/z)
-        void setIsolationWidth(double isolation_width) nogil except + # wrap-doc:Sets the isolation width i.e. in which m/z range the precursor ion is selected for MS to the n (in m/z)
+        double getIsolationWidth() except + nogil  # wrap-doc:Returns the isolation width i.e. in which m/z range the precursor ion is selected for MS to the n (in m/z)
+        void setIsolationWidth(double isolation_width) except + nogil  # wrap-doc:Sets the isolation width i.e. in which m/z range the precursor ion is selected for MS to the n (in m/z)
 
-        Int getFinalMSExponent() nogil except + # wrap-doc:Returns the final MS exponent
-        void setFinalMSExponent(Int final_MS_exponent) nogil except + # wrap-doc:Sets the final MS exponent
+        Int getFinalMSExponent() except + nogil  # wrap-doc:Returns the final MS exponent
+        void setFinalMSExponent(Int final_MS_exponent) except + nogil  # wrap-doc:Sets the final MS exponent
 
-        double getMagneticFieldStrength() nogil except + # wrap-doc:Returns the strength of the magnetic field (in T)
-        void setMagneticFieldStrength(double magnetic_field_strength) nogil except + # wrap-doc:Sets the strength of the magnetic field (in T)
+        double getMagneticFieldStrength() except + nogil  # wrap-doc:Returns the strength of the magnetic field (in T)
+        void setMagneticFieldStrength(double magnetic_field_strength) except + nogil  # wrap-doc:Sets the strength of the magnetic field (in T)
 
         #
         #  @brief returns the position of this part in the whole Instrument.
@@ -62,9 +62,9 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS":
         #  - one ion detector
         #
         #  For more complex instruments the order should be defined.
-        Int getOrder() nogil except + # wrap-doc:Returns the position of this part in the whole Instrument
+        Int getOrder() except + nogil  # wrap-doc:Returns the position of this part in the whole Instrument
         # sets the order
-        void setOrder(Int order) nogil except + # wrap-doc:Sets the order
+        void setOrder(Int order) except + nogil  # wrap-doc:Sets the order
 
 cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnalyzer":
 

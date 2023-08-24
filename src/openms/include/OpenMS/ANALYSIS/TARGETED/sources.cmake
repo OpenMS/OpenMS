@@ -6,15 +6,10 @@ set(sources_list_h
 MetaboTargetedAssay.h
 MetaboTargetedTargetDecoy.h
 MRMMapping.h
-PrecursorIonSelectionPreprocessing.h
-PrecursorIonSelection.h
-OfflinePrecursorIonSelection.h
-PSLPFormulation.h
 PSProteinInference.h
 IncludeExcludeTarget.h
 TargetedExperiment.h
 TargetedExperimentHelper.h
-InclusionExclusionList.h
 )
 
 ### add path to the filenames

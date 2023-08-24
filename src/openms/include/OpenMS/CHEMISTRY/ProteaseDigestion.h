@@ -52,8 +52,6 @@ namespace OpenMS
      peptides (cleaved and uncleaved) with up to @em n missed cleavages are returned.
      Thus @b no random selection of just @em n specific missed cleavage sites is performed.
 
-     An alternative model is also available in EnzymaticDigestionLogModel.
-
      @ingroup Chemistry
   */
   class OPENMS_DLLAPI ProteaseDigestion: public EnzymaticDigestion

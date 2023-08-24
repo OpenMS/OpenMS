@@ -6,10 +6,10 @@ cdef extern from "<OpenMS/FORMAT/GNPSQuantificationFile.h>" namespace "OpenMS":
 
     cdef cppclass GNPSQuantificationFile:    
 
-        GNPSQuantificationFile() nogil except +
-        GNPSQuantificationFile(GNPSQuantificationFile &) nogil except +
+        GNPSQuantificationFile() except + nogil 
+        GNPSQuantificationFile(GNPSQuantificationFile &) except + nogil 
 
-        void store(const ConsensusMap& consensus_map, const String& output_file) nogil except +
+        void store(const ConsensusMap& consensus_map, const String& output_file) except + nogil 
         # wrap-doc:
         #  Write feature quantification table (txt file) from a ConsensusMap. Required for GNPS FBMN.
         #  
