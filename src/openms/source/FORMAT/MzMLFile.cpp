@@ -75,12 +75,8 @@ namespace OpenMS
 
   bool MzMLFile::hasIndex(const String& filename)
   {
-    auto index_offset = IndexedMzMLDecoder().findIndexListOffset(filename);
-    if (index_offset == (std::streampos)-1)
-    {
-      return false;
-    }
-    return true;
+    const std::streampos NOT_FOUND {-1};
+    return NOT_FOUND != IndexedMzMLDecoder().findIndexListOffset(filename);
   }
 
   // reimplemented in order to handle index MzML
