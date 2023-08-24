@@ -147,30 +147,30 @@ jobs:
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
           sudo add-apt-repository universe
           sudo apt update   
-          sudo apt-get install -y build-essential cmake autoconf patch libtool git automake ninja-build xvfb ccache
-          sudo apt-get install -y qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
-          sudo apt-get install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev \
+          sudo apt-get -qq install -y build-essential cmake autoconf patch libtool git automake ninja-build xvfb ccache
+          sudo apt-get -qq install -y qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
+          sudo apt-get -qq install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev \
            libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
           echo "cmake_prefix=" >> $GITHUB_OUTPUT
           
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            sudo apt-get install -y doxygen ghostscript graphviz
+            sudo apt-get -qq install -y doxygen ghostscript graphviz
           fi
         fi
         
         if [[ "${{ matrix.os }}" == windows-* ]]; then
           # Qt5_DIR set by Install Qt5 step
           echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
-          choco install ccache ninja cmake
+          choco install ccache ninja cmake -y --no-progress
           ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
           # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
           echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            choco install doxygen.portable ghostscript graphviz
+            choco install doxygen.portable ghostscript graphviz -y --no-progress
             # TODO save this zip somewhere on our infrastructure or github since the project is deprecated
-            curl -L -o UltraModernUI_2.0b6.zip  https://github.com/SuperPat45/UltraModernUI/releases/download/2.0b6/UltraModernUI_2.0b6.zip
+            curl --no-progress-meter -L -o UltraModernUI_2.0b6.zip  https://github.com/SuperPat45/UltraModernUI/releases/download/2.0b6/UltraModernUI_2.0b6.zip
             7z -y x UltraModernUI_2.0b6.zip -o"C:/Program Files (x86)/NSIS/"
           fi
         fi
@@ -178,10 +178,10 @@ jobs:
         if [[ "${{ matrix.os }}" == macos-* ]]; then
           # Qt5_DIR set by Install Qt5 step
           echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
-          brew install ccache autoconf automake libtool ninja && brew link --overwrite ccache
+          brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            brew install doxygen ghostscript graphviz
+            brew install --quiet doxygen ghostscript graphviz
           fi
         fi
 
@@ -200,7 +200,7 @@ jobs:
       shell: bash
       run: |
           cd OpenMS/contrib
-          curl -L -o contribbld.tar.gz https://abibuilder.cs.uni-tuebingen.de/archive/openms/contrib/${{ steps.set-vars.outputs.contrib_os }}/${{ steps.set-vars.outputs.contrib_os_ver }}x64/${{ steps.set-vars.outputs.contrib_compiler }}contrib_build.tar.gz
+          curl --no-progress-meter -L -o contribbld.tar.gz https://abibuilder.cs.uni-tuebingen.de/archive/openms/contrib/${{ steps.set-vars.outputs.contrib_os }}/${{ steps.set-vars.outputs.contrib_os_ver }}x64/${{ steps.set-vars.outputs.contrib_compiler }}contrib_build.tar.gz
           7z x -so contribbld.tar.gz | 7z x -si -ttar
           rm contribbld.tar.gz
           ls -la
@@ -418,7 +418,11 @@ jobs:
             folder=experimental/${{ steps.extract_branch.outputs.RUN_NAME }}
           fi
           echo $folder
-          #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
+
+          mkdir -p ~/.ssh/
+          echo "$PASS" > ~/.ssh/private.key
+          sudo chmod 600 ~/.ssh/private.key
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
 
         # TODO create softlinks to latest nightly
         # TODO create and upload file hashes, at least for release candidate
@@ -444,14 +448,17 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: knime-MacOS
+          path: ${{ env.PLUGIN_SOURCE }}
       - name: Download win installer artifacts
         uses: actions/download-artifact@v3
         with:
           name: knime-Windows
+          path: ${{ env.PLUGIN_SOURCE }}
       - name: Download lnx installer artifacts
         uses: actions/download-artifact@v3
         with:
           name: knime-Linux
+          path: ${{ env.PLUGIN_SOURCE }}
 
       # Should be the default. 
       - name: Set up JDK
@@ -460,16 +467,10 @@ jobs:
           java-version: ${{ env.JAVA_VER }}
           distribution: 'temurin'
 
-      - name: Generate plugin sources
+      - name: Generate KNIME plugin sources
         shell: bash
         run: |
             ## Setup functions
-            function git_last_change_date {
-              pushd $1 > /dev/null
-              DATE=$(date -j -f "%Y-%m-%d %H:%M:%S" "`git log -1 --format="%cd" --date=iso`" "+%Y%m%d%H%M" 2> /dev/null)
-              popd > /dev/null
-              echo $DATE
-            }
 
             function replace_qualifier {
               find $1 -name MANIFEST.MF -exec sed -i -e "s/qualifier/$2/g" {} \;
@@ -483,19 +484,10 @@ jobs:
             ## Setup variables
             ## GKN git clone (see SCM subfolder settings above)
             GKN_PLUGIN_PATH=${GITHUB_WORKSPACE}/GenericKnimeNodes
+            git clone -q https://github.com/genericworkflownodes/GenericKnimeNodes/ --branch develop --single-branch $GKN_PLUGIN_PATH
 
-            ## Source and build dir (choose)
-            mkdir ${PLUGIN_SOURCE}
+            ## Create folders
             mkdir ${PLUGIN_BUILD}
-
-            ## Merge payloads and descriptors into one folder
-            touch rsync.log
-            for d in compiler*
-            do
-              rsync -avh --progress $d/build/knime/ ${PLUGIN_SOURCE}/ >> rsync.log
-              rm -rf $d
-            done
-
             PLUGIN_SOURCE_CONTRIB_PLUGINS=${PLUGIN_SOURCE}/de.openms.feature/contributing-plugins
             mkdir -p ${PLUGIN_SOURCE_CONTRIB_PLUGINS}
             PLUGIN_SOURCE_THIRDPARTY_CONTRIB_PLUGINS=${PLUGIN_SOURCE}/de.openms.thirdparty.feature/contributing-plugins
@@ -514,8 +506,10 @@ jobs:
             ## the last git commit
             pushd ${PLUGIN_SOURCE_CONTRIB_PLUGINS}
 
-              git clone https://github.com/OpenMS/de.openms.knime --branch develop --single-branch .
-              CONTRIBUTING_DATE=$(git_last_change_date .)
+              git clone -q https://github.com/OpenMS/de.openms.knime --branch develop --single-branch .
+              CONTRIBUTING_DATE=$(git log -1 --format="%cd" --date="format:%Y%m%d%H%M")
+              echo "Setting qualifier/SNAPSHOT for de.openms.knime contrib plugins to ${CONTRIBUTING_DATE}!"
+              git log -1 --format="%cd" --date=iso
               
               # TODO just iterate over all folders?
               replace_qualifier de.openms.knime.startupCheck ${CONTRIBUTING_DATE}
@@ -538,14 +532,19 @@ jobs:
 
             popd
 
-            git clone https://github.com/genericworkflownodes/de.openms.knime.dynamicJSViewers --branch master --single-branch
-            CONTRIBUTING_DATE=$(git_last_change_date de.openms.knime.dynamicJSViewers)
+            ## New contrib plugin: de.openms.knime.dynamicJSViewers
+            git clone -q https://github.com/genericworkflownodes/de.openms.knime.dynamicJSViewers --branch master --single-branch
+            pushd de.openms.knime.dynamicJSViewers
+              CONTRIBUTING_DATE=$(git log -1 --format="%cd" --date="format:%Y%m%d%H%M")
+            popd
+
             mv de.openms.knime.dynamicJSViewers/de.openms.knime.dynamicJSViewers.feature ${PLUGIN_SOURCE}/
             mkdir ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins
             rm -rf ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/.settings
             mv de.openms.knime.dynamicJSViewers/de.openms.knime.dynamicJSViewers ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins/
 
             pushd ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins/
+              echo "Setting qualifier/SNAPSHOT for de.openms.knime.dynamicJSViewers to ${CONTRIBUTING_DATE}"
               replace_qualifier de.openms.knime.dynamicJSViewers ${CONTRIBUTING_DATE}
               replace_snapshot de.openms.knime.dynamicJSViewers ${CONTRIBUTING_DATE}
             popd
@@ -581,10 +580,10 @@ jobs:
           # remove maven pom.xmls since we will do a full pomless build. poms are only necessary if you want to develop on a single plugin, e.g., in eclipse.
           find . -mindepth 2 -name "pom.xml*" -exec rm {} \;
 
-          # TODO check if correct maven version is installed
-          mvn "-Dknime.version=${KNIME}" "-Djava.majorversion=${JAVA_VER}" "-Dgkn.update.site=https://abibuilder.cs.uni-tuebingen.de/archive/gkn/updateSite/${KNIME}/" clean verify
+          # Build update site. Downloads necessary plugins from the dependency update sites from KNIME and GKN (for the correct KNIME version)
+          mvn --no-transfer-progress "-Dknime.version=${KNIME}" "-Djava.majorversion=${JAVA_VER}" "-Dgkn.update.site=https://abibuilder.cs.uni-tuebingen.de/archive/gkn/updateSite/${KNIME}/" clean verify
 
-      - name: Upload installer
+      - name: Upload KNIME update site
         shell: bash
         env:
           PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
@@ -602,4 +601,9 @@ jobs:
             folder=experimental/${{ env.RUN_NAME }}
           fi
           echo $folder
-          #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/knime-plugin/updateSite/$folder"
+
+          #Load private key into file
+          mkdir -p ~/.ssh/
+          echo "$PASS" > ~/.ssh/private.key
+          sudo chmod 600 ~/.ssh/private.key
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/knime-plugin/updateSite/$folder"
