@@ -75,7 +75,7 @@ namespace OpenMS
 
       /// Creates a temporary file name from the test name and the line with the specified extension
       std::string OPENMS_DLLAPI
-      tmpFileName(const std::string& file, int line, const std::string& extension = "");
+      createTmpFileName(const std::string& file, int line, const std::string& extension = "");
 
       /// This overload returns true; @c float is a floating point type.
       inline bool OPENMS_DLLAPI
@@ -1023,33 +1023,11 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  @hideinitializer
  */
-#define NEW_TMP_FILE_EXT(filename, extension)                                             \
-  {                                                                                       \
-    filename = TEST::tmpFileName(__FILE__, __LINE__, extension);                          \
-    TEST::tmp_file_list.push_back(filename);                                              \
-    {                                                                                     \
-      TEST::initialNewline();                                                             \
-      stdcout << "    creating new temporary filename '"                                  \
-                << filename                                                               \
-                << "' (line "                                                             \
-                << __LINE__                                                               \
-                << ")\n";                                                                 \
-    }                                                                                     \
-  }
+#define NEW_TMP_FILE_EXT(filename, extension) filename = TEST::createTmpFileName(__FILE__, __LINE__, extension);
 
-#define NEW_TMP_FILE(filename)                                                            \
-  {                                                                                       \
-    filename = TEST::tmpFileName(__FILE__, __LINE__);                                     \
-    TEST::tmp_file_list.push_back(filename);                                              \
-    {                                                                                     \
-      TEST::initialNewline();                                                             \
-      stdcout << "    creating new temporary filename '"                                  \
-                << filename                                                               \
-                << "' (line "                                                             \
-                << __LINE__                                                               \
-                << ")\n";                                                                 \
-    }                                                                                     \
-  }
+
+#define NEW_TMP_FILE(filename) filename = TEST::createTmpFileName(__FILE__, __LINE__);
+
 
 /** @brief Skip the remainder of the current subtest.
 
