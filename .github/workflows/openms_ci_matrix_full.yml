@@ -420,8 +420,8 @@ jobs:
           echo $folder
 
           mkdir -p ~/.ssh/
-          echo "$PASS" > ../private.key
-          sudo chmod 600 ../private.key
+          echo "$PASS" > ~/.ssh/private.key
+          sudo chmod 600 ~/.ssh/private.key
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
 
         # TODO create softlinks to latest nightly
@@ -604,6 +604,6 @@ jobs:
 
           #Load private key into file
           mkdir -p ~/.ssh/
-          echo "$PASS" > ../private.key
-          sudo chmod 600 ../private.key
+          echo "$PASS" > ~/.ssh/private.key
+          sudo chmod 600 ~/.ssh/private.key
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/knime-plugin/updateSite/$folder"
