@@ -76,7 +76,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  bool check_types_(const FileTypeList& allowed_types, const String& filename)
+  bool checkTypes_(const FileTypeList& allowed_types, const String& filename)
   {
     bool matches = false;
     for (auto i : allowed_types.getTypes())
@@ -650,7 +650,7 @@ namespace OpenMS
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!check_types_(allowed_types, filename))
+      if (!checkTypes_(allowed_types, filename))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not allowed for loading a spectrum");
       }
@@ -690,7 +690,7 @@ namespace OpenMS
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!check_types_(allowed_types, filename))
+      if (!checkTypes_(allowed_types, filename))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not allowed for loading experiments");
       }
@@ -839,7 +839,7 @@ namespace OpenMS
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!check_types_(allowed_types, filename))
+      if (!checkTypes_(allowed_types, filename))
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not allowed for storing experiments");
       }
@@ -943,7 +943,7 @@ namespace OpenMS
   {
     if (allowed_types.size() != 0)
     {
-      if (!check_types_(allowed_types, filename))
+      if (!checkTypes_(allowed_types, filename))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not allowed for loading features");
       }
@@ -1014,7 +1014,7 @@ namespace OpenMS
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!check_types_(allowed_types, filename))
+      if (!checkTypes_(allowed_types, filename))
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not allowed for storing features");
       }
@@ -1076,7 +1076,7 @@ namespace OpenMS
   {
     if (allowed_types.size() != 0)
     {
-      if (!check_types_(allowed_types, filename))
+      if (!checkTypes_(allowed_types, filename))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not allowed for loading Consensus Features");
       }
@@ -1124,7 +1124,7 @@ namespace OpenMS
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!check_types_(allowed_types, filename))
+      if (!checkTypes_(allowed_types, filename))
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not allowed for storing Consensus Features");
       }
@@ -1165,7 +1165,7 @@ namespace OpenMS
   {
     if (allowed_types.size() != 0)
     {
-      if (!check_types_(allowed_types, filename))
+      if (!checkTypes_(allowed_types, filename))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not allowed for loading identifications");
       }
@@ -1249,7 +1249,7 @@ namespace OpenMS
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!check_types_(allowed_types, filename))
+      if (!checkTypes_(allowed_types, filename))
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not allowed for storing Identifications");
       }
@@ -1299,7 +1299,7 @@ namespace OpenMS
   {
     if (allowed_types.size() != 0)
     {
-      if (!check_types_(allowed_types, filename))
+      if (!checkTypes_(allowed_types, filename))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not allowed for loading transitions");
       }
@@ -1339,7 +1339,7 @@ namespace OpenMS
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!check_types_(allowed_types, filename))
+      if (!checkTypes_(allowed_types, filename))
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not allowed for storing transitions");
       }
@@ -1365,7 +1365,7 @@ namespace OpenMS
   {
     if (allowed_types.size() != 0)
     {
-      if (!check_types_(allowed_types, filename))
+      if (!checkTypes_(allowed_types, filename))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not allowed for loading quantifications");
       }
@@ -1405,7 +1405,7 @@ namespace OpenMS
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!check_types_(allowed_types, filename))
+      if (!checkTypes_(allowed_types, filename))
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not allowed for storing quantifications");
       }
@@ -1432,7 +1432,7 @@ namespace OpenMS
   {
     if (allowed_types.size() != 0)
     {
-      if (!check_types_(allowed_types, filename))
+      if (!checkTypes_(allowed_types, filename))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not allowed for loading transformations");
       }
@@ -1470,7 +1470,7 @@ namespace OpenMS
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!check_types_(allowed_types, filename))
+      if (!checkTypes_(allowed_types, filename))
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not allowed for storing transformations");
       }
@@ -1512,7 +1512,7 @@ namespace OpenMS
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!check_types_(allowed_types, output_file))
+      if (!checkTypes_(allowed_types, output_file))
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, output_file, "file type is not allowed for storing QC data");
       }
