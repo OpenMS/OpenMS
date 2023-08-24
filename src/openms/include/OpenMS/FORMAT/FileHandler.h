@@ -407,7 +407,7 @@ public:
 
       @brief Stores QC data in mzQC file with JSON format
       @param input_file mzML input file name
-      @param output_file mzQC output file name
+      @param filename mzQC output file name
       @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
       @param feature_map FeatureMap from feature file (featureXML)
       @param prot_ids protein identifications from ID file (idXML)
@@ -425,7 +425,7 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
     void storeQC(const String& input_file,
-               const String& output_file,
+               const String& filename,
                const MSExperiment& exp,
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,

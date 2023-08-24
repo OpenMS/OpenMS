@@ -126,7 +126,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::EXE, "exe", "Windows executable", {}),
     TypeNameBinding(FileTypes::BZ2, "bz2", "bzip2 compressed file", {}),
     TypeNameBinding(FileTypes::GZ, "gz", "gzip compressed file", {}),
-    TypeNameBinding(FileTypes::XML, "xml", "any XML file", {})  // make sure this comes last, since the name is a suffix of other formats and should only be matched last
+    TypeNameBinding(FileTypes::XML, "xml", "any XML file", {}),  // make sure this comes last, since the name is a suffix of other formats and should only be matched last
   };
 
   FileTypeList::FileTypeList(const std::vector<FileTypes::Type>& types)
@@ -218,6 +218,11 @@ namespace OpenMS
 
   String FileTypes::typeToName(FileTypes::Type type)
   {
+    // Handle the weird case in which we get Size_of_type
+    if (type == FileTypes::SIZE_OF_TYPE)
+    {
+      return "Invalid Type";
+    }
     for (const auto& t_info : type_with_annotation__)
     {
       if (t_info.type == type)
