@@ -152,7 +152,7 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
   START_SECTION(static FileTypes::FileTypeList typesWithProperties(const std::vector<FileProperties>& features))
   {
     std::vector<FileTypes::FileProperties> f;
-    f.push_back(FileTypes::READABLE);
+    f.push_back(FileTypes::FileProperties::READABLE);
     FileTypeList g = FileTypeList::typesWithProperties(f);
     TEST_EQUAL(g.getTypes().size(), 2);
   }

@@ -119,13 +119,13 @@ namespace OpenMS
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 
-    enum FileProperties
+    enum class FileProperties
     {
       READABLE,
       WRITEABLE,
       PROVIDES_MS1,
       PROVIDES_MS2,
-      SIZE_OF_FEATURES
+      SIZE_OF_FILEPROPERTIES
     };
 
     /// Returns the name/extension of the type.
