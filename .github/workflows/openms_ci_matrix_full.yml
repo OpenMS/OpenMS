@@ -418,7 +418,11 @@ jobs:
             folder=experimental/${{ steps.extract_branch.outputs.RUN_NAME }}
           fi
           echo $folder
-          sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
+
+          mkdir -p ~/.ssh/
+          echo "$PASS" > ../private.key
+          sudo chmod 600 ../private.key
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
 
         # TODO create softlinks to latest nightly
         # TODO create and upload file hashes, at least for release candidate
@@ -597,4 +601,9 @@ jobs:
             folder=experimental/${{ env.RUN_NAME }}
           fi
           echo $folder
-          sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/knime-plugin/updateSite/$folder"
+
+          #Load private key into file
+          mkdir -p ~/.ssh/
+          echo "$PASS" > ../private.key
+          sudo chmod 600 ../private.key
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/knime-plugin/updateSite/$folder"
