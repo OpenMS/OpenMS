@@ -180,7 +180,7 @@ namespace OpenMS
         pids.back().setRT(row[to_idx.at("retentiontime")].toDouble() * 60.0);
       }
 
-      int sScanNr = row[to_idx.at("ScanNr")].toInt();
+      String sScanNr = row[to_idx.at("ScanNr")];
 
       String sPeptide = row[to_idx.at("Peptide")];
       const double score = row[to_idx.at(score_name)].toDouble();
