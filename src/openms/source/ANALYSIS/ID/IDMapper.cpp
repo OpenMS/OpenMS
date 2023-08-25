@@ -314,6 +314,7 @@ namespace OpenMS
     // We can directly map by native id
     if ((native_id_type != NATIVE_ID_TYPE::UNKNOWN) )
     {
+      bool lookForScanNrsAsIntegers = false;
       ProteinIdentification::Mapping mspath_mapping{protein_ids}; // used to retrieve spectrum file information annotated in protein ids given a peptide identification
 
       for (Size i = 0; i < ids.size(); ++i)
@@ -323,9 +324,17 @@ namespace OpenMS
         if (pid->getHits().empty()) continue; // skip IDs without peptide annotations
 
         String spectrum_file = File::basename(mspath_mapping.getPrimaryMSRunPath(*pid));
-        String spectrum_reference = pid->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
+        String spectrum_reference = pid->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, "");
         // missing file origin is fine but we need a spectrum_reference if we want to build the map
         if (spectrum_reference.empty()) continue;
+        // TODO make a unique decision in the whole class on if to extract by scan number or full string?
+        if (!lookForScanNrsAsIntegers)
+        {
+          char* p;
+          // check if spectrum reference is a string that just contains a number
+          strtol(ids[0].getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE).toChar(), &p, 10);
+          if(*p) lookForScanNrsAsIntegers = true;
+        }
     
         // TODO: check if there is already an entry
         file2nativeid2pepid[spectrum_file][spectrum_reference] = pid;
@@ -352,13 +361,25 @@ namespace OpenMS
         const auto first_channel = *cf.getFeatures().begin();                  
         String filename = File::basename(map.getColumnHeaders()[first_channel.getMapIndex()].filename); // all channels are associated with same file in TMT/iTRAQ
 
+        boost::regex scanregex;
         String cf_scan_id_key_name = (native_id_type == NATIVE_ID_TYPE::MS2IDMS3TMT) ? "id_scan_id" : "scan_id";
         String cf_scan_id = cf.getMetaValue(cf_scan_id_key_name, "");
         if (!cf_scan_id.empty()) 
         {
+          // This assumes all scan_ids are of the same structure
+          if (lookForScanNrsAsIntegers && scanregex.empty())
+          {
+            scanregex = SpectrumLookup::getRegExFromNativeID(cf_scan_id);
+          }
           if (auto run_it = file2nativeid2pepid.find(filename); run_it != file2nativeid2pepid.end()) // TMT/iTRAQ run has identifications
           {
             if (auto scanid_it = run_it->second.find(cf_scan_id); scanid_it != run_it->second.end()) // TMT/iTRAQ run has scan_id with identification
+            {
+              cf.getPeptideIdentifications().push_back(*scanid_it->second);
+              ++id_matches_single; // in TMT we only match to single consensus feature
+            }
+            // look for only the scan_number in case the search engine only extracted this (e.g. Sage)
+            else if (auto scanid_it = run_it->second.find(SpectrumLookup::extractScanNumber(cf_scan_id, scanregex, false)); scanid_it != run_it->second.end())
             {
               cf.getPeptideIdentifications().push_back(*scanid_it->second);
               ++id_matches_single; // in TMT we only match to single consensus feature

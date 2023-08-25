@@ -104,7 +104,7 @@ namespace OpenMS
     if (input.containsIMData())
     {
       // will throw if IM float data array is missing
-      const auto [tmp_index, im_unit] = input.getIMData();
+      [[ maybe_unused ]] const auto [tmp_index, im_unit] = input.getIMData();
       im_data_index = tmp_index;
     }
 
