@@ -256,7 +256,12 @@ jobs:
           # add third-party binaries to PATH
           for thirdpartytool in ${{ github.workspace }}/_thirdparty/*
           do
-            echo $thirdpartytool >> $GITHUB_PATH
+            if [[ "${{ matrix.os }}" == windows-* ]]; then
+              # substitute slashes
+              echo ${thirdpartytool//\//\\} >> $GITHUB_PATH
+            else
+              echo $thirdpartytool >> $GITHUB_PATH
+            fi
           done
 
     - name: Build
@@ -268,7 +273,7 @@ jobs:
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
           retVal=$?
           if [ $retVal -ne 0 ]; then
-              echo "\033[0;31m Errors in build:"
+              echo -e "\033[0;31m Errors in build:"
               # TODO upload logs as artifact?
               find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec cat {} \;
               # remove for next steps
@@ -326,16 +331,10 @@ jobs:
       run: |
           # do not fail immediately
           set +e
-          if [[ "${{ matrix.os }}" == macos-* ]]; then
-            #lol, Microsoft wants us to kill a security system process such that they don't have to fix their bugs. ridiculous once again.
-            #echo killing...; sudo pkill -9 XProtect >/dev/null || true;
-            #echo waiting...; while pgrep XProtect; do sleep 3; done;
-            echo ""
-          fi
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cipackage.cmake
           retVal=$?
           if [ $retVal -ne 0 ]; then
-              echo "\033[0;31m Errors in packaging:"
+              echo -e "\033[0;31m Errors in packaging:"
               # TODO upload logs as artifact?
               find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec cat {} \;
               # remove for next steps
