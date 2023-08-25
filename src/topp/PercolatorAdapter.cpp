@@ -605,8 +605,6 @@ protected:
     String out = getStringOption_("out");
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
-    FileTypes::Type in_type = FileTypes::nameToType(in_list[0]);
-
     if (out_type == FileTypes::UNKNOWN)
     {
       out_type = FileHandler::getTypeByFileName(out);
