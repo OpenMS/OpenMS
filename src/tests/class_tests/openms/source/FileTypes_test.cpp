@@ -40,7 +40,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
-#include <unordered_set>
 
 ///////////////////////////
 

@@ -53,7 +53,7 @@ int main(int argc, const char** argv)
   FileHandler f = FileHandler();
   PeakFileOptions opts = PeakFileOptions();
   // Here we set the MZ range to load to 100-200
-  opts.setMZRange(DRange<1>(100,200));
+  opts.setMZRange( {100, 200} );
   f.setOptions(opts);
   f.loadExperiment(tutorial_data_path + "/data/Tutorial_FileIO.mzXML", map, {FileTypes::MZXML});
 
@@ -64,14 +64,14 @@ int main(int argc, const char** argv)
   // if we want to allow all types that can store MS2 data we can do the following:
   FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_FileIO.mzXML", map, FileTypeList::typesWithProperties({FileTypes::FileProperties::PROVIDES_MS2}));
   // The curly braces can contain multiple file properties. The FileTypeList that is created is the intersection of these properties
-  // so: FileTypeList::typesWithProperties({FileTypes::FileProperties::PROVIDES_MS2, FileTypes::FileProperties::PROVIDES_MS2})
+  // so: FileTypeList::typesWithProperties({FileTypes::FileProperties::PROVIDES_MS1, FileTypes::FileProperties::PROVIDES_MS2})
   // returns only fileTypes which can store both MS1 and MS2 spectra
 
   // We use various FileHandler functions to load other types.
   FeatureMap feat;
   FileHandler().loadFeatures(tutorial_data_path + "/data/Tutorial_Labeled.featureXML", feat);
 
-  // If we try to load something from a file that can't store that info (for example trying to get an experiment from a idXML file)
+  // If we try to load something from a file that can't store that info (for example trying to get an experiment from an idXML file)
   // An error gets thrown at run time. Check out @p FileHandler class for more info
 
   return 0;

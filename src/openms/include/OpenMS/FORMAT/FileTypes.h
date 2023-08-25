@@ -195,7 +195,7 @@ namespace OpenMS
       @brief Get a std::vector<FileTypes::Type> with all fileTypes that support a set of features.
 
       
-      @param features An unordered_set of features that fileTypes must support
+      @param features A set of features that must be supported
       @return A std::vector<FileTypes::Type> with the files that support features
     **/
     static std::vector<FileTypes::Type> typesWithProperties(const std::vector<FileTypes::FileProperties> features);

@@ -52,6 +52,8 @@ Int main(int argc, const char** argv)
 
   PeakMap exp;
   MSSpectrum spec;
+  // demonstrating how to load a single spectrum from file formats which only contain a single spec
+  // alternatively: use FileHandler().loadExperiment() if you need an experiment anyway
   FileHandler().loadSpectrum(tutorial_data_path, spec, {FileTypes::DTA});
   exp.addSpectrum(spec);
   LayerDataBase::ExperimentSharedPtrType exp_sptr(new PeakMap(exp));
