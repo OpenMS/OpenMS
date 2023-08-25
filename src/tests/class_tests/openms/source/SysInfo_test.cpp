@@ -52,6 +52,18 @@ using namespace OpenMS;
 
 START_TEST(SysInfo, "$Id$")
 
+
+START_SECTION(std::string bytesToHumanReadable(UInt64 bytes))
+{
+  TEST_EQUAL(bytesToHumanReadable(   2ull << 00), "2 byte")
+  TEST_EQUAL(bytesToHumanReadable(2048ull << 00), "2 KiB")
+  TEST_EQUAL(bytesToHumanReadable(2048ull << 10), "2 MiB")
+  TEST_EQUAL(bytesToHumanReadable(2048ull << 20), "2 GiB")
+  TEST_EQUAL(bytesToHumanReadable(2048ull << 30), "2 TiB")
+  TEST_EQUAL(bytesToHumanReadable(2048ull << 40), "2 PiB")
+}
+END_SECTION
+
 START_SECTION(static bool getProcessMemoryConsumption(size_t& mem_virtual))
 {
   size_t first, after, final;

@@ -55,7 +55,7 @@
 				<UserParam type="string" name="SageAdapter:1:specificity" value="auto"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2023-08-15T12:15:54" search_engine="Sage" search_engine_version="sage (0.13.4)" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2023-08-25T11:49:49" search_engine="Sage" search_engine_version="sage (0.13.4)" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="sp|Q99536|VAT1_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -64,8 +64,8 @@
 		</ProteinIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="641.019890199895713" RT="6497.123999999999796" >
 			<PeptideHit score="4.568750819879955" sequence="LQSRPAAPPAPGPGQLTLR" charge="3" aa_before="K" aa_after="L" start="63" end="81" protein_refs="PH_0" >
+				<UserParam type="string" name="spectrum_reference" value="30069"/>
 				<UserParam type="string" name="SpecId" value="0"/>
-				<UserParam type="int" name="ScanNr" value="30069"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="ln(-poisson)" value="1.1030057965071456"/>
 				<UserParam type="string" name="ln(delta_best)" value="0.0"/>

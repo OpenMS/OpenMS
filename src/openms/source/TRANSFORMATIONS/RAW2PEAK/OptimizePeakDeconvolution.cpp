@@ -425,7 +425,7 @@ namespace OpenMS
 
       setNumberOfPeaks_(data, temp_shapes, chargeState);
       Eigen::VectorXd x_init(2 + 2 * data.peaks.size());
-      for (Eigen::Index i = 0; i < data.peaks.size(); i++)
+      for (Size i = 0; i < data.peaks.size(); i++)
       {
         x_init(2 + 2 * i) = data.peaks[i].height;
         x_init(3 + 2 * i) = data.peaks[i].mz_position;
@@ -484,7 +484,7 @@ namespace OpenMS
     if (bestNumPeaks > 0)
     {
       peaks.resize(bestNumPeaks);
-      for (Eigen::Index current_peak = 0; current_peak < bestNumPeaks; current_peak++)
+      for (Size current_peak = 0; current_peak < bestNumPeaks; current_peak++)
       {
 
         // Store the current parameters for this peak

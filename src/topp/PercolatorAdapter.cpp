@@ -390,7 +390,9 @@ protected:
     {
       csv_file.getRow(i, row);
       PercolatorResult res(row);
-      String spec_ref = res.PSMId + res.peptide; // note: PSMid from percolator is composed of filename + spectrum native id
+      // note: Since we create our pin file in a way that the SpecID (=PSMId) is composed of filename + spectrum native id
+      //  this will be passed through Percolator and we use it again to read it back in.
+      String spec_ref = res.PSMId + res.peptide;
       writeDebug_("PSM identifier in pout file: " + spec_ref, 10);
 
       // retain only the best result in the unlikely case that a PSMId+peptide combination occurs multiple times
@@ -690,7 +692,7 @@ protected:
     // prepare OSW I/O
     if (out_type == FileTypes::OSW && in_osw != out)
     {
-      // Copy input OSW to output OSW, becsrc/openms/include/OpenMS/METADATA/SpectrumLookup.hause we want to retain all information
+      // Copy input OSW to output OSW, because we want to retain all information
       remove(out.c_str());
       if (!out.empty())
       {
@@ -704,7 +706,7 @@ protected:
     // idXML or mzid input
     if (out_type != FileTypes::OSW)
     {
-      //TODO introduce min/max charge to parameters for now take available range
+      //TODO introduce min/max charge to parameters. For now take available range
       int max_charge = 0;
       int min_charge = 10;
       bool is_decoy = false;
