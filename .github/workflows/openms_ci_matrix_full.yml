@@ -385,6 +385,10 @@ jobs:
     needs: build-and-test
 
     steps:
+      - name: Extract branch/PR infos
+        shell: bash
+        run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
+      
       # WOW, you cannot download with wildcard. INCREDIBLY ANNOYING https://github.com/actions/download-artifact/issues/6
       # Maybe in the next 3 years......
       - name: Download macos installer artifacts
@@ -406,16 +410,15 @@ jobs:
           PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
-          #PATH: ${{ secrets.IBMI_PATH }} # We rrsync already puts us in the correct path
         run: |
           echo "Upload"
-          if [[ "${{ steps.extract_branch.outputs.RUN_NAME }}" == "nightly" ]]; then
+          if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
             folder=nightly
-          elif [[ "${{ steps.extract_branch.outputs.RUN_NAME }}" == "release/*" ]]; then
-            tmpfolder=${{ steps.extract_branch.outputs.RUN_NAME }}
+          elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
+            tmpfolder=${{ env.RUN_NAME }}
             folder=${tmpfolder/release/RC}
           else
-            folder=experimental/${{ steps.extract_branch.outputs.RUN_NAME }}
+            folder=experimental/${{ env.RUN_NAME }}
           fi
           echo $folder
 
@@ -589,7 +592,6 @@ jobs:
           PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
-          #PATH: ${{ secrets.IBMI_PATH }} # rrsync handles this
         run: |
           echo "Upload"
           if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
