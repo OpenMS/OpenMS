@@ -603,6 +603,11 @@ jobs:
           fi
           echo $folder
 
+          # correct permissions of files to upload
+          chmod -R o+r $GITHUB_WORKSPACE/*
+          chmod o+x features
+          chmod o+x plugins
+          
           #Load private key into file
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
