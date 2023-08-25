@@ -254,7 +254,7 @@ jobs:
           cp -R OpenMS/THIRDPARTY/${{ steps.set-vars.outputs.tp_folder }}/64bit/* _thirdparty/
           cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           # add third-party binaries to PATH
-          for thirdpartytool in ${{ github.workspace }}/_thirdparty/*
+          for thirdpartytool in '${{ github.workspace }}/_thirdparty'/*
           do
             if [[ "${{ matrix.os }}" == windows-* ]]; then
               # substitute slashes
