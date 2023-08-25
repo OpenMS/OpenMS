@@ -184,7 +184,7 @@ public:
 
       @param filename The file name of the file to load.
       @param exp The experiment to load the data into.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes.. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
+      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @param log Progress logging mode
       @param rewrite_source_file Set's the SourceFile name and path to the current file. Note that this looses the link to the primary MS run the file originated from.
       @param compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
@@ -204,7 +204,7 @@ public:
 
       @param filename The file name of the file to load.
       @param spec The spectrum to load the data into.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes.. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
+      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @return true if the file could be loaded, false otherwise
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
@@ -261,7 +261,7 @@ public:
 
       @param filename the file name of the file to load.
       @param map The ConsensusMap to load the data into.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes.. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
+      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @param log Progress logging mode
 
       @return true if the file could be loaded, false otherwise
@@ -291,7 +291,7 @@ public:
       @param filename the file name of the file to load.
       @param additional_proteins The proteinIdentification vector to load the data into.
       @param additional_peptides The peptideIdentification vector to load the data into.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes.. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
+      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @param log Progress logging mode      
 
       @return true if the file could be loaded, false otherwise
@@ -321,7 +321,7 @@ public:
 
       @param filename the file name of the file to read.
       @param map The TargetedExperiment to load.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes.. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
+      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @param log Progress logging mode
       
       @return true if the file could be loaded, false otherwise
@@ -350,7 +350,7 @@ public:
 
       @param filename the file name of the file to load.
       @param msq The MSQuantification to load the data into.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes.. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
+      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
 
       @return true if the file could be loaded, false otherwise
 
@@ -379,7 +379,7 @@ public:
 
       @param filename the file name of the file to load.
       @param msq The Transformations to load the data into.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes.. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
+      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
 
       @return true if the file could be loaded, false otherwise
 
