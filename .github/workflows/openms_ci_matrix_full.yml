@@ -256,7 +256,12 @@ jobs:
           # add third-party binaries to PATH
           for thirdpartytool in ${{ github.workspace }}/_thirdparty/*
           do
-            echo $thirdpartytool >> $GITHUB_PATH
+            if [[ "${{ matrix.os }}" == windows-* ]]; then
+              # substitute slashes
+              echo ${thirdpartytool//\//\\} >> $GITHUB_PATH
+            else
+              echo $thirdpartytool >> $GITHUB_PATH
+            fi
           done
 
     - name: Build
@@ -268,7 +273,7 @@ jobs:
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
           retVal=$?
           if [ $retVal -ne 0 ]; then
-              echo "\033[0;31m Errors in build:"
+              echo -e "\033[0;31m Errors in build:"
               # TODO upload logs as artifact?
               find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec cat {} \;
               # remove for next steps
@@ -326,16 +331,10 @@ jobs:
       run: |
           # do not fail immediately
           set +e
-          if [[ "${{ matrix.os }}" == macos-* ]]; then
-            #lol, Microsoft wants us to kill a security system process such that they don't have to fix their bugs. ridiculous once again.
-            #echo killing...; sudo pkill -9 XProtect >/dev/null || true;
-            #echo waiting...; while pgrep XProtect; do sleep 3; done;
-            echo ""
-          fi
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cipackage.cmake
           retVal=$?
           if [ $retVal -ne 0 ]; then
-              echo "\033[0;31m Errors in packaging:"
+              echo -e "\033[0;31m Errors in packaging:"
               # TODO upload logs as artifact?
               find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec cat {} \;
               # remove for next steps
@@ -385,6 +384,10 @@ jobs:
     needs: build-and-test
 
     steps:
+      - name: Extract branch/PR infos
+        shell: bash
+        run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
+      
       # WOW, you cannot download with wildcard. INCREDIBLY ANNOYING https://github.com/actions/download-artifact/issues/6
       # Maybe in the next 3 years......
       - name: Download macos installer artifacts
@@ -406,19 +409,22 @@ jobs:
           PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
-          #PATH: ${{ secrets.IBMI_PATH }} # We rrsync already puts us in the correct path
         run: |
           echo "Upload"
-          if [[ "${{ steps.extract_branch.outputs.RUN_NAME }}" == "nightly" ]]; then
+          if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
             folder=nightly
-          elif [[ "${{ steps.extract_branch.outputs.RUN_NAME }}" == "release/*" ]]; then
-            tmpfolder=${{ steps.extract_branch.outputs.RUN_NAME }}
+          elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
+            tmpfolder=${{ env.RUN_NAME }}
             folder=${tmpfolder/release/RC}
           else
-            folder=experimental/${{ steps.extract_branch.outputs.RUN_NAME }}
+            folder=experimental/${{ env.RUN_NAME }}
           fi
           echo $folder
-          #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
+
+          mkdir -p ~/.ssh/
+          echo "$PASS" > ~/.ssh/private.key
+          sudo chmod 600 ~/.ssh/private.key
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
 
         # TODO create softlinks to latest nightly
         # TODO create and upload file hashes, at least for release candidate
@@ -585,7 +591,6 @@ jobs:
           PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
-          #PATH: ${{ secrets.IBMI_PATH }} # rrsync handles this
         run: |
           echo "Upload"
           if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
@@ -597,4 +602,14 @@ jobs:
             folder=experimental/${{ env.RUN_NAME }}
           fi
           echo $folder
-          #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/knime-plugin/updateSite/$folder"
+
+          # correct permissions of files to upload
+          chmod -R o+r $GITHUB_WORKSPACE/*
+          chmod o+x features
+          chmod o+x plugins
+          
+          #Load private key into file
+          mkdir -p ~/.ssh/
+          echo "$PASS" > ~/.ssh/private.key
+          sudo chmod 600 ~/.ssh/private.key
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/knime-plugin/updateSite/$folder"

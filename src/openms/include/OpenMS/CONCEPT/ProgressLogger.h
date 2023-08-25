@@ -81,7 +81,9 @@ public:
       virtual void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int current_recursion_depth) const = 0;
       virtual void setProgress(const SignedSize value, const int current_recursion_depth) const = 0;
       virtual SignedSize nextProgress() const = 0; //< does not print/show anything; returns current progress
-      virtual void endProgress(const int current_recursion_depth) const = 0;
+      /// finalize; usually stops the clock and prints a summary; 
+      /// You may optionally pass the number of bytes read/written to get a MB/sec estimate
+      virtual void endProgress(const int current_recursion_depth, UInt64 bytes_processed = 0) const = 0;
 
       virtual ~ProgressLoggerImpl() {}
 
@@ -113,7 +115,8 @@ public:
     void setProgress(SignedSize value) const;
 
     /// Ends the progress display
-    void endProgress() const;
+    /// You may optionally pass the number of bytes read/written to get a MB/sec estimate (if -1 or 0, it will be ignored)
+    void endProgress(UInt64 bytes_processed = 0) const;
 
     /// increment progress by 1 (according to range begin-end)
     void nextProgress() const;
