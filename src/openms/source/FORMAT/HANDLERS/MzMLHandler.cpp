@@ -49,6 +49,8 @@
 namespace OpenMS::Internal
 {
 
+    thread_local ProgressLogger pg_outer; ///< an extra logger for nested logging
+
     /// Constructor for a read-only handler
     MzMLHandler::MzMLHandler(MapType& exp, const String& filename, const String& version, const ProgressLogger& logger)
       : MzMLHandler(filename, version, logger)
@@ -76,12 +78,13 @@ namespace OpenMS::Internal
       {
         OPENMS_LOG_ERROR << "MzMLHandler was initialized with an invalid version number: " << version_ << std::endl;
       }
+      pg_outer = logger; // inherit the logtype etc
     }
 
 
     /// Destructor
-    MzMLHandler::~MzMLHandler()
-    = default;
+    MzMLHandler::~MzMLHandler() = default;
+
     /// Set the peak file options
     void MzMLHandler::setOptions(const PeakFileOptions& opt)
     {
@@ -1044,6 +1047,7 @@ namespace OpenMS::Internal
         {
           exp_->setMetaValue("mzml_id", id);
         }
+        pg_outer.startProgress(0, 1, "loading mzML");
       }
       else if (tag == "contact")
       {
@@ -1357,6 +1361,8 @@ namespace OpenMS::Internal
         // Flush the remaining data
         populateSpectraWithData_();
         populateChromatogramsWithData_();
+        pg_outer.endProgress(File::fileSize(file_)); // we cannot query the offset within the file when SAX'ing it (Xerces does not support that)
+                                                     // , so we can only report I/O at the very end
       }
     }
 
@@ -4107,7 +4113,7 @@ namespace OpenMS::Internal
 
       OPENMS_LOG_INFO << stored_spectra << " spectra and " << stored_chromatograms << " chromatograms stored.\n";
 
-      logger_.endProgress();
+      logger_.endProgress(os.tellp());
     }
 
     void MzMLHandler::writeHeader_(std::ostream& os,

@@ -80,8 +80,7 @@ namespace OpenMS::Internal
     {
     }
 
-    XMLHandler::~XMLHandler()
-    = default;
+    XMLHandler::~XMLHandler() = default;
 
     void XMLHandler::reset()
     {
