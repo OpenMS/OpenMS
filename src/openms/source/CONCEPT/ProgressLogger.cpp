@@ -110,7 +110,7 @@ public:
       String IO_stats;
       if (bytes_processed)
       {
-        IO_stats = ", " + bytesToHumanReadable(bytes_processed / stop_watch_.getClockTime()) + "/sec";
+        IO_stats = " @ " + bytesToHumanReadable(bytes_processed / stop_watch_.getClockTime()) + "/s";
       }
       cout << '\r' << string(2 * current_recursion_depth, ' ') << "-- done [took " << StopWatch::toString(stop_watch_.getCPUTime()) << " (CPU), " << StopWatch::toString(stop_watch_.getClockTime()) << " (Wall)" << IO_stats << "] -- " << endl;
     }
