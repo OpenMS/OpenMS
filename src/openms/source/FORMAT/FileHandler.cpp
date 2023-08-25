@@ -76,38 +76,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  bool checkTypes_(const FileTypeList& allowed_types, const String& filename)
-  {
-    FileTypes::Type whatType = FileHandler::getTypeByFileName(filename);
-    for (auto i : allowed_types.getTypes())
-    {
-      // Check if we match the file extension
-      if (whatType == i)
-      {
-        return true;
-      }
-    }
-    // If we still don't have a match, check the contents
-
-    whatType = FileHandler::getTypeByContent(filename);
-    for (auto j : allowed_types.getTypes())
-    {
-      try
-      {
-        if (whatType == j)
-        {
-          return true;
-        }
-      }
-      // If the file doesn't exist and we don't have an extension, we return false
-      catch (Exception::FileNotFound)
-      {
-        return false;
-      }
-    }
-    return false;
-  }
-
   String allowedToString_(vector<FileTypes::Type> types)
   {
     String aStrings;
@@ -663,7 +631,7 @@ namespace OpenMS
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {    
-      if (!checkTypes_(allowed_types, filename))
+      if (!FileTypeList(allowed_types).contains(type))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for loading a spectrum. Allowed types are: " + allowedToString_(allowed_types));
       }
@@ -701,7 +669,7 @@ namespace OpenMS
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!checkTypes_(allowed_types, filename))
+      if (!FileTypeList(allowed_types).contains(type))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for loading an experiment. Allowed types are: " + allowedToString_(allowed_types));
       }
@@ -835,22 +803,22 @@ namespace OpenMS
 
   void FileHandler::storeExperiment(const String& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
-    auto ftype = getTypeByFileName(filename);
-    if (ftype == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
+    auto type = getTypeByFileName(filename);
+    if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
     { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
-      ftype = allowed_types[0];
+      type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!checkTypes_(allowed_types, filename))
+      if (!FileTypeList(allowed_types).contains(type))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(ftype) + " is not allowed for storing an experiment. Allowed types are: " + allowedToString_(allowed_types));
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing an experiment. Allowed types are: " + allowedToString_(allowed_types));
       }
     }
 
     // load right file
-    switch (ftype)
+    switch (type)
     {
       case FileTypes::DTA: 
       {
@@ -938,7 +906,7 @@ namespace OpenMS
 
       default: 
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(ftype) + " is not supported for storing experiments");
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing experiments");
       }
     }
   }
@@ -949,7 +917,7 @@ namespace OpenMS
     FileTypes::Type type = getType(filename);
     if (allowed_types.size() != 0)
     {
-      if (!checkTypes_(allowed_types, filename))
+      if (!FileTypeList(allowed_types).contains(type))
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for loading features. Allowed types are: " + allowedToString_(allowed_types));
       }
@@ -1002,23 +970,23 @@ namespace OpenMS
 
   void FileHandler::storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
-    auto ftype = getTypeByFileName(filename);
-    if (ftype == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
+    auto type = getTypeByFileName(filename);
+    if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
     { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
-      ftype = allowed_types[0];
+      type = allowed_types[0];
     }
 
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!checkTypes_(allowed_types, filename))
+      if (!FileTypeList(allowed_types).contains(type))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(ftype) + " is not allowed for storing features. Allowed types are: " + allowedToString_(allowed_types));
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing features. Allowed types are: " + allowedToString_(allowed_types));
       }
     }
 
     //store right file
-    switch (ftype)
+    switch (type)
     {
       case FileTypes::FEATUREXML:
       {
@@ -1064,7 +1032,7 @@ namespace OpenMS
 
       default:
       {
-          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(ftype) + " is not supported for storing features");
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing features");
       }
     }
   }
@@ -1077,7 +1045,7 @@ namespace OpenMS
 
     if (allowed_types.size() != 0)
     {
-      if (!checkTypes_(allowed_types, filename))
+      if (!FileTypeList(allowed_types).contains(type))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for loading consensus features, Allowed types are: " + allowedToString_(allowed_types));
       }
@@ -1110,20 +1078,20 @@ namespace OpenMS
 
   void FileHandler::storeConsensusFeatures(const String& filename, const ConsensusMap& map,  const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
-    auto ftype = getTypeByFileName(filename);
-    if (ftype == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
+    auto type = getTypeByFileName(filename);
+    if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
     { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
-      ftype = allowed_types[0];
+      type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!checkTypes_(allowed_types, filename))
+      if (!FileTypeList(allowed_types).contains(type))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(ftype) + " is not allowed for storing an Consensus Features. Allowed types are: " + allowedToString_(allowed_types));
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing an Consensus Features. Allowed types are: " + allowedToString_(allowed_types));
       }
     }
-    switch (ftype)
+    switch (type)
     {
       case FileTypes::CONSENSUSXML:
       {
@@ -1150,7 +1118,7 @@ namespace OpenMS
       
       default:
       {        
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(ftype) + " is not supported for storing consensus features");
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing consensus features");
       }
     }
   }
@@ -1162,7 +1130,7 @@ namespace OpenMS
     FileTypes::Type type = getType(filename);
     if (allowed_types.size() != 0)
     {
-      if (!checkTypes_(allowed_types, filename))
+      if (!FileTypeList(allowed_types).contains(type))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for loading identifications, Allowed types are: " + allowedToString_(allowed_types));
       }
@@ -1231,21 +1199,21 @@ namespace OpenMS
 
   void FileHandler::storeIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
-    auto ftype = getTypeByFileName(filename);
-    if (ftype == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
+    auto type = getTypeByFileName(filename);
+    if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
     { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
-      ftype = allowed_types[0];
+      type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!checkTypes_(allowed_types, filename))
+      if (!FileTypeList(allowed_types).contains(type))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(ftype) + " is not allowed for storing identifications. Allowed types are: " + allowedToString_(allowed_types));
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing identifications. Allowed types are: " + allowedToString_(allowed_types));
       }
     }
 
-    switch (ftype)
+    switch (type)
     {
       case FileTypes::IDXML:
       {
@@ -1280,7 +1248,7 @@ namespace OpenMS
 
       default:
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(ftype) + " is not supported for storing Identifications");
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing Identifications");
       }
     }   
   }
@@ -1291,7 +1259,7 @@ namespace OpenMS
     FileTypes::Type type = getType(filename);
     if (allowed_types.size() != 0)
     {
-      if (!checkTypes_(allowed_types, filename))
+      if (!FileTypeList(allowed_types).contains(type))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for loading transitions, Allowed types are: " + allowedToString_(allowed_types));
       }
@@ -1316,20 +1284,20 @@ namespace OpenMS
 
   void FileHandler::storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
-    auto ftype = getTypeByFileName(filename);
-    if (ftype == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
+    auto type = getTypeByFileName(filename);
+    if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
     { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
-      ftype = allowed_types[0];
+      type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!checkTypes_(allowed_types, filename))
+      if (!FileTypeList(allowed_types).contains(type))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(ftype) + " is not allowed for storing transitions. Allowed types are: " + allowedToString_(allowed_types));
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing transitions. Allowed types are: " + allowedToString_(allowed_types));
       }
     }
-    switch (ftype)
+    switch (type)
     {
       case FileTypes::TRAML:
       {
@@ -1341,7 +1309,7 @@ namespace OpenMS
 
       default:
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(ftype) + " is not supported for storing transitions"); 
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing transitions"); 
       }
     }
   }
@@ -1352,7 +1320,7 @@ namespace OpenMS
     FileTypes::Type type = getType(filename);
     if (allowed_types.size() != 0)
     {
-      if (!checkTypes_(allowed_types, filename))
+      if (!FileTypeList(allowed_types).contains(type))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for loading quantifications, Allowed types are: " + allowedToString_(allowed_types));
       }
@@ -1376,21 +1344,21 @@ namespace OpenMS
 
   void FileHandler::storeQuantifications(const String& filename, const MSQuantifications& map,  const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
-    auto ftype = getTypeByFileName(filename);
-    if (ftype == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
+    auto type = getTypeByFileName(filename);
+    if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
     { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
-      ftype = allowed_types[0];
+      type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!checkTypes_(allowed_types, filename))
+      if (!FileTypeList(allowed_types).contains(type))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(ftype) + " is not allowed for storing quantifications. Allowed types are: " + allowedToString_(allowed_types));
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing quantifications. Allowed types are: " + allowedToString_(allowed_types));
       }
     }
     
-    switch (ftype)
+    switch (type)
     {
       case FileTypes::MZQUANTML:
       {
@@ -1402,7 +1370,7 @@ namespace OpenMS
 
       default:
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(ftype) + " is not supported for storing quantifications");
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing quantifications");
       }
     }
   }
@@ -1413,7 +1381,7 @@ namespace OpenMS
     FileTypes::Type type = getType(filename);
     if (allowed_types.size() != 0)
     {
-      if (!checkTypes_(allowed_types, filename))
+      if (!FileTypeList(allowed_types).contains(type))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for loading transformations, Allowed types are: " + allowedToString_(allowed_types));
       }
@@ -1435,21 +1403,21 @@ namespace OpenMS
 
   void FileHandler::storeTransformations(const String& filename, const TransformationDescription& map,  const std::vector<FileTypes::Type> allowed_types)
   {
-    auto ftype = getTypeByFileName(filename);
-    if (ftype == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
+    auto type = getTypeByFileName(filename);
+    if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
     { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
-      ftype = allowed_types[0];
+      type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!checkTypes_(allowed_types, filename))
+      if (!FileTypeList(allowed_types).contains(type))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(ftype) + " is not allowed for storing transformations. Allowed types are: " + allowedToString_(allowed_types));
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing transformations. Allowed types are: " + allowedToString_(allowed_types));
       }
     }
     
-    switch (ftype)
+    switch (type)
     {
       case FileTypes::TRANSFORMATIONXML:
       {
@@ -1459,7 +1427,7 @@ namespace OpenMS
 
       default:
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(ftype) + " is not supported for storing transformations");
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing transformations");
       }
     }
   }
@@ -1479,21 +1447,21 @@ namespace OpenMS
                const std::vector<FileTypes::Type> allowed_types
              )
   {
-    auto ftype = getTypeByFileName(filename);
-    if (ftype == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
+    auto type = getTypeByFileName(filename);
+    if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
     { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
-      ftype = allowed_types[0];
+      type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0)
     {
-      if (!checkTypes_(allowed_types, filename))
+      if (!FileTypeList(allowed_types).contains(type))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(ftype) + " is not allowed for storing QC data. Allowed types are: " + allowedToString_(allowed_types));
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing QC data. Allowed types are: " + allowedToString_(allowed_types));
       }
     }
 
-    switch (ftype)
+    switch (type)
     {
       case FileTypes::QCML:
       {
@@ -1513,7 +1481,7 @@ namespace OpenMS
       
       default:
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(ftype) + " is not supported for storing QC data");
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing QC data");
       }
     }
   }
