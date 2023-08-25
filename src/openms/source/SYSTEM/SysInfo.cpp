@@ -33,7 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/SysInfo.h>
+
+#include <array>
 #include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
 
 #ifdef OPENMS_WINDOWSPLATFORM
   #include "windows.h"
@@ -52,6 +57,26 @@
 
 namespace OpenMS
 {
+
+  std::string bytesToHumanReadable(UInt64 bytes)
+  {
+    std::array units {"byte", "KiB", "MiB", "GiB", "TiB", "PiB"};
+
+    const int divisor = 1024;
+    double db = double(bytes);
+    for (const auto u : units)
+    {
+      if (db < divisor)
+      {
+        std::stringstream ss;
+        ss << std::setprecision(4) /* 4 digits overall, i.e. 1000 or 1.456 */ << db << ' ' << u;
+        return ss.str();
+      }
+      db /= divisor;
+    }
+    // wow ... you made it here...
+    return std::string("Congrats. That's a lot of bytes: ") + std::to_string(bytes);
+  }
 
 #ifdef OMS_USELINUXMEMORYPLATFORM
   // see http://stackoverflow.com/questions/1558402/memory-usage-of-current-process-in-c
@@ -228,6 +253,5 @@ namespace OpenMS
     s = String(std::abs(((long long)mem_after - (long long)mem_before) / 1024)) + " MB";
     return s;
   }
-
 
 } // namespace OpenMS
