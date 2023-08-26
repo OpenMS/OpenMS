@@ -81,7 +81,7 @@ public:
       and compute manhattan distance and dotprod score between spectrum intensities
       and simulated spectrum.
     */
-    void score(const SpectrumSequence& spec,
+    OPENMS_DLLAPI void score(const SpectrumSequence& spec,
                const std::vector<OpenSwath::LightTransition>& lt,
                const RangeMobility& im_range,
                double& dotprod,
