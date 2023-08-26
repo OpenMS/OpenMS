@@ -83,9 +83,6 @@ namespace OpenMS
         int min_charge, 
         int max_charge);
 
-
-      static Int getScanNumber_(const String& scan_identifier);
-
       static bool isEnz_(const char& n, const char& c, const std::string& enz);
 
       static Size countEnzymatic_(const String& peptide, const std::string& enz);

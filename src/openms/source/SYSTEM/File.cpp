@@ -49,6 +49,7 @@
 #include <QtNetwork/QHostInfo>
 
 #include <atomic>
+#include <filesystem>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
@@ -171,6 +172,14 @@ namespace OpenMS
   {
     QFileInfo fi(file.toQString());
     return fi.exists() && fi.isExecutable();
+  }
+
+  UInt64 File::fileSize(const String& file)
+  {
+    std::error_code err;
+    UInt64 res = std::filesystem::file_size(file.c_str(), err);
+    if (err) return -1;
+    return res;
   }
 
   bool File::rename(const String& from, const String& to, bool overwrite_existing, bool verbose)

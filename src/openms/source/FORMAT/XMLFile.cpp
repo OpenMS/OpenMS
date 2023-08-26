@@ -42,15 +42,16 @@
 
 #include <OpenMS/FORMAT/CompressedInputSource.h>
 
-#include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
+
+#include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
 
 #include <fstream>
 #include <iomanip> // setprecision etc.
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 using namespace std;
 
@@ -94,6 +95,42 @@ private:
       enforced_encoding_ = encoding;
     }
 
+    void parse(xercesc::InputSource* const source, XMLHandler* handler)
+    {
+      unique_ptr<xercesc::SAX2XMLReader> parser(xercesc::XMLReaderFactory::createXMLReader());
+
+      parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces, false);
+      parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes, false);
+
+      parser->setContentHandler(handler);
+      parser->setErrorHandler(handler);
+
+
+      // try to parse file
+      try
+      {
+        parser->parse(*source);
+      }
+      catch (const xercesc::XMLException& toCatch)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("XMLException: ") + StringManager().convert(toCatch.getMessage()));
+      }
+      catch (const xercesc::SAXException& toCatch)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("SAXException: ") + StringManager().convert(toCatch.getMessage()));
+      }
+      catch (const XMLHandler::EndParsingSoftly& /*toCatch*/)
+      {
+        // nothing to do here, as this exception is used to softly abort the
+        // parsing for whatever reason.
+      }
+      catch (...)
+      {
+        // re-throw
+        throw;
+      }
+    }
+
     void XMLFile::parse_(const String & filename, XMLHandler * handler)
     {
       // ensure handler->reset() is called to save memory (in case the XMLFile
@@ -118,12 +155,6 @@ private:
             "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
       }
 
-      boost::shared_ptr< xercesc::SAX2XMLReader > parser(xercesc::XMLReaderFactory::createXMLReader());
-      parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces, false);
-      parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes, false);
-
-      parser->setContentHandler(handler);
-      parser->setErrorHandler(handler);
 
       // peak ahead into the file: is it bzip2 or gzip compressed?
       String bz;
@@ -135,7 +166,7 @@ private:
         bz = String(tmp_bz);
       }
 
-      boost::shared_ptr< xercesc::InputSource > source;
+      unique_ptr<xercesc::InputSource> source;
 
       char g1 = 0x1f;
       char g2 = 0;
@@ -158,31 +189,8 @@ private:
         static const XMLCh* s_enc = xercesc::XMLString::transcode(enforced_encoding_.c_str());
         source->setEncoding(s_enc);
       }
-      // try to parse file
-      try
-      {
-        parser->parse(*source);
-      }
-      catch (const xercesc::XMLException & toCatch)
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", 
-            String("XMLException: ") + StringManager().convert(toCatch.getMessage()));
-      }
-      catch (const xercesc::SAXException & toCatch)
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
-            String("SAXException: ") + StringManager().convert(toCatch.getMessage()));
-      }
-      catch (const XMLHandler::EndParsingSoftly & /*toCatch*/)
-      {
-        // nothing to do here, as this exception is used to softly abort the
-        // parsing for whatever reason.
-      }
-      catch (...)
-      {
-        // re-throw
-        throw;
-      }
+      
+      parse(source.get(), handler);
     }
 
     void XMLFile::parseBuffer_(const std::string & buffer, XMLHandler * handler)
@@ -204,18 +212,11 @@ private:
             "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
       }
 
-      boost::shared_ptr< xercesc::SAX2XMLReader > parser(xercesc::XMLReaderFactory::createXMLReader());
-      parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces, false);
-      parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes, false);
-
-      parser->setContentHandler(handler);
-      parser->setErrorHandler(handler);
-
       // TODO: handle non-plain text
       // peak ahead into the file: is it bzip2 or gzip compressed?
       // String bz = buffer.substr(0, 2);
 
-      boost::shared_ptr< xercesc::InputSource > source;
+      unique_ptr<xercesc::InputSource> source;
       {
         auto fake_id = sm.convert("inMemory");
         source.reset(new xercesc::MemBufInputSource(reinterpret_cast<const unsigned char *>(buffer.c_str()), buffer.size(), fake_id.c_str()));
@@ -226,31 +227,8 @@ private:
         static const XMLCh* s_enc = xercesc::XMLString::transcode(enforced_encoding_.c_str());
         source->setEncoding(s_enc);
       }
-      // try to parse file
-      try
-      {
-        parser->parse(*source);
-      }
-      catch (const xercesc::XMLException & toCatch)
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", 
-            String("XMLException: ") + StringManager().convert(toCatch.getMessage()));
-      }
-      catch (const xercesc::SAXException & toCatch)
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
-            String("SAXException: ") + StringManager().convert(toCatch.getMessage()));
-      }
-      catch (const XMLHandler::EndParsingSoftly & /*toCatch*/)
-      {
-        // nothing to do here, as this exception is used to softly abort the
-        // parsing for whatever reason.
-      }
-      catch (...)
-      {
-        // re-throw
-        throw;
-      }
+      
+      parse(source.get(), handler);
     }
 
     void XMLFile::save_(const String & filename, XMLHandler * handler) const

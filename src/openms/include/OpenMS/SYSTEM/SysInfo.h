@@ -40,6 +40,9 @@
 namespace OpenMS
 {
 
+  /// convert bytes to a human readable unit (TiB, GiB, MiB, KiB), e.g. "45.34 MiB"
+  OPENMS_DLLAPI std::string bytesToHumanReadable(UInt64 bytes);
+
 	/**
 	@brief Some functions to get system information
 

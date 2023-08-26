@@ -182,8 +182,8 @@ protected:
   "chimera": false,
   "wide_window": false,
   "predict_rt": false,
-  "min_peaks": 15,
-  "max_peaks": 150,
+  "min_peaks": ##min_peaks##,
+  "max_peaks": ##max_peaks##,
   "min_matched_peaks": ##min_matched_peaks##,
   "report_psms": ##report_psms##
 }
@@ -235,6 +235,7 @@ protected:
   }
 
   // impute values into config_template
+  // TODO just iterate over all options??
   String imputeConfigIntoTemplate()
   {
     String config_file = config_template;
@@ -257,6 +258,8 @@ protected:
     String isotope_errors = String(getIntList_("isotope_errors")).remove('[').remove(']');
     config_file.substitute("##isotope_errors##", isotope_errors);
     config_file.substitute("##min_matched_peaks##", String(getIntOption_("min_matched_peaks")));
+    config_file.substitute("##min_peaks##", String(getIntOption_("min_peaks")));
+    config_file.substitute("##max_peaks##", String(getIntOption_("max_peaks")));
     config_file.substitute("##report_psms##", String(getIntOption_("report_psms")));
     config_file.substitute("##decoy_tag##", String(getStringOption_("decoy_prefix")));
 
@@ -377,9 +380,14 @@ protected:
 
     registerInputFile_("database", "<file>", "", "FASTA file", true, false, {"skipexists"});
     setValidFormats_("database", { "FASTA" } );
+
     registerInputFile_("sage_executable", "<executable>",
       // choose the default value according to the platform where it will be executed
-      "sage", // this is the name on ALL platforms currently...
+      #ifdef OPENMS_WINDOWSPLATFORM
+        "sage.exe",
+      #else
+        "sage",
+      #endif
       "The Sage executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
 
     registerStringOption_("decoy_prefix", "<prefix>", "DECOY_", "Prefix on protein accession used to distinguish decoy from target proteins.", false, false);
@@ -514,7 +522,7 @@ protected:
     protein_identifications[0].setSearchEngineVersion(sage_version);
 
     DateTime now = DateTime::now();
-    String identifier("SSE_" + now.get());
+    String identifier("Sage_" + now.get());
     protein_identifications[0].setIdentifier(identifier);
     for (auto & pid : peptide_identifications) 
     { 
@@ -538,8 +546,8 @@ protected:
     search_parameters.charges = ":"; // not set
 
     search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
-    search_parameters.fixed_modifications = getStringList_("fixed_modifications");;
-    search_parameters.variable_modifications = getStringList_("variable_modifications");;
+    search_parameters.fixed_modifications = getStringList_("fixed_modifications");
+    search_parameters.variable_modifications = getStringList_("variable_modifications");
     search_parameters.missed_cleavages = getIntOption_("missed_cleavages");
     search_parameters.fragment_mass_tolerance = (getDoubleOption_("fragment_tol_left") + getDoubleOption_("fragment_tol_right")) * 0.5;
     search_parameters.precursor_mass_tolerance = (getDoubleOption_("precursor_tol_left") + getDoubleOption_("precursor_tol_right")) * 0.5;
