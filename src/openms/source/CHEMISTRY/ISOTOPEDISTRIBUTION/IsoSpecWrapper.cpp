@@ -48,8 +48,9 @@
 #define ISOSPEC_GOT_MMAN false
 #define ISOSPEC_BUILDING_OPENMS true
 
-#include <OpenMS/../../thirdparty/IsoSpec/IsoSpec/isoSpec++.h>
-
+// TODO Fix this weird way of including. Just make a library out of it,
+//  link to it and declare it PUBLIC such that it gets linked to dependents of OpenMS lib
+// But since it is PUBLIC, you should export the library also for installation (see evergreen thirdparty)
 #include "IsoSpec/allocator.cpp"
 #include "IsoSpec/dirtyAllocator.cpp"
 #include "IsoSpec/isoSpec++.cpp"
@@ -89,7 +90,7 @@ namespace OpenMS
     // Convert vector of vector to double**
     std::unique_ptr<const double*[]> IM(new const double*[dimNumber]);
     std::unique_ptr<const double*[]> IP(new const double*[dimNumber]);
-    for (int i=0; i<dimNumber; i++)
+    for (int i = 0; i < dimNumber; i++)
     {
       IM[i] = isotopeMasses[i].data();
       IP[i] = isotopeProbabilities[i].data();
@@ -336,5 +337,5 @@ namespace OpenMS
     IsotopeDistribution ID;
     ID.set(std::move(distribution));
     return ID;
-}
+  }
 }  // namespace OpenMS

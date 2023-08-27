@@ -80,6 +80,18 @@ namespace OpenMS
     return weight;
   }
 
+  double EmpiricalFormula::getLightestIsotopeWeight() const
+  {
+    double weight = Constants::PROTON_MASS_U * charge_;
+    for (const auto& it : formula_)
+    {
+      // Isotopes should be filled sorted by mz in Elements, so we use
+      //  the first element instead of getMin()
+      weight += it.first->getIsotopeDistribution()[0].getMZ() * (double)it.second;
+    }
+    return weight;
+  }
+
   double EmpiricalFormula::getAverageWeight() const
   {
     double weight = Constants::PROTON_MASS_U * charge_;
