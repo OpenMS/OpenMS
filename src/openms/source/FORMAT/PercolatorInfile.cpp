@@ -181,9 +181,14 @@ namespace OpenMS
         pids.back().setScoreType(score_name);
         pids.back().setMetaValue("id_merge_index", map_filename_to_idx.at(raw_file_name));
         pids.back().setRT(row[to_idx.at("retentiontime")].toDouble() * 60.0);
+        pids.setMetaValue("PercolatorSpecId", sSpecId);
+        // Since ScanNr is the closest to help in identifying the spectrum in the file later on,
+        // we use it as spectrum_reference. Since it can be integer only or the complete
+        // vendor ID, you will need to consider both during lookup.
+        pids.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, sScanNr);
       }
 
-      // In theory this should be an integer, but Sage is bugged an cannot extract the number from all vendor spectrum IDs
+      // In theory, this should be an integer, but Sage is bugged an cannot extract the number from all vendor spectrum IDs
       String sScanNr = row[to_idx.at("ScanNr")];
 
       String sPeptide = row[to_idx.at("Peptide")];
@@ -221,11 +226,6 @@ namespace OpenMS
       sPeptide.substitute("-[", ".["); // we can parse MVLVQDLLHPTAASEAR.[+111]
       AASequence aa_seq = AASequence::fromString(sPeptide);
       PeptideHit ph(score, rank, charge, std::move(aa_seq));
-      ph.setMetaValue("SpecId", sSpecId);
-      // Since ScanNr is the closest to help in identifying the spectrum in the file later on,
-      // we use it as spectrum_reference. Since it can be integer only or the complete
-      // vendor ID, you will need to consider both during lookup.
-      ph.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, sScanNr);
       ph.setMetaValue("target_decoy", target_decoy);
       for (const auto& name : found_extra_scores)
       {
