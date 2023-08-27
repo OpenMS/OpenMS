@@ -173,7 +173,7 @@ namespace OpenMS
     /**
       @brief Helper function for integrating a spectrum.
     */
-    void integrateWindow_(const OpenSwath::SpectrumPtr& spectrum,
+    OPENMS_DLLAPI void integrateWindow_(const OpenSwath::SpectrumPtr& spectrum,
                                 double & mz,
                                 double & im,
                                 double & intensity,

@@ -71,7 +71,7 @@ namespace OpenMS::DIAHelpers
     // Helper for integrate window returns the sum of all intensities, sum of all ion mobilities and sum of all mz
     // no expensive division calls
     // assumes mz, im and intensity should already be initiated.
-    OPENMS_DLLAPI void integrateWindow_(const OpenSwath::SpectrumPtr& spectrum,
+    void integrateWindow_(const OpenSwath::SpectrumPtr& spectrum,
                 double & mz,
                 double & im,
                 double & intensity,
