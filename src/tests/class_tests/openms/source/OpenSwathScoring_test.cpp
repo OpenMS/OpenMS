@@ -414,7 +414,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
 
       TEST_EQUAL(sp[0]->getMZArray()->data.size(), 3);
       TEST_EQUAL(sp[0]->getIntensityArray()->data.size(), 3);
-      TEST_EQUAL(sp[0]->getDriftTimeArray(), nullptr); // for resampling we do not use IM array
+      TEST_TRUE( (sp[0]->getDriftTimeArray() == nullptr ) ); // for resampling we do not use IM array
 
       TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[0], 102.);
       TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[1], 103.);
