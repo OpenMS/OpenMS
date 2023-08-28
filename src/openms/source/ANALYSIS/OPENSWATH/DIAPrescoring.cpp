@@ -134,7 +134,7 @@ namespace OpenMS
     } //end of for loop over spectra
   }
 
-  OPENMS_DLLAPI void DiaPrescore::score(const SpectrumSequence& spec,
+  void DiaPrescore::score(const SpectrumSequence& spec,
                           const std::vector<OpenSwath::LightTransition>& lt,
                           const RangeMobility& im_range,
                           double& dotprod,
