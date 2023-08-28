@@ -49,7 +49,9 @@
 #include <QtNetwork/QHostInfo>
 
 #include <atomic>
-#include <filesystem>
+
+// https://github.com/OpenMS/OpenMS/issues/7051
+//#include <filesystem>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
@@ -174,10 +176,12 @@ namespace OpenMS
     return fi.exists() && fi.isExecutable();
   }
 
-  UInt64 File::fileSize(const String& file)
+  UInt64 File::fileSize(const String& /* file */)
   {
     std::error_code err;
-    UInt64 res = std::filesystem::file_size(file.c_str(), err);
+    // https://github.com/OpenMS/OpenMS/issues/7051
+    //UInt64 res = std::filesystem::file_size(file.c_str(), err);
+    UInt64 res = 0;
     if (err) return -1;
     return res;
   }

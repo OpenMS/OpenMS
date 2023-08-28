@@ -311,13 +311,13 @@ namespace OpenMS
       // User parameter name for the fraction of suffix ions that have been matched 
       inline const std::string MATCHED_SUFFIX_IONS_FRACTION = "matched_suffix_ions_fraction";
 
-      /** User parameter name for the spectrum reference in PeptideIdentification (is is not yet treated as a class attribute)
+      /** User parameter name for the spectrum reference in PeptideIdentification (it is not yet treated as a class attribute)
               String
       */
       inline const std::string   SPECTRUM_REFERENCE = "spectrum_reference";
 
-      /** User parameter name to store the index of the primary MS run associated with the PeptideIdentification (is is not yet treated as a class attribute).
-          Set by IDMerger algorithm.
+      /** User parameter name to store the index of the primary MS run associated with the PeptideIdentification (it is not yet treated as a class attribute).
+          Set by IDMerger algorithm or when reading ID files with info from multiple files (e.g., PercolatorInfile)
               String
       */
       inline const std::string   ID_MERGE_INDEX = "id_merge_index";

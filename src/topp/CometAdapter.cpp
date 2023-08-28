@@ -77,8 +77,7 @@ using namespace std;
     </table>
 </CENTER>
 
-    @em Comet must be installed before this wrapper can be used. This wrapper
-    has been successfully tested with version 2016.01.2, 2016.01.3 and 2017.01.0beta of Comet.
+    @em Comet must be installed/downloaded before this wrapper can be used. OpenMS installers ship with Comet.
     
     @warning We recommend to use Comet 2019.01 rev. 5 or later, due to a serious "empty result" bug in earlier versions (which occurs frequently on Windows; Linux seems not/less affected).
 
@@ -88,9 +87,6 @@ using namespace std;
     Parameter names have been changed to match names found in other search engine adapters, however some are Comet specific.
     For a detailed description of all available parameters check the Comet documentation at http://comet-ms.sourceforge.net/parameters/parameters_201601/
     The default parameters are set for a high resolution instrument.
-
-    To cite Comet use: Eng, Jimmy K. and Jahan, Tahmina A. and Hoopmann, Michael R., Comet: An open-source MS/MS sequence database search tool
-    PROTEOMICS, 13, 1, 2013, 22--24, 10.1002/pmic.201200439
 
     @note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
 
@@ -209,7 +205,7 @@ protected:
     setMaxInt_("max_peptide_length", 63);
 
     //Output
-    registerIntOption_("num_hits", "<num>", 1, "Number of peptide hits in output file", false, false);
+    registerIntOption_("num_hits", "<num>", 1, "Number of peptide hits (PSMs) per spectrum in output file", false, false);
 
     //mzXML/mzML parameters
     registerStringOption_("precursor_charge", "[min]:[max]", "0:0", "Precursor charge range to search (if spectrum is not annotated with a charge or if override_charge!=keep any known): 0:[num] == search all charges, 2:6 == from +2 to +6, 3:3 == +3", false, false);

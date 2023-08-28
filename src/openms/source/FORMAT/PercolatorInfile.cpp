@@ -172,24 +172,24 @@ namespace OpenMS
 
       // NOTE: In the pin files we WRITE, SpecID will be filename + vendor spectrum ID
       // However, many search engines (e.g. Sage) choose arbitrary IDs, which is unfortunately allowed
-      // by this loosely defined format.
+      //  by this loosely defined format.
       const String& sSpecId = row[to_idx.at("SpecId")];
+      // In theory, this should be an integer, but Sage currently cannot extract the number from all vendor spectrum IDs
+      //  so it writes the full ID as string
+      String sScanNr = row[to_idx.at("ScanNr")];
       if (sSpecId != spec_id)
       {
         pids.resize(pids.size() + 1);
         pids.back().setHigherScoreBetter(higher_score_better);
         pids.back().setScoreType(score_name);
-        pids.back().setMetaValue("id_merge_index", map_filename_to_idx.at(raw_file_name));
-        pids.back().setRT(row[to_idx.at("retentiontime")].toDouble() * 60.0);
-        pids.setMetaValue("PercolatorSpecId", sSpecId);
+        pids.back().setMetaValue(Constants::UserParam::ID_MERGE_INDEX, map_filename_to_idx.at(raw_file_name));
+        pids.back().setRT(row[to_idx.at("retentiontime")].toDouble());
+        pids.back().setMetaValue("PinSpecId", sSpecId);
         // Since ScanNr is the closest to help in identifying the spectrum in the file later on,
         // we use it as spectrum_reference. Since it can be integer only or the complete
         // vendor ID, you will need to consider both during lookup.
-        pids.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, sScanNr);
+        pids.back().setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, sScanNr);
       }
-
-      // In theory, this should be an integer, but Sage is bugged an cannot extract the number from all vendor spectrum IDs
-      String sScanNr = row[to_idx.at("ScanNr")];
 
       String sPeptide = row[to_idx.at("Peptide")];
       const double score = row[to_idx.at(score_name)].toDouble();
