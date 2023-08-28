@@ -1000,7 +1000,8 @@ protected:
     bool missing_spec_ref(false);
     for (const PeptideIdentification & pid : peptide_ids)
     {
-      if (!pid.getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, "").toString().empty()) 
+      if (!pid.metaValueExists(Constants::UserParam::SPECTRUM_REFERENCE)
+        || pid.getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE).toString().empty())
       {          
         missing_spec_ref = true;
         break;
