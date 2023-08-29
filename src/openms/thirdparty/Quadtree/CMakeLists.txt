@@ -36,5 +36,5 @@ add_library(Quadtree INTERFACE)
 target_include_directories(Quadtree INTERFACE "include")
 
 get_filename_component(QUADTREE_FOLDER "${CMAKE_CURRENT_LIST_FILE}" PATH)
-file(APPEND ${TPLICENSEFILE} "\nIsoSpec:\n")
+file(APPEND ${TPLICENSEFILE} "\nQuadtree:\n")
 cat(${QUADTREE_FOLDER}/LICENSE ${TPLICENSEFILE})

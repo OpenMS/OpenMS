@@ -33,9 +33,12 @@
 // --------------------------------------------------------------------------
 //
 
+#include "OpenMS/KERNEL/Peak1D.h"
 #include <OpenMS/CHEMISTRY/Element.h>
 
 #include <ostream>
+#include <algorithm>
+#include <cassert>
 
 using namespace std;
 
@@ -62,9 +65,9 @@ namespace OpenMS
     symbol_(symbol),
     atomic_number_(atomic_number),
     average_weight_(average_weight),
-    mono_weight_(mono_weight),
-    isotopes_(isotopes)
+    mono_weight_(mono_weight)
   {
+    this->setIsotopeDistribution(isotopes);
   }
 
   Element::~Element() = default;
@@ -101,6 +104,8 @@ namespace OpenMS
 
   void Element::setIsotopeDistribution(const IsotopeDistribution & distribution)
   {
+    //force sortedness by mz. A lot of code relies on this.
+    assert(std::is_sorted(distribution.begin(), distribution.end(), Peak1D::MZLess()));
     isotopes_ = distribution;
   }
 

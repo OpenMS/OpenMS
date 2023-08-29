@@ -361,6 +361,11 @@ START_SECTION(double getMonoWeight() const)
   TEST_EQUAL(EmpiricalFormula("C5D2").getMonoWeight() < EmpiricalFormula("C5T2").getMonoWeight(), true)
 END_SECTION
 
+START_SECTION(double getLightestIsotopeWeight() const)
+  EmpiricalFormula ef("C636H1007N167O178S5PtH-2");
+  TEST_REAL_SIMILAR(ef.getLightestIsotopeWeight(), ef.getMonoWeight() - Constants::NEUTRON_MASS_U * 3)
+END_SECTION
+
 START_SECTION(String toString() const)
   EmpiricalFormula ef("C2H5");
   String str = ef.toString();

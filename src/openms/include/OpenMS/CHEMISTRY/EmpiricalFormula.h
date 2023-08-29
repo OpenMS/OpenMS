@@ -141,8 +141,11 @@ public:
     /** @name Accessors
     */
     //@{
-    /// returns the mono isotopic weight of the formula (includes proton charges)
+    /// returns the monoisotopic (most abundant isotope per element) weight of the formula (includes proton charges)
     double getMonoWeight() const;
+
+    /// returns the sum of the lightest isotopes per element in the formula (includes proton charges)
+    double getLightestIsotopeWeight() const;
 
     /// returns the average weight of the formula (includes proton charges)
     double getAverageWeight() const;
