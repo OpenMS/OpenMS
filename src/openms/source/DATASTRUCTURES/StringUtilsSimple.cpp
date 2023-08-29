@@ -82,10 +82,10 @@ namespace OpenMS
 
   const char* StringUtils::skipNonWhitespace(const char* p, const char* p_end)
   {
-    const __m128i w0 = simde_mm_set1_epi8(' ');
-    const __m128i w1 = simde_mm_set1_epi8('\t');
-    const __m128i w2 = simde_mm_set1_epi8('\n');
-    const __m128i w3 = simde_mm_set1_epi8('\r');
+    const simde__m128i w0 = simde_mm_set1_epi8(' ');
+    const simde__m128i w1 = simde_mm_set1_epi8('\t');
+    const simde__m128i w2 = simde_mm_set1_epi8('\n');
+    const simde__m128i w3 = simde_mm_set1_epi8('\r');
 
     for (; p <= p_end - 16; p += 16)
     {
