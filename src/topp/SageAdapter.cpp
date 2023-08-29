@@ -410,7 +410,7 @@ protected:
     registerIntOption_("min_matched_peaks", "<int>", min_matched_peaks, "Minimum number of b+y ions required to match for PSM to be reported", false, true);
     registerIntOption_("min_peaks", "<int>", min_peaks, "Minimum number of peaks required for a spectrum to be considered", false, true);
     registerIntOption_("max_peaks", "<int>", max_peaks, "Take the top N most intense MS2 peaks only for matching", false, true);
-    registerIntOption_("report_psms", "<int>", report_psms, "Report PSMs in output file", false, true);
+    registerIntOption_("report_psms", "<int>", report_psms, "Number of hits (PSMs) to report for each spectrum", false, true);
     registerIntOption_("bucket_size", "<int>", bucket_size, "How many fragments are in each internal mass bucket (default: 8192 for hi-res data). Try increasing it to 32k or 64k for low-res. See also: fragment_tol_*", false, true);
     registerIntOption_("min_len", "<int>", min_len, "Minimum peptide length", false, true);
     registerIntOption_("max_len", "<int>", max_len, "Maximum peptide length", false, true);
