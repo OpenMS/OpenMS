@@ -604,9 +604,9 @@ jobs:
           echo $folder
 
           # correct permissions of files to upload
-          chmod -R o+r $GITHUB_WORKSPACE/*
-          chmod o+x features
-          chmod o+x plugins
+          chmod -R o+r $GITHUB_WORKSPACE/de.openms.update/target/repository/*
+          chmod o+x $GITHUB_WORKSPACE/de.openms.update/target/repository/features
+          chmod o+x $GITHUB_WORKSPACE/de.openms.update/target/repository/plugins
           
           #Load private key into file
           mkdir -p ~/.ssh/
