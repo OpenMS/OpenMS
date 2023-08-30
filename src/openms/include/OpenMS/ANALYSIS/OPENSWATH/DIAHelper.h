@@ -39,8 +39,8 @@
 #include <vector>
 namespace OpenMS
 {
-  class RangeMZ;
-  class RangeMobility;
+  struct RangeMZ;
+  struct RangeMobility;
   class TheoreticalSpectrumGenerator;
   namespace DIAHelpers
   {
