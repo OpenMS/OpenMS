@@ -32,17 +32,12 @@
 # $Authors: Chris Bielow, Stephan Aiche $
 # --------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
-## export a single option indicating if boost static libs should be preferred
-option(BOOST_USE_STATIC "Use Boost static libraries." ON)
-
-#------------------------------------------------------------------------------
+#---------------------------------------------------------------------------
 ## Wraps the common find boost code into a single call
 ## @param .. simply add all required components to the call
-## @note This macro will define BOOST_MOC_ARGS that should be added to all moc
-##       calls (see https://bugreports.qt-project.org/browse/QTBUG-22829)
+## @note This macro will define BOOST_MOC_ARGS that should be added to all
+##     moc calls (see https://bugreports.qt-project.org/browse/QTBUG-22829)
 macro(find_boost)
-  set(Boost_USE_STATIC_LIBS ${BOOST_USE_STATIC})
   set(Boost_USE_MULTITHREADED  ON)
   set(Boost_USE_STATIC_RUNTIME OFF)
   add_definitions(/DBOOST_ALL_NO_LIB) ## disable auto-linking of boost libs (boost tends to guess wrong lib names)
@@ -50,12 +45,21 @@ macro(find_boost)
   
   ## since boost 1.66 they add an architecture tag if you build with layout=versioned and since 1.69 even when you
   ## build with layout=tagged (which we do in the contrib)
+  ## TODO check if still necessary with latest CMake 3.20+. Might cause problems with ARM otherwise.
+  ## Note: This probably only affects 1.66 to 1.72 anyway because since 1.71 or so they have a BoostConfig.cmake
+  ##  that renders the FindBoost module unused.
   if(NOT Boost_ARCHITECTURE)
     set(Boost_ARCHITECTURE "-x64")
   endif()
 
   # help boost finding it's packages
+  ## TODO remove? We could just require a new enough CMake.
+  ##  Behaviour is pretty much undefined anyway when using a boost
+  ##  that is newer than its CMake.
   set(Boost_ADDITIONAL_VERSIONS
+    "1.81.1" "1.81.0" "1.81"
+    "1.80.1" "1.80.0" "1.80"
+    "1.79.1" "1.79.0" "1.79"
     "1.78.1" "1.78.0" "1.78"
     "1.77.1" "1.77.0" "1.77"
     "1.76.1" "1.76.0" "1.76"
