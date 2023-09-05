@@ -596,7 +596,7 @@ namespace OpenMS
           if (pep.metaValueExists("spectrum_reference"))
           {
             //findByNativeID will fall back to RT lookup if none of the regexes registered in lookup can extract a meaningful ID or scan nr
-            scan_index = lookup.findByNativeID(pep.getMetaValue("spectrum_reference"));
+            scan_index = lookup.findByNativeID(pep.getSpectrumReference());
           }
           else
           {
@@ -1412,11 +1412,11 @@ namespace OpenMS
       //TODO: we really need something uniform here, like scan number - and not in metainfointerface
       if (SpectrumLookup::isNativeID(native_spectrum_name_))
       {
-        current_peptide_.setMetaValue("spectrum_reference", native_spectrum_name_); 
+        current_peptide_.setSpectrumReference( native_spectrum_name_);
       }
       else if (scannr_ != 0)
       {
-        current_peptide_.setMetaValue("spectrum_reference", String("scan=") + String(scannr_));
+        current_peptide_.setSpectrumReference( String("scan=") + String(scannr_));
       }
       //TODO else error?
       
@@ -1455,8 +1455,6 @@ namespace OpenMS
       optionalAttributeAsString_(experiment_label_, attributes, "experiment_label");
       optionalAttributeAsString_(swath_assay_, attributes, "swath_assay");
       optionalAttributeAsString_(status_, attributes, "status");
-
-
     }
     else if (element == "analysis_result") // parent: "search_hit"
     {

@@ -261,7 +261,7 @@ namespace OpenMS
       String data_id; // an identifier unique to the input file
       if (pep.metaValueExists("spectrum_reference"))
       {  // use spectrum native id if present
-        data_id = pep.getMetaValue("spectrum_reference");
+        data_id = pep.getSpectrumReference();
       }
       else
       {
@@ -474,7 +474,7 @@ namespace OpenMS
       // set RT and m/z if they aren't missing (NaN):
       if (obs.rt == obs.rt) peptide.setRT(obs.rt);
       if (obs.mz == obs.mz) peptide.setMZ(obs.mz);
-      peptide.setMetaValue("spectrum_reference", obs.data_id);
+      peptide.setSpectrumReference( obs.data_id);
       peptide.setHits(obsref_stepopt2vechits_scoretype.second.first);
       const ID::ScoreType& score_type = *obsref_stepopt2vechits_scoretype.second.second;
       peptide.setScoreType(score_type.cv_term.getName());

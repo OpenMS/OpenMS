@@ -237,7 +237,7 @@ protected:
   String getScanIdentifier_(vector<PeptideIdentification>::iterator it, vector<PeptideIdentification>::iterator start)
   {
     // MSGF+ uses this field, is empty if not specified
-    String scan_identifier = it->getMetaValue("spectrum_reference");
+    String scan_identifier = it->getSpectrumReference();
     if (scan_identifier.empty())
     {
       // XTandem uses this (integer) field
@@ -436,7 +436,7 @@ protected:
           PeptideIdentification pid;
           PeptideHit pih;
           pid.insertHit(pih);
-          pid.setMetaValue("spectrum_reference", "scan=" + String(scan_nr));
+          pid.setSpectrumReference("scan=" + String(scan_nr));
           // cluster index - 1 is equal to scan_number in consensus.mzML
           pid.setMetaValue("cluster_id", cluster_id - 1);
           pid.setMetaValue("file_origin", in_list[file_id]);

@@ -177,6 +177,16 @@ namespace OpenMS
     id_ = id;
   }
 
+  String PeptideIdentification::getSpectrumReference() const
+  {
+    return this->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, "");
+  }
+
+  void PeptideIdentification::setSpectrumReference(const String& id)
+  {
+    this->setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, id);
+  }
+
   const String& PeptideIdentification::getBaseName() const
   {
     return base_name_;
@@ -191,14 +201,7 @@ namespace OpenMS
   {
     // implement as meta value in order to reduce bloat of PeptideIdentification object
     //  -> this is mostly used for pepxml at the moment which allows each peptide id to belong to a different experiment
-    if (metaValueExists("experiment_label"))
-    {
-      return getMetaValue("experiment_label").toString();
-    }
-    else
-    {
-      return "";
-    }
+    return this->getMetaValue("experiment_label", "");
   }
 
   void PeptideIdentification::setExperimentLabel(const String& label)
@@ -321,12 +324,12 @@ namespace OpenMS
     const auto &ms_run_path = fidentifier_to_msrunpath.at(pep_id.getIdentifier());
     if (ms_run_path.size() == 1)
     {
-      UID = ms_run_path[0] + '|' + pep_id.getMetaValue("spectrum_reference").toString();
+      UID = ms_run_path[0] + '|' + pep_id.getSpectrumReference();
     }
     else if (pep_id.metaValueExists("map_index"))
     {
       UID = pep_id.getMetaValue("map_index").toString() + '|' +
-            pep_id.getMetaValue("spectrum_reference").toString();
+            pep_id.getSpectrumReference();
     }
     else
     {

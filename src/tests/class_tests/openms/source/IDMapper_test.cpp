@@ -601,7 +601,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
   experiment.clear(true);
 
 
-  // only 5 should be in the 0.01 Da tolerance (every second entry is to much off)
+  // only 5 should be in the 0.01 Da tolerance (every second entry is too much off)
   double mzs_5_mismatch[10] = { 426.85899, 405, 506.815, 484.85, 496.244, 430, 446.081, 453, 400.172, 437.239 }; 
 
   for (Size i = 0; i != 10; ++i)

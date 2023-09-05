@@ -1133,7 +1133,7 @@ namespace OpenMS
           best_score = curr_score;
           if (pep.metaValueExists("spectrum_reference"))
           {
-            row.spectra_ref.setSpecRef(pep.getMetaValue("spectrum_reference").toString());
+            row.spectra_ref.setSpecRef(pep.getSpectrumReference());
             row.spectra_ref.setMSFile(msfile_index);
           }
         }
@@ -1187,7 +1187,7 @@ namespace OpenMS
     addMetaInfoToOptionalColumns(pid_key_set, row.opt_, String("global"), pid);
 
     // link to spectrum in MS run
-    String spectrum_nativeID = pid.getMetaValue("spectrum_reference").toString();
+    String spectrum_nativeID = pid.getSpectrumReference();
     size_t run_index = idrun_2_run_index.at(pid.getIdentifier());
     StringList filenames;
     prot_ids[run_index]->getPrimaryMSRunPath(filenames);

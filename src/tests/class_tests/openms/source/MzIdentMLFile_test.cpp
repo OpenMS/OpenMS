@@ -115,19 +115,19 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(peptide_ids[0].getScoreType(),"MS-GF:RawScore")
   TEST_REAL_SIMILAR(peptide_ids[0].getHits()[0].getScore(),195)
   TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence().toString(),"LATEFSGNVPVLNAGDGSNQHPTQTLLDLFTIQETQGR")
-  TEST_EQUAL(peptide_ids[0].getMetaValue("spectrum_reference"),"controllerType=0 controllerNumber=1 scan=32805")
+  TEST_EQUAL(peptide_ids[0].getSpectrumReference(),"controllerType=0 controllerNumber=1 scan=32805")
   TEST_EQUAL(peptide_ids[1].getScoreType(),"MS-GF:RawScore")
   TEST_REAL_SIMILAR(peptide_ids[1].getHits()[0].getScore(),182)
   TEST_EQUAL(peptide_ids[1].getHits()[0].getSequence().toString(),"FLAETDQGPVPVEITAVEDDHVVVDGNHMLAGQNLK")
-  TEST_EQUAL(peptide_ids[1].getMetaValue("spectrum_reference"),"controllerType=0 controllerNumber=1 scan=26090")
+  TEST_EQUAL(peptide_ids[1].getSpectrumReference(),"controllerType=0 controllerNumber=1 scan=26090")
   TEST_EQUAL(peptide_ids[2].getScoreType(),"MS-GF:RawScore")
   TEST_REAL_SIMILAR(peptide_ids[2].getHits()[0].getScore(),191)
   TEST_EQUAL(peptide_ids[2].getHits()[0].getSequence().toString(),"FLAETDQGPVPVEITAVEDDHVVVDGNHMLAGQNLK")
-  TEST_EQUAL(peptide_ids[2].getMetaValue("spectrum_reference"),"controllerType=0 controllerNumber=1 scan=26157")
+  TEST_EQUAL(peptide_ids[2].getSpectrumReference(),"controllerType=0 controllerNumber=1 scan=26157")
   TEST_EQUAL(peptide_ids[3].getScoreType(),"MS-GF:RawScore")
   TEST_REAL_SIMILAR(peptide_ids[3].getHits()[0].getScore(),211)
   TEST_EQUAL(peptide_ids[3].getHits()[0].getSequence().toString(),"VGAGPFPTELFDETGEFLC(Carbamidomethyl)K")
-  TEST_EQUAL(peptide_ids[3].getMetaValue("spectrum_reference"),"controllerType=0 controllerNumber=1 scan=15094")
+  TEST_EQUAL(peptide_ids[3].getSpectrumReference(),"controllerType=0 controllerNumber=1 scan=15094")
 }
 END_SECTION
 
@@ -191,7 +191,7 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
   TEST_EQUAL(peptide_ids[0].isHigherScoreBetter(),peptide_ids2[0].isHigherScoreBetter())
   TEST_REAL_SIMILAR(peptide_ids[0].getMZ(),peptide_ids2[0].getMZ())
   TEST_REAL_SIMILAR(peptide_ids[0].getRT(),peptide_ids2[0].getRT())
-  TEST_EQUAL(peptide_ids[0].getMetaValue("spectrum_reference"),peptide_ids2[0].getMetaValue("spectrum_reference"))
+  TEST_EQUAL(peptide_ids[0].getSpectrumReference(),peptide_ids2[0].getSpectrumReference())
   //peptide hit 1
   TEST_REAL_SIMILAR(peptide_ids[0].getHits()[0].getScore(),peptide_ids2[0].getHits()[0].getScore())
   TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence(),peptide_ids2[0].getHits()[0].getSequence())
@@ -309,7 +309,7 @@ START_SECTION(([EXTRA] thresholds))
   TEST_EQUAL(peptide_ids.size(),3)
   for (size_t i = 0; i < peptide_ids.size(); ++i)
   {
-    if (peptide_ids[i].getMetaValue("spectrum_reference") == "17")
+    if (peptide_ids[i].getSpectrumReference() == "17")
     {
       TEST_EQUAL(peptide_ids[i].getHits().size(),2)
       for (size_t j = 0; j < peptide_ids[i].getHits().size(); ++j)
@@ -334,7 +334,7 @@ START_SECTION(([EXTRA] thresholds))
   TEST_EQUAL(peptide_ids.size(),3)
   for (size_t i = 0; i < peptide_ids.size(); ++i)
   {
-    if (peptide_ids[i].getMetaValue("spectrum_reference") == "17")
+    if (peptide_ids[i].getSpectrumReference() == "17")
     {
       TEST_EQUAL(peptide_ids[i].getHits().size(),3)
       for (size_t j = 0; j < peptide_ids[i].getHits().size(); ++j)

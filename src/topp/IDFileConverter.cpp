@@ -192,7 +192,7 @@ private:
       {
         try
         {
-          String ref = peptide_identifications[i].getMetaValue("spectrum_reference");
+          String ref = peptide_identifications[i].getSpectrumReference();
           Size index = lookup.findByNativeID(ref);
           annot.addIonMatchStatistics(peptide_identifications[i], expmap[index], tg, sa);
         }

@@ -38,6 +38,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/FORMAT/CsvFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <regex>
 #include <functional>
@@ -62,7 +63,7 @@ namespace OpenMS
   String PercolatorInfile::getScanIdentifier(const PeptideIdentification& pid, size_t index)
   {
     // MSGF+ uses this field, is empty if not specified
-    String scan_identifier = pid.getMetaValue("spectrum_reference");
+    String scan_identifier = pid.getSpectrumReference();
 
     if (scan_identifier.empty())
     {
@@ -82,20 +83,21 @@ namespace OpenMS
   }
 
   vector<PeptideIdentification> PercolatorInfile::load(
-    const String& pin_file, 
-    bool higher_score_better, 
+    const String& pin_file,
+    bool higher_score_better,
     const String& score_name,
     const StringList& extra_scores,
-    StringList& filenames, 
+    StringList& filenames,
     String decoy_prefix)
   {
     CsvFile csv(pin_file, '\t');
     StringList header;
+    //TODO DANGEROUS! Our CSV reader does not support comment lines!!
     csv.getRow(0, header);
 
     unordered_map<String, size_t> to_idx; // map column name to column index
     {
-      int idx{}; 
+      int idx{};
       for (const auto& h : header) { to_idx[h] = idx++; }
     }
 
@@ -117,9 +119,9 @@ namespace OpenMS
       {
         OPENMS_LOG_WARN << "Extra score: " << s << " not found in Percolator input file." << endl;
       }
-    }    
-    
-    // charge columns are not standardized so we check for the format and create hash to lookup column name to charge mapping
+    }
+
+    // charge columns are not standardized, so we check for the format and create hash to lookup column name to charge mapping
     std::regex charge_one_hot_pattern("^charge\\d+$");
     std::regex sage_one_hot_pattern("^z=\\d+$");
     String charge_prefix;
@@ -143,7 +145,7 @@ namespace OpenMS
     }
 
     auto n_rows = csv.rowCount();
-    
+
     vector<PeptideIdentification> pids;
     pids.reserve(n_rows);
     String spec_id;
@@ -152,7 +154,7 @@ namespace OpenMS
 
     for (size_t i = 1; i != n_rows; ++i)
     {
-      StringList row;      
+      StringList row;
       csv.getRow(i, row);
 
       if (row.size() != header.size())
@@ -168,15 +170,17 @@ namespace OpenMS
           filenames.push_back(raw_file_name);
           map_filename_to_idx[raw_file_name] = filenames.size() - 1;
         }
-      }   
+      }
 
-      // NOTE: In the pin files we WRITE, SpecID will be filename + vendor spectrum ID
+      // NOTE: In our pin files that we WRITE, SpecID will be filename + vendor spectrum native ID
       // However, many search engines (e.g. Sage) choose arbitrary IDs, which is unfortunately allowed
       //  by this loosely defined format.
       const String& sSpecId = row[to_idx.at("SpecId")];
-      // In theory, this should be an integer, but Sage currently cannot extract the number from all vendor spectrum IDs
+
+      // In theory, this should be an integer, but Sage currently cannot extract the number from all vendor spectrum IDs,
       //  so it writes the full ID as string
       String sScanNr = row[to_idx.at("ScanNr")];
+
       if (sSpecId != spec_id)
       {
         pids.resize(pids.size() + 1);
@@ -187,8 +191,8 @@ namespace OpenMS
         pids.back().setMetaValue("PinSpecId", sSpecId);
         // Since ScanNr is the closest to help in identifying the spectrum in the file later on,
         // we use it as spectrum_reference. Since it can be integer only or the complete
-        // vendor ID, you will need to consider both during lookup.
-        pids.back().setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, sScanNr);
+        // vendor ID, you will need a lookup in case of number only later!!
+        pids.back().setSpectrumReference(sScanNr);
       }
 
       String sPeptide = row[to_idx.at("Peptide")];
@@ -218,8 +222,38 @@ namespace OpenMS
       // deduce decoy state from accessions if decoy_prefix is set
       if (!decoy_prefix.empty())
       {
-        target_decoy = std::all_of(accessions.begin(), accessions.end(), [&decoy_prefix](const String& acc) { return acc.hasPrefix(decoy_prefix); }) ? "decoy" : "target" ;
-      }          
+        bool dec = false;
+        bool tgt = false;
+        for (const auto& acc : accessions)
+        {
+          if (!(dec && tgt))
+          {
+            if (acc.hasPrefix(decoy_prefix))
+            {
+              dec = true;
+            }
+            else
+            {
+              tgt = true;
+            }
+          }
+          else
+          {
+            break;
+          }
+        }
+        if (tgt && dec)
+        {
+          target_decoy = "target+decoy";
+        }
+        else if (tgt)
+        {
+          target_decoy = "target";
+        }
+        else {
+          target_decoy = "decoy";
+        }
+      }
 
       // needs to handle strings like: [+42]-MVLVQDLLHPTAASEAR, [+304.207]-ETC[+57.0215]RQLGLGTNIYNAER etc.
       sPeptide.substitute("]-", "]."); // we can parse [+42].MVLVQDLLHPTAASEAR
@@ -238,7 +272,7 @@ namespace OpenMS
       {
         ph.addPeptideEvidence(PeptideEvidence(accession));
       }
-      
+
       pids.back().insertHit(std::move(ph));
     }
     return pids;

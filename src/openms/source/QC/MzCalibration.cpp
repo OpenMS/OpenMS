@@ -112,7 +112,7 @@ namespace OpenMS
       }
 
       // get spectrum from mapping and meta value
-      MSSpectrum spectrum = exp[map_to_spectrum.at(peptide_ID.getMetaValue("spectrum_reference").toString())];
+      MSSpectrum spectrum = exp[map_to_spectrum.at(peptide_ID.getSpectrumReference())];
 
       // check if spectrum fulfills all requirements
       if (spectrum.getMSLevel() == 2)

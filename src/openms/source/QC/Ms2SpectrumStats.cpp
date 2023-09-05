@@ -100,7 +100,7 @@ namespace OpenMS
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum reference annotated at peptide identification!");
     }
 
-    UInt64 index = map_to_spectrum.at(peptide_ID.getMetaValue("spectrum_reference").toString());
+    UInt64 index = map_to_spectrum.at(peptide_ID.getSpectrumReference());
     const MSSpectrum& spectrum = exp[index];
 
     if (spectrum.getMSLevel() == 2)
@@ -135,7 +135,7 @@ namespace OpenMS
       unidentified_MS2.setMZ(spec.getPrecursors()[0].getMZ());
       unidentified_MS2.setMetaValue("total_ion_count", spec.calculateTIC());
       unidentified_MS2.setMetaValue("base_peak_intensity", getBPI_(spec));
-      unidentified_MS2.setMetaValue("spectrum_reference", spec.getNativeID());
+      unidentified_MS2.setSpectrumReference( spec.getNativeID());
       annotatePepIDfromSpectrum_(spec, unidentified_MS2); // ion_injection_time and activation_method
       result.push_back(unidentified_MS2);
     }

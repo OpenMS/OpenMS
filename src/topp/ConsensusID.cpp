@@ -782,7 +782,7 @@ protected:
             auto iter_inserted = grouping_per_file.emplace(original_file, unordered_map<String,vector<PeptideIdentification>>{});
             if (pep_id.metaValueExists("spectrum_reference"))
             {
-              String nativeID = pep_id.getMetaValue("spectrum_reference");
+              String nativeID = pep_id.getSpectrumReference();
               auto nativeid_iter_inserted = iter_inserted.first->second.emplace(nativeID, vector<PeptideIdentification>{});
               nativeid_iter_inserted.first->second.emplace_back(std::move(pep_id));
             }
@@ -806,14 +806,14 @@ protected:
             double mz = peps[0].getMZ();
             double rt = peps[0].getRT();
             // has to have a ref, save it, since apply might modify everything
-            String ref = peps[0].getMetaValue("spectrum_reference");
+            String ref = peps[0].getSpectrumReference();
             consensus->apply(peps, runid_to_old_se, mzml_to_sesettings[new_run_id].size());
             for (auto& p : peps)
             {
               p.setIdentifier(to_put.getIdentifier());
               p.setMZ(mz);
               p.setRT(rt);
-              p.setMetaValue("spectrum_reference", ref);
+              p.setSpectrumReference( ref);
               //TODO copy other meta values from the originals? They need to be collected
               // in the algorithm subclasses though first
               pep_ids.emplace_back(std::move(p));

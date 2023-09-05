@@ -86,23 +86,23 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBas
   vector<PeptideIdentification> identifications;
   vector<PeptideIdentification> unassignedIDs;
   Feature f1;
-  peptide_ID.setMetaValue("spectrum_reference", "XTandem::0");
+  peptide_ID.setSpectrumReference( "XTandem::0");
   identifications.push_back(peptide_ID);
-  peptide_ID.setMetaValue("spectrum_reference", "XTandem::1");
+  peptide_ID.setSpectrumReference( "XTandem::1");
   identifications.push_back(peptide_ID);
   f1.setPeptideIdentifications(identifications);
   identifications.clear();
   fmap.push_back(f1);
-  peptide_ID.setMetaValue("spectrum_reference", "XTandem::10");
+  peptide_ID.setSpectrumReference( "XTandem::10");
   identifications.push_back(peptide_ID);
-  peptide_ID.setMetaValue("spectrum_reference", "XTandem::12");
+  peptide_ID.setSpectrumReference( "XTandem::12");
   identifications.push_back(peptide_ID);
   f1.setPeptideIdentifications(identifications);
   fmap.push_back(f1);
   // unassigned PeptideHits
-  peptide_ID.setMetaValue("spectrum_reference", "XTandem::1.5");
+  peptide_ID.setSpectrumReference( "XTandem::1.5");
   unassignedIDs.push_back(peptide_ID);
-  peptide_ID.setMetaValue("spectrum_reference", "XTandem::2.5");
+  peptide_ID.setSpectrumReference( "XTandem::2.5");
   unassignedIDs.push_back(peptide_ID);
   fmap.setUnassignedPeptideIdentifications(unassignedIDs);
 

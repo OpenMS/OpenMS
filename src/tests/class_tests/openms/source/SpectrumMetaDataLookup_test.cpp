@@ -178,8 +178,8 @@ START_SECTION((bool addMissingRTsToPeptideIDs(vector<PeptideIdentification>& pep
   TEST_EQUAL(peptides[0].getRT(), 1.0);
 
   peptides.resize(2);
-  peptides[0].setMetaValue("spectrum_reference", "index=0");
-  peptides[1].setMetaValue("spectrum_reference", "index=2");
+  peptides[0].setSpectrumReference( "index=0");
+  peptides[1].setSpectrumReference( "index=2");
   filename = OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML");
   SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptides, filename);
   TEST_EQUAL(peptides[0].getRT(), 1.0); // this doesn't get overwritten
@@ -197,14 +197,14 @@ START_SECTION((bool addMissingSpectrumReferences(vector<PeptideIdentification>& 
 {
   vector<PeptideIdentification> peptides(1);
   peptides[0].setRT(5.1);
-  peptides[0].setMetaValue("spectrum_reference", "index=666");
+  peptides[0].setSpectrumReference( "index=666");
   String filename = "this_file_does_not_exist.mzML";
   SpectrumMetaDataLookup lookup;
   // missing file -> exception, no non-effective executions
   TEST_EXCEPTION(Exception::FileNotFound, SpectrumMetaDataLookup::addMissingSpectrumReferences(
     peptides, filename, false, false));
   // no lookup, no spectrum_references
-  TEST_EQUAL(peptides[0].getMetaValue("spectrum_reference"), "index=666");
+  TEST_EQUAL(peptides[0].getSpectrumReference(), "index=666");
 
   peptides.resize(2);
   peptides[1].setRT(5.3);
@@ -212,13 +212,13 @@ START_SECTION((bool addMissingSpectrumReferences(vector<PeptideIdentification>& 
 
   SpectrumMetaDataLookup::addMissingSpectrumReferences(peptides, filename, false, false, false);
 
-  TEST_EQUAL(peptides[0].getMetaValue("spectrum_reference"), "index=666"); // no overwrite
-  TEST_EQUAL(peptides[1].getMetaValue("spectrum_reference"), "index=2");
+  TEST_EQUAL(peptides[0].getSpectrumReference(), "index=666"); // no overwrite
+  TEST_EQUAL(peptides[1].getSpectrumReference(), "index=2");
 
   SpectrumMetaDataLookup::addMissingSpectrumReferences(peptides, filename, false, true, true);
 
-  TEST_EQUAL(peptides[0].getMetaValue("spectrum_reference"), "index=0"); // gets updated
-  TEST_EQUAL(peptides[1].getMetaValue("spectrum_reference"), "index=2");
+  TEST_EQUAL(peptides[0].getSpectrumReference(), "index=0"); // gets updated
+  TEST_EQUAL(peptides[1].getSpectrumReference(), "index=2");
 }
 END_SECTION
 

@@ -72,7 +72,7 @@ const PeptideIdentification createPeptideIdentification(const String& id, const 
   peptide_hit.setCharge(charge);
 
   PeptideIdentification peptide_id;
-  peptide_id.setMetaValue("spectrum_reference", id);
+  peptide_id.setSpectrumReference( id);
   peptide_id.setMZ(mz);
   peptide_id.setHits({peptide_hit});
 

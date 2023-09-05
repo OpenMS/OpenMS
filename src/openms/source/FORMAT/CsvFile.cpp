@@ -87,7 +87,7 @@ namespace OpenMS
 
   bool CsvFile::getRow(Size row, StringList& list)
   {
-    // it is assumed that the value to be casted won't be so large to overflow an int
+    // it is assumed that the value to be cast won't be so large to overflow an ulong int
     if (static_cast<int>(row) > static_cast<int>(TextFile::buffer_.size()) - 1)
     {
       throw Exception::InvalidIterator(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);

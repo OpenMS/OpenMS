@@ -547,7 +547,7 @@ protected:
     search_parameters.digestion_enzyme = enzyme; // needed for indexing
     search_parameters.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
 
-    search_parameters.charges = ":"; // not set
+    search_parameters.charges = "2:5"; // probably hard-coded in sage https://github.com/lazear/sage/blob/master/crates/sage/src/scoring.rs#L301
 
     search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
     search_parameters.fixed_modifications = getStringList_("fixed_modifications");
@@ -564,8 +564,67 @@ protected:
       DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
     }
 
-    // if "reindex" parameter is set to true will perform reindexing
+    // if "reindex" parameter is set to true: will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
+
+    map<String,unordered_map<int,String>> file2specnr2nativeid;
+    for (const auto& mzml : input_files)
+    {
+      // TODO stream mzml?
+      MzMLFile m;
+      MSExperiment exp;
+      auto opts = m.getOptions();
+      opts.setMSLevels({2,3});
+      opts.setFillData(false);
+      //opts.setMetadataOnly(true);
+      m.setOptions(opts);
+      m.load(mzml, exp);
+      String nIDType = "";
+      if (!exp.getSourceFiles().empty())
+      {
+        // TODO we could also guess the regex from the first nativeID if it is not stored here
+        //  but I refuse to link to Boost::regex just for this
+        //  Someone has to rework the API first!
+        nIDType = exp.getSourceFiles()[0].getNativeIDTypeAccession();
+      }
+
+      for (const auto& spec : exp)
+      {
+        const String& nID = spec.getNativeID();
+        int nr = SpectrumLookup::extractScanNumber(nID, nIDType);
+        if (nr >= 0)
+        {
+          auto [it, inserted] = file2specnr2nativeid.emplace(File::basename(mzml), unordered_map<int,String>({{nr,nID}}));
+          if (!inserted)
+          {
+            it->second.emplace(nr,nID);
+          }
+        }
+
+      }
+    }
+
+    map<Size, String> idxToFile;
+    StringList fnInRun;
+    protein_identifications[0].getPrimaryMSRunPath(fnInRun);
+    Size cnt = 0;
+    for (const auto& f : fnInRun)
+    {
+      idxToFile.emplace(cnt, f);
+      ++cnt;
+    }
+
+    char* p;
+    for (auto& id : peptide_identifications)
+    {
+      // check if spectrum reference is a string that just contains an integer
+      long scanNrAsInt = strtol(id.getSpectrumReference().c_str(), &p, 10);
+      if (!*p)
+      {
+        // lookup full native ID in corresponding file for given spectrum number
+        id.setSpectrumReference( file2specnr2nativeid[idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]].at(scanNrAsInt));
+      }
+    }
 
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
 

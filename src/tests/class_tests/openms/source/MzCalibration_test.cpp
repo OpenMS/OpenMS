@@ -122,7 +122,7 @@ peptide_hits.push_back(peptide_hit);
 peptide_ID.setHits(peptide_hits);
 peptide_ID.setRT(0);
 peptide_ID.setMZ(5.5);
-peptide_ID.setMetaValue("spectrum_reference", "XTandem::1");
+peptide_ID.setSpectrumReference( "XTandem::1");
 identifications.push_back(peptide_ID);
 peptide_hits.clear();
 peptide_hit.setSequence(AASequence::fromString("WWWW"));
@@ -130,7 +130,7 @@ peptide_hit.setCharge(3);
 peptide_hits.push_back(peptide_hit);
 peptide_ID.setHits(peptide_hits);
 peptide_ID.setRT(1);
-peptide_ID.setMetaValue("spectrum_reference", "XTandem::3");
+peptide_ID.setSpectrumReference( "XTandem::3");
 identifications.push_back(peptide_ID);
 peptide_hits.clear();
 feature1.setPeptideIdentifications(identifications);
@@ -142,7 +142,7 @@ peptide_hits.push_back(peptide_hit);
 peptide_ID.setHits(peptide_hits);
 peptide_hits.clear();
 peptide_ID.setRT(0.5);
-peptide_ID.setMetaValue("spectrum_reference", "XTandem::2");
+peptide_ID.setSpectrumReference( "XTandem::2");
 unassignedIDs.push_back(peptide_ID);
 fmap_ref.setUnassignedPeptideIdentifications(unassignedIDs);
 MzCalibration cal;
@@ -236,7 +236,7 @@ START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp, const 
 
   // test wrong MS-Level exception
   fmap = fmap_ref; // reset FeatureMap
-  fmap[0].getPeptideIdentifications()[0].setMetaValue("spectrum_reference", "XTandem::4");
+  fmap[0].getPeptideIdentifications()[0].setSpectrumReference( "XTandem::4");
   exp.getSpectra()[0].setNativeID("XTandem::4");
   exp.getSpectra()[0].setMSLevel(1);
   spectra_map.calculateMap(exp);
