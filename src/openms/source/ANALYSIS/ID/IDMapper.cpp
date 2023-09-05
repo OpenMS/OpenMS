@@ -361,7 +361,7 @@ namespace OpenMS
         const auto first_channel = *cf.getFeatures().begin();                  
         String filename = File::basename(map.getColumnHeaders()[first_channel.getMapIndex()].filename); // all channels are associated with same file in TMT/iTRAQ
 
-        boost::regex scanregex;
+        boost::regex scanregex{""};
         String cf_scan_id_key_name = (native_id_type == NATIVE_ID_TYPE::MS2IDMS3TMT) ? "id_scan_id" : "scan_id";
         String cf_scan_id = cf.getMetaValue(cf_scan_id_key_name, "");
         if (!cf_scan_id.empty()) 
@@ -379,10 +379,14 @@ namespace OpenMS
               ++id_matches_single; // in TMT we only match to single consensus feature
             }
             // look for only the scan_number in case the search engine only extracted this (e.g. Sage)
-            else if (auto scanid_it = run_it->second.find(SpectrumLookup::extractScanNumber(cf_scan_id, scanregex, false)); scanid_it != run_it->second.end())
+            else if (lookForScanNrsAsIntegers)
             {
-              cf.getPeptideIdentifications().push_back(*scanid_it->second);
-              ++id_matches_single; // in TMT we only match to single consensus feature
+              auto scanid_it = run_it->second.find(SpectrumLookup::extractScanNumber(cf_scan_id, scanregex, false));
+              if(scanid_it != run_it->second.end())
+              {
+                cf.getPeptideIdentifications().push_back(*scanid_it->second);
+                ++id_matches_single; // in TMT we only match to single consensus feature
+              }
             }
           } // else identification file does not contained scan id (e.g. was removed)  
           else
