@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
+#include <algorithm>
 #include <vector>
 #include <set>
 
@@ -68,14 +69,60 @@ namespace OpenMS
     /// Checks if the given @p score_name is of ScoreType @p type
     bool isScoreType(const String& score_name, const ScoreType& type)
     {
+      String chopped = score_name;
+      if (chopped.hasSuffix("_score"))
+      {
+        chopped = chopped.chop(6);
+      }
       const std::set<String>& possible_types = type_to_str_[type];
-      return possible_types.find(score_name) != possible_types.end();
+      return possible_types.find(chopped) != possible_types.end();
+    }
+
+    /// Gets a ScoreType enum from a String
+    static ScoreType getScoreType(String score_type)
+    {
+      if (score_type.hasSuffix("_score"))
+      {
+        score_type = score_type.chop(6);
+      }
+      score_type.toLower();
+      score_type.erase(std::remove(score_type.begin(), score_type.end(), '-'), score_type.end());
+      score_type.erase(std::remove(score_type.begin(), score_type.end(), '_'), score_type.end());
+      score_type.erase(std::remove(score_type.begin(), score_type.end(), ' '), score_type.end());
+
+      std::map<String, ScoreType> s_to_type =
+      {
+        {"raw", ScoreType::RAW},
+        {"rawevalue", ScoreType::RAW_EVAL},
+        {"qvalue", ScoreType::QVAL},
+        {"fdr", ScoreType::FDR},
+        {"falsediscoveryrate", ScoreType::FDR},
+        {"pep", ScoreType::PEP},
+        {"posteriorerrorprobability", ScoreType::PEP},
+        {"posteriorprobabilty", ScoreType::PP},
+        {"pp", ScoreType::PP}
+      };
+
+      if(auto it = s_to_type.find(score_type); it != s_to_type.end())
+      {
+        return it->second;
+      }
+      else
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__,
+                                            OPENMS_PRETTY_FUNCTION, String("Unknown score type ") + score_type);
+      }
+    }
+
+    bool isScoreTypeHigherBetter(ScoreType score_type)
+    {
+      return type_to_better_[score_type];
     }
 
     /// Switches all main scores in all hits in @p id according to
     /// the settings in the param object of the switcher class
     /// if the old score type and new score type have the same name (e.g., "q-value") we
-    /// greate a meta value entry with appended "~" to the old score type (to not overwrite the
+    /// create a meta value entry with appended "~" to the old score type (to not overwrite the
     /// meta value of the new one).
     template <typename IDType>
     void switchScores(IDType& id, Size& counter)
@@ -98,6 +145,9 @@ namespace OpenMS
         {
           // TODO: find a better way to check if old score type is something different (even if it has same name)
           // This currently, is a workaround for e.g., having Percolator_qvalue as meta value and same q-value as main score (getScore()).
+          //Note by jpfeuffer: The problem with this is, that this may add the old score to some of the hits if different, but not
+          // all, in case one is by chance the same. I would be fine with this, if it was done in the beginning and checked
+          // for every score.
           if (fabs((double(dv) - hit_it->getScore()) * 2.0 /
                    (double(dv) + hit_it->getScore())) > tolerance_)
           {          
@@ -117,7 +167,8 @@ namespace OpenMS
     /// Looks at the first Hit of the given @p id and according to the given @p type ,
     /// deduces a fitting score and score direction to be switched to.
     /// Then tries to switch all hits.
-    void switchToGeneralScoreType(std::vector<PeptideIdentification>& id, ScoreType type, Size& counter)
+    template<class IDType>
+    void switchToGeneralScoreType(std::vector<IDType>& id, ScoreType type, Size& counter)
     {
       if (id.empty()) return;
       String t = findScoreType(id[0], type);
@@ -243,13 +294,15 @@ namespace OpenMS
 
     /// will be set according to the algorithm parameters
     String new_score_, new_score_type_, old_score_;
+
     /// will be set according to the algorithm parameters
     bool higher_better_; // for the new scores, are higher ones better?
 
     /// a map from ScoreType to their names as used around OpenMS
     std::map<ScoreType, std::set<String>> type_to_str_ =
         {
-            {ScoreType::RAW, {"XTandem", "OMSSA", "SEQUEST:xcorr", "Mascot", "mvh", "Sage"}},
+            //TODO introduce real meaningful score names for XTandem, Mascot etc. (e.g., hyperscore)
+            {ScoreType::RAW, {"svm", "MS:1001492", "XTandem", "OMSSA", "SEQUEST:xcorr", "Mascot", "mvh", "hyperscore", "ln(hyperscore)"}},
             //TODO find out reasonable raw scores for SES that provide E-Values as main score or see below
             //TODO there is no test for spectraST idXML, so I don't know its score
             //TODO check if we should combine RAW and RAW_EVAL:

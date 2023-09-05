@@ -41,6 +41,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
+#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -580,11 +581,20 @@ protected:
     }
 
     double pep_score = getDoubleOption_("score:pep");
+    String score_type = getStringOption_("score:type_pep");
     // @TODO: what if 0 is a reasonable cut-off for some score?
     if (pep_score != 0)
     {
       OPENMS_LOG_INFO << "Filtering by peptide score..." << endl;
-      IDFilter::filterHitsByScore(peptides, pep_score);
+      if (!score_type.empty())
+      {
+        IDScoreSwitcherAlgorithm::ScoreType score_type_enum = IDScoreSwitcherAlgorithm::getScoreType(score_type);
+        IDFilter::filterHitsByScore(proteins, pep_score, score_type_enum);
+      }
+      else
+      {
+        IDFilter::filterHitsByScore(peptides, pep_score);
+      }
     }
 
     Int min_charge = numeric_limits<Int>::min(), max_charge =
@@ -652,11 +662,20 @@ protected:
 
     // Filtering protein identifications according to set criteria
     double prot_score = getDoubleOption_("score:prot");
+    String score_type_prot = getStringOption_("score:type_prot");
     // @TODO: what if 0 is a reasonable cut-off for some score?
     if (prot_score != 0)
     {
       OPENMS_LOG_INFO << "Filtering by protein score..." << endl;
-      IDFilter::filterHitsByScore(proteins, prot_score);
+      if (!score_type_prot.empty())
+      {
+        IDScoreSwitcherAlgorithm::ScoreType score_type_prot_enum = IDScoreSwitcherAlgorithm::getScoreType(score_type_prot);
+        IDFilter::filterHitsByScore(proteins, prot_score, score_type_prot_enum);
+      }
+      else
+      {
+        IDFilter::filterHitsByScore(proteins, prot_score);
+      }
     }
 
     Size best_n_prot = getIntOption_("best:n_protein_hits");

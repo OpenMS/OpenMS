@@ -41,6 +41,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -193,6 +194,27 @@ namespace OpenMS
         if (found.isEmpty())
           return false; // meta value "key" not set
         return double(found) <= value;
+      }
+    };
+
+    /// Does a meta value of this hit have at least the given value?
+    template<class HitType>
+    struct HasMinMetaValue {
+      typedef HitType argument_type; // for use as a predicate
+
+      String key;
+      double value;
+
+      HasMinMetaValue(const String& key_, const double& value_) : key(key_), value(value_)
+      {
+      }
+
+      bool operator()(const HitType& hit) const
+      {
+        DataValue found = hit.getMetaValue(key);
+        if (found.isEmpty())
+          return false; // meta value "key" not set
+        return double(found) >= value;
       }
     };
 
@@ -776,7 +798,7 @@ namespace OpenMS
     /**
       @brief Filters peptide or protein identifications according to the score of the hits.
 
-      Only peptide/protein hits with a score at least as good as @p threshold_score are kept. Score orientation (are higher scores better?) is taken into account.
+      Only peptide/protein hits with a (main) score at least as good as @p threshold_score are kept. Score orientation (are higher scores better?) is taken into account.
     */
     template<class IdentificationType>
     static void filterHitsByScore(std::vector<IdentificationType>& ids, double threshold_score)
@@ -786,6 +808,47 @@ namespace OpenMS
         struct HasGoodScore<typename IdentificationType::HitType> score_filter(threshold_score, id_it->isHigherScoreBetter());
         keepMatchingItems(id_it->getHits(), score_filter);
       }
+    }
+
+    /**
+      @brief Filters peptide or protein identifications according to the score of the hits. Allows for secondary scores.
+
+      Only peptide/protein hits with a score at least as good as @p threshold_score are kept. Score orientation (are higher scores better?) is taken into account.
+      This will look for a given @p score_type as the main score or in the secondary scores. Removes a hit if the @p score_type is not found at all.
+    */
+    template<class IdentificationType>
+    static void filterHitsByScore(std::vector<IdentificationType>& ids, double threshold_score, IDScoreSwitcherAlgorithm::ScoreType score_type)
+    {
+      IDScoreSwitcherAlgorithm switcher;
+      bool at_least_one_found = false;
+      for (IdentificationType& id : ids)
+      {
+        if (switcher.isScoreType(id.getScoreType(), score_type))
+        {
+          struct HasGoodScore<typename IdentificationType::HitType> score_filter(threshold_score, id.isHigherScoreBetter());
+          keepMatchingItems(id.getHits(), score_filter);
+        }
+        else
+        {
+          // If one assumes they are all the same in the vector, this could be done in the beginning.
+          String metaval = switcher.findScoreType(id, score_type);
+          if (!metaval.empty())
+          {
+            if (switcher.isScoreTypeHigherBetter(score_type))
+            {
+              struct HasMinMetaValue<typename IdentificationType::HitType> score_filter(metaval, threshold_score);
+              keepMatchingItems(id.getHits(), score_filter);
+            }
+            else
+            {
+              struct HasMaxMetaValue<typename IdentificationType::HitType> score_filter(metaval, threshold_score);
+              keepMatchingItems(id.getHits(), score_filter);
+            }
+            at_least_one_found = true;
+          }
+        }
+      }
+      if (!at_least_one_found) OPENMS_LOG_WARN << String("Warning: No hit with the given score_type found. All hits removed.") << std::endl;
     }
 
     /**
