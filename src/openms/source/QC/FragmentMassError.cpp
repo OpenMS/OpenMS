@@ -97,7 +97,7 @@ namespace OpenMS
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum reference annotated at peptide identifiction!");
     }
-    const MSSpectrum& exp_spectrum = exp[map_to_spectrum.at(pep_id.getSpectrumReference().toString())];
+    const MSSpectrum& exp_spectrum = exp[map_to_spectrum.at(pep_id.getSpectrumReference())];
 
     if (exp_spectrum.getMSLevel() != 2)
     {
