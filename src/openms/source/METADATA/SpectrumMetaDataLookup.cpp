@@ -197,7 +197,7 @@ namespace OpenMS
           fh.loadExperiment(filename, exp);
           lookup.readSpectra(exp.getSpectra());
         }
-        String spectrum_id = pep.getMetaValue("spectrum_reference");
+        String spectrum_id = pep.getSpectrumReference();
         try
         {
           Size index = lookup.findByNativeID(spectrum_id);
@@ -256,7 +256,7 @@ namespace OpenMS
         Size index = lookup.findByRT(pep.getRT());
         SpectrumMetaDataLookup::SpectrumMetaData meta;
         lookup.getSpectrumMetaData(index, meta);
-        pep.setMetaValue("spectrum_reference", meta.native_id);
+        pep.setSpectrumReference( meta.native_id);
       }
       catch (Exception::ElementNotFound&)
       {

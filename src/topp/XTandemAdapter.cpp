@@ -339,7 +339,7 @@ protected:
 
     for (PeptideIdentification& pep : peptide_ids)
     {
-      String ref = pep.getMetaValue("spectrum_reference");
+      String ref = pep.getSpectrumReference();
       Size index = lookup.findByNativeID(ref);
       if (index < exp.size())
       {

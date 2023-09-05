@@ -294,7 +294,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         const MSSpectrum& spec = exp[scan_index];
         // create empty PeptideIdentification object and fill meta data
         PeptideIdentification pi{};
-        pi.setMetaValue("spectrum_reference", spec.getNativeID());
+        pi.setSpectrumReference( spec.getNativeID());
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
         pi.setScoreType("hyperscore");
         pi.setHigherScoreBetter(true);

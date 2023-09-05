@@ -495,7 +495,7 @@ namespace OpenMS::Internal
 
       if (String ref; optionalAttributeAsString_(ref, attributes, "spectrum_reference"))
       {
-        pep_id_.setMetaValue("spectrum_reference", ref);
+        pep_id_.setSpectrumReference( ref);
       }
 
       last_meta_ = &pep_id_;

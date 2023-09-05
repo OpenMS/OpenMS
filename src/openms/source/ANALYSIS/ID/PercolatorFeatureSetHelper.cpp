@@ -808,7 +808,7 @@ namespace OpenMS
     String PercolatorFeatureSetHelper::getScanMergeKey_(vector<PeptideIdentification>::iterator it, vector<PeptideIdentification>::iterator start)
     {
       // MSGF+ uses this field, is empty if not specified
-      String scan_identifier = it->getMetaValue("spectrum_reference");
+      String scan_identifier = it->getSpectrumReference();
       if (scan_identifier.empty())
       {
         // XTandem uses this (integer) field

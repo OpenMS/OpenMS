@@ -654,7 +654,7 @@ namespace OpenMS
       optionalAttributeAsString_(tmp3, attributes, "spectrum_reference");
       if (!tmp3.empty())
       {
-        pep_id_.setMetaValue("spectrum_reference", tmp3);
+        pep_id_.setSpectrumReference( tmp3);
       }
 
       last_meta_ = &pep_id_;

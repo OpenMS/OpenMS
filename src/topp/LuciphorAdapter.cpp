@@ -614,7 +614,7 @@ protected:
     for (PeptideIdentification& pep : pep_ids)
     {
       Size scan_idx;
-      const String& ID_native_ids = pep.getMetaValue("spectrum_reference");
+      const String& ID_native_ids = pep.getSpectrumReference();
       try
       {
         scan_idx = lookup.findByNativeID(ID_native_ids);

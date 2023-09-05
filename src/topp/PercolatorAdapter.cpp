@@ -479,7 +479,7 @@ protected:
         {
           String scan_identifier = PercolatorInfile::getScanIdentifier(pep_id, index);
           scan_identifier = "file=" + file_idx + "," + scan_identifier;
-          pep_id.setMetaValue("spectrum_reference", scan_identifier);
+          pep_id.setSpectrumReference( scan_identifier);
         }
         for (PeptideHit& hit : pep_id.getHits())
         {

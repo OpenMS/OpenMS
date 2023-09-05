@@ -51,7 +51,7 @@ namespace OpenMS
       This class is closely related to ProteinIdentification, which stores the protein hits
       and the general information about the identification run. More than one PeptideIdentification
       can belong to one ProteinIdentification. The general information about a
-      PeptideIdentification has to be looked up in the corresponding ProteinIndentification, using
+      PeptideIdentification has to be looked up in the corresponding ProteinIdentification, using
       the unique <i>identifier</i> that links the two.
       When loading PeptideHit instances from a File, the retention time and mass-to-charge ratio
       of the precursor spectrum can be accessed using getRT() and getMZ().
@@ -144,6 +144,15 @@ public:
     const String getExperimentLabel() const;
     /// sets the experiment label for this identification
     void setExperimentLabel(const String& type);
+
+    /// returns the spectrum reference for this identification. Currently it should
+    /// almost always be the full native vendor ID.
+    // TODO make a mandatory data member, add to idXML schema, think about storing the
+    //  extracted spectrum "number" only!
+    String getSpectrumReference() const;
+    /// sets the spectrum reference for this identification. Currently it should
+    ///  almost always be the full native vendor ID.
+    void setSpectrumReference(const String& ref);
 
     /// Sorts the hits by score and assigns ranks according to the scores
     void assignRanks();

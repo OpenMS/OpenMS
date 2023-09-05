@@ -40,7 +40,7 @@
 namespace OpenMS
 {
   /**
-    @brief This class handles csv files. Currently only loading is implemented.
+    @brief This class handles csv files. Currently only loading is implemented. Does NOT support comment lines!
 
     @note items are allowed to be enclosed by only one character e.g. "item" where " is enclosing character
 

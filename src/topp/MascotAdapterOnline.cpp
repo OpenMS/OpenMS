@@ -220,7 +220,7 @@ protected:
     String run_identifier;
     for (const PeptideIdentification& pep : pep_a)
     {
-      const String& native_id = pep.getMetaValue("spectrum_reference");
+      const String& native_id = pep.getSpectrumReference();
       native_id2id_index[native_id] = index;
       ++index;
       if (run_identifier.empty()) run_identifier = pep.getIdentifier();
@@ -228,7 +228,7 @@ protected:
 
     for (auto pep : pep_b) //OMS_CODING_TEST_EXCLUDE
     {
-      auto it = native_id2id_index.find(pep.getMetaValue("spectrum_reference"));
+      auto it = native_id2id_index.find(pep.getSpectrumReference());
       if (it == native_id2id_index.end()) // spectrum not yet identified? add decoy id
       {
         pep.setIdentifier(run_identifier);
@@ -383,7 +383,7 @@ protected:
           try
           { 
             Size index = lookup.findByRT(pep.getRT());
-            pep.setMetaValue("spectrum_reference", exp[index].getNativeID());
+            pep.setSpectrumReference( exp[index].getNativeID());
           }
           catch (Exception::ElementNotFound&)
           {
@@ -410,7 +410,7 @@ protected:
             try
             { 
               Size index = lookup.findByRT(pep.getRT());
-              pep.setMetaValue("spectrum_reference", exp[index].getNativeID());
+              pep.setSpectrumReference( exp[index].getNativeID());
             }
             catch (Exception::ElementNotFound&)
             {

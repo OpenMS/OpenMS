@@ -83,7 +83,7 @@ namespace OpenMS
       id.setScoreType("XTandem");
       id.setHigherScoreBetter(true);
       id.setIdentifier(identifier);
-      id.setMetaValue("spectrum_reference", spectrum_ids_[it->first]);
+      id.setSpectrumReference( spectrum_ids_[it->first]);
 
       id.getHits().swap(it->second);
       id.assignRanks();

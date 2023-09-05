@@ -325,7 +325,7 @@ namespace OpenMS
 
         String spectrum_file = File::basename(mspath_mapping.getPrimaryMSRunPath(*pid));
         String spectrum_reference = pid->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, "");
-        // missing file origin is fine but we need a spectrum_reference if we want to build the map
+        // missing file origin is fine, but we need a spectrum_reference if we want to build the map
         if (spectrum_reference.empty()) continue;
         // TODO make a unique decision in the whole class on if to extract by scan number or full string?
         if (!lookForScanNrsAsIntegers)
@@ -333,7 +333,7 @@ namespace OpenMS
           char* p;
           // check if spectrum reference is a string that just contains a number
           strtol(ids[0].getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE).toChar(), &p, 10);
-          if(*p) lookForScanNrsAsIntegers = true;
+          if(!*p) lookForScanNrsAsIntegers = true;
         }
     
         // TODO: check if there is already an entry

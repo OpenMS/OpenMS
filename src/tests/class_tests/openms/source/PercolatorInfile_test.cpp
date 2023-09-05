@@ -77,9 +77,11 @@ START_SECTION(vector<PeptideIdentification> PercolatorInfile::load(const String&
     extra_scores, 
     filenames, 
     "DECOY_");
-  TEST_EQUAL(pids.size(), 9);
-  TEST_EQUAL(filenames.size(), 1);
-  TEST_FALSE(pids[6].getMetaValue("target_decoy") == "decoy") // 7th entry is annotated as target in pin file but only maps to decoy proteins with prefix "DECOY_" -> set to decoy
+  TEST_EQUAL(pids.size(), 9)
+  TEST_EQUAL(filenames.size(), 2)
+  TEST_EQUAL(pids[0].getSpectrumReference(), "30381")
+  TEST_EQUAL(pids[6].getSpectrumReference(), "spectrum=2041")
+  TEST_EQUAL(pids[7].getHits()[0].getMetaValue("target_decoy"),"decoy") // 8th entry is annotated as target in pin file but only maps to decoy proteins with prefix "DECOY_" -> set to decoy
 }
 END_SECTION
 
