@@ -332,7 +332,7 @@ namespace OpenMS
         {
           char* p;
           // check if spectrum reference is a string that just contains a number
-          strtol(ids[0].getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE).toChar(), &p, 10);
+          strtol(ids[0].getSpectrumReference().c_str(), &p, 10);
           if(!*p) lookForScanNrsAsIntegers = true;
         }
     
