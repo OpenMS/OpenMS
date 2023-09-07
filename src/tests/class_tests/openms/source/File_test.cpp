@@ -72,6 +72,12 @@ START_SECTION((static bool empty(const String &file)))
   TEST_EQUAL(File::empty(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), false)
 END_SECTION
 
+START_SECTION((static UInt64 fileSize(const String& file)))
+  TEST_EQUAL(File::fileSize("does_not_exists.txt"), -1)
+  TEST_EQUAL(File::fileSize(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), 0)
+  TEST_EQUAL(File::fileSize(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), 15)
+END_SECTION
+
 START_SECTION((static bool remove(const String &file)))
   //deleting non-existing file
   TEST_EQUAL(File::remove("does_not_exists.txt"), true)
