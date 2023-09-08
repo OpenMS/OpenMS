@@ -1,16 +1,3 @@
-// -*- Mode: C++; tab-width: 2; -*-
-// vi: set ts=2:
-//
-// ==========================================================================
-//
-// IMPORTANT:
-// This is test_config.h / test_config.h.in
-// Please do ONLY change test_config.h.in, as test_config.h is automagically
-// created by CMAKE from test_config.h.in
-// 
-// Use appropriate options to configure instead of changing test_config.h.
-// Changes made in test_config.h will be lost as soon as you call CMAKE again.
-//
 // --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
