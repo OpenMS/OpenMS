@@ -304,10 +304,15 @@ namespace OpenMS
         // TODO make a unique decision in the whole class on if to extract by scan number or full string?
         if (!lookForScanNrsAsIntegers)
         {
-          char* p;
           // check if spectrum reference is a string that just contains a number
-          strtol(ids[0].getSpectrumReference().c_str(), &p, 10);
-          if(!*p) lookForScanNrsAsIntegers = true;
+          try
+          {
+            ids[0].getSpectrumReference().toInt();
+          }
+          catch
+          {
+            lookForScanNrsAsIntegers = true;
+          }  
         }
     
         // TODO: check if there is already an entry
