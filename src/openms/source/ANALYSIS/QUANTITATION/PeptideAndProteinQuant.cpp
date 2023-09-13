@@ -668,6 +668,17 @@ namespace OpenMS
     OPENMS_LOG_DEBUG << "  Fractions       : " << stats_.n_fractions << endl;
     OPENMS_LOG_DEBUG << "  Samples (Assays): " << stats_.n_samples << endl;
 
+   
+    // map filename and label of experimental design to the full experimental design entry for faster lookup
+    const auto& ms_section = ed.getMSFileSection();
+    std::unordered_map<String, ExperimentalDesign::MSFileSectionEntry> fileAndLabel2MSFileSectionEntry;
+    for (const auto e : ms_section)
+    {
+      String ed_filename = FileHandler::stripExtension(File::basename(e.path));
+      String ed_label = e.label;
+      fileAndLabel2MSFileSectionEntry[ed_filename + ed_label] = e;
+    }
+
     for (auto & c : consensus)
     {
       stats_.total_features += c.getFeatures().size();
@@ -689,14 +700,12 @@ namespace OpenMS
         const String c_fn = FileHandler::stripExtension(File::basename(h.filename)); // filename according to experimental design in consensus map
         const size_t c_lab = h.getLabelAsUInt(consensus.getExperimentType());
 
-        const auto& ms_section = ed.getMSFileSection();
-
-        // find entry in experimental design (ignore extension and folder)
-        if (auto it = std::find_if(ms_section.begin(), ms_section.end(), [&](const ExperimentalDesign::MSFileSectionEntry& e) { return (FileHandler::stripExtension(File::basename(e.path)) == c_fn) && (e.label == c_lab); }); it != ms_section.end())
+        // find entry in experimental design (ignore extension and folder) that corresponds to current column header entry
+        if (auto it = fileAndLabel2MSFileSectionEntry.find(c_fn + String(c_lab)); it != fileAndLabel2MSFileSectionEntry.end())
         {
-          const String& e_fn = it->path;
-          size_t fraction = it->fraction;
-          size_t sample = it->sample;
+          const String& e_fn = it->second.path;
+          const size_t fraction = it->second.fraction;
+          const size_t sample = it->second.sample;
           quantifyFeature_(f, fraction, sample, hit); // updates "stats_.quant_features"          
         }
         else
