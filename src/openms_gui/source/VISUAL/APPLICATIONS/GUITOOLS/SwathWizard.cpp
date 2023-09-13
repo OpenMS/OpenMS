@@ -12,7 +12,7 @@
   @brief An assistant for Swath analysis.
 
   The Wizard takes the user through the whole analysis pipeline for SWATH proteomics data analysis, 
-  i.e. the @ref UTILS_OpenSwathWorkflow tool, including downstream tools such
+  i.e. the @ref TOPP_OpenSwathWorkflow tool, including downstream tools such
   as <a href="https://github.com/PyProphet/pyprophet" target="_blank">pyProphet</a> and
   the <a href="https://github.com/msproteomicstools/msproteomicstools" target="_blank">TRIC alignment</a> tool.
   

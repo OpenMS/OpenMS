@@ -239,7 +239,7 @@ START_SECTION((void writeCTDToStream(std::ostream *os_ptr, const Param &param) c
   ParamCTDFile paramFile;
   ToolInfo info = {"2.6.0-pre-STL-ParamCTD-2021-06-02",
                    "AccurateMassSearch",
-                   "http://www.openms.de/doxygen/nightly/html/UTILS_AccurateMassSearch.html",
+                   "http://www.openms.de/doxygen/nightly/html/TOPP_AccurateMassSearch.html",
                    "Utilities",
                    "Match MS signals to molecules from a database by mass.",
                    {"10.1038/nmeth.3959"}};
