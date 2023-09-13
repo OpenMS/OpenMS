@@ -308,10 +308,11 @@ namespace OpenMS
           try
           {
             ids[0].getSpectrumReference().toInt();
+            lookForScanNrsAsIntegers = true;
           }
           catch
           {
-            lookForScanNrsAsIntegers = true;
+            lookForScanNrsAsIntegers = false;
           }  
         }
     
