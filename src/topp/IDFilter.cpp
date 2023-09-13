@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -221,6 +195,8 @@ protected:
     setMinInt_("best:n_spectra", 0);
     registerIntOption_("best:n_peptide_hits", "<integer>", 0, "Keep only the 'n' highest scoring peptide hits per spectrum (for n > 0).", false);
     setMinInt_("best:n_peptide_hits", 0);
+    registerStringOption_("best:spectrum_per_peptide", "<String>", "false", "Keep one spectrum per peptide. Value determines if same sequence but different charges or modifications are treated as separate peptides or the same peptide. (default: false = filter disabled).", false);
+    setValidStrings_("best:spectrum_per_peptide", {"false", "sequence", "sequence+charge", "sequence+modification", "sequence+charge+modification"});    
     registerIntOption_("best:n_protein_hits", "<integer>", 0, "Keep only the 'n' highest scoring protein hits (for n > 0).", false);
     setMinInt_("best:n_protein_hits", 0);
     registerFlag_("best:strict", "Keep only the highest scoring peptide hit.\n"
@@ -605,6 +581,25 @@ protected:
     {
       OPENMS_LOG_INFO << "Filtering by best n peptide hits..." << endl;
       IDFilter::keepNBestHits(peptides, best_n_pep);
+    }
+
+    String spectrum_per_peptide = getStringOption_("best:spectrum_per_peptide");
+    if (spectrum_per_peptide != "false")
+    {
+      OPENMS_LOG_INFO << "Keeping best spectrum per " << spectrum_per_peptide << endl;
+      if (spectrum_per_peptide == "sequence") // group by sequence and return best spectrum (->smallest number of spectra)
+      {
+        IDFilter::keepBestPerPeptide(peptides, true, true, 1);
+      } else if (spectrum_per_peptide == "sequence+modification")
+      {
+        IDFilter::keepBestPerPeptide(peptides, false, true, 1);
+      } else if (spectrum_per_peptide == "sequence+charge")
+      {
+        IDFilter::keepBestPerPeptide(peptides, true, false, 1);
+      } else if (spectrum_per_peptide == "sequence+charge+modification") // group by sequence, modificationm, charge combination and return best spectrum (->largest number of spectra)
+      {
+        IDFilter::keepBestPerPeptide(peptides, false, false, 1);
+      }
     }
 
     Int min_rank = 0, max_rank = 0;

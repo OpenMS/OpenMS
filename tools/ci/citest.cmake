@@ -26,7 +26,7 @@ set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000)
 
 ctest_start(APPEND)
 
-## build lib&executables, run tests
+## run tests
 ## for pyopenms build, only run pyopenms tests
 if("$ENV{PYOPENMS}" STREQUAL "ON")
   ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" INCLUDE "pyopenms" PARALLEL_LEVEL 3 RETURN_VALUE _test_errors)
@@ -36,8 +36,12 @@ endif()
 ## send test results to CDash
 ctest_submit(PARTS Test Done)
 
+string(REPLACE "+" "%2B" BUILD_NAME_SAFE ${CTEST_BUILD_NAME})
+string(REPLACE "." "%2E" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
+string(REPLACE "/" "%2F" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
+
 if (_test_errors)
-  message(FATAL_ERROR "Please check the test results at: https://cdash.openms.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${CTEST_BUILD_NAME}")
+  message(FATAL_ERROR "There were errors: Please check the test results at: https://cdash.openms.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
 else()
-  message("Please check the test results at: https://cdash.openms.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${CTEST_BUILD_NAME}")
+  message("Testing successful: Please check the test results at: https://cdash.openms.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
 endif()
