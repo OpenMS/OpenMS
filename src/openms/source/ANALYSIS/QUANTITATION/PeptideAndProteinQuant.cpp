@@ -674,7 +674,6 @@ namespace OpenMS
     ConsensusMap& consensus, 
     const ExperimentalDesign& ed)
   {
-
     // TODO check that the file section of the experimental design is compatible with what can be parsed from the consensus map.
     updateMembers_(); // clear data
 
@@ -714,15 +713,27 @@ namespace OpenMS
         //TODO In General, this assumes that the experimental design was generated
         //  FROM the consensusXML and therefore is in exactly the same order!
         //  WAY too restrictive!
-        /*
-        const auto& h = consensus.getColumnHeaders().at(row);
-        const String& fn = h.filename;
-        const size_t lab = h.getLabelAsUInt(consensus.getExperimentType());
-         */
+        
         size_t row = f.getMapIndex();
-        size_t fraction = ed.getMSFileSection()[row].fraction;
-        size_t sample = ed.getMSFileSection()[row].sample;
-        quantifyFeature_(f, fraction, sample, hit); // updates "stats_.quant_features"
+        const auto& h = consensus.getColumnHeaders().at(row);
+        const String& c_fn = h.filename; // filename according to experimental design in consensus map
+        const size_t c_lab = h.getLabelAsUInt(consensus.getExperimentType());
+
+        const auto& ms_section = ed.getMSFileSection();
+
+        // find entry in experimental design
+        if (auto it = std::find_if(ms_section.begin(), ms_section.end(), [&](const ExperimentalDesign::MSFileSectionEntry& e) { return (e.path == c_fn) && (e.label == c_lab); }); it != ms_section.end())
+        {
+          const String& e_fn = it->path;
+          size_t fraction = it->fraction;
+          size_t sample = it->sample;
+          quantifyFeature_(f, fraction, sample, hit); // updates "stats_.quant_features"          
+        }
+        else
+        {
+          OPENMS_LOG_FATAL_ERROR << "File+Label referenced in consensus header not found in experimental design.\n"  
+                                 << "File+Label:" << c_fn << "\t" << c_lab << std::endl;
+        }
       }
     }
     countPeptides_(consensus.getUnassignedPeptideIdentifications());
