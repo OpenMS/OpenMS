@@ -310,7 +310,7 @@ namespace OpenMS
             ids[0].getSpectrumReference().toInt64();
             lookForScanNrsAsIntegers = true;
           }
-          catch
+          catch (...)
           {
             lookForScanNrsAsIntegers = false;
           }  
