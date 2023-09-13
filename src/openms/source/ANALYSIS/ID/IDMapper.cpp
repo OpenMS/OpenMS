@@ -307,7 +307,7 @@ namespace OpenMS
           // check if spectrum reference is a string that just contains a number
           try
           {
-            ids[0].getSpectrumReference().toInt();
+            ids[0].getSpectrumReference().toInt64();
             lookForScanNrsAsIntegers = true;
           }
           catch
