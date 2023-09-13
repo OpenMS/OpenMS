@@ -35,6 +35,7 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
@@ -708,21 +709,16 @@ namespace OpenMS
       PeptideHit hit = getAnnotation_(c.getPeptideIdentifications());
       for (auto const & f : c.getFeatures())
       {
-        // indices in experimental design are 0-based as the map indices
         //TODO MULTIPLEXED: needs to be adapted for multiplexed experiments
-        //TODO In General, this assumes that the experimental design was generated
-        //  FROM the consensusXML and therefore is in exactly the same order!
-        //  WAY too restrictive!
-        
         size_t row = f.getMapIndex();
         const auto& h = consensus.getColumnHeaders().at(row);
-        const String& c_fn = h.filename; // filename according to experimental design in consensus map
+        const String c_fn = FileHandler::stripExtension(File::basename(h.filename)); // filename according to experimental design in consensus map
         const size_t c_lab = h.getLabelAsUInt(consensus.getExperimentType());
 
         const auto& ms_section = ed.getMSFileSection();
 
-        // find entry in experimental design
-        if (auto it = std::find_if(ms_section.begin(), ms_section.end(), [&](const ExperimentalDesign::MSFileSectionEntry& e) { return (e.path == c_fn) && (e.label == c_lab); }); it != ms_section.end())
+        // find entry in experimental design (ignore extension and folder)
+        if (auto it = std::find_if(ms_section.begin(), ms_section.end(), [&](const ExperimentalDesign::MSFileSectionEntry& e) { return (FileHandler::stripExtension(File::basename(e.path)) == c_fn) && (e.label == c_lab); }); it != ms_section.end())
         {
           const String& e_fn = it->path;
           size_t fraction = it->fraction;
