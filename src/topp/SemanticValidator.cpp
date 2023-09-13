@@ -24,7 +24,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_SemanticValidator SemanticValidator
+    @page TOPP_SemanticValidator SemanticValidator
 
     @brief SemanticValidator for XML files which can be semantically validated.
 
@@ -38,9 +38,9 @@ using namespace std;
     TraML, mzIdentML, mzData or any XML file.
     
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_SemanticValidator.cli
+    @verbinclude TOPP_SemanticValidator.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_SemanticValidator.html
+    @htmlinclude TOPP_SemanticValidator.html
 */
 
 // We do not want this class to show up in the docu:

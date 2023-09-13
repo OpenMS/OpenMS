@@ -41,7 +41,7 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_MRMTransitionGroupPicker MRMTransitionGroupPicker
+  @page TOPP_MRMTransitionGroupPicker MRMTransitionGroupPicker
 
   @brief Picks peaks in SRM/MRM chromatograms that belong to the same precursors.
 
@@ -78,9 +78,9 @@ using namespace OpenMS;
   This tool will not compute any scores for the peaks, in order to do peak picking please use TOPP_OpenSwathAnalyzer
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_MRMTransitionGroupPicker.cli
+  @verbinclude TOPP_MRMTransitionGroupPicker.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_MRMTransitionGroupPicker.html
+  @htmlinclude TOPP_MRMTransitionGroupPicker.html
 
 */
 

@@ -15,7 +15,7 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-    @page UTILS_IDDecoyProbability IDDecoyProbability
+    @page TOPP_IDDecoyProbability IDDecoyProbability
 
     @brief Util to estimate probability of peptide hits
 
@@ -46,9 +46,9 @@ using namespace std;
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_IDDecoyProbability.cli
+    @verbinclude TOPP_IDDecoyProbability.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_IDDecoyProbability.html
+    @htmlinclude TOPP_IDDecoyProbability.html
 
     For the parameters of the algorithm section see the algorithms documentation: @n
         @ref OpenMS::IDDecoyProbability "decoy_algorithm" @n

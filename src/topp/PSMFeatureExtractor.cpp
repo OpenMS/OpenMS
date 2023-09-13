@@ -32,7 +32,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_PSMFeatureExtractor PSMFeatureExtractor
+  @page TOPP_PSMFeatureExtractor PSMFeatureExtractor
 
   @brief PSMFeatureExtractor computes extra features for each input PSM
 
@@ -65,9 +65,9 @@ Mascot support is available but in beta development.
  flag and list the MetaData entries containing the extra features.
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_PSMFeatureExtractor.cli
+  @verbinclude TOPP_PSMFeatureExtractor.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_PSMFeatureExtractor.html
+  @htmlinclude TOPP_PSMFeatureExtractor.html
 */
 
 // We do not want this class to show up in the docu:

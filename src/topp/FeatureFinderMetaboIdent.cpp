@@ -34,7 +34,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page UTILS_FeatureFinderMetaboIdent FeatureFinderMetaboIdent
+   @page TOPP_FeatureFinderMetaboIdent FeatureFinderMetaboIdent
 
    @brief Detects features in MS1 data corresponding to small molecule identifications.
 
@@ -94,9 +94,9 @@ using namespace std;
    In the result, the information from the @p CompoundName, @p SumFormula, @p Charge and @p RetentionTime columns from the input will be in the @p label, @p sum_formula, @p charge and @p expected_rt columns, respectively.
 
    <B>The command line parameters of this tool are:</B>
-   @verbinclude UTILS_FeatureFinderMetaboIdent.cli
+   @verbinclude TOPP_FeatureFinderMetaboIdent.cli
    <B>INI file documentation of this tool:</B>
-   @htmlinclude UTILS_FeatureFinderMetaboIdent.html
+   @htmlinclude TOPP_FeatureFinderMetaboIdent.html
 
 */
 

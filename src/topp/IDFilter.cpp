@@ -74,7 +74,7 @@ using namespace std;
 
  The score that was most recently set by a processing step is considered for filtering.
  For example, it could be a Mascot score (if MascotAdapterOnline was applied) or an FDR (if FalseDiscoveryRate was applied), etc.
- @ref UTILS_IDScoreSwitcher is useful to switch to a particular score before filtering.
+ @ref TOPP_IDScoreSwitcher is useful to switch to a particular score before filtering.
 
  <b>Protein accession filters</b> (@p whitelist:proteins, @p whitelist:protein_accessions, @p blacklist:proteins, @p blacklist:protein_accessions):
 

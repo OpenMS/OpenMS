@@ -27,7 +27,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_INIUpdater INIUpdater
+  @page TOPP_INIUpdater INIUpdater
   @brief Update INI and TOPPAS files from previous versions of OpenMS/TOPP
 
   This tool can update old INI files and make them
@@ -47,9 +47,9 @@ using namespace std;
   the same).
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_INIUpdater.cli
+  @verbinclude TOPP_INIUpdater.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_INIUpdater.html
+  @htmlinclude TOPP_INIUpdater.html
 */
 
 // We do not want this class to show up in the docu:

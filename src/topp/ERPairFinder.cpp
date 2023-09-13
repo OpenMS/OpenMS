@@ -25,7 +25,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_ERPairFinder ERPairFinder
+    @page TOPP_ERPairFinder ERPairFinder
 
     @brief Util which can be used to evaluate pair ratios on enhanced resolution (zoom) scans.
 
@@ -45,9 +45,9 @@ using namespace std;
     @experimental This software is experimental and might contain bugs!
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_ERPairFinder.cli
+    @verbinclude TOPP_ERPairFinder.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_ERPairFinder.html
+    @htmlinclude TOPP_ERPairFinder.html
 */
 
 // We do not want this class to show up in the docu:

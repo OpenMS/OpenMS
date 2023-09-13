@@ -24,7 +24,7 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_TargetedFileConverter TargetedFileConverter
+  @page TOPP_TargetedFileConverter TargetedFileConverter
 
   @brief Converts different spectral libraries / transition files for targeted proteomics and metabolomics analysis.
   
@@ -40,9 +40,9 @@ using namespace OpenMS;
         </ul>
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_TargetedFileConverter.cli
+  @verbinclude TOPP_TargetedFileConverter.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_TargetedFileConverter.html
+  @htmlinclude TOPP_TargetedFileConverter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -62,7 +62,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.\n "
-                                           "See http://www.openms.de/current_doxygen/html/UTILS_TargetedFileConverter.html for format of OpenSWATH transition TSV file or SpectraST MRM file.");
+                                           "See http://www.openms.de/current_doxygen/html/TOPP_TargetedFileConverter.html for format of OpenSWATH transition TSV file or SpectraST MRM file.");
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
     StringList formats{"tsv", "mrm" ,"pqp", "TraML"};
     setValidFormats_("in", formats);

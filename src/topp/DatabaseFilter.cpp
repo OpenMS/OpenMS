@@ -24,7 +24,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_DatabaseFilter DatabaseFilter
+    @page TOPP_DatabaseFilter DatabaseFilter
 
     @brief The DatabaseFilter tool filters a protein database in fasta format according to one or multiple filtering criteria.
 
@@ -35,9 +35,9 @@ using namespace std;
         accession: Filter database according to the set of protein accessions contained in an identification file (idXML, mzIdentML)
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_DatabaseFilter.cli
+    @verbinclude TOPP_DatabaseFilter.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_DatabaseFilter.html
+    @htmlinclude TOPP_DatabaseFilter.html
 */
 
 // We do not want this class to show up in the docu:

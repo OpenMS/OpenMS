@@ -33,7 +33,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_QCMerger QCMerger
+    @page TOPP_QCMerger QCMerger
 
     @brief Merges two qcml files together.
 
@@ -45,10 +45,10 @@ using namespace std;
         <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref UTILS_QCCalculator </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_QCCalculator </td>
         </tr>
         <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCShrinker </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCShrinker </td>
         </tr>
       </table>
     </CENTER>
@@ -61,9 +61,9 @@ using namespace std;
     Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
     
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_QCMerger.cli
+    @verbinclude TOPP_QCMerger.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_QCMerger.html
+    @htmlinclude TOPP_QCMerger.html
 
 */
 

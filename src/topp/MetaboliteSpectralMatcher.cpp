@@ -29,7 +29,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-        @page UTILS_MetaboliteSpectralMatcher MetaboliteSpectralMatcher
+        @page TOPP_MetaboliteSpectralMatcher MetaboliteSpectralMatcher
 
         @brief MetaboliteSpectralMatcher identifies small molecules from tandem MS spectra using a spectral library.
 
@@ -53,9 +53,9 @@ using namespace std;
         Merging can also have disadvantages, for example, for isobaric or isomeric compounds that have similar/same masses but can have different retention times and MS2 spectra.
 
         <B>The command line parameters of this tool are:</B>
-        @verbinclude UTILS_MetaboliteSpectralMatcher.cli
+        @verbinclude TOPP_MetaboliteSpectralMatcher.cli
         <B>INI file documentation of this tool:</B>
-        @htmlinclude UTILS_MetaboliteSpectralMatcher.html
+        @htmlinclude TOPP_MetaboliteSpectralMatcher.html
 */
 
 // We do not want this class to show up in the docu:

@@ -35,7 +35,7 @@ using namespace OpenMS;
 //Doxygen docu
 //----------------------------------------------------------
 /**
-  @page UTILS_AssayGeneratorMetabo AssayGeneratorMetabo
+  @page TOPP_AssayGeneratorMetabo AssayGeneratorMetabo
 
   @brief Generates an assay library using DDA data (Metabolomics)
 
@@ -51,7 +51,7 @@ using namespace OpenMS;
               <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> OpenSWATH pipeline </td>
           </tr>
           <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_AccurateMassSearch </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_AccurateMassSearch </td>
           </tr>
       </table>
   </CENTER>
@@ -79,9 +79,9 @@ using namespace OpenMS;
   9. Extract and write transitions (tsv, traml) \n
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_SiriusAdapter.cli
+  @verbinclude TOPP_SiriusAdapter.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_SiriusAdapter.html
+  @htmlinclude TOPP_SiriusAdapter.html
  */
 
 /// @cond TOPPCLASSES

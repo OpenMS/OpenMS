@@ -79,7 +79,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_NucleicAcidSearchEngine NucleicAcidSearchEngine
+    @page TOPP_NucleicAcidSearchEngine NucleicAcidSearchEngine
 
     @brief Matches tandem mass spectra to nucleic acid sequences.
 
@@ -106,9 +106,9 @@ using namespace std;
 
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_NucleicAcidSearchEngine.cli
+    @verbinclude TOPP_NucleicAcidSearchEngine.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_NucleicAcidSearchEngine.html
+    @htmlinclude TOPP_NucleicAcidSearchEngine.html
 */
 
 class NucleicAcidSearchEngine :

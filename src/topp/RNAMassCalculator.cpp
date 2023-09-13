@@ -24,7 +24,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_RNAMassCalculator RNAMassCalculator
+    @page TOPP_RNAMassCalculator RNAMassCalculator
 
     @brief Calculates masses, mass-to-charge ratios and sum formulas of RNA sequences.
 
@@ -49,9 +49,9 @@ using namespace std;
 
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_RNAMassCalculator.cli
+    @verbinclude TOPP_RNAMassCalculator.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_RNAMassCalculator.html
+    @htmlinclude TOPP_RNAMassCalculator.html
 */
 
 // We do not want this class to show up in the docu:

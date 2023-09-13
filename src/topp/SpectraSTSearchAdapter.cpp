@@ -23,7 +23,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_SpectraSTSearchAdapter SpectraSTSearchAdapter
+    @page TOPP_SpectraSTSearchAdapter SpectraSTSearchAdapter
 
     @brief This util provides an interface to the 'SEARCH' mode of the SpectraST program.
            All non-advanced parameters of the executable of SpectraST were translated into
@@ -32,9 +32,9 @@ using namespace std;
     SpectraST: Version: 5
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_SpectraSTSearchAdapter.cli
+    @verbinclude TOPP_SpectraSTSearchAdapter.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_SpectraSTSearchAdapter.html
+    @htmlinclude TOPP_SpectraSTSearchAdapter.html
 */
 
 // We do not want this class to show up in the docu:

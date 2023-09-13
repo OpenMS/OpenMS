@@ -91,7 +91,7 @@ using namespace std;
     <br>Warning: If the path to XTandem_residue_mass.bioml.xml is invalid, @em X!Tandem will simply ignore the setting without feedback!
     <br>Warning: The resulting peptide sequences in the idXML file will not contain any N15 labeling information because 
                  X!Tandem simply received modified AA masses without further information what they mean. 
-                 Add the 15N modification information by calling the @ref UTILS_StaticModification tool on the idXML file created by this adapter.
+                 Add the 15N modification information by calling the @ref TOPP_StaticModification tool on the idXML file created by this adapter.
 
     <br>
 

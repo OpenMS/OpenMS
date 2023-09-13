@@ -22,7 +22,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_IDScoreSwitcher IDScoreSwitcher
+    @page TOPP_IDScoreSwitcher IDScoreSwitcher
 
     @brief Switches between different scores of peptide hits (PSMs) or protein hits in identification data.
 
@@ -33,9 +33,9 @@ using namespace std;
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_IDScoreSwitcher.cli
+    @verbinclude TOPP_IDScoreSwitcher.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_IDScoreSwitcher.html
+    @htmlinclude TOPP_IDScoreSwitcher.html
 */
 
 // We do not want this class to show up in the docu:

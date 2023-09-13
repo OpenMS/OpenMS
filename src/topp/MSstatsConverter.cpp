@@ -30,7 +30,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_MSstatsConverter MSstatsConverter
+    @page TOPP_MSstatsConverter MSstatsConverter
 
     @brief Converter to input for MSstats
 
@@ -39,9 +39,9 @@ using namespace std;
     [1] M. Choi et al. MSstats: an R package for statistical analysis for quantitative mass spectrometry-based proteomic experiments. Bioinformatics (2014), 30 (17): 2524-2526
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_MSstatsConverter.cli
+    @verbinclude TOPP_MSstatsConverter.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_MSstatsConverter.html
+    @htmlinclude TOPP_MSstatsConverter.html
  */
 
 // We do not want this class to show up in the docu:

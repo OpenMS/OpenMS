@@ -23,7 +23,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_MassCalculator MassCalculator
+    @page TOPP_MassCalculator MassCalculator
 
     @brief Calculates masses and mass-to-charge ratios of peptide sequences.
 
@@ -45,9 +45,9 @@ A number of different output formats are available via the parameter @p format:
 
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_MassCalculator.cli
+    @verbinclude TOPP_MassCalculator.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_MassCalculator.html
+    @htmlinclude TOPP_MassCalculator.html
 */
 
 // We do not want this class to show up in the docu:

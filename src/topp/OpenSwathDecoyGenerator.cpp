@@ -41,7 +41,7 @@ using namespace OpenMS;
               <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
           </tr>
           <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_OpenSwathWorkflow </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathWorkflow </td>
           </tr>
       </table>
   </CENTER>
@@ -50,7 +50,7 @@ using namespace OpenMS;
   transitions. The idea is to use the decoy transitions in a statistical scoring
   process to estimate the false hits in an SRM / SWATH experiment.  The tool
   operates on @ref OpenMS::TraMLFile "TraML" files, which can come from @ref
-  UTILS_TargetedFileConverter or any other tool.
+  TOPP_TargetedFileConverter or any other tool.
 
   There are multiple methods to create the decoy transitions, the simplest ones
   are reverse and pseudo-reverse which reverse the sequence either completely or

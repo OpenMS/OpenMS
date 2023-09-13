@@ -19,7 +19,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page UTILS_RNADigestor RNADigestor
+   @page TOPP_RNADigestor RNADigestor
 
     @brief Digests an RNA sequence database in-silico.
 <CENTER>
@@ -39,9 +39,9 @@ using namespace std;
     This application is used to digest an RNA sequence database to get all fragments given a cleavage enzyme.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_RNADigestor.cli
+    @verbinclude TOPP_RNADigestor.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_RNADigestor.html
+    @htmlinclude TOPP_RNADigestor.html
 */
 
 // We do not want this class to show up in the docu:

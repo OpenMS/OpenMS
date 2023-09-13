@@ -45,7 +45,7 @@ using namespace std;
             <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_SpecLibCreator </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_SpecLibCreator </td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
         </tr>
     </table>

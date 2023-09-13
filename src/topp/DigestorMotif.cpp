@@ -27,7 +27,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_DigestorMotif DigestorMotif
+    @page TOPP_DigestorMotif DigestorMotif
 
     @brief This application is used to digest a protein database to get all peptides given a cleavage enzyme. It will also produce peptide statistics given the mass
     accuracy of the instrument. You can extract peptides with specific motifs,e.g. onyl cysteine containing peptides for ICAT experiments. At the moment only trypsin is supported.
@@ -35,9 +35,9 @@ using namespace std;
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_DigestorMotif.cli
+    @verbinclude TOPP_DigestorMotif.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_DigestorMotif.html
+    @htmlinclude TOPP_DigestorMotif.html
 
 */
 

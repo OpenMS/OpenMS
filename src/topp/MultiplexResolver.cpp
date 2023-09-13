@@ -33,7 +33,7 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_MultiplexResolver MultiplexResolver
+  @page TOPP_MultiplexResolver MultiplexResolver
 
   @brief Completes peptide multiplets and resolves conflicts within them.
 
@@ -67,9 +67,9 @@ using namespace OpenMS;
   each multiplet has only one peptide sequence annotation, the best one. Multiplets without sequence annotation are passed to the optional out_conflicts output.
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_MultiplexResolver.cli
+  @verbinclude TOPP_MultiplexResolver.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_MultiplexResolver.html
+  @htmlinclude TOPP_MultiplexResolver.html
 
 */
 

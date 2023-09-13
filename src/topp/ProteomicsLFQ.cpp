@@ -60,7 +60,7 @@ using Internal::IDBoostGraph;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_ProteomicsLFQ ProteomicsLFQ
+  @page TOPP_ProteomicsLFQ ProteomicsLFQ
 
   ProteomicsLFQ performs label-free quantification of peptides and proteins. @n
 
@@ -103,9 +103,9 @@ using Internal::IDBoostGraph;
   Potential scripts to perform the search can be found under src/tests/topp/ProteomicsLFQTestScripts
   
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_ProteomicsLFQ.cli
+  @verbinclude TOPP_ProteomicsLFQ.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_ProteomicsLFQ.html
+  @htmlinclude TOPP_ProteomicsLFQ.html
  **/
 
 // We do not want this class to show up in the docu:

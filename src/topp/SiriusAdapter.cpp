@@ -32,7 +32,7 @@ using namespace std;
 // Doxygen docu
 //----------------------------------------------------------
 /**
-  @page UTILS_SiriusAdapter SiriusAdapter
+  @page TOPP_SiriusAdapter SiriusAdapter
 
   @brief De novo metabolite identification.
 
@@ -62,9 +62,9 @@ using namespace std;
   Additional adduct information can be provided using a featureXML from the MetaboliteAdductDecharger or AccurateMassSearch.
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_SiriusAdapter.cli
+  @verbinclude TOPP_SiriusAdapter.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_SiriusAdapter.html
+  @htmlinclude TOPP_SiriusAdapter.html
  */
 
 /// @cond TOPPCLASSES

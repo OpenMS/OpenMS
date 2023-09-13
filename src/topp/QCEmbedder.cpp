@@ -34,7 +34,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_QCEmbedder QCEmbedder
+    @page TOPP_QCEmbedder QCEmbedder
 
     @brief This application is used to embed tables or plots generated externally as attachments to existing quality parameters in qcML files.
 
@@ -46,12 +46,12 @@ using namespace std;
         <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCExporter </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCMerger </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCExporter </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCMerger </td>
         </tr>
         <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCShrinker </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCShrinker </td>
         </tr>
       </table>
     </CENTER>
@@ -70,9 +70,9 @@ using namespace std;
     Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_QCEmbedder.cli
+    @verbinclude TOPP_QCEmbedder.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_QCEmbedder.html
+    @htmlinclude TOPP_QCEmbedder.html
 
 */
 

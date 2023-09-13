@@ -68,7 +68,7 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_OpenSwathWorkflow OpenSwathWorkflow
+  @page TOPP_OpenSwathWorkflow OpenSwathWorkflow
 
   @brief Complete workflow to run OpenSWATH
 
@@ -382,9 +382,9 @@ using namespace OpenMS;
   The overall execution flow for this tool is implemented in @ref OpenMS::OpenSwathWorkflow "OpenSwathWorkflow".
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_OpenSwathWorkflow.cli
+  @verbinclude TOPP_OpenSwathWorkflow.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_OpenSwathWorkflow.html
+  @htmlinclude TOPP_OpenSwathWorkflow.html
 
 */
 

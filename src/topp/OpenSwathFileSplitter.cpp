@@ -28,7 +28,7 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_OpenSwathFileSplitter OpenSwathFileSplitter
+  @page TOPP_OpenSwathFileSplitter OpenSwathFileSplitter
 
   @brief A tool for splitting a single SWATH / DIA file into a set of files, each containing one SWATH window (plus one file for the MS1 survey scans).
 
@@ -37,9 +37,9 @@ using namespace OpenMS;
   the input file. The number of windows is read from the input file itself.
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_OpenSwathFileSplitter.cli
+  @verbinclude TOPP_OpenSwathFileSplitter.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_OpenSwathFileSplitter.html
+  @htmlinclude TOPP_OpenSwathFileSplitter.html
 
 */
 
