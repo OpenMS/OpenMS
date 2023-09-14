@@ -25,7 +25,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_StaticModification StaticModification
+  @page TOPP_StaticModification StaticModification
 
   @brief Applies a set of modifications to all PeptideIDs in an idXML file.
 
@@ -44,9 +44,9 @@ using namespace std;
   has to be used. Modifications are not applied to AAs which already contain an unspecified delta-mass in the input.
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_StaticModification.cli
+  @verbinclude TOPP_StaticModification.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_StaticModification.html
+  @htmlinclude TOPP_StaticModification.html
 
 */
 

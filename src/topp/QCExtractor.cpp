@@ -31,7 +31,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_QCExtractor QCExtractor
+    @page TOPP_QCExtractor QCExtractor
 
     @brief Extracts a table attachment of a given quality parameter from a qcML file as tabular (text) format.
 
@@ -43,10 +43,10 @@ using namespace std;
         <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref UTILS_QCEmbedder </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_QCEmbedder </td>
         </tr>
         <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCShrinker </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCShrinker </td>
         </tr>
       </table>
     </CENTER>
@@ -61,9 +61,9 @@ using namespace std;
     Output is in csv format (see parameter @p out_csv) which can be easily parsed by many programs. 
     
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_QCExtractor.cli
+    @verbinclude TOPP_QCExtractor.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_QCExtractor.html
+    @htmlinclude TOPP_QCExtractor.html
 
 */
 

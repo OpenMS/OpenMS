@@ -34,7 +34,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_QCImporter QCImporter
+    @page TOPP_QCImporter QCImporter
 
     @brief Will import several quality parameter from a tabular (text) format into a qcML file - counterpart to QCExporter.
 
@@ -46,12 +46,12 @@ using namespace std;
         <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCExporter </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCMerger </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCExporter </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCMerger </td>
         </tr>
         <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCShrinker </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCShrinker </td>
         </tr>
       </table>
     </CENTER>
@@ -62,9 +62,9 @@ using namespace std;
     - @p mapping The mapping of the table header to the according qp cvs, also in csv format. The first row is considered containing the headers as in the table. The second row is considered the according qp cv accessions.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_QCImporter.cli
+    @verbinclude TOPP_QCImporter.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_QCImporter.html
+    @htmlinclude TOPP_QCImporter.html
 
 */
 

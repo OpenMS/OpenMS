@@ -19,7 +19,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_FuzzyDiff FuzzyDiff
+    @page TOPP_FuzzyDiff FuzzyDiff
 
     @brief Compares two files, tolerating numeric differences.
 
@@ -28,9 +28,9 @@ using namespace std;
     Only one of 'ratio' or 'absdiff' has to be satisfied.  Use \"absdiff\" to deal with cases like \"zero vs. epsilon\".
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_FuzzyDiff.cli
+    @verbinclude TOPP_FuzzyDiff.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_FuzzyDiff.html
+    @htmlinclude TOPP_FuzzyDiff.html
 */
 
 // We do not want this class to show up in the docu:

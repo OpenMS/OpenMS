@@ -27,7 +27,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_QCCalculator QCCalculator
+    @page TOPP_QCCalculator QCCalculator
 
     @brief Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a mzQC or qcML file.
 
@@ -40,11 +40,11 @@ using namespace std;
         </tr>
         <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCMerger </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCMerger </td>
         </tr>
         <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCExporter </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCExporter </td>
         </tr>
       </table>
     </CENTER>
@@ -69,9 +69,9 @@ using namespace std;
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_QCCalculator.cli
+    @verbinclude TOPP_QCCalculator.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_QCCalculator.html
+    @htmlinclude TOPP_QCCalculator.html
 
 */
 

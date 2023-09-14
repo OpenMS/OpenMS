@@ -24,7 +24,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_Digestor Digestor
+    @page TOPP_Digestor Digestor
 
     @brief Digests a protein database in-silico.
 <CENTER>
@@ -49,9 +49,9 @@ using namespace std;
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_Digestor.cli
+    @verbinclude TOPP_Digestor.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_Digestor.html
+    @htmlinclude TOPP_Digestor.html
 */
 
 // We do not want this class to show up in the docu:

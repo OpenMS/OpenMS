@@ -30,7 +30,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_ImageCreator ImageCreator
+    @page TOPP_ImageCreator ImageCreator
 
     @brief Transforms an LC-MS map into a png image.
 
@@ -39,9 +39,9 @@ using namespace std;
     The output has a uniform spacing in both dimensions regardless of the input.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_ImageCreator.cli
+    @verbinclude TOPP_ImageCreator.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_ImageCreator.html
+    @htmlinclude TOPP_ImageCreator.html
 */
 
 // We do not want this class to show up in the docu:

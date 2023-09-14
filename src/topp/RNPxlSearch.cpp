@@ -66,14 +66,14 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_RNPxlSearch RNPxlSearch
+    @page TOPP_RNPxlSearch RNPxlSearch
 
     @brief Annotate RNA to peptide crosslinks in MS/MS spectra.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_RNPxlSearch.cli
+    @verbinclude TOPP_RNPxlSearch.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_RNPxlSearch.html
+    @htmlinclude TOPP_RNPxlSearch.html
  */
 
 // We do not want this class to show up in the docu:

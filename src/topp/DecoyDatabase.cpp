@@ -25,7 +25,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_DecoyDatabase DecoyDatabase
+  @page TOPP_DecoyDatabase DecoyDatabase
 
   @brief Create a decoy peptide database from standard FASTA databases.
 
@@ -51,9 +51,9 @@ using namespace std;
   and terminates the program if decoys are found.
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_DecoyDatabase.cli
+  @verbinclude TOPP_DecoyDatabase.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_DecoyDatabase.html
+  @htmlinclude TOPP_DecoyDatabase.html
 */
 
 // We do not want this class to show up in the docu:

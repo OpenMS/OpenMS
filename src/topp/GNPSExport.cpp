@@ -55,7 +55,7 @@ A representative OpenMS-GNPS workflow would use the following OpenMS TOPP tools 
   IDMapper -id emptyfile.idXML -in MapAlignerPoseClustering_inputFile0.featureXML -spectra:in MapRTTransformer_inputFile0.mzML -out IDMapper_inputFile0.featureXML
 	IDMapper -id emptyfile.idXML -in MapAlignerPoseClustering_inputFile1.featureXML -spectra:in MapRTTransformer_inputFile1.mzML -out IDMapper_inputFile1.featureXML
 @endcode
-- Run the @ref UTILS_MetaboliteAdductDecharger tool on the featureXML files.
+- Run the @ref TOPP_MetaboliteAdductDecharger tool on the featureXML files.
 - Run the @ref TOPP_FeatureLinkerUnlabeledKD tool or FeatureLinkerUnlabeledQT, on the featureXML files and output a consensusXML file.
 @code
   	FeatureLinkerUnlabeledKD -in IDMapper_inputFile0.featureXML IDMapper_inputFile1.featureXML -out FeatureLinkerUnlabeledKD.consensusXML

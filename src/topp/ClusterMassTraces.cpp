@@ -17,7 +17,7 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_ClusterMassTraces ClusterMassTraces
+  @page TOPP_ClusterMassTraces ClusterMassTraces
 
   @brief Cluster mass traces occurring in the same map together
 
@@ -38,9 +38,9 @@ using namespace OpenMS;
    - calculate the most likely precursor(s) and DB-search
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_ClusterMassTraces.cli
+  @verbinclude TOPP_ClusterMassTraces.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_ClusterMassTraces.html
+  @htmlinclude TOPP_ClusterMassTraces.html
 
 */
 

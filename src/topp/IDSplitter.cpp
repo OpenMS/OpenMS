@@ -25,7 +25,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_IDSplitter IDSplitter
+    @page TOPP_IDSplitter IDSplitter
 
     @brief Splits protein/peptide identifications off of annotated data files.
 
@@ -34,9 +34,9 @@ using namespace std;
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_IDSplitter.cli
+    @verbinclude TOPP_IDSplitter.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_IDSplitter.html
+    @htmlinclude TOPP_IDSplitter.html
 */
 
 // We do not want this class to show up in the docu:

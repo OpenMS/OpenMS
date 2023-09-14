@@ -33,7 +33,7 @@ using namespace OpenSwath;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_TICCalculator TICCalculator
+  @page TOPP_TICCalculator TICCalculator
 
   @brief Calculates the TIC of a raw mass spectrometric file. 
   
@@ -43,9 +43,9 @@ using namespace OpenSwath;
   also calculate the TIC with this tool.
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_TICCalculator.cli
+  @verbinclude TOPP_TICCalculator.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_TICCalculator.html
+  @htmlinclude TOPP_TICCalculator.html
 
 */
 

@@ -33,7 +33,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_QCExporter QCExporter
+    @page TOPP_QCExporter QCExporter
 
     @brief Will extract several quality parameter from several run/sets from a qcML file into a tabular (text) format - counterpart to QCImporter.
 
@@ -48,7 +48,7 @@ using namespace std;
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> ? </td>
         </tr>
         <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCEmbedder </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCEmbedder </td>
         </tr>
       </table>
     </CENTER>
@@ -61,9 +61,9 @@ using namespace std;
     Output is in csv format (see parameter @p out_csv) which can be easily viewed/parsed by many programs.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_QCExporter.cli
+    @verbinclude TOPP_QCExporter.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_QCExporter.html
+    @htmlinclude TOPP_QCExporter.html
 
 */
 

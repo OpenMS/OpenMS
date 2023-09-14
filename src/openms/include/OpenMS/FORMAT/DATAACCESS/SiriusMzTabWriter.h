@@ -18,7 +18,7 @@ namespace OpenMS
   public:
 
     /**
-    @brief Internal structure used in @ref UTILS_SiriusAdapter that is used
+    @brief Internal structure used in @ref TOPP_SiriusAdapter that is used
     for the conversion of the sirius output to an mzTab.
     @ingroup ID
 
