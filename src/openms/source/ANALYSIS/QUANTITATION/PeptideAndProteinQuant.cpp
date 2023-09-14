@@ -703,7 +703,6 @@ namespace OpenMS
         // find entry in experimental design (ignore extension and folder) that corresponds to current column header entry
         if (auto it = fileAndLabel2MSFileSectionEntry.find(c_fn + String(c_lab)); it != fileAndLabel2MSFileSectionEntry.end())
         {
-          const String& e_fn = it->second.path;
           const size_t fraction = it->second.fraction;
           const size_t sample = it->second.sample;
           quantifyFeature_(f, fraction, sample, hit); // updates "stats_.quant_features"          
