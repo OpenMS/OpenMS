@@ -724,6 +724,7 @@ protected:
     }
     else  // no design file provided
     {
+      OPENMS_LOG_INFO << "No design file given. Trying to infer from consensus map." << std::endl;
       return ExperimentalDesign::fromConsensusMap(cm);
     }
   }
