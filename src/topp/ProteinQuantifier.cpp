@@ -19,6 +19,8 @@
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 
+#include <OpenMS/SYSTEM/File.h>
+
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
@@ -615,23 +617,28 @@ protected:
     }
     out << "# Parameters (relevant only): " + params << endl;
 
-    if (ed.getNumberOfSamples() > 1)
+    if (ed.getNumberOfSamples() > 1 && ed.getNumberOfLabels() == 1)
     {
       String desc = "# Files/samples associated with abundance values below: ";
-      Size counter = 0;
-      for (ConsensusMap::ColumnHeaders::iterator it = columns_headers_.begin();
-           it != columns_headers_.end(); ++it, ++counter)
+
+      const auto& ms_section = ed.getMSFileSection();
+
+      map<String, String> sample_id_to_filename;
+      for (const auto e : ms_section)
       {
-        if (counter > 0)
+        String ed_filename = File::basename(e.path);
+        String ed_label = e.label;
+        String ed_sample = e.sample;
+        sample_id_to_filename[e.sample] = ed_filename; // should be 0,...,n_samples-1
+      }
+
+      for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
+      {
+        if (i > 0)
         {
           desc += ", ";
         }
-        desc += String(counter+1) + ": '" + it->second.filename + "'";
-        String label = it->second.label;
-        if (!label.empty())
-        {
-          desc += " ('" + label + "')";
-        }
+        desc += String(i + 1) + ": '" + sample_id_to_filename[String(i)] + "'";
       }
       out << desc << endl;
     }
