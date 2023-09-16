@@ -1660,8 +1660,8 @@ protected:
       auto& all_peptide_ids = consensus.getUnassignedPeptideIdentifications();
 
       Size run_index(0);
-      for (auto const & ms_files : frac2ms) // for each fraction->ms file(s)
-      {
+      for (auto const & ms_files : frac2ms) // for each fraction->ms file(s) e.g.: Fraction1->FileA,FileB,FileC
+      {      
         const Size& fraction = ms_files.first;
 
         // debug output
@@ -1691,7 +1691,7 @@ protected:
           protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
           id_MS_run_ref.push_back(id_msfile_ref[0]);
 
-          // append to consensus map
+          // append the ProteinIdentification run (contains backlink to MS file) and the PeptideIdentifications (PSMs for this fraction and MS run) to the list of UnassignedPeptideIdentifications
           all_protein_ids.emplace_back(std::move(protein_ids[0]));
           all_peptide_ids.insert(all_peptide_ids.end(), 
             std::make_move_iterator(peptide_ids.begin()), 
