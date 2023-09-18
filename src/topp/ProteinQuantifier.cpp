@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -44,6 +18,8 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
+
+#include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
@@ -642,23 +618,28 @@ protected:
     }
     out << "# Parameters (relevant only): " + params << endl;
 
-    if (ed.getNumberOfSamples() > 1)
+    if (ed.getNumberOfSamples() > 1 && ed.getNumberOfLabels() == 1)
     {
       String desc = "# Files/samples associated with abundance values below: ";
-      Size counter = 0;
-      for (ConsensusMap::ColumnHeaders::iterator it = columns_headers_.begin();
-           it != columns_headers_.end(); ++it, ++counter)
+
+      const auto& ms_section = ed.getMSFileSection();
+
+      map<String, String> sample_id_to_filename;
+      for (const auto e : ms_section)
       {
-        if (counter > 0)
+        String ed_filename = File::basename(e.path);
+        String ed_label = e.label;
+        String ed_sample = e.sample;
+        sample_id_to_filename[e.sample] = ed_filename; // should be 0,...,n_samples-1
+      }
+
+      for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
+      {
+        if (i > 0)
         {
           desc += ", ";
         }
-        desc += String(counter+1) + ": '" + it->second.filename + "'";
-        String label = it->second.label;
-        if (!label.empty())
-        {
-          desc += " ('" + label + "')";
-        }
+        desc += String(i + 1) + ": '" + sample_id_to_filename[String(i)] + "'";
       }
       out << desc << endl;
     }
@@ -751,6 +732,7 @@ protected:
     }
     else  // no design file provided
     {
+      OPENMS_LOG_INFO << "No design file given. Trying to infer from consensus map." << std::endl;
       return ExperimentalDesign::fromConsensusMap(cm);
     }
   }

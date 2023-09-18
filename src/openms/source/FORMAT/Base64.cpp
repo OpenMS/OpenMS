@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -37,13 +11,12 @@
 #include <QtCore/QList>
 #include <QtCore/QString>
 
-#include <simde/x86/ssse3.h>
+#include <OpenMS/SYSTEM/SIMDe.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-
   const simde__m128i mask1_ = simde_mm_set1_epi32(0x3F000000); // 00111111 00000000 00000000 00000000
   const simde__m128i mask2_ = simde_mm_set1_epi32(0x003F0000); // 00000000 00111111 00000000 00000000
   const simde__m128i mask3_ = simde_mm_set1_epi32(0x00003F00); // 00000000 00000000 00111111 00000000
@@ -72,24 +45,6 @@ namespace OpenMS
   // shuffle_mask_2 gets used
   const simde__m128i shuffle_mask_d_2_ = simde_mm_setr_epi8(3, 2, 1, 7, 6, 5, 11, 10, 9, 15, 14, 13, 0, 4, 8, 12);
 
-
-  // these operators are defined for GCC/clang, but not in MSVC (TODO: maybe use SFINAE, but that is overkill for the moment)
-#ifdef _MSC_VER
-  inline simde__m128i operator|(const simde__m128i& left, const simde__m128i& right)
-  {
-    return simde_mm_or_si128(left, right);
-  }
-  inline simde__m128i& operator|=(simde__m128i& left, const simde__m128i& right)
-  {
-    left = simde_mm_or_si128(left, right);
-    return left;
-  }
-  inline simde__m128i operator&(const simde__m128i left, const simde__m128i& right)
-  {
-    return simde_mm_and_si128(left, right);
-  }
-#endif
-
   /// Encode the first 12 bytes of a 128 bit simde integer type to base64
   void registerEncoder_(simde__m128i& data)
   {
@@ -112,7 +67,7 @@ namespace OpenMS
     }
 
     // masking data and adding/substracting to match base64 codes to fitting characters
-    simde__m128i capital_mask = simde_mm_cmplt_epi8(data, _mm_set1_epi8(26)); // (a < b) ? 0xFF : 0x00
+    simde__m128i capital_mask = simde_mm_cmplt_epi8(data, simde_mm_set1_epi8(26)); // (a < b) ? 0xFF : 0x00
     simde__m128i all_mask = capital_mask;
     simde__m128i lower_case_mask = simde_mm_andnot_si128(all_mask, simde_mm_cmplt_epi8(data, simde_mm_set1_epi8(52))); // not allMask and  b where b is 0xFF if binaries are smaller than 52
     all_mask |= lower_case_mask;

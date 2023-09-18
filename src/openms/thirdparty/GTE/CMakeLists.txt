@@ -34,3 +34,7 @@
 
 add_library(GTE INTERFACE)
 target_include_directories(GTE INTERFACE .)
+
+get_filename_component(GTE_FOLDER "${CMAKE_CURRENT_LIST_FILE}" PATH)
+file(APPEND ${TPLICENSEFILE} "\nGeometric Tools (Mathematics):\n")
+cat(${GTE_FOLDER}/LICENSE ${TPLICENSEFILE})

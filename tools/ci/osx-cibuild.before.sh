@@ -21,7 +21,7 @@ brew tap homebrew/science
 brew tap homebrew/versions
 brew update
 brew install libsvm xerces-c glpk coinmp
-brew install qt4
+brew install qt5
 
 # fetch contrib
 git clone git://github.com/OpenMS/contrib/
