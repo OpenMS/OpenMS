@@ -83,10 +83,8 @@ using namespace std;
 
     By default only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification. However, this limitation can be overcome: Protein inference results for the whole sample set can be supplied with the @p protein_groups option (or included in a featureXML input). In that case, the peptide-to-protein references from that file are used (rather than those from @p in), and groups of indistinguishable proteins will be quantified. Each reported protein quantity then refers to the total for the respective group.
 
-    In order for everything to work correctly, it is important that the protein inference results come from the same identifications that were used to annotate the quantitative data. To use inference results from ProteinProphet, convert the protXML to idXML using @ref TOPP_IDFileConverter. 
+    In order for everything to work correctly, it is important that the protein inference results come from the same identifications that were used to annotate the quantitative data. We suggest to use the OpenMS tool ProteinInference @TOPP_ProteinInference. 
     
-    TODO: add information on how to use internal protein inferene algorithms
-
     More information below the parameter specification.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
@@ -332,7 +330,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML"));
-    registerInputFile_("protein_groups", "<file>", "", "Protein inference results for the identification runs that were used to annotate the input (e.g. from ProteinProphet via IDFileConverter).\nInformation about indistinguishable proteins will be used for protein quantification.", false); // TODO: refer to internal algorithms/tools
+    registerInputFile_("protein_groups", "<file>", "", "Protein inference results for the identification runs that were used to annotate the input (e.g. via the ProteinInference tool).\nInformation about indistinguishable proteins will be used for protein quantification.", false);
     setValidFormats_("protein_groups", ListUtils::create<String>("idXML"));
 
     registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
