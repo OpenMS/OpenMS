@@ -103,6 +103,7 @@ protected:
     PeakMap exp;
     fh.loadExperiment(in, exp, in_type, log_type_);
     exp.sortSpectra();
+    exp.updateRanges();
 
     auto levels = exp.getMSLevels();
     if (levels.empty()) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, levels.size());
