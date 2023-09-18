@@ -280,6 +280,15 @@ START_SECTION([EXTRA] multithreaded example)
 }
 END_SECTION
 
+START_SECTION([EXTRA] ModifiedPeptideGenerator::getModifications)
+{
+  StringList mods;
+  mods << "Pyro-carbamidomethyl (N-term C)" << "Carbamidomethyl (C)" << "Carbamyl (N-term)" << "Deamidated (Protein N-term F)";
+  auto mod_map = ModifiedPeptideGenerator::getModifications(mods);
+  TEST_EQUAL(mods.size(), mod_map.val.size());
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
