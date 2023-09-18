@@ -381,11 +381,22 @@ namespace OpenMS
       if (residue_found)
       {
         const ResidueModification* mod{};
+                  
         try
         {
-          // terminal modifications don't apply to residues (side chain), so only consider internal ones
           static const ModificationsDB* mdb = ModificationsDB::getInstance();
-          mod = mdb->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
+          if (modification.hasSubstring("N-term"))
+          {
+            mod = mdb->getModification(modification, residue->getOneLetterCode(), ResidueModification::N_TERM); 
+          } 
+          else if (modification.hasSubstring("C-term"))
+          {
+            mod = mdb->getModification(modification, residue->getOneLetterCode(), ResidueModification::C_TERM); 
+          }
+          else
+          {
+            mod = mdb->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
+          }  
         }
         catch (...)
         {
