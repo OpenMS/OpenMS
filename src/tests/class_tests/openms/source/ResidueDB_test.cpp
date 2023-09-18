@@ -69,6 +69,10 @@ START_SECTION(const Residue* getModifiedResidue(const Residue* residue, const St
 	const Residue* mod_res = ptr->getModifiedResidue(ptr->getResidue("M"), "Oxidation (M)");
 	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
 	TEST_STRING_EQUAL(mod_res->getModificationName(), "Oxidation")
+
+	const Residue* term_mod_res = ptr->getModifiedResidue(ptr->getResidue("C"), "Pyro-carbamidomethyl (N-term C)");
+	TEST_STRING_EQUAL(term_mod_res->getOneLetterCode(), "C")
+	TEST_STRING_EQUAL(term_mod_res->getModificationName(), "Pyro-carbamidomethyl")
 END_SECTION
 
 START_SECTION((const std::set<const Residue*> getResidues(const String& residue_set="All") const))
