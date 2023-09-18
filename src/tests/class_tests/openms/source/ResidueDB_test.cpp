@@ -96,9 +96,21 @@ START_SECTION(const Residue* getModifiedResidue(const Residue* residue, const St
 	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
 	TEST_STRING_EQUAL(mod_res->getModificationName(), "Oxidation")
 
-	const Residue* term_mod_res = ptr->getModifiedResidue(ptr->getResidue("C"), "Pyro-carbamidomethyl (N-term C)");
-	TEST_STRING_EQUAL(term_mod_res->getOneLetterCode(), "C")
-	TEST_STRING_EQUAL(term_mod_res->getModificationName(), "Pyro-carbamidomethyl")
+	const Residue* nterm_mod_res = ptr->getModifiedResidue(ptr->getResidue("C"), "Pyro-carbamidomethyl (N-term C)"); // <umod:specificity hidden="0" site="C" position="Any N-term"
+	TEST_STRING_EQUAL(nterm_mod_res->getOneLetterCode(), "C")
+	TEST_STRING_EQUAL(nterm_mod_res->getModificationName(), "Pyro-carbamidomethyl")
+
+	const Residue* cterm_mod_res = ptr->getModifiedResidue(ptr->getResidue("G"), "Oxidation (C-term G)"); // <umod:specificity hidden="1" site="G" position="Any C-term"
+	TEST_STRING_EQUAL(cterm_mod_res->getOneLetterCode(), "G")
+	TEST_STRING_EQUAL(cterm_mod_res->getModificationName(), "Oxidation")
+
+	const Residue* prot_cterm_mod_res = ptr->getModifiedResidue(ptr->getResidue("Q"), "Dehydrated (Protein C-term Q)"); // <umod:specificity hidden="1" site="Q" position="Protein C-term"
+	TEST_STRING_EQUAL(prot_cterm_mod_res->getOneLetterCode(), "Q")
+	TEST_STRING_EQUAL(prot_cterm_mod_res->getModificationName(), "Dehydrated")
+
+	const Residue* prot_nterm_mod_res = ptr->getModifiedResidue(ptr->getResidue("F"), "Deamidated (Protein N-term F)"); // <umod:specificity hidden="1" site="F" position="Protein N-term"
+	TEST_STRING_EQUAL(prot_nterm_mod_res->getOneLetterCode(), "F")
+	TEST_STRING_EQUAL(prot_nterm_mod_res->getModificationName(), "Deamidated")
 END_SECTION
 
 START_SECTION((const std::set<const Residue*> getResidues(const String& residue_set="All") const))
@@ -124,12 +136,12 @@ START_SECTION(void setResidues(const String& filename))
 END_SECTION
 
 START_SECTION(Size getNumberOfModifiedResidues() const)
-	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 2) // M(Oxidation), C(Pyro-carbamidomethyl)
+	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 5) // M(Oxidation), C(Pyro-carbamidomethyl), G(Oxidation), Q(Dehydrated), F(Deamidated)
 	const Residue* mod_res = nullptr;
     const Residue* mod_res_nullPointer = nullptr;
 	mod_res = ptr->getModifiedResidue("Carbamidomethyl (C)");
     TEST_NOT_EQUAL(mod_res, mod_res_nullPointer)
-	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 3) // M(Oxidation), C(Pyro-carbamidomethyl), C(Carbamidomethyl)
+	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 6) // + C(Carbamidomethyl)
 END_SECTION
 
 /////////////////////////////////////////////////////////////
