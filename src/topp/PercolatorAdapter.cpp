@@ -1007,6 +1007,7 @@ protected:
       size_t index = 0;
       for (PeptideIdentification& pep_id : all_peptide_ids)
       {
+        String& old_score_type = pep_id.getScoreType();
         index++;
         pep_id.setIdentifier(run_identifier);
         if (scoreType == "pep")
@@ -1038,6 +1039,7 @@ protected:
           map<String, PercolatorResult>::iterator pr = pep_map.find(psm_identifier);
           if (pr != pep_map.end())
           {
+            hit.setMetaValue(old_score_type, hit.getScore());  // old search engine "main" score as metavalue
             hit.setMetaValue("MS:1001492", pr->second.score);  // svm score
             hit.setMetaValue("MS:1001491", pr->second.qvalue);  // percolator q value
             hit.setMetaValue("MS:1001493", pr->second.posterior_error_prob);  // percolator pep
