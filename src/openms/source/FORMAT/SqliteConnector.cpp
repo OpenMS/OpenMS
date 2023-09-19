@@ -175,11 +175,11 @@ namespace OpenMS
         return false;
       }
 
-      template <> bool extractValue<int>(int* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
+      template <> bool extractValue<int>(Int32* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
       {
         if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
         {
-          *dst = sqlite3_column_int(stmt, pos);
+          *dst = sqlite3_column_int(stmt, pos); // sqlite3_column_int returns 32bit integers
           return true;
         }
         return false;
