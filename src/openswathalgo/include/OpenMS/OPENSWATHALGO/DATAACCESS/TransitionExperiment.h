@@ -18,25 +18,17 @@ namespace OpenSwath
 {
   struct LightTransition
   {
-public:
-
-    LightTransition() :
-      precursor_im(-1),
-      fragment_charge(0)
-    {
-    }
-
     std::string transition_name;
     std::string peptide_ref;
-    double library_intensity;
-    double product_mz;
-    double precursor_mz;
-    double precursor_im;
-    int fragment_charge;
-    bool decoy;
-    bool detecting_transition;
-    bool quantifying_transition;
-    bool identifying_transition;
+    double library_intensity{};
+    double product_mz{};
+    double precursor_mz{};
+    double precursor_im{-1};
+    int fragment_charge{};
+    bool decoy{};
+    bool detecting_transition{};
+    bool quantifying_transition{};
+    bool identifying_transition{};
 
     int getProductChargeState() const
     {
