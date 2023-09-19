@@ -594,7 +594,7 @@ protected:
       // check if spectrum reference is a string that just contains a number        
       try
       {
-        ids[0].getSpectrumReference().toInt64();
+        scanNrAsInt = id.getSpectrumReference().toInt64();
       }
       catch (...)
       {
