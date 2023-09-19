@@ -591,16 +591,16 @@ protected:
     for (auto& id : peptide_identifications)
     {
       Int64 scanNrAsInt = 0;
-      // check if spectrum reference is a string that just contains a number        
+      
       try
-      {
+      { // check if spectrum reference is a string that just contains a number        
         scanNrAsInt = id.getSpectrumReference().toInt64();
+        // no exception -> conversion to int was successful. Now lookup full native ID in corresponding file for given spectrum number.
+        id.setSpectrumReference( file2specnr2nativeid[idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]].at(scanNrAsInt) );                              
       }
       catch (...)
       {
-        // lookup full native ID in corresponding file for given spectrum number
-        id.setSpectrumReference( file2specnr2nativeid[idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]].at(scanNrAsInt) );                    
-      }          
+      }
     }
 
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
