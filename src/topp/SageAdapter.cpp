@@ -590,6 +590,7 @@ protected:
 
     for (auto& id : peptide_identifications)
     {
+      Int64 scanNrAsInt = 0;
       // check if spectrum reference is a string that just contains a number        
       try
       {
