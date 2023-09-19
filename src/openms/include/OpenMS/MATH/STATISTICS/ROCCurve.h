@@ -100,11 +100,11 @@ public:
 
       std::vector<std::pair<double, bool> > score_clas_pairs_;
 
-      UInt pos_;
+      UInt pos_{};
 
-      UInt neg_;
+      UInt neg_{};
 
-      bool sorted_;
+      bool sorted_{};
     };
   }
 }
