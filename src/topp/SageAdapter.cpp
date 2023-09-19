@@ -588,16 +588,18 @@ protected:
       ++cnt;
     }
 
-    char* p;
     for (auto& id : peptide_identifications)
     {
-      // check if spectrum reference is a string that just contains an integer
-      long scanNrAsInt = strtol(id.getSpectrumReference().c_str(), &p, 10);
-      if (!*p)
+      // check if spectrum reference is a string that just contains a number        
+      try
+      {
+        ids[0].getSpectrumReference().toInt64();
+      }
+      catch (...)
       {
         // lookup full native ID in corresponding file for given spectrum number
-        id.setSpectrumReference( file2specnr2nativeid[idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]].at(scanNrAsInt));
-      }
+        id.setSpectrumReference( file2specnr2nativeid[idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]].at(scanNrAsInt) );                    
+      }          
     }
 
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
