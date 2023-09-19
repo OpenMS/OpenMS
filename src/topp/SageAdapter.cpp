@@ -588,15 +588,18 @@ protected:
       ++cnt;
     }
 
-    char* p;
     for (auto& id : peptide_identifications)
     {
-      // check if spectrum reference is a string that just contains an integer
-      long scanNrAsInt = strtol(id.getSpectrumReference().c_str(), &p, 10);
-      if (!*p)
+      Int64 scanNrAsInt = 0;
+      
+      try
+      { // check if spectrum reference is a string that just contains a number        
+        scanNrAsInt = id.getSpectrumReference().toInt64();
+        // no exception -> conversion to int was successful. Now lookup full native ID in corresponding file for given spectrum number.
+        id.setSpectrumReference( file2specnr2nativeid[idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]].at(scanNrAsInt) );                              
+      }
+      catch (...)
       {
-        // lookup full native ID in corresponding file for given spectrum number
-        id.setSpectrumReference( file2specnr2nativeid[idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]].at(scanNrAsInt));
       }
     }
 
