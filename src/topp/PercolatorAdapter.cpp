@@ -1007,7 +1007,7 @@ protected:
       size_t index = 0;
       for (PeptideIdentification& pep_id : all_peptide_ids)
       {
-        String& old_score_type = pep_id.getScoreType();
+        const String& old_score_type = pep_id.getScoreType();
         index++;
         pep_id.setIdentifier(run_identifier);
         if (scoreType == "pep")
