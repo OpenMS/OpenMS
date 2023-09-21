@@ -21,6 +21,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
@@ -487,6 +488,26 @@ protected:
       filenames,
       decoy_prefix);
 
+    // rename SAGE subscores to have prefix "SAGE:"
+    for (auto& id : peptide_identifications)
+    {
+      auto& hits = id.getHits();
+      for (auto& h : hits)
+      {
+        for (const auto meta : extra_scores)
+        {
+          if (h.metaValueExists(meta)
+          {
+            h.setMetaValue("SAGE:" + meta, h.getMetaValue(meta));
+            h.removeMetaValue(meta);        
+          }          
+        }
+      }
+    }
+
+    // remove hits without charge state assigned (fix for downstream bugs)
+    IDFilter::filterPeptidesByCharge(peptide_identifications, 2, 5); // currently hard coded in SAGE
+    
     if (filenames.empty()) filenames = getStringList_("in");
 
     // TODO: split / merge results and create idXMLs
