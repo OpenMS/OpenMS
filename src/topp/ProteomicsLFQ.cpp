@@ -1619,7 +1619,7 @@ protected:
         {  
           OPENMS_LOG_INFO << "Transferring identification data between runs of the same fraction." << endl;
           // needs to occur in >= id_transfer_threshold *100.0% of all runs for transfer
-          double thresh_proportion = getDoubleOption_("id_transfer_threshold")
+          double thresh_proportion = getDoubleOption_("id_transfer_threshold");
           const Size min_occurrance = std::ceil((ms_files.second.size() + 1) * thresh_proportion);
           multimap<Size, PeptideIdentification> transfered_ids = transferIDsBetweenSameFraction_(consensus_fraction, min_occurrance);
           consensus_fraction.clear();
