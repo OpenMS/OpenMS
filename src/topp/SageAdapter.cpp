@@ -496,7 +496,7 @@ protected:
       {
         for (const auto meta : extra_scores)
         {
-          if (h.metaValueExists(meta)
+          if (h.metaValueExists(meta))
           {
             h.setMetaValue("SAGE:" + meta, h.getMetaValue(meta));
             h.removeMetaValue(meta);        
