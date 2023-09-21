@@ -33,8 +33,8 @@
 # --------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# This cmake file enables the AddressSanitizer
-# see http://clang.llvm.org/docs/AddressSanitizer.html 
+# This cmake file enables the AddressSanitizer and UndefinedBehaviorSanitizer
+# see http://clang.llvm.org/docs/AddressSanitizer.html and https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
 #     http://en.wikipedia.org/wiki/AddressSanitizer
 
 function(add_asan_to_target TARGET_NAME_ARG)
@@ -48,11 +48,13 @@ function(add_asan_to_target TARGET_NAME_ARG)
         target_compile_options("${TARGET_NAME_ARG}" 
           PUBLIC 
             -fsanitize=address,undefined
+            -fno-sanitize-recover=all
             -fno-sanitize=vptr
             -fno-omit-frame-pointer)
         target_link_options("${TARGET_NAME_ARG}" 
           PUBLIC 
             -fsanitize=address,undefined
+            -fno-sanitize-recover=all
             -fno-sanitize=vptr)
         message(STATUS "AddressSanitizer is on.")
       endif()
