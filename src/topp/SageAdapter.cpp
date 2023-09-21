@@ -477,9 +477,9 @@ protected:
     // read the sage output
     OPENMS_LOG_INFO << "Reading sage output..." << std::endl;
     StringList filenames;
-    StringList extra_scores = {"ln(delta_next)", "ln(delta_best)", "matched_peaks", 
-       "longest_b", "longest_y", "longest_y_pct",
-       "ln(matched_intensity_pct)", "scored_candidates", "ln(-poisson)"};
+    StringList extra_scores = {"ln(-poisson)", "ln(delta_best)", ln(delta_next)", 
+      "ln(matched_intensity_pct)", "longest_b", "longest_y", 
+      "longest_y_pct", "matched_peaks", "scored_candidates"};
     vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load(
       output_folder + "/results.sage.pin",
       true,
