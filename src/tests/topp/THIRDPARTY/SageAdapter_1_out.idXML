@@ -17,7 +17,7 @@
 				<UserParam type="float" name="SageAdapter:1:fragment_tol_left" value="-20.0"/>
 				<UserParam type="float" name="SageAdapter:1:fragment_tol_right" value="20.0"/>
 				<UserParam type="string" name="SageAdapter:1:fragment_tol_unit" value="ppm"/>
-				<UserParam type="int" name="SageAdapter:1:min_SAGE:matched_peaks" value="6"/>
+				<UserParam type="int" name="SageAdapter:1:min_matched_peaks" value="6"/>
 				<UserParam type="int" name="SageAdapter:1:min_peaks" value="15"/>
 				<UserParam type="int" name="SageAdapter:1:max_peaks" value="150"/>
 				<UserParam type="int" name="SageAdapter:1:report_psms" value="1"/>
