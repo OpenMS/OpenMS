@@ -477,7 +477,7 @@ protected:
     // read the sage output
     OPENMS_LOG_INFO << "Reading sage output..." << std::endl;
     StringList filenames;
-    StringList extra_scores = {"ln(-poisson)", "ln(delta_best)", ln(delta_next)", 
+    StringList extra_scores = {"ln(-poisson)", "ln(delta_best)", "ln(delta_next)", 
       "ln(matched_intensity_pct)", "longest_b", "longest_y", 
       "longest_y_pct", "matched_peaks", "scored_candidates"};
     vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load(
