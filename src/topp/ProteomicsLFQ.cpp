@@ -200,9 +200,13 @@ protected:
     // TODO: support transfer with SVM if we figure out a computationally efficient way to do it.
     registerStringOption_("transfer_ids", "<option>", "false", 
       "Requantification using mean of aligned RTs of a peptide feature.\n"
-      "Only applies to peptides that were quantified in more than 50% of all runs (of a fraction).", false, false);
+      "Only applies to peptides that were quantified in more than a proportion (specified via id_transfer_threshold) of all runs (of a fraction).", false, false);
     setValidStrings_("transfer_ids", ListUtils::create<String>("false,mean"));
-
+    
+    registerDoubleOption_("id_transfer_threshold", "<proportion>", 0.5, "The minimum proportion of runs of a fraction in which an peptide must be reliably quantified for its ID to be transfered to the remaining runs for requantification (if enabled).", false, false);
+    setMinFloat_("id_transfer_threshold", 0.0);
+    setMaxFloat_("id_transfer_threshold", 1.0);
+    
     registerStringOption_("mass_recalibration", "<option>", "false", "Mass recalibration.", false, true);
     setValidStrings_("mass_recalibration", ListUtils::create<String>("true,false"));
 
@@ -1614,10 +1618,9 @@ protected:
         if (getStringOption_("transfer_ids") != "false" && ms_files.second.size() > 1)
         {  
           OPENMS_LOG_INFO << "Transferring identification data between runs of the same fraction." << endl;
-          // TODO parameterize
-          // needs to occur in >= 50% of all runs for transfer
-
-          const Size min_occurrance = (ms_files.second.size() + 1) / 2;
+          // needs to occur in >= id_transfer_threshold *100.0% of all runs for transfer
+          double thresh_proportion = getDoubleOption_("id_transfer_threshold");
+          const Size min_occurrance = std::ceil((ms_files.second.size() + 1) * thresh_proportion);
           multimap<Size, PeptideIdentification> transfered_ids = transferIDsBetweenSameFraction_(consensus_fraction, min_occurrance);
           consensus_fraction.clear();
 
