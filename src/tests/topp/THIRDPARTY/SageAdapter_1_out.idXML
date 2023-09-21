@@ -4,7 +4,7 @@
 	<SearchParameters id="SP_0" db="/Users/jpfeuffer/git/OpenMS/src/tests/topp/THIRDPARTY/SageAdapter_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="true" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
-				<UserParam type="string" name="extra_features" value="score,ln(delta_next),ln(delta_best),matched_peaks,longest_b,longest_y,longest_y_pct,ln(matched_intensity_pct),scored_candidates,ln(-poisson)"/>
+				<UserParam type="string" name="extra_features" value="score,SAGE:ln(delta_next),SAGE:ln(delta_best),SAGE:matched_peaks,SAGE:longest_b,SAGE:longest_y,SAGE:longest_y_pct,SAGE:ln(matched_intensity_pct),SAGE:scored_candidates,SAGE:ln(-poisson)"/>
 				<UserParam type="stringList" name="SageAdapter:1:in" value="[/Users/jpfeuffer/git/OpenMS/src/tests/topp/THIRDPARTY/SageAdapter_1.mzML]"/>
 				<UserParam type="string" name="SageAdapter:1:out" value="SageAdapter_1_out.tmp.idXML"/>
 				<UserParam type="string" name="SageAdapter:1:database" value="/Users/jpfeuffer/git/OpenMS/src/tests/topp/THIRDPARTY/SageAdapter_1.fasta"/>
@@ -17,7 +17,7 @@
 				<UserParam type="float" name="SageAdapter:1:fragment_tol_left" value="-20.0"/>
 				<UserParam type="float" name="SageAdapter:1:fragment_tol_right" value="20.0"/>
 				<UserParam type="string" name="SageAdapter:1:fragment_tol_unit" value="ppm"/>
-				<UserParam type="int" name="SageAdapter:1:min_matched_peaks" value="6"/>
+				<UserParam type="int" name="SageAdapter:1:min_SAGE:matched_peaks" value="6"/>
 				<UserParam type="int" name="SageAdapter:1:min_peaks" value="15"/>
 				<UserParam type="int" name="SageAdapter:1:max_peaks" value="150"/>
 				<UserParam type="int" name="SageAdapter:1:report_psms" value="1"/>
@@ -67,15 +67,15 @@
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="641.019890199895713" RT="108.285399999999996" spectrum_reference="controllerType=0 controllerNumber=1 scan=30069" >
 			<PeptideHit score="4.478099542157132" sequence="LQSRPAAPPAPGPGQLTLR" charge="3" aa_before="K" aa_after="L" start="63" end="81" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="string" name="ln(-poisson)" value="1.057384008886984"/>
-				<UserParam type="string" name="ln(delta_best)" value="0.0"/>
-				<UserParam type="string" name="ln(delta_next)" value="4.478099542157132"/>
-				<UserParam type="string" name="ln(matched_intensity_pct)" value="3.8601763"/>
-				<UserParam type="string" name="longest_b" value="7"/>
-				<UserParam type="string" name="longest_y" value="11"/>
-				<UserParam type="string" name="longest_y_pct" value="0.57894737"/>
-				<UserParam type="string" name="matched_peaks" value="28"/>
-				<UserParam type="string" name="scored_candidates" value="1"/>
+				<UserParam type="string" name="SAGE:ln(-poisson)" value="1.057384008886984"/>
+				<UserParam type="string" name="SAGE:ln(delta_best)" value="0.0"/>
+				<UserParam type="string" name="SAGE:ln(delta_next)" value="4.478099542157132"/>
+				<UserParam type="string" name="SAGE:ln(matched_intensity_pct)" value="3.8601763"/>
+				<UserParam type="string" name="SAGE:longest_b" value="7"/>
+				<UserParam type="string" name="SAGE:longest_y" value="11"/>
+				<UserParam type="string" name="SAGE:longest_y_pct" value="0.57894737"/>
+				<UserParam type="string" name="SAGE:matched_peaks" value="28"/>
+				<UserParam type="string" name="SAGE:scored_candidates" value="1"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="id_merge_index" value="0"/>
