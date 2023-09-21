@@ -536,7 +536,7 @@ protected:
     
     // add extra scores for percolator rescoring
     vector<String> percolator_features = { "score" };
-    for (auto s : extra_scores) percolator_features.push_back(s);
+    for (auto s : extra_scores) percolator_features.push_back("SAGE:" + s);
     search_parameters.setMetaValue("extra_features",  ListUtils::concatenate(percolator_features, ","));
     auto enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
     search_parameters.digestion_enzyme = enzyme; // needed for indexing
