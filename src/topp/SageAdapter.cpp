@@ -512,8 +512,8 @@ protected:
       }
     }
 
-    // remove hits without charge state assigned (fix for downstream bugs)
-    IDFilter::filterPeptidesByCharge(peptide_identifications, 2, 5); // currently hard coded in SAGE
+    // remove hits without charge state assigned (fix for downstream bugs). TODO: check if still needed after we now parse the "z=other" column in the pin file
+    IDFilter::filterPeptidesByCharge(peptide_identifications, 1, numeric_limits<int>::max());
     
     if (filenames.empty()) filenames = getStringList_("in");
 
