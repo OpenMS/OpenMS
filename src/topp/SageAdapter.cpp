@@ -111,6 +111,7 @@ protected:
   static constexpr double fragment_tol_left = -10.0;
   static constexpr double fragment_tol_right = 10.0;
   const std::string isotope_errors = "-1, 3";
+  const std::string charges_if_not_annotated = "2, 5";
   static constexpr size_t min_matched_peaks = 6;
   static constexpr size_t report_psms = 1;
   static constexpr size_t min_peaks = 15;
@@ -154,6 +155,9 @@ protected:
     ##fragment_tol_right##
     ]
   },
+  "precursor_charge": [
+    ##charges_if_not_annotated##
+  ],
   "isotope_errors": [
     ##isotope_errors##
   ],
@@ -235,6 +239,7 @@ protected:
     config_file.substitute("##fragment_tol_left##", String(getDoubleOption_("fragment_tol_left")));
     config_file.substitute("##fragment_tol_right##", String(getDoubleOption_("fragment_tol_right")));
     config_file.substitute("##isotope_errors##", getStringOption_("isotope_error_range"));
+    config_file.substitute("##charges_if_not_annotated##", getStringOption_("charges"));
     config_file.substitute("##min_matched_peaks##", String(getIntOption_("min_matched_peaks")));
     config_file.substitute("##min_peaks##", String(getIntOption_("min_peaks")));
     config_file.substitute("##max_peaks##", String(getIntOption_("max_peaks")));
@@ -398,6 +403,8 @@ protected:
     registerIntOption_("max_variable_mods", "<int>", max_variable_mods, "Maximum number of variable modifications", false, true);  
     registerStringOption_("isotope_error_range", "<start,end>", isotope_errors, "Range of (C13) isotope errors to consider for precursor."
       "Can be negative. E.g. '-1,3' for considering '-1/0/1/2/3'", false, true);
+    registerStringOption_("charges", "<start,end>", charges_if_not_annotated, "Range of precursor charges to consider if not annotated in the file."
+      , false, true);
 
     //Search Enzyme
     vector<String> all_enzymes;
