@@ -532,8 +532,6 @@ protected:
       }
     }
 
-
-
     if (getFlag_("var_mods"))
     {
       OPENMS_LOG_INFO << "Filtering for variable modifications..." << endl;
