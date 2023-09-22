@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/Users/jpfeuffer/git/OpenMS/src/tests/topp/THIRDPARTY/SageAdapter_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="true" >
+	<SearchParameters id="SP_0" db="/ceph/ibmi/abi/projects/sachsenb/OpenMS/src/tests/topp/THIRDPARTY/SageAdapter_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="true" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
-				<UserParam type="string" name="extra_features" value="score,SAGE:ln(delta_next),SAGE:ln(delta_best),SAGE:matched_peaks,SAGE:longest_b,SAGE:longest_y,SAGE:longest_y_pct,SAGE:ln(matched_intensity_pct),SAGE:scored_candidates,SAGE:ln(-poisson)"/>
-				<UserParam type="stringList" name="SageAdapter:1:in" value="[/Users/jpfeuffer/git/OpenMS/src/tests/topp/THIRDPARTY/SageAdapter_1.mzML]"/>
+				<UserParam type="string" name="extra_features" value="score,SAGE:ln(-poisson),SAGE:ln(delta_best),SAGE:ln(delta_next),SAGE:ln(matched_intensity_pct),SAGE:longest_b,SAGE:longest_y,SAGE:longest_y_pct,SAGE:matched_peaks,SAGE:scored_candidates"/>
+				<UserParam type="stringList" name="SageAdapter:1:in" value="[/ceph/ibmi/abi/projects/sachsenb/OpenMS/src/tests/topp/THIRDPARTY/SageAdapter_1.mzML]"/>
 				<UserParam type="string" name="SageAdapter:1:out" value="SageAdapter_1_out.tmp.idXML"/>
-				<UserParam type="string" name="SageAdapter:1:database" value="/Users/jpfeuffer/git/OpenMS/src/tests/topp/THIRDPARTY/SageAdapter_1.fasta"/>
-				<UserParam type="string" name="SageAdapter:1:sage_executable" value="/Users/jpfeuffer/git/OpenMS/THIRDPARTY/MacOS/64bit/Sage/sage"/>
+				<UserParam type="string" name="SageAdapter:1:database" value="/ceph/ibmi/abi/projects/sachsenb/OpenMS/src/tests/topp/THIRDPARTY/SageAdapter_1.fasta"/>
+				<UserParam type="string" name="SageAdapter:1:sage_executable" value="/ceph/ibmi/abi/projects/sachsenb/OpenMS/SEARCHENGINES/Sage/sage"/>
 				<UserParam type="string" name="SageAdapter:1:decoy_prefix" value="DECOY_"/>
 				<UserParam type="int" name="SageAdapter:1:batch_size" value="0"/>
 				<UserParam type="float" name="SageAdapter:1:precursor_tol_left" value="-6.0"/>
@@ -57,7 +57,7 @@
 				<UserParam type="string" name="SageAdapter:1:specificity" value="auto"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2023-09-05T18:45:38" search_engine="Sage" search_engine_version="0.13.4" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2023-09-22T08:16:01" search_engine="Sage" search_engine_version="0.13.4" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="sp|Q99536|VAT1_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
