@@ -150,8 +150,8 @@ public:
     {
 public:
       String score_type; /// e.g. peptideprophet / interprophet
-      bool higher_is_better; /// is higher score better ?
-      double main_score; /// posterior probability for example
+      bool higher_is_better{}; /// is higher score better ?
+      double main_score{}; /// posterior probability for example
       std::map<String, double> sub_scores; /// additional scores attached to the original, aggregated score
 
       bool operator==(const PepXMLAnalysisResult& rhs) const
@@ -267,16 +267,16 @@ protected:
     AASequence sequence_;
 
     /// the score of the peptide hit
-    double score_;
+    double score_{};
 
     /// additional scores attached to the original, aggregated score
     std::vector<PepXMLAnalysisResult>* analysis_results_;
 
     /// the position(rank) where the hit appeared in the hit list
-    UInt rank_;
+    UInt rank_{};
 
     /// the charge of the peptide
-    Int charge_;
+    Int charge_{};
 
     /// information on the potential peptides observed through this PSM.
     std::vector<PeptideEvidence> peptide_evidences_;

@@ -190,7 +190,6 @@ namespace OpenMS
     return sequence_;
   }
 
-
   void PeptideHit::setSequence(const AASequence& sequence)
   {
     sequence_ = sequence;

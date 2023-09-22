@@ -518,6 +518,9 @@ namespace OpenMS
         keepMatchingItems(pep.getHits(), length_filter);
       }
     }
+
+    if (max_length == std::numeric_limits<decltype(max_length)>::max()) return; // no upper end filtering needed
+
     ++max_length; // the predicate tests for ">=", we need ">"
     if (max_length > min_length)
     {
@@ -529,23 +532,26 @@ namespace OpenMS
     }
   }
 
-
   void IDFilter::filterPeptidesByCharge(vector<PeptideIdentification>& peptides, Int min_charge, Int max_charge)
   {
     struct HasMinCharge charge_filter(min_charge);
+    
     for (PeptideIdentification& pep : peptides)
     {
       keepMatchingItems(pep.getHits(), charge_filter);
     }
+
+    if (max_charge == std::numeric_limits<decltype(max_charge)>::max()) return; // no upper end filtering needed
+
     ++max_charge; // the predicate tests for ">=", we need ">"
     if (max_charge > min_charge)
-    {
+    {     
       charge_filter = HasMinCharge(max_charge);
       for (PeptideIdentification& pep : peptides)
       {
         removeMatchingItems(pep.getHits(), charge_filter);
       }
-    }
+    }    
   }
 
 

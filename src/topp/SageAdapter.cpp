@@ -21,6 +21,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
@@ -110,6 +111,7 @@ protected:
   static constexpr double fragment_tol_left = -10.0;
   static constexpr double fragment_tol_right = 10.0;
   const std::string isotope_errors = "-1, 3";
+  const std::string charges_if_not_annotated = "2, 5";
   static constexpr size_t min_matched_peaks = 6;
   static constexpr size_t report_psms = 1;
   static constexpr size_t min_peaks = 15;
@@ -153,6 +155,9 @@ protected:
     ##fragment_tol_right##
     ]
   },
+  "precursor_charge": [
+    ##charges_if_not_annotated##
+  ],
   "isotope_errors": [
     ##isotope_errors##
   ],
@@ -234,6 +239,7 @@ protected:
     config_file.substitute("##fragment_tol_left##", String(getDoubleOption_("fragment_tol_left")));
     config_file.substitute("##fragment_tol_right##", String(getDoubleOption_("fragment_tol_right")));
     config_file.substitute("##isotope_errors##", getStringOption_("isotope_error_range"));
+    config_file.substitute("##charges_if_not_annotated##", getStringOption_("charges"));
     config_file.substitute("##min_matched_peaks##", String(getIntOption_("min_matched_peaks")));
     config_file.substitute("##min_peaks##", String(getIntOption_("min_peaks")));
     config_file.substitute("##max_peaks##", String(getIntOption_("max_peaks")));
@@ -397,6 +403,8 @@ protected:
     registerIntOption_("max_variable_mods", "<int>", max_variable_mods, "Maximum number of variable modifications", false, true);  
     registerStringOption_("isotope_error_range", "<start,end>", isotope_errors, "Range of (C13) isotope errors to consider for precursor."
       "Can be negative. E.g. '-1,3' for considering '-1/0/1/2/3'", false, true);
+    registerStringOption_("charges", "<start,end>", charges_if_not_annotated, "Range of precursor charges to consider if not annotated in the file."
+      , false, true);
 
     //Search Enzyme
     vector<String> all_enzymes;
@@ -476,9 +484,9 @@ protected:
     // read the sage output
     OPENMS_LOG_INFO << "Reading sage output..." << std::endl;
     StringList filenames;
-    StringList extra_scores = {"ln(delta_next)", "ln(delta_best)", "matched_peaks", 
-       "longest_b", "longest_y", "longest_y_pct",
-       "ln(matched_intensity_pct)", "scored_candidates", "ln(-poisson)"};
+    StringList extra_scores = {"ln(-poisson)", "ln(delta_best)", "ln(delta_next)", 
+      "ln(matched_intensity_pct)", "longest_b", "longest_y", 
+      "longest_y_pct", "matched_peaks", "scored_candidates"};
     vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load(
       output_folder + "/results.sage.pin",
       true,
@@ -487,6 +495,26 @@ protected:
       filenames,
       decoy_prefix);
 
+    // rename SAGE subscores to have prefix "SAGE:"
+    for (auto& id : peptide_identifications)
+    {
+      auto& hits = id.getHits();
+      for (auto& h : hits)
+      {
+        for (const auto meta : extra_scores)
+        {
+          if (h.metaValueExists(meta))
+          {
+            h.setMetaValue("SAGE:" + meta, h.getMetaValue(meta));
+            h.removeMetaValue(meta);        
+          }          
+        }
+      }
+    }
+
+    // remove hits without charge state assigned (fix for downstream bugs). TODO: check if still needed after we now parse the "z=other" column in the pin file
+    IDFilter::filterPeptidesByCharge(peptide_identifications, 1, numeric_limits<int>::max());
+    
     if (filenames.empty()) filenames = getStringList_("in");
 
     // TODO: split / merge results and create idXMLs
@@ -515,7 +543,7 @@ protected:
     
     // add extra scores for percolator rescoring
     vector<String> percolator_features = { "score" };
-    for (auto s : extra_scores) percolator_features.push_back(s);
+    for (auto s : extra_scores) percolator_features.push_back("SAGE:" + s);
     search_parameters.setMetaValue("extra_features",  ListUtils::concatenate(percolator_features, ","));
     auto enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
     search_parameters.digestion_enzyme = enzyme; // needed for indexing

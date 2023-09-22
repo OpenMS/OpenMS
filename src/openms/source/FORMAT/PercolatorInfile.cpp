@@ -100,6 +100,11 @@ namespace OpenMS
     std::regex sage_one_hot_pattern("^z=\\d+$");
     String charge_prefix;
     unordered_map<String, int> col_name_to_charge;
+
+    // Special handling for sage: sage produces an additional column for PSMs outside of the "suggested" charge search range (e.g., charge 2-5).
+    // The reason is that sage searches always for the charge annotated in the spectrum raw file. Only if the annotation is missing it will search
+    // the suggested charge range.
+    bool found_sage_otherz_charge_column{false}; 
     for (const String& c : header)
     {
       if (std::regex_match(c, charge_one_hot_pattern))
@@ -111,10 +116,11 @@ namespace OpenMS
       {
         col_name_to_charge[c] = c.substr(2).toInt();
         charge_prefix = "z=";
-      }
+      }      
       else if (c == "z=other") // SAGE
       {
-        col_name_to_charge[c] = 0;
+        found_sage_otherz_charge_column = true;
+        OPENMS_LOG_DEBUG << "Found SAGE charge column 'z=other'. Will extract charge from this column if charge was not set in the one-hot encoded charge columns." << endl;
       }
     }
 
@@ -178,7 +184,7 @@ namespace OpenMS
 
       int charge = 0;
       for (const auto& [name, z] : col_name_to_charge)
-      {
+      {        
         if (row[to_idx.at(name)] == "1")
         {
           charge = z;
@@ -186,6 +192,12 @@ namespace OpenMS
         }
       }
 
+      // all one-hot encoded charge columns are zero. Use value in the sage "z=other" column if it exists.
+      if (charge == 0 && found_sage_otherz_charge_column)
+      {
+        charge = row[to_idx.at("z=other")].toInt();
+      }
+      
       if (charge != 0)
       {
         pids.back().setMZ((row[to_idx.at("ExpMass")].toDouble() - std::fabs(charge) * Constants::PROTON_MASS_U) / std::fabs(charge));
