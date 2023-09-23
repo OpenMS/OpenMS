@@ -1225,12 +1225,12 @@ namespace OpenMS::Internal
                 DOMElement* databasename_param = element_dbn->getFirstElementChild();
                 while (databasename_param)
                 {
-                  if (XMLString::equals(databasename_param->getTagName(),CONST_XMLCH("userParam")))
+                  if (XMLString::equals(databasename_param->getTagName(),CONST_XMLCH("cvParam")))
                   {
                     CVTerm param = parseCvParam_(databasename_param);
                     dbname = param.getValue();
                   }
-                  else if (XMLString::equals(databasename_param->getTagName(),CONST_XMLCH("cvParam")))
+                  else if (XMLString::equals(databasename_param->getTagName(),CONST_XMLCH("userParam")))
                   {
                     pair<String, DataValue> param = parseUserParam_(databasename_param);
                     dbname = param.second.toString();
