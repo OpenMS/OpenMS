@@ -44,6 +44,15 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
       "Minimum/maximum number of isotopic peaks must be at least 2 (and min_isopeaks <= max_isopeaks).");
   }
 
+    if ((fragment_tolerance > 100 && fragment_unit_ppm) || (fragment_tolerance > 0.1 && !fragment_unit_ppm))
+    {
+        throw Exception::IllegalArgument(
+                __FILE__,
+                __LINE__,
+                OPENMS_PRETTY_FUNCTION,
+                "Fragment tolerance must not be greater than 100 ppm or 0.1 Da");
+    }
+
   if (spec.empty()) { return; }
 
   // remove 0 intensity peaks
@@ -341,6 +350,15 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
 		    OPENMS_PRETTY_FUNCTION,
 		    "Minimum/maximum number of isotopic peaks must be at least 2 (and min_isopeaks <= max_isopeaks).");
   }
+
+    if ((fragment_tolerance > 100 && fragment_unit_ppm) || (fragment_tolerance > 0.1 && !fragment_unit_ppm))
+    {
+        throw Exception::IllegalArgument(
+                __FILE__,
+                __LINE__,
+                OPENMS_PRETTY_FUNCTION,
+                "Fragment tolerance must not be greater than 100 ppm or 0.1 Da");
+    }
 
   if (spec.empty())
   { 
