@@ -36,14 +36,6 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
 {
   OPENMS_PRECONDITION(spec.isSorted(), "Spectrum must be sorted.");
 
-  if (min_isopeaks < 2 || max_isopeaks < 2 || min_isopeaks > max_isopeaks)
-  {
-    throw Exception::IllegalArgument(__FILE__,
-      __LINE__,
-      OPENMS_PRETTY_FUNCTION,
-      "Minimum/maximum number of isotopic peaks must be at least 2 (and min_isopeaks <= max_isopeaks).");
-  }
-
     if ((fragment_tolerance > 100 && fragment_unit_ppm) || (fragment_tolerance > 0.1 && !fragment_unit_ppm))
     {
         throw Exception::IllegalArgument(
@@ -52,6 +44,14 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
                 OPENMS_PRETTY_FUNCTION,
                 "Fragment tolerance must not be greater than 100 ppm or 0.1 Da");
     }
+
+  if (min_isopeaks < 2 || max_isopeaks < 2 || min_isopeaks > max_isopeaks)
+  {
+    throw Exception::IllegalArgument(__FILE__,
+      __LINE__,
+      OPENMS_PRETTY_FUNCTION,
+      "Minimum/maximum number of isotopic peaks must be at least 2 (and min_isopeaks <= max_isopeaks).");
+  }
 
   if (spec.empty()) { return; }
 
@@ -343,14 +343,6 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
 {
   OPENMS_PRECONDITION(spec.isSorted(), "Spectrum must be sorted.");
 
-  if (min_isopeaks < 2 || max_isopeaks < 2 || min_isopeaks > max_isopeaks)
-  {
-    throw Exception::IllegalArgument(__FILE__,
-		    __LINE__,
-		    OPENMS_PRETTY_FUNCTION,
-		    "Minimum/maximum number of isotopic peaks must be at least 2 (and min_isopeaks <= max_isopeaks).");
-  }
-
     if ((fragment_tolerance > 100 && fragment_unit_ppm) || (fragment_tolerance > 0.1 && !fragment_unit_ppm))
     {
         throw Exception::IllegalArgument(
@@ -359,6 +351,15 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
                 OPENMS_PRETTY_FUNCTION,
                 "Fragment tolerance must not be greater than 100 ppm or 0.1 Da");
     }
+
+  if (min_isopeaks < 2 || max_isopeaks < 2 || min_isopeaks > max_isopeaks)
+  {
+    throw Exception::IllegalArgument(__FILE__,
+		    __LINE__,
+		    OPENMS_PRETTY_FUNCTION,
+		    "Minimum/maximum number of isotopic peaks must be at least 2 (and min_isopeaks <= max_isopeaks).");
+  }
+
 
   if (spec.empty())
   { 
