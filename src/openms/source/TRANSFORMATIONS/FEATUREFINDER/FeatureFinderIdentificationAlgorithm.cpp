@@ -13,6 +13,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
@@ -22,6 +23,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+
 
 #include <vector>
 #include <numeric>
@@ -111,6 +113,9 @@ namespace OpenMS
     defaults_.setValue("quantify_decoys", "false", "Whether decoy peptides should be quantified (true) or skipped (false).");
     defaults_.setValidStrings("quantify_decoys", {"true","false"});
     defaults_.setValue("min_psm_cutoff", "none", "Minimum score for the best PSM of a spectrum to be used as seed. Use 'none' for no cutoff.");
+
+    defaults_.setValue("add_mass_offset_peptides", 0.0, "If for every peptide (or seed) also an offset peptide is extracted (true). Can be used to downstream to determine MBR false transfer rates. (0.0 = disabled)");
+    defaults_.setMinFloat("add_mass_offset_peptides", 0.0);
 
     // available scores: initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelution,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score
     // exclude some redundant/uninformative scores:
@@ -340,7 +345,14 @@ namespace OpenMS
     peptide_map_.clear();
 
     // Reserve enough space for all possible seeds
-    peptides.reserve(peptides.size() + seeds.size());
+    {
+      Size max_size = peptides.size() + seeds.size();
+      if (add_mass_offset_peptides_)
+      {
+        max_size *= 2;
+      }
+      peptides.reserve(max_size);
+    }
 
     for (auto& pep : peptides)
     {
@@ -415,6 +427,31 @@ namespace OpenMS
       }
     }
     OPENMS_LOG_INFO << "#Seeds without RT and m/z overlap with identified peptides added: " << seeds_added << endl;
+
+    if (add_mass_offset_peptides_ > 0.0)
+    {
+      vector<PeptideIdentification> offset_peptides;
+      offset_peptides.reserve(peptides.size());
+      for (const auto & p : peptides) // for every peptide (or seed) we add an offset peptide
+      {
+        offset_peptides.emplace_back();
+        PeptideHit hit;
+        hit.setCharge(p.getHits()[0].getCharge());
+        hit.setSequence(some_seq);
+        offset_peptides.back().getHits().push_back(std::move(hit));
+        offset_peptides.back().setRT(p.getRT());
+        offset_peptides.back().setMZ(p.getMZ() + 14.0); // TODO: expose offset as parameter
+        offset_peptides.back().setMetaValue("FFId_category", "internal");
+        offset_peptides.back().setMetaValue("OffsetPeptide", "true");  // mark as offset peptide 
+        offset_peptides.back().setMetaValue("SeedFeatureID", String(UniqueIdGenerator::getUniqueId())); // also mark as seed so we can indicate that we have a mass without sequence
+      }
+
+      for (auto & p : offset_peptides) // add offset peptides
+      {
+        peptides.push_back(std::move(p));
+        addPeptideToMap_(peptides.back(), peptide_map_);        
+      }
+    }
 
     n_internal_peps_ = peptide_map_.size();
     for (PeptideIdentification& pep : peptides_ext)
@@ -1371,6 +1408,8 @@ namespace OpenMS
     {
       psm_score_cutoff_ = double(param_.getValue("min_psm_cutoff"));
     }
+
+    add_mass_offset_peptides_ = double(param_.getValue("add_mass_offset_peptides"));
   }
 
   void FeatureFinderIdentificationAlgorithm::getUnbiasedSample_(const multimap<double, pair<Size, bool> >& valid_obs,

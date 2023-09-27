@@ -192,6 +192,7 @@ protected:
   TargetedExperiment library_; ///< accumulated assays for peptides
 
   bool quantify_decoys_;
+  double add_mass_offset_peptides_{0.0}; ///< non-zero if for every feature an additional offset features should be extracted
   bool use_psm_cutoff_;
   double psm_score_cutoff_;
   std::vector<PeptideIdentification> unassignedIDs_;

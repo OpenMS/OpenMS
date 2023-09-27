@@ -740,16 +740,17 @@ protected:
   /// and transfer the ID with RT of the consensus feature (the average if we have multiple consensus elements)
   multimap<Size, PeptideIdentification> transferIDsBetweenSameFraction_(const ConsensusMap& consensus_fraction, Size min_occurrence = 3)
   {
-    // determine occurrence of ids
-    map<pair<String, UInt>, vector<int> > occurrence = getPeptideOccurrence_(consensus_fraction);
+    // determine occurrence of ids in the different consensus map channels
+    map<pair<String, UInt>, vector<int> > occurrence = getPeptideOccurrence_(consensus_fraction); // seq+charge -> map indices in consensus map for this fraction
 
-    // build map of missing ids
+    // build map of missing ids: seq+charge -> set of map indices in consensus map for this fraction that miss the id
     map<pair<String, UInt>, set<int> > missing; // set of maps missing the id
     for (auto & o : occurrence)
     {
       // more than min_occurrence elements in consensus map that are non-zero?
       const Size count_non_zero = (Size) std::count_if(o.second.begin(), o.second.end(), [](int i){return i > 0;});
 
+      // if threshold for transfer reached, but not all elements have the id, then store index of element (these will later get the id transfered to)
       if (count_non_zero >= min_occurrence
        && count_non_zero < o.second.size())
       {
@@ -779,11 +780,11 @@ protected:
 
       if (it == missing.end()) continue; // skip sequence and charge not marked as missing in one of the other maps
 
-      for (int idx : it->second)
-      {
+      for (int idx : it->second) 
+      { // for all map indices that miss the id
         // use consensus feature ID and retention time to transfer between runs
         pair<Size, PeptideIdentification> p = make_pair(idx, pids[0]);
-        p.second.setRT(c.getRT());
+        p.second.setRT(c.getRT()); // use average RT of consensus elements
         transfer_ids.insert(p);
         ++n_transferred_ids;
       }
@@ -1083,7 +1084,7 @@ protected:
         {
            PeptideIdentification trans = it->second;
            trans.setIdentifier(protein_ids[0].getIdentifier());
-           peptide_ids.push_back(trans);
+           peptide_ids.push_back(std::move(trans));
         }
       }
 
@@ -1621,7 +1622,7 @@ protected:
           // needs to occur in >= id_transfer_threshold *100.0% of all runs for transfer
           double thresh_proportion = getDoubleOption_("id_transfer_threshold");
           const Size min_occurrance = std::ceil((ms_files.second.size() + 1) * thresh_proportion);
-          multimap<Size, PeptideIdentification> transfered_ids = transferIDsBetweenSameFraction_(consensus_fraction, min_occurrance);
+          multimap<Size, PeptideIdentification> transfered_ids = transferIDsBetweenSameFraction_(consensus_fraction, min_occurrance); // map indices we can transfer an id to -> the representative PeptideIdentification to transfer
           consensus_fraction.clear();
 
           // The transferred IDs were calculated on the aligned data
