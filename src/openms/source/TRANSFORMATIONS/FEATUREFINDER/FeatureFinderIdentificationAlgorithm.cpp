@@ -224,6 +224,40 @@ namespace OpenMS
     return library_;
   }
 
+
+  Size FeatureFinderIdentificationAlgorithm::addOffsetPeptides_(vector<PeptideIdentification>& peptides, double offset)
+  {
+    // WARNING: Superhack! Use unique ID to distinguish seeds from real IDs. Use a mod that will never occur to
+    // make them truly unique and not be converted to an actual modification.
+    const String pseudo_mod_name = String(10000);
+    AASequence some_seq = AASequence::fromString("XXX[" + pseudo_mod_name + "]");
+
+    vector<PeptideIdentification> offset_peptides;
+    offset_peptides.reserve(peptides.size());
+    Size n_added{};
+    for (const auto & p : peptides) // for every peptide (or seed) we add an offset peptide
+    {
+      offset_peptides.emplace_back();
+      PeptideHit hit;
+      hit.setCharge(p.getHits()[0].getCharge());
+      hit.setSequence(some_seq);
+      offset_peptides.back().getHits().push_back(std::move(hit));
+      offset_peptides.back().setRT(p.getRT());
+      offset_peptides.back().setMZ(p.getMZ() + offset);
+      offset_peptides.back().setMetaValue("FFId_category", "internal");
+      offset_peptides.back().setMetaValue("OffsetPeptide", "true");  // mark as offset peptide 
+      offset_peptides.back().setMetaValue("SeedFeatureID", String(UniqueIdGenerator::getUniqueId())); // also mark as seed so we can indicate that we have a mass without sequence
+    }
+
+    for (auto & p : offset_peptides) // add offset peptides
+    {
+      peptides.push_back(std::move(p));
+      addPeptideToMap_(peptides.back(), peptide_map_);
+      n_added++;
+    }
+    return n_added;
+  }
+
   void FeatureFinderIdentificationAlgorithm::run(
     vector<PeptideIdentification> peptides,
     const vector<ProteinIdentification>& proteins,
@@ -430,27 +464,8 @@ namespace OpenMS
 
     if (add_mass_offset_peptides_ > 0.0)
     {
-      vector<PeptideIdentification> offset_peptides;
-      offset_peptides.reserve(peptides.size());
-      for (const auto & p : peptides) // for every peptide (or seed) we add an offset peptide
-      {
-        offset_peptides.emplace_back();
-        PeptideHit hit;
-        hit.setCharge(p.getHits()[0].getCharge());
-        hit.setSequence(some_seq);
-        offset_peptides.back().getHits().push_back(std::move(hit));
-        offset_peptides.back().setRT(p.getRT());
-        offset_peptides.back().setMZ(p.getMZ() + 14.0); // TODO: expose offset as parameter
-        offset_peptides.back().setMetaValue("FFId_category", "internal");
-        offset_peptides.back().setMetaValue("OffsetPeptide", "true");  // mark as offset peptide 
-        offset_peptides.back().setMetaValue("SeedFeatureID", String(UniqueIdGenerator::getUniqueId())); // also mark as seed so we can indicate that we have a mass without sequence
-      }
-
-      for (auto & p : offset_peptides) // add offset peptides
-      {
-        peptides.push_back(std::move(p));
-        addPeptideToMap_(peptides.back(), peptide_map_);        
-      }
+      Size n_added = addOffsetPeptides_(peptides, add_mass_offset_peptides_);
+      OPENMS_LOG_INFO << "#Offset peptides added: " << n_added << endl;
     }
 
     n_internal_peps_ = peptide_map_.size();

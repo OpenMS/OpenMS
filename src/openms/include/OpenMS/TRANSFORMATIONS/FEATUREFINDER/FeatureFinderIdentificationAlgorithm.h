@@ -75,6 +75,7 @@ public:
   const TargetedExperiment& getLibrary() const;
 
 protected:
+
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
 
@@ -263,6 +264,8 @@ protected:
   void filterFeatures_(FeatureMap& features, bool classified);
 
   void calculateFDR_(FeatureMap& features);
+
+  Size addOffsetPeptides_(std::vector<PeptideIdentification>& peptides, double offset);
 
   /// Chunks an iterator range (allowing advance and distance) into batches of size batch_size.
   /// Last batch might be smaller.
