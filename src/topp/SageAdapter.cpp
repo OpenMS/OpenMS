@@ -460,6 +460,15 @@ protected:
     config_stream << config;
     config_stream.close();
 
+    // keep config file if debug mode is set
+    if (getIntOption_("debug") > 1)
+    {
+      String debug_config_file = output_folder + "/" + File::getUniqueName() + ".json";
+      ofstream debug_config_stream(debug_config_file.c_str());
+      debug_config_stream << config;
+      debug_config_stream.close();     
+    }
+
     QStringList arguments;
     arguments << config_file.toQString() 
               << "-f" << fasta_file.toQString() 
