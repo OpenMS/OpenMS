@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -325,15 +299,21 @@ namespace OpenMS
 
         String spectrum_file = File::basename(mspath_mapping.getPrimaryMSRunPath(*pid));
         String spectrum_reference = pid->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, "");
-        // missing file origin is fine but we need a spectrum_reference if we want to build the map
+        // missing file origin is fine, but we need a spectrum_reference if we want to build the map
         if (spectrum_reference.empty()) continue;
         // TODO make a unique decision in the whole class on if to extract by scan number or full string?
         if (!lookForScanNrsAsIntegers)
         {
-          char* p;
           // check if spectrum reference is a string that just contains a number
-          strtol(ids[0].getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE).toChar(), &p, 10);
-          if(*p) lookForScanNrsAsIntegers = true;
+          try
+          {
+            ids[0].getSpectrumReference().toInt64();
+            lookForScanNrsAsIntegers = true;
+          }
+          catch (...)
+          {
+            lookForScanNrsAsIntegers = false;
+          }  
         }
     
         // TODO: check if there is already an entry
@@ -361,7 +341,7 @@ namespace OpenMS
         const auto first_channel = *cf.getFeatures().begin();                  
         String filename = File::basename(map.getColumnHeaders()[first_channel.getMapIndex()].filename); // all channels are associated with same file in TMT/iTRAQ
 
-        boost::regex scanregex;
+        boost::regex scanregex{""};
         String cf_scan_id_key_name = (native_id_type == NATIVE_ID_TYPE::MS2IDMS3TMT) ? "id_scan_id" : "scan_id";
         String cf_scan_id = cf.getMetaValue(cf_scan_id_key_name, "");
         if (!cf_scan_id.empty()) 
@@ -379,10 +359,14 @@ namespace OpenMS
               ++id_matches_single; // in TMT we only match to single consensus feature
             }
             // look for only the scan_number in case the search engine only extracted this (e.g. Sage)
-            else if (auto scanid_it = run_it->second.find(SpectrumLookup::extractScanNumber(cf_scan_id, scanregex, false)); scanid_it != run_it->second.end())
+            else if (lookForScanNrsAsIntegers)
             {
-              cf.getPeptideIdentifications().push_back(*scanid_it->second);
-              ++id_matches_single; // in TMT we only match to single consensus feature
+              auto scanid_it = run_it->second.find(SpectrumLookup::extractScanNumber(cf_scan_id, scanregex, false));
+              if(scanid_it != run_it->second.end())
+              {
+                cf.getPeptideIdentifications().push_back(*scanid_it->second);
+                ++id_matches_single; // in TMT we only match to single consensus feature
+              }
             }
           } // else identification file does not contained scan id (e.g. was removed)  
           else

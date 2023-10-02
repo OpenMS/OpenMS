@@ -467,7 +467,7 @@ add_subdirectory(doc)
 # GKN Package building
 #------------------------------------------------------------------------------
 # We will use this path for the KNIME packages and the installers
-set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "The location where third-party search engines (X!Tandem, MSGF+, Fido) are located. This directory should have the same structure as the search engine repository at https://github.com/OpenMS/THIRDPARTY after flattening for your platform.")
+set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "The location where thirdparty search engines (Comet, MSGF+, ...) are located. This directory should have the same structure as the search engine repository at https://github.com/OpenMS/THIRDPARTY after flattening for your platform.")
 
 set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare KNIME packages will be generated. Main target will be 'prepare_knime_package'.
  Note, this will build all binaries with install RPATHs already in the build folder, so they may not be relocatable anymore. Only enable if needed.")

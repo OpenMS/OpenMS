@@ -64,7 +64,6 @@ export BUILD_NAME=${_build_name}
 # add third-party binaries (e.g. search engines) to PATH
 #export PATH=${SOURCE_DIRECTORY}/_thirdparty/XTandem:$PATH
 #export PATH=${SOURCE_DIRECTORY}/_thirdparty/MSGFPlus:$PATH
-#export PATH=${SOURCE_DIRECTORY}/_thirdparty/Fido:$PATH
 
 # if we perform style tests, add cppcheck to path
 #if [ $ENABLE_STYLE_TESTING == "ON" ]; then

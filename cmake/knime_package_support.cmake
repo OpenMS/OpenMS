@@ -182,7 +182,6 @@ set(THIRDPARTY_ADAPTERS
     "LuciphorAdapter"
     "CometAdapter"
     "PercolatorAdapter"
-    "FidoAdapter"
     "MSFraggerAdapter"
     "SiriusAdapter"
     "NovorAdapter"
@@ -236,9 +235,6 @@ add_custom_target(
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=CometAdapter -DPARAM=comet_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # PercolatorAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=PercolatorAdapter -DPARAM=percolator_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-  # FidoAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=FidoAdapter -DPARAM=fido_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=FidoAdapter -DPARAM=fidocp_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   DEPENDS create_ctds
 )
 
