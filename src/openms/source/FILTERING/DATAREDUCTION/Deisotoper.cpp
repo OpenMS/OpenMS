@@ -36,7 +36,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
 {
   OPENMS_PRECONDITION(spec.isSorted(), "Spectrum must be sorted.");
 
-    if ((fragment_tolerance > 100 && fragment_unit_ppm) || (fragment_tolerance > 0.1 && !fragment_unit_ppm))
+    if ((fragment_unit_ppm && fragment_tolerance > 100) || (!fragment_unit_ppm && fragment_tolerance > 0.1))
     {
         throw Exception::IllegalArgument(
                 __FILE__,
@@ -343,7 +343,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
 {
   OPENMS_PRECONDITION(spec.isSorted(), "Spectrum must be sorted.");
 
-    if ((fragment_tolerance > 100 && fragment_unit_ppm) || (fragment_tolerance > 0.1 && !fragment_unit_ppm))
+    if ((fragment_unit_ppm && fragment_tolerance > 100) || (!fragment_unit_ppm && fragment_tolerance > 0.1))
     {
         throw Exception::IllegalArgument(
                 __FILE__,
