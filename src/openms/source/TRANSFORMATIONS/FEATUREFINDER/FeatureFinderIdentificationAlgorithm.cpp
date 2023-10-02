@@ -578,6 +578,14 @@ namespace OpenMS
     for (Feature& f : features)
     {
       std::vector<PeptideIdentification>& ids = f.getPeptideIdentifications();
+
+      // if we have peptide identifications assigned and all are annotated as OffsetPeptide, we mark the feature is also an OffsetPeptide
+      if (!ids.empty() && std::all_of(ids.begin(), ids.end(), [](const PeptideIdentification & pid) { return pid.metaValueExists("OffsetPeptide"); }))
+      {
+        f.setMetaValue("OffsetPeptide", "true");
+      }
+
+      // remove all hits (PSM details)
       for (auto & pid : ids)
       {
         std::vector<PeptideHit>& hits = pid.getHits();
