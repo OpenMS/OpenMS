@@ -259,7 +259,7 @@ protected:
     {
       enzyme_details = 
    R"("cleave_at": "KR",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": true)";
     }
     else if (enzyme == "Chymotrypsin")
@@ -273,7 +273,7 @@ protected:
     {
       enzyme_details = 
    R"("cleave_at": "FWYL",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": true)";
     }
     else if (enzyme == "Arg-C")
@@ -287,7 +287,7 @@ protected:
     {
       enzyme_details = 
    R"("cleave_at": "R",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": true)";
     }
     else if (enzyme == "Lys-C")
@@ -301,14 +301,14 @@ protected:
     {
       enzyme_details = 
    R"("cleave_at": "K",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": true)";
     }    
     else if (enzyme == "Lys-N")
     {
       enzyme_details = 
    R"("cleave_at": "K",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": false)";
     }
     else if (enzyme == "no cleavage")
