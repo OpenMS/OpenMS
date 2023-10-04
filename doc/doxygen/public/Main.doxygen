@@ -31,7 +31,6 @@
         <UL>
           <LI> @subpage OpenMS_tutorial
           <LI> @subpage TOPP_documentation
-          <LI> @subpage TOPPAS_tutorial
         </UL>
 
         Misc:
@@ -54,6 +53,7 @@
         Development:
         <UL>
           <LI> @subpage coding_conventions
+          <LI> @subpage TOPPAS_tutorial
           <LI> @subpage developer_faq
           <LI> @subpage cpp_guide
           <LI> @subpage how_to_write_tests
