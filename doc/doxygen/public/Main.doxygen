@@ -29,6 +29,7 @@
         <BR>
         Documentation:
         <UL>
+          <LI> @subpage OpenMS_tutorial
           <LI> @subpage TOPP_documentation
           <LI> @subpage TOPPAS_tutorial
         </UL>
