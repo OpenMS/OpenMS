@@ -265,6 +265,10 @@ protected:
 
   void calculateFDR_(FeatureMap& features);
 
+  // seeds for untargeted extraction
+  Size addSeeds_(std::vector<PeptideIdentification>& peptides, const FeatureMap& seeds);
+
+  // quant. decoys
   Size addOffsetPeptides_(std::vector<PeptideIdentification>& peptides, double offset);
 
   /// Chunks an iterator range (allowing advance and distance) into batches of size batch_size.

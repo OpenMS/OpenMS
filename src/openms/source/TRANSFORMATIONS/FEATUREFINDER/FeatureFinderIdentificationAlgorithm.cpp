@@ -237,16 +237,51 @@ namespace OpenMS
     Size n_added{};
     for (const auto & p : peptides) // for every peptide (or seed) we add an offset peptide
     {
-      offset_peptides.emplace_back();
-      PeptideHit hit;
-      hit.setCharge(p.getHits()[0].getCharge());
-      hit.setSequence(some_seq);
-      offset_peptides.back().getHits().push_back(std::move(hit));
-      offset_peptides.back().setRT(p.getRT());
-      offset_peptides.back().setMZ(p.getMZ() + offset);
-      offset_peptides.back().setMetaValue("FFId_category", "internal");
-      offset_peptides.back().setMetaValue("OffsetPeptide", "true");  // mark as offset peptide 
-      offset_peptides.back().setMetaValue("SeedFeatureID", String(UniqueIdGenerator::getUniqueId())); // also mark as seed so we can indicate that we have a mass without sequence
+      /*
+      // check if already a peptide in peptide_map_ that is close in RT and MZ
+      // if so don't add seed
+      bool peptide_already_exists = false;
+      double offset_RT = p.getRT();
+      double offset_MZ = p.getMZ() + offset;
+      double offset_charge = p.getHits()[0].getCharge();
+
+      for (const auto & peptide : peptides)
+      {
+        double peptide_RT = peptide.getRT();
+        double peptide_MZ = peptide.getMZ();
+
+        // RT or MZ values of seed match in range -> peptide already exists -> don't add seed
+        // Consider up to 5th isotopic trace (e.g., because of seed misassignment)
+        double th_tolerance = mz_window_ppm_ ? mz_window_ * 1e-6 * peptide_MZ : mz_window_;
+        if ((fabs(offset_RT - peptide_RT) <= seed_rt_window_ / 2.0) &&
+           ((fabs(offset_MZ - peptide_MZ) <= th_tolerance) ||
+             fabs(offset_MZ - (1.0/offset_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
+             fabs(offset_MZ - (2.0/offset_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
+             fabs(offset_MZ - (3.0/offset_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
+             fabs(offset_MZ - (4.0/offset_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
+             fabs(offset_MZ - (5.0/offset_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance)
+            )
+        {
+          peptide_already_exists = true;
+          break;
+        }
+      }
+
+      // prevent decoys to be extracted at other target peptide
+      if (!peptide_already_exists)
+      {
+      */
+        offset_peptides.emplace_back();
+        PeptideHit hit;
+        hit.setCharge(p.getHits()[0].getCharge());
+        hit.setSequence(some_seq);
+        offset_peptides.back().getHits().push_back(std::move(hit));
+        offset_peptides.back().setRT(p.getRT());
+        offset_peptides.back().setMZ(p.getMZ() + offset);
+        offset_peptides.back().setMetaValue("FFId_category", "internal");
+        offset_peptides.back().setMetaValue("OffsetPeptide", "true");  // mark as offset peptide 
+        offset_peptides.back().setMetaValue("SeedFeatureID", String(UniqueIdGenerator::getUniqueId())); // also mark as seed so we can indicate that we have a mass without sequence
+      //}
     }
 
     for (auto & p : offset_peptides) // add offset peptides
@@ -255,7 +290,77 @@ namespace OpenMS
       addPeptideToMap_(peptides.back(), peptide_map_);
       n_added++;
     }
+    
     return n_added;
+  }
+
+  Size FeatureFinderIdentificationAlgorithm::addSeeds_(vector<PeptideIdentification>& peptides, const FeatureMap& seeds)
+  {
+    size_t seeds_added{};
+    // WARNING: Superhack! Use unique ID to distinguish seeds from real IDs. Use a mod that will never occur to
+    // make them truly unique and not be converted to an actual modification.
+    const String pseudo_mod_name = String(10000);
+    AASequence some_seq = AASequence::fromString("XXX[" + pseudo_mod_name + "]");
+    for (const Feature& feat : seeds)
+    {
+      // check if already a peptide in peptide_map_ that is close in RT and MZ
+      // if so don't add seed
+      bool peptide_already_exists = false;
+      for (const auto & peptide : peptides)
+      {
+        double seed_RT = feat.getRT();
+        double seed_MZ = feat.getMZ();
+        double seed_charge = feat.getCharge();
+        double peptide_RT = peptide.getRT();
+        double peptide_MZ = peptide.getMZ();
+
+        // RT or MZ values of seed match in range -> peptide already exists -> don't add seed
+        // Consider up to 5th isotopic trace (e.g., because of seed misassignment)
+        double th_tolerance = mz_window_ppm_ ? mz_window_ * 1e-6 * peptide_MZ : mz_window_;
+        if ((fabs(seed_RT - peptide_RT) <= seed_rt_window_ / 2.0) &&
+           ((fabs(seed_MZ - peptide_MZ) <= th_tolerance) ||
+             fabs(seed_MZ - (1.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
+             fabs(seed_MZ - (2.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
+             fabs(seed_MZ - (3.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
+             fabs(seed_MZ - (4.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
+             fabs(seed_MZ - (5.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance)
+            )
+        {
+          peptide_already_exists = true;
+          String seq = "empty";
+          int chg = 0;
+          if (!peptide.getHits().empty())
+          {
+            seq = peptide.getHits()[0].getSequence().toString();
+            chg = peptide.getHits()[0].getCharge();
+          }
+          OPENMS_LOG_DEBUG_NOFILE << "Skipping seed from FeatureID " << String(feat.getUniqueId()) << " with CHG: " << seed_charge << "; RT: " << seed_RT << "; MZ: " << seed_MZ <<
+          " due to overlap with " << seq << "/" << chg << " at MZ: " << peptide_MZ << "; RT: " << peptide_RT << endl;
+
+          break;
+        }
+      }
+
+      if (!peptide_already_exists)
+      {
+        // WARNING: Superhack! Store ID generated from seed in the original input peptide
+        // vector to make sure that the pointers that will be added to peptide_map_
+        // stay valid for the duration of the function.
+        peptides.emplace_back();
+        PeptideHit seed_hit;
+        seed_hit.setCharge(feat.getCharge());
+        seed_hit.setSequence(some_seq);
+        peptides.back().getHits().push_back(std::move(seed_hit));
+        peptides.back().setRT(feat.getRT());
+        peptides.back().setMZ(feat.getMZ());
+        peptides.back().setMetaValue("FFId_category", "internal");
+        peptides.back().setMetaValue("SeedFeatureID", String(feat.getUniqueId()));
+        addPeptideToMap_(peptides.back(), peptide_map_);
+        ++seeds_added;
+      }
+    }
+    
+    return seeds_added;
   }
 
   void FeatureFinderIdentificationAlgorithm::run(
@@ -394,78 +499,15 @@ namespace OpenMS
       pep.setMetaValue("FFId_category", "internal");
     }
 
-    // TODO make sure that only assembled traces (more than one trace -> has a charge)
+    // TODO make sure that only assembled traces (more than one trace -> has a charge) if FFMetabo is used
     // see FeatureFindingMetabo: defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
-    Size seeds_added(0);
-
-    // WARNING: Superhack! Use unique ID to distinguish seeds from real IDs. Use a mod that will never occur to
-    // make them truly unique and not be converted to an actual modification.
-    const String pseudo_mod_name = String(10000);
-    AASequence some_seq = AASequence::fromString("XXX[" + pseudo_mod_name + "]");
-    for (const Feature& feat : seeds)
-    {
-      // check if already a peptide in peptide_map_ that is close in RT and MZ
-      // if so don't add seed
-      bool peptide_already_exists = false;
-      for (const auto & peptide : peptides)
-      {
-        double seed_RT = feat.getRT();
-        double seed_MZ = feat.getMZ();
-        double seed_charge = feat.getCharge();
-        double peptide_RT = peptide.getRT();
-        double peptide_MZ = peptide.getMZ();
-
-        // RT or MZ values of seed match in range -> peptide already exists -> don't add seed
-        // Consider up to 5th isotopic trace (e.g., because of seed misassignment)
-        double th_tolerance = mz_window_ppm_ ? mz_window_ * 1e-6 * peptide_MZ : mz_window_;
-        if ((fabs(seed_RT - peptide_RT) <= seed_rt_window_ / 2.0) &&
-           ((fabs(seed_MZ - peptide_MZ) <= th_tolerance) ||
-             fabs(seed_MZ - (1.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
-             fabs(seed_MZ - (2.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
-             fabs(seed_MZ - (3.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
-             fabs(seed_MZ - (4.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
-             fabs(seed_MZ - (5.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance)
-            )
-        {
-          peptide_already_exists = true;
-          String seq = "empty";
-          int chg = 0;
-          if (!peptide.getHits().empty())
-          {
-            seq = peptide.getHits()[0].getSequence().toString();
-            chg = peptide.getHits()[0].getCharge();
-          }
-          OPENMS_LOG_DEBUG_NOFILE << "Skipping seed from FeatureID " << String(feat.getUniqueId()) << " with CHG: " << seed_charge << "; RT: " << seed_RT << "; MZ: " << seed_MZ <<
-          " due to overlap with " << seq << "/" << chg << " at MZ: " << peptide_MZ << "; RT: " << peptide_RT << endl;
-
-          break;
-        }
-      }
-
-      if (!peptide_already_exists)
-      {
-        // WARNING: Superhack! Store ID generated from seed in the original input peptide
-        // vector to make sure that the pointers that will be added to peptide_map_
-        // stay valid for the duration of the function.
-        peptides.emplace_back();
-        PeptideHit seed_hit;
-        seed_hit.setCharge(feat.getCharge());
-        seed_hit.setSequence(some_seq);
-        peptides.back().getHits().push_back(std::move(seed_hit));
-        peptides.back().setRT(feat.getRT());
-        peptides.back().setMZ(feat.getMZ());
-        peptides.back().setMetaValue("FFId_category", "internal");
-        peptides.back().setMetaValue("SeedFeatureID", String(feat.getUniqueId()));
-        addPeptideToMap_(peptides.back(), peptide_map_);
-        ++seeds_added;
-      }
-    }
+    Size seeds_added = addSeeds_(peptides, seeds);
     OPENMS_LOG_INFO << "#Seeds without RT and m/z overlap with identified peptides added: " << seeds_added << endl;
 
     if (add_mass_offset_peptides_ > 0.0)
     {
       Size n_added = addOffsetPeptides_(peptides, add_mass_offset_peptides_);
-      OPENMS_LOG_INFO << "#Offset peptides added: " << n_added << endl;
+      OPENMS_LOG_INFO << "#Offset peptides without RT and m/z overlap with other peptides added: " << n_added << endl;
     }
 
     n_internal_peps_ = peptide_map_.size();
