@@ -9,8 +9,7 @@
 
 // Sections:
 // - to add new pages you have to add them to:
-//    - doc/OpenMS_tutorial/refman_overwrite.tex.in (pdf output)
-//    - doc/doxygen/public/OpenMS_Tutorial_html.doxygen (html output)
+//    - doc/doxygen/public/developer_Tutorial_html.doxygen (html output)
 
 // Conventions:
 // - Please write a short introduction for each chapter that explains

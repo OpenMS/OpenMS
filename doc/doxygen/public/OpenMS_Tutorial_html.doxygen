@@ -7,7 +7,7 @@
 
 /**
 
-	@page OpenMS_tutorial Developer C++ Quickstart Guide
+	@page developer_tutorial Developer C++ Quickstart Guide
 
 	First, we give a small introduction to this tutorial and %OpenMS:
 	- @subpage tutorial_introduction

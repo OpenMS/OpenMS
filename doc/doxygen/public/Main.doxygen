@@ -29,7 +29,6 @@
         <BR>
         Documentation:
         <UL>
-          <LI> @subpage OpenMS_tutorial
           <LI> @subpage TOPP_documentation
         </UL>
 
@@ -52,8 +51,8 @@
 
         Development:
         <UL>
+          <LI> @subpage developer_tutorial
           <LI> @subpage coding_conventions
-          <LI> @subpage TOPPAS_tutorial
           <LI> @subpage developer_faq
           <LI> @subpage cpp_guide
           <LI> @subpage how_to_write_tests
