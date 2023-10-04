@@ -26,7 +26,7 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 - InternalCalibration: improve visualization of calibration plots (#7064)
 - report reading/writing throughput (MiB/sec) when loading/storing mzML (#7035)
 - restore TOPPAS tutorial (#7076)
-
+- Updated the changelog helper to set LD_LIBRARY_PATH automatically and other fixes
 
 Cleanup of old/unused tools and code:
 - Removed old tools and associated code in the library for InclusionExclusionListCreator, SvmTheoreticalSpectrumGenerator, PrecursorIonSelector, and MSSimulator
