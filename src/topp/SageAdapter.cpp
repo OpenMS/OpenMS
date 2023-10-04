@@ -259,7 +259,7 @@ protected:
     {
       enzyme_details = 
    R"("cleave_at": "KR",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": true)";
     }
     else if (enzyme == "Chymotrypsin")
@@ -273,7 +273,7 @@ protected:
     {
       enzyme_details = 
    R"("cleave_at": "FWYL",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": true)";
     }
     else if (enzyme == "Arg-C")
@@ -287,7 +287,7 @@ protected:
     {
       enzyme_details = 
    R"("cleave_at": "R",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": true)";
     }
     else if (enzyme == "Lys-C")
@@ -301,14 +301,14 @@ protected:
     {
       enzyme_details = 
    R"("cleave_at": "K",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": true)";
     }    
     else if (enzyme == "Lys-N")
     {
       enzyme_details = 
    R"("cleave_at": "K",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": false)";
     }
     else if (enzyme == "no cleavage")
@@ -460,6 +460,15 @@ protected:
     config_stream << config;
     config_stream.close();
 
+    // keep config file if debug mode is set
+    if (getIntOption_("debug") > 1)
+    {
+      String debug_config_file = output_folder + "/" + File::getUniqueName() + ".json";
+      ofstream debug_config_stream(debug_config_file.c_str());
+      debug_config_stream << config;
+      debug_config_stream.close();     
+    }
+
     QStringList arguments;
     arguments << config_file.toQString() 
               << "-f" << fasta_file.toQString() 
@@ -512,8 +521,8 @@ protected:
       }
     }
 
-    // remove hits without charge state assigned (fix for downstream bugs). TODO: check if still needed after we now parse the "z=other" column in the pin file
-    IDFilter::filterPeptidesByCharge(peptide_identifications, 1, numeric_limits<int>::max());
+    // remove hits without charge state assigned or charge outside of default range (fix for downstream bugs). TODO: remove if all charges annotated in sage
+    IDFilter::filterPeptidesByCharge(peptide_identifications, 2, numeric_limits<int>::max());
     
     if (filenames.empty()) filenames = getStringList_("in");
 
