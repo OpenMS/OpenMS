@@ -2826,7 +2826,6 @@ add_test("TOPP_ProteomicsLFQ_1_subset" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -fasta
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
          -targeted_only true
-         -transfer_ids false
          -mass_recalibration false
          -out_cxml BSA_subset.consensusXML.tmp
          -out_msstats BSA_subset.csv.tmp
@@ -2867,7 +2866,6 @@ add_test("TOPP_ProteomicsLFQ_1" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -fasta
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
          -targeted_only true
-         -transfer_ids false
          -mass_recalibration false
          -out_cxml BSA.consensusXML.tmp
          -out_msstats BSA.csv.tmp
@@ -2908,7 +2906,6 @@ add_test("TOPP_ProteomicsLFQ_2" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -fasta
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
          -targeted_only true
-         -transfer_ids mean
          -mass_recalibration false
          -out_cxml BSA_plusTransfer.consensusXML.tmp
          -out_msstats BSA_plusTransfer.csv.tmp
@@ -2949,7 +2946,6 @@ add_test("TOPP_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -fasta
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
          -targeted_only false
-         -transfer_ids mean
          -mass_recalibration false
          -out_cxml BSA_plusSeeds_plusTransfer.consensusXML.tmp
          -out_msstats BSA_plusSeeds_plusTransfer.csv.tmp
@@ -3024,7 +3020,6 @@ add_test("TOPP_ProteomicsLFQ_5" ${TOPP_BIN_PATH}/ProteomicsLFQ
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
          -PeptideQuantification:quantify_decoys
          -targeted_only true
-         -transfer_ids false
          -mass_recalibration false
          -out_cxml BSA_decoys.consensusXML.tmp
          -out_msstats BSA_decoys.csv.tmp
@@ -3088,7 +3083,6 @@ add_test("TOPP_ProteomicsLFQ_7" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -fasta
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
          -targeted_only true
-         -transfer_ids false
          -mass_recalibration false
          -out_cxml BSA_sub.consensusXML.tmp
          -out_msstats BSA_sub.csv.tmp
@@ -3121,7 +3115,6 @@ add_test("TOPP_ProteomicsLFQ_8" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -fasta
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
          -targeted_only true
-         -transfer_ids false
          -mass_recalibration false
          -out_cxml BSA_sub_8.consensusXML.tmp
          -out_msstats BSA_sub_8.csv.tmp
@@ -3150,7 +3143,6 @@ add_test("TOPP_ProteomicsLFQ_9" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -fasta
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
          -targeted_only false
-         -transfer_ids false
          -mass_recalibration false
          -out_cxml BSA_sub_9.consensusXML.tmp
          -out_msstats BSA_sub_9.csv.tmp
@@ -3193,14 +3185,12 @@ add_test("TOPP_ProteomicsLFQ_10" ${TOPP_BIN_PATH}/ProteomicsLFQ
   -fasta
   ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
   -targeted_only false
-  -transfer_ids mean
   -mass_recalibration false
   -out_cxml BSA_plusSeeds_plusTransfer.consensusXML.tmp
   -out_msstats BSA_plusSeeds_plusTransfer.csv.tmp
   -out BSA_plusSeeds_plusTransfer.mzTab.tmp
   -out_triqler BSA_plusSeeds_plusTransfer.tsv.tmp
-  -threads 1
-  -id_transfer_threshold 0.0
+  -threads 1  
   -proteinFDR 0.3
   -test
   -debug 0

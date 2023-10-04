@@ -89,17 +89,12 @@ using Internal::IDBoostGraph;
          2. The second method adds untargeted feature detection to obtain quantities from unidentified features.
             Transfer of Ids (match between runs) is performed by transfering feature identifications to coeluting, unidentified features with similar mass and RT in other runs.
 
-         Requantification:
-         2. Optionally, a requantification step is performed that tries to fill NA values.
-            If a peptide has been quantified in more than half of all maps, the peptide is selected for requantification.
-            In that case, the mean observed RT (and theoretical m/z) of the peptide is used to perform a second round of targeted extraction.
   Output:
          - mzTab file with analysis results
          - MSstats file with analysis results for statistical downstream analysis in MSstats
          - ConsensusXML file for visualization and further processing in OpenMS
 
   // experiments TODO:
-  // - change percentage of missingness in ID transfer
   // - disable elution peak fit
 
   Potential scripts to perform the search can be found under src/tests/topp/ProteomicsLFQTestScripts
@@ -199,20 +194,14 @@ protected:
       "false: include unidentified features so they can be linked to identified ones (=match between runs).", false, false);
     setValidStrings_("targeted_only", ListUtils::create<String>("true,false"));
 
-    // TODO: support transfer with SVM if we figure out a computationally efficient way to do it.
-    registerStringOption_("transfer_ids", "<option>", "false", 
-      "Requantification using mean of aligned RTs of a peptide feature.\n"
-      "Only applies to peptides that were quantified in more than a proportion (specified via id_transfer_threshold) of all runs (of a fraction).", false, false);
-    setValidStrings_("transfer_ids", ListUtils::create<String>("false,mean"));
-    
-    registerDoubleOption_("id_transfer_threshold", "<proportion>", 0.5, "The minimum proportion of runs of a fraction in which an peptide must be reliably quantified for its ID to be transfered to the remaining runs for requantification (if enabled).", false, false);
-    setMinFloat_("id_transfer_threshold", 0.0);
-    setMaxFloat_("id_transfer_threshold", 1.0);
+    registerDoubleOption_("feature_with_id_min_score", "<p-value>", 0.25, "The minimum probability an identified (=id targeted) feature must have to be kept for alignment and linking (0=no filter).", false, true);
+    setMinFloat_("feature_with_id_min_score", 0.0);
+    setMaxFloat_("feature_with_id_min_score", 1.0);
 
-    registerDoubleOption_("min_feature_probability", "<p-value>", 0.0, "The minimum probability a feature must have to be kept for alignment and linking (0=no filter).", false, false);
-    setMinFloat_("min_feature_probability", 0.0);
-    setMaxFloat_("min_feature_probability", 1.0);
-    
+    registerDoubleOption_("feature_without_id_min_score", "<p-value>", 0.75, "The minimum probability an unidentified feature must have to be kept for alignment and linking (0=no filter).", false, true);
+    setMinFloat_("feature_without_id_min_score", 0.0);
+    setMaxFloat_("feature_without_id_min_score", 1.0);
+
     registerStringOption_("mass_recalibration", "<option>", "false", "Mass recalibration.", false, true);
     setValidStrings_("mass_recalibration", ListUtils::create<String>("true,false"));
 
@@ -741,64 +730,6 @@ protected:
     return seq_charge2map_occurence;
   }
 
-  /// simple transfer between runs
-  /// if a peptide has not been quantified in more than min_occurrence runs, then take all consensus features that have it identified at least once
-  /// and transfer the ID with RT of the consensus feature (the average if we have multiple consensus elements)
-  multimap<Size, PeptideIdentification> transferIDsBetweenSameFraction_(const ConsensusMap& consensus_fraction, Size min_occurrence = 3)
-  {
-    // determine in which runs a peptide quantity was observed
-    map<pair<String, UInt>, vector<int> > occurrence = getPeptideOccurrence_(consensus_fraction); // seq+charge -> map indices in consensus map for this fraction
-
-    // build map of missing ids: seq+charge -> set of map indices in consensus map for this fraction that miss the id e.g. PEPTIDR+3 - > {2,3,9} is missing in 3 files of current fraction number
-    map<pair<String, UInt>, set<int> > missing; // set of maps missing the id
-    for (auto & o : occurrence)
-    {
-      // more than min_occurrence elements in consensus map that are non-zero for this id?
-      const Size count_non_zero = (Size) std::count_if(o.second.begin(), o.second.end(), [](int i){return i > 0;});
-
-      // if threshold for transfer reached, but not all elements have the id, then store index of element (these will later get the id transfered to)
-      if (count_non_zero >= min_occurrence
-       && count_non_zero < o.second.size())
-      {
-        for (Size i = 0; i != o.second.size(); ++i)
-        {
-          // missing ID for this consensus element
-          if (o.second[i] == 0) { missing[o.first].insert(i); }
-        }
-      }
-    }
-
-    Size n_transferred_ids(0);
-    // create representative id to transfer to missing
-    multimap<Size, PeptideIdentification> transfer_ids;
-    for (auto & c : consensus_fraction)
-    {
-      const auto& pids = c.getPeptideIdentifications();
-      if (pids.empty()) continue; // skip consensus feature without IDs 
-
-      const vector<PeptideHit>& phits = pids[0].getHits();
-      if (phits.empty()) continue; // skip no PSM annotated
-
-      const String s = phits[0].getSequence().toString();
-      const int z = phits[0].getCharge();
-      pair<String, UInt> seq_z = make_pair(s, z);
-      map<pair<String, UInt>, set<int> >::const_iterator it = missing.find(seq_z);
-
-      if (it == missing.end()) continue; // skip sequence and charge not marked as missing in one of the other maps
-
-      for (int idx : it->second) 
-      { // for all map indices that miss the id
-        // use consensus feature ID and retention time to transfer between runs
-        pair<Size, PeptideIdentification> p = make_pair(idx, pids[0]);
-        p.second.setRT(c.getRT()); // use average RT of consensus elements (TODO: this could fit well or very badly depending on how different the current run is)
-        transfer_ids.insert(p);
-        ++n_transferred_ids;
-      }
-    }
-    OPENMS_LOG_INFO << "Transferred IDs: " << n_transferred_ids << endl;
-    return transfer_ids;
-  }
-
   ExitCodes checkSingleRunPerID_(const vector<ProteinIdentification>& protein_ids, const String& id_file_abs_path)
   {
     if (protein_ids.size() != 1)
@@ -1043,7 +974,6 @@ protected:
     const map<String, String>& mzfile2idfile,
     const String& in_db,
     double median_fwhm,
-    const multimap<Size, PeptideIdentification> & transfered_ids,
     ConsensusMap & consensus_fraction,
     vector<TransformationDescription> & transformations,
     double& max_alignment_diff,
@@ -1104,29 +1034,6 @@ protected:
       vector<ProteinIdentification> ext_protein_ids;
       vector<PeptideIdentification> ext_peptide_ids;
 
-      //////////////////////////////////////////////////////
-      // Transfer aligned IDs
-      // Note: adds all transfered ids to the list of ids to be extracted
-      //////////////////////////////////////////////////////
-      if (!transfered_ids.empty()) // only non-empty if the fraction has more than one sample
-      {
-        OPENMS_PRECONDITION(is_already_aligned, "Data has not been aligned.")
-
-        // transform observed IDs and spectra
-        MapAlignmentTransformer::transformRetentionTimes(peptide_ids, transformations[fraction_group - 1]);
-        MapAlignmentTransformer::transformRetentionTimes(ms_centroided, transformations[fraction_group - 1]);
-
-        // copy the (already) aligned, consensus feature derived ids that are to be transferred to this map to peptide_ids
-        auto range = transfered_ids.equal_range(fraction_group - 1);
-        for (auto& it = range.first; it != range.second; ++it)
-        {
-           PeptideIdentification trans = it->second;
-           trans.setIdentifier(protein_ids[0].getIdentifier());
-           trans.setMetaValue("transfered", 1); // mark as transfered
-           peptide_ids.push_back(std::move(trans));
-        }
-      }
-
       //////////////////////////////////////////
       // Chromatographic parameter estimation
       //////////////////////////////////////////
@@ -1153,7 +1060,6 @@ protected:
 
       /////////////////////////////////////////////////
       // Run FeatureFinderIdentification
-
       FeatureMap fm;
 
       FeatureFinderIdentificationAlgorithm ffi;
@@ -1166,8 +1072,12 @@ protected:
       ffi_param.setValue("EMGScoring:max_iteration", 100); // overwrite default settings
       ffi_param.setValue("debug", debug_level_); // pass down debug level
 
-      if (getDoubleOption_("min_feature_probability") > 0.01)
+      double feature_with_id_min_score = getDoubleOption_("feature_with_id_min_score");
+      double feature_without_id_min_score = getDoubleOption_("feature_without_id_min_score");
+      const bool filter_by_quant_scores = (feature_with_id_min_score > 0.0) && (feature_without_id_min_score > 0.0);
+      if (filter_by_quant_scores)
       {
+        OPENMS_LOG_INFO << "Adding offset peptides as quant. decoys." << std::endl;
         ffi_param.setValue("add_mass_offset_peptides", 10.005); // create mass offset peptides (aka quant. decoys). Uses same value as SAGE.
       }
 
@@ -1185,7 +1095,7 @@ protected:
         mz_file);
 
 
-      if (getDoubleOption_("min_feature_probability") > 0.01)
+      if (filter_by_quant_scores)
       {
         // SVM table for training
         // We want to filter out wrongly quantified peptides and noise. Later we want to also filter out wrongly transfered ones.
@@ -1223,7 +1133,7 @@ protected:
           ++current_row;              
         }
   
-        if (quant_decoy > 4 && quant_target > 4)
+        if (quant_decoy > 4 && quant_target > 4) // less than 4 will make the SVM to error out
         {
           SimpleSVM svm;
           Param svm_param = svm.getParameters();        
@@ -1255,10 +1165,9 @@ protected:
   
         // printMetaValues(tmp);
   
-  
         if (quant_decoy > 4 && quant_target > 4)
         {
-          // remove all entries that are OffsetPeptides and have p_quant < 0.5
+          // remove offset (peptides+untargeted), and non-offset peptides and untargeted features if they don't pass the score threshold
           size_t removed_non_offset_with_id{}, removed_non_offset_without_id{}, removed_offset{}, total_offset{}, total_non_offset_with_id{}, total_non_offset_without_id{};
           tmp.erase(std::remove_if(tmp.begin(), tmp.end(), 
             [&](const Feature& f)
@@ -1271,33 +1180,36 @@ protected:
               bool untargeted_feature = !is_offset && !has_id;
               bool is_feature_with_id = !is_offset && has_id;
   
-  
-              // count offset (peptides+untargeted), and non-offset peptides and untargeted
-              if (is_offset) ++total_offset;
-  
-              if (is_feature_with_id) ++total_non_offset_with_id; // peptide but non-offset
-  
-              if (untargeted_feature) ++total_non_offset_without_id; // seed but non-offset
-  
-              if (quant_score < 0.75)
-              {              
-                if (is_offset)
+              // count offset (peptides+untargeted), and non-offset peptides and untargeted features
+              // and remove if they don't pass the score threshold  
+              if (is_feature_with_id) // peptide but non-offset   
+              {
+                ++total_non_offset_with_id;
+                if (quant_score < feature_with_id_min_score)
+                {
+                  ++removed_non_offset_with_id;
+                  return true;
+                }
+              }
+              else if (untargeted_feature) // seed but non-offset
+              {
+                ++total_non_offset_without_id;
+                if (quant_score < feature_without_id_min_score)
+                {
+                  ++removed_non_offset_without_id;
+                  return true;
+                }
+              }
+              else // offset
+              {
+                ++total_offset;
+                if (quant_score < feature_without_id_min_score)
                 {
                   ++removed_offset;
+                  return true;
                 }
-                else 
-                {
-                  if (untargeted_feature)
-                  {
-                    ++removed_non_offset_without_id; 
-                  } 
-                  else
-                  {
-                    ++removed_non_offset_with_id;
-                  }
-                }
-                return true;
               }
+
               return false;
             }), 
             tmp.end());
@@ -1306,17 +1218,16 @@ protected:
           tmp.erase(std::remove_if(tmp.begin(), tmp.end(), 
             [](const Feature& f){return f.metaValueExists("OffsetPeptide");}), 
             tmp.end());
-
-        
+      
           std::cout << "Removed quant. targets with id (features with id) because of low quantification score: " 
             << (double)removed_non_offset_with_id << " of " << total_non_offset_with_id << "\t ( " 
-            << (double)removed_non_offset_with_id/total_non_offset_with_id * 100.0 << "%/"
+            << (double)removed_non_offset_with_id/total_non_offset_with_id * 100.0 << "% )"
             << std::endl;
  
 
           std::cout << "Removed quant. targets with id (features without id) because of low quantification score: " 
             << (double)removed_non_offset_without_id << " of " << total_non_offset_without_id << "\t ( "
-            << (double)removed_non_offset_without_id/total_non_offset_without_id * 100.0 << "% ) "
+            << (double)removed_non_offset_without_id/total_non_offset_without_id * 100.0 << "% )"
             << std::endl;
 
           std::cout << "Removed quant. decoys (offset features) because of low quantification score: " 
@@ -1326,10 +1237,7 @@ protected:
         }
       }
 
-      // TODO: consider moving this to FFid
       // free parts of feature map not needed for further processing (e.g., subfeatures...)
-
-      size_t n_offset_peptides{}, n_peptides{};
       unordered_set<String> keep_meta = {"OffsetPeptide"}; // meta values to keep (all others will be removed) TODO: keep FWHM etc. for QC
       for (auto & f : tmp)
       {
@@ -1346,18 +1254,7 @@ protected:
 
         f.setSubordinates({});
         f.setConvexHulls({});
-
-        if (f.metaValueExists("OffsetPeptide")) 
-        {
-          ++n_offset_peptides;
-        }
-        else 
-        {
-          ++n_peptides;
-        } 
-
       }
-      OPENMS_LOG_INFO << "Peptides quantified: " << n_peptides << " offset peptides quantified: " << n_offset_peptides << std::endl;
 
       IDConflictResolverAlgorithm::resolve(tmp,
           getStringOption_("keep_feature_top_psm_only") == "false"); // keep only best peptide per feature per file
@@ -1816,7 +1713,6 @@ protected:
           mzfile2idfile,
           in_db,
           median_fwhm,
-          multimap<Size, PeptideIdentification>(),
           consensus_fraction,
           transformations,  // transformations are empty, will be filled by alignment
           max_alignment_diff,  // max_alignment_diff not yet determined, will be filled by alignment
@@ -1825,32 +1721,6 @@ protected:
 
         if (e != EXECUTION_OK) { return e; }
         
-        if (getStringOption_("transfer_ids") != "false" && ms_files.second.size() > 1)
-        {  
-          OPENMS_LOG_INFO << "Transferring identification data between runs of the same fraction." << endl;
-          // needs to occur in >= id_transfer_threshold *100.0% of all runs for transfer
-          double thresh_proportion = getDoubleOption_("id_transfer_threshold");
-          const Size min_occurrance = std::max((int)std::ceil((ms_files.second.size() + 1) * thresh_proportion), 2); // at least two occurances
-          multimap<Size, PeptideIdentification> transfered_ids = transferIDsBetweenSameFraction_(consensus_fraction, min_occurrance); // map indices we can transfer an id to -> the representative PeptideIdentification to transfer
-          consensus_fraction.clear();
-
-          // The transferred IDs were calculated on the aligned data
-          // So we make sure we use the aligned IDs and peak maps in the re-quantification step
-          e = quantifyFraction_(
-            ms_files, 
-            mzfile2idfile,
-            in_db,
-            median_fwhm, 
-            transfered_ids, 
-            consensus_fraction, 
-            transformations,  // transformations as determined by alignment
-            max_alignment_diff, // max_alignment_error as determined by alignment
-            fixed_modifications,
-            variable_modifications);
-
-          OPENMS_POSTCONDITION(!consensus_fraction.empty(), "ConsensusMap of fraction empty after ID transfer.!");
-          if (e != EXECUTION_OK) { return e; }
-        }
         consensus.appendColumns(consensus_fraction);  // append consensus map calculated for this fraction number
       }  // end of scope of fraction related data
 
