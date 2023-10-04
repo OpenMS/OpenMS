@@ -3162,7 +3162,7 @@ add_test("TOPP_ProteomicsLFQ_9_out_4" ${DIFF} -in1 BSA_sub_9.tsv.tmp -in2 ${DATA
 set_tests_properties("TOPP_ProteomicsLFQ_9_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9")
 
 
-# transfer ids and generate offset peptides with disabled id_transfer_threshold (try to transfer everything)
+# filter features by target-decoy-based SVM score (we apply a very strict filter of >0.75 and >0.95 to actually remove some on the test data)
 add_test("TOPP_ProteomicsLFQ_10" ${TOPP_BIN_PATH}/ProteomicsLFQ 
   -in 
   ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML 
@@ -3185,8 +3185,8 @@ add_test("TOPP_ProteomicsLFQ_10" ${TOPP_BIN_PATH}/ProteomicsLFQ
   -fasta 
   ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta 
   -targeted_only false 
-  -feature_with_id_min_score 0.25 
-  -feature_without_id_min_score 0.75 
+  -feature_with_id_min_score 0.75 
+  -feature_without_id_min_score 0.95 
   -mass_recalibration false
   -out_cxml BSA_plusSeeds_SVM_filter.consensusXML.tmp
   -out_msstats BSA_plusSeeds_SVM_filter.csv.tmp
