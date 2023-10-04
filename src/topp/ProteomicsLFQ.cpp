@@ -194,11 +194,11 @@ protected:
       "false: include unidentified features so they can be linked to identified ones (=match between runs).", false, false);
     setValidStrings_("targeted_only", ListUtils::create<String>("true,false"));
 
-    registerDoubleOption_("feature_with_id_min_score", "<p-value>", 0.25, "The minimum probability an identified (=id targeted) feature must have to be kept for alignment and linking (0=no filter).", false, true);
+    registerDoubleOption_("feature_with_id_min_score", "<p-value>", 0.0, "The minimum probability (e.g.: 0.25) an identified (=id targeted) feature must have to be kept for alignment and linking (0=no filter).", false, true);
     setMinFloat_("feature_with_id_min_score", 0.0);
     setMaxFloat_("feature_with_id_min_score", 1.0);
 
-    registerDoubleOption_("feature_without_id_min_score", "<p-value>", 0.75, "The minimum probability an unidentified feature must have to be kept for alignment and linking (0=no filter).", false, true);
+    registerDoubleOption_("feature_without_id_min_score", "<p-value>", 0.0, "The minimum probability (e.g.: 0.75) an unidentified feature must have to be kept for alignment and linking (0=no filter).", false, true);
     setMinFloat_("feature_without_id_min_score", 0.0);
     setMaxFloat_("feature_without_id_min_score", 1.0);
 
@@ -1104,13 +1104,20 @@ protected:
         size_t current_row = 0;
   
         size_t quant_target{}, quant_decoy{};
-        for (auto & f : tmp)
+
+        // randomize selection
+        Math::RandomShuffler shuffler;
+        std::vector<size_t> randomized_indices(tmp.size());
+        std::iota(randomized_indices.begin(), randomized_indices.end(), 0);
+
+        for (auto & i : randomized_indices)
         {
+          const auto& f = tmp[i]; // select random feature
           predictors["var_library_sangle"].push_back(f.getMetaValue("var_library_sangle"));
           predictors["var_xcorr_shape"].push_back(f.getMetaValue("var_xcorr_shape"));
           predictors["total_xic"].push_back(f.getMetaValue("total_xic"));
           predictors["var_elution_model_fit_score"].push_back(f.getMetaValue("var_elution_model_fit_score"));
-          //predictors["transfered"].push_back(f.getMetaValue("transfered", 0));
+
           bool is_offset = f.metaValueExists("OffsetPeptide");
           bool has_id = !f.getPeptideIdentifications().empty(); // offset peptides also have no id
           if (is_offset)
@@ -1149,11 +1156,13 @@ protected:
           std::map<String, double> feature_weights;
           svm.getFeatureWeights(feature_weights);
   
-  
           // assign quant probabilities to feature
-          for (size_t index = 0; index != tmp.size(); ++index)
+          size_t current_row{};
+          for (auto & i : randomized_indices) // traverse features in same order as before
           {
-            tmp[index].setMetaValue("p_quant", (double)predictions[index].probabilities[1]); // set probability of being a peptide feature (not a MassOffset decoy)
+            auto& f = tmp[i];
+            f.setMetaValue("p_quant", (double)predictions[current_row].probabilities[1]); // set probability of being a peptide feature (not a MassOffset decoy)
+            ++current_row;
           }
   
           OPENMS_LOG_DEBUG << "Feature weights:" << endl;
@@ -1224,7 +1233,6 @@ protected:
             << (double)removed_non_offset_with_id/total_non_offset_with_id * 100.0 << "% )"
             << std::endl;
  
-
           std::cout << "Removed quant. targets with id (features without id) because of low quantification score: " 
             << (double)removed_non_offset_without_id << " of " << total_non_offset_without_id << "\t ( "
             << (double)removed_non_offset_without_id/total_non_offset_without_id * 100.0 << "% )"
