@@ -1049,7 +1049,9 @@ protected:
       FeatureMap seeds;
       seeds.setPrimaryMSRunPath({mz_file});
 
-      if (getStringOption_("targeted_only") == "false")
+      const bool targeted_only = getStringOption_("targeted_only") != "false";
+
+      if (!targeted_only)
       {
         calculateSeeds_(ms_centroided, seeds, median_fwhm);
         if (debug_level_ > 666)
@@ -1074,7 +1076,7 @@ protected:
 
       double feature_with_id_min_score = getDoubleOption_("feature_with_id_min_score");
       double feature_without_id_min_score = getDoubleOption_("feature_without_id_min_score");
-      const bool filter_by_quant_scores = (feature_with_id_min_score > 0.0) && (feature_without_id_min_score > 0.0);
+      const bool filter_by_quant_scores = (feature_with_id_min_score > 0.0) && (targeted_only ||(feature_without_id_min_score > 0.0));
       if (filter_by_quant_scores)
       {
         OPENMS_LOG_INFO << "Adding offset peptides as quant. decoys." << std::endl;
