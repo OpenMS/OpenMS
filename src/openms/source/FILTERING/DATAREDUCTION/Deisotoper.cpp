@@ -360,7 +360,6 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
 		    "Minimum/maximum number of isotopic peaks must be at least 2 (and min_isopeaks <= max_isopeaks).");
   }
 
-
   if (spec.empty())
   { 
     return; 
