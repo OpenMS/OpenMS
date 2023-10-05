@@ -152,9 +152,13 @@ protected:
      vector<ProteinIdentification> protein_identifications;
      vector<PeptideIdentification> peptide_identifications;
 
-     if (!FileHandler().loadIdentifications(ids, protein_identifications, peptide_identifications, {FileTypes::IDXML, FileTypes::MZIDENTML}))
+     if (ids_type == FileTypes::IDXML || ids_type == FileTypes::MZIDENTML )
      {
-      writeLog_("Error: Unknown input file type given. Aborting!");
+      FileHandler().loadIdentifications(ids, protein_identifications, peptide_identifications, {FileTypes::IDXML, FileTypes::MZIDENTML});
+     }
+     else
+     {
+       OPENMS_LOG_ERROR << "Error: Unknown input file type given. Aborting!";
        printUsage_();
        return ILLEGAL_PARAMETERS;
      }
