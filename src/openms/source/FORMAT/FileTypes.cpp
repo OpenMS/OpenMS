@@ -40,8 +40,9 @@ namespace OpenMS
   /// when adding new types, be sure to update the FileTypes_test typesWithProperties test to match the new files
   static const std::array<TypeNameBinding, FileTypes::SIZE_OF_TYPE> type_with_annotation__ =
   {
+    using PROP = FileTypes::FileProperties;   // shorten our syntax a bit
     TypeNameBinding(FileTypes::UNKNOWN, "unknown", "unknown file extension", {}),
-    TypeNameBinding(FileTypes::DTA, "dta", "dta raw data file",{}),
+    TypeNameBinding(FileTypes::DTA, "dta", "dta raw data file", { PROP::READABLE, PROP::WRITABLE, HAS_MS1}),
     TypeNameBinding(FileTypes::DTA2D, "dta2d", "dta2d raw data file", {}),
     TypeNameBinding(FileTypes::MZDATA, "mzData", "mzData raw data file", {}),
     TypeNameBinding(FileTypes::MZXML, "mzXML", "mzXML raw data file", {FileTypes::FileProperties::READABLE, FileTypes::FileProperties::WRITEABLE, FileTypes::FileProperties::PROVIDES_MS1, FileTypes::FileProperties::PROVIDES_MS2}),
@@ -141,8 +142,7 @@ namespace OpenMS
   std::vector<FileTypes::Type> FileTypeList::typesWithProperties(std::vector<FileTypes::FileProperties> haveFeatures)
   {
     std::vector<FileTypes::Type> compatible;
-    // Copy our type_with_annotation__s to a list
-    std::list<TypeNameBinding> goodTypes(type_with_annotation__.begin(), type_with_annotation__.end());
+    std::vector<TypeNameBinding> good_types(type_with_annotation__.begin(), type_with_annotation__.end());
     // for each feature we are looking for
     for (auto i : haveFeatures)
     {

@@ -421,7 +421,7 @@ public:
 
 private:
     PeakFileOptions options_;
-    FeatureFileOptions fOptions_;
+    FeatureFileOptions f_options_;
   };
 
 } //namespace
