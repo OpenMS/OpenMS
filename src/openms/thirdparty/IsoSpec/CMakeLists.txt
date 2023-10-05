@@ -37,15 +37,15 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 
 set(_ISOSPEC_SOURCES
-cwrapper.cpp
-allocator.cpp  
-dirtyAllocator.cpp 
-isoSpec++.cpp 
-isoMath.cpp 
-marginalTrek++.cpp 
-operators.cpp
-element_tables.cpp
-misc.cpp
+  cwrapper.cpp
+  allocator.cpp  
+  dirtyAllocator.cpp 
+  isoSpec++.cpp 
+  isoMath.cpp 
+  marginalTrek++.cpp 
+  operators.cpp
+  element_tables.cpp
+  misc.cpp
 )
 
 # export include directory
@@ -65,7 +65,12 @@ foreach(_file ${_ISOSPEC_SOURCES})
   )
 endforeach()
 
+# TODO Instead of including including the complete sources, make a library,
+#  link, install and export
+# Commented out until used
+#add_library(IsoSpec ${ISOSPEC_SOURCES})
+#target_include_directories(IsoSpec SYSTEM INTERFACE ${ISOSPEC_INCLUDE_DIRECTORY})
+
 get_filename_component(ISOSPEC_FOLDER "${CMAKE_CURRENT_LIST_FILE}" PATH)
 file(APPEND ${TPLICENSEFILE} "\nIsoSpec:\n")
 cat(${ISOSPEC_FOLDER}/LICENSE ${TPLICENSEFILE})
-
