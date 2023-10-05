@@ -573,17 +573,17 @@ namespace OpenMS
 
   FeatureFileOptions& FileHandler::getFeatOptions()
   {
-    return fOptions_;
+    return f_options_;
   }
 
   const FeatureFileOptions& FileHandler::getFeatOptions() const
   {
-    return fOptions_;
+    return f_options_;
   }
 
-  void FileHandler::setFeatOptions(const FeatureFileOptions& fOptions)
+  void FileHandler::setFeatOptions(const FeatureFileOptions& f_options)
   {
-    fOptions_ = fOptions;
+    f_options_ = f_options;
   }
 
   String FileHandler::computeFileHash(const String& filename)
@@ -904,7 +904,7 @@ namespace OpenMS
       {
         FeatureXMLFile f;
         f.setLogType(log);
-        f.getOptions() = fOptions_;
+        f.getOptions() = f_options_;
         f.load(filename, map);
       }
       break;
@@ -966,7 +966,7 @@ namespace OpenMS
       {
         FeatureXMLFile f;
         f.setLogType(log);
-        f.getOptions() = fOptions_;
+        f.getOptions() = f_options_;
         f.store(filename, map);
       }
       break;

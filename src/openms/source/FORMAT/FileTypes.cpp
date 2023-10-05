@@ -36,16 +36,16 @@ namespace OpenMS
     }
   };
 
+  using PROP = FileTypes::FileProperties;   // shorten our syntax a bit
   /// Maps the FileType::Type to the preferred extension.
   /// when adding new types, be sure to update the FileTypes_test typesWithProperties test to match the new files
   static const std::array<TypeNameBinding, FileTypes::SIZE_OF_TYPE> type_with_annotation__ =
   {
-    using PROP = FileTypes::FileProperties;   // shorten our syntax a bit
     TypeNameBinding(FileTypes::UNKNOWN, "unknown", "unknown file extension", {}),
-    TypeNameBinding(FileTypes::DTA, "dta", "dta raw data file", { PROP::READABLE, PROP::WRITABLE, HAS_MS1}),
+    TypeNameBinding(FileTypes::DTA, "dta", "dta raw data file", { PROP::READABLE, PROP::WRITEABLE, PROP::PROVIDES_MS1}),
     TypeNameBinding(FileTypes::DTA2D, "dta2d", "dta2d raw data file", {}),
     TypeNameBinding(FileTypes::MZDATA, "mzData", "mzData raw data file", {}),
-    TypeNameBinding(FileTypes::MZXML, "mzXML", "mzXML raw data file", {FileTypes::FileProperties::READABLE, FileTypes::FileProperties::WRITEABLE, FileTypes::FileProperties::PROVIDES_MS1, FileTypes::FileProperties::PROVIDES_MS2}),
+    TypeNameBinding(FileTypes::MZXML, "mzXML", "mzXML raw data file", {PROP::READABLE, PROP::WRITEABLE, PROP::PROVIDES_MS1, PROP::PROVIDES_MS2}),
     TypeNameBinding(FileTypes::FEATUREXML, "featureXML", "OpenMS feature map", {}),
     TypeNameBinding(FileTypes::IDXML, "idXML", "OpenMS peptide identification file", {}),
     TypeNameBinding(FileTypes::CONSENSUSXML, "consensusXML", "OpenMS consensus feature map", {}),
@@ -53,7 +53,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::INI, "ini", "OpenMS parameter file", {}),
     TypeNameBinding(FileTypes::TOPPAS, "toppas", "OpenMS TOPPAS pipeline", {}),
     TypeNameBinding(FileTypes::TRANSFORMATIONXML, "trafoXML", "RT transformation file", {}),
-    TypeNameBinding(FileTypes::MZML, "mzML", "mzML raw data file", {FileTypes::FileProperties::READABLE, FileTypes::FileProperties::WRITEABLE, FileTypes::FileProperties::PROVIDES_MS1, FileTypes::FileProperties::PROVIDES_MS2}),
+    TypeNameBinding(FileTypes::MZML, "mzML", "mzML raw data file", {PROP::READABLE, PROP::WRITEABLE, PROP::PROVIDES_MS1, PROP::PROVIDES_MS2}),
     TypeNameBinding(FileTypes::CACHEDMZML, "cachedMzML", "cachedMzML raw data file", {}),
     TypeNameBinding(FileTypes::MS2, "ms2", "ms2 file", {}),
     TypeNameBinding(FileTypes::PEPXML, "pepXML", "pepXML file", {}),
@@ -96,7 +96,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::XQUESTXML, "xquest.xml", "xquest.xml file", {}),
     TypeNameBinding(FileTypes::SPECXML, "spec.xml", "spec.xml file", {}),
     TypeNameBinding(FileTypes::JSON, "json", "JavaScript Object Notation file", {}),
-    TypeNameBinding(FileTypes::RAW, "raw", "(Thermo) Raw data file", {FileTypes::FileProperties::PROVIDES_MS1, FileTypes::FileProperties::PROVIDES_MS2}),
+    TypeNameBinding(FileTypes::RAW, "raw", "(Thermo) Raw data file", {PROP::PROVIDES_MS1, PROP::PROVIDES_MS2}),
     TypeNameBinding(FileTypes::OMS, "oms", "OpenMS SQLite file", {}),
     TypeNameBinding(FileTypes::EXE, "exe", "Windows executable", {}),
     TypeNameBinding(FileTypes::BZ2, "bz2", "bzip2 compressed file", {}),
