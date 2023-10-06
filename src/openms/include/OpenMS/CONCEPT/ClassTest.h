@@ -992,8 +992,6 @@ namespace TEST = OpenMS::Internal::ClassTest;
  filename string will contain the filename on completion of the macro.
 
  There is a version that defines the extension and one that uses tmp.
- Therefore for each file written in a test NEW_TMP_FILE should be called.
- Otherwise only the last written file is checked.
 
  @hideinitializer
  */

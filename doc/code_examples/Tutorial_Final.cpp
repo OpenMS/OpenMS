@@ -4,6 +4,7 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
 // $Authors: Oliver Alka $
+// This file is ONLY used for code snippets in the developer tutorial
 // --------------------------------------------------------------------------
 
 //! [Includes]
@@ -188,7 +189,9 @@ protected:
 int main(int argc, const char ** argv)
 {
  TOPPDatabaseFilter tool;
- return tool.main(argc, argv);
+ OPENMS_LOG_FATAL_ERROR << "THIS IS TEST CODE AND SHOULD NEVER BE RUN OUTSIDE OF TESTING" << endl;
+ tool.main(argc, argv);
+ return 0;
 }
 
 /// @endcond

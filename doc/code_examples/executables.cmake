@@ -17,6 +17,7 @@ Tutorial_FeatureMap
 Tutorial_FileIO
 Tutorial_FileIO_mzML
 Tutorial_FileIO_Consumer
+# Tutorial final is ONLY used for snippets in the developer tutorial
 Tutorial_Final
 Tutorial_GaussFilter
 Tutorial_IdentificationClasses

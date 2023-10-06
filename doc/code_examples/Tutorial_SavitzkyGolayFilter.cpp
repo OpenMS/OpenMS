@@ -17,12 +17,10 @@ int main(int argc, const char** argv)
   // the path to the data should be given on the command line
   String tutorial_data_path(argv[1]);
   
-  // Load the dta file into an Experiment
-  MSExperiment exp;
-  FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_SavitzkyGolayFilter.dta", exp);
-
   // A DTA file always has exactly one Spectrum, so we get that
-  MSSpectrum spectrum = exp[0];
+  MSSpectrum spectrum;
+  // Load the dta file into the spectrum
+  FileHandler().loadSpectrum(tutorial_data_path + "/data/Tutorial_SavitzkyGolayFilter.dta", spectrum);
 
   LinearResampler lr;
   Param param_lr;
