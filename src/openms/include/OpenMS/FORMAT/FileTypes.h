@@ -98,7 +98,7 @@ namespace OpenMS
       READABLE,                         // SOMETHING in OpenMS can read this (it doesn't have to be in FileHandler though)
       WRITEABLE,                        // SOMETHING in OpenMS can write this (it doesn't have to be in FileHandler though) 
       PROVIDES_MS1,                     // File CAN contain spectra with no parent
-      PROVIDES_MS2,                     // File CAN contain spectra that have a parent
+      PROVIDES_MS2,                     // File CAN contain spectra that have a parent ion
       PROVIDES_LOADSPECTRUM,            // All of the PROVIDES_x properties correspond to which FileHandlers are implemented for a file type.
       PROVIDES_STORESPECTRUM,           // Please add these to FileTypes.cpp as you implement handlers
       PROVIDES_LOADEXPERIMENT,          // 

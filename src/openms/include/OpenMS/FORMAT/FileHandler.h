@@ -163,8 +163,6 @@ public:
       @param rewrite_source_file Set's the SourceFile name and path to the current file. Note that this looses the link to the primary MS run the file originated from.
       @param compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
 
-      @return true if the file could be loaded, false otherwise
-
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
@@ -192,7 +190,6 @@ public:
       @param filename The file name of the file to load.
       @param spec The spectrum to load the data into.
       @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
-      @return true if the file could be loaded, false otherwise
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -200,12 +197,11 @@ public:
     void loadSpectrum(const String& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types = {});
 
         /**
-      @brief Loads a single MSSpectrum from a file
+      @brief Stores a single MSSpectrum to a file
 
       @param filename The file name of the file to store.
       @param spec The spectrum to store the data from.
       @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
-      @return true if the file could be loaded, false otherwise
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
@@ -216,8 +212,6 @@ public:
 
       @param filename the file name of the file to load.
       @param map The FeatureMap to load the data into.
-
-      @return true if the file could be loaded, false otherwise
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -232,9 +226,6 @@ public:
       @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
       @param log Progress logging mode
 
-
-      @return true if the file could be stored, false otherwise
-
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
     void storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
@@ -246,8 +237,6 @@ public:
       @param map The ConsensusMap to load the data into.
       @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @param log Progress logging mode
-
-      @return true if the file could be loaded, false otherwise
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -262,8 +251,6 @@ public:
       @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
       @param log Progress logging mode
 
-      @return true if the file could be stored, false otherwise
-
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
     void storeConsensusFeatures(const String& filename, const ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
@@ -276,8 +263,6 @@ public:
       @param additional_peptides The peptideIdentification vector to load the data into.
       @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @param log Progress logging mode      
-
-      @return true if the file could be loaded, false otherwise
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -293,8 +278,6 @@ public:
       @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
       @param log Progress logging mode
 
-      @return true if the file could be stored, false otherwise
-
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
     void storeIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
@@ -307,8 +290,6 @@ public:
       @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @param log Progress logging mode
       
-      @return true if the file could be loaded, false otherwise
-
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
@@ -322,8 +303,6 @@ public:
       @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
       @param log Progress logging mode
 
-      @return true if the file could be stored, false otherwise
-
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
     void storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
@@ -334,8 +313,6 @@ public:
       @param filename the file name of the file to load.
       @param msq The MSQuantification to load the data into.
       @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
-
-      @return true if the file could be loaded, false otherwise
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -350,8 +327,6 @@ public:
       @param map The MSQuantifications to store.
       @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
 
-      @return true if the file could be stored, false otherwise
-
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
     void storeQuantifications(const String& filename, const MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
@@ -363,8 +338,6 @@ public:
       @param filename the file name of the file to load.
       @param msq The Transformations to load the data into.
       @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
-
-      @return true if the file could be loaded, false otherwise
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -378,8 +351,6 @@ public:
       @param filename the file name of the file to write.
       @param map The Transformations to store.
       @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
-
-      @return true if the file could be stored, false otherwise
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
@@ -402,8 +373,6 @@ public:
       @param label unique and informative label for the run
       @param remove_duplicate_features whether to remove duplicate features only for QCML for now
       @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
-
-      @return true if the file could be stored, false otherwise
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
