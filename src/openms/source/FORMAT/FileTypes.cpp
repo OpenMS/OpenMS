@@ -192,11 +192,6 @@ namespace OpenMS
 
   String FileTypes::typeToName(FileTypes::Type type)
   {
-    // Handle the weird case in which we get Size_of_type
-    if (type == FileTypes::SIZE_OF_TYPE)
-    {
-      return "Invalid Type";
-    }
     for (const auto& t_info : type_with_annotation__)
     {
       if (t_info.type == type)
@@ -204,7 +199,7 @@ namespace OpenMS
         return t_info.name;
       }
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type has no name!", String(type));
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid type: Type has no name!", String(type));
   }
 
   String FileTypes::typeToDescription(Type type)
@@ -213,7 +208,7 @@ namespace OpenMS
     {
       if (t_info.type == type) return t_info.description;
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type has no description!", String(type));
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid type: Type has no description!", String(type));
   }
 
 
