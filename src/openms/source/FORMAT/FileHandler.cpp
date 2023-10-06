@@ -33,6 +33,8 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <OpenMS/FORMAT/MsInspectFile.h>
 #include <OpenMS/FORMAT/SpecArrayFile.h>
@@ -631,6 +633,41 @@ namespace OpenMS
     }
   }
 
+  void FileHandler::storeSpectrum(const String& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types)
+  {
+    auto type = getTypeByFileName(filename);
+    if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
+    { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
+      type = allowed_types[0];
+    }
+    // If we have a restricted set of file types check that we match them
+    if (allowed_types.size() != 0)
+    {
+      if (!FileTypeList(allowed_types).contains(type))
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing an spectrum. Allowed types are: " + allowedToString_(allowed_types));
+      }
+    }
+    switch (type)
+    {
+      case FileTypes::DTA: 
+      {
+        DTAFile().store(filename, spec);
+      }
+      break;
+
+      case FileTypes::XMASS: 
+      {
+        XMassFile().store(filename, spec);
+      }
+      break;
+      
+      default: 
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading experiments");
+      }
+    }
+  }
 
   void FileHandler::loadExperiment(const String& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log, const bool rewrite_source_file,
                                    const bool compute_hash)
@@ -1043,6 +1080,14 @@ namespace OpenMS
       }
       break;
 
+      case FileTypes::OMS: 
+      {
+        OMSFile f;
+        f.setLogType(log);
+        f.load(filename, map);
+      }
+      break;
+
       default:
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not  supported for loading consensus features");
@@ -1128,12 +1173,15 @@ namespace OpenMS
       }
       break;
 
-      /*case FileTypes::OMS:
+      case FileTypes::OMS:
       {
-        OPENMS_LOG_ERROR << "File " << filename << " Loading Identifications is not yet supported for OMS files" << endl;
-        return false;
+        OMSFile f;
+        f.setLogType(log);
+        IdentificationData idd;
+        f.load(filename, idd);
+        IdentificationDataConverter::exportIDs(idd, additional_proteins, additional_peptides);
       }
-      break;*/
+      break;
 
       case FileTypes::XQUESTXML:
       {
@@ -1205,12 +1253,15 @@ namespace OpenMS
       }
       break;
 
-      /*case FileTypes::OMS:
+      case FileTypes::OMS:
       {
-        OPENMS_LOG_ERROR << "File " << filename << " storing Identifications is not yet supported for OMS files" << endl;
-        return false;
+        OMSFile f;
+        f.setLogType(log);
+        IdentificationData idd;
+        IdentificationDataConverter::importIDs(idd, additional_proteins, additional_peptides);
+        f.store(filename, idd);
       }
-    break;*/
+    break;
 
       case FileTypes::XQUESTXML:
       {

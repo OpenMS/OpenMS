@@ -172,6 +172,19 @@ public:
                         ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = false,
                         const bool compute_hash = false);
 
+    /**
+      @brief Stores an MSExperiment to a file
+
+      The file type to store the data in is determined by the file name. Supported formats for storing are mzML, mzXML, mzData and DTA2D. If the file format cannot be determined from the file name, the mzML format is used.
+
+      @param filename The name of the file to store the data in.
+      @param exp The experiment to store.
+      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
+      @param log Progress logging mode
+
+      @exception Exception::UnableToCreateFile is thrown if the file could not be written
+    */
+    void storeExperiment(const String& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
         /**
       @brief Loads a single MSSpectrum from a file
@@ -186,21 +199,17 @@ public:
     */
     void loadSpectrum(const String& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types = {});
 
+        /**
+      @brief Loads a single MSSpectrum from a file
 
-
-    /**
-      @brief Stores an MSExperiment to a file
-
-      The file type to store the data in is determined by the file name. Supported formats for storing are mzML, mzXML, mzData and DTA2D. If the file format cannot be determined from the file name, the mzML format is used.
-
-      @param filename The name of the file to store the data in.
-      @param exp The experiment to store.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
-      @param log Progress logging mode
+      @param filename The file name of the file to store.
+      @param spec The spectrum to store the data from.
+      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
+      @return true if the file could be loaded, false otherwise
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    void storeExperiment(const String& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeSpectrum(const String& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types = {});
 
     /**
       @brief Loads a file into a FeatureMap
