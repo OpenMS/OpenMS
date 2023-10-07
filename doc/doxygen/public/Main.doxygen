@@ -30,6 +30,7 @@
         Documentation:
         <UL>
           <LI> @subpage TOPP_documentation
+          <LI> @subpage TOPPAS_tutorial
         </UL>
 
         Misc:
