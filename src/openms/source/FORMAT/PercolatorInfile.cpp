@@ -200,7 +200,7 @@ namespace OpenMS
       
       if (charge != 0)
       {
-        pids.back().setMZ((row[to_idx.at("ExpMass")].toDouble() - std::fabs(charge) * Constants::PROTON_MASS_U) / std::fabs(charge));
+        pids.back().setMZ(row[to_idx.at("ExpMass")].toDouble() / std::fabs(charge) + Constants::PROTON_MASS_U);
       }
 
       sProteins.split(';', accessions);
