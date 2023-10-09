@@ -1047,7 +1047,7 @@ namespace OpenMS
              [&protID](const PeptideIdentification& id){return protID.getIdentifier() == id.getIdentifier();}, all_hits,
              [&c](const PeptideHit& hit){return c == hit.getCharge();});
             map<double, double> scores_to_fdr;
-            calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
+            calculateFDRBasic(scores_to_fdr, scores_labels, q_value, higher_score_better);
             IDScoreGetterSetter::setPeptideScoresForMap_(scores_to_fdr, cmap, include_unassigned_peptides, score_type, higher_score_better, add_decoy_peptides, c, protID.getIdentifier());
           }
         }
@@ -1055,7 +1055,7 @@ namespace OpenMS
         {
           IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, cmap, include_unassigned_peptides, [&protID](const PeptideIdentification& id){return protID.getIdentifier() == id.getIdentifier();}, all_hits);
           map<double, double> scores_to_fdr;
-          calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
+          calculateFDRBasic(scores_to_fdr, scores_labels, q_value, higher_score_better);
           IDScoreGetterSetter::setPeptideScoresForMap_(scores_to_fdr, cmap, include_unassigned_peptides, score_type, higher_score_better, add_decoy_peptides, protID.getIdentifier());
         }
       }
@@ -1064,7 +1064,7 @@ namespace OpenMS
     {
       IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, cmap, include_unassigned_peptides, all_hits);
       map<double, double> scores_to_fdr;
-      calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
+      calculateFDRBasic(scores_to_fdr, scores_labels, q_value, higher_score_better);
       IDScoreGetterSetter::setPeptideScoresForMap_(scores_to_fdr, cmap, include_unassigned_peptides, score_type, higher_score_better, add_decoy_peptides);
     }
   }
@@ -1101,7 +1101,7 @@ namespace OpenMS
         }
       }
       IDScoreGetterSetter::getScores_(scores_labels, id.getIndistinguishableProteins(), decoy_accs);
-      calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
+      calculateFDRBasic(scores_to_FDR, scores_labels, q_value, higher_score_better);
       if (!scores_labels.empty())
         IDScoreGetterSetter::setScores_(scores_to_FDR, id.getIndistinguishableProteins(), score_type, false);
     }
@@ -1115,7 +1115,7 @@ namespace OpenMS
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No scores could be extracted!");
     }
-    calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
+    calculateFDRBasic(scores_to_FDR, scores_labels, q_value, higher_score_better);
     if (!scores_labels.empty())
     {
       IDScoreGetterSetter::setScores_(scores_to_FDR, id, score_type, false, add_decoy_proteins);
@@ -1215,7 +1215,7 @@ namespace OpenMS
       pairs.push_back(seq_to_score_label.second);
     }
     std::map<double,double> score_to_fdr;
-    calculateFDRBasic_(score_to_fdr, pairs, q_value, higher_better);
+    calculateFDRBasic(score_to_fdr, pairs, q_value, higher_better);
     // convert scores in unordered map to FDR/qvalues
     for (auto & seq_to_score_label : seq_to_score_labels)
     {
@@ -1252,7 +1252,7 @@ namespace OpenMS
       pairs.push_back(seq_to_score_label.second);
     }
     map<double,double> score_to_fdr;
-    calculateFDRBasic_(score_to_fdr, pairs, q_value, higher_better);
+    calculateFDRBasic(score_to_fdr, pairs, q_value, higher_better);
     // convert scores in unordered map to FDR/qvalues
     for (auto & seq_to_score_label : seq_to_score_labels)
     {
@@ -1339,7 +1339,7 @@ namespace OpenMS
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No scores could be extracted for FDR!");
     }
-    calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
+    calculateFDRBasic(scores_to_FDR, scores_labels, q_value, higher_score_better);
     if (!scores_labels.empty())
       IDScoreGetterSetter::setScores_<PeptideIdentification>(scores_to_FDR, ids, score_type, false, add_decoy_peptides);
     scores_to_FDR.clear();
@@ -1466,7 +1466,7 @@ namespace OpenMS
     if (groups_too)
     {
       IDScoreGetterSetter::getPickedProteinGroupScores_(picked_scores, scores_labels, id.getIndistinguishableProteins(), decoy_string, prefix);
-      calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
+      calculateFDRBasic(scores_to_FDR, scores_labels, q_value, higher_score_better);
       IDScoreGetterSetter::setScores_(scores_to_FDR, id.getIndistinguishableProteins(), score_type, false);
       scores_to_FDR.clear();
       scores_labels.clear();
@@ -1482,7 +1482,7 @@ namespace OpenMS
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No scores could be extracted for FDR calculation!");
     }
-    calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
+    calculateFDRBasic(scores_to_FDR, scores_labels, q_value, higher_score_better);
     IDScoreGetterSetter::setScores_(scores_to_FDR, id, score_type, false, add_decoy_proteins);
     scores_to_FDR.clear();
     scores_labels.clear();
@@ -1658,7 +1658,7 @@ namespace OpenMS
   }
 
   /*
-   void FalseDiscoveryRate::calculateFDRBasic_(
+   void FalseDiscoveryRate::calculateFDRBasic(
     std::map<double,double>& scores_to_FDR,
     ScoreToTgtDecLabelPairs& scores_labels,
     std::vector<size_t>& ordering,
@@ -1677,7 +1677,7 @@ namespace OpenMS
 
   }*/
 
-  void FalseDiscoveryRate::calculateFDRBasic_(
+  void FalseDiscoveryRate::calculateFDRBasic(
       std::map<double,double>& scores_to_FDR,
       ScoreToTgtDecLabelPairs& scores_labels,
       bool qvalue,

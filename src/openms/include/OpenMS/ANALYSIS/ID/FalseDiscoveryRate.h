@@ -211,6 +211,14 @@ public:
        */
       static Result findDecoyString(const ProteinIdentification& proteins);
     };
+
+    /// calculates the FDR with a basic and faster algorithm
+    /// Just goes through the sorted scores and counts the number of decoys and targets and annotates the FDR for
+    /// this score as it goes. Q-values are optionally annotated by calculating the cumulative minimum in reversed
+    /// order afterwards. Since I never understood our other algorithm, I can not explain the difference.
+    /// @note Formula used depends on Param "conservative": false -> (D+1)/T, true (e.g. used in Fido) -> (D+1)/(T+D)
+    void calculateFDRBasic(std::map<double,double>& scores_to_FDR, ScoreToTgtDecLabelPairs& scores_labels, bool qvalue, bool higher_score_better) const;
+
 private:
 
     /// Not implemented
@@ -236,13 +244,6 @@ private:
     void calculateEstimatedQVal_(std::map<double, double> &scores_to_FDR,
                                  ScoreToTgtDecLabelPairs &scores_labels,
                                  bool higher_score_better) const;
-
-    /// calculates the FDR with a basic and faster algorithm
-    /// Just goes through the sorted scores and counts the number of decoys and targets and annotates the FDR for
-    /// this score as it goes. Q-values are optionally annotated by calculating the cumulative minimum in reversed
-    /// order afterwards. Since I never understood our other algorithm, I can not explain the difference.
-    /// @note Formula used depends on Param "conservative": false -> (D+1)/T, true (e.g. used in Fido) -> (D+1)/(T+D)
-    void calculateFDRBasic_(std::map<double,double>& scores_to_FDR, ScoreToTgtDecLabelPairs& scores_labels, bool qvalue, bool higher_score_better) const;
 
     /// calculates the error area around the x=x line between two consecutive values of expected and actual
     /// i.e. it assumes exp2 > exp1
