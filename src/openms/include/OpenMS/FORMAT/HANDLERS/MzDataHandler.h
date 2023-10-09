@@ -92,7 +92,7 @@ protected:
 
       /**@name temporary datastructures to hold parsed data */
       //@{
-      /// The number of peaks in the current spectrum
+      /// The number of peaks in the current spectrum (according to the length attribute -- which should not be trusted)
       UInt peak_count_;
       /// The current spectrum
       SpectrumType spec_;
