@@ -19,16 +19,18 @@
 
 namespace OpenMS
 {
-  char Tagger::getAAByMass_(double m) const
+  // Define a method to get amino acid by mass
+char Tagger::getAAByMass_(double m) const
   {
     // fast check for border cases
-    if (m < min_gap_ || m > max_gap_) return ' ';
-
+    if (m < min_gap_ || m > max_gap_) return ' '; // If mass is out of the valid range, return a space character
+    // Calculate delta using a function from the Math class, converting ppm to mass
     const double delta = Math::ppmToMass(ppm_, m);
+    // Find the lower bound of m - delta in mass2aa
     auto left = mass2aa_.lower_bound(m - delta);
     //if (left == mass2aa_.end()) return ' '; // cannot happen, since we checked boundaries above
-
-    if (fabs(left->first - m) < delta) return left->second;
+  // Check if the absolute difference between left->first and m is smaller than delta
+    if (fabs(left->first - m) < delta) return left->second; // If yes, return the associated amino acid
     return ' ';
   }
 
@@ -36,19 +38,23 @@ namespace OpenMS
   {
     const size_t N = mzs.size();
     size_t j = i + 1;
+    // Iterate through the mzs vector starting from index j
     while (j < N)
     {
+      // Check if the tag size has reached the maximum allowed length
       if (tag.size() == max_tag_length_) 
       { 
         return; // maximum tag size reached? - continue with next parent
       }
+      // Calculate gap between mzs[j] and mzs[i]
       const double gap = mzs[j] - mzs[i];
       if ((gap * charge) > max_gap_) 
       { 
         return; // already too far away - continue with next parent 
       } 
 
-      const char aa = getAAByMass_(gap * charge);
+      // Get the amino acid corresponding to the gap*charge
+      char aa = getAAByMass_(gap * charge);
       if (aa == ' ') { ++j; continue; } // can't extend tag
 
       tag += aa;
