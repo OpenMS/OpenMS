@@ -498,7 +498,7 @@ namespace OpenMS
 
             bool is_harmonic = false;
 
-            // check if harmonic peaks are present with different harmonic multiple factors (2, 3, 5, 7  defined in harmonic_charges_).
+            // check if harmonic peaks are present with different harmonic multiple factors (2, 3, 5, 7, 11  defined in harmonic_charges_).
             for (size_t k = 0; k < h_charge_size; k++)
             {
               for (int t = -1; t < 2; t++)
@@ -520,15 +520,23 @@ namespace OpenMS
             if (!is_harmonic) // if it is not harmonic
             {
               mass_intensities[mass_bin_index] += intensity + support_peak_intensity;
-              spc++;
-              if (spc >= min_support_peak_count_ || spc >= abs_charge / 2)
+              if (!mass_bins_[mass_bin_index])
               {
-                mass_bins_[mass_bin_index] = true;
+                spc++;
+                if (spc >= min_support_peak_count_ || spc >= abs_charge / 2)
+                {
+                  mass_bins_[mass_bin_index] = true;
+                }
               }
             }
             else // if harmonic
             {
-              mass_intensities[mass_bin_index] -= max_h_intensity;
+              mass_intensities[mass_bin_index] -= max_h_intensity;//std::min(max_h_intensity, intensity);
+              if(mass_intensities[mass_bin_index] < 0)
+              {
+                mass_intensities[mass_bin_index] = 1e-5;
+              }
+
               if (spc > 0)
               {
                 spc--;
@@ -748,6 +756,7 @@ namespace OpenMS
         {
           continue;
         }
+
 
         // Search for local max.
         if (max_peak_index > 0 && max_peak_index <= log_mz_peak_size && peak_bin_numbers[max_peak_index - 1] == b_index - 1 && log_mz_peaks_[max_peak_index - 1].intensity > max_intensity)
@@ -1006,7 +1015,8 @@ namespace OpenMS
 
     double bin_mul_factor = bin_mul_factors_[ms_level_ - 1];
 
-    mass_bin_min_value_ = log(std::max(1.0, current_min_mass_ - avg_.getAverageMassDelta(current_min_mass_)));
+    //mass_bin_min_value_ = log(std::max(1.0, current_min_mass_ - avg_.getAverageMassDelta(current_min_mass_)));
+    mass_bin_min_value_ = log(std::max(1.0, 50 - avg_.getAverageMassDelta(50)));
     mz_bin_min_value_ = log_mz_peaks_[0].logMz;
 
     double mz_bin_max_value = log_mz_peaks_[log_mz_peaks_.size() - 1].logMz;
@@ -1119,7 +1129,7 @@ namespace OpenMS
         peak_group.setIsotopeCosine(cos);
 
         // first filtration to remove false positives before further processing.
-        if (cos < std::min(.5, min_isotope_cosine_[ms_level_ - 1]) - .1)
+        if (cos < std::min(.5, min_isotope_cosine_[ms_level_ - 1]) - .3)
         {
           continue;
         }

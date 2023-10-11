@@ -526,17 +526,18 @@ protected:
       }
     }
 
+    filterLowPeaks(map, max_peak_count_);
 
     // if a merged spectrum is analyzed, replace the input dataset with the merged one
     if (merge == 1)
     {
-      filterLowPeaks(map, max_peak_count_);
       OPENMS_LOG_INFO << "Merging spectra using gaussian averaging... " << std::endl;
       SpectraMerger merger;
       merger.setLogType(log_type_);
       Param sm_param = merger.getDefaults();
       sm_param.setValue("average_gaussian:precursor_mass_tol", tols[0]);
       sm_param.setValue("average_gaussian:precursor_max_charge", std::abs((int)fd_param.getValue("max_charge")));
+      //sm_param.setValue("mz_binning_width", 1.0);
 
       merger.setParameters(sm_param);
       map.sortSpectra();
@@ -548,7 +549,6 @@ protected:
     }
     else if (merge == 2)
     {
-      filterLowPeaks(map, max_peak_count_);
       OPENMS_LOG_INFO << "Merging spectra into a single spectrum per MS level... " << std::endl;
       SpectraMerger merger;
       merger.setLogType(log_type_);
@@ -568,7 +568,7 @@ protected:
       fd_param.setValue("max_rt", .0);
     }
 
-    filterLowPeaks(map, max_peak_count_);
+
 
     fd.setParameters(fd_param);
     fd.calculateAveragine(use_RNA_averagine);
