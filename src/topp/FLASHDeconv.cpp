@@ -537,7 +537,7 @@ protected:
       Param sm_param = merger.getDefaults();
       sm_param.setValue("average_gaussian:precursor_mass_tol", tols[0]);
       sm_param.setValue("average_gaussian:precursor_max_charge", std::abs((int)fd_param.getValue("max_charge")));
-      //sm_param.setValue("mz_binning_width", 1.0);
+      sm_param.setValue("mz_binning_width", 1.0);
 
       merger.setParameters(sm_param);
       map.sortSpectra();
@@ -555,10 +555,11 @@ protected:
       Param sm_param = merger.getDefaults();
       sm_param.setValue("block_method:rt_block_size", (int)gradient_rt + 10);
       map.sortSpectra();
+      sm_param.setValue("mz_binning_width", 1.0);
 
       for (int ml = 1; ml <= (int)current_max_ms_level; ml++)
       {
-        sm_param.setValue("mz_binning_width", tols[ml - 1] / 2.0);
+        //sm_param.setValue("mz_binning_width", tols[ml - 1] / 2.0);
         sm_param.setValue("block_method:ms_levels", IntList {ml});
         merger.setParameters(sm_param);
         merger.mergeSpectraBlockWise(map);

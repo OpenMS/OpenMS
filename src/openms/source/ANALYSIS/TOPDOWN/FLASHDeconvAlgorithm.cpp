@@ -532,10 +532,10 @@ namespace OpenMS
             else // if harmonic
             {
               mass_intensities[mass_bin_index] -= max_h_intensity;//std::min(max_h_intensity, intensity);
-              if(mass_intensities[mass_bin_index] < 0)
-              {
-                mass_intensities[mass_bin_index] = 1e-5;
-              }
+              //if(mass_intensities[mass_bin_index] < 0)
+              //{
+              //  mass_intensities[mass_bin_index] = 1e-5;
+              //}
 
               if (spc > 0)
               {
@@ -582,7 +582,7 @@ namespace OpenMS
       std::fill(max_indices.begin(), max_indices.end(), -1);
       std::fill(max_intensity_abs_charge_ranges.begin(), max_intensity_abs_charge_ranges.end(), -1);
 
-      float max_intensity = -1e11f;
+      float max_intensity = 0;
 
       for (int j = 0; j < charge_range; j++)
       {
@@ -606,7 +606,7 @@ namespace OpenMS
         {
           float t = mass_intensities[mass_bin_index];
 
-          if (t <= 0)
+          if (t == 0)
           { // no signal
             continue;
           }
@@ -630,12 +630,12 @@ namespace OpenMS
           }
 
           float t = mass_intensities[mass_bin_index];
-          if (t <= 0) // no signal
+          if (t == 0) // no signal
           {
             continue;
           }
 
-          if (max_intensity < t)
+          if (max_intensity == 0 || max_intensity < t)
           {
             max_intensity = t;
             // store best values after shift by 1.
