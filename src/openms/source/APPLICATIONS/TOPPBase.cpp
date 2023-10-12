@@ -27,6 +27,7 @@
 #include <OpenMS/FORMAT/IndentedStream.h>
 #include <OpenMS/FORMAT/ParamCTDFile.h>
 #include <OpenMS/FORMAT/ParamCWLFile.h>
+#include <OpenMS/FORMAT/ParamJSONFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
@@ -261,7 +262,7 @@ namespace OpenMS
             // We hand an additional parameter object with the default values, so we have information
             // about the tree when parsing the JSON file.
             ini_params = getDefaultParameters_();
-            if (!ParamCWLFile<false>::load(in_ini_path, ini_params))
+            if (!ParamJSONFile::load(in_ini_path, ini_params))
             {
               return ILLEGAL_PARAMETERS;
             }
@@ -320,7 +321,7 @@ namespace OpenMS
             // We prepopulate the param object with the default values, so we have information
             // about the tree when parsing the JSON file.
             param_inifile_ = getDefaultParameters_();
-            if (!ParamCWLFile<false>::load(value_ini, param_inifile_))
+            if (!ParamJSONFile::load(value_ini, param_inifile_))
             {
               return ILLEGAL_PARAMETERS;
             }
