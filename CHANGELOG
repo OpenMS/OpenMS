@@ -62,7 +62,6 @@ Cleanup of old/unused tools and code:
 - Removed EnzymaticDigestionLogModel
 - Removed FidoAdapter (same functionality now in our own inference engines)
 
-
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.0     (released 7/2023)                  ----
 ------------------------------------------------------------------------------------------
