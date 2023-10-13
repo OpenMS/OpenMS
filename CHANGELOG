@@ -36,6 +36,7 @@ While these features are still in an experimental phase, we encourage adventurou
 - Restore developer quick guide in Doxygen docu - see https://openms.de/current_doxygen/html/index.html (#7109)
 - make mzData more robust against wrong 'length' attributes for binary data (#7113) 
 - Updated the changelog helper to set LD_LIBRARY_PATH automatically and other fixes
+- Added "area" column to EICextractor output
 
 Cleanup of old/unused tools and code:
 - Removed old tools and associated code in the library for InclusionExclusionListCreator, SvmTheoreticalSpectrumGenerator, PrecursorIonSelector, and MSSimulator
@@ -51,7 +52,6 @@ Important Notes:
 - These features are experimental and may undergo changes or be removed in future releases based on user feedback and stability.
 - We welcome your feedback and suggestions to help us improve and refine these experimental features.
 - For stability and production use, we recommend sticking with the latest stable release.
-- [Provide any additional instructions or details specific to these experimental features.]
 
 Please use this opportunity to test and provide feedback on these new features, as your input will play a vital role in shaping their development. 
 
