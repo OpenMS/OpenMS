@@ -169,7 +169,7 @@
 
   @subsection file_extensions File extensions
 
-  The correct capitalization of all data file extensions supported by OpenMS is documented in <code>FileHandler::NamesOfTypes[]</code>. The convention is to use only lowercase letters for file extensions. There are three exceptions: "ML" and "XML" are written in uppercase letters and "mzData" keeps its capital "D". Remember to keep this consistent when adding new data files or writing new TOPP tools or UTILS (use correct capitalization for file type restrictions, here).
+  The correct capitalization of all data file extensions supported by OpenMS is documented in <code>FileHandler::NamesOfTypes[]</code>. The convention is to use only lowercase letters for file extensions. There are three exceptions: "ML" and "XML" are written in uppercase letters and "mzData" keeps its capital "D". Remember to keep this consistent when adding new data files or writing new TOPP tools (use correct capitalization for file type restrictions, here).
 
   @section classes Classes
 

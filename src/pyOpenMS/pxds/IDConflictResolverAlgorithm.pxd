@@ -6,11 +6,11 @@ from DefaultParamHandler cimport *
 cdef extern from "<OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>" namespace "OpenMS":
 
     cdef cppclass IDConflictResolverAlgorithm(DefaultParamHandler):
-        IDConflictResolverAlgorithm() nogil except + # wrap-doc:Resolves ambiguous annotations of features with peptide identifications
+        IDConflictResolverAlgorithm() except + nogil  # wrap-doc:Resolves ambiguous annotations of features with peptide identifications
 
-        IDConflictResolverAlgorithm(IDConflictResolverAlgorithm &) nogil except +
+        IDConflictResolverAlgorithm(IDConflictResolverAlgorithm &) except + nogil 
 
-        void resolve(FeatureMap& features) nogil except +
+        void resolve(FeatureMap& features) except + nogil 
             # wrap-doc:
             #  Resolves ambiguous annotations of features with peptide identifications\n
             #  
@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>" namespace 
             #  
             #  :param keep_matching: Keeps all IDs that match the modified sequence of the best hit in the feature (e.g. keeps all IDs in a ConsensusMap if id'd same across multiple runs)
 
-        void resolve(ConsensusMap& features) nogil except +
+        void resolve(ConsensusMap& features) except + nogil 
             # wrap-doc:
             #  Resolves ambiguous annotations of consensus features with peptide identifications\n
             #  
@@ -30,7 +30,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>" namespace 
             #  
             #  :param keep_matching: Keeps all IDs that match the modified sequence of the best hit in the feature (e.g. keeps all IDs in a ConsensusMap if id'd same across multiple runs)
 
-        void resolveBetweenFeatures(FeatureMap& features) nogil except +
+        void resolveBetweenFeatures(FeatureMap& features) except + nogil 
             # wrap-doc:
             #  In a single (feature/consensus) map, features with the same (possibly modified) sequence and charge state may appear\n
             #  
@@ -38,7 +38,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>" namespace 
             #  combination exists in the map. The total number of features remains unchanged. In the final output, each (charge, sequence) combination
             #  appears only once, i.e. no multiplicities
 
-        void resolveBetweenFeatures(ConsensusMap& features) nogil except +
+        void resolveBetweenFeatures(ConsensusMap& features) except + nogil 
             # wrap-doc:
             #  In a single (feature/consensus) map, features with the same (possibly modified) sequence and charge state may appear\n
             #  

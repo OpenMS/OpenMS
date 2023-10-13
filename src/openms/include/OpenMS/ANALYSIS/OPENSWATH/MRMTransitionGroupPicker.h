@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -363,7 +337,7 @@ public:
               picked_chroms[k],
               picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i], 
               picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i]); 
-          if (pa_tmp.apex_pos > 0.0 && std::fabs(pa_tmp.apex_pos - peak_apex) < peak_apex_dist_min)
+          if (pa_tmp.apex_pos > 1e-11 && std::fabs(pa_tmp.apex_pos - peak_apex) < peak_apex_dist_min)
           { // update best candidate
             peak_apex_dist_min = std::fabs(pa_tmp.apex_pos - peak_apex);
             min_dist = (int)i;
@@ -746,7 +720,7 @@ public:
       {
         for (Size i = 0; i < picked_chroms[k].size(); i++)
         {
-          if (picked_chroms[k][i].getIntensity() <= 0.0) {continue; }
+          if (picked_chroms[k][i].getIntensity() <= 1e-11) {continue; }
 
           double left = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i];
           double right = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i];
@@ -845,7 +819,7 @@ protected:
         for (const auto& peak : used_chromatogram) int_here.push_back(peak.getIntensity());
         // Remove chromatograms without a single peak
         double tic = std::accumulate(int_here.begin(), int_here.end(), 0.0);
-        if (tic > 0.0) all_ints.push_back(int_here);
+        if (tic > 1e-11) all_ints.push_back(int_here);
       }
 
       // Compute the cross-correlation for the collected intensities
@@ -919,8 +893,8 @@ protected:
           }
         }
 
-        if (l_tmp > 0.0) left_borders.push_back(l_tmp);
-        if (r_tmp > 0.0) right_borders.push_back(r_tmp);
+        if (l_tmp > 1e-11) left_borders.push_back(l_tmp);
+        if (r_tmp > 1e-11) right_borders.push_back(r_tmp);
 
         if (pfound == 0) missing_peaks++;
         if (pfound > 1) multiple_peaks++;

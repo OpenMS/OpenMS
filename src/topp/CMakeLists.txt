@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -64,6 +64,8 @@ endif()
 
 # special requirements of some tools
 target_link_libraries(FileMerger Boost::regex)
+target_link_libraries(DecoyDatabase Boost::regex)
+target_link_libraries(NucleicAcidSearchEngine Boost::regex)
 
 # collection target
 add_custom_target(TOPP)

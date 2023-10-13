@@ -28,25 +28,25 @@ cdef extern from "<OpenMS/MATH/MISC/LinearInterpolation.h>" namespace "OpenMS::M
 
         # wrap-instances:
         #  LinearInterpolation := LinearInterpolation[double, double]
-        LinearInterpolation() nogil except +
-        LinearInterpolation(LinearInterpolation &) nogil except +
-        ValueType value(KeyType arg_pos) nogil except + # wrap-doc:Returns the interpolated value
-        void addValue(KeyType arg_pos, ValueType arg_value) nogil except + # wrap-doc:Performs linear resampling. The `arg_value` is split up and added to the data points around `arg_pos`
-        ValueType derivative(KeyType arg_pos) nogil except + # wrap-doc:Returns the interpolated derivative
+        LinearInterpolation() except + nogil 
+        LinearInterpolation(LinearInterpolation &) except + nogil 
+        ValueType value(KeyType arg_pos) except + nogil  # wrap-doc:Returns the interpolated value
+        void addValue(KeyType arg_pos, ValueType arg_value) except + nogil  # wrap-doc:Performs linear resampling. The `arg_value` is split up and added to the data points around `arg_pos`
+        ValueType derivative(KeyType arg_pos) except + nogil  # wrap-doc:Returns the interpolated derivative
 
-        libcpp_vector[ValueType]  getData() nogil except + # wrap-doc:Returns the internal random access container from which interpolated values are being sampled
-        void setData(libcpp_vector[ValueType] & data) nogil except + # wrap-doc:Assigns data to the internal random access container from which interpolated values are being sampled
-        bool empty() nogil except + # wrap-doc:Returns `true` if getData() is empty
-        KeyType key2index(KeyType pos) nogil except + # wrap-doc:The transformation from "outside" to "inside" coordinates
-        KeyType index2key(KeyType pos) nogil except + # wrap-doc:The transformation from "inside" to "outside" coordinates
-        KeyType  getScale() nogil except + # wrap-doc:"Scale" is the difference (in "outside" units) between consecutive entries in "Data"
-        void setScale(KeyType & scale) nogil except + # wrap-doc:"Scale" is the difference (in "outside" units) between consecutive entries in "Data"
-        KeyType  getOffset() nogil except + # wrap-doc:"Offset" is the point (in "outside" units) which corresponds to "Data[0]"
-        void setOffset(KeyType & offset) nogil except + # wrap-doc:"Offset" is the point (in "outside" units) which corresponds to "Data[0]"
-        void setMapping(KeyType & scale, KeyType & inside, KeyType & outside) nogil except +# TODO
-        void setMapping(KeyType & inside_low, KeyType & outside_low, KeyType & inside_high, KeyType & outside_high) nogil except +# TODO
-        KeyType  getInsideReferencePoint() nogil except + 
-        KeyType  getOutsideReferencePoint() nogil except +
-        KeyType supportMin() nogil except +
-        KeyType supportMax() nogil except +
-        LinearInterpolation(KeyType scale, KeyType offset) nogil except +
+        libcpp_vector[ValueType]  getData() except + nogil  # wrap-doc:Returns the internal random access container from which interpolated values are being sampled
+        void setData(libcpp_vector[ValueType] & data) except + nogil  # wrap-doc:Assigns data to the internal random access container from which interpolated values are being sampled
+        bool empty() except + nogil  # wrap-doc:Returns `true` if getData() is empty
+        KeyType key2index(KeyType pos) except + nogil  # wrap-doc:The transformation from "outside" to "inside" coordinates
+        KeyType index2key(KeyType pos) except + nogil  # wrap-doc:The transformation from "inside" to "outside" coordinates
+        KeyType  getScale() except + nogil  # wrap-doc:"Scale" is the difference (in "outside" units) between consecutive entries in "Data"
+        void setScale(KeyType & scale) except + nogil  # wrap-doc:"Scale" is the difference (in "outside" units) between consecutive entries in "Data"
+        KeyType  getOffset() except + nogil  # wrap-doc:"Offset" is the point (in "outside" units) which corresponds to "Data[0]"
+        void setOffset(KeyType & offset) except + nogil  # wrap-doc:"Offset" is the point (in "outside" units) which corresponds to "Data[0]"
+        void setMapping(KeyType & scale, KeyType & inside, KeyType & outside) except + nogil # TODO
+        void setMapping(KeyType & inside_low, KeyType & outside_low, KeyType & inside_high, KeyType & outside_high) except + nogil # TODO
+        KeyType  getInsideReferencePoint() except + nogil  
+        KeyType  getOutsideReferencePoint() except + nogil 
+        KeyType supportMin() except + nogil 
+        KeyType supportMax() except + nogil 
+        LinearInterpolation(KeyType scale, KeyType offset) except + nogil 

@@ -8,14 +8,14 @@ from ProgressLogger cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>" namespace "OpenMS":
     
     cdef cppclass ClusterProxyKD "OpenMS::ClusterProxyKD":
-        ClusterProxyKD() nogil except +
-        ClusterProxyKD(ClusterProxyKD &) nogil except +
-        ClusterProxyKD(Size size, double avg_distance, Size center_index) nogil except +
-        bool operator<(ClusterProxyKD & rhs) nogil except +
-        bool operator!=(ClusterProxyKD & rhs) nogil except +
-        bool operator==(ClusterProxyKD & rhs) nogil except +
-        Size getSize() nogil except +
-        bool isValid() nogil except +
-        double getAvgDistance() nogil except +
-        Size getCenterIndex() nogil except +
+        ClusterProxyKD() except + nogil 
+        ClusterProxyKD(ClusterProxyKD &) except + nogil 
+        ClusterProxyKD(Size size, double avg_distance, Size center_index) except + nogil 
+        bool operator<(ClusterProxyKD & rhs) except + nogil 
+        bool operator!=(ClusterProxyKD & rhs) except + nogil 
+        bool operator==(ClusterProxyKD & rhs) except + nogil 
+        Size getSize() except + nogil 
+        bool isValid() except + nogil 
+        double getAvgDistance() except + nogil 
+        Size getCenterIndex() except + nogil 
 

@@ -12,10 +12,10 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>" namespace "Op
     cdef cppclass QTClusterFinder(BaseGroupFinder) :
         # wrap-inherits:
         #  BaseGroupFinder
-        QTClusterFinder() nogil except +
+        QTClusterFinder() except + nogil 
         # copy constructor of 'QTClusterFinder' is implicitly deleted because base class 'OpenMS::BaseGroupFinder' has an inaccessible copy constructor public BaseGroupFinder
-        QTClusterFinder(QTClusterFinder &) nogil except + # wrap-ignore
-        void run(libcpp_vector[ ConsensusMap ] & input_maps, ConsensusMap & result_map) nogil except +
-        void run(libcpp_vector[ FeatureMap ] & input_maps, ConsensusMap & result_map) nogil except +
-        String getProductName() nogil except + # wrap-doc:Returns the name of the product
-        # POINTER # BaseGroupFinder * create() nogil except +
+        QTClusterFinder(QTClusterFinder &) except + nogil  # wrap-ignore
+        void run(libcpp_vector[ ConsensusMap ] & input_maps, ConsensusMap & result_map) except + nogil 
+        void run(libcpp_vector[ FeatureMap ] & input_maps, ConsensusMap & result_map) except + nogil 
+        String getProductName() except + nogil  # wrap-doc:Returns the name of the product
+        # POINTER # BaseGroupFinder * create() except + nogil 

@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/FORMAT/GNPSMGFFile.h>" namespace "OpenMS":
         # wrap-inherits:
         #   DefaultParamHandler        
 
-        GNPSMGFFile() nogil except +
-        GNPSMGFFile(GNPSMGFFile &) nogil except +
+        GNPSMGFFile() except + nogil 
+        GNPSMGFFile(GNPSMGFFile &) except + nogil 
 
-        void store(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) nogil except + # wrap-doc:Export consensus file from default workflow to GNPS MGF format
+        void store(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) except + nogil  # wrap-doc:Export consensus file from default workflow to GNPS MGF format

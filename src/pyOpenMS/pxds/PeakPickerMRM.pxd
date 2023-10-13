@@ -16,10 +16,10 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakPickerMRM.h>" namespace "OpenMS
         #  searched
         #  Additionally, overlapping peaks can be removed
         
-        PeakPickerMRM() nogil except +
-        PeakPickerMRM(PeakPickerMRM &) nogil except +
+        PeakPickerMRM() except + nogil 
+        PeakPickerMRM(PeakPickerMRM &) except + nogil 
 
-        void pickChromatogram(MSChromatogram & chromatogram, MSChromatogram & picked_chrom) nogil except +
+        void pickChromatogram(MSChromatogram & chromatogram, MSChromatogram & picked_chrom) except + nogil 
             # wrap-doc:
                 #  Finds peaks in a single chromatogram and annotates left/right borders
                 #  

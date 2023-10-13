@@ -4,8 +4,8 @@ from smart_ptr cimport shared_ptr
 cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace "OpenSwath":
 
   cdef cppclass OSBinaryDataArray:
-        OSBinaryDataArray() nogil except +
-        OSBinaryDataArray(OSBinaryDataArray &) nogil except + # compiler
+        OSBinaryDataArray() except + nogil 
+        OSBinaryDataArray(OSBinaryDataArray &) except + nogil  # compiler
         libcpp_vector[double] data
         libcpp_string description
       
@@ -13,11 +13,11 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace 
 
   # See ../addons/OSSpectrum.pyx
   cdef cppclass OSSpectrum:
-        OSSpectrum() nogil except +
-        OSSpectrum(OSSpectrum &) nogil except + # compiler
+        OSSpectrum() except + nogil 
+        OSSpectrum(OSSpectrum &) except + nogil  # compiler
         OSBinaryDataArrayPtr getMZArray() #wrap-ignore
         OSBinaryDataArrayPtr getIntensityArray() #wrap-ignore
-        # libcpp_vector[ BinaryDataArrayPtr ]  getDataArrays() nogil except +
+        # libcpp_vector[ BinaryDataArrayPtr ]  getDataArrays() except + nogil 
         void setMZArray(OSBinaryDataArrayPtr data) #wrap-ignore
         void setIntensityArray(OSBinaryDataArrayPtr data) #wrap-ignore
 
@@ -26,11 +26,11 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace 
 
   # See ../addons/OSChromatogram.pyx
   cdef cppclass OSChromatogram:
-        OSChromatogram() nogil except +
-        OSChromatogram(OSChromatogram &) nogil except + # compiler
+        OSChromatogram() except + nogil 
+        OSChromatogram(OSChromatogram &) except + nogil  # compiler
         OSBinaryDataArrayPtr getTimeArray() #wrap-ignore
         OSBinaryDataArrayPtr getIntensityArray() #wrap-ignore
-        # libcpp_vector[ BinaryDataArrayPtr ]  getDataArrays() nogil except +
+        # libcpp_vector[ BinaryDataArrayPtr ]  getDataArrays() except + nogil 
         void setTimeArray(OSBinaryDataArrayPtr data) #wrap-ignore
         void setIntensityArray(OSBinaryDataArrayPtr data) #wrap-ignore
 

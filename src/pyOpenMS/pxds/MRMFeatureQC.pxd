@@ -61,8 +61,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>" namespace "OpenMS"
 
     cdef cppclass MRMFeatureQC:
 
-        MRMFeatureQC() nogil except +
-        MRMFeatureQC(MRMFeatureQC &) nogil except +
+        MRMFeatureQC() except + nogil 
+        MRMFeatureQC(MRMFeatureQC &) except + nogil 
         
         libcpp_vector[MRMFQC_ComponentQCs] component_qcs
         libcpp_vector[MRMFQC_ComponentGroupQCs] component_group_qcs

@@ -49,7 +49,7 @@
   <ul>
     <li>
       Essential are \b gcc/g++ (>= 7.0) or similar ANSI C++ compiler with full C++17 support,
-      \b CMake (>= 3.21), \b Qt5 (>= 5.6), \b patch, \b autoconf (> 2.60), \b automake (> 1.9), \b libtool (libtoolize/glibtoolize).
+      \b CMake (>= 3.24), \b Qt5 (>= 5.6), \b patch, \b autoconf (> 2.60), \b automake (> 1.9), \b libtool (libtoolize/glibtoolize).
     </li>
     <li>
       For the complete feature set to be enabled, %OpenMS needs recent versions of
@@ -288,7 +288,7 @@
   source ~/.bashrc
   \endcode
 
-    @note When you intend to use thirdparty search- or inference engines like XTandem or Fido, their binaries also
+    @note When you intend to use thirdparty search engines like X!Tandem, their binaries also
     need to be in the <b><tt>PATH</tt></b>. Build them or check out prebuilt executables of the versions supported
     at the time of the release with
     \code

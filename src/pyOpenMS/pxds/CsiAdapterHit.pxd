@@ -5,8 +5,8 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>" namespace
     
     cdef cppclass CsiAdapterHit "OpenMS::CsiFingerIdMzTabWriter::CsiAdapterHit":
 
-        CsiAdapterHit() nogil except + 
-        CsiAdapterHit(CsiAdapterHit &) nogil except + # compiler
+        CsiAdapterHit() except + nogil  
+        CsiAdapterHit(CsiAdapterHit &) except + nogil  # compiler
 
         String inchikey2D
         String inchi

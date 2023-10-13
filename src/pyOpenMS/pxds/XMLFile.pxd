@@ -5,9 +5,9 @@ from String cimport *
 cdef extern from "<OpenMS/FORMAT/XMLFile.h>" namespace "OpenMS::Internal":
     
     cdef cppclass XMLFile "OpenMS::Internal::XMLFile":
-        XMLFile() nogil except +
-        XMLFile(XMLFile &) nogil except + 
+        XMLFile() except + nogil 
+        XMLFile(XMLFile &) except + nogil  
 
-        XMLFile(const String & schema_location, const String & version) nogil except +
-        # NAMESPACE # bool isValid(const String & filename, std::ostream & os) nogil except +
-        String getVersion() nogil except + # wrap-doc:Return the version of the schema
+        XMLFile(const String & schema_location, const String & version) except + nogil 
+        # NAMESPACE # bool isValid(const String & filename, std::ostream & os) except + nogil 
+        String getVersion() except + nogil  # wrap-doc:Return the version of the schema

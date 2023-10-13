@@ -8,8 +8,8 @@ from libcpp.vector cimport vector as libcpp_vector
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>" namespace "OpenMS::CsiFingerIdMzTabWriter":
     
     cdef cppclass CsiAdapterIdentification "OpenMS::CsiFingerIdMzTabWriter::CsiAdapterIdentification":
-        CsiAdapterIdentification() nogil except +
-        CsiAdapterIdentification(CsiAdapterIdentification& ) nogil except + # compiler
+        CsiAdapterIdentification() except + nogil 
+        CsiAdapterIdentification(CsiAdapterIdentification& ) except + nogil  # compiler
 
         double mz
         double rt

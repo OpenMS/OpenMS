@@ -4,11 +4,11 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>" namespace "O
     
     cdef cppclass SplinePackage "OpenMS::SplinePackage":
 
-        SplinePackage(libcpp_vector[double] pos, libcpp_vector[double] intensity) nogil except +
-        SplinePackage(SplinePackage &) nogil except + # compiler
+        SplinePackage(libcpp_vector[double] pos, libcpp_vector[double] intensity) except + nogil 
+        SplinePackage(SplinePackage &) except + nogil  # compiler
 
-        double getPosMin() nogil except + # wrap-doc:Returns the minimum position for which the spline fit is valid
-        double getPosMax() nogil except + # wrap-doc:Returns the maximum position for which the spline fit is valid
-        double getPosStepWidth() nogil except + # wrap-doc:Returns a sensible position step width for the package
-        bool isInPackage(double pos) nogil except + # wrap-doc:Returns true if position in [posMin:posMax] interval else false
-        double eval(double pos) nogil except + # wrap-doc:Returns interpolated intensity position `pos`
+        double getPosMin() except + nogil  # wrap-doc:Returns the minimum position for which the spline fit is valid
+        double getPosMax() except + nogil  # wrap-doc:Returns the maximum position for which the spline fit is valid
+        double getPosStepWidth() except + nogil  # wrap-doc:Returns a sensible position step width for the package
+        bool isInPackage(double pos) except + nogil  # wrap-doc:Returns true if position in [posMin:posMax] interval else false
+        double eval(double pos) except + nogil  # wrap-doc:Returns interpolated intensity position `pos`

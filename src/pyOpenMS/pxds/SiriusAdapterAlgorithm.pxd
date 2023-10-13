@@ -15,19 +15,19 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
         # wrap-inherits:
         #   DefaultParamHandler
 
-        SiriusAdapterAlgorithm() nogil except +
-        SiriusAdapterAlgorithm(SiriusAdapterAlgorithm &) nogil except + # compiler
+        SiriusAdapterAlgorithm() except + nogil 
+        SiriusAdapterAlgorithm(SiriusAdapterAlgorithm &) except + nogil  # compiler
 
-        bool isFeatureOnly() nogil except +
-        UInt getFilterByNumMassTraces() nogil except +
-        double getPrecursorMzTolerance() nogil except +
-        double getPrecursorRtTolerance() nogil except +
-        bool precursorMzToleranceUnitIsPPM() nogil except +
-        bool isNoMasstraceInfoIsotopePattern() nogil except +
-        int getIsotopePatternIterations() nogil except +
-        int getNumberOfSiriusCandidates() nogil except +
+        bool isFeatureOnly() except + nogil 
+        UInt getFilterByNumMassTraces() except + nogil 
+        double getPrecursorMzTolerance() except + nogil 
+        double getPrecursorRtTolerance() except + nogil 
+        bool precursorMzToleranceUnitIsPPM() except + nogil 
+        bool isNoMasstraceInfoIsotopePattern() except + nogil 
+        int getIsotopePatternIterations() except + nogil 
+        int getNumberOfSiriusCandidates() except + nogil 
 
-        String determineSiriusExecutable(String & executable) nogil except +
+        String determineSiriusExecutable(String & executable) except + nogil 
         # wrap-doc:
                 #  Checks if the provided String points to a valid SIRIUS executable, otherwise tries
                 #  to select the executable from the environment
@@ -38,7 +38,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
         void preprocessingSirius(const String& featureinfo,
                                  MSExperiment& spectra,
                                  FeatureMapping_FeatureMappingInfo& fm_info,
-                                 FeatureMapping_FeatureToMs2Indices& feature_mapping) nogil except +
+                                 FeatureMapping_FeatureToMs2Indices& feature_mapping) except + nogil 
         # wrap-doc:
                 #  Preprocessing needed for SIRIUS
                 #  
@@ -51,7 +51,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
 
         void logFeatureSpectraNumber(const String& featureinfo,
                                      FeatureMapping_FeatureToMs2Indices& feature_mapping,
-                                     MSExperiment& spectra) nogil except +
+                                     MSExperiment& spectra) except + nogil 
         # wrap-doc:
                 #  Logs number of features and spectra used
                 #  
@@ -63,7 +63,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
 
         void logInSiriusAccount(String& executable,
                                 const String& email,
-                                const String& password) nogil except +
+                                const String& password) except + nogil 
         # wrap-doc:
                 #  Log in to SIRIUS using your personal account
                 #  
@@ -75,7 +75,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
                                                  const String& tmp_out_dir,
                                                  String& executable,
                                                  const String& out_csifingerid,
-                                                 bool decoy_generation) nogil except +
+                                                 bool decoy_generation) except + nogil 
         # wrap-doc:
                 #  Call SIRIUS with QProcess
                 #  
@@ -87,14 +87,14 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
 cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "OpenMS::SiriusAdapterAlgorithm":
 
     cdef cppclass SiriusTemporaryFileSystemObjects "OpenMS::SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects":
-        SiriusTemporaryFileSystemObjects(int debug_level) nogil except +
-        SiriusTemporaryFileSystemObjects(SiriusTemporaryFileSystemObjects &) nogil except + # compiler
+        SiriusTemporaryFileSystemObjects(int debug_level) except + nogil 
+        SiriusTemporaryFileSystemObjects(SiriusTemporaryFileSystemObjects &) except + nogil  # compiler
         
-        String getTmpDir() nogil except +
-        String getTmpOutDir() nogil except +
-        String getTmpMsFile() nogil except + 
+        String getTmpDir() except + nogil 
+        String getTmpOutDir() except + nogil 
+        String getTmpMsFile() except + nogil  
 
 # wrap static method:
 cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "OpenMS::SiriusAdapterAlgorithm":
 
-        void  sortSiriusWorkspacePathsByScanIndex(libcpp_vector[ String ]& subdirs) nogil except + # wrap-attach:SiriusAdapterAlgorithm
+        void  sortSiriusWorkspacePathsByScanIndex(libcpp_vector[ String ]& subdirs) except + nogil  # wrap-attach:SiriusAdapterAlgorithm
