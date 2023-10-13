@@ -939,7 +939,7 @@ protected:
        @param fileExtension The extension of the requested tool description file.
     */
     template <typename Writer>
-    void writeToolDescription_(std::string write_type, std::string fileExtension);
+    void writeToolDescription_(Writer& writer, std::string write_type, std::string fileExtension);
 
     /**
       @brief Test mode

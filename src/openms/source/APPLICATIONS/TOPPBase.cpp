@@ -275,7 +275,7 @@ namespace OpenMS
           // update default params with outdated params given in -ini and be verbose
           default_params.update(ini_params, false);
         }
-        ParamXMLFile paramFile;
+        ParamXMLFile paramFile{};
         paramFile.store(write_ini_file, default_params);
         return EXECUTION_OK;
       }
@@ -283,21 +283,24 @@ namespace OpenMS
       // '-write_ctd' given
       if (param_cmdline_.exists("write_ctd"))
       {
-        writeToolDescription_<ParamCTDFile>("write_ctd", ".ctd");
+        ParamCTDFile paramFile{};
+        writeToolDescription_(paramFile, "write_ctd", ".ctd");
         return EXECUTION_OK;
       }
 
       // '-write_cwl' given
       if (param_cmdline_.exists("write_cwl"))
       {
-        writeToolDescription_<ParamCWLFile</*FlatHierarchy=*/false>>("write_cwl", ".cwl");
+        ParamCWLFile</*FlatHierarchy=*/false> paramFile{};
+        writeToolDescription_(paramFile, "write_cwl", ".cwl");
         return EXECUTION_OK;
       }
 
       // '-write_flat_cwl' given
       if (param_cmdline_.exists("write_flat_cwl"))
       {
-        writeToolDescription_<ParamCWLFile</*FlatHierarchy=*/true>>("write_flat_cwl", ".cwl");
+        ParamCWLFile</*FlatHierarchy=*/true> paramFile{};
+        writeToolDescription_(paramFile, "write_flat_cwl", ".cwl");
         return EXECUTION_OK;
       }
 
@@ -2335,7 +2338,7 @@ namespace OpenMS
   }
 
   template <typename Writer>
-  void TOPPBase::writeToolDescription_(std::string write_type, std::string fileExtension)
+  void TOPPBase::writeToolDescription_(Writer& writer, std::string write_type, std::string fileExtension)
   {
     //store ini-file content in ini_file_str
     QString out_dir_str = String(param_cmdline_.getValue(write_type).toString()).toQString();
@@ -2363,7 +2366,6 @@ namespace OpenMS
         default_params.setValue(this->ini_location_ + "type", type_list[i]);
 
       std::stringstream ss;
-      Writer paramFile;
 
       // fill program category and docurl
       std::string docurl = getDocumentationURL();
@@ -2392,7 +2394,7 @@ namespace OpenMS
       toolInfo.citations_   = citation_dois;
 
       // this will write the actual data to disk
-      paramFile.store(write_file.toStdString(), default_params, toolInfo);
+      writer.store(write_file.toStdString(), default_params, toolInfo);
     }
   }
 
