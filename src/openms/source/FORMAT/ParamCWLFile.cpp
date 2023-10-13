@@ -30,8 +30,7 @@ static std::string replaceAll(std::string str, const std::string& pattern, const
 
 namespace OpenMS
 {
-  template <bool FlatHierarchy>
-  void ParamCWLFile<FlatHierarchy>::store(const std::string& filename, const Param& param, const ToolInfo& tool_info) const
+  void ParamCWLFile::store(const std::string& filename, const Param& param, const ToolInfo& tool_info) const
   {
     std::ofstream os;
     std::ostream* os_ptr;
@@ -54,8 +53,7 @@ namespace OpenMS
     writeCWLToStream(os_ptr, param, tool_info);
   }
 
-  template <bool FlatHierarchy>
-  void ParamCWLFile<FlatHierarchy>::writeCWLToStream(std::ostream* os_ptr, const Param& param, const ToolInfo& tool_info) const
+  void ParamCWLFile::writeCWLToStream(std::ostream* os_ptr, const Param& param, const ToolInfo& tool_info) const
   {
     std::ostream& os = *os_ptr;
     os.precision(std::numeric_limits<double>::digits10);
@@ -219,7 +217,7 @@ namespace OpenMS
     };
     renameNodes(stack.back(), nullptr, 0);
 
-    if constexpr (FlatHierarchy) {
+    if (flatHierarchy) {
         stack = allChildren;
     }
 
@@ -252,7 +250,7 @@ namespace OpenMS
         }
       }
 
-      if constexpr (FlatHierarchy) {
+      if (flatHierarchy) {
         // replace all ':' with '__'
         name = replaceAll(name, ":", "__");
       } else {
@@ -319,10 +317,4 @@ namespace OpenMS
     };
     os << convertToCWL(tdl_tool_info);
   }
-
-  // explicit instanciation of the ParamCWLFile classes
-  template class ParamCWLFile<true>;
-  template class ParamCWLFile<false>;
-
-
 } // namespace OpenMS

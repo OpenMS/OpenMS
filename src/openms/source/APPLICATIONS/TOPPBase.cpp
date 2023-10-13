@@ -291,7 +291,7 @@ namespace OpenMS
       // '-write_cwl' given
       if (param_cmdline_.exists("write_cwl"))
       {
-        ParamCWLFile</*FlatHierarchy=*/false> paramFile{};
+        ParamCWLFile paramFile{};
         writeToolDescription_(paramFile, "write_cwl", ".cwl");
         return EXECUTION_OK;
       }
@@ -299,7 +299,8 @@ namespace OpenMS
       // '-write_flat_cwl' given
       if (param_cmdline_.exists("write_flat_cwl"))
       {
-        ParamCWLFile</*FlatHierarchy=*/true> paramFile{};
+        ParamCWLFile paramFile{};
+        paramFile.flatHierarchy = true;
         writeToolDescription_(paramFile, "write_flat_cwl", ".cwl");
         return EXECUTION_OK;
       }

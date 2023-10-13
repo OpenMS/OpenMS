@@ -15,15 +15,17 @@ namespace OpenMS
   /**
   @brief Exports .cwl files.
 
-  @param FlatHierarchy If set to true, all parameters will be listed on store without nesting.
-                       The names will be expanded to include the nesting hierarchy.
-
         If Names include ':' it will be replaced with "__";
   */
-  template <bool FlatHierarchy>
   class OPENMS_DLLAPI ParamCWLFile
   {
   public:
+    /**
+       \brief If set to true, all parameters will be listed on store without nesting.
+              The names will be expanded to include the nesting hierarchy.
+     */
+    bool flatHierarchy{};
+
     /**
        @brief Write CWL file
 
@@ -44,9 +46,4 @@ namespace OpenMS
      */
     void writeCWLToStream(std::ostream* os_ptr, const Param& param, const ToolInfo& tool_info) const;
   };
-
-  // Delaying instanciation of the ParamCWLFile classes, so we can write the function bodies into the .cpp file
-  extern template class ParamCWLFile<true>;
-  extern template class ParamCWLFile<false>;
-
 } // namespace OpenMS
