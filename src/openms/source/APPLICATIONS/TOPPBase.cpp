@@ -2349,8 +2349,9 @@ namespace OpenMS
 
     for (Size i = 0; i < type_list.size(); ++i)
     {
-      QString write_ctd_file = out_dir_str + QDir::separator() + tool_name_.toQString() + type_list[i].toQString() + fileExtension.c_str();
-      outputFileWritable_(write_ctd_file, write_type);
+      // check file is writable
+      QString write_file = out_dir_str + QDir::separator() + tool_name_.toQString() + type_list[i].toQString() + fileExtension.c_str();
+      outputFileWritable_(write_file, write_type);
 
       // set type on command line, so that getDefaultParameters_() does not fail (as it calls getSubSectionDefaults() of tool)
       if (!type_list[i].empty())
@@ -2364,6 +2365,7 @@ namespace OpenMS
       std::stringstream ss;
       Writer paramFile;
 
+      // fill program category and docurl
       std::string docurl = getDocumentationURL();
       std::string category;
       if (official_)
@@ -2371,6 +2373,7 @@ namespace OpenMS
         category = ToolHandler::getCategory(tool_name_);
       }
 
+      // collect citation information
       std::vector<std::string> citation_dois;
       citation_dois.reserve(citations_.size() + 1);
       citation_dois.push_back(cite_openms_.doi);
@@ -2379,8 +2382,17 @@ namespace OpenMS
         citation_dois.push_back(citation.doi);
       }
 
-      paramFile.store(write_ctd_file.toStdString(), default_params,
-                      {version_, tool_name_, docurl, category, tool_description_, citation_dois});
+      // fill tool information
+      ToolInfo toolInfo{};
+      toolInfo.version_     = version_;
+      toolInfo.name_        = tool_name_;
+      toolInfo.docurl_      = docurl;
+      toolInfo.category_    = category;
+      toolInfo.description_ = tool_description_;
+      toolInfo.citations_   = citation_dois;
+
+      // this will write the actual data to disk
+      paramFile.store(write_file.toStdString(), default_params, toolInfo);
     }
   }
 
