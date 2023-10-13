@@ -75,6 +75,7 @@ public:
   const TargetedExperiment& getLibrary() const;
 
 protected:
+
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
 
@@ -192,6 +193,7 @@ protected:
   TargetedExperiment library_; ///< accumulated assays for peptides
 
   bool quantify_decoys_;
+  double add_mass_offset_peptides_{0.0}; ///< non-zero if for every feature an additional offset features should be extracted
   bool use_psm_cutoff_;
   double psm_score_cutoff_;
   std::vector<PeptideIdentification> unassignedIDs_;
@@ -262,6 +264,12 @@ protected:
   void filterFeatures_(FeatureMap& features, bool classified);
 
   void calculateFDR_(FeatureMap& features);
+
+  // seeds for untargeted extraction
+  Size addSeeds_(std::vector<PeptideIdentification>& peptides, const FeatureMap& seeds);
+
+  // quant. decoys
+  Size addOffsetPeptides_(std::vector<PeptideIdentification>& peptides, double offset);
 
   /// Chunks an iterator range (allowing advance and distance) into batches of size batch_size.
   /// Last batch might be smaller.
