@@ -7,8 +7,7 @@
 
 #pragma once
 
-#include <string>
-#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/FORMAT/ParamCTDFile.h>
 
 namespace OpenMS
 {
@@ -59,6 +58,12 @@ namespace OpenMS
   {
   public:
     /**
+       \brief If set to true, all parameters will be listed on store without nesting.
+              The names will be expanded to include the nesting hierarchy.
+     */
+    bool flatHierarchy{};
+
+    /**
       @brief Read JSON file that is formatted in CWL conforming style.
 
       @param filename The file from where to read the Param object.
@@ -69,5 +74,15 @@ namespace OpenMS
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     static bool load(const std::string& filename, Param& param);
+
+    /**
+       @brief Write Json file with set values
+       @param filename The name of the file the param data structure should be stored in.
+       @param param The param data structure that should be stored.
+       @param tool_info unused, required for compatiblity with ParamCWLFile
+       @exception std::ios::failure is thrown if the file could not be created
+     */
+    void store(const std::string& filename, const Param& param, const ToolInfo& tool_info) const;
+    void writeToStream(std::ostream* os_ptr, const Param& param) const;
   };
 } // namespace OpenMS

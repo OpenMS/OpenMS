@@ -159,6 +159,8 @@ namespace OpenMS
     registerStringOption_("write_ctd", "<out_dir>", "", "Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>", false, true);
     registerStringOption_("write_cwl", "<out_dir>", "", "Writes the Common Workflow Language file(s) (Toolname(s).cwl) to <out_dir>", false, true);
     registerStringOption_("write_flat_cwl", "<out_dir>", "", "Writes the Common Workflow Language file(s) (Toolname(s).cwl) to <out_dir>, but enforce a flat parameter hierarchy", false, true);
+    registerStringOption_("write_json", "<out_dir>", "", "Writes the default configuration file", false, true);
+    registerStringOption_("write_flat_json", "<out_dir>", "", "Writes the default configuration file", false, true);
     registerFlag_("no_progress", "Disables progress logging to command line", true);
     registerFlag_("force", "Overrides tool-specific checks", true);
     registerFlag_("test", "Enables the test mode (needed for internal use only)", true);
@@ -302,6 +304,23 @@ namespace OpenMS
         ParamCWLFile paramFile{};
         paramFile.flatHierarchy = true;
         writeToolDescription_(paramFile, "write_flat_cwl", ".cwl");
+        return EXECUTION_OK;
+      }
+
+      // '-write_json' given
+      if (param_cmdline_.exists("write_json"))
+      {
+        ParamJSONFile paramFile{};
+        writeToolDescription_(paramFile, "write_json", ".json");
+        return EXECUTION_OK;
+      }
+
+      // '-write_flat_json' given
+      if (param_cmdline_.exists("write_flat_json"))
+      {
+        ParamJSONFile paramFile{};
+        paramFile.flatHierarchy = true;
+        writeToolDescription_(paramFile, "write_flat_json", ".json");
         return EXECUTION_OK;
       }
 
@@ -2034,7 +2053,7 @@ namespace OpenMS
     //parameters
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
-      if (std::unordered_set<std::string>{"ini", "-help", "-helphelp", "instance", "write_ini", "write_ctd", "write_cwl", "write_flat_cwl"}.count(it->name) > 0) // do not store these params in ini file
+      if (std::unordered_set<std::string>{"ini", "-help", "-helphelp", "instance", "write_ini", "write_ctd", "write_cwl", "write_flat_cwl", "write_json", "write_flat_json"}.count(it->name) > 0) // do not store these params in ini file
       {
         continue;
       }

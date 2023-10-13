@@ -140,4 +140,160 @@ namespace OpenMS
     }
     return true;
   }
+
+  void ParamJSONFile::store(const std::string& filename, const Param& param, const ToolInfo&) const
+  {
+    std::ofstream os;
+    std::ostream* os_ptr;
+    if (filename != "-")
+    {
+      os.open(filename.c_str(), std::ofstream::out);
+      if (!os)
+      {
+        // Replace the OpenMS specific exception with a std exception
+        // Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        throw std::ios::failure("Unable to create file: " + filename);
+      }
+      os_ptr = &os;
+    }
+    else
+    {
+      os_ptr = &std::cout;
+    }
+
+    writeToStream(os_ptr, param);
+  }
+
+  void ParamJSONFile::writeToStream(std::ostream* os_ptr, const Param& param) const
+  {
+    std::ostream& os = *os_ptr;
+
+    // discover the name of the first nesting Level
+    // this is expected to result in something like "ToolName:1:"
+    auto traces = param.begin().getTrace();
+    std::string toolNamespace = traces.front().name + ":1:";
+
+    std::vector<tdl::Node> stack;
+    stack.push_back(tdl::Node {});
+
+    json jsonDoc{};
+
+
+    auto param_it = param.begin();
+    for (auto last = param.end(); param_it != last; ++param_it)
+    {
+      for (auto& trace : param_it.getTrace())
+      {
+        if (trace.opened)
+        {
+          stack.push_back(tdl::Node {trace.name, trace.description, {}, tdl::Node::Children {}});
+        }
+        else // these nodes must be closed
+        {
+          auto top = stack.back();
+          stack.pop_back();
+          auto& children = std::get<tdl::Node::Children>(stack.back().value);
+          children.push_back(top);
+        }
+      }
+
+      // converting trags to tdl compatible tags
+      std::set<std::string> tags;
+      for (auto const& t : param_it->tags)
+      {
+        if (t == "input file")
+        {
+          tags.insert("file");
+        }
+        else if (t == "output file")
+        {
+          tags.insert("file");
+          tags.insert("output");
+        }
+        else if (t == "output prefix")
+        {
+          tags.insert("output");
+          tags.insert("prefixed");
+        }
+        else
+        {
+          tags.insert(t);
+        }
+      }
+
+      // Sets a single value into the tdl library
+      auto name = param_it->name;
+      if (stack.size() > 2) {
+        json node{};
+
+        switch (param_it->value.valueType())
+        {
+          case ParamValue::INT_VALUE:
+            node = static_cast<int64_t>(param_it->value);
+            break;
+          case ParamValue::DOUBLE_VALUE:
+            node = static_cast<double>(param_it->value);
+            break;
+          case ParamValue::STRING_VALUE:
+            if ((param_it->valid_strings.size() == 2 && param_it->valid_strings[0] == "true" && param_it->valid_strings[1] == "false")
+               || (param_it->valid_strings.size() == 2 && param_it->valid_strings[0] == "false" && param_it->valid_strings[1] == "true"))
+            {
+                node = param_it->value.toBool();
+            } else {
+                if (tags.count("file")) {
+                    node["class"] = "File";
+                    node["path"] = param_it->value.toString();
+                } else {
+                    node = param_it->value.toString();
+                }
+            }
+            break;
+          case ParamValue::INT_LIST:
+            node = param_it->value.toIntVector();
+            break;
+          case ParamValue::DOUBLE_LIST:
+            node = param_it->value.toDoubleVector();
+            break;
+          case ParamValue::STRING_LIST:
+            if (tags.count("file")) {
+                node["class"] = "File";
+                node["path"] = param_it->value.toStringVector();
+            } else {
+                node = param_it->value.toStringVector();
+            }
+            break;
+          default:
+            break;
+        }
+
+        // Add newly created node to json document
+        if (!flatHierarchy) {
+          // Traverse to the correct node
+          auto* parent = &jsonDoc;
+          for (size_t i{3}; i < stack.size(); ++i) {
+              parent = &(*parent)[stack[i].name];
+          }
+          (*parent)[name] = node;
+        } else {
+          // Expand name to include all namespaces
+          for (size_t i{0}; i < stack.size()-3; ++i) {
+            auto const& e = stack[stack.size()-1-i];
+            name = e.name + "__" + name;
+          }
+          jsonDoc[name] = node;
+        }
+      }
+    }
+
+    while (stack.size() > 1)
+    {
+      auto top = stack.back();
+      stack.pop_back();
+      auto& children = std::get<tdl::Node::Children>(stack.back().value);
+      children.push_back(top);
+    }
+    assert(stack.size() == 1);
+
+    os << jsonDoc.dump(2);
+  }
 } // namespace OpenMS
