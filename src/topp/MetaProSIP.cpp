@@ -64,14 +64,14 @@ typedef vector<IsotopePattern> IsotopePatterns;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_MetaProSIP MetaProSIP
+    @page TOPP_MetaProSIP MetaProSIP
 
     @brief Performs proteinSIP on peptide features for elemental flux analysis.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_MetaProSIP.cli
+    @verbinclude TOPP_MetaProSIP.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_MetaProSIP.html
+    @htmlinclude TOPP_MetaProSIP.html
  */
 
 // We do not want this class to show up in the docu:

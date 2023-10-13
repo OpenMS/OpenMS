@@ -20,15 +20,15 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_OpenMSDatabasesInfo OpenMSDatabasesInfo
+    @page TOPP_OpenMSDatabasesInfo OpenMSDatabasesInfo
 
     @brief Information about OpenMS' internal databases
 
     This util prints the content of OpenMS' enzyme and modification databases to a TSV file.
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_OpenMSDatabasesInfo.cli
+    @verbinclude TOPP_OpenMSDatabasesInfo.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_OpenMSDatabasesInfo.html
+    @htmlinclude TOPP_OpenMSDatabasesInfo.html
  */
 
 // We do not want this class to show up in the docu:

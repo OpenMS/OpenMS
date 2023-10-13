@@ -167,7 +167,7 @@ namespace OpenMS
     QAction* action = help->addAction("OpenMS website", this, SLOT(showURL()));
     action->setData("http://www.OpenMS.de");
     action = help->addAction("TOPPAS tutorial", this, SLOT(showURL()), Qt::Key_F1);
-    action->setData("https://openms.readthedocs.io/en/latest/docs/tutorials/TOPPAS/TOPPAS-tutorial.html");
+    action->setData(String("html/TOPPAS_tutorial.html").toQString());
 
     help->addSeparator();
     help->addAction("&About", this, SLOT(showAboutDialog()));

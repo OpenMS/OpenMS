@@ -30,7 +30,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_TriqlerConverter TriqlerConverter
+    @page TOPP_TriqlerConverter TriqlerConverter
 
     @brief Converter to input for Triqler
 
@@ -39,9 +39,9 @@ using namespace std;
     [1] The, M. & Käll, L. (2019). Integrated identification and quantification error probabilities for shotgun proteomics. Molecular & Cellular Proteomics, 18 (3), 561-570.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_TriqlerConverter.cli
+    @verbinclude TOPP_TriqlerConverter.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_TriqlerConverter.html
+    @htmlinclude TOPP_TriqlerConverter.html
  */
 
 // We do not want this class to show up in the docu:

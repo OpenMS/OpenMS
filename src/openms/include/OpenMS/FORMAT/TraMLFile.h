@@ -28,7 +28,7 @@ namespace OpenMS
 
       In OpenMS, TraML files can be generated from TSV or CSV files using the
       @ref OpenMS::TransitionTSVFile "TransitionTSVFile class" or the @ref
-      UTILS_TargetedFileConverter "TargetedFileConverter TOPP Tool". For more information on the TSV format required by the TOPP tool, see
+      TOPP_TargetedFileConverter "TargetedFileConverter TOPP Tool". For more information on the TSV format required by the TOPP tool, see
       see also the documentation of @ref
       OpenMS::TransitionTSVFile "TransitionTSVFile".
 

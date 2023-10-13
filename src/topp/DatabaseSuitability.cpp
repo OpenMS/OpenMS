@@ -70,7 +70,7 @@ digraph sample_workflow {
 The metric this tool uses to determine the suitability of a database is based on a de novo model. Therefore it is crucial that your workflow is set up the right way. Above you can see an example.@n
 Most importantly the peptide identification search needs to be done with a combination of the database in question and a de novo "database".@n
 To generate the de novo "database":
-      - @ref UTILS_NovorAdapter calculates de novo sequences.
+      - @ref TOPP_NovorAdapter calculates de novo sequences.
       - @ref TOPP_IDFilter can filter out unwanted ones.
       - @ref TOPP_IDFileConverter generates the de novo fasta file.
 

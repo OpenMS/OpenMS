@@ -20,7 +20,7 @@
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_ClusterMassTracesByPrecursor ClusterMassTracesByPrecursor
+  @page TOPP_ClusterMassTracesByPrecursor ClusterMassTracesByPrecursor
 
   @brief Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps.
 
@@ -46,9 +46,9 @@
     If one fragment matches to multiple precursors, it is assigned to all of them. If it doesn't match any, it is assigned to all
   
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_ClusterMassTracesByPrecursor.cli
+  @verbinclude TOPP_ClusterMassTracesByPrecursor.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_ClusterMassTracesByPrecursor.html
+  @htmlinclude TOPP_ClusterMassTracesByPrecursor.html
 
 */
 

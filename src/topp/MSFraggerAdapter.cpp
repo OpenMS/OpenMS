@@ -28,7 +28,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_MSFraggerAdapter MSFraggerAdapter
+    @page TOPP_MSFraggerAdapter MSFraggerAdapter
 
     @brief Peptide Identification with MSFragger
 
@@ -65,9 +65,9 @@ using namespace std;
 
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_MSFraggerAdapter.cli
+    @verbinclude TOPP_MSFraggerAdapter.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_MSFraggerAdapter.html
+    @htmlinclude TOPP_MSFraggerAdapter.html
  */
 
 // We do not want this class to show up in the docu:

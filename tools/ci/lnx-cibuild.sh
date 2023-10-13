@@ -63,7 +63,6 @@ sh -e /etc/init.d/xvfb start
 # add third-party binaries (e.g. search engines) to PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/XTandem:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/MSGFPlus:$PATH
-export PATH=${SOURCE_DIRECTORY}/_thirdparty/Fido:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/Comet:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/Sirius:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/SpectraST:$PATH

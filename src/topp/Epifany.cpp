@@ -33,7 +33,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_Epifany Epifany
+  @page TOPP_Epifany Epifany
 
   @brief EPIFANY - Efficient protein inference for any peptide-protein network is a Bayesian
   protein inference engine. It uses PSM (posterior) probabilities from Percolator, OpenMS' IDPosteriorErrorProbability
@@ -77,9 +77,9 @@ using namespace std;
   </p>
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_Epifany.cli
+  @verbinclude TOPP_Epifany.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_Epifany.html
+  @htmlinclude TOPP_Epifany.html
 
 */
 

@@ -17,7 +17,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_JSONExporter JSONExporter
+  @page TOPP_JSONExporter JSONExporter
 
   @brief Converts .oms (SQLite) files to JSON
 
@@ -38,9 +38,9 @@ using namespace std;
   ...
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_JSONExporter.cli
+  @verbinclude TOPP_JSONExporter.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_JSONExporter.html
+  @htmlinclude TOPP_JSONExporter.html
  */
 
 // We do not want this class to show up in the docu:

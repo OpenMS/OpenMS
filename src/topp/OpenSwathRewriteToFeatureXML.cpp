@@ -20,14 +20,14 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_OpenSwathRewriteToFeatureXML OpenSwathRewriteToFeatureXML
+  @page TOPP_OpenSwathRewriteToFeatureXML OpenSwathRewriteToFeatureXML
 
   @brief Combines featureXML and mProphet tsv to FDR filtered featureXML.
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_OpenSwathRewriteToFeatureXML.cli
+  @verbinclude TOPP_OpenSwathRewriteToFeatureXML.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_OpenSwathRewriteToFeatureXML.html
+  @htmlinclude TOPP_OpenSwathRewriteToFeatureXML.html
 
 */
 

@@ -82,7 +82,7 @@ namespace OpenMS
   Fields indicated with * are strictly required to create a TraML file. Fields
   indicated with ** are recommended, but only required for a specific
   application (such as using the transition list for an analysis tool such as
-  \ref UTILS_OpenSwathWorkflow) or in a specific context (proteomics or metabolomics).
+  \ref TOPP_OpenSwathWorkflow) or in a specific context (proteomics or metabolomics).
 
 <p>
 Remarks:

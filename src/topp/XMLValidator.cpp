@@ -30,7 +30,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_XMLValidator XMLValidator
+    @page TOPP_XMLValidator XMLValidator
 
     @brief Validates XML files against an XSD schema.
 
@@ -44,9 +44,9 @@ using namespace std;
           OpenMS/share/OpenMS/SCHEMAS/
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_XMLValidator.cli
+    @verbinclude TOPP_XMLValidator.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_XMLValidator.html
+    @htmlinclude TOPP_XMLValidator.html
 */
 
 // We do not want this class to show up in the docu:

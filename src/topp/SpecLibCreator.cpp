@@ -28,7 +28,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_SpecLibCreator SpecLibCreator
+  @page TOPP_SpecLibCreator SpecLibCreator
 
     @brief creates with given data a .MSP format spectral library.
 
@@ -38,9 +38,9 @@ using namespace std;
     @experimental This Utility is not well tested and some features might not work as expected.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_SpecLibCreator.cli
+    @verbinclude TOPP_SpecLibCreator.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_SpecLibCreator.html
+    @htmlinclude TOPP_SpecLibCreator.html
 */
 
 // We do not want this class to show up in the docu:

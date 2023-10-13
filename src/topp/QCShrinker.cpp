@@ -30,7 +30,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_QCShrinker QCShrinker
+    @page TOPP_QCShrinker QCShrinker
 
     @brief This application is used to remove extra verbose table attachments from a qcML file that are not needed anymore, e.g. for a final report.
 
@@ -42,7 +42,7 @@ using namespace std;
         <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref UTILS_QCMerger </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_QCMerger </td>
         </tr>
         <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> ... </td>
@@ -59,9 +59,9 @@ using namespace std;
     Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
     
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_QCShrinker.cli
+    @verbinclude TOPP_QCShrinker.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_QCShrinker.html
+    @htmlinclude TOPP_QCShrinker.html
 
 */
 

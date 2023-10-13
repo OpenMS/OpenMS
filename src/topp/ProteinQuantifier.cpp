@@ -19,6 +19,8 @@
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 
+#include <OpenMS/SYSTEM/File.h>
+
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
@@ -81,9 +83,8 @@ using namespace std;
 
     By default only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification. However, this limitation can be overcome: Protein inference results for the whole sample set can be supplied with the @p protein_groups option (or included in a featureXML input). In that case, the peptide-to-protein references from that file are used (rather than those from @p in), and groups of indistinguishable proteins will be quantified. Each reported protein quantity then refers to the total for the respective group.
 
-    In order for everything to work correctly, it is important that the protein inference results come from the same identifications that were used to annotate the quantitative data. To use inference results from ProteinProphet, convert the protXML to idXML using @ref TOPP_IDFileConverter. To use results from Fido, simply run @ref TOPP_FidoAdapter.
-
-
+    In order for everything to work correctly, it is important that the protein inference results come from the same identifications that were used to annotate the quantitative data. We suggest to use the OpenMS tool ProteinInference @TOPP_ProteinInference. 
+    
     More information below the parameter specification.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
@@ -329,7 +330,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML"));
-    registerInputFile_("protein_groups", "<file>", "", "Protein inference results for the identification runs that were used to annotate the input (e.g. from ProteinProphet via IDFileConverter or Fido via FidoAdapter).\nInformation about indistinguishable proteins will be used for protein quantification.", false);
+    registerInputFile_("protein_groups", "<file>", "", "Protein inference results for the identification runs that were used to annotate the input (e.g. via the ProteinInference tool).\nInformation about indistinguishable proteins will be used for protein quantification.", false);
     setValidFormats_("protein_groups", ListUtils::create<String>("idXML"));
 
     registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
@@ -615,23 +616,28 @@ protected:
     }
     out << "# Parameters (relevant only): " + params << endl;
 
-    if (ed.getNumberOfSamples() > 1)
+    if (ed.getNumberOfSamples() > 1 && ed.getNumberOfLabels() == 1)
     {
       String desc = "# Files/samples associated with abundance values below: ";
-      Size counter = 0;
-      for (ConsensusMap::ColumnHeaders::iterator it = columns_headers_.begin();
-           it != columns_headers_.end(); ++it, ++counter)
+
+      const auto& ms_section = ed.getMSFileSection();
+
+      map<String, String> sample_id_to_filename;
+      for (const auto e : ms_section)
       {
-        if (counter > 0)
+        String ed_filename = File::basename(e.path);
+        String ed_label = e.label;
+        String ed_sample = e.sample;
+        sample_id_to_filename[e.sample] = ed_filename; // should be 0,...,n_samples-1
+      }
+
+      for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
+      {
+        if (i > 0)
         {
           desc += ", ";
         }
-        desc += String(counter+1) + ": '" + it->second.filename + "'";
-        String label = it->second.label;
-        if (!label.empty())
-        {
-          desc += " ('" + label + "')";
-        }
+        desc += String(i + 1) + ": '" + sample_id_to_filename[String(i)] + "'";
       }
       out << desc << endl;
     }
@@ -724,6 +730,7 @@ protected:
     }
     else  // no design file provided
     {
+      OPENMS_LOG_INFO << "No design file given. Trying to infer from consensus map." << std::endl;
       return ExperimentalDesign::fromConsensusMap(cm);
     }
   }

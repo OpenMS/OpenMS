@@ -142,16 +142,16 @@ protected:
     Size min_run_occur_;
 
     /// Use feature RT instead of RT from best peptide ID in the feature?
-    bool use_feature_rt_;
+    bool use_feature_rt_{};
 
     /// Consider differently adducted IDs as different?
-    bool use_adducts_;
+    bool use_adducts_{};
 
     /// Minimum score to reach for a peptide to be considered
     double min_score_;
 
     /// Actually use the above defined score_cutoff? Needed since it is hard to define a non-cutting score for a user.
-    bool score_cutoff_;
+    bool score_cutoff_{};
 
     /// Score type to use for filtering
     String score_type_;

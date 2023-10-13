@@ -30,7 +30,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_OpenSwathMzMLFileCacher OpenSwathMzMLFileCacher
+  @page TOPP_OpenSwathMzMLFileCacher OpenSwathMzMLFileCacher
 
   @brief Serialize a spectra and/or chromatogram mzML file
 
@@ -47,9 +47,9 @@ using namespace std;
   @note This tool is experimental!
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_OpenSwathMzMLFileCacher.cli
+  @verbinclude TOPP_OpenSwathMzMLFileCacher.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_OpenSwathMzMLFileCacher.html
+  @htmlinclude TOPP_OpenSwathMzMLFileCacher.html
 */
 
 // We do not want this class to show up in the docu:

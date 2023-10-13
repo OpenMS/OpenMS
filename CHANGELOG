@@ -25,7 +25,10 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 - fix a crash when loading mzML data with multiple threads which contains non-MS spectra, e.g. 'electromagnetic radiation spectrum' (#7011)
 - InternalCalibration: improve visualization of calibration plots (#7064)
 - report reading/writing throughput (MiB/sec) when loading/storing mzML (#7035)
-
+- restore TOPPAS tutorial (#7076)
+- restore developer quick guide in Doxygen docu - see https://openms.de/current_doxygen/html/index.html (#7109)
+- make mzData more robust against wrong 'length' attributes for binary data (#7113) 
+- Updated the changelog helper to set LD_LIBRARY_PATH automatically and other fixes
 
 Cleanup of old/unused tools and code:
 - Removed old tools and associated code in the library for InclusionExclusionListCreator, SvmTheoreticalSpectrumGenerator, PrecursorIonSelector, and MSSimulator

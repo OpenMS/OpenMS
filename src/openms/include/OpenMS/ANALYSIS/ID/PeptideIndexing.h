@@ -30,7 +30,7 @@ namespace OpenMS
   only in decoy proteins, or in both. The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool.
   (For FDR calculations, "target+decoy" peptide hits count as target hits.)
 
-  @note Make sure that your protein names in the database contain a correctly formatted decoy string. This can be ensured by using @ref UTILS_DecoyDatabase.
+  @note Make sure that your protein names in the database contain a correctly formatted decoy string. This can be ensured by using @ref TOPP_DecoyDatabase.
         If the decoy identifier is not recognized successfully, all proteins will be assumed to stem from the target-part of the query.<br>
         E.g., "sw|P33354_DECOY|YEHR_ECOLI Uncharacterized lipop..." is <b>invalid</b>, since the tool has no knowledge of how SwissProt entries are build up.
         A correct identifier could be "DECOY_sw|P33354|YEHR_ECOLI Uncharacterized li ..." or "sw|P33354|YEHR_ECOLI_DECOY Uncharacterized li", depending on whether you are

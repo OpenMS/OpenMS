@@ -9,6 +9,7 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
@@ -648,7 +649,6 @@ namespace OpenMS
     ConsensusMap& consensus, 
     const ExperimentalDesign& ed)
   {
-
     // TODO check that the file section of the experimental design is compatible with what can be parsed from the consensus map.
     updateMembers_(); // clear data
 
@@ -668,6 +668,17 @@ namespace OpenMS
     OPENMS_LOG_DEBUG << "  Fractions       : " << stats_.n_fractions << endl;
     OPENMS_LOG_DEBUG << "  Samples (Assays): " << stats_.n_samples << endl;
 
+   
+    // map filename and label of experimental design to the full experimental design entry for faster lookup
+    const auto& ms_section = ed.getMSFileSection();
+    std::unordered_map<String, ExperimentalDesign::MSFileSectionEntry> fileAndLabel2MSFileSectionEntry;
+    for (const auto e : ms_section)
+    {
+      String ed_filename = FileHandler::stripExtension(File::basename(e.path));
+      String ed_label = e.label;
+      fileAndLabel2MSFileSectionEntry[ed_filename + ed_label] = e;
+    }
+
     for (auto & c : consensus)
     {
       stats_.total_features += c.getFeatures().size();
@@ -683,20 +694,24 @@ namespace OpenMS
       PeptideHit hit = getAnnotation_(c.getPeptideIdentifications());
       for (auto const & f : c.getFeatures())
       {
-        // indices in experimental design are 0-based as the map indices
         //TODO MULTIPLEXED: needs to be adapted for multiplexed experiments
-        //TODO In General, this assumes that the experimental design was generated
-        //  FROM the consensusXML and therefore is in exactly the same order!
-        //  WAY too restrictive!
-        /*
-        const auto& h = consensus.getColumnHeaders().at(row);
-        const String& fn = h.filename;
-        const size_t lab = h.getLabelAsUInt(consensus.getExperimentType());
-         */
         size_t row = f.getMapIndex();
-        size_t fraction = ed.getMSFileSection()[row].fraction;
-        size_t sample = ed.getMSFileSection()[row].sample;
-        quantifyFeature_(f, fraction, sample, hit); // updates "stats_.quant_features"
+        const auto& h = consensus.getColumnHeaders().at(row);
+        const String c_fn = FileHandler::stripExtension(File::basename(h.filename)); // filename according to experimental design in consensus map
+        const size_t c_lab = h.getLabelAsUInt(consensus.getExperimentType());
+
+        // find entry in experimental design (ignore extension and folder) that corresponds to current column header entry
+        if (auto it = fileAndLabel2MSFileSectionEntry.find(c_fn + String(c_lab)); it != fileAndLabel2MSFileSectionEntry.end())
+        {
+          const size_t fraction = it->second.fraction;
+          const size_t sample = it->second.sample;
+          quantifyFeature_(f, fraction, sample, hit); // updates "stats_.quant_features"          
+        }
+        else
+        {
+          OPENMS_LOG_FATAL_ERROR << "File+Label referenced in consensus header not found in experimental design.\n"  
+                                 << "File+Label:" << c_fn << "\t" << c_lab << std::endl;
+        }
       }
     }
     countPeptides_(consensus.getUnassignedPeptideIdentifications());

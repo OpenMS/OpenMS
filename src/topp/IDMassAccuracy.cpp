@@ -33,16 +33,16 @@ using namespace Math;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_IDMassAccuracy IDMassAccuracy
+    @page TOPP_IDMassAccuracy IDMassAccuracy
 
     @brief Calculates a distribution of the mass error from given mass spectra and IDs.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_IDMassAccuracy.cli
+    @verbinclude TOPP_IDMassAccuracy.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_IDMassAccuracy.html
+    @htmlinclude TOPP_IDMassAccuracy.html
 
     Given a number of peak maps and for each of the maps an idXML file which contains
     peptide identifications the theoretical masses of the identifications and the peaks

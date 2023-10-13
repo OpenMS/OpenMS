@@ -38,7 +38,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_NovorAdapter NovorAdapter
+    @page TOPP_NovorAdapter NovorAdapter
 
     @brief Novoradapter for de novo sequencing from tandem mass spectrometry data.
 
@@ -66,9 +66,9 @@ using namespace std;
     Parameter names have been changed to match names found in other search engine adapters. For further information  check the Novor wiki (http://wiki.rapidnovor.com/wiki/Main_Page) and the official tool website (https://www.rapidnovor.com/). 
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_NovorAdapter.cli
+    @verbinclude TOPP_NovorAdapter.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_NovorAdapter.html
+    @htmlinclude TOPP_NovorAdapter.html
 */
 
 // We do not want this class to show up in the docu:

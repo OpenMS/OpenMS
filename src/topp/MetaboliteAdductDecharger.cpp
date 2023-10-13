@@ -24,7 +24,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page UTILS_MetaboliteAdductDecharger MetaboliteAdductDecharger
+   @page TOPP_MetaboliteAdductDecharger MetaboliteAdductDecharger
 
    @brief Decharges a feature map by clustering charge variants of metabolites to zero-charge entities.
 <CENTER>
@@ -58,9 +58,9 @@ using namespace std;
   DOI: 10.1021/pr100177k
 
      <B>The command line parameters of this tool are:</B>
-   @verbinclude UTILS_MetaboliteAdductDecharger.cli
+   @verbinclude TOPP_MetaboliteAdductDecharger.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_MetaboliteAdductDecharger.html
+    @htmlinclude TOPP_MetaboliteAdductDecharger.html
 */
 
 // We do not want this class to show up in the docu:

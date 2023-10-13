@@ -21,6 +21,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
@@ -110,6 +111,7 @@ protected:
   static constexpr double fragment_tol_left = -10.0;
   static constexpr double fragment_tol_right = 10.0;
   const std::string isotope_errors = "-1, 3";
+  const std::string charges_if_not_annotated = "2, 5";
   static constexpr size_t min_matched_peaks = 6;
   static constexpr size_t report_psms = 1;
   static constexpr size_t min_peaks = 15;
@@ -153,6 +155,9 @@ protected:
     ##fragment_tol_right##
     ]
   },
+  "precursor_charge": [
+    ##charges_if_not_annotated##
+  ],
   "isotope_errors": [
     ##isotope_errors##
   ],
@@ -234,6 +239,7 @@ protected:
     config_file.substitute("##fragment_tol_left##", String(getDoubleOption_("fragment_tol_left")));
     config_file.substitute("##fragment_tol_right##", String(getDoubleOption_("fragment_tol_right")));
     config_file.substitute("##isotope_errors##", getStringOption_("isotope_error_range"));
+    config_file.substitute("##charges_if_not_annotated##", getStringOption_("charges"));
     config_file.substitute("##min_matched_peaks##", String(getIntOption_("min_matched_peaks")));
     config_file.substitute("##min_peaks##", String(getIntOption_("min_peaks")));
     config_file.substitute("##max_peaks##", String(getIntOption_("max_peaks")));
@@ -253,7 +259,7 @@ protected:
     {
       enzyme_details = 
    R"("cleave_at": "KR",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": true)";
     }
     else if (enzyme == "Chymotrypsin")
@@ -267,7 +273,7 @@ protected:
     {
       enzyme_details = 
    R"("cleave_at": "FWYL",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": true)";
     }
     else if (enzyme == "Arg-C")
@@ -281,7 +287,7 @@ protected:
     {
       enzyme_details = 
    R"("cleave_at": "R",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": true)";
     }
     else if (enzyme == "Lys-C")
@@ -295,14 +301,14 @@ protected:
     {
       enzyme_details = 
    R"("cleave_at": "K",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": true)";
     }    
     else if (enzyme == "Lys-N")
     {
       enzyme_details = 
    R"("cleave_at": "K",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": false)";
     }
     else if (enzyme == "no cleavage")
@@ -397,6 +403,8 @@ protected:
     registerIntOption_("max_variable_mods", "<int>", max_variable_mods, "Maximum number of variable modifications", false, true);  
     registerStringOption_("isotope_error_range", "<start,end>", isotope_errors, "Range of (C13) isotope errors to consider for precursor."
       "Can be negative. E.g. '-1,3' for considering '-1/0/1/2/3'", false, true);
+    registerStringOption_("charges", "<start,end>", charges_if_not_annotated, "Range of precursor charges to consider if not annotated in the file."
+      , false, true);
 
     //Search Enzyme
     vector<String> all_enzymes;
@@ -452,6 +460,15 @@ protected:
     config_stream << config;
     config_stream.close();
 
+    // keep config file if debug mode is set
+    if (getIntOption_("debug") > 1)
+    {
+      String debug_config_file = output_folder + "/" + File::getUniqueName() + ".json";
+      ofstream debug_config_stream(debug_config_file.c_str());
+      debug_config_stream << config;
+      debug_config_stream.close();     
+    }
+
     QStringList arguments;
     arguments << config_file.toQString() 
               << "-f" << fasta_file.toQString() 
@@ -476,9 +493,9 @@ protected:
     // read the sage output
     OPENMS_LOG_INFO << "Reading sage output..." << std::endl;
     StringList filenames;
-    StringList extra_scores = {"ln(delta_next)", "ln(delta_best)", "matched_peaks", 
-       "longest_b", "longest_y", "longest_y_pct",
-       "ln(matched_intensity_pct)", "scored_candidates", "ln(-poisson)"};
+    StringList extra_scores = {"ln(-poisson)", "ln(delta_best)", "ln(delta_next)", 
+      "ln(matched_intensity_pct)", "longest_b", "longest_y", 
+      "longest_y_pct", "matched_peaks", "scored_candidates"};
     vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load(
       output_folder + "/results.sage.pin",
       true,
@@ -487,6 +504,26 @@ protected:
       filenames,
       decoy_prefix);
 
+    // rename SAGE subscores to have prefix "SAGE:"
+    for (auto& id : peptide_identifications)
+    {
+      auto& hits = id.getHits();
+      for (auto& h : hits)
+      {
+        for (const auto meta : extra_scores)
+        {
+          if (h.metaValueExists(meta))
+          {
+            h.setMetaValue("SAGE:" + meta, h.getMetaValue(meta));
+            h.removeMetaValue(meta);        
+          }          
+        }
+      }
+    }
+
+    // remove hits without charge state assigned or charge outside of default range (fix for downstream bugs). TODO: remove if all charges annotated in sage
+    IDFilter::filterPeptidesByCharge(peptide_identifications, 2, numeric_limits<int>::max());
+    
     if (filenames.empty()) filenames = getStringList_("in");
 
     // TODO: split / merge results and create idXMLs
@@ -515,7 +552,7 @@ protected:
     
     // add extra scores for percolator rescoring
     vector<String> percolator_features = { "score" };
-    for (auto s : extra_scores) percolator_features.push_back(s);
+    for (auto s : extra_scores) percolator_features.push_back("SAGE:" + s);
     search_parameters.setMetaValue("extra_features",  ListUtils::concatenate(percolator_features, ","));
     auto enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
     search_parameters.digestion_enzyme = enzyme; // needed for indexing
@@ -588,15 +625,18 @@ protected:
       ++cnt;
     }
 
-    char* p;
     for (auto& id : peptide_identifications)
     {
-      // check if spectrum reference is a string that just contains an integer
-      long scanNrAsInt = strtol(id.getSpectrumReference().c_str(), &p, 10);
-      if (!*p)
+      Int64 scanNrAsInt = 0;
+      
+      try
+      { // check if spectrum reference is a string that just contains a number        
+        scanNrAsInt = id.getSpectrumReference().toInt64();
+        // no exception -> conversion to int was successful. Now lookup full native ID in corresponding file for given spectrum number.
+        id.setSpectrumReference( file2specnr2nativeid[idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]].at(scanNrAsInt) );                              
+      }
+      catch (...)
       {
-        // lookup full native ID in corresponding file for given spectrum number
-        id.setSpectrumReference( file2specnr2nativeid[idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]].at(scanNrAsInt));
       }
     }
 

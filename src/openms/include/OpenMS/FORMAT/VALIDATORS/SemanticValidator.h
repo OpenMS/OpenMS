@@ -48,11 +48,11 @@ public:
         String accession;
         String name;
         String value;
-        bool has_value;
+        bool has_value{};
         String unit_accession;
-        bool has_unit_accession;
+        bool has_unit_accession{};
         String unit_name;
-        bool has_unit_name;
+        bool has_unit_name{};
       };
 
       /**

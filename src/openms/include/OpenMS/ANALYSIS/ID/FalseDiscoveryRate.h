@@ -34,7 +34,7 @@ namespace OpenMS
 
     Only simple target-decoy FDRs are supported with a formula depending on the "conservative" parameter:
     - false: (D+1)/T.
-    - true: (D+1)/(T+D) [for comparison with protein level FDR in Fido mostly]
+    - true: (D+1)/(T+D) [for comparison with protein level FDR used by other tools like e.g., Fido]
     For protein groups, a group is considered as a target when it contains at least one target protein.
     Group level FDRs assume the same score type as on protein level.
 

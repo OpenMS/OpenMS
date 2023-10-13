@@ -53,7 +53,7 @@ using namespace OpenMS;
   that was found to improve the sensitivity and selectivity for detection
   of typical peptides (Schubert et al., 2015). The tool operates on @ref
   OpenMS::TraMLFile "TraML" files, which can come from @ref
-  UTILS_TargetedFileConverter or any other tool. In a first step, the tool will
+  TOPP_TargetedFileConverter or any other tool. In a first step, the tool will
   annotate all transitions according to the predefined criteria. In a second
   step, the transitions will be filtered to improve sensitivity for detection
   of peptides.

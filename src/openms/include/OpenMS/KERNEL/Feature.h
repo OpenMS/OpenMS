@@ -173,7 +173,7 @@ protected:
     std::vector<ConvexHull2D> convex_hulls_;
 
     /// Flag that indicates if the overall convex hull needs to be recomputed (i.e. mass trace convex hulls were modified)
-    mutable bool convex_hulls_modified_;
+    mutable bool convex_hulls_modified_{};
 
     /// Overall convex hull of the feature
     mutable ConvexHull2D convex_hull_;

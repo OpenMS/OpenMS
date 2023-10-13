@@ -23,7 +23,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_MzMLSplitter MzMLSplitter
+    @page TOPP_MzMLSplitter MzMLSplitter
 
     @brief Splits an mzML file into multiple parts
 
@@ -38,9 +38,9 @@ using namespace std;
     This tool cannot be used as part of a TOPPAS workflow, because the number of output files is variable.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_MzMLSplitter.cli
+    @verbinclude TOPP_MzMLSplitter.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_MzMLSplitter.html
+    @htmlinclude TOPP_MzMLSplitter.html
 */
 
 // We do not want this class to show up in the docu:

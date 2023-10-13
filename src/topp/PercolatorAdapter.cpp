@@ -56,7 +56,7 @@ using namespace std;
             <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_PSMFeatureExtractor </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PSMFeatureExtractor </td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
         </tr>
     </table>
@@ -65,7 +65,7 @@ using namespace std;
 depending on the search engine. Must be prepared beforehand. If you do not want
 to use the specific features, use the generic_feature_set flag. Will incorporate
 the score attribute of a PSM, so be sure, the score you want is set as main
-score with @ref UTILS_IDScoreSwitcher . Be aware, that you might very well
+score with @ref TOPP_IDScoreSwitcher . Be aware, that you might very well
 experience a performance loss compared to the search engine specific features.
 You can also perform protein inference with percolator when you activate the protein fdr parameter.
 Additionally you need to set the enzyme setting.
@@ -1007,6 +1007,7 @@ protected:
       size_t index = 0;
       for (PeptideIdentification& pep_id : all_peptide_ids)
       {
+        String old_score_type{pep_id.getScoreType()}; // copy because we modify the score type below
         index++;
         pep_id.setIdentifier(run_identifier);
         if (scoreType == "pep")
@@ -1038,6 +1039,7 @@ protected:
           map<String, PercolatorResult>::iterator pr = pep_map.find(psm_identifier);
           if (pr != pep_map.end())
           {
+            hit.setMetaValue(old_score_type, hit.getScore());  // old search engine "main" score as metavalue
             hit.setMetaValue("MS:1001492", pr->second.score);  // svm score
             hit.setMetaValue("MS:1001491", pr->second.qvalue);  // percolator q value
             hit.setMetaValue("MS:1001493", pr->second.posterior_error_prob);  // percolator pep
