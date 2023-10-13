@@ -1,0 +1,65 @@
+# Create a minimal conda release
+# 1. before running the action, tag your release e.g. Release5.0.0
+# 2. trigger the workflow manually and enter the release tag
+name: openms-conda-only-release
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events or manually via workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      tagName:
+        description: Enter the tag e.g. Release3.0.0
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Create Release
+      id: create_release
+      uses: Roang-zero1/github-create-release-action@v3
+      with:
+        version_regex: ^Release[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Get Source Archive
+      run: wget ${{ steps.create_release.outputs.upload_url }} -O source.zip
+
+    - name: Calculate Checksum
+      run: echo CHECKSUM=$(shasum -a 256 source.zip | awk '{ print $1 }') >> $GITHUB_ENV
+
+      # TODO
+      # - name: Checkout Bioconda
+      #   uses: actions/checkout@v2
+      #   with:
+      #     repository: bioconda/bioconda-recipes
+      #     token: ${{ secrets.PAT }}
+      #     path: bioconda-recipes
+
+      # - name: Update version, URL and SHA
+      #   run: |
+      #     cd bioconda-recipes/openms-meta
+      #     sed -i 's/old_version/new_version/g' meta.yaml
+      #     sed -i 's/old_SHA/new_SHA/g' meta.yaml
+      #     sed -i 's/old_url/new_url/g' meta.yaml
+
+      # - name: Commit and push changes
+      #   run: |
+      #     git config --global user.email "you@example.com"
+      #     git config --global user.name "Your Name"
+      #     git commit -am "Update version"
+      #     git push
+
+      # - name: Create Pull Request
+      #   uses: peter-evans/create-pull-request@v3
+      #   with:
+      #     token: ${{ secrets.PAT }}
+      #     title: "Update version"
+      #     body: "This PR updates the SHA and URL."
+      #     branch: "update-openms-recipe"
