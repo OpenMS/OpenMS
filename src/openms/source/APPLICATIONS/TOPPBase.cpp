@@ -244,6 +244,10 @@ namespace OpenMS
     ExitCodes result;
     try
     {
+      //-------------------------------------------------------------
+      // store configuration or tool description files
+      //-------------------------------------------------------------
+
       // '-write_ini' given
       if (param_cmdline_.exists("write_ini"))
       {

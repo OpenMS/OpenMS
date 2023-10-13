@@ -45,98 +45,108 @@ namespace OpenMS
     try
     {
       json jsonNode = json::parse(std::ifstream {filename});
-      if (!jsonNode.is_object())
-      {
-        std::string msg = "Ignoring JSON file '" + filename + "' because of unexpected data type. Expecting a dictionary as root type.";
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", msg);
-      }
-      for (const auto& child : jsonNode.items())
-      {
-        auto key = child.key();
-        key = toolNamespace + replaceAll(key, "__", ":"); // This converts __ to ':', but ':' would also be an accepted delimiter
+      auto traverseJSONTree = std::function<void(std::string currentKey, json& node)>{};
+      traverseJSONTree = [&](std::string currentKey, json& node) {
+        if (!node.is_object())
+        {
+          std::string msg = "Ignoring JSON file '" + filename + "' because of unexpected data type. Expecting a dictionary as type.";
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", msg);
+        }
 
-        auto node = child.value();
-        if (node.is_null())
+        for (const auto& child : node.items())
         {
-          continue; // No value given
-        }
-        if (!param.exists(key))
-        {
-          OPENMS_LOG_ERROR << "Parameter " << key << " passed to '" << traces.front().name << "' is invalid. To prevent usage of wrong defaults, please update/fix the parameters!" << std::endl;
-          return false;
-        }
-        auto const& entry = param.getEntry(key);
-        auto value = entry.value;
-        if (entry.value.valueType() == ParamValue::ValueType::STRING_VALUE)
-        {
-          if ((entry.valid_strings.size() == 2 && entry.valid_strings[0] == "true" && entry.valid_strings[1] == "false") ||
-              (entry.valid_strings.size() == 2 && entry.valid_strings[0] == "false" && entry.valid_strings[1] == "true"))
+          auto key = currentKey + replaceAll(child.key(), "__", ":"); // This converts __ to ':', but ':' would also be an accepted delimiter
+
+          auto node = child.value();
+          if (node.is_null())
           {
-            value = node.get<bool>() ? "true" : "false";
+            continue; // No value given
           }
-          else if (entry.tags.count("input file"))
+          // If class member exists with some string, we assume it is a file type annotation
+          if (node.is_object() and (!node.contains("class") or !node["class"].is_string())) {
+            traverseJSONTree(key + ":", node);
+            continue;
+          }
+          if (!param.exists(key))
           {
-            // If this is an input file and 'is_executable' is set. this can be of 'class: File' or 'type: string'
-            if (entry.tags.count("is_executable"))
+            std::string msg = "Parameter " + key + " passed to '" + traces.front().name + "' is invalid. To prevent usage of wrong defaults, please update/fix the parameters!";
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", msg);
+          }
+          auto const& entry = param.getEntry(key);
+          auto value = entry.value;
+          if (entry.value.valueType() == ParamValue::ValueType::STRING_VALUE)
+          {
+            if ((entry.valid_strings.size() == 2 && entry.valid_strings[0] == "true" && entry.valid_strings[1] == "false") ||
+                (entry.valid_strings.size() == 2 && entry.valid_strings[0] == "false" && entry.valid_strings[1] == "true"))
             {
-              if (node.is_object())
+              value = node.get<bool>() ? "true" : "false";
+            }
+            else if (entry.tags.count("input file"))
+            {
+              // If this is an input file and 'is_executable' is set. this can be of 'class: File' or 'type: string'
+              if (entry.tags.count("is_executable"))
+              {
+                if (node.is_object())
+                {
+                  value = node["path"].get<std::string>();
+                }
+                else
+                {
+                  value = node.get<std::string>();
+                }
+              }
+              // Just a normal input file
+              else
               {
                 value = node["path"].get<std::string>();
               }
-              else
-              {
-                value = node.get<std::string>();
-              }
             }
-            // Just a normal input file
             else
             {
-              value = node["path"].get<std::string>();
+              value = node.get<std::string>();
             }
           }
-          else
+          else if (entry.value.valueType() == ParamValue::ValueType::INT_VALUE)
           {
-            value = node.get<std::string>();
+            value = node.get<int64_t>();
           }
-        }
-        else if (entry.value.valueType() == ParamValue::ValueType::INT_VALUE)
-        {
-          value = node.get<int64_t>();
-        }
-        else if (entry.value.valueType() == ParamValue::ValueType::DOUBLE_VALUE)
-        {
-          value = node.get<double>();
-        }
-        else if (entry.value.valueType() == ParamValue::ValueType::STRING_LIST)
-        {
-          if (entry.tags.count("input file"))
+          else if (entry.value.valueType() == ParamValue::ValueType::DOUBLE_VALUE)
           {
-            value = node["path"].get<std::vector<std::string>>();
+            value = node.get<double>();
           }
-          else
+          else if (entry.value.valueType() == ParamValue::ValueType::STRING_LIST)
           {
-            value = node.get<std::vector<std::string>>();
+            if (entry.tags.count("input file"))
+            {
+              value = node["path"].get<std::vector<std::string>>();
+            }
+            else
+            {
+              value = node.get<std::vector<std::string>>();
+            }
           }
+          else if (entry.value.valueType() == ParamValue::ValueType::INT_LIST)
+          {
+            value = node.get<std::vector<int>>();
+          }
+          else if (entry.value.valueType() == ParamValue::ValueType::DOUBLE_LIST)
+          {
+            value = node.get<std::vector<double>>();
+          }
+          else if (entry.value.valueType() == ParamValue::ValueType::EMPTY_VALUE)
+          {
+            // Nothing happens here
+            OPENMS_LOG_WARN << "Ignoring entry '" << key << "' because of unknown type 'EMPTY_VALUE'." << std::endl;
+          }
+          param.setValue(key, value);
         }
-        else if (entry.value.valueType() == ParamValue::ValueType::INT_LIST)
-        {
-          value = node.get<std::vector<int>>();
-        }
-        else if (entry.value.valueType() == ParamValue::ValueType::DOUBLE_LIST)
-        {
-          value = node.get<std::vector<double>>();
-        }
-        else if (entry.value.valueType() == ParamValue::ValueType::EMPTY_VALUE)
-        {
-          // Nothing happens here
-          OPENMS_LOG_WARN << "Ignoring entry '" << key << "' because of unknown type 'EMPTY_VALUE'." << std::endl;
-        }
-        param.setValue(key, value);
-      }
+      };
+      traverseJSONTree(toolNamespace, jsonNode);
     }
     catch (const json::exception& e)
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", e.what());
+      return false;
     }
     return true;
   }
@@ -240,7 +250,7 @@ namespace OpenMS
             {
                 node = param_it->value.toBool();
             } else {
-                if (tags.count("file")) {
+                if (tags.count("file") > 0 && tags.count("output") == 0) {
                     node["class"] = "File";
                     node["path"] = param_it->value.toString();
                 } else {
@@ -255,7 +265,7 @@ namespace OpenMS
             node = param_it->value.toDoubleVector();
             break;
           case ParamValue::STRING_LIST:
-            if (tags.count("file")) {
+            if (tags.count("file") > 0 && tags.count("output") == 0) {
                 node["class"] = "File";
                 node["path"] = param_it->value.toStringVector();
             } else {
