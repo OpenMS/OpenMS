@@ -118,7 +118,7 @@ namespace OpenMS
     defaults_.setMinFloat("add_mass_offset_peptides", 0.0);
 
     // available scores: initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelution,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score
-    // exclude some redundant/uninformative scores:
+    // TODO: evaluate and exclude some redundant/uninformative scores:
     //  - intensity bias introduced by "peak_apices_sum"?
     //  - xx_lda_prelim_score is already a lin. comb. of other scores
     //  - main_var_xx_swath_prelim_score is potentially the same as xx_lda_prelim_score
@@ -418,9 +418,9 @@ namespace OpenMS
     }
 
     // TODO I wonder if the following parameters would be enough.
-    //  In theory we only care for one feature per extracted chromatograms
-    //params.setValue("stop_report_after_feature", 1); // best by quality
-    //params.setValue("TransitionGroupPicker:stop_after_feature", 1); // best by intensity
+    //  In theory we only care for one feature per one set of extracted chromatograms (transition group)
+    //params.setValue("stop_report_after_feature", 1); // best by quality, after scoring
+    //params.setValue("TransitionGroupPicker:stop_after_feature", 1); // best by intensity, after picking, before scoring
     
     params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
                     peak_width_);
