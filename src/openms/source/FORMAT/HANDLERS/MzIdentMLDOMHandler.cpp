@@ -1233,7 +1233,16 @@ namespace OpenMS::Internal
                   else if (XMLString::equals(databasename_param->getTagName(),CONST_XMLCH("userParam")))
                   {
                     pair<String, DataValue> param = parseUserParam_(databasename_param);
-                    dbname = param.second.toString();
+                    // issue #7099: mzID might have missing "value" for this element
+                    // in this case, just use the "name"
+                    if (param.second.isEmpty())
+                    {
+                        dbname = param.first.toString();
+                    }
+                    else
+                    {
+                        dbname = param.second.toString();
+                    }
                   }
                   databasename_param = databasename_param->getNextElementSibling();
                 }
