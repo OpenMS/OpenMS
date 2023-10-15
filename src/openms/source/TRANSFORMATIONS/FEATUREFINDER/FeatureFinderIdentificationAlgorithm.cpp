@@ -433,10 +433,22 @@ namespace OpenMS
     params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected"); // default
 
-    //TransitionGroupPicker:PeakIntegrator:fit_EMG defaults to false (this fitting only affects integration, not scoring)
+    // ======================================================================================================================================
+    // TODO: The following group of parameters probably only have an effect if ElutionModelFitter at the end of FFID
+    //  (in post_process_) is deactivated with 'elution_model = "none"'.
+    //  Otherwise ElutionModelFitter fits a new model (EGH instead of EMG) that takes into account all traces per feature
+    //  at the same time and overwrites intensities. "Old" SWATH intensities might be available in the feature as metavalue
+    //  "raw_intensity" though.
+
+    // Note: this EMG fitting only affects integration, not scoring
+    params.setValue("TransitionGroupPicker:PeakIntegrator:fit_EMG", "false"); // default (= disabled)
+    // Note: Fitting for scoring is controlled via EMGScoring parameter group. Fitting for integration here uses a completely
+    //  different algorithm (EmgGradientDescent class; params not exposed) with gradient descent instead of Eigen::LevenbergMarquardt algorithm (EmgFitter1D class).
+    // TODO: evaluate difference in runtimes and quality of result
     params.setValue("TransitionGroupPicker:PeakIntegrator:integration_type", "intensity_sum"); // default
-    params.setValue("TransitionGroupPicker:background_subtraction", "exact"); // enable
+    params.setValue("TransitionGroupPicker:background_subtraction", "exact"); // enable (default was "none")
     params.setValue("TransitionGroupPicker:PeakIntegrator:baseline_type", "base_to_base"); // default
+    // ======================================================================================================================================
     
     params.setValue("TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages", "false"); // disabled in OpenSWATH
     
