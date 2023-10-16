@@ -14,7 +14,7 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.1.0     (released: under development)    ----
+----                                OpenMS 3.1.0                                      ----
 ------------------------------------------------------------------------------------------
 
 We are excited to share an experimental update with our community, mainly targeted at platforms that depend on Conda packages.
