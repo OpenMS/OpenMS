@@ -7,7 +7,10 @@
 set(executables ${TOPP_TOOLS})
 
 # Tools that can't export proper CWL files
-list(REMOVE_ITEM executables GenericWrapper)
+list(REMOVE_ITEM executables
+  GenericWrapper
+  OpenMSInfo
+)
 
 
 # Create a custom target
@@ -20,9 +23,15 @@ add_custom_command(TARGET generate_cwl_files POST_BUILD
 
 # Walk through all tools and generate a CWL file
 foreach(TOOL ${executables})
+  # Add CWL generation
   add_custom_command(
     TARGET  generate_cwl_files POST_BUILD
     COMMAND ${OPENMS_BINARY_DIR}/${TOOL} -write_cwl ${CMAKE_CURRENT_SOURCE_DIR}/workflow/cwl
   )
+
+  # Add test for cwl
+  add_test(generate_cwl_files_${TOOL} ${OPENMS_BINARY_DIR}/${TOOL} -write_cwl .)
+  add_test(generate_cwl_files_${TOOL}_out ${CMAKE_COMMAND} -E compare_files --ignore-eol ${CMAKE_CURRENT_SOURCE_DIR}/workflow/cwl/${TOOL}.cwl ${TOOL}.cwl)
+  set_tests_properties(generate_cwl_files_${TOOL}_out PROPERTIES DEPENDS generate_cwl_files_${TOOL})
 endforeach()
 
