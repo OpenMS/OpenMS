@@ -672,7 +672,7 @@ namespace OpenMS
     // map filename and label of experimental design to the full experimental design entry for faster lookup
     const auto& ms_section = ed.getMSFileSection();
     std::unordered_map<String, ExperimentalDesign::MSFileSectionEntry> fileAndLabel2MSFileSectionEntry;
-    for (const auto e : ms_section)
+    for (const auto& e : ms_section)
     {
       String ed_filename = FileHandler::stripExtension(File::basename(e.path));
       String ed_label = e.label;
