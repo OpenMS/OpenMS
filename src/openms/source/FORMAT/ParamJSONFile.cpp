@@ -63,7 +63,7 @@ namespace OpenMS
             continue; // No value given
           }
           // If class member exists with some string, we assume it is a file type annotation
-          if (node.is_object() and (!node.contains("class") or !node["class"].is_string())) {
+          if (node.is_object() && (!node.contains("class") || !node["class"].is_string())) {
             traverseJSONTree(key + ":", node);
             continue;
           }

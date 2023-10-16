@@ -272,7 +272,7 @@ namespace OpenMS
                                             return recursiveMarkRemove(child);
                                         }),
                                         children->end());
-         return children->empty() and element.name.empty();
+         return children->empty() && element.name.empty();
       }
       return element.name.empty();
     };
@@ -285,7 +285,7 @@ namespace OpenMS
 
 
     // unroll nested options, until you have some with names
-    while (stack.size() == 1 and stack.back().name.empty() and std::holds_alternative<tdl::Node::Children>(stack.back().value)) {
+    while (stack.size() == 1 && stack.back().name.empty() && std::holds_alternative<tdl::Node::Children>(stack.back().value)) {
         auto v = std::get<tdl::Node::Children>(stack.back().value);
         stack = v;
     }
