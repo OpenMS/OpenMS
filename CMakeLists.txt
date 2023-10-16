@@ -476,6 +476,11 @@ if (ENABLE_PREPARE_KNIME_PACKAGE)
 endif()
 
 #------------------------------------------------------------------------------
+# CWL generation
+#------------------------------------------------------------------------------
+include(${OPENMS_HOST_DIRECTORY}/cmake/cwl_generation.cmake)
+
+#------------------------------------------------------------------------------
 # Handle export of targets and install them
 openms_export_targets()
 install_export_targets()
