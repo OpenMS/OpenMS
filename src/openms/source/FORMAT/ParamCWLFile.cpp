@@ -241,15 +241,6 @@ namespace OpenMS
         name = "";
       }
 
-      // remove options we want to hide //!TODO
-      for (auto namesToIgnore : {"test"})
-      {
-        if (name == namesToIgnore)
-        {
-          name = "";
-        }
-      }
-
       if (flatHierarchy) {
         // replace all ':' with '__'
         name = replaceAll(name, ":", "__");
