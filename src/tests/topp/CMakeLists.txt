@@ -3225,7 +3225,7 @@ set_tests_properties("TOPP_PSMFeatureExtractor_3_out" PROPERTIES DEPENDS "TOPP_P
 
 
 #------------------------------------------------------------------------------
-# TOPP tests with json
+# TOPP tests reading nested json input
 #------------------------------------------------------------------------------
 # MassTraceExtractor test
 add_test("TOPP_MassTraceExtractor_1_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor.ini.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_1_json.tmp.featureXML)
@@ -3236,7 +3236,7 @@ add_test("TOPP_MassTraceExtractor_2_out_json" ${DIFF} -whitelist "id=" -in1 Mass
 set_tests_properties("TOPP_MassTraceExtractor_2_out_json" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_2_json")
 
 #------------------------------------------------------------------------------
-# TOPP tests with flat json
+# TOPP tests reading flat json input
 #------------------------------------------------------------------------------
 # MassTraceExtractor test
 add_test("TOPP_MassTraceExtractor_1_flat_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor.ini.flat.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_1_json.tmp)
