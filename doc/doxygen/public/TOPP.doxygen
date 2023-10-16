@@ -13,7 +13,11 @@
   can be chained to create analysis pipelines tailored for a specific problem.
 
  	The TOPP tools are divided into several subgroups:
+**/
 
+// If you add a new (or update an existing) tool below, make sure to update APPLICATIONS/Toolhandler.cpp as well!
+
+/**
   <b>Graphical Tools</b>
   - @subpage TOPP_TOPPView - A viewer for mass spectrometry data.
   - @subpage TOPP_TOPPAS - An assistant for GUI-driven TOPP workflow design.
@@ -30,26 +34,27 @@
   - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
   - @subpage TOPP_TriqlerConverter - Convert to Triqler input file format.
 
-  --- everything below is TODO
   
   <b>File Filtering / Extraction / Merging</b>
-  - @subpage TOPP_FileFilter - Extracts or manipulates portions of data from peak, feature or consensus feature files.
   - @subpage TOPP_DatabaseFilter - Filter protein databases.
+  - @subpage TOPP_DecoyDatabase - Creates decoy peptide databases from normal ones.
+  - @subpage TOPP_DTAExtractor - Extracts spectra of an MS run file to several files in DTA format. 
+  - @subpage TOPP_FileFilter - Extracts or manipulates portions of data from peak, feature or consensus feature files.
   - @subpage TOPP_FileInfo - Shows basic information about the file, such as data ranges and file type.  
   - @subpage TOPP_FileMerger - Merges several MS files into one file.
   - @subpage TOPP_IDFilter - Filters results from protein or peptide identification engines based on different criteria.
   - @subpage TOPP_IDMerger -  Merges several protein/peptide identification files into one file.  
-  - @subpage TOPP_IDSplitter - Splits protein/peptide identifications off of annotated data files.
-  - @subpage TOPP_MzMLSplitter - Splits an mzML file into multiple parts.
-  - @subpage TOPP_DTAExtractor - Extracts spectra of an MS run file to several files in DTA format. 
   - @subpage TOPP_IDRipper - Splits protein/peptide identifications according their file-origin.
-  - @subpage TOPP_IDFileConverter - Converts identification engine file formats.
+  - @subpage TOPP_IDSplitter - Splits protein/peptide identifications off of annotated data files.
   - @subpage TOPP_MapStatistics - Extract extended statistics on the features of a map for quality control.
+  - @subpage TOPP_MzMLSplitter - Splits an mzML file into multiple parts.
+  
 
   <b>Spectrum processing: Centroiding</b>
   - @subpage TOPP_PeakPickerHiRes - Peak detection in high-resolution profile mass spectra.
   - @subpage TOPP_PeakPickerIterative - Peak detection in high-resolution profile TOF data (based on PeakPickerHiRes with some postprocessing) 
   - @subpage TOPP_PeakPickerWavelet - Peak detection in low-resolution (ion trap) profile mass spectra.
+  
 
   <b>Spectrum processing: peak smoothing / normalization</b>
   - @subpage TOPP_BaselineFilter - Removes the baseline from profile spectra using a top-hat filter.
@@ -66,24 +71,25 @@
   - @subpage TOPP_SpectraFilterThresholdMower - Applies a filter to peak spectra.
   - @subpage TOPP_SpectraFilterWindowMower - Applies a filter to peak spectra.
   
+
   <b>Spectrum processing: Misc / Helpers</b>
+  - @subpage TOPP_MaRaClusterAdapter - Run the spectral clustering implemented in MaRaCluster.
   - @subpage TOPP_Resampler - Transforms an LC-MS map into an equally-spaced (in RT and m/z) map.
   - @subpage TOPP_SpectraMerger - Merges spectra from an LC-MS map, either by precursor or by RT blocks.
-  - @subpage TOPP_MaRaClusterAdapter - Run the spectral clustering implemented in MaRaCluster.
-  
+
   <b>Mass Correction and Calibration</b>
-  - @subpage TOPP_InternalCalibration - Applies an internal mass calibration.
+  - @subpage TOPP_InternalCalibration - Applies an internal mass calibration (using PSMs or fixed masses).
   - @subpage TOPP_ExternalCalibration - Applies an external mass calibration.
   - @subpage TOPP_HighResPrecursorMassCorrector - Correct the precursor entries of tandem MS scans for high resolution data.
-  - @subpage TOPP_PrecursorMassCorrector - Correct the precursor entries of tandem MS scans (low-res only).
-  - @subpage TOPP_TOFCalibration - Applies time of flight mass calibration.
   - @subpage TOPP_IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards.
+  - @subpage TOPP_PrecursorMassCorrector - Correct the precursor m/z entries of tandem MS scans (low-res only).
+  - @subpage TOPP_TOFCalibration - Applies time of flight mass calibration.
 
   <b>Quantitation</b>
   - @subpage TOPP_ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).
-  - @subpage TOPP_MassTraceExtractor - Annotates mass traces in centroided LC-MS maps.
   - @subpage TOPP_Decharger - Decharges and merges different feature charge variants of the same chemical entity.
   - @subpage TOPP_EICExtractor - Quantifies signals at given positions in (raw or picked) LC-MS maps.
+  - @subpage TOPP_ERPairFinder - Evaluates pair ratios on enhanced resolution (ER = zoom) scans.
   - @subpage TOPP_FeatureFinderCentroided - Detects two-dimensional features in centroided LC-MS data.
   - @subpage TOPP_FeatureFinderIdentification - Detects two-dimensional features in MS1 data based on peptide identifications.
   - @subpage TOPP_FeatureFinderIsotopeWavelet - Detects two-dimensional features in uncentroided (=raw) LC-MS data (low-res).
@@ -92,16 +98,16 @@
   - @subpage TOPP_FeatureFinderMRM - Quantifies features LC-MS/MS MRM data.
   - @subpage TOPP_FeatureFinderMultiplex - Identifies peptide multiplets (pairs, triplets etc., e.g. for SILAC or Dimethyl labeling) and determines their relative abundance.
   - @subpage TOPP_IsobaricAnalyzer - Extracts and normalizes TMT and iTRAQ information from an MS experiment.
+  - @subpage TOPP_MassTraceExtractor - Annotates mass traces in centroided LC-MS maps.
+  - @subpage TOPP_MetaboliteAdductDecharger - Decharges and merges different feature charge variants of the same small molecule.
+  - @subpage TOPP_MetaProSIP - Detect labeled peptides from protein-SIP experiments.
+  - @subpage TOPP_MultiplexResolver - Resolves conflicts between identifications and quantifications in multiplex data.
   - @subpage TOPP_ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps.
   - @subpage TOPP_ProteinResolver - A peptide-centric algorithm for protein inference.
-  - @subpage TOPP_SeedListGenerator - Generates seed lists for feature detection.
-  - @subpage TOPP_MetaProSIP - Detect labeled peptides from protein-SIP experiments.
   - @subpage TOPP_ProteomicsLFQ - Perform label-free quantification in a single tool.
-  - @subpage TOPP_ERPairFinder - Evaluates pair ratios on enhanced resolution (ER = zoom) scans.
-  - @subpage TOPP_MetaboliteAdductDecharger - Decharges and merges different feature charge variants of the same small molecule.
-  - @subpage TOPP_MultiplexResolver - Resolves conflicts between identifications and quantifications in multiplex data.
+  - @subpage TOPP_SeedListGenerator - Generates seed lists for feature detection.
 
-  <b>Protein/Peptide Identification (SearchEngines)</b>
+  <b>Identification of Proteins/Peptides (SearchEngines)</b>
   - @subpage TOPP_CometAdapter - Identifies MS/MS spectra using Comet (external).
   - @subpage TOPP_LuciphorAdapter - Scores potential phosphorylation sites in order to localize the most probable sites.
   - @subpage TOPP_MascotAdapter - Identifies MS/MS spectra using Mascot (external).
@@ -109,37 +115,35 @@
   - @subpage TOPP_MSFraggerAdapter - Peptide Identification with MSFragger.
   - @subpage TOPP_MSGFPlusAdapter - Identifies MS/MS spectra using MSGFPlus (external).
   - @subpage TOPP_NovorAdapter - De novo sequencing from tandem mass spectrometry data.
-  - @subpage TOPP_PepNovoAdapter - Identifies MS/MS spectra using PepNovo (external).
-  - @subpage TOPP_SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
+  - @subpage TOPP_SageAdapter - Identifies MS/MS spectra using Sage (external).
   - @subpage TOPP_SimpleSearchEngine - A simple database search engine for annotating MS/MS spectra.
+  - @subpage TOPP_SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
   - @subpage TOPP_SpectraSTSearchAdapter - An interface to the 'SEARCH' mode of the SpectraST program (external, beta).
   - @subpage TOPP_XTandemAdapter - Identifies MS/MS spectra using XTandem (external).
 
 
-  <b>Protein/Peptide Processing</b>
+  <b>Identification Processing</b>
   - @subpage TOPP_ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.
-  - @subpage TOPP_FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
-  - @subpage TOPP_IDConflictResolver - Resolves ambiguous annotations of features with peptide identifications.
-  - @subpage TOPP_IDMapper - Assigns protein/peptide identifications to feature or consensus features.
-  - @subpage TOPP_IDPosteriorErrorProbability - Estimates posterior error probabilities using a mixture model.
-  - @subpage TOPP_DatabaseFilter - Filters a protein database in FASTA format according to one or multiple filtering criteria.
-  - @subpage TOPP_DecoyDatabase - Creates decoy peptide databases from normal ones.
   - @subpage TOPP_Digestor - Digests a protein database in-silico.
   - @subpage TOPP_DigestorMotif - Digests a protein database in-silico (optionally allowing only peptides with a specific motif) and produces statistical data for all peptides.
   - @subpage TOPP_Epifany - Bayesian protein inference based on PSM probabilities.
+  - @subpage TOPP_FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
+  - @subpage TOPP_IDConflictResolver - Resolves ambiguous annotations of features with peptide identifications.
+  - @subpage TOPP_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy. WARNING: This utility is deprecated.
   - @subpage TOPP_IDExtractor - Extracts n peptides randomly or best n from idXML files.
+  - @subpage TOPP_IDMapper - Assigns protein/peptide identifications to feature or consensus features.
   - @subpage TOPP_IDMassAccuracy - Calculates a distribution of the mass error from given mass spectra and IDs.
+  - @subpage TOPP_IDPosteriorErrorProbability - Estimates posterior error probabilities using a mixture model.
   - @subpage TOPP_IDScoreSwitcher - Switches between different scores of peptide or protein hits in identification data.
+  - @subpage TOPP_PeptideIndexer - Refreshes the protein references for all peptide hits.
+  - @subpage TOPP_PercolatorAdapter - Applies the percolator algorithm to protein/peptide identifications.
+  - @subpage TOPP_PhosphoScoring - Scores potential phosphorylation sites in order to localize the most probable sites.
+  - @subpage TOPP_ProteinInference - Infer proteins from a list of (high-confidence) peptides.
   - @subpage TOPP_PSMFeatureExtractor - Creates search engine specific features for PercolatorAdapter input.
   - @subpage TOPP_SequenceCoverageCalculator - Prints information about idXML files.
   - @subpage TOPP_SpecLibCreator - Creates an MSP-formatted spectral library.
   - @subpage TOPP_StaticModification - Allows to attach a set of fixed modifications to an idXML file (MS/MS search results), e.g. to add 15N (N15) labeling post-hoc.
-  - @subpage TOPP_PeptideIndexer - Refreshes the protein references for all peptide hits.
-  - @subpage TOPP_PhosphoScoring - Scores potential phosphorylation sites in order to localize the most probable sites.
-  - @subpage TOPP_ProteinInference - Infer proteins from a list of (high-confidence) peptides.
-  - @subpage TOPP_PercolatorAdapter - Applies the percolator algorithm to protein/peptide identifications.
 
-  -- everything above is TODO!!
 
   <b>Map Alignment</b>
   - @subpage TOPP_MapAlignerIdentification - Corrects RT distortions between maps based on common peptide identifications using one map as reference.
@@ -226,9 +230,5 @@
   - @subpage TOPP_OpenMSDatabasesInfo - prints the content of OpenMS' enzyme and modification databases to a TSV file.
   - @subpage TOPP_SemanticValidator - SemanticValidator for analysisXML and mzML files.
   - @subpage TOPP_XMLValidator - Validates XML files against an XSD schema.
-
-
-  <b>Deprecated</b>
-  - @subpage TOPP_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy. WARNING: This utility is deprecated.
 
 */

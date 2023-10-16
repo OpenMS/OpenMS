@@ -20,40 +20,39 @@ namespace OpenMS
   {
     ToolListType tools_map;
     
-    const auto cat_calibration = "Calibration / Correction";
-    const auto cat_centroiding = "Centroiding";
+    const auto cat_calibration = "Mass Correction and Calibration";
+    const auto cat_centroiding = "Spectrum processing: Centroiding";
     const auto cat_crosslinking = "Cross-Linking";
     const auto cat_dev = "[for Developers]";
     const auto cat_file_converter = "File Converter";
-    const auto cat_file_filter_extract_merge = "File Filtering / Extraction / Merging</b>";
-    const auto cat_ID = "Identification (SearchEngines)";
+    const auto cat_file_filter_extract_merge = "File Filtering / Extraction / Merging";
     const auto cat_ID_MTX = "Metabolite Identification";
-    const auto cat_ID_proc = "ID Processing";
-    const auto cat_map_align = "Map Alignment";
+    const auto cat_ID_proc = "Identification Processing";
+    const auto cat_ID_search = "Identification of Proteins/Peptides (SearchEngines)";
     const auto cat_linking = "Feature Linking";
+    const auto cat_map_align = "Map Alignment";
     const auto cat_misc = "Misc / Helpers";
     const auto cat_QC = "Quality Control";
     const auto cat_quant = "Quantitation";
     const auto cat_rna = "RNA";
-    const auto cat_signal_proc = "Signal processing and preprocessing";
+    const auto cat_signal_proc_misc = "Spectrum processing: Misc / Helpers";
+    const auto cat_signal_proc_smooth_normalize = "Spectrum processing: peak smoothing / normalization";
     const auto cat_targeted = "Targeted Experiments and OpenSWATH";
     const auto cat_topdown = "Top-Down";
-    const auto cat_workflow = "Workflow";
-
 
     tools_map["AccurateMassSearch"] = Internal::ToolDescription("AccurateMassSearch", cat_ID_MTX);
     tools_map["AssayGeneratorMetabo"] = Internal::ToolDescription("AssayGeneratorMetabo", cat_targeted);
-    tools_map["BaselineFilter"] = Internal::ToolDescription("BaselineFilter", cat_signal_proc);
+    tools_map["BaselineFilter"] = Internal::ToolDescription("BaselineFilter", cat_signal_proc_smooth_normalize);
     tools_map["ClusterMassTraces"] = Internal::ToolDescription("ClusterMassTraces", cat_misc);
     tools_map["ClusterMassTracesByPrecursor"] = Internal::ToolDescription("ClusterMassTracesByPrecursor", cat_targeted);
-    tools_map["CometAdapter"] = Internal::ToolDescription("CometAdapter", cat_ID);
+    tools_map["CometAdapter"] = Internal::ToolDescription("CometAdapter", cat_ID_search);
     tools_map["ConsensusID"] = Internal::ToolDescription("ConsensusID", cat_ID_proc);
     tools_map["ConsensusMapNormalizer"] = Internal::ToolDescription("ConsensusMapNormalizer", cat_quant);
     tools_map["CVInspector"] = Internal::ToolDescription("CVInspector", cat_dev);
-    tools_map["DatabaseFilter"] = Internal::ToolDescription("DatabaseFilter", cat_ID_proc);
+    tools_map["DatabaseFilter"] = Internal::ToolDescription("DatabaseFilter", cat_file_filter_extract_merge);
     tools_map["DatabaseSuitability"] = Internal::ToolDescription("DatabaseSuitability", cat_QC);
     tools_map["Decharger"] = Internal::ToolDescription("Decharger", cat_quant);
-    tools_map["DecoyDatabase"] = Internal::ToolDescription("DecoyDatabase", cat_ID_proc);
+    tools_map["DecoyDatabase"] = Internal::ToolDescription("DecoyDatabase", cat_file_filter_extract_merge);
     tools_map["DeMeanderize"] = Internal::ToolDescription("DeMeanderize", cat_misc);
     tools_map["Digestor"] = Internal::ToolDescription("Digestor", cat_ID_proc);
     tools_map["DigestorMotif"] = Internal::ToolDescription("DigestorMotif", cat_ID_proc);
@@ -61,7 +60,7 @@ namespace OpenMS
     tools_map["EICExtractor"] = Internal::ToolDescription("EICExtractor", cat_quant);
     tools_map["Epifany"] = Internal::ToolDescription("Epifany", cat_ID_proc);
     tools_map["ERPairFinder"] = Internal::ToolDescription("ERPairFinder", cat_quant);
-    // tools_map["ExecutePipeline"] = ... below (needs GUI)
+    tools_map["ExecutePipeline"] = Internal::ToolDescription("ExecutePipeline", cat_misc);
     tools_map["ExternalCalibration"] = Internal::ToolDescription("ExternalCalibration", cat_calibration);
     tools_map["FalseDiscoveryRate"] = Internal::ToolDescription("FalseDiscoveryRate", cat_ID_proc);
     tools_map["FeatureFinderCentroided"] = Internal::ToolDescription("FeatureFinderCentroided", cat_quant);
@@ -83,12 +82,12 @@ namespace OpenMS
     tools_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", cat_dev);
     // tools_map["GenericWrapper"] = ... below (extra handling)
     tools_map["GNPSExport"] = Internal::ToolDescription("GNPSExport", cat_file_converter);
-    tools_map["HighResPrecursorMassCorrector"] = Internal::ToolDescription("HighResPrecursorMassCorrector", cat_signal_proc);
+    tools_map["HighResPrecursorMassCorrector"] = Internal::ToolDescription("HighResPrecursorMassCorrector", cat_calibration);
     tools_map["IDConflictResolver"] = Internal::ToolDescription("IDConflictResolver", cat_ID_proc);
     tools_map["IDDecoyProbability"] = Internal::ToolDescription("IDDecoyProbability", cat_ID_proc);
     tools_map["IDExtractor"] = Internal::ToolDescription("IDExtractor", cat_ID_proc);
     tools_map["IDFileConverter"] = Internal::ToolDescription("IDFileConverter", cat_file_converter);
-    tools_map["IDFilter"] = Internal::ToolDescription("IDFilter", cat_ID_proc);
+    tools_map["IDFilter"] = Internal::ToolDescription("IDFilter", cat_file_filter_extract_merge);
     tools_map["IDMapper"] = Internal::ToolDescription("IDMapper", cat_ID_proc);
     tools_map["IDMassAccuracy"] = Internal::ToolDescription("IDMassAccuracy", cat_ID_proc);
     tools_map["IDMerger"] = Internal::ToolDescription("IDMerger", cat_file_filter_extract_merge);
@@ -96,41 +95,40 @@ namespace OpenMS
     tools_map["IDRipper"] = Internal::ToolDescription("IDRipper", cat_file_filter_extract_merge);
     tools_map["IDRTCalibration"] = Internal::ToolDescription("IDRTCalibration", cat_calibration);
     tools_map["IDScoreSwitcher"] = Internal::ToolDescription("IDScoreSwitcher", cat_ID_proc);
-    tools_map["IDSplitter"] = Internal::ToolDescription("IDSplitter", cat_ID_proc);
-    // tools_map["ImageCreator"] =  ... below (needs GUI)
-    // tools_map["INIUpdater"] =  ... below (needs GUI)
-    tools_map["HighResPrecursorMassCorrector"] = Internal::ToolDescription("HighResPrecursorMassCorrector", cat_calibration);
+    tools_map["IDSplitter"] = Internal::ToolDescription("IDSplitter", cat_file_filter_extract_merge);
+    tools_map["ImageCreator"] = Internal::ToolDescription("ImageCreator", cat_misc);
+    tools_map["INIUpdater"] = Internal::ToolDescription("INIUpdater", cat_misc);
     tools_map["InternalCalibration"] = Internal::ToolDescription("InternalCalibration", cat_calibration);
     tools_map["IsobaricAnalyzer"] = Internal::ToolDescription("IsobaricAnalyzer", cat_quant);
     tools_map["JSONExporter"] = Internal::ToolDescription("JSONExporter", cat_dev);
-    tools_map["LuciphorAdapter"] = Internal::ToolDescription("LuciphorAdapter", cat_ID_proc);
+    tools_map["LuciphorAdapter"] = Internal::ToolDescription("LuciphorAdapter", cat_ID_search);
     tools_map["MapAlignerIdentification"] = Internal::ToolDescription("MapAlignerIdentification", cat_map_align);
     tools_map["MapAlignerPoseClustering"] = Internal::ToolDescription("MapAlignerPoseClustering", cat_map_align);
     tools_map["MapAlignerSpectrum"] = Internal::ToolDescription("MapAlignerSpectrum", cat_map_align);
     tools_map["MapAlignerTreeGuided"] = Internal::ToolDescription("MapAlignerTreeGuided", cat_map_align);
-    tools_map["MapNormalizer"] = Internal::ToolDescription("MapNormalizer", cat_signal_proc);
+    tools_map["MapNormalizer"] = Internal::ToolDescription("MapNormalizer", cat_signal_proc_smooth_normalize);
     tools_map["MapRTTransformer"] = Internal::ToolDescription("MapRTTransformer", cat_map_align);
     tools_map["MapStatistics"] = Internal::ToolDescription("MapStatistics", cat_file_filter_extract_merge);
-    tools_map["MaRaClusterAdapter"] = Internal::ToolDescription("MaRaClusterAdapter", cat_ID_proc);
-    tools_map["MascotAdapter"] = Internal::ToolDescription("MascotAdapter", cat_ID);
-    tools_map["MascotAdapterOnline"] = Internal::ToolDescription("MascotAdapterOnline", cat_ID);
+    tools_map["MaRaClusterAdapter"] = Internal::ToolDescription("MaRaClusterAdapter", cat_signal_proc_misc);
+    tools_map["MascotAdapter"] = Internal::ToolDescription("MascotAdapter", cat_ID_search);
+    tools_map["MascotAdapterOnline"] = Internal::ToolDescription("MascotAdapterOnline", cat_ID_search);
     tools_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", cat_misc);
-    tools_map["MassTraceExtractor"] = Internal::ToolDescription("MassTraceExtractor", cat_signal_proc);
+    tools_map["MassTraceExtractor"] = Internal::ToolDescription("MassTraceExtractor", cat_quant);
     tools_map["MetaboliteAdductDecharger"] = Internal::ToolDescription("MetaboliteAdductDecharger", cat_quant);
     tools_map["MetaboliteSpectralMatcher"] = Internal::ToolDescription("MetaboliteSpectralMatcher", cat_ID_MTX);
-    tools_map["MetaProSIP"] = Internal::ToolDescription("MetaProSIP", cat_misc);
+    tools_map["MetaProSIP"] = Internal::ToolDescription("MetaProSIP", cat_quant);
     tools_map["MRMMapper"] = Internal::ToolDescription("MRMMapper", cat_targeted);
     tools_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", cat_targeted);
     tools_map["MRMTransitionGroupPicker"] = Internal::ToolDescription("MRMTransitionGroupPicker", cat_targeted);
-    tools_map["MSFraggerAdapter"] = Internal::ToolDescription("MSFraggerAdapter", cat_ID);
-    tools_map["MSGFPlusAdapter"] = Internal::ToolDescription("MSGFPlusAdapter", cat_ID);
+    tools_map["MSFraggerAdapter"] = Internal::ToolDescription("MSFraggerAdapter", cat_ID_search);
+    tools_map["MSGFPlusAdapter"] = Internal::ToolDescription("MSGFPlusAdapter", cat_ID_search);
     tools_map["MSstatsConverter"] = Internal::ToolDescription("MSstatsConverter", cat_file_converter);
     tools_map["MultiplexResolver"] = Internal::ToolDescription("MultiplexResolver", cat_quant);
     tools_map["MzMLSplitter"] = Internal::ToolDescription("MzMLSplitter", cat_file_filter_extract_merge);
     tools_map["MzTabExporter"] = Internal::ToolDescription("MzTabExporter", cat_file_converter);
-    tools_map["NoiseFilterGaussian"] = Internal::ToolDescription("NoiseFilterGaussian", cat_signal_proc);
-    tools_map["NoiseFilterSGolay"] = Internal::ToolDescription("NoiseFilterSGolay", cat_signal_proc);
-    tools_map["NovorAdapter"] = Internal::ToolDescription("NovorAdapter", cat_ID);
+    tools_map["NoiseFilterGaussian"] = Internal::ToolDescription("NoiseFilterGaussian", cat_signal_proc_smooth_normalize);
+    tools_map["NoiseFilterSGolay"] = Internal::ToolDescription("NoiseFilterSGolay", cat_signal_proc_smooth_normalize);
+    tools_map["NovorAdapter"] = Internal::ToolDescription("NovorAdapter", cat_ID_search);
     tools_map["NucleicAcidSearchEngine"] = Internal::ToolDescription("NucleicAcidSearchEngine", cat_rna);
     tools_map["OpenMSDatabasesInfo"] = Internal::ToolDescription("OpenMSDatabasesInfo", cat_dev);
     tools_map["OpenMSInfo"] = Internal::ToolDescription("OpenMSInfo", cat_misc);
@@ -168,29 +166,30 @@ namespace OpenMS
     tools_map["QCMerger"] = Internal::ToolDescription("QCMerger", cat_QC);
     tools_map["QCShrinker"] = Internal::ToolDescription("QCExporter", cat_QC);
     tools_map["QualityControl"] = Internal::ToolDescription("QualityControl", cat_QC);
+    tools_map["Resampler"] = Internal::ToolDescription("Resampler", cat_signal_proc_misc);
     tools_map["RNADigestor"] = Internal::ToolDescription("RNADigestor", cat_rna);
     tools_map["RNAMassCalculator"] = Internal::ToolDescription("RNAMassCalculator", cat_rna);
     tools_map["RNPxlSearch"] = Internal::ToolDescription("RNPxlSearch", cat_crosslinking);
     tools_map["RNPxlXICFilter"] = Internal::ToolDescription("RNPxlXICFilter", cat_crosslinking);
-    tools_map["SageAdapter"] = Internal::ToolDescription("SageAdapter", cat_ID);
+    tools_map["SageAdapter"] = Internal::ToolDescription("SageAdapter", cat_ID_search);
     tools_map["SeedListGenerator"] = Internal::ToolDescription("SeedListGenerator", cat_quant);
     tools_map["SemanticValidator"] = Internal::ToolDescription("SemanticValidator", cat_dev);
     tools_map["SequenceCoverageCalculator"] = Internal::ToolDescription("SequenceCoverageCalculator", cat_ID_proc);
-    tools_map["SimpleSearchEngine"] = Internal::ToolDescription("SimpleSearchEngine", cat_ID);
+    tools_map["SimpleSearchEngine"] = Internal::ToolDescription("SimpleSearchEngine", cat_ID_search);
     tools_map["SiriusAdapter"] = Internal::ToolDescription("SiriusAdapter", cat_ID_MTX);
     tools_map["SpecLibCreator"] = Internal::ToolDescription("SpecLibCreator", cat_ID_proc);
-    tools_map["SpecLibSearcher"] = Internal::ToolDescription("SpecLibSearcher", cat_ID);
-    tools_map["SpectraFilterBernNorm"] = Internal::ToolDescription("SpectraFilterBernNorm", cat_signal_proc);
-    tools_map["SpectraFilterMarkerMower"] = Internal::ToolDescription("SpectraFilterMarkerMower", cat_signal_proc);
-    tools_map["SpectraFilterNLargest"] = Internal::ToolDescription("SpectraFilterNLargest", cat_signal_proc);
-    tools_map["SpectraFilterNormalizer"] = Internal::ToolDescription("SpectraFilterNormalizer", cat_signal_proc);
-    tools_map["SpectraFilterParentPeakMower"] = Internal::ToolDescription("SpectraFilterParentPeakMower", cat_signal_proc);
-    tools_map["SpectraFilterScaler"] = Internal::ToolDescription("SpectraFilterScaler", cat_signal_proc);
-    tools_map["SpectraFilterSqrtMower"] = Internal::ToolDescription("SpectraFilterSqrtMower", cat_signal_proc);
-    tools_map["SpectraFilterThresholdMower"] = Internal::ToolDescription("SpectraFilterThresholdMower", cat_signal_proc);
-    tools_map["SpectraFilterWindowMower"] = Internal::ToolDescription("SpectraFilterWindowMower", cat_signal_proc);
-    tools_map["SpectraMerger"] = Internal::ToolDescription("SpectraMerger", cat_signal_proc);
-    tools_map["SpectraSTSearchAdapter"] = Internal::ToolDescription("SpectraSTSearchAdapter", cat_ID);
+    tools_map["SpecLibSearcher"] = Internal::ToolDescription("SpecLibSearcher", cat_ID_search);
+    tools_map["SpectraFilterBernNorm"] = Internal::ToolDescription("SpectraFilterBernNorm", cat_signal_proc_smooth_normalize);
+    tools_map["SpectraFilterMarkerMower"] = Internal::ToolDescription("SpectraFilterMarkerMower", cat_signal_proc_smooth_normalize);
+    tools_map["SpectraFilterNLargest"] = Internal::ToolDescription("SpectraFilterNLargest", cat_signal_proc_smooth_normalize);
+    tools_map["SpectraFilterNormalizer"] = Internal::ToolDescription("SpectraFilterNormalizer", cat_signal_proc_smooth_normalize);
+    tools_map["SpectraFilterParentPeakMower"] = Internal::ToolDescription("SpectraFilterParentPeakMower", cat_signal_proc_smooth_normalize);
+    tools_map["SpectraFilterScaler"] = Internal::ToolDescription("SpectraFilterScaler", cat_signal_proc_smooth_normalize);
+    tools_map["SpectraFilterSqrtMower"] = Internal::ToolDescription("SpectraFilterSqrtMower", cat_signal_proc_smooth_normalize);
+    tools_map["SpectraFilterThresholdMower"] = Internal::ToolDescription("SpectraFilterThresholdMower", cat_signal_proc_smooth_normalize);
+    tools_map["SpectraFilterWindowMower"] = Internal::ToolDescription("SpectraFilterWindowMower", cat_signal_proc_smooth_normalize);
+    tools_map["SpectraMerger"] = Internal::ToolDescription("SpectraMerger", cat_signal_proc_misc);
+    tools_map["SpectraSTSearchAdapter"] = Internal::ToolDescription("SpectraSTSearchAdapter", cat_ID_search);
     tools_map["StaticModification"] = Internal::ToolDescription("StaticModification", cat_ID_proc);
     tools_map["TargetedFileConverter"] = Internal::ToolDescription("TargetedFileConverter", cat_file_converter);
     tools_map["TextExporter"] = Internal::ToolDescription("TextExporter", cat_file_converter);
@@ -199,20 +198,21 @@ namespace OpenMS
     tools_map["TriqlerConverter"] = Internal::ToolDescription("TriqlerConverter", cat_file_converter);
     tools_map["XFDR"] = Internal::ToolDescription("XFDR", cat_crosslinking);
     tools_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", cat_dev); 
-    tools_map["XTandemAdapter"] = Internal::ToolDescription("XTandemAdapter", cat_ID);
+    tools_map["XTandemAdapter"] = Internal::ToolDescription("XTandemAdapter", cat_ID_search);
     
     // STOP! insert your tool in alphabetical order for easier maintenance (only tools requiring the GUI lib should be added below)
 
     // ATTENTION: tools requiring the GUI lib
-#ifdef WITH_GUI
-    tools_map["ExecutePipeline"] = Internal::ToolDescription("ExecutePipeline", cat_misc);
-    tools_map["Resampler"] = Internal::ToolDescription("Resampler", cat_signal_proc);
-#endif
-
-    // ATTENTION: tools requiring the GUI lib
-#ifdef WITH_GUI
-    tools_map["ImageCreator"] = Internal::ToolDescription("ImageCreator", cat_misc);
-    tools_map["INIUpdater"] = Internal::ToolDescription("INIUpdater", cat_misc);
+#ifndef WITH_GUI
+    StringList GUI_tools = {
+      "ExecutePipeline",
+      "ImageCreator",
+      "INIUpdater",
+      "Resampler",
+    };
+    std::for_each(GUI_tools.begin(), GUI_tools.end(), [&tools_map](const String& del) {
+      tools_map.erase(del);
+    });
 #endif
 
     // INTERNAL tools
