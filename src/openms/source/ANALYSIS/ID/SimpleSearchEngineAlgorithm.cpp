@@ -47,12 +47,19 @@ using namespace std;
 
 namespace OpenMS
 {
+ /**
+    @brief Default constructor for SimpleSearchEngineAlgorithm.
+    
+    This constructor initializes the various parameters for the search algorithm.
+  */
   SimpleSearchEngineAlgorithm::SimpleSearchEngineAlgorithm() :
     DefaultParamHandler("SimpleSearchEngineAlgorithm"),
     ProgressLogger()
   {
+    // Setting default values for precursor mass and tolerance
     defaults_.setValue("precursor:mass_tolerance", 10.0, "+/- tolerance for precursor mass.");
 
+    // Allowed units for precursor mass tolerance
     std::vector<std::string> precursor_mass_tolerance_unit_valid_strings;
     precursor_mass_tolerance_unit_valid_strings.emplace_back("ppm");
     precursor_mass_tolerance_unit_valid_strings.emplace_back("Da");
@@ -69,6 +76,7 @@ namespace OpenMS
     IntList isotopes = {0, 1};
     defaults_.setValue("precursor:isotopes", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)");
 
+    // Setting fragment mass tolerance and its unit
     defaults_.setValue("fragment:mass_tolerance", 10.0, "Fragment mass tolerance");
 
     std::vector<std::string> fragment_mass_tolerance_unit_valid_strings;
@@ -80,9 +88,11 @@ namespace OpenMS
 
     defaults_.setSectionDescription("fragment", "Fragments (Product Ion) Options");
 
+    // Getting all modifications from the database
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
 
+    // Setting modification parameters
     defaults_.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
     defaults_.setValidStrings("modifications:fixed", ListUtils::create<std::string>(all_mods));
     defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
@@ -90,9 +100,11 @@ namespace OpenMS
     defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
     defaults_.setSectionDescription("modifications", "Modifications Options");
 
+    // Getting all enzymes from the database
     vector<String> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
 
+    // Setting enzyme parameters
     defaults_.setValue("enzyme", "Trypsin", "The enzyme used for peptide digestion.");
     defaults_.setValidStrings("enzyme", ListUtils::create<std::string>(all_enzymes));
 
@@ -123,6 +135,13 @@ namespace OpenMS
     defaultsToParam_();
   }
 
+/**
+    @brief Updates member variables based on the current parameters.
+    
+    This method is responsible for reading the current parameter set and updating 
+    the member variables of the class accordingly. This ensures synchronization 
+    between the parameters and the variables that uses them.
+  */
   void SimpleSearchEngineAlgorithm::updateMembers_()
   {
     precursor_mass_tolerance_ = param_.getValue("precursor:mass_tolerance");
@@ -137,6 +156,7 @@ namespace OpenMS
 
     fragment_mass_tolerance_unit_ = param_.getValue("fragment:mass_tolerance_unit").toString();
 
+    // Extracting fixed modifications and ensuring they are unique
     modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));
     set<String> fixed_unique(modifications_fixed_.begin(), modifications_fixed_.end());
     if (fixed_unique.size() != modifications_fixed_.size())
@@ -162,17 +182,27 @@ namespace OpenMS
     peptide_missed_cleavages_ = param_.getValue("peptide:missed_cleavages");
     peptide_motif_ = param_.getValue("peptide:motif").toString();
 
+    // Setting the maximum number of top hits to be reported per spectrum
     report_top_hits_ = param_.getValue("report:top_hits");
 
     decoys_ = param_.getValue("decoys") == "true";
+    // Extracting the annotations to be added to each PSM
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
   }
 
-  // static
+ /**
+    @brief Pre-processes the input spectra for the search algorithm.
+    
+    This method filters the spectra, removing any peaks with zero intensity.
+    
+    @param exp The PeakMap (i.e., the experimental data) to be preprocessed.
+    @param fragment_mass_tolerance The fragment mass tolerance for the search.
+    @param fragment_mass_tolerance_unit_ppm Flag indicating if the unit of fragment mass tolerance is ppm (true) or Da (false).
+  */ 
+// static
   void SimpleSearchEngineAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
   {
-    // filter MS2 map
-    // remove 0 intensities
+    // Filter the MS2 map to remove peaks with zero intensity.
     ThresholdMower threshold_mower_filter;
     threshold_mower_filter.filterPeakMap(exp);
 
@@ -190,6 +220,7 @@ namespace OpenMS
     filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
     window_mower_filter.setParameters(filter_param);
 
+    // Configure a filter to keep the N largest peaks in each spectrum.
     NLargest nlargest_filter = NLargest(400);
 
 #pragma omp parallel for default(none) shared(exp, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, window_mower_filter, nlargest_filter)
@@ -215,6 +246,12 @@ namespace OpenMS
     }
   }
 
+/**
+      @brief Post-processes the identified peptide hits.
+      
+      This method refines the list of peptide hits by keeping only the top-scoring ones.
+      It also annotates the hits based on various user-defined parameters.
+    */
 void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp, 
       std::vector<std::vector<SimpleSearchEngineAlgorithm::AnnotatedHit_> >& annotated_hits, 
       std::vector<ProteinIdentification>& protein_ids, 
