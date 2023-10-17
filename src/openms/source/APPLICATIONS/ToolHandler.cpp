@@ -40,6 +40,10 @@ namespace OpenMS
     const auto cat_targeted = "Targeted Experiments and OpenSWATH";
     const auto cat_topdown = "Top-Down";
 
+    // STOP and read!
+    // 1) add your tool in alphabetical order!
+    // 2) if you add/change categories, also mirror your changes in doc/doxygen/public/TOPP.doxygen
+
     tools_map["AccurateMassSearch"] = Internal::ToolDescription("AccurateMassSearch", cat_ID_MTX);
     tools_map["AssayGeneratorMetabo"] = Internal::ToolDescription("AssayGeneratorMetabo", cat_targeted);
     tools_map["BaselineFilter"] = Internal::ToolDescription("BaselineFilter", cat_signal_proc_smooth_normalize);
@@ -200,7 +204,7 @@ namespace OpenMS
     tools_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", cat_dev); 
     tools_map["XTandemAdapter"] = Internal::ToolDescription("XTandemAdapter", cat_ID_search);
     
-    // STOP! insert your tool in alphabetical order for easier maintenance (only tools requiring the GUI lib should be added below)
+    // STOP! insert your tool in alphabetical order for easier maintenance (tools requiring the GUI lib should be added below **in addition**)
 
     // ATTENTION: tools requiring the GUI lib
 #ifndef WITH_GUI

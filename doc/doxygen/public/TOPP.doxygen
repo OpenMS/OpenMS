@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer:  $
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow, Timo Sachsenberg $
+// $Authors: Marc Sturm, Chris Bielow, Timo Sachsenberg $
 // --------------------------------------------------------------------------
+
+// If you add a new (or update an existing) tool below, make sure to update 'openms/source/APPLICATIONS/Toolhandler.cpp' as well!
 
 /**
   @page TOPP_documentation TOPP documentation
@@ -13,11 +15,6 @@
   can be chained to create analysis pipelines tailored for a specific problem.
 
  	The TOPP tools are divided into several subgroups:
-**/
-
-// If you add a new (or update an existing) tool below, make sure to update APPLICATIONS/Toolhandler.cpp as well!
-
-/**
   <b>Graphical Tools</b>
   - @subpage TOPP_TOPPView - A viewer for mass spectrometry data.
   - @subpage TOPP_TOPPAS - An assistant for GUI-driven TOPP workflow design.
@@ -218,9 +215,7 @@
   - @subpage TOPP_INIUpdater - Updates INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have change
   - @subpage TOPP_MassCalculator - Calculates masses and mass-to-charge ratios of peptide sequences.
   - @subpage TOPP_MetaProSIP - Performs proteinSIP on peptide features for elemental flux analysis.
-<!-- Documentation missing:
   - @subpage TOPP_OpenMSInfo - Print system information.
--->
   - @subpage TOPP_TICCalculator - Calculates the TIC of a raw mass spectrometric file.
 
   <b>[for developers]</b>
