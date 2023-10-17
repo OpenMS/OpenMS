@@ -5,6 +5,8 @@ set(directory source/VISUAL/APPLICATIONS)
 set(sources_list
 FLASHDeconvWizardBase.cpp
 FLASHDeconvWizardBase.ui
+FLASHQuantWizardBase.cpp
+FLASHQuantWizardBase.ui
 INIFileEditorWindow.cpp
 SwathWizardBase.cpp
 SwathWizardBase.ui

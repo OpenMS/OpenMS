@@ -6,6 +6,7 @@ set(sources_list_h
 DataFilterDialog.h
 FeatureEditDialog.h
 FLASHDeconvTabWidget.h
+FLASHQuantTabWidget.h
 HistogramDialog.h
 LayerStatisticsDialog.h
 ListFilterDialog.h

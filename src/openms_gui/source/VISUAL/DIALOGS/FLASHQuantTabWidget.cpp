@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Jihyung Kim $
@@ -37,6 +11,9 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/DIALOGS/FLASHQuantTabWidget.h>
+#include <OpenMS/VISUAL/DIALOGS/WizardHelper.h>
+#include <ui_FLASHQuantTabWidget.h>
+
 #include <QDesktopServices>
 #include <QMessageBox>
 #include <QProcess>
@@ -45,7 +22,6 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QDir>
 #include <algorithm>
-#include <ui_FLASHQuantTabWidget.h>
 
 using namespace std;
 
@@ -53,27 +29,14 @@ namespace OpenMS
 {
   namespace Internal
   {
-
-    FLASHQuantGUILock::FLASHQuantGUILock(FLASHQuantTabWidget* ftw)
-      :
-      ftw_(ftw),
-      old_(ftw->currentWidget()),
-      glock_(ftw)
-    {
-      ftw->setCurrentWidget(ftw->ui->tab_log);
-    }
-
-    FLASHQuantGUILock::~FLASHQuantGUILock()
-    {
-      ftw_->setCurrentWidget(old_);
-    }
+    template class WizardGUILock<FLASHQuantTabWidget>;
 
     String getFLASHQuantExe()
     {
       return File::findSiblingTOPPExecutable("FLASHQuant");
     }
 
-    QString getFDDefaultOutDir()
+    QString getFQDefaultOutDir()
     {
       auto dir = QDir::homePath().append("/FLASHQuantOut");
       if (!QDir().exists(dir)) QDir().mkpath(dir);
@@ -99,9 +62,9 @@ namespace OpenMS
       connect(ui->input_mzMLs, &InputFileList::updatedCWD, this, &FLASHQuantTabWidget::broadcastNewCWD_);
 
       // param setting
-      setWidgetsfromFDDefaultParam_();
+      setWidgetsfromFQDefaultParam_();
 
-      ui->out_dir->setDirectory(getFDDefaultOutDir());
+      ui->out_dir->setDirectory(getFQDefaultOutDir());
     }
 
     FLASHQuantTabWidget::~FLASHQuantTabWidget()
@@ -109,9 +72,9 @@ namespace OpenMS
       delete ui;
     }
 
-    QString FLASHQuantTabWidget::infileToFDQoutput(const String& infile, const String& extension) const
+    QString FLASHQuantTabWidget::infileToFQoutput(const String& infile, const String& extension) const
     {
-      String file_name = FileHandler::stripExtension(File::basename(infile)) + ".fdq." + extension;
+      String file_name = FileHandler::stripExtension(File::basename(infile)) + ".fq." + extension;
       return getCurrentOutDir_() + "/" + file_name.toQString();
     }
 
@@ -120,17 +83,18 @@ namespace OpenMS
       return ui->input_mzMLs->getFilenames();
     }
 
-    void FLASHQuantTabWidget::on_run_fdq_clicked()
+    void FLASHQuantTabWidget::on_run_fq_clicked()
     {
-      if (!checkFDQInputReady_()) return;
+      if (!checkFQInputReady_())
+        return;
 
-      FLASHQuantGUILock lock(this); // forbid user interaction
+      WizardGUILock lock(this); // forbid user interaction
 
       // get parameter
       updateFLASHQuantParamFromWidgets_();
       updateOutputParamFromWidgets_();
-      Param fd_param;
-      fd_param.insert("FLASHQuant:1:", flashquant_param_);
+      Param fq_param;
+      fq_param.insert("FLASHQuant:1:", flashquant_param_);
 
       String tmp_ini = File::getTemporaryFile();
 
@@ -145,14 +109,14 @@ namespace OpenMS
 
       for (const auto& mzML : in_mzMLs)
       {
-        Param tmp_param = Param(fd_param);
+        Param tmp_param = Param(fq_param);
         ParamXMLFile().store(tmp_ini, tmp_param);
         QStringList full_param_string = QStringList() << "-ini" << tmp_ini.toQString()
-                                               << "-in" << mzML.toQString()
-                                               << "-out" << infileToFDQoutput(mzML, "tsv");
+                                                      << "-in" << mzML.toQString()
+                                                      << "-out" << infileToFQoutput(mzML, "tsv");
         if (featurexml_output_)
         {
-          full_param_string << "-out_feat" << infileToFDQoutput(mzML, "featureXML");
+          full_param_string << "-out_feat" << infileToFQoutput(mzML, "featureXML");
         }
 
         auto r = ep_.run(this,
@@ -240,7 +204,7 @@ namespace OpenMS
       }
     }
 
-    void FLASHQuantTabWidget::setWidgetsfromFDDefaultParam_()
+    void FLASHQuantTabWidget::setWidgetsfromFQDefaultParam_()
     {
       // create a default INI of FLASHQuant
       String tmp_file = File::getTemporaryFile();
@@ -269,7 +233,7 @@ namespace OpenMS
     {
       QString out_dir(ui->out_dir->dirNameValid() ?
         ui->out_dir->getDirectory() :
-        getFDDefaultOutDir());
+        getFQDefaultOutDir());
       return out_dir;
     }
 
@@ -293,7 +257,7 @@ namespace OpenMS
       writeLog_(text.toQString(), color, new_section);
     }
 
-    bool FLASHQuantTabWidget::checkFDQInputReady_()
+    bool FLASHQuantTabWidget::checkFQInputReady_()
     {
       if (ui->input_mzMLs->getFilenames().empty())
       {
@@ -375,13 +339,13 @@ namespace OpenMS
         QStringList fdq_results;
         for (auto &mzml : group)
         {
-          fdq_results.push_back(infileToFDQoutput(mzml, "tsv"));
+          fdq_results.push_back(infileToFQoutput(mzml, "tsv"));
         }
 
         // output file name
-        String tmp_infile = infileToFDQoutput(group[0], "tsv");
+        String tmp_infile = infileToFQoutput(group[0], "tsv");
         String output_prefix = tmp_infile.substr(0, tmp_infile.find(given_prefix));
-        String consensus_path = output_prefix + ".fdq.consensus.tsv";
+        String consensus_path = output_prefix + ".fq.consensus.tsv";
 
         // run
         QStringList params = QStringList() << "-in" << fdq_results << "-out" << consensus_path.toQString();
@@ -403,64 +367,6 @@ namespace OpenMS
       QSignalBlocker blocker1(ui->input_mzMLs);
       ui->input_mzMLs->setCWD(new_cwd);
     }
-
-    /// custom arguments to allow for looping calls
-    struct Args
-    {
-      QStringList loop_arg; ///< list of arguments to insert; one for every loop
-      size_t insert_pos;       ///< where to insert in the target argument list (index is 0-based)
-    };
-    
-    typedef std::vector<Args> ArgLoop;
-
-    /// Allows running an executable with arguments
-    /// Multiple execution in a loop is supported by the ArgLoop argument
-    /// e.g. running 'ls -la .' and 'ls -la ..'
-    /// uses Command("ls", QStringList() << "-la" << "%1", ArgLoop{ Args {QStringList() << "." << "..", 1 } })
-    /// All lists in loop[i].loop_arg should have the same size (i.e. same number of loops)
-    struct Command
-    {
-      String exe;
-      QStringList args;
-      ArgLoop loop;
-
-      Command(const String& e, const QStringList& a, const ArgLoop& l) :
-        exe(e),
-        args(a),
-        loop(l) {}
-
-      /// how many loops can we make according to the ArgLoop provided?
-      /// if ArgLoop is empty, we just do a single invokation
-      size_t getLoopCount() const
-      {
-        if (loop.empty()) return 1;
-        size_t common_size = loop[0].loop_arg.size();
-        for (const auto& l : loop)
-        {
-          if (l.loop_arg.size() != (int)common_size) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. Not all loop arguments support the same number of loops!");
-          if ((int)l.insert_pos >= args.size()) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. Loop argument wants to insert after end of template arguments!");
-        }
-        return common_size;
-      }
-      /// for a given loop, return the substituted arguments
-      /// @p loop_number of 0 is always valid, i.e. no loop args, just use the unmodified args provided
-      QStringList getArgs(const int loop_number) const
-      {
-        if (loop_number >= (int)getLoopCount())
-        {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. The loop number you requested is too high!");
-        }
-        if (loop.empty()) return args; // no looping available
-
-        QStringList arg_l = args;
-        for (const auto& largs : loop) // replace all args for the current round
-        {
-          arg_l[largs.insert_pos] = args[largs.insert_pos].arg(largs.loop_arg[loop_number]);
-        }
-        return arg_l;
-      }
-    };
-
   }   //namespace Internal
 } //namspace OpenMS
 

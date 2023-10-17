@@ -28,6 +28,7 @@ FileFilter
 FileInfo
 FileMerger
 FLASHDeconv
+FLASHQuant
 GenericWrapper
 GNPSExport
 HighResPrecursorMassCorrector

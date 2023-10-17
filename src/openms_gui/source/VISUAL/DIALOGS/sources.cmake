@@ -9,6 +9,8 @@ FeatureEditDialog.cpp
 FeatureEditDialog.ui
 FLASHDeconvTabWidget.cpp
 FLASHDeconvTabWidget.ui
+FLASHQuantTabWidget.cpp
+FLASHQuantTabWidget.ui
 HistogramDialog.cpp
 LayerStatisticsDialog.cpp
 LayerStatisticsDialog.ui

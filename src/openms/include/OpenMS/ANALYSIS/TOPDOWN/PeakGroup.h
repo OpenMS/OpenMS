@@ -117,9 +117,6 @@ namespace OpenMS
     /// set monoisotopic mass
     void setMonoisotopicMass(double mono_mass);
 
-    /// set monoisotopic mass
-    void setMonoisotopicMass(double mono_mass);
-
     /// set Q score - for FLASHIda log file parsing
     void setQscore(double qscore);
 
