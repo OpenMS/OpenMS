@@ -301,6 +301,7 @@ jobs:
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         yum install -y jq
+        yum install xerces-c
         cmake --version
 
         mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
