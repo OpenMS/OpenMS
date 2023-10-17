@@ -32,7 +32,7 @@ using namespace std;
 // Doxygen docu
 //-------------------------------------------------------------
 /**
-  @page TOPP_FLASHDeconv TOPP_FLASHDeconv
+  @page TOPP_FLASHDeconv FLASHDeconv
 
   @brief FLASHDeconv performs ultrafast deconvolution of top down proteomics MS datasets.
   FLASHDeconv takes mzML file as input and outputs deconvolved feature list (.tsv) and
