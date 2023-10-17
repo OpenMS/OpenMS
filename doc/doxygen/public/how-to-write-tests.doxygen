@@ -84,7 +84,7 @@
 
   @subsection building_tests Building tests
 
-  In order to build the tests, execute build the all target. Depending on the build system you generated this target can have different names, e.g., <code>make all</code> for Makefiles and <code>ALL_BUILD</code> for Visual Studio. This will build the TOPP tools, UTILS and all unit tests. Building the TOPP tools alone is not sufficient (you need <code>FuzzyDiff</code> - a UTIL to run the tests).
+  In order to build the tests, execute build the all target. Depending on the build system you generated this target can have different names, e.g., <code>make all</code> for Makefiles and <code>ALL_BUILD</code> for Visual Studio. This will build the TOPP tools and all unit tests. Building the TOPP tools alone is not sufficient (you need <code>FuzzyDiff</code> - a UTIL to run the tests).
 
   @subsection running_tests Running tests
 

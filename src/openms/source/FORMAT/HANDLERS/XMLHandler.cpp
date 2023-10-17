@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -80,8 +54,7 @@ namespace OpenMS::Internal
     {
     }
 
-    XMLHandler::~XMLHandler()
-    = default;
+    XMLHandler::~XMLHandler() = default;
 
     void XMLHandler::reset()
     {
@@ -104,70 +77,73 @@ namespace OpenMS::Internal
 
     void XMLHandler::fatalError(ActionMode mode, const String & msg, UInt line, UInt column) const
     {
+      String error_message;
       if (mode == LOAD)
       {
-        error_message_ =  String("While loading '") + file_ + "': " + msg;
+        error_message =  String("While loading '") + file_ + "': " + msg;
 	      // test if file has the wrong extension and is therefore passed to the wrong parser
         // only makes sense if we are loading/parsing a file
 	      FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
         FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
         if (ft_name != ft_content)
         {
-          error_message_ += String("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
+          error_message += String("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
                           + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
                           + "Rename the file to fix this.";
         }
       }
       else if (mode == STORE)
       {
-        error_message_ =  String("While storing '") + file_ + "': " + msg;
+        error_message =  String("While storing '") + file_ + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
-        error_message_ += String("( in line ") + line + " column " + column + ")";
+        error_message += String("( in line ") + line + " column " + column + ")";
       }
 
-      OPENMS_LOG_FATAL_ERROR << error_message_ << std::endl;
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, error_message_);
+      OPENMS_LOG_FATAL_ERROR << error_message << std::endl;
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, error_message);
     }
 
     void XMLHandler::error(ActionMode mode, const String & msg, UInt line, UInt column) const
     {
+      String error_message;
       if (mode == LOAD)
       {
-        error_message_ =  String("Non-fatal error while loading '") + file_ + "': " + msg;
+        error_message =  String("Non-fatal error while loading '") + file_ + "': " + msg;
       }
       else if (mode == STORE)
       {
-        error_message_ =  String("Non-fatal error while storing '") + file_ + "': " + msg;
+        error_message =  String("Non-fatal error while storing '") + file_ + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
-        error_message_ += String("( in line ") + line + " column " + column + ")";
+        error_message += String("( in line ") + line + " column " + column + ")";
       }
-      OPENMS_LOG_ERROR << error_message_ << std::endl;
+      OPENMS_LOG_ERROR << error_message << std::endl;
     }
 
     void XMLHandler::warning(ActionMode mode, const String & msg, UInt line, UInt column) const
     {
+      String error_message;
       if (mode == LOAD)
       {
-        error_message_ =  String("While loading '") + file_ + "': " + msg;
+        error_message =  String("While loading '") + file_ + "': " + msg;
       }
       else if (mode == STORE)
       {
-        error_message_ =  String("While storing '") + file_ + "': " + msg;
+        error_message =  String("While storing '") + file_ + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
-        error_message_ += String("( in line ") + line + " column " + column + ")";
+        error_message += String("( in line ") + line + " column " + column + ")";
       }
 
 // warn only in Debug mode but suppress warnings in release mode (more happy users)
 #ifdef OPENMS_ASSERTIONS
-      OPENMS_LOG_WARN << error_message_ << std::endl;
+      OPENMS_LOG_WARN << error_message << std::endl;
 #else
-      OPENMS_LOG_DEBUG << error_message_ << std::endl;
+      OPENMS_LOG_DEBUG << error_message << std::endl;
 #endif
 
     }
@@ -186,11 +162,6 @@ namespace OpenMS::Internal
 
     void XMLHandler::writeTo(std::ostream & /*os*/)
     {
-    }
-
-    String XMLHandler::errorString()
-    {
-      return error_message_;
     }
 
     SignedSize XMLHandler::cvStringToEnum_(const Size section, const String & term, const char * message, const SignedSize result_on_error)

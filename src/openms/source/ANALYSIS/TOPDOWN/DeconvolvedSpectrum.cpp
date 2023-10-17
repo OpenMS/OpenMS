@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Kyowon Jeong, Jihyung Kim $
@@ -40,11 +14,11 @@ namespace OpenMS
   {
   }
 
-  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge, double tol, bool retain_undeconvolved)
+  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge, uint min_ms_level, double tol, bool retain_undeconvolved)
   {
     auto out_spec = MSSpectrum(spec_);
     out_spec.clear(false);
-    if ((spec_.getMSLevel() > 1 && precursor_peak_group_.empty()) || empty())
+    if ((spec_.getMSLevel() > min_ms_level && precursor_peak_group_.empty()) || empty())
     {
       return out_spec;
     }
@@ -52,8 +26,17 @@ namespace OpenMS
     std::unordered_set<double> deconvolved_mzs;
     std::stringstream val {};
 
-    val << "tol=" << tol << ";massoffset=" << std::to_string(charge_mass_offset) << ";chargemass=" << std::to_string(FLASHDeconvHelperStructs::getChargeMass(peak_groups_[0].isPositive()))
-        << ";peaks=";
+    val << "tol=" << tol << ";massoffset=" << std::to_string(charge_mass_offset) << ";chargemass=" << std::to_string(FLASHDeconvHelperStructs::getChargeMass(peak_groups_[0].isPositive()));
+    if (!precursor_peak_group_.empty())
+    {
+      val << ";precursorscan=" << precursor_scan_number_ << ";precursormass=" << std::to_string(precursor_peak_group_.getMonoMass());
+    }
+    else
+    {
+      val << ";precursorscan=0;precursormass=0";
+    }
+
+    val << ";peaks=";
     for (auto& pg : *this)
     {
       if (pg.empty())
@@ -80,6 +63,46 @@ namespace OpenMS
         }
       }
     }
+
+    val << "cos=";
+    for (auto& pg : *this)
+    {
+      if (pg.empty())
+      {
+        continue;
+      }
+      val << pg.getIsotopeCosine() << ",";
+    }
+
+    val << ";snr=";
+    for (auto& pg : *this)
+    {
+      if (pg.empty())
+      {
+        continue;
+      }
+      val << pg.getSNR() << ",";
+    }
+
+    val << ";qscore=";
+    for (auto& pg : *this)
+    {
+      if (pg.empty())
+      {
+        continue;
+      }
+      val << pg.getQscore() << ",";
+    }
+
+    val << ";qvalue=";
+    for (auto& pg : *this)
+    {
+      if (pg.empty())
+      {
+        continue;
+      }
+      val << pg.getQvalue() << ",";
+    }
     out_spec.setMetaValue("DeconvMassInfo", val.str());
 
     if (retain_undeconvolved)
@@ -94,12 +117,13 @@ namespace OpenMS
       }
     }
     out_spec.sortByPosition();
-    if (!precursor_peak_group_.empty() && !precursor_peak_.empty())
+    if (!precursor_peak_group_.empty())
     {
-      Precursor precursor(spec_.getPrecursors()[0]);
+      Precursor precursor(precursor_peak_);
       precursor.setCharge(to_charge);
       precursor.setMZ(precursor_peak_group_.getMonoMass() + charge_mass_offset);
       precursor.setIntensity(precursor_peak_group_.getIntensity());
+
       out_spec.getPrecursors().clear();
       out_spec.getPrecursors().emplace_back(precursor);
     }
@@ -111,12 +135,8 @@ namespace OpenMS
     return spec_;
   }
 
-  const PeakGroup& DeconvolvedSpectrum::getPrecursorPeakGroup() const
+  PeakGroup& DeconvolvedSpectrum::getPrecursorPeakGroup()
   {
-    if (precursor_peak_group_.empty())
-    {
-      return *(new PeakGroup());
-    }
     return precursor_peak_group_;
   }
 
@@ -269,13 +289,8 @@ namespace OpenMS
     std::sort(peak_groups_.begin(), peak_groups_.end());
   }
 
-  void DeconvolvedSpectrum::sortByQScore()
+  void DeconvolvedSpectrum::sortByQscore()
   {
-    std::sort(peak_groups_.begin(), peak_groups_.end(), [](const PeakGroup& p1, const PeakGroup& p2) { return p1.getQScore() > p2.getQScore(); });
+    std::sort(peak_groups_.begin(), peak_groups_.end(), [](const PeakGroup& p1, const PeakGroup& p2) { return p1.getQscore() > p2.getQscore(); });
   }
-
-  void DeconvolvedSpectrum::setPrecursorQvalue(float q, PeakGroup::DummyIndex flag)
-  {
-    precursor_peak_group_.setQvalue(q, flag);
-  }
-}
+} // namespace OpenMS

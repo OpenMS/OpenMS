@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -65,32 +39,32 @@ END_SECTION
 START_SECTION((bool operator==(const CVTerm &rhs) const ))
 {
 	CVTerm term1, term2;
-	TEST_EQUAL(term1 == term2, true)
+	TEST_TRUE(term1 == term2)
 	
 	term1.setAccession("acc");
 	TEST_EQUAL(term1 == term2, false)
 	term2.setAccession("acc");
-	TEST_EQUAL(term1 == term2, true)
+	TEST_TRUE(term1 == term2)
 
 	term1.setName("name");
 	TEST_EQUAL(term1 == term2, false)
 	term2.setName("name");
-	TEST_EQUAL(term1 == term2, true)
+	TEST_TRUE(term1 == term2)
 
 	term1.setCVIdentifierRef("cv_id_ref");
 	TEST_EQUAL(term1 == term2, false)
 	term2.setCVIdentifierRef("cv_id_ref");
-	TEST_EQUAL(term1 == term2, true)
+	TEST_TRUE(term1 == term2)
 
 	term1.setValue(DataValue(0.4));
 	TEST_EQUAL(term1 == term2, false)
 	term2.setValue(DataValue(0.4));
-	TEST_EQUAL(term1 == term2, true)
+	TEST_TRUE(term1 == term2)
 
 	term1.setUnit(CVTerm::Unit("u_acc", "u_name", "u_cv_ref"));
 	TEST_EQUAL(term1 == term2, false)
 	term2.setUnit(CVTerm::Unit("u_acc", "u_name", "u_cv_ref"));
-	TEST_EQUAL(term1 == term2, true)
+	TEST_TRUE(term1 == term2)
 }
 END_SECTION
 
@@ -100,27 +74,27 @@ START_SECTION((bool operator!=(const CVTerm &rhs) const ))
   TEST_EQUAL(term1 != term2, false)
 
   term1.setAccession("acc");
-  TEST_EQUAL(term1 != term2, true)
+  TEST_FALSE(term1 == term2)
   term2.setAccession("acc");
   TEST_EQUAL(term1 != term2, false)
 
   term1.setName("name");
-  TEST_EQUAL(term1 != term2, true)
+  TEST_FALSE(term1 == term2)
   term2.setName("name");
   TEST_EQUAL(term1 != term2, false)
 
   term1.setCVIdentifierRef("cv_id_ref");
-  TEST_EQUAL(term1 != term2, true)
+  TEST_FALSE(term1 == term2)
   term2.setCVIdentifierRef("cv_id_ref");
   TEST_EQUAL(term1 != term2, false)
 
   term1.setValue(DataValue(0.4));
-  TEST_EQUAL(term1 != term2, true)
+  TEST_FALSE(term1 == term2)
   term2.setValue(DataValue(0.4));
   TEST_EQUAL(term1 != term2, false)
 
   term1.setUnit(CVTerm::Unit("u_acc", "u_name", "u_cv_ref"));
-  TEST_EQUAL(term1 != term2, true)
+  TEST_FALSE(term1 == term2)
   term2.setUnit(CVTerm::Unit("u_acc", "u_name", "u_cv_ref"));
   TEST_EQUAL(term1 != term2, false)
 }
@@ -263,32 +237,32 @@ END_SECTION
 START_SECTION((CVTerm& operator=(const CVTerm &rhs)))
 {
   CVTerm term1, term2;
-  TEST_EQUAL(term1 == term2, true)
+  TEST_TRUE(term1 == term2)
   
   term1.setAccession("acc");
   TEST_EQUAL(term1 == term2, false)
 	term2 = term1;
-  TEST_EQUAL(term1 == term2, true)
+  TEST_TRUE(term1 == term2)
   
   term1.setName("name");
   TEST_EQUAL(term1 == term2, false)
 	term2 = term1;
-  TEST_EQUAL(term1 == term2, true)
+  TEST_TRUE(term1 == term2)
   
   term1.setCVIdentifierRef("cv_id_ref");
   TEST_EQUAL(term1 == term2, false)
 	term2 = term1;
-  TEST_EQUAL(term1 == term2, true)
+  TEST_TRUE(term1 == term2)
   
   term1.setValue(DataValue(0.4));
   TEST_EQUAL(term1 == term2, false)
 	term2 = term1;
-  TEST_EQUAL(term1 == term2, true)
+  TEST_TRUE(term1 == term2)
   
   term1.setUnit(CVTerm::Unit("u_acc", "u_name", "u_cv_ref"));
   TEST_EQUAL(term1 == term2, false)
 	term2 = term1;
-  TEST_EQUAL(term1 == term2, true)
+  TEST_TRUE(term1 == term2)
 }
 END_SECTION
 
@@ -353,8 +327,8 @@ START_SECTION(([CVTerm::Unit] bool operator==(const Unit &rhs) const ))
   CVTerm::Unit nu2("ACCESSION", "p_name2", "p_cv_ref");
   CVTerm::Unit nu3("ACCESSION", "p_name", "p_cv_ref2");
 
-  TEST_EQUAL(u==cu, true)
-  TEST_EQUAL(u==u, true)
+  TEST_TRUE(u == cu)
+  TEST_TRUE(u == u)
   TEST_EQUAL(u==nu, false)
   TEST_EQUAL(u==nu2, false)
   TEST_EQUAL(u==nu3, false)
@@ -372,10 +346,10 @@ START_SECTION(([CVTerm::Unit] bool operator!=(const Unit &rhs) const ))
 
   TEST_EQUAL(u!=cu, false)
   TEST_EQUAL(u!=u, false)
-  TEST_EQUAL(u!=nu, true)
-  TEST_EQUAL(u!=nu2, true)
-  TEST_EQUAL(u!=nu3, true)
-  TEST_EQUAL(cu!=nu, true)
+  TEST_FALSE(u == nu)
+  TEST_FALSE(u == nu2)
+  TEST_FALSE(u == nu3)
+  TEST_FALSE(cu == nu)
 }
 END_SECTION
 

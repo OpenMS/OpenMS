@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -1514,12 +1488,12 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     {
       const Param::ParamNode* node = stack_.back();
 
-      //cout << "############ operator++ #### " << node->name << " ## " << current_ <<endl;
+      //std::cout << "############ operator++ #### " << node->name << " ## " << current_ << std::endl;
 
       //check if there is a next entry in the current node
       if (current_ + 1 < (int)node->entries.size())
       {
-        //cout << " - next entry" <<endl;
+        //std::cout << " - next entry" << std::endl;
         ++current_;
         return *this;
       }
@@ -1528,7 +1502,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       {
         current_ = -1;
         stack_.push_back(&(node->nodes[0]));
-        //cout << " - entering into: " << node->nodes[0].name <<endl;
+        //std::cout << " - entering into: " << node->nodes[0].name << std::endl;
         //track changes (enter a node)
         trace_.emplace_back(node->nodes[0].name, node->nodes[0].description, true);
 
@@ -1542,21 +1516,28 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
         {
           const Param::ParamNode* last = node;
           stack_.pop_back();
-          //cout << " - stack size: " << stack_.size() << endl;
+          //std::cout << " - stack size: " << stack_.size() << std::endl;
           //we have reached the end
           if (stack_.empty())
           {
-            //cout << " - reached the end" << endl;
+            //std::cout << " - reached the end" << std::endl;
             root_ = nullptr;
             return *this;
           }
           node = stack_.back();
 
-          //cout << " - last was: " << last->name << endl;
-          //cout << " - descended to: " << node->name << endl;
+          //std::cout << " - last was: " << last->name << std::endl;
+          //std::cout << " - descended to: " << node->name << std::endl;
 
           //track changes (leave a node)
-          trace_.emplace_back(last->name, last->description, false);
+          if (!trace_.empty() && trace_.back().name == last->name && trace_.back().opened) // was empty subnode
+          {
+            trace_.pop_back();
+          }
+          else
+          {
+            trace_.emplace_back(last->name, last->description, false);
+          }
 
           //check of new subtree is accessible
           unsigned int next_index = (last - &(node->nodes[0])) + 1;

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Veit $
@@ -173,17 +147,19 @@ public:
       }
 
       text = "<font color=\"" + color_.name() + "\">" + text + "</font>";
-      QTextDocument td;
-      td.setHtml(text);
 
       // draw html text
-      painter.save();
-      double w = td.size().width();
-      double h = td.size().height();
-      painter.translate(position_widget.x() - w / 2, position_widget.y() - h / 2);
-      td.drawContents(&painter);
-      painter.restore();
-
+      {
+        QTextDocument td;
+        td.setHtml(text);
+        painter.save();
+        double w = td.size().width();
+        double h = td.size().height();
+        painter.translate(position_widget.x() - w / 2, position_widget.y() - h / 2);
+        td.drawContents(&painter);
+        painter.restore();
+      }
+      
       if (selected_)
       {
         drawBoundingBox_(painter);
@@ -242,15 +218,18 @@ public:
       // add new fragment annotation
       QString peak_anno = this->getText().trimmed();
 
-      // regular expression for a charge at the end of the annotation
-      QRegExp reg_exp(R"(([\+|\-]\d+)$)");
-
       // check for newlines in the label and only continue with the first line for charge determination
-      QStringList lines = peak_anno.split(QRegExp("[\r\n]"), QString::SkipEmptyParts);
+      peak_anno.remove('\r');
+      QStringList lines = peak_anno.split('\n');
+      // TODO: replace with 'peak_anno.split('\n',  Qt::SkipEmptyParts), which is only supported in Qt 5.14 and above: CONTRIB_UPDATE_Qt_5.14
+      lines.removeAll({}); // remove empty strings
       if (lines.size() > 1)
       {
         peak_anno = lines[0];
       }
+
+      // regular expression for a charge at the end of the annotation
+      QRegExp reg_exp(R"(([\+|\-]\d+)$)");
 
       // read charge and text from annotation item string
       // we support two notations for the charge suffix: '+2' or '++'

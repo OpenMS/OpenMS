@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -128,10 +102,10 @@ END_SECTION
 
 START_SECTION(bool operator==(const IsotopeDistribution &isotope_distribution) const)
   IsotopeDistribution iso1, iso2;
-  TEST_EQUAL(iso1 == iso2, true)
+  TEST_TRUE(iso1 == iso2)
   IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11))),
     iso4(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
-  TEST_EQUAL(iso3 == iso4, true)
+  TEST_TRUE(iso3 == iso4)
 
   IsotopeDistribution iso5(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11, true))),
     iso6(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
@@ -145,7 +119,7 @@ START_SECTION(void set(const ContainerType &distribution))
   IsotopeDistribution::ContainerType container = iso1.getContainer();
   iso2.set(container);
   TEST_EQUAL(iso1.getContainer() == iso2.getContainer(), true)
-  TEST_EQUAL(iso1 == iso2, true)
+  TEST_TRUE(iso1 == iso2)
 END_SECTION
 
 START_SECTION(const ContainerType& getContainer() const)
@@ -242,7 +216,7 @@ START_SECTION(bool operator!=(const IsotopeDistribution &isotope_distribution) c
   IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11))),
                       iso4(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
   TEST_EQUAL(iso3 != iso4, false)
-  TEST_EQUAL(iso2 != iso3, true)
+  TEST_FALSE(iso2 == iso3)
 END_SECTION
 
 START_SECTION(Iterator begin())

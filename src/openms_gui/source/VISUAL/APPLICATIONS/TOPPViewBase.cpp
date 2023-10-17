@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -103,8 +77,6 @@ namespace OpenMS
 {
   using namespace Internal;
   using namespace Math;
-
-  const String TOPPViewBase::CAPTION_3D_SUFFIX_ = " (3D)";
 
   const std::string user_section = "preferences:user:";
 
@@ -583,7 +555,7 @@ namespace OpenMS
     vector<ProteinIdentification> proteins;
     String annotate_path;
 
-    LayerDataBase::DataType data_type;
+    LayerDataBase::DataType data_type(LayerDataBase::DT_UNKNOWN);
 
     ODExperimentSharedPtrType on_disc_peaks(new OnDiscMSExperiment);
 
@@ -734,11 +706,23 @@ namespace OpenMS
         OPENMS_LOG_INFO << "INFO: done loading all " << std::endl;
 
         // a mzML file may contain both, chromatogram and peak data
-        // -> this is handled in PlotCanvas::addPeakLayer
-        data_type = LayerDataBase::DT_CHROMATOGRAM;
-        if (peak_map_sptr->containsScanOfLevel(1))
+        // -> this is handled in PlotCanvas::addPeakLayer FIXME: No it's not!
+        if (peak_map_sptr->getNrSpectra() > 0 && peak_map_sptr->getNrChromatograms() > 0)
+        {
+          OPENMS_LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
+          data_type = LayerDataBase::DT_PEAK;
+        }
+        else if (peak_map_sptr->getNrChromatograms() > 0)
+        {
+          data_type = LayerDataBase::DT_CHROMATOGRAM;
+        }
+        else if (peak_map_sptr->getNrSpectra() > 0)
         {
           data_type = LayerDataBase::DT_PEAK;
+        }
+        else
+        {
+          throw Exception::FileEmpty(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MzML filed doesn't have either spectra or chromatograms.");
         }
       }
     }
@@ -1392,6 +1376,7 @@ namespace OpenMS
   void TOPPViewBase::showPlotWidgetInWindow(PlotWidget* sw)
   {
     ws_.addSubWindow(sw);
+
     connect(sw->canvas(), &PlotCanvas::preferencesChange, this, &TOPPViewBase::updateLayerBar);
     connect(sw->canvas(), &PlotCanvas::layerActivated, this, &TOPPViewBase::layerActivated);
     connect(sw->canvas(), &PlotCanvas::layerModficationChange, this, &TOPPViewBase::updateLayerBar);
@@ -1572,7 +1557,7 @@ namespace OpenMS
     {
       cerr << "Unable to load INI File: '" << filename << "'" << endl;
     }
-    // Scan for tools/utils if scan_mode is set to FORCE_SCAN or if the tool/util params could not be added for whatever reason
+    // Scan for tools if scan_mode is set to FORCE_SCAN or if the tool/util params could not be added for whatever reason
     if (!tool_params_added && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
     {
       tool_scanner_.loadToolParams();
@@ -1621,11 +1606,6 @@ namespace OpenMS
 
   QStringList TOPPViewBase::chooseFilesDialog_(const String& path_overwrite)
   {
-    // store active sub window
-    // TODO Why is this done? And why only here?
-    QMdiSubWindow* old_active = ws_.currentSubWindow();
-    RAIICleanup clean([&]() { ws_.setActiveSubWindow(old_active); });
-
     QString open_path = current_path_.toQString();
     if (!path_overwrite.empty())
     {
@@ -1746,7 +1726,7 @@ namespace OpenMS
       auto visitor_data = topp_.visible_area_only
                           ? layer.storeVisibleData(getActiveCanvas()->getVisibleArea().getAreaUnit(), layer.filters)
                           : layer.storeFullData();
-      visitor_data->saveToFile(topp_.file_name, ProgressLogger::GUI);
+      visitor_data->saveToFile(topp_.file_name + "_in", ProgressLogger::GUI);
     }
 
     // compose argument list
@@ -2008,13 +1988,6 @@ namespace OpenMS
       return;
     }
 
-    String caption = layer.getName();
-    // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
-    if (caption.hasSuffix(CAPTION_3D_SUFFIX_))
-    {
-      caption = caption.prefix(caption.rfind(CAPTION_3D_SUFFIX_));
-    }
-    w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
     showPlotWidgetInWindow(w);
     updateMenu();
   }
@@ -2190,9 +2163,6 @@ namespace OpenMS
       w->canvas()->setVisibleArea(getActiveCanvas()->getVisibleArea());
     }
 
-    // set layer name
-    String caption = layer.getName() + CAPTION_3D_SUFFIX_;
-    w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
     showPlotWidgetInWindow(w);
 
     // set intensity mode (after spectrum has been added!)
@@ -2450,10 +2420,14 @@ namespace OpenMS
         if (data->hasUrls())
         {
           QList<QUrl> urls = data->urls();
-          for (QList<QUrl>::const_iterator it = urls.begin(); it != urls.end(); ++it)
-          {
-            addDataFile(it->toLocalFile(), false, true, "", new_id);
-          }
+          // use a QTimer for external sources to make the source (e.g. Windows Explorer responsive again)
+          // Using a QueuedConnection for the DragEvent does not solve the problem (Qt 5.15) -- see previous (reverted) commit
+          QTimer::singleShot(50, [this, urls, new_id]() {
+            for (const QUrl& url : urls)
+            {
+              addDataFile(url.toLocalFile(), false, true, "", new_id);
+            }
+          });
         }
       }
     }

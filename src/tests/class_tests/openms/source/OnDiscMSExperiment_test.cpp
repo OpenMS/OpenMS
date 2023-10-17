@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -89,9 +63,9 @@ START_SECTION((bool operator== (const OnDiscMSExperiment& rhs) const))
   OnDiscPeakMap same; same.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   OnDiscPeakMap failed; failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
 
-  TEST_EQUAL(tmp==same, true);
+  TEST_TRUE(tmp == same);
   TEST_EQUAL(tmp2==same, false);
-  TEST_EQUAL(tmp2==tmp2, true);
+  TEST_TRUE(tmp2 == tmp2);
   TEST_EQUAL((*tmp.getExperimentalSettings())==(*same.getExperimentalSettings()), true);
   TEST_EQUAL(tmp==failed, false);
 }
@@ -105,8 +79,8 @@ START_SECTION((bool operator!= (const OnDiscMSExperiment& rhs) const))
   OnDiscPeakMap failed; failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
 
   TEST_EQUAL(tmp!=same, false);
-  TEST_EQUAL(tmp2!=same, true);
-  TEST_EQUAL(tmp!=failed, true);
+  TEST_FALSE(tmp2 == same);
+  TEST_FALSE(tmp == failed);
 }
 END_SECTION
 
@@ -198,7 +172,7 @@ START_SECTION((boost::shared_ptr<const ExperimentalSettings> getExperimentalSett
   TEST_EQUAL(settings->getInstrument().getMassAnalyzers().size(), 1)
 
   settings = tmp2.getExperimentalSettings();
-  TEST_EQUAL(settings == nullptr, true)
+  TEST_TRUE(settings == nullptr)
 }
 END_SECTION
 

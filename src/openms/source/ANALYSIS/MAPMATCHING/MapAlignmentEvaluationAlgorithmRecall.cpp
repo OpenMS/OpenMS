@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -65,16 +39,6 @@ namespace OpenMS
     std::vector<Size> m;                //holds the denominators of the sum
     std::vector<Size> gt;               //holds the denominators of the sum
 
-    Size gt_subtend_tilde_tool_i = 0;       //filling material for the vectors
-    Size m_i = 0;
-    Size gt_i = 0;              //size  of the actual consensus feature of the GT
-
-    Size cons_tool_size = 0;        //size  of the actual consensus feature of the tool_subtend_tilde_tool
-    Size gt_i_subtend_tool_j = 0;       //size of the intersection of the actual cons. feat. of the tool with the c.f. of GT
-
-    double recall = 0;      //holds the output
-    double sum = 0;         //intermediate step: the sum
-
     //loop over all consensus features of the ground truth
     for (Size i = 0; i < cons_map_gt.size(); ++i)     //N = cons_map_gt.size()
     {
@@ -82,16 +46,16 @@ namespace OpenMS
       ConsensusFeature & gt_elem = cons_map_gt[i];
 
       //for every i = 1, ..., N:
-      gt_subtend_tilde_tool_i = 0;
-      m_i = 0;
-      gt_i = 0;
+      Size gt_subtend_tilde_tool_i = 0; // holds the numerators of the sum
+      Size m_i = 0;
+      Size gt_i = 0; // size  of the actual consensus feature of the GT
 
       //loop over all consensus features of the tool's consensus map
       for (Size j = 0; j < cons_map_tool.size(); ++j)
       {
         ConsensusFeature & tool_elem = cons_map_tool[j];
-        gt_i_subtend_tool_j = 0;
-        cons_tool_size = cons_map_tool[j].size();
+        Size gt_i_subtend_tool_j = 0;                    //size of the intersection of the actual cons. feat. of the tool with the c.f. of GT
+        Size cons_tool_size = cons_map_tool[j].size();   //size  of the actual consensus feature of the tool_subtend_tilde_tool
 
         //loop over all features in the ith consensus feature of the gt
         for (HandleIterator gt_it = gt_elem.begin(); gt_it != gt_elem.end(); ++gt_it)
@@ -121,6 +85,8 @@ namespace OpenMS
       gt.push_back(gt_i / cons_map_tool.size());
 
     }
+
+    double sum = 0;    // intermediate step: the sum
     for (Size k = 0; k < gt_subtend_tilde_tool.size(); ++k)
     {
       double fraction = 0;
@@ -131,7 +97,7 @@ namespace OpenMS
       }
       sum += fraction;
     }
-    recall = (1.0 / double(cons_map_gt.size())) * sum;
+    double recall = (1.0 / double(cons_map_gt.size())) * sum;
     out = recall;
   }
 

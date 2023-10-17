@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -108,12 +82,12 @@ END_SECTION
 
 START_SECTION((bool operator==(const AreaIterator &rhs) const))
 	AI a1, a2;
-	TEST_EQUAL(a1==a1, true)
-	TEST_EQUAL(a2==a2, true)
-	TEST_EQUAL(a1==a2, true)
+	TEST_TRUE(a1 == a1)
+	TEST_TRUE(a2 == a2)
+	TEST_TRUE(a1 == a2)
 	
 	AI a3(AIP(exp.begin(),exp.RTBegin(0), exp.RTEnd(10), 1).lowMZ(500).highMZ(600));
-	TEST_EQUAL(a3==a3, true)
+	TEST_TRUE(a3 == a3)
 	TEST_EQUAL(a1==a3, false)
 	TEST_EQUAL(a2==a3, false)
 END_SECTION
@@ -126,8 +100,8 @@ START_SECTION((bool operator!=(const AreaIterator &rhs) const))
 	
 	AI a3(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(10), 1).lowMZ(500).highMZ(600));
 	TEST_EQUAL(a3!=a3, false)
-	TEST_EQUAL(a1!=a3, true)
-	TEST_EQUAL(a2!=a3, true)
+	TEST_FALSE(a1 == a3)
+	TEST_FALSE(a2 == a3)
 END_SECTION
 
 START_SECTION((AreaIterator(const AreaIterator &rhs)))
@@ -136,12 +110,12 @@ START_SECTION((AreaIterator(const AreaIterator &rhs)))
 
 	AI a3(a2);
 	TEST_EQUAL(a3==a1, false)
-	TEST_EQUAL(a3==a2, true)
+	TEST_TRUE(a3 == a2)
 	
   // copy-constructor on end-Iterator is undefined, so the following
   // operation is invalid
   // AI a4(a1);
-  // TEST_EQUAL(a4==a1, true)
+  // TEST_TRUE(a4 == a1)
   // TEST_EQUAL(a4==a2, false)
 END_SECTION
 
@@ -150,11 +124,11 @@ START_SECTION((AreaIterator& operator=(const AreaIterator &rhs)))
   AI a3(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(10), 1).lowMZ(500).highMZ(600));
 
 	a2 = a3;
-	TEST_EQUAL(a2==a3, true)
+	TEST_TRUE(a2 == a3)
 	TEST_EQUAL(a2==a1, false)
 	
 	a2 = a1;
-	TEST_EQUAL(a2==a1, true)
+	TEST_TRUE(a2 == a1)
 	TEST_EQUAL(a2==a3, false)
 END_SECTION
 

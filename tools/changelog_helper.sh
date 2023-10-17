@@ -3,7 +3,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -39,7 +39,6 @@
 #
 # - Discontinued tools
 # - New tools
-# - Tools with changed status (TOPP <-> UTIL)
 # - Parameter changes from generated INI files
 #
 # Worked for me on MacOS comparing release 2.0 (built from source) vs.
@@ -55,7 +54,7 @@ then
     exit 1
 fi
 
-# directories containing TOPP/UTILS binaries
+# directories containing TOPP binaries
 BIN_DIR_OLD=$1
 BIN_DIR_NEW=$2
 
@@ -74,7 +73,7 @@ TMP_FILE_COMM=${TMP_DIR}/common_tools.txt
 ls -la ${BIN_DIR_OLD}/ \
     | awk '{print $9}' \
     | sort \
-    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper\|SwathWizard\|Testing" \
+    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper\|SwathWizard\|FLASHDeconvWizard\|Testing" \
     | grep -v -e "\.$" \
     | grep -v -e "^$" \
     > ${TMP_FILE_OLD}
@@ -82,7 +81,7 @@ ls -la ${BIN_DIR_OLD}/ \
 ls -la ${BIN_DIR_NEW}/ \
     | awk '{print $9}' \
     | sort \
-    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper\|SwathWizard\|Testing" \
+    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper\|SwathWizard\|FLASHDeconvWizard\|Testing" \
     | grep -v -e "\.$" \
     | grep -v -e "^$"  \
     > ${TMP_FILE_NEW}
@@ -106,13 +105,12 @@ do
         | while read i
         do
             TOOL_NAME=$(echo $i | sed -E "s/^. //")
-            TOOL_DESCR=$(${BIN_DIR}/${TOOL_NAME} --help 2>&1 | grep " -- " | head -n 1 | sed -E 's/.* -- (.*)$/\1/' | sed -E 's/\.$//')
-            TOOL_STATUS=$(${BIN_DIR}/${TOOL_NAME} --help 2>&1 | grep -e "Common.*options" | sed -E 's/.*Common (.*) options.*/\1/')
+            TOOL_DESCR=$(LD_LIBRARY_PATH=${BIN_DIR}/../lib:${LD_LIBRARY_PATH} ${BIN_DIR}/${TOOL_NAME} --help 2>&1 | grep " -- " | head -n 1 | sed -E 's/.* -- (.*)$/\1/' | sed -E 's/\.$//')
             if [[ ${TOOL_DESCR} != "" ]]
             then
-                echo "  - ${TOOL_NAME} -- ${TOOL_DESCR} (${TOOL_STATUS})"
+                echo "  - ${TOOL_NAME} -- ${TOOL_DESCR}"
             else
-                echo "  - ${TOOL_NAME} (${TOOL_STATUS})"
+                echo "  - ${TOOL_NAME}"
             fi
 
 
@@ -122,20 +120,6 @@ done
 
 # store names of tools present in both old and new release in tmp file
 comm -12 ${TMP_FILE_OLD} ${TMP_FILE_NEW} > ${TMP_FILE_COMM}
-
-# find tools with changed status (TOPP / UTIL)
-echo
-echo "- STATUS CHANGED:"
-echo
-cat ${TMP_FILE_COMM} | while read t
-do
-    OLD_STATUS=$(${BIN_DIR_OLD}/$t --help 2>&1 | grep -e "Common.*options" | sed -E 's/.*Common (.*) options.*/\1/')
-    NEW_STATUS=$(${BIN_DIR_NEW}/$t --help 2>&1 | grep -e "Common.*options" | sed -E 's/.*Common (.*) options.*/\1/')
-    if [[ ${OLD_STATUS} != ${NEW_STATUS} ]]
-    then
-        echo "$t (${OLD_STATUS} -> ${NEW_STATUS})"
-    fi
-done
 
 # print changed parameters as tab-separated table
 echo
@@ -162,10 +146,11 @@ do
         # reset subsection prefix
         p=
         # generate pseudo ini file
-        ${BIN_DIR}/$t -write_ini - \
+        LD_LIBRARY_PATH=${BIN_DIR}/../lib:${LD_LIBRARY_PATH} ${BIN_DIR}/$t -write_ini - \
             | grep -v "name=\"version\"" \
             | sed -E 's/description="[^"]*"|required="[^"]*"|advanced="[^"]*"//g' \
             | sed -E 's/restrictions="[^"]*pyrophospho[^"]*"/ restrictions="..."/' \
+            | sed -E 's/tags="is_executable"//g' \
             | while read l
             do
                 # new NODE -> append subsection to prefix p

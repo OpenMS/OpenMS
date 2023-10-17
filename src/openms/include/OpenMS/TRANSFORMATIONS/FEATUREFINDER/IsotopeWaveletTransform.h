@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -1591,11 +1565,10 @@ protected:
       return;
     }
 
-    Int c_index = max_extension;
     Int first_index = box.begin()->second.RT_index;
     for (Int i = 1; i < max_extension; ++i)
     {
-      c_index = first_index - i;
+      Int c_index = first_index - i;
       if (c_index < 0)
       {
         break;
@@ -1727,14 +1700,13 @@ protected:
     typename Box::iterator box_iter;
     UInt best_charge_index; double best_charge_score, c_mz, c_RT; UInt c_charge;
     double av_intens = 0, av_ref_intens = 0, av_score = 0, av_mz = 0, av_RT = 0, mz_cutoff, sum_of_ref_intenses_g;
-    bool restart = false;
 
     for (iter = closed_boxes_.begin(); iter != closed_boxes_.end(); ++iter)
     {
       sum_of_ref_intenses_g = 0;
       Box& c_box = iter->second;
       std::vector<double> charge_votes(max_charge_, 0), charge_binary_votes(max_charge_, 0);
-      restart = false;
+      bool restart = false;
 
       //Let's first determine the charge
       //Therefore, we can use two types of votes: qualitative ones (charge_binary_votes) or quantitative ones (charge_votes)
@@ -1922,8 +1894,8 @@ protected:
     double real_mz, real_intens;
     if (check_PPMs)
     {
-      reals = checkPPMTheoModel_(ref, iter->getMZ(), c);
-      real_mz = reals.first; real_intens = reals.second;
+      //reals = checkPPMTheoModel_(ref, iter->getMZ(), c);
+      //real_mz = reals.first; real_intens = reals.second;
       //if (real_mz <= 0 || real_intens <= 0)
       //{
       typename MSSpectrum::const_iterator h_iter = ref_iter, hc_iter = ref_iter;

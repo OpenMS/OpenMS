@@ -35,14 +35,14 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
         #    MzMLFile().store("filtered.mzML", exp)
         #          
 
-        MzMLFile() nogil except +
-        MzMLFile(MzMLFile &) nogil except +
+        MzMLFile() except + nogil 
+        MzMLFile(MzMLFile &) except + nogil 
 
-        void load(const String& filename, MSExperiment &) nogil except+ # wrap-doc:Loads from an MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions)
-        void store(const String& filename, MSExperiment &) nogil except+ # wrap-doc:Stores a MSExperiment in an MzML file
+        void load(const String& filename, MSExperiment &) except + nogil # wrap-doc:Loads from an MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions)
+        void store(const String& filename, MSExperiment &) except + nogil # wrap-doc:Stores a MSExperiment in an MzML file
 
         # COMMENT: store/load XML structure to/from a string
-        void storeBuffer(String & output, MSExperiment exp) nogil except +
+        void storeBuffer(String & output, MSExperiment exp) except + nogil 
             # wrap-doc:
                 #  Stores a map in an output string
                 #  
@@ -50,7 +50,7 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
                 #  :param output: An empty string to store the result
                 #  :param exp: Has to be an MSExperiment
 
-        void loadBuffer(const String& input, MSExperiment & exp) nogil except +
+        void loadBuffer(const String& input, MSExperiment & exp) except + nogil 
             # wrap-doc:
                 #  Loads a map from a MzML file stored in a buffer (in memory)
                 #  
@@ -60,15 +60,15 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
                 #  :raises:
                 #    Exception: ParseError is thrown if an error occurs during parsing
 
-        void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *) nogil except + # wrap-ignore
+        void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *) except + nogil  # wrap-ignore
         void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *,
-                       bool skip_full_count, bool skip_first_pass) nogil except + # wrap-ignore
+                       bool skip_full_count, bool skip_first_pass) except + nogil  # wrap-ignore
 
-        void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *, MSExperiment& e) nogil except + # wrap-ignore
+        void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *, MSExperiment& e) except + nogil  # wrap-ignore
         void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *, MSExperiment& e,
-                       bool skip_full_count, bool skip_first_pass) nogil except + # wrap-ignore
+                       bool skip_full_count, bool skip_first_pass) except + nogil  # wrap-ignore
 
-        PeakFileOptions getOptions() nogil except +
-        void setOptions(PeakFileOptions) nogil except + # wrap-doc:Set PeakFileOptions to perform filtering during loading. E.g., to load only MS1 spectra or meta data only
+        PeakFileOptions getOptions() except + nogil 
+        void setOptions(PeakFileOptions) except + nogil  # wrap-doc:Set PeakFileOptions to perform filtering during loading. E.g., to load only MS1 spectra or meta data only
 
-        bool isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings) nogil except +
+        bool isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings) except + nogil 

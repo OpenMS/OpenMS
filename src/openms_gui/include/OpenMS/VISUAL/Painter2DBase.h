@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -34,13 +8,12 @@
 
 #pragma once
 
-
-#include <QRgb>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
+#include <OpenMS/VISUAL/PainterBase.h>
 
 #include <vector>
 
@@ -61,10 +34,11 @@ namespace OpenMS
   struct PeakIndex;
   class Plot2DCanvas;
 
+
   /**
    * @brief A base class for painting all items from a data layer (as supported by class derived from here) onto a 2D Canvas
   */
-  class OPENMS_GUI_DLLAPI Painter2DBase
+  class OPENMS_GUI_DLLAPI Painter2DBase : public PainterBase
   {
   public:
     virtual ~Painter2DBase() = default;
@@ -78,7 +52,6 @@ namespace OpenMS
     */
     virtual void paint(QPainter* painter, Plot2DCanvas* canvas, int layer_index) = 0;
 
-
     /**
      * \brief Emphasize a certain element (e.g. feature), e.g. when mouse hovering.
      * By default, nothing is highlighted. Override for subclasses if you need highlighting.
@@ -90,9 +63,6 @@ namespace OpenMS
     virtual void highlightElement(QPainter* painter, Plot2DCanvas* canvas, const PeakIndex element);
 
   protected:
-    /// draws squares, circles etc
-    static void paintIcon_(const QPoint& pos, const QRgb& color, const String& icon, Size s, QPainter& p);
-
     /**
       @brief Paints a convex hull.
 
@@ -137,10 +107,11 @@ namespace OpenMS
       Paints the peaks as small ellipses. The peaks are colored according to the
       selected dot gradient.
 
+      @param painter The QPainter to paint with.
+      @param canvas The canvas to paint on.
       @param layer_index The index of the layer.
       @param rt_pixel_count
       @param mz_pixel_count
-      @param painter The QPainter to paint on.
     */
     void paintMaximumIntensities_(QPainter& painter, Plot2DCanvas* canvas, Size layer_index, Size rt_pixel_count, Size mz_pixel_count);
 

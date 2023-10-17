@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -34,28 +34,40 @@
 
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
-# include helper functions
-include ( ${SCRIPT_DIR}common.cmake )
-
-set(required_variables "SOURCE_PATH;TARGET_PATH;OPENMS_VERSION")
-check_variables(required_variables)
-
-find_package(Git)
-if(GIT_FOUND)
-  file(TO_CMAKE_PATH "${SOURCE_PATH}" _OpenMS_CMAKE_PATH)
-  execute_process(COMMAND ${GIT_EXECUTABLE} log -n 1 --simplify-by-decoration --pretty=%ai
-        WORKING_DIRECTORY ${_OpenMS_CMAKE_PATH}
-        ERROR_QUIET
-        OUTPUT_VARIABLE OpenMS_WC_LAST_CHANGED_DATE
-        OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-  string(REGEX REPLACE "^([0-9]+)-([0-9]+)-([0-9]+) ([0-9]+):([0-9]+).*"
-    "\\1\\2\\3\\4\\5" KNIME_DATE "${OpenMS_WC_LAST_CHANGED_DATE}")
-  set(CF_OPENMS_VERSION "${OPENMS_VERSION}.${KNIME_DATE}")
-else()
-  set(CF_OPENMS_VERSION "${OPENMS_VERSION}")
+if(TYPE STREQUAL "LIBPLUGIN")
+  set(ID "de.openms.lib")
+  set(NAME "OpenMSLibraries")
+  # create plugin.properties file
+  configure_file(${SOURCE_PATH}/cmake/knime/libplugin.properties.in
+                 ${TARGET_PATH}/plugin.properties)
+elseif(TYPE STREQUAL "TOPPPLUGIN")
+  set(ID "de.openms")
+  set(NAME "OpenMS")
+  # create plugin.properties file
+  configure_file(${SOURCE_PATH}/cmake/knime/plugin.properties.in
+                 ${TARGET_PATH}/plugin.properties)
+elseif(TYPE STREQUAL "TPPLUGIN")
+  set(ID "de.openms.thirdparty")
+  set(NAME "OpenMSThirdparty")
+  # create plugin.properties file
+  configure_file(${SOURCE_PATH}/cmake/knime/plugin.properties.in
+                 ${TARGET_PATH}/plugin.properties)
+elseif(TYPE STREQUAL "FEATURE")
+  set(ID "de.openms.feature")
+  set(NAME "OpenMS")
+  set(CATEGORY "openms")
+  # create plugin.properties file
+  configure_file(${SOURCE_PATH}/cmake/knime/feature.properties.in
+                 ${TARGET_PATH}/feature.properties)
+elseif(TYPE STREQUAL "TPFEATURE")
+  set(ID "de.openms.thirdparty.feature")
+  set(NAME "OpenMSThirdparty")
+  set(CATEGORY "openmsthirdparty")
+  # create plugin.properties file
+  configure_file(${SOURCE_PATH}/cmake/knime/feature.properties.in
+                 ${TARGET_PATH}/feature.properties)
+elseif(TYPE STREQUAL "UPDATESITE")
+  # create plugin.properties file
+  configure_file(${SOURCE_PATH}/cmake/knime/updatesite.properties.in
+                 ${TARGET_PATH}/updatesite.properties)
 endif()
-
-# create plugin.properties file
-configure_file(${SOURCE_PATH}/cmake/knime/plugin.properties.in
-               ${TARGET_PATH}/plugin.properties)

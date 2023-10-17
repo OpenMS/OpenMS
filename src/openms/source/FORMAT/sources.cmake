@@ -30,7 +30,6 @@ GNPSMGFFile.cpp
 GNPSQuantificationFile.cpp
 GzipIfstream.cpp
 GzipInputStream.cpp
-HDF5Connector.cpp
 IBSpectraFile.cpp
 IdXMLFile.cpp
 IndentedStream.cpp
@@ -38,7 +37,6 @@ IndexedMzMLFileLoader.cpp
 InspectInfile.cpp
 InspectOutfile.cpp
 KroenikFile.cpp
-LibSVMEncoder.cpp
 MRMFeaturePickerFile.cpp
 MRMFeatureQCFile.cpp
 MS2File.cpp
@@ -69,6 +67,7 @@ OMSSACSVFile.cpp
 OMSSAXMLFile.cpp
 OSWFile.cpp
 ParamCTDFile.cpp
+ParamCWLFile.cpp
 ParamXMLFile.cpp
 PTMXMLFile.cpp
 PeakTypeEstimator.cpp
@@ -100,6 +99,10 @@ XTandemInfile.cpp
 XTandemXMLFile.cpp
 ZlibCompression.cpp
 )
+
+if (WITH_HDF5)
+  list(APPEND sources_list HDF5Connector.cpp)  
+endif()
 
 ### add path to the filenames
 set(sources)

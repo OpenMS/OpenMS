@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -47,14 +47,40 @@ set(CPACK_PRODUCTBUILD_BACKGROUND ${OPENMS_LOGOSMALL_NAME})
 set(CPACK_PRODUCTBUILD_BACKGROUND_ALIGNMENT "bottomleft")
 set(CPACK_PRODUCTBUILD_BACKGROUND_SCALING "none")
 
+# Allow installing to every Domain if supported by current CMake version (https://gitlab.kitware.com/cmake/cmake/-/merge_requests/6825)
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.23.0")
+  set(CPACK_PRODUCTBUILD_DOMAINS TRUE) # system-wide
+  set(CPACK_PRODUCTBUILD_DOMAINS_USER TRUE) # user folder
+endif()
+
+# TODO we might need to set a user-defined template for the installer anyway due to missing architecture support
+# in CMake (https://gitlab.kitware.com/cmake/cmake/-/issues/21734)
+# The template would go in cmake/Modules which is already in our Module path.
+# Official template is here: https://gitlab.kitware.com/cmake/cmake/-/blob/v3.27.4/Modules/Internal/CPack/CPack.distribution.dist.in?ref_type=tags
+
 # reuse signing identity from signing app bundles (as in dmg)
 if(NOT DEFINED CPACK_PKGBUILD_IDENTITY_NAME)
   message(WARNING "CPACK_PKGBUILD_IDENTITY_NAME not set. PKG will not be signed. Make sure to specify an identity with a Developer ID: Installer certificate (not Application certificate).")
 endif()
 
+set(MACOS_TARGET_ARCHS ${CMAKE_OSX_ARCHITECTURES})
+if (NOT MACOS_TARGET_ARCHS)
+  # Warning: if cmake is a subprocess of a process that is run under Rosetta, it will yield
+  #  x86_64 (but probably also build for it. Therefore it should be fine.)
+  set(MACOS_TARGET_ARCHS ${CMAKE_HOST_SYSTEM_PROCESSOR})
+endif()
+if (MACOS_TARGET_ARCHS STREQUAL "x86_64")
+  set(ARCH_SUFFIX "Intel")
+elseif (MACOS_TARGET_ARCHS STREQUAL "arm64")
+  set(ARCH_SUFFIX "Silicon")
+elseif ("x86_64" IN_LIST MACOS_TARGET_ARCHS AND "arm64" IN_LIST MACOS_TARGET_ARCHS)
+  set(ARCH_SUFFIX "Universal")
+else ()
+  set(ARCH_SUFFIX "Unknown")
+  message(WARNING "Couldn't determine MACOS_TARGET_ARCHS.")
+endif()
 
-## we make sure it is called like we want although this is the standard name I think.
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-macOS")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-macOS-${ARCH_SUFFIX}")
 
 ## Additionally install TOPPShell into root of install folder
 ########################################################### TOPPShell

@@ -6,8 +6,8 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>" namespace "OpenMS
     cdef cppclass TICFilter(FilterFunctor) :
         # wrap-inherits:
         #  FilterFunctor
-        TICFilter() nogil except + # TODO
-        TICFilter(TICFilter &) nogil except +
-        double apply(MSSpectrum & ) nogil except +
-        # POINTER # FilterFunctor * create() nogil except +
-        String getProductName() nogil except +
+        TICFilter() except + nogil  # TODO
+        TICFilter(TICFilter &) except + nogil 
+        double apply(MSSpectrum & ) except + nogil 
+        # POINTER # FilterFunctor * create() except + nogil 
+        String getProductName() except + nogil 

@@ -11,23 +11,23 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h>" nam
 
     cdef cppclass IsobaricIsotopeCorrector:
 
-        IsobaricIsotopeCorrector() nogil except + # compiler
-        IsobaricIsotopeCorrector(IsobaricIsotopeCorrector &) nogil except + # compiler
+        IsobaricIsotopeCorrector() except + nogil  # compiler
+        IsobaricIsotopeCorrector(IsobaricIsotopeCorrector &) except + nogil  # compiler
 
         # IsobaricQuantifierStatistics correctIsotopicImpurities(ConsensusMap & consensus_map_in,
         #                                                       ConsensusMap & consensus_map_out,
-        #                                                       IsobaricQuantitationMethod * quant_method) nogil except + # wrap-ignore
+        #                                                       IsobaricQuantitationMethod * quant_method) except + nogil  # wrap-ignore
 
         IsobaricQuantifierStatistics correctIsotopicImpurities(ConsensusMap & consensus_map_in,
                                                                ConsensusMap & consensus_map_out,
-                                                               ItraqEightPlexQuantitationMethod * quant_method) nogil except +
+                                                               ItraqEightPlexQuantitationMethod * quant_method) except + nogil 
         IsobaricQuantifierStatistics correctIsotopicImpurities(ConsensusMap & consensus_map_in,
                                                                ConsensusMap & consensus_map_out,
-                                                               ItraqFourPlexQuantitationMethod * quant_method) nogil except +
+                                                               ItraqFourPlexQuantitationMethod * quant_method) except + nogil 
         IsobaricQuantifierStatistics correctIsotopicImpurities(ConsensusMap & consensus_map_in,
                                                                ConsensusMap & consensus_map_out,
-                                                               TMTSixPlexQuantitationMethod * quant_method) nogil except +
+                                                               TMTSixPlexQuantitationMethod * quant_method) except + nogil 
         IsobaricQuantifierStatistics correctIsotopicImpurities(ConsensusMap & consensus_map_in,
                                                                ConsensusMap & consensus_map_out,
-                                                               TMTTenPlexQuantitationMethod * quant_method) nogil except +
+                                                               TMTTenPlexQuantitationMethod * quant_method) except + nogil 
 

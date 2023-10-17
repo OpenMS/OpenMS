@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -48,6 +22,8 @@ using ID = OpenMS::IdentificationData;
 
 namespace OpenMS::Internal
 {
+  constexpr int version_number = 5; // increase this whenever the DB schema changes!
+
   void raiseDBError_(const String& error, int line, const char* function,
                      const String& context, const String& query)
   {
@@ -73,8 +49,6 @@ namespace OpenMS::Internal
       raiseDBError_(query.getErrorMsg(), line, function, context);
     }
   }
-
-  constexpr int version_number = 3; // increase this whenever the DB schema changes!
 
   OMSFileStore::OMSFileStore(const String& filename, LogType log_type)
   {
@@ -119,7 +93,7 @@ namespace OpenMS::Internal
                                  ":build_date)");
     query.bind(":format_version", version_number);
     query.bind(":openms_version", VersionInfo::getVersion());
-    query.bind(":build_date", VersionInfo::getTime());     
+    query.bind(":build_date", VersionInfo::getTime());
     query.exec();
   }
 
@@ -137,8 +111,7 @@ namespace OpenMS::Internal
     db_->exec(sql_insert);
   }
 
-
-  void OMSFileStore::createTableDataValue_()
+  void OMSFileStore::createTableDataValue_DataType_()
   {
     createTable_("DataValue_DataType",
                  "id INTEGER PRIMARY KEY NOT NULL, "  \
@@ -152,40 +125,7 @@ namespace OpenMS::Internal
       "(5, 'INT_LIST'), "                      \
       "(6, 'DOUBLE_LIST')";
     db_->exec(sql_insert);
-    createTable_(
-      "DataValue",
-      "id INTEGER PRIMARY KEY NOT NULL, "                               \
-      "data_type_id INTEGER, "                                          \
-      "value TEXT, "                                                    \
-      "FOREIGN KEY (data_type_id) REFERENCES DataValue_DataType (id)");
-    // @TODO: add support for units
-    // prepare query for inserting data:
-    auto query = make_unique<SQLite::Statement>(*db_, "INSERT INTO DataValue VALUES ("           \
-                                 "NULL, "                                   \
-                                 ":data_type, "                             \
-                                 ":value)");
-    prepared_queries_.emplace("DataValue", std::move(query));
   }
-
-
-  OMSFileStore::Key OMSFileStore::storeDataValue_(const DataValue& value)
-  {
-    // this assumes the "DataValue" table exists already!
-    // @TODO: split this up and make several tables for different types?
-    auto& query =  *prepared_queries_["DataValue"];
-    if (value.isEmpty()) // use NULL as the type for empty values
-    {
-      query.bind(":data_type");
-    }
-    else
-    {
-      query.bind(":data_type", int(value.valueType()) + 1);
-    }
-    query.bind(":value", value.toString());
-    execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-    return db_->getLastInsertRowid();
-  }
-
 
   void OMSFileStore::createTableCVTerm_()
   {
@@ -253,25 +193,29 @@ namespace OpenMS::Internal
 
   void OMSFileStore::createTableMetaInfo_(const String& parent_table, const String& key_column)
   {
-    if (!db_->tableExists("DataValue")) createTableDataValue_();
+    if (!db_->tableExists("DataValue_DataType")) createTableDataValue_DataType_();
 
     String parent_ref = parent_table + " (" + key_column + ")";
     String table = parent_table + "_MetaInfo";
+    // for the data_type_id, empty values are represented using NULL
     createTable_(
       table,
       "parent_id INTEGER NOT NULL, "                            \
       "name TEXT NOT NULL, "                                    \
-      "data_value_id INTEGER NOT NULL, "                        \
+      "data_type_id INTEGER, "                                  \
+      "value TEXT, "                                            \
       "FOREIGN KEY (parent_id) REFERENCES " + parent_ref + ", " \
-      "FOREIGN KEY (data_value_id) REFERENCES DataValue (id), " \
+      "FOREIGN KEY (data_type_id) REFERENCES DataValue_DataType (id), " \
       "PRIMARY KEY (parent_id, name)");
 
+    // @TODO: add support for units
     // prepare query for inserting data:
     auto query = make_unique<SQLite::Statement>(*db_, "INSERT INTO " + table +
-                                 " VALUES ("
-                                 ":parent_id, "
-                                 ":name, "
-                                 ":data_value_id)");
+                                 " VALUES ("                    \
+                                 ":parent_id, "                 \
+                                 ":name, "                      \
+                                 ":data_type_id, "              \
+                                 ":value)");
     prepared_queries_.emplace(table, std::move(query));
   }
 
@@ -280,7 +224,7 @@ namespace OpenMS::Internal
   {
     if (info.isMetaEmpty()) return;
 
-    // this assumes the "..._MetaInfo" and "DataValue" tables exist already!
+    // this assumes the "..._MetaInfo" and "DataValue_DataType" tables exist already!
     auto& query = *prepared_queries_[parent_table + "_MetaInfo"];
     query.bind(":parent_id", parent_id);
     // this is inefficient, but MetaInfoInterface doesn't support iteration:
@@ -289,8 +233,17 @@ namespace OpenMS::Internal
     for (const String& info_key : info_keys)
     {
       query.bind(":name", info_key);
-      Key value_id = storeDataValue_(info.getMetaValue(info_key));
-      query.bind(":data_value_id", value_id);
+
+      const DataValue& value = info.getMetaValue(info_key);
+      if (value.isEmpty()) // use NULL as the type for empty values
+      {
+        query.bind(":data_type_id");
+      }
+      else
+      {
+        query.bind(":data_type_id", int(value.valueType()) + 1);
+      }
+      query.bind(":value", value.toString());
       execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
     }
   }
@@ -408,7 +361,7 @@ namespace OpenMS::Internal
       query.bind(":experimental_design_id",
                       input.experimental_design_id);
       // @TODO: what if a primary file name contains ","?
-      String primary_files = ListUtils::concatenate(input.primary_files);
+      String primary_files = ListUtils::concatenate(input.primary_files, ",");
       query.bind(":primary_files", primary_files);
       execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       input_file_keys_[&input] = id;
@@ -455,7 +408,7 @@ namespace OpenMS::Internal
         "FOREIGN KEY (software_id) REFERENCES ID_ProcessingSoftware (id), " \
         "FOREIGN KEY (score_type_id) REFERENCES ID_ScoreType (id)");
 
-      SQLite::Statement query2(*db_, 
+      SQLite::Statement query2(*db_,
         "INSERT INTO ID_ProcessingSoftware_AssignedScore VALUES ("      \
         ":software_id, "                                                \
         ":score_type_id, "                                              \
@@ -957,13 +910,13 @@ namespace OpenMS::Internal
       "FOREIGN KEY (parent_id) REFERENCES ID_ParentSequence (id), "     \
       "FOREIGN KEY (molecule_id) REFERENCES ID_IdentifiedMolecule (id)");
     // prepare query for inserting data:
-    auto query = make_unique<SQLite::Statement>(*db_, "INSERT INTO ID_ParentMatch VALUES ("         \
-                  ":molecule_id, "                              \
-                  ":parent_id, "                                \
-                  ":start_pos, "                                \
-                  ":end_pos, "                                  \
-                  ":left_neighbor, "                            \
-                  ":right_neighbor)");
+    auto query = make_unique<SQLite::Statement>(*db_, "INSERT INTO ID_ParentMatch VALUES (" \
+                                                ":molecule_id, "        \
+                                                ":parent_id, "          \
+                                                ":start_pos, "          \
+                                                ":end_pos, "            \
+                                                ":left_neighbor, "      \
+                                                ":right_neighbor)");
     prepared_queries_.emplace("ID_ParentMatch", std::move(query));
   }
 
@@ -1007,21 +960,20 @@ namespace OpenMS::Internal
   {
     if (id_data.getAdducts().empty()) return;
 
-    createTable_(
-      "AdductInfo",
-      "id INTEGER PRIMARY KEY NOT NULL, "                               \
-      "name TEXT, "                                                     \
-      "formula TEXT NOT NULL, "                                         \
-      "charge INTEGER NOT NULL, "                                       \
-      "mol_multiplier INTEGER NOT NULL CHECK (mol_multiplier > 0) DEFAULT 1, " \
-      "UNIQUE (formula, charge)");
+    createTable_("AdductInfo",
+                 "id INTEGER PRIMARY KEY NOT NULL, "                    \
+                 "name TEXT, "                                          \
+                 "formula TEXT NOT NULL, "                              \
+                 "charge INTEGER NOT NULL, "                            \
+                 "mol_multiplier INTEGER NOT NULL CHECK (mol_multiplier > 0) DEFAULT 1, " \
+                 "UNIQUE (formula, charge)");
 
     SQLite::Statement query(*db_, "INSERT INTO AdductInfo VALUES (" \
-                  ":id, "                           \
-                  ":name, "                         \
-                  ":formula, "                      \
-                  ":charge, "                       \
-                  ":mol_multiplier)");
+                            ":id, "                                 \
+                            ":name, "                               \
+                            ":formula, "                            \
+                            ":charge, "                             \
+                            ":mol_multiplier)");
     Key id = 1;
     for (const AdductInfo& adduct : id_data.getAdducts())
     {
@@ -1084,8 +1036,7 @@ namespace OpenMS::Internal
     Key id = 1;
     for (const ID::ObservationMatch& match : id_data.getObservationMatches())
     {
-      if (!match.peak_annotations.empty())
-        any_peak_annotations = true;
+      if (!match.peak_annotations.empty()) any_peak_annotations = true;
       query.bind(":id", id);
       query.bind(":identified_molecule_id", getDatabaseKey_(match.identified_molecule_var));
       query.bind(":observation_id", observation_keys_[&(*match.observation_ref)]);
@@ -1188,8 +1139,7 @@ namespace OpenMS::Internal
       nextProgress(); // 12
       storeObservationMatches_(id_data);
     };
-    
-    
+
     if (sqlite3_get_autocommit(db_->getHandle()) == 1)
     { // allow a transaction, otherwise another on is already in flight
       SQLite::Transaction transaction(*db_); // avoid SQLite's "implicit transactions", improve runtime
@@ -1205,19 +1155,67 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::storeFeatureAndSubordinates_(
-    const Feature& feature, int& feature_id, int parent_id)
+  void OMSFileStore::createTableBaseFeature_(bool with_metainfo, bool with_idmatches)
   {
-    auto& query_feat = *prepared_queries_["FEAT_Feature"];
+    createTable_("FEAT_BaseFeature",
+                 "id INTEGER PRIMARY KEY NOT NULL, "                    \
+                 "rt REAL, "                                            \
+                 "mz REAL, "                                            \
+                 "intensity REAL, "                                     \
+                 "charge INTEGER, "                                     \
+                 "width REAL, "                                         \
+                 "quality REAL, "                                       \
+                 "unique_id INTEGER, "                                  \
+                 "primary_molecule_id INTEGER, "                        \
+                 "subordinate_of INTEGER, "                             \
+                 "FOREIGN KEY (primary_molecule_id) REFERENCES ID_IdentifiedMolecule (id), " \
+                 "FOREIGN KEY (subordinate_of) REFERENCES FEAT_BaseFeature (id), " \
+                 "CHECK (id > subordinate_of)"); // check to prevent cycles
+
+    auto query = make_unique<SQLite::Statement>(*db_,
+                                                "INSERT INTO FEAT_BaseFeature VALUES (" \
+                                                ":id, "                 \
+                                                ":rt, "                 \
+                                                ":mz, "                 \
+                                                ":intensity, "          \
+                                                ":charge, "             \
+                                                ":width, "              \
+                                                ":quality, "            \
+                                                ":unique_id, "          \
+                                                ":primary_molecule_id, " \
+                                                ":subordinate_of)");
+    prepared_queries_.emplace("FEAT_BaseFeature", std::move(query));
+
+    if (with_metainfo)
+    {
+      createTableMetaInfo_("FEAT_BaseFeature");
+    }
+    if (with_idmatches)
+    {
+      createTable_("FEAT_ObservationMatch",
+                   "feature_id INTEGER NOT NULL, "                      \
+                   "observation_match_id INTEGER NOT NULL, "            \
+                   "FOREIGN KEY (feature_id) REFERENCES FEAT_BaseFeature (id), " \
+                   "FOREIGN KEY (observation_match_id) REFERENCES ID_ObservationMatch (id)");
+      query = make_unique<SQLite::Statement>(*db_,
+                                             "INSERT INTO FEAT_ObservationMatch VALUES (" \
+                                             ":feature_id, "            \
+                                             ":observation_match_id)");
+      prepared_queries_.emplace("FEAT_ObservationMatch", std::move(query));
+    }
+  }
+
+
+  void OMSFileStore::storeBaseFeature_(const BaseFeature& feature, int feature_id, int parent_id)
+  {
+    auto& query_feat = *prepared_queries_["FEAT_BaseFeature"];
     query_feat.bind(":id", feature_id);
     query_feat.bind(":rt", feature.getRT());
     query_feat.bind(":mz", feature.getMZ());
     query_feat.bind(":intensity", feature.getIntensity());
     query_feat.bind(":charge", feature.getCharge());
     query_feat.bind(":width", feature.getWidth());
-    query_feat.bind(":overall_quality", feature.getOverallQuality());
-    query_feat.bind(":rt_quality", feature.getQuality(0));
-    query_feat.bind(":mz_quality", feature.getQuality(1));
+    query_feat.bind(":quality", feature.getQuality());
     query_feat.bind(":unique_id", int64_t(feature.getUniqueId()));
     if (feature.hasPrimaryID())
     {
@@ -1237,7 +1235,33 @@ namespace OpenMS::Internal
     }
     execWithExceptionAndReset(query_feat, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
 
-    storeMetaInfo_(feature, "FEAT_Feature", feature_id);
+    // store ID observation matches:
+    if (!feature.getIDMatches().empty())
+    {
+      auto& query_match = *prepared_queries_["FEAT_ObservationMatch"];
+      query_match.bind(":feature_id", feature_id);
+      for (ID::ObservationMatchRef ref : feature.getIDMatches())
+      {
+        query_match.bind(":observation_match_id", observation_match_keys_[&(*ref)]);
+        execWithExceptionAndReset(query_match, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
+      }
+    }
+
+    storeMetaInfo_(feature, "FEAT_BaseFeature", feature_id);
+  }
+
+
+  void OMSFileStore::storeFeatureAndSubordinates_(
+    const Feature& feature, int& feature_id, int parent_id)
+  {
+    storeBaseFeature_(feature, feature_id, parent_id);
+
+    auto& query_feat = *prepared_queries_["FEAT_Feature"];
+    query_feat.bind(":feature_id", feature_id);
+    query_feat.bind(":rt_quality", feature.getQuality(0));
+    query_feat.bind(":mz_quality", feature.getQuality(1));
+    execWithExceptionAndReset(query_feat, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
+
     // store convex hulls:
     const vector<ConvexHull2D>& hulls = feature.getConvexHulls();
     if (!hulls.empty())
@@ -1258,17 +1282,6 @@ namespace OpenMS::Internal
 
       }
     }
-    // store ID input items:
-    if (!feature.getIDMatches().empty())
-    {
-      auto& query_match = *prepared_queries_["FEAT_ObservationMatch"];
-      query_match.bind(":feature_id", feature_id);
-      for (ID::ObservationMatchRef ref : feature.getIDMatches())
-      {
-        query_match.bind(":observation_match_id", observation_match_keys_[&(*ref)]);
-        execWithExceptionAndReset(query_match, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-      }
-    }
     // recurse into subordinates:
     parent_id = feature_id;
     ++feature_id; // variable is passed by reference, so effect is global
@@ -1283,45 +1296,29 @@ namespace OpenMS::Internal
   {
     if (features.empty()) return;
 
+    // create table(s) for BaseFeature parent class:
+    // any meta infos on features?
+    bool any_metainfo = anyFeaturePredicate_(features, [](const Feature& feature) {
+      return !feature.isMetaEmpty();
+    });
+    // any ID observations on features?
+    bool any_idmatches = anyFeaturePredicate_(features, [](const Feature& feature) {
+      return !feature.getIDMatches().empty();
+    });
+    createTableBaseFeature_(any_metainfo, any_idmatches);
+
     createTable_("FEAT_Feature",
-                 "id INTEGER PRIMARY KEY NOT NULL, "                    \
-                 "rt REAL, "                                            \
-                 "mz REAL, "                                            \
-                 "intensity REAL, "                                     \
-                 "charge INTEGER, "                                     \
-                 "width REAL, "                                         \
-                 "overall_quality REAL, "                               \
+                 "feature_id INTEGER NOT NULL, "                        \
                  "rt_quality REAL, "                                    \
                  "mz_quality REAL, "                                    \
-                 "unique_id INTEGER, "                                  \
-                 "primary_molecule_id INTEGER, "                        \
-                 "subordinate_of INTEGER, "                             \
-                 "FOREIGN KEY (primary_molecule_id) REFERENCES ID_IdentifiedMolecule (id), " \
-                 "FOREIGN KEY (subordinate_of) REFERENCES FEAT_Feature (id), " \
-                 "CHECK (id > subordinate_of)"); // check to prevent cycles
-
-    auto query = make_unique<SQLite::Statement>(*db_, "INSERT INTO FEAT_Feature VALUES ("      \
-                  ":id, "                                  \
-                  ":rt, "                                  \
-                  ":mz, "                                  \
-                  ":intensity, "                           \
-                  ":charge, "                              \
-                  ":width, "                               \
-                  ":overall_quality, "                     \
-                  ":rt_quality, "                          \
-                  ":mz_quality, "                          \
-                  ":unique_id, "                           \
-                  ":primary_molecule_id, "                 \
-                  ":subordinate_of)");
+                 "FOREIGN KEY (feature_id) REFERENCES FEAT_BaseFeature (id)");
+    auto query = make_unique<SQLite::Statement>(*db_,
+                                                "INSERT INTO FEAT_Feature VALUES (" \
+                                                ":feature_id, "         \
+                                                ":rt_quality, "         \
+                                                ":mz_quality)");
     prepared_queries_.emplace("FEAT_Feature", std::move(query));
 
-    // any meta infos on features?
-    if (anyFeaturePredicate_(features, [](const Feature& feature) {
-      return !feature.isMetaEmpty();
-    }))
-    {
-      createTableMetaInfo_("FEAT_Feature");
-    }
     // any convex hulls on features?
     if (anyFeaturePredicate_(features, [](const Feature& feature) {
       return !feature.getConvexHulls().empty();
@@ -1333,29 +1330,14 @@ namespace OpenMS::Internal
                    "point_index INTEGER NOT NULL CHECK (point_index >= 0), " \
                    "point_x REAL, "                                     \
                    "point_y REAL, "                                     \
-                   "FOREIGN KEY (feature_id) REFERENCES FEAT_Feature (id)");
-      auto query2 = make_unique<SQLite::Statement>(*db_, "INSERT INTO FEAT_ConvexHull VALUES ("      \
-                    ":feature_id, "                             \
-                    ":hull_index, "                             \
-                    ":point_index, "                            \
-                    ":point_x, "                                \
-                    ":point_y)");
+                   "FOREIGN KEY (feature_id) REFERENCES FEAT_BaseFeature (id)");
+      auto query2 = make_unique<SQLite::Statement>(*db_, "INSERT INTO FEAT_ConvexHull VALUES (" \
+                                                   ":feature_id, "      \
+                                                   ":hull_index, "      \
+                                                   ":point_index, "     \
+                                                   ":point_x, "         \
+                                                   ":point_y)");
       prepared_queries_.emplace("FEAT_ConvexHull", std::move(query2));
-    }
-    // any ID observations on features?
-    if (anyFeaturePredicate_(features, [](const Feature& feature) {
-      return !feature.getIDMatches().empty();
-    }))
-    {
-      createTable_("FEAT_ObservationMatch",
-                   "feature_id INTEGER NOT NULL, "                      \
-                   "observation_match_id INTEGER NOT NULL, "            \
-                   "FOREIGN KEY (feature_id) REFERENCES FEAT_Feature (id), " \
-                   "FOREIGN KEY (observation_match_id) REFERENCES ID_ObservationMatch (id)");
-      auto query3 = make_unique<SQLite::Statement>(*db_, "INSERT INTO FEAT_ObservationMatch VALUES (" \
-                    ":feature_id, "                              \
-                    ":observation_match_id)");
-      prepared_queries_.emplace("FEAT_ObservationMatch", std::move(query3));
     }
 
     // features and their subordinates are stored in DFS-like order:
@@ -1368,25 +1350,33 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::storeMapMetaData_(const FeatureMap& features)
+  template <class MapType>
+  void OMSFileStore::storeMapMetaData_(const MapType& features,
+                                       const String& experiment_type)
   {
     createTable_("FEAT_MapMetaData",
                  "unique_id INTEGER PRIMARY KEY, "  \
                  "identifier TEXT, "                \
                  "file_path TEXT, "                 \
-                 "file_type TEXT");
-    SQLite::Statement query(*db_,
+                 "file_type TEXT, "
+                 "experiment_type TEXT"); // ConsensusMap only
     // @TODO: worth using a prepared query for just one insert?
-                  "INSERT INTO FEAT_MapMetaData VALUES (" \
-                  ":unique_id, "                          \
-                  ":identifier, "                         \
-                  ":file_path, "                          \
-                  ":file_type)");
+    SQLite::Statement query(*db_,
+                            "INSERT INTO FEAT_MapMetaData VALUES (" \
+                            ":unique_id, "                          \
+                            ":identifier, "                         \
+                            ":file_path, "                          \
+                            ":file_type, "                          \
+                            ":experiment_type)");
     query.bind(":unique_id", int64_t(features.getUniqueId()));
     query.bind(":identifier", features.getIdentifier());
     query.bind(":file_path", features.getLoadedFilePath());
     String file_type = FileTypes::typeToName(features.getLoadedFileType());
     query.bind(":file_type", file_type);
+    if (!experiment_type.empty())
+    {
+      query.bind(":experiment_type", experiment_type);
+    }
 
     execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
 
@@ -1397,10 +1387,14 @@ namespace OpenMS::Internal
     }
   }
 
+  // template specializations:
+  template void OMSFileStore::storeMapMetaData_<FeatureMap>(const FeatureMap&, const String&);
+  template void OMSFileStore::storeMapMetaData_<ConsensusMap>(const ConsensusMap&, const String&);
 
-  void OMSFileStore::storeDataProcessing_(const FeatureMap& features)
+
+  void OMSFileStore::storeDataProcessing_(const vector<DataProcessing>& data_processing)
   {
-    if (features.getDataProcessing().empty()) return;
+    if (data_processing.empty()) return;
 
     createTable_("FEAT_DataProcessing",
                  "id INTEGER PRIMARY KEY NOT NULL, "    \
@@ -1411,14 +1405,14 @@ namespace OpenMS::Internal
     // "id" is needed to connect to meta info table (see "storeMetaInfos_");
     // "position" is position in the vector ("index" is a reserved word in SQL)
     SQLite::Statement query(*db_, "INSERT INTO FEAT_DataProcessing VALUES (" \
-                  ":id, "                                    \
-                  ":software_name, "                         \
-                  ":software_version, "                      \
-                  ":processing_actions, "                    \
-                  ":completion_time)");
+                            ":id, "                                     \
+                            ":software_name, "                          \
+                            ":software_version, "                       \
+                            ":processing_actions, "                     \
+                            ":completion_time)");
 
     Key id = 1;
-    for (const DataProcessing& proc : features.getDataProcessing())
+    for (const DataProcessing& proc : data_processing)
     {
       query.bind(":id", id);
       query.bind(":software_name", proc.getSoftware().getName());
@@ -1435,7 +1429,7 @@ namespace OpenMS::Internal
       feat_processing_keys_[&proc] = id;
       ++id;
     }
-    storeMetaInfos_(features.getDataProcessing(), "FEAT_DataProcessing", feat_processing_keys_);
+    storeMetaInfos_(data_processing, "FEAT_DataProcessing", feat_processing_keys_);
   }
 
 
@@ -1453,9 +1447,151 @@ namespace OpenMS::Internal
     startProgress(0, features.size() + 2, "Writing feature data to file");
     storeMapMetaData_(features);
     nextProgress();
-    storeDataProcessing_(features);
+    storeDataProcessing_(features.getDataProcessing());
     nextProgress();
     storeFeatures_(features);
+    transaction.commit();
+    endProgress();
+  }
+
+
+  void OMSFileStore::storeConsensusColumnHeaders_(const ConsensusMap& consensus)
+  {
+    if (consensus.getColumnHeaders().empty()) return; // shouldn't be empty in practice
+
+    createTable_("FEAT_ConsensusColumnHeader",
+                 "id INTEGER PRIMARY KEY NOT NULL, "    \
+                 "filename TEXT, "                      \
+                 "label TEXT, "                         \
+                 "size INTEGER, "                       \
+                 "unique_id INTEGER");
+    if (any_of(consensus.getColumnHeaders().begin(), consensus.getColumnHeaders().end(),
+               [](const auto& pair){
+                 return !pair.second.isMetaEmpty();
+               }))
+    {
+      createTableMetaInfo_("FEAT_ConsensusColumnHeader");
+    }
+
+    SQLite::Statement query(*db_,
+                            "INSERT INTO FEAT_ConsensusColumnHeader VALUES (" \
+                            ":id, "                                     \
+                            ":filename, "                               \
+                            ":label, "                                  \
+                            ":size, "                                   \
+                            ":unique_id)");
+    for (const auto& pair : consensus.getColumnHeaders())
+    {
+      Key id = int64_t(pair.first);
+      query.bind(":id", id);
+      query.bind(":filename", pair.second.filename);
+      query.bind(":label", pair.second.label);
+      query.bind(":size", int64_t(pair.second.size));
+      query.bind(":unique_id", int64_t(pair.second.unique_id));
+
+      execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
+
+      storeMetaInfo_(pair.second, "FEAT_ConsensusColumnHeader", id);
+    }
+  }
+
+
+  void OMSFileStore::storeConsensusFeatures_(const ConsensusMap& consensus)
+  {
+    if (consensus.empty()) return;
+
+    // create table(s) for BaseFeature parent class:
+    // any meta infos on features?
+    bool any_metainfo = any_of(consensus.begin(), consensus.end(), [](const ConsensusFeature& feature) {
+      return !feature.isMetaEmpty();
+    });
+    // any ID observations on features?
+    bool any_idmatches = any_of(consensus.begin(), consensus.end(), [](const ConsensusFeature& feature) {
+      return !feature.getIDMatches().empty();
+    });
+    createTableBaseFeature_(any_metainfo, any_idmatches);
+
+    createTable_("FEAT_FeatureHandle",
+                 "feature_id INTEGER NOT NULL, "                        \
+                 "map_index INTEGER NOT NULL, "                                    \
+                 "FOREIGN KEY (feature_id) REFERENCES FEAT_BaseFeature (id)");
+    SQLite::Statement query_handle(*db_,
+                                   "INSERT INTO FEAT_FeatureHandle VALUES (" \
+                                   ":feature_id, "                      \
+                                   ":map_index)");
+
+    // any ratios on consensus features?
+    unique_ptr<SQLite::Statement> query_ratio; // only assign if needed below
+    if (any_of(consensus.begin(), consensus.end(), [](const ConsensusFeature& feature) {
+      return !feature.getRatios().empty();
+    }))
+    {
+      createTable_("FEAT_ConsensusRatio",
+                   "feature_id INTEGER NOT NULL, "                      \
+                   "ratio_index INTEGER NOT NULL CHECK (ratio_index >= 0), " \
+                   "ratio_value REAL, "                                 \
+                   "denominator_ref TEXT, "                             \
+                   "numerator_ref TEXT, "                               \
+                   "description TEXT, "                                 \
+                   "FOREIGN KEY (feature_id) REFERENCES FEAT_BaseFeature (id)");
+      query_ratio = make_unique<SQLite::Statement>(*db_, "INSERT INTO FEAT_ConsensusRatio VALUES (" \
+                                                   ":feature_id, "      \
+                                                   ":ratio_index, "     \
+                                                   ":ratio_value, "     \
+                                                   ":denominator_ref, " \
+                                                   ":numerator_ref, "   \
+                                                   ":description)");
+    }
+
+    // consensus features and their subfeatures are stored in DFS-like order:
+    int feature_id = 0;
+    for (const ConsensusFeature& feat : consensus)
+    {
+      storeBaseFeature_(feat, feature_id, -1);
+      int parent_id = feature_id;
+      for (const FeatureHandle& handle : feat.getFeatures())
+      {
+        storeBaseFeature_(BaseFeature(handle), ++feature_id, parent_id);
+        query_handle.bind(":feature_id", feature_id);
+        query_handle.bind(":map_index", int64_t(handle.getMapIndex()));
+        execWithExceptionAndReset(query_handle, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
+      }
+      for (uint32_t i = 0; i < feat.getRatios().size(); ++i)
+      {
+        const ConsensusFeature::Ratio& ratio = feat.getRatios()[i];
+        query_ratio->bind(":feature_id", feature_id);
+        query_ratio->bind(":ratio_index", i);
+        query_ratio->bind(":ratio_value", ratio.ratio_value_);
+        query_ratio->bind(":denominator_ref", ratio.denominator_ref_);
+        query_ratio->bind(":numerator_ref", ratio.numerator_ref_);
+        query_ratio->bind(":description", ListUtils::concatenate(ratio.description_, ","));
+        execWithExceptionAndReset(*query_ratio, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
+      }
+      nextProgress();
+      ++feature_id;
+    }
+  }
+
+
+  void OMSFileStore::store(const ConsensusMap& consensus)
+  {
+    SQLite::Transaction transaction(*db_); // avoid SQLite's "implicit transactions", improve runtime
+    if (consensus.getIdentificationData().empty())
+    {
+      storeVersionAndDate_();
+    }
+    else
+    {
+      store(consensus.getIdentificationData());
+    }
+    startProgress(0, consensus.size() + 3, "Writing consensus feature data to file");
+    storeMapMetaData_(consensus, consensus.getExperimentType());
+    nextProgress();
+    storeConsensusColumnHeaders_(consensus);
+    nextProgress();
+    storeDataProcessing_(consensus.getDataProcessing());
+    nextProgress();
+    storeConsensusFeatures_(consensus);
     transaction.commit();
     endProgress();
   }

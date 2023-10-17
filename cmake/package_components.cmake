@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -49,7 +49,7 @@ cpack_add_component(library
                 )
 cpack_add_component(applications
                 DISPLAY_NAME "OpenMS binaries"
-                DESCRIPTION "OpenMS binaries including TOPP tools/utils, TOPPView and TOPPAS."
+                DESCRIPTION "OpenMS binaries including TOPP tools, TOPPView and TOPPAS."
                 INSTALL_TYPES recommended full minimal
                 )
 cpack_add_component(doc

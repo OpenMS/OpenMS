@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -68,7 +42,7 @@ START_SECTION((static VersionDetails getVersionStruct()))
 {
   VersionInfo::VersionDetails detail;
   detail.version_major = 3;
-  detail.version_minor = 0;
+  detail.version_minor = 1;
   detail.version_patch = 0;
   TEST_EQUAL(VersionInfo::getVersionStruct().version_major, detail.version_major);
   TEST_EQUAL(VersionInfo::getVersionStruct().version_minor, detail.version_minor);
@@ -117,7 +91,7 @@ START_SECTION(([VersionInfo::VersionDetails] bool operator==(const VersionDetail
   c.version_major = 1;
   c.version_minor = 9;
   c.version_patch = 2;
-  TEST_EQUAL(detail == c, true)
+  TEST_TRUE(detail == c)
   c.version_patch = 3;
   TEST_EQUAL(detail == c, false)
   c.version_patch = 1;
@@ -157,31 +131,31 @@ START_SECTION(([VersionInfo::VersionDetails] static VersionDetails create(const 
   c.version_major = 1;
   c.version_minor = 9;
   c.version_patch = 2;
-  TEST_EQUAL(detail == c, true)
+  TEST_TRUE(detail == c)
 
   detail = VersionInfo::VersionDetails::create("1.9");
   c.version_major = 1;
   c.version_minor = 9;
   c.version_patch = 0;
-  TEST_EQUAL(detail == c, true)
+  TEST_TRUE(detail == c)
 
   detail = VersionInfo::VersionDetails::create("1.0");
   c.version_major = 1;
   c.version_minor = 0;
   c.version_patch = 0;
-  TEST_EQUAL(detail == c, true)
+  TEST_TRUE(detail == c)
 
   detail = VersionInfo::VersionDetails::create("somestring");
   c.version_major = 0;
   c.version_minor = 0;
   c.version_patch = 0;
-  TEST_EQUAL(detail == c, true)
+  TEST_TRUE(detail == c)
 
   detail = VersionInfo::VersionDetails::create("1.2a.bla");
   c.version_major = 0;
   c.version_minor = 0;
   c.version_patch = 0;
-  TEST_EQUAL(detail == c, true)
+  TEST_TRUE(detail == c)
 
   detail = VersionInfo::VersionDetails::create("1.2.1-bla");
   c.version_major = 1;
@@ -192,7 +166,7 @@ START_SECTION(([VersionInfo::VersionDetails] static VersionDetails create(const 
   TEST_EQUAL(detail.version_minor, c.version_minor)
   TEST_EQUAL(detail.version_patch, c.version_patch)
   TEST_EQUAL(detail.pre_release_identifier, c.pre_release_identifier)
-  TEST_EQUAL(detail == c, true)
+  TEST_TRUE(detail == c)
 }
 END_SECTION
 

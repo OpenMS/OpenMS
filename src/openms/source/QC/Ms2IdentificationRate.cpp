@@ -1,68 +1,36 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow$
 // $Authors: Patricia Scheil, Swenja Wagner$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/QC/Ms2IdentificationRate.h>
-
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-
+#include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <algorithm>
 
 
 namespace OpenMS
 {
-  //computes number of peptide identifications, number of ms2 spectra and ratio
-  //data is stored in vector of structs
-  void Ms2IdentificationRate::compute(const FeatureMap& feature_map,const MSExperiment& exp, bool assume_all_target)
+  // computes number of peptide identifications, number of ms2 spectra and ratio
+  // data is stored in vector of structs
+  void Ms2IdentificationRate::compute(const FeatureMap& feature_map, const MSExperiment& exp, bool assume_all_target)
   {
-    //count ms2 spectra
+    // count ms2 spectra
     Size ms2_level_counter = getMS2Count_(exp);
 
-    //count peptideIdentifications
-    Size peptide_identification_counter{};
+    // count peptideIdentifications
+    Size peptide_identification_counter {};
 
-    auto f =
-      [assume_all_target, &peptide_identification_counter](const PeptideIdentification& id)
-    {
-      peptide_identification_counter += isTargetPeptide_(id, assume_all_target);
-    };
+    auto f = [assume_all_target, &peptide_identification_counter](const PeptideIdentification& id) { peptide_identification_counter += isTargetPeptide_(id, assume_all_target); };
 
-    //iterates through all PeptideIdentifications in FeatureMap, applies function f to all of them
+    // iterates through all PeptideIdentifications in FeatureMap, applies function f to all of them
     feature_map.applyFunctionOnPeptideIDs(f, true);
 
     writeResults_(peptide_identification_counter, ms2_level_counter);
@@ -70,11 +38,11 @@ namespace OpenMS
 
   void Ms2IdentificationRate::compute(const std::vector<PeptideIdentification>& pep_ids, const MSExperiment& exp, bool assume_all_target)
   {
-    //count ms2 spectra
+    // count ms2 spectra
     Size ms2_level_counter = getMS2Count_(exp);
 
-    //count peptideIdentifications
-    Size peptide_identification_counter{};
+    // count peptideIdentifications
+    Size peptide_identification_counter {};
 
     for (const auto& id : pep_ids)
     {
@@ -84,12 +52,12 @@ namespace OpenMS
     writeResults_(peptide_identification_counter, ms2_level_counter);
   }
 
-  
+
   const String& Ms2IdentificationRate::getName() const
   {
     return name_;
   }
-  
+
 
   const std::vector<OpenMS::Ms2IdentificationRate::IdentificationRateData>& Ms2IdentificationRate::getResults() const
   {
@@ -97,7 +65,7 @@ namespace OpenMS
   }
 
 
-  QCBase::Status Ms2IdentificationRate::requires() const
+  QCBase::Status Ms2IdentificationRate::requirements() const
   {
     return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
   }
@@ -108,7 +76,7 @@ namespace OpenMS
     const auto& ms2_irs = this->getResults();
     for (Size i = 0; i < ms2_irs.size(); ++i)
     {
-      MzTabParameter ms2_ir{};
+      MzTabParameter ms2_ir {};
       ms2_ir.setCVLabel("MS2 identification rate");
       ms2_ir.setAccession("null");
       ms2_ir.setName("MS2_ID_Rate_" + String(i + 1));
@@ -123,7 +91,7 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSExperiment is empty");
     }
 
-    Size ms2_counter{};
+    Size ms2_counter {};
     for (auto const& spec : exp.getSpectra())
     {
       if (spec.getMSLevel() == 2)
@@ -166,13 +134,13 @@ namespace OpenMS
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There are more Identifications than MS2 spectra. Please check your data.");
     }
 
-    //compute ratio
+    // compute ratio
     double ratio = (double)pep_ids_count / ms2_spectra_count;
 
     // struct to store results
-    IdentificationRateData id_rate_data{};
+    IdentificationRateData id_rate_data {};
 
-    //store results
+    // store results
     id_rate_data.num_peptide_identification = pep_ids_count;
     id_rate_data.num_ms2_spectra = ms2_spectra_count;
     id_rate_data.identification_rate = ratio;

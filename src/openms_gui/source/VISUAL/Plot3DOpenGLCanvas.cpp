@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -1083,31 +1057,24 @@ namespace OpenMS
 
   void Plot3DOpenGLCanvas::dataToZoomArray_(double x_1, double y_1, double x_2, double y_2)
   {
-    double scale_x1 = scaledInversMZ_(x_1 + 100.0);
-    double scale_x2 = scaledInversMZ_(x_2 + 100.0);
-    double scale_y1 = scaledInversRT_(-200 - y_1);
-    double scale_y2 = scaledInversRT_(-200 - y_2);
+    double scale_x1 = scaledInversRT_(-200 - y_1);
+    double scale_x2 = scaledInversRT_(-200 - y_2);
+    double scale_y1 = scaledInversMZ_(x_1 + 100.0);
+    double scale_y2 = scaledInversMZ_(x_2 + 100.0);
     DRange<2> new_area_;
-    if (scale_x1 <= scale_x2)
+    if (scale_x1 > scale_x2)
     {
-      new_area_.min_[0] = scale_x1;
-      new_area_.max_[0] = scale_x2;
+      std::swap(scale_x1, scale_x2);
     }
-    else
+    new_area_.min_[0] = scale_x1;
+    new_area_.max_[0] = scale_x2;
+
+    if (scale_y1 > scale_y2)
     {
-      new_area_.min_[0] = scale_x2;
-      new_area_.max_[0] = scale_x1;
+      std::swap(scale_y1, scale_y2);
     }
-    if (scale_y1 <= scale_y2)
-    {
-      new_area_.min_[1] = scale_y1;
-      new_area_.max_[1] = scale_y2;
-    }
-    else
-    {
-      new_area_.min_[1] = scale_y2;
-      new_area_.max_[1] = scale_y1;
-    }
+    new_area_.min_[1] = scale_y1;
+    new_area_.max_[1] = scale_y2;
     canvas_3d_.changeVisibleArea_(canvas_3d_.visible_area_.cloneWith(new_area_), true, true);
   }
 

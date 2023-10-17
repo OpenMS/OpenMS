@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer:  $
@@ -35,18 +9,18 @@
 /**
   @mainpage %OpenMS / TOPP documentation
 
-  <TABLE width="100%" bgcolor="#e8eef2" border="0">
-    <TR>
-      <TD width="50%" bgcolor="#cccccc">
-        <H3>The %OpenMS Proteomics Pipeline (TOPP)</H3>
+  <TABLE width="100%" border="0" class="doxtable">
+    <TR valign="top">
+      <TH width="50%">
+        <H3>The %OpenMS PiPeline (TOPP)</H3>
         Information for TOPP users.
         <BR>&nbsp;
-      </TD>
-      <TD width="50%" bgcolor="#cccccc">
+      </TH>
+      <TH width="50%">
         <H3>%OpenMS library</H3>
           Information for developers (please make sure to read the Developer Quickstart Guide).
         <BR>&nbsp;
-      </TD>
+      </TH>
     </TR>
 
     <TR>
@@ -56,7 +30,7 @@
         Documentation:
         <UL>
           <LI> @subpage TOPP_documentation
-          <LI> @subpage UTILS_documentation
+          <LI> @subpage TOPPAS_tutorial
         </UL>
 
         Misc:
@@ -78,6 +52,7 @@
 
         Development:
         <UL>
+          <LI> @subpage developer_tutorial
           <LI> @subpage coding_conventions
           <LI> @subpage developer_faq
           <LI> @subpage cpp_guide
@@ -86,7 +61,6 @@
 
         Documentation:
         <UL>
-          <LI> @subpage OpenMS_tutorial
           <LI> <a class="el" href="https://pyopenms.readthedocs.io/en/latest/index.html" target="_blank">Developer Python Quickstart Guide (online)</a>
           <LI> @subpage external_code
         </UL>

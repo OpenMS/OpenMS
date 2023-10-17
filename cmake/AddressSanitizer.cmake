@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,8 @@
 # --------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# This cmake file enables the AddressSanitizer
-# see http://clang.llvm.org/docs/AddressSanitizer.html 
+# This cmake file enables the AddressSanitizer and UndefinedBehaviorSanitizer
+# see http://clang.llvm.org/docs/AddressSanitizer.html and https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
 #     http://en.wikipedia.org/wiki/AddressSanitizer
 
 function(add_asan_to_target TARGET_NAME_ARG)
@@ -47,9 +47,15 @@ function(add_asan_to_target TARGET_NAME_ARG)
         # add AddressSanitizer for compiler and linker
         target_compile_options("${TARGET_NAME_ARG}" 
           PUBLIC 
-            -fsanitize=address
+            -fsanitize=address,undefined
+            -fno-sanitize-recover=all
+            -fno-sanitize=vptr
             -fno-omit-frame-pointer)
-        target_link_options("${TARGET_NAME_ARG}" PUBLIC -fsanitize=address)           
+        target_link_options("${TARGET_NAME_ARG}" 
+          PUBLIC 
+            -fsanitize=address,undefined
+            -fno-sanitize-recover=all
+            -fno-sanitize=vptr)
         message(STATUS "AddressSanitizer is on.")
       endif()
     else()

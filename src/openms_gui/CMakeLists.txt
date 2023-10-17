@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -69,6 +69,11 @@ openms_add_library(TARGET_NAME OpenMS_GUI
 # --------------------------------------------------------------------------
 # additional linker flags required by openms_gui
 if (MSVC)
+  ## treat warning of unused function parameter as error, similar to -Werror=unused-variable on GCC
+  target_compile_options(OpenMS_GUI PRIVATE "/we4100")
+  ## treat warning of unused local variable as error, similar to -Werror=unused-variable on GCC
+  target_compile_options(OpenMS_GUI PRIVATE "/we4189")
+
   set (GUI_lnk_flags "/FORCE:MULTIPLE /INCREMENTAL:NO /ignore:4006 /ignore:4088")
   set_property(TARGET OpenMS_GUI APPEND PROPERTY LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
 endif()
@@ -85,18 +90,18 @@ include(${GUI_DIR}/executables.cmake)
 foreach(i ${GUI_executables})
   set(resource_file ${PROJECT_SOURCE_DIR}/${GUI_DIR}/${i}.rc)
   set(resource_dir ${PROJECT_SOURCE_DIR}/${GUI_DIR}/${i}-resources/)
-  ## add icons to TOPPView and INIFileEditor
+  ## add icons to TOPPView, INIFileEditor, etc.
   if (MSVC AND EXISTS ${resource_file})
     message(STATUS "Setting resource file ${resource_file} for ${i}")
     add_executable(${i} ${GUI_DIR}/${i}.cpp ${resource_file})
     install_tool(${i})
-  elseif(APPLE AND EXISTS ${resource_dir})
+  elseif (APPLE AND EXISTS ${resource_dir})
     add_mac_app_bundle(${i})
   else()
-    if(APPLE)
-      message(STATUS "No icon file (${i}.icns) found in ${resource_dir}. Will not build ${i} as app bundle.")
-    else()
+    if (MSVC)
       message(STATUS "No resource file (${resource_file}) found for ${i}. No icon will be embedded.")
+    elseif (APPLE)
+      message(STATUS "No icon file (${i}.icns) found in ${resource_dir}. Will not build ${i} as app bundle.")
     endif()
     add_executable(${i} ${GUI_DIR}/${i}.cpp)
     install_tool(${i})

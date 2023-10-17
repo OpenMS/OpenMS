@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Kyowon Jeong $
@@ -35,12 +9,11 @@
 
 #pragma once
 
-#include <OpenMS/config.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
-
-#include <iostream>
+#include <OpenMS/config.h>
 #include <iomanip>
+#include <iostream>
 
 
 namespace OpenMS
@@ -50,10 +23,11 @@ namespace OpenMS
      @ingroup FileIO
 **/
 
-  class OPENMS_DLLAPI FLASHDeconvFeatureFile {
+  class OPENMS_DLLAPI FLASHDeconvFeatureFile
+  {
   public:
     /// write header line for regular file output
-    static void writeHeader(std::fstream& fs);
+    static void writeHeader(std::fstream& fs, bool report_dummy = false);
 
     /// write header line for promex file output
     static void writePromexHeader(std::fstream& fs);
@@ -62,8 +36,7 @@ namespace OpenMS
     static void writeTopFDFeatureHeader(std::vector<std::fstream>& fs);
 
     /// write the features in regular file output
-    static void writeFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const String& file_name, std::fstream& fs);
-
+    static void writeFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const String& file_name, std::fstream& fs, bool report_dummy = false, bool is_dummy = false);
 
     /**
      * @brief Find mass features and write features in TopFD format files.
@@ -74,8 +47,7 @@ namespace OpenMS
      * @param fs file stream
      */
 
-    static void writeTopFDFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features,
-                                   const std::map<int, PeakGroup>& precursor_peak_groups,
+    static void writeTopFDFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const std::map<int, PeakGroup>& precursor_peak_groups,
                                    const std::map<int, double>& scan_rt_map, const String& file_name, std::vector<std::fstream>& fs);
 
     /**
@@ -87,12 +59,7 @@ namespace OpenMS
      * @param fs file stream
      */
 
-    static void writePromexFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features,
-                                    const std::map<int, PeakGroup>& precursor_peak_groups,
-                                    const std::map<int, double>& scan_rt_map,
-                                    const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                                    std::fstream& fs);
-
-
+    static void writePromexFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const std::map<int, PeakGroup>& precursor_peak_groups,
+                                    const std::map<int, double>& scan_rt_map, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream& fs);
   };
-}
+} // namespace OpenMS

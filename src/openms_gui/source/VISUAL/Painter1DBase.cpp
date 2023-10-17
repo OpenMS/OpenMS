@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -57,70 +31,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  void Painter1DBase::drawDashedLine(const QPoint& from, const QPoint& to, QPainter* painter, const QColor& color)
-  {
-    QPen pen;
-    QVector<qreal> dashes;
-    dashes << 5 << 5 << 1 << 5;
-    pen.setDashPattern(dashes);
-    pen.setColor(color);
-    painter->save();
-    painter->setPen(pen);
-    painter->drawLine(from, to);
-    painter->restore();
-  }
-
-  void Painter1DBase::drawCross(const QPoint& pos, QPainter* painter, const int size)
-  {
-    const int half_size = size / 2;
-    painter->drawLine(pos.x(), pos.y() - half_size, pos.x(), pos.y() + half_size);
-    painter->drawLine(pos.x() - half_size, pos.y(), pos.x() + half_size, pos.y());
-  }
-
-  void Painter1DBase::drawCaret(const QPoint& caret, QPainter* painter, const int size)
-  {
-    const int half_size = size / 2;
-    painter->drawLine(caret.x(), caret.y(), caret.x() + half_size, caret.y() + half_size);
-    painter->drawLine(caret.x(), caret.y(), caret.x() - half_size, caret.y() + half_size);
-  }
-
-  QRectF Painter1DBase::drawLineWithArrows(QPainter* painter, const QPen& pen, const QPoint& start, const QPoint& end, const QPainterPath& arrow_start, const QPainterPath& arrow_end)
-  {
-    painter->setPen(pen);
-
-    auto line = QLineF(start, end);
-    // angle of line
-    qreal angle = -line.angle() + 180; // negate since angle() reports counter-clockwise; +180 since painter.rotate() is more intuitive then
-    QRectF bounding_rect = QRectF(line.p1(), line.p2()).normalized();
-    // draw the actual line
-    painter->drawLine(line);
-
-    //painter->save();
-    // draw arrow heads
-    if (!arrow_start.isEmpty())
-    {
-      //painter->translate(start);
-      //painter->rotate(angle);
-      QMatrix rotationMatrix;
-      rotationMatrix.translate(start.x(), start.y());
-      rotationMatrix.rotate(angle);
-      QPainterPath path = rotationMatrix.map(arrow_start);
-      painter->drawPath(path);
-      bounding_rect = bounding_rect.united(path.boundingRect());
-      //painter->restore();
-    }
-    if (!arrow_end.isEmpty())
-    {
-      QMatrix rotationMatrix;
-      rotationMatrix.translate(end.x(), end.y());
-      rotationMatrix.rotate(angle + 180);
-      QPainterPath path = rotationMatrix.map(arrow_end);
-      painter->drawPath(path);
-      bounding_rect = bounding_rect.united(path.boundingRect());
-    }
-    return bounding_rect;
-  }
-
   void Painter1DBase::drawAnnotations_(const LayerData1DBase* layer, QPainter& painter, Plot1DCanvas* canvas) const
   {
     const QColor col {QColor(String(layer->param.getValue("annotation_color").toString()).toQString())};

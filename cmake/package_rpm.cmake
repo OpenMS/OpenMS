@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -60,7 +60,7 @@ SET(CPACK_PACKAGE_DESCRIPTION "
  spectrometry-related software and powerful 2D and 3D visualization
  solutions.
  .
- TOPP (the OpenMS proteomic pipeline) is a pipeline for the analysis
+ TOPP (the OpenMS PiPeline) is a pipeline for the analysis
  of HPLC/MS data. It consists of a set of numerous small applications
  that can be chained together to create analysis pipelines tailored
  for a specific problem."

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -55,9 +29,9 @@ namespace OpenMS
   /*!
     @brief Representation of spectrum identification results and associated data
 
-    This class provides capabilities for storing spectrum identification results from different 
+    This class provides capabilities for storing spectrum identification results from different
     types of experiments/molecules (proteomics: peptides/proteins, metabolomics: small molecules, "nucleomics": RNA).
-    
+
     The class design has the following goals:
     - Provide one structure for storing all relevant data for spectrum identification results.
     - Store data non-redundantly.
@@ -91,6 +65,24 @@ namespace OpenMS
 
     @ingroup Metadata
   */
+
+  /// Remove elements from a set (or ordered multi_index_container) if they fulfill a predicate (TODO: deprecate and use std::erase_if with C++20 adoption)
+  template <typename ContainerType, typename PredicateType>
+  static void removeFromSetIf_(ContainerType& container, PredicateType predicate)
+  {
+    for (auto it = container.begin(); it != container.end(); )
+    {
+      if (predicate(it))
+      {
+        it = container.erase(it);
+      }
+      else
+      {
+        ++it;
+      }
+    }
+  }
+
   class OPENMS_DLLAPI IdentificationData: public MetaInfoInterface
   {
   public:
@@ -205,46 +197,10 @@ namespace OpenMS
 
       bool allow_missing = false;
 
-      IdentifiedMolecule translate(IdentifiedMolecule old) const
-      {
-        switch (old.getMoleculeType())
-        {
-          case MoleculeType::PROTEIN:
-          {
-            auto pos = identified_peptide_refs.find(old.getIdentifiedPeptideRef());
-            if (pos != identified_peptide_refs.end()) return pos->second;
-          }
-          break;
-          case MoleculeType::COMPOUND:
-          {
-            auto pos = identified_compound_refs.find(old.getIdentifiedCompoundRef());
-            if (pos != identified_compound_refs.end()) return pos->second;
-          }
-          break;
-          case MoleculeType::RNA:
-          {
-            auto pos = identified_oligo_refs.find(old.getIdentifiedOligoRef());
-            if (pos != identified_oligo_refs.end()) return pos->second;
-          }
-          break;
-          default:
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "invalid molecule type",
-                                          String(old.getMoleculeType()));
-        }
-        if (allow_missing) return old;
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "no match for reference");
-      }
+      IdentifiedMolecule translate(IdentifiedMolecule old) const;
 
-      ObservationMatchRef translate(ObservationMatchRef old) const
-      {
-        auto pos = observation_match_refs.find(old);
-        if (pos != observation_match_refs.end()) return pos->second;
-        if (allow_missing) return old;
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "no match for reference");
-      }
+      ObservationMatchRef translate(ObservationMatchRef old) const;
+
     };
 
     /// Default constructor
@@ -261,35 +217,20 @@ namespace OpenMS
     */
     IdentificationData(const IdentificationData& other);
 
-    /// Move constructor
-    IdentificationData(IdentificationData&& other) noexcept :
-      MetaInfoInterface(std::move(other)),
-      input_files_(std::move(other.input_files_)),
-      processing_softwares_(std::move(other.processing_softwares_)),
-      processing_steps_(std::move(other.processing_steps_)),
-      db_search_params_(std::move(other.db_search_params_)),
-      db_search_steps_(std::move(other.db_search_steps_)),
-      score_types_(std::move(other.score_types_)),
-      observations_(std::move(other.observations_)),
-      parents_(std::move(other.parents_)),
-      parent_groups_(std::move(other.parent_groups_)),
-      identified_peptides_(std::move(other.identified_peptides_)),
-      identified_compounds_(std::move(other.identified_compounds_)),
-      identified_oligos_(std::move(other.identified_oligos_)),
-      adducts_(std::move(other.adducts_)),
-      observation_matches_(std::move(other.observation_matches_)),
-      observation_match_groups_(std::move(other.observation_match_groups_)),
-      current_step_ref_(std::move(other.current_step_ref_)),
-      no_checks_(std::move(other.no_checks_)),
-      // look-up tables:
-      observation_lookup_(std::move(other.observation_lookup_)),
-      parent_lookup_(std::move(other.parent_lookup_)),
-      identified_peptide_lookup_(std::move(other.identified_peptide_lookup_)),
-      identified_compound_lookup_(std::move(other.identified_compound_lookup_)),
-      identified_oligo_lookup_(std::move(other.identified_oligo_lookup_)),
-      observation_match_lookup_(std::move(other.observation_match_lookup_))
-    {
-    }
+    /*!
+      @brief Copy assignment operator
+    */
+    IdentificationData& operator=(const IdentificationData& other);
+
+    /*!
+      @brief Move constructor
+    */
+    IdentificationData(IdentificationData&& other) noexcept;
+
+    /*!
+      @brief Move assignment operator
+    */
+    IdentificationData& operator=(IdentificationData&& other) noexcept;
 
     /*!
       @brief Register an input file
@@ -524,6 +465,43 @@ namespace OpenMS
     std::pair<ObservationMatchRef, ObservationMatchRef> getMatchesForObservation(ObservationRef obs_ref) const;
 
     /*!
+      @brief Helper function for filtering observation matches (e.g. PSMs) in IdentificationData
+
+      If other parts are invalidated by filtering, the data structure is automatically cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
+
+      @param func Functor that returns true for container elements to be removed
+    */
+    template <typename PredicateType>
+    void removeObservationMatchesIf(PredicateType&& func)
+    {
+      auto count = observation_matches_.size();
+      removeFromSetIf_(observation_matches_, func);
+      if (count != observation_matches_.size()) cleanup();
+    }
+
+    /*!
+      @brief Helper function for filtering parent sequences (e.g. protein sequences) in IdentificationData
+
+      If other parts are invalidated by filtering, the data structure is automatically cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
+
+      @param func Functor that returns true for container elements to be removed
+    */
+    template <typename PredicateType>
+    void removeParentSequencesIf(PredicateType&& func)
+    {
+      auto count = parents_.size();
+      removeFromSetIf_(parents_, func);
+      if (count != parents_.size()) cleanup();
+    }
+
+    template <typename PredicateType>
+    void applyToObservations(PredicateType&& func)
+    {
+      for (auto it = observations_.begin(); it != observations_.end(); ++it)
+        observations_.modify(it, func);
+    }
+
+    /*!
       @brief Look up a score type by name.
 
       @return Reference to the score type, if found; otherwise @p getScoreTypes().end()
@@ -624,16 +602,20 @@ namespace OpenMS
       return pos->first;
     }
 
-    /// Set a meta value on a stored input match
+    /// Set a meta value on a stored observation match (e.g. PSM)
     void setMetaValue(const ObservationMatchRef ref, const String& key, const DataValue& value);
 
-    /// Set a meta value on a stored input item
+    /// Set a meta value on a stored observation
     void setMetaValue(const ObservationRef ref, const String& key, const DataValue& value);
 
     /// Set a meta value on a stored identified molecule (variant)
     void setMetaValue(const IdentifiedMolecule& var, const String& key, const DataValue& value);
 
     // @TODO: add overloads for other data types derived from MetaInfoInterface
+
+    /// Remove a meta value (if it exists) from a stored observation match (e.g. PSM)
+    /// @TODO: return whether value existed? (requires changes in MetaInfo[Interface])
+    void removeMetaValue(const ObservationMatchRef ref, const String& key);
 
   protected:
 
@@ -698,25 +680,12 @@ namespace OpenMS
                                        const RefTranslator& trans);
 
     /*!
-      @brief Helper functor for adding processing steps to elements in a @t boost::multi_index_container structure
+      @brief Helper functor for adding processing steps to elements in a @p boost::multi_index_container structure
 
       The validity of the processing step reference cannot be checked here!
     */
     template <typename ElementType>
-    struct ModifyMultiIndexAddProcessingStep
-    {
-      ModifyMultiIndexAddProcessingStep(ProcessingStepRef step_ref):
-        step_ref(step_ref)
-      {
-      }
-
-      void operator()(ElementType& element)
-      {
-        element.addProcessingStep(step_ref);
-      }
-
-      ProcessingStepRef step_ref;
-    };
+    struct ModifyMultiIndexAddProcessingStep;
 
     /**
       @brief Helper functor for adding scores to elements in a @em boost::multi_index_container structure
@@ -724,29 +693,7 @@ namespace OpenMS
       The validity of the score type reference cannot be checked here!
     */
     template <typename ElementType>
-    struct ModifyMultiIndexAddScore
-    {
-      ModifyMultiIndexAddScore(ScoreTypeRef score_type_ref, double value):
-        score_type_ref(score_type_ref), value(value)
-      {
-      }
-
-      void operator()(ElementType& element)
-      {
-        if (element.steps_and_scores.empty())
-        {
-          element.addScore(score_type_ref, value);
-        }
-        else // add score to most recent step
-        {
-          element.addScore(score_type_ref, value,
-                           element.steps_and_scores.back().processing_step_opt);
-        }
-      }
-
-      ScoreTypeRef score_type_ref;
-      double value;
-    };
+    struct ModifyMultiIndexAddScore;
 
     /**
       @brief Helper functor for removing invalid parent matches from elements in a @em boost::multi_index_container structure
@@ -754,146 +701,18 @@ namespace OpenMS
       Used during filtering, to update parent matches after parents have been removed.
     */
     template <typename ElementType>
-    struct ModifyMultiIndexRemoveParentMatches
-    {
-      ModifyMultiIndexRemoveParentMatches(const AddressLookup& lookup):
-        lookup(lookup)
-      {
-      }
-
-      void operator()(ElementType& element)
-      {
-        removeFromSetIf_(element.parent_matches,
-                         [&](const ParentMatches::iterator it)
-                         {
-                           return !lookup.count(it->first);
-                         });
-      }
-
-      const AddressLookup& lookup;
-    };
-
+    struct ModifyMultiIndexRemoveParentMatches;
 
     /// Helper function for adding entries (derived from ScoredProcessingResult) to a @em boost::multi_index_container structure
     template <typename ContainerType, typename ElementType>
-    typename ContainerType::iterator insertIntoMultiIndex_(
-      ContainerType& container, const ElementType& element)
-    {
-      checkAppliedProcessingSteps_(element.steps_and_scores);
-
-      auto result = container.insert(element);
-      if (!result.second) // existing element - merge in new information
-      {
-        container.modify(result.first, [&element](ElementType& existing)
-                         {
-                           existing.merge(element);
-                         });
-      }
-
-      // add current processing step (if necessary):
-      if (current_step_ref_ != processing_steps_.end())
-      {
-        ModifyMultiIndexAddProcessingStep<ElementType>
-          modifier(current_step_ref_);
-        container.modify(result.first, modifier);
-      }
-
-      return result.first;
-    }
+    typename ContainerType::iterator insertIntoMultiIndex_(ContainerType& container, const ElementType& element);
 
     /// Variant of insertIntoMultiIndex_() that also updates a look-up table of valid references (addresses)
     template <typename ContainerType, typename ElementType>
     typename ContainerType::iterator insertIntoMultiIndex_(
       ContainerType& container, const ElementType& element,
-      AddressLookup& lookup)
-    {
-      typename ContainerType::iterator ref =
-        insertIntoMultiIndex_(container, element);
-      lookup.insert(uintptr_t(&(*ref)));
-      return ref;
-    }
+      AddressLookup& lookup);
 
-    /// Check whether a reference points to an element in a container
-    template <typename RefType, typename ContainerType>
-    static bool isValidReference_(RefType ref, ContainerType& container)
-    {
-      for (auto it = container.begin(); it != container.end(); ++it)
-      {
-        if (ref == it) return true;
-      }
-      return false;
-    }
-
-    /// Check validity of a reference based on a look-up table of addresses
-    template <typename RefType>
-    static bool isValidHashedReference_(
-      RefType ref, const AddressLookup& lookup)
-    {
-      return lookup.count(ref);
-    }
-
-    /// Remove elements from a set (or ordered multi_index_container) if they fulfill a predicate
-    template <typename ContainerType, typename PredicateType>
-    static void removeFromSetIf_(ContainerType& container, PredicateType predicate)
-    {
-      for (auto it = container.begin(); it != container.end(); )
-      {
-        if (predicate(it))
-        {
-          it = container.erase(it);
-        }
-        else
-        {
-          ++it;
-        }
-      }
-    }
-
-    /// Remove elements from a set (or ordered multi_index_container) if they don't occur in a look-up table
-    template <typename ContainerType>
-    static void removeFromSetIfNotHashed_(
-      ContainerType& container, const AddressLookup& lookup)
-    {
-      removeFromSetIf_(container, [&lookup](typename ContainerType::iterator it)
-                       {
-                         return !lookup.count(uintptr_t(&(*it)));
-                       });
-    }
-
-    /// Recreate the address look-up table for a container
-    template <typename ContainerType>
-    static void updateAddressLookup_(const ContainerType& container,
-                                     AddressLookup& lookup)
-    {
-      lookup.clear();
-      lookup.reserve(container.size());
-      for (const auto& element : container)
-      {
-        lookup.insert(uintptr_t(&element));
-      }
-    }
-
-    /// Helper function to add a meta value to an element in a multi-index container
-    template <typename RefType, typename ContainerType>
-    void setMetaValue_(const RefType ref, const String& key, const DataValue& value,
-                       ContainerType& container, const AddressLookup& lookup = AddressLookup())
-    {
-      if (!no_checks_ && ((lookup.empty() && !isValidReference_(ref, container)) ||
-                          (!lookup.empty() && !isValidHashedReference_(ref, lookup))))
-      {
-        String msg = "invalid reference for the given container";
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION, msg);
-      }
-      container.modify(ref, [&key, &value](typename ContainerType::value_type& element)
-      {
-        element.setMetaValue(key, value);
-      });
-    }
-
-
-    // these classes need access to manipulate data:
-    friend class IDFilter;
-    friend class MapAlignmentTransformer;
   };
+
 }

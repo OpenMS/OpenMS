@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -52,9 +26,10 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IndentedStream.h>
 #include <OpenMS/FORMAT/ParamCTDFile.h>
+#include <OpenMS/FORMAT/ParamCWLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
-            
+
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -138,16 +113,6 @@ namespace OpenMS
     // can be disabled to allow unit tests
     if (toolhandler_test_)
     {
-      // check if tool entries are in Utils and TOPP (duplication)
-      if (ToolHandler::checkDuplicated(tool_name_))
-      {
-        throw Exception::InvalidValue(__FILE__,
-                                      __LINE__,
-                                      OPENMS_PRETTY_FUNCTION,
-                                      String("The '" + tool_name_ + "' has entries in the UTILS and TOPP category. Please add it to the correct category in the ToolHandler."),
-                                      tool_name_);
-      }
-
       // check if tool is in official tools list
       if (official_ && tool_name_ != "GenericWrapper" && !ToolHandler::getTOPPToolList().count(tool_name_))
       {
@@ -155,16 +120,6 @@ namespace OpenMS
                                       __LINE__,
                                       OPENMS_PRETTY_FUNCTION,
                                       String("If '" + tool_name_ + "' is an official TOPP tool, add it to the tools list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to false."),
-                                      tool_name_);
-      }
-
-      // check if tool is in util list
-      if (!official_ && !ToolHandler::getUtilList().count(tool_name_))
-      {
-        throw Exception::InvalidValue(__FILE__,
-                                      __LINE__,
-                                      OPENMS_PRETTY_FUNCTION,
-                                      String("If '" + tool_name_ + "' is a Util, add it to the util list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to true."),
                                       tool_name_);
       }
     }
@@ -186,10 +141,10 @@ namespace OpenMS
     //parse command line
     //----------------------------------------------------------
 
-    //register values from derived TOPP tool
+    // register values from derived TOPP tool
     registerOptionsAndFlags_();
     addEmptyLine_();
-    //common section for all tools
+    // common section for all tools
     if (ToolHandler::getTOPPToolList().count(tool_name_))
       addText_("Common TOPP options:");
     else
@@ -297,7 +252,21 @@ namespace OpenMS
         {
           in_ini = param_cmdline_.getValue("ini");
           Param ini_params;
-          ParamXMLFile().load(in_ini.toString(), ini_params);
+          const std::string in_ini_path = in_ini.toString();
+          if (FileHandler::getTypeByFileName(in_ini_path) == FileTypes::Type::JSON)
+          {
+            // The JSON file doesn't carry any information about the parameter tree structure.
+            // We hand an additional parameter object with the default values, so we have information
+            // about the tree when parsing the JSON file.
+            ini_params = getDefaultParameters_();
+            if (!ParamCWLFile::load(in_ini_path, ini_params))
+            {
+              return ILLEGAL_PARAMETERS;
+            }
+          } else {
+            ParamXMLFile().load(in_ini_path, ini_params);
+          }
+
           // check if ini parameters are applicable to this tool
           checkIfIniParametersAreApplicable_(ini_params);
           // update default params with outdated params given in -ini and be verbose
@@ -331,7 +300,21 @@ namespace OpenMS
           writeDebug_("INI file: " + value_ini, 1);
           writeDebug_("INI location: " + getIniLocation_(), 1);
 
-          ParamXMLFile().load(value_ini, param_inifile_);
+          if (FileHandler::getTypeByFileName(value_ini) == FileTypes::Type::JSON)
+          {
+            writeDebug_("Assuming INI is a cwl file", 1);
+            // The JSON file doesn't carry any information about the parameter tree structure.
+            // We prepopulate the param object with the default values, so we have information
+            // about the tree when parsing the JSON file.
+            param_inifile_ = getDefaultParameters_();
+            if (!ParamCWLFile::load(value_ini, param_inifile_))
+            {
+              return ILLEGAL_PARAMETERS;
+            }
+
+          } else {
+            ParamXMLFile().load(value_ini, param_inifile_);
+          }
           checkIfIniParametersAreApplicable_(param_inifile_);
 
           // dissect loaded INI parameters
@@ -1003,7 +986,7 @@ namespace OpenMS
     {
       if (!defaults[j].empty() && !ListUtils::contains(valids, defaults[j]))
       {
-        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
       }
     }
     p.valid_strings = strings;
@@ -1065,7 +1048,7 @@ namespace OpenMS
     {
       if (defaults[j] < min)
       {
-        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPPS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
       }
     }
     p.min_int = min;
@@ -1089,7 +1072,7 @@ namespace OpenMS
     {
       if (defaults[j] > max)
       {
-        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPPS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
       }
     }
     p.max_int = max;
@@ -1113,7 +1096,7 @@ namespace OpenMS
     {
       if (defaults[j] < min)
       {
-        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPPS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
       }
     }
     p.min_float = min;
@@ -1137,7 +1120,7 @@ namespace OpenMS
     {
       if (defaults[j] > max)
       {
-        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPPS tool option '" + name + "' with default value " + std::string(p.default_value) + " does not meet restrictions!");
       }
     }
     p.max_float = max;
@@ -2052,6 +2035,11 @@ namespace OpenMS
         tags.emplace_back("input file");
       }
 
+      if (it->type == ParameterInformation::INPUT_FILE && std::find(it->tags.begin(), it->tags.end(), "is_executable") != it->tags.end())
+      {
+        tags.emplace_back("is_executable");
+      }
+
       if (it->type == ParameterInformation::OUTPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE_LIST)
       {
         tags.emplace_back("output file");
@@ -2317,7 +2305,7 @@ namespace OpenMS
   String TOPPBase::getDocumentationURL() const
   {
     VersionInfo::VersionDetails ver = VersionInfo::getVersionStruct();
-    String tool_prefix = official_ ? "TOPP_" : "UTILS_";
+    String tool_prefix = "TOPP_";
     // it is only empty if the GIT_BRANCH inferred or set during CMake config was release/* or master
     // see https://github.com/OpenMS/OpenMS/blob/develop/CMakeLists.txt#L122
     if (ver.pre_release_identifier.empty())
@@ -2362,7 +2350,7 @@ namespace OpenMS
 
       std::string docurl = getDocumentationURL();
       std::string category;
-      if (official_ || ToolHandler::getUtilList().count(tool_name_))
+      if (official_)
       { // we can only get the docurl/category from registered/official tools
         category = ToolHandler::getCategory(tool_name_);
       }

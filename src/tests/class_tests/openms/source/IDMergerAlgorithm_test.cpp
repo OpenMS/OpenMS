@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julianus Pfeuffer $
@@ -94,50 +68,50 @@ START_TEST(IDMergerAlgorithm, "$Id$")
       PeptideIdentification pe1;
       pe1.setIdentifier("PR1");
       pe1.getHits().push_back(ph0);
-      pe1.setMetaValue("id_merge_index",0);
+      pe1.setMetaValue(Constants::UserParam::ID_MERGE_INDEX,0);
 
       PeptideIdentification pe2;
       pe2.setIdentifier("PR1");
       pe2.getHits().push_back(ph1);
       pe2.getHits().push_back(ph11);
-      pe2.setMetaValue("id_merge_index",0);
+      pe2.setMetaValue(Constants::UserParam::ID_MERGE_INDEX,0);
 
       PeptideIdentification pe3;
       pe3.setIdentifier("PR2");
       pe3.getHits().push_back(ph0); // how to handle accessions that are not in the corresponding list of proteins?
       //currently ignore and add nonetheless.
-      pe3.setMetaValue("id_merge_index",0);
+      pe3.setMetaValue(Constants::UserParam::ID_MERGE_INDEX,0);
 
       PeptideIdentification pe4;
       pe4.setIdentifier("PR2");
       pe4.getHits().push_back(ph2);
       pe4.getHits().push_back(ph3);
-      pe4.setMetaValue("id_merge_index",1);
+      pe4.setMetaValue(Constants::UserParam::ID_MERGE_INDEX,1);
 
       PeptideIdentification pe5;
       pe5.setIdentifier("PR3");
       pe5.getHits().push_back(ph2);
-      pe5.setMetaValue("id_merge_index",0);
+      pe5.setMetaValue(Constants::UserParam::ID_MERGE_INDEX,0);
 
       PeptideIdentification pe6;
       pe6.setIdentifier("PR3");
       pe6.getHits().push_back(ph3);
-      pe6.setMetaValue("id_merge_index",1);
+      pe6.setMetaValue(Constants::UserParam::ID_MERGE_INDEX,1);
 
       PeptideIdentification pe7;
       pe7.setIdentifier("PR3");
       pe7.getHits().push_back(ph4);
-      pe7.setMetaValue("id_merge_index",0);
+      pe7.setMetaValue(Constants::UserParam::ID_MERGE_INDEX,0);
 
       PeptideIdentification pe8;
       pe8.setIdentifier("PR3");
       pe8.getHits().push_back(ph5);
-      pe8.setMetaValue("id_merge_index",0); //can happen if second file had no IDs
+      pe8.setMetaValue(Constants::UserParam::ID_MERGE_INDEX,0); //can happen if second file had no IDs
 
       PeptideIdentification pe9;
       pe9.setIdentifier("PR5"); // non-existent run: this will be ignored
       pe9.getHits().push_back(ph5);
-      pe9.setMetaValue("id_merge_index",564);
+      pe9.setMetaValue(Constants::UserParam::ID_MERGE_INDEX,564);
 
       vector<PeptideIdentification> pes{pe1,pe2,pe3,pe4,pe5,pe6,pe7,pe8,pe9};
       vector<ProteinIdentification> prs{pr1,pr2,pr3,pr4};
@@ -152,7 +126,7 @@ START_TEST(IDMergerAlgorithm, "$Id$")
       TEST_EQUAL(prres.getHits().size(), 7)
       StringList toFill; prres.getPrimaryMSRunPath(toFill);
       TEST_EQUAL(toFill.size(), 7)
-      TEST_EQUAL(static_cast<int>(peres[2].getMetaValue("id_merge_index")), 2)
+      TEST_EQUAL(static_cast<int>(peres[2].getMetaValue(Constants::UserParam::ID_MERGE_INDEX)), 2)
 
     }
     END_SECTION

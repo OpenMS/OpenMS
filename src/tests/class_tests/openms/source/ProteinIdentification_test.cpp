@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -158,7 +132,7 @@ END_SECTION
 START_SECTION((bool operator==(const ProteinIdentification& rhs) const))
 	ProteinIdentification search1;
 	ProteinIdentification search2;
-	TEST_EQUAL(search1 == search2, true)
+	TEST_TRUE(search1 == search2)
 
 	search1.setDateTime(DateTime::now());
 	TEST_EQUAL(search1 == search2, false)
@@ -211,7 +185,7 @@ START_SECTION((bool operator!=(const ProteinIdentification& rhs) const))
 	TEST_EQUAL(search1 != search2, false)
 
 	search1.setDateTime(DateTime::now());
-	TEST_EQUAL(search1 != search2, true)
+	TEST_FALSE(search1 == search2)
 
 	//rest does not need to be tested, as it is tested in the operator== test implicitly!
 END_SECTION
@@ -222,7 +196,7 @@ START_SECTION((const DateTime& getDateTime() const))
 	DateTime date = DateTime::now();
 	hits.setDateTime(date);
 	const DateTime& date_time = hits.getDateTime();
-	TEST_EQUAL(date_time == date, true)
+	TEST_TRUE(date_time == date)
 END_SECTION
 
 
@@ -591,7 +565,7 @@ START_SECTION(([ProteinIdentification::ProteinGroup] bool operator==(const Prote
   TEST_NOT_EQUAL(p == p_c, true)
 
   p_c = p;
-  TEST_EQUAL(p == p_c, true)
+  TEST_TRUE(p == p_c)
 END_SECTION
 
 
@@ -659,7 +633,7 @@ END_SECTION
 START_SECTION(([ProteinIdentification::SearchParameters] bool operator!=(const SearchParameters& rhs) const))
   ProteinIdentification::SearchParameters sp, sp_n;
   sp_n.charges = "1,2,3";
-  TEST_EQUAL(sp != sp_n, true)
+  TEST_FALSE(sp == sp_n)
 END_SECTION
 
 

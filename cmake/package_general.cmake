@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -69,18 +69,28 @@ set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}
 # On Windows we need to tell CMake where to look for.
 # We also do not need API sets. So exclude them.
 if(WIN32)
-  set(EXCLUDE "api-ms" "ext-ms" "hvsi" "pdmutilities")
+  set(EXCLUDE "api-ms" "ext-ms" "hvsi" "pdmutilities" "wpaxholder")
+  set(POST_EXCLUDE ".*WINDOWS.system32.*")
 elseif(APPLE)
   set(EXCLUDE "/usr/lib" "/System/")
+  set(POST_EXCLUDE "")
 else()
-  set(EXCLUDE)
+  set(EXCLUDE ".*/ld-linux-.*" ".*/linux-vdso.*" ".*/libm\\..*" ".*/libc\\..*" ".*/libpthread\\..*" ".*/libdl\\..*")
+  set(POST_EXCLUDE "")
 endif()
 
+# TODO check if we can reduce the permissions
 install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
         DESTINATION ${INSTALL_LIB_DIR}
+        PERMISSIONS
+          OWNER_READ OWNER_WRITE OWNER_EXECUTE
+          GROUP_READ GROUP_WRITE GROUP_EXECUTE
+          WORLD_READ WORLD_WRITE WORLD_EXECUTE
         COMPONENT Dependencies
-        PRE_EXCLUDE_REGEXES ${EXCLUDE} 
-        DIRECTORIES ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+        PRE_EXCLUDE_REGEXES ${EXCLUDE}
+        POST_EXCLUDE_REGEXES ${POST_EXCLUDE}
+        DIRECTORIES $<TARGET_FILE_DIR:OpenMS>)
+
 #install(RUNTIME_DEPENDENCY_SET TOPPView_DEPS) # I think without giving DESTINATION and COMPONENT it will be inferred
 #install(RUNTIME_DEPENDENCY_SET TOPPAS_DEPS)
 #...
@@ -92,7 +102,6 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
   ## TODO we could think about just recursing over subfolders
   install_thirdparty_folder("pwiz-bin")
   install_thirdparty_folder("Comet")
-  install_thirdparty_folder("Fido")
   install_thirdparty_folder("MSGFPlus")
   install_thirdparty_folder("XTandem")
   install_thirdparty_folder("LuciPHOr2")

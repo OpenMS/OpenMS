@@ -54,7 +54,7 @@
    <item row="0" column="0">
     <layout class="QGridLayout">
      <item row="3" column="0">
-      <widget class="QLabel" name="rt_">
+      <widget class="QLabel" name="dimy_">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
          <horstretch>0</horstretch>
@@ -62,7 +62,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>RT:</string>
+        <string>dimy</string>
        </property>
        <property name="wordWrap">
         <bool>false</bool>
@@ -70,7 +70,7 @@
       </widget>
      </item>
      <item row="1" column="2">
-      <widget class="QLineEdit" name="max_mz_">
+      <widget class="QLineEdit" name="max_x_">
        <property name="sizePolicy">
         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -86,7 +86,7 @@
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="mz_">
+      <widget class="QLabel" name="dimx_">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
          <horstretch>0</horstretch>
@@ -94,7 +94,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>m/z:</string>
+        <string>dimx</string>
        </property>
        <property name="wordWrap">
         <bool>false</bool>
@@ -124,7 +124,7 @@
       </widget>
      </item>
      <item row="3" column="2">
-      <widget class="QLineEdit" name="max_rt_">
+      <widget class="QLineEdit" name="max_y_">
        <property name="sizePolicy">
         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
          <horstretch>0</horstretch>
@@ -172,7 +172,7 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="min_mz_">
+      <widget class="QLineEdit" name="min_x_">
        <property name="sizePolicy">
         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
          <horstretch>0</horstretch>
@@ -204,7 +204,7 @@
       </widget>
      </item>
      <item row="3" column="1">
-      <widget class="QLineEdit" name="min_rt_">
+      <widget class="QLineEdit" name="min_y_">
        <property name="sizePolicy">
         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
          <horstretch>0</horstretch>
@@ -220,28 +220,28 @@
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QLabel" name="min_mz_const_">
+      <widget class="QLabel" name="min_x_const_">
        <property name="text">
         <string>TextLabel</string>
        </property>
       </widget>
      </item>
      <item row="2" column="2">
-      <widget class="QLabel" name="max_mz_const_">
+      <widget class="QLabel" name="max_x_const_">
        <property name="text">
         <string>TextLabel</string>
        </property>
       </widget>
      </item>
      <item row="4" column="1">
-      <widget class="QLabel" name="min_rt_const_">
+      <widget class="QLabel" name="min_y_const_">
        <property name="text">
         <string>TextLabel</string>
        </property>
       </widget>
      </item>
      <item row="4" column="2">
-      <widget class="QLabel" name="max_rt_const_">
+      <widget class="QLabel" name="max_y_const_">
        <property name="text">
         <string>TextLabel</string>
        </property>
@@ -263,10 +263,10 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
-  <tabstop>min_mz_</tabstop>
-  <tabstop>max_mz_</tabstop>
-  <tabstop>min_rt_</tabstop>
-  <tabstop>max_rt_</tabstop>
+  <tabstop>min_x_</tabstop>
+  <tabstop>max_x_</tabstop>
+  <tabstop>min_y_</tabstop>
+  <tabstop>max_y_</tabstop>
   <tabstop>feature_number_</tabstop>
   <tabstop>ok_button_</tabstop>
   <tabstop>cancel_button_</tabstop>

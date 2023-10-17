@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -201,13 +175,15 @@ namespace OpenMS
 
   void Plot2DWidget::showGoToDialog()
   {
-    Plot2DGoToDialog goto_dialog(this);
+    Plot2DGoToDialog goto_dialog(this,
+      canvas_->getMapper().getDim(DIM::X).getDimNameShort(),
+      canvas_->getMapper().getDim(DIM::Y).getDimNameShort());
     //set range
     const auto& area = canvas()->getVisibleArea().getAreaXY();
-    goto_dialog.setRange(area.minY(), area.maxY(), area.minX(), area.maxX());
+    goto_dialog.setRange(area);
 
     auto all_area_xy = canvas_->getMapper().mapRange(canvas_->getDataRange());
-    goto_dialog.setMinMaxOfRange(all_area_xy.minX(), all_area_xy.maxX(), all_area_xy.minY(), all_area_xy.maxY());
+    goto_dialog.setMinMaxOfRange(all_area_xy);
     // feature numbers only for consensus&feature maps
     goto_dialog.enableFeatureNumber(canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE || canvas()->getCurrentLayer().type == LayerDataBase::DT_CONSENSUS);
     // execute
@@ -215,9 +191,7 @@ namespace OpenMS
     {
       if (goto_dialog.showRange())
       {
-        goto_dialog.fixRange();
-        PlotCanvas::AreaXYType area_new(goto_dialog.getMinRT(), goto_dialog.getMinMZ(), goto_dialog.getMaxRT(), goto_dialog.getMaxMZ());
-        canvas()->setVisibleArea(area_new);
+        canvas()->setVisibleArea(goto_dialog.getRange());
       }
       else
       {
@@ -256,26 +230,22 @@ namespace OpenMS
           return;
         }
         // display feature with a margin
+        RangeAllType range;
         if (lf)
         {
           const FeatureMap& map = *lf->getFeatureMap();
           const DBoundingBox<2> bb = map[feature_index].getConvexHull().getBoundingBox();
-          RangeAllType range;
           range.RangeRT::operator=(RangeBase{bb.minPosition()[0], bb.maxPosition()[0]});
           range.RangeMZ::operator=(RangeBase{bb.minPosition()[1], bb.maxPosition()[1]});
-          range.RangeRT::scaleBy(2);
-          range.RangeRT::scaleBy(5);
-          canvas()->setVisibleArea(range);
         }
         else // Consensus Feature
         {
           const ConsensusFeature& cf = (*lc->getConsensusMap())[feature_index];
-          auto range = canvas_->getMapper().fromXY(canvas_->getMapper().map(cf));
-          range.RangeRT::extendLeftRight(30);
-          range.RangeMZ::extendLeftRight(5);
-          canvas()->setVisibleArea(range);
+          range = canvas_->getMapper().fromXY(canvas_->getMapper().map(cf));
         }
-
+        range.RangeRT::extendLeftRight(30);
+        range.RangeMZ::extendLeftRight(5);
+        canvas()->setVisibleArea(range);
       }
     }
   }

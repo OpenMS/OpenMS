@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -91,7 +91,10 @@ target_link_libraries(Base64_test ZLIB::ZLIB)
 target_link_libraries(LPWrapper_test CoinOR::CoinOR)
 target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
 target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
-target_link_libraries(HDF5_test HDF5::HDF5)
+
+if (WITH_HDF5)
+  target_link_libraries(HDF5_test HDF5::HDF5)
+endif()
 
 #------------------------------------------------------------------------------
 # restore old compiler flags

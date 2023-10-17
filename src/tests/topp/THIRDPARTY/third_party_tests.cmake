@@ -48,6 +48,10 @@ OPENMS_FINDBINARY(MARACLUSTER_BINARY "maracluster" "MaRaCluster")
 OPENMS_FINDBINARY(COMET_BINARY "comet.exe" "Comet")
 
 #------------------------------------------------------------------------------
+# Sage
+OPENMS_FINDBINARY(SAGE_BINARY "sage;sage.exe" "Sage")
+
+#------------------------------------------------------------------------------
 # X!Tandem
 OPENMS_FINDBINARY(XTANDEM_BINARY "tandem;tandem.exe" "X! Tandem")
 openms_check_tandem_version(${XTANDEM_BINARY} xtandem_valid)
@@ -63,11 +67,6 @@ OPENMS_FINDBINARY(MSFRAGGER_BINARY "MSFragger.jar" "MSFragger")
 #------------------------------------------------------------------------------
 # percolator
 OPENMS_FINDBINARY(PERCOLATOR_BINARY "percolator" "Percolator")
-
-#------------------------------------------------------------------------------
-# Fido
-OPENMS_FINDBINARY(FIDO_BINARY "Fido" "Fido")
-OPENMS_FINDBINARY(FIDOCHOOSEPARAMS_BINARY "FidoChooseParameters" "FidoChooseParameters")
 
 #------------------------------------------------------------------------------
 # Sirius
@@ -129,6 +128,13 @@ if (NOT (${MSGFPLUS_BINARY} STREQUAL "MSGFPLUS_BINARY-NOTFOUND"))
   set_tests_properties("TOPP_MSGFPlusAdapter_PROFILE" PROPERTIES WILL_FAIL 1) 
 endif()
 
+#------------------------------------------------------------------------------
+if (NOT (${SAGE_BINARY} STREQUAL "SAGE_BINARY-NOTFOUND"))
+  ### NOT needs to be added after the binarys have been included
+  add_test("TOPP_SageAdapter_1" ${TOPP_BIN_PATH}/SageAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/SageAdapter_1.ini -database  ${DATA_DIR_TOPP}/THIRDPARTY/SageAdapter_1.fasta -in  ${DATA_DIR_TOPP}/THIRDPARTY/SageAdapter_1.mzML -out SageAdapter_1_out.tmp.idXML -sage_executable "${SAGE_BINARY}")
+  add_test("TOPP_SageAdapter_1_out1" ${DIFF} -in1 SageAdapter_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SageAdapter_1_out.idXML -whitelist "search_engine_version" "IdentificationRun date" "spectra_data" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"SageAdapter:1:in\" value=" "UserParam type=\"string\" name=\"SageAdapter:1:database\" value=" "UserParam type=\"string\" name=\"SageAdapter:1:sage_executable\" value=")
+  set_tests_properties("TOPP_SageAdapter_1_out1" PROPERTIES DEPENDS "TOPP_SageAdapter_1")
+endif()
 
 #------------------------------------------------------------------------------
 if (NOT (${COMET_BINARY} STREQUAL "COMET_BINARY-NOTFOUND"))
@@ -219,35 +225,6 @@ if (WITH_MASCOT_TEST)
 endif()
 
 #------------------------------------------------------------------------------
-if (NOT (${FIDOCHOOSEPARAMS_BINARY} STREQUAL "FIDOCHOOSEPARAMS_BINARY-NOTFOUND"))
-  add_test("TOPP_FidoAdapter_1" ${TOPP_BIN_PATH}/FidoAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_input.idXML -out FidoAdapter_1_output.tmp -fidocp_executable "${FIDOCHOOSEPARAMS_BINARY}")
-  add_test("TOPP_FidoAdapter_1_out" ${DIFF} -in1 FidoAdapter_1_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_output.idXML -whitelist "IdentificationRun date")
-  set_tests_properties("TOPP_FidoAdapter_1_out" PROPERTIES DEPENDS "TOPP_FidoAdapter_1")
-
-  add_test("TOPP_FidoAdapter_2" ${TOPP_BIN_PATH}/FidoAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_input.idXML -out FidoAdapter_2_output.tmp -fidocp_executable "${FIDOCHOOSEPARAMS_BINARY}" -separate_runs)
-  add_test("TOPP_FidoAdapter_2_out" ${DIFF} -in1 FidoAdapter_2_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_2_output.idXML -whitelist "IdentificationRun date")
-  set_tests_properties("TOPP_FidoAdapter_2_out" PROPERTIES DEPENDS "TOPP_FidoAdapter_2")
-
-  add_test("TOPP_FidoAdapter_3" ${TOPP_BIN_PATH}/FidoAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_input.idXML -out FidoAdapter_3_output.tmp -fidocp_executable "${FIDOCHOOSEPARAMS_BINARY}" -group_level -all_PSMs)
-  add_test("TOPP_FidoAdapter_3_out" ${DIFF} -in1 FidoAdapter_3_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_3_output.idXML -whitelist "IdentificationRun date")
-  set_tests_properties("TOPP_FidoAdapter_3_out" PROPERTIES DEPENDS "TOPP_FidoAdapter_3")
-
-  add_test("TOPP_FidoAdapter_4" ${TOPP_BIN_PATH}/FidoAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_4_input.idXML -out FidoAdapter_4_output.tmp -fidocp_executable "${FIDOCHOOSEPARAMS_BINARY}")
-  add_test("TOPP_FidoAdapter_4_out" ${DIFF} -in1 FidoAdapter_4_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_4_output.idXML -whitelist "IdentificationRun date")
-  set_tests_properties("TOPP_FidoAdapter_4_out" PROPERTIES DEPENDS "TOPP_FidoAdapter_4")
-
-  add_test("TOPP_FidoAdapter_5" ${TOPP_BIN_PATH}/FidoAdapter -test -greedy_group_resolution -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_5_input.idXML -out FidoAdapter_5_output.tmp -fidocp_executable "${FIDOCHOOSEPARAMS_BINARY}")
-  add_test("TOPP_FidoAdapter_5_out" ${DIFF} -in1 FidoAdapter_5_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_5_output.idXML -whitelist "IdentificationRun date")
-  set_tests_properties("TOPP_FidoAdapter_5_out" PROPERTIES DEPENDS "TOPP_FidoAdapter_5")
-endif()
-
-if (NOT (${FIDO_BINARY} STREQUAL "FIDO_BINARY-NOTFOUND"))
-  add_test("TOPP_FidoAdapter_6" ${TOPP_BIN_PATH}/FidoAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_input.idXML -out FidoAdapter_6_output.tmp -fido_executable "${FIDO_BINARY}" -prob:protein 0.9 -prob:peptide 0.01 -prob:spurious 0.0)
-  add_test("TOPP_FidoAdapter_6_out" ${DIFF} -in1 FidoAdapter_6_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_6_output.idXML -whitelist "IdentificationRun date")
-  set_tests_properties("TOPP_FidoAdapter_6_out" PROPERTIES DEPENDS "TOPP_FidoAdapter_6")
-endif()
-
-#------------------------------------------------------------------------------
 # MSFragger
 option(WITH_MSFRAGGER_TEST "Runs the MSFragger test (which needs at least 2.6GB free RAM during testing)" ON)
 if (WITH_MSFRAGGER_TEST)
@@ -275,24 +252,6 @@ if (WITH_THERMORAWFILEPARSER_TEST)
     set_tests_properties("TOPP_THERMORAWFILEPARSER_1_out" PROPERTIES DEPENDS "TOPP_THERMORAWFILEPARSER_1")
   endif()
 endif()
-
-# TODO the following tests are waiting for better implementations of InspectAdapter and associated classes
-#add_test("TOPP_InspectAdapter_3" ${TOPP_BIN_PATH}/InspectAdapter -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -trie_dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test2.trie -in ${DATA_DIR_TOPP}/InspectAdapter.out -dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test.fasta -out InspectAdapter_4_output.tmp -inspect_out)
-#add_test("TOPP_InspectAdapter_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 InspectAdapter_4_output.tmp -in2 ${DATA_DIR_TOPP}/InspectAdapter_4_output.idXML )
-#set_tests_properties("TOPP_InspectAdapter_3_out1" PROPERTIES DEPENDS "TOPP_InspectAdapter_3")
-
-### PepNovoAdapter tests
-#The PepNovoAdapter now only works as a frontend and cannot be run without an installation of PepNovo.Therefore no test possible
-#add_test("TOPP_PepNovoAdapter_1" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_1_parameters.ini -in ${DATA_DIR_TOPP}/PepNovo.mzXML -pepnovo_in -out PepNovoAdapter_3_output.tmp -dta_list ${DATA_DIR_TOPP}/tmp/dta_list.txt -model_directory ${DATA_DIR_TOPP}/tmp/ -temp_data_directory ${DATA_DIR_TOPP}/tmp/)
-#add_test("TOPP_PepNovoAdapter_1_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/tmp/PepNovo_PTMs_.txt -in2 ${DATA_DIR_TOPP}/tmp/PepNovo_PTMs.txt)
-#TODO ANDREAS - We have to clean up the /tmp/ directory to run this test multiple times
-#add_test("TOPP_PepNovoAdapter_2" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_1_parameters.ini -in ${DATA_DIR_TOPP}/PepNovo.mzData -pepnovo_in -out PepNovoAdapter_4_output.tmp -temp_data_directory ${DATA_DIR_TOPP})
-#add_test("TOPP_PepNovoAdapter_2_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/PepNovo_PTMs_.txt -in2 ${DATA_DIR_TOPP}/PepNovo_PTMs.txt)
-#add_test("TOPP_PepNovoAdapter_3" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_5_parameters.ini -in ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.pepnovo_out -out PepNovoAdapter_5_output.tmp -pepnovo_out -dta_list ${DATA_DIR_TOPP}/tmp/dta_list.txt -model_directory ${DATA_DIR_TOPP}/tmp/ -temp_data_directory ${DATA_DIR_TOPP}/tmp/ -modifications_xml_file ${DATA_DIR_TOPP}/PepNovo_PTMs.xml -mz_files ${DATA_DIR_TOPP}/PepNovo.mzXML)
-#add_test("TOPP_PepNovoAdapter_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "date_group_1" -in1 PepNovoAdapter_5_output.tmp -in2 ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.idXML)
-## MS2 profile spectra are not allowed
-#add_test("TOPP_PepNovoAdapter_PROFILE" ${TOPP_BIN_PATH}/PepNovoAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MS2_profile.mzML -pepnovo_in -out PepNovoAdapter_output.tmp)
-#set_tests_properties("TOPP_PepNovoAdapter_PROFILE" PROPERTIES WILL_FAIL 1)
 
 #------------------------------------------------------------------------------
 if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
@@ -341,7 +300,7 @@ if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
     # test internal .ms using assigned ms2
     add_test("TOPP_SiriusAdapter_8" ${TOPP_BIN_PATH}/SiriusAdapter -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML  -in_featureinfo ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_multids.featureXML -out_sirius SiriusAdapter_8_output.tmp -preprocessing:feature_only -sirius:candidates 5 -sirius:profile qtof -sirius:db all -read_sirius_stdout)
     if (APPLE) # mzTab was created on the CI macOS
-      add_test("TOPP_SiriusAdapter_8_out" ${DIFF} -in1 SiriusAdapter_8_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_8_output.mzTab -whitelist "MTD" "373.041532365868022")
+      add_test("TOPP_SiriusAdapter_8_out" ${DIFF} -in1 SiriusAdapter_8_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_8_output.mzTab -whitelist "MTD")
       set_tests_properties("TOPP_SiriusAdapter_8_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_8")
     endif()
     set_tests_properties("TOPP_SiriusAdapter_8" PROPERTIES DEPENDS "TOPP_SiriusAdapter_7")
@@ -349,7 +308,7 @@ if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
     add_test("TOPP_SiriusAdapter_9" ${TOPP_BIN_PATH}/SiriusAdapter -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML  -in_featureinfo ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_multids.featureXML -out_sirius SiriusAdapter_9_output.tmp -sirius:candidates 5 -sirius:profile qtof -sirius:db all -read_sirius_stdout)
     set_tests_properties("TOPP_SiriusAdapter_9" PROPERTIES DEPENDS "TOPP_SiriusAdapter_8")
     if (APPLE) # mzTab was created on the CI macOS
-      add_test("TOPP_SiriusAdapter_9_out" ${DIFF} -in1 SiriusAdapter_9_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_9_output.mzTab -whitelist "MTD" "373.041532365868022" "213.074829537142989" "522.38651805643201") # ranks of the compound at "522.38651805643201" m/z shifts depending on OS (Linux C28H49N7O or windows/macOS C25H47N9O3))
+      add_test("TOPP_SiriusAdapter_9_out" ${DIFF} -in1 SiriusAdapter_9_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_9_output.mzTab -whitelist "MTD")
       set_tests_properties("TOPP_SiriusAdapter_9_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_9")
     endif()
     # test internal .ms using all ms2 (without feature information)
@@ -366,76 +325,76 @@ if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
     set_tests_properties("TOPP_SiriusAdapter_7_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_7")
    
     # use AccurateMassSearch data
-    add_test("UTILS_AssayGeneratorMetabo_7" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_sirius_output.tmp.tsv -fragment_annotation sirius -use_exact_mass -transition_threshold 3.0 -min_transitions 2 -max_transitions 3 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
-    add_test("UTILS_AssayGeneratorMetabo_7_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_sirius_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_sirius_output.tsv)
-    set_tests_properties("UTILS_AssayGeneratorMetabo_7_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_7")
+    add_test("TOPP_AssayGeneratorMetabo_7" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_sirius_output.tmp.tsv -fragment_annotation sirius -use_exact_mass -transition_threshold 3.0 -min_transitions 2 -max_transitions 3 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+    add_test("TOPP_AssayGeneratorMetabo_7_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_sirius_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_sirius_output.tsv)
+    set_tests_properties("TOPP_AssayGeneratorMetabo_7_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_7")
   
     # use AccurateMassSearch data
-    add_test("UTILS_AssayGeneratorMetabo_8" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_sirius_ukn_output.tmp.tsv -fragment_annotation sirius -use_exact_mass -transition_threshold 3.0 -min_transitions 2 -max_transitions 3 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:candidates 5 -sirius:db ALL -sirius:profile qtof -sirius:compound_timeout 100 -use_known_unknowns)
-    add_test("UTILS_AssayGeneratorMetabo_8_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_sirius_ukn_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_sirius_ukn_output.tsv)
-    set_tests_properties("UTILS_AssayGeneratorMetabo_8" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_7")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_8_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_8")
+    add_test("TOPP_AssayGeneratorMetabo_8" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_sirius_ukn_output.tmp.tsv -fragment_annotation sirius -use_exact_mass -transition_threshold 3.0 -min_transitions 2 -max_transitions 3 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:candidates 5 -sirius:db ALL -sirius:profile qtof -sirius:compound_timeout 100 -use_known_unknowns)
+    add_test("TOPP_AssayGeneratorMetabo_8_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_sirius_ukn_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_sirius_ukn_output.tsv)
+    set_tests_properties("TOPP_AssayGeneratorMetabo_8" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_7")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_8_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_8")
   
     # use AccurateMassSearch data
-    add_test("UTILS_AssayGeneratorMetabo_9" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_intsort_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_intsort_input.featureXML -out AssayGeneratorMetabo_ams_sirius_intsort_output.tmp.tsv -fragment_annotation sirius -use_exact_mass -transition_threshold 3.0 -min_transitions 2 -max_transitions 3 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:candidates 5 -sirius:profile qtof -sirius:compound_timeout 100)
-    add_test("UTILS_AssayGeneratorMetabo_9_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_sirius_intsort_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_sirius_intsort_output.tsv)
-    set_tests_properties("UTILS_AssayGeneratorMetabo_9" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_8")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_9_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_9")
+    add_test("TOPP_AssayGeneratorMetabo_9" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_intsort_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_intsort_input.featureXML -out AssayGeneratorMetabo_ams_sirius_intsort_output.tmp.tsv -fragment_annotation sirius -use_exact_mass -transition_threshold 3.0 -min_transitions 2 -max_transitions 3 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:candidates 5 -sirius:profile qtof -sirius:compound_timeout 100)
+    add_test("TOPP_AssayGeneratorMetabo_9_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_sirius_intsort_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_sirius_intsort_output.tsv)
+    set_tests_properties("TOPP_AssayGeneratorMetabo_9" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_8")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_9_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_9")
   
     # use AccurateMassSearch data + fragment mass restriction
-    add_test("UTILS_AssayGeneratorMetabo_10" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_sirius_restrict_output.tmp.tsv  -fragment_annotation sirius -use_exact_mass -transition_threshold 3.0 -min_transitions 2 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
-    add_test("UTILS_AssayGeneratorMetabo_10_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_sirius_restrict_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_sirius_restrict_output.tsv)
-    set_tests_properties("UTILS_AssayGeneratorMetabo_10" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_9")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_10_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_10")
+    add_test("TOPP_AssayGeneratorMetabo_10" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_sirius_restrict_output.tmp.tsv  -fragment_annotation sirius -use_exact_mass -transition_threshold 3.0 -min_transitions 2 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+    add_test("TOPP_AssayGeneratorMetabo_10_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_sirius_restrict_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_sirius_restrict_output.tsv)
+    set_tests_properties("TOPP_AssayGeneratorMetabo_10" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_9")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_10_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_10")
   
     # use AccurateMassSearch data + fragment mass restriction + decoy generation (original).
     # whitelist Guthion_decoy, since fragmentation tree re-rooting has multiple possible solutions.
-    add_test("UTILS_AssayGeneratorMetabo_11" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_sirius_restrict_decoy_output.tmp.tsv  -fragment_annotation sirius -decoy_generation -decoy_generation_method original -use_exact_mass -transition_threshold 3.0 -min_transitions 3 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
-    add_test("UTILS_AssayGeneratorMetabo_11_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_sirius_restrict_decoy_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_sirius_restrict_decoy_output.tsv -whitelist "Guthion_decoy")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_11" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_10")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_11_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_11")
+    add_test("TOPP_AssayGeneratorMetabo_11" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_sirius_restrict_decoy_output.tmp.tsv  -fragment_annotation sirius -decoy_generation -decoy_generation_method original -use_exact_mass -transition_threshold 3.0 -min_transitions 3 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+    add_test("TOPP_AssayGeneratorMetabo_11_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_sirius_restrict_decoy_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_sirius_restrict_decoy_output.tsv -whitelist "Guthion_decoy")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_11" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_10")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_11_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_11")
   
     # use AccurateMassSearch data + fragment mass restriction + decoy generation (original).
-    add_test("UTILS_AssayGeneratorMetabo_12" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.featureXML -out AssayGeneratorMetabo_decoy_generation_output_original.tmp.tsv  -fragment_annotation sirius -decoy_generation -decoy_generation_method original -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
-    add_test("UTILS_AssayGeneratorMetabo_12_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_output_original.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_output_original.tsv -whitelist "0_2_Proquinazid_decoy_[M+H]+_608_0")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_12" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_11")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_12_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_12")
+    add_test("TOPP_AssayGeneratorMetabo_12" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.featureXML -out AssayGeneratorMetabo_decoy_generation_output_original.tmp.tsv  -fragment_annotation sirius -decoy_generation -decoy_generation_method original -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+    add_test("TOPP_AssayGeneratorMetabo_12_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_output_original.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_output_original.tsv -whitelist "0_2_Proquinazid_decoy_[M+H]+_608_0")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_12" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_11")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_12_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_12")
     
     # use AccurateMassSearch data + fragment mass restriction + decoy generation (resolve overlap).
-    add_test("UTILS_AssayGeneratorMetabo_13" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.featureXML -out AssayGeneratorMetabo_decoy_generation_output_resolve_overlap.tmp.tsv  -fragment_annotation sirius -decoy_generation -decoy_generation_method resolve_overlap -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
-    add_test("UTILS_AssayGeneratorMetabo_13_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_output_resolve_overlap.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_output_resolve_overlap.tsv -whitelist "0_2_Proquinazid_decoy_[M+H]+_608_0")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_13" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_12")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_13_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_13")
+    add_test("TOPP_AssayGeneratorMetabo_13" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.featureXML -out AssayGeneratorMetabo_decoy_generation_output_resolve_overlap.tmp.tsv  -fragment_annotation sirius -decoy_generation -decoy_generation_method resolve_overlap -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+    add_test("TOPP_AssayGeneratorMetabo_13_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_output_resolve_overlap.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_output_resolve_overlap.tsv -whitelist "0_2_Proquinazid_decoy_[M+H]+_608_0")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_13" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_12")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_13_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_13")
   
     # use AccurateMassSearch data + fragment mass restriction + decoy generation (add_shift).
-    add_test("UTILS_AssayGeneratorMetabo_14" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.featureXML -out AssayGeneratorMetabo_decoy_generation_output_add_shift.tmp.tsv  -fragment_annotation sirius -decoy_generation -decoy_generation_method add_shift -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
-    add_test("UTILS_AssayGeneratorMetabo_14_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_output_add_shift.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_output_add_shift.tsv -whitelist "0_2_Proquinazid_decoy_[M+H]+_608_0")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_14" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_13")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_14_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_14")
+    add_test("TOPP_AssayGeneratorMetabo_14" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.featureXML -out AssayGeneratorMetabo_decoy_generation_output_add_shift.tmp.tsv  -fragment_annotation sirius -decoy_generation -decoy_generation_method add_shift -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+    add_test("TOPP_AssayGeneratorMetabo_14_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_output_add_shift.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_output_add_shift.tsv -whitelist "0_2_Proquinazid_decoy_[M+H]+_608_0")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_14" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_13")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_14_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_14")
   
     # use AccurateMassSearch data + fragment mass restriction + decoy generation (both).
-    add_test("UTILS_AssayGeneratorMetabo_15" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.featureXML -out AssayGeneratorMetabo_decoy_generation_output_both.tmp.tsv  -fragment_annotation sirius -decoy_generation -decoy_generation_method both -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
-    add_test("UTILS_AssayGeneratorMetabo_15_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_output_both.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_output_both.tsv -whitelist "0_2_Proquinazid_decoy_[M+H]+_608_0")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_15" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_14")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_15_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_15")
+    add_test("TOPP_AssayGeneratorMetabo_15" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.featureXML -out AssayGeneratorMetabo_decoy_generation_output_both.tmp.tsv  -fragment_annotation sirius -decoy_generation -decoy_generation_method both -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+    add_test("TOPP_AssayGeneratorMetabo_15_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_output_both.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_output_both.tsv -whitelist "0_2_Proquinazid_decoy_[M+H]+_608_0")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_15" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_14")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_15_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_15")
     
     # use AccurateMassSearch data + fragment mass restriction + decoy generation (both).
-    add_test("UTILS_AssayGeneratorMetabo_16" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_multids.featureXML -out AssayGeneratorMetabo_decoy_generation_output_both_multids.tmp.tsv  -fragment_annotation sirius -decoy_generation -decoy_generation_method both -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
-    add_test("UTILS_AssayGeneratorMetabo_16_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_output_both_multids.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_output_both_multids.tsv -whitelist "0_2_Second,Calonectrin,Millefin,3,17beta-dihydroxy-5,9-dioxo-4,5-9,10-diseco-androsta-1(10),2-dien-4-oicacid,(1E,4Z)-14,15-dihydroxy-8alpha-(2-methylpropanoyloxy)germacra-1(10),4,11(13)-trieno-12,6alpha-lactone,?_decoy_[M+H]+_608_0")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_16" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_15")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_16_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_16")
+    add_test("TOPP_AssayGeneratorMetabo_16" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_multids.featureXML -out AssayGeneratorMetabo_decoy_generation_output_both_multids.tmp.tsv  -fragment_annotation sirius -decoy_generation -decoy_generation_method both -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+    add_test("TOPP_AssayGeneratorMetabo_16_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_output_both_multids.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_output_both_multids.tsv -whitelist "0_2_Second,Calonectrin,Millefin,3,17beta-dihydroxy-5,9-dioxo-4,5-9,10-diseco-androsta-1(10),2-dien-4-oicacid,(1E,4Z)-14,15-dihydroxy-8alpha-(2-methylpropanoyloxy)germacra-1(10),4,11(13)-trieno-12,6alpha-lactone,?_decoy_[M+H]+_608_0")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_16" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_15")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_16_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_16")
     
     # use AccurateMassSearch data + internal linking + decoy generation (both) - test filter based on total occurrence
-    add_test("UTILS_AssayGeneratorMetabo_17" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.featureXML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_1.featureXML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_2.featureXML -out AssayGeneratorMetabo_decoy_generation_linking_output_both.tmp.tsv  -fragment_annotation sirius -ambiguity_resolution_mz_tolerance 10.0 -ambiguity_resolution_mz_tolerance_unit Da -ambiguity_resolution_rt_tolerance 10.0 -total_occurrence_filter 0.8 -decoy_generation -decoy_generation_method both -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 6 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
-    add_test("UTILS_AssayGeneratorMetabo_17_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_linking_output_both.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_linking_output_both.tsv -whitelist "0_2_Proquinazid_decoy_[M+H]+_614_1")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_17" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_16")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_17_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_17")
+    add_test("TOPP_AssayGeneratorMetabo_17" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.featureXML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_1.featureXML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_2.featureXML -out AssayGeneratorMetabo_decoy_generation_linking_output_both.tmp.tsv  -fragment_annotation sirius -ambiguity_resolution_mz_tolerance 10.0 -ambiguity_resolution_mz_tolerance_unit Da -ambiguity_resolution_rt_tolerance 10.0 -total_occurrence_filter 0.8 -decoy_generation -decoy_generation_method both -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 6 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+    add_test("TOPP_AssayGeneratorMetabo_17_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_linking_output_both.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_linking_output_both.tsv -whitelist "0_2_Proquinazid_decoy_[M+H]+_614_1")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_17" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_16")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_17_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_17")
     
     # use AccurateMassSearch data + internal linking + decoy generation (both) - test filter based on molecular formula and adduct
-    add_test("UTILS_AssayGeneratorMetabo_18" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.featureXML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_1.featureXML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_2.featureXML -out AssayGeneratorMetabo_decoy_generation_linking_moladd_output_both.tmp.tsv  -fragment_annotation sirius -ambiguity_resolution_mz_tolerance 10.0 -ambiguity_resolution_mz_tolerance_unit Da -ambiguity_resolution_rt_tolerance 10.0 -decoy_generation -decoy_generation_method both -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 6 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
-    add_test("UTILS_AssayGeneratorMetabo_18_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_linking_moladd_output_both.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_linking_moladd_output_both.tsv -whitelist "0_2_Proquinazid_decoy_[M+H]+_614_1")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_18" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_17")
-    set_tests_properties("UTILS_AssayGeneratorMetabo_18_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_18")
+    add_test("TOPP_AssayGeneratorMetabo_18" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.featureXML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_1.featureXML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_2.featureXML -out AssayGeneratorMetabo_decoy_generation_linking_moladd_output_both.tmp.tsv  -fragment_annotation sirius -ambiguity_resolution_mz_tolerance 10.0 -ambiguity_resolution_mz_tolerance_unit Da -ambiguity_resolution_rt_tolerance 10.0 -decoy_generation -decoy_generation_method both -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 6 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+    add_test("TOPP_AssayGeneratorMetabo_18_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_linking_moladd_output_both.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_linking_moladd_output_both.tsv -whitelist "0_2_Proquinazid_decoy_[M+H]+_614_1")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_18" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_17")
+    set_tests_properties("TOPP_AssayGeneratorMetabo_18_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_18")
   endif()
 
   # Note that with FingerID, output for compound 79 without feature only

@@ -1,0 +1,87 @@
+name: Update OpenMS version numbers
+
+# Trigger this action manually
+on:
+  workflow_dispatch:
+    inputs:
+      major:
+        required: true
+      minor:
+        required: true
+      patch:
+        required: true
+
+jobs:
+  updating_package_version_number:
+    runs-on: macos-latest
+    steps:
+      # Getting files (OpenMS)
+      - uses: actions/checkout@v3
+
+      # Update files with new package version numbers
+      - name: update files
+        run: |
+          # setting variables
+          package_version_major="${{ github.event.inputs.major }}"
+          package_version_minor="${{ github.event.inputs.minor }}"
+          package_version_patch="${{ github.event.inputs.patch }}"
+          package_version="${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.patch }}"
+          echo "Setting version $package_version"
+
+          # update main cmakelist
+          sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_MAJOR.*#set(OPENMS_PACKAGE_VERSION_MAJOR \"$package_version_major\")#" CMakeLists.txt
+          sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_MINOR.*#set(OPENMS_PACKAGE_VERSION_MINOR \"$package_version_minor\")#" CMakeLists.txt
+          sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_PATCH.*#set(OPENMS_PACKAGE_VERSION_PATCH \"$package_version_patch\")#" CMakeLists.txt
+
+          # update version info test
+          sed -i '' "s#detail.version_major =.*#detail.version_major = $package_version_major;#" ./src/tests/class_tests/openms/source/VersionInfo_test.cpp
+          sed -i '' "s#detail.version_minor =.*#detail.version_minor = $package_version_minor;#" ./src/tests/class_tests/openms/source/VersionInfo_test.cpp
+          sed -i '' "s#detail.version_patch =.*#detail.version_patch = $package_version_patch;#" ./src/tests/class_tests/openms/source/VersionInfo_test.cpp
+
+          # update test write ini out:
+          sed -i '' "s#<ITEM name=\"version\" value=\".*\" type=\"string\"#<ITEM name=\"version\" value=\"$package_version\" type=\"string\"#g" ./src/tests/topp/WRITE_INI_OUT.ini
+
+          # update INIs in tests topp:
+          find ./src/tests/topp/ -type f -name '*.ini' -exec grep -q "<ITEM name=\"version\" value=\".*\" type=\"string\"" {} \; -exec sed -i '' "s#<ITEM name=\"version\" value=\".*\" type=\"string\"#<ITEM name=\"version\" value=\"$package_version\" type=\"string\"#g" {} \;
+
+          # Update Changelog
+          # Define the new section using a here-doc
+          section_header=$(cat <<EOF
+          ------------------------------------------------------------------------------------------
+          ----                                OpenMS ${package_version}     (under development)              ----
+          ------------------------------------------------------------------------------------------
+          
+          
+          .    # ends with a period for preserve trailing newlines
+          EOF
+          )
+          section_header=${section_header%.*}   # remove the period
+
+          # Get the line number of the first line starting with more than 10 "-"
+          line_num=$(grep -n "^-\{10,\}" CHANGELOG | head -n 1 | cut -d ":" -f 1)
+
+          # Use perl to insert the text at the specified line number in the file
+          perl -i -pe "print '${section_header}' if \$. == ${line_num}" CHANGELOG
+
+      # Check for changes
+      - name: check for changed files
+        id: changed-files
+        run: |
+          if git diff --exit-code; then
+            echo "changes_exist=false" >> $GITHUB_ENV
+          else
+            echo "changes_exist=true" >> $GITHUB_ENV
+          fi
+
+      # Commit and PR updated files
+      - name: Commit and PR updated files
+        if: env.changes_exist
+        uses: peter-evans/create-pull-request@v4
+        with:
+          commit-message: 'Updated OpenMS package version number'
+          committer: GitHub <noreply@github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          signoff: false
+          branch: update_package_number
+          delete-branch: true
+          title: '[ByGHAction] Updated OpenMS package version numbers'

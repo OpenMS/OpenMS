@@ -13,13 +13,13 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIs
 
         # wrap-inherits:
         #   DefaultParamHandler
-        FeatureFinderAlgorithmIsotopeWavelet() nogil except +
+        FeatureFinderAlgorithmIsotopeWavelet() except + nogil 
 
-        void setData(MSExperiment & input, FeatureMap& output, FeatureFinder & ff) nogil except +
-        void run() nogil except +
+        void setData(MSExperiment & input, FeatureMap& output, FeatureFinder & ff) except + nogil 
+        void run() except + nogil 
         # MSSpectrum * createHRData(const UInt i)
         # static FeatureFinderAlgorithm* create()
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>" namespace "OpenMS::FeatureFinderAlgorithmIsotopeWavelet":
 
-    String getProductName()   nogil except + # wrap-attach:FeatureFinderAlgorithmIsotopeWavelet
+    String getProductName()   except + nogil  # wrap-attach:FeatureFinderAlgorithmIsotopeWavelet

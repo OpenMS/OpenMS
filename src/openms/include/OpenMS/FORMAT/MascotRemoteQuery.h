@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -67,8 +41,14 @@ public:
     /// default constructor
     OPENMS_DLLAPI MascotRemoteQuery(QObject* parent = 0);
 
+    /// assignment operator
+    OPENMS_DLLAPI MascotRemoteQuery& operator=(const MascotRemoteQuery& rhs) = delete;
+
+    /// copy constructor
+    OPENMS_DLLAPI MascotRemoteQuery(const MascotRemoteQuery& rhs) = delete;
+
     /// destructor
-    OPENMS_DLLAPI ~MascotRemoteQuery() override ;
+    OPENMS_DLLAPI ~MascotRemoteQuery() override;
     //@}
 
     /// sets the query spectra, given in MGF file format
@@ -76,6 +56,9 @@ public:
 
     /// returns the Mascot XML response which contains the identifications
     OPENMS_DLLAPI const QByteArray& getMascotXMLResponse() const;
+
+    /// returns the Mascot XML response which contains the decoy identifications (note: setExportDecoys must be set to true, otherwise result will be empty)
+    OPENMS_DLLAPI const QByteArray& getMascotXMLDecoyResponse() const;
 
     /// predicate which returns true if an error occurred during the query
     OPENMS_DLLAPI bool hasError() const;
@@ -89,11 +72,9 @@ public:
     /// request export of decoy summary and decoys (note: internal decoy search must be enabled in the MGF file passed to mascot)
     OPENMS_DLLAPI void setExportDecoys(const bool b);
 
-    /// returns the Mascot XML response which contains the decoy identifications (note: setExportDecoys must be set to true, otherwise result will be empty)
-    OPENMS_DLLAPI const QByteArray& getMascotXMLDecoyResponse() const;
 protected:
 
-    OPENMS_DLLAPI void updateMembers_() override ;
+    OPENMS_DLLAPI void updateMembers_() override;
 
 public slots:
 
@@ -134,12 +115,6 @@ private:
 
     /// download result file
     void getResults(const QString& results_path);
-
-    /// assignment operator
-    OPENMS_DLLAPI MascotRemoteQuery& operator=(const MascotRemoteQuery& rhs);
-
-    /// copy constructor
-    OPENMS_DLLAPI MascotRemoteQuery(const MascotRemoteQuery& rhs);
 
     /// finish a run and emit "done"
     OPENMS_DLLAPI void endRun_();

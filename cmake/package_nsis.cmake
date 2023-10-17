@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -144,6 +144,11 @@ endif()
 # This means we would need to change the NSIS script to just copy them over.
 
 # ########################################################### System runtime libraries
+# Multiple ways to achieve that:
+# - Currently: We package the vc_Redist installer exe from the VS directory
+# - In package_general, we could adapt PRE and POST_EX/INCLUDES as well as maybe
+#   DIRECTORIES to include them (from System32? or from VS directory?)
+# - The code below also might achieve it.
 # set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
 # include(InstallRequiredSystemLibraries)
 # install(PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}

@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>" namespac
     cdef cppclass ConsensusIDAlgorithmPEPMatrix(ConsensusIDAlgorithmSimilarity) :
         # wrap-inherits:
         #  ConsensusIDAlgorithmSimilarity
-        ConsensusIDAlgorithmPEPMatrix() nogil except +
+        ConsensusIDAlgorithmPEPMatrix() except + nogil 
         # private
-        ConsensusIDAlgorithmPEPMatrix(ConsensusIDAlgorithmPEPMatrix) nogil except + #wrap-ignore
+        ConsensusIDAlgorithmPEPMatrix(ConsensusIDAlgorithmPEPMatrix) except + nogil  #wrap-ignore
 

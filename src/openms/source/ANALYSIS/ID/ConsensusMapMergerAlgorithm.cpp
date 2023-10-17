@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julianus Pfeuffer $
@@ -290,16 +264,16 @@ namespace OpenMS
       Size old_merge_idx = 0;
       //TODO we could lookup the old protein ID and see if there were multiple MSruns. If so, we should fail if not
       // exist
-      if (pid.metaValueExists("id_merge_index"))
+      if (pid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
       {
-        old_merge_idx = pid.getMetaValue("id_merge_index");
+        old_merge_idx = pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
       }
 
       for (const auto& run_to_put : runs_to_put)
       {
         const ProteinIdentification& new_prot_id_run = new_prot_ids[run_to_put];
         pid.setIdentifier(new_prot_id_run.getIdentifier());
-        pid.setMetaValue("id_merge_index",
+        pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX,
             old_merge_idx + oldrunid_newrunidx_pair2newmergeidx_offset[{pid.getIdentifier(), run_to_put}]);
       }
     };
@@ -377,9 +351,9 @@ namespace OpenMS
       const auto& p = oldrunid2offset_multi_pair[pid.getIdentifier()];
       pid.setIdentifier(new_prot_id_run_string);
       Size old = 0;
-      if (pid.metaValueExists("id_merge_index"))
+      if (pid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
       {
-        old = pid.getMetaValue("id_merge_index");
+        old = pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
       }
       else
       {
@@ -392,7 +366,7 @@ namespace OpenMS
               "No id_merge_index value in a merged ID run."); //TODO add more info about where.
         }
       }
-      pid.setMetaValue("id_merge_index", old + p.first);
+      pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, old + p.first);
     };
 
     cmap.applyFunctionOnPeptideIDs(fun);

@@ -6,7 +6,7 @@
 
 
   This document addresses %OpenMS users and explains the
-  installation procedure for building %OpenMS from its sources. If you only want to use the %OpenMS Proteomics Pipeline (TOPP), you are strongly
+  installation procedure for building %OpenMS from its sources. If you only want to use the %OpenMS PiPeline (TOPP), you are strongly
   encouraged to <b>download the windows binary installer</b>
   (see <a href="http://www.OpenMS.de/download/" target="_blank">here</a>),
   instead of building %OpenMS from sources.
@@ -39,7 +39,7 @@
         Earlier versions have compiler bugs and may not compile without modifications.</b>
         <br><b>Not supported (or at least not tested) is MinGW (g++ based compiler). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with or load vcvarsall.sh (see below).</b>
             Other compilers which are close to the VS toolchain might work, but are not tested.
-      <li><b>CMake</b>: Have at least CMake 3.14+ or greater installed (see http://www.cmake.org). <br>
+      <li><b>CMake</b>: Have CMake (>= 3.24) installed (see http://www.cmake.org). <br>
 	      If you are using Visual Studio 2019+ as IDE, make sure CMake's Generator (-G flag) supports your version of Visual Studio. If it doesn't, please upgrade CMake.<br>
       <li><b>7-Zip</b>: To extract archives within submodules of the contrib you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
         <br>7z.exe is searched in "C:/Program Files/7-Zip/" and "C:/Programme/7-Zip/". Make sure it is in either of these locations or add
@@ -248,6 +248,7 @@
         @note We strongly recommend the Visual Studio Generator and it should be identical to the one used for building the contrib. Other generators (such as nmake) are not supported! If you need compiling on the command line, you can use <tt>MSBuild</tt> also on VS solution files!
         Use the <tt>-A x64</tt> flag to build a 64-bit %OpenMS library and TOPP executables (32-bit does not really make any sense for LC-MS data processing)!
         The <tt>-T host=x64</tt> flag instructs Visual Studio to use a 64bit compiler and linker toolchain to avoid linker errors (<tt>LNK1210: exceeded internal ILK size limit; link with /INCREMNTAL:NO</tt>) during development (if the flag is omitted the 32bit toolchain is used to generate 64bit binaries).
+        
         Example:
         \code
         cd c:\dev\OpenMS_Win64
@@ -310,7 +311,7 @@
     @note Since the call can be a bit lengthy, there is a batch file in
     <tt>OpenMS/tools/build.bat</tt> and in the root of your build tree (copied
     there by cmake for convenience), which allows to build the most important
-    targets (TOPP, UTILS, Gui, Tests, Doc) in Release or Debug using very short
+    targets (TOPP, Gui, Tests, Doc) in Release or Debug using very short
     notation. Call it without arguments to see its usage help text. For example
     to build only the %OpenMS library in release mode, call
 
