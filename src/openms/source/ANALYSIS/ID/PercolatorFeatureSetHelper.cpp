@@ -258,7 +258,6 @@ namespace OpenMS
     {      
       feature_set.push_back("MS:1001171"); // unchanged mScore
       feature_set.push_back("MASCOT:delta_score"); // delta score based on mScore
-      feature_set.push_back("MASCOT:uniqueToProt"); // bool: peptide unique to protein
       feature_set.push_back("MASCOT:hasMod"); // bool: has post translational modification
       
       for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
@@ -270,9 +269,7 @@ namespace OpenMS
         
         for (vector<PeptideHit>::iterator hit = hits.begin(); hit != hits.end(); ++hit)
         {
-          bool unique_to_protein = (String(hit->getMetaValue("protein_references")) == "unique");
           bool has_mod = hit->getSequence().isModified();
-          hit->setMetaValue("MASCOT:uniqueToProt", unique_to_protein);
           hit->setMetaValue("MASCOT:hasMod", has_mod);
         }
       }
