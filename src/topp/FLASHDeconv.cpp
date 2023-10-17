@@ -43,6 +43,12 @@ using namespace std;
   for a certain period for precursor mass assignment in DeconvolvedSpectrum class.
   In case of FLASHIda runs, this precursor mass assignment is done by FLASHIda. Thus FLASHDeconv class simply parses the log file
   from FLASHIda runs and pass the parsed information to DeconvolvedSpectrum class.
+
+
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_FLASHDeconv.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_FLASHDeconv.html
 */
 
 class TOPPFLASHDeconv : public TOPPBase
