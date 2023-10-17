@@ -165,9 +165,6 @@ PyOpenMSChecker:
         - evaluate
         - getParameters
         - invert
-    OpenMS::LocalLinearMap:
-        - getCord
-        - neigh
     OpenMS::DocumentIdentifier:
         - swap
     OpenMS::ModifiedPeptideGenerator:

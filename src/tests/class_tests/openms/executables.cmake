@@ -94,7 +94,6 @@ set(metadata_executables_list
   ExperimentalSettings_test
   Gradient_test
   HPLC_test
-  DocumentIDTagger_test
   Identification_test
   IdentificationData_test
   IdentificationDataConverter_test
@@ -412,7 +411,6 @@ set(chemistry_executables_list
   ElementDB_test
   Element_test
   EmpiricalFormula_test
-  EnzymaticDigestionLogModel_test
   EnzymaticDigestion_test
   FineIsotopeDistribution_test
   IMSAlphabetParser_test
@@ -513,7 +511,6 @@ set(analysis_executables_list
   KDTreeFeatureMaps_test
   KDTreeFeatureNode_test
   LabeledPairFinder_test
-  LocalLinearMap_test
   TargetedExperiment_test
   TargetedExperimentHelper_test
   MRMFeaturePicker_test
@@ -540,7 +537,6 @@ set(analysis_executables_list
   PeptideAndProteinQuant_test
   PeptideProteinResolution_test
   PeakGroup_test
-  PeakIntensityPredictor_test
   PScore_test
   HyperScore_test
   MorpheusScore_test

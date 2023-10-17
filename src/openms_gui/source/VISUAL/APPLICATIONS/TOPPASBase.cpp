@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Veit $
@@ -193,7 +167,7 @@ namespace OpenMS
     QAction* action = help->addAction("OpenMS website", this, SLOT(showURL()));
     action->setData("http://www.OpenMS.de");
     action = help->addAction("TOPPAS tutorial", this, SLOT(showURL()), Qt::Key_F1);
-    action->setData("https://openms.readthedocs.io/en/latest/docs/tutorials/TOPPAS/TOPPAS-tutorial.html");
+    action->setData(String("html/TOPPAS_tutorial.html").toQString());
 
     help->addSeparator();
     help->addAction("&About", this, SLOT(showAboutDialog()));
@@ -465,13 +439,6 @@ namespace OpenMS
     //Param category_param = param_.copy("tool_categories:", true);
 
     ToolListType tools_list = ToolHandler::getTOPPToolList(true);
-    ToolListType util_list = ToolHandler::getUtilList();
-    // append utils
-    for (ToolListType::iterator it = util_list.begin(); it != util_list.end(); ++it)
-    {
-      it->second.category = "Utils";
-      tools_list.insert(*it);
-    }
 
     // any tool without a category gets into "unassigned" bin
     for (ToolListType::iterator it = tools_list.begin(); it != tools_list.end(); ++it)
@@ -1083,7 +1050,6 @@ namespace OpenMS
       ParamXMLFile paramFile;
       // TODO: if closing multiple TOPPAS instances simultaneously, we might write to this file concurrently
       //       thus destroying its integrity. Think about using boost filelocks
-      //       see OpenMS/METADATA/DocumentIDTagger.h for example
       //       and also implement in TOPPView (and other GUI's which write to user directory)
       paramFile.store(string(param_.getValue("PreferencesFile")), save_param);
     }

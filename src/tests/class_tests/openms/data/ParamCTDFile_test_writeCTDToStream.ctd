@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tool ctdVersion="1.7" version="2.6.0-pre-STL-ParamCTD-2021-06-02" name="AccurateMassSearch" docurl="http://www.openms.de/doxygen/nightly/html/UTILS_AccurateMassSearch.html" category="Utilities" >
+<tool ctdVersion="1.7" version="2.6.0-pre-STL-ParamCTD-2021-06-02" name="AccurateMassSearch" docurl="http://www.openms.de/doxygen/nightly/html/TOPP_AccurateMassSearch.html" category="Utilities" >
 <description><![CDATA[Match MS signals to molecules from a database by mass.]]></description>
 <manual><![CDATA[Match MS signals to molecules from a database by mass.]]></manual>
 <citations>
