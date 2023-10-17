@@ -301,7 +301,7 @@ jobs:
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         yum install -y jq
-        yum install -y boost-devel libsvm-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel libhdf5-devel glpk-devel
+        yum install -y boost-devel libsvm-devel libzip-devel xerces-c-devel bzip2-devel glpk-devel
         cmake --version
 
         mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
