@@ -94,11 +94,6 @@ TextExporter
 TOFCalibration
 XFDR
 XTandemAdapter
-)
-
-## util category
-set(TOPP_executables
-${TOPP_executables}
 AccurateMassSearch
 AssayGeneratorMetabo
 ClusterMassTraces
@@ -132,6 +127,7 @@ NovorAdapter
 NucleicAcidSearchEngine
 OpenMSDatabasesInfo
 OpenMSInfo
+OpenNuXL
 PeakPickerIterative
 PSMFeatureExtractor
 QCCalculator
@@ -145,7 +141,6 @@ ProteomicsLFQ
 RNADigestor
 RNAMassCalculator
 RNPxlXICFilter
-RNPxlSearch
 SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
