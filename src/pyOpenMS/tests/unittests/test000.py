@@ -1519,32 +1519,6 @@ def testFeatureFinderAlgorithmIsotopeWavelet():
     assert ff.getName() == "test"
 
 @report
-def testCompNovoIdentification():
-    """
-    @tests: CompNovoIdentification
-     CompNovoIdentification.__init__
-    """
-    ff = pyopenms.CompNovoIdentification()
-    p = ff.getDefaults()
-    _testParam(p)
-
-    assert pyopenms.CompNovoIdentification().getIdentification is not None
-    assert pyopenms.CompNovoIdentification().getIdentifications is not None
-
-@report
-def testCompNovoIdentificationCID():
-    """
-    @tests: CompNovoIdentificationCID
-     CompNovoIdentificationCID.__init__
-    """
-    ff = pyopenms.CompNovoIdentificationCID()
-    p = ff.getDefaults()
-    _testParam(p)
-
-    assert pyopenms.CompNovoIdentificationCID().getIdentification is not None
-    assert pyopenms.CompNovoIdentificationCID().getIdentifications is not None
-
-@report
 def testExperimentalSettings():
     """
     @tests: ExperimentalSettings
@@ -1692,17 +1666,6 @@ def testProteinResolver():
     assert pyopenms.ProteinResolver().resolveID is not None
     assert pyopenms.ProteinResolver().setProteinData is not None
     assert pyopenms.ProteinResolver().getResults is not None
-
-@report
-def testSvmTheoreticalSpectrumGeneratorTrainer():
-    """
-    @tests: SvmTheoreticalSpectrumGeneratorTrainer
-     SvmTheoreticalSpectrumGeneratorTrainer.__init__
-    """
-    ff = pyopenms.SvmTheoreticalSpectrumGeneratorTrainer()
-
-    assert pyopenms.SvmTheoreticalSpectrumGeneratorTrainer().trainModel is not None
-    assert pyopenms.SvmTheoreticalSpectrumGeneratorTrainer().normalizeIntensity is not None
 
 @report
 def testPosteriorErrorProbabilityModel():
@@ -1913,16 +1876,6 @@ def testProteaseDigestion():
 
     #ff.setEnzyme(enz.TRYPSIN)
     #assert ff.getEnzyme() == enz.TRYPSIN
-
-@report
-def testEnzymaticDigestionLogModel():
-    ff = pyopenms.EnzymaticDigestionLogModel()
-    assert pyopenms.EnzymaticDigestionLogModel().getLogThreshold is not None
-    assert pyopenms.EnzymaticDigestionLogModel().setLogThreshold is not None
-    assert pyopenms.EnzymaticDigestionLogModel().digest is not None
-    assert pyopenms.EnzymaticDigestionLogModel().peptideCount is not None
-    ff.setLogThreshold(0.25)
-    assert ff.getLogThreshold() == 0.25
 
 @report
 def testIDDecoyProbability():

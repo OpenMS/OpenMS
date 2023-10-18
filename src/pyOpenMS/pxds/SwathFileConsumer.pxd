@@ -13,17 +13,17 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "Ope
         #wrap-ignore
         #no-pxd-import
 
-        FullSwathFileConsumer() nogil except + #wrap-ignore
-        FullSwathFileConsumer(FullSwathFileConsumer &) nogil except + # compiler
-        FullSwathFileConsumer(libcpp_vector[SwathMap] swath_boundaries) nogil except +
+        FullSwathFileConsumer() except + nogil  #wrap-ignore
+        FullSwathFileConsumer(FullSwathFileConsumer &) except + nogil  # compiler
+        FullSwathFileConsumer(libcpp_vector[SwathMap] swath_boundaries) except + nogil 
 
-        void setExpectedSize(Size s, Size c) nogil except +
-        void setExperimentalSettings(ExperimentalSettings exp) nogil except +
+        void setExpectedSize(Size s, Size c) except + nogil 
+        void setExperimentalSettings(ExperimentalSettings exp) except + nogil 
 
-        void retrieveSwathMaps(libcpp_vector[SwathMap]& maps) nogil except +
+        void retrieveSwathMaps(libcpp_vector[SwathMap]& maps) except + nogil 
 
-        void consumeSpectrum(MSSpectrum & s) nogil except +
-        void consumeChromatogram(MSChromatogram & c) nogil except +
+        void consumeSpectrum(MSSpectrum & s) except + nogil 
+        void consumeChromatogram(MSChromatogram & c) except + nogil 
 
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "OpenMS":
 
@@ -31,8 +31,8 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "Ope
         # wrap-inherits:
         #   FullSwathFileConsumer
 
-        RegularSwathFileConsumer() nogil except +
-        RegularSwathFileConsumer(RegularSwathFileConsumer &) nogil except + # compiler
+        RegularSwathFileConsumer() except + nogil 
+        RegularSwathFileConsumer(RegularSwathFileConsumer &) except + nogil  # compiler
 
 
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "OpenMS":
@@ -41,8 +41,8 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "Ope
         # wrap-inherits:
         #   FullSwathFileConsumer
 
-        CachedSwathFileConsumer() nogil except + #wrap-ignore
-        CachedSwathFileConsumer(CachedSwathFileConsumer &) nogil except + # compiler
+        CachedSwathFileConsumer() except + nogil  #wrap-ignore
+        CachedSwathFileConsumer(CachedSwathFileConsumer &) except + nogil  # compiler
         CachedSwathFileConsumer(String cachedir, String basename, 
                                 Size nr_ms1_spectra, libcpp_vector[int] nr_ms2_spectra)
 
@@ -52,14 +52,14 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "Ope
         # wrap-inherits:
         #  FullSwathFileConsumer
 
-        MzMLSwathFileConsumer() nogil except + # wrap-ignore
-        MzMLSwathFileConsumer(MzMLSwathFileConsumer) nogil except + # compiler
+        MzMLSwathFileConsumer() except + nogil  # wrap-ignore
+        MzMLSwathFileConsumer(MzMLSwathFileConsumer) except + nogil  # compiler
         MzMLSwathFileConsumer(String cachedir,
                               String basename, 
                               Size nr_ms1_spectra, 
-                              libcpp_vector[ int ] nr_ms2_spectra) nogil except +
+                              libcpp_vector[ int ] nr_ms2_spectra) except + nogil 
         MzMLSwathFileConsumer(libcpp_vector[ SwathMap ] known_window_boundaries, 
                               String cachedir,
                               String basename,
                               Size nr_ms1_spectra, 
-                              libcpp_vector[ int ] nr_ms2_spectra) nogil except +
+                              libcpp_vector[ int ] nr_ms2_spectra) except + nogil 

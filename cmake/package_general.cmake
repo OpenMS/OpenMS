@@ -69,7 +69,7 @@ set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}
 # On Windows we need to tell CMake where to look for.
 # We also do not need API sets. So exclude them.
 if(WIN32)
-  set(EXCLUDE "api-ms" "ext-ms" "hvsi" "pdmutilities")
+  set(EXCLUDE "api-ms" "ext-ms" "hvsi" "pdmutilities" "wpaxholder")
   set(POST_EXCLUDE ".*WINDOWS.system32.*")
 elseif(APPLE)
   set(EXCLUDE "/usr/lib" "/System/")
@@ -102,7 +102,6 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
   ## TODO we could think about just recursing over subfolders
   install_thirdparty_folder("pwiz-bin")
   install_thirdparty_folder("Comet")
-  install_thirdparty_folder("Fido")
   install_thirdparty_folder("MSGFPlus")
   install_thirdparty_folder("XTandem")
   install_thirdparty_folder("LuciPHOr2")

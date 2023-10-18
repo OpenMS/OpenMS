@@ -16,15 +16,15 @@ cdef extern from "<OpenMS/FORMAT/OMSSAXMLFile.h>" namespace "OpenMS":
         #  This class is used to load documents that implement
         #  the schema of OMSSAXML files
 
-        OMSSAXMLFile() nogil except +
+        OMSSAXMLFile() except + nogil 
         # private
-        OMSSAXMLFile(OMSSAXMLFile &) nogil except + # wrap-ignore
+        OMSSAXMLFile(OMSSAXMLFile &) except + nogil  # wrap-ignore
 
         void load(const String & filename,
                   ProteinIdentification & protein_identification,
                   libcpp_vector[ PeptideIdentification ] & id_data,
                   bool load_proteins,
-                  bool load_empty_hits) nogil except +
+                  bool load_empty_hits) except + nogil 
             # wrap-doc:
                 #  Loads data from a OMSSAXML file
                 #  
@@ -35,6 +35,6 @@ cdef extern from "<OpenMS/FORMAT/OMSSAXMLFile.h>" namespace "OpenMS":
                 #  :param load_proteins: If this flag is set to false, the protein identifications are not loaded
                 #  :param load_empty_hits: Many spectra will not return a hit. Report empty peptide identifications?
 
-        void setModificationDefinitionsSet(ModificationDefinitionsSet rhs) nogil except + # wrap-doc:Sets the valid modifications
+        void setModificationDefinitionsSet(ModificationDefinitionsSet rhs) except + nogil  # wrap-doc:Sets the valid modifications
 
 

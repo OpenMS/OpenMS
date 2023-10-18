@@ -13,9 +13,9 @@ cdef extern from "<OpenMS/FORMAT/MzQCFile.h>" namespace "OpenMS":
         #  
         #  This class collects the data for the mzQC File
 
-        MzQCFile() nogil except +
+        MzQCFile() except + nogil 
         
-        MzQCFile(MzQCFile) nogil except + #wrap-ignore
+        MzQCFile(MzQCFile) except + nogil  #wrap-ignore
 
         void store(String input_file,
                    String output_file,
@@ -26,7 +26,7 @@ cdef extern from "<OpenMS/FORMAT/MzQCFile.h>" namespace "OpenMS":
                    String label,
                    FeatureMap & feature_map,
                    libcpp_vector[ ProteinIdentification ] & prot_ids, 
-                   libcpp_vector[ PeptideIdentification ] & pep_ids) nogil except +
+                   libcpp_vector[ PeptideIdentification ] & pep_ids) except + nogil 
                    # wrap-doc:
                    #  Stores QC data in mzQC file with JSON format
                    #   

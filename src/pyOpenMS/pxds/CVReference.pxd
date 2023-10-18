@@ -5,12 +5,12 @@ from String cimport *
 cdef extern from "<OpenMS/DATASTRUCTURES/CVReference.h>" namespace "OpenMS":
     
     cdef cppclass CVReference "OpenMS::CVReference":
-        CVReference() nogil except +
-        CVReference(CVReference &) nogil except +
-        void setName(const String &name) nogil except + # wrap-doc:Sets the name of the CV reference
-        String getName() nogil except + # wrap-doc:Returns the name of the CV reference
-        void setIdentifier(const String &identifier) nogil except + # wrap-doc:Sets the CV identifier which is referenced
-        String getIdentifier() nogil except + # wrap-doc:Returns the CV identifier which is referenced
-        bool operator==(CVReference &rhs) nogil except +
-        bool operator!=(CVReference &rhs) nogil except +
+        CVReference() except + nogil 
+        CVReference(CVReference &) except + nogil 
+        void setName(const String &name) except + nogil  # wrap-doc:Sets the name of the CV reference
+        String getName() except + nogil  # wrap-doc:Returns the name of the CV reference
+        void setIdentifier(const String &identifier) except + nogil  # wrap-doc:Sets the CV identifier which is referenced
+        String getIdentifier() except + nogil  # wrap-doc:Returns the CV identifier which is referenced
+        bool operator==(CVReference &rhs) except + nogil 
+        bool operator!=(CVReference &rhs) except + nogil 
 

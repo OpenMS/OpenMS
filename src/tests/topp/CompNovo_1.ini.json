@@ -25,10 +25,7 @@
   },
   "log": "TOPP.log",
   "no_progress": false,
-  "out": {
-    "class": "File",
-    "path": ""
-  },
+  "out": "",
   "test": false,
   "threads": 1
 }

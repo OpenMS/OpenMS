@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Tagger.h>" namespace "OpenMS":
                 #  :param fixed_mods: A list of modification names. The modified residues replace the unmodified versions
                 #  :param var_mods: A list of modification names. The modified residues are added as additional entries to the list of residues
 
-        Tagger(Tagger &) nogil except + # compiler
+        Tagger(Tagger &) except + nogil  # compiler
 
         Tagger(size_t min_tag_length,
                double ppm,
@@ -30,10 +30,10 @@ cdef extern from "<OpenMS/CHEMISTRY/Tagger.h>" namespace "OpenMS":
                size_t min_charge,
                size_t max_charge,
                const StringList& fixed_mods,
-               const StringList& var_mods) nogil except +
+               const StringList& var_mods) except + nogil 
 
         void getTag(const libcpp_vector[ double ]& mzs,
-                    libcpp_vector[ libcpp_utf8_string ]& tags) nogil except +
+                    libcpp_vector[ libcpp_utf8_string ]& tags) except + nogil 
         # wrap-doc:
                 #  Generate tags from mass vector `mzs`
                 #  
@@ -45,7 +45,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Tagger.h>" namespace "OpenMS":
                 #  :param tags: The vector of tags, that is filled with this function
 
         void getTag(const MSSpectrum& spec,
-                    libcpp_vector[ libcpp_utf8_string ]& tags) nogil except +
+                    libcpp_vector[ libcpp_utf8_string ]& tags) except + nogil 
          # wrap-doc:
                 #  Generate tags from an MSSpectrum
                 #  
@@ -56,7 +56,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Tagger.h>" namespace "OpenMS":
                 #  :param spec: A centroided fragment spectrum
                 #  :param tags: The vector of tags, that is filled with this function
 
-        void setMaxCharge(size_t max_charge) nogil except +
+        void setMaxCharge(size_t max_charge) except + nogil 
         # wrap-doc:
                 #  Change the maximal charge considered by the tagger
                 #  

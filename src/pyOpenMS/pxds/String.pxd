@@ -14,24 +14,24 @@ cdef extern from "<OpenMS/DATASTRUCTURES/String.h>" namespace "OpenMS":
         # wrap-hash:
         #  c_str()
 
-        String() nogil except +
-        String(String) nogil except +  # wrap-ignore
-        String(char *) nogil except + # wrap-ignore
-        String(char *, size_t l) nogil except + # wrap-ignore
-        String(str) nogil except + # wrap-ignore
-        const_char * c_str() nogil except + # wrap-ignore
+        String() except + nogil 
+        String(String) except + nogil   # wrap-ignore
+        String(char *) except + nogil  # wrap-ignore
+        String(char *, size_t l) except + nogil  # wrap-ignore
+        String(str) except + nogil  # wrap-ignore
+        const_char * c_str() except + nogil  # wrap-ignore
 
         # Creates a Python 2/3 unicode string (use this instead of c_str() if you
         # plan to use any non-ASCII code).
-        toString(self) nogil except + # wrap-ignore
+        toString(self) except + nogil  # wrap-ignore
 
-        bool operator==(String) nogil except +
-        bool operator!=(String) nogil except +
+        bool operator==(String) except + nogil 
+        bool operator!=(String) except + nogil 
 
         # Rather perform string operations in Python (you will have a bad time
         # with unicode strings otherwise).
-        size_t length() nogil except + # wrap-ignore
-        # libcpp_string operator[](size_t) nogil except + # wrap-upper-limit:length()
+        size_t length() except + nogil  # wrap-ignore
+        # libcpp_string operator[](size_t) except + nogil  # wrap-upper-limit:length()
 
 cdef extern from "<OpenMS/DATASTRUCTURES/String.h>" namespace "OpenMS::String":
     

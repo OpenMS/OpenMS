@@ -10,7 +10,6 @@ DecoyGenerator.cpp
 Element.cpp
 ElementDB.cpp
 EmpiricalFormula.cpp
-EnzymaticDigestionLogModel.cpp
 EnzymaticDigestion.cpp
 DigestionEnzyme.cpp
 DigestionEnzymeProtein.cpp
@@ -34,9 +33,6 @@ Ribonucleotide.cpp
 RibonucleotideDB.cpp
 SpectrumAnnotator.cpp
 SimpleTSGXLMS.cpp
-SvmTheoreticalSpectrumGenerator.cpp
-SvmTheoreticalSpectrumGeneratorTrainer.cpp
-SvmTheoreticalSpectrumGeneratorSet.cpp
 Tagger.cpp
 TheoreticalSpectrumGenerator.cpp
 TheoreticalSpectrumGeneratorXLMS.cpp

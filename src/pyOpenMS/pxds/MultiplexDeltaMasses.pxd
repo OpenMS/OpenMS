@@ -22,20 +22,20 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>"
             #  The data structure stores the mass shifts and corresponding labels
             #  for a group of matching peptide features
 
-        MultiplexDeltaMasses() nogil except +
-        MultiplexDeltaMasses(MultiplexDeltaMasses &) nogil except +
+        MultiplexDeltaMasses() except + nogil 
+        MultiplexDeltaMasses(MultiplexDeltaMasses &) except + nogil 
 
-        MultiplexDeltaMasses(libcpp_vector[ MultiplexDeltaMasses_DeltaMass ] & dm) nogil except +
-        libcpp_vector[ MultiplexDeltaMasses_DeltaMass ]  getDeltaMasses() nogil except +
+        MultiplexDeltaMasses(libcpp_vector[ MultiplexDeltaMasses_DeltaMass ] & dm) except + nogil 
+        libcpp_vector[ MultiplexDeltaMasses_DeltaMass ]  getDeltaMasses() except + nogil 
 
-        # String labelSetToString(LabelSet ls) nogil except +
+        # String labelSetToString(LabelSet ls) except + nogil 
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>" namespace "OpenMS::MultiplexDeltaMasses":
     
     cdef cppclass MultiplexDeltaMasses_DeltaMass "OpenMS::MultiplexDeltaMasses::DeltaMass":
 
-        MultiplexDeltaMasses_DeltaMass(double dm, String l) nogil except +
-        MultiplexDeltaMasses_DeltaMass(MultiplexDeltaMasses_DeltaMass &) nogil except +
+        MultiplexDeltaMasses_DeltaMass(double dm, String l) except + nogil 
+        MultiplexDeltaMasses_DeltaMass(MultiplexDeltaMasses_DeltaMass &) except + nogil 
 
         # DeltaMass(double dm, LabelSet ls);
 

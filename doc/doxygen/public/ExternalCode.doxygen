@@ -2,7 +2,7 @@
   
   @page external_code External Code using OpenMS
   
-	If %OpenMS' TOPP and UTILS tools are not enough in a certain scenario, you can either
+	If %OpenMS' TOPP tools are not enough in a certain scenario, you can either
 	request a change to %OpenMS, if you feel this functionality is useful for others as well,
 	or modify/extend %OpenMS privately.
 	For the latter, there are multiple ways to do this: You can modify the developer version of %OpenMS by changing
@@ -52,7 +52,7 @@ cmake -G "<generator>" .
 	to build your own %OpenMS installer for your platform (see our internal FAQ which is built using "make doc_internal") and ship that to a client machine.
 	
 	If you've used an external project and have a new executable (+ an optional new library), you can use the 
-	installer approach as well, and manually copy the new executable to the TOPP/UTILS binary directory (e.g. on
+	installer approach as well, and manually copy the new executable to the TOPP binary directory (e.g. on
 	Windows this could be @em c:/program files/OpenMS/bin, on Linux it could be @em /bin.
 	
 	If you do NOT use the installer, you can copy all required files manually, plus a few extra steps - see below.

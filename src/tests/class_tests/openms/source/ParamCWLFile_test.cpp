@@ -1,47 +1,20 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Simon Gene Gottlieb $
 // --------------------------------------------------------------------------
 
-#include <fstream>
-
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <fstream>
 
 ///////////////////////////
 
-#include <OpenMS/FORMAT/ParamCWLFile.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/FORMAT/ParamCWLFile.h>
 
 ///////////////////////////
 
@@ -82,9 +55,12 @@ START_SECTION((bool ParamCWLFile::load(const std::string& filename, Param& param
   param.setValue("test:1:int", 0);
   param.setValue("test:1:double", 0.);
   param.setValue("test:1:string", "");
-  param.setValue("test:1:int_list", std::vector<int>{});
-  param.setValue("test:1:double_list", std::vector<double>{});
-  param.setValue("test:1:string_list", std::vector<std::string>{});
+  param.setValue("test:1:int_list", std::vector<int> {});
+  param.setValue("test:1:double_list", std::vector<double> {});
+  param.setValue("test:1:string_list", std::vector<std::string> {});
+  param.setValue("test:1:file_output", std::string {}, "some description", {"output file"});
+  param.setValue("test:1:is_executable_v1", std::string {}, "test is executable tag, giving a string", {"is_executable", "input file"});
+  param.setValue("test:1:is_executable_v2", std::string {}, "test is executable tag, giving a type: File", {"is_executable", "input file"});
 
 
   // create matching json file
@@ -99,7 +75,13 @@ START_SECTION((bool ParamCWLFile::load(const std::string& filename, Param& param
          "  \"string\": \"Hello OpenMS\",\n"
          "  \"int_list\": [10, 11, 12],\n"
          "  \"double_list\": [13.25, 15.125],\n"
-         "  \"string_list\": [\"SeqAn\", \"rocks\"]\n"
+         "  \"string_list\": [\"SeqAn\", \"rocks\"],\n"
+         "  \"file_output\": \"/some/made/up/path\",\n"
+         "  \"is_executable_v1\": \"/some/made/up/path\",\n"
+         "  \"is_executable_v2\": {\n"
+         "        \"class\": \"File\",\n"
+         "        \"path\": \"/some/made/up/path\"\n"
+         "  }\n"
          "}\n";
   ofs.close();
   ParamCWLFile::load(filename.c_str(), param);

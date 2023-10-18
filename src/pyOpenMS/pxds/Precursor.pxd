@@ -19,39 +19,39 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
         #  - selected ion (m/z, intensity, charge, possible charge states)
         #  - ion mobility drift time
 
-        Precursor() nogil except +
-        Precursor(Precursor &) nogil except +
+        Precursor() except + nogil 
+        Precursor(Precursor &) except + nogil 
 
-        libcpp_set[ActivationMethod] getActivationMethods() nogil except + # wrap-doc:Returns the activation methods
-        void setActivationMethods(libcpp_set[ActivationMethod] activation_methods) nogil except + # wrap-doc:Sets the activation methods
+        libcpp_set[ActivationMethod] getActivationMethods() except + nogil  # wrap-doc:Returns the activation methods
+        void setActivationMethods(libcpp_set[ActivationMethod] activation_methods) except + nogil  # wrap-doc:Sets the activation methods
 
-        double getActivationEnergy() nogil except + # wrap-doc:Returns the activation energy (in electronvolt)
-        void setActivationEnergy(double activation_energy) nogil except + # wrap-doc:Sets the activation energy (in electronvolt)
+        double getActivationEnergy() except + nogil  # wrap-doc:Returns the activation energy (in electronvolt)
+        void setActivationEnergy(double activation_energy) except + nogil  # wrap-doc:Sets the activation energy (in electronvolt)
 
-        double getIsolationWindowLowerOffset() nogil except + # wrap-doc:Returns the lower offset from the target m/z
-        void setIsolationWindowLowerOffset(double bound) nogil except + # wrap-doc:Sets the lower offset from the target m/z
+        double getIsolationWindowLowerOffset() except + nogil  # wrap-doc:Returns the lower offset from the target m/z
+        void setIsolationWindowLowerOffset(double bound) except + nogil  # wrap-doc:Sets the lower offset from the target m/z
 
-        double getDriftTime() nogil except + # wrap-doc:Returns the ion mobility drift time in milliseconds (-1 means it is not set)
-        void setDriftTime(double drift_time) nogil except + # wrap-doc:Sets the ion mobility drift time in milliseconds
+        double getDriftTime() except + nogil  # wrap-doc:Returns the ion mobility drift time in milliseconds (-1 means it is not set)
+        void setDriftTime(double drift_time) except + nogil  # wrap-doc:Sets the ion mobility drift time in milliseconds
 
-        double getIsolationWindowUpperOffset() nogil except + # wrap-doc:Returns the upper offset from the target m/z
-        void setIsolationWindowUpperOffset(double bound) nogil except + # wrap-doc:Sets the upper offset from the target m/z
+        double getIsolationWindowUpperOffset() except + nogil  # wrap-doc:Returns the upper offset from the target m/z
+        void setIsolationWindowUpperOffset(double bound) except + nogil  # wrap-doc:Sets the upper offset from the target m/z
 
-        double getDriftTimeWindowLowerOffset() nogil except + # wrap-doc:Returns the lower offset from the target ion mobility in milliseconds
-        void setDriftTimeWindowLowerOffset(double drift_time) nogil except + # wrap-doc:Sets the lower offset from the target ion mobility
-        double getDriftTimeWindowUpperOffset() nogil except + # wrap-doc:Returns the upper offset from the target ion mobility in milliseconds
-        void setDriftTimeWindowUpperOffset(double drift_time) nogil except + # wrap-doc:Sets the upper offset from the target ion mobility
+        double getDriftTimeWindowLowerOffset() except + nogil  # wrap-doc:Returns the lower offset from the target ion mobility in milliseconds
+        void setDriftTimeWindowLowerOffset(double drift_time) except + nogil  # wrap-doc:Sets the lower offset from the target ion mobility
+        double getDriftTimeWindowUpperOffset() except + nogil  # wrap-doc:Returns the upper offset from the target ion mobility in milliseconds
+        void setDriftTimeWindowUpperOffset(double drift_time) except + nogil  # wrap-doc:Sets the upper offset from the target ion mobility
 
-        int getCharge() nogil except + # wrap-doc:Returns the charge
-        void setCharge(int charge) nogil except + # wrap-doc:Sets the charge
+        int getCharge() except + nogil  # wrap-doc:Returns the charge
+        void setCharge(int charge) except + nogil  # wrap-doc:Sets the charge
 
-        libcpp_vector[int] getPossibleChargeStates() nogil except + # wrap-doc:Returns the possible charge states
-        void setPossibleChargeStates(libcpp_vector[int] possible_charge_states) nogil except + # wrap-doc:Sets the possible charge states
+        libcpp_vector[int] getPossibleChargeStates() except + nogil  # wrap-doc:Returns the possible charge states
+        void setPossibleChargeStates(libcpp_vector[int] possible_charge_states) except + nogil  # wrap-doc:Sets the possible charge states
 
-        double getUnchargedMass() nogil except + # wrap-doc:Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0 best guess is its doubly charged
+        double getUnchargedMass() except + nogil  # wrap-doc:Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0 best guess is its doubly charged
 
-        bool operator==(Precursor)  nogil except +
-        bool operator!=(Precursor)  nogil except +
+        bool operator==(Precursor)  except + nogil 
+        bool operator!=(Precursor)  except + nogil 
 
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS::Precursor":
     cdef enum ActivationMethod:

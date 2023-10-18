@@ -209,7 +209,7 @@
   The TOPP tools should now be ready to use. The executables are located in the
   \c bin folder of the build directory. Add this folder to your
   <b><tt>PATH</tt></b> variable for easy access.
-  @note When you intend to use thirdparty search- or inference engines like XTandem or Fido, their binaries also
+  @note When you intend to use thirdparty search engines like XTandem, their binaries also
   need to be in the <b><tt>PATH</tt></b>. Build them or download them inside the OpenMS source folder with
   \code
   git submodule update --init THIRDPARTY
