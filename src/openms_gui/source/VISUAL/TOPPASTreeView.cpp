@@ -13,8 +13,6 @@
 #include <QApplication>
 #include <QtCore/QMimeData>
 
-#include <iostream>
-
 using namespace std;
 
 namespace OpenMS
@@ -28,6 +26,67 @@ namespace OpenMS
   }
 
   TOPPASTreeView::~TOPPASTreeView() = default;
+
+  /// Filter tree elements by name
+  /// An empty filter shows all elements
+
+  inline void TOPPASTreeView::filter(QString must_match)
+  {
+    // hide all
+    QTreeWidgetItemIterator it(this);
+    while (*it)
+    {
+      (*it)->setHidden(true);
+      (*it)->setExpanded(false);
+      ++it;
+    }
+
+    // recursive lambda: show items and its subchildren (e.g. when a category matches)
+    function<void(QTreeWidgetItem*)> show_sub_tree = [&](QTreeWidgetItem* item) {
+      item->setHidden(false);
+      for (int i = 0; i < item->childCount(); i++)
+      {
+        QTreeWidgetItem* child = item->child(i);
+        child->setHidden(false);
+        child->setExpanded(true); // technically not required, since our tree is only 2 layers deep, but maybe in the future...
+        show_sub_tree(child);
+      }
+    };
+
+    // show stuff that matches
+    auto items = this->findItems(must_match, Qt::MatchContains | Qt::MatchRecursive);
+    for (auto& it : items)
+    {
+      // show parent (if any) -- otherwise the children will not be displayed
+      if (it->parent())
+      {
+        it->parent()->setHidden(false);
+        it->parent()->setExpanded(true);
+      }
+      show_sub_tree(it); // also show all children
+      it->setExpanded(true);
+    }
+  }
+
+  void TOPPASTreeView::expandAll()
+  {
+    QTreeWidgetItemIterator it(this);
+    while (*it)
+    {
+      (*it)->setExpanded(true);
+      ++it;
+    }
+  }
+
+  void TOPPASTreeView::collapseAll()
+  {
+    QTreeWidgetItemIterator it(this);
+    while (*it)
+    {
+      (*it)->setExpanded(false);
+      ++it;
+    }
+  }
 
   void TOPPASTreeView::mousePressEvent(QMouseEvent * event)
   {
