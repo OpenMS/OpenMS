@@ -32,7 +32,7 @@ Thank you for being a part of our community and for helping us make OpenMS even 
 
 What's new:
 - Major change: removed the distinction between TOPP tool and util and the TOPP and UTIL build targets were merged to a single TOPP target. All utils are considered tools now and categorized as "Utilities".
-- Added SageAdapter. Support for standard identification tasks with sage (https://github.com/lazear/sage).
+- Added SageAdapter. Support for standard identification tasks with sage (https://github.com/lazear/sage) (experimental).
 - Require some advanced instruction sets for x64 CPUs: SSE3 (g++/clang) or AVX (MSVC); and NEON for ARM64 CPUs (#6978)
   and report them via the OpenMSInfo tool (#7022)
 - Base64 encoding/decoding using the SIMDe library (#6978)
