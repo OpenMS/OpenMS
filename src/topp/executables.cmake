@@ -58,6 +58,7 @@ MSGFPlusAdapter
 MzTabExporter
 NoiseFilterGaussian
 NoiseFilterSGolay
+OpenNuXL
 OpenPepXL
 OpenPepXLLF
 OpenSwathAnalyzer
