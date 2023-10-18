@@ -32,7 +32,7 @@ using namespace std;
 // Doxygen docu
 //-------------------------------------------------------------
 /**
-  @page TOPP_FLASHDeconv TOPP_FLASHDeconv
+  @page TOPP_FLASHDeconv FLASHDeconv
 
   @brief FLASHDeconv performs ultrafast deconvolution of top down proteomics MS datasets.
   FLASHDeconv takes mzML file as input and outputs deconvolved feature list (.tsv) and
@@ -43,6 +43,12 @@ using namespace std;
   for a certain period for precursor mass assignment in DeconvolvedSpectrum class.
   In case of FLASHIda runs, this precursor mass assignment is done by FLASHIda. Thus FLASHDeconv class simply parses the log file
   from FLASHIda runs and pass the parsed information to DeconvolvedSpectrum class.
+
+
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_FLASHDeconv.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_FLASHDeconv.html
 */
 
 class TOPPFLASHDeconv : public TOPPBase
