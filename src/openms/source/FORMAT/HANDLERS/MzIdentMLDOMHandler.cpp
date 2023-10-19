@@ -1237,7 +1237,7 @@ namespace OpenMS::Internal
                     // in this case, just use the "name"
                     if (param.second.isEmpty())
                     {
-                        dbname = param.first.toString();
+                        dbname = param.first;
                     }
                     else
                     {
