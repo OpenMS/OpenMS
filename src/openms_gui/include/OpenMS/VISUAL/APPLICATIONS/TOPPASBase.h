@@ -29,6 +29,7 @@ class QListWidget;
 class QTextEdit;
 class QMdiArea;
 class QLabel;
+class QPushButton;
 class QWidget;
 class QTreeWidget;
 class QTreeWidgetItem;
@@ -208,7 +209,13 @@ protected:
     EnhancedTabBar* tab_bar_;
 
     /// Tree view of all available TOPP tools
-    QTreeWidget* tools_tree_view_;
+    TOPPASTreeView* tools_tree_view_;
+    /// Filter for the Tree view 
+    QLineEdit* tools_filter_;
+    /// Expand button for the Tree view
+    QPushButton* tools_expand_all_;
+    /// Collapse button for the Tree view
+    QPushButton* tools_collapse_all_;
     /// List of ready analysis pipelines
     QListWidget* blocks_list_;
 
@@ -222,6 +229,7 @@ protected:
     ///returns the window with id @p id
     TOPPASWidget* window_(int id) const;
 
+    void filterToolTree_();
 
     /// The current path (used for loading and storing).
     /// Depending on the preferences this is static or changes with the current window/layer.

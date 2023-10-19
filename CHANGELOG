@@ -10,7 +10,7 @@ INI file - parameter configuration file, holding custom parameter settings for T
 INIFileEditor - graphical parameter editor for INI files
 Parameters - list of algorithm or TOPP tool parameters that changed in this release
 PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
-#<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit https://github.com/OpenMS/OpenMS/pull/4957 for details
+#<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit e.g. https://github.com/OpenMS/OpenMS/pull/XXXX (replace XXXX with number of interest) for details
 
 
 ------------------------------------------------------------------------------------------
@@ -37,6 +37,7 @@ What's new:
   and report them via the OpenMSInfo tool (#7022)
 - Base64 encoding/decoding using the SIMDe library (#6978)
 - Filter features in ProteomicsLFQ according to feature p-value (additional parameters feature_with(out)_id_min_score, MBR is automatically active if targeted_only = false)
+- TOPPAS: filter TOPP tools by name for faster access when building a pipeline (#7139)
 
 Fixes:
 - Fix a crash when loading mzML data with multiple threads which contains non-MS spectra, e.g. 'electromagnetic radiation spectrum' (#7011)
