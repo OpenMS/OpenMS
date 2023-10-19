@@ -3,10 +3,16 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
-// $Authors: Erhan Kenar$
+// $Authors: Erhan Kenar, Tristan Aretz, Manuel Zschaebitz$
 // --------------------------------------------------------------------------
 
+
+#include <fstream>
+#include <omp.h>
+#include <sstream>
+
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
@@ -24,198 +30,244 @@ START_TEST(MassTraceDetection, "$Id$")
 
 MassTraceDetection* ptr = nullptr;
 MassTraceDetection* null_ptr = nullptr;
+
 START_SECTION(MassTraceDetection())
 {
-    ptr = new MassTraceDetection();
-    TEST_NOT_EQUAL(ptr, null_ptr)
+  ptr = new MassTraceDetection();
+  TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
 START_SECTION(~MassTraceDetection())
 {
-    delete ptr;
+  delete ptr;
 }
 END_SECTION
 
-MassTraceDetection test_mtd;
 
-START_SECTION((void updateIterativeWeightedMeanMZ(const double &, const double &, double &, double &, double &)))
+
+START_SECTION((void updateIterativeWeightedMeanMZ(const double, const double , double&, double&, double&)))
 {
-    double centroid_mz(150.22), centroid_int(25000000);
-    double new_mz1(150.34), new_int1(23043030);
-    double new_mz2(150.11), new_int2(1932392);
+  MassTraceDetection test_mtd;
+  double centroid_mz(150.22), centroid_int(25000000);
+  double mzs[2] = {150.34, 150.11}; 
+  double ints[2] = {23043030, 1932392};
+  
+  double wmean1((centroid_mz * centroid_int + mzs[0] * ints[0]) / (centroid_int + ints[0]));
+  double wmean2((centroid_mz * centroid_int + mzs[0] * ints[0] + mzs[1] * ints[1])/ (centroid_int + ints[0] + ints[1]));
 
-    std::vector<double> mzs, ints;
-    mzs.push_back(centroid_mz);
-    mzs.push_back(new_mz1);
-    mzs.push_back(new_mz2);
-    ints.push_back(centroid_int);
-    ints.push_back(new_int1);
-    ints.push_back(new_int2);
+  double prev_nominator(centroid_mz * centroid_int);
+  double prev_denomominator(centroid_int);
 
-    double total_weight1(centroid_int + new_int1);
-    double total_weight2(centroid_int + new_int1 + new_int2);
+  test_mtd.updateIterativeWeightedMeanMZ(mzs[0], ints[0], centroid_mz, prev_nominator, prev_denomominator);
 
-    double wmean1((centroid_mz * centroid_int + new_mz1 * new_int1)/total_weight1);
-    double wmean2((centroid_mz * centroid_int + new_mz1 * new_int1 + new_mz2 * new_int2)/total_weight2);
+  TEST_REAL_SIMILAR(centroid_mz, wmean1);
 
-    double prev_count(centroid_mz * centroid_int);
-    double prev_denom(centroid_int);
+  test_mtd.updateIterativeWeightedMeanMZ(mzs[1], ints[1], centroid_mz, prev_nominator, prev_denomominator);
 
-    test_mtd.updateIterativeWeightedMeanMZ(new_mz1, new_int1, centroid_mz, prev_count, prev_denom);
-
-    TEST_REAL_SIMILAR(centroid_mz, wmean1);
-
-    test_mtd.updateIterativeWeightedMeanMZ(new_mz2, new_int2, centroid_mz, prev_count, prev_denom);
-
-    TEST_REAL_SIMILAR(centroid_mz, wmean2);
-
+  TEST_REAL_SIMILAR(centroid_mz, wmean2);
 }
 END_SECTION
 
-// load a mzML file for testing the algorithm
-PeakMap input;
-MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_input1.mzML"),input);
+///later
+START_SECTION(void updateWeightedSDEstimateRobust(const PeakType&, const double&, double&, double& ))
+{
+  NOT_TESTABLE;
+}
+END_SECTION
 
-Size exp_mt_lengths[3] = {86, 31, 16};
-double exp_mt_rts[3] = {341.063314463158, 339.314891947562, 350.698987241276};
-double exp_mt_mzs[3] = {437.26675, 438.27241, 439.27594};
-double exp_mt_ints[3] = {3381.72226139326, 664.763828332733, 109.490108620676};
 
-std::vector<MassTrace> output_mt;
-
-Param p_mtd = MassTraceDetection().getDefaults();
-p_mtd.setValue("min_trace_length", 3.0);
 
 START_SECTION((void run(const PeakMap &, std::vector< MassTrace > &)))
 {
-    test_mtd.run(input, output_mt);
+  MassTraceDetection test_mtd;
+  std::vector<MassTrace> output_mtd;
 
-    // with default parameters, only 2 of 3 traces will be found
-    TEST_EQUAL(output_mt.size(), 2);
+  //input1_mtd is for testing the basic functionality
+  PeakMap input1_mtd;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_input1.mzML"),input1_mtd);
 
-    // if min_trace_length is set to 3 seconds, another mass trace is detected
-    test_mtd.setParameters(p_mtd);
-    output_mt.clear();
+  //control values
+  Size exp_mt_lengths[3]{86, 31, 16};
+  double exp_mt_rts[3]{341.063314463158, 339.314891947562, 350.698987241276};
+  double exp_mt_mzs[3]{437.26675, 438.27241, 439.27594};
+  double exp_mt_ints[3]{3381.72226139326, 664.763828332733, 109.490108620676};
 
-    test_mtd.run(input, output_mt);
 
-    TEST_EQUAL(output_mt.size(), 3);
+  // with default parameters, only 2 of 3 traces will be found
+  output_mtd.clear();
+  test_mtd.run(input1_mtd, output_mtd);
+  TEST_EQUAL(output_mtd.size(), 2);
 
-    for (Size i = 0; i < output_mt.size(); ++i)
-    {
-        TEST_EQUAL(output_mt[i].getSize(), exp_mt_lengths[i]);
-        TEST_REAL_SIMILAR(output_mt[i].getCentroidRT(), exp_mt_rts[i]);
-        TEST_REAL_SIMILAR(output_mt[i].getCentroidMZ(), exp_mt_mzs[i]);
-        TEST_REAL_SIMILAR(output_mt[i].computePeakArea(), exp_mt_ints[i]);
-    }
 
-    // Regression test for bug #1633
-    // Test by adding MS2 spectra to the input
-    {
-      PeakMap input_new;
-      MSSpectrum s;
-      s.setMSLevel(2);
-      {
-        Peak1D p;
-        p.setMZ( 500 );
-        p.setIntensity( 6000 );
-        s.push_back(p);
-      }
+  // if min_trace_length is set to 3 seconds, another mass trace is detected
+  Param p_mtd = MassTraceDetection().getDefaults();
+  p_mtd.setValue("min_trace_length", 3.0);
+  test_mtd.setParameters(p_mtd);
 
-      // add a few additional MS2 spectra in front
-      for (Size i = 0; i < input.size(); ++i)
-      {
-        input_new.addSpectrum(s);
-      }
-      // now add the "real" spectra at the end
-      for (Size i = 0; i < input.size(); ++i)
-      {
-        input_new.addSpectrum(input[i]);
-      }
-      output_mt.clear();
-      test_mtd.run(input_new, output_mt);
-      TEST_EQUAL(output_mt.size(), 3);
+  output_mtd.clear();
+  test_mtd.run(input1_mtd, output_mtd);
+  TEST_EQUAL(output_mtd.size(), 3);
 
-      for (Size i = 0; i < output_mt.size(); ++i)
-      {
-          TEST_EQUAL(output_mt[i].getSize(), exp_mt_lengths[i]);
-          TEST_REAL_SIMILAR(output_mt[i].getCentroidRT(), exp_mt_rts[i]);
-          TEST_REAL_SIMILAR(output_mt[i].getCentroidMZ(), exp_mt_mzs[i]);
-          TEST_REAL_SIMILAR(output_mt[i].computePeakArea(), exp_mt_ints[i]);
-      }
+  std::sort(output_mtd.begin(), output_mtd.end(),
+    [&output_mtd](const MassTrace & a, const MassTrace & b) -> bool
+    { 
+    return a.getCentroidMZ() < b.getCentroidMZ();
+    });
+  
+  for (Size i = 0; i < output_mtd.size(); ++i)
+  {
+    TEST_EQUAL(output_mtd[i].getSize(), exp_mt_lengths[i]);
+    TEST_REAL_SIMILAR(output_mtd[i].getCentroidRT(), exp_mt_rts[i]);
+    TEST_REAL_SIMILAR(output_mtd[i].getCentroidMZ(), exp_mt_mzs[i]);
+    TEST_REAL_SIMILAR(output_mtd[i].computePeakArea(), exp_mt_ints[i]);
+  }
 
-    }
+
+  // Regression test for bug #1633
+  // Test by adding MS2 spectra to the input
+  PeakMap input_new;
+  MSSpectrum s;
+  s.setMSLevel(2);
+  {
+    Peak1D p;
+    p.setMZ( 500 );
+    p.setIntensity( 6000 );
+    s.push_back(p);
+  }
+
+  // add a few additional MS2 spectra in front
+  for (Size i = 0; i < input1_mtd.size(); ++i)
+  {
+    input_new.addSpectrum(s);
+  }
+  // now add the "real" spectra at the end
+  for (Size i = 0; i < input1_mtd.size(); ++i)
+  {
+    input_new.addSpectrum(input1_mtd[i]);
+  }
+
+  output_mtd.clear();
+  test_mtd.run(input_new, output_mtd);
+  TEST_EQUAL(output_mtd.size(), 3);
+
+  std::sort(output_mtd.begin(), output_mtd.end(),
+    [&output_mtd](const MassTrace & a, const MassTrace & b) -> bool
+    { 
+    return a.getCentroidMZ() < b.getCentroidMZ();
+    });
+
+  for (Size i = 0; i < output_mtd.size(); ++i)
+  {
+    TEST_EQUAL(output_mtd[i].getSize(), exp_mt_lengths[i]);
+    TEST_REAL_SIMILAR(output_mtd[i].getCentroidRT(), exp_mt_rts[i]);
+    TEST_REAL_SIMILAR(output_mtd[i].getCentroidMZ(), exp_mt_mzs[i]);
+    TEST_REAL_SIMILAR(output_mtd[i].computePeakArea(), exp_mt_ints[i]);
+  }
 }
 END_SECTION
 
-std::vector<MassTrace> filt;
-
-//START_SECTION((void filterByPeakWidth(std::vector< MassTrace > &, std::vector< MassTrace > &)))
-//{
-//    test_mtd.filterByPeakWidth(output_mt, filt);
-
-//    TEST_EQUAL(output_mt.size(), filt.size());
-
-////    for (Size i = 0; i < output_mt.size(); ++i)
-////    {
-////        TEST_EQUAL(output_mt[i].getFWHMScansNum(), filt[i].getFWHMScansNum());
-////    }
-//}
-//END_SECTION
-
-PeakMap::ConstAreaIterator mt_it1 = input.areaBeginConst(335.0, 385.0, 437.1, 437.4);
-PeakMap::ConstAreaIterator mt_it2 = input.areaBeginConst(335.0, 385.0, 438.2, 438.4);
-PeakMap::ConstAreaIterator mt_it3 = input.areaBeginConst(335.0, 385.0, 439.2, 439.4);
-
-std::vector<MassTrace> found_mtraces;
-
-PeakMap::ConstAreaIterator mt_end = input.areaEndConst();
 
 START_SECTION((void run(PeakMap::ConstAreaIterator &begin, PeakMap::ConstAreaIterator &end, std::vector< MassTrace > &found_masstraces)))
 {
+  MassTraceDetection test_mtd;
+  std::vector<MassTrace> output_mtd;
+  std::string ground_truth = OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_test_output1.tsv");
 
-    NOT_TESTABLE
-//    test_mtd.run(mt_it1, mt_end, found_mtraces);
-//    TEST_EQUAL(found_mtraces.size(), 1);
-//    TEST_EQUAL(found_mtraces[0].getSize(), exp_mt_lengths[0]);
+  /// load data with threads, so it will a bit faster
+  #ifdef _OPENMP
+    omp_set_num_threads(8);
+  #endif
 
-//    TEST_REAL_SIMILAR(found_mtraces[0].getCentroidRT(), exp_mt_rts[0]);
-//    TEST_REAL_SIMILAR(found_mtraces[0].getCentroidMZ(), exp_mt_mzs[0]);
-//    TEST_REAL_SIMILAR(found_mtraces[0].computePeakArea(), exp_mt_ints[0]);
+    //input2 is for testing correctness of dense data points
+    PeakMap input2;
+    MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in2.mzML.gz"),input2);
 
-//    found_mtraces.clear();
+  #ifdef _OPENMP
+    omp_set_num_threads(1);
+  #endif
 
-
-//    test_mtd.run(mt_it2, mt_end, found_mtraces);
-//    TEST_EQUAL(found_mtraces.size(), 1);
-//    TEST_EQUAL(found_mtraces[0].getSize(), exp_mt_lengths[1]);
-
-//    TEST_REAL_SIMILAR(found_mtraces[0].getCentroidRT(), exp_mt_rts[1]);
-//    TEST_REAL_SIMILAR(found_mtraces[0].getCentroidMZ(), exp_mt_mzs[1]);
-//    TEST_REAL_SIMILAR(found_mtraces[0].computePeakArea(), exp_mt_ints[1]);
-
-//    found_mtraces.clear();
+  PeakMap::ConstAreaIterator cai_begin = input2.areaBeginConst(2000, 4000, 500, 750, 1);
+  PeakMap::ConstAreaIterator cai_end = input2.areaEndConst();
 
 
-//    test_mtd.run(mt_it3, mt_end, found_mtraces);
-//    TEST_EQUAL(found_mtraces.size(), 1);
-//    TEST_EQUAL(found_mtraces[0].getSize(), exp_mt_lengths[0]);
+  //first run: single thread
+  output_mtd.clear();
+  test_mtd.run(cai_begin, cai_end, output_mtd);
+  
+  //has to be sorted, because of parallelization the order is different
+  std::sort(output_mtd.begin(), output_mtd.end(), 
+    [&output_mtd] (const MassTrace& a, const MassTrace& b) -> bool
+    {
+      return a.getCentroidRT() < b.getCentroidRT();
+    });
+  
+  std::string file_single = OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_test_output2.tsv");
+  NEW_TMP_FILE(file_single);
+  std::ofstream os_single;
 
-//    TEST_REAL_SIMILAR(found_mtraces[0].getCentroidRT(), exp_mt_rts[2]);
-//    TEST_REAL_SIMILAR(found_mtraces[0].getCentroidMZ(), exp_mt_mzs[2]);
-//    TEST_REAL_SIMILAR(found_mtraces[0].computePeakArea(), exp_mt_ints[2]);
+  os_single.open(file_single);
+  os_single << "CentroidRT\tCentroidMZ\tCentroidSD\tTraceLength\tSize\n";
+  for (const MassTrace& i : output_mtd)
+  {
+    os_single 
+      << i.getCentroidRT() << "\t"
+      << i.getCentroidMZ() << "\t"
+      << i.getCentroidSD() << "\t"
+      // << i.computePeakArea() << "\t" //<-- takes a bit longer, can be tested with MassTraceDetection_test_output2
+      << i.getTraceLength() << "\t"
+      << i.getSize() << "\n";
+  }
+  os_single.close();
 
-//    found_mtraces.clear();
+  TEST_FILE_SIMILAR(file_single, ground_truth);
+
+  //second run: parallel
+  #ifdef _OPENMP
+    omp_set_num_threads(8);
+  #endif
+
+    //where const?
+    cai_begin = input2.areaBeginConst(2000, 4000, 500, 750, 1);
+    cai_end = input2.areaEndConst();
+
+    output_mtd.clear();
+    test_mtd.run(cai_begin, cai_end, output_mtd);
+
+    //has to be sorted, because of parallelization the order is different
+    std::sort(output_mtd.begin(), output_mtd.end(),
+      [&output_mtd](const MassTrace & a, const MassTrace & b) -> bool
+      { 
+      return a.getCentroidRT() < b.getCentroidRT();
+      });
+
+    std::string file_parallel = OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_test_output1.tsv");
+    NEW_TMP_FILE(file_parallel);
+    std::ofstream os_parallel;
+
+    os_parallel.open(file_parallel);
+    os_parallel << "CentroidRT\tCentroidMZ\tCentroidSD\tTraceLength\tSize\n";
+    for (const MassTrace& i : output_mtd)
+    {
+      os_parallel
+      << i.getCentroidRT() << "\t"
+      << i.getCentroidMZ() << "\t"
+      << i.getCentroidSD() << "\t"
+      // << i.computePeakArea() << "\t"
+      << i.getTraceLength() << "\t"
+      << i.getSize() << "\n";
+    }
+    os_parallel.close();
+
+    TEST_FILE_SIMILAR(file_parallel, ground_truth);
+
+  #ifdef _OPENMP
+    omp_set_num_threads(1);
+  #endif
 }
 END_SECTION
-
-
 
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-

@@ -65,8 +65,13 @@ StringList sl;
 sl.push_back("xml-stylesheet");
 sl.push_back("<featureMap");
 sl.push_back("<feature id");
+//// is new; 
+sl.push_back("<UserParam");
+sl.push_back("<dataProcessing");
+////these values differ now because of the parallelization of MassTraceDetection
 fsc.setWhitelist(sl);
 
+std::vector<std::string> outout; 
 //std::cout << "\n\n" << fsc.compareStrings("529090", "529091") << "\n\n\n";
 
 START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms &)))
@@ -77,6 +82,7 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms 
   p.setValue("mz_scoring_13C", "true");
   test_ffm.setParameters(p);
   test_ffm.run(splitted_mt, test_fm, chromatograms);
+  outout.push_back( test_fm.size() + " == 84??\n");
   TEST_EQUAL(test_fm.size(), 84);
 
   // run with default settings (from paper using charge+isotope# dependent distances)
@@ -84,6 +90,7 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms 
   p.setValue("mz_scoring_13C", "false");
   test_ffm.setParameters(p);
   test_ffm.run(splitted_mt, test_fm, chromatograms);
+  outout.push_back( test_fm.size() + " == 81??\n");
   TEST_EQUAL(test_fm.size(), 81);
   // --> this gives less features, i.e. more isotope clusters (but the input data is simulated and highly weird -- should be replaced at some point)
 
@@ -98,6 +105,7 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms 
   p.setValue("mz_scoring_by_elements", "true");
   test_ffm.setParameters(p);
   test_ffm.run(splitted_mt, test_fm, chromatograms);
+  outout.push_back( test_fm.size() + " == 80??\n");
   TEST_EQUAL(test_fm.size(), 80);
   // --> this gives less features, i.e. more isotope clusters (but the input data is simulated and highly weird -- should be replaced at some point)
 }
