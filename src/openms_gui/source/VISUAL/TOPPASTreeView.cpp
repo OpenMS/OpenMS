@@ -27,10 +27,7 @@ namespace OpenMS
 
   TOPPASTreeView::~TOPPASTreeView() = default;
 
-  /// Filter tree elements by name
-  /// An empty filter shows all elements
-
-  inline void TOPPASTreeView::filter(QString must_match)
+  void TOPPASTreeView::filter(const QString& must_match)
   {
     // hide all
     QTreeWidgetItemIterator it(this);
@@ -88,7 +85,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPASTreeView::mousePressEvent(QMouseEvent * event)
+  void TOPPASTreeView::mousePressEvent(QMouseEvent* event)
   {
     QTreeWidget::mousePressEvent(event);
 
@@ -98,7 +95,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPASTreeView::mouseMoveEvent(QMouseEvent * event)
+  void TOPPASTreeView::mouseMoveEvent(QMouseEvent* event)
   {
     QTreeWidget::mouseMoveEvent(event);
 
@@ -126,7 +123,7 @@ namespace OpenMS
     drag->exec(Qt::CopyAction);
   }
 
-  void TOPPASTreeView::keyPressEvent(QKeyEvent * e)
+  void TOPPASTreeView::keyPressEvent(QKeyEvent* e)
   {
     QTreeWidget::keyPressEvent(e);
     if (currentItem() && e->key() == Qt::Key_Return)
@@ -140,14 +137,13 @@ namespace OpenMS
     }
   }
 
-  void TOPPASTreeView::enterEvent(QEvent * /*e*/)
+  void TOPPASTreeView::enterEvent(QEvent* /*e*/)
   {
     setFocus();
   }
 
-  void TOPPASTreeView::leaveEvent(QEvent * /*e*/)
+  void TOPPASTreeView::leaveEvent(QEvent* /*e*/)
   {
-
   }
 
 } //namespace OpenMS

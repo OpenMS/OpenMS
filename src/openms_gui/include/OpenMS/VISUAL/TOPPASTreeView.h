@@ -39,7 +39,7 @@ public:
     /// Filter tree elements by name (case insensitive and partial=substring matches are valid)
     /// An empty filter shows all elements.
     /// If an element in a subtree is matched, all parents up to the root are also shown.
-    void filter(QString must_match);
+    void filter(const QString& must_match);
 
     /// expand all subtrees, i.e. make them visible
     void expandAll();
