@@ -198,6 +198,7 @@ protected:
     registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
 
+    registerFlag_("allow_dense_centroided_peaks", "Allow median distance of consecutive peaks less than 50ppm. The default is to treat such spectra as profile spectra.", false);
     registerFlag_("legacy_conversion", "Use the indirect conversion of MS-GF+ results to idXML via export to TSV. Try this only if the default conversion takes too long or uses too much memory.", true);
 
     registerInputFile_("conf", "<file>", "", "Optional MSGF+ configuration file (passed as -conf <file> to MSGF+). See documentation for examples. Parameters of the adapter take precedence. Use conf file only for settings not available here (for example, any fixed/var modifications, in the conf file will be ignored, since they are provided via -mod flag)", false, false);
@@ -507,6 +508,10 @@ protected:
                    << "-addFeatures" << QString::number(int((getParam_().getValue("add_features") == "true")))
                    << "-tasks" << QString::number(getIntOption_("tasks"))
                    << "-thread" << QString::number(getIntOption_("threads"));
+    if (getFlag_("allow_dense_centroided_peaks"))
+    {
+      process_params << "-allowDenseCentroidedPeaks 1";
+    }
     String conf = getStringOption_("conf");
     if (!conf.empty())
     {

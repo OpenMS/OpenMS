@@ -118,7 +118,7 @@ endif()
 #------------------------------------------------------------------------------
 if (NOT (${MSGFPLUS_BINARY} STREQUAL "MSGFPLUS_BINARY-NOTFOUND"))
   add_test("TOPP_MSGFPlusAdapter_1" ${TOPP_BIN_PATH}/MSGFPlusAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out MSGFPlusAdapter_1_out1.tmp -mzid_out MSGFPlusAdapter_1_out2.tmp.mzid -executable "${MSGFPLUS_BINARY}")
-  add_test("TOPP_MSGFPlusAdapter_1_out1" ${DIFF} -in1 MSGFPlusAdapter_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:in\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:executable\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:database\" value=")
+  add_test("TOPP_MSGFPlusAdapter_1_out1" ${DIFF} -whitelist "MSGFPlusAdapter:1:allow_dense_centroided_peaks" -in1 MSGFPlusAdapter_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:in\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:executable\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:database\" value=")
   set_tests_properties("TOPP_MSGFPlusAdapter_1_out1" PROPERTIES DEPENDS "TOPP_MSGFPlusAdapter_1")
   add_test("TOPP_MSGFPlusAdapter_1_out2" ${DIFF} -in1 MSGFPlusAdapter_1_out2.tmp.mzid -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -whitelist "creationDate=" "SearchDatabase numDatabaseSequences=\"10\" location=" "SpectraData location=" "AnalysisSoftware")
   set_tests_properties("TOPP_MSGFPlusAdapter_1_out2" PROPERTIES DEPENDS "TOPP_MSGFPlusAdapter_1")
@@ -126,6 +126,13 @@ if (NOT (${MSGFPLUS_BINARY} STREQUAL "MSGFPLUS_BINARY-NOTFOUND"))
   ## MS2 profile spectra are not allowed
   add_test("TOPP_MSGFPlusAdapter_PROFILE" ${TOPP_BIN_PATH}/MSGFPlusAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteinslong.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/MS2_profile.mzML -out MSGFPlusAdapter_3_out.tmp -executable "${MSGFPLUS_BINARY}")
   set_tests_properties("TOPP_MSGFPlusAdapter_PROFILE" PROPERTIES WILL_FAIL 1) 
+
+  ## test to set new option -allowDenseCentroidedPeaks 0/1
+  add_test("TOPP_MSGFPlusAdapter_2" ${TOPP_BIN_PATH}/MSGFPlusAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out MSGFPlusAdapter_2_out1.tmp -mzid_out MSGFPlusAdapter_2_out2.tmp.mzid -executable "${MSGFPLUS_BINARY}" -allow_dense_centroided_peaks)
+  add_test("TOPP_MSGFPlusAdapter_2_out1" ${DIFF} -in1 MSGFPlusAdapter_2_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:in\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:executable\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:database\" value=")
+  set_tests_properties("TOPP_MSGFPlusAdapter_2_out1" PROPERTIES DEPENDS "TOPP_MSGFPlusAdapter_2")
+  add_test("TOPP_MSGFPlusAdapter_2_out2" ${DIFF} -in1 MSGFPlusAdapter_2_out2.tmp.mzid -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -whitelist "creationDate=" "SearchDatabase numDatabaseSequences=\"10\" location=" "SpectraData location=" "AnalysisSoftware")
+  set_tests_properties("TOPP_MSGFPlusAdapter_2_out2" PROPERTIES DEPENDS "TOPP_MSGFPlusAdapter_2")
 endif()
 
 #------------------------------------------------------------------------------
