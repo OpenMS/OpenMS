@@ -44,6 +44,8 @@ using namespace std;
   In case of FLASHIda runs, this precursor mass assignment is done by FLASHIda. Thus FLASHDeconv class simply parses the log file
   from FLASHIda runs and pass the parsed information to DeconvolvedSpectrum class.
 
+  See https://openms.de/FLASHDeconv for more information.
+
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_FLASHDeconv.cli
@@ -54,7 +56,13 @@ using namespace std;
 class TOPPFLASHDeconv : public TOPPBase
 {
 public:
-  TOPPFLASHDeconv() : TOPPBase("FLASHDeconv", "Ultra-fast high-quality deconvolution enables online processing of top-down MS data")
+  TOPPFLASHDeconv() 
+    : TOPPBase("FLASHDeconv", "Ultra-fast high-quality deconvolution enables online processing of top-down MS data",
+      true,
+      {Citation {"Jeong K, Kim J, Gaikwad M et al.",
+                 "FLASHDeconv: Ultrafast, High-Quality Feature Deconvolution for Top-Down Proteomics",
+                 "Cell Syst 2020 Feb 26;10(2):213-218.e6",
+                 "10.1016/j.cels.2020.01.003"}})
   {
   }
 
