@@ -188,7 +188,7 @@ namespace OpenMS
        */
       struct XLPrecursor
       {
-        float precursor_mass;
+        float precursor_mass{};
         unsigned int alpha_index = 0;
         unsigned int beta_index = 0;
         String alpha_seq;
