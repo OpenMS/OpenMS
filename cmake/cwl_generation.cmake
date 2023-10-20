@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 # Enables `make generate_cwl_files` to generate the files inside of `workflow/cwl`
+# and adds install targets for the cmake files
+include(GNUInstallDirs)
 
 # List all TOPP tools
 set(executables ${TOPP_TOOLS})
@@ -35,3 +37,9 @@ foreach(TOOL ${executables})
   set_tests_properties(generate_cwl_files_${TOOL}_out PROPERTIES DEPENDS generate_cwl_files_${TOOL})
 endforeach()
 
+
+# Create install paths for cwl files
+if(NOT WIN32)
+  file(GLOB cwl_files ${CMAKE_CURRENT_SOURCE_DIR}/workflow/cwl/*.cwl)
+  install(FILES ${cwl_files} DESTINATION ${CMAKE_INSTALL_DATADIR}/commonwl)
+endif()
