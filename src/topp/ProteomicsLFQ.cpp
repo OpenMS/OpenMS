@@ -205,9 +205,8 @@ protected:
     registerStringOption_("mass_recalibration", "<option>", "false", "Mass recalibration.", false, true);
     setValidStrings_("mass_recalibration", ListUtils::create<String>("true,false"));
 
-    registerStringOption_("alignment_order", "<option>", "star", "If star, aligns all maps to the reference with most IDs,"
-                                                                 "if treeguided, calculates a guiding tree first.", false, true);
-    setValidStrings_("alignment_order", ListUtils::create<String>("star,treeguided"));
+    registerStringOption_("alignment_order", "<option>", "star", "If star, aligns all maps to the reference with most IDs.", false, true);
+    setValidStrings_("alignment_order", ListUtils::create<String>("star")); // TODO: fix and reenable tree guided 
 
     registerStringOption_("keep_feature_top_psm_only", "<option>", "true", "If false, also keeps lower ranked PSMs that have the top-scoring"
                                                                      " sequence as a candidate per feature in the same file.", false, true);
