@@ -300,7 +300,7 @@ namespace OpenMS
     /// scan number
     int scan_number_ = 0;
     /// is positive or not
-    bool is_positive_;
+    bool is_positive_ = false;
     /// if this peak group has been targeted
     bool is_targeted_ = false;
     /// information on the deconvolved mass

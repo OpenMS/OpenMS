@@ -19,6 +19,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
 
 #include <functional>
 #include <numeric>
@@ -242,6 +243,9 @@ public:
 
     std::vector<String> vec_single; // one line for each compound, multiple columns per experiment
     vec_single.resize(cm.size());
+
+    PeakIntegrator peak_integrator;    
+
     for (Size fi = 0; fi < in.size(); ++fi)
     {
       // load raw data
@@ -386,9 +390,9 @@ public:
       }
 
       // 5 entries for each input file
-      tf_single_header0 << File::basename(in[fi]) << "" << "" << "" << "";
-      tf_single_header1 << description << "" << "" << "" << "";
-      tf_single_header2 << "RTobs" << "dRT" << "mzobs" << "dppm" << "intensity";
+      tf_single_header0 << File::basename(in[fi]) << "" << "" << "" << "" << "";
+      tf_single_header1 << description << "" << "" << "" << "" << "";
+      tf_single_header2 << "RTobs" << "dRT" << "mzobs" << "dppm" << "intensity" << "area";
       for (Size i = 0; i < cm.size(); ++i)
       {
         //std::cerr << "Rt" << cm[i].getRT() << "  mz: " << cm[i].getMZ() << " R " <<  cm[i].getMetaValue("rank") << "\n";
@@ -402,15 +406,33 @@ public:
         max_peak.setIntensity(0);
         max_peak.setRT(cm[i].getRT());
         max_peak.setMZ(cm[i].getMZ());
+
+        map<double, double> rt_intsum;
         for (; it != exp.areaEndConst(); ++it)
         {
+          // extract intensity of highest peak
           if (max_peak.getIntensity() < it->getIntensity())
           {
             max_peak.setIntensity(it->getIntensity());
             max_peak.setRT(it.getRT());
             max_peak.setMZ(it->getMZ());
           }
+          // sum up intensities for each RT
+          rt_intsum[it.getRT()] += it->getIntensity();
         }
+
+        // copy to EIC for peak area integration
+        MSChromatogram eic;
+        eic.reserve(rt_intsum.size());
+        for (const auto& rt_int : rt_intsum)
+        {
+          ChromatogramPeak p;
+          p.setRT(rt_int.first);
+          p.setIntensity(rt_int.second);
+          eic.push_back(std::move(p));
+        }
+        auto peak_area = peak_integrator.integratePeak(eic, max_peak.getRT() - rttol / 2, max_peak.getRT() + rttol / 2);
+
         double ppm = 0; // observed m/z offset
 
         if (max_peak.getIntensity() == 0)
@@ -454,8 +476,9 @@ public:
         vec_single[i] += String(max_peak.getRT()) + out_sep +
                          String(max_peak.getRT() - cm[i].getRT()) + out_sep +
                          String(max_peak.getMZ()) + out_sep +
-                         String(ppm)  + out_sep +
-                         String(max_peak.getIntensity());
+                         String(ppm) + out_sep +
+                         String(max_peak.getIntensity()) + out_sep +
+                         String(peak_area.area);
       }
 
       if (not_found)
@@ -475,9 +498,9 @@ public:
     // writing output
     //-------------------------------------------------------------
     TextFile tf;
-    for (std::vector<String>::iterator v_it = vec_single.begin(); v_it != vec_single.end(); ++v_it)
+    for (const auto& v : vec_single)
     {
-      tf.addLine(*v_it);
+      tf.addLine(v);
     }
     tf.store(out);
 

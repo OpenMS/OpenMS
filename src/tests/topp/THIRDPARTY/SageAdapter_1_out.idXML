@@ -65,7 +65,7 @@
 			</ProteinHit>
 			<UserParam type="stringList" name="spectra_data" value="[SageAdapter_1.mzML]"/>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="641.019890199895713" RT="108.285399999999996" spectrum_reference="controllerType=0 controllerNumber=1 scan=30069" >
+		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="641.019890199895713" RT="6497.124" spectrum_reference="controllerType=0 controllerNumber=1 scan=30069" >
 			<PeptideHit score="4.478099542157132" sequence="LQSRPAAPPAPGPGQLTLR" charge="3" aa_before="K" aa_after="L" start="63" end="81" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="SAGE:ln(-poisson)" value="1.057384008886984"/>
