@@ -12,9 +12,16 @@ Parameters - list of algorithm or TOPP tool parameters that changed in this rele
 PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 #<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit e.g. https://github.com/OpenMS/OpenMS/pull/XXXX (replace XXXX with number of interest) for details
 
+------------------------------------------------------------------------------------------
+----                                OpenMS 3.2                                        ----
+------------------------------------------------------------------------------------------
+
+Library:
+- Extend FileHandler to support load and store operations for our major datastructures (spectra, features, identifications, etc.). Replaced file type specific code with the more generic FileHandler calls to decouple the IO code from other parts of the library.
+
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.1.0     (released: under development)    ----
+----                                OpenMS 3.1     (released 10/2023)                 ----
 ------------------------------------------------------------------------------------------
 
 We are excited to share an experimental update with our community, mainly targeted at platforms that depend on Conda packages.
@@ -32,7 +39,7 @@ Thank you for being a part of our community and for helping us make OpenMS even 
 
 What's new:
 - Major change: removed the distinction between TOPP tool and util and the TOPP and UTIL build targets were merged to a single TOPP target. All utils are considered tools now and categorized as "Utilities".
-- Added SageAdapter. Support for standard identification tasks with sage (https://github.com/lazear/sage).
+- Added SageAdapter. Support for standard identification tasks with sage (https://github.com/lazear/sage) (experimental).
 - Require some advanced instruction sets for x64 CPUs: SSE3 (g++/clang) or AVX (MSVC); and NEON for ARM64 CPUs (#6978)
   and report them via the OpenMSInfo tool (#7022)
 - Base64 encoding/decoding using the SIMDe library (#6978)
@@ -62,11 +69,6 @@ Cleanup of old/unused tools and code:
 - Removed simplistic evaluation tools FFEval, LabeledEval, TransformationEvaluation
 - Removed EnzymaticDigestionLogModel
 - Removed FidoAdapter (same functionality now in our own inference engines)
-
-
-Library:
-- Extend FileHandler to support load and store operations for our major datastructures (spectra, features, identifications, etc.). Replaced file type specific code with the more generic FileHandler calls to decouple the IO code from other parts of the library.
-
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.0     (released 7/2023)                  ----

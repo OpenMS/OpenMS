@@ -510,7 +510,7 @@ protected:
       auto& hits = id.getHits();
       for (auto& h : hits)
       {
-        for (const auto meta : extra_scores)
+        for (const auto& meta : extra_scores)
         {
           if (h.metaValueExists(meta))
           {
