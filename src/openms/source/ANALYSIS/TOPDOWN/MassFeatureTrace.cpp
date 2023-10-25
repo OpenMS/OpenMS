@@ -29,6 +29,8 @@ namespace OpenMS
     mtd_defaults.addTag("quant_method", "advanced"); // hide entry
 
     defaults_.insert("", mtd_defaults);
+    defaults_.setValue("min_cos", .75, "Cosine similarity threshold between avg. and observed isotope pattern.");
+
     defaultsToParam_();
   }
 
@@ -83,8 +85,7 @@ namespace OpenMS
 
     MassTraceDetection mtdet;
     Param mtd_param = getParameters().copy("");
-    mtd_param.remove("min_isotope_cosine");
-
+    mtd_param.remove("min_cos");
     mtdet.setParameters(mtd_param);
     std::vector<MassTrace> m_traces;
 
@@ -172,6 +173,11 @@ namespace OpenMS
 
       int offset = 0;
       double isotope_score = SpectralDeconvolution::getIsotopeCosineAndDetermineIsotopeIndex(mass, per_isotope_intensity, offset, averagine, 0, 0);
+
+      if (isotope_score < .5)
+      {
+        continue;
+      }
 
       double max_int = 0;
       PeakGroup rep_pg = *pgs[0];

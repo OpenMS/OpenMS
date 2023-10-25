@@ -73,13 +73,11 @@ namespace OpenMS
     int target_precursor_charge_ = 0;
     double target_precursor_mz_ = 0;
 
-    int max_charge_ = 0;
     int preceding_MS1_count_ = 0;
 
     String ida_log_file_;
-    double precursor_SNR_threshold_ = 0;
 
-    DoubleList tols_;
+    DoubleList tols_, min_cos_;
     bool use_RNA_averagine_ = false;
     bool report_decoy_ = false;
 

@@ -122,10 +122,10 @@ namespace OpenMS
 
     /**
      *  set target dummy type for the SpectralDeconvolution run. All masses from the target SpectralDeconvolution run will have the target_decoy_type_.
-     * @param target_dummy_type  This target_decoy_type_ specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
-     * @param target_dspec_for_dummy_calcualtion target masses from normal deconvolution
+     * @param target_decoy_type  This target_decoy_type_ specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
+     * @param target_dspec_for_decoy_calcualtion target masses from normal deconvolution
      */
-    void setTargetDummyType(PeakGroup::TargetDecoyType target_dummy_type, DeconvolvedSpectrum& target_dspec_for_dummy_calcualtion);
+    void setTargetDecoyType(PeakGroup::TargetDecoyType target_decoy_type, DeconvolvedSpectrum& target_dspec_for_decoy_calcualtion);
 
   protected:
     void updateMembers_() override;
@@ -157,13 +157,13 @@ namespace OpenMS
     DoubleList tolerance_;
     /// bin multiplication factor (log mz * bin_mul_factors_ = bin number) - for fast convolution, binning is used
     DoubleList bin_mul_factors_;
-    /// QScore threshold for each MS level
-    DoubleList min_qscore_;
+    /// Isotope cosine threshold for each MS level
+    DoubleList min_isotope_cosine_;
     /// the deconvolved spectrum from normal run. This is used when dummy masses are generated.
-    DeconvolvedSpectrum* target_dspec_for_dummy_calcualtion_;
+    DeconvolvedSpectrum* target_dspec_for_decoy_calcualtion_;
 
     /// PeakGroup::TargetDecoyType values
-    PeakGroup::TargetDecoyType target_dummy_type_ = PeakGroup::TargetDecoyType::target;
+    PeakGroup::TargetDecoyType target_decoy_type_ = PeakGroup::TargetDecoyType::target;
 
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
@@ -177,7 +177,7 @@ namespace OpenMS
 
     /// mass bins that are previsouly deconvolved and excluded for dummy mass generation
     boost::dynamic_bitset<> previously_deconved_mass_bins_for_dummy_;
-    std::vector<double> previously_deconved_mono_masses_for_dummy_;
+    std::vector<double> previously_deconved_mono_masses_for_decoy_;
     std::unordered_set<double> excluded_peak_mzs_;
 
     /// Stores log mz peaks
