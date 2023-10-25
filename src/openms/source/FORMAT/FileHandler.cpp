@@ -645,7 +645,7 @@ namespace OpenMS
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing an spectrum. Allowed types are: " + allowedToString_(allowed_types));
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing an spectrum. Allowed types are: " + allowedToString_(allowed_types));
       }
     }
     switch (type)
@@ -824,7 +824,7 @@ namespace OpenMS
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing an experiment. Allowed types are: " + allowedToString_(allowed_types));
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing an experiment. Allowed types are: " + allowedToString_(allowed_types));
       }
     }
 
@@ -917,7 +917,7 @@ namespace OpenMS
 
       default: 
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing experiments");
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing experiments");
       }
     }
   }
@@ -930,7 +930,7 @@ namespace OpenMS
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for loading features. Allowed types are: " + allowedToString_(allowed_types));
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for loading features. Allowed types are: " + allowedToString_(allowed_types));
       }
     }
 
@@ -992,7 +992,7 @@ namespace OpenMS
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing features. Allowed types are: " + allowedToString_(allowed_types));
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing features. Allowed types are: " + allowedToString_(allowed_types));
       }
     }
 
@@ -1043,7 +1043,7 @@ namespace OpenMS
 
       default:
       {
-          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing features");
+          throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing features");
       }
     }
   }
@@ -1107,7 +1107,7 @@ namespace OpenMS
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing an Consensus Features. Allowed types are: " + allowedToString_(allowed_types));
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing an Consensus Features. Allowed types are: " + allowedToString_(allowed_types));
       }
     }
     switch (type)
@@ -1137,7 +1137,7 @@ namespace OpenMS
       
       default:
       {        
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing consensus features");
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing consensus features");
       }
     }
   }
@@ -1231,7 +1231,7 @@ namespace OpenMS
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing identifications. Allowed types are: " + allowedToString_(allowed_types));
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing identifications. Allowed types are: " + allowedToString_(allowed_types));
       }
     }
 
@@ -1273,7 +1273,7 @@ namespace OpenMS
 
       default:
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing Identifications");
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing Identifications");
       }
     }   
   }
@@ -1319,7 +1319,7 @@ namespace OpenMS
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing transitions. Allowed types are: " + allowedToString_(allowed_types));
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing transitions. Allowed types are: " + allowedToString_(allowed_types));
       }
     }
     switch (type)
@@ -1334,7 +1334,7 @@ namespace OpenMS
 
       default:
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing transitions"); 
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing transitions"); 
       }
     }
   }
@@ -1379,7 +1379,7 @@ namespace OpenMS
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing quantifications. Allowed types are: " + allowedToString_(allowed_types));
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing quantifications. Allowed types are: " + allowedToString_(allowed_types));
       }
     }
     
@@ -1395,7 +1395,7 @@ namespace OpenMS
 
       default:
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing quantifications");
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing quantifications");
       }
     }
   }
@@ -1438,7 +1438,7 @@ namespace OpenMS
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing transformations. Allowed types are: " + allowedToString_(allowed_types));
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing transformations. Allowed types are: " + allowedToString_(allowed_types));
       }
     }
     
@@ -1452,7 +1452,7 @@ namespace OpenMS
 
       default:
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing transformations");
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing transformations");
       }
     }
   }
@@ -1482,7 +1482,7 @@ namespace OpenMS
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing QC data. Allowed types are: " + allowedToString_(allowed_types));
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing QC data. Allowed types are: " + allowedToString_(allowed_types));
       }
     }
 
@@ -1506,7 +1506,7 @@ namespace OpenMS
       
       default:
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing QC data");
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing QC data");
       }
     }
   }

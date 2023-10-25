@@ -578,6 +578,19 @@ namespace OpenMS
     };
 
     /**
+      @brief Invalid file type exception.
+
+      The file type specification is not valid.
+
+      @ingroup Exceptions
+    */
+    class OPENMS_DLLAPI InvalidFileType : public BaseException
+    {
+    public:
+      InvalidFileType(const char* file, int line, const char* function, const std::string& filename, const std::string& message = "") noexcept;
+    };
+
+    /**
       @brief A method or algorithm argument contains illegal values
 
       @ingroup Exceptions
