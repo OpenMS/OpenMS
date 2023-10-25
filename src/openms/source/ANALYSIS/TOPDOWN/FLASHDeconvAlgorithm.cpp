@@ -25,72 +25,59 @@ namespace OpenMS
 
   FLASHDeconvAlgorithm::FLASHDeconvAlgorithm() : DefaultParamHandler("FLASHDeconvAlgorithm"), ProgressLogger()
   {
-    //   registerIntOption_(
-    //      "report_FDR", "<0: Do not report 1: report>", 0,
-    //      "Report qvalues (roughly, point-wise FDR) for deconvolved masses in the tsv files for deconvolved spectra. Dummy masses to calculate qvalues and FDR are also reported. Beta version.", false, false);
-    //    setMinInt_("report_FDR", 0);
-    //    setMaxInt_("report_FDR", 1);
+    defaults_.setValue("report_FDR", 0, "Report qvalues (roughly, point-wise FDR) for deconvolved masses. Decoy masses to calculate qvalues and FDR are also reported. Beta version.");
+    defaults_.setMinInt("report_FDR", 0);
+    defaults_.setMaxInt("report_FDR", 1);
 
-    //    registerIntOption_("use_RNA_averagine", "", 0, "If set to 1, RNA averagine model is used", false, true);
-    //    setMinInt_("use_RNA_averagine", 0);
-    //    setMaxInt_("use_RNA_averagine", 1);
+    defaults_.setValue("use_RNA_averagine", 0, "If set to 1, RNA averagine model is used.");
+    defaults_.setMinInt("use_RNA_averagine", 0);
+    defaults_.setMaxInt("use_RNA_averagine", 1);
+    defaults_.addTag("use_RNA_averagine", "advanced");
 
-    //    registerIntOption_("preceding_MS1_count", "<number>", 3,
-    //                       "Specifies the number of preceding MS1 spectra for MS2 precursor determination. "
-    //                       "In TDP, the precursor peak of a MS2 spectrum may not belong to any "
-    //                       "deconvolved masses in the MS1 spectrum immediately preceding the MS2 spectrum. "
-    //                       "Increasing this parameter to N allows for the search for the deconvolved masses in the N preceding MS1 spectra from the MS2 spectrum"
-    //                       ", increasing the chance that its precursor is deconvolved.",
-    //                       false, true);
-    //
-    //    setMinInt_("preceding_MS1_count", 1);
+    defaults_.setValue("preceding_MS1_count", 3, "Specifies the number of preceding MS1 spectra for MS2 precursor determination. "
+                                              "In TDP, the precursor peak of a MS2 spectrum may not belong to any "
+                                              "deconvolved masses in the MS1 spectrum immediately preceding the MS2 spectrum. "
+                                              "Increasing this parameter to N allows for the search for the deconvolved masses in the N preceding MS1 spectra from the MS2 spectrum"
+                                              ", increasing the chance that its precursor is deconvolved.");
+    defaults_.setMinInt("preceding_MS1_count", 1);
+    defaults_.addTag("preceding_MS1_count", "advanced");
 
-//    registerIntOption_("max_MS_level", "<number>", 3, "Maximum MS level (inclusive) for deconvolution.", false, true);
-//    setMinInt_("max_MS_level", 1);
-//
-//    registerIntOption_("forced_MS_level", "", 0,
-//                       "If set to an integer N, MS level of all spectra will be set to N regardless of original MS level. Useful when deconvolving datasets containing only MS2 spectra.", false, true);
-//    setMinInt_("forced_MS_level", 0);
-//
-//    registerIntOption_("merging_method", "<0: None 1: gaussian averaging 2: block method>", 0,
-//                       "Method for spectra merging before deconvolution. 0: No merging "
-//                       "1: Average gaussian method to perform moving gaussian averaging of spectra per MS level. Effective to increase proteoform ID sensitivity (in particular for Q-TOF datasets). "
-//                       "2: Block method to perform merging of all spectra into a single one per MS level (e.g., for NativeMS datasets)",
-//                       false);
-//    setMinInt_("merging_method", 0);
-//    setMaxInt_("merging_method", 2);
-//    registerIntOption_("target_precursor_charge", "<Target precursor charge>", 0,
-    //                       "Charge state of the target precursor. All precursor charge is fixed to this value. "
-    //                       "This parameter is useful for targeted studies where MS2 spectra are generated from a fixed precursor (e.g., Native-MS). "
-    //                       "This option also gives the maximum charge and masses (together with precursor m/z) of fragment ions, which overrides -Algorithm:max_charge and -Algorithm:max_mass.",
-    //                       false, false);
-    //
-    //    registerDoubleOption_("target_precursor_mz", "<m/z value>", 0.0,
-    //                          "Target precursor m/z value. This option must be used with -target_precursor_charge option. Otherwise it will be ignored. "
-    //                          "If -target_precursor_charge option is used but this option is not used, the precursor m/z value written in MS2 spectra will be used by default. "
-    //                          "Together with -target_precursor_charge, this option overrides -Algorithm:max_mass.",
-    //                          false, false);
+    defaults_.setValue("max_MS_level", 2, "Maximum MS level (inclusive) for deconvolution.");
+    defaults_.setMinInt("max_MS_level", 1);
+    defaults_.addTag("max_MS_level", "advanced");
 
-    // Param mf_param = getParam_().copy("FeatureTracing:", true);
-    //
-    //    if (((double)mf_param.getValue("mass_error_ppm")) < 0)
-    //    {
-    //      mf_param.setValue("mass_error_ppm", tols[0]);
-    //    }
-    //    mf_param.setValue("noise_threshold_int", .0);
-    //    mf_param.setValue("reestimate_mt_sd", "false");
-    //    mf_param.setValue("trace_termination_criterion", "outlier");
-    //    mf_param.setValue("trace_termination_outliers", 20);
-    //    mf_param.setValue("chrom_peak_snr", .0);
-    //
-    //    if (((double)mf_param.getValue("min_qscore")) < 0)
-    //    {
-    //      mf_param.setValue("min_qscore", qscores[0]);
-    //    }
+    defaults_.setValue("forced_MS_level", 0, "If set to an integer N, MS level of all spectra will be set to N regardless of original MS level. Useful when deconvolving datasets containing only MS2 spectra.");
+    defaults_.setMinInt("forced_MS_level", 0);
+    defaults_.addTag("forced_MS_level", "advanced");
+
+    defaults_.setValue("merging_method", 0, "Method for spectra merging before deconvolution. 0: No merging  1: Average gaussian method to perform moving gaussian averaging of spectra per MS level. Effective to increase proteoform ID sensitivity (in particular for Q-TOF datasets). 2: Block method to perform merging of all spectra into a single one per MS level (e.g., for NativeMS datasets).");
+    defaults_.setMinInt("merging_method", 0);
+    defaults_.setMaxInt("merging_method", 2);
+
+    defaults_.setValue("target_precursor_charge", 0,  "Charge state of the target precursor. All precursor charge is fixed to this value. "
+                                                     "This parameter is useful for targeted studies where MS2 spectra are generated from a fixed precursor (e.g., Native-MS). "
+                                                     "This option also gives the maximum charge and masses (together with precursor m/z) of fragment ions, which overrides -Algorithm:max_charge and -Algorithm:max_mass.");
+    defaults_.setMinInt("target_precursor_charge", 0);
+    defaults_.addTag("target_precursor_charge", "advanced");
+
+    defaults_.setValue("target_precursor_mz", 0.0,
+                              "Target precursor m/z value. This option must be used with -target_precursor_charge option. Otherwise, it will be ignored. "
+                              "If -target_precursor_charge option is used but this option is not used, the precursor m/z value written in MS2 spectra will be used by default. "
+                              "Together with -target_precursor_charge, this option overrides -Algorithm:max_mass.");
+    defaults_.setMinFloat("target_precursor_mz", 0.0);
+    defaults_.addTag("target_precursor_mz", "advanced");
 
     defaults_.insert("Deconvolution", SpectralDeconvolution().getDefaults());
-    //subsections_.emplace_back("FeatureTracing");
-    defaults_.insert("FeatureTracing", MassFeatureTrace().getDefaults());
+
+    Param mf_defaults = MassFeatureTrace().getDefaults();
+    mf_defaults.addTag("min_isotope_cosine", "advanced");
+    mf_defaults.remove("noise_threshold_int");
+    mf_defaults.remove("reestimate_mt_sd");
+    mf_defaults.remove("trace_termination_criterion");
+    mf_defaults.remove("trace_termination_outliers");
+    mf_defaults.remove("chrom_peak_snr");
+
+    defaults_.insert("FeatureTracing", mf_defaults);
     defaults_.insert("IsobaricQuantification", TopDownIsobaricQuantifier().getDefaults());
 
     defaultsToParam_();
@@ -98,17 +85,18 @@ namespace OpenMS
 
   void FLASHDeconvAlgorithm::updateMembers_()
   {
-    forced_ms_level_ = 0;
-    max_ms_level_ = 1;
+    forced_ms_level_ = param_.getValue("forced_MS_level");
+    max_ms_level_ = param_.getValue("max_MS_level");
+
+    target_precursor_charge_ = param_.getValue("target_precursor_charge");
+    max_charge_ = param_.getValue("Deconvolution:max_charge");
+    tols_ = param_.getValue("Deconvolution:tol");
+    preceding_MS1_count_ = param_.getValue("preceding_MS1_count");
+    use_RNA_averagine_ = (int)param_.getValue("use_RNA_averagine") > 0;
+    report_decoy_ = (int)param_.getValue("report_FDR") > 0;
 
     current_min_ms_level_ = max_ms_level_;
     current_max_ms_level_ = 0;
-    target_precursor_charge_ = 0;
-    max_charge_ = 0;
-    tols_ = DoubleList();
-    preceding_MS1_count_ = param_.getValue("preceding_MS1_count");
-    use_RNA_averagine_;
-    report_decoy_;
   }
 
   int FLASHDeconvAlgorithm::scan_map_(MSExperiment& map)
@@ -393,7 +381,7 @@ namespace OpenMS
     return 0;
   }
 
-  void FLASHDeconvAlgorithm::setTargetPrecursorCharge_(DeconvolvedSpectrum& deconvolved_spectrum, const MSSpectrum& it)
+  void FLASHDeconvAlgorithm::setTargetPrecursorCharge_(DeconvolvedSpectrum& deconvolved_spectrum, const MSSpectrum& it) const
   {
     auto precursor = it.getPrecursors()[0];
     double target_precursor_mass = (precursor.getMZ() - FLASHDeconvHelperStructs::getChargeMass(target_precursor_charge_ > 0)) * std::abs(target_precursor_charge_);
@@ -423,9 +411,6 @@ namespace OpenMS
     {
       precursor_SNR_threshold_ = .0;
     }
-
-    uint current_max_ms_level = 0;
-    uint current_min_ms_level = 1000;
 
     // scan the dataset and extract necessary basic information.
     if (scan_map_(map) != 0)
@@ -541,6 +526,16 @@ namespace OpenMS
     auto decoy_mass_tracer = MassFeatureTrace();
 
     Param mf_param = param_.copy("FeatureTracing", true);
+
+    if (((double)mf_param.getValue("mass_error_ppm")) < 0)
+    {
+      mf_param.setValue("mass_error_ppm", tols_[0]);
+    }
+    mf_param.setValue("noise_threshold_int", .0);
+    mf_param.setValue("reestimate_mt_sd", "false");
+    mf_param.setValue("trace_termination_criterion", "outlier");
+    mf_param.setValue("trace_termination_outliers", 20);
+    mf_param.setValue("chrom_peak_snr", .0);
 
     mass_tracer.setParameters(mf_param); // maybe go to set param
     decoy_mass_tracer.setParameters(mf_param);

@@ -10,8 +10,8 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -31,8 +31,7 @@ namespace OpenMS
   @ingroup Topdown
 */
 
-  class OPENMS_DLLAPI FLASHDeconvAlgorithm : public DefaultParamHandler,
-                                             public ProgressLogger
+  class OPENMS_DLLAPI FLASHDeconvAlgorithm : public DefaultParamHandler, public ProgressLogger
   {
   public:
     /// default constructor
@@ -87,7 +86,7 @@ namespace OpenMS
     std::map<int, std::vector<std::vector<float>>> precursor_map_for_ida_;
     std::map<int, PeakGroup> ms2scan_to_precursor_peak_group_map_; // MS2 scan number, peak group
 
-    void setTargetPrecursorCharge_(DeconvolvedSpectrum& deconvolved_spectrum, const MSSpectrum& it);
+    void setTargetPrecursorCharge_(DeconvolvedSpectrum& deconvolved_spectrum, const MSSpectrum& it) const;
     int scan_map_(MSExperiment& map);
 
     void mergeSpectra_(MSExperiment& map);
@@ -99,6 +98,5 @@ namespace OpenMS
     void updatePrecursorQScores_(std::vector<DeconvolvedSpectrum>& deconvolved_spectra);
 
     static void filterLowPeaks_(MSExperiment& map, Size count);
-
   };
-}
+} // namespace OpenMS

@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
@@ -15,9 +14,6 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
-#ifdef _OPENMP
-  #include <omp.h>
-#endif
 
 #include <QFileInfo>
 
@@ -98,7 +94,6 @@ protected:
 
     setMinFloat_("min_precursor_snr", .0);
 
-
     registerDoubleOption_("min_precursor_qvalue", "<q value>", 1.0,
                           "Minimum precursor q value for identification. To use this threshold, set Algorithm:report_FDR option to 1."
                           " Specify to, for instance, 0.01 to make sure your precursor deconvolution FDR is less than 0.01."
@@ -124,21 +119,13 @@ protected:
     setMaxInt_("write_detail", 1);
 
 
-    registerDoubleOption_("min_mz", "<m/z value>", -1.0,
-                          "If set to positive value, minimum m/z to deconvolve.",
-                          false, true);
+    registerDoubleOption_("min_mz", "<m/z value>", -1.0, "If set to positive value, minimum m/z to deconvolve.", false, true);
 
-    registerDoubleOption_("max_mz", "<m/z value>", -1.0,
-                          "If set to positive value, maximum m/z to deconvolve.",
-                          false, true);
+    registerDoubleOption_("max_mz", "<m/z value>", -1.0, "If set to positive value, maximum m/z to deconvolve.", false, true);
 
-    registerDoubleOption_("min_rt", "<RT value>", -1.0,
-                          "If set to positive value, minimum RT (in second) to deconvolve.",
-                          false, true);
+    registerDoubleOption_("min_rt", "<RT value>", -1.0, "If set to positive value, minimum RT (in second) to deconvolve.", false, true);
 
-    registerDoubleOption_("max_rt", "<RT value>", -1.0,
-                          "If set to positive value, maximum RT (in second) to deconvolve.",
-                          false, true);
+    registerDoubleOption_("max_rt", "<RT value>", -1.0, "If set to positive value, maximum RT (in second) to deconvolve.", false, true);
 
     Param combined;
     combined.insert("Algorithm:", FLASHDeconvAlgorithm().getDefaults());
@@ -155,7 +142,7 @@ protected:
 
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
-    String in_train_file {};
+    //String in_train_file {};
 
     auto out_spec_file = getStringList_("out_spec");
     String out_mzml_file = getStringOption_("out_mzml");
@@ -180,8 +167,8 @@ protected:
     Param fd_param = getParam_().copy("Algorithm:", true);
     fd.setParameters(fd_param);
     bool report_decoy = (int)fd_param.getValue("report_FDR") > 0;
-    int max_ms_level = fd_param.getValue("max_MS_level");
     DoubleList tols = fd_param.getValue("tol");
+
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
@@ -217,17 +204,20 @@ protected:
     for (auto& it : map)
     {
       uint ms_level = it.getMSLevel();
-      if (per_ms_level_spec_count.find(ms_level) == per_ms_level_spec_count.end()) per_ms_level_spec_count[ms_level] = 0;
-      per_ms_level_spec_count[ms_level] ++;
+      if (per_ms_level_spec_count.find(ms_level) == per_ms_level_spec_count.end())
+        per_ms_level_spec_count[ms_level] = 0;
+      per_ms_level_spec_count[ms_level]++;
     }
 
     for (auto& deconvolved_spectrum : deconvolved_spectra)
     {
       uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
-      if (per_ms_level_deconv_spec_count.find(ms_level) == per_ms_level_deconv_spec_count.end()) per_ms_level_deconv_spec_count[ms_level] = 0;
-      if (per_ms_level_mass_count.find(ms_level) == per_ms_level_mass_count.end()) per_ms_level_mass_count[ms_level] = 0;
+      if (per_ms_level_deconv_spec_count.find(ms_level) == per_ms_level_deconv_spec_count.end())
+        per_ms_level_deconv_spec_count[ms_level] = 0;
+      if (per_ms_level_mass_count.find(ms_level) == per_ms_level_mass_count.end())
+        per_ms_level_mass_count[ms_level] = 0;
 
-      per_ms_level_deconv_spec_count[ms_level] ++;
+      per_ms_level_deconv_spec_count[ms_level]++;
       per_ms_level_mass_count[ms_level] += (int)deconvolved_spectrum.size();
       scan_rt_map[deconvolved_spectrum.getScanNumber()] = deconvolved_spectrum.getOriginalSpectrum().getRT();
       if (ms_level > 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
@@ -255,7 +245,8 @@ protected:
       std::vector<fstream> out_spec_streams = std::vector<fstream>(per_ms_level_deconv_spec_count.size());
       for (Size i = 0; i < out_spec_file.size(); i++)
       {
-        if (per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()) continue;
+        if (per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end())
+          continue;
         out_spec_streams[i].open(out_spec_file[i], fstream::out);
         FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail, report_decoy);
       }
@@ -263,7 +254,8 @@ protected:
       for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
         uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
-        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail, report_decoy);
+        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail,
+                                                        report_decoy);
       }
 
       for (auto& fs : out_spec_streams)
@@ -278,7 +270,8 @@ protected:
       out_topfd_feature_streams = std::vector<fstream>(per_ms_level_deconv_spec_count.size());
       for (Size i = 0; i < out_topfd_feature_file.size(); i++)
       {
-        if (per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()) continue;
+        if (per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end())
+          continue;
         out_topfd_feature_streams[i].open(out_topfd_feature_file[i], fstream::out);
         FLASHDeconvFeatureFile::writeTopFDFeatureHeader(out_topfd_feature_streams[i], i + 1);
         FLASHDeconvFeatureFile::writeTopFDFeatures(deconvolved_features, msNscan_to_precursor_pg, scan_rt_map, in_file, out_topfd_feature_streams[i], i + 1);
@@ -292,13 +285,15 @@ protected:
       out_topfd_streams = std::vector<fstream>(per_ms_level_deconv_spec_count.size());
       for (Size i = 0; i < out_topfd_file.size(); i++)
       {
-        if (per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()) continue;
+        if (per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end())
+          continue;
         out_topfd_streams[i].open(out_topfd_file[i], fstream::out);
       }
       for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
         uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
-        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1], topFD_SNR_threshold, topFD_qval_threshold, per_ms_level_deconv_spec_count.begin()->first, false, false);
+        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1], topFD_SNR_threshold, topFD_qval_threshold, per_ms_level_deconv_spec_count.begin()->first, false,
+                                            false);
       }
 
       for (auto& fs : out_topfd_streams)
@@ -324,8 +319,8 @@ protected:
 
     for (auto& val : per_ms_level_deconv_spec_count)
     {
-      OPENMS_LOG_INFO << "So far, FLASHDeconv found " << per_ms_level_mass_count[val.first] << " masses in " << val.second << " MS" << val.first << " spectra out of " << per_ms_level_spec_count[val.first] << endl;
-
+      OPENMS_LOG_INFO << "So far, FLASHDeconv found " << per_ms_level_mass_count[val.first] << " masses in " << val.second << " MS" << val.first << " spectra out of "
+                      << per_ms_level_spec_count[val.first] << endl;
     }
     if (!deconvolved_features.empty())
     {
