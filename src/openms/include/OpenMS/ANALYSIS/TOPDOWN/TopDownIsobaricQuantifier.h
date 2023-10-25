@@ -73,7 +73,6 @@ namespace OpenMS
        @param exp
        */
     void quantify(const MSExperiment& exp, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features);
-    const FLASHDeconvHelperStructs::IsobaricQuantities getQuantities(int scan) const;
 
   protected:
     void updateMembers_() override;
@@ -83,9 +82,6 @@ namespace OpenMS
   private:
     /// The quantification method used for the dataset to be analyzed.
     std::map<String, std::unique_ptr<IsobaricQuantitationMethod>> quant_methods_;
-
-    /// peak group information is stored in here for tracing
-    std::map<int, FLASHDeconvHelperStructs::IsobaricQuantities> quantities_;
 
     void addMethod_(std::unique_ptr<IsobaricQuantitationMethod> ptr)
     {

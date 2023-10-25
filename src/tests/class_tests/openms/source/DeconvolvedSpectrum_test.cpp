@@ -11,7 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 ///////////////////////////
 
@@ -73,7 +73,7 @@ START_SECTION((const MSSpectrum& getOriginalSpectrum() const))
 END_SECTION
 
 
-FLASHDeconvAlgorithm fd_algo = FLASHDeconvAlgorithm();
+SpectralDeconvolution fd_algo = SpectralDeconvolution();
 Param fd_param;
 fd_param.setValue("min_charge", 5);
 fd_param.setValue("max_charge", 20);

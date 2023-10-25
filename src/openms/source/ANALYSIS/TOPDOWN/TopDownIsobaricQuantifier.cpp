@@ -248,10 +248,9 @@ namespace OpenMS
       }
       int cluster_index = precursor_cluster_index[dspec.getPrecursorPeakGroup()];
       int scan = dspec.getScanNumber();
-      int pre_scan = ms2_scan_precursor_scan[scan];
       double pre_mz = ms2_scan_precursor_mz[scan];
       std::vector<double> intensities (0);
-      for (int ms2_scan : precursor_scan_ms2_scans[pre_scan])
+      for (int ms2_scan : precursor_scan_ms2_scans[ms2_scan_precursor_scan[scan]])
       {
         if (ms2_ints.find(ms2_scan) == ms2_ints.end() || ms2_ints[ms2_scan].empty())
           continue;
@@ -274,7 +273,8 @@ namespace OpenMS
         FLASHDeconvHelperStructs::IsobaricQuantities iq;
         iq.scan = scan;
         iq.quantities = intensities;
-        quantities_[scan] = iq;
+        iq.merged_quantities = intensities;
+        dspec.setQuantities(iq);
       }
     }
 
@@ -301,22 +301,15 @@ namespace OpenMS
       int cluster_index = precursor_cluster_index[dspec.getPrecursorPeakGroup()];
       if (merged_intensity_clusters[cluster_index].empty())
         continue;
-      int scan = dspec.getScanNumber();
+      //int scan = dspec.getScanNumber();
 
-      if (quantities_.find(scan) == quantities_.end())
+      if (dspec.getQuantities().empty())
         continue;
 
       auto intensities = merged_intensity_clusters[cluster_index];
       if (!intensities.empty() && *std::min_element(intensities.begin(), intensities.end()) > 0) // all channel quantified
-        quantities_[scan].merged_quantities = merged_intensity_clusters[cluster_index];
-      else quantities_.erase(scan);
+        dspec.getQuantities().merged_quantities = merged_intensity_clusters[cluster_index];
+      //else quantities_.erase(scan);
     }
-  }
-
-  const FLASHDeconvHelperStructs::IsobaricQuantities TopDownIsobaricQuantifier::getQuantities(int scan) const
-  {
-    if (quantities_.find(scan) != quantities_.end())
-      return quantities_.at(scan);
-    return FLASHDeconvHelperStructs::IsobaricQuantities();
   }
 } // namespace OpenMS

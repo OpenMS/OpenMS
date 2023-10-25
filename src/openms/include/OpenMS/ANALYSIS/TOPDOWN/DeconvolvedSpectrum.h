@@ -95,6 +95,12 @@ namespace OpenMS
     /// get activation method
     const Precursor::ActivationMethod& getActivationMethod() const;
 
+    /// return isobaric  quantities
+    FLASHDeconvHelperStructs::IsobaricQuantities getQuantities() const;
+
+    /// set isobaric quantities
+    void setQuantities(const FLASHDeconvHelperStructs::IsobaricQuantities& quantities);
+
     /// set precursor for MSn for n>1
     void setPrecursor(const Precursor& precursor);
 
@@ -130,6 +136,7 @@ namespace OpenMS
     void clear();
     void reserve(Size n);
     bool empty() const;
+    bool isDecoy() const;
 
     /// sort by deconvolved monoisotopic masses
     void sort();
@@ -149,5 +156,7 @@ namespace OpenMS
     Precursor::ActivationMethod activation_method_;
     /// scan number and precursor scan number
     int scan_number_ = 0, precursor_scan_number_ = 0;
+    /// isobaric quantities
+    FLASHDeconvHelperStructs::IsobaricQuantities quantities_;
   };
 } // namespace OpenMS

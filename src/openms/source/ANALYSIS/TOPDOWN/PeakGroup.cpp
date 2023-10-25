@@ -6,9 +6,9 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/Qscore.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 
 namespace OpenMS
 {
@@ -109,7 +109,7 @@ namespace OpenMS
         max_isotope_index = max_isotope_index < peak.isotopeIndex ? peak.isotopeIndex : max_isotope_index;
       }
 
-      float cos_score = FLASHDeconvAlgorithm::getCosine(current_per_isotope_intensities, min_isotope_index, max_isotope_index + 1, iso_dist, iso_size, 0, 0);
+      float cos_score = SpectralDeconvolution::getCosine(current_per_isotope_intensities, min_isotope_index, max_isotope_index + 1, iso_dist, iso_size, 0, 0);
       setChargeIsotopeCosine(abs_charge, cos_score); //
     }
   }
@@ -139,7 +139,7 @@ namespace OpenMS
 
     int h_offset;
     isotope_cosine_score_ =
-      FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(monoisotopic_mass_, per_isotope_int_, h_offset, avg, -min_negative_isotope_index_, -1, allowed_iso_error, target_dummy_type_);
+      SpectralDeconvolution::getIsotopeCosineAndDetermineIsotopeIndex(monoisotopic_mass_, per_isotope_int_, h_offset, avg, -min_negative_isotope_index_, -1, allowed_iso_error, target_decoy_type_);
 
     if (isotope_cosine_score_ < min_cos)
     {
@@ -931,11 +931,11 @@ namespace OpenMS
     snr_ = t_denom <= 0 ? .0f : (t_nom / t_denom);
   }
 
-  float PeakGroup::getQvalue(PeakGroup::TargetDummyType flag) const
+  float PeakGroup::getQvalue(PeakGroup::TargetDecoyType flag) const
   {
-    if (flag == PeakGroup::TargetDummyType::target)
+    if (flag == PeakGroup::TargetDecoyType::target)
     {
-      return std::min(1.0f, getQvalue(PeakGroup::TargetDummyType::charge_dummy) + getQvalue(PeakGroup::TargetDummyType::noise_dummy) + getQvalue(PeakGroup::TargetDummyType::isotope_dummy));
+      return std::min(1.0f, getQvalue(PeakGroup::TargetDecoyType::charge_decoy) + getQvalue(PeakGroup::TargetDecoyType::noise_decoy) + getQvalue(PeakGroup::TargetDecoyType::isotope_decoy));
     }
     if (qvalue_.find(flag) == qvalue_.end())
     {
@@ -997,14 +997,14 @@ namespace OpenMS
     return is_positive_;
   }
 
-  PeakGroup::TargetDummyType PeakGroup::getTargetDummyType() const
+  PeakGroup::TargetDecoyType PeakGroup::getTargetDecoyType() const
   {
-    return target_dummy_type_;
+    return target_decoy_type_;
   }
 
-  void PeakGroup::setTargetDummyType(PeakGroup::TargetDummyType index)
+  void PeakGroup::setTargetDecoyType(PeakGroup::TargetDecoyType index)
   {
-    target_dummy_type_ = index;
+    target_decoy_type_ = index;
   }
 
   void PeakGroup::setIsotopeDaDistance(const double d)
@@ -1097,7 +1097,7 @@ namespace OpenMS
     std::sort(logMzpeaks_.begin(), logMzpeaks_.end());
   }
 
-  void PeakGroup::setQvalue(double q, PeakGroup::TargetDummyType flag)
+  void PeakGroup::setQvalue(double q, PeakGroup::TargetDecoyType flag)
   {
     qvalue_[flag] = std::min(1.0, q);
   }

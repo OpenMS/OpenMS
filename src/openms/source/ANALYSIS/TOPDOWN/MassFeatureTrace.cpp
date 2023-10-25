@@ -6,8 +6,8 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 
 
 namespace OpenMS
@@ -29,11 +29,11 @@ namespace OpenMS
     mtd_defaults.addTag("quant_method", "advanced"); // hide entry
 
     defaults_.insert("", mtd_defaults);
-    defaults_.setValue("min_isotope_cosine", .75, "cosine threshold between avg. and observed isotope pattern for MS1");
     defaultsToParam_();
   }
 
-  std::vector<FLASHDeconvHelperStructs::MassFeature> MassFeatureTrace::findFeatures(const PrecalculatedAveragine& averagine, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int ms_level)
+  std::vector<FLASHDeconvHelperStructs::MassFeature> MassFeatureTrace::findFeatures(const PrecalculatedAveragine& averagine,
+                                                                                    std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int ms_level,  bool is_decoy)
   {
     static uint findex = 1;
     MSExperiment map;
@@ -49,6 +49,8 @@ namespace OpenMS
     for (Size i = 0; i < deconvolved_spectra.size(); i++)
     {
       auto deconvolved_spectrum = deconvolved_spectra[i];
+      if (is_decoy != deconvolved_spectrum.isDecoy())
+        continue;
       if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != ms_level)
         continue;
       int scan = deconvolved_spectrum.getScanNumber();
@@ -114,6 +116,9 @@ namespace OpenMS
       {
         auto& dspec = deconvolved_spectra[rt_index_map[p2.getRT()]];
 
+        if (is_decoy != dspec.isDecoy())
+          continue;
+
         PeakGroup comp;
         comp.setMonoisotopicMass(p2.getMZ());
         auto pg = std::lower_bound(dspec.begin(), dspec.end(), comp);
@@ -166,12 +171,7 @@ namespace OpenMS
       }
 
       int offset = 0;
-      double isotope_score = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(mass, per_isotope_intensity, offset, averagine, 0, 0);
-
-      if (isotope_score < min_isotope_cosine_)
-      {
-        continue;
-      }
+      double isotope_score = SpectralDeconvolution::getIsotopeCosineAndDetermineIsotopeIndex(mass, per_isotope_intensity, offset, averagine, 0, 0);
 
       double max_int = 0;
       PeakGroup rep_pg = *pgs[0];
@@ -208,6 +208,7 @@ namespace OpenMS
       mass_feature.scan_number = rep_pg.getScanNumber();
       mass_feature.rep_charge = rep_pg.getRepAbsCharge();
       mass_feature.index = findex;
+      mass_feature.is_decoy = is_decoy;
       mass_features.push_back(mass_feature);
       findex++;
     }
@@ -216,6 +217,5 @@ namespace OpenMS
 
   void MassFeatureTrace::updateMembers_()
   {
-    min_isotope_cosine_ = param_.getValue("min_isotope_cosine");
   }
 } // namespace OpenMS

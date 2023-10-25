@@ -6,8 +6,9 @@
 // $Authors: Kyowon Jeong $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <random>
 
 namespace OpenMS
@@ -19,7 +20,7 @@ namespace OpenMS
    */
 
   void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, DeconvolvedSpectrum& target_spec, std::fstream& fs, const String& file_name,
-                                                       const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double tol, const bool write_detail, const bool dummy)
+                                                       const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double tol, const bool write_detail, const bool report_decoy)
   {
     static std::vector<uint> indices {};
 
@@ -52,9 +53,9 @@ namespace OpenMS
         fs << (pg.getFeatureIndex() == 0 ? "nan" : std::to_string(pg.getFeatureIndex()))  << "\t";
       }
 
-      if (dummy)
+      if (report_decoy)
       {
-        fs << pg.getTargetDummyType() << "\t";
+        fs << pg.getTargetDecoyType() << "\t";
       }
       fs << std::to_string(dspec.getOriginalSpectrum().getRT()) << "\t" << dspec.size() << "\t" << std::to_string(avg_mass) << "\t" << std::to_string(mono_mass) << "\t" << intensity << "\t"
          << min_charge << "\t" << max_charge << "\t" << pg.size() << "\t";
@@ -62,8 +63,8 @@ namespace OpenMS
       if (write_detail)
       {
         std::unordered_set<double> excluded_peak_mzs;
-        if (pg.getTargetDummyType() == PeakGroup::TargetDummyType::noise_dummy)
-          FLASHDeconvAlgorithm::addMZsToExcludsionList(target_spec, excluded_peak_mzs);
+        if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::noise_decoy)
+          SpectralDeconvolution::addMZsToExcludsionList(target_spec, excluded_peak_mzs);
         auto noisy_peaks = pg.recruitAllPeaksInSpectrum(dspec.getOriginalSpectrum(), tol * 1e-6, avg, pg.getMonoMass(), excluded_peak_mzs);
         std::sort(noisy_peaks.begin(), noisy_peaks.end());
         fs << std::fixed << std::setprecision(2);
@@ -159,17 +160,17 @@ namespace OpenMS
         if (dspec.getPrecursorPeakGroup().empty())
         {
           fs << "nan\tnan\tnan\t";
-          if (dummy)
+          if (report_decoy)
             fs << "nan\tnan\tnan\tnan\tnan\t";
         }
         else
         {
           fs << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) << "\t" << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) << "\t"
              << std::to_string(dspec.getPrecursorPeakGroup().getQscore()) << "\t" << dspec.getPrecursorPeakGroup().getFeatureQscore() << "\t";
-          if (dummy)
+          if (report_decoy)
           {
-            fs << dspec.getPrecursorPeakGroup().getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::TargetDummyType::isotope_dummy) << "\t"
-               << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::TargetDummyType::noise_dummy) << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::TargetDummyType::charge_dummy) << "\t";
+            fs << dspec.getPrecursorPeakGroup().getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::TargetDecoyType::isotope_decoy) << "\t"
+               << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::TargetDecoyType::noise_decoy) << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::TargetDecoyType::charge_decoy) << "\t";
           }
         }
       }
@@ -184,10 +185,10 @@ namespace OpenMS
         fs << "\t" <<  std::setprecision (15) << (pg.getFeatureQscore()) << std::setprecision (-1);
       }
 
-      if (dummy)
+      if (report_decoy)
       {
-        fs << "\t" << pg.getQvalue() << "\t" << pg.getQvalue(PeakGroup::TargetDummyType::isotope_dummy) << "\t" << pg.getQvalue(PeakGroup::TargetDummyType::noise_dummy) << "\t"
-           << pg.getQvalue(PeakGroup::TargetDummyType::charge_dummy);
+        fs << "\t" << pg.getQvalue() << "\t" << pg.getQvalue(PeakGroup::TargetDecoyType::isotope_decoy) << "\t" << pg.getQvalue(PeakGroup::TargetDecoyType::noise_decoy) << "\t"
+           << pg.getQvalue(PeakGroup::TargetDecoyType::charge_decoy);
       }
 
       if (write_detail)
@@ -219,48 +220,48 @@ namespace OpenMS
     }
   }
 
-  void FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(std::fstream& fs, const uint ms_level, const bool detail, const bool dummy)
+  void FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(std::fstream& fs, const uint ms_level, const bool detail, const bool report_decoy)
   {
     if (detail)
     {
       if (ms_level == 1)
       {
         fs << "Index\tFileName\tScanNum\tFeatureIndex\t";
-        if (dummy)
+        if (report_decoy)
         {
-          fs << "TargetDummyType\t";
+          fs << "TargetDecoyType\t";
         }
         fs << "RetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
               "NoisePeakMZs\tNoisePeakIntensities\tNoisePeakCharges\tNoisePeakMasses\tNoisePeakIsotopeIndices\tNoisePeakPPMErrors\t"
               "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQscore\tFeatureQscore\t";
-        if (dummy)
+        if (report_decoy)
         {
-          fs << "Qvalue\tQvalueWithIsotopeDummyOnly\tQvalueWithNoiseDummyOnly\tQvalueWithChargeDummyOnly\t";
+          fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\t";
         }
         fs << "PerChargeIntensity\tPerIsotopeIntensity\n";
       }
       else
       {
         fs << "Index\tFileName\tScanNum\t";
-        if (dummy)
+        if (report_decoy)
         {
-          fs << "TargetDummyType\t";
+          fs << "TargetDecoyType\t";
         }
         fs << "RetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
               "NoisePeakMZs\tNoisePeakIntensities\tNoisePeakCharges\tNoisePeakMasses\tNoisePeakIsotopeIndices\tNoisePeakPPMErrors\t"
               "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQscore\tPrecursorFeatureQscore\t";
-        if (dummy)
+        if (report_decoy)
         {
-          fs << "PrecursorQvalue\tPrecursorQvalueWithIsotopeDummyOnly\tPrecursorQvalueWithNoiseDummyOnly\tPrecursorQvalueWithChargeDummyOnly\t";
+          fs << "PrecursorQvalue\tPrecursorQvalueWithIsotopeDecoyOnly\tPrecursorQvalueWithNoiseDecoyOnly\tPrecursorQvalueWithChargeDecoyOnly\t";
         }
         fs << "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQscore\t";
-        if (dummy)
+        if (report_decoy)
         {
-          fs << "Qvalue\tQvalueWithIsotopeDummyOnly\tQvalueWithNoiseDummyOnly\tQvalueWithChargeDummyOnly\t";
+          fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\t";
         }
         fs << "PerChargeIntensity\tPerIsotopeIntensity\n";
       }
@@ -270,42 +271,175 @@ namespace OpenMS
       if (ms_level == 1)
       {
         fs << "Index\tFileName\tScanNum\tFeatureIndex\t";
-        if (dummy)
+        if (report_decoy)
         {
-          fs << "TargetDummyType\t";
+          fs << "TargetDecoyType\t";
         }
         fs << "RetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\t"
               "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQscore\tFeatureQscore\t";
-        if (dummy)
+        if (report_decoy)
         {
-          fs << "Qvalue\tQvalueWithIsotopeDummyOnly\tQvalueWithNoiseDummyOnly\tQvalueWithChargeDummyOnly";
+          fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly";
         }
         fs << "\n";
       }
       else
       {
         fs << "Index\tFileName\tScanNum\t";
-        if (dummy)
+        if (report_decoy)
         {
-          fs << "TargetDummyType\t";
+          fs << "TargetDecoyType\t";
         }
         fs << "RetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\t"
               "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQscore\tPrecursorFeatureQscore\t";
-        if (dummy)
+        if (report_decoy)
         {
-          fs << "PrecursorQvalue\tPrecursorQvalueWithIsotopeDummyOnly\tPrecursorQvalueWithNoiseDummyOnly\tPrecursorQvalueWithChargeDummyOnly\t";
+          fs << "PrecursorQvalue\tPrecursorQvalueWithIsotopeDecoyOnly\tPrecursorQvalueWithNoiseDecoyOnly\tPrecursorQvalueWithChargeDecoyOnly\t";
         }
         fs << "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQscore\t";
-        if (dummy)
+        if (report_decoy)
         {
-          fs << "Qvalue\tQvalueWithIsotopeDummyOnly\tQvalueWithNoiseDummyOnly\tQvalueWithChargeDummyOnly";
+          fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly";
         }
         fs << "\n";
       }
+    }
+  }
+
+  void FLASHDeconvSpectrumFile::writeIsobaricQuantification(std::fstream& fs, std::vector<DeconvolvedSpectrum>& deconvolved_spectra)
+  {
+    fs << "Scan\tPrecursorScan\tPrecursorMass\tPrecursorSNR";
+    bool begin = true;
+    for (auto& dspec : deconvolved_spectra)
+    {
+      if (dspec.getOriginalSpectrum().getMSLevel() == 1)
+        continue;
+      if (dspec.getPrecursorPeakGroup().empty())
+        continue;
+      int scan = dspec.getScanNumber();
+      auto quant = dspec.getQuantities();
+      if (quant.empty())
+        continue;
+      if (begin)
+      {
+        for (Size i = 0; i < quant.quantities.size(); i++)
+        {
+          fs << "\tQuantForCh" << (i + 1);
+        }
+        for (Size i = 0; i < quant.quantities.size(); i++)
+        {
+          fs << "\tNormalizedQuantForCh" << (i + 1);
+        }
+        for (Size i = 0; i < quant.quantities.size(); i++)
+        {
+          fs << "\tMergedQuantForCh" << (i + 1);
+        }
+        for (Size i = 0; i < quant.quantities.size(); i++)
+        {
+          fs << "\tNormalizedMergedQuantForCh" << (i + 1);
+        }
+        fs << "\n";
+        begin = false;
+      }
+      fs << scan << "\t" << dspec.getPrecursorScanNumber() << "\t" << dspec.getPrecursorPeakGroup().getMonoMass() << "\t" << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursorCharge());
+      double sum = 0;
+      for (auto q : quant.quantities)
+      {
+        fs << "\t" << std::to_string(q);
+        sum += q;
+      }
+      for (auto q : quant.quantities)
+      {
+        fs << "\t" << std::to_string(q / sum);
+      }
+      sum = 0;
+      for (auto q : quant.merged_quantities)
+      {
+        fs << "\t" << std::to_string(q);
+        sum += q;
+      }
+      for (auto q : quant.merged_quantities)
+      {
+        fs << "\t" << std::to_string(q / sum);
+      }
+      fs << "\n";
+    }
+  }
+
+  void FLASHDeconvSpectrumFile::writeMzML(const MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const String& deconvolved_mzML_file, const String& annotated_mzML_file, int mzml_charge, DoubleList tols)
+  {
+    if (deconvolved_mzML_file.empty() && annotated_mzML_file.empty()) return;
+
+    MSExperiment deconvolved_map;
+    MSExperiment annotated_map;
+
+    if (!deconvolved_mzML_file.empty())
+    {
+      deconvolved_map = MSExperiment(map);
+      deconvolved_map.clear(false);
+    }
+    if (!annotated_mzML_file.empty())
+    {
+      annotated_map = MSExperiment(map);
+      annotated_map.clear(false);
+    }
+
+    uint current_min_ms_level = 0;
+    for (auto& deconvolved_spectrum: deconvolved_spectra)
+    {
+      uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+      if (current_min_ms_level == 0 || current_min_ms_level > ms_level)
+        current_min_ms_level = ms_level;
+    }
+
+    for (auto& deconvolved_spectrum: deconvolved_spectra)
+    {
+      auto deconvolved_mzML = deconvolved_spectrum.toSpectrum(mzml_charge, current_min_ms_level, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1], false);
+      if (!deconvolved_mzML_file.empty())
+      {
+        if (deconvolved_mzML.empty()) continue;
+        deconvolved_map.addSpectrum(deconvolved_mzML);
+      }
+      if (!annotated_mzML_file.empty())
+      {
+        auto anno_spec = MSSpectrum(deconvolved_spectrum.getOriginalSpectrum());
+
+        std::stringstream val {};
+
+        for (auto& pg : deconvolved_spectrum)
+        {
+          val << std::to_string(pg.getMonoMass()) << ":";
+          for (size_t k = 0; k < pg.size(); k++)
+          {
+            auto& p = pg[k];
+            auto pindex = anno_spec.findNearest(p.mz);
+            val << pindex;
+            if (k < pg.size() - 1)
+            {
+              val << ",";
+            }
+          }
+          val << ";";
+        }
+        anno_spec.setMetaValue("DeconvMassPeakIndices", val.str());
+        annotated_map.addSpectrum(anno_spec);
+      }
+    }
+
+    if (!deconvolved_mzML_file.empty())
+    {
+      MzMLFile mzml_file;
+      mzml_file.store(deconvolved_mzML_file, deconvolved_map);
+    }
+
+    if (!annotated_mzML_file.empty())
+    {
+      MzMLFile mzml_file;
+      mzml_file.store(annotated_mzML_file, annotated_map);
     }
   }
 
@@ -353,7 +487,7 @@ namespace OpenMS
          {
           continue;
          }
-         int cl = pg.getTargetDummyType();
+         int cl = pg.getTargetDecoyType();
          if (cl < 0 || cl >= (int)grouped.size())
          {
           continue;
@@ -381,7 +515,7 @@ namespace OpenMS
       //int cntr = 0;
       for (auto& pg : g)
       {
-         int cl = pg.getTargetDummyType();
+         int cl = pg.getTargetDecoyType();
 
          for (int i = 0; i < 3; i++)
          {

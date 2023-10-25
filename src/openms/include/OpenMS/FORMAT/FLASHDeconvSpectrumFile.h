@@ -28,25 +28,25 @@ namespace OpenMS
             @param fs file stream to the output file
             @param ms_level ms level of the spectrum
             @param detail if set true, detailed information of the mass (e.g., peak list for the mass) is written
-            @param dummy if set true, dummy and qvalue information will be written.
+            @param report_decoy if set true, decoy and qvalue information will be written.
        */
     static void writeDeconvolvedMassesHeader(std::fstream& fs,
                                              uint ms_level,
                                              bool detail,
-                                             bool dummy);
+                                             bool report_decoy);
 
     /**
           @brief write the deconvolved masses in the output file (spectrum level)
           @param dspec deconvolved spectrum to write
-          @param target_spec target spectrum only used for dummy spectrum output
+          @param target_spec target spectrum only used for decoy spectrum output
           @param fs file stream to the output file
           @param file_name the output file name that the deconvolved masses will be written.
           @param avg averagine information to calculate monoisotopic and average mass difference within this function. In PeakGroup (peaks of DeconvolvedSpectrum) only monoisotopic mass is recorded. To write both monoisotopic and average masses, their mass difference should be calculated using this averagine information.
           @param tol mass tolerance
           @param write_detail if this is set, more detailed information on each mass will be written in the output file.
-          @param dummy if set true, dummy and qvalue information will be written.
+          @param record_decoy if set true, decoy and qvalue information will be written.
           Default MS1 headers are:
-            FileName, ScanNum, TargetDummyType, RetentionTime, MassCountInSpec, AverageMass, MonoisotopicMass,
+            FileName, ScanNum, TargetDecoyType, RetentionTime, MassCountInSpec, AverageMass, MonoisotopicMass,
             SumIntensity, MinCharge, MaxCharge,
             PeakCount, IsotopeCosine, ChargeScore, MassSNR, ChargeSNR, RepresentativeCharge, RepresentativeMzStart, RepresentativeMzEnd, setQscore, PerChargeIntensity, PerIsotopeIntensity
 
@@ -63,7 +63,25 @@ namespace OpenMS
                                        const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
                                        double tol,
                                        bool write_detail,
-                                       bool record_dummy);
+                                       bool record_decoy);
+
+    /**
+     *
+     * @param map
+     * @param deconvolved_spectra
+     * @param deconvolved_mzML_file
+     * @param annotated_mzML_file
+     * @param mzml_charge
+     * @param tols
+     */
+    static void writeMzML(const MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const String& deconvolved_mzML_file, const String& annotated_mzML_file, int mzml_charge, DoubleList tols);
+
+    /**
+     *
+     * @param fs
+     * @param deconvolved_spectra
+     */
+    static void writeIsobaricQuantification(std::fstream& fs, std::vector<DeconvolvedSpectrum>& deconvolved_spectra);
 
     static void writeDLMatrixHeader(std::fstream& fs);
 

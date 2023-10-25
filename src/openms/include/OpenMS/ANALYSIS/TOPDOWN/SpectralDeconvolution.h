@@ -30,28 +30,28 @@ namespace OpenMS
   @ingroup Topdown
 */
 
-  class OPENMS_DLLAPI FLASHDeconvAlgorithm : public DefaultParamHandler
+  class OPENMS_DLLAPI SpectralDeconvolution : public DefaultParamHandler
   {
   public:
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     /// default constructor
-    FLASHDeconvAlgorithm();
+    SpectralDeconvolution();
 
     /// copy constructor
 
     /// move constructor
-    FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) = default;
+    SpectralDeconvolution(SpectralDeconvolution&& other) = default;
 
     /// assignment operator
-    FLASHDeconvAlgorithm& operator=(const FLASHDeconvAlgorithm& fd) = default;
+    SpectralDeconvolution& operator=(const SpectralDeconvolution& fd) = default;
 
     /// move assignment operator
-    FLASHDeconvAlgorithm& operator=(FLASHDeconvAlgorithm&& fd) = default;
+    SpectralDeconvolution& operator=(SpectralDeconvolution&& fd) = default;
 
     /// destructor
-    ~FLASHDeconvAlgorithm() = default;
+    ~SpectralDeconvolution() = default;
 
     /**
       @brief main deconvolution function that generates the deconvolved target and dummy spectrum based on the original spectrum.
@@ -104,14 +104,14 @@ namespace OpenMS
         @param avg precalculated averagine
         @param iso_int_shift isotope shift in per_isotope_intensities.
         @param window_width isotope offset value range. If -1, set automatically.
-        @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If target_dummy_type is not PeakGroup::TargetDummyType::target, the second best cosine and
+        @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If target_dummy_type is not PeakGroup::TargetDecoyType::target, the second best cosine and
        its corresponding offset will be output
         @param target_dummy_type  This target_dummy_type specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
         @return calculated cosine similar score
      */
     static float getIsotopeCosineAndDetermineIsotopeIndex(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int iso_int_shift = 0,
                                                           int window_width = -1, int allowed_iso_error_for_second_best_cos = 0,
-                                                          PeakGroup::TargetDummyType target_dummy_type = PeakGroup::TargetDummyType::target);
+                                                          PeakGroup::TargetDecoyType target_dummy_type = PeakGroup::TargetDecoyType::target);
 
     /**
      * add m/zs in input DeconvolvedSpectrum into exclusion list. The exclusion list is used to generate noise dummy masses.
@@ -121,11 +121,11 @@ namespace OpenMS
     static void addMZsToExcludsionList(const DeconvolvedSpectrum& dspec, std::unordered_set<double>& excluded_mzs);
 
     /**
-     *  set target dummy type for the FLASHDeconvAlgorithm run. All masses from the target FLASHDeconvAlgorithm run will have the target_dummy_type_.
-     * @param target_dummy_type  This target_dummy_type_ specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
+     *  set target dummy type for the SpectralDeconvolution run. All masses from the target SpectralDeconvolution run will have the target_decoy_type_.
+     * @param target_dummy_type  This target_decoy_type_ specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
      * @param target_dspec_for_dummy_calcualtion target masses from normal deconvolution
      */
-    void setTargetDummyType(PeakGroup::TargetDummyType target_dummy_type, DeconvolvedSpectrum& target_dspec_for_dummy_calcualtion);
+    void setTargetDummyType(PeakGroup::TargetDecoyType target_dummy_type, DeconvolvedSpectrum& target_dspec_for_dummy_calcualtion);
 
   protected:
     void updateMembers_() override;
@@ -139,10 +139,6 @@ namespace OpenMS
     /// allowed isotope error in deconvolved mass to calculate qvalue
     int allowed_iso_error_ = 1;
 
-    /// range of RT subject to analysis (in seconds)
-    double min_rt_, max_rt_;
-    /// range of mz subject to analysis
-    double min_mz_, max_mz_;
     /// min charge and max charge subject to analysis, set by users
     int min_abs_charge_, max_abs_charge_;
     /// is positive mode
@@ -155,21 +151,19 @@ namespace OpenMS
     double current_max_mass_;
     /// max mass is max_mass for MS1 and 50 for MS2
     double current_min_mass_;
-    /// peak intensity threshold subject to analysis
-    double intensity_threshold_;
     /// minimum number of peaks supporting a mass minus one
     const static int min_support_peak_count_ = 2;
     /// tolerance in ppm for each MS level
     DoubleList tolerance_;
     /// bin multiplication factor (log mz * bin_mul_factors_ = bin number) - for fast convolution, binning is used
     DoubleList bin_mul_factors_;
-    /// cosine threshold between observed and theoretical isotope patterns for each MS level
-    DoubleList min_isotope_cosine_;
+    /// QScore threshold for each MS level
+    DoubleList min_qscore_;
     /// the deconvolved spectrum from normal run. This is used when dummy masses are generated.
     DeconvolvedSpectrum* target_dspec_for_dummy_calcualtion_;
 
-    /// PeakGroup::TargetDummyType values
-    PeakGroup::TargetDummyType target_dummy_type_ = PeakGroup::TargetDummyType::target;
+    /// PeakGroup::TargetDecoyType values
+    PeakGroup::TargetDecoyType target_dummy_type_ = PeakGroup::TargetDecoyType::target;
 
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;

@@ -217,7 +217,6 @@ namespace OpenMS
     spec_ = spec;
   }
 
-
   void DeconvolvedSpectrum::setPrecursorScanNumber(const int scan_number)
   {
     precursor_scan_number_ = scan_number;
@@ -276,6 +275,24 @@ namespace OpenMS
   bool DeconvolvedSpectrum::empty() const
   {
     return peak_groups_.empty();
+  }
+
+  bool DeconvolvedSpectrum::isDecoy() const
+  {
+    if (empty()) return false;
+    if (peak_groups_[0].getTargetDecoyType() != PeakGroup::TargetDecoyType::target) return true;
+    if (!precursor_peak_group_.empty() && precursor_peak_group_.getTargetDecoyType() != PeakGroup::TargetDecoyType::target) return true;
+    return false;
+  }
+
+  FLASHDeconvHelperStructs::IsobaricQuantities DeconvolvedSpectrum::getQuantities() const
+  {
+    return quantities_;
+  }
+
+  void DeconvolvedSpectrum::setQuantities(const FLASHDeconvHelperStructs::IsobaricQuantities& quantities)
+  {
+    quantities_ = quantities;
   }
 
   void DeconvolvedSpectrum::setPeakGroups(std::vector<PeakGroup>& x)

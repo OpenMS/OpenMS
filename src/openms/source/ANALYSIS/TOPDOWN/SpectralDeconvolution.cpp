@@ -7,8 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 #ifdef _OPENMP
   #include <omp.h>
 #endif
@@ -21,7 +21,7 @@ namespace OpenMS
   inline const int low_charge_ = 10;        // 10 inclusive
   inline const double tol_div_factor = 2.5; // use narrow tolerance for deconvolution and at the end use the input tolerance to filter out overlapping masses.
 
-  FLASHDeconvAlgorithm::FLASHDeconvAlgorithm() : DefaultParamHandler("FLASHDeconvAlgorithm")
+  SpectralDeconvolution::SpectralDeconvolution() : DefaultParamHandler("SpectralDeconvolution")
   {
     defaults_.setValue("tol", DoubleList {10.0, 10.0}, "ppm tolerance for MS1, 2, ... (e.g., -tol 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively)");
 
@@ -31,33 +31,27 @@ namespace OpenMS
     defaults_.setValue("min_charge", 2, "Minimum charge state for MS1 spectra (can be negative for negative mode)");
     defaults_.setValue("max_charge", 100, "Maximum charge state for MS1 spectra (can be negative for negative mode)");
 
-    defaults_.setValue("min_mz", -1.0, "If set to positive value, minimum m/z to deconvolve.");
-    defaults_.setValue("max_mz", -1.0, "If set to positive value, maximum m/z to deconvolve.");
-    defaults_.setValue("min_rt", -1.0, "If set to positive value, minimum RT to deconvolve.");
-    defaults_.setValue("max_rt", -1.0, "If set to positive value, maximum RT to deconvolve.");
-
     defaults_.setValue("isolation_window", 5.0, "Default isolation window with. If the input mzML file does not contain isolation window width information, this width will be used.");
     defaults_.addTag("isolation_window", "advanced");
 
-    defaults_.setValue("min_isotope_cosine", DoubleList {.85, .85},
-                       "Cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine_ 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
+    defaults_.setValue("min_qscore", DoubleList {.5, .5},
+                       "QScore threshold for MS1, 2, ... (e.g., -min_qscore 0.3 0.6 to specify 0.3 and 0.6 for MS1 and MS2, respectively)");
 
     defaults_.setValue("allowed_isotope_error", 1,
                        "Allowed isotope index error for decoy and qvalue report. If it is set to 1, for example, +-1 isotope errors are "
                        "not counted as false. Beta version.");
     defaults_.addTag("allowed_isotope_error", "advanced");
 
-    defaults_.setValue("min_intensity", 0.0, "Intensity threshold");
     defaultsToParam_();
   }
 
   // Calculate the nominal (integer) mass from double mass. Multiplying 0.999497 to the original mass and then rounding reduce the error between the original and nominal masses.
-  int FLASHDeconvAlgorithm::getNominalMass(const double mass)
+  int SpectralDeconvolution::getNominalMass(const double mass)
   {
     return (int)(mass * 0.999497 + .5);
   }
 
-  void FLASHDeconvAlgorithm::addMZsToExcludsionList(const DeconvolvedSpectrum& dspec, std::unordered_set<double>& excluded_mzs)
+  void SpectralDeconvolution::addMZsToExcludsionList(const DeconvolvedSpectrum& dspec, std::unordered_set<double>& excluded_mzs)
   {
     for (auto& pg : dspec)
     {
@@ -69,19 +63,19 @@ namespace OpenMS
   }
 
   // The main function called from outside. precursor_map_for_FLASHIda is used to read FLASHIda information
-  void FLASHDeconvAlgorithm::performSpectrumDeconvolution(const MSSpectrum& spec, const std::vector<DeconvolvedSpectrum>& survey_scans, const int scan_number,
+  void SpectralDeconvolution::performSpectrumDeconvolution(const MSSpectrum& spec, const std::vector<DeconvolvedSpectrum>& survey_scans, const int scan_number,
                                                           const std::map<int, std::vector<std::vector<float>>>& precursor_map_for_FLASHIda)
   {
     // First prepare for decoy runs.
     iso_da_distance_ =
-      target_dummy_type_ != PeakGroup::noise_dummy ?
+      target_dummy_type_ != PeakGroup::noise_decoy ?
         Constants::ISOTOPE_MASSDIFF_55K_U :
         Constants::ISOTOPE_MASSDIFF_55K_U * sqrt(7.0) / 2.0; // sqrt(7.0)/2.0 Da is used instead of C13 - C12 to make sure masses detected with this nonsensical mass difference are not true.
     previously_deconved_mono_masses_for_dummy_.clear();
     previously_deconved_mass_bins_for_dummy_.reset();
     excluded_peak_mzs_.clear();
 
-    if (target_dummy_type_ == PeakGroup::charge_dummy) // charge decoy
+    if (target_dummy_type_ == PeakGroup::charge_decoy) // charge decoy
     {
       for (auto& pg : *target_dspec_for_dummy_calcualtion_)
       {
@@ -94,7 +88,7 @@ namespace OpenMS
         }
       }
     }
-    if (target_dummy_type_ == PeakGroup::noise_dummy) // noise decoy
+    if (target_dummy_type_ == PeakGroup::noise_decoy) // noise decoy
     {
       addMZsToExcludsionList(*target_dspec_for_dummy_calcualtion_, excluded_peak_mzs_);
     }
@@ -106,15 +100,6 @@ namespace OpenMS
     // for MSn (n>1) register precursor peak and peak group.
     registerPrecursor_(survey_scans, precursor_map_for_FLASHIda);
 
-    // rt range of analysis
-    if (min_rt_ > 0 && spec.getRT() < min_rt_)
-    {
-      return;
-    }
-    if (max_rt_ > 0 && spec.getRT() > max_rt_)
-    {
-      return;
-    }
     // based on MS level, adjust charge and mass ranges. Precursor charge and mass determine those.
     current_max_charge_ = deconvolved_spectrum_.getCurrentMaxAbsCharge(max_abs_charge_); //
     current_max_mass_ = deconvolved_spectrum_.getCurrentMaxMass(max_mass_);
@@ -133,14 +118,8 @@ namespace OpenMS
     generatePeakGroupsFromSpectrum_();
   }
 
-  void FLASHDeconvAlgorithm::updateMembers_()
+  void SpectralDeconvolution::updateMembers_()
   {
-    min_mz_ = param_.getValue("min_mz");
-    max_mz_ = param_.getValue("max_mz");
-
-    min_rt_ = param_.getValue("min_rt");
-    max_rt_ = param_.getValue("max_rt");
-
     min_abs_charge_ = param_.getValue("min_charge");
     max_abs_charge_ = param_.getValue("max_charge");
     is_positive_ = min_abs_charge_ > 0;
@@ -158,10 +137,6 @@ namespace OpenMS
     max_mass_ = param_.getValue("max_mass");
     min_mass_ = param_.getValue("min_mass");
 
-    isolation_window_size_ = param_.getValue("isolation_window");
-
-    intensity_threshold_ = param_.getValue("min_intensity");
-
     bin_mul_factors_.clear();
     tolerance_ = param_.getValue("tol");
 
@@ -172,16 +147,16 @@ namespace OpenMS
       bin_mul_factors_.push_back(1.0 / j);
     }
 
-    min_isotope_cosine_ = param_.getValue("min_isotope_cosine");
+    min_qscore_ = param_.getValue("min_qscore");
     allowed_iso_error_ = param_.getValue("allowed_isotope_error");
   }
 
-  const FLASHDeconvHelperStructs::PrecalculatedAveragine& FLASHDeconvAlgorithm::getAveragine()
+  const FLASHDeconvHelperStructs::PrecalculatedAveragine& SpectralDeconvolution::getAveragine()
   {
     return avg_;
   }
 
-  void FLASHDeconvAlgorithm::calculateAveragine(const bool use_RNA_averagine)
+  void SpectralDeconvolution::calculateAveragine(const bool use_RNA_averagine)
   {
     CoarseIsotopePatternGenerator generator(300);
 
@@ -194,7 +169,7 @@ namespace OpenMS
   }
 
   // generate filters
-  void FLASHDeconvAlgorithm::setFilters_()
+  void SpectralDeconvolution::setFilters_()
   {
     filter_.clear();
     harmonic_filter_matrix_.clear();
@@ -221,27 +196,14 @@ namespace OpenMS
   }
 
   // Generate uncharged log mz transformated peaks
-  void FLASHDeconvAlgorithm::updateLogMzPeaks_()
+  void SpectralDeconvolution::updateLogMzPeaks_()
   {
     log_mz_peaks_.clear();
-    double threshold = intensity_threshold_;
     log_mz_peaks_.reserve(deconvolved_spectrum_.getOriginalSpectrum().size());
 
     // threshold = threshold < min_intensity * 2 ? min_intensity * 2 : threshold;
     for (auto& peak : deconvolved_spectrum_.getOriginalSpectrum())
     {
-      if (peak.getIntensity() <= threshold) //
-      {
-        continue;
-      }
-      if (min_mz_ > 0 && peak.getMZ() < min_mz_)
-      {
-        continue;
-      }
-      if (max_mz_ > 0 && peak.getMZ() > max_mz_)
-      {
-        break;
-      }
       if (!excluded_peak_mzs_.empty() && excluded_peak_mzs_.find(peak.getMZ()) != excluded_peak_mzs_.end())
       {
         continue;
@@ -253,13 +215,13 @@ namespace OpenMS
   }
 
   // from bin to raw value
-  double FLASHDeconvAlgorithm::getBinValue_(const Size bin, const double min_value, const double bin_mul_factor)
+  double SpectralDeconvolution::getBinValue_(const Size bin, const double min_value, const double bin_mul_factor)
   {
     return min_value + (double)bin / bin_mul_factor;
   }
 
   // from value to bin number
-  Size FLASHDeconvAlgorithm::getBinNumber_(const double value, const double min_value, const double bin_mul_factor)
+  Size SpectralDeconvolution::getBinNumber_(const double value, const double min_value, const double bin_mul_factor)
   {
     if (value < min_value)
     {
@@ -269,7 +231,7 @@ namespace OpenMS
   }
 
   // From log mz to mz bins.
-  void FLASHDeconvAlgorithm::updateMzBins_(const Size bin_number, std::vector<float>& mz_bin_intensities)
+  void SpectralDeconvolution::updateMzBins_(const Size bin_number, std::vector<float>& mz_bin_intensities)
   {
     mz_bins_ = boost::dynamic_bitset<>(bin_number);
     double bin_mul_factor = bin_mul_factors_[ms_level_ - 1];
@@ -288,7 +250,7 @@ namespace OpenMS
   }
 
   // Find candidate mass bins from the current spectrum. The runtime of FLASHDeconv is determined by this function.
-  void FLASHDeconvAlgorithm::updateCandidateMassBins_(std::vector<float>& mass_intensities, const std::vector<float>& mz_intensities)
+  void SpectralDeconvolution::updateCandidateMassBins_(std::vector<float>& mass_intensities, const std::vector<float>& mz_intensities)
   {
     Size mz_bin_index = mz_bins_.find_first();
     auto mz_bin_index_reverse = std::vector<Size>();
@@ -533,7 +495,7 @@ namespace OpenMS
   // Subfunction of updateMassBins_. If a peak corresponds to multiple masses, only one mass is selected for the peak based on intensities.
   // mass level harmonic check is also performed in this function
   // it also outputs the charge range of each mass bin
-  Matrix<int> FLASHDeconvAlgorithm::filterMassBins_(const std::vector<float>& mass_intensities)
+  Matrix<int> SpectralDeconvolution::filterMassBins_(const std::vector<float>& mass_intensities)
   {
     int charge_range = current_max_charge_;
     Matrix<int> abs_charge_ranges(2, mass_bins_.size(), INT_MAX);
@@ -641,7 +603,7 @@ namespace OpenMS
   }
 
   // update mass bins which will be used to select peaks in the input spectrum...
-  Matrix<int> FLASHDeconvAlgorithm::updateMassBins_(const std::vector<float>& mz_intensities)
+  Matrix<int> SpectralDeconvolution::updateMassBins_(const std::vector<float>& mz_intensities)
   {
     std::vector<float> mass_intensities;
     updateCandidateMassBins_(mass_intensities, mz_intensities);
@@ -652,7 +614,7 @@ namespace OpenMS
   }
 
   // With mass_bins_ from updateMassBins_ function, select peaks from the same mass in the original input spectrum
-  void FLASHDeconvAlgorithm::getCandidatePeakGroups_(const Matrix<int>& per_mass_abs_charge_ranges)
+  void SpectralDeconvolution::getCandidatePeakGroups_(const Matrix<int>& per_mass_abs_charge_ranges)
   {
     double bin_mul_factor = bin_mul_factors_[ms_level_ - 1];
     double tol = tolerance_[ms_level_ - 1];
@@ -966,19 +928,19 @@ namespace OpenMS
     }
   }
 
-  DeconvolvedSpectrum& FLASHDeconvAlgorithm::getDeconvolvedSpectrum()
+  DeconvolvedSpectrum& SpectralDeconvolution::getDeconvolvedSpectrum()
   {
     return deconvolved_spectrum_;
   }
 
-  void FLASHDeconvAlgorithm::setTargetDummyType(PeakGroup::TargetDummyType target_dummy_type, DeconvolvedSpectrum& target_dspec_for_dummy_calcualtion)
+  void SpectralDeconvolution::setTargetDummyType(PeakGroup::TargetDecoyType target_dummy_type, DeconvolvedSpectrum& target_dspec_for_dummy_calcualtion)
   {
     target_dummy_type_ = target_dummy_type;
     target_dspec_for_dummy_calcualtion_ = &target_dspec_for_dummy_calcualtion;
   }
 
   // spectral deconvolution main function
-  void FLASHDeconvAlgorithm::generatePeakGroupsFromSpectrum_()
+  void SpectralDeconvolution::generatePeakGroupsFromSpectrum_()
   {
     deconvolved_spectrum_.clear();
     int current_charge_range = current_max_charge_;
@@ -1017,7 +979,7 @@ namespace OpenMS
     updateMzBins_(mz_bin_number, mz_bin_intensities);
     mass_bins_ = boost::dynamic_bitset<>(mass_bin_number);
 
-    if (target_dummy_type_ == PeakGroup::charge_dummy && !previously_deconved_mono_masses_for_dummy_.empty())
+    if (target_dummy_type_ == PeakGroup::charge_decoy && !previously_deconved_mono_masses_for_dummy_.empty())
     {
       std::sort(previously_deconved_mono_masses_for_dummy_.begin(), previously_deconved_mono_masses_for_dummy_.end());
       previously_deconved_mass_bins_for_dummy_ = boost::dynamic_bitset<>(mass_bins_.size());
@@ -1067,7 +1029,7 @@ namespace OpenMS
       }
     }
 
-    if (target_dummy_type_ != PeakGroup::isotope_dummy)
+    if (target_dummy_type_ != PeakGroup::isotope_decoy)
     {
       auto per_mass_abs_charge_ranges = updateMassBins_(mz_bin_intensities);
       getCandidatePeakGroups_(per_mass_abs_charge_ranges);
@@ -1079,7 +1041,7 @@ namespace OpenMS
     scoreAndFilterPeakGroups_();
   }
 
-  void FLASHDeconvAlgorithm::scoreAndFilterPeakGroups_()
+  void SpectralDeconvolution::scoreAndFilterPeakGroups_()
   {
     std::vector<PeakGroup> filtered_peak_groups;
     filtered_peak_groups.reserve(deconvolved_spectrum_.size());
@@ -1094,7 +1056,7 @@ namespace OpenMS
       {
         int offset = 0;
         auto peak_group = deconvolved_spectrum_[i];
-        peak_group.setTargetDummyType(target_dummy_type_);
+        peak_group.setTargetDecoyType(target_dummy_type_);
         float prev_cos = peak_group.getIsotopeCosine();
         float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -peak_group.getMinNegativeIsotopeIndex(), -1,
                                                              allowed_iso_error_, target_dummy_type_);
@@ -1103,7 +1065,7 @@ namespace OpenMS
         peak_group.setIsotopeCosine(cos);
 
         // first filtration to remove false positives before further processing.
-        if (cos < std::min(.5, min_isotope_cosine_[ms_level_ - 1]) - .3)
+        if (cos < .5)
         {
           continue;
         }
@@ -1112,14 +1074,14 @@ namespace OpenMS
         {
           auto noisy_peaks = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_, excluded_peak_mzs_);
           // min cosine is checked in here. mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
-          offset = peak_group.updateQscore(noisy_peaks, avg_, min_isotope_cosine_[ms_level_ - 1], allowed_iso_error_);
+          offset = peak_group.updateQscore(noisy_peaks, avg_, .5, allowed_iso_error_);
           if (offset == 0)
           {
             break;
           }
         }
 
-        if (peak_group.empty() || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
+        if (peak_group.empty() || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_ || peak_group.getQscore() < min_qscore_[ms_level_ - 1])
         {
           continue;
         }
@@ -1136,7 +1098,7 @@ namespace OpenMS
           continue;
         }
 
-        if (target_dummy_type_ == PeakGroup::TargetDummyType::isotope_dummy)
+        if (target_dummy_type_ == PeakGroup::TargetDecoyType::isotope_decoy)
         {
           if (peak_group.getIsotopeCosine() < prev_cos * .98) // if target cosine and isotope dummy cosine are too different, we do not take this dummy.
             continue;
@@ -1174,7 +1136,7 @@ namespace OpenMS
           continue;
         }
 
-        if (target_dummy_type_ == PeakGroup::charge_dummy && !previously_deconved_mono_masses_for_dummy_.empty())
+        if (target_dummy_type_ == PeakGroup::charge_decoy && !previously_deconved_mono_masses_for_dummy_.empty())
         {
           bool exclude = false;
           double delta = peak_group.getMonoMass() * tolerance_[ms_level_ - 1];
@@ -1231,8 +1193,8 @@ namespace OpenMS
     removeOverlappingPeakGroups_(deconvolved_spectrum_, tol * tol_div_factor * 1.5);
   }
 
-  float FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg,
-                                                                       int iso_int_shift, int window_width, int allowed_iso_error_for_second_best_cos, PeakGroup::TargetDummyType target_dummy_type)
+  float SpectralDeconvolution::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg,
+                                                                       int iso_int_shift, int window_width, int allowed_iso_error_for_second_best_cos, PeakGroup::TargetDecoyType target_dummy_type)
   {
     offset = 0;
     if ((int)per_isotope_intensities.size() < min_iso_size_ + iso_int_shift)
@@ -1290,7 +1252,7 @@ namespace OpenMS
       }
     }
 
-    if (target_dummy_type == PeakGroup::TargetDummyType::isotope_dummy)
+    if (target_dummy_type == PeakGroup::TargetDecoyType::isotope_decoy)
     {
       for (int tmp_offset = offset - 3; tmp_offset <= offset + 3; tmp_offset++)
       {
@@ -1320,7 +1282,7 @@ namespace OpenMS
     return max_cos;
   }
 
-  float FLASHDeconvAlgorithm::getCosine(const std::vector<float>& a, int a_start, int a_end, const IsotopeDistribution& b, int b_size, int offset, int min_iso_size)
+  float SpectralDeconvolution::getCosine(const std::vector<float>& a, int a_start, int a_end, const IsotopeDistribution& b, int b_size, int offset, int min_iso_size)
   {
     float n = .0, a_norm = .0;
     a_start = std::max(0, a_start);
@@ -1393,7 +1355,7 @@ namespace OpenMS
     return n / sqrt(a_norm);
   }
 
-  void FLASHDeconvAlgorithm::removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec) const
+  void SpectralDeconvolution::removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec) const
   {
     std::map<double, std::set<int>> peak_to_pgs;
     std::map<double, float> mz_to_intensities;
@@ -1453,7 +1415,7 @@ namespace OpenMS
 
     for (Size i = 0; i < dspec.size(); i++)
     {
-      if (dspec[i].getTargetDummyType() != target_dummy_type_)
+      if (dspec[i].getTargetDecoyType() != target_dummy_type_)
       {
         continue;
       }
@@ -1471,7 +1433,7 @@ namespace OpenMS
     dspec.setPeakGroups(filtered_pg_vec);
   }
 
-  void FLASHDeconvAlgorithm::removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec, double tol)
+  void SpectralDeconvolution::removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec, double tol)
   {
     if (dspec.empty())
     {
@@ -1490,7 +1452,7 @@ namespace OpenMS
       {
         if (!dspec[local_max_index].isTargeted()) // targeted ones were already push_backed.
         {
-          if (dspec[local_max_index].getTargetDummyType() == target_dummy_type_)
+          if (dspec[local_max_index].getTargetDecoyType() == target_dummy_type_)
             filtered_pg_vec.push_back(dspec[local_max_index]);
         }
         start_mass = mass;
@@ -1504,7 +1466,7 @@ namespace OpenMS
       }
       if (dspec[i].isTargeted())
       {
-        if (dspec[i].getTargetDummyType() == target_dummy_type_)
+        if (dspec[i].getTargetDecoyType() == target_dummy_type_)
           filtered_pg_vec.push_back(dspec[i]);
       }
     }
@@ -1513,7 +1475,7 @@ namespace OpenMS
     {
       if (!dspec[local_max_index].isTargeted()) // targeted ones were already push_backed.
       {
-        if (dspec[local_max_index].getTargetDummyType() == target_dummy_type_)
+        if (dspec[local_max_index].getTargetDecoyType() == target_dummy_type_)
           filtered_pg_vec.push_back(dspec[local_max_index]);
       }
     }
@@ -1522,7 +1484,7 @@ namespace OpenMS
     std::vector<PeakGroup>().swap(filtered_pg_vec);
   }
 
-  void FLASHDeconvAlgorithm::setTargetMasses(const std::vector<double>& masses, bool excluded)
+  void SpectralDeconvolution::setTargetMasses(const std::vector<double>& masses, bool excluded)
   {
     if (excluded)
     {
@@ -1552,7 +1514,7 @@ namespace OpenMS
     }
   }
 
-  bool FLASHDeconvAlgorithm::registerPrecursor_(const std::vector<DeconvolvedSpectrum>& survey_scans, const std::map<int, std::vector<std::vector<float>>>& precursor_map_for_real_time_acquisition)
+  bool SpectralDeconvolution::registerPrecursor_(const std::vector<DeconvolvedSpectrum>& survey_scans, const std::map<int, std::vector<std::vector<float>>>& precursor_map_for_real_time_acquisition)
   {
     if (ms_level_ == 1 || (survey_scans.empty() && precursor_map_for_real_time_acquisition.empty()))
     {
@@ -1774,16 +1736,16 @@ namespace OpenMS
     return deconvolved_spectrum_.getPrecursorPeakGroup().empty();
   }
 
-  void FLASHDeconvAlgorithm::setAveragine(const FLASHDeconvAlgorithm::PrecalculatedAveragine& avg)
+  void SpectralDeconvolution::setAveragine(const SpectralDeconvolution::PrecalculatedAveragine& avg)
   {
     avg_ = avg;
   }
-  double FLASHDeconvAlgorithm::getMassFromMassBin_(Size mass_bin, double bin_mul_factor) const
+  double SpectralDeconvolution::getMassFromMassBin_(Size mass_bin, double bin_mul_factor) const
   {
     return exp(getBinValue_(mass_bin, mass_bin_min_value_, bin_mul_factor));
   }
 
-  double FLASHDeconvAlgorithm::getMzFromMzBin_(Size mass_bin, double bin_mul_factor) const
+  double SpectralDeconvolution::getMzFromMzBin_(Size mass_bin, double bin_mul_factor) const
   {
     return exp(getBinValue_(mass_bin, mz_bin_min_value_, bin_mul_factor));
   }

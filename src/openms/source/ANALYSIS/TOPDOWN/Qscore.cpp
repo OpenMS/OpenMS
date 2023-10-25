@@ -86,7 +86,7 @@ namespace OpenMS
       {
         f << item << ",";
       }
-      f << cns[pg.getTargetDummyType()] << "\n";
+      f << cns[pg.getTargetDecoyType()] << "\n";
     }
   }
 } // namespace OpenMS

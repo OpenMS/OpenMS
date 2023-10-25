@@ -28,13 +28,13 @@ namespace OpenMS
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
 
   public:
-    /// target dummy type of PeakGroup. This specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3).
-    enum TargetDummyType
+    /// target decoy type of PeakGroup. This specifies if a PeakGroup is a target (0), charge decoy (1), noise decoy (2), or isotope decoy (3).
+    enum TargetDecoyType
     {
       target = 0,
-      charge_dummy,
-      noise_dummy,
-      isotope_dummy
+      charge_decoy,
+      noise_decoy,
+      isotope_decoy
     };
 
 
@@ -78,7 +78,7 @@ namespace OpenMS
            @param noisy_peaks noisy peaks to calculate setQscore
            @param avg precalculated averagine
            @param min_cos the peak groups with cosine score less than this will have setQscore 0.
-           @param allowed_iso_error this set the allowed isotope error in dummy mass generation.
+           @param allowed_iso_error this set the allowed isotope error in decoy mass generation.
            @return returns isotope offset after isotope cosine calculation
       */
     int updateQscore(std::vector<LogMzPeak>& noisy_peaks, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, int allowed_iso_error = 1);
@@ -90,7 +90,7 @@ namespace OpenMS
      * @param tol mass tolerance
      * @param avg precalculated averagine
      * @param mono_mass monoisotopic mass
-     * @param excluded_peak_mzs mzs that will be included - only for dummy generation
+     * @param excluded_peak_mzs mzs that will be included - only for decoy generation
      * @return returns the noisy peaks for this peakgroup - i.e., the raw peaks within the range of this peakGroup that are not matched to any istope of this peakGroup mass.
      */
     std::vector<LogMzPeak> recruitAllPeaksInSpectrum(const MSSpectrum& spec, double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double mono_mass,
@@ -195,25 +195,25 @@ namespace OpenMS
     /// get if it is targeted
     bool isTargeted() const;
 
-    /// get the target dummy type of this
-    PeakGroup::TargetDummyType getTargetDummyType() const;
+    /// get the target decoy type of this
+    PeakGroup::TargetDecoyType getTargetDecoyType() const;
 
-    /// for this PeakGroup, specify the target dummy type.
-    void setTargetDummyType(PeakGroup::TargetDummyType index);
+    /// for this PeakGroup, specify the target decoy type.
+    void setTargetDecoyType(PeakGroup::TargetDecoyType index);
 
     /**
-     * Get q values for different target_dummy_type. For charge, noise, isotope dummy types, q values corresponding to the type will be returned. For target (default), the final q value is calculated
-     * by summing the q values of all dummy types and returned.
-     * @param  target_dummy_type  This target_dummy_type_ specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
+     * Get q values for different target_decoy_type. For charge, noise, isotope decoy types, q values corresponding to the type will be returned. For target (default), the final q value is calculated
+     * by summing the q values of all decoy types and returned.
+     * @param  target_decoy_type  This target_decoy_type specifies if a PeakGroup is a target (0), charge decoy (1), noise decoy (2), or isotope decoy (3)
      * @return Q value of the peakGroup
      */
-    float getQvalue(PeakGroup::TargetDummyType target_dummy_type = PeakGroup::TargetDummyType::target) const;
+    float getQvalue(PeakGroup::TargetDecoyType target_decoy_type = PeakGroup::TargetDecoyType::target) const;
 
     /**
-     * set peakGroup q value for different TargetDummyType. Q values are stored per TargetDummyType and later used for final q value calculation.
-     * @param  target_dummy_type  This target_dummy_type_ specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
+     * set peakGroup q value for different TargetDecoyType. Q values are stored per TargetDecoyType and later used for final q value calculation.
+     * @param  target_decoy_type  This target_decoy_type specifies if a PeakGroup is a target (0), charge decoy (1), noise decoy (2), or isotope decoy (3)
      */
-    void setQvalue(double q, PeakGroup::TargetDummyType target_dummy_type);
+    void setQvalue(double q, PeakGroup::TargetDecoyType target_decoy_type);
 
     /// set distance between consecutive isotopes
     void setIsotopeDaDistance(double d);
@@ -345,8 +345,8 @@ namespace OpenMS
     /// information on the deconvolved mass
     double monoisotopic_mass_ = -1.0;
     float intensity_ = 0; // total intensity
-    /// index to specify if this peak_group is a target (0), an isotope dummy (1), a noise (2), or a charge dummy (3)
-    PeakGroup::TargetDummyType target_dummy_type_ = target;
+    /// index to specify if this peak_group is a target (0), an isotope decoy (1), a noise (2), or a charge decoy (3)
+    PeakGroup::TargetDecoyType target_decoy_type_ = target;
     /// up to which negative isotope index should be considered. By considereing negative istoopes, one can reduce isotope index error.
     int min_negative_isotope_index_ = -1;
 
@@ -354,7 +354,7 @@ namespace OpenMS
     float bin_width_DL_ = 0.25;
     int iso_range_for_DL_ = 21;
 
-    /// distance between consecutive isotopes. Can be different for dummys
+    /// distance between consecutive isotopes. Can be different for decoys
     double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;
     /// scoring variables
     int max_snr_abs_charge_ = -1;
@@ -365,7 +365,7 @@ namespace OpenMS
     float avg_ppm_error_ = 0;
     float avg_da_error_ = 0;
     float snr_ = 0;
-    /// q values with different dummy types
-    std::map<PeakGroup::TargetDummyType, float> qvalue_;
+    /// q values with different decoy types
+    std::map<PeakGroup::TargetDecoyType, float> qvalue_;
   };
 } // namespace OpenMS
