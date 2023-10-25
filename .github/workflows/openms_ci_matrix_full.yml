@@ -254,9 +254,14 @@ jobs:
           cp -R OpenMS/THIRDPARTY/${{ steps.set-vars.outputs.tp_folder }}/64bit/* _thirdparty/
           cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           # add third-party binaries to PATH
-          for thirdpartytool in ${{ github.workspace }}/_thirdparty/*
+          for thirdpartytool in '${{ github.workspace }}/_thirdparty'/*
           do
-            echo $thirdpartytool >> $GITHUB_PATH
+            if [[ "${{ matrix.os }}" == windows-* ]]; then
+              # substitute slashes
+              echo ${thirdpartytool//\//\\} >> $GITHUB_PATH
+            else
+              echo $thirdpartytool >> $GITHUB_PATH
+            fi
           done
 
     - name: Build
@@ -268,7 +273,7 @@ jobs:
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
           retVal=$?
           if [ $retVal -ne 0 ]; then
-              echo "\033[0;31m Errors in build:"
+              echo -e "\033[0;31m Errors in build:"
               # TODO upload logs as artifact?
               find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec cat {} \;
               # remove for next steps
@@ -326,16 +331,10 @@ jobs:
       run: |
           # do not fail immediately
           set +e
-          if [[ "${{ matrix.os }}" == macos-* ]]; then
-            #lol, Microsoft wants us to kill a security system process such that they don't have to fix their bugs. ridiculous once again.
-            #echo killing...; sudo pkill -9 XProtect >/dev/null || true;
-            #echo waiting...; while pgrep XProtect; do sleep 3; done;
-            echo ""
-          fi
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cipackage.cmake
           retVal=$?
           if [ $retVal -ne 0 ]; then
-              echo "\033[0;31m Errors in packaging:"
+              echo -e "\033[0;31m Errors in packaging:"
               # TODO upload logs as artifact?
               find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec cat {} \;
               # remove for next steps
@@ -385,6 +384,10 @@ jobs:
     needs: build-and-test
 
     steps:
+      - name: Extract branch/PR infos
+        shell: bash
+        run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
+      
       # WOW, you cannot download with wildcard. INCREDIBLY ANNOYING https://github.com/actions/download-artifact/issues/6
       # Maybe in the next 3 years......
       - name: Download macos installer artifacts
@@ -406,19 +409,22 @@ jobs:
           PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
-          #PATH: ${{ secrets.IBMI_PATH }} # We rrsync already puts us in the correct path
         run: |
           echo "Upload"
-          if [[ "${{ steps.extract_branch.outputs.RUN_NAME }}" == "nightly" ]]; then
+          if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
             folder=nightly
-          elif [[ "${{ steps.extract_branch.outputs.RUN_NAME }}" == "release/*" ]]; then
-            tmpfolder=${{ steps.extract_branch.outputs.RUN_NAME }}
-            folder=${tmpfolder/release/RC}
+          elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
+            tmpfolder=${{ env.RUN_NAME }}
+            folder=${tmpfolder/release/RC_GHA}                                   # TODO: change back to RC after proper release
           else
-            folder=experimental/${{ steps.extract_branch.outputs.RUN_NAME }}
+            folder=experimental/${{ env.RUN_NAME }}
           fi
           echo $folder
-          #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
+
+          mkdir -p ~/.ssh/
+          echo "$PASS" > ~/.ssh/private.key
+          sudo chmod 600 ~/.ssh/private.key
+#          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
 
         # TODO create softlinks to latest nightly
         # TODO create and upload file hashes, at least for release candidate
@@ -463,16 +469,10 @@ jobs:
           java-version: ${{ env.JAVA_VER }}
           distribution: 'temurin'
 
-      - name: Generate plugin sources
+      - name: Generate KNIME plugin sources
         shell: bash
         run: |
             ## Setup functions
-            function git_last_change_date {
-              pushd $1 > /dev/null
-              DATE=$(date -j -f "%Y-%m-%d %H:%M:%S" "`git log -1 --format="%cd" --date=iso`" "+%Y%m%d%H%M" 2> /dev/null)
-              popd > /dev/null
-              echo $DATE
-            }
 
             function replace_qualifier {
               find $1 -name MANIFEST.MF -exec sed -i -e "s/qualifier/$2/g" {} \;
@@ -488,20 +488,8 @@ jobs:
             GKN_PLUGIN_PATH=${GITHUB_WORKSPACE}/GenericKnimeNodes
             git clone -q https://github.com/genericworkflownodes/GenericKnimeNodes/ --branch develop --single-branch $GKN_PLUGIN_PATH
 
-            ## Source and build dir (choose)
+            ## Create folders
             mkdir ${PLUGIN_BUILD}
-
-            ## Merge payloads and descriptors into one folder
-            touch rsync.log
-            ls -la
-
-            # Not needed if download-artifact merges correctly
-            #for d in knime*
-            #do
-            #  rsync -avh --progress $d/build/knime/ ${PLUGIN_SOURCE}/ >> rsync.log
-            #  rm -rf $d
-            #done
-
             PLUGIN_SOURCE_CONTRIB_PLUGINS=${PLUGIN_SOURCE}/de.openms.feature/contributing-plugins
             mkdir -p ${PLUGIN_SOURCE_CONTRIB_PLUGINS}
             PLUGIN_SOURCE_THIRDPARTY_CONTRIB_PLUGINS=${PLUGIN_SOURCE}/de.openms.thirdparty.feature/contributing-plugins
@@ -521,7 +509,9 @@ jobs:
             pushd ${PLUGIN_SOURCE_CONTRIB_PLUGINS}
 
               git clone -q https://github.com/OpenMS/de.openms.knime --branch develop --single-branch .
-              CONTRIBUTING_DATE=$(git_last_change_date .)
+              CONTRIBUTING_DATE=$(git log -1 --format="%cd" --date="format:%Y%m%d%H%M")
+              echo "Setting qualifier/SNAPSHOT for de.openms.knime contrib plugins to ${CONTRIBUTING_DATE}!"
+              git log -1 --format="%cd" --date=iso
               
               # TODO just iterate over all folders?
               replace_qualifier de.openms.knime.startupCheck ${CONTRIBUTING_DATE}
@@ -544,14 +534,19 @@ jobs:
 
             popd
 
+            ## New contrib plugin: de.openms.knime.dynamicJSViewers
             git clone -q https://github.com/genericworkflownodes/de.openms.knime.dynamicJSViewers --branch master --single-branch
-            CONTRIBUTING_DATE=$(git_last_change_date de.openms.knime.dynamicJSViewers)
+            pushd de.openms.knime.dynamicJSViewers
+              CONTRIBUTING_DATE=$(git log -1 --format="%cd" --date="format:%Y%m%d%H%M")
+            popd
+
             mv de.openms.knime.dynamicJSViewers/de.openms.knime.dynamicJSViewers.feature ${PLUGIN_SOURCE}/
             mkdir ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins
             rm -rf ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/.settings
             mv de.openms.knime.dynamicJSViewers/de.openms.knime.dynamicJSViewers ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins/
 
             pushd ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins/
+              echo "Setting qualifier/SNAPSHOT for de.openms.knime.dynamicJSViewers to ${CONTRIBUTING_DATE}"
               replace_qualifier de.openms.knime.dynamicJSViewers ${CONTRIBUTING_DATE}
               replace_snapshot de.openms.knime.dynamicJSViewers ${CONTRIBUTING_DATE}
             popd
@@ -587,16 +582,15 @@ jobs:
           # remove maven pom.xmls since we will do a full pomless build. poms are only necessary if you want to develop on a single plugin, e.g., in eclipse.
           find . -mindepth 2 -name "pom.xml*" -exec rm {} \;
 
-          # TODO check if correct maven version is installed
-          mvn "-Dknime.version=${KNIME}" "-Djava.majorversion=${JAVA_VER}" "-Dgkn.update.site=https://abibuilder.cs.uni-tuebingen.de/archive/gkn/updateSite/${KNIME}/" clean verify
+          # Build update site. Downloads necessary plugins from the dependency update sites from KNIME and GKN (for the correct KNIME version)
+          mvn --no-transfer-progress "-Dknime.version=${KNIME}" "-Djava.majorversion=${JAVA_VER}" "-Dgkn.update.site=https://abibuilder.cs.uni-tuebingen.de/archive/gkn/updateSite/${KNIME}/" clean verify
 
-      - name: Upload installer
+      - name: Upload KNIME update site
         shell: bash
         env:
           PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
-          #PATH: ${{ secrets.IBMI_PATH }} # rrsync handles this
         run: |
           echo "Upload"
           if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
@@ -608,4 +602,14 @@ jobs:
             folder=experimental/${{ env.RUN_NAME }}
           fi
           echo $folder
-          #sshpass -p "$PASS" rsync --progress -avz -e "ssh -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/knime-plugin/updateSite/$folder"
+
+          # correct permissions of files to upload
+          chmod -R o+r $GITHUB_WORKSPACE/de.openms.update/target/repository/*
+          chmod o+x $GITHUB_WORKSPACE/de.openms.update/target/repository/features
+          chmod o+x $GITHUB_WORKSPACE/de.openms.update/target/repository/plugins
+          
+          #Load private key into file
+          mkdir -p ~/.ssh/
+          echo "$PASS" > ~/.ssh/private.key
+          sudo chmod 600 ~/.ssh/private.key
+#          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"

@@ -10,19 +10,48 @@ INI file - parameter configuration file, holding custom parameter settings for T
 INIFileEditor - graphical parameter editor for INI files
 Parameters - list of algorithm or TOPP tool parameters that changed in this release
 PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
-#<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit https://github.com/OpenMS/OpenMS/pull/4957 for details
+#<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit e.g. https://github.com/OpenMS/OpenMS/pull/XXXX (replace XXXX with number of interest) for details
 
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.1.0     (released: under development)    ----
+----                                OpenMS 3.1     (released 10/2023)                 ----
 ------------------------------------------------------------------------------------------
 
+We are excited to share an experimental update with our community, mainly targeted at platforms that depend on Conda packages.
+Please note that this is a partial and unannounced release, focused on delivering novel features and major changes that we're actively testing and refining.
+While these features are still in an experimental phase, we encourage adventurous users and platform integrators to explore and provide feedback.
+
+Important Notes:
+- Features are experimental and may undergo changes or be removed in future releases based on user feedback and stability.
+- We welcome your feedback and suggestions to help us improve and refine these experimental features.
+- For stability and production use, we recommend sticking with the latest stable release.
+
+Please use this opportunity to test and provide feedback on these new features, as your input will play a vital role in shaping their development. 
+
+Thank you for being a part of our community and for helping us make OpenMS even better!
+
+What's new:
 - Major change: removed the distinction between TOPP tool and util and the TOPP and UTIL build targets were merged to a single TOPP target. All utils are considered tools now and categorized as "Utilities".
-- Added SageAdapter. Support for standard identification tasks with sage (https://github.com/lazear/sage).
-- require some advanced instruction sets for x64 CPUs: SSE3 (g++/clang) or AVX (MSVC); and NEON for ARM64 CPUs (#6978)
+- Added SageAdapter. Support for standard identification tasks with sage (https://github.com/lazear/sage) (experimental).
+- Require some advanced instruction sets for x64 CPUs: SSE3 (g++/clang) or AVX (MSVC); and NEON for ARM64 CPUs (#6978)
   and report them via the OpenMSInfo tool (#7022)
 - Base64 encoding/decoding using the SIMDe library (#6978)
-- fix a crash when loading mzML data with multiple threads which contains non-MS spectra, e.g. 'electromagnetic radiation spectrum' (#7011)
+- Filter features in ProteomicsLFQ according to feature p-value (additional parameters feature_with(out)_id_min_score, MBR is automatically active if targeted_only = false)
+- TOPPAS: filter TOPP tools by name for faster access when building a pipeline (#7139)
+
+Fixes:
+- Fix a crash when loading mzML data with multiple threads which contains non-MS spectra, e.g. 'electromagnetic radiation spectrum' (#7011)
+- InternalCalibration: improve visualization of calibration plots (#7064)
+- Restore TOPPAS tutorial (#7076)
+- various low impact UBSan fixes
+- make mzData more robust against wrong 'length' attributes for binary data (#7113) 
+
+Misc:
+- Report reading/writing throughput (MiB/sec) when loading/storing mzML (#7035)
+- Add ability to create decoy features in FeatureFinderIdentification
+- Restore developer quick guide in Doxygen docu - see https://openms.de/current_doxygen/html/index.html (#7109)
+- Updated the changelog helper to set LD_LIBRARY_PATH automatically and other fixes
+- Added "area" column to EICextractor output
 
 Cleanup of old/unused tools and code:
 - Removed old tools and associated code in the library for InclusionExclusionListCreator, SvmTheoreticalSpectrumGenerator, PrecursorIonSelector, and MSSimulator
@@ -32,6 +61,7 @@ Cleanup of old/unused tools and code:
 - Removed CompNovoAdapter and library code
 - Removed simplistic evaluation tools FFEval, LabeledEval, TransformationEvaluation
 - Removed EnzymaticDigestionLogModel
+- Removed FidoAdapter (same functionality now in our own inference engines)
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.0     (released 7/2023)                  ----
