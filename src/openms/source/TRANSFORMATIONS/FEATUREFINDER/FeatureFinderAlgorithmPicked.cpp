@@ -123,9 +123,9 @@ namespace OpenMS
     defaults_.setMinFloat("user-seed:min_score", 0.0);
     defaults_.setMaxFloat("user-seed:min_score", 1.0);
     defaults_.setSectionDescription("user-seed", "Settings for user-specified seeds.");
-    //debug settings
-    defaults_.setValue("debug:pseudo_rt_shift", 500.0, "Pseudo RT shift used when .", {"advanced"});
-    defaults_.setMinFloat("debug:pseudo_rt_shift", 1.0);
+    //advanced/debugging settings
+    defaults_.setValue("advanced:pseudo_rt_shift", 500.0, "Pseudo RT shift used when .", {"advanced"});
+    defaults_.setMinFloat("advanced:pseudo_rt_shift", 1.0);
     this->defaultsToParam_();
   }
 
