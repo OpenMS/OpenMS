@@ -6,8 +6,7 @@
 // $Authors:  Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
@@ -167,12 +166,11 @@ protected:
     options.setIntensityRange({std::numeric_limits<RP_TYPE>::min(), RP_TYPE::maxPositive()});
 
     // reading input data
-    MzMLFile f;
+    FileHandler f;
     f.getOptions() = options;
-    f.setLogType(log_type_);
 
     PeakMap exp;
-    f.load(in, exp);
+    f.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
     exp.updateRanges();
 
     if (exp.getSpectra().empty())
@@ -195,7 +193,7 @@ protected:
     FeatureMap seeds;
     if (!getStringOption_("seeds").empty())
     {
-      FeatureXMLFile().load(getStringOption_("seeds"), seeds);
+      FileHandler().loadFeatures(getStringOption_("seeds"), seeds, {FileTypes::FEATUREXML});
     }
 
     //setup of FeatureFinder
@@ -249,7 +247,7 @@ protected:
     addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
 
     // write features to user specified output file
-    FeatureXMLFile map_file;
+    FileHandler map_file;
 
     // Remove detailed convex hull information and subordinate features
     // (unless requested otherwise) to reduce file size of feature files
@@ -267,7 +265,7 @@ protected:
       }
     }
 
-    map_file.store(out, features);
+    map_file.storeFeatures(out, features, {FileTypes::FEATUREXML});
 
     if (!out_mzq.trim().empty())
     {
@@ -278,8 +276,8 @@ protected:
       }
       MSQuantifications msq(features, exp.getExperimentalSettings(), tmp );
       msq.assignUIDs();
-      MzQuantMLFile file;
-      file.store(out_mzq, msq);
+      FileHandler file;
+      file.storeQuantifications(out_mzq, msq, {FileTypes::MZQUANTML});
     }
 
     return EXECUTION_OK;

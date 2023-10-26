@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/DATA/DATA/Development/OpenMS/src/tests/topp/OpenPepXL_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2,3,4,5,6,7,8" enzyme="trypsin" missed_cleavages="3" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.2" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="/home/samuel/git/OpenMS/src/tests/topp/OpenPepXL_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2,3,4,5,6,7,8" enzyme="trypsin" missed_cleavages="3" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.2" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
-				<UserParam type="string" name="input_consensusXML" value="/DATA/DATA/Development/OpenMS/src/tests/topp/OpenPepXL_input.consensusXML"/>
-				<UserParam type="string" name="input_mzML" value="/DATA/DATA/Development/OpenMS/src/tests/topp/OpenPepXL_input.mzML"/>
+				<UserParam type="string" name="input_consensusXML" value="/home/samuel/git/OpenMS/src/tests/topp/OpenPepXL_input.consensusXML"/>
+				<UserParam type="string" name="input_mzML" value="/home/samuel/git/OpenMS/src/tests/topp/OpenPepXL_input.mzML"/>
 				<UserParam type="string" name="input_decoys" value=""/>
-				<UserParam type="string" name="out_xquest_specxml" value="OpenPepXL_output.spec.xml.tmp"/>
+				<UserParam type="string" name="out_xquest_specxml" value="OpenPepXL_output.tmp.spec.xml"/>
 				<UserParam type="int" name="decoy_prefix" value="1"/>
 				<UserParam type="string" name="decoy_string" value="decoy_"/>
 				<UserParam type="int" name="precursor:min_charge" value="2"/>
@@ -26,7 +26,7 @@
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 				<UserParam type="string" name="extra_features" value="precursor_mz_error_ppm,OpenPepXL:score,isotope_error,OpenPepXL:xquest_score,OpenPepXL:xcorr xlink,OpenPepXL:xcorr common,OpenPepXL:match-odds,OpenPepXL:intsum,OpenPepXL:wTIC,OpenPepXL:TIC,OpenPepXL:prescore,OpenPepXL:log_occupancy,OpenPepXL:log_occupancy_alpha,OpenPepXL:log_occupancy_beta,matched_xlink_alpha,matched_xlink_beta,matched_linear_alpha,matched_linear_beta,ppm_error_abs_sum_linear_alpha,ppm_error_abs_sum_linear_beta,ppm_error_abs_sum_xlinks_alpha,ppm_error_abs_sum_xlinks_beta,ppm_error_abs_sum_linear,ppm_error_abs_sum_xlinks,ppm_error_abs_sum_alpha,ppm_error_abs_sum_beta,ppm_error_abs_sum,precursor_total_intensity,precursor_target_intensity,precursor_signal_proportion,precursor_target_peak_count,precursor_residual_peak_count"/>
 	</SearchParameters>
-	<IdentificationRun date="2022-04-09T20:17:38" search_engine="OpenPepXL" search_engine_version="3.0.0-pre-fix-OpenPepXL-OMS-com-2022-04-09" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2023-03-22T14:19:34" search_engine="OpenPepXL" search_engine_version="3.0.0-pre-Feature-GenericFileLoad-2023-03-22" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="OpenPepXL_Protein_Score" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>

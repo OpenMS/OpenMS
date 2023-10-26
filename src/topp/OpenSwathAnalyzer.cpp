@@ -11,11 +11,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -160,10 +156,9 @@ protected:
     TransformationDescription trafo;
     if (!trafo_in.empty())
     {
-      TransformationXMLFile trafoxml;
       String model_type = getStringOption_("model:type");
       Param model_params = getParam_().copy("model:", true);
-      trafoxml.load(trafo_in, trafo);
+      FileHandler().loadTransformations(trafo_in, trafo, true, {FileTypes::TRANSFORMATIONXML});
       trafo.fitModel(model_type, model_params);
     }
 
@@ -173,23 +168,13 @@ protected:
     boost::shared_ptr<MapType> exp (new MapType());
     FeatureMap out_featureFile;
     OpenSwath::LightTargetedExperiment transition_exp;
-
     std::cout << "Loading TraML file" << std::endl;
     {
-      TargetedExperiment *transition_exp__ = new TargetedExperiment();
-      TargetedExperiment &transition_exp_ = *transition_exp__;
-      {
-        TraMLFile *t = new TraMLFile;
-        t->load(tr_file, transition_exp_);
-        delete t;
-      }
-      OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
-      delete transition_exp__;
+      TargetedExperiment transitions_exp_tmp;
+      FileHandler().loadTransitions(tr_file, transitions_exp_tmp, {FileTypes::TRAML});
+      OpenSwathDataAccessHelper::convertTargetedExp(transitions_exp_tmp, transition_exp);
     }
-
-    MzMLFile mzmlfile;
-    mzmlfile.setLogType(log_type_);
-    mzmlfile.load(in, *exp.get());
+    FileHandler().loadExperiment(in, *exp.get(), {FileTypes::MZML}, log_type_);
 
     // If there are no SWATH files, it's just regular SRM/MRM Scoring
     if (file_list.empty())
@@ -205,7 +190,7 @@ protected:
                                    transition_exp, trafo, empty_maps, transition_group_map);
       out_featureFile.ensureUniqueId();
       addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));
-      FeatureXMLFile().store(out, out_featureFile);
+      FileHandler().storeFeatures(out, out_featureFile, {FileTypes::FEATUREXML});
       return EXECUTION_OK;
     }
 
@@ -217,18 +202,14 @@ protected:
     for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
     {
       MRMFeatureFinderScoring featureFinder;
-      MzMLFile swath_file;
       boost::shared_ptr<MapType> swath_map (new MapType());
       FeatureMap featureFile;
       cout << "Loading file " << file_list[i] << endl;
 
-////#ifndef _OPENMP
       // no progress log on the console in parallel
-      swath_file.setLogType(log_type_);
       featureFinder.setLogType(log_type_);
-//#endif
 
-      swath_file.load(file_list[i], *swath_map.get());
+      FileHandler().loadExperiment(file_list[i], *swath_map.get(), {FileTypes::MZML}, log_type_);
 
       // Logging and output to the console
 #ifdef _OPENMP
@@ -278,7 +259,7 @@ protected:
 
     addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));
     out_featureFile.ensureUniqueId();
-    FeatureXMLFile().store(out, out_featureFile);
+    FileHandler().storeFeatures(out, out_featureFile, {FileTypes::FEATUREXML});
 
     return EXECUTION_OK;
   }

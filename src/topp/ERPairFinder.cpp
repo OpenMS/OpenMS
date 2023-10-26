@@ -6,13 +6,11 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <map>
@@ -159,7 +157,7 @@ protected:
     //-------------------------------------------------------------
 
     PeakMap exp;
-    MzMLFile().load(in, exp);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML});
     exp.sortSpectra();
     exp.updateRanges();
 
@@ -310,8 +308,8 @@ protected:
 
         if (debug > 9)
         {
-          MzMLFile().store(String(it->getRT()) + "_debugging_light.mzML", new_exp_light);
-          MzMLFile().store(String(it->getRT()) + "_debugging_heavy.mzML", new_exp_heavy);
+          FileHandler().storeExperiment(String(it->getRT()) + "_debugging_light.mzML", new_exp_light, {FileTypes::MZML});
+          FileHandler().storeExperiment(String(it->getRT()) + "_debugging_heavy.mzML", new_exp_heavy, {FileTypes::MZML});
         }
 
         writeDebug_("Spectrum-id: " + it->getNativeID() + " @ " + String(it->getRT()) + "s", 1);
@@ -423,11 +421,11 @@ protected:
     if (!feature_out.empty())
     {
       all_features.setPrimaryMSRunPath({in}, exp);
-      FeatureXMLFile().store(feature_out, all_features);
+      FileHandler().storeFeatures(feature_out, all_features, {FileTypes::FEATUREXML});
     }
     writeDebug_("Writing output", 1);
     results_map.setPrimaryMSRunPath({in}, exp);
-    ConsensusXMLFile().store(out, results_map);
+    FileHandler().storeConsensusFeatures(out, results_map, {FileTypes::CONSENSUSXML});
 
     return EXECUTION_OK;
   }

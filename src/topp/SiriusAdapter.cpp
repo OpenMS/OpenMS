@@ -16,7 +16,7 @@
 #include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QDebug>
@@ -168,9 +168,7 @@ protected:
     // Calculations
     //-------------------------------------------------------------
     MSExperiment spectra;
-    MzMLFile f;
-    f.setLogType(log_type_);
-    f.load(in, spectra);
+    FileHandler().loadExperiment(in, spectra, {FileTypes::MZML}, log_type_);
 
     // make temporary files
     SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects sirius_tmp(debug_level_);
@@ -243,7 +241,7 @@ protected:
       // use 0.0 to not have a score_threshold
       annotations.setSpectra(SiriusFragmentAnnotation::extractSiriusAnnotationsTgtOnly(subdirs, score_threshold, use_exact_mass, false));
       // TODO check if we have duplicate native IDs without resolution and if this is a problem
-      MzMLFile().store(out_ann_spectra, annotations);
+      FileHandler().storeExperiment(out_ann_spectra, annotations, {FileTypes::MZML}, log_type_);
 
       // TODO remove the following or use it to add more info to the spectra
       // combine compound information (SiriusMSFile) with annotated spectra (SiriusFragmentAnnotation)

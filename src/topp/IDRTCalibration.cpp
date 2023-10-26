@@ -6,7 +6,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -132,11 +132,10 @@ protected:
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-    IdXMLFile file;
+    FileHandler file;
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;
-    String document_id;
-    file.load(in_file, protein_identifications, identifications, document_id);
+    file.loadIdentifications(in_file, protein_identifications, identifications, {FileTypes::IDXML});
 
     for (Size i = 0; i < identifications.size(); ++i)
     {
@@ -153,9 +152,9 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    file.store(out_file,
+    file.storeIdentifications(out_file,
                protein_identifications,
-               identifications);
+               identifications, {FileTypes::IDXML});
 
     return EXECUTION_OK;
   }

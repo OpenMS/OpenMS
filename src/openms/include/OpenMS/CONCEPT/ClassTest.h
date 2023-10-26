@@ -47,9 +47,9 @@ namespace OpenMS
       bool OPENMS_DLLAPI
       validate(const std::vector<std::string>& file_names);
 
-      /// Creates a temporary file name from the test name and the line
+      /// Creates a temporary file name from the test name and the line with the specified extension
       std::string OPENMS_DLLAPI
-      tmpFileName(const std::string& file, int line);
+      createTmpFileName(const std::string& file, int line, const std::string& extension = "");
 
       /// This overload returns true; @c float is a floating point type.
       inline bool OPENMS_DLLAPI
@@ -991,25 +991,15 @@ namespace TEST = OpenMS::Internal::ClassTest;
  line 268.  All temporary files are deleted if #END_TEST is called.  @param
  filename string will contain the filename on completion of the macro.
 
- All temporary files are validated using the XML schema,if the type of file
- can be determined by FileHandler. Therefore for each file written in a test
- NEW_TMP_FILE should be called. Otherwise only the last written file is checked.
+ There is a version that defines the extension and one that uses tmp.
 
  @hideinitializer
  */
-#define NEW_TMP_FILE(filename)                                                            \
-  {                                                                                       \
-    filename = TEST::tmpFileName(__FILE__, __LINE__);                                     \
-    TEST::tmp_file_list.push_back(filename);                                              \
-    {                                                                                     \
-      TEST::initialNewline();                                                             \
-      stdcout << "    creating new temporary filename '"                                  \
-                << filename                                                               \
-                << "' (line "                                                             \
-                << __LINE__                                                               \
-                << ")\n";                                                                 \
-    }                                                                                     \
-  }
+#define NEW_TMP_FILE_EXT(filename, extension) filename = TEST::createTmpFileName(__FILE__, __LINE__, extension);
+
+
+#define NEW_TMP_FILE(filename) filename = TEST::createTmpFileName(__FILE__, __LINE__);
+
 
 /** @brief Skip the remainder of the current subtest.
 
