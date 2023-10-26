@@ -273,7 +273,7 @@ fh.storeExperiment(filename, exp, {FileTypes::MZML}, ProgressLogger::NONE);
 TEST_EQUAL(fh.getTypeByContent(filename), FileTypes::MZML)
 
 //Test that we throw an exception when given a bogus type restriction
-TEST_EXCEPTION(Exception::UnableToCreateFile, fh.storeExperiment(filename, exp, {FileTypes::SIZE_OF_TYPE}))
+TEST_EXCEPTION(Exception::InvalidFileType, fh.storeExperiment(filename, exp, {FileTypes::SIZE_OF_TYPE}))
 
 //other types cannot be tested, because the NEW_TMP_FILE template does not support file extensions...
 END_SECTION
