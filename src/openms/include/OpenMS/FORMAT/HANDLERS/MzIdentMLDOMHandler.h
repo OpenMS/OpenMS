@@ -114,6 +114,8 @@ protected:
 
       /**@name Helper functions to build the internal id structures from the DOM tree */
       //@{
+
+      /// First: CVparams, Second: userParams (independent of each other)
       std::pair<CVTermList, std::map<String, DataValue> > parseParamGroup_(xercesc::DOMNodeList* paramGroup);
       CVTerm parseCvParam_(xercesc::DOMElement* param);
       std::pair<String, DataValue> parseUserParam_(xercesc::DOMElement* param);

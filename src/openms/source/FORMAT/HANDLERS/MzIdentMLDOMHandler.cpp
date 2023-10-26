@@ -482,8 +482,8 @@ namespace OpenMS::Internal
 
     pair<CVTermList, map<String, DataValue> > MzIdentMLDOMHandler::parseParamGroup_(DOMNodeList* paramGroup)
     {
-      CVTermList ret_cv;
-      map<String, DataValue> ret_up;
+      CVTermList ret_cv;             // cvParam
+      map<String, DataValue> ret_up; // userParam
       const  XMLSize_t cv_node_count = paramGroup->getLength();
       for (XMLSize_t cvi = 0; cvi < cv_node_count; ++cvi)
       {
@@ -502,6 +502,7 @@ namespace OpenMS::Internal
           }
           else if (XMLString::equals(element_param->getTagName(), CONST_XMLCH("PeptideEvidence"))
                   || XMLString::equals(element_param->getTagName(), CONST_XMLCH("PeptideEvidenceRef"))
+                  || XMLString::equals(element_param->getTagName(), CONST_XMLCH("Fragmentation"))
                   || XMLString::equals(element_param->getTagName(), CONST_XMLCH("SpectrumIdentificationItem")))
           {
             //here it's okay to do nothing
@@ -1216,7 +1217,7 @@ namespace OpenMS::Internal
             DateTime releaseDate;
 //            releaseDate.set(StringManager::convert(element_in->getAttribute(CONST_XMLCH("releaseDate"))));
             String version = StringManager::convert(element_in->getAttribute(CONST_XMLCH("version")));
-            String dbname = "";
+            String dbname;
             DOMElement* element_dbn = element_in->getFirstElementChild();
             while (element_dbn)
             {
