@@ -36,9 +36,9 @@ int main(int argc, const char** argv)
   FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_Spectrum1D.dta", map);
 
   // if we want to allow all types that can store MS2 data we can do the following:
-  FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_FileIO.mzXML", map, FileTypeList::typesWithProperties({FileTypes::FileProperties::PROVIDES_MS2}));
+  FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_FileIO.mzXML", map, FileTypeList::typesWithProperties({FileTypes::FileProperties::PROVIDES_EXPERIMENT}));
   // The curly braces can contain multiple file properties. The FileTypeList that is created is the intersection of these properties
-  // so: FileTypeList::typesWithProperties({FileTypes::FileProperties::PROVIDES_MS1, FileTypes::FileProperties::PROVIDES_MS2})
+  // so: FileTypeList::typesWithProperties({FileTypes::FileProperties::PROVIDES_EXPERIMENT, FileTypes::FileProperties::READABLE})
   // returns only fileTypes which can store both MS1 and MS2 spectra
 
   // We use various FileHandler functions to load other types.
