@@ -14,6 +14,7 @@ set(sources_list_h
     Qscore.h
 	Qvalue.h
 	TopDownIsobaricQuantifier.h
+	TopDownTagger.h
     )
 
 ### add path to the filenames

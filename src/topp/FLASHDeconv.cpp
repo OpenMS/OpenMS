@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/TopDownTagger.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
@@ -125,7 +126,30 @@ protected:
     registerDoubleOption_("max_rt", "<RT value>", -1.0, "If set to positive value, maximum RT (in second) to deconvolve.", false, true);
 
     Param combined;
-    combined.insert("", FLASHDeconvAlgorithm().getDefaults());
+    auto fd_param = FLASHDeconvAlgorithm().getDefaults();
+
+    fd_param.removeAll("sd:");
+    fd_param.removeAll("ft:");
+    fd_param.removeAll("iq:");
+    combined.insert("fd:", fd_param);
+
+    fd_param = FLASHDeconvAlgorithm().getDefaults();
+    combined.insert("", fd_param.copy("sd:", false));
+    combined.insert("", fd_param.copy("ft:", false));
+    combined.insert("", fd_param.copy("iq:", false));
+
+    auto tagger_param = TopDownTagger().getDefaults();
+    tagger_param.setValue("tol", DoubleList {}, "ppm tolerances for tag generation. If not set, sd:tol will be used.");
+    tagger_param.addTag("tol", "advanced");
+
+    combined.insert("tagger:", tagger_param);
+
+    combined.setSectionDescription("fd", "FLASHDeconv algorithm parameters (prefix fd:)");
+    combined.setSectionDescription("sd", "Spectral deconvolution parameters (prefix sd:)");
+    combined.setSectionDescription("ft", "Feature tracing parameters (prefix ft:)");
+    combined.setSectionDescription("iq", "Isobaric quantification parameters (prefix iq:)");
+    combined.setSectionDescription("tagger", "Tagger parameters (prefix tagger:)");
+
     registerFullParam_(combined);
   }
 
@@ -160,12 +184,22 @@ protected:
     std::map<uint, int> per_ms_level_deconv_spec_count;
     std::map<uint, int> per_ms_level_mass_count;
     FLASHDeconvAlgorithm fd;
-    Param fd_param = getParam_().copy("", true);
+    Param tmp_fd_param = getParam_().copy("fd:", true);
+    Param fd_param;
+    fd_param.insert("", tmp_fd_param);
+    bool report_decoy = (int)tmp_fd_param.getValue("report_FDR") > 0;
+    topFD_SNR_threshold = tmp_fd_param.getValue("ida_log").toString().empty()? topFD_SNR_threshold : 0;
 
+    tmp_fd_param = getParam_().copy("sd:", false);
+    fd_param.insert("", tmp_fd_param);
+    DoubleList tols = tmp_fd_param.getValue("sd:tol");
+
+    tmp_fd_param = getParam_().copy("ft:", false);
+    fd_param.insert("", tmp_fd_param);
+
+    tmp_fd_param = getParam_().copy("iq:", false);
+    fd_param.insert("", tmp_fd_param);
     fd.setParameters(fd_param);
-    bool report_decoy = (int)fd_param.getValue("report_FDR") > 0;
-    DoubleList tols = fd_param.getValue("deconv:tol");
-    topFD_SNR_threshold = fd_param.getValue("ida_log").toString().empty()? topFD_SNR_threshold : 0;
 
     //-------------------------------------------------------------
     // reading input
@@ -235,6 +269,27 @@ protected:
 
     OPENMS_LOG_INFO << "FLASHDeconv run complete. Now writing the results in output files ..." << endl;
 
+    // Run tagger
+    TopDownTagger tagger;
+    auto tagger_param = getParam_().copy("tagger:", true);
+    if (((DoubleList)tagger_param.getValue("tol")).empty())
+    {
+      tagger_param.setValue("tol", tols);
+    }
+    tagger.setParameters(tagger_param);
+
+    std::vector<std::string> tags;
+    for (auto& deconvolved_spectrum : deconvolved_spectra)
+    {
+      tagger.run(deconvolved_spectrum, tags);
+      for (auto& tag : tags)
+      {
+        std::cout<<tag<<std::endl;
+        std::reverse(tag.begin(), tag.end());
+        std::cout<< tag <<std::endl;
+      }
+      tags.clear();
+    }
     // Write output files
     // default feature deconvolution tsv output
     if (!deconvolved_features.empty())

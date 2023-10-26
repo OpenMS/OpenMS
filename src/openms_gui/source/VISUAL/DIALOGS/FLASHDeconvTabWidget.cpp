@@ -186,13 +186,13 @@ namespace OpenMS
       // optional FLASHIda support part
       if (ui->checkbox_readlogfile->isChecked())
       {
-        flashdeconv_output_tags_.push_back("algorithm:ida_log");
+        flashdeconv_output_tags_.push_back("fd:ida_log");
       }
     }
 
     void FLASHDeconvTabWidget::updateOutputParamFromPerInputFile(const QString& input_file_name)
     {
-      const Size max_ms_level = flashdeconv_param_.getValue("algorithm:max_MS_level");
+      const Size max_ms_level = flashdeconv_param_.getValue("fd:max_MS_level");
       std::string filepath_without_ext = getCurrentOutDir_().toStdString() + "/" + FileHandler::stripExtension(File::basename(input_file_name));
 
       for (const auto& param : flashdeconv_param_outputs_)
@@ -209,7 +209,7 @@ namespace OpenMS
           is_requested = true;
         }
 
-        if (tag == "out_mzml" || tag == "out_annotated_mzml" || tag == "out_quant" || tag == "algorithm:ida_log") //  params having string values //  params having string values
+        if (tag == "out_mzml" || tag == "out_annotated_mzml" || tag == "out_quant" || tag == "fd:ida_log") //  params having string values //  params having string values
         {
           // if not requested, set default value
           if (!is_requested)
@@ -293,7 +293,7 @@ namespace OpenMS
       flashdeconv_param_.remove("out");
 
       // parameters for different output format & ida_log
-      StringList out_params = {"out_spec", "out_annotated_mzml", "out_mzml", "out_quant", "out_msalign", "out_feature", "algorithm:ida_log"};
+      StringList out_params = {"out_spec", "out_annotated_mzml", "out_mzml", "out_quant", "out_msalign", "out_feature", "fd:ida_log"};
       for (const auto& name : out_params)
         flashdeconv_param_outputs_.setValue(name, ""); // create a dummy param, just so we can use ::copySubset
       flashdeconv_param_outputs_ = flashdeconv_param_.copySubset(flashdeconv_param_outputs_);

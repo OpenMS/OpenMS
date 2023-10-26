@@ -14,6 +14,7 @@ set(sources_list
     Qscore.cpp
 	Qvalue.cpp
 	TopDownIsobaricQuantifier.cpp
+	TopDownTagger.cpp
 	)
 
 ### add path to the filenames
