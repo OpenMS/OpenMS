@@ -109,7 +109,7 @@ class TOPPOpenPepXL :
 {
 public:
   TOPPOpenPepXL() :
-    TOPPBase("OpenPepXL", "Tool for protein-protein cross-linking identification using labeled linkers.", true)
+    TOPPBase("OpenPepXL", "Protein-protein cross-linking identification using labeled linkers.", true)
   {
   }
 

@@ -84,7 +84,7 @@ class TOPPGNPSExport : public TOPPBase
 public:
   TOPPGNPSExport() : TOPPBase(
     "GNPSExport",
-    "Tool to export representative consensus MS/MS scan per consensusElement into a .MGF file format.\nSee the documentation on https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking-with-openms",
+    "Export representative consensus MS/MS scan per consensusElement into a .MGF file format.\nSee the documentation on https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking-with-openms",
     true,
     {
       {
