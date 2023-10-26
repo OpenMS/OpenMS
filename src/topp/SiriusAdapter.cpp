@@ -74,7 +74,7 @@ class TOPPSiriusAdapter :
 {
  public:
   TOPPSiriusAdapter() :
-    TOPPBase("SiriusAdapter", "Tool for metabolite identification using single and tandem mass spectrometry", false,
+    TOPPBase("SiriusAdapter", "Metabolite identification using single and tandem mass spectrometry", false,
       {
         {"Kai Duehrkop and Sebastian Boecker",
          "Fragmentation trees reloaded",

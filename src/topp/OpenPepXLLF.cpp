@@ -100,7 +100,7 @@ class TOPPOpenPepXLLF :
 {
 public:
   TOPPOpenPepXLLF() :
-    TOPPBase("OpenPepXLLF", "Tool for protein-protein cross linking with label-free linkers.", true)
+    TOPPBase("OpenPepXLLF", "Protein-protein cross linking with label-free linkers.", true)
   {
   }
 

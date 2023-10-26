@@ -64,7 +64,7 @@ class TOPPIDRTCalibration :
 {
 public:
   TOPPIDRTCalibration() :
-    TOPPBase("IDRTCalibration", "Can be used to calibrate RTs of peptide hits linearly to standards.")
+    TOPPBase("IDRTCalibration", "Calibrate RTs of peptide hits linearly to standards.")
   {
 
   }

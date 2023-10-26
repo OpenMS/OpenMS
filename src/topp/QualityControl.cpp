@@ -85,7 +85,7 @@ class TOPPQualityControl : public TOPPBase
 {
 public:
   TOPPQualityControl()
-      : TOPPBase("QualityControl", "Computes various QC metrics from many possible input files (only the consensusXML is required). The more optional files you provide, the more metrics you get.", true)
+      : TOPPBase("QualityControl", "Computes various QC metrics.\nMany input formats are supported only the consensusXML is required.\nThe more optional files you provide, the more metrics you get.", true)
   {
   }
 protected:
