@@ -222,7 +222,7 @@ protected:
     registerIntOption_(TOPPMSFraggerAdapter::java_heapmemory, "<num>", 3500, "Maximum Java heap size (in MB)", false);
 
     // Handle executable
-    registerInputFile_(TOPPMSFraggerAdapter::executable, "<path_to_executable>", "MSFragger.jar", "Path to the MSFragger executable to use; may be empty if the executable is globally available.", false, false, {"is_executable"});
+    registerInputFile_(TOPPMSFraggerAdapter::executable, "<path_to_executable>", "MSFragger.jar", "Path to the MSFragger executable to use; may be empty if the executable is globally available.", true, false, {"is_executable"});
 
     // Input file
     registerInputFile_(TOPPMSFraggerAdapter::in, "<file>", "", "Input File with specta for MSFragger");
@@ -416,7 +416,7 @@ protected:
       }
 
       // input, output, database name
-      const String database = this->getStringOption_(TOPPMSFraggerAdapter::database);
+      const String database = File::absolutePath(this->getStringOption_(TOPPMSFraggerAdapter::database)); // the working dir will be a TMP-dir, so we need absolute paths
       input_file = (this->getStringOption_(TOPPMSFraggerAdapter::in)).toQString();
       output_file = this->getStringOption_(TOPPMSFraggerAdapter::out);
       optional_output_file = this->getStringOption_(TOPPMSFraggerAdapter::opt_out);
