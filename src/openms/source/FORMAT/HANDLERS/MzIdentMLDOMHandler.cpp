@@ -556,13 +556,15 @@ namespace OpenMS::Internal
         //      <userParam name="Mascot User Comment" value="Example Mascot MS-MS search for PSI mzIdentML"/>
         String name = StringManager::convert(param->getAttribute(CONST_XMLCH("name")));
         String value = StringManager::convert(param->getAttribute(CONST_XMLCH("value")));
+        bool has_value = param->hasAttribute(CONST_XMLCH("value"));
         String unitAcc = StringManager::convert(param->getAttribute(CONST_XMLCH("unitAccession")));
         String unitName = StringManager::convert(param->getAttribute(CONST_XMLCH("unitName")));
         String unitCvRef = StringManager::convert(param->getAttribute(CONST_XMLCH("unitCvRef")));
         String type = StringManager::convert(param->getAttribute(CONST_XMLCH("type")));
 
-        DataValue dv;
-
+        DataValue dv = DataValue::EMPTY;
+        if (has_value)
+        {
         if (type == "xsd:float" || type == "xsd:double")
         {
           try
@@ -589,6 +591,8 @@ namespace OpenMS::Internal
         {
           dv = value;
         }
+        }
+
 
         // Add unit *after* creating the term
         if (!unitAcc.empty())
@@ -1236,14 +1240,7 @@ namespace OpenMS::Internal
                     pair<String, DataValue> param = parseUserParam_(databasename_param);
                     // issue #7099: mzID might have missing "value" for this element
                     // in this case, just use the "name"
-                    if (param.second.isEmpty())
-                    {
-                        dbname = param.first;
-                    }
-                    else
-                    {
-                        dbname = param.second.toString();
-                    }
+                    dbname = param.second.isEmpty() ? dbname = param.first : param.second.toString();
                   }
                   databasename_param = databasename_param->getNextElementSibling();
                 }
@@ -1253,7 +1250,7 @@ namespace OpenMS::Internal
             }
             if (dbname.empty())
             {
-              OPENMS_LOG_WARN << "No DatabaseName element found, use read in results at own risk." << endl;
+              OPENMS_LOG_WARN << "No DatabaseName element found, use results at own risk." << endl;
               dbname = "unknown";
             }
             DatabaseInput temp_struct = {dbname, location, version, releaseDate};
