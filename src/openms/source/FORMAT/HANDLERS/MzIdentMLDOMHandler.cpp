@@ -565,32 +565,32 @@ namespace OpenMS::Internal
         DataValue dv = DataValue::EMPTY;
         if (has_value)
         {
-        if (type == "xsd:float" || type == "xsd:double")
-        {
-          try
+          if (type == "xsd:float" || type == "xsd:double")
           {
-            dv = value.toDouble();
+            try
+            {
+              dv = value.toDouble();
+            }
+            catch (...)
+            {
+              OPENMS_LOG_ERROR << "Found float parameter not convertible to float type." << endl;
+            }
           }
-          catch (...)
+          else if (type == "xsd:int" || type == "xsd:unsignedInt")
           {
-            OPENMS_LOG_ERROR << "Found float parameter not convertible to float type." << endl;
+            try
+            {
+              dv = value.toInt();
+            }
+            catch (...)
+            {
+              OPENMS_LOG_ERROR << "Found integer parameter not convertible to integer type." << endl;
+            }
           }
-        }
-        else if (type == "xsd:int" || type == "xsd:unsignedInt")
-        {
-          try
+          else
           {
-            dv = value.toInt();
+            dv = value;
           }
-          catch (...)
-          {
-            OPENMS_LOG_ERROR << "Found integer parameter not convertible to integer type." << endl;
-          }
-        }
-        else
-        {
-          dv = value;
-        }
         }
 
 
@@ -1230,12 +1230,12 @@ namespace OpenMS::Internal
                 DOMElement* databasename_param = element_dbn->getFirstElementChild();
                 while (databasename_param)
                 {
-                  if (XMLString::equals(databasename_param->getTagName(),CONST_XMLCH("cvParam")))
+                  if (XMLString::equals(databasename_param->getTagName(), CONST_XMLCH("cvParam")))
                   {
                     CVTerm param = parseCvParam_(databasename_param);
                     dbname = param.getValue();
                   }
-                  else if (XMLString::equals(databasename_param->getTagName(),CONST_XMLCH("userParam")))
+                  else if (XMLString::equals(databasename_param->getTagName(), CONST_XMLCH("userParam")))
                   {
                     pair<String, DataValue> param = parseUserParam_(databasename_param);
                     // issue #7099: mzID might have missing "value" for this element
@@ -2030,7 +2030,7 @@ namespace OpenMS::Internal
       // TODO @all: where to store passThreshold value? set after score type eval in pass_threshold
 
       long double score = 0;
-      pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(spectrumIdentificationItemElement->getChildNodes());
+      const auto& [param_cv, param_user] = parseParamGroup_(spectrumIdentificationItemElement->getChildNodes());
       set<String> q_score_terms;
       set<String> e_score_terms,e_score_tmp;
       set<String> specific_score_terms;
@@ -2040,7 +2040,7 @@ namespace OpenMS::Internal
       e_score_terms.insert(e_score_tmp.begin(),e_score_tmp.end()); //E-value for peptides
       cv_.getAllChildTerms(specific_score_terms, "MS:1001143"); //search engine specific score for PSMs
       bool scoretype = false;
-      for (map<String, vector<OpenMS::CVTerm> >::const_iterator scoreit = params.first.getCVTerms().begin(); scoreit != params.first.getCVTerms().end(); ++scoreit)
+      for (map<String, vector<OpenMS::CVTerm>>::const_iterator scoreit = param_cv.getCVTerms().begin(); scoreit != param_cv.getCVTerms().end(); ++scoreit)
       {
         if (q_score_terms.find(scoreit->first) != q_score_terms.end() || scoreit->first == "MS:1002354")
         {
@@ -2081,25 +2081,25 @@ namespace OpenMS::Internal
       {
         //build the PeptideHit from a SpectrumIdentificationItem
         PeptideHit hit(score, rank, chargeState, pep_map_[peptide_ref]);
-        for (std::map<String, vector<CVTerm> >::const_iterator cvs = params.first.getCVTerms().begin(); cvs != params.first.getCVTerms().end(); ++cvs)
+        for (const auto& cvs : param_cv.getCVTerms())
         {
-          for (vector<CVTerm>::const_iterator cv = cvs->second.begin(); cv != cvs->second.end(); ++cv)
+          for (const auto& cv : cvs.second) // if the same accession occurred multiple times...
           {
-            if (cvs->first == "MS:1002540")
+            if (cvs.first == "MS:1002540")
             {
-              hit.setMetaValue(cvs->first, cv->getValue().toString());
+              hit.setMetaValue(cvs.first, cv.getValue().toString());
             }
-            else if (cvs->first == "MS:1001143") // this is the CV term "PSM-level search engine specific statistic" and it doesn't have a value
+            else if (cvs.first == "MS:1001143") // this is the CV term "PSM-level search engine specific statistic" and it doesn't have a value
             {
               continue;
             }
             else
-            {
-              hit.setMetaValue(cvs->first, cv->getValue().toString().toDouble());
+            { // value may be empty, e.g. <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+              hit.setMetaValue(cvs.first, cv.getValue()); // can deal with empty values
             }
           }
         }
-        for (map<String, DataValue>::const_iterator up = params.second.begin(); up != params.second.end(); ++up)
+        for (map<String, DataValue>::const_iterator up = param_user.begin(); up != param_user.end(); ++up)
         {
           hit.setMetaValue(up->first, up->second);
         }
