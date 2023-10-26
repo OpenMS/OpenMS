@@ -417,7 +417,7 @@ protected:
       }
 
       // input, output, database name
-      const String database = this->getStringOption_(TOPPMSFraggerAdapter::database);
+      const String database = File::absolutePath(this->getStringOption_(TOPPMSFraggerAdapter::database)); // the working dir will be a TMP-dir, so we need absolute paths
       input_file = (this->getStringOption_(TOPPMSFraggerAdapter::in)).toQString();
       output_file = this->getStringOption_(TOPPMSFraggerAdapter::out);
       optional_output_file = this->getStringOption_(TOPPMSFraggerAdapter::opt_out);
