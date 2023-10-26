@@ -12,6 +12,21 @@ Parameters - list of algorithm or TOPP tool parameters that changed in this rele
 PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 #<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit e.g. https://github.com/OpenMS/OpenMS/pull/XXXX (replace XXXX with number of interest) for details
 
+------------------------------------------------------------------------------------------
+----                                OpenMS 3.2     (in development)                   ----
+------------------------------------------------------------------------------------------
+
+What's new:
+- ...
+
+Fixes:
+- fix parsing of mzIdentML created by Mascot (#7153)
+
+Misc:
+- ...
+
+Cleanup/Removal:
+-
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.1     (released 10/2023)                 ----
