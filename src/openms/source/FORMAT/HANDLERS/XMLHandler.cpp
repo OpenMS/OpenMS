@@ -293,7 +293,18 @@ namespace OpenMS::Internal
                 }
                 break;
               
-              // todo: add bool
+              case ControlledVocabulary::CVTerm::XSD_BOOLEAN:
+                try
+                {
+                  cv_value = String(value).toLower();
+                  cv_value.toBool(); // only works if 'true' or 'false'
+                }
+                catch (Exception::ConversionError&)
+                {
+                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have a boolean value (true/false). The value is '" + value + "'.");
+                  return DataValue::EMPTY;
+                }
+                break;
 
               default:
                 warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' has the unknown value type '" +
