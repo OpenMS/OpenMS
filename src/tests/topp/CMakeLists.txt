@@ -772,10 +772,16 @@ set_tests_properties("TOPP_FileMerger_11_out1" PROPERTIES DEPENDS "TOPP_FileMerg
 
 #------------------------------------------------------------------------------
 # FLASHDeconv tests
-add_test("TOPP_FLASHDeconv_1" ${TOPP_BIN_PATH}/FLASHDeconv -test -in ${DATA_DIR_TOPP}/FLASHDeconv_sample_input.mzML -out FLASHDeconv_1.tmp)
+add_test("TOPP_FLASHDeconv_1" ${TOPP_BIN_PATH}/FLASHDeconv -test -in ${DATA_DIR_TOPP}/FLASHDeconv_sample_input.mzML -out FLASHDeconv_1.tsv)
 # Currently just testing if the tool runs
 # We cannot currently test the correctness of the tsv output
 # FuzzyDiff cannot give out tolerances/whitelist for tabular format outputs (.tsv)
+
+# test a mzML file with only MS2 and argument -out_spec: FLASHDeconv_2_spec1.tsv will only contain the header
+add_test("TOPP_FLASHDeconv_2" ${TOPP_BIN_PATH}/FLASHDeconv -test -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out FLASHDeconv_2.tsv -out_spec FLASHDeconv_2_spec1.tsv FLASHDeconv_2_spec2.tsv)
+
+# test a mzML file with 3 levels and test -out_topFD, -out_topFD_feature 
+add_test("TOPP_FLASHDeconv_3" ${TOPP_BIN_PATH}/FLASHDeconv -test -in ${DATA_DIR_TOPP}/MS3_nonHierarchical.mzML -out FLASHDeconv_3.tsv -out_spec FLASHDeconv_3_spec.csv FLASHDeconv_3_spec2.csv FLASHDeconv_3_spec3.csv -out_topFD FLASHDeconv_3_msalign1.txt FLASHDeconv_3_msalign2.txt FLASHDeconv_3_msalign3.txt -out_topFD_feature FLASHDeconv_3_feature1 FLASHDeconv_3_feature2 FLASHDeconv_3_feature3)
 
 #------------------------------------------------------------------------------
 # GNPSExport tests
