@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -192,6 +193,149 @@ namespace OpenMS::Internal
     void XMLHandler::setLoadDetail(const LOADDETAIL /*d*/)
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+
+    DataValue XMLHandler::cvParamToValue(const ControlledVocabulary& cv, const String& parent_tag, const String& accession, const String& name,
+                                         const String& value, const String& unit_accession) const
+    {
+      // the actual value stored in the CVParam
+      // we assume for now that it is a string value, we update the type later on
+      DataValue cv_value = value;
+
+      // Abort on unknown terms
+      if (!cv.exists(accession))
+      {
+        // in 'sample' several external CVs are used (Brenda, GO, ...). Do not warn then.
+        if (parent_tag != "sample")
+        {
+          warning(LOAD, String("Unknown cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          return DataValue::EMPTY;
+        }
+      }
+      else
+      {
+        const ControlledVocabulary::CVTerm& term = cv.getTerm(accession);
+
+        // check if term name and parsed name match
+        {
+          const String parsed_name = String(name).trim();
+          const String correct_name = String(term.name).trim();
+          if (parsed_name != correct_name)
+          {
+            warning(LOAD, String("Name of CV term not correct: '") + term.id + " - " + parsed_name + "' should be '" + correct_name + "'");
+          }
+        }
+        if (term.obsolete)
+        {
+          warning(LOAD, String("Obsolete CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "'.");
+        }
+        // values used in wrong places and wrong value types
+        if (!value.empty())
+        {
+          if (term.xref_type == ControlledVocabulary::CVTerm::NONE)
+          {
+            // Quality CV does not state value type :(
+            if (!accession.hasPrefix("PATO:"))
+            {
+              warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
+            }
+          }
+          else
+          {
+            switch (term.xref_type)
+            {
+              // string value can be anything
+              case ControlledVocabulary::CVTerm::XSD_STRING:
+                break;
+
+              // int value => try casting
+              case ControlledVocabulary::CVTerm::XSD_INTEGER:
+              case ControlledVocabulary::CVTerm::XSD_NEGATIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XSD_POSITIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XSD_NON_NEGATIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XSD_NON_POSITIVE_INTEGER:
+                try
+                {
+                  cv_value = value.toInt();
+                }
+                catch (Exception::ConversionError&)
+                {
+                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
+                  return DataValue::EMPTY;
+                }
+                break;
+
+              // double value => try casting
+              case ControlledVocabulary::CVTerm::XSD_DECIMAL:
+                try
+                {
+                  cv_value = value.toDouble();
+                }
+                catch (Exception::ConversionError&)
+                {
+                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
+                  return DataValue::EMPTY;
+                }
+                break;
+
+              // date string => try conversion
+              case ControlledVocabulary::CVTerm::XSD_DATE:
+                try
+                {
+                  DateTime tmp;
+                  tmp.set(value);
+                }
+                catch (Exception::ParseError&)
+                {
+                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
+                  return DataValue::EMPTY;
+                }
+                break;
+              
+              // todo: add bool
+
+              default:
+                warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' has the unknown value type '" +
+                                ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type) + "'.");
+                break;
+            }
+          }
+        }
+        // no value, although there should be a numerical value
+        else if (term.xref_type != ControlledVocabulary::CVTerm::NONE && term.xref_type != ControlledVocabulary::CVTerm::XSD_STRING && // should be numerical
+                 !cv.isChildOf(accession, "MS:1000513") // here the value type relates to the binary data array, not the 'value=' attribute!
+        )
+        {
+          warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
+          return DataValue::EMPTY;
+        }
+      }
+
+      if (!unit_accession.empty())
+      {
+        if (unit_accession.hasPrefix("UO:"))
+        {
+          cv_value.setUnit(unit_accession.suffix(unit_accession.size() - 3).toInt());
+          cv_value.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+        }
+        else if (unit_accession.hasPrefix("MS:"))
+        {
+          cv_value.setUnit(unit_accession.suffix(unit_accession.size() - 3).toInt());
+          cv_value.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
+        }
+        else
+        {
+          warning(LOAD, String("Unhandled unit '") + unit_accession + "' in tag '" + parent_tag + "'.");
+        }
+      }
+
+      return cv_value;
+    }
+
+    DataValue XMLHandler::cvParamToValue(const ControlledVocabulary& cv, const CVTerm& raw_term) const
+    {
+      return cvParamToValue(cv, "?", raw_term.getAccession(), raw_term.getName(), raw_term.getValue(), raw_term.getUnit().accession);
     }
 
     void XMLHandler::checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids) const
