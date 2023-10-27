@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-#include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/VISUAL/LayerDataBase.h>
@@ -25,8 +25,11 @@ Int main(int argc, const char** argv)
   QApplication app(argc, const_cast<char**>(argv));
 
   PeakMap exp;
-  exp.resize(1);
-  DTAFile().load(tutorial_data_path, exp[0]);
+  MSSpectrum spec;
+  // demonstrating how to load a single spectrum from file formats which only contain a single spec
+  // alternatively: use FileHandler().loadExperiment() if you need an experiment anyway
+  FileHandler().loadSpectrum(tutorial_data_path, spec, {FileTypes::DTA});
+  exp.addSpectrum(spec);
   LayerDataBase::ExperimentSharedPtrType exp_sptr(new PeakMap(exp));
   LayerDataBase::ODExperimentSharedPtrType on_disc_exp_sptr(new OnDiscMSExperiment());
   auto* widget = new Plot1DWidget(Param(), DIM::Y, nullptr);

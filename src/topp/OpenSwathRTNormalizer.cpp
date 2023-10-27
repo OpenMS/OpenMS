@@ -7,9 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
@@ -68,7 +66,7 @@ public:
 
   TOPPOpenSwathRTNormalizer() :
   TOPPBase("OpenSwathRTNormalizer",
-           "This tool will take a description of RT peptides and their normalized retention time to write out a transformation file on how to transform the RT space into the normalized space.",
+           "Generate a transformation file on how to transform the RT space into the normalized space given a description of RT peptides and their normalized retention time.",
            true)
   {
   }
@@ -157,7 +155,7 @@ protected:
     std::cout << "Loading TraML file" << std::endl;
     {
       TargetedExperiment transition_exp_;
-      TraMLFile().load(tr_file, transition_exp_);
+      FileHandler().loadTransitions(tr_file, transition_exp_, {FileTypes::TRAML});
       OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, targeted_exp);
     }
 
@@ -176,9 +174,6 @@ protected:
       PeptideRTMap[targeted_exp.getCompounds()[i].id] = targeted_exp.getCompounds()[i].rt; 
     }
 
-    MzMLFile f;
-    f.setLogType(log_type_);
-    TransformationXMLFile trafoxml;
     TransformationDescription trafo;
 
     // If we have a transformation file, trafo will transform the RT in the
@@ -188,7 +183,7 @@ protected:
     {
       String trafo_in = getStringOption_("rt_norm");
       String model_type = "linear"; //getStringOption_("model:type");
-      trafoxml.load(trafo_in, trafo);
+      FileHandler().loadTransformations(trafo_in, trafo, true, {FileTypes::TRANSFORMATIONXML});
     }
 
     ///////////////////////////////////
@@ -203,7 +198,7 @@ protected:
       boost::shared_ptr<MapType> xic_map (new MapType());
       FeatureMap featureFile;
       std::cout << "RT Normalization working on " << file_list[i] << std::endl;
-      f.load(file_list[i], *xic_map.get());
+      FileHandler().loadExperiment(file_list[i], *xic_map.get(), {FileTypes::MZML}, log_type_);
 
       // Initialize the featureFile and set its parameters (disable for example
       // the RT score since here do not know the RT transformation) 
@@ -292,7 +287,7 @@ protected:
     model_params.setValue("symmetric_regression", "false");
     String model_type = "linear";
     trafo_out.fitModel(model_type, model_params);
-    trafoxml.store(out, trafo_out);
+    FileHandler().storeTransformations(out, trafo_out, {FileTypes::TRANSFORMATIONXML});
 
     return EXECUTION_OK;
   }

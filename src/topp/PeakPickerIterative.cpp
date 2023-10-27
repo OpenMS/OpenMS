@@ -6,7 +6,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerIterative.h>
 
@@ -99,16 +99,14 @@ class TOPPPeakPickerIterative
 
     Param picker_param = getParam_().copy("algorithm:", true);
 
-    MzMLFile f;
-    f.setLogType(log_type_);
-    f.load(in,exp);
+    FileHandler().loadExperiment(in,exp, {FileTypes::MZML}, log_type_);
     PeakPickerIterative pp;
     pp.setParameters(picker_param);
     pp.setLogType(log_type_);
     pp.pickExperiment(exp, out_exp);
 
     addDataProcessing_(out_exp, getProcessingInfo_(DataProcessing::PEAK_PICKING));
-    f.store(out,out_exp); 
+    FileHandler().storeExperiment(out,out_exp, {FileTypes::MZML}, log_type_); 
 
     return EXECUTION_OK;
   }

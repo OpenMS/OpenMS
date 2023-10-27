@@ -13,10 +13,6 @@
 // Files
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
@@ -949,7 +945,7 @@ protected:
     {
       addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));
       out_featureFile.ensureUniqueId();
-      FeatureXMLFile().store(out, out_featureFile);
+      FileHandler().storeFeatures(out, out_featureFile, {FileTypes::FEATUREXML});
     }
 
     delete chromatogramConsumer;
