@@ -32,16 +32,14 @@ namespace OpenMS::Internal
     //TODO general id openms struct for overall parameter for one id run
     MzIdentMLDOMHandler::MzIdentMLDOMHandler(const vector<ProteinIdentification>& pro_id, const vector<PeptideIdentification>& pep_id, const String& version, const ProgressLogger& logger) :
       logger_(logger),
+      cv_(ControlledVocabulary::getPSIMSCV()),
       //~ ms_exp_(0),
-      pro_id_(nullptr),
-      pep_id_(nullptr),
       cpro_id_(&pro_id),
       cpep_id_(&pep_id),
       schema_version_(version),
       mzid_parser_()
     {
       unimod_.loadFromOBO("UNIMOD", File::find("/CV/unimod.obo"));
-      cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
 
       try
       {
@@ -65,16 +63,14 @@ namespace OpenMS::Internal
 
     MzIdentMLDOMHandler::MzIdentMLDOMHandler(vector<ProteinIdentification>& pro_id, vector<PeptideIdentification>& pep_id, const String& version, const ProgressLogger& logger) :
       logger_(logger),
+      cv_(ControlledVocabulary::getPSIMSCV()),
       //~ ms_exp_(0),
       pro_id_(&pro_id),
       pep_id_(&pep_id),
-      cpro_id_(nullptr),
-      cpep_id_(nullptr),
       schema_version_(version),
       mzid_parser_(),
       xl_ms_search_(false)
     {
-      cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
       unimod_.loadFromOBO("UNIMOD", File::find("/CV/unimod.obo"));
 
       try
@@ -93,7 +89,6 @@ namespace OpenMS::Internal
       xml_root_tag_ptr_ = XMLString::transcode("MzIdentML");
       xml_cvparam_tag_ptr_ = XMLString::transcode("cvParam");
       xml_name_attr_ptr_ = XMLString::transcode("name");
-
     }
 
     /*
@@ -135,6 +130,8 @@ namespace OpenMS::Internal
     {
       // Test to see if the file is ok.
       struct stat fileStatus;
+
+      xml_handler_ = make_unique<XMLHandler>(mzid_file, schema_version_);
 
       errno = 0;
       if (stat(mzid_file.c_str(), &fileStatus) == -1) // ==0 ok; ==-1 error
@@ -304,6 +301,8 @@ namespace OpenMS::Internal
 
     void MzIdentMLDOMHandler::writeMzIdentMLFile(const std::string& mzid_file)
     {
+      xml_handler_ = make_unique<XMLHandler>(mzid_file, schema_version_);
+
       DOMImplementation* impl =  DOMImplementationRegistry::getDOMImplementation(CONST_XMLCH("XML 1.0")); //XML 3?!
       if (impl != nullptr)
       {
@@ -565,34 +564,8 @@ namespace OpenMS::Internal
         DataValue dv = DataValue::EMPTY;
         if (has_value)
         {
-          if (type == "xsd:float" || type == "xsd:double")
-          {
-            try
-            {
-              dv = value.toDouble();
-            }
-            catch (...)
-            {
-              OPENMS_LOG_ERROR << "Found float parameter not convertible to float type." << endl;
-            }
-          }
-          else if (type == "xsd:int" || type == "xsd:unsignedInt")
-          {
-            try
-            {
-              dv = value.toInt();
-            }
-            catch (...)
-            {
-              OPENMS_LOG_ERROR << "Found integer parameter not convertible to integer type." << endl;
-            }
-          }
-          else
-          {
-            dv = value;
-          }
+          dv = XMLHandler::fromXSDString(type, value);
         }
-
 
         // Add unit *after* creating the term
         if (!unitAcc.empty())
@@ -1776,18 +1749,7 @@ namespace OpenMS::Internal
 
       for (Size i = 0; i < userParamNames_alpha.size(); ++i)
       {
-        if (userParamUnits_alpha[i] == "xsd:double")
-        {
-          ph_alpha.setMetaValue(userParamNames_alpha[i], userParamValues_alpha[i].toDouble());
-        }
-        else if (userParamUnits_alpha[i] == "xsd:integer")
-        {
-          ph_alpha.setMetaValue(userParamNames_alpha[i], userParamValues_alpha[i].toInt());
-        }
-        else
-        {
-          ph_alpha.setMetaValue(userParamNames_alpha[i], userParamValues_alpha[i]);
-        }
+        ph_alpha.setMetaValue(userParamNames_alpha[i], XMLHandler::fromXSDString(userParamUnits_alpha[i], userParamValues_alpha[i]));
       }
 
       ph_alpha.setPeakAnnotations(frag_annotations);
@@ -2095,7 +2057,8 @@ namespace OpenMS::Internal
             }
             else
             { // value may be empty, e.g. <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
-              hit.setMetaValue(cvs.first, cv.getValue()); // can deal with empty values
+              auto value = xml_handler_->cvParamToValue(cv_, cv);
+              hit.setMetaValue(cvs.first, value);
             }
           }
         }
