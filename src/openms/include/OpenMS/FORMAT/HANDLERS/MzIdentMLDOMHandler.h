@@ -8,15 +8,15 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/CVTermList.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
@@ -27,20 +27,19 @@
 #include <xercesc/dom/DOMNodeIterator.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
 #include <xercesc/dom/DOMText.hpp>
-#include <xercesc/util/OutOfMemoryException.hpp>
-#include <xercesc/util/XMLString.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/framework/LocalFileFormatTarget.hpp>
-
-#include <xercesc/parsers/XercesDOMParser.hpp>
-#include <xercesc/util/XMLUni.hpp>
 #include <xercesc/framework/psvi/XSValue.hpp>
+#include <xercesc/parsers/XercesDOMParser.hpp>
+#include <xercesc/util/OutOfMemoryException.hpp>
+#include <xercesc/util/PlatformUtils.hpp>
+#include <xercesc/util/XMLString.hpp>
+#include <xercesc/util/XMLUni.hpp>
 
 #include <list>
-#include <string>
-#include <stdexcept>
-#include <vector>
 #include <map>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 // Error codes
 //enum {
@@ -97,14 +96,14 @@ protected:
       ControlledVocabulary unimod_;
 
       ///Internal +w Identification Item for proteins
-      std::vector<ProteinIdentification>* pro_id_;
+      std::vector<ProteinIdentification>* pro_id_ = nullptr;
       ///Internal +w Identification Item for peptides
-      std::vector<PeptideIdentification>* pep_id_;
+      std::vector<PeptideIdentification>* pep_id_ = nullptr;
 
       ///Internal -w Identification Item for proteins
-      const std::vector<ProteinIdentification>* cpro_id_;
+      const std::vector<ProteinIdentification>* cpro_id_ = nullptr;
       ///Internal -w Identification Item for peptides
-      const std::vector<PeptideIdentification>* cpep_id_;
+      const std::vector<PeptideIdentification>* cpep_id_ = nullptr;
 
       ///Internal version keeping
       const String schema_version_;
@@ -222,6 +221,8 @@ private:
       XMLCh* xml_name_attr_ptr_;
 
       xercesc::XercesDOMParser mzid_parser_;
+
+      std::unique_ptr<XMLHandler> xml_handler_ = nullptr;
 
       //from AnalysisSoftware
       String search_engine_;
