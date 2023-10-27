@@ -21,6 +21,8 @@ ConsensusMapMergerAlgorithm.h
 FalseDiscoveryRate.h
 FIAMSDataProcessor.h
 FIAMSScheduler.h
+FragmentIndexTD.h
+FragmentIndexTDScorer.h
 HiddenMarkovModel.h
 IDBoostGraph.h
 IDDecoyProbability.h
@@ -41,6 +43,8 @@ PercolatorFeatureSetHelper.h
 SimpleSearchEngineAlgorithm.h
 SiriusAdapterAlgorithm.h
 SiriusMSConverter.h
+TagGenerator.h
+TagGeneratorNode.h
 )
 
 ### add path to the filenames
