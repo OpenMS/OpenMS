@@ -23,8 +23,7 @@
 
 // file types
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
@@ -969,13 +968,12 @@ protected:
 
     // load MS2 map
     MSExperiment spectra;
-    MzMLFile f;
-    f.setLogType(log_type_);
+    FileHandler f;
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(2);
     f.setOptions(options);
-    f.load(in_mzml, spectra);
+    f.loadExperiment(in_mzml, spectra, {FileTypes::MZML}, log_type_);
     spectra.sortSpectra(true);
 
     // input file meta data:
@@ -1351,11 +1349,11 @@ protected:
 
     if (!exp_ms2_out.empty())
     {
-      MzMLFile().store(exp_ms2_out, exp_ms2_spectra);
+      FileHandler().storeExperiment(exp_ms2_out, exp_ms2_spectra, {FileTypes::MZML}, log_type_);
     }
     if (!theo_ms2_out.empty())
     {
-      MzMLFile().store(theo_ms2_out, theo_ms2_spectra);
+      FileHandler().storeExperiment(theo_ms2_out, theo_ms2_spectra, {FileTypes::MZML}, log_type_);
     }
 
     progresslogger.startProgress(0, 1, "post-processing search hits...");
@@ -1408,7 +1406,7 @@ protected:
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
       IdentificationDataConverter::exportIDs(id_data, proteins, peptides);
-      IdXMLFile().store(id_out, proteins, peptides);
+      FileHandler().storeIdentifications(id_out, proteins, peptides, {FileTypes::IDXML});
     }
 
     if (!lfq_out.empty())

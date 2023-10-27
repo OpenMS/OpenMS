@@ -5,8 +5,7 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MassTrace.h>
@@ -155,12 +154,11 @@ protected:
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    MzMLFile mz_data_file;
-    mz_data_file.setLogType(log_type_);
+    FileHandler mz_data_file;
     PeakMap ms_peakmap;
     std::vector<Int> ms_level(1, 1);
     mz_data_file.getOptions().setMSLevels(ms_level);
-    mz_data_file.load(in, ms_peakmap);
+    mz_data_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML}, log_type_);
 
     if (ms_peakmap.empty())
     {
@@ -310,7 +308,7 @@ protected:
                   out_exp.addChromatogram(feat_chromatograms[i][j]);
                 }
             }
-          MzMLFile().store(out_chrom, out_exp);
+          FileHandler().storeExperiment(out_chrom, out_exp, {FileTypes::MZML});
         }
         else
         {
@@ -354,9 +352,7 @@ protected:
       feat_map.setPrimaryMSRunPath({in}, ms_peakmap);
     }    
 
-    FeatureXMLFile feature_xml_file;
-    feature_xml_file.setLogType(log_type_);
-    feature_xml_file.store(out, feat_map);
+    FileHandler().storeFeatures(out, feat_map, {FileTypes::FEATUREXML});
   
     return EXECUTION_OK;
   }

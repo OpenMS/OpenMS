@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_17447818880105247092"
-	creationDate="2020-10-31T22:11:37">
+	creationDate="2023-03-22T15:52:24">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -12,12 +12,12 @@
 	<cv id="XLMOD" fullName="PSI cross-link modifications" uri="https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo"></cv>
 </cvList>
 <AnalysisSoftwareList>
-	<AnalysisSoftware version="2.6.0-pre-feature-OPXLLF-default-mods-2020-10-31" name="OpenPepXL" id="SOF_5233264595117471314">
+	<AnalysisSoftware version="3.0.0-pre-Feature-GenericFileLoad-2023-03-22" name="OpenPepXL" id="SOF_5233264595117471314">
 		<SoftwareName>
 			<cvParam accession="MS:1003023" cvRef="PSI-MS" name="OpenPepXL"/>
 		</SoftwareName>
 	</AnalysisSoftware>
-	<AnalysisSoftware version="OpenMS TOPP v2.6.0-pre-feature-OPXLLF-default-mods-2020-10-31" name="TOPP software" id="SOF_1003624456647096845">
+	<AnalysisSoftware version="OpenMS TOPP v3.0.0-pre-Feature-GenericFileLoad-2023-03-22" name="TOPP software" id="SOF_1003624456647096845">
 		<SoftwareName>
 			<cvParam accession="MS:1000752" cvRef="PSI-MS" name="TOPP software"/>
 		</SoftwareName>
@@ -98,7 +98,7 @@
 	<PeptideEvidence id="PEV_893904610286969204" peptide_ref="PEP_3823858840059792698" dBSequence_ref="PROT_13440783915218733453" post="E" pre="R" start="2478" end="2487" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2020-10-31T22:11:36">
+	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2023-03-22T15:52:22">
 		<InputSpectra spectraData_ref="SDAT_15004869347769368353"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_3332699010107892018"/>
 	</SpectrumIdentification>
@@ -111,9 +111,9 @@
 		<AdditionalSearchParams>
 
 			<cvParam accession="MS:1002494" cvRef="PSI-MS" name="cross-linking search"/>
-			<userParam name="input_mzML" unitName="xsd:string" value="/home/eugen/Desktop/DATA/Development/OpenMS/src/tests/topp/OpenPepXLLF_input.mzML"/>
+			<userParam name="input_mzML" unitName="xsd:string" value="/home/samuel/git/OpenMS/src/tests/topp/OpenPepXLLF_input.mzML"/>
 			<userParam name="input_decoys" unitName="xsd:string" value=""/>
-			<userParam name="out_xquest_specxml" unitName="xsd:string" value="OpenPepXLLF_output.spec.xml.tmp"/>
+			<userParam name="out_xquest_specxml" unitName="xsd:string" value="OpenPepXLLF_output.tmp.spec.xml"/>
 			<userParam name="decoy_prefix" unitName="xsd:integer" value="1"/>
 			<userParam name="decoy_string" unitName="xsd:string" value="decoy"/>
 			<userParam name="precursor:min_charge" unitName="xsd:integer" value="2"/>
@@ -161,12 +161,12 @@
 </AnalysisProtocolCollection>
 <DataCollection>
 	<Inputs>
-		<SearchDatabase location="/home/eugen/Desktop/DATA/Development/OpenMS/src/tests/topp/OpenPepXLLF_input.fasta" id="SDB_3332699010107892018">
+		<SearchDatabase location="/home/samuel/git/OpenMS/src/tests/topp/OpenPepXLLF_input.fasta" id="SDB_3332699010107892018">
 			<FileFormat>
 				<cvParam accession="MS:1001348" cvRef="PSI-MS" name="FASTA format"/>
 			</FileFormat>
 			<DatabaseName>
-				<userParam name="/home/eugen/Desktop/DATA/Development/OpenMS/src/tests/topp/OpenPepXLLF_input.fasta"/>
+				<userParam name="/home/samuel/git/OpenMS/src/tests/topp/OpenPepXLLF_input.fasta"/>
 			</DatabaseName>
 			<cvParam accession="MS:1001029" cvRef="PSI-MS" name="number of sequences searched" value="1547"/>
 		</SearchDatabase>
@@ -195,7 +195,7 @@
 <!-- userParam cross-link_ioncategory will contain a list of ion category corresponding to the indexed ion [xi|ci] -->
 			</FragmentationTable>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="controllerType=0 controllerNumber=1 scan=12254" id="SIR_15916652588957785155">
-				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_6408859317243173796" calculatedMassToCharge="876.126831995037833" experimentalMassToCharge="876.126953125" chargeState="3" id="SII_12999979801269632061">
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_6408859317243173796" calculatedMassToCharge="876.126831995037719" experimentalMassToCharge="876.126953125" chargeState="3" id="SII_12999979801269632061">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_474525871221756682"/>
 					<Fragmentation>
 						<IonType charge="1" index="10">
@@ -206,14 +206,14 @@
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="0.123665721777754"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="0.123665721772558"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="124"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="isotope_error" unitName="xsd:integer" value="0"/>
-					<userParam name="precursor_mz_error_ppm" unitName="xsd:double" value="0.138823940710363"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="0.123665721777754"/>
+					<userParam name="precursor_mz_error_ppm" unitName="xsd:double" value="0.138823940883576"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="0.123665721772558"/>
 					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="4.250335410565448"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="6.097560975609756e-03"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.021428571428571"/>
@@ -471,7 +471,7 @@
 
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="controllerType=0 controllerNumber=1 scan=7896" id="SIR_16177748921272733768">
-				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_1147219038608936718" calculatedMassToCharge="876.126831995037833" experimentalMassToCharge="876.79052734375" chargeState="3" id="SII_14509930621887606273">
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_1147219038608936718" calculatedMassToCharge="876.126831995037719" experimentalMassToCharge="876.79052734375" chargeState="3" id="SII_14509930621887606273">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_11115414975438642789"/>
 					<Fragmentation>
 						<IonType charge="2" index="17">
@@ -482,14 +482,14 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="0.030814500712501"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="0.030814500717698"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="89"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="isotope_error" unitName="xsd:integer" value="2"/>
-					<userParam name="precursor_mz_error_ppm" unitName="xsd:double" value="-5.950672505742553"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="0.030814500712501"/>
+					<userParam name="precursor_mz_error_ppm" unitName="xsd:double" value="-5.950672505569338"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="0.030814500717698"/>
 					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="6.837337449535137"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.018072289156627"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.021739130434783"/>
@@ -609,7 +609,7 @@
 
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="controllerType=0 controllerNumber=1 scan=9986" id="SIR_10052793688680741109">
-				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_14768204679546465715" calculatedMassToCharge="876.193926070296016" experimentalMassToCharge="876.445373535156023" chargeState="4" id="SII_15885522598119108466">
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_14768204679546465715" calculatedMassToCharge="876.193926070296129" experimentalMassToCharge="876.445373535156023" chargeState="4" id="SII_15885522598119108466">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_12156709473159629610"/>
 					<Fragmentation>
 						<IonType charge="1" index="7 14">
@@ -620,15 +620,15 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="0.21548369201134"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="0.215483692015237"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="15166508592180818156"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="115"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="isotope_error" unitName="xsd:integer" value="1"/>
-					<userParam name="precursor_mz_error_ppm" unitName="xsd:double" value="0.695571609584936"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="0.21548369201134"/>
+					<userParam name="precursor_mz_error_ppm" unitName="xsd:double" value="0.695571609455036"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="0.215483692015237"/>
 					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="7.735905651792681"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.036666666666667"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.043010752688172"/>
@@ -670,17 +670,17 @@
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4800.875100000000202" unitAccession="UO:0000010" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
-				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_3823858840059792698" calculatedMassToCharge="876.193926070296016" experimentalMassToCharge="876.445373535156023" chargeState="4" id="SII_14851350658635457156">
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_3823858840059792698" calculatedMassToCharge="876.193926070296129" experimentalMassToCharge="876.445373535156023" chargeState="4" id="SII_14851350658635457156">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_893904610286969204"/>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="0.21548369201134"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="0.215483692015237"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="15166508592180818156"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="115"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="isotope_error" unitName="xsd:integer" value="1"/>
-					<userParam name="precursor_mz_error_ppm" unitName="xsd:double" value="0.695571609584936"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="0.21548369201134"/>
+					<userParam name="precursor_mz_error_ppm" unitName="xsd:double" value="0.695571609455036"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="0.215483692015237"/>
 					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="7.735905651792681"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.036666666666667"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.043010752688172"/>

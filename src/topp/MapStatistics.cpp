@@ -9,8 +9,6 @@
 #include <OpenMS/config.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -197,12 +195,12 @@ protected:
 
     if (in_type == FileTypes::FEATUREXML) //features
     {
-      FeatureXMLFile().load(in, feat);
+      FileHandler().loadFeatures(in, feat, {FileTypes::FEATUREXML});
       feat.updateRanges();
     }
     else if (in_type == FileTypes::CONSENSUSXML)     //consensus features
     {
-      ConsensusXMLFile().load(in, cons);
+      FileHandler().loadConsensusFeatures(in, cons, {FileTypes::CONSENSUSXML});
       cons.updateRanges();
     }
 

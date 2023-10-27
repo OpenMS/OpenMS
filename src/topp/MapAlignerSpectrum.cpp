@@ -8,7 +8,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 using namespace OpenMS;
@@ -123,13 +123,12 @@ protected:
 
     // load input
     std::vector<PeakMap > peak_maps(ins.size());
-    MzMLFile f;
-    f.setLogType(log_type_);
+    FileHandler f;
     progresslogger.startProgress(0, ins.size(), "loading input files");
     for (Size i = 0; i < ins.size(); ++i)
     {
       progresslogger.setProgress(i);
-      f.load(ins[i], peak_maps[i]);
+      f.loadExperiment(ins[i], peak_maps[i], {FileTypes::MZML}, log_type_);
     }
     progresslogger.endProgress();
 
@@ -155,16 +154,15 @@ protected:
       addDataProcessing_(peak_maps[i], 
                          getProcessingInfo_(DataProcessing::ALIGNMENT));
 
-      f.store(outs[i], peak_maps[i]);
+      f.storeExperiment(outs[i], peak_maps[i],{FileTypes::MZML}, log_type_);
     }
     progresslogger.endProgress();
 
     if (!trafos.empty())
     {
-      TransformationXMLFile trafo_file;
       for (Size i = 0; i < transformations.size(); ++i)
       {
-        trafo_file.store(trafos[i], transformations[i]);
+        FileHandler().storeTransformations(trafos[i], transformations[i], {FileTypes::TRANSFORMATIONXML});
       }
     }
 

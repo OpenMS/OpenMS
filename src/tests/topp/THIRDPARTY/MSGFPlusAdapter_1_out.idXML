@@ -17,7 +17,7 @@
 				<UserParam type="string" name="Protocol" value="Standard"/>
 				<UserParam type="string" name="TargetDecoyApproach" value="false"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:in" value="C:/dev/openms/src/tests/topp/THIRDPARTY/spectra.mzML"/>
-				<UserParam type="string" name="MSGFPlusAdapter:1:out" value="MSGFPlusAdapter_1_out1.tmp"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:out" value="MSGFPlusAdapter_1_out1.tmp.idXML"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:mzid_out" value="MSGFPlusAdapter_1_out2.tmp.mzid"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:executable" value="C:/dev/THIRDPARTY_flat/MSGFPlus/MSGFPlus.jar"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:database" value="C:/dev/openms/src/tests/topp/THIRDPARTY/proteins.fasta"/>

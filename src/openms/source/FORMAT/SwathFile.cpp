@@ -12,6 +12,8 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataChainingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+//TODO remove MzML after we get transform support for our handlers
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
@@ -63,7 +65,7 @@ namespace OpenMS
 
       if (readoptions == "normal")
       {
-        MzMLFile().load(file_list[i], *exp.get());
+        FileHandler().loadExperiment(file_list[i], *exp.get(), {FileTypes::MZML});
         spectra_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
       }
       else if (readoptions == "cache")
@@ -196,10 +198,10 @@ namespace OpenMS
 
     startProgress(0, 1, "Loading metadata file " + file);
     boost::shared_ptr<PeakMap > experiment_metadata(new PeakMap);
-    MzXMLFile f;
+    FileHandler f;
     f.getOptions().setAlwaysAppendData(true);
     f.getOptions().setFillData(false);
-    f.load(file, *experiment_metadata);
+    f.loadExperiment(file, *experiment_metadata, {FileTypes::MZXML});
     exp_meta = experiment_metadata;
 
     // First pass through the file -> get the meta data
@@ -290,7 +292,7 @@ namespace OpenMS
     } // ensure that filestream gets closed
 
     boost::shared_ptr<PeakMap > exp(new PeakMap);
-    MzMLFile().load(meta_file, *exp.get());
+    FileHandler().loadExperiment(meta_file, *exp.get(), {FileTypes::MZML});
     return SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
   }
 
@@ -298,10 +300,10 @@ namespace OpenMS
   boost::shared_ptr< PeakMap > SwathFile::populateMetaData_(const String& file)
   {
     boost::shared_ptr<PeakMap > experiment_metadata(new PeakMap);
-    MzMLFile f;
+    FileHandler f;
     f.getOptions().setAlwaysAppendData(true);
     f.getOptions().setFillData(false);
-    f.load(file, *experiment_metadata);
+    f.loadExperiment(file, *experiment_metadata);
     return experiment_metadata;
   }
   /// Counts the number of scans in a full Swath file (e.g. concatenated non-split file)

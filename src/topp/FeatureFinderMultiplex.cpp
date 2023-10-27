@@ -15,8 +15,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
@@ -24,10 +23,6 @@
 #include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
-
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/MzQuantMLFile.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
@@ -151,8 +146,7 @@ public:
    */
   void writeFeatureMap_(const String& filename, FeatureMap& map) const
   {
-    FeatureXMLFile file;
-    file.store(filename, map);
+    FileHandler().storeFeatures(filename, map, {FileTypes::FEATUREXML});
   }
 
   /**
@@ -163,12 +157,11 @@ public:
    */
   void writeConsensusMap_(const String& filename, ConsensusMap& map) const
   {
-    ConsensusXMLFile file;
     for (auto & ch : map.getColumnHeaders())
     {
       ch.second.filename = getStringOption_("in");
     }
-    file.store(filename, map);
+    FileHandler().storeConsensusFeatures(filename, map, {FileTypes::CONSENSUSXML});
   }
 
   /**
@@ -179,8 +172,7 @@ public:
    */
   void writeBlacklist_(const String& filename, const MSExperiment& blacklist) const
   {
-    MzMLFile file;
-    file.store(filename, blacklist);
+    FileHandler().storeExperiment(filename, blacklist, {FileTypes::MZML});
   }
 
   /**
@@ -221,7 +213,7 @@ public:
     /**
      * load input
      */
-    MzMLFile file;
+    FileHandler file;
     MSExperiment exp;
 
     // only read MS1 spectra
@@ -230,8 +222,7 @@ public:
     file.getOptions().setMSLevels(levels);
 
     OPENMS_LOG_DEBUG << "Loading input..." << endl;
-    file.setLogType(log_type_);
-    file.load(in_, exp);
+    file.loadExperiment(in_, exp, {FileTypes::MZML}, log_type_);
 
     FeatureFinderMultiplexAlgorithm algorithm;
     // pass only relevant parameters to the algorithm and set the log type
