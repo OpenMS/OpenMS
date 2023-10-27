@@ -20,10 +20,12 @@ What's new:
 - ...
 
 Fixes:
-- fix parsing of mzIdentML created by Mascot (#7153)
+- more robust parsing of mzIdentML (#7153)
+- MSFragger: allow relative path to database (#7155)
+
 
 Misc:
-- ...
+- OpenMSInfo reports the ILP solver (CoinOr or glpk) (#7156)
 
 Cleanup/Removal:
 -
