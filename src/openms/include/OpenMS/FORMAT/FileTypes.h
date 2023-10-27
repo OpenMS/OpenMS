@@ -93,6 +93,22 @@ namespace OpenMS
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 
+    enum class FileProperties
+    {
+      READABLE,                     // SOMETHING in OpenMS can read this (it doesn't have to be in FileHandler though)
+      WRITEABLE,                    // SOMETHING in OpenMS can write this (it doesn't have to be in FileHandler though) 
+      PROVIDES_SPECTRUM,            // All of the PROVIDES_x properties correspond to which FileHandlers are implemented for a file type.
+      PROVIDES_EXPERIMENT,          // 
+      PROVIDES_FEATURES,            //
+      PROVIDES_CONSENSUSFEATURES,   //
+      PROVIDES_IDENTIFICATIONS,     //
+      PROVIDES_TRANSITIONS,         //
+      PROVIDES_QUANTIFICATIONS,     //
+      PROVIDES_TRANSFORMATIONS,     //
+      PROVIDES_QC,                  //
+      SIZE_OF_FILEPROPERTIES        // Not a property, just the number of 'em
+    };
+
     /// Returns the name/extension of the type.
     static String typeToName(Type type);
     
@@ -154,6 +170,16 @@ namespace OpenMS
       @throw Exception::ElementNotFound if the given @p filter is not a filter produced by toFileDialogFilter()
     **/
     FileTypes::Type fromFileDialogFilter(const String& filter, const FileTypes::Type fallback = FileTypes::Type::UNKNOWN) const;
+
+
+    /**
+      @brief Get a std::vector<FileTypes::Type> with all fileTypes that support a set of features.
+
+      
+      @param features A set of features that must be supported
+      @return A std::vector<FileTypes::Type> with the files that support features
+    **/
+    static std::vector<FileTypes::Type> typesWithProperties(const std::vector<FileTypes::FileProperties> features);
 
   private:
     /// hold filter items (for Qt dialogs) along with their OpenMS type

@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+// TODO remove needed here for transform
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
@@ -208,10 +210,8 @@ protected:
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    MzMLFile mz_data_file;
-    mz_data_file.setLogType(log_type_);
     PeakMap ms_exp_raw;
-    mz_data_file.load(in, ms_exp_raw);
+    FileHandler().loadExperiment(in, ms_exp_raw, {FileTypes::MZML}, log_type_);
 
     if (ms_exp_raw.empty() && ms_exp_raw.getChromatograms().empty())
     {
@@ -252,7 +252,7 @@ protected:
     //-------------------------------------------------------------
     //annotate output with data processing info
     addDataProcessing_(ms_exp_peaks, getProcessingInfo_(DataProcessing::PEAK_PICKING));
-    mz_data_file.store(out, ms_exp_peaks);
+    FileHandler().storeExperiment(out, ms_exp_peaks, {FileTypes::MZML});
 
     return EXECUTION_OK;
   }

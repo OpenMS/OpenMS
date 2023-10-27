@@ -14,6 +14,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
+
 ///////////////////////////
 
 START_TEST(FileHandler, "Id")
@@ -119,6 +120,24 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
   TEST_EQUAL(list.fromFileDialogFilter("bzip2 compressed file (*.bz2)", FileTypes::CONSENSUSXML), FileTypes::BZ2);
   TEST_EXCEPTION(Exception::ElementNotFound, list.fromFileDialogFilter("not a valid filter", FileTypes::CONSENSUSXML));
 
+  END_SECTION
+
+  START_SECTION(static FileTypes::FileTypeList typesWithProperties(const std::vector<FileProperties>& features))
+  {
+    std::vector<FileTypes::FileProperties> f;
+    f.push_back(FileTypes::FileProperties::READABLE);
+    FileTypeList g = FileTypeList::typesWithProperties(f);
+    TEST_EQUAL(g.getTypes().size(), 38);
+    // Test that empty filter returns the full list
+    TEST_EQUAL(FileTypeList::typesWithProperties({}).size(), 61);
+    // Test that the full list is equal to the list of known file types
+    TEST_EQUAL(FileTypeList::typesWithProperties({}).size(),static_cast<size_t>(FileTypes::Type::SIZE_OF_TYPE));
+    // Check that we don't have duplicate Types in our type_with_annotation__
+    vector<FileTypes::Type> vec = FileTypeList::typesWithProperties({});
+    sort(vec.begin(),vec.end());
+    auto it = std::unique(vec.begin(), vec.end());
+    TEST_TRUE(it ==vec.end());
+  }
   END_SECTION
 
 END_TEST

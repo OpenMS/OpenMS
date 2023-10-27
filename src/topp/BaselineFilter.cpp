@@ -9,7 +9,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -99,10 +99,8 @@ protected:
     // loading input
     //-------------------------------------------------------------
 
-    MzMLFile mz_data_file;
     PeakMap ms_exp;
-    mz_data_file.setLogType(log_type_);
-    mz_data_file.load(in, ms_exp);
+    FileHandler().loadExperiment(in, ms_exp, {FileTypes::MZML}, log_type_);
 
     if (ms_exp.empty())
     {
@@ -147,7 +145,7 @@ protected:
     //annotate output with data processing info
     addDataProcessing_(ms_exp, getProcessingInfo_(DataProcessing::BASELINE_REDUCTION));
 
-    mz_data_file.store(out, ms_exp);
+    FileHandler().storeExperiment(out, ms_exp, {FileTypes::MZML}, log_type_);
 
     return EXECUTION_OK;
   }

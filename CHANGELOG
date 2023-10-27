@@ -18,6 +18,8 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 
 What's new:
 - ...
+Library:
+- Extend FileHandler to support load and store operations for our major datastructures (spectra, features, identifications, etc.). Replaced file type specific code with the more generic FileHandler calls to decouple the IO code from other parts of the library.
 
 Fixes:
 - more robust parsing of mzIdentML (#7153)
@@ -111,7 +113,7 @@ e.g.
     Faster compile time (#6618)
     Improving code quality by fixing lots of linting warnings and leaks (e.g. #6839, #6831, #6829)
 
-Documentation
+Documentation:
 
     website redesign (visit openms.org)
     OpenMS user documentation is moved to openms.readthedocs.io/en/latest.

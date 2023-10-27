@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -89,7 +89,6 @@ protected:
 
   ExitCodes outputTo_(ostream& os)
   {
-    IdXMLFile idXML_file;
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;
     vector<FASTAFile::FASTAEntry> proteins;
@@ -114,7 +113,7 @@ protected:
     // reading input
     //-------------------------------------------------------------
     String document_id;
-    idXML_file.load(inputfile_name, protein_identifications, identifications, document_id);
+    FileHandler().loadIdentifications(inputfile_name, protein_identifications, identifications, {FileTypes::IDXML});
     FASTAFile().load(database_name, proteins);
 
     statistics.resize(proteins.size(), 0.);
