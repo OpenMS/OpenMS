@@ -5,7 +5,7 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Precursor.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <iostream>
 
@@ -21,10 +21,9 @@ int main(int argc, const char** argv)
   String tutorial_data_path(argv[1]);
   
   MSExperiment spectra;
-  MzMLFile f;
 
   // load mzML from code examples folder
-  f.load(tutorial_data_path + "/data/Tutorial_GaussFilter.mzML", spectra);
+  FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_GaussFilter.mzML", spectra);
 
   // iterate over map and output MS2 precursor information
   for (auto s_it = spectra.begin(); s_it != spectra.end(); ++s_it)

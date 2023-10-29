@@ -10,13 +10,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/QcMLFile.h>
-#include <OpenMS/FORMAT/MzQCFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
 using namespace OpenMS;
@@ -138,7 +132,7 @@ protected:
     // prepare input
     cout << "Reading mzML file..." << endl;
     MSExperiment exp;
-    MzMLFile().load(inputfile_name, exp);
+    FileHandler().loadExperiment(inputfile_name, exp, {FileTypes::MZML});
     exp.sortSpectra();
     exp.updateRanges();
 
@@ -146,7 +140,7 @@ protected:
     if (!inputfile_feature.empty())
     {
       cout << "Reading featureXML file..." << endl;
-      FeatureXMLFile().load(inputfile_feature, feature_map);
+      FileHandler().loadFeatures(inputfile_feature, feature_map, {FileTypes::FEATUREXML});
       feature_map.updateRanges();
       feature_map.sortByRT();
     }
@@ -155,7 +149,7 @@ protected:
     if (!inputfile_consensus.empty())
     {
       cout << "Reading consensusXML file..." << endl;
-      ConsensusXMLFile().load(inputfile_consensus, consensus_map);
+      FileHandler().loadConsensusFeatures(inputfile_consensus, consensus_map, {FileTypes::CONSENSUSXML});
     }
 
     vector<ProteinIdentification> prot_ids;
@@ -163,24 +157,14 @@ protected:
     if (!inputfile_id.empty())
     {
       cout << "Reading idXML file..." << endl;
-      IdXMLFile().load(inputfile_id, prot_ids, pep_ids);
+      FileHandler().loadIdentifications(inputfile_id, prot_ids, pep_ids, {FileTypes::IDXML});
     }
     
     // collect QC data and store according to output file extension
-    if (out_type == FileTypes::QCML) 
-    {
-      QcMLFile qcmlfile;
-      qcmlfile.collectQCData(prot_ids, pep_ids, feature_map,
-                    consensus_map, inputfile_name, remove_duplicate_features, exp);
-      qcmlfile.store(outputfile_name);
-    } 
-    else if (out_type == FileTypes::MZQC)
-    {
-      MzQCFile mzqcfile;
 
-      mzqcfile.store(inputfile_name, outputfile_name, exp, contact_name, contact_address,
-                     description, label, feature_map, prot_ids, pep_ids);
-    }
+    FileHandler().storeQC(inputfile_name, outputfile_name, exp, feature_map, prot_ids, pep_ids, consensus_map, contact_name, 
+    contact_address, description, label, remove_duplicate_features, {out_type});
+
 
     return EXECUTION_OK;
   }

@@ -6,7 +6,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FILTERING/CALIBRATION/TOFCalibration.h>
@@ -124,10 +124,9 @@ protected:
     // loading input
     //-------------------------------------------------------------
     PeakMap ms_exp_calib, ms_exp_raw;
-    MzMLFile mz_data_file;
-    mz_data_file.setLogType(log_type_);
-    mz_data_file.load(in_calib, ms_exp_calib);
-    mz_data_file.load(in, ms_exp_raw);
+    FileHandler mz_data_file;
+    mz_data_file.loadExperiment(in_calib, ms_exp_calib, {FileTypes::MZML}, log_type_);
+    mz_data_file.loadExperiment(in, ms_exp_raw, {FileTypes::MZML}, log_type_);
 
     vector<double> ref_masses;
     TextFile ref_file;
@@ -193,7 +192,7 @@ protected:
     //annotate output with data processing info
     addDataProcessing_(ms_exp_raw, getProcessingInfo_(DataProcessing::CALIBRATION));
 
-    mz_data_file.store(out, ms_exp_raw);
+    mz_data_file.storeExperiment(out, ms_exp_raw, {FileTypes::MZML}, log_type_);
 
     return EXECUTION_OK;
   }

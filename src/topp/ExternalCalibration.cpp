@@ -10,7 +10,7 @@
 
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
 
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <vector>
@@ -118,9 +118,7 @@ protected:
 
     // Raw data
     PeakMap exp;
-    MzMLFile mz_file;
-    mz_file.setLogType(log_type_);
-    mz_file.load(in, exp);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
     MZTrafoModel tm;
     tm.setCoefficients(offset, slope, power);
@@ -136,7 +134,7 @@ protected:
     //annotate output with data processing info
     addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CALIBRATION));
 
-    mz_file.store(out, exp);
+    FileHandler().storeExperiment(out, exp, {FileTypes::MZML}, log_type_);
 
     return EXECUTION_OK;
   }

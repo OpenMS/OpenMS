@@ -60,6 +60,7 @@ Source path  : C:/dev/openms/src/openms
 Binary path  : C:/dev/openms_build/src/openms
 Binary arch  : 64 bit
 Build type   : Release
+LP-Solver    : COIN-OR
 OpenMP       : enabled (maxThreads = 32)
 SIMD extensions : SSE, SSE2, SSE3, SSE4.1, AVX
 
@@ -116,6 +117,11 @@ protected:
     cout << "Binary path  : " << OPENMS_BINARY_PATH << "\n";
     cout << "Binary arch  : " << Internal::OpenMSOSInfo::getBinaryArchitecture() << "\n";
     cout << "Build type   : " << Internal::OpenMSBuildInfo::getBuildType() << "\n";
+#if COINOR_SOLVER == 1
+    cout << "LP-Solver    : COIN-OR\n";
+#else
+    cout << "LP-Solver    : GLPK\n";
+#endif
     #ifdef _OPENMP
     cout << "OpenMP       : " << "enabled (maxThreads = " << Internal::OpenMSBuildInfo::getOpenMPMaxNumThreads() << ")" << "\n";
     #else

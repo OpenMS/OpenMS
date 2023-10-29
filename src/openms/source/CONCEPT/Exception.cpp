@@ -225,6 +225,12 @@ namespace OpenMS
       GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
+    InvalidFileType::InvalidFileType(const char* file, int line, const char* function, const std::string& filename, const std::string& message) noexcept :
+      BaseException(file, line, function, "InvalidFileType", "the file '" + filename + "' could not be created because the type specified was not valid. " + message)
+    {
+      GlobalExceptionHandler::getInstance().setMessage(what());
+    }
+
     IllegalArgument::IllegalArgument(const char* file, int line, const char* function, const string& error_message) noexcept :
       BaseException(file, line, function, "IllegalArgument", error_message)
     {
