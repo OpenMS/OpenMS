@@ -15,7 +15,6 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/config.h>
@@ -164,18 +163,7 @@ protected:
     vector<ProteinIdentification> protein_ids;
     vector<PeptideIdentification> peptide_ids;
     FileTypes::Type in_type = FileHandler::getType(id);
-    if (in_type == FileTypes::IDXML)
-    {
-      IdXMLFile().load(id, protein_ids, peptide_ids);
-    }
-    else if (in_type == FileTypes::MZIDENTML)
-    {
-      MzIdentMLFile().load(id, protein_ids, peptide_ids);
-    }
-    else
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "wrong id fileformat");
-    }
+    FileHandler().loadIdentifications(id, protein_ids, peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
 
     String in = getStringOption_("in");
     String spectra = getStringOption_("spectra:in");
@@ -200,14 +188,14 @@ protected:
     if (in_type == FileTypes::CONSENSUSXML)
     {
       // OPENMS_LOG_DEBUG << "Processing consensus map..." << endl;
-      ConsensusXMLFile file;
+      FileHandler consensusFile;
       ConsensusMap map;
-      file.load(in, map);
+      consensusFile.loadConsensusFeatures(in, map, {FileTypes::CONSENSUSXML});
 
       PeakMap exp;
       if (!spectra.empty())
       {
-        MzMLFile().load(spectra, exp);
+        FileHandler().loadExperiment(spectra, exp, {FileTypes::MZML});
       }
 
       bool measure_from_subelements = getFlag_("consensus:use_subelements");
@@ -221,7 +209,7 @@ protected:
       // sort list of peptide identifications in each consensus feature by map index
       map.sortPeptideIdentificationsByMapIndex();
 
-      file.store(out, map);
+      consensusFile.storeConsensusFeatures(out, map, {FileTypes::CONSENSUSXML});
     }
 
     //----------------------------------------------------------------
@@ -231,14 +219,14 @@ protected:
     {
       // OPENMS_LOG_DEBUG << "Processing feature map..." << endl;
       FeatureMap map;
-      FeatureXMLFile file;
-      file.load(in, map);
+      FileHandler featureFile;
+      featureFile.loadFeatures(in, map, {FileTypes::FEATUREXML});
 
       PeakMap exp;
 
       if (!spectra.empty())
       {
-        MzMLFile().load(spectra, exp);
+        FileHandler().loadExperiment(spectra, exp, {FileTypes::MZML});
       }
 
       mapper.annotate(map, peptide_ids, protein_ids, (getStringOption_("feature:use_centroid_rt") == "true"), (getStringOption_("feature:use_centroid_mz") == "true"), exp);
@@ -246,7 +234,7 @@ protected:
       // annotate output with data processing info
       addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
 
-      file.store(out, map);
+      featureFile.storeFeatures(out, map, {FileTypes::FEATUREXML});
     }
 
     //----------------------------------------------------------------
@@ -254,10 +242,9 @@ protected:
     //----------------------------------------------------------------
     if (in_type == FileTypes::MZQUANTML)
     {
-      // OPENMS_LOG_DEBUG << "Processing mzq ..." << endl;
       MSQuantifications msq;
-      MzQuantMLFile file;
-      file.load(in, msq);
+      FileHandler quantFile;
+      quantFile.loadQuantifications(in, msq, {FileTypes::MZQUANTML});
 
       bool measure_from_subelements = getFlag_("consensus:use_subelements");
       for (ConsensusMap& cm : msq.getConsensusMaps())
@@ -266,14 +253,9 @@ protected:
         // annotate output with data processing info
         addDataProcessing_(cm, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
       }
-
-      //~ writeDebug_(msq.getConsensusMaps().size(),3);
-      //~ writeDebug_(msq.getConsensusMaps().back().size(),3);
-      //~ writeDebug_(msq.getAnalysisSummary().quant_type_,3);
-      file.store(out, msq);
+      quantFile.storeQuantifications(out, msq, {FileTypes::MZQUANTML});
     }
 
-    // OPENMS_LOG_DEBUG << "Done." << endl;
     return EXECUTION_OK;
   }
 };

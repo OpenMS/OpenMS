@@ -39,8 +39,6 @@ namespace OpenMS
   {
     // only change the path if we need to, otherwise low and upper case might be altered by Qt, making comparison in tests more tricky
     // i.e., a call to this will report unmatched strings
-    //   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), e);
-    //   TEST_STRING_EQUAL(e.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"));
     if (QDir::isRelativePath(file_name.toQString()))
     {
       file_path_ = File::absolutePath(file_name);

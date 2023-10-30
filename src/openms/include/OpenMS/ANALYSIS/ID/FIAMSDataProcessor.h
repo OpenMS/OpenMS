@@ -12,7 +12,6 @@
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabM.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 
 namespace OpenMS
 {

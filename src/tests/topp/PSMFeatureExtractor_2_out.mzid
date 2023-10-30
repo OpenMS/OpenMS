@@ -66,7 +66,7 @@
 			<userParam name="Protocol" unitName="xsd:string" value="Standard"/>
 			<userParam name="TargetDecoyApproach" unitName="xsd:string" value="false"/>
 			<userParam name="MSGFPlusAdapter:1:in" unitName="xsd:string" value="/home/sachsenb/OMS/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML"/>
-			<userParam name="MSGFPlusAdapter:1:out" unitName="xsd:string" value="MSGFPlusAdapter_1_out1.tmp"/>
+			<userParam name="MSGFPlusAdapter:1:out" unitName="xsd:string" value="MSGFPlusAdapter_1_out1.tmp.idXML"/>
 			<userParam name="MSGFPlusAdapter:1:mzid_out" unitName="xsd:string" value="MSGFPlusAdapter_1_out2.tmp.mzid"/>
 			<userParam name="MSGFPlusAdapter:1:executable" unitName="xsd:string" value="/home/sachsenb/OMS/OpenMS/THIRDPARTY/All/MSGFPlus/MSGFPlus.jar"/>
 			<userParam name="MSGFPlusAdapter:1:database" unitName="xsd:string" value="/home/sachsenb/OMS/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>

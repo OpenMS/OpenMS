@@ -14,7 +14,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
@@ -271,8 +270,7 @@ protected:
     }
     else if (in_type == FileTypes::TRAML)
     {
-      TraMLFile traml;
-      traml.load(in, targeted_exp);
+      FileHandler().loadTransitions(in, targeted_exp, {FileTypes::TRAML});
     }
 
     MRMAssay assays = MRMAssay();
@@ -325,8 +323,7 @@ protected:
     }
     else if (out_type == FileTypes::TRAML)
     {
-      TraMLFile traml;
-      traml.store(out, targeted_exp);
+      FileHandler().storeTransitions(out, targeted_exp, {FileTypes::TRAML});
     }
 
     return EXECUTION_OK;

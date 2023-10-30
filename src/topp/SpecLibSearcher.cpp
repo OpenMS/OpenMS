@@ -14,9 +14,9 @@
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+// TODO add ID support to Handler
 #include <OpenMS/FORMAT/MSPFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -294,10 +294,6 @@ protected:
     MSPFile spectral_library;
     PeakMap query, library;
 
-    // spectra which will be identified
-    MzMLFile spectra;
-    spectra.setLogType(log_type_);
-
     time_t start_build_time = time(nullptr);
     // -------------------------------------------------------------
     // building map for faster search
@@ -343,7 +339,7 @@ protected:
     for (in  = in_spec.begin(), out_file  = out.begin(); in < in_spec.end(); ++in, ++out_file)
     {
       time_t start_time = time(nullptr);
-      spectra.load(*in, query);
+      FileHandler().loadExperiment(*in, query, {FileTypes::MZML}, log_type_);
 
       // results
       vector<PeptideIdentification> peptide_ids;
@@ -578,8 +574,7 @@ protected:
       //-------------------------------------------------------------
       // writing output
       //-------------------------------------------------------------
-      IdXMLFile id_xml_file;
-      id_xml_file.store(*out_file, protein_ids, peptide_ids);
+      FileHandler().storeIdentifications(*out_file, protein_ids, peptide_ids, {FileTypes::IDXML});
       time_t end_time = time(nullptr);
       OPENMS_LOG_INFO << "Search time: " << difftime(end_time, start_time) << " seconds for " << *in << "\n";
     }

@@ -10,7 +10,6 @@
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
