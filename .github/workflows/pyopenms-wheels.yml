@@ -277,7 +277,7 @@ jobs:
 
   build-lnx:
     runs-on: ubuntu-latest
-    container: quay.io/pypa/manylinux2014_x86_64
+    container: ghcr.io/openms/contrib_manylinux2014:latest
 
     steps:
     # Cancels older builds if still running
@@ -296,13 +296,11 @@ jobs:
       with:
         cmake-version: '3.25.x'
 
-    - name: Build on manylinux2014_x86_64
+    - name: Build on manylinux2014
       shell: bash
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         yum install -y jq
-        yum install -y boost-devel libsvm-devel libzip-devel xerces-c-devel bzip2-devel glpk-devel
-        yum install -y boost-iostreams-dev boost-date-time-dev boost-regex-dev
         cmake --version
 
         mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
@@ -416,7 +414,7 @@ jobs:
           # Find .whl for current python version
           CURRENT_VERSION=$(echo $py | sed "s/\.//g") # remove "." for find
           echo "Testing python version $CURRENT_VERSION"
-          CURRENT_WHL=$(find $GITHUB_WORKSPACE -name "*$CURRENT_VERSION*.whl") # Probably $GITHUB_WORKSPACE
+          CURRENT_WHL=$(find $GITHUB_WORKSPACE -name "*cp$CURRENT_VERSION*.whl") # Probably $GITHUB_WORKSPACE
           if [[ "$CURRENT_WHL" == '' ]]; then
 
             continue
