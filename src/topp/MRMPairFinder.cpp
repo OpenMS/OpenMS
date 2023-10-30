@@ -6,9 +6,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -132,7 +130,7 @@ protected:
     //-------------------------------------------------------------
 
     FeatureMap all_mrm_features;
-    FeatureXMLFile().load(in, all_mrm_features);
+    FileHandler().loadFeatures(in, all_mrm_features, {FileTypes::FEATUREXML});
 
     // read pair file
     ifstream is(pair_in.c_str());
@@ -295,10 +293,10 @@ protected:
 
     if (!feature_out.empty())
     {
-      FeatureXMLFile().store(feature_out, all_features);
+      FileHandler().storeFeatures(feature_out, all_features, {FileTypes::FEATUREXML});
     }
     writeDebug_("Writing output", 1);
-    ConsensusXMLFile().store(out, results_map);
+    FileHandler().storeConsensusFeatures(out, results_map, {FileTypes::CONSENSUSXML});
 
     return EXECUTION_OK;
   }

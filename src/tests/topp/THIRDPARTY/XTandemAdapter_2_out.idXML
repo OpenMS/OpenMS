@@ -4,7 +4,7 @@
 	<SearchParameters id="SP_0" db="/workspace/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 		<VariableModification name="Oxidation (M)" />
 				<UserParam type="string" name="XTandemAdapter:1:in" value="/workspace/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML"/>
-				<UserParam type="string" name="XTandemAdapter:1:out" value="XTandemAdapter_2_out.tmp"/>
+				<UserParam type="string" name="XTandemAdapter:1:out" value="XTandemAdapter_2_out.tmp.idXML"/>
 				<UserParam type="string" name="XTandemAdapter:1:xml_out" value=""/>
 				<UserParam type="string" name="XTandemAdapter:1:database" value="/workspace/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
 				<UserParam type="string" name="XTandemAdapter:1:xtandem_executable" value="/workspace/OpenMS/THIRDPARTY/Linux/64bit/XTandem/tandem.exe"/>

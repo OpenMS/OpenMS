@@ -11,7 +11,6 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -145,8 +144,7 @@ protected:
     }
     else if (in_type == FileTypes::TRAML)
     {
-      TraMLFile traml;
-      traml.load(in, targeted_exp);
+      FileHandler().loadTransitions(in, targeted_exp, {FileTypes::TRAML});
     }
 
     if (out_type == FileTypes::TSV)
@@ -163,8 +161,7 @@ protected:
     }
     else if (out_type == FileTypes::TRAML)
     {
-      TraMLFile traml;
-      traml.store(out, targeted_exp);
+      FileHandler().storeTransitions(out, targeted_exp, {FileTypes::TRAML});
     }
 
     return EXECUTION_OK;

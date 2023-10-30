@@ -15,10 +15,6 @@
 // Files
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
@@ -298,7 +294,7 @@ protected:
     {
       progresslogger.startProgress(0, 1, "Load TraML file");
       TargetedExperiment targeted_exp;
-      TraMLFile().load(tr_file, targeted_exp);
+      FileHandler().loadTransitions(tr_file, targeted_exp, {FileTypes::TRAML});
       OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
       progresslogger.endProgress();
     }
@@ -378,8 +374,7 @@ protected:
     if (!trafo_in.empty())
     {
       // get read RT normalization file
-      TransformationXMLFile trafoxml;
-      trafoxml.load(trafo_in, trafo_rtnorm, false);
+      FileHandler().loadTransformations(trafo_in, trafo_rtnorm, false, {FileTypes::TRANSFORMATIONXML});
       Param model_params = getParam_().copy("model:", true);
       model_params.setValue("symmetric_regression", "false");
       model_params.setValue("span", irt_detection_param.getValue("lowess:span"));
@@ -391,7 +386,6 @@ protected:
     {
       // Loading iRT file
       std::cout << "Will load iRT transitions and try to find iRT peptides" << std::endl;
-      TraMLFile traml;
       FileTypes::Type tr_type = FileHandler::getType(irt_tr_file);
       Param tsv_reader_param = TransitionTSVFile().getDefaults();
       OpenSwath::LightTargetedExperiment irt_transitions = loadTransitionList(tr_type, irt_tr_file, tsv_reader_param);
@@ -423,7 +417,7 @@ protected:
 
       if (!irt_trafo_out.empty())
       {
-        TransformationXMLFile().store(irt_trafo_out, trafo_rtnorm);
+        FileHandler().storeTransformations(irt_trafo_out, trafo_rtnorm, {FileTypes::TRANSFORMATIONXML});
       }
     }
     return trafo_rtnorm;
