@@ -59,7 +59,7 @@ namespace OpenMS
     {
       if (i != FileTypes::SIZE_OF_TYPE)
       {
-        aStrings == aStrings +", " + FileTypes::typeToName(i);
+        aStrings +=  ", " + FileTypes::typeToName(i);
       }
     }
     return aStrings;
