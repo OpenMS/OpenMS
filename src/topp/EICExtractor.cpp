@@ -233,6 +233,11 @@ public:
     // loading input
     //-------------------------------------------------------------
     FileHandler mzml_file;
+    PeakFileOptions options;
+    options.clearMSLevels();
+    options.addMSLevel(1);
+    mzml_file.getOptions() = options;
+      
     PeakMap exp, exp_pp;
 
     FileHandler ed;
@@ -244,8 +249,8 @@ public:
     std::vector<String> vec_single; // one line for each compound, multiple columns per experiment
     vec_single.resize(cm.size());
 
-    PeakIntegrator peak_integrator;    
-
+    PeakIntegrator peak_integrator;
+      
     for (Size fi = 0; fi < in.size(); ++fi)
     {
       // load raw data
