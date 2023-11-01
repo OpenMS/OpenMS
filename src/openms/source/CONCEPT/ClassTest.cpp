@@ -364,7 +364,7 @@ namespace OpenMS::Internal::ClassTest
       createTmpFileName(const std::string& file, int line, const std::string& extension)
       {
         QFileInfo fi(file.c_str());
-        String filename = (String(fi.baseName())) + '_' + String(line) + ".tmp" + extension;
+        std::string filename = (String(fi.baseName())) + '_' + String(line) + ".tmp" + extension;
         TEST::tmp_file_list.push_back(filename);
         TEST::initialNewline();
         stdcout << "    creating new temporary filename '"
