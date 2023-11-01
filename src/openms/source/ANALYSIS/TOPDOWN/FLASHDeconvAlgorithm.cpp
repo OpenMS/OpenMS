@@ -56,19 +56,6 @@ namespace OpenMS
     defaults_.setMinInt("merging_method", 0);
     defaults_.setMaxInt("merging_method", 2);
 
-    defaults_.setValue("precursor_charge", 0,  "Charge state of the target precursor. All precursor charge is fixed to this value. "
-                                                     "This parameter is useful for targeted studies where MS2 spectra are generated from a fixed precursor (e.g., Native-MS). "
-                                                     "This option also gives the maximum charge and masses (together with precursor m/z) of fragment ions, which overrides -deconv:max_charge and -deconv:max_mass.");
-    defaults_.setMinInt("precursor_charge", 0);
-    //defaults_.addTag("precursor_charge", "advanced");
-
-    defaults_.setValue("precursor_mz", 0.0,
-                              "Target precursor m/z value. This option must be used with -target_precursor_charge option. Otherwise, it will be ignored. "
-                              "If -target_precursor_charge option is used but this option is not used, the precursor m/z value written in MS2 spectra will be used by default. "
-                              "Together with -target_precursor_charge, this option overrides -deconv:max_mass.");
-    defaults_.setMinFloat("precursor_mz", 0.0);
-    defaults_.addTag("precursor_mz", "advanced");
-
     defaults_.insert("sd:", SpectralDeconvolution().getDefaults());
 
     Param mf_defaults = MassFeatureTrace().getDefaults();
@@ -101,8 +88,6 @@ namespace OpenMS
     report_decoy_ = (int)param_.getValue("report_FDR") > 0;
 
     merge_spec_ = param_.getValue("merging_method");
-    target_precursor_mz_ = param_.getValue("precursor_mz");
-    target_precursor_charge_ = param_.getValue("precursor_charge");
 
     ida_log_file_ = param_.getValue("ida_log").toString();
     current_min_ms_level_ = max_ms_level_;
@@ -135,33 +120,6 @@ namespace OpenMS
       uint ms_level = it.getMSLevel();
       current_max_ms_level_ = current_max_ms_level_ < ms_level ? ms_level : current_max_ms_level_;
       current_min_ms_level_ = current_min_ms_level_ > ms_level ? ms_level : current_min_ms_level_;
-
-      if (ms_level > 1 && target_precursor_charge_ != 0)
-      {
-        if (it.getPrecursors().empty())
-        {
-          if (target_precursor_mz_ == 0)
-          {
-            OPENMS_LOG_INFO << "Target precursor charge is set but no precursor is found in MS2 spectra. Specify target precursor m/z with -target_precursor_mz option" << std::endl;
-            return -1;
-          }
-          else
-          {
-            Precursor precursor;
-            precursor.setCharge(target_precursor_charge_);
-            precursor.setMZ(target_precursor_mz_);
-            it.setPrecursors({precursor});
-          }
-        }
-        else
-        {
-          it.getPrecursors()[0].setCharge(target_precursor_charge_);
-          if (target_precursor_mz_ != 0)
-          {
-            it.getPrecursors()[0].setMZ(target_precursor_mz_);
-          }
-        }
-      }
     }
     // Max MS Level is adjusted according to the input dataset
     current_max_ms_level_ = current_max_ms_level_ > max_ms_level_ ? max_ms_level_ : current_max_ms_level_;
@@ -178,7 +136,6 @@ namespace OpenMS
         it.pop_back();
       }
       it.sortByPosition();
-
       double threshold;
       if (it.getType(false) == SpectrumSettings::CENTROID)
       {
@@ -191,6 +148,9 @@ namespace OpenMS
       }
       else
       {
+        it.sortByIntensity(true);
+        threshold = it.begin()->getIntensity() / 1000;
+        /*
         if (it.size() <= count)
         {
           continue;
@@ -221,9 +181,10 @@ namespace OpenMS
 
         auto mod_bin = std::distance(freq.begin(), std::max_element(freq.begin(), freq.end())); // most frequent intensity is the threshold to distinguish between signal and noise
 
-        threshold =
-          3.0 * (pow(10.0, (double)mod_bin / bin_size * (max_intensity - min_intensity) +
-                             min_intensity)); // multiply by 3 to the most frequent intensity to make sure more signal component remains. Later this could be determined to use signal-to-noise ratio.
+        threshold = 6 *
+           (pow(10.0, (double)mod_bin / bin_size * (max_intensity - min_intensity) +
+                             min_intensity)); // multiply by 1.1 to the most frequent intensity to make sure more signal component remains. Later this could be determined to use signal-to-noise ratio.
+        //std::cout<<it.begin()->getIntensity()/threshold<<std::endl;*/
       }
       // pop back the low intensity peaks using threshold
       while (!it.empty() && it.back().getIntensity() <= threshold)
@@ -247,7 +208,7 @@ namespace OpenMS
       merger.setLogType(CMD);
       Param sm_param = merger.getDefaults();
       sm_param.setValue("average_gaussian:precursor_mass_tol", tols_[0]);
-      sm_param.setValue("average_gaussian:precursor_max_charge", param_.getValue("deconv:max_charge")); // TODO remove this merging. Will do repetitive deconv.
+      sm_param.setValue("average_gaussian:precursor_max_charge", param_.getValue("sd:max_charge")); // TODO remove this merging. Will do repetitive deconv.
       sm_param.setValue("mz_binning_width", 1.0);
 
       merger.setParameters(sm_param);
@@ -305,12 +266,6 @@ namespace OpenMS
         continue;
       }
 
-      if (ms_level > 1 && target_precursor_charge_ != 0 && it->getPrecursors().empty())
-      {
-        OPENMS_LOG_INFO << "Target precursor charge is set but no precursor m/z is found in MS2 spectra. Specify target precursor m/z with -target_precursor_mz option" << std::endl;
-        return -1;
-      }
-
       // for MS>1 spectrum, register precursor
       std::vector<DeconvolvedSpectrum> precursor_specs;
 
@@ -321,13 +276,11 @@ namespace OpenMS
 
       sd_.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_ida_);
       auto& deconvolved_spectrum = sd_.getDeconvolvedSpectrum();
+
       if (deconvolved_spectrum.empty())
       {
         continue;
       }
-
-      if (ms_level > 1 && target_precursor_charge_ != 0)
-        setTargetPrecursorCharge_(deconvolved_spectrum, *it);
 
       if (it->getMSLevel() > 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
       {
@@ -397,21 +350,6 @@ namespace OpenMS
     return 0;
   }
 
-  void FLASHDeconvAlgorithm::setTargetPrecursorCharge_(DeconvolvedSpectrum& deconvolved_spectrum, const MSSpectrum& it) const
-  {
-    auto precursor = it.getPrecursors()[0];
-    double target_precursor_mass = (precursor.getMZ() - FLASHDeconvHelperStructs::getChargeMass(target_precursor_charge_ > 0)) * std::abs(target_precursor_charge_);
-    // precursor.setCharge(target_precursor_charge);
-    PeakGroup precursorPeakGroup(1, std::abs(target_precursor_charge_), target_precursor_charge_ > 0);
-    precursorPeakGroup.push_back(FLASHDeconvHelperStructs::LogMzPeak());
-    precursorPeakGroup.setMonoisotopicMass(target_precursor_mass);
-    precursorPeakGroup.setSNR(1.0);
-
-    precursorPeakGroup.setChargeSNR(std::abs(target_precursor_charge_), 1.0);
-    precursorPeakGroup.setQscore(1.0);
-    deconvolved_spectrum.setPrecursor(precursor);
-    deconvolved_spectrum.setPrecursorPeakGroup(precursorPeakGroup);
-  }
 
   const FLASHDeconvHelperStructs::PrecalculatedAveragine& FLASHDeconvAlgorithm::getAveragine()
   {
@@ -434,16 +372,7 @@ namespace OpenMS
     }
 
     sd_ = SpectralDeconvolution();
-    Param sd_param = param_.copy("deconv:", true);
-
-    if (target_precursor_charge_ != 0)
-    {
-      sd_param.setValue("max_charge", target_precursor_charge_);
-      if (target_precursor_mz_ != 0)
-      {
-        sd_param.setValue("max_mass", std::abs(target_precursor_charge_) * (target_precursor_mz_ - FLASHDeconvHelperStructs::getChargeMass(target_precursor_charge_ > 0)));
-      }
-    }
+    Param sd_param = param_.copy("sd:", true);
 
     // merge spectra if the merging option is turned on (> 0)
     mergeSpectra_(map);

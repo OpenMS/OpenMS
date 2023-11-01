@@ -176,7 +176,7 @@ namespace OpenMS
     std::vector<double> excluded_masses_;
 
     /// mass bins that are previsouly deconvolved and excluded for dummy mass generation
-    boost::dynamic_bitset<> previously_deconved_mass_bins_for_dummy_;
+    boost::dynamic_bitset<> previously_deconved_mass_bins_for_decoy_;
     std::vector<double> previously_deconved_mono_masses_for_decoy_;
     std::unordered_set<double> excluded_peak_mzs_;
 
@@ -211,6 +211,9 @@ namespace OpenMS
 
     /// default precursor isolation window size.
     double isolation_window_size_;
+
+    int target_precursor_charge_ = 0;
+    double target_precursor_mz_ = 0;
 
     /** @brief static function that converts bin to value
         @param bin bin number
@@ -281,6 +284,8 @@ namespace OpenMS
 
     /// filter out overlapping masses
     void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec, double tol);
+
+    void setTargetPrecursorCharge_();
 
     /**
     @brief register the precursor peak as well as the precursor peak group (or mass) if possible for MSn (n>1) spectrum.

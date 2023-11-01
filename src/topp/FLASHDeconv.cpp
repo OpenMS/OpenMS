@@ -56,7 +56,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Default output tsv file containing deconvolved features");
     setValidFormats_("out", ListUtils::create<String>("tsv"));
 
-    registerOutputFileList_("out_spec", "<file for MS1, file for MS2, ...>", {""}, "Output tsv files containing deconvolved spectra (per MS level)", false);
+    registerOutputFileList_("out_spec", "<file for MS1, file for MS2, ...>", {}, "Output tsv files containing deconvolved spectra (per MS level)", false);
     setValidFormats_("out_spec", ListUtils::create<String>("tsv"));
 
     registerOutputFile_("out_mzml", "<file>", "", "Output mzml file containing deconvolved spectra (of all MS levels)", false);
@@ -71,7 +71,7 @@ protected:
                         false);
     setValidFormats_("out_annotated_mzml", ListUtils::create<String>("mzML"));
 
-    registerOutputFileList_("out_msalign", "<file for MS1, file for MS2, ...>", {""},
+    registerOutputFileList_("out_msalign", "<file for MS1, file for MS2, ...>", {},
                             "Output msalign (topFD and ProMex compatible) files containing deconvolved spectra (per MS level)."
                             " The file name for MSn should end with msn.msalign to be able to be recognized by TopPIC GUI. "
                             "For example, -out_msalign [name]_ms1.msalign [name]_ms2.msalign",
@@ -79,7 +79,7 @@ protected:
 
     setValidFormats_("out_msalign", ListUtils::create<String>("msalign"), false);
 
-    registerOutputFileList_("out_feature", "<file for MS1, file for MS2, ...>", {""},
+    registerOutputFileList_("out_feature", "<file for MS1, file for MS2, ...>", {},
                             "Output feature (topFD compatible) files containing deconvolved features (per MS level). "
                             "The feature files are necessary for TopPIC feature intensity output.",
                             false);
@@ -218,6 +218,7 @@ protected:
     {
       opt.setMZRange(DRange<1> {min_mz, max_mz});
     }
+
     mzml.setLogType(log_type_);
     mzml.setOptions(opt);
     mzml.load(in_file, map);
@@ -268,7 +269,8 @@ protected:
     }
 
     OPENMS_LOG_INFO << "FLASHDeconv run complete. Now writing the results in output files ..." << endl;
-
+/*
+    /
     // Run tagger
     TopDownTagger tagger;
     auto tagger_param = getParam_().copy("tagger:", true);
@@ -277,6 +279,11 @@ protected:
       tagger_param.setValue("tol", tols);
     }
     tagger.setParameters(tagger_param);
+    String seq = "AEGFVVKDIHFEGLQRVAVGAALLSMPVRTGDTVNDEDISNTIRALFATGNFEDVRVLRDGDTLLVQVKERPTIASITFSGNKSVKDDMLKQNLEASGVRVGESLDRTTIADIEKGLEDFYYSVGKYSASVKAVVTPLPRNRVDLKLVFQEGVSAEIQQINIVGNHAFTTDELISHFQLRDEVPWWNVVGDRKYQKQKLAGDLETLRSYYLDRGYARFNIDSTQVSLTPDKKGIYVTVNITEGDQYKLSGVEVSGNLAGHSAEIEQLTKIEPGELYNGTKVTKMEDDIKKLLGRYGYAYPRVQSMPEINDADKTVKLRVNVDAGNRFYVRKIRFEGNDTSKDAVLRREMRQMEGAWLGSDLVDQGKERLNRLGFFETVDTDTQRVPGSPDQVDVVYKVKERNTGSFNFGIGYGTESGVSFQAGVQQDNWLGTGYAVGINGTKNDYQTYAELSVTNPYFTVDGVSLGGRLFYNDFQADDADLSDYTNKSYGTDVTLGFPINEYNSLRAGLGYVHNSLSNMQPQVAMWRYLYSMGEHPSTSDQDNSFKTDDFTFNYGWTYNKLDRGYFPTDGSRVNLTGKVTIPGSDNEYYKVTLDTATYVPIDDDHKWVVLGRTRWGYGDGLGGKEMPFYENFYAGGSSTVRGFQSNTIGPKAVYFPHQASNYDPDYDYECATQDGAKDLCKSDDAVGGNAMAVASLEFITPTPFISDKYANSVRTSFFWDMGTVWDTNWDSSQYSGYPDYSDPSNIRMSAGIALQWMSPLGPLVFSYAQPFKKYDGDKAEQFQFNIGKTW";
+    seq = "CSTLERVVYRPDINQGNYLTANDVSKIRVGMTQQQVAYALGTPLMSDPFGTNTWFYVFRQQPGHEGVTQQTLTLTFNSSGVLTNIDNKPALSGN";
+    // seq = "TTSASSHLNKGIKQVYMSLPQGEKVQAMYIWIDGTGEGLRCKTRTLDSEPKCVEELPEWNFDGSSTLQSEGSNSDMYLVPAAMFRDPFRKDPNKLVLCEVFKYNRRPAETNLRHTCKRIMDMVSNQHPWFGMEQEYTLMGTDGHPFGWPSNGFPGPQGPYYCGVGADRAYGRDIVEAHYRACLYAGVKIAGTNAEVMPAQWEFQIGPCEGISMGDHLWVARFILHRVCEDFGVIATFDPKPIPGNWNGAGCHTNFSTKAMREENGLKYIEEAIEKLSKRHQYHIRAYDPKGGLDNARRLTGFHETSNINDFSAGVANRSASIRIPRTVGQEKKGYFEDRRPSANCDPFSVTEALIRTCLLNETGDEPFQYKN";
+    // seq = "STEIKTQVVVLGAGPAGYSAAFRCADLGLETVIVERYNTLGGVCLNVGCIPSKALLHVAKVIEEAKALAEHGIVFGEPKTDIDKIRTWKEKVINQLTGGLAGMAKGRKVKVVNGLGKFTGANTLEVEGENGKTVINFDNAIIAAGSRPIQLPFIPHEDPRIWDSTDALELKEVPERLLVMGGGIIGLEMGTVYHALGSQIDVVEMFDQVIPAADKDIVKVFTKRISKKFNLMLETKVTAVEAKEDGIYVTMEGKKAPAEPQRYDAVLVAIGRVPNGKNLDAGKAGVEVDDRGFIRVDKQLRTNVPHIFAIGDIVGQPMLAHKGVHEGHVAAEVIAGKKHYFDPKVIPSIAYTEPEVAWVGLTEKEAKEKGISYETATFPWAASGRAIASDCADGMTKLIFDKESHRVIGGAIVGTNGGELLGEIGLAIEMGCDAEDIALTIHAHPTLHESVGLAAEVFEGSITDLPNPKAKKK";
+
 
     std::vector<std::string> tags;
     for (auto& deconvolved_spectrum : deconvolved_spectra)
@@ -284,16 +291,23 @@ protected:
       tagger.run(deconvolved_spectrum, tags);
       for (auto& tag : tags)
       {
-        std::cout<<tag<<std::endl;
+        if (seq.hasSubstring(tag))
+          std::cout<<tag<<std::endl;
+
         std::reverse(tag.begin(), tag.end());
-        std::cout<< tag <<std::endl;
+        if (seq.hasSubstring(tag))
+          std::cout<< tag <<std::endl;
       }
+      std::cout << "Total tag count: " << tags.size() * 2 << std::endl;
       tags.clear();
     }
+    */
     // Write output files
     // default feature deconvolution tsv output
+
     if (!deconvolved_features.empty())
     {
+      OPENMS_LOG_INFO << "writing feature tsv ..." << endl;
       fstream out_stream;
       out_stream.open(out_file, fstream::out);
       FLASHDeconvFeatureFile::writeHeader(out_stream, report_decoy);
@@ -303,6 +317,7 @@ protected:
     // Per ms level spectrum deconvolution tsv output
     if (!out_spec_file.empty())
     {
+      OPENMS_LOG_INFO << "writing spectrum tsv ..." << endl;
       std::vector<fstream> out_spec_streams = std::vector<fstream>(out_spec_file.size());
       for (Size i = 0; i < out_spec_file.size(); i++)
       {
@@ -330,6 +345,7 @@ protected:
     // topFD feature output
     if (!out_topfd_feature_file.empty())
     {
+      OPENMS_LOG_INFO << "writing topfd *.feature ..." << endl;
       std::vector<fstream> out_topfd_feature_streams;
       out_topfd_feature_streams = std::vector<fstream>(out_topfd_feature_file.size());
       for (Size i = 0; i < out_topfd_feature_file.size(); i++)
@@ -346,6 +362,7 @@ protected:
     // topFD msalign output
     if (!out_topfd_file.empty())
     {
+      OPENMS_LOG_INFO << "writing topfd *.tsv ..." << endl;
       auto out_topfd_streams = std::vector<fstream>(out_topfd_file.size());
       for (Size i = 0; i < out_topfd_file.size(); i++)
       {
@@ -372,6 +389,7 @@ protected:
     // isobaric quantification output
     if (!out_quant_file.empty())
     {
+      OPENMS_LOG_INFO << "writing quantification tsv ..." << endl;
       fstream out_quant_stream;
       out_quant_stream.open(out_quant_file, fstream::out);
       FLASHDeconvSpectrumFile::writeIsobaricQuantification(out_quant_stream, deconvolved_spectra);

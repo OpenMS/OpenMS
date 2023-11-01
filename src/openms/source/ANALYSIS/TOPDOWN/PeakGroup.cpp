@@ -126,6 +126,7 @@ namespace OpenMS
     }
 
     updateChargeFitScoreAndChargeIntensities_();
+
     if (charge_score_ < .7f) //
     {
       return 0;
@@ -150,7 +151,6 @@ namespace OpenMS
     {
       return 0;
     }
-
     updatePerChargeCos_(avg);
     updateAvgPPMError_();
     updateAvgDaError_();

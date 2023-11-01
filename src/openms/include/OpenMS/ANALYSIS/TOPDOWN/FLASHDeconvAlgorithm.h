@@ -70,9 +70,6 @@ namespace OpenMS
     UInt current_max_ms_level_ = 0;
     UInt current_min_ms_level_ = 0;
 
-    int target_precursor_charge_ = 0;
-    double target_precursor_mz_ = 0;
-
     int preceding_MS1_count_ = 0;
 
     String ida_log_file_;
@@ -84,7 +81,6 @@ namespace OpenMS
     std::map<int, std::vector<std::vector<float>>> precursor_map_for_ida_;
     std::map<int, PeakGroup> ms2scan_to_precursor_peak_group_map_; // MS2 scan number, peak group
 
-    void setTargetPrecursorCharge_(DeconvolvedSpectrum& deconvolved_spectrum, const MSSpectrum& it) const;
     int scan_map_(MSExperiment& map);
 
     void mergeSpectra_(MSExperiment& map);

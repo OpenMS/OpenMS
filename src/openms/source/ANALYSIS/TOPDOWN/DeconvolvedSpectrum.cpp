@@ -151,7 +151,7 @@ namespace OpenMS
     {
       return max_mass;
     }
-    return precursor_peak_group_.getMonoMass();
+    return std::min(max_mass, precursor_peak_group_.getMonoMass());
   }
 
   double DeconvolvedSpectrum::getCurrentMinMass(const double min_mass) const
@@ -169,7 +169,7 @@ namespace OpenMS
     {
       return max_abs_charge;
     }
-    return abs(precursor_peak_.getCharge());
+    return std::min(max_abs_charge, abs(precursor_peak_group_.getRepAbsCharge()));
   }
 
   const Precursor& DeconvolvedSpectrum::getPrecursor() const
