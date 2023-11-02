@@ -474,7 +474,7 @@ jobs:
         repository_url: https://pypi.cs.uni-tuebingen.de/
         user: openms
         password: ${{ secrets.abiservices_pypi_pw }}
-        packages_dir: ${{ github.workspace }}/wheels
+        packages-dir: ${{ github.workspace }}/wheels
 
     - name: Publish package to PyPI
       if: "contains(github.ref, 'Release')"
@@ -482,4 +482,4 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.pypi_api_token_release }}
-        packages_dir: ${{ github.workspace }}/wheels
+        packages-dir: ${{ github.workspace }}/wheels
