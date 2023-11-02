@@ -283,7 +283,7 @@ public:
     /**
       @brief Get the ratio vector.
     */
-    std::vector<Ratio> getRatios() const;
+    const std::vector<Ratio>& getRatios() const;
 
     /**
       @brief Get the ratio vector.
