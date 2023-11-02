@@ -452,6 +452,7 @@ namespace OpenMS
             }
             if (pass_first_check)
             {
+              //spc++; //
               support_peak_intensity += mz_intensities[next_iso_bin];
             }
           }
@@ -1468,7 +1469,7 @@ namespace OpenMS
       {
         continue;
       }
-      auto [z1, z2] = dspec[i].getAbsChargeRange();
+      //auto [z1, z2] = dspec[i].getAbsChargeRange();
       if (!dspec[i].isTargeted() &&// z1 != z2 &&
           overlap_intensity[i] >= dspec[i].getIntensity() * .5) // If the overlapped intensity takes more than 50% total intensity then it is a peakgroup with a charge error. the smaller, the harsher
       {
