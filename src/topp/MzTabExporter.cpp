@@ -13,17 +13,13 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 
 #include <vector>
@@ -120,8 +116,7 @@ protected:
 
         // load featureXML
         FeatureMap feature_map;
-        FeatureXMLFile f;
-        f.load(in, feature_map);
+        FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML});
 
         // calculate coverage
         vector<PeptideIdentification> pep_ids;
@@ -154,10 +149,9 @@ protected:
       // export identification data from idXML
       if (in_type == FileTypes::IDXML)
       {
-        String document_id;
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
-        IdXMLFile().load(in, prot_ids, pep_ids, document_id);
+        FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
 
         MzTabFile().store(out,
           prot_ids,
@@ -174,7 +168,7 @@ protected:
         String document_id;
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
-        MzIdentMLFile().load(in, prot_ids, pep_ids);
+        FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::MZIDENTML});
 
         MzTabFile().store(out,
 	        prot_ids,
@@ -189,8 +183,7 @@ protected:
       if (in_type == FileTypes::CONSENSUSXML)
       {
         ConsensusMap consensus_map;
-        ConsensusXMLFile c;
-        c.load(in, consensus_map);
+        FileHandler().loadConsensusFeatures(in, consensus_map, {FileTypes::CONSENSUSXML});
         IDFilter::removeEmptyIdentifications(consensus_map); // MzTab stream exporter currently doesn't support IDs with empty hits.
         MzTabFile().store(out,
            consensus_map,

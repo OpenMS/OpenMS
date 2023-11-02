@@ -167,13 +167,14 @@ namespace OpenMS::Internal
       {
         if (parent_tag == "Label")
         {
-          String massdelta_string;
-          optionalAttributeAsString_(massdelta_string, attributes, "massDelta");
-          String residue;
-          optionalAttributeAsString_(residue, attributes, "residues");
-          if (massdelta_string != "145")
+          String massdelta_string, residue;
+          if (optionalAttributeAsString_(massdelta_string, attributes, "massDelta")
+            && optionalAttributeAsString_(residue, attributes, "residues"))
           {
-            current_assay_.mods_.emplace_back(residue, massdelta_string.toDouble());
+            if (massdelta_string != "145") // != itraq
+            {
+              current_assay_.mods_.emplace_back(residue, massdelta_string.toDouble());
+            }
           }
           //TODO CV handling
         }

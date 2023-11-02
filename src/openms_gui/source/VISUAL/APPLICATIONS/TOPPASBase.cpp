@@ -62,6 +62,7 @@
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QMessageBox>
+#include <QtWidgets/QPushButton>
 #include <QtWidgets/QSplashScreen>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QTextEdit>
@@ -201,9 +202,23 @@ namespace OpenMS
     QDockWidget* topp_tools_bar = new QDockWidget("TOPP", this);
     topp_tools_bar->setObjectName("TOPP_tools_bar");
     addDockWidget(Qt::LeftDockWidgetArea, topp_tools_bar);
-    tools_tree_view_ = createTOPPToolsTreeWidget(topp_tools_bar);
-    topp_tools_bar->setWidget(tools_tree_view_);
-    connect(tools_tree_view_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
+    QWidget* frame = new QWidget(topp_tools_bar);
+    auto frame_layout = new QVBoxLayout(frame);
+    //frame->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Maximum);
+    tools_tree_view_ = createTOPPToolsTreeWidget();
+    tools_filter_ = new QLineEdit();
+    tools_expand_all_ = new QPushButton("expand all");
+    tools_collapse_all_ = new QPushButton("collapse all");
+    frame_layout->addWidget(new QLabel("Filter: "));
+    frame_layout->addWidget(tools_filter_);
+    frame_layout->addWidget(tools_expand_all_);
+    frame_layout->addWidget(tools_collapse_all_);
+    frame_layout->addWidget(tools_tree_view_);
+    topp_tools_bar->setWidget(frame);
+    connect(tools_expand_all_, &QPushButton::clicked, tools_tree_view_, &TOPPASTreeView::expandAll);
+    connect(tools_collapse_all_, &QPushButton::clicked, tools_tree_view_, &TOPPASTreeView::collapseAll);
+    connect(tools_tree_view_, &QTreeWidget::itemDoubleClicked, this, &TOPPASBase::insertNewVertexInCenter_);
+    connect(tools_filter_, &QLineEdit::textChanged, this, &TOPPASBase::filterToolTree_);
     windows->addAction(topp_tools_bar->toggleViewAction());
 
     //log window
@@ -259,6 +274,10 @@ namespace OpenMS
     restoreState(settings.value("windowState").toByteArray());
   }
 
+  void TOPPASBase::filterToolTree_()
+  {
+    tools_tree_view_->filter(tools_filter_->text());
+  }
 
   TOPPASBase::~TOPPASBase()
   {

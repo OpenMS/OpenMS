@@ -7,8 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/AScore.h>
@@ -271,17 +269,16 @@ protected:
     vector<PeptideIdentification> pep_ids;
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_out;
-    IdXMLFile().load(id, prot_ids, pep_ids);
+    FileHandler().loadIdentifications(id, prot_ids, pep_ids, {FileTypes::IDXML});
 
     PeakMap exp;
-    MzMLFile f;
-    f.setLogType(log_type_);
+    FileHandler f;
 
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.load(in, exp);
+    f.loadExperiment(in, exp, {FileTypes::MZML});
     exp.sortSpectra(true);
     
     SpectrumLookup lookup;
@@ -315,7 +312,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    IdXMLFile().store(out, prot_ids, pep_out);
+    FileHandler().storeIdentifications(out, prot_ids, pep_out, {FileTypes::IDXML});
     return EXECUTION_OK;
   }
 };

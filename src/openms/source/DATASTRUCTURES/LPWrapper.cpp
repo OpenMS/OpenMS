@@ -55,6 +55,7 @@ namespace OpenMS
 {
   LPWrapper::LPWrapper()
   {
+    // note: should this mechanism ever change, also look at TOPP/OpenMSInfo.cpp
 #if COINOR_SOLVER == 1
     solver_ = SOLVER_COINOR;
     model_ = new CoinModel;

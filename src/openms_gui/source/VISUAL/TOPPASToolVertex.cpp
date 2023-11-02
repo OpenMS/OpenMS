@@ -963,8 +963,19 @@ namespace OpenMS
         }
       }
       if (file_suffix.empty())
-      { // tag as unknown (TOPPAS will try to rename the output file once its written - see renameOutput_())
-        file_suffix = ".unknown";
+      { 
+        // Are we FileMerger? If so we can recover the out_type from the type of our input files
+        if (name_ == "FileMerger")
+        {
+          // For this very specific case we know that all the upstream nodes have to have the same types
+          file_suffix = "." + param_.getValue("in_type").toString();
+        }
+        // tag as unknown (TOPPAS will try to rename the output file once its written - see renameOutput_())
+        else 
+        {
+          OPENMS_LOG_DEBUG << " unknown extension for : " << out_params[i].param_name << " in: " << name_ <<"\n";
+          file_suffix = ".unknown";
+        }
       }
       //std::cerr << "suffix is: " << file_suffix << "\n\n";
 
