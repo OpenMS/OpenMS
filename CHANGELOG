@@ -23,6 +23,7 @@ Library:
 
 Fixes:
 - more robust parsing of mzIdentML (#7153)
+- more robust FileConverter (#7176)
 - MSFragger: allow relative path to database (#7155)
 
 
