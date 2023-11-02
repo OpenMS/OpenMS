@@ -620,7 +620,7 @@ protected:
       const auto& ms_section = ed.getMSFileSection();
 
       map<String, String> sample_id_to_filename;
-      for (const auto e : ms_section)
+      for (const auto& e : ms_section)
       {
         String ed_filename = File::basename(e.path);
         String ed_label = e.label;

@@ -326,7 +326,7 @@ namespace OpenMS
     return ratios_;
   }
 
-  std::vector<ConsensusFeature::Ratio> ConsensusFeature::getRatios() const
+  const std::vector<ConsensusFeature::Ratio>& ConsensusFeature::getRatios() const
   {
     return ratios_;
   }
