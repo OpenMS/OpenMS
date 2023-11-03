@@ -203,10 +203,8 @@ namespace OpenMS
     }
   }
 
-  void FLASHDeconvAlgorithm::mergeSpectra_(MSExperiment& map, uint ms_level)
+  void FLASHDeconvAlgorithm::mergeSpectra_(MSExperiment& map, uint ms_level) const
   {
-    filterLowPeaks_(map, max_peak_count_);
-
     // if a merged spectrum is analyzed, replace the input dataset with the merged one
     if (merge_spec_ == 1)
     {
@@ -231,11 +229,12 @@ namespace OpenMS
         merger.setLogType(CMD);
         Param sm_param = merger.getDefaults();
         sm_param.setValue("mz_binning_width", 1.0);
+        sm_param.setValue("precursor_method:mz_tolerance", 0.5);
         // -algorithm:precursor_method:mz_tolerance <value>    Max m/z distance of the precursor entries of two spectra to be merged in [Da]. (default: '1.0e-04') (min: '0.0')
         //  -algorithm:precursor_method:mass_tolerance <value>  Max mass distance of the precursor entries of two spectra to be merged in [Da]. Active when set to a positive value. (default: '0.0') (min: '0.0') -algorithm:precursor_method:rt_tolerance <value>    Max RT distance of the precursor entries of two spectra to be merged in [s]. (default: '5.0') (min: '0.0')
         merger.setParameters(sm_param);
         map.sortSpectra();
-        merger.average(map, "gaussian", (int)ms_level);
+        merger.average(map, "precursor_method", (int)ms_level);
       }
     }
     else if (merge_spec_ == 2)
@@ -249,14 +248,12 @@ namespace OpenMS
       map.sortSpectra();
       sm_param.setValue("mz_binning_width", 1.0);
 
-      for (int ml = 1; ml <= (int)current_max_ms_level_; ml++)
-      {
-        // sm_param.setValue("mz_binning_width", tols[ml - 1] / 2.0);
-        sm_param.setValue("block_method:ms_levels", IntList {ml});
-        merger.setParameters(sm_param);
-        merger.mergeSpectraBlockWise(map);
-      }
+      // sm_param.setValue("mz_binning_width", tols[ml - 1] / 2.0);
+      sm_param.setValue("block_method:ms_levels", IntList {(int)ms_level});
+      merger.setParameters(sm_param);
+      merger.mergeSpectraBlockWise(map);
     }
+    filterLowPeaks_(map, max_peak_count_);
   }
 
   int FLASHDeconvAlgorithm::getScanNumber_(const MSExperiment& map, Size index)
@@ -275,20 +272,20 @@ namespace OpenMS
     MSExperiment tmp_map(map);
 
     // merge spectra if the merging option is turned on (> 0)
-    if (merge_spec_ == 2)
-    {
-      mergeSpectra_(tmp_map);
-    }
+    filterLowPeaks_(tmp_map, max_peak_count_);
 
     for (uint ms_level = 1; ms_level <= current_max_ms_level_; ms_level++)
     {
       std::map<int, PeakGroup> precursor_peak_group_map;
+      startProgress(0, (SignedSize)tmp_map.size(), "running FLASHDeconv for MS" + std::to_string(ms_level));
 
       if (ms_level > 1)
       {
-        registerPrecursor_(precursor_peak_group_map, tmp_map, deconvolved_spectra, ms_level);
+        // here, register precursor peak groups to the ms2 spectra.
+        findPrecursorPeakGroups_(precursor_peak_group_map, tmp_map, deconvolved_spectra, ms_level);
       }
-      // here, register precursor peak groups to the ms2 spectra.
+
+      // spectra averaging for MS n with deconvolved masses for MS n-1
       if (merge_spec_ == 1)
       {
         if (ms_level == 1)
@@ -298,30 +295,42 @@ namespace OpenMS
         else
         {
           MSExperiment tmp_map_for_merge(tmp_map);
-          //For ms n, first find precursors for all ms2. then make a tmp map having the precursor masses as precursor
-          for (Size i=0;i<tmp_map.size();i++)
+          // For ms n, first find precursors for all ms2. then make a tmp map having the precursor masses as precursor
+          for (Size i = 0; i < tmp_map.size(); i++)
           {
-            int scan_number = getScanNumber_(tmp_map, i);
-            //if (precursor_peak_group_map.find(scan_number) != precursor_peak_group_map.end())
-           //   precursor_pg = precursor_peak_group_map[scan_number];
+            auto tmp_spec = tmp_map[i];
+            if (tmp_spec.getMSLevel() != ms_level)
+              continue;
 
+            int scan_number = getScanNumber_(tmp_map, i);
+            if (!tmp_spec.getPrecursors().empty() && precursor_peak_group_map.find(scan_number) != precursor_peak_group_map.end())
+            {
+              auto precursor_pg = precursor_peak_group_map[scan_number];
+              auto precursor = tmp_spec.getPrecursors()[0];
+              precursor.setCharge(precursor_pg.getRepAbsCharge());
+              precursor.setMZ(precursor_pg.getMonoMass());
+              precursor.setIntensity(precursor_pg.getIntensity());
+              tmp_map[i].setPrecursors(std::vector<Precursor> {precursor});
+            }
           }
 
-
-          //merge MS n using precursor method
+          // merge MS n using precursor method
           mergeSpectra_(tmp_map, ms_level);
 
-          //restore the original MS n spectra precursors
-          for (Size i=0;i<tmp_map_for_merge.size();i++)
+          // restore the original MS n spectra precursors
+          for (Size i = 0; i < tmp_map_for_merge.size(); i++)
           {
-            if (tmp_map_for_merge[i].getMSLevel() != ms_level) continue;
+            if (tmp_map_for_merge[i].getMSLevel() != ms_level)
+              continue;
             tmp_map[i].setPrecursors(tmp_map_for_merge[i].getPrecursors());
           }
         }
+      }else if (merge_spec_ == 2)
+      {
+        mergeSpectra_(tmp_map, ms_level);
       }
 
-      startProgress(0, (SignedSize)tmp_map.size(), "running FLASHDeconv for MS" + std::to_string(ms_level));
-
+      // run FD
       for (Size index = 0; index < tmp_map.size(); index++)
       {
         int scan_number = getScanNumber_(tmp_map, index);
@@ -474,6 +483,7 @@ namespace OpenMS
       return;
 
     auto iter = precursor_map_for_ida_.lower_bound(scan_number);
+
     while (iter != precursor_map_for_ida_.begin())
     {
       --iter;
@@ -515,46 +525,40 @@ namespace OpenMS
     }
   }
 
-  void FLASHDeconvAlgorithm::registerPrecursor_(std::map<int, PeakGroup>& precursor_peak_group_map, const MSExperiment& map, const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, uint ms_level)
+  void FLASHDeconvAlgorithm::findPrecursorPeakGroups_(std::map<int, PeakGroup>& precursor_peak_group_map, const MSExperiment& map, const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, uint ms_level)
   {
-    for (auto it = map.begin(); it != map.end(); ++it)
+    for (Size index = 0; index < map.size(); index++)
     {
-      if (it->getMSLevel() != ms_level)
+      auto spec = map[index];
+      if (spec.getMSLevel() != ms_level)
       {
         continue;
       }
 
-      int scan_number = map.getSourceFiles().empty() ? -1 : SpectrumLookup::extractScanNumber(it->getNativeID(), map.getSourceFiles()[0].getNativeIDTypeAccession());
-
-      if (scan_number < 0)
-      {
-        scan_number = (int)std::distance(map.begin(), it) + 1; // make it as a function later.
-      }
+      int scan_number = getScanNumber_(map, index);
 
       // find all candidate scan numbers from ms_level - 1
       int num_preceding = ms_level == 2 ? preceding_MS1_count_ : 1;
-      auto it_copy = it;
-      while (it_copy == map.begin() && num_preceding > 0)
+      auto index_copy = index;
+      while (index_copy > 0 && num_preceding > 0)
       {
-        it_copy--;
-        if (it_copy->getMSLevel() == ms_level - 1)
+        index_copy--;
+        if (map[index_copy].getMSLevel() == ms_level - 1)
         {
           num_preceding--;
         }
       }
-      int b_scan_number = map.getSourceFiles().empty() ? -1 : SpectrumLookup::extractScanNumber(it_copy->getNativeID(), map.getSourceFiles()[0].getNativeIDTypeAccession());
-
-      if (b_scan_number < 0)
-      {
-        b_scan_number = (int)std::distance(map.begin(), it_copy) + 1; // make it as a function later.
-      }
+      int b_scan_number = getScanNumber_(map, index_copy);
 
       // then find deconvolved spectra within the scan numbers.
       auto diter = std::lower_bound(deconvolved_spectra.begin(), deconvolved_spectra.end(), DeconvolvedSpectrum(b_scan_number));
+
+      if (diter == deconvolved_spectra.end()) continue;
+
       std::vector<DeconvolvedSpectrum> survey_scans;
 
       // exclude decoy ones.
-      while (diter->getScanNumber() < scan_number)
+      while (diter < deconvolved_spectra.end() && diter->getScanNumber() < scan_number)
       {
         if (diter->getOriginalSpectrum().getMSLevel() == ms_level - 1 && !diter->isDecoy())
         {
@@ -567,7 +571,7 @@ namespace OpenMS
 
       double start_mz = 0;
       double end_mz = 0;
-      for (auto& precursor : it->getPrecursors())
+      for (auto& precursor : spec.getPrecursors())
       {
         double loffset = precursor.getIsolationWindowLowerOffset();
         double uoffest = precursor.getIsolationWindowUpperOffset();
@@ -671,6 +675,9 @@ namespace OpenMS
       auto fullscan = scan_fullscan[pscan];
 
       auto iter = std::lower_bound(fullscan.begin(), fullscan.end(), precursor_pg);
+
+      if (iter == fullscan.end()) continue;
+
       if (precursor_pg.getMonoMass() == iter->getMonoMass())
       {
         precursor_pg.setFeatureIndex(iter->getFeatureIndex());

@@ -86,7 +86,7 @@ namespace OpenMS
 
     int scanMap_(MSExperiment& map);
 
-    void mergeSpectra_(MSExperiment& map, uint ms_level = 0);
+    void mergeSpectra_(MSExperiment& map, uint ms_level) const;
 
     int runFD_(const MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra);
 
@@ -105,7 +105,7 @@ namespace OpenMS
     @param survey_scans the candidate precursor spectra - the user may allow search of previous N survey scans.
     @param precursor_map_for_real_time_acquisition this contains the deconvolved mass information from FLASHIda runs.
     */
-    void registerPrecursor_(std::map<int, PeakGroup>& precursor_peak_group_map, const MSExperiment& map, const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, uint ms_level);
+    void findPrecursorPeakGroups_(std::map<int, PeakGroup>& precursor_peak_group_map, const MSExperiment& map, const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, uint ms_level);
 
     static void filterLowPeaks_(MSExperiment& map, Size count);
   };

@@ -139,7 +139,7 @@ namespace OpenMS
     // for MSn (n>1) register precursor peak and peak group.
     if (ms_level_ > 1)
     {
-       deconvolved_spectrum_.setPrecursorIntensity(.0);
+       //deconvolved_spectrum_.setPrecursorIntensity(.0);
 
        if (!precursor_peak_group.empty())
        {
