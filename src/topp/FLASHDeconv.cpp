@@ -14,8 +14,6 @@
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-
-
 #include <QFileInfo>
 
 using namespace OpenMS;
@@ -229,7 +227,7 @@ protected:
     //-------------------------------------------------------------
 
     MSExperiment map;
-    FileHandler mzml;
+    MzMLFile mzml;
 
     // reading mzMLs with m/z and rt criteria.
     PeakFileOptions opt = mzml.getOptions();
@@ -244,7 +242,7 @@ protected:
 
     mzml.setLogType(log_type_);
     mzml.setOptions(opt);
-    mzml.loadExperiment(in_file, map, {FileTypes::MZML}, log_type_);
+    mzml.load(in_file, map);
 
     std::vector<DeconvolvedSpectrum> deconvolved_spectra;
     std::vector<FLASHDeconvHelperStructs::MassFeature> deconvolved_features;
