@@ -210,7 +210,7 @@ namespace OpenMS
     {
       if (ms_level == 1)
       {
-        OPENMS_LOG_INFO << "Merging MS1 spectra using gaussian averaging... " << std::endl;
+        OPENMS_LOG_INFO << "Gaussian averaging MS1 spectra ... " << std::endl;
 
         SpectraMerger merger;
         merger.setLogType(CMD);
@@ -223,7 +223,7 @@ namespace OpenMS
       }
       else
       {
-        OPENMS_LOG_INFO << "Merging MS" << ms_level << " spectra from the same deconvolved precursor masses... " << std::endl;
+        OPENMS_LOG_INFO << "Averaging MS" << ms_level << " spectra from the same deconvolved precursor masses... " << std::endl;
 
         SpectraMerger merger;
         merger.setLogType(CMD);
@@ -239,12 +239,11 @@ namespace OpenMS
     }
     else if (merge_spec_ == 2)
     {
-      OPENMS_LOG_INFO << "Merging spectra into a single spectrum per MS level... " << std::endl;
+      OPENMS_LOG_INFO << "Merging spectra into a single spectrum for MS"  << ms_level << std::endl;
       SpectraMerger merger;
       merger.setLogType(CMD);
       Param sm_param = merger.getDefaults();
-      sm_param.setValue("block_method:rt_max_length", .0);
-      // rt_max_length = 0 TODO what is the meaning of this??
+      sm_param.setValue("block_method:rt_block_size", map.size() + 1);
       map.sortSpectra();
       sm_param.setValue("mz_binning_width", 1.0);
 
@@ -267,22 +266,20 @@ namespace OpenMS
     return scan_number;
   }
 
-  int FLASHDeconvAlgorithm::runFD_(const MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra)
+  int FLASHDeconvAlgorithm::runFD_(MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra)
   {
-    MSExperiment tmp_map(map);
-
     // merge spectra if the merging option is turned on (> 0)
-    filterLowPeaks_(tmp_map, max_peak_count_);
+    filterLowPeaks_(map, max_peak_count_);
 
     for (uint ms_level = 1; ms_level <= current_max_ms_level_; ms_level++)
     {
       std::map<int, PeakGroup> precursor_peak_group_map;
-      startProgress(0, (SignedSize)tmp_map.size(), "running FLASHDeconv for MS" + std::to_string(ms_level));
+      startProgress(0, (SignedSize)map.size(), "running FLASHDeconv for MS" + std::to_string(ms_level));
 
       if (ms_level > 1)
       {
         // here, register precursor peak groups to the ms2 spectra.
-        findPrecursorPeakGroups_(precursor_peak_group_map, tmp_map, deconvolved_spectra, ms_level);
+        findPrecursorPeakGroups_(precursor_peak_group_map, map, deconvolved_spectra, ms_level);
       }
 
       // spectra averaging for MS n with deconvolved masses for MS n-1
@@ -290,19 +287,19 @@ namespace OpenMS
       {
         if (ms_level == 1)
         {
-          mergeSpectra_(tmp_map, ms_level);
+          mergeSpectra_(map, ms_level);
         }
         else
         {
-          MSExperiment tmp_map_for_merge(tmp_map);
+          MSExperiment tmp_map_for_merge(map);
           // For ms n, first find precursors for all ms2. then make a tmp map having the precursor masses as precursor
-          for (Size i = 0; i < tmp_map.size(); i++)
+          for (Size i = 0; i < map.size(); i++)
           {
-            auto tmp_spec = tmp_map[i];
+            auto tmp_spec = map[i];
             if (tmp_spec.getMSLevel() != ms_level)
               continue;
 
-            int scan_number = getScanNumber_(tmp_map, i);
+            int scan_number = getScanNumber_(map, i);
             if (!tmp_spec.getPrecursors().empty() && precursor_peak_group_map.find(scan_number) != precursor_peak_group_map.end())
             {
               auto precursor_pg = precursor_peak_group_map[scan_number];
@@ -310,31 +307,31 @@ namespace OpenMS
               precursor.setCharge(precursor_pg.getRepAbsCharge());
               precursor.setMZ(precursor_pg.getMonoMass());
               precursor.setIntensity(precursor_pg.getIntensity());
-              tmp_map[i].setPrecursors(std::vector<Precursor> {precursor});
+              map[i].setPrecursors(std::vector<Precursor> {precursor});
             }
           }
 
           // merge MS n using precursor method
-          mergeSpectra_(tmp_map, ms_level);
+          mergeSpectra_(map, ms_level);
 
           // restore the original MS n spectra precursors
           for (Size i = 0; i < tmp_map_for_merge.size(); i++)
           {
             if (tmp_map_for_merge[i].getMSLevel() != ms_level)
               continue;
-            tmp_map[i].setPrecursors(tmp_map_for_merge[i].getPrecursors());
+            map[i].setPrecursors(tmp_map_for_merge[i].getPrecursors());
           }
         }
       }else if (merge_spec_ == 2)
       {
-        mergeSpectra_(tmp_map, ms_level);
+        mergeSpectra_(map, ms_level);
       }
 
       // run FD
-      for (Size index = 0; index < tmp_map.size(); index++)
+      for (Size index = 0; index < map.size(); index++)
       {
-        int scan_number = getScanNumber_(tmp_map, index);
-        auto spec = tmp_map[index];
+        int scan_number = getScanNumber_(map, index);
+        auto spec = map[index];
         nextProgress();
 
         if (spec.empty())

@@ -88,7 +88,7 @@ namespace OpenMS
 
     void mergeSpectra_(MSExperiment& map, uint ms_level) const;
 
-    int runFD_(const MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra);
+    int runFD_(MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra);
 
     void runFeatureFinding_(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<FLASHDeconvHelperStructs::MassFeature>& deconvolved_features);
 
