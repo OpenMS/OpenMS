@@ -44,9 +44,6 @@ namespace OpenMS
     defaults_.setMinFloat("precursor_mz", 0.0);
     defaults_.addTag("precursor_mz", "advanced");
 
-    defaults_.setValue("isolation_window", 5.0, "Default isolation window with. If the input mzML file does not contain isolation window width information, this width will be used.");
-    defaults_.addTag("isolation_window", "advanced");
-
     defaults_.setValue("min_cos", DoubleList {.8, .8},
                        "Cosine similarity threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_cos 0.3 0.6 to specify 0.3 and 0.6 for MS1 and MS2, respectively)");
 
@@ -100,8 +97,7 @@ namespace OpenMS
   }
 
   // The main function called from outside. precursor_map_for_FLASHIda is used to read FLASHIda information
-  void SpectralDeconvolution::performSpectrumDeconvolution(const MSSpectrum& spec, const std::vector<DeconvolvedSpectrum>& survey_scans, const int scan_number,
-                                                          const std::map<int, std::vector<std::vector<float>>>& precursor_map_for_FLASHIda)
+  void SpectralDeconvolution::performSpectrumDeconvolution(const MSSpectrum& spec, const int scan_number, const PeakGroup& precursor_peak_group)
   {
     // First prepare for decoy runs.
     iso_da_distance_ =
@@ -141,12 +137,42 @@ namespace OpenMS
 
     // here register targeted peak mzs etc.
     // for MSn (n>1) register precursor peak and peak group.
-    registerPrecursor_(survey_scans, precursor_map_for_FLASHIda);
+    if (ms_level_ > 1)
+    {
+       deconvolved_spectrum_.setPrecursorIntensity(.0);
+
+       if (!precursor_peak_group.empty())
+       {
+        deconvolved_spectrum_.setPrecursorPeakGroup(precursor_peak_group);
+        deconvolved_spectrum_.setPrecursorScanNumber(precursor_peak_group.getScanNumber());
+       }
+
+       for (auto& precursor : deconvolved_spectrum_.getOriginalSpectrum().getPrecursors())
+      {
+        for (auto& activation_method : precursor.getActivationMethods())
+        {
+          deconvolved_spectrum_.setActivationMethod(activation_method);
+          if (deconvolved_spectrum_.getActivationMethod() == Precursor::HCID)
+          {
+            deconvolved_spectrum_.setActivationMethod(Precursor::HCD);
+          }
+          break;
+        }
+        deconvolved_spectrum_.setPrecursor(precursor);
+      }
+      if (!precursor_peak_group.empty())
+      {
+        Precursor precursor(deconvolved_spectrum_.getPrecursor());
+        precursor.setCharge(precursor_peak_group.isPositive() ? precursor_peak_group.getRepAbsCharge() : -precursor_peak_group.getRepAbsCharge());
+        deconvolved_spectrum_.setPrecursor(precursor);
+      }
+    }
 
     // based on MS level, adjust charge and mass ranges. Precursor charge and mass determine those.
     current_max_charge_ = deconvolved_spectrum_.getCurrentMaxAbsCharge(max_abs_charge_); //
     current_max_mass_ = deconvolved_spectrum_.getCurrentMaxMass(max_mass_);
     current_min_mass_ = deconvolved_spectrum_.getCurrentMinMass(min_mass_);
+
     // set universal pattern filter and harmonic pattern filters
     setFilters_();
     // LogMzPeaks are generated from raw peaks
@@ -1567,230 +1593,6 @@ namespace OpenMS
           target_mono_masses_.push_back(m + iso_da_distance_ * j);
       }
     }
-  }
-
-  bool SpectralDeconvolution::registerPrecursor_(const std::vector<DeconvolvedSpectrum>& survey_scans, const std::map<int, std::vector<std::vector<float>>>& precursor_map_for_real_time_acquisition)
-  {
-    if (!deconvolved_spectrum_.getPrecursorPeakGroup().empty()) return true;
-
-    if (ms_level_ == 1 || (survey_scans.empty() && precursor_map_for_real_time_acquisition.empty()))
-    {
-      return false;
-    }
-    deconvolved_spectrum_.setPrecursorIntensity(.0);
-    double start_mz = 0;
-    double end_mz = 0;
-    for (auto& precursor : deconvolved_spectrum_.getOriginalSpectrum().getPrecursors())
-    {
-      for (auto& activation_method : precursor.getActivationMethods())
-      {
-        deconvolved_spectrum_.setActivationMethod(activation_method);
-        if (deconvolved_spectrum_.getActivationMethod() == Precursor::HCID)
-        {
-          deconvolved_spectrum_.setActivationMethod(Precursor::HCD);
-        }
-        break;
-      }
-      deconvolved_spectrum_.setPrecursor(precursor);
-
-      double loffset = precursor.getIsolationWindowLowerOffset();
-      double uoffest = precursor.getIsolationWindowUpperOffset();
-      loffset = loffset <= 0 ? isolation_window_size_ / 2.0 : loffset;
-      uoffest = uoffest <= 0 ? isolation_window_size_ / 2.0 : uoffest;
-
-      start_mz = loffset > 100.0 ? loffset : -loffset + precursor.getMZ();
-      end_mz = uoffest > 100.0 ? uoffest : uoffest + precursor.getMZ();
-    }
-
-    double max_score = -1.0;
-
-    for (int i = (int)survey_scans.size() - 1; i >= 0; i--)
-    {
-      auto precursor_spectrum = survey_scans[i];
-      if (deconvolved_spectrum_.getPrecursorScanNumber() == 0)
-      {
-        deconvolved_spectrum_.setPrecursorScanNumber(precursor_spectrum.getScanNumber());
-      }
-      if (precursor_spectrum.empty())
-      {
-        continue;
-      }
-      auto o_spec = precursor_spectrum.getOriginalSpectrum();
-
-      for (auto& pg : precursor_spectrum)
-      {
-        if (pg[0].mz > end_mz || pg[pg.size() - 1].mz < start_mz)
-        {
-          continue;
-        }
-
-        double max_intensity = .0;
-        const LogMzPeak* tmp_precursor = nullptr;
-
-        int c = int(.5 + pg.getMonoMass() / start_mz);
-        for (auto& tmp_peak : pg)
-        {
-          if (tmp_peak.abs_charge != c)
-          {
-            continue;
-          }
-
-          if (tmp_peak.mz < start_mz || tmp_peak.mz > end_mz)
-          {
-            continue;
-          }
-
-          if (tmp_peak.intensity < max_intensity)
-          {
-            continue;
-          }
-          max_intensity = tmp_peak.intensity;
-          tmp_precursor = &tmp_peak;
-        }
-
-        if (tmp_precursor == nullptr)
-        {
-          continue;
-        }
-
-        auto score = pg.getChargeSNR(tmp_precursor->abs_charge); // most intense one should determine the mass
-
-        if (score < max_score)
-        {
-          continue;
-        }
-
-        Precursor precursor_pg(deconvolved_spectrum_.getPrecursor());
-        precursor_pg.setCharge(tmp_precursor->is_positive ? tmp_precursor->abs_charge : -tmp_precursor->abs_charge);
-
-        deconvolved_spectrum_.setPrecursor(precursor_pg);
-        max_score = score;
-
-        deconvolved_spectrum_.setPrecursorPeakGroup(pg);
-        deconvolved_spectrum_.setPrecursorScanNumber(precursor_spectrum.getScanNumber());
-      }
-      if (!deconvolved_spectrum_.getPrecursorPeakGroup().empty())
-      {
-        break;
-      }
-    }
-
-    if (!precursor_map_for_real_time_acquisition.empty() && deconvolved_spectrum_.getPrecursorPeakGroup().empty())
-    {
-      auto map = precursor_map_for_real_time_acquisition.lower_bound(deconvolved_spectrum_.getScanNumber());
-      while (map != precursor_map_for_real_time_acquisition.begin())
-      {
-        --map;
-        if (map->first < deconvolved_spectrum_.getScanNumber() - 50)
-        {
-          return false;
-        }
-
-        if (map != precursor_map_for_real_time_acquisition.end())
-        {
-          for (auto& smap : map->second)
-          {
-            if (abs(start_mz - smap[3]) < .001 && abs(end_mz - smap[4]) < .001)
-            {
-              LogMzPeak precursor_log_mz_peak(deconvolved_spectrum_.getPrecursor(), is_positive_);
-              precursor_log_mz_peak.abs_charge = (int)smap[1];
-              precursor_log_mz_peak.isotopeIndex = 0;
-              precursor_log_mz_peak.mass = smap[0];
-              precursor_log_mz_peak.intensity = smap[6];
-
-              Precursor precursor(deconvolved_spectrum_.getPrecursor());
-              precursor.setCharge(precursor_log_mz_peak.abs_charge);
-              precursor.setIntensity(smap[5]);
-              deconvolved_spectrum_.setPrecursor(precursor);
-
-              PeakGroup precursor_pg(deconvolved_spectrum_.getPrecursorPeakGroup());
-              precursor_pg.push_back(precursor_log_mz_peak);
-              precursor_pg.setAbsChargeRange((int)smap[7], (int)smap[8]);
-              precursor_pg.setChargeIsotopeCosine(precursor_log_mz_peak.abs_charge, smap[9]);
-              precursor_pg.setChargeSNR(precursor_log_mz_peak.abs_charge, smap[10]); // cnsr
-              precursor_pg.setIsotopeCosine(smap[11]);
-              precursor_pg.setSNR(smap[12]);
-              precursor_pg.setChargeScore(smap[13]);
-              precursor_pg.setAvgPPMError(smap[14]);
-              precursor_pg.setQscore(smap[2]);
-              precursor_pg.setRepAbsCharge((int)smap[1]);
-              precursor_pg.updateMonoMassAndIsotopeIntensities();
-              precursor_pg.setScanNumber(map->first);
-              deconvolved_spectrum_.setPrecursorPeakGroup(precursor_pg);
-              deconvolved_spectrum_.setPrecursorScanNumber(map->first);
-
-              for (int i = (int)survey_scans.size() - 1; i >= 0; i--)
-              {
-                auto precursor_spectrum = survey_scans[i];
-                if (precursor_spectrum.getScanNumber() != deconvolved_spectrum_.getPrecursorScanNumber())
-                {
-                  continue;
-                }
-
-                auto o_spec = precursor_spectrum.getOriginalSpectrum();
-                auto spec_iterator = o_spec.PosBegin(start_mz);
-                while (spec_iterator != o_spec.end() && spec_iterator->getMZ() < end_mz)
-                {
-                  spec_iterator++;
-                }
-
-                double max_score = -1.0;
-                for (auto& pg : precursor_spectrum)
-                {
-                  if (pg[0].mz > end_mz || pg[pg.size() - 1].mz < start_mz)
-                  {
-                    continue;
-                  }
-                  if (abs(pg.getMonoMass() - smap[0]) > 5.0)
-                  {
-                    continue;
-                  }
-                  double max_intensity = .0;
-                  const LogMzPeak* tmp_precursor = nullptr;
-                  for (auto& tmp_peak : pg)
-                  {
-                    if (tmp_peak.mz < start_mz)
-                    {
-                      continue;
-                    }
-                    if (tmp_peak.mz > end_mz)
-                    {
-                      break;
-                    }
-
-                    if (tmp_peak.intensity < max_intensity)
-                    {
-                      continue;
-                    }
-                    max_intensity = tmp_peak.intensity;
-                    tmp_precursor = &tmp_peak;
-                  }
-
-                  if (tmp_precursor == nullptr || tmp_precursor->abs_charge < min_abs_charge_ || tmp_precursor->abs_charge > max_abs_charge_)
-                  {
-                    continue;
-                  }
-
-                  auto score = pg.getChargeSNR(tmp_precursor->abs_charge);
-                  // most intense one should determine the mass
-                  if (score < max_score)
-                  {
-                    continue;
-                  }
-
-                  max_score = score;
-                  deconvolved_spectrum_.setPrecursorPeakGroup(pg);
-                }
-              }
-              return true;
-            }
-          }
-        }
-      }
-      return false;
-    }
-
-    return deconvolved_spectrum_.getPrecursorPeakGroup().empty();
   }
 
   void SpectralDeconvolution::setAveragine(const SpectralDeconvolution::PrecalculatedAveragine& avg)

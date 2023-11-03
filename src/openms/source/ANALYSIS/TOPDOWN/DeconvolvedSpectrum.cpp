@@ -14,6 +14,21 @@ namespace OpenMS
   {
   }
 
+  bool DeconvolvedSpectrum::operator<(const DeconvolvedSpectrum& a) const
+  {
+    return this->scan_number_ < a.scan_number_;
+  }
+
+  bool DeconvolvedSpectrum::operator>(const DeconvolvedSpectrum& a) const
+  {
+    return this->scan_number_ > a.scan_number_;
+  }
+
+  bool DeconvolvedSpectrum::operator==(const DeconvolvedSpectrum& a) const
+  {
+    return this->scan_number_ == a.scan_number_;
+  }
+
   MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge, uint min_ms_level, double tol, bool retain_undeconvolved)
   {
     auto out_spec = MSSpectrum(spec_);

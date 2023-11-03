@@ -56,12 +56,10 @@ namespace OpenMS
     /**
       @brief main deconvolution function that generates the deconvolved target and dummy spectrum based on the original spectrum.
       @param spec the original spectrum
-      @param survey_scans the survey scans to assign precursor mass to the deconvolved spectrum.
       @param scan_number scan number from input spectrum.
-      @param precursor_map_for_FLASHIda deconvolved precursor information from FLASHIda
+      @param precursor_peak_group precursor peak group
     */
-    void performSpectrumDeconvolution(const MSSpectrum& spec, const std::vector<DeconvolvedSpectrum>& survey_scans, int scan_number,
-                                      const std::map<int, std::vector<std::vector<float>>>& precursor_map_for_FLASHIda);
+    void performSpectrumDeconvolution(const MSSpectrum& spec, int scan_number, const PeakGroup& precursor_peak_group);
 
     /// return deconvolved spectrum
     DeconvolvedSpectrum& getDeconvolvedSpectrum();
@@ -209,9 +207,6 @@ namespace OpenMS
     /// current ms Level
     uint ms_level_;
 
-    /// default precursor isolation window size.
-    double isolation_window_size_;
-
     int target_precursor_charge_ = 0;
     double target_precursor_mz_ = 0;
 
@@ -287,14 +282,5 @@ namespace OpenMS
 
     void setTargetPrecursorCharge_();
 
-    /**
-    @brief register the precursor peak as well as the precursor peak group (or mass) if possible for MSn (n>1) spectrum.
-    Given a precursor peak (found in the original MS n-1 Spectrum) the masses containing the precursor peak are searched.
-    If multiple masses are detected, the one with the best setQscore is selected. For the selected mass, its corresponding peak group (along with precursor peak) is registered.
-    If no such mass exists, only the precursor peak is registered.
-    @param survey_scans the candidate precursor spectra - the user may allow search of previous N survey scans.
-    @param precursor_map_for_real_time_acquisition this contains the deconvolved mass information from FLASHIda runs.
-    */
-    bool registerPrecursor_(const std::vector<DeconvolvedSpectrum>& survey_scans, const std::map<int, std::vector<std::vector<float>>>& precursor_map_for_real_time_acquisition);
   };
 } // namespace OpenMS

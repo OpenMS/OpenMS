@@ -274,57 +274,6 @@ public:
       exp.sortSpectra();
     }
 
-    /**
-     * @brief check if the first and second mzs might be from the same mass
-     *
-     * @param mz1 the first m/z value
-     * @param mz2 the second m/z value
-     * @param tol_ppm tolerance in ppm
-     * @param max_c maximum possible charge value
-     */
-    static bool areMassesMatched(double mz1, double mz2, double tol_ppm, int max_c)
-    {
-      if (mz1 == mz2 || tol_ppm <= 0)
-      {
-        return true;
-      }
-
-      const int min_c = 1;
-      const int max_iso_diff = 5; // maximum charge difference  5 is more than enough
-      const double max_charge_diff_ratio = 3.0; // maximum ratio between charges (large / small charge)
-
-      for (int c1 = min_c; c1 <= max_c; ++c1)
-      {
-        double mass1 = (mz1 - Constants::PROTON_MASS_U) * c1;
-
-        for (int c2 = min_c; c2 <= max_c; ++c2)
-        {
-          if (c1 / c2 > max_charge_diff_ratio)
-          {
-            continue;
-          }
-          if (c2 / c1 > max_charge_diff_ratio)
-          {
-            break;
-          }
-
-          double mass2 = (mz2 - Constants::PROTON_MASS_U) * c2;
-
-          if (fabs(mass1 - mass2) > max_iso_diff)
-          {
-            continue;
-          }
-          for (int i = -max_iso_diff; i <= max_iso_diff; ++i)
-          {
-            if (fabs(mass1 - mass2 + i * Constants::ISOTOPE_MASSDIFF_55K_U) < mass1 * tol_ppm * 1e-6)
-            {
-              return true;
-            }
-          }
-        }
-      }
-      return false;
-    }
 
     /**
      * @brief average over neighbouring spectra
@@ -357,8 +306,8 @@ public:
       double fwhm(param_.getValue("average_gaussian:rt_FWHM"));
       double factor = -4 * log(2.0) / (fwhm * fwhm); // numerical factor within Gaussian
       double cutoff(param_.getValue("average_gaussian:cutoff"));
-      double precursor_mass_ppm = param_.getValue("average_gaussian:precursor_mass_tol");
-      int precursor_max_charge = param_.getValue("average_gaussian:precursor_max_charge");
+      //double precursor_mass_ppm = param_.getValue("average_gaussian:precursor_mass_tol");
+      //int precursor_max_charge = param_.getValue("average_gaussian:precursor_max_charge");
 
       // parameters for Top-Hat averaging
       bool unit(param_.getValue("average_tophat:rt_unit") == "scans"); // true if RT unit is 'scans', false if RT unit is 'seconds'
@@ -394,28 +343,16 @@ public:
           {
             if (Int(it_rt_2->getMSLevel()) == ms_level)
             {
-              bool add = true;
-              // if precursor_mass_ppm >=0, two spectra should have the same mass. otherwise it_rt_2 is skipped.
-              if (precursor_mass_ppm >= 0 && ms_level >= 2 && it_rt->getPrecursors().size() > 0 &&
-                  it_rt_2->getPrecursors().size() > 0)
+              double weight = 1;
+              if (average_type == "gaussian")
               {
-                double mz1 = it_rt->getPrecursors()[0].getMZ();
-                double mz2 = it_rt_2->getPrecursors()[0].getMZ();
-                add = areMassesMatched(mz1, mz2, precursor_mass_ppm, precursor_max_charge);
+                //factor * (rt_2 -rt)^2
+                double base = it_rt_2->getRT() - it_rt->getRT();
+                weight = std::exp(factor * base * base);
               }
+              std::pair<Size, double> p(m, weight);
+              spectra_to_average_over[n].push_back(p);
 
-              if (add)
-              {
-                double weight = 1;
-                if (average_type == "gaussian")
-                {
-                  //factor * (rt_2 -rt)^2
-                  double base = it_rt_2->getRT() - it_rt->getRT();
-                  weight = std::exp(factor * base * base);
-                }
-                std::pair<Size, double> p(m, weight);
-                spectra_to_average_over[n].push_back(p);
-              }
               ++steps;
             }
             if (average_type == "gaussian")
@@ -447,26 +384,15 @@ public:
           {
             if (Int(it_rt_2->getMSLevel()) == ms_level)
             {
-              bool add = true;
-              // if precursor_mass_ppm >=0, two spectra should have the same mass. otherwise it_rt_2 is skipped.
-              if (precursor_mass_ppm >= 0 && ms_level >= 2 && it_rt->getPrecursors().size() > 0 &&
-                  it_rt_2->getPrecursors().size() > 0)
+              double weight = 1;
+              if (average_type == "gaussian")
               {
-                double mz1 = it_rt->getPrecursors()[0].getMZ();
-                double mz2 = it_rt_2->getPrecursors()[0].getMZ();
-                add = areMassesMatched(mz1, mz2, precursor_mass_ppm, precursor_max_charge);
+                double base = it_rt_2->getRT() - it_rt->getRT();
+                weight = std::exp(factor * base * base);
               }
-              if (add)
-              {
-                double weight = 1;
-                if (average_type == "gaussian")
-                {
-                  double base = it_rt_2->getRT() - it_rt->getRT();
-                  weight = std::exp(factor * base * base);
-                }
-                std::pair<Size, double> p(m, weight);
-                spectra_to_average_over[n].push_back(p);
-              }
+              std::pair<Size, double> p(m, weight);
+              spectra_to_average_over[n].push_back(p);
+
               ++steps;
             }
             if (average_type == "gaussian")

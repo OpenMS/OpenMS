@@ -143,6 +143,14 @@ namespace OpenMS
     /// sort by setQscore of peakGroups
     void sortByQscore();
 
+    /// comparison operators
+    bool operator<(const DeconvolvedSpectrum& a) const;
+
+    bool operator>(const DeconvolvedSpectrum& a) const;
+
+    bool operator==(const DeconvolvedSpectrum& a) const;
+
+
   private:
     /// peak groups (deconvolved masses)
     std::vector<PeakGroup> peak_groups_;

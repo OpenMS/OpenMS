@@ -105,10 +105,8 @@ fd_algo.calculateAveragine(false);
 
 START_SECTION(DeconvolvedSpectrum& getDeconvolvedSpectrum())
 {
-  std::vector<DeconvolvedSpectrum> survey_specs;
-  const std::map<int, std::vector<std::vector<float>>> null_map;
 
-  fd_algo.performSpectrumDeconvolution(input[3], survey_specs, 4, null_map);
+  fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
 
   DeconvolvedSpectrum d_ms1_spec = fd_algo.getDeconvolvedSpectrum();
   TEST_EQUAL(d_ms1_spec.size(), 1);
@@ -117,13 +115,10 @@ END_SECTION
 
 START_SECTION((DeconvolvedSpectrum& performSpectrumDeconvolution(const MSSpectrum &spec, const std::vector< DeconvolvedSpectrum > &survey_scans, const int scan_number, const bool write_detail, const std::map< int, std::vector< std::vector< double >>> &precursor_map_for_FLASHIda)))
 {
-  std::vector<DeconvolvedSpectrum> survey_specs;
-  const std::map<int, std::vector<std::vector<float>>> null_map;
 
-  fd_algo.performSpectrumDeconvolution(input[3], survey_specs, 4, null_map);
+  fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
   DeconvolvedSpectrum d_ms1_spec = fd_algo.getDeconvolvedSpectrum();
-  survey_specs.push_back(d_ms1_spec);
-  fd_algo.performSpectrumDeconvolution(input[5], survey_specs, 6, null_map);
+  fd_algo.performSpectrumDeconvolution(input[5], 6, PeakGroup());
   DeconvolvedSpectrum d_ms2_spec = fd_algo.getDeconvolvedSpectrum();
   TEST_EQUAL(d_ms1_spec.getScanNumber(), 4);
   TEST_EQUAL(d_ms1_spec.size(), 1);

@@ -79,17 +79,14 @@ fd_param.setValue("min_charge", 5);
 fd_param.setValue("max_charge", 20);
 fd_algo.setParameters(fd_param);
 fd_algo.calculateAveragine(false);
-std::vector<DeconvolvedSpectrum> survey_specs;
-const std::map<int, std::vector<std::vector<float>>> null_map;
 
-    fd_algo.performSpectrumDeconvolution(input[1], survey_specs, 2, null_map);
+    fd_algo.performSpectrumDeconvolution(input[1], 2, PeakGroup());
 DeconvolvedSpectrum prec_deconv_spec_1 = fd_algo.getDeconvolvedSpectrum();
 
-    fd_algo.performSpectrumDeconvolution(input[3], survey_specs, 4, null_map);
+    fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
 DeconvolvedSpectrum prec_deconv_spec_2 = fd_algo.getDeconvolvedSpectrum();
 
-survey_specs.push_back(prec_deconv_spec_2);
-    fd_algo.performSpectrumDeconvolution(input[5], survey_specs, 6, null_map);
+    fd_algo.performSpectrumDeconvolution(input[5], 6, PeakGroup());
 DeconvolvedSpectrum ms2_deconv_spec = fd_algo.getDeconvolvedSpectrum();
 
 START_SECTION((double getCurrentMaxMass(const double max_mass) const))

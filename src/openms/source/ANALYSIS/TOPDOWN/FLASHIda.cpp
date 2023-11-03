@@ -275,7 +275,7 @@ namespace OpenMS
     }
 
     std::vector<DeconvolvedSpectrum> tmp;
-    std::map<int, std::vector<std::vector<float>>> empty;
+    PeakGroup empty;
 
     target_masses_.clear();
     excluded_masses_.clear();
@@ -311,7 +311,7 @@ namespace OpenMS
     selected_peak_groups_.clear();
     deconvolved_spectrum_.clear();
 
-    fd_.performSpectrumDeconvolution(spec, tmp, 0, empty);
+    fd_.performSpectrumDeconvolution(spec, 0, empty);
     deconvolved_spectrum_ = fd_.getDeconvolvedSpectrum();
     // per spec deconvolution
     FLASHIda::filterPeakGroupsUsingMassExclusion_(ms_level, rt);
