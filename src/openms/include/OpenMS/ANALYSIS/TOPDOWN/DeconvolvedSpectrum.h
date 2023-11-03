@@ -153,7 +153,7 @@ namespace OpenMS
     /// precursor raw peak (not deconvolved one)
     Precursor precursor_peak_;
     /// activation method for file output
-    Precursor::ActivationMethod activation_method_;
+    Precursor::ActivationMethod activation_method_ = Precursor::ActivationMethod::CID;
     /// scan number and precursor scan number
     int scan_number_ = 0, precursor_scan_number_ = 0;
     /// isobaric quantities

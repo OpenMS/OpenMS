@@ -6,7 +6,7 @@
 // $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -82,7 +82,6 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    IdXMLFile idXML_file;
     vector<ProteinIdentification> protein_identifications;
     vector<ProteinIdentification> chosen_protein_identifications;
     vector<PeptideIdentification> identifications;
@@ -112,8 +111,7 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-    String document_id;
-    idXML_file.load(inputfile_name, protein_identifications, identifications, document_id);
+    FileHandler().loadIdentifications(inputfile_name, protein_identifications, identifications, {FileTypes::IDXML});
 
     if (number_of_peptides > identifications.size())
     {
@@ -225,9 +223,10 @@ protected:
       }
     }
 
-    idXML_file.store(outputfile_name,
+    FileHandler().storeIdentifications(outputfile_name,
                      chosen_protein_identifications,
-                     chosen_identifications);
+                     chosen_identifications,
+                     {FileTypes::IDXML});
 
     return EXECUTION_OK;
   }

@@ -7,8 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -106,7 +105,7 @@ protected:
         ExperimentalDesign::SampleSection sampleSection = design.getSampleSection();
 
         ConsensusMap consensus_map;
-        ConsensusXMLFile().load(arg_in, consensus_map);
+        FileHandler().loadConsensusFeatures(arg_in, consensus_map, {FileTypes::CONSENSUSXML});
 
         StringList reannotate_filenames = getStringList_(param_reannotate_filenames);
         String condition = getStringOption_(param_Triqler_condition);

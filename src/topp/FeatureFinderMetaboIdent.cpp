@@ -13,10 +13,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
@@ -230,10 +227,9 @@ protected:
     ff_mident.setParameters(tool_parameter);
 
     OPENMS_LOG_INFO << "Loading input LC-MS data..." << endl;
-    MzMLFile mzml;
-    mzml.setLogType(log_type_);
+    FileHandler mzml;
     mzml.getOptions().addMSLevel(1);
-    mzml.load(in, ff_mident.getMSData());
+    mzml.loadExperiment(in, ff_mident.getMSData(), {FileTypes::MZML});
     if (ff_mident.getMSData().empty() && !force)
     {
       OPENMS_LOG_ERROR << "Error: No MS1 scans in '"
@@ -261,7 +257,7 @@ protected:
       PeakMap& chrom_data = ff_mident.getChromatograms();
       addDataProcessing_(chrom_data,
                          getProcessingInfo_(DataProcessing::FILTERING));
-      MzMLFile().store(chrom_out, ff_mident.getChromatograms());
+      FileHandler().storeExperiment(chrom_out, ff_mident.getChromatograms(), {FileTypes::MZML});
     }
     ff_mident.getChromatograms().clear(true);
 
@@ -270,19 +266,19 @@ protected:
     //-------------------------------------------------------------
 
     OPENMS_LOG_INFO << "Writing final results..." << endl;
-    FeatureXMLFile().store(out, features);
+    FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
 
     // write transition library in TraML format
     if (!lib_out.empty())
     {
-      TraMLFile().store(lib_out, ff_mident.getLibrary());
+      FileHandler().storeTransitions(lib_out, ff_mident.getLibrary(), {FileTypes::TRAML});
     }
 
     // write expected vs. observed retention times
     if (!trafo_out.empty())
     {
       const TransformationDescription& trafo = ff_mident.getTransformations();
-      TransformationXMLFile().store(trafo_out, trafo);
+      FileHandler().storeTransformations(trafo_out, trafo, {FileTypes::TRANSFORMATIONXML});
     }
 
     //-------------------------------------------------------------

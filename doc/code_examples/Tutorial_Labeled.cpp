@@ -5,8 +5,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -20,8 +19,7 @@ int main(int argc, const char** argv)
   vector<FeatureMap > maps;
   maps.resize(1);
 
-  FeatureXMLFile feature_file;
-  feature_file.load(tutorial_data_path + "/data/Tutorial_Labeled.featureXML", maps[0]);
+  FileHandler().loadFeatures(tutorial_data_path + "/data/Tutorial_Labeled.featureXML", maps[0], {FileTypes::FEATUREXML});
   ConsensusMap out;
   out.getColumnHeaders()[0].filename = "data/Tutorial_Labeled.mzML";
   out.getColumnHeaders()[0].size = maps[0].size();
@@ -33,8 +31,7 @@ int main(int argc, const char** argv)
   FeatureGroupingAlgorithmLabeled algorithm;
   // ... set parameters
   algorithm.group(maps, out);
-  ConsensusXMLFile consensus_file;
-  consensus_file.store("Tutorial_Labeled.consensusXML", out);
+  FileHandler().storeConsensusFeatures("Tutorial_Labeled.consensusXML", out, {FileTypes::CONSENSUSXML});
 
   return 0;
 } //end of main

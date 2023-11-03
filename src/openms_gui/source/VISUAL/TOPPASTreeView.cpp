@@ -13,8 +13,6 @@
 #include <QApplication>
 #include <QtCore/QMimeData>
 
-#include <iostream>
-
 using namespace std;
 
 namespace OpenMS
@@ -29,7 +27,65 @@ namespace OpenMS
 
   TOPPASTreeView::~TOPPASTreeView() = default;
 
-  void TOPPASTreeView::mousePressEvent(QMouseEvent * event)
+  void TOPPASTreeView::filter(const QString& must_match)
+  {
+    // hide all
+    QTreeWidgetItemIterator it(this);
+    while (*it)
+    {
+      (*it)->setHidden(true);
+      (*it)->setExpanded(false);
+      ++it;
+    }
+
+    // recursive lambda: show items and its subchildren (e.g. when a category matches)
+    function<void(QTreeWidgetItem*)> show_sub_tree = [&](QTreeWidgetItem* item) {
+      item->setHidden(false);
+      for (int i = 0; i < item->childCount(); i++)
+      {
+        QTreeWidgetItem* child = item->child(i);
+        child->setHidden(false);
+        child->setExpanded(true); // technically not required, since our tree is only 2 layers deep, but maybe in the future...
+        show_sub_tree(child);
+      }
+    };
+
+    // show stuff that matches
+    auto items = this->findItems(must_match, Qt::MatchContains | Qt::MatchRecursive);
+    for (auto& it : items)
+    {
+      // show parent (if any) -- otherwise the children will not be displayed
+      if (it->parent())
+      {
+        it->parent()->setHidden(false);
+        it->parent()->setExpanded(true);
+      }
+      show_sub_tree(it); // also show all children
+      it->setExpanded(true);
+    }
+  }
+
+  void TOPPASTreeView::expandAll()
+  {
+    QTreeWidgetItemIterator it(this);
+    while (*it)
+    {
+      (*it)->setExpanded(true);
+      ++it;
+    }
+  }
+
+  void TOPPASTreeView::collapseAll()
+  {
+    QTreeWidgetItemIterator it(this);
+    while (*it)
+    {
+      (*it)->setExpanded(false);
+      ++it;
+    }
+  }
+
+  void TOPPASTreeView::mousePressEvent(QMouseEvent* event)
   {
     QTreeWidget::mousePressEvent(event);
 
@@ -39,7 +95,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPASTreeView::mouseMoveEvent(QMouseEvent * event)
+  void TOPPASTreeView::mouseMoveEvent(QMouseEvent* event)
   {
     QTreeWidget::mouseMoveEvent(event);
 
@@ -67,7 +123,7 @@ namespace OpenMS
     drag->exec(Qt::CopyAction);
   }
 
-  void TOPPASTreeView::keyPressEvent(QKeyEvent * e)
+  void TOPPASTreeView::keyPressEvent(QKeyEvent* e)
   {
     QTreeWidget::keyPressEvent(e);
     if (currentItem() && e->key() == Qt::Key_Return)
@@ -81,14 +137,13 @@ namespace OpenMS
     }
   }
 
-  void TOPPASTreeView::enterEvent(QEvent * /*e*/)
+  void TOPPASTreeView::enterEvent(QEvent* /*e*/)
   {
     setFocus();
   }
 
-  void TOPPASTreeView::leaveEvent(QEvent * /*e*/)
+  void TOPPASTreeView::leaveEvent(QEvent* /*e*/)
   {
-
   }
 
 } //namespace OpenMS

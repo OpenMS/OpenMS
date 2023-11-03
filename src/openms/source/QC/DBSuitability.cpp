@@ -14,8 +14,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
@@ -328,8 +327,8 @@ namespace OpenMS
     parameters.setValue(adapter_name + ":1:out", out_path);
 
     // store data in temporary files
-    MzMLFile spectra_file;
-    spectra_file.store(mzml_path, exp);
+    FileHandler spectra_file;
+    spectra_file.storeExperiment(mzml_path, exp,{FileTypes::MZML});
     FASTAFile database;
     database.store(db_path, fasta_data);
 
@@ -357,8 +356,8 @@ namespace OpenMS
     // load result
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
-    IdXMLFile id_file;
-    id_file.load(out_path, prot_ids, pep_ids);
+    FileHandler id_file;
+    id_file.loadIdentifications(out_path, prot_ids, pep_ids, {FileTypes::IDXML});
 
     // annotate target/decoy information
     PeptideIndexing indexer;
@@ -375,7 +374,7 @@ namespace OpenMS
 
     if (keep_files)
     {
-      id_file.store(tmp_dir.getPath() + "indexed_pre_FDR.idXML", prot_ids, pep_ids);
+      id_file.storeIdentifications(tmp_dir.getPath() + "indexed_pre_FDR.idXML", prot_ids, pep_ids, {FileTypes::IDXML});
     }
 
     return pep_ids;

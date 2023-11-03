@@ -5,7 +5,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -19,9 +19,9 @@ int main(int argc, const char** argv)
   FeatureMap reference;
   FeatureMap toAlign;
 
-  FeatureXMLFile xml_file;
-  xml_file.load(tutorial_data_path + "/data/Tutorial_MapAlignment_1.featureXML", reference);
-  xml_file.load(tutorial_data_path + "/data/Tutorial_MapAlignment_2.featureXML", toAlign);
+  FileHandler xml_file;
+  xml_file.loadFeatures(tutorial_data_path + "/data/Tutorial_MapAlignment_1.featureXML", reference);
+  xml_file.loadFeatures(tutorial_data_path + "/data/Tutorial_MapAlignment_2.featureXML", toAlign);
 
   // create map alignment algorithm
   MapAlignmentAlgorithmPoseClustering algorithm;
@@ -36,8 +36,8 @@ int main(int argc, const char** argv)
   algorithm.align(toAlign, transformation);
 
   // store results
-  xml_file.store("Tutorial_MapAlignment_1.featureXML", reference);
-  xml_file.store("Tutorial_MapAlignment_2.featureXML", toAlign);
+  xml_file.storeFeatures("Tutorial_MapAlignment_1.featureXML", reference);
+  xml_file.storeFeatures("Tutorial_MapAlignment_2.featureXML", toAlign);
 
   return 0;
 } //end of main
