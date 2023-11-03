@@ -10,9 +10,7 @@
 
 #include <iostream> // for "cout"
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -148,8 +146,8 @@ public:
 
     OPENMS_LOG_DEBUG << "Loading input files..." << endl;
     FeatureMap features;
-    FeatureXMLFile().load(in, features);
-    TraMLFile().load(lib, library_);
+    FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML});
+    FileHandler().loadTransitions(lib, library_, {FileTypes::TRAML});
 
     if (trafo.empty())
     {
@@ -160,7 +158,7 @@ public:
     }
     else
     {
-      TransformationXMLFile().load(trafo, rt_trafo_);
+      FileHandler().loadTransformations(trafo, rt_trafo_, true, {FileTypes::TRANSFORMATIONXML});
       if (rt_trafo_.getModelType() == "none") // fit a linear model now
       {
         rt_trafo_.fitModel("linear");
@@ -176,7 +174,7 @@ public:
     OPENMS_LOG_DEBUG << "Storing results..." << endl;
     addDataProcessing_(features, 
                        getProcessingInfo_(DataProcessing::DATA_PROCESSING));
-    FeatureXMLFile().store(out, features);
+    FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
 
     return EXECUTION_OK;
   }

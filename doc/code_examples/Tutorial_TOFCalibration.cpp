@@ -3,7 +3,7 @@
 //
 
 #include <OpenMS/FILTERING/CALIBRATION/TOFCalibration.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <iostream>
@@ -20,9 +20,9 @@ int main(int argc, const char** argv)
 
   TOFCalibration ec;
   PeakMap exp_raw, calib_exp;
-  MzMLFile mzml_file;
-  mzml_file.load(tutorial_data_path + "/data/Tutorial_TOFCalibration_peak.mzML", calib_exp);
-  mzml_file.load(tutorial_data_path + "/data/Tutorial_TOFCalibration_raw.mzML", exp_raw);
+  FileHandler mzml_file;
+  mzml_file.loadExperiment(tutorial_data_path + "/data/Tutorial_TOFCalibration_peak.mzML", calib_exp);
+  mzml_file.loadExperiment(tutorial_data_path + "/data/Tutorial_TOFCalibration_raw.mzML", exp_raw);
 
   vector<double> ref_masses;
   TextFile ref_file;

@@ -10,9 +10,6 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/ANALYSIS/XLMS/XFDRAlgorithm.h>
 
@@ -81,7 +78,7 @@ protected:
     registerInputFile_(TOPPXFDR::param_in_, "<file>", "", "Crosslink Identifications in either xquest.xml, idXML, or mzIdentML format (as produced by OpenPepXL)", false);
     setValidFormats_(TOPPXFDR::param_in_, formats);
 
-    // File input type (if omitted, guessed from the file extension)
+    // File input type (if omitted, guessed from the file extension) @TODO this can be removed in the future
     registerStringOption_(TOPPXFDR::param_in_type_, "<in_type>", "", "Type of input file provided with -in. If omitted, the file type is guessed from the file extension.", false, false);
     setValidStrings_(TOPPXFDR::param_in_type_, formats);
 
@@ -148,19 +145,19 @@ protected:
     // write idXML
     if (! arg_out_idXML_.empty())
     {
-      IdXMLFile().store( arg_out_idXML_, protein_ids, peptide_ids);
+      FileHandler().storeIdentifications(arg_out_idXML_, protein_ids, peptide_ids, {FileTypes::IDXML});
     }
 
     // write mzid file
     if (! arg_out_mzid_.empty())
     {
-      MzIdentMLFile().store( arg_out_mzid_, protein_ids, peptide_ids);
+      FileHandler().storeIdentifications(arg_out_mzid_, protein_ids, peptide_ids, {FileTypes::MZIDENTML});
     }
 
     // write xquest.xml file
     if (! arg_out_xquest_.empty())
     {
-      XQuestResultXMLFile().store(arg_out_xquest_, protein_ids, peptide_ids);
+      FileHandler().storeIdentifications(arg_out_xquest_, protein_ids, peptide_ids, {FileTypes::XQUESTXML});
     }
     return EXECUTION_OK;
   }
@@ -203,26 +200,8 @@ private:
                                       FileHandler::getType(this->arg_in_) : FileTypes::nameToType(arg_in_type_);
 
     std::vector<ProteinIdentification> protein_ids;
-    if (in_type == FileTypes::XQUESTXML)
-    {
-      XQuestResultXMLFile xquest_file;
-      xquest_file.load(arg_in_, peptide_ids, protein_ids);
+    FileHandler().loadIdentifications(arg_in_, protein_ids, peptide_ids, {FileTypes::MZIDENTML, FileTypes::IDXML, FileTypes::XQUESTXML});
 
-     writeLogInfo_("\nTotal number of hits in xQuest input: " + String(xquest_file.getNumberOfHits()));
-    }
-    else if (in_type == FileTypes::MZIDENTML)
-    {
-      MzIdentMLFile().load(arg_in_, protein_ids, peptide_ids);
-     }
-     else if (in_type == FileTypes::IDXML)
-     {
-      IdXMLFile().load(arg_in_, protein_ids, peptide_ids);
-     }
-     else
-     {
-       logFatal("Input file type not recognized.");
-       return ILLEGAL_PARAMETERS;
-     }
      const Size n_pep_ids = peptide_ids.size();
      const Size n_prot_ids = protein_ids.size();
 

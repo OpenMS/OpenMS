@@ -8,11 +8,8 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
@@ -139,14 +136,13 @@ protected:
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(in);
       OPENMS_LOG_INFO << "Loading input file: " << in << endl;
-      if (in_type == FileTypes::IDXML)
+      if (in_type == FileTypes::IDXML || in_type == FileTypes::MZIDENTML)
       {
-        IdXMLFile().load(in, protein_ids, peptide_ids);
+        FileHandler().loadIdentifications(in, protein_ids, peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
       }
-      else if (in_type == FileTypes::MZIDENTML)
+      if (in_type == FileTypes::MZIDENTML)
       {
         OPENMS_LOG_WARN << "Converting from mzid: possible loss of information depending on target format." << endl;
-        MzIdentMLFile().load(in, protein_ids, peptide_ids);
       }
       //else caught by TOPPBase:registerInput being mandatory mzid or idxml
 
@@ -295,14 +291,9 @@ protected:
     }
     OPENMS_LOG_INFO << "writing output file: " << out << endl;
     
-    if (out_type == FileTypes::IDXML)
-    {
-      IdXMLFile().store(out, all_protein_ids, all_peptide_ids);
-    }
-    else if (out_type == FileTypes::MZIDENTML)
-    {
-      MzIdentMLFile().store(out, all_protein_ids, all_peptide_ids);
-    }
+
+    FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::MZIDENTML, FileTypes::IDXML});
+
 
     writeLogInfo_("PSMFeatureExtractor finished successfully!");
     return EXECUTION_OK;

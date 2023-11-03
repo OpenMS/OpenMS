@@ -8,7 +8,7 @@
 
 #include <OpenMS/config.h>
 
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
@@ -98,9 +98,8 @@ protected:
     bool align_sampling = getFlag_("align_sampling");
     bool ppm = getFlag_("ppm");
     PeakMap exp;
-    MzMLFile f;
-    f.setLogType(log_type_);
-    f.load(in, exp);
+
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
     Param resampler_param;
     resampler_param.setValue("spacing", sampling_rate);
@@ -181,7 +180,7 @@ protected:
                        getProcessingInfo_(DataProcessing::DATA_PROCESSING));
 
     //store output
-    f.store(out, exp);
+    FileHandler().storeExperiment(out, exp, {FileTypes::MZML}, log_type_);
 
     return EXECUTION_OK;
   }

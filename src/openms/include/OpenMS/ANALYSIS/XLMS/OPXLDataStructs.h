@@ -50,8 +50,8 @@ namespace OpenMS
         std::pair<SignedSize, SignedSize> cross_link_position; ///< index in alpha, beta or between alpha, alpha in loop-links
         double cross_linker_mass = 0;
         String cross_linker_name;
-        ResidueModification::TermSpecificity term_spec_alpha;
-        ResidueModification::TermSpecificity term_spec_beta;
+        ResidueModification::TermSpecificity term_spec_alpha = ResidueModification::TermSpecificity::ANYWHERE;
+        ResidueModification::TermSpecificity term_spec_beta = ResidueModification::TermSpecificity::ANYWHERE;
         int precursor_correction = 0;
 
         ProteinProteinCrossLinkType getType() const
@@ -188,9 +188,9 @@ namespace OpenMS
        */
       struct XLPrecursor
       {
-        float precursor_mass;
-        unsigned int alpha_index;
-        unsigned int beta_index;
+        float precursor_mass{};
+        unsigned int alpha_index = 0;
+        unsigned int beta_index = 0;
         String alpha_seq;
         String beta_seq;
       };
@@ -241,9 +241,9 @@ namespace OpenMS
        */
       struct AASeqWithMass
       {
-        double peptide_mass;
+        double peptide_mass = 0;
         AASequence peptide_seq;
-        PeptidePosition position;
+        PeptidePosition position = PeptidePosition::INTERNAL;
         String unmodified_seq;
       };
 

@@ -9,7 +9,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -136,9 +136,8 @@ protected:
     {
       vector<PeptideIdentification> fwd_pep, rev_pep, out_pep;
       vector<ProteinIdentification> fwd_prot, rev_prot;
-      String document_id;
-      IdXMLFile().load(fwd_in, fwd_prot, fwd_pep, document_id);
-      IdXMLFile().load(rev_in, rev_prot, rev_pep, document_id);
+      FileHandler().loadIdentifications(fwd_in, fwd_prot, fwd_pep, {FileTypes::IDXML});
+      FileHandler().loadIdentifications(rev_in, rev_prot, rev_pep, {FileTypes::IDXML});
 
       //-------------------------------------------------------------
       // calculations
@@ -151,17 +150,17 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      IdXMLFile().store(out, fwd_prot, out_pep);
+      FileHandler().storeIdentifications(out, fwd_prot, out_pep, {FileTypes::IDXML});
     }
     else
     {
       vector<ProteinIdentification> prot_ids;
       vector<PeptideIdentification> pep_ids;
       String document_id;
-      IdXMLFile().load(in, prot_ids, pep_ids, document_id);
+      FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
 
       decoy_prob.apply(pep_ids);
-      IdXMLFile().store(out, prot_ids, pep_ids);
+      FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
     }
 
     return EXECUTION_OK;

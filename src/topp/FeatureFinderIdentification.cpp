@@ -11,11 +11,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <cstdlib>  // for "rand"
@@ -205,21 +201,20 @@ protected:
       // load input
       //-------------------------------------------------------------
       OPENMS_LOG_INFO << "Loading input data..." << endl;
-      MzMLFile mzml;
-      mzml.setLogType(log_type_);
+      FileHandler mzml;
       mzml.getOptions().addMSLevel(1);
-      mzml.load(in, ffid_algo.getMSData());
+      mzml.loadExperiment(in, ffid_algo.getMSData(), {FileTypes::MZML}, log_type_);
 
       vector<PeptideIdentification> peptides, peptides_ext;
       vector<ProteinIdentification> proteins, proteins_ext;
 
       // "internal" IDs:
-      IdXMLFile().load(id, proteins, peptides);
+      FileHandler().loadIdentifications(id, proteins, peptides, {FileTypes::IDXML});
 
       // "external" IDs:
       if (!id_ext.empty())
       {
-        IdXMLFile().load(id_ext, proteins_ext, peptides_ext);
+        FileHandler().loadIdentifications(id_ext, proteins_ext, peptides_ext, {FileTypes::IDXML});
       }
 
       //-------------------------------------------------------------
@@ -234,14 +229,14 @@ protected:
       // keep assay data for output?
       if (keep_library)
       {
-        TraMLFile().store(lib_out, ffid_algo.getLibrary());
+        FileHandler().storeTransitions(lib_out, ffid_algo.getLibrary(), {FileTypes::TRAML});
       }
 
       // keep chromatogram data for output?
       if (keep_chromatograms)
       {
         addDataProcessing_(ffid_algo.getChromatograms(), getProcessingInfo_(DataProcessing::FILTERING));
-        MzMLFile().store(chrom_out, ffid_algo.getChromatograms());
+        FileHandler().storeExperiment(chrom_out, ffid_algo.getChromatograms(), {FileTypes::MZML});
         ffid_algo.getChromatograms().clear(true);
       }
 
@@ -253,7 +248,7 @@ protected:
       // load feature candidates
       //-------------------------------------------------------------
       OPENMS_LOG_INFO << "Reading feature candidates from a previous run..." << endl;
-      FeatureXMLFile().load(candidates_in, features);
+      FileHandler().loadFeatures(candidates_in, features, {FileTypes::FEATUREXML});
       OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total." << endl;
       ffid_algo.runOnCandidates(features);
     }
@@ -263,7 +258,7 @@ protected:
     //-------------------------------------------------------------
 
     OPENMS_LOG_INFO << "Writing final results..." << endl;
-    FeatureXMLFile().store(out, features);
+    FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
 
 
     return EXECUTION_OK;

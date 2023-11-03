@@ -49,7 +49,7 @@ class TOPPDigestorMotif :
 {
 public:
   TOPPDigestorMotif() :
-    TOPPBase("DigestorMotif", "digests a protein database in-silico")
+    TOPPBase("DigestorMotif", "Digests a protein database in-silico")
   {
 
   }
