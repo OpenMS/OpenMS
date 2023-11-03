@@ -25,6 +25,7 @@ Fixes:
 - more robust parsing of mzIdentML (#7153)
 - more robust FileConverter (#7176)
 - MSFragger: allow relative path to database (#7155)
+- ParamEditor: fixed error for the subsection parameter (ParamNode) to go through store function (#7180)
 
 
 Misc:
