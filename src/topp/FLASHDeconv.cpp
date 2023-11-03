@@ -37,10 +37,12 @@ using namespace std;
   In case of FLASHIda runs, this precursor mass assignment is done by FLASHIda. Thus FLASHDeconv class simply parses the log file
   from FLASHIda runs and pass the parsed information to DeconvolvedSpectrum class.
 */
-class TOPPFLASHDeconv : public TOPPBase
+class TOPPFLASHDeconv :
+    public TOPPBase
 {
 public:
-  TOPPFLASHDeconv() : TOPPBase("FLASHDeconv", "Ultra-fast high-quality deconvolution enables online processing of top-down MS data")
+  TOPPFLASHDeconv() :
+      TOPPBase("FLASHDeconv", "Ultra-fast high-quality deconvolution enables online processing of top-down MS data")
   {
   }
 
@@ -76,7 +78,6 @@ protected:
                             " The file name for MSn should end with msn.msalign to be able to be recognized by TopPIC GUI. "
                             "For example, -out_msalign [name]_ms1.msalign [name]_ms2.msalign",
                             false);
-
     setValidFormats_("out_msalign", ListUtils::create<String>("msalign"), false);
 
     registerOutputFileList_("out_feature", "<file for MS1, file for MS2, ...>", {},
@@ -90,7 +91,6 @@ protected:
                           "the isotope distribution shape of signal."
                           "When FLASHIda log file is used, this parameter is ignored. Applied only for topFD msalign outputs.",
                           false, false);
-
     setMinFloat_("min_precursor_snr", .0);
 
     registerDoubleOption_("min_precursor_qvalue", "<q value>", 1.0,
@@ -98,59 +98,69 @@ protected:
                           " Specify to, for instance, 0.01 to make sure your precursor deconvolution FDR is less than 0.01."
                           " Applied only for topFD msalign outputs, regardless of using FLASHIda.",
                           false, false);
-
     setMinFloat_("min_precursor_qvalue", .0);
     setMaxFloat_("min_precursor_qvalue", 1.0);
 
 
     registerIntOption_("mzml_mass_charge", "<0:uncharged 1: +1 charged -1: -1 charged>", 0, "Charge state of deconvolved masses in mzml output (specified by out_mzml)", false);
-
     setMinInt_("mzml_mass_charge", -1);
     setMaxInt_("mzml_mass_charge", 1);
-
 
     registerIntOption_("write_detail", "<1:true 0:false>", 0,
                        "To write peak information per deconvolved mass in detail or not in tsv files for deconvolved spectra. "
                        "If set to 1, all peak information (m/z, intensity, charge and isotope index) per mass is reported.",
                        false, true);
-
     setMinInt_("write_detail", 0);
     setMaxInt_("write_detail", 1);
 
     registerDoubleOption_("min_mz", "<m/z value>", -1.0, "If set to positive value, minimum m/z to deconvolve.", false, true);
-
     registerDoubleOption_("max_mz", "<m/z value>", -1.0, "If set to positive value, maximum m/z to deconvolve.", false, true);
-
     registerDoubleOption_("min_rt", "<RT value>", -1.0, "If set to positive value, minimum RT (in second) to deconvolve.", false, true);
-
     registerDoubleOption_("max_rt", "<RT value>", -1.0, "If set to positive value, maximum RT (in second) to deconvolve.", false, true);
 
-    Param combined;
-    auto fd_param = FLASHDeconvAlgorithm().getDefaults();
+    registerSubsection_("fd", "FLASHDeconv algorithm parameters");
+    registerSubsection_("sd", "Spectral deconvolution parameters");
+    registerSubsection_("ft", "Feature tracing parameters");
+    registerSubsection_("iq", "Isobaric quantification parameters");
+    registerSubsection_("tagger", "Tagger parameters");
+  }
 
-    fd_param.removeAll("sd:");
-    fd_param.removeAll("ft:");
-    fd_param.removeAll("iq:");
-    combined.insert("fd:", fd_param);
-
-    fd_param = FLASHDeconvAlgorithm().getDefaults();
-    combined.insert("", fd_param.copy("sd:", false));
-    combined.insert("", fd_param.copy("ft:", false));
-    combined.insert("", fd_param.copy("iq:", false));
-
-    auto tagger_param = TopDownTagger().getDefaults();
-    tagger_param.setValue("tol", DoubleList {}, "ppm tolerances for tag generation. If not set, sd:tol will be used.");
-    tagger_param.addTag("tol", "advanced");
-
-    combined.insert("tagger:", tagger_param);
-
-    combined.setSectionDescription("fd", "FLASHDeconv algorithm parameters (prefix fd:)");
-    combined.setSectionDescription("sd", "Spectral deconvolution parameters (prefix sd:)");
-    combined.setSectionDescription("ft", "Feature tracing parameters (prefix ft:)");
-    combined.setSectionDescription("iq", "Isobaric quantification parameters (prefix iq:)");
-    combined.setSectionDescription("tagger", "Tagger parameters (prefix tagger:)");
-
-    registerFullParam_(combined);
+  Param getSubsectionDefaults_(const String& prefix) const override
+  {
+    if (prefix == "fd")
+    {
+      auto fd_param = FLASHDeconvAlgorithm().getDefaults();
+      fd_param.removeAll("sd:");
+      fd_param.removeAll("ft:");
+      fd_param.removeAll("iq:");
+      return fd_param;
+    }
+    else if (prefix == "sd")
+    {
+      auto fd_param = FLASHDeconvAlgorithm().getDefaults();
+      return fd_param.copy("sd:", true);
+    }
+    else if (prefix == "ft")
+    {
+      auto fd_param = FLASHDeconvAlgorithm().getDefaults();
+      return fd_param.copy("ft:", true);
+    }
+    else if (prefix == "iq")
+    {
+      auto fd_param = FLASHDeconvAlgorithm().getDefaults();
+      return fd_param.copy("iq:", true);
+    }
+    else if (prefix == "tagger")
+    {
+      auto tagger_param = TopDownTagger().getDefaults();
+      tagger_param.setValue("tol", DoubleList {}, "ppm tolerances for tag generation. If not set, sd:tol will be used.");
+      tagger_param.addTag("tol", "advanced");
+      return tagger_param;
+    }
+    else
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown subsection", prefix);
+    }
   }
 
   // the main_ function is called after all parameters are read

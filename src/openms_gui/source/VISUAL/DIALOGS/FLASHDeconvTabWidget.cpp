@@ -132,7 +132,6 @@ namespace OpenMS
     {
       // refresh 'flashdeconv_param_' from data within the Wizards controls
       updateFLASHDeconvParamFromWidgets_();
-
       Param tmp_param = flashdeconv_param_;
 
       // show the parameters to the user
@@ -186,7 +185,7 @@ namespace OpenMS
       // optional FLASHIda support part
       if (ui->checkbox_readlogfile->isChecked())
       {
-        flashdeconv_output_tags_.push_back("fd:ida_log");
+        flashdeconv_output_tags_.push_back("ida_log");
       }
     }
 
@@ -197,7 +196,7 @@ namespace OpenMS
 
       for (const auto& param : flashdeconv_param_outputs_)
       {
-        const std::string tag = param.name;
+        std::string tag = param.name;
 
         std::string org_desc = param.description;
         auto org_tags = flashdeconv_param_outputs_.getTags(tag);
@@ -209,7 +208,7 @@ namespace OpenMS
           is_requested = true;
         }
 
-        if (tag == "out_mzml" || tag == "out_annotated_mzml" || tag == "out_quant" || tag == "fd:ida_log") //  params having string values //  params having string values
+        if (tag == "out_mzml" || tag == "out_annotated_mzml" || tag == "out_quant" || tag == "ida_log") //  params having string values //  params having string values
         {
           // if not requested, set default value
           if (!is_requested)
@@ -232,7 +231,7 @@ namespace OpenMS
           {
             out_path += "_quant.tsv";
           }
-          else // (tag == "algorithm:ida_log")
+          else if (tag == "ida_log")
           {
             String dir_path_only = File::path(input_file_name);
             String file_name_only = FileHandler::stripExtension(File::basename(input_file_name));
@@ -292,8 +291,8 @@ namespace OpenMS
       flashdeconv_param_.remove("in");
       flashdeconv_param_.remove("out");
 
-      // parameters for different output format & ida_log
-      StringList out_params = {"out_spec", "out_annotated_mzml", "out_mzml", "out_quant", "out_msalign", "out_feature", "fd:ida_log"};
+      // parameters for different output format
+      StringList out_params = {"out_spec", "out_annotated_mzml", "out_mzml", "out_quant", "out_msalign", "out_feature"};
       for (const auto& name : out_params)
         flashdeconv_param_outputs_.setValue(name, ""); // create a dummy param, just so we can use ::copySubset
       flashdeconv_param_outputs_ = flashdeconv_param_.copySubset(flashdeconv_param_outputs_);
@@ -301,6 +300,10 @@ namespace OpenMS
       // remove output format params from global parameter set
       for (const auto& name : out_params)
         flashdeconv_param_.remove(name);
+
+      // add ida_log parameter to flashdeconv_param_outputs_ (rename ida_log to get it out of "fd:" prefix)
+      flashdeconv_param_outputs_.setValue("ida_log", "", flashdeconv_param_.getDescription("fd:ida_log"), flashdeconv_param_.getTags("fd:ida_log"));
+      flashdeconv_param_.remove("fd:ida_log");
 
       ui->list_editor->load(flashdeconv_param_);
     }
