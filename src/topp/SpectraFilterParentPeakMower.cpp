@@ -21,7 +21,7 @@ using namespace std;
 /**
   @page TOPP_SpectraFilterParentPeakMower SpectraFilterParentPeakMower
 
-  @brief Filters the top Peaks in the given spectra according to a given schema/thresholdset
+  @brief Removes high peaks that could stem from unfragmented precursor ions.
 
   <CENTER>
   <table>
