@@ -21,7 +21,7 @@ using namespace std;
 /**
   @page TOPP_SpectraFilterSqrtMower SpectraFilterSqrtMower
 
-  @brief Filters the top Peaks in the given spectra according to a given schema/thresholdset
+  @brief Scales the intensity of peaks to their sqrt.
 
   <CENTER>
   <table>
