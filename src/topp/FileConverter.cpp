@@ -146,7 +146,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
-    registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, true); // for TOPPAS
+    registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, false); // optional and not advanced (for workflow engines to show this param)
     vector<String> input_formats = {"mzML", "mzXML", "mgf", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta", "oms"};
     setValidFormats_("in", input_formats);
     setValidStrings_("in_type", input_formats);
@@ -158,7 +158,7 @@ protected:
     vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv", "sqmass", "oms"};
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", output_formats);
-    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, true);
+    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, false); // optional and not advanced (for workflow engines to show this param)
     setValidStrings_("out_type", output_formats);
     registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
     registerFlag_("MGF_compact", "Use a more compact format when writing MGF (no zero-intensity peaks, limited number of decimal places)", true);
@@ -249,6 +249,9 @@ protected:
     //-------------------------------------------------------------
 
     MSExperiment exp;
+    assert(exp.empty());
+    const MSExperiment empty_exp; ///< to determine if 'exp' was modified (loading and storing an MSExp with metadata but empty spectra/chroms should be valid), i.e. checking exp.empty() is not sufficient
+
     FeatureMap fm;
     ConsensusMap cm;
 
@@ -460,6 +463,12 @@ protected:
 
     if (out_type == FileTypes::MZML)
     {
+      if (exp == empty_exp)
+      {
+        OPENMS_LOG_ERROR << "No input data: no MS1/MS2 data present! Cannot write mzML. Please use another input/output format combination.";
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+      }
+
       //add data processing entry
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
                                                  CONVERSION_MZML));
@@ -517,6 +526,12 @@ protected:
     }
     else if (out_type == FileTypes::MZDATA)
     {
+      if (exp == empty_exp)
+      {
+        OPENMS_LOG_ERROR << "No input data: no MS1/MS2 data present! Cannot write mzData. Please use another input/output format combination.";
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+      }
+
       //annotate output with data processing info
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
                                                  CONVERSION_MZDATA));
@@ -525,6 +540,12 @@ protected:
     }
     else if (out_type == FileTypes::MZXML)
     {
+      if (exp == empty_exp)
+      {
+        OPENMS_LOG_ERROR << "No input data: no MS1/MS2 data present! Cannot write mzXML. Please use another input/output format combination.";
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+      }
+
       //annotate output with data processing info
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
                                                  CONVERSION_MZXML));
@@ -535,6 +556,11 @@ protected:
     }
     else if (out_type == FileTypes::DTA2D)
     {
+      if (exp == empty_exp)
+      {
+        OPENMS_LOG_ERROR << "No input data: no MS1/MS2 data present! Cannot write DTA2D. Please use another input/output format combination.";
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+      }
       //add data processing entry
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
                                                  FORMAT_CONVERSION));
@@ -653,6 +679,11 @@ protected:
         OPENMS_LOG_ERROR << "Internal error: cannot decide on container (Consensus or Feature)! This is a bug. Please report it!";
         return INTERNAL_ERROR;
       }
+      if (fm.empty() && cm.empty())
+      {
+        OPENMS_LOG_ERROR << "No input data: either Consensus or Feature data present! Cannot write EDTA. Please use another input/output format combination.";
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+      }
       if (!fm.empty())
       {
         FileHandler().storeFeatures(out, fm, {FileTypes::EDTA});
@@ -717,6 +748,13 @@ protected:
       writeLogError_("Error: Unknown output file type given. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
+    }
+
+    // last check if output file was written:
+    if (!File::exists(out))
+    {
+      OPENMS_LOG_ERROR << "Internal error: Conversion did not create an output file! This is a bug. Please report it!";
+      return INTERNAL_ERROR;
     }
 
     return EXECUTION_OK;

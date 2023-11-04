@@ -19,7 +19,7 @@ using namespace std;
 /**
   @page TOPP_SpectraFilterWindowMower SpectraFilterWindowMower
 
-  @brief Filters the top Peaks in the given spectra according to a given schema/thresholdset
+  @brief Retains the highest peaks in a sliding or jumping window
 
   <CENTER>
   <table>

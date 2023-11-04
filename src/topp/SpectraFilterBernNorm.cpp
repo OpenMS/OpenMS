@@ -53,7 +53,7 @@ class TOPPSpectraFilterBernNorm :
 {
 public:
   TOPPSpectraFilterBernNorm() :
-    TOPPBase("SpectraFilterBernNorm", "Applies thresholdfilter to peak spectra.")
+    TOPPBase("SpectraFilterBernNorm", "Scales and filters spectra according using the Bern norm.")
   {
   }
 
