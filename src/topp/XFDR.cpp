@@ -186,19 +186,11 @@ private:
   }
 
   /**
-  * Loads the input file depending on the type. Returns 0 if the loading of the input was successful, error
-  * code otherwise
+  * Loads the input file.
   * @return 0 if the loading of the input was successful, error code otherwise
   */
   ExitCodes loadInputFile_(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id)
   {
-    //------------------------------------------------------------
-    // Determine type of input file
-    //-------------------------------------------------------------
-    // const String arg_in_type = getStringOption_(TOPPXFDR::param_in_type);
-    const FileTypes::Type in_type = arg_in_type_.empty() ?
-                                      FileHandler::getType(this->arg_in_) : FileTypes::nameToType(arg_in_type_);
-
     std::vector<ProteinIdentification> protein_ids;
     FileHandler().loadIdentifications(arg_in_, protein_ids, peptide_ids, {FileTypes::MZIDENTML, FileTypes::IDXML, FileTypes::XQUESTXML});
 
