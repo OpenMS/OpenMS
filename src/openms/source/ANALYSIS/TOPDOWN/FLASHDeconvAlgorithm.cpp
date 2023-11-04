@@ -137,62 +137,25 @@ namespace OpenMS
   {
     for (auto& it : map)
     {
-      it.sortByIntensity(true); // first, remove zero intensity peaks.
-      while (!it.empty() && it.back().getIntensity() <= .0)
-      {
-        it.pop_back();
-      }
-      it.sortByPosition();
       double threshold;
+
       if (it.getType(false) == SpectrumSettings::CENTROID)
       {
-        if (it.size() <= count)
+        Size non_zero_count = 0;
+        for (auto& p : it)
+        {
+          if (p.getIntensity() > 0)
+            non_zero_count++;
+        }
+        if (non_zero_count <= count && non_zero_count == it.size()) // no zero intensity peaks and not too many peaks then go.
         {
           continue;
         }
-        it.sortByIntensity(true);
-        threshold = it[count].getIntensity();
       }
-      else
-      {
-        it.sortByIntensity(true);
-        threshold = it.begin()->getIntensity() / 1000;
-        /*
-        if (it.size() <= count)
-        {
-          continue;
-        }
+      it.sortByIntensity(true);
+      threshold = it.getType(false) == SpectrumSettings::CENTROID && it.size() >= count ? it[count].getIntensity() : 0;
+      threshold = std::max(threshold, (double)it.begin()->getIntensity() / 1000);
 
-        it.sortByIntensity(true);
-        double max_intensity = log10(it[0].getIntensity());
-        double min_intensity = 0;
-        for (auto& p : it)
-        {
-          if (p.getIntensity() <= 0)
-          {
-            break;
-          }
-          min_intensity = log10(p.getIntensity());
-        }
-        Size bin_size = 500;
-        std::vector<int> freq(bin_size + 1, 0);
-        for (auto& p : it)
-        {
-          if (p.getIntensity() <= 0)
-          {
-            break;
-          }
-          Size bin = round((log10(p.getIntensity()) - min_intensity) / (max_intensity - min_intensity) * bin_size);
-          freq[bin]++;
-        }
-
-        auto mod_bin = std::distance(freq.begin(), std::max_element(freq.begin(), freq.end())); // most frequent intensity is the threshold to distinguish between signal and noise
-
-        threshold = 6 *
-           (pow(10.0, (double)mod_bin / bin_size * (max_intensity - min_intensity) +
-                             min_intensity)); // multiply by 1.1 to the most frequent intensity to make sure more signal component remains. Later this could be determined to use signal-to-noise ratio.
-        //std::cout<<it.begin()->getIntensity()/threshold<<std::endl;*/
-      }
       // pop back the low intensity peaks using threshold
       while (!it.empty() && it.back().getIntensity() <= threshold)
       {
@@ -231,7 +194,8 @@ namespace OpenMS
         sm_param.setValue("mz_binning_width", 1.0);
         sm_param.setValue("precursor_method:mz_tolerance", 0.5);
         // -algorithm:precursor_method:mz_tolerance <value>    Max m/z distance of the precursor entries of two spectra to be merged in [Da]. (default: '1.0e-04') (min: '0.0')
-        //  -algorithm:precursor_method:mass_tolerance <value>  Max mass distance of the precursor entries of two spectra to be merged in [Da]. Active when set to a positive value. (default: '0.0') (min: '0.0') -algorithm:precursor_method:rt_tolerance <value>    Max RT distance of the precursor entries of two spectra to be merged in [s]. (default: '5.0') (min: '0.0')
+        //  -algorithm:precursor_method:mass_tolerance <value>  Max mass distance of the precursor entries of two spectra to be merged in [Da]. Active when set to a positive value. (default: '0.0')
+        //  (min: '0.0') -algorithm:precursor_method:rt_tolerance <value>    Max RT distance of the precursor entries of two spectra to be merged in [s]. (default: '5.0') (min: '0.0')
         merger.setParameters(sm_param);
         map.sortSpectra();
         merger.average(map, "precursor_method", (int)ms_level);
@@ -239,7 +203,7 @@ namespace OpenMS
     }
     else if (merge_spec_ == 2)
     {
-      OPENMS_LOG_INFO << "Merging spectra into a single spectrum for MS"  << ms_level << std::endl;
+      OPENMS_LOG_INFO << "Merging spectra into a single spectrum for MS" << ms_level << std::endl;
       SpectraMerger merger;
       merger.setLogType(CMD);
       Param sm_param = merger.getDefaults();
@@ -322,7 +286,8 @@ namespace OpenMS
             map[i].setPrecursors(tmp_map_for_merge[i].getPrecursors());
           }
         }
-      }else if (merge_spec_ == 2)
+      }
+      else if (merge_spec_ == 2)
       {
         mergeSpectra_(map, ms_level);
       }
@@ -430,6 +395,7 @@ namespace OpenMS
     precursor_map_for_ida_ = FLASHIda::parseFLASHIdaLog(ida_log_file_); // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
 
     // scan the dataset and extract necessary basic information.
+
     if (scanMap_(map) != 0)
       return;
 
@@ -522,7 +488,8 @@ namespace OpenMS
     }
   }
 
-  void FLASHDeconvAlgorithm::findPrecursorPeakGroups_(std::map<int, PeakGroup>& precursor_peak_group_map, const MSExperiment& map, const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, uint ms_level)
+  void FLASHDeconvAlgorithm::findPrecursorPeakGroups_(std::map<int, PeakGroup>& precursor_peak_group_map, const MSExperiment& map, const std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
+                                                      uint ms_level)
   {
     for (Size index = 0; index < map.size(); index++)
     {
@@ -550,7 +517,8 @@ namespace OpenMS
       // then find deconvolved spectra within the scan numbers.
       auto diter = std::lower_bound(deconvolved_spectra.begin(), deconvolved_spectra.end(), DeconvolvedSpectrum(b_scan_number));
 
-      if (diter == deconvolved_spectra.end()) continue;
+      if (diter == deconvolved_spectra.end())
+        continue;
 
       std::vector<DeconvolvedSpectrum> survey_scans;
 
@@ -673,7 +641,8 @@ namespace OpenMS
 
       auto iter = std::lower_bound(fullscan.begin(), fullscan.end(), precursor_pg);
 
-      if (iter == fullscan.end()) continue;
+      if (iter == fullscan.end())
+        continue;
 
       if (precursor_pg.getMonoMass() == iter->getMonoMass())
       {

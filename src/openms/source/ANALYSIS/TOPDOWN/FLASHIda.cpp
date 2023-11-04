@@ -710,7 +710,6 @@ namespace OpenMS
   {
     std::map<int, std::vector<std::vector<float>>> precursor_map_for_real_time_acquisition; // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
 
-
     if (in_log_file.empty())
     {
       return precursor_map_for_real_time_acquisition;
