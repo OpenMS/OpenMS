@@ -8,6 +8,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/DATASTRUCTURES/MultiFragment.h>
 
 #include <vector>
 #include <functional>
@@ -44,7 +45,7 @@ namespace OpenMS
     FragmentIndexTD();
 
     /// Default destructor
-    //~FragmentIndexTD();
+    ~FragmentIndexTD() override = default;
 
     //getter
     std::vector<AASequence> getFiPeptidesSequences() const;
@@ -66,7 +67,7 @@ namespace OpenMS
      *
      * @param fasta_entries
      */
-    void build(const std::vector<FASTAFile::FASTAEntry> & fasta_entries);
+    virtual void build(const std::vector<FASTAFile::FASTAEntry> & fasta_entries);
 
 
     /** General function for binary-search given a upper and lower bound. Is needed to query for the
@@ -82,8 +83,13 @@ namespace OpenMS
      *                  where not the actual mass is stored but the min-mass
      * @return a pair of indexes containing the lower bound and upper bound
      */
-    template<class S, class B> std::pair<size_t, size_t> binary_search_slice(const std::vector<S>& slice, B low, B high, B (*access)(S), bool include);
+    template<class S, class B> static std::pair<size_t, size_t> binary_search_slice(const std::vector<S>& slice, B low, B high, B (*access)(S), bool include);
 
+    static std::pair<size_t, size_t > binary_search_slice_double(const std::vector<double>& slice, double low, double high, bool include);
+    static std::pair<size_t, size_t > binary_search_slice_mf(const std::vector<OpenMS::MultiFragment>& slice,
+                                                         size_t low, size_t high,
+                                                         size_t (*access) (OpenMS::MultiFragment),
+                                                         bool include);
 
     /**
      * A match between query peak and database peak
@@ -122,7 +128,8 @@ namespace OpenMS
       //double precursor_mz;  // this one is not needed, bc the peptide vector is sorted, so we simply look for the peptide_idx
 
     };
-  private:
+
+  protected:
 
     bool exp_type_;   ///< Bottom-up or Top-Down
     std::string digestion_enzyme_;

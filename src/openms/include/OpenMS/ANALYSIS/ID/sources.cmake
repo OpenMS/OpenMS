@@ -21,6 +21,7 @@ ConsensusMapMergerAlgorithm.h
 FalseDiscoveryRate.h
 FIAMSDataProcessor.h
 FIAMSScheduler.h
+FragmentIndex3D.h
 FragmentIndexTD.h
 FragmentIndexTDScorer.h
 HiddenMarkovModel.h

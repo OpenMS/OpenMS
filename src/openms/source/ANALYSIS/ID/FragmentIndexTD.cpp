@@ -2,6 +2,7 @@
 // Created by trapho on 10/5/23.
 //
 #include <OpenMS/ANALYSIS/ID/FragmentIndexTD.h>
+#include <OpenMS/DATASTRUCTURES/MultiFragment.h>
 
 #include <OpenMS/CHEMISTRY/AAIndex.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -222,6 +223,16 @@ namespace OpenMS
 
   }
 
+  std::pair<size_t, size_t> FragmentIndexTD::binary_search_slice_double(const std::vector<double>& slice, double low, double high, bool include)
+  {
+      return binary_search_slice<double, double>(slice, low, high, [](double a){return a;}, include);
+  }
+
+  std::pair<size_t, size_t> FragmentIndexTD::binary_search_slice_mf(const std::vector<OpenMS::MultiFragment>& slice, size_t low, size_t high, size_t (*access) (OpenMS::MultiFragment), bool include)
+  {
+      return binary_search_slice<MultiFragment, size_t >(slice, low, high, access, include);
+  }
+
   FragmentIndexTD::FragmentIndexTD() : DefaultParamHandler("FragmentIndexTD")
   {
 
@@ -251,9 +262,9 @@ namespace OpenMS
     defaults_.setValue("fragment_mz_tolerance_unit", "DA", "Unit of tolerance for fragment-m/z");
     defaults_.setValidStrings("fragment_mz_tolerance_unit", tolerance_units);
     defaults_.setValue("max_missed_peaks", 5, "If this number of the highest peaks in a spectrum is not found, the spectrum gets skipped");
-    defaults_.setValue("modifications_fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
+    defaults_.setValue("modifications_fixed", std::vector<std::string>{}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
     defaults_.setValidStrings("modifications_fixed", ListUtils::create<std::string>(all_mods));
-    defaults_.setValue("modifications_variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
+    defaults_.setValue("modifications_variable", std::vector<std::string>{}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
     defaults_.setValidStrings("modifications_variable", ListUtils::create<std::string>(all_mods));
     defaults_.setValue("max_variable_mods_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
     is_build_ = false;

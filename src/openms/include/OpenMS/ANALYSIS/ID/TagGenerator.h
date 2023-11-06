@@ -9,6 +9,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/ANALYSIS/ID/TagGeneratorNode.h>
+#include <OpenMS/DATASTRUCTURES/MultiPeak.h>
 
 #include <vector>
 #include <functional>
@@ -22,7 +23,7 @@ namespace OpenMS
     MSSpectrum spectrum_;
     std::vector<bool> selected_peaks_;
     uint32_t n; // the number of globally selected peaks;
-    std::vector<TagGeneratorNode> dag_; // directed acyclic graph containing all peaks
+    std::vector<std::shared_ptr<TagGeneratorNode>> dag_; // directed acyclic graph containing all peaks
 
 
 
@@ -41,6 +42,9 @@ namespace OpenMS
     TagGenerator(const MSSpectrum& spectrum);
     ~TagGenerator();
 
+    //setter
+    void setMSSpectrum(const MSSpectrum &spectrum);
+
 
     /**@brief top N peaks are selected according to their intensities over the entire m/z range of a spectrum where N is
      *related to a precursor ion mass
@@ -56,7 +60,7 @@ namespace OpenMS
 
     void generateDirectedAcyclicGraph(double fragment_tolerance);
 
-    void generateAllQuadPeaks(std::vector<TagGeneratorNode::QuadPeak>& quad_peaks);
+    void generateAllMultiPeaks(std::vector<MultiPeak>& quad_peaks);
 
   };
 }

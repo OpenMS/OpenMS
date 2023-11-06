@@ -101,7 +101,6 @@ namespace OpenMS
       auto candidates_range = db_.getPeptideRange(mz, {0,0});  // for the simple search we do not apply any modification window!!
       candidates_iso_error.hits_.resize(candidates_range.second - candidates_range.first + 1);
 
-      uint32_t peak_counter = 0;
       for(Peak1D peak: spectrum){
 
         //TODO: should we loop over the charges of the peaks?? or adjust the mass in general?
