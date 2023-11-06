@@ -134,7 +134,7 @@ namespace OpenMS
     feature_finder_param.setValue("Scores:use_elution_model_score", "false");
     feature_finder_param.setValue("rt_extraction_window", -1.0);
     feature_finder_param.setValue("stop_report_after_feature", 1);
-    feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 1.0); // set to 1.0 in all cases
+    feature_finder_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:signal_to_noise", 1.0); // set to 1.0 in all cases
     feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "false"); // no peak quality -> take all peaks!
     if (estimateBestPeptides)
     {

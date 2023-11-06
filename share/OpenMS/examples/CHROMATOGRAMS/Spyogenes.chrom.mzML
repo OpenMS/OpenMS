@@ -125,15 +125,15 @@
 				<userParam name="parameter: Scoring:TransitionGroupPicker:compute_peak_quality" type="xsd:string" value="true"/>
 				<userParam name="parameter: Scoring:TransitionGroupPicker:compute_peak_shape_metrics" type="xsd:string" value="false"/>
 				<userParam name="parameter: Scoring:TransitionGroupPicker:boundary_selection_method" type="xsd:string" value="largest"/>
-				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakPickerMRM:sgolay_frame_length" type="xsd:integer" value="11"/>
-				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakPickerMRM:sgolay_polynomial_order" type="xsd:integer" value="3"/>
-				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakPickerMRM:gauss_width" type="xsd:double" value="30"/>
-				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakPickerMRM:use_gauss" type="xsd:string" value="false"/>
-				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakPickerMRM:peak_width" type="xsd:double" value="-1"/>
-				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakPickerMRM:signal_to_noise" type="xsd:double" value="0.1"/>
-				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages" type="xsd:string" value="false"/>
-				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakPickerMRM:remove_overlapping_peaks" type="xsd:string" value="true"/>
-				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakPickerMRM:method" type="xsd:string" value="corrected"/>
+				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakPickerChromatogram:sgolay_frame_length" type="xsd:integer" value="11"/>
+				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakPickerChromatogram:sgolay_polynomial_order" type="xsd:integer" value="3"/>
+				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakPickerChromatogram:gauss_width" type="xsd:double" value="30"/>
+				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakPickerChromatogram:use_gauss" type="xsd:string" value="false"/>
+				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakPickerChromatogram:peak_width" type="xsd:double" value="-1"/>
+				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakPickerChromatogram:signal_to_noise" type="xsd:double" value="0.1"/>
+				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakPickerChromatogram:write_sn_log_messages" type="xsd:string" value="false"/>
+				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakPickerChromatogram:remove_overlapping_peaks" type="xsd:string" value="true"/>
+				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakPickerChromatogram:method" type="xsd:string" value="corrected"/>
 				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakIntegrator:integration_type" type="xsd:string" value="intensity_sum"/>
 				<userParam name="parameter: Scoring:TransitionGroupPicker:PeakIntegrator:baseline_type" type="xsd:string" value="base_to_base"/>
 				<userParam name="parameter: Scoring:DIAScoring:dia_extraction_window" type="xsd:double" value="0.05"/>

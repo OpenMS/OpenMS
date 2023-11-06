@@ -459,8 +459,6 @@ PyOpenMSChecker:
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Not implemented = errors in OpenMS API
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    OpenMS::PeakPickerSH:
-        - pick
     OpenMS::XTandemInfile:
         - getNoiseSuppression
         - setNoiseSuppression
