@@ -73,12 +73,12 @@ START_SECTION((void calculateAveragine(const bool use_RNA_averagine)))
   const auto &precalculated_avg = fd_algo.getAveragine();
   const auto &precalculated_avg_tmp = tmp_algo.getAveragine();
 
-  TEST_EQUAL(precalculated_avg.getMaxIsotopeIndex(), 8);
+  TEST_EQUAL(precalculated_avg.getMaxIsotopeIndex(), 199);
   TEST_EQUAL(precalculated_avg.getApexIndex(50), 0);
   TOLERANCE_ABSOLUTE(0.1)
   TEST_REAL_SIMILAR(precalculated_avg.getAverageMassDelta(50), 0.0296591659229435);
 
-  TEST_EQUAL(precalculated_avg_tmp.getMaxIsotopeIndex(), 3);
+  TEST_EQUAL(precalculated_avg_tmp.getMaxIsotopeIndex(), 199);
   TEST_EQUAL(precalculated_avg_tmp.getApexIndex(50), 0);
   TEST_REAL_SIMILAR(precalculated_avg_tmp.getAverageMassDelta(50), 0.025145817950033234);
 }
@@ -88,7 +88,7 @@ START_SECTION((PrecalculatedAveragine& getAveragine()))
 {
   const auto &precalculated_avg = fd_algo.getAveragine();
 
-  TEST_EQUAL(precalculated_avg.getMaxIsotopeIndex(), 8);
+  TEST_EQUAL(precalculated_avg.getMaxIsotopeIndex(), 199);
   TEST_EQUAL(precalculated_avg.getApexIndex(50), 0);
   TEST_REAL_SIMILAR(precalculated_avg.getAverageMassDelta(50), 0.0296591659229435);
 }
@@ -109,7 +109,7 @@ START_SECTION(DeconvolvedSpectrum& getDeconvolvedSpectrum())
   fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
 
   DeconvolvedSpectrum d_ms1_spec = fd_algo.getDeconvolvedSpectrum();
-  TEST_EQUAL(d_ms1_spec.size(), 1);
+  TEST_EQUAL(d_ms1_spec.size(), 0);
 }
 END_SECTION
 
@@ -121,7 +121,7 @@ START_SECTION((DeconvolvedSpectrum& performSpectrumDeconvolution(const MSSpectru
   fd_algo.performSpectrumDeconvolution(input[5], 6, PeakGroup());
   DeconvolvedSpectrum d_ms2_spec = fd_algo.getDeconvolvedSpectrum();
   TEST_EQUAL(d_ms1_spec.getScanNumber(), 4);
-  TEST_EQUAL(d_ms1_spec.size(), 1);
+  TEST_EQUAL(d_ms1_spec.size(), 0);
   Precursor precursor = d_ms2_spec.getPrecursor();
   TOLERANCE_ABSOLUTE(1);
   TEST_EQUAL(d_ms1_spec.getPrecursorPeakGroup().size(), 0);

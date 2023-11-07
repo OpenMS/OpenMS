@@ -115,7 +115,7 @@ protected:
 
 private:
 
-    /// Fill @p scanMap_
+    /// Fill @p updateMSLevels_
     void makeScanMap_();
 
     /// Read RT, m/z, charge information from attributes of "spectrum_query"

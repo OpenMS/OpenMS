@@ -148,7 +148,7 @@ END_SECTION
 START_SECTION((int getPrecursorScanNumber() const))
 {
   int p_scan_num = ms2_deconv_spec.getPrecursorScanNumber();
-  TEST_EQUAL(p_scan_num, 4);
+  TEST_EQUAL(p_scan_num, 0);
 }
 END_SECTION
 

@@ -46,9 +46,9 @@ namespace OpenMS
     defaults_.setValue("isolation_window", 5.0, "Default isolation window with. If the input mzML file does not contain isolation window width information, this width will be used.");
     defaults_.addTag("isolation_window", "advanced");
 
-    defaults_.setValue("max_MS_level", 2, "Maximum MS level (inclusive) for deconvolution.");
-    defaults_.setMinInt("max_MS_level", 1);
-    defaults_.addTag("max_MS_level", "advanced");
+    //defaults_.setValue("max_MS_level", 2, "Maximum MS level (inclusive) for deconvolution.");
+    //defaults_.setMinInt("max_MS_level", 1);
+    //defaults_.addTag("max_MS_level", "advanced");
 
     defaults_.setValue("forced_MS_level", 0,
                        "If set to an integer N, MS level of all spectra will be set to N regardless of original MS level. Useful when deconvolving datasets containing only MS2 spectra.");
@@ -61,11 +61,11 @@ namespace OpenMS
     defaults_.setMinInt("merging_method", 0);
     defaults_.setMaxInt("merging_method", 2);
 
-    defaults_.insert("sd:", SpectralDeconvolution().getDefaults());
+    defaults_.insert("SD:", SpectralDeconvolution().getDefaults());
 
     Param mf_defaults = MassFeatureTrace().getDefaults();
     mf_defaults.setValue("min_cos", -1.0, "Cosine similarity threshold between avg. and observed isotope pattern.  When negative, MS1 cosine threshold for mass deconvolution will be used ");
-    mf_defaults.setValue("mass_error_ppm", -1.0, "Feature tracing mass ppm tolerance. When negative, MS1 tolerance for mass deconvolution will be used (e.g., 16 ppm is used when -sd:tol 16).");
+    mf_defaults.setValue("mass_error_ppm", -1.0, "Feature tracing mass ppm tolerance. When negative, MS1 tolerance for mass deconvolution will be used (e.g., 16 ppm is used when -SD:tol 16).");
     mf_defaults.addTag("min_cos", "advanced");
     mf_defaults.addTag("mass_error_ppm", "advanced");
 
@@ -84,13 +84,13 @@ namespace OpenMS
   void FLASHDeconvAlgorithm::updateMembers_()
   {
     forced_ms_level_ = param_.getValue("forced_MS_level");
-    max_ms_level_ = param_.getValue("max_MS_level");
+    //max_ms_level_ = param_.getValue("max_MS_level");
 
-    tols_ = param_.getValue("sd:tol");
-    min_cos_ = param_.getValue("sd:min_cos");
+    tols_ = param_.getValue("SD:tol");
+    min_cos_ = param_.getValue("SD:min_cos");
     preceding_MS1_count_ = param_.getValue("preceding_MS1_count");
     use_RNA_averagine_ = param_.getValue("use_RNA_averagine") != "false";
-    report_decoy_ = param_.getValue("report_FDR")  != "false";
+    report_decoy_ = param_.getValue("report_FDR") != "false";
 
     merge_spec_ = param_.getValue("merging_method");
     isolation_window_size_ = param_.getValue("isolation_window");
@@ -99,7 +99,7 @@ namespace OpenMS
     current_max_ms_level_ = 0;
   }
 
-  int FLASHDeconvAlgorithm::scanMap_(MSExperiment& map)
+  void FLASHDeconvAlgorithm::updateMSLevels_(MSExperiment& map)
   {
     // read input dataset once to count spectra
     double gradient_rt = .0;
@@ -128,7 +128,6 @@ namespace OpenMS
     }
     // Max MS Level is adjusted according to the input dataset
     current_max_ms_level_ = current_max_ms_level_ > max_ms_level_ ? max_ms_level_ : current_max_ms_level_;
-    return 0;
   }
 
   void FLASHDeconvAlgorithm::filterLowPeaks_(MSExperiment& map, Size count)
@@ -254,7 +253,7 @@ namespace OpenMS
     return scan_number;
   }
 
-  int FLASHDeconvAlgorithm::runFD_(MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra)
+  void FLASHDeconvAlgorithm::runSpectralDeconvolution_(MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra)
   {
     // merge spectra if the merging option is turned on (> 0)
     filterLowPeaks_(map, max_peak_count_);
@@ -278,7 +277,7 @@ namespace OpenMS
         }
       }
 
-      // run FD
+      // run Spectral deconvolution
       for (Size index = 0; index < map.size(); index++)
       {
         int scan_number = getScanNumber_(map, index);
@@ -301,6 +300,7 @@ namespace OpenMS
         if (native_id_precursor_peak_group_map_.find(native_id) != native_id_precursor_peak_group_map_.end())
           precursor_pg = native_id_precursor_peak_group_map_[native_id];
 
+        // now do it
         sd_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
 
         auto& deconvolved_spectrum = sd_.getDeconvolvedSpectrum();
@@ -308,11 +308,6 @@ namespace OpenMS
         if (deconvolved_spectrum.empty())
         {
           continue;
-        }
-
-        if (spec.getMSLevel() > 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
-        {
-          ms2scan_to_precursor_peak_group_map_[scan_number] = deconvolved_spectrum.getPrecursorPeakGroup();
         }
 
         if (report_decoy_)
@@ -369,7 +364,6 @@ namespace OpenMS
       std::sort(deconvolved_spectra.begin(), deconvolved_spectra.end());
       endProgress();
     }
-    return 0;
   }
 
 
@@ -383,13 +377,10 @@ namespace OpenMS
     // initialize
     precursor_map_for_ida_ = FLASHIda::parseFLASHIdaLog(ida_log_file_); // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
 
-    // scan the dataset and extract necessary basic information.
-
-    if (scanMap_(map) != 0)
-      return;
+    updateMSLevels_(map);
 
     sd_ = SpectralDeconvolution();
-    Param sd_param = param_.copy("sd:", true);
+    Param sd_param = param_.copy("SD:", true);
 
     sd_.setParameters(sd_param);
     sd_.calculateAveragine(use_RNA_averagine_);
@@ -413,9 +404,9 @@ namespace OpenMS
     setLogType(CMD);
     deconvolved_spectra.reserve(map.size() * 4);
 
-    // run FLASHDeconv here and get deconvolved spectra
-    if (runFD_(map, deconvolved_spectra) != 0)
-      return;
+    // run spectral deconvolution here and get deconvolved spectra
+    runSpectralDeconvolution_(map, deconvolved_spectra);
+
     // feature tracing here and update FeatureQScores
     runFeatureFinding_(deconvolved_spectra, deconvolved_features);
 
@@ -429,7 +420,7 @@ namespace OpenMS
     quantifier.quantify(map, deconvolved_spectra, deconvolved_features);
   }
 
-  void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectrumFormIdaLog_(const MSExperiment& map, Size index, double start_mz, double end_mz)
+  void FLASHDeconvAlgorithm::findPrecursorPeakGroupsFormIdaLog_(const MSExperiment& map, Size index, double start_mz, double end_mz)
   {
     if (precursor_map_for_ida_.empty())
       return;
@@ -479,8 +470,7 @@ namespace OpenMS
     }
   }
 
-  void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectra_(const MSExperiment& map,
-                                                                   const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, uint ms_level)
+  void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectra_(const MSExperiment& map, const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, uint ms_level)
   {
     for (Size index = 0; index < map.size(); index++)
     {
@@ -602,7 +592,7 @@ namespace OpenMS
 
       if (native_id_precursor_peak_group_map_.find(native_id) == native_id_precursor_peak_group_map_.end())
       {
-        findPrecursorPeakGroupsForMSnSpectrumFormIdaLog_(map, index, start_mz, end_mz);
+        findPrecursorPeakGroupsFormIdaLog_(map, index, start_mz, end_mz);
       }
     }
   }
@@ -726,7 +716,6 @@ namespace OpenMS
         dspec = filtered_dspec;
       }
       auto decoy_deconvolved_features = decoy_mass_tracer.findFeatures(sd_.getAveragine(), deconvolved_spectra, 1, true);
-
       deconvolved_features.insert(deconvolved_features.end(), decoy_deconvolved_features.begin(), decoy_deconvolved_features.end());
     }
   }

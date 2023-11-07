@@ -19,9 +19,9 @@
   The main output of the Wizard is deconvolved feature files (*.tsv) from FLASHDeconv. Optional output files are as follows:
     - deconvoluted MSn spectra files (*.tsv)
     - deconvoluted mzML spectra file (*.mzML)
-    - deconvoluted MS1 in ProMex output format (*.ms1ft)
+    - Isobarically quantified deconvoluted MS2 in tsv format (*_quant.tsv)
     - deconvoluted MSn spectra files in TopFD output format (*.msalign)
-    - deconvoluted MS1 feature file in TopFD output format (*.feature)
+    - deconvoluted MSn feature files in TopFD output format (*.feature)
 */
 
 // QT
