@@ -15,7 +15,7 @@
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMRM.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -208,8 +208,8 @@ public:
 
       MRMFeature mrmFeature;
       mrmFeature.setIntensity(0.0);
-      double best_left = picked_chroms[chr_idx].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][peak_idx];
-      double best_right = picked_chroms[chr_idx].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][peak_idx];
+      double best_left = picked_chroms[chr_idx].getFloatDataArrays()[PeakPickerChromatogram::IDX_LEFTBORDER][peak_idx];
+      double best_right = picked_chroms[chr_idx].getFloatDataArrays()[PeakPickerChromatogram::IDX_RIGHTBORDER][peak_idx];
       double peak_apex = picked_chroms[chr_idx][peak_idx].getRT();
       OPENMS_LOG_DEBUG << "**** Creating MRMFeature for peak " << peak_idx << " in chrom. " << chr_idx << " with " <<
         picked_chroms[chr_idx][peak_idx] << " and borders " << best_left << " " <<
@@ -335,8 +335,8 @@ public:
         {
           PeakIntegrator::PeakArea pa_tmp = pi_.integratePeak(  // get the peak apex
               picked_chroms[k],
-              picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i], 
-              picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i]); 
+              picked_chroms[k].getFloatDataArrays()[PeakPickerChromatogram::IDX_LEFTBORDER][i], 
+              picked_chroms[k].getFloatDataArrays()[PeakPickerChromatogram::IDX_RIGHTBORDER][i]); 
           if (pa_tmp.apex_pos > 1e-11 && std::fabs(pa_tmp.apex_pos - peak_apex) < peak_apex_dist_min)
           { // update best candidate
             peak_apex_dist_min = std::fabs(pa_tmp.apex_pos - peak_apex);
@@ -349,8 +349,8 @@ public:
         double r = best_right;
         if (min_dist >= 0)
         {
-          l = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][min_dist];
-          r = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][min_dist];
+          l = picked_chroms[k].getFloatDataArrays()[PeakPickerChromatogram::IDX_LEFTBORDER][min_dist];
+          r = picked_chroms[k].getFloatDataArrays()[PeakPickerChromatogram::IDX_RIGHTBORDER][min_dist];
           picked_chroms[k][min_dist].setIntensity(0.0); // only remove one peak per transition
         }
 
@@ -722,8 +722,8 @@ public:
         {
           if (picked_chroms[k][i].getIntensity() <= 1e-11) {continue; }
 
-          double left = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i];
-          double right = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i];
+          double left = picked_chroms[k].getFloatDataArrays()[PeakPickerChromatogram::IDX_LEFTBORDER][i];
+          double right = picked_chroms[k].getFloatDataArrays()[PeakPickerChromatogram::IDX_RIGHTBORDER][i];
           if ((left > best_left && left < best_right)
              || (right > best_left && right < best_right))
           {
@@ -887,8 +887,8 @@ protected:
             if (picked_chroms[k][i].getIntensity() > max_int)
             {
               max_int = picked_chroms[k][i].getIntensity() > max_int;
-              l_tmp = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i];
-              r_tmp = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i];
+              l_tmp = picked_chroms[k].getFloatDataArrays()[PeakPickerChromatogram::IDX_LEFTBORDER][i];
+              r_tmp = picked_chroms[k].getFloatDataArrays()[PeakPickerChromatogram::IDX_RIGHTBORDER][i];
             }
           }
         }
@@ -964,11 +964,11 @@ protected:
         {
           if (picked_chroms[k][i].getMZ() >= best_left && picked_chroms[k][i].getMZ() <= best_right)
           {
-            if (picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_ABUNDANCE][i] > max_int)
+            if (picked_chroms[k].getFloatDataArrays()[PeakPickerChromatogram::IDX_ABUNDANCE][i] > max_int)
             {
-              max_int = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_ABUNDANCE][i];
-              left = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i];
-              right = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i];
+              max_int = picked_chroms[k].getFloatDataArrays()[PeakPickerChromatogram::IDX_ABUNDANCE][i];
+              left = picked_chroms[k].getFloatDataArrays()[PeakPickerChromatogram::IDX_LEFTBORDER][i];
+              right = picked_chroms[k].getFloatDataArrays()[PeakPickerChromatogram::IDX_RIGHTBORDER][i];
             }
           }
         }
@@ -1136,7 +1136,7 @@ protected:
     */
     String boundary_selection_method_;
 
-    PeakPickerMRM picker_;
+    PeakPickerChromatogram picker_;
     PeakIntegrator pi_;
   };
 }
