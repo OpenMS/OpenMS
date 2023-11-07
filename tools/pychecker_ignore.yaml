@@ -343,10 +343,6 @@ PyOpenMSChecker:
         - isSameHandle
     OpenMS::IsotopeMarker:
         - getProductName
-    OpenMS::TwoDOptimization:
-        - getPenalties
-        - setPenalties
-        - optimize
     OpenMS_Matrix:
         - row
         - col

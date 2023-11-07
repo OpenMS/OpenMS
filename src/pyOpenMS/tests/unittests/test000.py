@@ -4858,33 +4858,6 @@ def testAttachment():
     assert inst.tableRows[1][0] == b"otherTest"
 
 @report
-def testOptimizePeakDeconvolution():
-    """
-    @tests: OptimizePeakDeconvolution
-     OptimizePeakDeconvolution.__init__
-    """
-    inst = pyopenms.OptimizePeakDeconvolution()
-    assert inst.getParameters
-
-    assert inst.getPenalties is not None
-    assert inst.setPenalties is not None
-    assert inst.getCharge is not None
-    assert inst.setCharge is not None
-    assert inst.optimize is not None
-
-
-    inst = pyopenms.PenaltyFactorsIntensity()
-    assert inst.height is not None
-
-    inst = pyopenms.OptimizePeakDeconvolution_Data()
-    assert inst.peaks is not None
-    assert inst.peaks is not None
-    assert inst.signal is not None
-    assert inst.penalties is not None
-    assert inst.charge is not None
-
-
-@report
 def testKernelMassTrace():
     trace = pyopenms.Kernel_MassTrace()
 

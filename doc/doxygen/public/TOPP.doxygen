@@ -85,7 +85,6 @@
   - @subpage TOPP_ERPairFinder - Evaluates pair ratios on enhanced resolution (ER = zoom) scans.
   - @subpage TOPP_FeatureFinderCentroided - Detects two-dimensional features in centroided LC-MS data.
   - @subpage TOPP_FeatureFinderIdentification - Detects two-dimensional features in MS1 data based on peptide identifications.
-  - @subpage TOPP_FeatureFinderIsotopeWavelet - Detects two-dimensional features in uncentroided (=raw) LC-MS data (low-res).
   - @subpage TOPP_FeatureFinderMetabo - Detects two-dimensional features in centroided LC-MS data of metabolites.
   - @subpage TOPP_FeatureFinderMetaboIdent - Detects features in MS1 data corresponding to small molecule identifications.
   - @subpage TOPP_FeatureFinderMRM - Quantifies features LC-MS/MS MRM data.
