@@ -610,7 +610,6 @@ set(transformations_executables_list
   PeakPickerHiRes_test
   PeakPickerIterative_test
   PeakPickerMaxima_test
-  PeakPickerSH_test
   PeakWidthEstimator_test
   ProductModel_test
   SeedListGenerator_test
@@ -644,7 +643,7 @@ if(NOT DISABLE_OPENSWATH)
     OpenSwathScoring_test
     OpenSwathScores_test
     PeakIntegrator_test
-    PeakPickerMRM_test
+    PeakPickerChromatogram_test
     MRMTransitionGroupPicker_test
     DIAHelper_test
     DIAScoring_test
@@ -683,7 +682,7 @@ set(Boost_dependent_tests
   OpenSwathHelper_test
   OpenSwathMRMFeatureAccessOpenMS_test
   OpenSwathSpectrumAccessOpenMS_test
-  PeakPickerMRM_test
+  PeakPickerChromatogram_test
   SpectrumLookup_test
   SpectrumMetaDataLookup_test
   StatisticFunctions_test

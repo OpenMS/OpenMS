@@ -6,7 +6,6 @@ set(sources_list
 PeakPickerHiRes.cpp
 PeakPickerIterative.cpp
 PeakPickerMaxima.cpp
-PeakPickerSH.cpp
 )
 
 ### add path to the filenames

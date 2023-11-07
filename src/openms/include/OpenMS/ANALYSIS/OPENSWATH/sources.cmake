@@ -30,7 +30,7 @@ set(sources_list_h
   OpenSwathOSWWriter.h
   OpenSwathWorkflow.h
   PeakIntegrator.h
-  PeakPickerMRM.h
+  PeakPickerChromatogram.h
   SONARScoring.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h

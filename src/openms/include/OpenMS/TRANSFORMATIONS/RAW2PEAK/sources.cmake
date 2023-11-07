@@ -6,7 +6,6 @@ set(sources_list_h
 PeakPickerHiRes.h
 PeakPickerIterative.h
 PeakPickerMaxima.h
-PeakPickerSH.h
 )
 
 ### add path to the filenames

@@ -6,12 +6,12 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMRM.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h>
 
 namespace OpenMS
 {
-  PeakPickerMRM::PeakPickerMRM() :
-    DefaultParamHandler("PeakPickerMRM")
+  PeakPickerChromatogram::PeakPickerChromatogram() :
+    DefaultParamHandler("PeakPickerChromatogram")
   {
     // For SWATH-MS data from 5600 TripleTOF, these settings are recommended: 
     //
@@ -55,13 +55,13 @@ namespace OpenMS
     pp_.setParameters(pepi_param);
   }
 
-  void PeakPickerMRM::pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
+  void PeakPickerChromatogram::pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
     MSChromatogram s;
     pickChromatogram(chromatogram, picked_chrom, s);
   }
   
-  void PeakPickerMRM::pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom, MSChromatogram& smoothed_chrom)
+  void PeakPickerChromatogram::pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom, MSChromatogram& smoothed_chrom)
   {
     if (!chromatogram.isSorted())
     {
@@ -145,7 +145,7 @@ namespace OpenMS
     }
   }
 
-  void PeakPickerMRM::pickChromatogram_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
+  void PeakPickerChromatogram::pickChromatogram_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
 
     integrated_intensities_.clear();
@@ -202,7 +202,7 @@ namespace OpenMS
   }
 
 #ifdef WITH_CRAWDAD
-  void PeakPickerMRM::pickChromatogramCrawdad_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
+  void PeakPickerChromatogram::pickChromatogramCrawdad_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
     OPENMS_LOG_DEBUG << "Picking chromatogram using crawdad " << std::endl;
 
@@ -249,14 +249,14 @@ namespace OpenMS
 
   }
 #else
-  void PeakPickerMRM::pickChromatogramCrawdad_(const MSChromatogram& /* chromatogram */, MSChromatogram& /* picked_chrom */)
+  void PeakPickerChromatogram::pickChromatogramCrawdad_(const MSChromatogram& /* chromatogram */, MSChromatogram& /* picked_chrom */)
   {
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                     "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
+                                     "PeakPickerChromatogram was not compiled with crawdad, please choose a different algorithm!");
   }
 #endif
 
-  void PeakPickerMRM::removeOverlappingPeaks_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
+  void PeakPickerChromatogram::removeOverlappingPeaks_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
     if (picked_chrom.empty()) {return; }
     OPENMS_LOG_DEBUG << "Remove overlapping peaks now (size " << picked_chrom.size() << ")" << std::endl;
@@ -318,7 +318,7 @@ namespace OpenMS
     }
   }
 
-  Size PeakPickerMRM::findClosestPeak_(const MSChromatogram& chromatogram, double target_rt, Size current_peak)
+  Size PeakPickerChromatogram::findClosestPeak_(const MSChromatogram& chromatogram, double target_rt, Size current_peak)
   {
     while (current_peak < chromatogram.size())
     {
@@ -340,7 +340,7 @@ namespace OpenMS
     return current_peak;
   }
 
-  void PeakPickerMRM::integratePeaks_(const MSChromatogram& chromatogram)
+  void PeakPickerChromatogram::integratePeaks_(const MSChromatogram& chromatogram)
   {
     for (Size i = 0; i < left_width_.size(); i++)
     {
@@ -356,7 +356,7 @@ namespace OpenMS
     }
   }
 
-  void PeakPickerMRM::updateMembers_()
+  void PeakPickerChromatogram::updateMembers_()
   {
     sgolay_frame_length_ = (UInt)param_.getValue("sgolay_frame_length");
     sgolay_polynomial_order_ = (UInt)param_.getValue("sgolay_polynomial_order");
@@ -396,7 +396,7 @@ namespace OpenMS
     if (method_ == "crawdad")
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
+                                       "PeakPickerChromatogram was not compiled with crawdad, please choose a different algorithm!");
     }
 #endif
   }
