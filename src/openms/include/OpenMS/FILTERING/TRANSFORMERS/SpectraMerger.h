@@ -219,8 +219,8 @@ public:
           bf.setMZ(pcs[0].getMZ());
           data.push_back(bf);
         }
-        data_size = data.size();
 
+        data_size = data.size();
         SpectraDistance_ llc;
         llc.setParameters(param_.copy("precursor_method:", true));
         SingleLinkage sl;

@@ -93,7 +93,7 @@ namespace OpenMS
       /// get a residue one letter code by matching the mass @p m to the map of residues mass2aa_, returns ' ' if there is no match.
       /// By default, the mass tolerance is determined by m * ppm_ / 1e6. But if @p abs_m is a positive value,
       /// abs_m * ppm_ / 1e6 is used instead. Useful when the absolute m/z value should be considered to determine tolarence.
-      char getAAByMass_(double m, double abs_m = 0) const;
+      char getAAByMass_(double m, double abs_m = .0) const;
 
       /// start searching for tags starting from peak @p i of the mz vector @p mzs
       void getTag_(std::string& tag, const std::vector<double>& mzs, const size_t i, std::vector<std::string>& tags, const size_t charge) const;

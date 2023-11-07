@@ -83,10 +83,11 @@ namespace OpenMS
 
     std::map<int, std::vector<std::vector<float>>> precursor_map_for_ida_;
     std::map<int, PeakGroup> ms2scan_to_precursor_peak_group_map_; // MS2 scan number, peak group
+    std::map<String, PeakGroup> native_id_precursor_peak_group_map_;
 
     int scanMap_(MSExperiment& map);
 
-    void mergeSpectra_(MSExperiment& map, uint ms_level) const;
+    void mergeSpectra_(MSExperiment& map, uint ms_level);
 
     int runFD_(MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra);
 
@@ -94,7 +95,7 @@ namespace OpenMS
 
     void updatePrecursorQScores_(std::vector<DeconvolvedSpectrum>& deconvolved_spectra);
 
-    void registerPrecursorFromIda_(std::map<int, PeakGroup>& precursor_peak_group_map, int scan_number, double start_mz, double end_mz);
+    void findPrecursorPeakGroupsForMSnSpectrumFormIdaLog_(const MSExperiment& map, Size index, double start_mz, double end_mz);
 
     static int getScanNumber_(const MSExperiment& map, Size index);
     /**
@@ -102,10 +103,8 @@ namespace OpenMS
     Given a precursor peak (found in the original MS n-1 Spectrum) the masses containing the precursor peak are searched.
     If multiple masses are detected, the one with the best setQscore is selected. For the selected mass, its corresponding peak group (along with precursor peak) is registered.
     If no such mass exists, only the precursor peak is registered.
-    @param survey_scans the candidate precursor spectra - the user may allow search of previous N survey scans.
-    @param precursor_map_for_real_time_acquisition this contains the deconvolved mass information from FLASHIda runs.
     */
-    void findPrecursorPeakGroups_(std::map<int, PeakGroup>& precursor_peak_group_map, const MSExperiment& map, const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, uint ms_level);
+    void findPrecursorPeakGroupsForMSnSpectra_(const MSExperiment& map, const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, uint ms_level);
 
     static void filterLowPeaks_(MSExperiment& map, Size count);
   };

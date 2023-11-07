@@ -76,7 +76,7 @@ namespace OpenMS
       }
       map.addSpectrum(deconv_spec);
     }
-
+    map.sortSpectra();
     // when map size is less than 3, MassTraceDetection aborts - too few spectra for mass tracing.
     if (map.size() < 3)
     {
@@ -112,7 +112,6 @@ namespace OpenMS
       std::vector<double> qscores;
 
       prev_scan = 0;
-
       for (auto& p2 : mt)
       {
         auto& dspec = deconvolved_spectra[rt_index_map[p2.getRT()]];
@@ -143,10 +142,10 @@ namespace OpenMS
         prev_scan = scan;
         pgs.push_back(pg);
       }
-
       feature_qscore = 1.0 - feature_qscore;
       for (auto& pg : pgs)
       {
+
         for (size_t z = min_abs_charge; z < per_charge_intensity.size(); z++)
         {
           float zint = pg->getChargeIntensity((int)z);
@@ -157,11 +156,10 @@ namespace OpenMS
           charges[z - min_abs_charge] = true;
           per_charge_intensity[z] += zint;
         }
-
         int iso_off = int(.5 + (pg->getMonoMass() - mass) / pg->getIsotopeDaDistance());
         max_iso_off = std::max(max_iso_off, abs(iso_off));
         auto iso_int = pg->getIsotopeIntensities();
-        for (size_t i = 0; i < per_isotope_intensity.size() - iso_off; i++)
+        for (int i = 0; i + iso_off < per_isotope_intensity.size(); i++)
         {
           if ((int)i + iso_off < 0 || i >= iso_int.size())
           {
@@ -181,7 +179,6 @@ namespace OpenMS
 
       double max_int = 0;
       PeakGroup rep_pg = *pgs[0];
-
       for (auto& pg : pgs)
       {
         if (max_int <= pg->getIntensity())

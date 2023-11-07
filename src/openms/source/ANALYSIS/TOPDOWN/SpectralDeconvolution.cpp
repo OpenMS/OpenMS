@@ -45,8 +45,14 @@ namespace OpenMS
     defaults_.addTag("precursor_mz", "advanced");
 
     defaults_.setValue("min_cos", DoubleList {.8, .8},
-                       "Cosine similarity threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_cos 0.3 0.6 to specify 0.3 and 0.6 for MS1 and MS2, respectively)");
-
+                       "Cosine similarity thresholds between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_cos 0.3 0.6 to specify 0.3 and 0.6 for MS1 and MS2, respectively)");
+    defaults_.addTag("min_cos", "advanced");
+    defaults_.setValue("min_snr", DoubleList {1.0, 1.0},
+                       "SNR thresholds for MS1, 2, ... (e.g., -min_snr 1.0 0.6 to specify 1.0 and 0.6 for MS1 and MS2, respectively)");
+    defaults_.addTag("min_snr", "advanced");
+    defaults_.setValue("max_qvalue", DoubleList {1.0, 1.0},
+                       "Qvalue thresholds for MS1, 2, ... Effective only when FDR estimation is active. (e.g., -max_qvalue 0.1 0.2 to specify 0.1 and 0.2 for MS1 and MS2, respectively)");
+    defaults_.addTag("max_qvalue", "advanced");
     defaults_.setValue("allowed_isotope_error", 1,
                        "Allowed isotope index error for decoy and qvalue report. If it is set to 1, for example, +-1 isotope errors are "
                        "not counted as false. Beta version.");
@@ -163,7 +169,8 @@ namespace OpenMS
       if (!precursor_peak_group.empty())
       {
         Precursor precursor(deconvolved_spectrum_.getPrecursor());
-        precursor.setCharge(precursor_peak_group.isPositive() ? precursor_peak_group.getRepAbsCharge() : -precursor_peak_group.getRepAbsCharge());
+        int abs_charge = (int) round(precursor_peak_group.getMonoMass() / precursor.getMZ());
+        precursor.setCharge(precursor_peak_group.isPositive() ? abs_charge : -abs_charge);
         deconvolved_spectrum_.setPrecursor(precursor);
       }
     }
@@ -216,6 +223,9 @@ namespace OpenMS
     }
 
     min_isotope_cosine_ = param_.getValue("min_cos");
+    min_snr_ = param_.getValue("min_snr");
+    max_qvalue_ = param_.getValue("max_qvalue");
+
     allowed_iso_error_ = param_.getValue("allowed_isotope_error");
 
     target_precursor_mz_ = param_.getValue("precursor_mz");
@@ -1208,9 +1218,9 @@ namespace OpenMS
           }
         }
 
-        float snr_threshold = 1.0;//.5;
-        float qscore_threshold = 0;
-        if (!peak_group.isTargeted() && (peak_group.getQscore() <= qscore_threshold || peak_group.getSNR() <= snr_threshold)) // snr check prevents harmonics or noise.
+        double snr_threshold = min_snr_[ms_level_ - 1];//.5;
+        double qvalue_threshold = max_qvalue_[ms_level_ - 1];
+        if (!peak_group.isTargeted() && (peak_group.getQvalue() > qvalue_threshold || peak_group.getSNR() < snr_threshold)) // snr check prevents harmonics or noise.
         {
           continue;
         }

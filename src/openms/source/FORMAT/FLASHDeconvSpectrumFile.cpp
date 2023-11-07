@@ -535,7 +535,17 @@ namespace OpenMS
     }
   }
 
-  void FLASHDeconvSpectrumFile::writeTopFD(DeconvolvedSpectrum& dspec, std::fstream& fs, const double snr_threshold, const double qval_threshold,
+  void FLASHDeconvSpectrumFile::writeTopFDHeader(std::fstream& fs, const Param& param)
+  {
+    fs << "#FLASHDeconv generated msalign file\n";
+    fs << "####################### Parameters ######################\n";
+    fs << "#Maximum charge:                              \t" << param.getValue("sd:max_charge")<< "\n";
+    fs << "#Maximum monoisotopic mass:                   \t" << param.getValue("sd:max_mass") << " Dalton\n";
+    fs << "#Peak error tolerance:                        \t" << param.getValue("sd:tol") << " ppm\n";
+    fs << "####################### Parameters ######################\n";
+  }
+
+  void FLASHDeconvSpectrumFile::writeTopFD(DeconvolvedSpectrum& dspec, std::fstream& fs, const String& filename, const double snr_threshold, const double qval_threshold,
                                            const uint min_ms_level, const bool randomize_precursor_mass,
                                            const bool randomize_fragment_mass)
   {
@@ -557,6 +567,8 @@ namespace OpenMS
     fs << std::fixed << std::setprecision(2);
     fs << "BEGIN IONS\n"
        << "ID=" << dspec.getScanNumber() << "\n"
+       << "FILE_NAME="<< filename << "\n"
+       << "NATIVE_ID=" << dspec.getOriginalSpectrum().getNativeID()<<"\n"
        << "FRACTION_ID=" << 0 << "\n"
        << "SCANS=" << dspec.getScanNumber() << "\n"
        << "RETENTION_TIME=" << dspec.getOriginalSpectrum().getRT() << "\n"

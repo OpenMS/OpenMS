@@ -157,6 +157,10 @@ namespace OpenMS
     DoubleList bin_mul_factors_;
     /// Isotope cosine threshold for each MS level
     DoubleList min_isotope_cosine_;
+    /// SNR threshold for each MS level
+    DoubleList min_snr_;
+    /// Q value threshold for each MS level
+    DoubleList max_qvalue_;
     /// the deconvolved spectrum from normal run. This is used when dummy masses are generated.
     DeconvolvedSpectrum* target_dspec_for_decoy_calcualtion_;
 

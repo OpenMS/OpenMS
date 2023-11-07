@@ -85,10 +85,6 @@ namespace OpenMS
                        10e-5,
                        "Max m/z distance of the precursor entries of two spectra to be merged in [Da].");
     defaults_.setMinFloat("precursor_method:mz_tolerance", 0);
-    defaults_.setValue("precursor_method:mass_tolerance",
-                       .0,
-                       "Max mass distance of the precursor entries of two spectra to be merged in [Da]. Active when set to a positive value.");
-    defaults_.setMinFloat("precursor_method:mass_tolerance", 0);
     defaults_.setValue("precursor_method:rt_tolerance",
                        5.0,
                        "Max RT distance of the precursor entries of two spectra to be merged in [s].");

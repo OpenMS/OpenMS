@@ -35,7 +35,7 @@ namespace OpenMS
     defaults_.setMinInt("min_length", 3);
 
     defaults_.setValue("max_length", 1000, "Maximum length of the tags.");
-    defaults_.setMinInt("max_length", 1000);
+    defaults_.setMaxInt("max_length", 1000);
 
     defaults_.setValue("tol", DoubleList {10.0, 10.0}, "ppm tolerance for tag generation.");
     defaultsToParam_();
@@ -52,9 +52,9 @@ namespace OpenMS
   void TopDownTagger::run(DeconvolvedSpectrum& dspec, std::vector<std::string>& tags)
   {
     double tol = ppm_[dspec.getOriginalSpectrum().getMSLevel() - 1];
-    auto spec = dspec.toSpectrum(1, tol);
+    auto spec = dspec.toSpectrum(1, 10, tol);
     auto tagger = Tagger(min_tag_length_, tol, max_tag_length_ , 1, 1);
-    tagger.setUseAbsoluteMzForTol();
+    //tagger.setUseAbsoluteMzForTol();
     tagger.getTag(spec, tags);
   }
 }

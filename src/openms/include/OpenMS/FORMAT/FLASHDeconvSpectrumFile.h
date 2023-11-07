@@ -87,10 +87,13 @@ namespace OpenMS
 
     static void writeDLMatrix(std::vector<DeconvolvedSpectrum>& dspecs, double tol, std::fstream& fs, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg);
 
+    static void writeTopFDHeader(std::fstream& fs, const Param& param);
+
     /**
       @brief write the deconvolved masses TopFD output (*.msalign)
       @param dspec deconvolved spectrum to write
       @param fs file stream to the output file
+      @param filename mzml file name
       @param snr_threshold SNR threshold to filter out low SNR precursors. Even if a PeakGroup has a high deconvolution quality, it should be still discarded for identification when its precursor SNR (SNR within the isolation window) is too low.
       @param qval_threshold qvalue threshold to filter out high qvalue precursors.
       @param min_ms_level min ms level of the dataset
@@ -98,7 +101,7 @@ namespace OpenMS
       @param randomize_fragment_mass if set, a random number between -100 to 100 is added to fragment mass
     */
     //      @param avg averagine information to calculate monoisotopic and average mass difference
-    static void writeTopFD(DeconvolvedSpectrum& dspec, std::fstream& fs,
+    static void writeTopFD(DeconvolvedSpectrum& dspec, std::fstream& fs, const String& filename,
                            const double snr_threshold = 1.0,
                            const double qval_threshold = 1.0,
                            const uint min_ms_level = 1,

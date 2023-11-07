@@ -27,9 +27,21 @@ namespace OpenMS
     const double delta = Math::ppmToMass(ppm_, (abs_mass > 0 ? abs_mass : m));
     auto left = mass2aa_.lower_bound(m - delta);
     //if (left == mass2aa_.end()) return ' '; // cannot happen, since we checked boundaries above
+    if (fabs(left->first - m) >= delta) return ' ';
+    // return the most exact one.
+    auto best_aa = left;
+    double min_delta = delta;
+    while (fabs(left->first - m) < delta)
+    {
+      left++;
+      if (min_delta >  fabs(left->first - m))
+      {
+        best_aa = left;
+        min_delta = fabs(left->first - m);
+      }
+    }
 
-    if (fabs(left->first - m) < delta) return left->second;
-    return ' ';
+    return best_aa->second;
   }
 
   void Tagger::getTag_(std::string & tag, const std::vector<double>& mzs, const size_t i, std::vector<std::string>& tags, const size_t charge) const
