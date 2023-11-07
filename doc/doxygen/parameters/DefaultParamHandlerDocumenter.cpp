@@ -397,7 +397,6 @@ int main(int argc, char** argv)
   DOCME(NeutralLossDiffFilter);
   DOCME(NeutralLossMarker);
   DOCME(Normalizer);
-  DOCME(OptimizePeakDeconvolution);
   DOCME(ParentPeakMower);
   DOCME(PeakAlignment);
   DOCME(PeakIntegrator);
@@ -424,7 +423,6 @@ int main(int argc, char** argv)
   DOCME(TheoreticalSpectrumGenerator);
   DOCME(ThresholdMower);
   DOCME(TransitionTSVFile);
-  DOCME(TwoDOptimization);
   DOCME(WindowMower);
   DOCME(ZhangSimilarityScore);
   DOCME(MorphologicalFilter);
