@@ -107,10 +107,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSharedPeakCount.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSumAgreeingIntensities.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
@@ -125,7 +122,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
@@ -405,7 +401,6 @@ int main(int argc, char** argv)
   DOCME(ParentPeakMower);
   DOCME(PeakAlignment);
   DOCME(PeakIntegrator);
-  DOCME(PeakPickerCWT);
   DOCME(PeakPickerHiRes);
   DOCME(PeakPickerMRM);
   DOCME(PeptideIndexing);
@@ -455,7 +450,6 @@ int main(int argc, char** argv)
   DOCME2(ConsensusIDAlgorithm, (ConsensusIDAlgorithmBest()));
   DOCME2(ConsensusIDAlgorithmIdentity, (ConsensusIDAlgorithmBest()));
   DOCME2(ConsensusIDAlgorithmSimilarity, (ConsensusIDAlgorithmBest()));
-  DOCME2(FeatureFinderAlgorithmIsotopeWavelet, (FeatureFinderAlgorithmIsotopeWavelet()));
   DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked()));
   DOCME2(FeatureFinderAlgorithmMRM, (FeatureFinderAlgorithmMRM()));
   DOCME2(FeatureFinderAlgorithm, (FeatureFinderAlgorithmMRM())); //FeatureFinderAlgorithm is a base class, get parameters from subclass FeatureFinderAlgorithmMRM

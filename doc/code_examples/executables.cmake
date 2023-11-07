@@ -28,13 +28,11 @@ Tutorial_MSSpectrum
 Tutorial_MapAlignment
 Tutorial_MetaInfo
 Tutorial_Param
-Tutorial_PeakPickerCWT
 Tutorial_Precursor
 Tutorial_RangeManager
 Tutorial_Residue
 Tutorial_ResidueModification
 Tutorial_SavitzkyGolayFilter
-Tutorial_TOFCalibration
 Tutorial_TheoreticalSpectrumGenerator
 Tutorial_MorphologicalFilter
 Tutorial_Unlabeled

@@ -50,7 +50,6 @@
   <b>Spectrum processing: Centroiding</b>
   - @subpage TOPP_PeakPickerHiRes - Peak detection in high-resolution profile mass spectra.
   - @subpage TOPP_PeakPickerIterative - Peak detection in high-resolution profile TOF data (based on PeakPickerHiRes with some postprocessing) 
-  - @subpage TOPP_PeakPickerWavelet - Peak detection in low-resolution (ion trap) profile mass spectra.
   
 
   <b>Spectrum processing: peak smoothing / normalization</b>
@@ -78,8 +77,6 @@
   - @subpage TOPP_ExternalCalibration - Applies an external mass calibration.
   - @subpage TOPP_HighResPrecursorMassCorrector - Correct the precursor entries of tandem MS scans for high resolution data.
   - @subpage TOPP_IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards.
-  - @subpage TOPP_PrecursorMassCorrector - Correct the precursor m/z entries of tandem MS scans (low-res only).
-  - @subpage TOPP_TOFCalibration - Applies time of flight mass calibration.
 
   <b>Quantitation</b>
   - @subpage TOPP_ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).

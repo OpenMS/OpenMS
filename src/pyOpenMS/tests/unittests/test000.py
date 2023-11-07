@@ -1492,31 +1492,6 @@ def testFeatureFinderAlgorithmPicked():
     ff.setName("test")
     assert ff.getName() == "test"
 
-@report
-def testFeatureFinderAlgorithmIsotopeWavelet():
-    """
-    @tests: FeatureFinderAlgorithmIsotopeWavelet
-     FeatureFinderAlgorithmIsotopeWavelet.__init__
-     FeatureFinderAlgorithmIsotopeWavelet.getDefaults
-     FeatureFinderAlgorithmIsotopeWavelet.getName
-     FeatureFinderAlgorithmIsotopeWavelet.getParameters
-     FeatureFinderAlgorithmIsotopeWavelet.getProductName
-     FeatureFinderAlgorithmIsotopeWavelet.setName
-     FeatureFinderAlgorithmIsotopeWavelet.setParameters
-    """
-    ff = pyopenms.FeatureFinderAlgorithmIsotopeWavelet()
-    p = ff.getDefaults()
-    _testParam(p)
-
-    # _testParam(ff.getParameters())
-
-    assert ff.getName() == "FeatureFinderAlgorithm"
-    assert pyopenms.FeatureFinderAlgorithmIsotopeWavelet.getProductName() == "isotope_wavelet"
-
-    ff.setParameters(pyopenms.Param())
-
-    ff.setName("test")
-    assert ff.getName() == "test"
 
 @report
 def testExperimentalSettings():
@@ -1605,19 +1580,6 @@ def testSeedListGenerator():
 
     # TODO 
     # assert pyopenms.SeedListGenerator().compute is not None
-
-@report
-def testTOFCalibration():
-    """
-    @tests: TOFCalibration
-     TOFCalibration.__init__
-    """
-    ff = pyopenms.TOFCalibration()
-    p = ff.getDefaults()
-    # _testParam(p)
-
-    assert pyopenms.TOFCalibration().calibrate is not None
-    assert pyopenms.TOFCalibration().pickAndCalibrate is not None
 
 # TODO: re-enable as soon as ConsensusIDAlgorithm classes are wrapped
 # @report
@@ -1756,17 +1718,6 @@ def testFeatureFinderAlgorithmPicked():
 
     assert pyopenms.FeatureFinderAlgorithmPicked().setData is not None
     assert pyopenms.FeatureFinderAlgorithmPicked().run is not None
-
-@report
-def testFeatureFinderAlgorithmIsotopeWavelet():
-    """
-    @tests: FeatureFinderAlgorithmIsotopeWavelet
-     FeatureFinderAlgorithmIsotopeWavelet.__init__
-    """
-    ff = pyopenms.FeatureFinderAlgorithmIsotopeWavelet()
-
-    assert pyopenms.FeatureFinderAlgorithmIsotopeWavelet().setData is not None
-    assert pyopenms.FeatureFinderAlgorithmIsotopeWavelet().run is not None
 
 
 @report
