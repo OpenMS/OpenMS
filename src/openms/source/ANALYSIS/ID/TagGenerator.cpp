@@ -118,11 +118,11 @@ namespace OpenMS
     }
   }
 
-  void TagGenerator::generateAllMultiPeaks(std::vector<MultiPeak>& quad_peaks)
+  void TagGenerator::generateAllMultiPeaks(std::vector<MultiPeak>& quad_peaks, size_t depth)
   {
     for(shared_ptr<TagGeneratorNode> node: dag_){
       vector<MultiPeak> quad_peaks_per_node;
-      node->generateAllMultiPeaks(quad_peaks_per_node, 3);
+      node->generateAllMultiPeaks(quad_peaks_per_node, depth);
       quad_peaks.insert(quad_peaks.end(), quad_peaks_per_node.begin(), quad_peaks_per_node.end());
     }
   }

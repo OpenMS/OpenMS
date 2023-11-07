@@ -32,7 +32,7 @@ namespace OpenMS
     /// Destructor
     virtual ~MultiPeak() = default;
 
-    const Peak1D& getPeak() const;
+    [[nodiscard]] const Peak1D& getPeak() const;
     double getScore() const;
     const std::string& getFollowUpPeaksAa() const;
     const std::vector<double>& getFollowUpPeaks() const;

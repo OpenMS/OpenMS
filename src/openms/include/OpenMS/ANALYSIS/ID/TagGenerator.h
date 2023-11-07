@@ -60,7 +60,7 @@ namespace OpenMS
 
     void generateDirectedAcyclicGraph(double fragment_tolerance);
 
-    void generateAllMultiPeaks(std::vector<MultiPeak>& quad_peaks);
+    void generateAllMultiPeaks(std::vector<MultiPeak>& quad_peaks, size_t depth);
 
   };
 }

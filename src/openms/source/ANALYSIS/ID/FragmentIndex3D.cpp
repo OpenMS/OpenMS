@@ -38,7 +38,7 @@ namespace OpenMS
 {
   FragmentIndex3D::FragmentIndex3D() : FragmentIndexTD()
   {
-    depth_ = 3;
+    depth_ = 2;
   }
 
   void FragmentIndex3D::build (const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
@@ -77,21 +77,18 @@ namespace OpenMS
       tag_generator.globalSelection();
       tag_generator.localSelection();
       tag_generator.generateDirectedAcyclicGraph(fragment_mz_tolerance_);
-      tag_generator.generateAllMultiPeaks(multi_peaks);
+      tag_generator.generateAllMultiPeaks(multi_peaks, depth_);
       tag_generator.setMSSpectrum(y_ions);
       tag_generator.globalSelection();
       tag_generator.localSelection();
       tag_generator.generateDirectedAcyclicGraph(fragment_mz_tolerance_);
-      tag_generator.generateAllMultiPeaks(multi_peaks);
-      //TODO: For debugging
-      cout << "Debugging: MulitPeaks created for peptide: " << peptide_idx << endl;
+      tag_generator.generateAllMultiPeaks(multi_peaks, depth_);
 
 
       for (const MultiPeak& multi_peak : multi_peaks) {
         if (fragment_min_mz_ > multi_peak.getPeak().getMZ() && multi_peak.getPeak().getMZ() > fragment_max_mz_  ) continue;
         fi_fragments_.emplace_back(peptide_idx, multi_peak.getPeak().getMZ(), multi_peak);
       }
-      cout << "Debugging: MultiFragments created for peptide: " << peptide_idx << endl;
       multi_peaks.clear();
       peptide_idx++;
       b_y_ions.clear(true);
@@ -112,22 +109,25 @@ namespace OpenMS
 
     ///1.) First we sort According to follow up peaks. Keep in mind our data set is (x+2)-D, where x is the depth.
     for(uint16_t d = 0; d< depth_; d++){
-      vector<double> temp_bucket_min;
+      if(d > 0)
+        follow_up_peaks_buckets_min_mz.emplace_back();
       for(size_t i = 0; i < fi_fragments_.size(); i+= iterBucketsize[d]){
-        temp_bucket_min.emplace_back(fi_fragments_[i].getFollowUpPeaks().at(d));
+        if(d > 0)
+          follow_up_peaks_buckets_min_mz[follow_up_peaks_buckets_min_mz.size()-1].emplace_back(fi_fragments_[i].getFollowUpPeaks()[follow_up_peaks_buckets_min_mz.size()-1]);
         auto sec_bucket_start = fi_fragments_.begin()+i;
         auto sec_bucket_end = (i+ (iterBucketsize[d])) > fi_fragments_.size() ? fi_fragments_.end() : (sec_bucket_start + iterBucketsize[d]);
         sort(sec_bucket_start, sec_bucket_end, [d](const MultiFragment& a, const MultiFragment& b){
           return a.getFollowUpPeaks()[d] < b.getFollowUpPeaks()[d];  });
 
       }
-      follow_up_peaks_buckets_min_mz.push_back(temp_bucket_min);
+
     }
 
 
     ///2.) Sort by Fragment mass
+    follow_up_peaks_buckets_min_mz.emplace_back();
     for(size_t i = 0; i < fi_fragments_.size(); i += (iterBucketsize[depth_])){
-      bucket_min_mz_.emplace_back(fi_fragments_[i].getFragmentMz());
+      follow_up_peaks_buckets_min_mz[follow_up_peaks_buckets_min_mz.size()-1].emplace_back(fi_fragments_[i].getFollowUpPeaks()[follow_up_peaks_buckets_min_mz.size()-1]);
       auto sec_bucket_start = fi_fragments_.begin()+i;
       auto sec_bucket_end = (i+ (iterBucketsize[depth_])) > fi_fragments_.size() ? fi_fragments_.end() : sec_bucket_start + iterBucketsize[depth_];
 
@@ -136,8 +136,10 @@ namespace OpenMS
       });
     }
 
+
     ///3.) Sort by Precursor mass
     for (size_t j = 0; j < fi_fragments_.size(); j += iterBucketsize[depth_+1]){
+      bucket_min_mz_.emplace_back(fi_fragments_[j].getFragmentMz());
 
       auto bucket_start = fi_fragments_.begin()+j;
       auto bucket_end = (j + bucketsize_) > fi_fragments_.size() ? fi_fragments_.end() : bucket_start + bucketsize_;
@@ -224,6 +226,8 @@ namespace OpenMS
     }
     auto slice_start = (*current_level).begin() + current_slice * bucketsize_;
     auto slice_end = ((current_slice +1) * bucketsize_) > (*current_level).size() ? (*current_level).end() : (*current_level).begin() + (current_slice+1)* bucketsize_;
+    if(recursion_step == depth_+1)            //edge case for the very first tree layer
+      slice_end = (*current_level).end();
     vector<double> slice(slice_start, slice_end);
     auto next_slices = FragmentIndexTD::binary_search_slice_double(slice,
                                                            current_query -fragment_tolerance + window.first,
@@ -235,7 +239,7 @@ namespace OpenMS
                      peptide_idx_range,
                      window,
                      recursion_step-1,
-                     next_slice,
+                     current_slice * bucketsize_ + next_slice,                    // first slide to the start position of the window, than add the actual idx of the entry found
                      fragment_tolerance);
     }
 
