@@ -38,7 +38,13 @@ namespace OpenMS
 {
   FragmentIndex3D::FragmentIndex3D() : FragmentIndexTD()
   {
-    depth_ = 2;
+    defaults_.setValue("depth", 2, "The number of adjacent peaks that are taken into account");
+    defaultsToParam_();
+  }
+  void FragmentIndex3D::updateMembers_()
+  {
+    depth_ = param_.getValue("depth");
+    FragmentIndexTD::updateMembers_();
   }
 
   void FragmentIndex3D::build (const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
@@ -50,9 +56,6 @@ namespace OpenMS
     tsg.setParameters(tsg_settings);
 
     PeakSpectrum b_y_ions;
-    PeakSpectrum b_ions;
-    PeakSpectrum y_ions;
-    std::vector<MultiPeak> multi_peaks;
     std::vector<Fragment> all_frags;
     /// generate all Peptides
     generate_peptides(fasta_entries);
@@ -62,38 +65,12 @@ namespace OpenMS
     for (Peptide pep: fi_peptides_)
     {
       tsg.getSpectrum(b_y_ions, pep.sequence, 1, 1);
-      const PeakSpectrum::StringDataArray & ion_types = b_y_ions.getStringDataArrays().at(0);
-      //separate b and y ions
-      for(size_t i = 0; i < b_y_ions.size(); i++){
-        if(ion_types[i].hasSubstring("b"))
-          b_ions.push_back(b_y_ions[i]);
-        if(ion_types[i].hasSubstring("y"))
-          y_ions.push_back(b_y_ions[i]);
-      }
-      b_ions.setPrecursors(b_y_ions.getPrecursors());
-      y_ions.setPrecursors(b_y_ions.getPrecursors());
+      TagGenerator tag_generator{b_y_ions};
 
-      TagGenerator tag_generator{b_ions};
-      tag_generator.globalSelection();
-      tag_generator.localSelection();
-      tag_generator.generateDirectedAcyclicGraph(fragment_mz_tolerance_);
-      tag_generator.generateAllMultiPeaks(multi_peaks, depth_);
-      tag_generator.setMSSpectrum(y_ions);
-      tag_generator.globalSelection();
-      tag_generator.localSelection();
-      tag_generator.generateDirectedAcyclicGraph(fragment_mz_tolerance_);
-      tag_generator.generateAllMultiPeaks(multi_peaks, depth_);
+      tag_generator.generateAllMultiFragments(fi_fragments_, depth_, peptide_idx, fragment_min_mz_, fragment_max_mz_);
 
-
-      for (const MultiPeak& multi_peak : multi_peaks) {
-        if (fragment_min_mz_ > multi_peak.getPeak().getMZ() && multi_peak.getPeak().getMZ() > fragment_max_mz_  ) continue;
-        fi_fragments_.emplace_back(peptide_idx, multi_peak.getPeak().getMZ(), multi_peak);
-      }
-      multi_peaks.clear();
       peptide_idx++;
       b_y_ions.clear(true);
-      y_ions.clear(true);
-      b_ions.clear(true);
     }
 
     ///Calculate bucket size
@@ -230,8 +207,8 @@ namespace OpenMS
       slice_end = (*current_level).end();
     vector<double> slice(slice_start, slice_end);
     auto next_slices = FragmentIndexTD::binary_search_slice_double(slice,
-                                                           current_query -fragment_tolerance + window.first,
-                                                           current_query + fragment_tolerance + window.second,
+                                                           current_query -fragment_tolerance + applied_window.first,
+                                                           current_query + fragment_tolerance + applied_window.second,
                                                             true);
     for(size_t next_slice = next_slices.first; next_slice <= next_slices.second; next_slice++){
       recursiveQuery(hits,

@@ -127,6 +127,36 @@ namespace OpenMS
     }
   }
 
+  void TagGenerator::generateAllMultiFragments(std::vector<MultiFragment>& multi_frags,
+                                               size_t depth,
+                                               size_t peptide_idx,
+                                               double frag_min_mz,
+                                               double frag_max_mz)
+  {
+    if(spectrum_.getStringDataArrays().empty())
+    {
+      OPENMS_LOG_WARN << "The provided spectrum has no ion-type info" << endl;
+      return;
+    }
+    const PeakSpectrum::StringDataArray  & ion_types = spectrum_.getStringDataArrays().at(0);
+    for(size_t i = 0; i < spectrum_.size(); i++){
+      if((frag_min_mz > spectrum_[i].getMZ()) && (spectrum_[i].getMZ() > frag_max_mz))
+        continue;
+      vector<double> temp_follow_up;
+      size_t j = i +1;
+      size_t last_j = i;
+      while(temp_follow_up.size()< depth && j < spectrum_.size()){
+        if(ion_types[i].substr(0,1) == ion_types[j].substr(0,1)){
+          temp_follow_up.push_back(spectrum_[j].getMZ() - spectrum_[last_j].getMZ());
+          last_j = j;
+        }
+        j++;
+      }
+      if(temp_follow_up.size() == 2)
+        multi_frags.emplace_back(peptide_idx, spectrum_[i].getMZ(), temp_follow_up);
+    }
+  }
+
 
 
 }

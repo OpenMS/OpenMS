@@ -39,12 +39,14 @@ namespace OpenMS
 
 
     /// DefaultConstructor
-    FragmentIndex3D();
+    FragmentIndex3D() ;
 
     /// Default destructor
     //~FragmentIndexTD();
 
   protected:
+
+    void updateMembers_() override;
 
   private:
 

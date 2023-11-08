@@ -3,6 +3,8 @@
 //
 #include <OpenMS/ANALYSIS/ID/FragmentIndexTDScorer.h>
 #include <OpenMS/ANALYSIS/ID/FragmentIndexTD.h>
+#include <OpenMS/ANALYSIS/ID/FragmentIndex3D.h>
+#include <OpenMS/ANALYSIS/ID/TagGenerator.h>
 
 #include <OpenMS/CHEMISTRY/AAIndex.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -33,21 +35,25 @@ using namespace std;
 namespace OpenMS
 {
 
-  void FragmentIndexTDScorer::setDB(FragmentIndexTD& db){
+  void FragmentIndexTDScorer::setDB(FragmentIndexTD* db){
     db_ = db;
   }
   void FragmentIndexTDScorer::buildDB(const std::vector<FASTAFile::FASTAEntry> & fasta_entries){
-    db_.build(fasta_entries);
+    db_->build(fasta_entries);
   }
 
 
 
   void FragmentIndexTDScorer::simpleScoring(MSSpectrum& specturm, InitHits& initHits){
-
-    if (!db_.isBuild()){
-      OPENMS_LOG_WARN << "FragmentIndex not yet build \n";
-      return;
-    }
+    auto* ptrBase = dynamic_cast<FragmentIndex3D*>(db_);
+         if(ptrBase){
+           OPENMS_LOG_WARN << "The Database has the wrong format" << endl;
+           return;
+         }
+         if (!db_->isBuild()){
+           OPENMS_LOG_WARN << "FragmentIndex not yet build \n";
+           return;
+         }
 
     if(specturm.empty() || (specturm.getMSLevel() != 2)) return;
 
@@ -83,9 +89,9 @@ namespace OpenMS
         mz = precursor[0].getMZ() * charge;
 
       if(open_search)
-        openScoring(specturm, mz, candidates_charge, charge);
+        openSearch(specturm, mz, candidates_charge, charge);
       else
-        closedScoring(specturm, mz, candidates_charge, charge);
+        closedSearch(specturm, mz, candidates_charge, charge);
 
       trimHits(candidates_charge);
       initHits += candidates_charge;
@@ -93,18 +99,18 @@ namespace OpenMS
     trimHits(initHits);
   }
 
-  void FragmentIndexTDScorer::closedScoring(OpenMS::MSSpectrum& spectrum, double mz, OpenMS::FragmentIndexTDScorer::InitHits& initHits, uint32_t charge)
+  void FragmentIndexTDScorer::closedSearch(MSSpectrum& spectrum, double mz, InitHits& initHits, uint32_t charge)
   {
     for (int16_t isotope_error = min_isotope_error_; isotope_error <= max_isotope_error_; isotope_error++){
       InitHits candidates_iso_error;
       mz += isotope_error * Constants::NEUTRON_MASS;
-      auto candidates_range = db_.getPeptideRange(mz, {0,0});  // for the simple search we do not apply any modification window!!
+      auto candidates_range = db_->getPeptideRange(mz, {0,0});  // for the simple search we do not apply any modification window!!
       candidates_iso_error.hits_.resize(candidates_range.second - candidates_range.first + 1);
 
       for(Peak1D peak: spectrum){
 
         //TODO: should we loop over the charges of the peaks?? or adjust the mass in general?
-        for(auto hit: db_.query(peak, candidates_range, {0,0})){
+        for(auto hit: db_->query(peak, candidates_range, {0,0})){
 
           // the following part is 1:1 from sage
           size_t idx = hit.peptide_idx - candidates_range.first;
@@ -127,15 +133,15 @@ namespace OpenMS
   }
 
 
-  void FragmentIndexTDScorer::openScoring(MSSpectrum& spectrum, double mz, InitHits& open_init_hits, uint32_t charge)
+  void FragmentIndexTDScorer::openSearch(MSSpectrum& spectrum, double precursor_mass, InitHits& initHits, uint32_t charge)
   {
     pair<double, double> precursor_window;
     if(open_precursor_window == 0)
-      precursor_window = make_pair(-mz * 0.05, mz * 0.01);
+      precursor_window = make_pair(-precursor_mass * 0.05, precursor_mass * 0.01);
     else
       precursor_window = make_pair(-open_precursor_window,  open_precursor_window);//sage took (-500, 100) fixed
     OPENMS_LOG_WARN << "The Precursor mass window was set to: " << precursor_window.first << " " << precursor_window.second<< endl;
-    auto candidates_range = db_.getPeptideRange(mz, precursor_window);
+    auto candidates_range = db_->getPeptideRange(precursor_mass, precursor_window);
 
     // adjust the window. with each decreasing peak the prob. that we have all modifications inside gets lower
     // the linear decrease of the window below is a very coarse approximation and must be improved
@@ -148,7 +154,7 @@ namespace OpenMS
 
       for(auto peak = spectrum.end()-1; peak >= spectrum.begin(); peak--){
         //TODO: should we loop over the charges of the peaks?? or adjust the mass in general?
-        for(auto hit: db_.query(*peak, candidates_range, fragment_window)){
+        for(auto hit: db_->query(*peak, candidates_range, fragment_window)){
 
           // the following part is 1:1 from sage
           size_t idx = hit.peptide_idx - candidates_range.first;
@@ -165,8 +171,96 @@ namespace OpenMS
         }
       }
       trimHits(hits_per_window);
-      open_init_hits += hits_per_window;
+      initHits += hits_per_window;
     }
+  }
+
+  void FragmentIndexTDScorer::extractHits(OpenMS::FragmentIndexTDScorer::InitHits& candidates,
+                                          const vector<FragmentIndexTD::Hit>& hits,
+                                          uint32_t charge,
+                                          int16_t isotope_error,
+                                          std::pair<size_t , size_t > peptide_range)
+  {
+    for(FragmentIndexTD::Hit hit: hits){
+
+      // the following part is 1:1 from sage
+      size_t idx = hit.peptide_idx - peptide_range.first;
+
+      auto source = &candidates.hits_[idx];
+      if (source->num_matched_ == 0){
+        candidates.scored_candidates_ +=1;
+        source->precursor_charge_ = charge;
+        source->peptide_idx_ = hit.peptide_idx;
+        source->isotope_error_ = isotope_error;
+      }
+      source->num_matched_+= 1;
+      candidates.matched_peaks_+=1;
+    }
+  }
+
+  void FragmentIndexTDScorer::multiDimScoring(const OpenMS::MSSpectrum& spectrum, OpenMS::FragmentIndexTDScorer::InitHits& initHits)
+  {
+
+    // 1.) First check all requirements for the function to actually work
+    // a) We have selected the correct database type
+    auto* ptrDerived = dynamic_cast<FragmentIndex3D*>(db_);
+    if(!ptrDerived){
+      OPENMS_LOG_WARN << "The Database has the wrong format" << endl;
+      return;
+    }
+    // b) The database was build
+    if (!db_->isBuild()){
+      OPENMS_LOG_WARN << "FragmentIndex not yet build \n";
+      return;
+    }
+    //c) The query spectrum has the correct MS level and contains data
+    if(spectrum.empty() || (spectrum.getMSLevel() != 2)) return;
+
+    //d) The number of precursors is correct
+    auto precursor = spectrum.getPrecursors();
+    if(precursor.size() != 1){
+      OPENMS_LOG_WARN << "Number of precursors is not equal 1 \n";
+      return;
+    }
+
+
+    //2.) Generate all MultiPeaks (Tags) (this should introduce all possible fragment charges)
+    TagGenerator tagGenerator(spectrum);
+    tagGenerator.globalSelection();
+    tagGenerator.localSelection();
+    cout << "DEBUG: frag mz tol: " << db_->getParameters().getValue("fragment_mz_tolerance") << endl;
+    tagGenerator.generateDirectedAcyclicGraph(db_->getParameters().getValue("fragment_mz_tolerance"));
+    vector<MultiPeak> mPeaks;
+    tagGenerator.generateAllMultiPeaks(mPeaks, db_->getParameters().getValue("depth"));
+
+    //3.) Loop over all precursor charges
+    vector<size_t> charges;
+    cout << "precursor charge = " << precursor[0].getCharge() << endl;
+    if(precursor[0].getCharge()){
+      cout << "precursor charge found" << endl;
+      charges.push_back(precursor[0].getCharge());
+    }else{
+      for(size_t i = min_precursor_charge_; i <= max_precursor_charge_; i++){
+        charges.push_back(i);
+      }
+    }
+    //loop over all PRECURSOR-charges
+    for(size_t charge: charges) {
+      InitHits candidates_charge;
+      vector<FragmentIndexTD::Hit> hits_charge;
+      double mz = precursor[0].getMZ() * static_cast<double>(charge);
+      auto range = ptrDerived->getPeptideRange(mz, {-open_precursor_window, open_precursor_window});
+      candidates_charge.hits_.resize(range.second - range.first + 1);
+      for(const MultiPeak& mp : mPeaks){
+        ptrDerived->query(hits_charge, mp, range, {-open_precursor_window, open_precursor_window});
+        extractHits(candidates_charge, hits_charge, charge, 0, range);
+        hits_charge.clear();
+      }
+
+      trimHits(candidates_charge);
+      initHits += candidates_charge;
+    }
+    trimHits(initHits);
   }
 
   void FragmentIndexTDScorer::trimHits(OpenMS::FragmentIndexTDScorer::InitHits& init_hits)
@@ -269,7 +363,7 @@ namespace OpenMS
     open_precursor_window = param_.getValue("open_precursor_window");
     open_fragment_window = param_.getValue("open_fragment_window");
   }
-  const FragmentIndexTD& FragmentIndexTDScorer::getDb() const
+  const FragmentIndexTD* FragmentIndexTDScorer::getDb() const
   {
     return db_;
   }

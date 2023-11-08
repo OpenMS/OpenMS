@@ -43,7 +43,7 @@ namespace OpenMS
     71.03711, 103.00919, 115.02694, 129.04259, 147.06841, 57.02146, 137.05891, 113.08406, 128.09496, 131.04049, 114.04293, 97.05276, 128.05858, 156.10111, 87.03203, 101.04768, 99.06841, 186.07932, 163.06332
   };
 
-  TagGeneratorNode::TagGeneratorNode(const OpenMS::Peak1D& peak):
+  TagGeneratorNode::TagGeneratorNode(const Peak1D& peak):
     charge_(1), peak_(peak), norm_intensity_(0), confidence_(0), connected_nodes_({}), distance_to_nodes({}), connected_AA({})
   {
 
@@ -52,7 +52,7 @@ namespace OpenMS
   TagGeneratorNode::TagGeneratorNode(const OpenMS::TagGeneratorNode& cp) = default;
 
   TagGeneratorNode::TagGeneratorNode(const OpenMS::TagGeneratorNode& cp, uint16_t charge) :
-  charge_(charge), peak_(cp.peak_), norm_intensity_(cp.norm_intensity_), confidence_(0)
+  charge_(charge), peak_(cp.peak_), norm_intensity_(cp.norm_intensity_), confidence_(0), connected_nodes_({}), distance_to_nodes({}), connected_AA({})
   {
   }
 
@@ -130,8 +130,13 @@ namespace OpenMS
   {
     return charge_;
   }
-  const Peak1D& TagGeneratorNode::getPeak() const
+  const Peak1D TagGeneratorNode::getPeak() const
   {
     return peak_;
+  }
+
+  double TagGeneratorNode::calculateMass()
+  {
+    return peak_.getMZ() * charge_;
   }
 }

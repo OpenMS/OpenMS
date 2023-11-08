@@ -29,6 +29,8 @@ using namespace std;
 
 int main()
 {
+
+
  /* std::vector<FASTAFile::FASTAEntry> entries {
     {"test1", "test1", "LRLRACGLNFADLMARQGLY"},
     {"test2", "test2", "AAASPPLLRCLVLTGFGGYD"},
@@ -75,9 +77,12 @@ int main()
   vector<FASTAFile::FASTAEntry> entries2;
   fasta.load("/home/trapho/test/OpenMS/doc/code_examples/data/47128_bovine.fasta", entries2);
   cout << entries2[218].identifier << endl;
+  auto e1 = entries2.begin();
+  auto e2 = entries2.begin() + 10000;
+  vector<FASTAFile::FASTAEntry> entries2_s(e1, e2);
 
   FragmentIndex3D sdb2;
-  sdb2.build(entries2);
+  sdb2.build(entries2_s);
 
   // Real data
   MzMLFile reader;
@@ -97,30 +102,14 @@ int main()
   for(Peak1D p: b_y_ions){
     spec.push_back(p);
   }
-  TagGenerator tagGenerator(spectrum_exp);
 
-  tagGenerator.globalSelection();
-  tagGenerator.localSelection();
-  tagGenerator.generateDirectedAcyclicGraph(0.05);
-  vector<MultiPeak> mPeaks;
-  tagGenerator.generateAllMultiPeaks(mPeaks, 2);
-
-
-  auto range = sdb2.getPeptideRange(prec.getMZ(), {-100,100});
-  vector<FragmentIndexTD::Hit> hits;
-  for(MultiPeak& pp : mPeaks){
-
-      sdb2.query(hits, pp, range, {-100,100});
+  FragmentIndexTDScorer::InitHits hits;
+  FragmentIndexTDScorer scorer;
+  scorer.setDB(&sdb2);
+  scorer.simpleScoring(spectrum_exp, hits);
+  scorer.multiDimScoring(spectrum_exp, hits);
+  for(auto h: hits.hits_){
+    cout << h.peptide_idx_ << " " << sdb2.getFiPeptides().at(h.peptide_idx_).protein_idx << " " << h.precursor_charge_ << " " << h.num_matched_ <<endl;
   }
-
-
-
-  for(FragmentIndexTD::Hit hit: hits){
-    cout << hit.peptide_idx << endl;
-    cout << sdb2.getFiPeptides().at(hit.peptide_idx).protein_idx << endl;
-  }
-
-
-
 
 }

@@ -26,8 +26,7 @@ namespace OpenMS
 
     MultiFragment(size_t peptide_idx,
                   double fragment_mz,
-                  const std::vector<double>& follow_up,
-                  std::string  sequ);
+                  const std::vector<double>& follow_up);
 
     MultiFragment(Size peptide_idx, double fragment_mz, const MultiPeak& multiPeak);
 
@@ -45,7 +44,7 @@ namespace OpenMS
 
     size_t getPeptideIdx() const;
     double getFragmentMz() const;
-    const std::string& getFollowUpPeaksAa() const;
+    //const std::string& getFollowUpPeaksAa() const;
     const std::vector<double>& getFollowUpPeaks() const;
 
 
@@ -53,7 +52,7 @@ namespace OpenMS
     size_t peptide_idx_;
     double fragment_mz_;
     std::vector<double> follow_up_peaks_;
-    std::string follow_up_peaks_AA_;  // TODO: soley for debugging can be removed later
+
 
   };
 

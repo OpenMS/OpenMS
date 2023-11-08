@@ -26,7 +26,7 @@ namespace OpenMS
   class OPENMS_DLLAPI FragmentIndexTDScorer : public DefaultParamHandler
   {
   private:
-    FragmentIndexTD db_;       ///< The FragmentIndex(TD) database
+    FragmentIndexTD* db_;       ///< The FragmentIndex(TD) database (can also be a 3D database)
     uint16_t min_matched_peaks_;  ///< PSM with less hits are discarded
     int16_t min_isotope_error_;   ///< Minimal possible isotope error
     int16_t max_isotope_error_;   ///< Maximal possible isotope error (both only used for closed search)
@@ -76,7 +76,7 @@ namespace OpenMS
     void testHeapify();
 
     /// getter
-    const FragmentIndexTD& getDb() const;
+    const FragmentIndexTD* getDb() const;
 
     /**
      * @brief Every potential Peptide/Protein has such an struct. Inside the number of peaks-to-Fragment hits are safed
@@ -94,6 +94,7 @@ namespace OpenMS
         isotope_error_ = 0;
       }
     };
+
 
     /**
      * @brief A container for the PreHits
@@ -121,19 +122,32 @@ namespace OpenMS
     FragmentIndexTDScorer();
 
     /// FID setter and builder
-    void setDB(FragmentIndexTD& db);
-    void buildDB(const std::vector<FASTAFile::FASTAEntry> & fasta_entries);
+    void setDB(FragmentIndexTD* db);
+    void buildDB(const std::vector<FASTAFile::FASTAEntry> & fasta_entries);  //Only builds standard
+
+    void extractHits(InitHits& candidates ,
+                     const std::vector<FragmentIndexTD::Hit>& hits,
+                     uint32_t charge,
+                     int16_t isotope_error,
+                     std::pair<size_t , size_t > peptide_range);
 
     /// The "scoring" function
-    void simpleScoring(MSSpectrum& spectrum, InitHits& initHits);
+    void simpleScoring(MSSpectrum& spectrum, InitHits& initHits);  //TODO: should only be applied to Bottom-up or unmodified Top-Down
 
     /// Closed Scoring. NO open window for PTM search
-    void closedScoring(MSSpectrum& spectrum, double mz, InitHits& initHits, uint32_t charge);
+    void closedSearch(MSSpectrum& spectrum, double mz, InitHits& initHits, uint32_t charge);  //TODO: see simpleScoring
 
     /** @brief The idea is to search witch an wider precursor tolerance window and actively adjust the fragment window
      *
      */
-    void openScoring(MSSpectrum& spectrum, double precursor_mass, InitHits& initHits, uint32_t charge);
+    void openSearch(MSSpectrum& spectrum, double precursor_mass, InitHits& initHits, uint32_t charge);
+
+    /**
+     * @brief Scoring for the MultiDim FragmentIndex!
+     * @param spectrum
+     * @param initHits
+     */
+    void multiDimScoring(const MSSpectrum& spectrum, InitHits& initHits);
 
 
 

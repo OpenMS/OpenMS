@@ -10,6 +10,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/ANALYSIS/ID/TagGeneratorNode.h>
 #include <OpenMS/DATASTRUCTURES/MultiPeak.h>
+#include <OpenMS/DATASTRUCTURES/MultiFragment.h>
 
 #include <vector>
 #include <functional>
@@ -61,6 +62,8 @@ namespace OpenMS
     void generateDirectedAcyclicGraph(double fragment_tolerance);
 
     void generateAllMultiPeaks(std::vector<MultiPeak>& quad_peaks, size_t depth);
+
+    void generateAllMultiFragments(std::vector<MultiFragment>& multi_frags, size_t depth, size_t peptide_idx, double frag_min_mz, double frag_max_mz);
 
   };
 }

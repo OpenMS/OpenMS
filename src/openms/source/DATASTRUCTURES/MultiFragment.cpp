@@ -27,11 +27,11 @@ namespace OpenMS
   {
   }
 
-  MultiFragment::MultiFragment(OpenMS::Size peptide_idx, double fragment_mz, const vector<double>& follow_up,string  sequ):
+  MultiFragment::MultiFragment(OpenMS::Size peptide_idx, double fragment_mz, const vector<double>& follow_up):
   peptide_idx_(peptide_idx),
   fragment_mz_(fragment_mz),
-  follow_up_peaks_(follow_up),
-  follow_up_peaks_AA_(std::move(sequ))
+  follow_up_peaks_(follow_up)
+  //follow_up_peaks_AA_(std::move(sequ))
   {
   }
 
@@ -39,7 +39,7 @@ namespace OpenMS
   peptide_idx_(peptide_idx), fragment_mz_(fragment_mz)
   {
     follow_up_peaks_ = multiPeak.getFollowUpPeaks();
-    follow_up_peaks_AA_ = multiPeak.getFollowUpPeaksAa();
+    //follow_up_peaks_AA_ = multiPeak.getFollowUpPeaksAa();
   }
 
   MultiFragment::MultiFragment(const OpenMS::MultiFragment& other) = default;
@@ -51,14 +51,14 @@ namespace OpenMS
     peptide_idx_ = other.peptide_idx_;
     fragment_mz_ = other.fragment_mz_;
     follow_up_peaks_ = other.follow_up_peaks_;
-    follow_up_peaks_AA_ = other.follow_up_peaks_AA_;
+    //follow_up_peaks_AA_ = other.follow_up_peaks_AA_;
     return *this;
   }
 
   void MultiFragment::swap(OpenMS::MultiFragment& other)
   {
     follow_up_peaks_.swap(other.follow_up_peaks_);
-    follow_up_peaks_AA_.swap(other.follow_up_peaks_AA_);
+    //follow_up_peaks_AA_.swap(other.follow_up_peaks_AA_);
     std::swap(peptide_idx_, other.peptide_idx_);
     std::swap(fragment_mz_, other.fragment_mz_);
   }
@@ -71,10 +71,7 @@ namespace OpenMS
   {
     return fragment_mz_;
   }
-  const string& MultiFragment::getFollowUpPeaksAa() const
-  {
-    return follow_up_peaks_AA_;
-  }
+
   const vector<double>& MultiFragment::getFollowUpPeaks() const
   {
     return follow_up_peaks_;

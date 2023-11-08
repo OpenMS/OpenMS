@@ -55,7 +55,8 @@ namespace OpenMS
 
     /// getter
     [[nodiscard]] uint16_t getCharge() const;
-    [[nodiscard]] const Peak1D& getPeak() const;
+    [[nodiscard]] const Peak1D getPeak() const;
+    double calculateMass();
 
 
 
