@@ -58,7 +58,7 @@ namespace OpenMS
   {
   public:
     /**
-       \brief If set to true, all parameters will be listed on store without nesting.
+       \brief If set to true, all parameters will be listed on when writing the JSON file.
               The names will be expanded to include the nesting hierarchy.
      */
     bool flatHierarchy{};

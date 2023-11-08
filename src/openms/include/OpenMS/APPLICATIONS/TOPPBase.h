@@ -934,8 +934,11 @@ protected:
     //@}
 
     /**
-       @brief Helper function avoiding repeated code between CTD and CWL.
-       @param write_type The type of file that is being writen, typically write_ini or write_cwl.
+       @brief Helper function avoiding repeated code between CTD, JSON and CWL.
+       @param writer a parameter writer, designed to be of type ParamCTDFile,
+                     ParamJSONFile or ParamCWLFile
+       @param write_type The type of file that is being written, typically
+                         write_ctd, write_json or write_cwl.
        @param fileExtension The extension of the requested tool description file.
     */
     template <typename Writer>

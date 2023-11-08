@@ -160,9 +160,7 @@ namespace OpenMS
       os.open(filename.c_str(), std::ofstream::out);
       if (!os)
       {
-        // Replace the OpenMS specific exception with a std exception
-        // Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-        throw std::ios::failure("Unable to create file: " + filename);
+        throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
       os_ptr = &os;
     }

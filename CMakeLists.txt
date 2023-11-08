@@ -476,7 +476,7 @@ if (ENABLE_PREPARE_KNIME_PACKAGE)
 endif()
 
 #------------------------------------------------------------------------------
-# CWL generation
+# CWL generation (updates openms/workflow/cwl/*.cwl files for all TOPP tools)
 #------------------------------------------------------------------------------
 include(${OPENMS_HOST_DIRECTORY}/cmake/cwl_generation.cmake)
 

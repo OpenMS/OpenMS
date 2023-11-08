@@ -21,7 +21,7 @@ namespace OpenMS
   {
   public:
     /**
-       \brief If set to true, all parameters will be listed on store without nesting.
+       \brief If set to true, all parameters will be listed without nesting when writing the CWL File.
               The names will be expanded to include the nesting hierarchy.
      */
     bool flatHierarchy{};

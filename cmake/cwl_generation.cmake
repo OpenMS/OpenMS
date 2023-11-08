@@ -10,8 +10,7 @@ set(executables ${TOPP_TOOLS})
 
 # Tools that can't export proper CWL files
 list(REMOVE_ITEM executables
-  GenericWrapper
-  OpenMSInfo
+  GenericWrapper # External tool wrapper, would need information about the external tools
 )
 
 
