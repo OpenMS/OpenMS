@@ -312,7 +312,7 @@ namespace OpenMS
 
         if (report_decoy_)
         {
-#pragma omp parallel sections default(none) shared(sd_charge_decoy_, sd_noise_decoy_, sd_isotope_decoy_, spec, scan_number, precursor_pg)
+#pragma omp parallel sections default(none) shared(spec, scan_number, precursor_pg)
           {
 #pragma omp section
             sd_charge_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
