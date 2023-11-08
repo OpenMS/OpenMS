@@ -28,9 +28,9 @@ namespace OpenMS
 {
 
   /**
-  @brief The PeakPickerMRM finds peaks a single chromatogram.
+  @brief The PeakPickerChromatogram finds peaks a single chromatogram.
 
-  @htmlinclude OpenMS_PeakPickerMRM.parameters
+  @htmlinclude OpenMS_PeakPickerChromatogram.parameters
 
   It uses the PeakPickerHiRes internally to find interesting seed candidates.
   These candidates are then expanded and a right/left border of the peak is
@@ -39,7 +39,7 @@ namespace OpenMS
 
   */
 
-  class OPENMS_DLLAPI PeakPickerMRM :
+  class OPENMS_DLLAPI PeakPickerChromatogram :
     public DefaultParamHandler
   {
 
@@ -47,10 +47,10 @@ public:
 
     //@{
     /// Constructor
-    PeakPickerMRM();
+    PeakPickerChromatogram();
 
     /// Destructor
-    ~PeakPickerMRM() override {}
+    ~PeakPickerChromatogram() override {}
     //@}
 
 	/// indices into FloatDataArrays of resulting picked chromatograms
@@ -107,7 +107,7 @@ protected:
     void updateMembers_() override;
 
     /// Assignment operator is protected for algorithm
-    PeakPickerMRM& operator=(const PeakPickerMRM& rhs);
+    PeakPickerChromatogram& operator=(const PeakPickerChromatogram& rhs);
 
     // Members
     /// Frame length for the SGolay smoothing

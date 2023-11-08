@@ -3991,14 +3991,14 @@ def testMRMMapping():
     assert o.getNrChromatograms() == 0 # not so easy to test
 
 @report
-def testPeakPickerMRM():
+def testPeakPickerChromatogram():
     """
-    @tests: PeakPickerMRM
-     PeakPickerMRM.__init__
-     PeakPickerMRM.pickChromatogram
+    @tests: PeakPickerChromatogram
+     PeakPickerChromatogram.__init__
+     PeakPickerChromatogram.pickChromatogram
     """
 
-    p = pyopenms.PeakPickerMRM()
+    p = pyopenms.PeakPickerChromatogram()
     assert p.pickChromatogram is not None
 
 @report
