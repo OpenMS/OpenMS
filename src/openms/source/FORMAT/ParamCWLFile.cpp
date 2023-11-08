@@ -306,6 +306,9 @@ namespace OpenMS
             - cwl_inputs.json
         )-");
     };
+    os << "# Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin\n"
+          "# SPDX-License-Identifier: Apache-2.0\n";
+
     os << convertToCWL(tdl_tool_info);
   }
 } // namespace OpenMS
