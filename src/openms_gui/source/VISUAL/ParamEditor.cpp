@@ -774,15 +774,6 @@ namespace OpenMS
 
     String description = child->data(1, Qt::UserRole).toString();
 
-    std::vector<std::string> tag_list;
-    try // might throw ElementNotFound
-    {
-      tag_list = param_->getTags(path);
-    }
-    catch (...)
-    {
-    }
-
     if (child->text(2) == "")  // node
     {
       if (!description.empty())
@@ -792,6 +783,15 @@ namespace OpenMS
     }
     else     //item + section descriptions
     {
+      std::vector<std::string> tag_list;
+      try // might throw ElementNotFound
+      {
+        tag_list = param_->getTags(path);
+      }
+      catch (...)
+      {
+      }
+
       if (child->text(2) == "float")
       {
         param_->setValue(path, child->text(1).toDouble(), description, tag_list);

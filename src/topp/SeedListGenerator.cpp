@@ -8,12 +8,8 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SeedListGenerator.h>
 
@@ -133,7 +129,7 @@ protected:
       if (in_type == FileTypes::CONSENSUSXML)
       {
         ConsensusMap consensus;
-        ConsensusXMLFile().load(in, consensus);
+        FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
         num_maps = consensus.getColumnHeaders().size();
         ConsensusMap::ColumnHeaders ch = consensus.getColumnHeaders();
         size_t map_count = 0;
@@ -161,21 +157,21 @@ protected:
       else if (in_type == FileTypes::MZML)
       {
         PeakMap experiment;
-        MzMLFile().load(in, experiment);
+        FileHandler().loadExperiment(in, experiment, {FileTypes::MZML});
         seed_gen.generateSeedList(experiment, seed_lists[0]);
       }
       else if (in_type == FileTypes::IDXML)
       {
         vector<ProteinIdentification> proteins;
         vector<PeptideIdentification> peptides;
-        IdXMLFile().load(in, proteins, peptides);
+        FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML});
         seed_gen.generateSeedList(peptides, seed_lists[0],
                                   getFlag_("use_peptide_mass"));
       }
       else if (in_type == FileTypes::FEATUREXML)
       {
         FeatureMap features;
-        FeatureXMLFile().load(in, features);
+        FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML});
         seed_gen.generateSeedList(
           features.getUnassignedPeptideIdentifications(), seed_lists[0]);
       }
@@ -191,7 +187,7 @@ protected:
         addDataProcessing_(features, getProcessingInfo_(
                              DataProcessing::DATA_PROCESSING));
         OPENMS_LOG_INFO << "Writing " << features.size() << " seeds to " << out[num_maps] << endl;
-        FeatureXMLFile().store(out[num_maps], features);
+        FileHandler().storeFeatures(out[num_maps], features, {FileTypes::FEATUREXML});
       }
 
       return EXECUTION_OK;

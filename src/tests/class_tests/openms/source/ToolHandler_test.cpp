@@ -39,13 +39,18 @@ END_SECTION
 START_SECTION((static ToolListType getTOPPToolList(const bool includeGenericWrapper=false)))
 {
   ToolListType list = ToolHandler::getTOPPToolList();
-  TEST_EQUAL(list.find("FeatureFinderMRM") != list.end(), true)
-  TEST_EQUAL(list.find("GenericWrapper") != list.end(), false)
-  TEST_EQUAL(list.size() > 30, true)  // assume we have over 30 tools in there
+  TEST_TRUE(list.find("FeatureFinderMRM") != list.end())
+  TEST_FALSE(list.find("GenericWrapper") != list.end())
+  TEST_TRUE(list.size() > 30)  // assume we have over 30 tools in there
   list = ToolHandler::getTOPPToolList(true);
-  TEST_EQUAL(list.find("FeatureFinderMRM") != list.end(), true)
-  TEST_EQUAL(list.find("GenericWrapper") != list.end(), true)
-  TEST_EQUAL(list.size() > 30, true)  // assume we have over 30 tools in there
+  TEST_TRUE(list.find("FeatureFinderMRM") != list.end())
+  TEST_TRUE(list.find("GenericWrapper") != list.end())
+  TEST_TRUE(list.size() > 30) // assume we have over 30 tools in there
+#ifdef WITH_GUI
+  TEST_TRUE(list.find("ImageCreator") != list.end())
+#else
+  TEST_TRUE(list.find("ImageCreator") == list.end())
+#endif
 }
 END_SECTION
 
@@ -70,7 +75,7 @@ END_SECTION
 
 START_SECTION((static String getCategory(const String &toolname)))
 {
-  TEST_EQUAL(ToolHandler::getCategory("IDFilter"), "ID Processing")
+  TEST_EQUAL(ToolHandler::getCategory("IDFilter"), "File Filtering / Extraction / Merging")
   TEST_EQUAL(ToolHandler::getCategory("DOESNOTEXIST"), "")
 }
 END_SECTION

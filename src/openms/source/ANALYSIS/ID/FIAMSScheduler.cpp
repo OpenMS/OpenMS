@@ -10,6 +10,8 @@
 
 #include <OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+
 
 #include <utility>
 
@@ -52,8 +54,7 @@ namespace OpenMS {
     #pragma omp parallel for
     for (int i = 0; i < (int)samples_.size(); ++i) {
       MSExperiment exp;
-      MzMLFile mzml;
-      mzml.load(base_dir_ + samples_[i].at("dir_input") + "/" + samples_[i].at("filename") + ".mzML", exp);
+      FileHandler().loadExperiment(base_dir_ + samples_[i].at("dir_input") + "/" + samples_[i].at("filename") + ".mzML", exp, {FileTypes::MZML});
 
       FIAMSDataProcessor fia_processor;
       Param p;

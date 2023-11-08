@@ -361,10 +361,18 @@ namespace OpenMS::Internal::ClassTest
       }
 
       std::string
-      tmpFileName(const std::string& file, int line)
+      createTmpFileName(const std::string& file, int line, const std::string& extension)
       {
         QFileInfo fi(file.c_str());
-        return String(fi.baseName()) + '_' + String(line) + ".tmp";
+        std::string filename = (String(fi.baseName())) + '_' + String(line) + ".tmp" + extension;
+        TEST::tmp_file_list.push_back(filename);
+        TEST::initialNewline();
+        stdcout << "    creating new temporary filename '"
+                << filename
+                << "' (line "
+                << __LINE__
+                << ")\n";
+        return filename;
       }
 
       void testRealSimilar(const char* /*file*/, int line,
