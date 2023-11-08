@@ -5,10 +5,13 @@
 // $Maintainer: Kyowon Jeong, Jihyung Kim $
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
+// #define USE_TAGGER
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/TopDownTagger.h>
+#ifdef USE_TAGGER
+  #include <OpenMS/ANALYSIS/TOPDOWN/TopDownTagger.h>
+#endif
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
@@ -175,6 +178,7 @@ protected:
       auto fd_param = FLASHDeconvAlgorithm().getDefaults();
       return fd_param.copy("iq:", true);
     }
+#ifdef USE_TAGGER
     else if (prefix == "tagger")
     {
       auto tagger_param = TopDownTagger().getDefaults();
@@ -188,6 +192,7 @@ protected:
       tagger_param.setValue("seq", "", "Target protein sequence against which tags will be matched. If specified, only the matched tags are displayed. Otherwise, all tags are displayed.");
       return tagger_param;
     }
+#endif
     else
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown subsection", prefix);
@@ -309,6 +314,7 @@ protected:
       OPENMS_LOG_INFO << "Mass tracer found " << deconvolved_features.size() << " features" << endl;
     }
 
+#ifdef USE_TAGGER
     // Run tagger
     TopDownTagger tagger;
 
@@ -358,7 +364,7 @@ protected:
         tags.clear();
       }
     }
-
+#endif
     OPENMS_LOG_INFO << "FLASHDeconv run complete. Now writing the results in output files ..." << endl;
 
     // Write output files

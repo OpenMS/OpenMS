@@ -39,6 +39,7 @@ namespace OpenMS
     /// assignment operator
     TopDownTagger& operator=(const TopDownTagger& other);
 
+    ///Find sequence tags from @p dspec and store them in @p tags.
     void run(DeconvolvedSpectrum& dspec, std::vector<std::string>& tags);
 
   protected:

@@ -43,9 +43,11 @@ namespace OpenMS
     TopDownIsobaricQuantifier& operator=(const TopDownIsobaricQuantifier& other);
 
     /**
-       @brief
-       @param exp
-       */
+     * Run quantification
+     * @param exp the MS experiment
+     * @param deconvolved_spectra deconvolved spectra for which the quantification will be carried out
+     * @param mass_features mass features that are used to merge quantification results for the MS2 spectra from the same precursor mass
+     */
     void quantify(const MSExperiment& exp, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features);
 
   protected:
