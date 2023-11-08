@@ -539,9 +539,9 @@ namespace OpenMS
   {
     fs << "#FLASHDeconv generated msalign file\n";
     fs << "####################### Parameters ######################\n";
-    fs << "#Maximum charge:                              \t" << param.getValue("sd:max_charge")<< "\n";
-    fs << "#Maximum monoisotopic mass:                   \t" << param.getValue("sd:max_mass") << " Dalton\n";
-    fs << "#Peak error tolerance:                        \t" << param.getValue("sd:tol") << " ppm\n";
+    fs << "#Maximum charge:                              \t" << param.getValue("max_charge")<< "\n";
+    fs << "#Maximum monoisotopic mass:                   \t" << param.getValue("max_mass") << " Dalton\n";
+    fs << "#Peak error tolerance:                        \t" << param.getValue("tol") << " ppm\n";
     fs << "####################### Parameters ######################\n";
   }
 
@@ -585,7 +585,7 @@ namespace OpenMS
       fs << "MS_ONE_ID=" << dspec.getPrecursorScanNumber() << "\n"
          << "MS_ONE_SCAN=" << dspec.getPrecursorScanNumber() << "\n"
          << "PRECURSOR_MZ=" << std::to_string(dspec.getPrecursor().getMZ()) << "\n"
-         << "PRECURSOR_CHARGE=" << (int)(dspec.getPrecursor().getCharge()) << "\n"
+         << "PRECURSOR_CHARGE=" << (int)(dspec.getPrecursorCharge()) << "\n"
          << "PRECURSOR_MASS=" << std::to_string(precursor_mass + (randomize_precursor_mass ? (((double)rand() / (RAND_MAX)) * 200.0 - 100.0) : .0)) << "\n" // random number between 0 to 100.
          << "PRECURSOR_INTENSITY=" << dspec.getPrecursor().getIntensity() << "\n";
     }

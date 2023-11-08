@@ -31,24 +31,22 @@ namespace OpenMS
     defaults_.setValue("min_charge", 1, "Minimum charge state for MS1 spectra (can be negative for negative mode)");
     defaults_.setValue("max_charge", 100, "Maximum charge state for MS1 spectra (can be negative for negative mode)");
 
-    defaults_.setValue("precursor_charge", 0,  "Charge state of the target precursor. All precursor charge is fixed to this value. "
-                                              "This parameter is useful for targeted studies where MS2 spectra are generated from a fixed precursor (e.g., Native-MS). "
-                                              );
+    defaults_.setValue("precursor_charge", 0,
+                       "Charge state of the target precursor. All precursor charge is fixed to this value. "
+                       "This parameter is useful for targeted studies where MS2 spectra are generated from a fixed precursor (e.g., Native-MS). ");
     defaults_.setMinInt("precursor_charge", 0);
-    //defaults_.addTag("precursor_charge", "advanced");
+    // defaults_.addTag("precursor_charge", "advanced");
 
     defaults_.setValue("precursor_mz", 0.0,
                        "Target precursor m/z value. This option must be used with -target_precursor_charge option. Otherwise, it will be ignored. "
-                       "If -precursor_charge option is used but this option is not used, the precursor m/z value written in MS2 spectra will be used by default. "
-                       );
+                       "If -precursor_charge option is used but this option is not used, the precursor m/z value written in MS2 spectra will be used by default. ");
     defaults_.setMinFloat("precursor_mz", 0.0);
     defaults_.addTag("precursor_mz", "advanced");
 
     defaults_.setValue("min_cos", DoubleList {.8, .8},
                        "Cosine similarity thresholds between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_cos 0.3 0.6 to specify 0.3 and 0.6 for MS1 and MS2, respectively)");
     defaults_.addTag("min_cos", "advanced");
-    defaults_.setValue("min_snr", DoubleList {1.0, 1.0},
-                       "SNR thresholds for MS1, 2, ... (e.g., -min_snr 1.0 0.6 to specify 1.0 and 0.6 for MS1 and MS2, respectively)");
+    defaults_.setValue("min_snr", DoubleList {1.0, 1.0}, "SNR thresholds for MS1, 2, ... (e.g., -min_snr 1.0 0.6 to specify 1.0 and 0.6 for MS1 and MS2, respectively)");
     defaults_.addTag("min_snr", "advanced");
     defaults_.setValue("max_qvalue", DoubleList {1.0, 1.0},
                        "Qvalue thresholds for MS1, 2, ... Effective only when FDR estimation is active. (e.g., -max_qvalue 0.1 0.2 to specify 0.1 and 0.2 for MS1 and MS2, respectively)");
@@ -98,6 +96,7 @@ namespace OpenMS
     precursorPeakGroup.setRepAbsCharge(std::abs(target_precursor_charge_));
     precursorPeakGroup.setChargeSNR(std::abs(target_precursor_charge_), 1.0);
     precursorPeakGroup.setQscore(1.0);
+
     deconvolved_spectrum_.setPrecursor(precursor);
     deconvolved_spectrum_.setPrecursorPeakGroup(precursorPeakGroup);
   }
@@ -136,24 +135,11 @@ namespace OpenMS
     deconvolved_spectrum_ = DeconvolvedSpectrum(scan_number);
     deconvolved_spectrum_.setOriginalSpectrum(spec);
 
-    if (ms_level_ > 1 && (target_precursor_charge_ != 0 || target_precursor_mz_ > 0))
-    {
-      setTargetPrecursorCharge_();
-    }
-
     // here register targeted peak mzs etc.
     // for MSn (n>1) register precursor peak and peak group.
     if (ms_level_ > 1)
     {
-       //deconvolved_spectrum_.setPrecursorIntensity(.0);
-
-       if (!precursor_peak_group.empty())
-       {
-        deconvolved_spectrum_.setPrecursorPeakGroup(precursor_peak_group);
-        deconvolved_spectrum_.setPrecursorScanNumber(precursor_peak_group.getScanNumber());
-       }
-
-       for (auto& precursor : deconvolved_spectrum_.getOriginalSpectrum().getPrecursors())
+      for (auto& precursor : deconvolved_spectrum_.getOriginalSpectrum().getPrecursors())
       {
         for (auto& activation_method : precursor.getActivationMethods())
         {
@@ -166,12 +152,23 @@ namespace OpenMS
         }
         deconvolved_spectrum_.setPrecursor(precursor);
       }
-      if (!precursor_peak_group.empty())
+
+      if (target_precursor_charge_ != 0 || target_precursor_mz_ > 0)
       {
-        Precursor precursor(deconvolved_spectrum_.getPrecursor());
-        int abs_charge = (int) round(precursor_peak_group.getMonoMass() / precursor.getMZ());
-        precursor.setCharge(precursor_peak_group.isPositive() ? abs_charge : -abs_charge);
-        deconvolved_spectrum_.setPrecursor(precursor);
+        setTargetPrecursorCharge_();
+      }
+
+      if (deconvolved_spectrum_.getPrecursorPeakGroup().empty())
+      {
+        if (!precursor_peak_group.empty())
+        {
+          deconvolved_spectrum_.setPrecursorPeakGroup(precursor_peak_group);
+          deconvolved_spectrum_.setPrecursorScanNumber(precursor_peak_group.getScanNumber());
+          Precursor precursor(deconvolved_spectrum_.getPrecursor());
+          int abs_charge = (int)round(precursor_peak_group.getMonoMass() / precursor.getMZ());
+          precursor.setCharge(precursor_peak_group.isPositive() ? abs_charge : -abs_charge);
+          deconvolved_spectrum_.setPrecursor(precursor);
+        }
       }
     }
 
@@ -400,13 +397,13 @@ namespace OpenMS
 
         // intensity ratio between consecutive charges should not exceed the factor.
         float highest_factor = 10.0;
-        float factor = abs_charge <= low_charge_ ? highest_factor : (highest_factor/2 + highest_factor/2 * low_charge_ / (float)abs_charge);
+        float factor = abs_charge <= low_charge_ ? highest_factor : (highest_factor / 2 + highest_factor / 2 * low_charge_ / (float)abs_charge);
         // intensity ratio between consecutive charges for possible harmonic should be within this factor
 
         float hfactor = factor / 2.0f;
         // intensity of previous charge
         // intensity ratio between current and previous charges
-        float intensity_ratio = prev_intensity <= 0? (factor + 1) : (intensity / prev_intensity);
+        float intensity_ratio = prev_intensity <= 0 ? (factor + 1) : (intensity / prev_intensity);
         intensity_ratio = intensity_ratio < 1 ? 1.0f / intensity_ratio : intensity_ratio;
         float support_peak_intensity = 0;
         // check if peaks of continuous charges are present
@@ -470,12 +467,13 @@ namespace OpenMS
                 {
                   int next_harmonic_iso_bin = (int)getBinNumber_(log_mz + hdiff, mz_bin_min_value_, bin_mul_factor) + t;
 
-                  // no perfect filtration. Just obvious ones are filtered out by checking if a peak is in the harmonic position and the intensity ratio is within two folds from the current peak (specified by mz_bin_index)
-                  if (std::abs(next_harmonic_iso_bin - (int)mz_bin_index) >= tol_div_factor && next_harmonic_iso_bin >= 0 && next_harmonic_iso_bin < (int)mz_bins_.size() && mz_bins_[next_harmonic_iso_bin] &&
-                      mz_intensities[next_harmonic_iso_bin] > h_threshold / 2 && mz_intensities[next_harmonic_iso_bin] < h_threshold * 2)
+                  // no perfect filtration. Just obvious ones are filtered out by checking if a peak is in the harmonic position and the intensity ratio is within two folds from the current peak
+                  // (specified by mz_bin_index)
+                  if (std::abs(next_harmonic_iso_bin - (int)mz_bin_index) >= tol_div_factor && next_harmonic_iso_bin >= 0 && next_harmonic_iso_bin < (int)mz_bins_.size() &&
+                      mz_bins_[next_harmonic_iso_bin] && mz_intensities[next_harmonic_iso_bin] > h_threshold / 2 && mz_intensities[next_harmonic_iso_bin] < h_threshold * 2)
                   {
                     harmonic_cntr++;
-                    //sub_max_h_intensity[k] = sub_max_h_intensity[k] < mz_intensities[next_harmonic_iso_bin] ? mz_intensities[next_harmonic_iso_bin] : sub_max_h_intensity[k];
+                    // sub_max_h_intensity[k] = sub_max_h_intensity[k] < mz_intensities[next_harmonic_iso_bin] ? mz_intensities[next_harmonic_iso_bin] : sub_max_h_intensity[k];
                     sub_max_h_intensity[k] += mz_intensities[next_harmonic_iso_bin];
                   }
                 }
@@ -488,7 +486,7 @@ namespace OpenMS
             }
             if (pass_first_check)
             {
-              //spc++; //
+              // spc++; //
               support_peak_intensity += mz_intensities[next_iso_bin];
             }
           }
@@ -532,7 +530,7 @@ namespace OpenMS
                   float harmonic_intensity = mz_intensities[hmz_bin_index];
                   if (harmonic_intensity > low_threshold && harmonic_intensity < high_threshold)
                   {
-                    //sub_max_h_intensity[k] = sub_max_h_intensity[k] < harmonic_intensity ? harmonic_intensity : sub_max_h_intensity[k];
+                    // sub_max_h_intensity[k] = sub_max_h_intensity[k] < harmonic_intensity ? harmonic_intensity : sub_max_h_intensity[k];
                     sub_max_h_intensity[k] += harmonic_intensity;
                     is_harmonic = true;
                   }
@@ -555,7 +553,7 @@ namespace OpenMS
             }
             else // if harmonic
             {
-              mass_intensities[mass_bin_index] -= *std::max_element(sub_max_h_intensity.begin(), sub_max_h_intensity.end());//std::min(max_h_intensity, intensity);
+              mass_intensities[mass_bin_index] -= *std::max_element(sub_max_h_intensity.begin(), sub_max_h_intensity.end()); // std::min(max_h_intensity, intensity);
               if (spc > 0)
               {
                 spc--;
@@ -568,7 +566,7 @@ namespace OpenMS
             if (!mass_bins_[mass_bin_index])
             {
               spc++;
-              //if (spc >= min_support_peak_count_ || spc >= abs_charge / 2)
+              // if (spc >= min_support_peak_count_ || spc >= abs_charge / 2)
               {
                 mass_bins_[mass_bin_index] = true;
               }
@@ -1041,7 +1039,7 @@ namespace OpenMS
 
     double bin_mul_factor = bin_mul_factors_[ms_level_ - 1];
 
-    //mass_bin_min_value_ = log(std::max(1.0, current_min_mass_ - avg_.getAverageMassDelta(current_min_mass_)));
+    // mass_bin_min_value_ = log(std::max(1.0, current_min_mass_ - avg_.getAverageMassDelta(current_min_mass_)));
     mass_bin_min_value_ = log(std::max(1.0, 50 - avg_.getAverageMassDelta(50)));
     mz_bin_min_value_ = log_mz_peaks_[0].logMz;
 
@@ -1084,7 +1082,7 @@ namespace OpenMS
         Size j = getBinNumber_(log(m), mass_bin_min_value_, bin_mul_factors_[ms_level_ - 1]);
         if (j >= bin_offset && j < previously_deconved_mass_bins_for_decoy_.size() - bin_offset - 1)
         {
-          for (int k = -bin_offset; k <= (int) bin_offset; k++)
+          for (int k = -bin_offset; k <= (int)bin_offset; k++)
             previously_deconved_mass_bins_for_decoy_[j + k] = true;
         }
       }
@@ -1189,7 +1187,7 @@ namespace OpenMS
         if (target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy)
         {
           if (peak_group.getIsotopeCosine() < prev_cos * .98) // if target cosine and isotope decoy cosine are too different, we do not take this decoy.
-            continue; // TDOO is this right though?
+            continue;                                         // TDOO is this right though?
         }
 
         if (!target_mono_masses_.empty())
@@ -1218,7 +1216,7 @@ namespace OpenMS
           }
         }
 
-        double snr_threshold = min_snr_[ms_level_ - 1];//.5;
+        double snr_threshold = min_snr_[ms_level_ - 1]; //.5;
         double qvalue_threshold = max_qvalue_[ms_level_ - 1];
         if (!peak_group.isTargeted() && (peak_group.getQvalue() > qvalue_threshold || peak_group.getSNR() < snr_threshold)) // snr check prevents harmonics or noise.
         {
@@ -1276,11 +1274,10 @@ namespace OpenMS
 
     removeOverlappingPeakGroups_(deconvolved_spectrum_, tol * tol_div_factor * 1.5);
     removeChargeErrorPeakGroups_(deconvolved_spectrum_);
-
   }
 
   float SpectralDeconvolution::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg,
-                                                                       int iso_int_shift, int window_width, int allowed_iso_error_for_second_best_cos, PeakGroup::TargetDecoyType target_dummy_type)
+                                                                        int iso_int_shift, int window_width, int allowed_iso_error_for_second_best_cos, PeakGroup::TargetDecoyType target_dummy_type)
   {
     offset = 0;
     if ((int)per_isotope_intensities.size() < min_iso_size_ + iso_int_shift)
@@ -1505,8 +1502,8 @@ namespace OpenMS
       {
         continue;
       }
-      //auto [z1, z2] = dspec[i].getAbsChargeRange();
-      if (!dspec[i].isTargeted() &&// z1 != z2 &&
+      // auto [z1, z2] = dspec[i].getAbsChargeRange();
+      if (!dspec[i].isTargeted() &&                             // z1 != z2 &&
           overlap_intensity[i] >= dspec[i].getIntensity() * .5) // If the overlapped intensity takes more than 50% total intensity then it is a peakgroup with a charge error. the smaller, the harsher
       {
         continue;

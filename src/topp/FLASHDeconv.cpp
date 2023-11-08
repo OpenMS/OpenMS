@@ -8,7 +8,7 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
-//#include <OpenMS/ANALYSIS/TOPDOWN/TopDownTagger.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/TopDownTagger.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
@@ -147,7 +147,7 @@ protected:
     registerSubsection_("SD", "Spectral deconvolution parameters");
     registerSubsection_("ft", "Feature tracing parameters");
     registerSubsection_("iq", "Isobaric quantification parameters");
-    //registerSubsection_("tagger", "Tagger parameters");
+    registerSubsection_("tagger", "Tagger parameters");
   }
 
   Param getSubsectionDefaults_(const String& prefix) const override
@@ -175,7 +175,6 @@ protected:
       auto fd_param = FLASHDeconvAlgorithm().getDefaults();
       return fd_param.copy("iq:", true);
     }
-    /*
     else if (prefix == "tagger")
     {
       auto tagger_param = TopDownTagger().getDefaults();
@@ -188,7 +187,7 @@ protected:
       tagger_param.addTag("tol", "advanced");
       tagger_param.setValue("seq", "", "Target protein sequence against which tags will be matched. If specified, only the matched tags are displayed. Otherwise, all tags are displayed.");
       return tagger_param;
-    }*/
+    }
     else
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown subsection", prefix);
@@ -310,7 +309,6 @@ protected:
       OPENMS_LOG_INFO << "Mass tracer found " << deconvolved_features.size() << " features" << endl;
     }
 
-    /*
     // Run tagger
     TopDownTagger tagger;
 
@@ -360,7 +358,7 @@ protected:
         tags.clear();
       }
     }
-  */
+
     OPENMS_LOG_INFO << "FLASHDeconv run complete. Now writing the results in output files ..." << endl;
 
     // Write output files
@@ -431,7 +429,7 @@ protected:
         if (out_topfd_file[i].empty() || (!keep_empty_out && per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()))
           continue;
         out_topfd_streams[i].open(out_topfd_file[i], fstream::out);
-        FLASHDeconvSpectrumFile::writeTopFDHeader(out_topfd_streams[i], getParam_());
+        FLASHDeconvSpectrumFile::writeTopFDHeader(out_topfd_streams[i], getParam_().copy("SD:", true));
       }
 
       for (auto& deconvolved_spectrum : deconvolved_spectra)
@@ -439,6 +437,7 @@ protected:
         uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
         if (out_topfd_file[ms_level - 1].empty())
           continue;
+
         FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1], in_file, 0, 1, per_ms_level_deconv_spec_count.begin()->first, false, false);
       }
 
