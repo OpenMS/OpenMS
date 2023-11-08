@@ -150,7 +150,9 @@ protected:
     registerSubsection_("SD", "Spectral deconvolution parameters");
     registerSubsection_("ft", "Feature tracing parameters");
     registerSubsection_("iq", "Isobaric quantification parameters");
+#ifdef USE_TAGGER
     registerSubsection_("tagger", "Tagger parameters");
+#endif
   }
 
   Param getSubsectionDefaults_(const String& prefix) const override
