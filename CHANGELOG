@@ -32,6 +32,11 @@ Fixes:
 Misc:
 - OpenMSInfo reports the ILP solver (CoinOr or glpk) (#7156)
 
+Note: The goal of our library is to provide useful, reusable code in a way that’s easy to understand and use.
+To make OpenMS simpler, more focused and more accessible we gradually remove potentially outdated tools and algorithms.
+If you, as a user, are negatively affected by this step please contact us. We listen to our users and will try to find 
+an alternative solution or reverse a particular decision for removal.
+
 Cleanup/Removal:
 
 - removed tools:
