@@ -6,10 +6,10 @@
 // $Authors: Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/CHEMISTRY/AASequence.h"
-#include "OpenMS/CHEMISTRY/Residue.h"
-#include "OpenMS/CONCEPT/Constants.h"
-#include "OpenMS/CONCEPT/Exception.h"
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
