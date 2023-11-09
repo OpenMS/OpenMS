@@ -291,7 +291,7 @@ Section "TOPP tools" SEC_TOPP
     #open uninstall log file
     !insertmacro UNINSTALL.LOG_OPEN_INSTALL
 
-    # Since Qt 5.14 we probably do not need qt.conf if the plugins are in the standard location "plugins"
+    # Since Qt 5.14 we do not need qt.conf if the plugins are in the standard location "plugins"
     # Qt is built "-relocatable" since then.
     #File "${OPENMSBINDIR}\qt.conf"
 
