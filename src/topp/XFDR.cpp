@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
@@ -36,9 +10,6 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/ANALYSIS/XLMS/XFDRAlgorithm.h>
 
@@ -64,9 +35,9 @@ using namespace std;
     <center>
         <table>
             <tr>
-                <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-                <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ XFDR \f$ \longrightarrow \f$</td>
-                <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+                <th ALIGN = "center"> pot. predecessor tools </td>
+                <td VALIGN="middle" ROWSPAN=3> &rarr; XFDR &rarr;</td>
+                <th ALIGN = "center"> pot. successor tools </td>
             </tr>
             <tr>
                 <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenPepXL </td>
@@ -107,7 +78,7 @@ protected:
     registerInputFile_(TOPPXFDR::param_in_, "<file>", "", "Crosslink Identifications in either xquest.xml, idXML, or mzIdentML format (as produced by OpenPepXL)", false);
     setValidFormats_(TOPPXFDR::param_in_, formats);
 
-    // File input type (if omitted, guessed from the file extension)
+    // File input type (if omitted, guessed from the file extension) @TODO this can be removed in the future
     registerStringOption_(TOPPXFDR::param_in_type_, "<in_type>", "", "Type of input file provided with -in. If omitted, the file type is guessed from the file extension.", false, false);
     setValidStrings_(TOPPXFDR::param_in_type_, formats);
 
@@ -174,19 +145,19 @@ protected:
     // write idXML
     if (! arg_out_idXML_.empty())
     {
-      IdXMLFile().store( arg_out_idXML_, protein_ids, peptide_ids);
+      FileHandler().storeIdentifications(arg_out_idXML_, protein_ids, peptide_ids, {FileTypes::IDXML});
     }
 
     // write mzid file
     if (! arg_out_mzid_.empty())
     {
-      MzIdentMLFile().store( arg_out_mzid_, protein_ids, peptide_ids);
+      FileHandler().storeIdentifications(arg_out_mzid_, protein_ids, peptide_ids, {FileTypes::MZIDENTML});
     }
 
     // write xquest.xml file
     if (! arg_out_xquest_.empty())
     {
-      XQuestResultXMLFile().store(arg_out_xquest_, protein_ids, peptide_ids);
+      FileHandler().storeIdentifications(arg_out_xquest_, protein_ids, peptide_ids, {FileTypes::XQUESTXML});
     }
     return EXECUTION_OK;
   }
@@ -215,40 +186,14 @@ private:
   }
 
   /**
-  * Loads the input file depending on the type. Returns 0 if the loading of the input was successful, error
-  * code otherwise
+  * Loads the input file.
   * @return 0 if the loading of the input was successful, error code otherwise
   */
   ExitCodes loadInputFile_(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id)
   {
-    //------------------------------------------------------------
-    // Determine type of input file
-    //-------------------------------------------------------------
-    // const String arg_in_type = getStringOption_(TOPPXFDR::param_in_type);
-    const FileTypes::Type in_type = arg_in_type_.empty() ?
-                                      FileHandler::getType(this->arg_in_) : FileTypes::nameToType(arg_in_type_);
-
     std::vector<ProteinIdentification> protein_ids;
-    if (in_type == FileTypes::XQUESTXML)
-    {
-      XQuestResultXMLFile xquest_file;
-      xquest_file.load(arg_in_, peptide_ids, protein_ids);
+    FileHandler().loadIdentifications(arg_in_, protein_ids, peptide_ids, {FileTypes::MZIDENTML, FileTypes::IDXML, FileTypes::XQUESTXML});
 
-     writeLogInfo_("\nTotal number of hits in xQuest input: " + String(xquest_file.getNumberOfHits()));
-    }
-    else if (in_type == FileTypes::MZIDENTML)
-    {
-      MzIdentMLFile().load(arg_in_, protein_ids, peptide_ids);
-     }
-     else if (in_type == FileTypes::IDXML)
-     {
-      IdXMLFile().load(arg_in_, protein_ids, peptide_ids);
-     }
-     else
-     {
-       logFatal("Input file type not recognized.");
-       return ILLEGAL_PARAMETERS;
-     }
      const Size n_pep_ids = peptide_ids.size();
      const Size n_prot_ids = protein_ids.size();
 

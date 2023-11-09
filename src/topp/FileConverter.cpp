@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -39,18 +13,18 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+// TODO add handler support for other accss
 #include <OpenMS/FORMAT/DTA2DFile.h>
-#include <OpenMS/FORMAT/EDTAFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
+// TODO add handler support for other access
 #include <OpenMS/FORMAT/MascotGenericFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+// TODO: remove MZML header after we get cached and Transform working
 #include <OpenMS/FORMAT/MzMLFile.h>
+// TODO: remove MZXML header after we get cached and Transform working
 #include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/SqMassFile.h>
-#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
@@ -76,9 +50,9 @@ using namespace std;
   <CENTER>
   <table>
   <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FileConverter \f$ \longrightarrow \f$</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  <th ALIGN = "center"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=3> &rarr; FileConverter &rarr;</td>
+  <th ALIGN = "center"> pot. successor tools </td>
   </tr>
   <tr>
   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_GenericWrapper (e.g. for calling external converters) </td>
@@ -172,7 +146,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
-    registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, true); // for TOPPAS
+    registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, false); // optional and not advanced (for workflow engines to show this param)
     vector<String> input_formats = {"mzML", "mzXML", "mgf", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta", "oms"};
     setValidFormats_("in", input_formats);
     setValidStrings_("in_type", input_formats);
@@ -184,7 +158,7 @@ protected:
     vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv", "sqmass", "oms"};
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", output_formats);
-    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, true);
+    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, false); // optional and not advanced (for workflow engines to show this param)
     setValidStrings_("out_type", output_formats);
     registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
     registerFlag_("MGF_compact", "Use a more compact format when writing MGF (no zero-intensity peaks, limited number of decimal places)", true);
@@ -275,6 +249,9 @@ protected:
     //-------------------------------------------------------------
 
     MSExperiment exp;
+    assert(exp.empty());
+    const MSExperiment empty_exp; ///< to determine if 'exp' was modified (loading and storing an MSExp with metadata but empty spectra/chroms should be valid), i.e. checking exp.empty() is not sufficient
+
     FeatureMap fm;
     ConsensusMap cm;
 
@@ -282,10 +259,12 @@ protected:
 
     if (in_type == FileTypes::CONSENSUSXML)
     {
-      ConsensusXMLFile().load(in, cm);
+      FileHandler().loadConsensusFeatures(in, cm, {FileTypes::CONSENSUSXML});
       cm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
-          (out_type != FileTypes::CONSENSUSXML))
+          (out_type != FileTypes::CONSENSUSXML) &&
+          (out_type != FileTypes::OMS)
+          )
       {
         // You you will lose information and waste memory. Enough reasons to issue a warning!
         writeLogWarn_("Warning: Converting consensus features to peaks. You will lose information!");
@@ -336,7 +315,7 @@ protected:
     }
     else if (in_type == FileTypes::EDTA)
     {
-      EDTAFile().load(in, cm);
+      FileHandler().loadConsensusFeatures(in, cm, {FileTypes::EDTA});
       cm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
           (out_type != FileTypes::CONSENSUSXML))
@@ -351,7 +330,7 @@ protected:
              in_type == FileTypes::PEPLIST ||
              in_type == FileTypes::KROENIK)
     {
-      fh.loadFeatures(in, fm, in_type);
+      fh.loadFeatures(in, fm, {in_type});
       fm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
           (out_type != FileTypes::CONSENSUSXML) &&
@@ -370,13 +349,11 @@ protected:
       {
         return ILLEGAL_PARAMETERS;
       }
-      MzMLFile f;
-      f.setLogType(log_type_);
       Internal::CachedMzMLHandler cacher;
       cacher.setLogType(log_type_);
       PeakMap tmp_exp;
 
-      f.load(in_meta, exp);
+      FileHandler().loadExperiment(in_meta, exp, {FileTypes::MZML}, log_type_);
       cacher.readMemdump(tmp_exp, in);
 
       // Sanity check
@@ -475,7 +452,7 @@ protected:
     }
     else
     {
-      fh.loadExperiment(in, exp, in_type, log_type_, true, true);
+      fh.loadExperiment(in, exp, {in_type}, log_type_, true, true);
     }
 
     //-------------------------------------------------------------
@@ -486,20 +463,25 @@ protected:
 
     if (out_type == FileTypes::MZML)
     {
+      if (exp == empty_exp)
+      {
+        OPENMS_LOG_ERROR << "No input data: no MS1/MS2 data present! Cannot write mzML. Please use another input/output format combination.";
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+      }
+
       //add data processing entry
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
                                                  CONVERSION_MZML));
-      MzMLFile f;
-      f.setLogType(log_type_);
-      f.getOptions().setWriteIndex(write_scan_index);
-      f.getOptions().setForceTPPCompatability(force_TPP_compatibility);
+      FileHandler mzmlFile;
+      mzmlFile.getOptions().setWriteIndex(write_scan_index);
+      mzmlFile.getOptions().setForceTPPCompatability(force_TPP_compatibility);
       // numpress compression
       if (lossy_compression)
       {
-        f.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
-        f.getOptions().setNumpressConfigurationIntensity(npconfig_int);
-        f.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
-        f.getOptions().setCompression(true);
+        mzmlFile.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
+        mzmlFile.getOptions().setNumpressConfigurationIntensity(npconfig_int);
+        mzmlFile.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
+        mzmlFile.getOptions().setCompression(true);
       }
 
       if (convert_to_chromatograms)
@@ -540,32 +522,45 @@ protected:
         }
       }
       ChromatogramTools().convertSpectraToChromatograms(exp, true, convert_to_chromatograms);
-      f.store(out, exp);
+      mzmlFile.storeExperiment(out, exp, {FileTypes::MZML});
     }
     else if (out_type == FileTypes::MZDATA)
     {
+      if (exp == empty_exp)
+      {
+        OPENMS_LOG_ERROR << "No input data: no MS1/MS2 data present! Cannot write mzData. Please use another input/output format combination.";
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+      }
+
       //annotate output with data processing info
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
                                                  CONVERSION_MZDATA));
-      MzDataFile f;
-      f.setLogType(log_type_);
       ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
-      f.store(out, exp);
+      FileHandler().storeExperiment(out, exp, {FileTypes::MZDATA});
     }
     else if (out_type == FileTypes::MZXML)
     {
+      if (exp == empty_exp)
+      {
+        OPENMS_LOG_ERROR << "No input data: no MS1/MS2 data present! Cannot write mzXML. Please use another input/output format combination.";
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+      }
+
       //annotate output with data processing info
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
                                                  CONVERSION_MZXML));
-      MzXMLFile f;
-      f.setLogType(log_type_);
+      FileHandler f;
       f.getOptions().setForceMQCompatability(force_MaxQuant_compatibility);
       f.getOptions().setWriteIndex(write_scan_index);
-      //ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
-      f.store(out, exp);
+      f.storeExperiment(out, exp, {FileTypes::MZXML}, log_type_);
     }
     else if (out_type == FileTypes::DTA2D)
     {
+      if (exp == empty_exp)
+      {
+        OPENMS_LOG_ERROR << "No input data: no MS1/MS2 data present! Cannot write DTA2D. Please use another input/output format combination.";
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+      }
       //add data processing entry
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
                                                  FORMAT_CONVERSION));
@@ -614,7 +609,7 @@ protected:
       }
       else if (in_type == FileTypes::OMS)
       {
-        OMSFile().load(in, fm);
+        FileHandler().loadFeatures(in, fm, {FileTypes::OMS});
         IdentificationDataConverter::exportFeatureIDs(fm);
       }
       else // not loaded as feature map or consensus map
@@ -643,7 +638,7 @@ protected:
 
       addDataProcessing_(fm, getProcessingInfo_(DataProcessing::
                                                 FORMAT_CONVERSION));
-      FeatureXMLFile().store(out, fm);
+      FileHandler().storeFeatures(out, fm, {FileTypes::FEATUREXML});
     }
     else if (out_type == FileTypes::CONSENSUSXML)
     {
@@ -675,7 +670,7 @@ protected:
 
       addDataProcessing_(cm, getProcessingInfo_(DataProcessing::
                                                 FORMAT_CONVERSION));
-      ConsensusXMLFile().store(out, cm);
+      FileHandler().storeConsensusFeatures(out, cm, {FileTypes::CONSENSUSXML});
     }
     else if (out_type == FileTypes::EDTA)
     {
@@ -684,13 +679,18 @@ protected:
         OPENMS_LOG_ERROR << "Internal error: cannot decide on container (Consensus or Feature)! This is a bug. Please report it!";
         return INTERNAL_ERROR;
       }
+      if (fm.empty() && cm.empty())
+      {
+        OPENMS_LOG_ERROR << "No input data: either Consensus or Feature data present! Cannot write EDTA. Please use another input/output format combination.";
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+      }
       if (!fm.empty())
       {
-        EDTAFile().store(out, fm);
+        FileHandler().storeFeatures(out, fm, {FileTypes::EDTA});
       }
       else if (!cm.empty())
       {
-        EDTAFile().store(out, cm);
+        FileHandler().storeConsensusFeatures(out, cm, {FileTypes::EDTA});
       }
     }
     else if (out_type == FileTypes::CACHEDMZML)
@@ -723,24 +723,38 @@ protected:
     }
     else if (out_type == FileTypes::SQMASS)
     {
-      SqMassFile sqm;
-      sqm.store(out, exp);
+      FileHandler().storeExperiment(out, exp, {FileTypes::SQMASS});
     }
     else if (out_type == FileTypes::OMS)
     {
-      if (in_type != FileTypes::FEATUREXML)
+      if (in_type == FileTypes::FEATUREXML)
       {
-        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert featureXML files to oms format.";
+        IdentificationDataConverter::importFeatureIDs(fm);
+        FileHandler().storeFeatures(out, fm, {FileTypes::OMS});
+      }
+      else if (in_type == FileTypes::CONSENSUSXML)
+      {
+        IdentificationDataConverter::importConsensusIDs(cm);
+        FileHandler().storeConsensusFeatures(out, cm, {FileTypes::OMS});
+      }
+      else
+      {
+        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert featureXML and consensusXML files to oms format.";
         return INCOMPATIBLE_INPUT_DATA;
       }
-      IdentificationDataConverter::importFeatureIDs(fm);
-      OMSFile().store(out, fm);
     }
     else
     {
       writeLogError_("Error: Unknown output file type given. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
+    }
+
+    // last check if output file was written:
+    if (!File::exists(out))
+    {
+      OPENMS_LOG_ERROR << "Internal error: Conversion did not create an output file! This is a bug. Please report it!";
+      return INTERNAL_ERROR;
     }
 
     return EXECUTION_OK;

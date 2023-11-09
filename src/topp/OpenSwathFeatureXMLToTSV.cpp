@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -35,8 +9,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 
@@ -57,9 +30,9 @@ using namespace OpenMS;
   <CENTER>
       <table>
           <tr>
-              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ OpenSwathFeatureXMLToTSV \f$ \longrightarrow \f$</td>
-              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+              <th ALIGN = "center"> potential predecessor tools </td>
+              <td VALIGN="middle" ROWSPAN=3> &rarr; OpenSwathFeatureXMLToTSV &rarr;</td>
+              <th ALIGN = "center"> potential successor tools </td>
           </tr>
           <tr>
               <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
@@ -412,7 +385,7 @@ protected:
     setLogType(log_type_);
 
     TargetedExperiment transition_exp;
-    TraMLFile().load(tr_file, transition_exp);
+    FileHandler().loadTransitions(tr_file, transition_exp, {FileTypes::TRAML});
 
     startProgress(0, transition_exp.getTransitions().size(), "indexing transitions peaks");
     for (Size i = 0; i < transition_exp.getTransitions().size(); i++)
@@ -440,13 +413,11 @@ protected:
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No input files given ");
     }
     FeatureMap feature_map;
-    FeatureXMLFile feature_file;
-    feature_file.setLogType(log_type_);
     // feature_file.load() resets the locale to the user's (Don't know where, maybe QT or Xerces)
     // Somehow even our variable OpenMS::Internal::OpenMS_locale is overwritten
     // Create copy here and reset it later. TODO this needs to be fixed more thouroughly.
     String locale_before = String(OpenMS::Internal::OpenMS_locale);
-    feature_file.load(file_list[0], feature_map);
+    FileHandler().loadFeatures(file_list[0], feature_map, {FileTypes::FEATUREXML}, log_type_);
     setlocale(LC_ALL, locale_before.c_str());
     if (feature_map.getIdentifier().empty())
     {
@@ -484,7 +455,7 @@ protected:
     // start with the second in the list (we just wrote out the first one)
     for (Size i = 1; i < file_list.size(); ++i)
     {
-      feature_file.load(file_list[i], feature_map);
+      FileHandler().loadFeatures(file_list[i], feature_map, {FileTypes::FEATUREXML}, log_type_);
       if (feature_map.getIdentifier().empty())
       {
         feature_map.setIdentifier("run" + (String)i);

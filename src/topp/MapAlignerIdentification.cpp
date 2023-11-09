@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -34,11 +8,9 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
@@ -58,9 +30,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ MapAlignerIdentification \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=4> &rarr; MapAlignerIdentification &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter @n (or another search engine adapter) </td>
@@ -211,14 +183,16 @@ private:
   void storeTransformationDescriptions_(const vector<TransformationDescription>&
                                         transformations, StringList& trafos)
   {
+    OPENMS_PRECONDITION(transformations.size() == trafos.size(), "Transformation descriptions and list of transformation files need to be equal.");
     // custom progress logger for this task:
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
     progresslogger.startProgress(0, trafos.size(),
                                  "writing transformation files");
+    OPENMS_LOG_INFO << "Writing " << transformations.size() << " transformations " << " to " << trafos.size() << " files.";
     for (Size i = 0; i < transformations.size(); ++i)
     {
-      TransformationXMLFile().store(trafos[i], transformations[i]);
+      FileHandler().storeTransformations(trafos[i], transformations[i], {FileTypes::TRANSFORMATIONXML});
     }
     progresslogger.endProgress();
   }
@@ -239,21 +213,21 @@ private:
       case FileTypes::MZML:
       {
         PeakMap experiment;
-        MzMLFile().load(reference_file, experiment);
+        FileHandler().loadExperiment(reference_file, experiment, {FileTypes::MZML});
         algorithm.setReference(experiment);
       }
       break;
       case FileTypes::FEATUREXML:
       {
         FeatureMap features;
-        FeatureXMLFile().load(reference_file, features);
+        FileHandler().loadFeatures(reference_file, features);
         algorithm.setReference(features);
       }
       break;
       case FileTypes::CONSENSUSXML:
       {
         ConsensusMap consensus;
-        ConsensusXMLFile().load(reference_file, consensus);
+        FileHandler().loadConsensusFeatures(reference_file, consensus);
         algorithm.setReference(consensus);
       }
       break;
@@ -261,7 +235,7 @@ private:
       {
         vector<ProteinIdentification> proteins;
         vector<PeptideIdentification> peptides;
-        IdXMLFile().load(reference_file, proteins, peptides);
+        FileHandler().loadIdentifications(reference_file, proteins, peptides);
         algorithm.setReference(peptides);
       }
       break;
@@ -465,7 +439,7 @@ private:
     {
       vector<vector<ProteinIdentification>> protein_ids(input_files.size());
       vector<vector<PeptideIdentification>> peptide_ids(input_files.size());
-      IdXMLFile idxml_file;
+      FileHandler idxml_file;
       ProgressLogger progresslogger;
       progresslogger.setLogType(log_type_);
       progresslogger.startProgress(0, input_files.size(),
@@ -473,7 +447,7 @@ private:
       for (Size i = 0; i < input_files.size(); ++i)
       {
         progresslogger.setProgress(i);
-        idxml_file.load(input_files[i], protein_ids[i], peptide_ids[i]);
+        idxml_file.loadIdentifications(input_files[i], protein_ids[i], peptide_ids[i], {FileTypes::IDXML});
       }
       progresslogger.endProgress();
 
@@ -488,7 +462,7 @@ private:
         for (Size i = 0; i < output_files.size(); ++i)
         {
           progresslogger.setProgress(i);
-          idxml_file.store(output_files[i], protein_ids[i], peptide_ids[i]);
+          idxml_file.storeIdentifications(output_files[i], protein_ids[i], peptide_ids[i], {FileTypes::IDXML});
         }
         progresslogger.endProgress();
       }

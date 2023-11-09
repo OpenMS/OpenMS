@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -38,9 +12,9 @@ namespace OpenMS
 {
 
 
-  OpenSwathTSVWriter::OpenSwathTSVWriter(const String& output_filename, 
+  OpenSwathTSVWriter::OpenSwathTSVWriter(const String& output_filename,
                                          const String& input_filename,
-                                         bool ms1_scores, 
+                                         bool ms1_scores,
                                          bool sonar) :
     ofs(output_filename.c_str()),
     input_filename_(input_filename),
@@ -57,7 +31,7 @@ namespace OpenMS
 
     void OpenSwathTSVWriter::writeHeader()
     {
-      ofs << "transition_group_id" << "\t" 
+      ofs << "transition_group_id" << "\t"
           << "peptide_group_label" << "\t"
           << "run_id" << "\t"
           << "filename"<< "\t"\
@@ -83,8 +57,9 @@ namespace OpenMS
         "\tvar_massdev_score\tvar_massdev_score_weighted\tvar_norm_rt_score\tvar_xcorr_coelution" <<
         "\tvar_xcorr_coelution_weighted\tvar_xcorr_shape\tvar_xcorr_shape_weighted" <<
         "\tvar_im_xcorr_shape\tvar_im_xcorr_coelution\tvar_im_delta_score\tvar_im_ms1_delta_score" <<
-        "\tim_drift\tim_drift_weighted" <<
+        "\tim_drift_ms2\tim_drift_weighted_ms2\tdelta_im_ms2\tim_drift_ms1\tim_delta_ms1" <<
         "\tvar_yseries_score\tvar_elution_model_fit_score";
+
       if (use_ms1_traces_)
       {
         ofs << "\tvar_ms1_ppm_diff\tvar_ms1_isotope_corr\tvar_ms1_isotope_overlap\tvar_ms1_xcorr_coelution\tvar_ms1_xcorr_shape";
@@ -98,7 +73,7 @@ namespace OpenMS
       {
         ofs << "\taggr_prec_Peak_Area\taggr_prec_Peak_Apex\taggr_prec_Annotation";
       }
-      ofs << "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation" << "\t" 
+      ofs << "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation" << "\t"
           << "rt_fwhm" << "\t"
           << "masserror_ppm";
       ofs << "\n";
@@ -185,7 +160,7 @@ namespace OpenMS
             main_var = (String)feature_it->getMetaValue("main_var_xx_lda_prelim_score");
           }
 
-          String line = 
+          String line =
             id + "_run0"
             + "\t" + group_label
             + "\t" + "0"
@@ -242,6 +217,9 @@ namespace OpenMS
             + "\t" + (String)feature_it->getMetaValue("var_im_ms1_delta_score")
             + "\t" + (String)feature_it->getMetaValue("im_drift")
             + "\t" + (String)feature_it->getMetaValue("im_drift_weighted")
+            + "\t" + (String)feature_it->getMetaValue("im_delta")
+            + "\t" + (String)feature_it->getMetaValue("im_ms1_drift")
+            + "\t" + (String)feature_it->getMetaValue("im_ms1_delta")
 
             + "\t" + (String)feature_it->getMetaValue("var_yseries_score")
             + "\t" + (String)feature_it->getMetaValue("var_elution_model_fit_score");

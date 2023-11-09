@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow, Ahmed Khalil $
@@ -141,8 +115,11 @@ public:
     /** @name Accessors
     */
     //@{
-    /// returns the mono isotopic weight of the formula (includes proton charges)
+    /// returns the monoisotopic (most abundant isotope per element) weight of the formula (includes proton charges)
     double getMonoWeight() const;
+
+    /// returns the sum of the lightest isotopes per element in the formula (includes proton charges)
+    double getLightestIsotopeWeight() const;
 
     /// returns the average weight of the formula (includes proton charges)
     double getAverageWeight() const;
@@ -164,6 +141,21 @@ public:
       @return bool flag for whether the approximation succeeded without requesting negative hydrogens. true = no problems, 1 = negative hydrogens requested.
     */
     bool estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
+
+    /**
+      @brief Fills this EmpiricalFormula with an approximate elemental composition for a given monoisotopic weight and approximate elemental stoichiometry
+
+      @param mono_weight: Monoisotopic weight to estimate an EmpiricalFormula for
+      @param C: The approximate relative stoichiometry of Carbons to other elements in this molecule
+      @param H: The approximate relative stoichiometry of Hydrogens to other elements in this molecule
+      @param N: The approximate relative stoichiometry of Nitrogens to other elements in this molecule
+      @param O: The approximate relative stoichiometry of Oxygens to other elements in this molecule
+      @param S: The approximate relative stoichiometry of Sulfurs to other elements in this molecule
+      @param P: The approximate relative stoichiometry of Phosphoruses to other elements in this molecule
+
+      @return bool flag for whether the approximation succeeded without requesting negative hydrogens. true = no problems, 1 = negative hydrogens requested.
+    */
+    bool estimateFromMonoWeightAndComp(double mono_weight, double C, double H, double N, double O, double S, double P);
 
     /**
       @brief Fills this EmpiricalFormula with an approximate elemental composition for a given average weight,

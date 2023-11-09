@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
@@ -115,19 +89,19 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(peptide_ids[0].getScoreType(),"MS-GF:RawScore")
   TEST_REAL_SIMILAR(peptide_ids[0].getHits()[0].getScore(),195)
   TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence().toString(),"LATEFSGNVPVLNAGDGSNQHPTQTLLDLFTIQETQGR")
-  TEST_EQUAL(peptide_ids[0].getMetaValue("spectrum_reference"),"controllerType=0 controllerNumber=1 scan=32805")
+  TEST_EQUAL(peptide_ids[0].getSpectrumReference(),"controllerType=0 controllerNumber=1 scan=32805")
   TEST_EQUAL(peptide_ids[1].getScoreType(),"MS-GF:RawScore")
   TEST_REAL_SIMILAR(peptide_ids[1].getHits()[0].getScore(),182)
   TEST_EQUAL(peptide_ids[1].getHits()[0].getSequence().toString(),"FLAETDQGPVPVEITAVEDDHVVVDGNHMLAGQNLK")
-  TEST_EQUAL(peptide_ids[1].getMetaValue("spectrum_reference"),"controllerType=0 controllerNumber=1 scan=26090")
+  TEST_EQUAL(peptide_ids[1].getSpectrumReference(),"controllerType=0 controllerNumber=1 scan=26090")
   TEST_EQUAL(peptide_ids[2].getScoreType(),"MS-GF:RawScore")
   TEST_REAL_SIMILAR(peptide_ids[2].getHits()[0].getScore(),191)
   TEST_EQUAL(peptide_ids[2].getHits()[0].getSequence().toString(),"FLAETDQGPVPVEITAVEDDHVVVDGNHMLAGQNLK")
-  TEST_EQUAL(peptide_ids[2].getMetaValue("spectrum_reference"),"controllerType=0 controllerNumber=1 scan=26157")
+  TEST_EQUAL(peptide_ids[2].getSpectrumReference(),"controllerType=0 controllerNumber=1 scan=26157")
   TEST_EQUAL(peptide_ids[3].getScoreType(),"MS-GF:RawScore")
   TEST_REAL_SIMILAR(peptide_ids[3].getHits()[0].getScore(),211)
   TEST_EQUAL(peptide_ids[3].getHits()[0].getSequence().toString(),"VGAGPFPTELFDETGEFLC(Carbamidomethyl)K")
-  TEST_EQUAL(peptide_ids[3].getMetaValue("spectrum_reference"),"controllerType=0 controllerNumber=1 scan=15094")
+  TEST_EQUAL(peptide_ids[3].getSpectrumReference(),"controllerType=0 controllerNumber=1 scan=15094")
 }
 END_SECTION
 
@@ -191,7 +165,7 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
   TEST_EQUAL(peptide_ids[0].isHigherScoreBetter(),peptide_ids2[0].isHigherScoreBetter())
   TEST_REAL_SIMILAR(peptide_ids[0].getMZ(),peptide_ids2[0].getMZ())
   TEST_REAL_SIMILAR(peptide_ids[0].getRT(),peptide_ids2[0].getRT())
-  TEST_EQUAL(peptide_ids[0].getMetaValue("spectrum_reference"),peptide_ids2[0].getMetaValue("spectrum_reference"))
+  TEST_EQUAL(peptide_ids[0].getSpectrumReference(),peptide_ids2[0].getSpectrumReference())
   //peptide hit 1
   TEST_REAL_SIMILAR(peptide_ids[0].getHits()[0].getScore(),peptide_ids2[0].getHits()[0].getScore())
   TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence(),peptide_ids2[0].getHits()[0].getSequence())
@@ -309,7 +283,7 @@ START_SECTION(([EXTRA] thresholds))
   TEST_EQUAL(peptide_ids.size(),3)
   for (size_t i = 0; i < peptide_ids.size(); ++i)
   {
-    if (peptide_ids[i].getMetaValue("spectrum_reference") == "17")
+    if (peptide_ids[i].getSpectrumReference() == "17")
     {
       TEST_EQUAL(peptide_ids[i].getHits().size(),2)
       for (size_t j = 0; j < peptide_ids[i].getHits().size(); ++j)
@@ -334,7 +308,7 @@ START_SECTION(([EXTRA] thresholds))
   TEST_EQUAL(peptide_ids.size(),3)
   for (size_t i = 0; i < peptide_ids.size(); ++i)
   {
-    if (peptide_ids[i].getMetaValue("spectrum_reference") == "17")
+    if (peptide_ids[i].getSpectrumReference() == "17")
     {
       TEST_EQUAL(peptide_ids[i].getHits().size(),3)
       for (size_t j = 0; j < peptide_ids[i].getHits().size(); ++j)
@@ -388,8 +362,8 @@ START_SECTION(([EXTRA] compability issues))
 //  vector<PeptideIdentification> peptide_ids2;
 //  mzidfile.load(filename, protein_ids2, peptide_ids2);
 
-//  TEST_EQUAL(protein_ids == protein_ids2, true)
-//  TEST_EQUAL(peptide_ids == peptide_ids2, true)
+//  TEST_TRUE(protein_ids == protein_ids2)
+//  TEST_TRUE(peptide_ids == peptide_ids2)
 
 //  Misplaced Elements ignored in ParamGroup
 

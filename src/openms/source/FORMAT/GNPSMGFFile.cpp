@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Dorrestein Lab - University of California San Diego - https://dorresteinlab.ucsd.edu/$
@@ -38,8 +12,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -176,7 +149,7 @@ namespace OpenMS
                   << "SCANS=" << scan_index << "\n"
                   << "FEATURE_ID=e_" << feature_id << "\n"
                   << "MSLEVEL=2" << "\n"
-                  << "CHARGE=" << to_string(feature_charge == 0 ? 1 : feature_charge) << "+" << "\n"
+                  << "CHARGE=" << to_string(feature_charge == 0 ? 1 : abs(feature_charge))+(feature_charge >= 0 ? "+" : "-") << "\n"
                   << "PEPMASS=" << feature_mz << "\n"
                   << "FILE_INDEX=" << spec_index << "\n"
                   << "RTINSECONDS=" << feature_rt << "\n";
@@ -274,9 +247,8 @@ namespace OpenMS
     // reading input
     //-------------------------------------------------------------
     // ConsensusMap
-    ConsensusXMLFile consensus_file;
     ConsensusMap consensus_map;
-    consensus_file.load(consensus_file_path, consensus_map);
+    FileHandler().loadConsensusFeatures(consensus_file_path, consensus_map, {FileTypes::CONSENSUSXML});
 
     //-------------------------------------------------------------
     // open on-disc data (=spectra are only loaded on demand to safe memory)
@@ -338,6 +310,8 @@ namespace OpenMS
       const int best_speci = pepts[0].second;
       auto best_spec = specs_list[map_index2file_index[best_mapi]][best_speci];
 
+      if (best_spec.empty()) continue; // some Bruker files have MS2 spectra without peaks. skip those during exprot
+
       // write block output header
       writeMSMSBlockHeader_(
         output_file,
@@ -349,6 +323,8 @@ namespace OpenMS
         best_speci,
         best_spec.getRT()
       );
+
+      // OPENMS_LOG_DEBUG << "Best spectrum (index/RT): " << best_speci << "\t" << best_spec.getRT() << std::endl;
 
       // store outputted spectra in MSExperiment
       MSExperiment exp;

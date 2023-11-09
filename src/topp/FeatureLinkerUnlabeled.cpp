@@ -1,37 +1,13 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Clemens Groepl, Steffen Sass $
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
+// TODO move LoadSize into handler
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
 #include "FeatureLinkerBase.cpp"
 
@@ -52,9 +28,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ FeatureLinkerUnlabeled \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=4> &rarr; FeatureLinkerUnlabeled &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided @n (or another feature detection algorithm) </td>
@@ -176,10 +152,10 @@ protected:
       std::vector<ProteinIdentification> ref_protids;
       {
         FeatureMap map_ref;
-        FeatureXMLFile f_fxml_tmp;
-        f_fxml_tmp.getOptions().setLoadConvexHull(false);
-        f_fxml_tmp.getOptions().setLoadSubordinates(false);
-        f_fxml_tmp.load(ins[reference_index], map_ref);
+        FileHandler f_fxml_tmp;
+        f_fxml_tmp.getFeatOptions().setLoadConvexHull(false);
+        f_fxml_tmp.getFeatOptions().setLoadSubordinates(false);
+        f_fxml_tmp.loadFeatures(ins[reference_index], map_ref, {FileTypes::FEATUREXML});
         algorithm->setReference(reference_index, map_ref);
         ref_id = map_ref.getUniqueId();
         ref_size = map_ref.size();
@@ -192,11 +168,11 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
 
-        FeatureXMLFile f_fxml_tmp;
+        FileHandler f_fxml_tmp;
         FeatureMap tmp_map;
-        f_fxml_tmp.getOptions().setLoadConvexHull(false);
-        f_fxml_tmp.getOptions().setLoadSubordinates(false);
-        f_fxml_tmp.load(ins[i], tmp_map);
+        f_fxml_tmp.getFeatOptions().setLoadConvexHull(false);
+        f_fxml_tmp.getFeatOptions().setLoadSubordinates(false);
+        f_fxml_tmp.loadFeatures(ins[i], tmp_map, {FileTypes::FEATUREXML});
 
         // copy over information on the primary MS run
         StringList ms_runs;
@@ -290,10 +266,10 @@ protected:
     else
     {
       vector<ConsensusMap> maps(ins.size());
-      ConsensusXMLFile f;
+      FileHandler f;
       for (Size i = 0; i < ins.size(); ++i)
       {
-        f.load(ins[i], maps[i]);
+        f.loadConsensusFeatures(ins[i], maps[i],  {FileTypes::CONSENSUSXML});
         StringList ms_runs;
         maps[i].getPrimaryMSRunPath(ms_runs);
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
@@ -328,7 +304,7 @@ protected:
 
     out_map.setPrimaryMSRunPath(ms_run_locations);
     // write output
-    ConsensusXMLFile().store(out, out_map);
+    FileHandler().storeConsensusFeatures(out, out_map,  {FileTypes::CONSENSUSXML});
 
     // some statistics
     map<Size, UInt> num_consfeat_of_size;

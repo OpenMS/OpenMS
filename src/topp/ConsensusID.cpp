@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -43,9 +17,6 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
@@ -66,9 +37,9 @@ using namespace std;
     <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ ConsensusID \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=4> &rarr; ConsensusID &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDPosteriorErrorProbability </td>
@@ -679,7 +650,6 @@ protected:
     {
       vector<ProteinIdentification> prot_ids;
       vector<PeptideIdentification> pep_ids;
-      String document_id;
       if (getFlag_("per_spectrum"))
       {
         map<String, unordered_map<String, vector<PeptideIdentification>>> grouping_per_file;
@@ -695,7 +665,7 @@ protected:
         {
           vector<ProteinIdentification> tmp_prot_ids;
           vector<PeptideIdentification> tmp_pep_ids;
-          IdXMLFile().load(infile, tmp_prot_ids, tmp_pep_ids, document_id);
+          FileHandler().loadIdentifications(infile, tmp_prot_ids, tmp_pep_ids, {FileTypes::IDXML});
           Size idx(0);
           for (const auto& prot : tmp_prot_ids)
           {
@@ -782,7 +752,7 @@ protected:
             auto iter_inserted = grouping_per_file.emplace(original_file, unordered_map<String,vector<PeptideIdentification>>{});
             if (pep_id.metaValueExists("spectrum_reference"))
             {
-              String nativeID = pep_id.getMetaValue("spectrum_reference");
+              String nativeID = pep_id.getSpectrumReference();
               auto nativeid_iter_inserted = iter_inserted.first->second.emplace(nativeID, vector<PeptideIdentification>{});
               nativeid_iter_inserted.first->second.emplace_back(std::move(pep_id));
             }
@@ -806,14 +776,14 @@ protected:
             double mz = peps[0].getMZ();
             double rt = peps[0].getRT();
             // has to have a ref, save it, since apply might modify everything
-            String ref = peps[0].getMetaValue("spectrum_reference");
+            String ref = peps[0].getSpectrumReference();
             consensus->apply(peps, runid_to_old_se, mzml_to_sesettings[new_run_id].size());
             for (auto& p : peps)
             {
               p.setIdentifier(to_put.getIdentifier());
               p.setMZ(mz);
               p.setRT(rt);
-              p.setMetaValue("spectrum_reference", ref);
+              p.setSpectrumReference( ref);
               //TODO copy other meta values from the originals? They need to be collected
               // in the algorithm subclasses though first
               pep_ids.emplace_back(std::move(p));
@@ -829,7 +799,7 @@ protected:
           "Please merge the files with IDMerger using its default settings." << std::endl;
         }
         // note: this requires a single merged idXML file.
-        IdXMLFile().load(in[0], prot_ids, pep_ids, document_id);
+        FileHandler().loadIdentifications(in[0], prot_ids, pep_ids, {FileTypes::IDXML});
 
         if (prot_ids.size() == 1)
         {
@@ -913,7 +883,7 @@ protected:
         }
       }
       // store consensus
-      IdXMLFile().store(out, prot_ids, pep_ids);
+      FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
     }
 
     //----------------------------------------------------------------
@@ -922,11 +892,11 @@ protected:
     if (in_type == FileTypes::FEATUREXML)
     {
       FeatureMap map;
-      FeatureXMLFile().load(in[0], map);
+      FileHandler().loadFeatures(in[0], map, {FileTypes::FEATUREXML});
 
       processFeatureOrConsensusMap_(map, consensus);
 
-      FeatureXMLFile().store(out, map);
+      FileHandler().storeFeatures(out, map, {FileTypes::FEATUREXML});
     }
 
     //----------------------------------------------------------------
@@ -935,11 +905,11 @@ protected:
     if (in_type == FileTypes::CONSENSUSXML)
     {
       ConsensusMap map;
-      ConsensusXMLFile().load(in[0], map);
+      FileHandler().loadConsensusFeatures(in[0], map, {FileTypes::CONSENSUSXML});
 
       processFeatureOrConsensusMap_(map, consensus);
 
-      ConsensusXMLFile().store(out, map);
+      FileHandler().storeConsensusFeatures(out, map, {FileTypes::CONSENSUSXML});
     }
 
     delete consensus;

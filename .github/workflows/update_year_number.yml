@@ -1,0 +1,37 @@
+name: Update year number
+
+# Trigger this action manually and on a yearly schedule
+on:
+  workflow_dispatch:
+    inputs:
+      year_number:
+        required: true
+  schedule:
+    - cron: '0 0 1 1 *'
+
+jobs:
+  updating_year_number:
+    runs-on: macos-latest
+    steps:
+# Getting files of OpenMS
+      - uses: actions/checkout@v3
+
+# Find all files and replace the year number
+      - name: Update files
+        run: |
+          # setting a variable for year number
+          year_number="${{ github.event.inputs.year_number }}"
+          # Find and replace in all files
+          find . -type f ! -path "./.git/*" -exec grep -q "Freie Universitaet Berlin 2002-20" {} \; -exec sed -i '' -E "s#and Freie Universitaet Berlin 2002-20[0-9]{2}.#and Freie Universitaet Berlin 2002-$year_number.#g" {} \;
+          
+          # Find and replace in LICENSE.md
+          sed -i -E "s#2002-20[0-9]{2}, The OpenMS Team -- Eberhard Karls University#2002-$year_number, The OpenMS Team -- Eberhard Karls University#g" LICENSE.md
+          
+# Commit and PR updated files
+      - name: Commit and PR updated files
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: 'Updated year number'
+          branch: update_year_number
+          delete-branch: true
+          title: '[ByGitAction] Updated year number in the header of files'

@@ -5,6 +5,7 @@
 name	short_name	new_nomenclature	originating_base	rnamods_abbrev	html_abbrev	formula	monoisotopic_mass	average_mass	alternatives
 3' terminal phosphate	3'-p	33N	pppN	p	p	H2PO3	0.0	0.0
 5' terminal phosphate	5'-p	55N	pppN	p	p	H2PO3	0.0	0.0
+5' terminal phsophorothioate	5'-p*	55N	pppN	p	p	H2PO2S	0.0	0.0
 2',3' terminal cyclophosphate	3'-c	33cN	pppN	p	p	PO2	0.0	0.0
 generic methyladenosine ("m_A")	mA		A	a	a	C11O4N5H15	281.1124	281.2719
 generic methylcytidine ("m_C")	mC		C	c	c	C10O5N3H15	257.1012	257.2467
@@ -33,3 +34,17 @@ ambiguous dimethylguanosine ("m2,2G" or "m_Gm")	mmG?		G	Ó	&Oacute;	C12O5N5H17	3
 ambiguous trimethylguanosine ("m2,2,7G" or "m2,7Gm")	mmmG?		G	Ô	&Ocirc;	C13O5N5H21	327.1543	327.3404	m2,2,7G m2,7Gm
 N4-acetylcytidine or 5-formyl-2'-O-methylcytidine	ac4C/f5Cm?		C	M	M	C11O6N3H15	285.0961	285.257	ac4C f5Cm
 3-(3-amino-3-carboxypropyl)uridine or 5-carboxymethylaminomethyl-2'-O-methyluridine	acp3U/cmnm5Um?		U	X	X	C13O8N3H19	345.1172	345.3096	acp3U cmnm5Um
+deoxyadenosine	dA	dA	A			C10O3N5H13	251.1018	251.2424
+deoxycytidine	dC	dC	C			C9O4N3H13	227.0906	227.2176
+deoxyguanosine	dG	dG	G			C10O4N5H13	267.0968	267.2418
+deoxyuridine	dU	dU	U			C9O5N2H12	228.0746	228.2024
+thymidine	dT	dT	U			C10O5N2H14	242.0903	242.2290
+thio-adenosine	A*	A*	A	A	A	C10O4N5H13	267.0968	267.2449
+thio-cytidine	C*	C*	C	C	C	C9O5N3H13	243.0855	243.2197
+thio-guanosine	G*	G*	G	G	G	C10O5N5H13	283.0917	283.2442
+thio-uridine	U*	U*	U	U	U	C9O6N2H12	244.0695	244.2043
+thio-deoxyadenosine	dA*	dA*	A			C10O3N5H13	251.1018	251.2424
+thio-deoxycytidine	dC*	dC*	C			C9O4N3H13	227.0906	227.2176
+thio-deoxyguanosine	dG*	dG*	G			C10O4N5H13	267.0968	267.2418
+thio-deoxyuridine	dU*	dU*	U			C9O5N2H12	228.0746	228.2024
+thio-thymidine	dT*	dT*	U			C10O5N2H14	242.0903	242.2290

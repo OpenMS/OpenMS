@@ -1,3 +1,6 @@
+## add default CRAN mirror in case the user's config does not have one
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+
 if (!require(ggplot2)) install.packages("ggplot2")
 library("ggplot2")
 if (!require(reshape2)) install.packages("reshape2")
@@ -22,7 +25,7 @@ if (all(dm$value[grep("power", dm$variable)] == 0, na.rm=TRUE))
 
 #options(device = "pdf")
 #dev.new(filename = file.plot.out, file = file.plot.out)
-png(filename = file.plot.out, width=1920)
+png(filename = file.plot.out, width=15, height=10, units="cm", res=300)
 if (model_count == 0)
 {
   plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')

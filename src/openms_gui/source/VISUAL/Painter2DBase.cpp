@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -55,39 +29,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  
-  void Painter2DBase::paintIcon_(const QPoint& pos, const QRgb& color, const String& icon, Size s, QPainter& p)
-  {
-    p.save();
-    p.setPen(color);
-    p.setBrush(QBrush(QColor(color), Qt::SolidPattern));
 
-    int s_half = (int)s / 2;
-
-    if (icon == "diamond")
-    {
-      QPolygon pol;
-      pol.putPoints(0, 4, pos.x() + s_half, pos.y(), pos.x(), pos.y() + s_half, pos.x() - (int)s_half, pos.y(), pos.x(), pos.y() - (int)s_half);
-      p.drawConvexPolygon(pol);
-    }
-    else if (icon == "square")
-    {
-      QPolygon pol;
-      pol.putPoints(0, 4, pos.x() + s_half, pos.y() + s_half, pos.x() - s_half, pos.y() + s_half, pos.x() - s_half, pos.y() - s_half, pos.x() + s_half, pos.y() - s_half);
-      p.drawConvexPolygon(pol);
-    }
-    else if (icon == "circle")
-    {
-      p.drawEllipse(QRectF(pos.x() - s_half, pos.y() - s_half, s, s));
-    }
-    else if (icon == "triangle")
-    {
-      QPolygon pol;
-      pol.putPoints(0, 3, pos.x(), pos.y() + s_half, pos.x() + s_half, pos.y() - (int)s_half, pos.x() - (int)s_half, pos.y() - (int)s_half);
-      p.drawConvexPolygon(pol);
-    }
-    p.restore();
-  }
 
   void Painter2DBase::highlightElement(QPainter* /*painter*/, Plot2DCanvas* /*canvas*/, const PeakIndex /*element*/)
   {
@@ -292,18 +234,20 @@ namespace OpenMS
     const auto& map = *layer_->getPeakData();
     const auto& area = canvas->visible_area_.getAreaUnit();
     const auto end_area = map.areaEndConst();
-    for (auto i = map.areaBeginConst(area); i != end_area; ++i)
+    const UInt MS_LEVEL {1};
+    for (auto i = map.areaBeginConst(area, MS_LEVEL); i != end_area; ++i)
     {
       PeakIndex pi = i.getPeakIndex();
       if (layer_->filters.passes(map[pi.spectrum], pi.peak))
       {
         auto from = canvas->unit_mapper_.map(i);
-        QPoint pos = canvas->dataToWidget_(from.getX(), from.getY());
+        QPoint pos = canvas->dataToWidget_(from);
         // store point in the array of its color
         Int colorIndex = canvas->precalculatedColorIndex_(i->getIntensity(), layer_->gradient, snap_factor);
         coloredPoints[colorIndex].push_back(pos);
       }
     }
+
     // draw point arrays from minimum to maximum intensity,
     // avoiding low-intensity points obscuring the high-intensity ones
     painter.save();
@@ -498,7 +442,7 @@ namespace OpenMS
     p.setColor(Qt::black);
     painter.setPen(p);
 
-    auto it_prec = peak_map.end();
+    auto it_prec = peak_map.end(); // MS1 spectrum of parent ion
     auto it_end = peak_map.RTEnd(canvas->visible_area_.getAreaUnit().getMaxRT());
     for (auto it = peak_map.RTBegin(canvas->visible_area_.getAreaUnit().getMinRT()); it != it_end; ++it)
     {
@@ -508,31 +452,31 @@ namespace OpenMS
         it_prec = it;
       }
       else if (it->getMSLevel() == 2 && !it->getPrecursors().empty())
-      {                                                                              // this is an MS/MS scan
-        QPoint pos_ms2 = canvas->dataToWidget_(it->getPrecursors()[0].getMZ(), it->getRT()); // position of precursor in MS2
-        const int x2 = pos_ms2.x();
-        const int y2 = pos_ms2.y();
+      { // this is an MS/MS scan
+        
+        // position of precursor in MS2
+        const auto data_xy_ms2 = canvas->unit_mapper_.map(Peak2D({it->getRT(), it->getPrecursors()[0].getMZ()}, {}));
+        const QPoint pos_px_ms2 = canvas->dataToWidget_(data_xy_ms2); 
+        const int x2 = pos_px_ms2.x();
+        const int y2 = pos_px_ms2.y();
 
         if (it_prec != peak_map.end())
         {
-          QPoint pos_ms1 = canvas->dataToWidget_(it->getPrecursors()[0].getMZ(), it_prec->getRT()); // position of precursor in MS1
-          const int x = pos_ms1.x();
-          const int y = pos_ms1.y();
+          // position of precursor in MS1
+          const auto data_xy_ms1 = canvas->unit_mapper_.map(Peak2D({it_prec->getRT(), it->getPrecursors()[0].getMZ()}, {}));
+          const QPoint pos_px_ms1 = canvas->dataToWidget_(data_xy_ms1);
+          const int x = pos_px_ms1.x();
+          const int y = pos_px_ms1.y();
           // diamond shape in MS1
-          painter.drawLine(x, y + 3, x + 3, y);
-          painter.drawLine(x + 3, y, x, y - 3);
-          painter.drawLine(x, y - 3, x - 3, y);
-          painter.drawLine(x - 3, y, x, y + 3);
+          drawDiamond({x, y}, &painter, 6);
 
           // rt position of corresponding MS2
-          painter.drawLine(x2 - 3, y2, x2 + 3, y2);
           painter.drawLine(x, y, x2, y2);
         }
         else // no preceding MS1
         {
           // rt position of corresponding MS2 (cross)
-          painter.drawLine(x2 - 3, y2, x2 + 3, y2);
-          painter.drawLine(x2, y2 - 3, x2, y2 + 3);
+          drawCross({x2, y2}, &painter, 6);
         }
       }
     }
@@ -571,7 +515,6 @@ namespace OpenMS
 
   void Painter2DIonMobility::paint(QPainter* /*painter*/, Plot2DCanvas* /*canvas*/, int /*layer_index*/)
   {
-      
   }
 
   Painter2DFeature::Painter2DFeature(const LayerDataFeature* parent) : layer_(parent)
@@ -597,7 +540,7 @@ namespace OpenMS
     const double snap_factor = canvas->snap_factors_[layer_index];
 
     int line_spacing = QFontMetrics(painter->font()).lineSpacing();
-    String icon = layer_->param.getValue("dot:feature_icon").toString();
+    const auto icon = toShapeIcon(layer_->param.getValue("dot:feature_icon").toString());
     Size icon_size = layer_->param.getValue("dot:feature_icon_size");
     bool show_label = (layer_->label != LayerDataBase::L_NONE);
     UInt num = 0;
@@ -617,7 +560,7 @@ namespace OpenMS
         }
         // paint
         QPoint pos = canvas->dataToWidget_(canvas->unit_mapper_.map(f));
-        paintIcon_(pos, color.rgb(), icon, icon_size, *painter);
+        drawIcon(pos, color.rgb(), icon, icon_size, *painter);
         // labels
         if (show_label)
         {
@@ -691,7 +634,7 @@ namespace OpenMS
     }
 
     const double snap_factor = canvas->snap_factors_[layer_index];
-    String icon = layer_->param.getValue("dot:feature_icon").toString();
+    const auto icon = toShapeIcon(layer_->param.getValue("dot:feature_icon").toString());
     Size icon_size = layer_->param.getValue("dot:feature_icon_size");
 
     const auto area = canvas->visible_area_.getAreaUnit();
@@ -713,7 +656,7 @@ namespace OpenMS
 
         // paint
         auto pos_unit = canvas->unit_mapper_.map(cf);
-        paintIcon_(canvas->dataToWidget_(pos_unit), color.rgb(), icon, icon_size, *painter);
+        drawIcon(canvas->dataToWidget_(pos_unit), color.rgb(), icon, icon_size, *painter);
       }
     }
   }

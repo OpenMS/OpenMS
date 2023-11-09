@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -188,6 +162,9 @@ namespace OpenMS
 
   @ingroup PlotWidgets
   */
+#ifdef _MSC_VER
+  #pragma warning(disable : 4250) // 'class1' : inherits 'class2::member' via dominance
+#endif
   class OPENMS_GUI_DLLAPI LayerDataBase : public LayerDataDefs
   {
   public:
@@ -305,21 +282,38 @@ namespace OpenMS
 
     using RangeAllType = RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>;
 
-    /// Returns the data range in all known dimensions. If a layer does not support the dimension (or the layer is empty)
-    /// the dimension will be empty
+    /// Returns the data range of the whole layer (i.e. all scans/chroms/etc) in all known dimensions.
+    /// If a layer does not support the dimension (or the layer is empty) the dimension will be empty
+    /// If you need the data range for a 1D view (i.e. only a single spec/chrom/etc), call 'LayerDataBase1D::getRange1D()'
     virtual RangeAllType getRange() const = 0;
 
-    /// compute layer statistics (via visitor)
+    /// Compute layer statistics (via visitor)
     virtual std::unique_ptr<LayerStatistics> getStats() const = 0;
 
+    /// The name of the layer, usually the basename of the file
     const String& getName() const
     {
       return name_;
     }
+    /// Set the name of the layer, usually the basename of the file
     void setName(const String& new_name)
     {
       name_ = new_name;
     }
+
+    /// get the extra annotation to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
+    const String& getNameSuffix() const
+    {
+      return name_suffix_;
+    }
+    /// set an extra annotation as suffix to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
+    void setNameSuffix(const String& decorator)
+    {
+      name_suffix_ = decorator;
+    }
+
+    /// get name augmented with attributes, e.g. '*' if modified
+    virtual String getDecoratedName() const;
 
     /// if this layer is visible
     bool visible = true;
@@ -352,16 +346,16 @@ namespace OpenMS
     int peptide_id_index = -1;
     int peptide_hit_index = -1;
 
-    /// get name augmented with attributes, e.g. '*' if modified
-    virtual String getDecoratedName() const;
-
   private:
     /// layer name
     String name_;
+    /// an extra annotation as suffix to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
+    String name_suffix_;
   };
 
   /// A base class to annotate layers of specific types with (identification) data
-  /// @hint Add new derived classes to getAnnotatorWhichSupports() to enable automatic annotation in TOPPView
+  /// 
+  /// @note Add new derived classes to getAnnotatorWhichSupports() to enable automatic annotation in TOPPView
   class LayerAnnotatorBase
   {
   public:
@@ -373,6 +367,9 @@ namespace OpenMS
         @param gui_lock Optional GUI element which will be locked (disabled) during call to 'annotateWorker_'; can be null_ptr
       **/
     LayerAnnotatorBase(const FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock);
+    
+    /// Make D'tor virtual for correct destruction from pointers to base
+    virtual ~LayerAnnotatorBase() = default;
 
     /// Annotates a @p layer, writing messages to @p log and showing QMessageBoxes on errors.
     /// The input file is selected via a file-dialog which is opened with @p current_path as initial path.

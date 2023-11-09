@@ -1,39 +1,12 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors:  Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -57,9 +30,9 @@ using namespace std;
 <CENTER>
  <table>
   <tr>
-   <td ALIGN = "center" BGCOLOR="#EBEBEB" ROWSPAN=1> pot. predecessor tools </td>
-   <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderMRM \f$ \longrightarrow \f$</td>
-   <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+   <th ALIGN = "center" ROWSPAN=1> pot. predecessor tools </td>
+   <td VALIGN="middle" ROWSPAN=3> &rarr; FeatureFinderMRM &rarr;</td>
+   <th ALIGN = "center"> pot. successor tools </td>
   </tr>
   <tr>
    <td VALIGN="middle" ALIGN = "center" ROWSPAN=2>  </td>
@@ -136,10 +109,7 @@ protected:
 
     //reading input data
     PeakMap exp;
-    MzMLFile f;
-    f.setLogType(log_type_);
-
-    f.load(in, exp);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
     //no seeds supported
     FeatureMap seeds;
@@ -191,8 +161,7 @@ protected:
     //annotate output with data processing info
     addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
 
-    FeatureXMLFile map_file;
-    map_file.store(out, features);
+    FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
 
     return EXECUTION_OK;
   }

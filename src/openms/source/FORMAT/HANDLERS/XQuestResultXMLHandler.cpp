@@ -1,35 +1,9 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
-// $Authors: Lukas Zimmermann $
+// $Authors: Lukas Zimmermann, Eugen Netz $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
@@ -349,10 +323,10 @@ namespace OpenMS::Internal
           search_params.setMetaValue("cross_link:mass_monolink", monolink_masses);
         }
 
-        // xQuest uses the non-standard character "−" for negative numbers, this can happen for zero-length cross-linkers.
+        // xQuest uses the non-standard character "\u2212" for the minus in negative numbers. This can happen for zero-length cross-linkers.
         // Replace it with a proper "-" (minus), if there is one, to be able to convert it to a negative double.
         String xlinkermw = this->attributeAsString_(attributes, "xlinkermw");
-        xlinkermw.substitute("−", "-");
+        xlinkermw.substitute("\u2212", "-");
 
         search_params.setMetaValue("cross_link:mass_mass", DataValue(xlinkermw.toDouble()));
         this->cross_linker_name_ = this->attributeAsString_(attributes, "crosslinkername");
@@ -548,10 +522,10 @@ namespace OpenMS::Internal
 
         std::vector<String> mods;
 
-        // xQuest uses the non-standard character "−" for negative numbers, this can happen for zero-length cross-linkers.
+        // xQuest uses the non-standard character "\u2212" for the minus in negative numbers. This can happen for zero-length cross-linkers.
         // Replace it with a proper "-" (minus), if there is one, to be able to convert it to a negative double.
         String xlinkermass_string = this->attributeAsString_(attributes, "xlinkermass");
-        xlinkermass_string.substitute("−", "-");
+        xlinkermass_string.substitute("\u2212", "-");
         double xl_mass = DataValue(xlinkermass_string.toDouble());
 
         ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, xl_mass, 0.01, alpha_seq[xl_pos].getOneLetterCode(), ResidueModification::ANYWHERE);

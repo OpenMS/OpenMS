@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -40,6 +14,7 @@
 ///////////////////////////
 
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
@@ -348,6 +323,46 @@ START_SECTION((void exportFeatureIDs(FeatureMap& features, bool clear_original))
   TEST_EQUAL(features[1].getPeptideIdentifications().size(), 1);
   // check that "original" IDs were cleared:
   TEST_EQUAL(features.getIdentificationData().empty(), true);
+}
+END_SECTION
+
+ConsensusMap consensus; // persist through sections
+
+START_SECTION((void importConsensusIDs(ConsensusMap& consensus, bool clear_original)))
+{
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), consensus);
+  // protein and peptide IDs use same score type (name) with different orientations;
+  // IdentificationData doesn't allow this, so change it here:
+  for (auto& run : consensus.getProteinIdentifications())
+  {
+    run.setScoreType(run.getScoreType() + "_protein");
+  }
+  IdentificationDataConverter::importConsensusIDs(consensus);
+  TEST_EQUAL(consensus.getIdentificationData().getObservations().size(), 5);
+  TEST_EQUAL(consensus.getIdentificationData().getObservationMatches().size(), 7);
+  TEST_EQUAL(consensus.getIdentificationData().getIdentifiedPeptides().size(), 7);
+  TEST_EQUAL(consensus.getIdentificationData().getParentSequences().size(), 3);
+  TEST_EQUAL(consensus[0].getIDMatches().size(), 3);
+  TEST_EQUAL(consensus[1].getIDMatches().size(), 1);
+  TEST_EQUAL(consensus.getUnassignedIDMatches().size(), 3);
+  // check that original IDs were cleared:
+  TEST_EQUAL(consensus.getProteinIdentifications().size(), 0);
+  TEST_EQUAL(consensus.getUnassignedPeptideIdentifications().size(), 0);
+  TEST_EQUAL(consensus[0].getPeptideIdentifications().size(), 0);
+  TEST_EQUAL(consensus[1].getPeptideIdentifications().size(), 0);
+}
+END_SECTION
+
+START_SECTION((void exportConsensusIDs(ConsensusMap& consensus, bool clear_original)))
+{
+  // convert IDs from previous test back:
+  IdentificationDataConverter::exportConsensusIDs(consensus);
+  TEST_EQUAL(consensus.getProteinIdentifications().size(), 2);
+  TEST_EQUAL(consensus.getUnassignedPeptideIdentifications().size(), 2);
+  TEST_EQUAL(consensus[0].getPeptideIdentifications().size(), 2);
+  TEST_EQUAL(consensus[1].getPeptideIdentifications().size(), 1);
+  // check that "original" IDs were cleared:
+  TEST_EQUAL(consensus.getIdentificationData().empty(), true);
 }
 END_SECTION
 

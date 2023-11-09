@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -204,6 +178,139 @@ START_SECTION((void getSpectrum(MSSpectrum& spectrum, const NASequence& oligo, I
   {
     TEST_REAL_SIMILAR(spectrum[i].getMZ(), z_ions[i]);
   }
+
+  seq = NASequence::fromString("[m1A]UCCACA[G*]p"); //Terminal thiol replacement shouldn't change any masses
+  TEST_REAL_SIMILAR(seq.getMonoWeight(), 2585.3800);
+
+  //repeat the above with internal Thiols
+
+  seq = NASequence::fromString("[m1A]UC[C*]AC[A*]Gp"); //Terminal thiol replacement shouldn't change any masses
+  ABORT_IF(abs(seq.getMonoWeight() - 2617.334342) > 0.01);
+  aminusB_ions = {113.0244, 456.0926, 762.1179, 1067.1592,
+                                 1388.1777, 1717.2302, 2022.27147, 2367.3011};
+  a_ions = {262.0946, 568.1199, 873.1612, 1178.2024, 1523.2321,
+                           1828.2733, 2157.3259, 2518.3505};
+  b_ions = {280.1051, 586.1304, 891.1717, 1196.2130, 1541.2426,
+                           1846.2839, 2175.3365, 2536.3611};
+  c_ions = {342.0609, 648.0862, 953.1275, 1274.1458, 1603.1984,
+                           1908.2397, 2253.2694};
+  d_ions = {360.0715, 666.0968, 971.1380, 1292.1564, 1621.2090,
+                           1926.2502, 2271.2800};
+  w_ions = {457.9942, 787.0468, 1092.0881, 1437.1178, 1742.1591,
+                           2047.2003, 2353.2256};
+  x_ions = {439.9837, 769.0362, 1074.0775, 1419.1072, 1724.1485,
+                           2029.1898, 2335.2150};
+  y_ions = {362.0507, 707.0805, 1012.1217, 1341.1743, 1662.1927,
+                           1967.2340, 2273.2593};
+  z_ions = {344.0402, 689.0699, 994.1112, 1323.1637, 1644.1822,
+                           1949.2234, 2255.2487};
+
+  param = ptr->getDefaults();
+  param.setValue("add_metainfo", "true");
+  param.setValue("add_first_prefix_ion", "true");
+  param.setValue("add_b_ions", "false");
+  param.setValue("add_y_ions", "false");
+
+  spectrum.clear(true);
+
+  param.setValue("add_a-B_ions", "true");
+  ptr->setParameters(param);
+  ptr->getSpectrum(spectrum, seq, -1, -1);
+  TEST_EQUAL(spectrum.size(), aminusB_ions.size() - 1); // last one is missing
+  for (Size i = 0; i < spectrum.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spectrum[i].getMZ(), aminusB_ions[i]);
+  }
+
+  spectrum.clear(true);
+  param.setValue("add_a-B_ions", "false");
+  param.setValue("add_a_ions", "true");
+  ptr->setParameters(param);
+  ptr->getSpectrum(spectrum, seq, -1, -1);
+  TEST_EQUAL(spectrum.size(), a_ions.size() - 1); // last one is missing
+  for (Size i = 0; i < spectrum.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spectrum[i].getMZ(), a_ions[i]);
+  }
+
+  spectrum.clear(true);
+  param.setValue("add_a_ions", "false");
+  param.setValue("add_b_ions", "true");
+  ptr->setParameters(param);
+  ptr->getSpectrum(spectrum, seq, -1, -1);
+  TEST_EQUAL(spectrum.size(), b_ions.size() - 1); // last one is missing
+  for (Size i = 0; i < spectrum.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spectrum[i].getMZ(), b_ions[i]);
+  }
+
+  spectrum.clear(true);
+  param.setValue("add_b_ions", "false");
+  param.setValue("add_c_ions", "true");
+  ptr->setParameters(param);
+  ptr->getSpectrum(spectrum, seq, -1, -1);
+  TEST_EQUAL(spectrum.size(), c_ions.size());
+  for (Size i = 0; i < spectrum.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spectrum[i].getMZ(), c_ions[i]);
+  }
+
+  spectrum.clear(true);
+  param.setValue("add_c_ions", "false");
+  param.setValue("add_d_ions", "true");
+  ptr->setParameters(param);
+  ptr->getSpectrum(spectrum, seq, -1, -1);
+  TEST_EQUAL(spectrum.size(), d_ions.size());
+  for (Size i = 0; i < spectrum.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spectrum[i].getMZ(), d_ions[i]);
+  }
+
+  spectrum.clear(true);
+  param.setValue("add_d_ions", "false");
+  param.setValue("add_w_ions", "true");
+  ptr->setParameters(param);
+  ptr->getSpectrum(spectrum, seq, -1, -1);
+  TEST_EQUAL(spectrum.size(), w_ions.size());
+  for (Size i = 0; i < spectrum.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spectrum[i].getMZ(), w_ions[i]);
+  }
+
+  spectrum.clear(true);
+  param.setValue("add_w_ions", "false");
+  param.setValue("add_x_ions", "true");
+  ptr->setParameters(param);
+  ptr->getSpectrum(spectrum, seq, -1, -1);
+  TEST_EQUAL(spectrum.size(), x_ions.size());
+  for (Size i = 0; i < spectrum.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spectrum[i].getMZ(), x_ions[i]);
+  }
+
+  spectrum.clear(true);
+  param.setValue("add_x_ions", "false");
+  param.setValue("add_y_ions", "true");
+  ptr->setParameters(param);
+  ptr->getSpectrum(spectrum, seq, -1, -1);
+  TEST_EQUAL(spectrum.size(), y_ions.size());
+  for (Size i = 0; i < spectrum.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spectrum[i].getMZ(), y_ions[i]);
+  }
+
+  spectrum.clear(true);
+  param.setValue("add_y_ions", "false");
+  param.setValue("add_z_ions", "true");
+  ptr->setParameters(param);
+  ptr->getSpectrum(spectrum, seq, -1, -1);
+  TEST_EQUAL(spectrum.size(), z_ions.size());
+  for (Size i = 0; i < spectrum.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spectrum[i].getMZ(), z_ions[i]);
+  }
+
+
 }
 END_SECTION
 

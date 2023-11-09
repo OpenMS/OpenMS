@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -37,11 +11,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -65,9 +35,9 @@ using namespace std;
     <CENTER>
         <table>
             <tr>
-                <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-                <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ OpenSwathAnalyzer \f$ \longrightarrow \f$</td>
-                <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+                <th ALIGN = "center"> potential predecessor tools </td>
+                <td VALIGN="middle" ROWSPAN=3> &rarr; OpenSwathAnalyzer &rarr;</td>
+                <th ALIGN = "center"> potential successor tools </td>
             </tr>
             <tr>
                 <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathChromatogramExtractor </td>
@@ -85,7 +55,7 @@ using namespace std;
  order to determine likely places of elution of a peptide in targeted
  proteomics data (derived from SWATH-MS or MRM/SRM). This tool will perform
  peak picking on the chromatograms and scoring in a single tool, if you only
- want the peak picking look at UTILS_MRMTransitionGroupPicker tool.
+ want the peak picking look at TOPP_MRMTransitionGroupPicker tool.
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_OpenSwathAnalyzer.cli
@@ -186,10 +156,9 @@ protected:
     TransformationDescription trafo;
     if (!trafo_in.empty())
     {
-      TransformationXMLFile trafoxml;
       String model_type = getStringOption_("model:type");
       Param model_params = getParam_().copy("model:", true);
-      trafoxml.load(trafo_in, trafo);
+      FileHandler().loadTransformations(trafo_in, trafo, true, {FileTypes::TRANSFORMATIONXML});
       trafo.fitModel(model_type, model_params);
     }
 
@@ -199,23 +168,13 @@ protected:
     boost::shared_ptr<MapType> exp (new MapType());
     FeatureMap out_featureFile;
     OpenSwath::LightTargetedExperiment transition_exp;
-
     std::cout << "Loading TraML file" << std::endl;
     {
-      TargetedExperiment *transition_exp__ = new TargetedExperiment();
-      TargetedExperiment &transition_exp_ = *transition_exp__;
-      {
-        TraMLFile *t = new TraMLFile;
-        t->load(tr_file, transition_exp_);
-        delete t;
-      }
-      OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
-      delete transition_exp__;
+      TargetedExperiment transitions_exp_tmp;
+      FileHandler().loadTransitions(tr_file, transitions_exp_tmp, {FileTypes::TRAML});
+      OpenSwathDataAccessHelper::convertTargetedExp(transitions_exp_tmp, transition_exp);
     }
-
-    MzMLFile mzmlfile;
-    mzmlfile.setLogType(log_type_);
-    mzmlfile.load(in, *exp.get());
+    FileHandler().loadExperiment(in, *exp.get(), {FileTypes::MZML}, log_type_);
 
     // If there are no SWATH files, it's just regular SRM/MRM Scoring
     if (file_list.empty())
@@ -231,7 +190,7 @@ protected:
                                    transition_exp, trafo, empty_maps, transition_group_map);
       out_featureFile.ensureUniqueId();
       addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));
-      FeatureXMLFile().store(out, out_featureFile);
+      FileHandler().storeFeatures(out, out_featureFile, {FileTypes::FEATUREXML});
       return EXECUTION_OK;
     }
 
@@ -243,18 +202,14 @@ protected:
     for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
     {
       MRMFeatureFinderScoring featureFinder;
-      MzMLFile swath_file;
       boost::shared_ptr<MapType> swath_map (new MapType());
       FeatureMap featureFile;
       cout << "Loading file " << file_list[i] << endl;
 
-////#ifndef _OPENMP
       // no progress log on the console in parallel
-      swath_file.setLogType(log_type_);
       featureFinder.setLogType(log_type_);
-//#endif
 
-      swath_file.load(file_list[i], *swath_map.get());
+      FileHandler().loadExperiment(file_list[i], *swath_map.get(), {FileTypes::MZML}, log_type_);
 
       // Logging and output to the console
 #ifdef _OPENMP
@@ -304,7 +259,7 @@ protected:
 
     addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));
     out_featureFile.ensureUniqueId();
-    FeatureXMLFile().store(out, out_featureFile);
+    FileHandler().storeFeatures(out, out_featureFile, {FileTypes::FEATUREXML});
 
     return EXECUTION_OK;
   }

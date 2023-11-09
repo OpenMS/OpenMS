@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julia Thueringer $
@@ -34,8 +8,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h> // to print newick tree on cml
 
@@ -55,9 +28,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN= "middle" ROWSPAN=2> \f$ \longrightarrow \f$ MapAlignerTreeGuided \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN= "middle" ROWSPAN=2> &rarr; MapAlignerTreeGuided &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper @n (or any other source of FDR-filtered
@@ -119,7 +92,7 @@ public:
 
 private:
   template <typename MapType>
-  void loadInputMaps_(vector<MapType>& maps, StringList& ins, FeatureXMLFile& fxml_file)
+  void loadInputMaps_(vector<MapType>& maps, StringList& ins, FileHandler& fxml_file)
   {
     ProgressLogger progresslogger;
     progresslogger.setLogType(TOPPMapAlignerBase::log_type_);
@@ -127,12 +100,12 @@ private:
     for (Size i = 0; i < ins.size(); ++i)
     {
       progresslogger.setProgress(i);
-      fxml_file.load(ins[i], maps[i]);
+      fxml_file.loadFeatures(ins[i], maps[i], {FileTypes::FEATUREXML});
     }
     progresslogger.endProgress();
   }
 
-  void storeFeatureXMLs_(vector<FeatureMap>& feature_maps, const StringList& out_files, FeatureXMLFile& fxml_file)
+  void storeFeatureXMLs_(vector<FeatureMap>& feature_maps, const StringList& out_files, FileHandler& fxml_file)
   {
     ProgressLogger progresslogger;
     progresslogger.setLogType(TOPPMapAlignerBase::log_type_);
@@ -142,7 +115,7 @@ private:
       progresslogger.setProgress(i);
       // annotate output with data processing info
       addDataProcessing_(feature_maps[i], getProcessingInfo_(DataProcessing::ALIGNMENT));
-      fxml_file.store(out_files[i], feature_maps[i]);
+      fxml_file.storeFeatures(out_files[i], feature_maps[i], {FileTypes::FEATUREXML});
     }
     progresslogger.endProgress();
   }
@@ -156,7 +129,7 @@ private:
     for (Size i = 0; i < trafos.size(); ++i)
     {
       progresslogger.setProgress(i);
-      TransformationXMLFile().store(trafos[i], transformations[i]);
+      FileHandler().storeTransformations(trafos[i], transformations[i], {FileTypes::TRANSFORMATIONXML});
     }
     progresslogger.endProgress();
   }
@@ -197,13 +170,13 @@ private:
     // reading input
     //-------------------------------------------------------------
     Size in_files_size = in_files.size();
-    FeatureXMLFile fxml_file;
+    FileHandler fxml_file;
     // define here because needed to load and store
-    FeatureFileOptions param = fxml_file.getOptions();
+    FeatureFileOptions param = fxml_file.getFeatOptions();
     // to save memory don't load convex hulls and subordinates
     param.setLoadSubordinates(false);
     param.setLoadConvexHull(false);
-    fxml_file.setOptions(param);
+    fxml_file.setFeatOptions(param);
 
     vector<FeatureMap> feature_maps(in_files_size);
     loadInputMaps_(feature_maps, in_files, fxml_file);

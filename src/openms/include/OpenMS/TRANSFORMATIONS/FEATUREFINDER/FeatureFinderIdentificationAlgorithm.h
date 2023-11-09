@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -101,6 +75,7 @@ public:
   const TargetedExperiment& getLibrary() const;
 
 protected:
+
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
 
@@ -218,6 +193,7 @@ protected:
   TargetedExperiment library_; ///< accumulated assays for peptides
 
   bool quantify_decoys_;
+  double add_mass_offset_peptides_{0.0}; ///< non-zero if for every feature an additional offset features should be extracted
   bool use_psm_cutoff_;
   double psm_score_cutoff_;
   std::vector<PeptideIdentification> unassignedIDs_;
@@ -276,9 +252,9 @@ protected:
   void checkNumObservations_(Size n_pos, Size n_neg, const String& note = "") const;
 
   void getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
-                          std::map<Size, Int>& training_labels);
+                          std::map<Size, double>& training_labels);
 
-  void getRandomSample_(std::map<Size, Int>& training_labels) const;
+  void getRandomSample_(std::map<Size, double>& training_labels) const;
 
   void classifyFeatures_(FeatureMap& features);
 
@@ -288,6 +264,12 @@ protected:
   void filterFeatures_(FeatureMap& features, bool classified);
 
   void calculateFDR_(FeatureMap& features);
+
+  // seeds for untargeted extraction
+  Size addSeeds_(std::vector<PeptideIdentification>& peptides, const FeatureMap& seeds);
+
+  // quant. decoys
+  Size addOffsetPeptides_(std::vector<PeptideIdentification>& peptides, double offset);
 
   /// Chunks an iterator range (allowing advance and distance) into batches of size batch_size.
   /// Last batch might be smaller.

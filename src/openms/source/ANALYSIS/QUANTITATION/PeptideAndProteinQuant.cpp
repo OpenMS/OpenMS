@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -35,6 +9,7 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
@@ -674,7 +649,6 @@ namespace OpenMS
     ConsensusMap& consensus, 
     const ExperimentalDesign& ed)
   {
-
     // TODO check that the file section of the experimental design is compatible with what can be parsed from the consensus map.
     updateMembers_(); // clear data
 
@@ -694,6 +668,17 @@ namespace OpenMS
     OPENMS_LOG_DEBUG << "  Fractions       : " << stats_.n_fractions << endl;
     OPENMS_LOG_DEBUG << "  Samples (Assays): " << stats_.n_samples << endl;
 
+   
+    // map filename and label of experimental design to the full experimental design entry for faster lookup
+    const auto& ms_section = ed.getMSFileSection();
+    std::unordered_map<String, ExperimentalDesign::MSFileSectionEntry> fileAndLabel2MSFileSectionEntry;
+    for (const auto& e : ms_section)
+    {
+      String ed_filename = FileHandler::stripExtension(File::basename(e.path));
+      String ed_label = e.label;
+      fileAndLabel2MSFileSectionEntry[ed_filename + ed_label] = e;
+    }
+
     for (auto & c : consensus)
     {
       stats_.total_features += c.getFeatures().size();
@@ -709,20 +694,24 @@ namespace OpenMS
       PeptideHit hit = getAnnotation_(c.getPeptideIdentifications());
       for (auto const & f : c.getFeatures())
       {
-        // indices in experimental design are 0-based as the map indices
         //TODO MULTIPLEXED: needs to be adapted for multiplexed experiments
-        //TODO In General, this assumes that the experimental design was generated
-        //  FROM the consensusXML and therefore is in exactly the same order!
-        //  WAY too restrictive!
-        /*
-        const auto& h = consensus.getColumnHeaders().at(row);
-        const String& fn = h.filename;
-        const size_t lab = h.getLabelAsUInt(consensus.getExperimentType());
-         */
         size_t row = f.getMapIndex();
-        size_t fraction = ed.getMSFileSection()[row].fraction;
-        size_t sample = ed.getMSFileSection()[row].sample;
-        quantifyFeature_(f, fraction, sample, hit); // updates "stats_.quant_features"
+        const auto& h = consensus.getColumnHeaders().at(row);
+        const String c_fn = FileHandler::stripExtension(File::basename(h.filename)); // filename according to experimental design in consensus map
+        const size_t c_lab = h.getLabelAsUInt(consensus.getExperimentType());
+
+        // find entry in experimental design (ignore extension and folder) that corresponds to current column header entry
+        if (auto it = fileAndLabel2MSFileSectionEntry.find(c_fn + String(c_lab)); it != fileAndLabel2MSFileSectionEntry.end())
+        {
+          const size_t fraction = it->second.fraction;
+          const size_t sample = it->second.sample;
+          quantifyFeature_(f, fraction, sample, hit); // updates "stats_.quant_features"          
+        }
+        else
+        {
+          OPENMS_LOG_FATAL_ERROR << "File+Label referenced in consensus header not found in experimental design.\n"  
+                                 << "File+Label:" << c_fn << "\t" << c_lab << std::endl;
+        }
       }
     }
     countPeptides_(consensus.getUnassignedPeptideIdentifications());
@@ -749,7 +738,7 @@ namespace OpenMS
     OPENMS_LOG_DEBUG << "  Samples (Assays): " << stats_.n_samples << endl;
 
     stats_.total_features = peptides.size();
-
+    
     countPeptides_(peptides);
 
     map<pair<String,Size>, String> identifier_idmergeidx_to_ms_file;
@@ -773,12 +762,15 @@ namespace OpenMS
       OPENMS_LOG_DEBUG << "  run index : MS file " << i << " : " << ListUtils::concatenate(ms_files, ", ") << endl;
     }
 
-
     for (auto & p : peptides)
     {
       if (p.getHits().empty()) { continue; }
       Size id_merge_idx = p.getMetaValue("id_merge_idx",0);
       const PeptideHit& hit = p.getHits()[0];
+
+      // don't quantify decoys
+      if ((std::string)hit.getMetaValue("target_decoy", DataValue("target")) == "decoy") continue;
+
       stats_.quant_features++;
       const AASequence& seq = hit.getSequence();
       const String& ms_file_path = identifier_idmergeidx_to_ms_file[{p.getIdentifier(),id_merge_idx}];

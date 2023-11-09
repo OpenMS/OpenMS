@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -39,9 +13,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -62,9 +34,9 @@ using namespace std;
 <CENTER>
  <table>
   <tr>
-   <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-   <td VALIGN="middle" ROWSPAN=5> \f$ \longrightarrow \f$ IDFilter \f$ \longrightarrow \f$</td>
-   <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+   <th ALIGN = "center"> potential predecessor tools </td>
+   <td VALIGN="middle" ROWSPAN=5> &rarr; IDFilter &rarr;</td>
+   <th ALIGN = "center"> potential successor tools </td>
   </tr>
   <tr>
    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapterOnline (or other ID engines) </td>
@@ -100,7 +72,7 @@ using namespace std;
 
  The score that was most recently set by a processing step is considered for filtering.
  For example, it could be a Mascot score (if MascotAdapterOnline was applied) or an FDR (if FalseDiscoveryRate was applied), etc.
- @ref UTILS_IDScoreSwitcher is useful to switch to a particular score before filtering.
+ @ref TOPP_IDScoreSwitcher is useful to switch to a particular score before filtering.
 
  <b>Protein accession filters</b> (@p whitelist:proteins, @p whitelist:protein_accessions, @p blacklist:proteins, @p blacklist:protein_accessions):
 
@@ -221,6 +193,8 @@ protected:
     setMinInt_("best:n_spectra", 0);
     registerIntOption_("best:n_peptide_hits", "<integer>", 0, "Keep only the 'n' highest scoring peptide hits per spectrum (for n > 0).", false);
     setMinInt_("best:n_peptide_hits", 0);
+    registerStringOption_("best:spectrum_per_peptide", "<String>", "false", "Keep one spectrum per peptide. Value determines if same sequence but different charges or modifications are treated as separate peptides or the same peptide. (default: false = filter disabled).", false);
+    setValidStrings_("best:spectrum_per_peptide", {"false", "sequence", "sequence+charge", "sequence+modification", "sequence+charge+modification"});    
     registerIntOption_("best:n_protein_hits", "<integer>", 0, "Keep only the 'n' highest scoring protein hits (for n > 0).", false);
     setMinInt_("best:n_protein_hits", 0);
     registerFlag_("best:strict", "Keep only the highest scoring peptide hit.\n"
@@ -256,11 +230,11 @@ protected:
     const auto& infiletype = FileHandler::getType(inputfile_name);
     if (infiletype == FileTypes::IDXML)
     {
-      IdXMLFile().load(inputfile_name, proteins, peptides);
+      FileHandler().loadIdentifications(inputfile_name, proteins, peptides, {FileTypes::IDXML});
     }
     else if (infiletype == FileTypes::CONSENSUSXML)
     {
-      ConsensusXMLFile().load(inputfile_name, cmap);
+      FileHandler().loadConsensusFeatures(inputfile_name, cmap, {FileTypes::CONSENSUSXML});
       for (auto& f : cmap)
       {
         UInt64 id = f.getUniqueId();
@@ -386,8 +360,8 @@ protected:
       OPENMS_LOG_INFO << "Filtering by inclusion peptide whitelisting..." << endl;
       vector<PeptideIdentification> inclusion_peptides;
       vector<ProteinIdentification> inclusion_proteins; // ignored
-      IdXMLFile().load(whitelist_peptides, inclusion_proteins,
-                       inclusion_peptides);
+      FileHandler().loadIdentifications(whitelist_peptides, inclusion_proteins,
+                       inclusion_peptides, {FileTypes::IDXML});
       bool ignore_mods = getFlag_("whitelist:ignore_modifications");
       IDFilter::keepPeptidesWithMatchingSequences(peptides, inclusion_peptides,
                                                   ignore_mods);
@@ -436,8 +410,8 @@ protected:
       OPENMS_LOG_INFO << "Filtering by exclusion peptide blacklisting..." << endl;
       vector<PeptideIdentification> exclusion_peptides;
       vector<ProteinIdentification> exclusion_proteins; // ignored
-      IdXMLFile().load(blacklist_peptides, exclusion_proteins,
-                       exclusion_peptides);
+      FileHandler().loadIdentifications(blacklist_peptides, exclusion_proteins,
+                       exclusion_peptides, {FileTypes::IDXML});
       bool ignore_mods = getFlag_("blacklist:ignore_modifications");
       IDFilter::removePeptidesWithMatchingSequences(
         peptides, exclusion_peptides, ignore_mods);
@@ -556,8 +530,6 @@ protected:
       }
     }
 
-
-
     if (getFlag_("var_mods"))
     {
       OPENMS_LOG_INFO << "Filtering for variable modifications..." << endl;
@@ -605,6 +577,25 @@ protected:
     {
       OPENMS_LOG_INFO << "Filtering by best n peptide hits..." << endl;
       IDFilter::keepNBestHits(peptides, best_n_pep);
+    }
+
+    String spectrum_per_peptide = getStringOption_("best:spectrum_per_peptide");
+    if (spectrum_per_peptide != "false")
+    {
+      OPENMS_LOG_INFO << "Keeping best spectrum per " << spectrum_per_peptide << endl;
+      if (spectrum_per_peptide == "sequence") // group by sequence and return best spectrum (->smallest number of spectra)
+      {
+        IDFilter::keepBestPerPeptide(peptides, true, true, 1);
+      } else if (spectrum_per_peptide == "sequence+modification")
+      {
+        IDFilter::keepBestPerPeptide(peptides, false, true, 1);
+      } else if (spectrum_per_peptide == "sequence+charge")
+      {
+        IDFilter::keepBestPerPeptide(peptides, true, false, 1);
+      } else if (spectrum_per_peptide == "sequence+charge+modification") // group by sequence, modificationm, charge combination and return best spectrum (->largest number of spectra)
+      {
+        IDFilter::keepBestPerPeptide(peptides, false, false, 1);
+      }
     }
 
     Int min_rank = 0, max_rank = 0;
@@ -777,7 +768,7 @@ protected:
 
     if (infiletype == FileTypes::IDXML)
     {
-      IdXMLFile().store(outputfile_name, proteins, peptides);
+      FileHandler().storeIdentifications(outputfile_name, proteins, peptides, {FileTypes::IDXML});
     }
     else if (infiletype == FileTypes::CONSENSUSXML)
     {
@@ -799,7 +790,7 @@ protected:
       peptides.clear();
       std::swap(proteins, cmap.getProteinIdentifications());
       proteins.clear();
-      ConsensusXMLFile().store(outputfile_name, cmap);
+      FileHandler().storeConsensusFeatures(outputfile_name, cmap, {FileTypes::CONSENSUSXML});
     }
 
     return EXECUTION_OK;

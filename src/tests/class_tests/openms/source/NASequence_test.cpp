@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Samuel Wein $
@@ -217,6 +191,8 @@ START_SECTION((size_t size() const ))
   // don't count terminal phosphate in sequence length:
   seq = NASequence::fromString("pUGG");
   TEST_EQUAL(seq.size(), 3);
+  seq = NASequence::fromString("*UGG");
+  TEST_EQUAL(seq.size(), 3);
   seq = NASequence::fromString("UGGp");
   TEST_EQUAL(seq.size(), 3);
   seq = NASequence::fromString("pUGGp");
@@ -236,6 +212,10 @@ START_SECTION((bool hasFivePrimeMod() const ))
 {
   NASequence aaa = NASequence::fromString("AAA");
   TEST_EQUAL(aaa.hasFivePrimeMod(), false);
+  aaa = NASequence::fromString("pAAA");
+  TEST_EQUAL(aaa.hasFivePrimeMod(), true);
+  aaa = NASequence::fromString("*AAA");
+  TEST_EQUAL(aaa.hasFivePrimeMod(), true);
 }
 END_SECTION
 
@@ -243,10 +223,10 @@ START_SECTION((void setFivePrimeMod(const RibonucleotideChainEnd* r)))
 {
   NASequence aaa = NASequence::fromString("AAA");
   TEST_EQUAL(aaa.hasFivePrimeMod(), false);
-  aaa.setFivePrimeMod(db->getRibonucleotide("(pN)"));  // 5' phosphate
+  aaa.setFivePrimeMod(db->getRibonucleotide("pN"));  // 5' phosphate
   TEST_EQUAL(aaa.hasFivePrimeMod(), true);
-  TEST_EQUAL(aaa.getFivePrimeMod()->getCode(), "(pN)");
-  TEST_STRING_EQUAL(aaa.toString(), "[(pN)]AAA");
+  TEST_EQUAL(aaa.getFivePrimeMod()->getCode(), "pN");
+  TEST_STRING_EQUAL(aaa.toString(), "[pN]AAA");
 }
 END_SECTION
 
@@ -261,10 +241,10 @@ START_SECTION((void setThreePrimeMod(const RibonucleotideChainEnd* r)))
 {
   NASequence aaa = NASequence::fromString("AAA");
   TEST_EQUAL(aaa.hasThreePrimeMod(), false);
-  aaa.setThreePrimeMod(db->getRibonucleotide("(pN)"));
+  aaa.setThreePrimeMod(db->getRibonucleotide("N2'3'cp"));
   TEST_EQUAL(aaa.hasThreePrimeMod(), true);
-  TEST_EQUAL(aaa.getThreePrimeMod()->getCode(), "(pN)");
-  TEST_STRING_EQUAL(aaa.toString(), "AAA[(pN)]");
+  TEST_EQUAL(aaa.getThreePrimeMod()->getCode(), "N2'3'cp");
+  TEST_STRING_EQUAL(aaa.toString(), "AAA[N2'3'cp]");
 }
 END_SECTION
 
@@ -279,6 +259,33 @@ START_SECTION((bool hasThreePrimeMod() const))
 {
   // tested via (void setThreePrimeMod(const RibonucleotideChainEnd* r))
   NOT_TESTABLE
+}
+END_SECTION
+
+
+START_SECTION((EmpiricalFormula getFormula(NASequence::NASFragmentType type = NASequence::Full, Int charge = 0) const))
+{
+  NASequence seq = NASequence::fromString("GG");
+  TEST_EQUAL(seq.getFormula(NASequence::Full, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H12N5O5"));
+  TEST_EQUAL(seq.getFormula(NASequence::Full, -2), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H11N5O5"));
+  TEST_EQUAL(seq.getFormula(NASequence::WIon, -1), EmpiricalFormula("C20H25N10O15P2"));
+  TEST_EQUAL(seq.getFormula(NASequence::XIon, -1), EmpiricalFormula("C20H23N10O14P2"));
+  TEST_EQUAL(seq.getFormula(NASequence::YIon, -1), EmpiricalFormula("C10H12N5O6P") + EmpiricalFormula("C10H12N5O6"));
+  TEST_EQUAL(seq.getFormula(NASequence::ZIon, -1), EmpiricalFormula("C20H22N10O11P"));
+  TEST_EQUAL(seq.getFormula(NASequence::AIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H10N5O4"));
+  TEST_EQUAL(seq.getFormula(NASequence::BIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H12N5O5"));
+  TEST_EQUAL(seq.getFormula(NASequence::CIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H11N5O7P"));
+  TEST_EQUAL(seq.getFormula(NASequence::DIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H13N5O8P"));
+  TEST_EQUAL(seq.getFormula(NASequence::AminusB, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C5H5O3"));
+  // Thiol stuff
+  NASequence thiolseq = NASequence::fromString("*[dA*][dA]");
+  TEST_EQUAL(thiolseq.getFormula(NASequence::WIon, -1), EmpiricalFormula("C20H25N10O9P2S2"));
+  TEST_EQUAL(thiolseq.getFormula(NASequence::YIon, -1), EmpiricalFormula("C20H24N10O7P1S1"));
+  // Test for a-B ions
+  thiolseq = NASequence::fromString("[dA][dA*]");
+  TEST_EQUAL(thiolseq.getFormula(NASequence::AminusB, 0), EmpiricalFormula("C15H18N5O7P1"));
+  thiolseq = NASequence::fromString("[dA][dA*][dA*]");
+  TEST_EQUAL(thiolseq.getFormula(NASequence::AminusB, 0), EmpiricalFormula("C25H30N10O11P2S1"));
 }
 END_SECTION
 
@@ -334,23 +341,6 @@ START_SECTION((double getAverageWeight(NASequence::NASFragmentType type = NASequ
   seq = NASequence::fromString("[ms2i6A]AACCGp");
   TEST_REAL_SIMILAR(seq.getAverageWeight(NASequence::WIon, -2) / 2, 1076.045 + 0.651);
   TEST_REAL_SIMILAR(seq.getAverageWeight(NASequence::YIon, -2) / 2, 1036.459 + 0.247);
-}
-END_SECTION
-
-START_SECTION((EmpiricalFormula getFormula(NASequence::NASFragmentType type = NASequence::Full, Int charge = 0) const))
-{
-  NASequence seq = NASequence::fromString("GG");
-  TEST_EQUAL(seq.getFormula(NASequence::Full, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H12N5O5"));
-  TEST_EQUAL(seq.getFormula(NASequence::Full, -2), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H11N5O5"));
-  TEST_EQUAL(seq.getFormula(NASequence::WIon, -1), EmpiricalFormula("C20H25N10O15P2"));
-  TEST_EQUAL(seq.getFormula(NASequence::XIon, -1), EmpiricalFormula("C20H23N10O14P2"));
-  TEST_EQUAL(seq.getFormula(NASequence::YIon, -1), EmpiricalFormula("C10H12N5O6P") + EmpiricalFormula("C10H12N5O6"));
-  TEST_EQUAL(seq.getFormula(NASequence::ZIon, -1), EmpiricalFormula("C20H22N10O11P"));
-  TEST_EQUAL(seq.getFormula(NASequence::AIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H10N5O4"));
-  TEST_EQUAL(seq.getFormula(NASequence::BIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H12N5O5"));
-  TEST_EQUAL(seq.getFormula(NASequence::CIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H11N5O7P"));
-  TEST_EQUAL(seq.getFormula(NASequence::DIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H13N5O8P"));
-  TEST_EQUAL(seq.getFormula(NASequence::AminusB, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C5H5O3"));
 }
 END_SECTION
 
@@ -415,25 +405,32 @@ END_SECTION
 
 START_SECTION((NASequence getSuffix(Size length) const))
 {
-  NASequence seq = NASequence::fromString("A[ms2i6A]AACCGp");
-  NASequence seq2 = NASequence::fromString("[ms2i6A]AACCGp");
-  NASequence seq3 = NASequence::fromString("AAACCG");
-  NASequence seq4 = NASequence::fromString("CCG");
+  NASequence seq = NASequence::fromString("A[ms2i6A]AACAGp");
+  NASequence seq2 = NASequence::fromString("[ms2i6A]AACAGp");
+  NASequence seq3 = NASequence::fromString("AAACAG");
+  NASequence seq4 = NASequence::fromString("CAG");
+  NASequence seq5 = NASequence::fromString("[C*]AG");
+  NASequence seq6 = NASequence::fromString("*AG");
   TEST_EQUAL(seq.getSuffix(6),seq2);
   TEST_EQUAL(seq3.getSuffix(3),seq4);
   TEST_NOT_EQUAL(seq.getSuffix(3),seq2);
   TEST_NOT_EQUAL(seq.getSuffix(3),seq4);
   TEST_EXCEPTION(Exception::IndexOverflow, seq.getSuffix(10));
+  // Check that we handle the weird case of thiol
+  TEST_STRING_EQUAL(seq5.getSuffix(2).toString(), seq6.toString() );
 }
 END_SECTION
 
 START_SECTION((NASequence getSubsequence(Size start, Size length) const))
 {
   NASequence seq = NASequence::fromString("pAUCGp");
+  NASequence seq5 = NASequence::fromString("[C*]AG");
   TEST_STRING_EQUAL(seq.getSubsequence().toString(), "pAUCGp");
   TEST_STRING_EQUAL(seq.getSubsequence(1).toString(), "UCGp");
   TEST_STRING_EQUAL(seq.getSubsequence(0, 2).toString(), "pAU");
   TEST_STRING_EQUAL(seq.getSubsequence(2, 1).toString(), "C");
+  //thiol stuff
+  TEST_STRING_EQUAL(seq5.getSubsequence(1).toString(), "*AG");
 }
 END_SECTION
 

@@ -1,7 +1,7 @@
 MTD	mzTab-version	1.0.0
 MTD	mzTab-mode	null
 MTD	mzTab-type	null
-MTD	description	Sirius-5.6.2
+MTD	description	Sirius-5.6.3
 MTD	smallmolecule_search_engine_score[1]	[, , SiriusScore, ]
 MTD	smallmolecule_search_engine_score[2]	[, , TreeScore, ]
 MTD	smallmolecule_search_engine_score[3]	[, , IsotopeScore, ]
@@ -9,7 +9,6 @@ MTD	ms_run[1]-location	/Users/builder/jenkins/ws/openms/PR/bldtst/87227eb0/sourc
 
 SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	best_search_engine_score[2]	best_search_engine_score[3]	modifications	opt_global_adduct	opt_gobal_precursorFormula	opt_global_rank	opt_global_explainedPeaks	opt_global_explainedIntensity	opt_global_median_mass_error_fragment_peaks_ppm	opt_global_median_absolute_mass_error_fragment_peaks_ppm	opt_global_mass_error_precursor_ppm	opt_global_compoundId	opt_global_compoundScanNumber	opt_global_featureId	opt_global_native_id
 SML	null	C14H17IN2O2	null	null	null	373.041532365868022	null	null	608.394000000000005	null	null	null	null	null	null	23.200648370640732	23.200648370640732	0.0	null	[M + H]+	C14H17IN2O2	1	10	1.0	2.918635803820394	2.918635803820394	2.091267887993178	1	847004	id_13564286333504458830	sample=1 period=1 cycle=847 experiment=4
-SML	null	C19H26O6	null	null	null	373.041532365868022	null	null	608.394000000000005	null	null	null	null	null	null	-96.5	-96.5	0.0	null	[M + ?]+	C19H26O6	1	1	0.0	6.13045476430975e04	6.13045476430975e04	6.13045476430975e04	1	847004	id_13564286333504458830	sample=1 period=1 cycle=847 experiment=4
 SML	null	C10H7N2O9P	null	null	null	330.995669248795025	null	null	606.481000000020003	null	null	null	null	null	null	1.526870259864886	-0.74377112047702	2.270641380341906	null	[M + H]+	C10H7N2O9P	1	1	0.0	-1.582006485689947	1.582006485689947	-1.582006485689947	5	848006	id_10363315384511872265	sample=1 period=1 cycle=848 experiment=6|sample=1 period=1 cycle=849 experiment=4
 SML	null	C12H8N2O7	null	null	null	330.995669248795025	null	null	606.481000000020003	null	null	null	null	null	null	0.833722174873901	0.833722174873901	0.0	null	[M + K]+	C12H8N2O7	2	1	0.0	-1.93189021762513	1.93189021762513	-1.93189021762513	5	848006	id_10363315384511872265	sample=1 period=1 cycle=848 experiment=6|sample=1 period=1 cycle=849 experiment=4
 SML	null	C8H4N8O5	null	null	null	330.995669248795025	null	null	606.481000000020003	null	null	null	null	null	null	0.377315307572828	0.377315307572828	0.0	null	[M + K]+	C8H4N8O5	3	1	0.0	6.181110191444778	6.181110191444778	6.181110191444778	5	848006	id_10363315384511872265	sample=1 period=1 cycle=848 experiment=6|sample=1 period=1 cycle=849 experiment=4

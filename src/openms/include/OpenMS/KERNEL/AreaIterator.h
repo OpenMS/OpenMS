@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -57,40 +31,31 @@ namespace OpenMS
 
         @note This iterator iterates over spectra with same MS level as the MS level of the begin() spectrum in Param! You can explicitly set another MS level as well.
     */
-    template <class ValueT, class ReferenceT, class PointerT, class SpectrumIteratorT, class PeakIteratorT>
-    class AreaIterator :
-      public std::iterator<std::forward_iterator_tag, ValueT>
+    template<class ValueT, class ReferenceT, class PointerT, class SpectrumIteratorT, class PeakIteratorT>
+    class AreaIterator
     {
-public:
+    public:
       typedef double CoordinateType;
       typedef ValueT PeakType;
       typedef SpectrumIteratorT SpectrumIteratorType;
       typedef PeakIteratorT PeakIteratorType;
+      using SpectrumT = typename std::iterator_traits<SpectrumIteratorType>::value_type;
 
       /// Parameters for the AreaIterator
       /// Required values must be set in the C'tor. Optional values can be set via member functions (which allow chaining).
       class Param
       {
-        friend AreaIterator;   // allow access to private members (avoids writing get-accessors)
+        friend AreaIterator; // allow access to private members (avoids writing get-accessors)
       public:
         /**
          * \brief C'tor with mandatory parameters
          * \param first The very first spectrum of the experiment
          * \param begin The first spectrum with a valid RT/IM time
          * \param end The last spectrum with a valid RT/IM time
+         * \param ms_level Only peaks from spectra with this ms_level are used
          */
-        Param(SpectrumIteratorType first, SpectrumIteratorType begin, SpectrumIteratorType end)
-          : first_(first), current_scan_(begin), end_scan_(end)
+        Param(SpectrumIteratorType first, SpectrumIteratorType begin, SpectrumIteratorType end, uint8_t ms_level) : first_(first), current_scan_(begin), end_scan_(end), ms_level_(ms_level)
         {
-          // if begin is dereferencable ...
-          if (begin != end)
-          {
-            ms_level_ = begin->getMSLevel();
-          }
-          else
-          {
-            ms_level_ = 1;
-          }
         }
 
         /// return the end-iterator
@@ -108,15 +73,35 @@ public:
          */
         //@{
         /// low m/z boundary
-        Param& lowMZ(CoordinateType low_mz) { low_mz_ = low_mz; return *this;}
+        Param& lowMZ(CoordinateType low_mz)
+        {
+          low_mz_ = low_mz;
+          return *this;
+        }
         /// high m/z boundary
-        Param& highMZ(CoordinateType high_mz) { high_mz_ = high_mz; return *this;}
+        Param& highMZ(CoordinateType high_mz)
+        {
+          high_mz_ = high_mz;
+          return *this;
+        }
         /// low ion mobility boundary
-        Param& lowIM(CoordinateType low_im) { low_im_ = low_im; return *this;}
+        Param& lowIM(CoordinateType low_im)
+        {
+          low_im_ = low_im;
+          return *this;
+        }
         /// high ion mobility boundary
-        Param& highIM(CoordinateType high_im) { high_im_ = high_im; return *this;}
+        Param& highIM(CoordinateType high_im)
+        {
+          high_im_ = high_im;
+          return *this;
+        }
         /// Only scans of this MS level are iterated over
-        Param& msLevel(int8_t ms_level) { ms_level_ = ms_level; return *this;}
+        Param& msLevel(int8_t ms_level)
+        {
+          ms_level_ = ms_level;
+          return *this;
+        }
         //@}
 
       protected:
@@ -140,20 +125,21 @@ public:
         /// high mobility boundary
         CoordinateType high_im_ = std::numeric_limits<CoordinateType>::max();
         /// Only scans of this MS level are iterated over
-        int8_t ms_level_{};
+        int8_t ms_level_ {};
         /// Flag that indicates that this iterator is the end iterator
         bool is_end_ = false;
 
       private:
         /// only used internally for end()
-        Param() = default; 
+        Param() = default;
       };
 
 
-
-      /** @name Typedefs for STL compliance
-      */
+      /** @name Typedefs for STL compliance, these replace std::iterator
+       */
       //@{
+      /// The iterator's category type
+      typedef std::forward_iterator_tag iterator_category;
       /// The iterator's value type
       typedef ValueT value_type;
       /// The reference type as returned by operator*()
@@ -165,14 +151,15 @@ public:
       //@}
 
       /// Constructor for the begin iterator
-      explicit AreaIterator(const Param& p) :
-        p_(p)
+      explicit AreaIterator(const Param& p) : p_(p)
       {
         nextScan_();
       }
 
       /// Default constructor (for the end iterator)
-      AreaIterator() : p_(Param::end()) {}
+      AreaIterator() : p_(Param::end())
+      {
+      }
 
       /// Destructor
       ~AreaIterator() = default;
@@ -181,7 +168,7 @@ public:
       AreaIterator(const AreaIterator& rhs) = default;
 
       /// Assignment operator
-      AreaIterator& operator=(const AreaIterator & rhs)
+      AreaIterator& operator=(const AreaIterator& rhs)
       {
         p_.is_end_ = rhs.p_.is_end_;
         // only copy iterators, if the assigned iterator is not the end iterator
@@ -194,10 +181,11 @@ public:
       }
 
       /// Test for equality
-      bool operator==(const AreaIterator & rhs) const
+      bool operator==(const AreaIterator& rhs) const
       {
         // Both end iterators => equal
-        if (p_.is_end_ && rhs.p_.is_end_) return true;
+        if (p_.is_end_ && rhs.p_.is_end_)
+          return true;
 
         // Normal and end iterator => not equal
         if (p_.is_end_ ^ rhs.p_.is_end_)
@@ -208,7 +196,7 @@ public:
       }
 
       /// Test for inequality
-      bool operator!=(const AreaIterator & rhs) const
+      bool operator!=(const AreaIterator& rhs) const
       {
         return !(*this == rhs);
       }
@@ -216,8 +204,9 @@ public:
       /// Step forward by one (prefix operator)
       AreaIterator& operator++()
       {
-        //no increment if this is the end iterator
-        if (p_.is_end_) return *this;
+        // no increment if this is the end iterator
+        if (p_.is_end_)
+          return *this;
 
         ++p_.current_peak_;
         // test whether we arrived at the end of the current scan
@@ -261,6 +250,12 @@ public:
         return p_.current_scan_->getDriftTime();
       }
 
+      /// returns the current scan into which the iterator points
+      const SpectrumT& getSpectrum() const
+      {
+        return *p_.current_scan_;
+      }
+
       /// returns the PeakIndex corresponding to the current iterator position
       inline PeakIndex getPeakIndex() const
       {
@@ -274,18 +269,16 @@ public:
         }
       }
 
-private:
+    private:
       /// advances the iterator to the next valid peak in the next valid spectrum
       void nextScan_()
       {
         using MSLevelType = decltype(p_.current_scan_->getMSLevel());
-        RangeMobility mb{p_.low_im_, p_.high_im_};
+        RangeMobility mb {p_.low_im_, p_.high_im_};
         while (true)
         {
           // skip over invalid MS levels and Mobility
-          while (p_.current_scan_ != p_.end_scan_ &&
-                 (p_.current_scan_->getMSLevel() != (MSLevelType)p_.ms_level_ ||
-                  !mb.containsMobility(p_.current_scan_->getDriftTime())))
+          while (p_.current_scan_ != p_.end_scan_ && (p_.current_scan_->getMSLevel() != (MSLevelType)p_.ms_level_ || !mb.containsMobility(p_.current_scan_->getDriftTime())))
           {
             ++p_.current_scan_;
           }
@@ -308,6 +301,5 @@ private:
       Param p_;
     };
 
-  }
-}
-
+  } // namespace Internal
+} // namespace OpenMS

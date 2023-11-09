@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -37,8 +11,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
@@ -427,9 +400,12 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid cell clicked.", String(row) + " " + column);
     }
     
-    // deselect whatever is currently shown
-    int last_spectrum_index = int(dynamic_cast<LayerData1DPeak*>(layer_)->getCurrentIndex());
-    emit spectrumDeselected(last_spectrum_index);
+    // deselect whatever is currently shown (if we are in 1D view)
+    auto* layer_1d = dynamic_cast<LayerData1DPeak*>(layer_);
+    if (layer_1d)
+    {
+      emit spectrumDeselected(int(layer_1d->getCurrentIndex()));
+    }
 
     int current_spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
     const auto& exp = *layer_->getPeakData();
@@ -998,14 +974,7 @@ namespace OpenMS
     {
       return;
     }      
-    if (FileHandler::getTypeByFileName(filename) == FileTypes::MZIDENTML)
-    {
-      MzIdentMLFile().store(filename, prot_id, all_pep_ids);
-    }
-    else 
-    {
-      IdXMLFile().store(filename, prot_id, all_pep_ids);
-    }
+    FileHandler().storeIdentifications(filename, prot_id, all_pep_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
   }
 
   void SpectraIDViewTab::updatedSingleProteinCell_(QTableWidgetItem* /*item*/)

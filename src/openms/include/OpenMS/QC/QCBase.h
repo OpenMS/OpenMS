@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -37,7 +11,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/FlagSet.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-
+#include <algorithm>
 #include <map>
 
 namespace OpenMS
@@ -57,8 +31,7 @@ namespace OpenMS
     /**
      * @brief Enum to encode a file type as a bit.
      */
-    enum class Requires 
-      : UInt64 // 64 bit unsigned type for bitwise and/or operations (see below)
+    enum class Requires : UInt64 // 64 bit unsigned type for bitwise and/or operations (see below)
     {
       NOTHING,      //< default, does not require anything
       RAWMZML,      //< mzML file is required
@@ -85,7 +58,7 @@ namespace OpenMS
 
     /**
      * @brief Map to find a spectrum via its NativeID
-    */
+     */
     class OPENMS_DLLAPI SpectraMap
     {
     public:
@@ -107,10 +80,10 @@ namespace OpenMS
 
       /// clear the map
       void clear();
-      
+
       /// check if empty
       bool empty() const;
-      
+
       /// get size of map
       Size size() const;
 
@@ -119,17 +92,17 @@ namespace OpenMS
     };
 
     using Status = FlagSet<Requires>;
-    
+
 
     /**
-    * @brief Returns the name of the metric
-    */
+     * @brief Returns the name of the metric
+     */
     virtual const String& getName() const = 0;
-    
+
     /**
      *@brief Returns the input data requirements of the compute(...) function
      */
-    virtual Status requires() const = 0;
+    virtual Status requirements() const = 0;
 
 
     /// tests if a metric has the required input files
@@ -140,16 +113,13 @@ namespace OpenMS
     static bool isLabeledExperiment(const ConsensusMap& cm);
 
     /// does the container have a PeptideIdentification in its members or as unassignedPepID ?
-    template <typename MAP>
+    template<typename MAP>
     static bool hasPepID(const MAP& fmap)
     {
-      if (!fmap.getUnassignedPeptideIdentifications().empty()) return true;
+      if (!fmap.getUnassignedPeptideIdentifications().empty())
+        return true;
 
-      for (const auto& features : fmap)
-      {
-        if (!features.getPeptideIdentifications().empty()) return true;
-      }
-      return false;
+      return std::any_of(fmap.cbegin(), fmap.cend(), [](const auto& f) { return !f.getPeptideIdentifications().empty(); });
     }
   };
-}
+} // namespace OpenMS

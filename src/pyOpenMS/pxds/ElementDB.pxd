@@ -12,9 +12,9 @@ cdef extern from "<OpenMS/CHEMISTRY/ElementDB.h>" namespace "OpenMS":
         #   cdef AutowrapPtrHolder[_ElementDB] inst
 
         # private
-        ElementDB() nogil except + # wrap-ignore
+        ElementDB() except + nogil  # wrap-ignore
         # private 
-        ElementDB(ElementDB) nogil except + #wrap-ignore
+        ElementDB(ElementDB) except + nogil  #wrap-ignore
 
         # No wrapping of const ref
         # const Map[ String, Element * ]  getNames() nogil except +
@@ -43,5 +43,5 @@ cdef extern from "<OpenMS/CHEMISTRY/ElementDB.h>" namespace "OpenMS":
 ## wrap static methods
 cdef extern from "<OpenMS/CHEMISTRY/ElementDB.h>" namespace "OpenMS::ElementDB":
     
-    ElementDB* getInstance() nogil except + # wrap-ignore
+    ElementDB* getInstance() except + nogil  # wrap-ignore
 

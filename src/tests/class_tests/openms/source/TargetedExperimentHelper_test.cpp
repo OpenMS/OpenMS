@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest$
@@ -54,7 +28,7 @@ START_SECTION(TargetedExperimentHelper::Configuration())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::Configuration(std::declval<TargetedExperimentHelper::Configuration&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::Configuration();
-  TEST_EQUAL(ptr != nullptr, true)
+  TEST_FALSE(ptr == nullptr)
   delete ptr;
 }
 END_SECTION
@@ -66,7 +40,7 @@ START_SECTION(TargetedExperimentHelper::CV())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::CV(std::declval<TargetedExperimentHelper::CV&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::CV("", "", "", "");
-  TEST_EQUAL(ptr != nullptr, true)
+  TEST_FALSE(ptr == nullptr)
   delete ptr;
 }
 END_SECTION
@@ -78,7 +52,7 @@ START_SECTION(TargetedExperimentHelper::Protein())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::Protein(std::declval<TargetedExperimentHelper::Protein&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::Protein();
-  TEST_EQUAL(ptr != nullptr, true)
+  TEST_FALSE(ptr == nullptr)
   delete ptr;
 }
 END_SECTION
@@ -90,7 +64,7 @@ START_SECTION(TargetedExperimentHelper::RetentionTime())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::RetentionTime(std::declval<TargetedExperimentHelper::RetentionTime&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::RetentionTime();
-  TEST_EQUAL(ptr != nullptr, true)
+  TEST_FALSE(ptr == nullptr)
   delete ptr;
 }
 END_SECTION
@@ -102,7 +76,7 @@ START_SECTION(TargetedExperimentHelper::PeptideCompound())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::PeptideCompound(std::declval<TargetedExperimentHelper::PeptideCompound&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::PeptideCompound();
-  TEST_EQUAL(ptr != nullptr, true)
+  TEST_FALSE(ptr == nullptr)
   delete ptr;
 }
 END_SECTION
@@ -114,7 +88,7 @@ START_SECTION(TargetedExperimentHelper::Peptide())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::Peptide(std::declval<TargetedExperimentHelper::Peptide&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::Peptide();
-  TEST_EQUAL(ptr != nullptr, true)
+  TEST_FALSE(ptr == nullptr)
   delete ptr;
 }
 END_SECTION
@@ -126,7 +100,7 @@ START_SECTION(TargetedExperimentHelper::Compound())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::Compound(std::declval<TargetedExperimentHelper::Compound&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::Compound();
-  TEST_EQUAL(ptr != nullptr, true)
+  TEST_FALSE(ptr == nullptr)
   delete ptr;
 }
 END_SECTION
@@ -138,7 +112,7 @@ START_SECTION(TargetedExperimentHelper::Contact())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::Contact(std::declval<TargetedExperimentHelper::Contact&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::Contact();
-  TEST_EQUAL(ptr != nullptr, true)
+  TEST_FALSE(ptr == nullptr)
   delete ptr;
 }
 END_SECTION
@@ -150,7 +124,7 @@ START_SECTION(TargetedExperimentHelper::Publication())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::Publication(std::declval<TargetedExperimentHelper::Publication&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::Publication();
-  TEST_EQUAL(ptr != nullptr, true)
+  TEST_FALSE(ptr == nullptr)
   delete ptr;
 }
 END_SECTION
@@ -162,7 +136,7 @@ START_SECTION(TargetedExperimentHelper::Instrument())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::Instrument(std::declval<TargetedExperimentHelper::Instrument&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::Instrument();
-  TEST_EQUAL(ptr != nullptr, true)
+  TEST_FALSE(ptr == nullptr)
   delete ptr;
 }
 END_SECTION
@@ -174,7 +148,7 @@ START_SECTION(TargetedExperimentHelper::Prediction())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::Prediction(std::declval<TargetedExperimentHelper::Prediction&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::Prediction();
-  TEST_EQUAL(ptr != nullptr, true)
+  TEST_FALSE(ptr == nullptr)
   delete ptr;
 }
 END_SECTION
@@ -186,7 +160,7 @@ START_SECTION(TargetedExperimentHelper::Interpretation())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::Interpretation(std::declval<TargetedExperimentHelper::Interpretation&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::Interpretation();
-  TEST_EQUAL(ptr != nullptr, true)
+  TEST_FALSE(ptr == nullptr)
   delete ptr;
 }
 END_SECTION
@@ -198,7 +172,7 @@ START_SECTION(TargetedExperimentHelper::TraMLProduct())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::TraMLProduct(std::declval<TargetedExperimentHelper::TraMLProduct&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::TraMLProduct();
-  TEST_EQUAL(ptr != nullptr, true)
+  TEST_FALSE(ptr == nullptr)
   delete ptr;
 }
 END_SECTION

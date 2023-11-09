@@ -13,22 +13,22 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>" namespace "OpenMS":
         # wrap-inherits:
         #   DefaultParamHandler
 
-        DIAScoring() nogil except +
+        DIAScoring() except + nogil 
         # private
-        DIAScoring(DIAScoring) nogil except + # wrap-ignore
+        DIAScoring(DIAScoring) except + nogil  # wrap-ignore
 
         bool dia_ms1_massdiff_score(double precursor_mz, OSSpectrumPtr spectrum,
-                                    double& ppm_score) nogil except + 
+                                    double& ppm_score) except + nogil  
 
         void dia_ms1_isotope_scores_averagine(double precursor_mz, OSSpectrumPtr spectrum,
-                                    double& isotope_corr, double& isotope_overlap, int charge_state) nogil except +
+                                    double& isotope_corr, double& isotope_overlap, int charge_state) except + nogil 
 
         void dia_ms1_isotope_scores(double precursor_mz, OSSpectrumPtr spectrum,
-                                    double& isotope_corr, double& isotope_overlap, EmpiricalFormula& sum_formula) nogil except +
+                                    double& isotope_corr, double& isotope_overlap, EmpiricalFormula& sum_formula) except + nogil 
         # TODO automatically wrap 
-        void dia_by_ion_score(OSSpectrumPtr spectrum, AASequence sequence, int charge, double & bseries_score, double & yseries_score) nogil except + # wrap-return:return(bseries_score,yseries_score) wrap-ignore
+        void dia_by_ion_score(OSSpectrumPtr spectrum, AASequence sequence, int charge, double & bseries_score, double & yseries_score) except + nogil  # wrap-return:return(bseries_score,yseries_score) wrap-ignore
 
         # Dotproduct / Manhatten score with theoretical spectrum
         void score_with_isotopes(OSSpectrumPtr spectrum, libcpp_vector[LightTransition] transitions,
-                                 double& dotprod, double& manhattan) nogil except +
+                                 double& dotprod, double& manhattan) except + nogil 
 

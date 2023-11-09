@@ -11,27 +11,27 @@ cdef extern from "<OpenMS/METADATA/CVTermListInterface.h>" namespace "OpenMS":
         # wrap-inherits:
         #  MetaInfoInterface
 
-        CVTermListInterface() nogil except +
-        CVTermListInterface(CVTermListInterface &) nogil except +
+        CVTermListInterface() except + nogil 
+        CVTermListInterface(CVTermListInterface &) except + nogil 
 
-        bool operator==(CVTermListInterface & rhs) nogil except +
-        bool operator!=(CVTermListInterface & rhs) nogil except +
+        bool operator==(CVTermListInterface & rhs) except + nogil 
+        bool operator!=(CVTermListInterface & rhs) except + nogil 
 
-        void replaceCVTerms(libcpp_map[ String, libcpp_vector[ CVTerm ] ] & cv_terms) nogil except +
-        void setCVTerms(libcpp_vector[ CVTerm ] & terms) nogil except +
+        void replaceCVTerms(libcpp_map[ String, libcpp_vector[ CVTerm ] ] & cv_terms) except + nogil 
+        void setCVTerms(libcpp_vector[ CVTerm ] & terms) except + nogil 
 
         ######################################################################
         # Cython has a problem with inheritance of overloaded methods, so we
         # can only declare one of the two methods here.
-        void replaceCVTerm(CVTerm & cv_term) nogil except +
-        void replaceCVTerms(libcpp_vector[ CVTerm ] & cv_terms, const String & accession) nogil except +
-        # void replaceCVTerms(Map[ String, libcpp_vector[ CVTerm ] ] & cv_term_map) nogil except +
+        void replaceCVTerm(CVTerm & cv_term) except + nogil 
+        void replaceCVTerms(libcpp_vector[ CVTerm ] & cv_terms, const String & accession) except + nogil 
+        # void replaceCVTerms(Map[ String, libcpp_vector[ CVTerm ] ] & cv_term_map) except + nogil 
 
-        void consumeCVTerms(libcpp_map[ String, libcpp_vector[ CVTerm ] ] & cv_term_map) nogil except + # wrap-doc:Merges the given map into the member map, no duplicate checking
-        libcpp_map[ String, libcpp_vector[ CVTerm ] ]  getCVTerms() nogil except +
+        void consumeCVTerms(libcpp_map[ String, libcpp_vector[ CVTerm ] ] & cv_term_map) except + nogil  # wrap-doc:Merges the given map into the member map, no duplicate checking
+        libcpp_map[ String, libcpp_vector[ CVTerm ] ]  getCVTerms() except + nogil 
 
 
-        void addCVTerm(CVTerm & term) nogil except + # wrap-doc:Adds a CV term
-        bool hasCVTerm(const String & accession) nogil except + # wrap-doc:Checks whether the term has a value
-        bool empty() nogil except +
+        void addCVTerm(CVTerm & term) except + nogil  # wrap-doc:Adds a CV term
+        bool hasCVTerm(const String & accession) except + nogil  # wrap-doc:Checks whether the term has a value
+        bool empty() except + nogil 
 

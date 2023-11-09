@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -37,13 +11,12 @@
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
+
+#include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
@@ -67,9 +40,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ ProteinQuantifier \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=3> &rarr; ProteinQuantifier &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper </td>
@@ -107,9 +80,8 @@ using namespace std;
 
     By default only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification. However, this limitation can be overcome: Protein inference results for the whole sample set can be supplied with the @p protein_groups option (or included in a featureXML input). In that case, the peptide-to-protein references from that file are used (rather than those from @p in), and groups of indistinguishable proteins will be quantified. Each reported protein quantity then refers to the total for the respective group.
 
-    In order for everything to work correctly, it is important that the protein inference results come from the same identifications that were used to annotate the quantitative data. To use inference results from ProteinProphet, convert the protXML to idXML using @ref TOPP_IDFileConverter. To use results from Fido, simply run @ref TOPP_FidoAdapter.
-
-
+    In order for everything to work correctly, it is important that the protein inference results come from the same identifications that were used to annotate the quantitative data. We suggest to use the OpenMS tool ProteinInference @TOPP_ProteinInference. 
+    
     More information below the parameter specification.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
@@ -355,7 +327,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML"));
-    registerInputFile_("protein_groups", "<file>", "", "Protein inference results for the identification runs that were used to annotate the input (e.g. from ProteinProphet via IDFileConverter or Fido via FidoAdapter).\nInformation about indistinguishable proteins will be used for protein quantification.", false);
+    registerInputFile_("protein_groups", "<file>", "", "Protein inference results for the identification runs that were used to annotate the input (e.g. via the ProteinInference tool).\nInformation about indistinguishable proteins will be used for protein quantification.", false);
     setValidFormats_("protein_groups", ListUtils::create<String>("idXML"));
 
     registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
@@ -641,23 +613,28 @@ protected:
     }
     out << "# Parameters (relevant only): " + params << endl;
 
-    if (ed.getNumberOfSamples() > 1)
+    if (ed.getNumberOfSamples() > 1 && ed.getNumberOfLabels() == 1)
     {
       String desc = "# Files/samples associated with abundance values below: ";
-      Size counter = 0;
-      for (ConsensusMap::ColumnHeaders::iterator it = columns_headers_.begin();
-           it != columns_headers_.end(); ++it, ++counter)
+
+      const auto& ms_section = ed.getMSFileSection();
+
+      map<String, String> sample_id_to_filename;
+      for (const auto& e : ms_section)
       {
-        if (counter > 0)
+        String ed_filename = File::basename(e.path);
+        String ed_label = e.label;
+        String ed_sample = e.sample;
+        sample_id_to_filename[e.sample] = ed_filename; // should be 0,...,n_samples-1
+      }
+
+      for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
+      {
+        if (i > 0)
         {
           desc += ", ";
         }
-        desc += String(counter+1) + ": '" + it->second.filename + "'";
-        String label = it->second.label;
-        if (!label.empty())
-        {
-          desc += " ('" + label + "')";
-        }
+        desc += String(i + 1) + ": '" + sample_id_to_filename[String(i)] + "'";
       }
       out << desc << endl;
     }
@@ -750,6 +727,7 @@ protected:
     }
     else  // no design file provided
     {
+      OPENMS_LOG_INFO << "No design file given. Trying to infer from consensus map." << std::endl;
       return ExperimentalDesign::fromConsensusMap(cm);
     }
   }
@@ -774,7 +752,7 @@ protected:
     if (!protein_groups.empty()) // read protein inference data
     {
       vector<ProteinIdentification> proteins;
-      IdXMLFile().load(protein_groups, proteins, peptides_);
+      FileHandler().loadIdentifications(protein_groups, proteins, peptides_, {FileTypes::IDXML});
       if (proteins.empty() || 
           proteins[0].getIndistinguishableProteins().empty())
       {
@@ -823,7 +801,7 @@ protected:
     if (in_type == FileTypes::FEATUREXML)
     {
       FeatureMap features;
-      FeatureXMLFile().load(in, features);
+      FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML});
       columns_headers_[0].filename = in;
 
       ed = getExperimentalDesignFeatureMap_(design_file, features);
@@ -844,7 +822,7 @@ protected:
       spectral_counting_ = true;
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
-      IdXMLFile().load(in, proteins, peptides);
+      FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML});
       for (Size i = 0; i < proteins.size(); ++i)
       {
         columns_headers_[i].filename = proteins[i].getSearchEngine() + "_" + proteins[i].getDateTime().toString();
@@ -865,7 +843,7 @@ protected:
     else // consensusXML
     {
       ConsensusMap consensus;
-      ConsensusXMLFile().load(in, consensus);
+      FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
       columns_headers_ = consensus.getColumnHeaders();
 
       ed = getExperimentalDesignConsensusMap_(design_file, consensus);

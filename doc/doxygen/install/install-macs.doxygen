@@ -6,7 +6,7 @@
 
   This document explains the installation
   procedure for building %OpenMS from its sources. If you only want to use the
-  %OpenMS Proteomics Pipeline (TOPP), you are strongly encouraged to
+  %OpenMS PiPeline (TOPP), you are strongly encouraged to
   <b>download the binary installer</b> (see
   <a href="http://www.OpenMS.de" target="_blank">here</a>), instead of building
   %OpenMS from sources. Be aware though that we do not provide binary
@@ -37,7 +37,7 @@
    \code
      xcode-select --install
    \endcode
-   <li>CMake (version 3.1 or higher) is required to configure and build the %OpenMS as well as some of its dependencies.</li>
+   <li>CMake (>= 3.24) is required to configure and build the %OpenMS as well as some of its dependencies.</li>
    <li>Qt5, its SVG module and the header files are required.
    @note We recommend installing Qt using Homebrew with:
    \code
@@ -56,7 +56,6 @@
 
   <ul>
    <li><a href="http://www.doxygen.org/index.html">Doxygen</a> (recommended: >= 1.8.13, required: > 1.7.1, some might be buggy in between) is used to generate the %OpenMS documentation.</li>
-   <li>pdflatex is required to generate the tutorial PDFs. The latest MacTeX release can be downloaded <a href="http://tug.org/mactex/">here</a></li>
   </ul>
 
  <hr>
@@ -128,7 +127,7 @@
   required by %OpenMS.
 
     \code
-      brew install libsvm xerces-c boost glpk eigen sqlite hdf5
+      brew install libsvm xerces-c boost glpk eigen hdf5
     \endcode
 
   @note Until the CoinMP complete package is migrated to the coin-or-tools tap, we suggest to use our contrib version. You will then additionally need gfortran as a Fortran compiler to build.
@@ -139,7 +138,7 @@
   libraries required by %OpenMS.
 
     \code
-      sudo port install libsvm xercesc3 boost glpk eigen3 sqlite hdf5
+      sudo port install libsvm xercesc3 boost glpk eigen3 hdf5
     \endcode
 
  The rest needs to be installed via the contrib.
@@ -210,7 +209,7 @@
   The TOPP tools should now be ready to use. The executables are located in the
   \c bin folder of the build directory. Add this folder to your
   <b><tt>PATH</tt></b> variable for easy access.
-  @note When you intend to use thirdparty search- or inference engines like XTandem or Fido, their binaries also
+  @note When you intend to use thirdparty search engines like XTandem, their binaries also
   need to be in the <b><tt>PATH</tt></b>. Build them or download them inside the OpenMS source folder with
   \code
   git submodule update --init THIRDPARTY

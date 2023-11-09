@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -35,6 +9,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
+#include <OpenMS/config.h>
 
 #if COINOR_SOLVER == 1  // only include COINOR if we actually use it...
   #ifdef _MSC_VER //disable some COIN-OR warnings that distract from ours
@@ -43,16 +18,30 @@
   #else
   #pragma GCC diagnostic ignored "-Wunused-parameter"
   #endif
-  #include "coin/CoinModel.hpp"
-  #include "coin/OsiClpSolverInterface.hpp"
-  #include "coin/CbcModel.hpp"
-  #include "coin/CbcHeuristic.hpp"
-  #include "coin/CbcHeuristicLocal.hpp"
-  #include "coin/CglGomory.hpp"
-  #include "coin/CglKnapsackCover.hpp"
-  #include "coin/CglOddHole.hpp"
-  #include "coin/CglClique.hpp"
-  #include "coin/CglMixedIntegerRounding.hpp"
+
+  #if COIN_INCLUDE_SUBDIR_IS_COIN == 1
+    #include "coin/CoinModel.hpp"
+    #include "coin/OsiClpSolverInterface.hpp"
+    #include "coin/CbcModel.hpp"
+    #include "coin/CbcHeuristic.hpp"
+    #include "coin/CbcHeuristicLocal.hpp"
+    #include "coin/CglGomory.hpp"
+    #include "coin/CglKnapsackCover.hpp"
+    #include "coin/CglOddHole.hpp"
+    #include "coin/CglClique.hpp"
+    #include "coin/CglMixedIntegerRounding.hpp"
+  #else
+    #include "coin-or/CoinModel.hpp"
+    #include "coin-or/OsiClpSolverInterface.hpp"
+    #include "coin-or/CbcModel.hpp"
+    #include "coin-or/CbcHeuristic.hpp"
+    #include "coin-or/CbcHeuristicLocal.hpp"
+    #include "coin-or/CglGomory.hpp"
+    #include "coin-or/CglKnapsackCover.hpp"
+    #include "coin-or/CglOddHole.hpp"
+    #include "coin-or/CglClique.hpp"
+    #include "coin-or/CglMixedIntegerRounding.hpp"
+  #endif
   #ifdef _MSC_VER
   #pragma warning( pop ) // restore old warning state
   #else
@@ -66,6 +55,7 @@ namespace OpenMS
 {
   LPWrapper::LPWrapper()
   {
+    // note: should this mechanism ever change, also look at TOPP/OpenMSInfo.cpp
 #if COINOR_SOLVER == 1
     solver_ = SOLVER_COINOR;
     model_ = new CoinModel;

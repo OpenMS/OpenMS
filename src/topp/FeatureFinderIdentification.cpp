@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -37,11 +11,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <cstdlib>  // for "rand"
@@ -63,9 +33,9 @@ using namespace std;
    <CENTER>
      <table>
        <tr>
-         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-         <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderIdentification \f$ \longrightarrow \f$</td>
-         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+         <th ALIGN = "center"> pot. predecessor tools </td>
+         <td VALIGN="middle" ROWSPAN=3> &rarr; FeatureFinderIdentification &rarr;</td>
+         <th ALIGN = "center"> pot. successor tools </td>
        </tr>
        <tr>
          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes (optional) </td>
@@ -178,23 +148,23 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file: LC-MS raw data");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML"});
     registerInputFile_("id", "<file>", "", "Input file: Peptide identifications derived directly from 'in'");
-    setValidFormats_("id", ListUtils::create<String>("idXML"));
+    setValidFormats_("id", {"idXML"});
     registerInputFile_("id_ext", "<file>", "", "Input file: 'External' peptide identifications (e.g. from aligned runs)", false);
-    setValidFormats_("id_ext", ListUtils::create<String>("idXML"));
+    setValidFormats_("id_ext", {"idXML"});
     registerOutputFile_("out", "<file>", "", "Output file: Features");
-    setValidFormats_("out", ListUtils::create<String>("featureXML"));
+    setValidFormats_("out", {"featureXML"});
     registerOutputFile_("lib_out", "<file>", "", "Output file: Assay library", false);
-    setValidFormats_("lib_out", ListUtils::create<String>("traML"));
+    setValidFormats_("lib_out", {"traML"});
     registerOutputFile_("chrom_out", "<file>", "", "Output file: Chromatograms", false);
-    setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
+    setValidFormats_("chrom_out", {"mzML"});
     registerOutputFile_("candidates_out", "<file>", "", "Output file: Feature candidates (before filtering and model fitting)", false);
-    setValidFormats_("candidates_out", ListUtils::create<String>("featureXML"));
+    setValidFormats_("candidates_out", {"featureXML"});
     registerInputFile_("candidates_in", "<file>", "",
                        "Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored.",
                        false, true);
-    setValidFormats_("candidates_in", ListUtils::create<String>("featureXML"));
+    setValidFormats_("candidates_in", {"featureXML"});
 
     Param algo_with_subsection;
     Param subsection = FeatureFinderIdentificationAlgorithm().getDefaults();
@@ -231,21 +201,20 @@ protected:
       // load input
       //-------------------------------------------------------------
       OPENMS_LOG_INFO << "Loading input data..." << endl;
-      MzMLFile mzml;
-      mzml.setLogType(log_type_);
+      FileHandler mzml;
       mzml.getOptions().addMSLevel(1);
-      mzml.load(in, ffid_algo.getMSData());
+      mzml.loadExperiment(in, ffid_algo.getMSData(), {FileTypes::MZML}, log_type_);
 
       vector<PeptideIdentification> peptides, peptides_ext;
       vector<ProteinIdentification> proteins, proteins_ext;
 
       // "internal" IDs:
-      IdXMLFile().load(id, proteins, peptides);
+      FileHandler().loadIdentifications(id, proteins, peptides, {FileTypes::IDXML});
 
       // "external" IDs:
       if (!id_ext.empty())
       {
-        IdXMLFile().load(id_ext, proteins_ext, peptides_ext);
+        FileHandler().loadIdentifications(id_ext, proteins_ext, peptides_ext, {FileTypes::IDXML});
       }
 
       //-------------------------------------------------------------
@@ -260,14 +229,14 @@ protected:
       // keep assay data for output?
       if (keep_library)
       {
-        TraMLFile().store(lib_out, ffid_algo.getLibrary());
+        FileHandler().storeTransitions(lib_out, ffid_algo.getLibrary(), {FileTypes::TRAML});
       }
 
       // keep chromatogram data for output?
       if (keep_chromatograms)
       {
         addDataProcessing_(ffid_algo.getChromatograms(), getProcessingInfo_(DataProcessing::FILTERING));
-        MzMLFile().store(chrom_out, ffid_algo.getChromatograms());
+        FileHandler().storeExperiment(chrom_out, ffid_algo.getChromatograms(), {FileTypes::MZML});
         ffid_algo.getChromatograms().clear(true);
       }
 
@@ -279,7 +248,7 @@ protected:
       // load feature candidates
       //-------------------------------------------------------------
       OPENMS_LOG_INFO << "Reading feature candidates from a previous run..." << endl;
-      FeatureXMLFile().load(candidates_in, features);
+      FileHandler().loadFeatures(candidates_in, features, {FileTypes::FEATUREXML});
       OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total." << endl;
       ffid_algo.runOnCandidates(features);
     }
@@ -289,7 +258,7 @@ protected:
     //-------------------------------------------------------------
 
     OPENMS_LOG_INFO << "Writing final results..." << endl;
-    FeatureXMLFile().store(out, features);
+    FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
 
 
     return EXECUTION_OK;

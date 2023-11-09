@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -191,66 +165,65 @@ END_SECTION
 START_SECTION((template < class PeakType > bool loadExperiment(const String &filename, MSExperiment< PeakType > &exp, FileTypes::Type force_type=FileTypes::UNKNOWN, ProgressLogger::LogType log=ProgressLogger::NONE, const bool compute_hash=true)))
 FileHandler tmp;
 PeakMap exp;
-TEST_EQUAL(tmp.loadExperiment("test.bla", exp), false)
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"), exp), true)
+TEST_EXCEPTION(Exception::FileNotFound, tmp.loadExperiment("test.bla", exp))
 
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), exp), true)
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), exp);
 TEST_REAL_SIMILAR(exp[1][0].getPosition()[0], 110)
 TEST_REAL_SIMILAR(exp[1][1].getPosition()[0], 120)
 TEST_REAL_SIMILAR(exp[1][2].getPosition()[0], 130)
 
 // starts with 110, so this one should skip the first
 tmp.getOptions().setMZRange(DRange<1>(115, 1000));
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), exp), true)
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), exp);
 TEST_REAL_SIMILAR(exp[1][0].getPosition()[0], 120)
 TEST_REAL_SIMILAR(exp[1][1].getPosition()[0], 130)
 
 tmp.getOptions() = PeakFileOptions();
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"), exp), true)
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"), exp);
 TEST_REAL_SIMILAR(exp[2][0].getPosition()[0], 100)
 TEST_REAL_SIMILAR(exp[2][1].getPosition()[0], 110)
 TEST_REAL_SIMILAR(exp[2][2].getPosition()[0], 120)
 
 tmp.getOptions().setMZRange(DRange<1>(115, 1000));
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"), exp), true)
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"), exp);
 TEST_REAL_SIMILAR(exp[2][0].getPosition()[0], 120)
 TEST_REAL_SIMILAR(exp[2][1].getPosition()[0], 130)
 TEST_REAL_SIMILAR(exp[2][2].getPosition()[0], 140)
 
 tmp.getOptions() = PeakFileOptions();
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp), true)
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp, {FileTypes::MZML}, OpenMS::ProgressLogger::NONE, true, true);
 TEST_EQUAL(exp.size(), 4)
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "36007593dbca0ba59a1f4fc32fb970f0e8991fa6")
 TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::SHA1)
 
 tmp.getOptions() = PeakFileOptions();
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp), true)
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp);
 TEST_REAL_SIMILAR(exp[0][0].getPosition()[0], 230.02)
 TEST_REAL_SIMILAR(exp[0][1].getPosition()[0], 430.02)
 TEST_REAL_SIMILAR(exp[0][2].getPosition()[0], 630.02)
 
 tmp.getOptions().setMZRange(DRange<1>(300, 1000));
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp), true)
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {FileTypes::DTA2D}, OpenMS::ProgressLogger::NONE, true, true);
 TEST_REAL_SIMILAR(exp[0][0].getPosition()[0], 430.02)
 TEST_REAL_SIMILAR(exp[0][1].getPosition()[0], 630.02)
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "d50d5144cc3805749b9e8d16f3bc8994979d8142")
 TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::SHA1)
 
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("XMassFile_test/fid"), exp), true)
-
 // disable hash computation
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, FileTypes::UNKNOWN, ProgressLogger::NONE, true, false), true)
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {}, ProgressLogger::NONE, true, false);
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "")
 TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::UNKNOWN_CHECKSUM)
+// Test that we fail if given a known bogus type restriction
+TEST_EXCEPTION(Exception::ParseError, tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {FileTypes::SIZE_OF_TYPE}, ProgressLogger::NONE, true, false))
 
-TEST_EXCEPTION(Exception::ParseError, tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"), exp, FileTypes::DTA2D))
 END_SECTION
 
 START_SECTION((static String computeFileHash(const String& filename)))
 PeakMap exp;
 FileHandler tmp;
+// Test that we load with the correct file type restriction
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {FileTypes::DTA2D}, ProgressLogger::NONE, true, true);
 // compute hash
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, FileTypes::UNKNOWN, ProgressLogger::NONE, true, true), true)
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "d50d5144cc3805749b9e8d16f3bc8994979d8142")
 END_SECTION
 
@@ -281,10 +254,10 @@ END_SECTION
 START_SECTION((template <class FeatureType> bool loadFeatures(const String &filename, FeatureMap<FeatureType>&map, FileTypes::Type force_type = FileTypes::UNKNOWN)))
 FileHandler tmp;
 FeatureMap map;
-TEST_EQUAL(tmp.loadFeatures("test.bla", map), false)
-TEST_EQUAL(tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), map), true)
+TEST_EXCEPTION(Exception::FileNotFound, tmp.loadFeatures("test.bla", map))
+tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), map);
 TEST_EQUAL(map.size(), 7);
-TEST_EQUAL(tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), map), true)
+tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), map);
 TEST_EQUAL(map.size(), 7);
 END_SECTION
 
@@ -294,10 +267,13 @@ PeakMap exp;
 fh.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
 
 //test mzML
-String filename;
-NEW_TMP_FILE(filename)
-fh.storeExperiment(filename, exp);
+String filename, filename2;
+NEW_TMP_FILE_EXT(filename, ".mzML");
+fh.storeExperiment(filename, exp, {FileTypes::MZML}, ProgressLogger::NONE);
 TEST_EQUAL(fh.getTypeByContent(filename), FileTypes::MZML)
+
+//Test that we throw an exception when given a bogus type restriction
+TEST_EXCEPTION(Exception::InvalidFileType, fh.storeExperiment(filename, exp, {FileTypes::SIZE_OF_TYPE}))
 
 //other types cannot be tested, because the NEW_TMP_FILE template does not support file extensions...
 END_SECTION

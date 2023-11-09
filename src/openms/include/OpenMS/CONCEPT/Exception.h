@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -34,12 +8,11 @@
 
 #pragma once
 
-#include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/CONCEPT/Types.h>
-
+#include <OpenMS/OpenMSConfig.h>
 #include <iosfwd>
-#include <string>
 #include <stdexcept>
+#include <string>
 
 namespace OpenMS
 {
@@ -86,13 +59,11 @@ namespace OpenMS
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI BaseException :
-      public std::runtime_error
+    class OPENMS_DLLAPI BaseException : public std::runtime_error
     {
-public:
-
+    public:
       /**	@name	Constructors and Destructors
-      */
+       */
       //@{
 
       /// Default constructor
@@ -112,7 +83,7 @@ public:
       //@}
 
       /**	@name	Accessors
-      */
+       */
       //@{
 
       /// Returns the name of the exception
@@ -132,8 +103,7 @@ public:
 
       //@}
 
-protected:
-
+    protected:
       /// The source file the exception was thrown in
       const char* file_;
 
@@ -154,11 +124,10 @@ protected:
 
         @ingroup Exceptions
     */
-    class OPENMS_DLLAPI Precondition :
-      public BaseException
+    class OPENMS_DLLAPI Precondition : public BaseException
     {
-public:
-      Precondition(const char* file, int line, const char* function, const std::string& condition)  noexcept;
+    public:
+      Precondition(const char* file, int line, const char* function, const std::string& condition) noexcept;
     };
 
     /**
@@ -168,10 +137,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI Postcondition :
-      public BaseException
+    class OPENMS_DLLAPI Postcondition : public BaseException
     {
-public:
+    public:
       Postcondition(const char* file, int line, const char* function, const std::string& condition) noexcept;
     };
 
@@ -183,10 +151,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI MissingInformation :
-      public BaseException
+    class OPENMS_DLLAPI MissingInformation : public BaseException
     {
-public:
+    public:
       MissingInformation(const char* file, int line, const char* function, const std::string& error_message) noexcept;
     };
 
@@ -204,10 +171,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI IndexUnderflow :
-      public BaseException
+    class OPENMS_DLLAPI IndexUnderflow : public BaseException
     {
-public:
+    public:
       IndexUnderflow(const char* file, int line, const char* function, SignedSize index = 0, Size size = 0) noexcept;
     };
 
@@ -223,10 +189,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI SizeUnderflow :
-      public BaseException
+    class OPENMS_DLLAPI SizeUnderflow : public BaseException
     {
-public:
+    public:
       SizeUnderflow(const char* file, int line, const char* function, Size size = 0) noexcept;
     };
 
@@ -242,10 +207,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI IndexOverflow :
-      public BaseException
+    class OPENMS_DLLAPI IndexOverflow : public BaseException
     {
-public:
+    public:
       IndexOverflow(const char* file, int line, const char* function, SignedSize index = 0, Size size = 0) noexcept;
     };
 
@@ -259,10 +223,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI FailedAPICall :
-      public BaseException
+    class OPENMS_DLLAPI FailedAPICall : public BaseException
     {
-public:
+    public:
       FailedAPICall(const char* file, int line, const char* function, const std::string& message) noexcept;
     };
 
@@ -273,10 +236,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI InvalidRange :
-      public BaseException
+    class OPENMS_DLLAPI InvalidRange : public BaseException
     {
-public:
+    public:
       InvalidRange(const char* file, int line, const char* function) noexcept;
       InvalidRange(const char* file, int line, const char* function, const std::string& message) noexcept;
     };
@@ -292,10 +254,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI InvalidSize :
-      public BaseException
+    class OPENMS_DLLAPI InvalidSize : public BaseException
     {
-public:
+    public:
       InvalidSize(const char* file, int line, const char* function, Size size = 0) noexcept;
     };
 
@@ -308,10 +269,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI OutOfRange :
-      public BaseException
+    class OPENMS_DLLAPI OutOfRange : public BaseException
     {
-public:
+    public:
       OutOfRange(const char* file, int line, const char* function) noexcept;
     };
 
@@ -324,10 +284,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI InvalidValue :
-      public BaseException
+    class OPENMS_DLLAPI InvalidValue : public BaseException
     {
-public:
+    public:
       InvalidValue(const char* file, int line, const char* function, const std::string& message, const std::string& value) noexcept;
     };
 
@@ -336,10 +295,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI InvalidParameter :
-      public BaseException
+    class OPENMS_DLLAPI InvalidParameter : public BaseException
     {
-public:
+    public:
       InvalidParameter(const char* file, int line, const char* function, const std::string& message) noexcept;
     };
 
@@ -351,10 +309,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI ConversionError :
-      public BaseException
+    class OPENMS_DLLAPI ConversionError : public BaseException
     {
-public:
+    public:
       ConversionError(const char* file, int line, const char* function, const std::string& error) noexcept;
     };
 
@@ -367,10 +324,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI IllegalSelfOperation :
-      public BaseException
+    class OPENMS_DLLAPI IllegalSelfOperation : public BaseException
     {
-public:
+    public:
       IllegalSelfOperation(const char* file, int line, const char* function) noexcept;
     };
 
@@ -382,10 +338,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI NullPointer :
-      public BaseException
+    class OPENMS_DLLAPI NullPointer : public BaseException
     {
-public:
+    public:
       NullPointer(const char* file, int line, const char* function) noexcept;
     };
 
@@ -396,10 +351,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI InvalidIterator :
-      public BaseException
+    class OPENMS_DLLAPI InvalidIterator : public BaseException
     {
-public:
+    public:
       InvalidIterator(const char* file, int line, const char* function) noexcept;
     };
 
@@ -411,10 +365,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI IncompatibleIterators :
-      public BaseException
+    class OPENMS_DLLAPI IncompatibleIterators : public BaseException
     {
-public:
+    public:
       IncompatibleIterators(const char* file, int line, const char* function) noexcept;
     };
 
@@ -425,10 +378,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI NotImplemented :
-      public BaseException
+    class OPENMS_DLLAPI NotImplemented : public BaseException
     {
-public:
+    public:
       NotImplemented(const char* file, int line, const char* function) noexcept;
     };
 
@@ -439,10 +391,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI IllegalTreeOperation :
-      public BaseException
+    class OPENMS_DLLAPI IllegalTreeOperation : public BaseException
     {
-public:
+    public:
       IllegalTreeOperation(const char* file, int line, const char* function) noexcept;
     };
 
@@ -456,10 +407,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI OutOfMemory :
-      public BaseException, public std::bad_alloc
+    class OPENMS_DLLAPI OutOfMemory : public BaseException, public std::bad_alloc
     {
-public:
+    public:
       OutOfMemory(const char* file, int line, const char* function, Size size = 0) noexcept;
     };
 
@@ -468,10 +418,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI BufferOverflow :
-      public BaseException
+    class OPENMS_DLLAPI BufferOverflow : public BaseException
     {
-public:
+    public:
       BufferOverflow(const char* file, int line, const char* function) noexcept;
     };
 
@@ -480,10 +429,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI DivisionByZero :
-      public BaseException
+    class OPENMS_DLLAPI DivisionByZero : public BaseException
     {
-public:
+    public:
       DivisionByZero(const char* file, int line, const char* function) noexcept;
     };
 
@@ -492,10 +440,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI OutOfGrid :
-      public BaseException
+    class OPENMS_DLLAPI OutOfGrid : public BaseException
     {
-public:
+    public:
       OutOfGrid(const char* file, int line, const char* function) noexcept;
     };
 
@@ -506,10 +453,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI FileNotFound :
-      public BaseException
+    class OPENMS_DLLAPI FileNotFound : public BaseException
     {
-public:
+    public:
       FileNotFound(const char* file, int line, const char* function, const std::string& filename) noexcept;
     };
 
@@ -520,10 +466,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI FileNotReadable :
-      public BaseException
+    class OPENMS_DLLAPI FileNotReadable : public BaseException
     {
-public:
+    public:
       FileNotReadable(const char* file, int line, const char* function, const std::string& filename) noexcept;
     };
 
@@ -534,23 +479,21 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI FileNotWritable :
-      public BaseException
+    class OPENMS_DLLAPI FileNotWritable : public BaseException
     {
-public:
+    public:
       FileNotWritable(const char* file, int line, const char* function, const std::string& filename) noexcept;
     };
 
     /**
     @brief Filename is too long to be writable/readable by the filesystem
 
-    This exception usually occurs when output filenames are automatically generated 
+    This exception usually occurs when output filenames are automatically generated
     and are found to be too long. Usually 255 characters is the limit (NTFS, Ext2/3/4,...).
 
     @ingroup Exceptions
     */
-    class OPENMS_DLLAPI FileNameTooLong :
-      public BaseException
+    class OPENMS_DLLAPI FileNameTooLong : public BaseException
     {
     public:
       FileNameTooLong(const char* file, int line, const char* function, const std::string& filename, int max_length) noexcept;
@@ -563,10 +506,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI IOException :
-      public BaseException
+    class OPENMS_DLLAPI IOException : public BaseException
     {
-public:
+    public:
       IOException(const char* file, int line, const char* function, const std::string& filename) noexcept;
     };
 
@@ -577,11 +519,10 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI SqlOperationFailed :
-      public BaseException
+    class OPENMS_DLLAPI SqlOperationFailed : public BaseException
     {
-public:
-      SqlOperationFailed(const char* file, int line, const char* function, const std::string& description)  noexcept;
+    public:
+      SqlOperationFailed(const char* file, int line, const char* function, const std::string& description) noexcept;
     };
 
     /**
@@ -591,10 +532,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI FileEmpty :
-      public BaseException
+    class OPENMS_DLLAPI FileEmpty : public BaseException
     {
-public:
+    public:
       FileEmpty(const char* file, int line, const char* function, const std::string& filename) noexcept;
     };
 
@@ -605,10 +545,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI IllegalPosition :
-      public BaseException
+    class OPENMS_DLLAPI IllegalPosition : public BaseException
     {
-public:
+    public:
       IllegalPosition(const char* file, int line, const char* function, float x, float y, float z) noexcept;
     };
 
@@ -619,10 +558,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI ParseError :
-      public BaseException
+    class OPENMS_DLLAPI ParseError : public BaseException
     {
-public:
+    public:
       ParseError(const char* file, int line, const char* function, const std::string& expression, const std::string& message) noexcept;
     };
 
@@ -633,11 +571,23 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI UnableToCreateFile :
-      public BaseException
+    class OPENMS_DLLAPI UnableToCreateFile : public BaseException
     {
-public:
+    public:
       UnableToCreateFile(const char* file, int line, const char* function, const std::string& filename, const std::string& message = "") noexcept;
+    };
+
+    /**
+      @brief Invalid file type exception.
+
+      The file type specification is not valid.
+
+      @ingroup Exceptions
+    */
+    class OPENMS_DLLAPI InvalidFileType : public BaseException
+    {
+    public:
+      InvalidFileType(const char* file, int line, const char* function, const std::string& filename, const std::string& message = "") noexcept;
     };
 
     /**
@@ -645,10 +595,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI IllegalArgument :
-      public BaseException
+    class OPENMS_DLLAPI IllegalArgument : public BaseException
     {
-public:
+    public:
       IllegalArgument(const char* file, int line, const char* function, const std::string& error_message) noexcept;
     };
 
@@ -657,8 +606,7 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI InternalToolError :
-      public BaseException
+    class OPENMS_DLLAPI InternalToolError : public BaseException
     {
     public:
       InternalToolError(const char* file, int line, const char* function, const std::string& error_message) noexcept;
@@ -671,10 +619,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI ElementNotFound :
-      public BaseException
+    class OPENMS_DLLAPI ElementNotFound : public BaseException
     {
-public:
+    public:
       ElementNotFound(const char* file, int line, const char* function, const std::string& element) noexcept;
     };
 
@@ -685,10 +632,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI UnableToFit :
-      public BaseException
+    class OPENMS_DLLAPI UnableToFit : public BaseException
     {
-public:
+    public:
       UnableToFit(const char* file, int line, const char* function, const std::string& name, const std::string& message) noexcept;
     };
 
@@ -700,10 +646,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI UnableToCalibrate :
-      public BaseException
+    class OPENMS_DLLAPI UnableToCalibrate : public BaseException
     {
-public:
+    public:
       UnableToCalibrate(const char* file, int line, const char* function, const std::string& name, const std::string& message) noexcept;
     };
 
@@ -714,10 +659,9 @@ public:
 
       @ingroup Exceptions
     */
-    class OPENMS_DLLAPI DepletedIDPool :
-      public BaseException
+    class OPENMS_DLLAPI DepletedIDPool : public BaseException
     {
-public:
+    public:
       DepletedIDPool(const char* file, int line, const char* function, const std::string& name, const std::string& message) noexcept;
     };
 
@@ -746,5 +690,4 @@ public:
   */
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Exception::BaseException& e);
 
-} // namespace OPENMS
-
+} // namespace OpenMS

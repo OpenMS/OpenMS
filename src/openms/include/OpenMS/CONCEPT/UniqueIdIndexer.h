@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -53,17 +27,19 @@
 namespace OpenMS
 {
 
-/**@brief A base class for random access containers for classes derived from UniqueIdInterface
- * that adds functionality to convert a unique id into an index into the container.
+/**@brief A base class for containers with elements derived from UniqueIdInterface.
+ * This adds functionality to convert a unique id into an index into the container.
+ * 
+ * The derived class needs a data member called @p data_ which holds the actual elements derived from UniqueIdInterface.
+ * This is classical CRTP with the additional requirement that the derived class needs to declare a .getData() member function.
  *
  * See FeatureMap and ConsensusMap for living examples.
- * The RandomAccessContainer must support operator[], at(), and size().
+ * The RandomAccessContainer returned by .getData() must support operator[], at(), and size().
  */
-  template <typename RandomAccessContainer>
+  template<typename T>
   class UniqueIdIndexer
   {
 public:
-
     typedef std::unordered_map<UInt64, Size> UniqueIdMap;
 
     /**
@@ -207,23 +183,19 @@ public:
 protected:
 
     /**@brief A little helper to get access to the base (!) class RandomAccessContainer.
-     *
-     * This is just a static_cast and probably not interesting elsewhere, so we make it a protected member.
      */
-    const RandomAccessContainer &
-    getBase_() const
+    const auto& getBase_() const
     {
-      return *static_cast<const RandomAccessContainer *>(this);
+      const T& derived = static_cast<const T&>(*this);  // using CRTP
+      return derived.getData();
     }
 
     /**@brief A little helper to get access to the base (!) class RandomAccessContainer.
-     *
-     * This is just a static_cast and probably not interesting elsewhere, so we make it a protected member.
      */
-    RandomAccessContainer &
-    getBase_()
+    auto& getBase_()
     {
-      return *static_cast<RandomAccessContainer *>(this);
+      T& derived = static_cast<T&>(*this);  // using CRTP
+      return derived.getData();
     }
 
     /**@brief hash map from unique id to index of features

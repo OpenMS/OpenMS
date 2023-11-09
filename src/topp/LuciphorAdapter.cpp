@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Petra Gutenbrunner, Oliver Alka $
@@ -40,9 +14,7 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
@@ -65,9 +37,9 @@
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ LuciphorAdapter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; LuciphorAdapter &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter</td>
@@ -98,7 +70,7 @@ class LuciphorAdapter :
 {
 public:
   LuciphorAdapter() :
-    TOPPBase("LuciphorAdapter", "Modification site localisation using LuciPHOr2.", true),
+    TOPPBase("LuciphorAdapter", "Modification site localisation using LuciPHOr2."),
     // parameter choices (the order of the values must be the same as in the LuciPHOr2 parameters!):
     fragment_methods_(ListUtils::create<String>("CID,HCD")),
     fragment_error_units_(ListUtils::create<String>("Da,ppm")),
@@ -507,19 +479,17 @@ protected:
     vector<ProteinIdentification> prot_ids;
 
     PeakMap exp;
-    MzMLFile file;
-    file.setLogType(log_type_);
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(2);
 
-    file.load(in, exp);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
     exp.sortSpectra(true);
 
     // convert idXML input to pepXML if necessary
     if (in_type == FileTypes::IDXML)
     {
-      IdXMLFile().load(id, prot_ids, pep_ids);
+      FileHandler().loadIdentifications(id, prot_ids, pep_ids, {FileTypes::IDXML});
       if (!pep_ids.empty())
       {
         IDFilter::keepNBestHits(pep_ids, 1); // LuciPHOR2 only calculates the best hit
@@ -614,7 +584,7 @@ protected:
     for (PeptideIdentification& pep : pep_ids)
     {
       Size scan_idx;
-      const String& ID_native_ids = pep.getMetaValue("spectrum_reference");
+      const String& ID_native_ids = pep.getSpectrumReference();
       try
       {
         scan_idx = lookup.findByNativeID(ID_native_ids);
@@ -676,7 +646,7 @@ protected:
     {
       p.getSearchParameters().setMetaValue(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM, getStringList_("target_modifications"));
     }
-    IdXMLFile().store(out, prot_ids, pep_out);
+    FileHandler().storeIdentifications(out, prot_ids, pep_out, {FileTypes::IDXML});
 
     return EXECUTION_OK;
   }

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -37,7 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/EDTAFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
@@ -45,7 +19,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/SYSTEM/File.h>
-
+#include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
 #include <functional>
 #include <numeric>
 
@@ -64,9 +38,9 @@ using namespace std;
 <CENTER>
 <table>
     <tr>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ EICExtractor \f$ \longrightarrow \f$</td>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        <th ALIGN = "center"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=2> &rarr; EICExtractor &rarr;</td>
+        <th ALIGN = "center"> pot. successor tools </td>
     </tr>
     <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter</td>
@@ -118,6 +92,7 @@ as well as RT delta (in [s]) and m/z delta (in ppm) from the expected position a
   mzobs - m/z position of the quantified entity
   dppm  - m/z delta (in parts-per-million) to the input m/z value (as specified in input file) intensity quantification (height of centroided peak); this is an average over multiple scans, thus does usually not correspond to the maximum peak ppm
   intensity
+  area  - area of EIC (trapezoid integration)
  </pre>
 
   Each input experiment gives rise to the two RT and mz columns plus additional five columns (starting from RTobs) for each input file.
@@ -257,22 +232,32 @@ public:
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    MzMLFile mzml_file;
-    mzml_file.setLogType(log_type_);
+    FileHandler mzml_file;
+    PeakFileOptions options;
+    options.clearMSLevels();
+    options.addMSLevel(1);
+    mzml_file.getOptions() = options;
+      
     PeakMap exp, exp_pp;
 
-    EDTAFile ed;
+    FileHandler ed;
     ConsensusMap cm;
-    ed.load(edta, cm);
+    ed.loadConsensusFeatures(edta, cm);
 
     StringList tf_single_header0, tf_single_header1, tf_single_header2; // header content, for each column
 
     std::vector<String> vec_single; // one line for each compound, multiple columns per experiment
     vec_single.resize(cm.size());
+
+    PeakIntegrator peak_integrator; // for raw signal integration
+    auto pi_param = peak_integrator.getDefaults();
+    pi_param.setValue("integration_type", "trapezoid");
+    peak_integrator.setParameters(pi_param);
+
     for (Size fi = 0; fi < in.size(); ++fi)
     {
       // load raw data
-      mzml_file.load(in[fi], exp);
+      mzml_file.loadExperiment(in[fi], exp, {FileTypes::MZML}, log_type_);
       exp.sortSpectra(true);
 
       if (exp.empty())
@@ -350,7 +335,7 @@ public:
           // get rid of "native-id" missing warning
           for (Size id = 0; id < out_debug.size(); ++id) out_debug[id].setNativeID(String("spectrum=") + id);
 
-          mzml_file.store(out_TIC_debug, out_debug);
+          mzml_file.storeExperiment(out_TIC_debug, out_debug,{FileTypes::MZML});
           OPENMS_LOG_DEBUG << "Storing debug AUTO-RT: " << out_TIC_debug << std::endl;
         }
 
@@ -413,9 +398,9 @@ public:
       }
 
       // 5 entries for each input file
-      tf_single_header0 << File::basename(in[fi]) << "" << "" << "" << "";
-      tf_single_header1 << description << "" << "" << "" << "";
-      tf_single_header2 << "RTobs" << "dRT" << "mzobs" << "dppm" << "intensity";
+      tf_single_header0 << File::basename(in[fi]) << "" << "" << "" << "" << "";
+      tf_single_header1 << description << "" << "" << "" << "" << "";
+      tf_single_header2 << "RTobs" << "dRT" << "mzobs" << "dppm" << "intensity" << "area";
       for (Size i = 0; i < cm.size(); ++i)
       {
         //std::cerr << "Rt" << cm[i].getRT() << "  mz: " << cm[i].getMZ() << " R " <<  cm[i].getMetaValue("rank") << "\n";
@@ -429,15 +414,35 @@ public:
         max_peak.setIntensity(0);
         max_peak.setRT(cm[i].getRT());
         max_peak.setMZ(cm[i].getMZ());
+
+        map<double, double> rt_highest;
         for (; it != exp.areaEndConst(); ++it)
         {
+          // extract intensity of highest peak
           if (max_peak.getIntensity() < it->getIntensity())
           {
             max_peak.setIntensity(it->getIntensity());
             max_peak.setRT(it.getRT());
             max_peak.setMZ(it->getMZ());
           }
+          // take maximum only for each RT
+          if (rt_highest[it.getRT()] < it->getIntensity()) rt_highest[it.getRT()] = it->getIntensity();
         }
+
+        // copy to EIC for area integration
+        MSChromatogram eic;
+        eic.reserve(rt_highest.size());
+        for (const auto& rt_int : rt_highest)
+        {
+          ChromatogramPeak p;
+          p.setRT(rt_int.first);
+          p.setIntensity(rt_int.second);
+          // std::cout << rt_int.first << "\t" << rt_int.second << std::endl; // for debugging. output a single chromatogram
+          eic.push_back(std::move(p));
+        }
+
+        PeakIntegrator::PeakArea peak_area = peak_integrator.integratePeak(eic, max_peak.getRT() - rttol / 2, max_peak.getRT() + rttol / 2);
+
         double ppm = 0; // observed m/z offset
 
         if (max_peak.getIntensity() == 0)
@@ -481,8 +486,9 @@ public:
         vec_single[i] += String(max_peak.getRT()) + out_sep +
                          String(max_peak.getRT() - cm[i].getRT()) + out_sep +
                          String(max_peak.getMZ()) + out_sep +
-                         String(ppm)  + out_sep +
-                         String(max_peak.getIntensity());
+                         String(ppm) + out_sep +
+                         String(max_peak.getIntensity()) + out_sep +
+                         String(peak_area.area);
       }
 
       if (not_found)
@@ -502,9 +508,9 @@ public:
     // writing output
     //-------------------------------------------------------------
     TextFile tf;
-    for (std::vector<String>::iterator v_it = vec_single.begin(); v_it != vec_single.end(); ++v_it)
+    for (const auto& v : vec_single)
     {
-      tf.addLine(*v_it);
+      tf.addLine(v);
     }
     tf.store(out);
 

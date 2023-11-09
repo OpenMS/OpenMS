@@ -6,9 +6,9 @@ from ProgressLogger cimport *
 cdef extern from "<OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>" namespace "OpenMS":
     
     cdef cppclass AverageLinkage "OpenMS::AverageLinkage":
-        AverageLinkage() nogil except +
-        AverageLinkage(AverageLinkage &) nogil except +
-        # void operator()(DistanceMatrix[ float ] &original_distance, libcpp_vector[ BinaryTreeNode ] &cluster_tree, float threshold) nogil except +
-        # ClusterFunctor * create() nogil except +
-        String getProductName() nogil except +
+        AverageLinkage() except + nogil 
+        AverageLinkage(AverageLinkage &) except + nogil 
+        # void operator()(DistanceMatrix[ float ] &original_distance, libcpp_vector[ BinaryTreeNode ] &cluster_tree, float threshold) except + nogil 
+        # ClusterFunctor * create() except + nogil 
+        String getProductName() except + nogil 
 

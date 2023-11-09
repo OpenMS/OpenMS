@@ -1336,32 +1336,6 @@ def testFeatureFinderAlgorithmIsotopeWavelet():
     assert ff.getName() == "test"
 
 @report
-def testCompNovoIdentification():
-    """
-    @tests: CompNovoIdentification
-     CompNovoIdentification.__init__
-    """
-    ff = pyopenms.CompNovoIdentification()
-    p = ff.getDefaults()
-    _testParam(p)
-
-    assert pyopenms.CompNovoIdentification().getIdentification is not None
-    assert pyopenms.CompNovoIdentification().getIdentifications is not None
-
-@report
-def testCompNovoIdentificationCID():
-    """
-    @tests: CompNovoIdentificationCID
-     CompNovoIdentificationCID.__init__
-    """
-    ff = pyopenms.CompNovoIdentificationCID()
-    p = ff.getDefaults()
-    _testParam(p)
-
-    assert pyopenms.CompNovoIdentificationCID().getIdentification is not None
-    assert pyopenms.CompNovoIdentificationCID().getIdentifications is not None
-
-@report
 def testExperimentalSettings():
     """
     @tests: ExperimentalSettings
@@ -1509,17 +1483,6 @@ def testProteinResolver():
     assert pyopenms.ProteinResolver().resolveID is not None
     assert pyopenms.ProteinResolver().setProteinData is not None
     assert pyopenms.ProteinResolver().getResults is not None
-
-@report
-def testSvmTheoreticalSpectrumGeneratorTrainer():
-    """
-    @tests: SvmTheoreticalSpectrumGeneratorTrainer
-     SvmTheoreticalSpectrumGeneratorTrainer.__init__
-    """
-    ff = pyopenms.SvmTheoreticalSpectrumGeneratorTrainer()
-
-    assert pyopenms.SvmTheoreticalSpectrumGeneratorTrainer().trainModel is not None
-    assert pyopenms.SvmTheoreticalSpectrumGeneratorTrainer().normalizeIntensity is not None
 
 @report
 def testPosteriorErrorProbabilityModel():
@@ -1730,16 +1693,6 @@ def testProteaseDigestion():
 
     #ff.setEnzyme(enz.TRYPSIN)
     #assert ff.getEnzyme() == enz.TRYPSIN
-
-@report
-def testEnzymaticDigestionLogModel():
-    ff = pyopenms.EnzymaticDigestionLogModel()
-    assert pyopenms.EnzymaticDigestionLogModel().getLogThreshold is not None
-    assert pyopenms.EnzymaticDigestionLogModel().setLogThreshold is not None
-    assert pyopenms.EnzymaticDigestionLogModel().digest is not None
-    assert pyopenms.EnzymaticDigestionLogModel().peptideCount is not None
-    ff.setLogThreshold(0.25)
-    assert ff.getLogThreshold() == 0.25
 
 @report
 def testIDDecoyProbability():
@@ -1954,13 +1907,13 @@ def testFeatureXMLFile():
     assert fm.get_df(meta_values='all', export_peptide_identifications=False).shape == (2, 12)
 
     assert pd.merge(fm.get_df(), pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications()),
-                on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (2,22)
+                on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (2,24)
 
     fm = pyopenms.FeatureMap()
     pyopenms.FeatureXMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_idmapped.featureXML'), fm)
 
     assert pd.merge(fm.get_df(), pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications()),
-                    on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (15,24)
+                    on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (15,26)
 
     fh = pyopenms.FeatureXMLFile()
     fh.store("test.featureXML", fm)
@@ -2077,6 +2030,7 @@ def testIdXMLFile():
 
 @report
 def test_peptide_identifications_to_df():
+    # convert to dataframe
     peps = []
 
     p = pyopenms.PeptideIdentification()
@@ -2113,10 +2067,16 @@ def test_peptide_identifications_to_df():
 
     peps.append(p1)
 
-    assert pyopenms.peptide_identifications_to_df(peps).shape == (2,10)
-    assert pyopenms.peptide_identifications_to_df(peps, decode_ontology=False).shape == (2,10)
+    assert pyopenms.peptide_identifications_to_df(peps).shape == (2,12)
+    assert pyopenms.peptide_identifications_to_df(peps, decode_ontology=False).shape == (2,12)
     assert pyopenms.peptide_identifications_to_df(peps)['protein_accession'][0] == 'sp|Accession1,sp|Accession2'
-    assert pyopenms.peptide_identifications_to_df(peps, export_unidentified=False).shape == (1,10)
+    assert pyopenms.peptide_identifications_to_df(peps, export_unidentified=False).shape == (1,12)
+
+    # update from dataframe
+    df = pyopenms.peptide_identifications_to_df(peps)
+    df["ScoreType"][0] = 10.0
+    peps = pyopenms.update_scores_from_df(peps, df, "ScoreType")
+    assert peps[0].getHits()[0].getScore() == 10.0
 
 @report
 def testPepXMLFile():
@@ -2770,11 +2730,16 @@ def testMSExperiment():
     pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)
 
     ms1_df, ms2_df = exp.get_massql_df()
-
     assert ms1_df.shape == (140055, 7)
-
     assert np.allclose(ms2_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS2_MassQL.tsv'), sep='\t'))
 
+    pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_ION.mzML'), exp)
+    df = exp.get_ion_df()
+    assert np.allclose(df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS1_ION.tsv'), sep='\t'))
+
+    ms1_df, ms2_df = exp.get_massql_df(ion_mobility=True)
+    assert ms1_df.shape == (332620, 8)
+    assert np.allclose(ms1_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS1_MassQL_ION.tsv'), sep='\t'))
 
 @report
 def testMSQuantifications():
@@ -3892,14 +3857,14 @@ def testMRMMapping():
     assert o.getNrChromatograms() == 0 # not so easy to test
 
 @report
-def testPeakPickerMRM():
+def testPeakPickerChromatogram():
     """
-    @tests: PeakPickerMRM
-     PeakPickerMRM.__init__
-     PeakPickerMRM.pickChromatogram
+    @tests: PeakPickerChromatogram
+     PeakPickerChromatogram.__init__
+     PeakPickerChromatogram.pickChromatogram
     """
 
-    p = pyopenms.PeakPickerMRM()
+    p = pyopenms.PeakPickerChromatogram()
     assert p.pickChromatogram is not None
 
 @report

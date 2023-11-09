@@ -1,51 +1,29 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Authors: Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/FORMAT/OMSFileStore.h>
 
 #include <QtCore/QJsonArray> // for JSON export
-#include <QString>
-#include <QStringList> // avoid compiler error on initialization using init. list
 
-class QSqlQuery;
+namespace SQLite
+{
+  class Database;
+} // namespace SQLite
 
 namespace OpenMS
 {
+  class FeatureMap;
+  class ConsensusMap;
+
   namespace Internal
   {
     /*!
@@ -56,7 +34,7 @@ namespace OpenMS
     class OMSFileLoad: public ProgressLogger
     {
     public:
-      using Key = qint64; ///< Type used for database keys
+      using Key = OMSFileStore::Key; ///< Type used for database keys
 
       /*!
         @brief Constructor
@@ -83,76 +61,125 @@ namespace OpenMS
       /// Load data from database and populate a FeatureMap object
       void load(FeatureMap& features);
 
+      /// Load data from database and populate a ConsensusMap object
+      void load(ConsensusMap& consensus);
+
       /// Export database contents in JSON format, write to stream
       void exportToJSON(std::ostream& output);
 
     private:
+      /// Does the @p query contain an empty SQL statement (signifying that it shouldn't be executed)?
+      static bool isEmpty_(const SQLite::Statement& query);
+
+      /// Generate a DataValue with information returned by an SQL query
+      static DataValue makeDataValue_(const SQLite::Statement& query);
+
       // static CVTerm loadCVTerm_(int id);
 
+      /// Load information on score type from the database into IdentificationData
       void loadScoreTypes_(IdentificationData& id_data);
 
+      /// Load information on input files from the database into IdentificationData
       void loadInputFiles_(IdentificationData& id_data);
 
+      /// Load information on data processing software from the database into IdentificationData
       void loadProcessingSoftwares_(IdentificationData& id_data);
 
+      /// Load information on sequence database search parameters from the database into IdentificationData
       void loadDBSearchParams_(IdentificationData& id_data);
 
+      /// Load information on data processing steps from the database into IdentificationData
       void loadProcessingSteps_(IdentificationData& id_data);
 
+      /// Load information on observations (e.g. spectra) from the database into IdentificationData
       void loadObservations_(IdentificationData& id_data);
 
+      /// Load information on parent sequences (e.g. proteins) from the database into IdentificationData
       void loadParentSequences_(IdentificationData& id_data);
 
+      /// Load information on parent group sets (e.g. protein groups) from the database into IdentificationData
       void loadParentGroupSets_(IdentificationData& id_data);
 
+      /// Load information on identified compounds from the database into IdentificationData
       void loadIdentifiedCompounds_(IdentificationData& id_data);
 
+      /// Load information on identified sequences (peptides or oligonucleotides) from the database into IdentificationData
       void loadIdentifiedSequences_(IdentificationData& id_data);
 
+      /// Load information on adducts from the database into IdentificationData
       void loadAdducts_(IdentificationData& id_data);
 
+      /// Load information on observation matches (e.g. PSMs) from the database into IdentificationData
       void loadObservationMatches_(IdentificationData& id_data);
 
+      /// Helper function for loading meta data on feature/consensus maps from the database
+      template <class MapType> String loadMapMetaDataTemplate_(MapType& features);
+
+      /// Load feature map meta data from the database
       void loadMapMetaData_(FeatureMap& features);
 
-      void loadDataProcessing_(FeatureMap& features);
+      /// Load consensus map meta data from the database
+      void loadMapMetaData_(ConsensusMap& consensus);
 
+      /// Load information on data processing for feature/consensus maps from the database
+      void loadDataProcessing_(std::vector<DataProcessing>& data_processing);
+
+      /// Load information on features from the database into a feature map
       void loadFeatures_(FeatureMap& features);
 
-      Feature loadFeatureAndSubordinates_(QSqlQuery& query_feat,
-                                          std::optional<QSqlQuery>& query_meta,
-                                          std::optional<QSqlQuery>& query_hull,
-                                          std::optional<QSqlQuery>& query_match);
+      /// Generate a feature (incl. subordinate features) from data returned by SQL queries
+      Feature loadFeatureAndSubordinates_(SQLite::Statement& query_feat,
+                                          SQLite::Statement& query_meta,
+                                          SQLite::Statement& query_match,
+                                          SQLite::Statement& query_hull);
 
-      static DataValue makeDataValue_(const QSqlQuery& query);
+      /// Load consensus map column headers from the database
+      void loadConsensusColumnHeaders_(ConsensusMap& consensus);
 
-      bool prepareQueryMetaInfo_(QSqlQuery& query, const String& parent_table);
+      /// Load information on consensus features from the database into a consensus map
+      void loadConsensusFeatures_(ConsensusMap& consensus);
 
-      void handleQueryMetaInfo_(QSqlQuery& query, MetaInfoInterface& info,
+      /// Generate a BaseFeature (parent class) from data returned by SQL queries
+      BaseFeature makeBaseFeature_(int id, SQLite::Statement& query_feat,
+                                   SQLite::Statement& query_meta,
+                                   SQLite::Statement& query_match);
+
+      /// Prepare SQL queries for loading (meta) data on BaseFeatures from the database
+      void prepareQueriesBaseFeature_(SQLite::Statement& query_meta,
+                                      SQLite::Statement& query_match);
+
+      /// Prepare SQL query for loading meta values associated with a particular class (stored in @p parent_table)
+      bool prepareQueryMetaInfo_(SQLite::Statement& query, const String& parent_table);
+
+      /// Store results from an SQL query on meta values in a MetaInfoInterface(-derived) object
+      void handleQueryMetaInfo_(SQLite::Statement& query, MetaInfoInterface& info,
                                 Key parent_id);
 
-      bool prepareQueryAppliedProcessingStep_(QSqlQuery& query,
+      /// Prepare SQL query for loading processing metadata associated with a particular class (stored in @p parent_table)
+      bool prepareQueryAppliedProcessingStep_(SQLite::Statement& query,
                                               const String& parent_table);
 
+      /// Store results from an SQL query on processing metadata in a ScoredProcessingResult(-derived) object
       void handleQueryAppliedProcessingStep_(
-        QSqlQuery& query,
+        SQLite::Statement& query,
         IdentificationDataInternal::ScoredProcessingResult& result,
         Key parent_id);
 
+      /// Store results from an SQL query on parent matches
       void handleQueryParentMatch_(
-        QSqlQuery& query, IdentificationData::ParentMatches& parent_matches,
+        SQLite::Statement& query, IdentificationData::ParentMatches& parent_matches,
         Key molecule_id);
 
+      /// Store results from an SQL query on peak annotations in an observation match
       void handleQueryPeakAnnotation_(
-        QSqlQuery& query, IdentificationData::ObservationMatch& match,
+        SQLite::Statement& query, IdentificationData::ObservationMatch& match,
         Key parent_id);
 
-      void createView_(const QString& name, const QString& select);
-
+      /// Export the contents of a database table to JSON
       QJsonArray exportTableToJSON_(const QString& table, const QString& order_by);
 
-      // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
-      QString db_name_;
+      /// The database connection (read)
+      std::unique_ptr<SQLite::Database> db_;
 
       int version_number_; ///< schema version number
 

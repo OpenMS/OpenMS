@@ -11,9 +11,9 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>" namespace "O
         # wrap-inherits:
         #   DefaultParamHandler
 
-        ThresholdMower() nogil except +
-        ThresholdMower(ThresholdMower &) nogil except +
+        ThresholdMower() except + nogil 
+        ThresholdMower(ThresholdMower &) except + nogil 
 
-        void filterSpectrum(MSSpectrum & spec) nogil except +
-        void filterPeakSpectrum(MSSpectrum & spec) nogil except +
-        void filterPeakMap(MSExperiment & exp) nogil except +
+        void filterSpectrum(MSSpectrum & spec) except + nogil 
+        void filterPeakSpectrum(MSSpectrum & spec) except + nogil 
+        void filterPeakMap(MSExperiment & exp) except + nogil 

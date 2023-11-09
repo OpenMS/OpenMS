@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
@@ -42,9 +16,7 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -77,12 +49,12 @@ using namespace std;
   <center>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ PercolatorAdapter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; PercolatorAdapter &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_PSMFeatureExtractor </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PSMFeatureExtractor </td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
         </tr>
     </table>
@@ -91,7 +63,7 @@ using namespace std;
 depending on the search engine. Must be prepared beforehand. If you do not want
 to use the specific features, use the generic_feature_set flag. Will incorporate
 the score attribute of a PSM, so be sure, the score you want is set as main
-score with @ref UTILS_IDScoreSwitcher . Be aware, that you might very well
+score with @ref TOPP_IDScoreSwitcher . Be aware, that you might very well
 experience a performance loss compared to the search engine specific features.
 You can also perform protein inference with percolator when you activate the protein fdr parameter.
 Additionally you need to set the enzyme setting.
@@ -303,8 +275,6 @@ protected:
     registerInputFile_("fasta", "<file>", "", "Provide the fasta file as the argument to this flag, which will be used for protein grouping based on an in-silico digest (only valid if option -protein_level_fdrs is active).", !is_required, is_advanced_option);
     setValidFormats_("fasta", ListUtils::create<String>("FASTA"));
     registerStringOption_("decoy_pattern", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that identifies the decoys in the database is not the default (Only valid if option -protein_level_fdrs is active).", !is_required, is_advanced_option);
-    registerStringOption_("post_processing_tdc", "<value>", "true", "Use target-decoy competition to assign q-values and PEPs.", !is_required, is_advanced_option);
-    setValidStrings_("post_processing_tdc", ListUtils::create<String>("true,false"));
     registerFlag_("post_processing_tdc", "Use target-decoy competition to assign q-values and PEPs.", is_advanced_option);
     registerFlag_("train_best_positive", "Enforce that, for each spectrum, at most one PSM is included in the positive set during each training iteration. If the user only provides one PSM per spectrum, this filter will have no effect.", is_advanced_option);
 
@@ -383,7 +353,6 @@ protected:
     }
   }
 
-    
   void readPoutAsMap_(const String& pout_file, std::map<String, PercolatorResult>& pep_map)
   {
     CsvFile csv_file(pout_file, '\t');
@@ -393,6 +362,8 @@ protected:
     {
       csv_file.getRow(i, row);
       PercolatorResult res(row);
+      // note: Since we create our pin file in a way that the SpecID (=PSMId) is composed of filename + spectrum native id
+      //  this will be passed through Percolator and we use it again to read it back in.
       String spec_ref = res.PSMId + res.peptide;
       writeDebug_("PSM identifier in pout file: " + spec_ref, 10);
 
@@ -443,12 +414,12 @@ protected:
       OPENMS_LOG_INFO << "Loading input file: " << in << endl;
       if (in_type == FileTypes::IDXML)
       {
-        IdXMLFile().load(in, protein_ids, peptide_ids);
+        FileHandler().loadIdentifications(in, protein_ids, peptide_ids, {FileTypes::IDXML});
       }
       else if (in_type == FileTypes::MZIDENTML)
       {
         OPENMS_LOG_WARN << "Converting from mzid: possible loss of information depending on target format." << endl;
-        MzIdentMLFile().load(in, protein_ids, peptide_ids);
+        FileHandler().loadIdentifications(in, protein_ids, peptide_ids, {FileTypes::IDXML});
       }
       //else catched by TOPPBase:registerInput being mandatory mzid or idxml
       if (protein_ids.empty())
@@ -480,7 +451,7 @@ protected:
         {
           String scan_identifier = PercolatorInfile::getScanIdentifier(pep_id, index);
           scan_identifier = "file=" + file_idx + "," + scan_identifier;
-          pep_id.setMetaValue("spectrum_reference", scan_identifier);
+          pep_id.setSpectrumReference( scan_identifier);
         }
         for (PeptideHit& hit : pep_id.getHits())
         {
@@ -693,7 +664,7 @@ protected:
     // prepare OSW I/O
     if (out_type == FileTypes::OSW && in_osw != out)
     {
-      // Copy input OSW to output OSW, becsrc/openms/include/OpenMS/METADATA/SpectrumLookup.hause we want to retain all information
+      // Copy input OSW to output OSW, because we want to retain all information
       remove(out.c_str());
       if (!out.empty())
       {
@@ -707,7 +678,7 @@ protected:
     // idXML or mzid input
     if (out_type != FileTypes::OSW)
     {
-      //TODO introduce min/max charge to parameters for now take available range
+      //TODO introduce min/max charge to parameters. For now take available range
       int max_charge = 0;
       int min_charge = 10;
       bool is_decoy = false;
@@ -888,7 +859,7 @@ protected:
       {
         arguments << "-x";
       }
-      if (getStringOption_("post_processing_tdc") == "true")
+      if (getFlag_("post_processing_tdc"))
       {
         arguments << "-Y";
       }
@@ -1034,6 +1005,7 @@ protected:
       size_t index = 0;
       for (PeptideIdentification& pep_id : all_peptide_ids)
       {
+        String old_score_type{pep_id.getScoreType()}; // copy because we modify the score type below
         index++;
         pep_id.setIdentifier(run_identifier);
         if (scoreType == "pep")
@@ -1050,12 +1022,14 @@ protected:
         pep_id.setHigherScoreBetter(scoreType == "svm");
         
         String scan_identifier = PercolatorInfile::getScanIdentifier(pep_id, index);
-        
+        String file_identifier = pep_id.getMetaValue("file_origin", String());
+        file_identifier += (String)pep_id.getMetaValue("id_merge_index", String());
+
         //check each PeptideHit for compliance with one of the PercolatorResults (by sequence)
         for (PeptideHit& hit : pep_id.getHits())
         {
           String peptide_sequence = hit.getSequence().toBracketString(false, true);
-          String psm_identifier = scan_identifier + peptide_sequence;
+          String psm_identifier = file_identifier + scan_identifier + peptide_sequence;
 
           //Only for super debug
           writeDebug_("PSM identifier in PeptideHit: " + psm_identifier, 10);
@@ -1063,6 +1037,7 @@ protected:
           map<String, PercolatorResult>::iterator pr = pep_map.find(psm_identifier);
           if (pr != pep_map.end())
           {
+            hit.setMetaValue(old_score_type, hit.getScore());  // old search engine "main" score as metavalue
             hit.setMetaValue("MS:1001492", pr->second.score);  // svm score
             hit.setMetaValue("MS:1001491", pr->second.qvalue);  // percolator q value
             hit.setMetaValue("MS:1001493", pr->second.posterior_error_prob);  // percolator pep
@@ -1196,21 +1171,13 @@ protected:
         search_parameters.setMetaValue("Percolator:klammer", getFlag_("klammer"));
         search_parameters.setMetaValue("Percolator:fasta", getStringOption_("fasta"));
         search_parameters.setMetaValue("Percolator:decoy_pattern", getStringOption_("decoy_pattern"));
-        search_parameters.setMetaValue("Percolator:post_processing_tdc", getStringOption_("post_processing_tdc"));
+        search_parameters.setMetaValue("Percolator:post_processing_tdc", getFlag_("post_processing_tdc"));
         search_parameters.setMetaValue("Percolator:train_best_positive", getFlag_("train_best_positive"));
         
         prot_id_run.setSearchParameters(search_parameters);
       }
-      
       // Storing the PeptideHits with calculated q-value, pep and svm score
-      if (out_type == FileTypes::MZIDENTML)
-      {
-        MzIdentMLFile().store(out, all_protein_ids, all_peptide_ids);
-      }      
-      if (out_type == FileTypes::IDXML)
-      {
-        IdXMLFile().store(out, all_protein_ids, all_peptide_ids);
-      }
+      FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
     }
     else
     {

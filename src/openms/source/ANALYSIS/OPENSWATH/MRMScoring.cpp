@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -342,7 +316,7 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(xcorr_contrast_matrix_.rows() > 0 && xcorr_contrast_matrix_.cols() > 1, "Expect cross-correlation matrix of at least 1x2");
 
       OpenSwath::mean_and_stddev msc;
-      for (auto e : xcorr_contrast_matrix_)
+      for (const auto& e : xcorr_contrast_matrix_)
       {
         // first is the X value (RT), should be an int
         msc(std::abs(Scoring::xcorrArrayGetMaxPeak(e)->first));  
@@ -411,7 +385,7 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(xcorr_precursor_contrast_matrix_.rows() > 0 && xcorr_precursor_contrast_matrix_.cols() > 1, "Expect cross-correlation matrix of at least 1x2");
 
       OpenSwath::mean_and_stddev msc;
-      for (auto e : xcorr_precursor_contrast_matrix_)
+      for (const auto& e : xcorr_precursor_contrast_matrix_)
       {
         // first is the X value (RT), should be an int
         msc(std::abs(Scoring::xcorrArrayGetMaxPeak(e)->first));
@@ -432,7 +406,7 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(xcorr_precursor_contrast_matrix_.rows() > 0 && xcorr_precursor_contrast_matrix_.cols() > 0, "Expect cross-correlation matrix of at least 1x1");
 
       OpenSwath::mean_and_stddev msc;
-      for (auto e : xcorr_precursor_contrast_matrix_)
+      for (const auto& e : xcorr_precursor_contrast_matrix_)
       {
         // first is the X value (RT), should be an int
         msc(std::abs(Scoring::xcorrArrayGetMaxPeak(e)->first)); 
@@ -534,7 +508,7 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(xcorr_contrast_matrix_max_peak_sec_.rows() > 0 && xcorr_contrast_matrix_max_peak_sec_.cols() > 1, "Expect cross-correlation matrix of at least 1x2");
 
       double intensities{0};
-      for(auto e : xcorr_contrast_matrix_max_peak_sec_)
+      for (const auto& e : xcorr_contrast_matrix_max_peak_sec_)
       {
         intensities += e;
       }
@@ -582,9 +556,8 @@ namespace OpenSwath
     {
       OPENSWATH_PRECONDITION(xcorr_precursor_contrast_matrix_.rows() > 0 && xcorr_precursor_contrast_matrix_.cols() > 0, "Expect cross-correlation matrix of at least 1x1");
 
-
       double intensities{0};
-      for(auto e : xcorr_precursor_contrast_matrix_)
+      for (const auto& e : xcorr_precursor_contrast_matrix_)
       {
         intensities += Scoring::xcorrArrayGetMaxPeak(e)->second;
       }
@@ -597,7 +570,7 @@ namespace OpenSwath
 
 
       double intensities{0};
-      for(auto e : xcorr_precursor_contrast_matrix_)
+      for (const auto& e : xcorr_precursor_contrast_matrix_)
       {
         intensities += Scoring::xcorrArrayGetMaxPeak(e)->second;
       }
@@ -858,7 +831,7 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(mi_matrix_.rows() > 1, "Expect mutual information matrix of at least 2x2");
 
       double mi_scores{0};
-      for(auto e : mi_matrix_)
+      for (const auto& e : mi_matrix_)
       {
         mi_scores += e;
       }
@@ -901,7 +874,7 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(mi_precursor_matrix_.rows() > 1, "Expect mutual information matrix of at least 2x2");
 
       double mi_scores{0};
-      for(auto e : mi_precursor_matrix_)
+      for (const auto& e : mi_precursor_matrix_)
       {
         mi_scores += e;
       }
@@ -915,7 +888,7 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(mi_precursor_contrast_matrix_.rows() > 0 && mi_precursor_contrast_matrix_.cols() > 1, "Expect mutual information matrix of at least 1x2");
 
       double mi_scores{0};
-      for(auto e : mi_precursor_contrast_matrix_)
+      for (const auto& e : mi_precursor_contrast_matrix_)
       {
         mi_scores += e;
       }
@@ -928,7 +901,7 @@ namespace OpenSwath
 
       double mi_scores{0};
 
-      for(auto e: mi_precursor_combined_matrix_)
+      for (const auto& e: mi_precursor_combined_matrix_)
       {
         mi_scores += e;
       }

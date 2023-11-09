@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -61,6 +35,23 @@
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
 #endif
+
+
+#include <QObject>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QUrl>
+#include <QDateTime>
+#include <QFile>
+#include <QDebug>
+
+#include <OpenMS/SYSTEM/NetworkGetRequest.h>
+#include <QDir>
+#include <QCoreApplication>
+#include <QtCore/QDateTime>
+#include <QtCore/QTimer>
+
 
 using namespace std;
 
@@ -154,6 +145,13 @@ namespace OpenMS
   {
     QFileInfo fi(file.toQString());
     return fi.exists() && fi.isExecutable();
+  }
+
+  UInt64 File::fileSize(const String& file)
+  {
+    if (!File::exists(file)) return -1;
+
+    return QFile(file.toQString()).size();
   }
 
   bool File::rename(const String& from, const String& to, bool overwrite_existing, bool verbose)
@@ -894,5 +892,64 @@ namespace OpenMS
   }
 
   File::TemporaryFiles_ File::temporary_files_;
+
+  // construct a filename. Add number if already exists.
+  QString saveFileName_(const QUrl &url)
+  {
+    QString path = url.path();
+    QString basename = QFileInfo(path).fileName();
+
+    if (basename.isEmpty())
+        basename = "download";
+
+    if (QFile::exists(basename)) {
+        // already exists, don't overwrite
+        int i = 0;
+        basename += '.';
+        while (QFile::exists(basename + QString::number(i)))
+            ++i;
+
+        basename += QString::number(i);
+    }
+
+    return basename;
+  }
+
+// static
+void File::download(const std::string& url, const std::string& download_folder)
+{
+  // We need to use a QCoreApplication to fire up the  QEventLoop to process the signals and slots.
+  char const * argv2[] = { "dummyname", nullptr };
+  int argc = 1;
+  QCoreApplication event_loop(argc, const_cast<char**>(argv2));
+  NetworkGetRequest* query = new NetworkGetRequest(&event_loop);
+  auto qURL = QUrl(QString::fromUtf8(url.c_str()));
+  query->setUrl(qURL);
+  QObject::connect(query, SIGNAL(done()), &event_loop, SLOT(quit()));
+  QTimer::singleShot(1000, query, SLOT(run()));          
+  QTimer::singleShot(600000, query, SLOT(timeOut())); // 10 minutes timeout
+  event_loop.exec();
+
+  if (!query->hasError())
+  {
+    QString folder = download_folder.empty() ? QString("./") : QString(download_folder.c_str());
+    QString filename = QString(folder) + "/" + saveFileName_(qURL); 
+    QFile file(filename);
+    file.open(QIODevice::ReadWrite);
+    file.write(query->getResponseBinary().data(), query->getResponseBinary().size());
+    file.close();
+    OPENMS_LOG_INFO << "Download of '" << url << "' successful." << endl;
+    OPENMS_LOG_INFO << "Stored as '" << filename.toStdString() << "'." << endl;
+  }
+  else
+  {
+    String error = "Download of '" + url + "' failed!. Error: " + String(query->getErrorString()) + '\n';
+    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
+  }
+
+  delete query;
+  event_loop.quit();
+}
+
 
 } // namespace OpenMS

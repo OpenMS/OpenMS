@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
@@ -42,6 +16,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h> // for operator<< on StringList
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -51,11 +26,13 @@
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
+// TODO: remove header after we get "Valid" support
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
@@ -81,9 +58,9 @@ using namespace std;
   <CENTER>
   <table>
   <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ FileInfo \f$ \longrightarrow \f$</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  <th ALIGN = "center"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=2> &rarr; FileInfo &rarr;</td>
+  <th ALIGN = "center"> pot. successor tools </td>
   </tr>
   <tr>
   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
@@ -180,7 +157,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Optional output file. If left out, the output is written to the command line.", false);
     setValidFormats_("out", {"txt"});
     registerOutputFile_("out_tsv", "<file>", "", "Second optional output file. Tab separated flat text file.", false, true);
-    setValidFormats_("out_tsv", {"csv"});
+    setValidFormats_("out_tsv", {"tsv"});
     registerFlag_("m", "Show meta information about the whole experiment");
     registerFlag_("p", "Shows data processing information");
     registerFlag_("s", "Computes a five-number statistics of intensities, qualities, and widths");
@@ -523,16 +500,15 @@ protected:
       os << "Ambiguous amino acids (B/Z/X)  : " << amb   << " (" << (amb > 0 ? (static_cast<Size>(amb * 10000 / number_of_aacids) / 100.0) : 0) << "%)\n";
       os << "                      (B/Z/X/I): " << amb_I << " (" << (amb_I > 0 ? (static_cast<Size>(amb_I * 10000 / number_of_aacids) / 100.0) : 0) << "%)\n\n";
     }
-
     else if (in_type == FileTypes::FEATUREXML) //features
     {
-      FeatureXMLFile ff;
-      ff.getOptions().setLoadConvexHull(false);   // CH's currently not needed here
-      ff.getOptions().setLoadSubordinates(false); // SO's currently not needed here
+      FileHandler ff;
+      ff.getFeatOptions().setLoadConvexHull(false);   // CH's currently not needed here
+      ff.getFeatOptions().setLoadSubordinates(false); // SO's currently not needed here
 
       SysInfo::MemUsage mu;
       // reading input
-      ff.load(in, feat);
+      ff.loadFeatures(in, feat, {FileTypes::FEATUREXML});
       std::cout << "\n\n" << mu.delta("loading featureXML") << std::endl;
 
       feat.updateRanges();
@@ -583,7 +559,7 @@ protected:
 
       SysInfo::MemUsage mu;
       // reading input
-      ConsensusXMLFile().load(in, cons);
+      FileHandler().loadConsensusFeatures(in, cons, {FileTypes::CONSENSUSXML});
       std::cout << "\n\n" << mu.delta("loading consensusXML") << std::endl;
 
       cons.updateRanges();
@@ -736,7 +712,7 @@ protected:
       SysInfo::MemUsage mu;
       if (in_type == FileTypes::MZIDENTML)
       {
-        MzIdentMLFile().load(in, id_data.proteins, id_data.peptides);
+        FileHandler().loadIdentifications(in, id_data.proteins, id_data.peptides, {FileTypes::MZIDENTML});
       }
       else
       {
@@ -865,7 +841,7 @@ protected:
     else if (in_type == FileTypes::TRANSFORMATIONXML)
     {
       TransformationDescription trafo;
-      TransformationXMLFile().load(in, trafo);
+      FileHandler().loadTransformations(in, trafo, true, {FileTypes::TRANSFORMATIONXML});
       os << "\nTransformation model: " << trafo.getModelType() << '\n';
       trafo.printSummary(os);
     }
@@ -880,12 +856,7 @@ protected:
     else // peaks
     {
       SysInfo::MemUsage mu;
-      if (!fh.loadExperiment(in, exp, in_type, log_type_, false, false))
-      {
-        writeLogError_("Unsupported or corrupt input file. Aborting!");
-        printUsage_();
-        return ILLEGAL_PARAMETERS;
-      }
+      fh.loadExperiment(in, exp, {in_type}, log_type_, false, false);
 
       // update range information and retrieve which MS levels were recorded
       exp.updateRanges();
@@ -1040,7 +1011,19 @@ protected:
         }
         os << '\n';  
       }
-       
+      
+      auto cvs = FAIMSHelper::getCompensationVoltages(exp);
+      if (!cvs.empty())
+      {        
+        os << "IM (FAIMS_CV): ";
+        StringList cvs_sl;
+        for (double cv : cvs)
+        {
+          cvs_sl.push_back(String(cv));
+        }
+        os << cvs_sl << "\n\n";
+      }
+
       // some chromatogram information
       if (!exp.getChromatograms().empty())
       {
@@ -1108,6 +1091,13 @@ protected:
           {
             os << spectrum.begin()->getMZ() << " .. " << spectrum.rbegin()->getMZ() << '\n';
           }
+
+          if (spectrum.getDriftTimeUnit() != DriftTimeUnit::NONE)
+          {
+            os << "  IM:         " <<  spectrum.getDriftTime() << ' '
+                << spectrum.getDriftTimeUnitAsString()
+                << '\n';
+          }            
 
           os << "Precursors:  " << spectrum.getPrecursors().size() <<  '\n';
 

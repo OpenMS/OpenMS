@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -34,18 +8,19 @@
 //
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
-#include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
+#include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
+#include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+
 #include <vector>
 
 namespace OpenMS
@@ -252,7 +227,6 @@ public:
         DistanceMatrix<float> dist; // will be filled
         ClusterHierarchical ch;
 
-        //ch.setThreshold(0.99);
         // clustering ; threshold is implicitly at 1.0, i.e. distances of 1.0 (== similarity 0) will not be clustered
         ch.cluster<BaseFeature, SpectraDistance_>(data, llc, sl, tree, dist);
       }
@@ -274,9 +248,6 @@ public:
         }
       }
       ca.cut(data_size - node_count, tree, clusters);
-
-      //std::cerr << "Treesize: " << (tree.size()+1) << "   #clusters: " << clusters.size() << std::endl;
-      //std::cerr << "tree:\n" << ca.newickTree(tree, true) << "\n";
 
       // convert to blocks
       MergeBlocks spectra_to_merge;
@@ -304,19 +275,75 @@ public:
     }
 
     /**
+     * @brief check if the first and second mzs might be from the same mass
+     *
+     * @param mz1 the first m/z value
+     * @param mz2 the second m/z value
+     * @param tol_ppm tolerance in ppm
+     * @param max_c maximum possible charge value
+     */
+    static bool areMassesMatched(double mz1, double mz2, double tol_ppm, int max_c)
+    {
+      if (mz1 == mz2 || tol_ppm <= 0)
+      {
+        return true;
+      }
+
+      const int min_c = 1;
+      const int max_iso_diff = 5; // maximum charge difference  5 is more than enough
+      const double max_charge_diff_ratio = 3.0; // maximum ratio between charges (large / small charge)
+
+      for (int c1 = min_c; c1 <= max_c; ++c1)
+      {
+        double mass1 = (mz1 - Constants::PROTON_MASS_U) * c1;
+
+        for (int c2 = min_c; c2 <= max_c; ++c2)
+        {
+          if (c1 / c2 > max_charge_diff_ratio)
+          {
+            continue;
+          }
+          if (c2 / c1 > max_charge_diff_ratio)
+          {
+            break;
+          }
+
+          double mass2 = (mz2 - Constants::PROTON_MASS_U) * c2;
+
+          if (fabs(mass1 - mass2) > max_iso_diff)
+          {
+            continue;
+          }
+          for (int i = -max_iso_diff; i <= max_iso_diff; ++i)
+          {
+            if (fabs(mass1 - mass2 + i * Constants::ISOTOPE_MASSDIFF_55K_U) < mass1 * tol_ppm * 1e-6)
+            {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+    /**
      * @brief average over neighbouring spectra
      *
      * @param exp experimental data to be averaged
      * @param average_type averaging type to be used ("gaussian" or "tophat")
+     * @param ms_level targe MS level. If it is -1, ms_level will be determined by ms_level parameter.
      */
     template <typename MapType>
-    void average(MapType& exp, const String& average_type)
+    void average(MapType& exp, const String& average_type, int ms_level = -1)
     {
       // MS level to be averaged
-      int ms_level = param_.getValue("average_gaussian:ms_level");
-      if (average_type == "tophat")
+      if (ms_level < 0)
       {
-        ms_level = param_.getValue("average_tophat:ms_level");
+        ms_level = param_.getValue("average_gaussian:ms_level");
+        if (average_type == "tophat")
+        {
+          ms_level = param_.getValue("average_tophat:ms_level");
+        }
       }
       
       // spectrum type (profile, centroid or automatic)
@@ -330,6 +357,8 @@ public:
       double fwhm(param_.getValue("average_gaussian:rt_FWHM"));
       double factor = -4 * log(2.0) / (fwhm * fwhm); // numerical factor within Gaussian
       double cutoff(param_.getValue("average_gaussian:cutoff"));
+      double precursor_mass_ppm = param_.getValue("average_gaussian:precursor_mass_tol");
+      int precursor_max_charge = param_.getValue("average_gaussian:precursor_max_charge");
 
       // parameters for Top-Hat averaging
       bool unit(param_.getValue("average_tophat:rt_unit") == "scans"); // true if RT unit is 'scans', false if RT unit is 'seconds'
@@ -346,6 +375,7 @@ public:
 
       // loop over RT
       int n(0); // spectrum index
+      int cntr(0); // spectrum counter
       for (typename MapType::const_iterator it_rt = exp.begin(); it_rt != exp.end(); ++it_rt)
       {
         if (Int(it_rt->getMSLevel()) == ms_level)
@@ -364,15 +394,28 @@ public:
           {
             if (Int(it_rt_2->getMSLevel()) == ms_level)
             {
-              double weight = 1;
-              if (average_type == "gaussian")
+              bool add = true;
+              // if precursor_mass_ppm >=0, two spectra should have the same mass. otherwise it_rt_2 is skipped.
+              if (precursor_mass_ppm >= 0 && ms_level >= 2 && it_rt->getPrecursors().size() > 0 &&
+                  it_rt_2->getPrecursors().size() > 0)
               {
-                //factor * (rt_2 -rt)^2
-                double base = it_rt_2->getRT() - it_rt->getRT();
-                weight = std::exp(factor * base * base);
+                double mz1 = it_rt->getPrecursors()[0].getMZ();
+                double mz2 = it_rt_2->getPrecursors()[0].getMZ();
+                add = areMassesMatched(mz1, mz2, precursor_mass_ppm, precursor_max_charge);
               }
-              std::pair<Size, double> p(m, weight);
-              spectra_to_average_over[n].push_back(p);
+
+              if (add)
+              {
+                double weight = 1;
+                if (average_type == "gaussian")
+                {
+                  //factor * (rt_2 -rt)^2
+                  double base = it_rt_2->getRT() - it_rt->getRT();
+                  weight = std::exp(factor * base * base);
+                }
+                std::pair<Size, double> p(m, weight);
+                spectra_to_average_over[n].push_back(p);
+              }
               ++steps;
             }
             if (average_type == "gaussian")
@@ -404,14 +447,26 @@ public:
           {
             if (Int(it_rt_2->getMSLevel()) == ms_level)
             {
-              double weight = 1;
-              if (average_type == "gaussian")
-              {  
-                double base = it_rt_2->getRT() - it_rt->getRT();
-                weight = std::exp(factor * base * base); 
+              bool add = true;
+              // if precursor_mass_ppm >=0, two spectra should have the same mass. otherwise it_rt_2 is skipped.
+              if (precursor_mass_ppm >= 0 && ms_level >= 2 && it_rt->getPrecursors().size() > 0 &&
+                  it_rt_2->getPrecursors().size() > 0)
+              {
+                double mz1 = it_rt->getPrecursors()[0].getMZ();
+                double mz2 = it_rt_2->getPrecursors()[0].getMZ();
+                add = areMassesMatched(mz1, mz2, precursor_mass_ppm, precursor_max_charge);
               }
-              std::pair<Size, double> p (m, weight);
-              spectra_to_average_over[n].push_back(p);
+              if (add)
+              {
+                double weight = 1;
+                if (average_type == "gaussian")
+                {
+                  double base = it_rt_2->getRT() - it_rt->getRT();
+                  weight = std::exp(factor * base * base);
+                }
+                std::pair<Size, double> p(m, weight);
+                spectra_to_average_over[n].push_back(p);
+              }
               ++steps;
             }
             if (average_type == "gaussian")
@@ -433,9 +488,18 @@ public:
             --m;
             --it_rt_2;
           }
-
+          ++cntr;
         }
         ++n;
+      }
+
+      if (cntr == 0)
+      {
+        //return;
+        throw Exception::InvalidParameter(__FILE__,
+                                          __LINE__,
+                                          OPENMS_PRETTY_FUNCTION,
+                                          "Input mzML does not have any spectra of MS level specified by ms_level.");
       }
 
       // normalize weights
@@ -536,10 +600,8 @@ protected:
         typename MapType::SpectrumType consensus_spec = exp[it->first];
         consensus_spec.setMSLevel(ms_level);
 
-        //consensus_spec.unify(exp[it->first]); // append meta info
         merged_indices.insert(it->first);
 
-        //typename MapType::SpectrumType all_peaks = exp[it->first];
         double rt_average = consensus_spec.getRT();
         double precursor_mz_average = 0.0;
         Size precursor_count(0);
@@ -572,7 +634,6 @@ protected:
 
           // merge data points
           sas.getSpectrumAlignment(alignment, consensus_spec, exp[*sit]);
-          //std::cerr << "alignment of " << it->first << " with " << *sit << " yielded " << alignment.size() << " common peaks!\n";
           count_peaks_aligned += alignment.size();
           count_peaks_overall += exp[*sit].size();
 
@@ -637,9 +698,9 @@ protected:
             precursor_mz_average /= precursor_count;
           }
           auto& pcs = consensus_spec.getPrecursors();
-          //if (pcs.size()>1) OPENMS_LOG_WARN << "Removing excessive precursors - leaving only one per MS2 spectrum.\n";
           pcs.resize(1);
           pcs[0].setMZ(precursor_mz_average);
+          consensus_spec.setPrecursors(pcs);
         }
 
         if (consensus_spec.empty())
@@ -675,14 +736,10 @@ protected:
         }
       }
 
-      //typedef std::vector<typename MapType::SpectrumType> Base;
-      //exp.Base::operator=(exp_tmp);
       //Meta_Data will not be cleared
       exp.clear(false);
       exp.getSpectra().insert(exp.end(), std::make_move_iterator(exp_tmp.begin()),
                                          std::make_move_iterator(exp_tmp.end()));
-
-      // exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<typename MapType::SpectrumType>(ListUtils::create<int>(String(ms_level)), false)), exp.end());
 
       // ... and add consensus spectra
       exp.getSpectra().insert(exp.end(), std::make_move_iterator(merged_spectra.begin()),
@@ -779,7 +836,6 @@ protected:
         // update spectrum
         typename MapType::SpectrumType average_spec = exp[it->first];
         average_spec.clear(false); // Precursors are part of the meta data, which are not deleted.
-        //average_spec.setMSLevel(ms_level);
 
         // refill spectrum
         for (Size i = 0; i < mz_positions.size(); ++i)
@@ -798,11 +854,9 @@ protected:
 
       // loop over blocks
       int n(0);
-      //typename MapType::SpectrumType empty_spec;
       for (AverageBlocks::const_iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         exp[it->first] = exp_tmp[n];
-        //exp_tmp[n] = empty_spec;
         ++n;
       }
     }
@@ -896,7 +950,6 @@ protected:
         // update spectrum
         typename MapType::SpectrumType average_spec = exp[it->first];
         average_spec.clear(false); // Precursors are part of the meta data, which are not deleted.
-        //average_spec.setMSLevel(ms_level);
 
         // refill spectrum
         for (Size i = 0; i < mz_new.size(); ++i)

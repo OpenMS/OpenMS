@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -34,9 +8,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+//TODO remove when we get loadsize support in handler
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -57,9 +30,9 @@ using namespace std;
 <CENTER>
   <table>
     <tr>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-      <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MapAlignerPoseClustering \f$ \longrightarrow \f$</td>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+      <th ALIGN = "center"> potential predecessor tools </td>
+      <td VALIGN="middle" ROWSPAN=2> &rarr; MapAlignerPoseClustering &rarr;</td>
+      <th ALIGN = "center"> potential successor tools </td>
     </tr>
     <tr>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided @n (or another feature finding algorithm) </td>
@@ -187,7 +160,7 @@ protected:
         else if (in_type == FileTypes::MZML) // this is expensive!
         {
           PeakMap exp;
-          MzMLFile().load(in_files[i], exp);
+          FileHandler().loadExperiment(in_files[i], exp, {FileTypes::MZML});
           exp.updateRanges(1);
           s = exp.getSize();
         }
@@ -201,25 +174,25 @@ protected:
       file = in_files[reference_index];
     }
 
-    FeatureXMLFile f_fxml;
+    FileHandler f_fxml;
     if (out_files.empty()) // no need to store featureXML, thus we can load only minimum required information
     {
-      f_fxml.getOptions().setLoadConvexHull(false);
-      f_fxml.getOptions().setLoadSubordinates(false);
+      f_fxml.getFeatOptions().setLoadConvexHull(false);
+      f_fxml.getFeatOptions().setLoadSubordinates(false);
     }
     if (in_type == FileTypes::FEATUREXML)
     {
       FeatureMap map_ref;
-      FeatureXMLFile f_fxml_tmp; // for the reference, we never need CH or subordinates
-      f_fxml_tmp.getOptions().setLoadConvexHull(false);
-      f_fxml_tmp.getOptions().setLoadSubordinates(false);
-      f_fxml_tmp.load(file, map_ref);
+      FileHandler f_fxml_tmp; // for the reference, we never need CH or subordinates
+      f_fxml_tmp.getFeatOptions().setLoadConvexHull(false);
+      f_fxml_tmp.getFeatOptions().setLoadSubordinates(false);
+      f_fxml_tmp.loadFeatures(file, map_ref, {FileTypes::FEATUREXML});
       algorithm.setReference(map_ref);
     }
     else if (in_type == FileTypes::MZML)
     {
       PeakMap map_ref;
-      MzMLFile().load(file, map_ref);
+      FileHandler().loadExperiment(file, map_ref);
       algorithm.setReference(map_ref);
     }
 
@@ -239,9 +212,9 @@ protected:
       {
         FeatureMap map;
         // workaround for loading: use temporary FeatureXMLFile since it is not thread-safe
-        FeatureXMLFile f_fxml_tmp; // do not use OMP-firstprivate, since FeatureXMLFile has no copy c'tor
-        f_fxml_tmp.getOptions() = f_fxml.getOptions();
-        f_fxml_tmp.load(in_files[i], map);
+        FileHandler f_fxml_tmp; // do not use OMP-firstprivate, since FeatureXMLFile has no copy c'tor
+        f_fxml_tmp.getFeatOptions() = f_fxml.getFeatOptions();
+        f_fxml_tmp.loadFeatures(in_files[i], map);
         if (i == static_cast<int>(reference_index)) 
         {
           trafo.fitModel("identity");
@@ -266,13 +239,13 @@ protected:
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           // annotate output with data processing info
           addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
-          f_fxml_tmp.store(out_files[i], map);
+          f_fxml_tmp.storeFeatures(out_files[i], map, {FileTypes::FEATUREXML});
         }
       }
       else if (in_type == FileTypes::MZML)
       {
         PeakMap map;
-        MzMLFile().load(in_files[i], map);
+        FileHandler().loadExperiment(in_files[i], map, {FileTypes::MZML});
         if (i == static_cast<int>(reference_index))
         {
           trafo.fitModel("identity");
@@ -286,13 +259,13 @@ protected:
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           // annotate output with data processing info
           addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
-          MzMLFile().store(out_files[i], map);
+          FileHandler().storeExperiment(out_files[i], map, {FileTypes::MZML});
         }
       }
 
       if (!out_trafos.empty())
       {
-        TransformationXMLFile().store(out_trafos[i], trafo);
+        FileHandler().storeTransformations(out_trafos[i], trafo, {FileTypes::TRANSFORMATIONXML});
       }
 
 #ifdef _OPENMP

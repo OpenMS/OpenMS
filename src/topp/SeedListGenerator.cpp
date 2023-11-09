@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -34,12 +8,8 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SeedListGenerator.h>
 
@@ -65,9 +35,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ SeedListGenerator \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=4> &rarr; SeedListGenerator &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
@@ -159,7 +129,7 @@ protected:
       if (in_type == FileTypes::CONSENSUSXML)
       {
         ConsensusMap consensus;
-        ConsensusXMLFile().load(in, consensus);
+        FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
         num_maps = consensus.getColumnHeaders().size();
         ConsensusMap::ColumnHeaders ch = consensus.getColumnHeaders();
         size_t map_count = 0;
@@ -187,21 +157,21 @@ protected:
       else if (in_type == FileTypes::MZML)
       {
         PeakMap experiment;
-        MzMLFile().load(in, experiment);
+        FileHandler().loadExperiment(in, experiment, {FileTypes::MZML});
         seed_gen.generateSeedList(experiment, seed_lists[0]);
       }
       else if (in_type == FileTypes::IDXML)
       {
         vector<ProteinIdentification> proteins;
         vector<PeptideIdentification> peptides;
-        IdXMLFile().load(in, proteins, peptides);
+        FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML});
         seed_gen.generateSeedList(peptides, seed_lists[0],
                                   getFlag_("use_peptide_mass"));
       }
       else if (in_type == FileTypes::FEATUREXML)
       {
         FeatureMap features;
-        FeatureXMLFile().load(in, features);
+        FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML});
         seed_gen.generateSeedList(
           features.getUnassignedPeptideIdentifications(), seed_lists[0]);
       }
@@ -217,7 +187,7 @@ protected:
         addDataProcessing_(features, getProcessingInfo_(
                              DataProcessing::DATA_PROCESSING));
         OPENMS_LOG_INFO << "Writing " << features.size() << " seeds to " << out[num_maps] << endl;
-        FeatureXMLFile().store(out[num_maps], features);
+        FileHandler().storeFeatures(out[num_maps], features, {FileTypes::FEATUREXML});
       }
 
       return EXECUTION_OK;

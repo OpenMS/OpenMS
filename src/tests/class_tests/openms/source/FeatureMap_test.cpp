@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -64,11 +38,11 @@ START_TEST(FeatureMap, "$Id$")
 FeatureMap* pl_ptr = nullptr;
 FeatureMap* nullPointer = nullptr;
 START_SECTION((FeatureMap()))
-	pl_ptr = new FeatureMap();
+  pl_ptr = new FeatureMap();
   TEST_NOT_EQUAL(pl_ptr, nullPointer)
 
-	TEST_EQUAL(pl_ptr->size(), 0)
-	TEST_EQUAL(pl_ptr->hasRange() == HasRangeType::NONE, true)
+  TEST_EQUAL(pl_ptr->size(), 0)
+  TEST_EQUAL(pl_ptr->hasRange() == HasRangeType::NONE, true)
 END_SECTION
 
 START_SECTION((virtual ~FeatureMap()))
@@ -149,13 +123,13 @@ END_SECTION
 
 START_SECTION((const std::vector<DataProcessing>& getDataProcessing() const))
   FeatureMap tmp;
-  TEST_EQUAL(tmp.getDataProcessing().size(),0);
+  TEST_EQUAL(tmp.getDataProcessing().size(),0)
 END_SECTION
 
 START_SECTION((std::vector<DataProcessing>& getDataProcessing()))
   FeatureMap tmp;
   tmp.getDataProcessing().resize(1);
-  TEST_EQUAL(tmp.getDataProcessing().size(),1);
+  TEST_EQUAL(tmp.getDataProcessing().size(),1)
 END_SECTION
 
 START_SECTION((void setDataProcessing(const std::vector< DataProcessing > &processing_method)))
@@ -220,7 +194,7 @@ END_SECTION
 
 START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
 	FeatureMap map1;
-  map1.setMetaValue("meta",String("value"));
+    map1.setMetaValue("meta",String("value"));
 	map1.push_back(feature1);
 	map1.push_back(feature2);
 	map1.push_back(feature3);
@@ -256,26 +230,26 @@ END_SECTION
 START_SECTION((bool operator == (const FeatureMap& rhs) const))
 	FeatureMap empty,edit;
 
-	TEST_EQUAL(empty==edit, true);
+	TEST_TRUE(empty == edit)
 
 	edit.setIdentifier("lsid");;
-	TEST_EQUAL(empty==edit, false);
+	TEST_EQUAL(empty==edit, false)
 
 	edit = empty;
 	edit.push_back(feature1);
-	TEST_EQUAL(empty==edit, false);
+	TEST_EQUAL(empty==edit, false)
 
 	edit = empty;
 	edit.getDataProcessing().resize(1);
-	TEST_EQUAL(empty==edit, false);
+	TEST_EQUAL(empty==edit, false)
 
-  edit = empty;
+    edit = empty;
 	edit.getProteinIdentifications().resize(1);
-  TEST_EQUAL(edit==empty, false);
+    TEST_EQUAL(edit==empty, false)
 
 	edit = empty;
 	edit.getUnassignedPeptideIdentifications().resize(10);
-	TEST_EQUAL(empty==edit, false);
+	TEST_EQUAL(empty==edit, false)
 
 
 	edit = empty;
@@ -283,32 +257,32 @@ START_SECTION((bool operator == (const FeatureMap& rhs) const))
 	edit.push_back(feature2);
 	edit.updateRanges();
 	edit.clear(false);
-	TEST_EQUAL(empty==edit, false);
+	TEST_EQUAL(empty==edit, false)
 END_SECTION
 
 START_SECTION((bool operator != (const FeatureMap& rhs) const))
 	FeatureMap empty,edit;
 
-	TEST_EQUAL(empty!=edit, false);
+	TEST_EQUAL(empty!=edit, false)
 
 	edit.setIdentifier("lsid");;
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit)
 
 	edit = empty;
 	edit.push_back(feature1);
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit)
 
 	edit = empty;
 	edit.getDataProcessing().resize(1);
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit)
 
-  edit = empty;
+    edit = empty;
 	edit.getProteinIdentifications().resize(10);
-  TEST_EQUAL(edit!=empty, true);
+    TEST_FALSE(edit == empty)
 
 	edit = empty;
 	edit.getUnassignedPeptideIdentifications().resize(10);
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit)
 
 
 	edit = empty;
@@ -316,21 +290,20 @@ START_SECTION((bool operator != (const FeatureMap& rhs) const))
 	edit.push_back(feature2);
 	edit.updateRanges();
 	edit.clear(false);
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit)
 END_SECTION
 
 START_SECTION((FeatureMap operator + (const FeatureMap& rhs) const))
 	// just some basic testing... most is done in operator +=()
 	FeatureMap m1, m2, m3;
 
-	TEST_EQUAL(m1+m2, m3);
+	TEST_EQUAL(m1+m2, m3)
 
 	Feature f1;
 	f1.setMZ(100.12);
 	m1.push_back(f1);
 	m3 = m1;
-	TEST_EQUAL(m1+m2, m3);
-
+	TEST_EQUAL(m1+m2, m3)
 END_SECTION
 
 START_SECTION((FeatureMap& operator+= (const FeatureMap& rhs)))
@@ -338,7 +311,7 @@ START_SECTION((FeatureMap& operator+= (const FeatureMap& rhs)))
 
 	// adding empty maps has no effect:
 	m1+=m2;
-	TEST_EQUAL(m1, m3);
+	TEST_EQUAL(m1, m3)
 
 	// with content:
 	Feature f1;
@@ -346,7 +319,7 @@ START_SECTION((FeatureMap& operator+= (const FeatureMap& rhs)))
 	m1.push_back(f1);
 	m3 = m1;
 	m1+=m2;
-	TEST_EQUAL(m1, m3);
+	TEST_EQUAL(m1, m3)
 
 	// test basic classes
 	m1.setIdentifier ("123");
@@ -364,18 +337,15 @@ START_SECTION((FeatureMap& operator+= (const FeatureMap& rhs)))
 
 
 	m1+=m2;
-	TEST_EQUAL(m1.getIdentifier(), "");
-	TEST_EQUAL(UniqueIdInterface::isValid(m1.getUniqueId()), false);
-	TEST_EQUAL(m1.getDataProcessing().size(), 3);
-	TEST_EQUAL(m1.getProteinIdentifications().size(),3);
-	TEST_EQUAL(m1.getUnassignedPeptideIdentifications().size(),3);
+	TEST_EQUAL(m1.getIdentifier(), "")
+	TEST_EQUAL(UniqueIdInterface::isValid(m1.getUniqueId()), false)
+	TEST_EQUAL(m1.getDataProcessing().size(), 3)
+	TEST_EQUAL(m1.getProteinIdentifications().size(),3)
+	TEST_EQUAL(m1.getUnassignedPeptideIdentifications().size(),3)
 	TEST_EQUAL(m1.size(),3);
-
-
 END_SECTION
 
 START_SECTION((void sortByIntensity(bool reverse=false)))
-
 	FeatureMap to_be_sorted;
 
 	Feature f1;
@@ -392,21 +362,18 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
 
 	to_be_sorted.sortByIntensity();
 
-	TEST_EQUAL(to_be_sorted[0].getIntensity(),3);
-	TEST_EQUAL(to_be_sorted[1].getIntensity(),5);
-	TEST_EQUAL(to_be_sorted[2].getIntensity(),10);
-
+	TEST_EQUAL(to_be_sorted[0].getIntensity(),3)
+	TEST_EQUAL(to_be_sorted[1].getIntensity(),5)
+	TEST_EQUAL(to_be_sorted[2].getIntensity(),10)
 
 	to_be_sorted.sortByIntensity(true);
 
-	TEST_EQUAL(to_be_sorted[0].getIntensity(),10);
-	TEST_EQUAL(to_be_sorted[1].getIntensity(),5);
-	TEST_EQUAL(to_be_sorted[2].getIntensity(),3);
-
+	TEST_EQUAL(to_be_sorted[0].getIntensity(),10)
+	TEST_EQUAL(to_be_sorted[1].getIntensity(),5)
+	TEST_EQUAL(to_be_sorted[2].getIntensity(),3)
 END_SECTION
 
 START_SECTION((void sortByPosition()))
-
 	FeatureMap to_be_sorted;
 
 	Feature f1;
@@ -423,14 +390,12 @@ START_SECTION((void sortByPosition()))
 
 	to_be_sorted.sortByPosition();
 
-	TEST_EQUAL(to_be_sorted[0].getPosition()[0],3);
-	TEST_EQUAL(to_be_sorted[1].getPosition()[0],5);
-	TEST_EQUAL(to_be_sorted[2].getPosition()[0],10);
-
+	TEST_EQUAL(to_be_sorted[0].getPosition()[0],3)
+	TEST_EQUAL(to_be_sorted[1].getPosition()[0],5)
+	TEST_EQUAL(to_be_sorted[2].getPosition()[0],10)
 END_SECTION
 
 START_SECTION((void sortByMZ()))
-
 	FeatureMap to_be_sorted;
 
 	Feature f1;
@@ -450,14 +415,12 @@ START_SECTION((void sortByMZ()))
 
 	to_be_sorted.sortByMZ();
 
-	TEST_EQUAL(to_be_sorted[0].getPosition()[1],10);
-	TEST_EQUAL(to_be_sorted[1].getPosition()[1],15);
-	TEST_EQUAL(to_be_sorted[2].getPosition()[1],25);
-
+	TEST_EQUAL(to_be_sorted[0].getPosition()[1],10)
+	TEST_EQUAL(to_be_sorted[1].getPosition()[1],15)
+	TEST_EQUAL(to_be_sorted[2].getPosition()[1],25)
 END_SECTION
 
 START_SECTION((void sortByRT()))
-
 	FeatureMap to_be_sorted;
 
 	Feature f1;
@@ -477,72 +440,70 @@ START_SECTION((void sortByRT()))
 
 	to_be_sorted.sortByRT();
 
-	TEST_EQUAL(to_be_sorted[0].getPosition()[0],3);
-	TEST_EQUAL(to_be_sorted[1].getPosition()[0],5);
-	TEST_EQUAL(to_be_sorted[2].getPosition()[0],10);
-
+	TEST_EQUAL(to_be_sorted[0].getPosition()[0],3)
+	TEST_EQUAL(to_be_sorted[1].getPosition()[0],5)
+	TEST_EQUAL(to_be_sorted[2].getPosition()[0],10)
 END_SECTION
 
 START_SECTION((void swap(FeatureMap& from)))
 {
   FeatureMap map1, map2;
-	map1.setIdentifier("stupid comment");
-	map1.push_back(feature1);
-	map1.push_back(feature2);
-	map1.updateRanges();
-	map1.getDataProcessing().resize(1);
-	map1.getProteinIdentifications().resize(1);
-	map1.getUnassignedPeptideIdentifications().resize(1);
+  map1.setIdentifier("stupid comment");
+  map1.push_back(feature1);
+  map1.push_back(feature2);
+  map1.updateRanges();
+  map1.getDataProcessing().resize(1);
+  map1.getProteinIdentifications().resize(1);
+  map1.getUnassignedPeptideIdentifications().resize(1);
 
-	map1.swap(map2);
+  map1.swap(map2);
 
-	TEST_EQUAL(map1.getIdentifier(),"")
-	TEST_EQUAL(map1.size(),0)
+  TEST_EQUAL(map1.getIdentifier(),"")
+  TEST_EQUAL(map1.size(),0)
   TEST_EQUAL(map1.hasRange() == HasRangeType::NONE, true)
   TEST_EQUAL(map1.getDataProcessing().size(),0)
-	TEST_EQUAL(map1.getProteinIdentifications().size(),0);
-	TEST_EQUAL(map1.getUnassignedPeptideIdentifications().size(),0);
+  TEST_EQUAL(map1.getProteinIdentifications().size(),0)
+  TEST_EQUAL(map1.getUnassignedPeptideIdentifications().size(),0)
 
-	TEST_EQUAL(map2.getIdentifier(),"stupid comment")
-	TEST_EQUAL(map2.size(),2)
-	TEST_REAL_SIMILAR(map2.getMinIntensity(),0.5)
+  TEST_EQUAL(map2.getIdentifier(),"stupid comment")
+  TEST_EQUAL(map2.size(),2)
+  TEST_REAL_SIMILAR(map2.getMinIntensity(),0.5)
   TEST_EQUAL(map2.getDataProcessing().size(),1)
-	TEST_EQUAL(map2.getProteinIdentifications().size(),1);
-	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
+  TEST_EQUAL(map2.getProteinIdentifications().size(),1)
+  TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1)
 }
 END_SECTION
 
 START_SECTION((void swapFeaturesOnly(FeatureMap& from)))
 {
   FeatureMap map1, map2;
-	map1.setIdentifier("stupid comment");
-	map1.push_back(feature1);
-	map1.push_back(feature2);
-	map1.updateRanges();
-	map1.getDataProcessing().resize(1);
-	map1.getProteinIdentifications().resize(1);
-	map1.getUnassignedPeptideIdentifications().resize(1);
+  map1.setIdentifier("stupid comment");
+  map1.push_back(feature1);
+  map1.push_back(feature2);
+  map1.updateRanges();
+  map1.getDataProcessing().resize(1);
+  map1.getProteinIdentifications().resize(1);
+  map1.getUnassignedPeptideIdentifications().resize(1);
 
-	map1.swapFeaturesOnly(map2);
+  map1.swapFeaturesOnly(map2);
 
-	TEST_EQUAL(map1.getIdentifier(),"stupid comment")
-	TEST_EQUAL(map1.size(),0)
+  TEST_EQUAL(map1.getIdentifier(),"stupid comment")
+  TEST_EQUAL(map1.size(),0)
   TEST_EQUAL(map1.hasRange() == HasRangeType::NONE, true)
   TEST_EQUAL(map1.getDataProcessing().size(),1)
-	TEST_EQUAL(map1.getProteinIdentifications().size(),1);
-	TEST_EQUAL(map1.getUnassignedPeptideIdentifications().size(),1);
+  TEST_EQUAL(map1.getProteinIdentifications().size(),1)
+  TEST_EQUAL(map1.getUnassignedPeptideIdentifications().size(),1)
 
-	TEST_EQUAL(map2.getIdentifier(),"")
-	TEST_EQUAL(map2.size(),2)
-	TEST_REAL_SIMILAR(map2.getMinIntensity(),0.5)
+  TEST_EQUAL(map2.getIdentifier(),"")
+  TEST_EQUAL(map2.size(),2)
+  TEST_REAL_SIMILAR(map2.getMinIntensity(),0.5)
   TEST_EQUAL(map2.getDataProcessing().size(),0)
-	TEST_EQUAL(map2.getProteinIdentifications().size(),0);
-	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),0);
+  TEST_EQUAL(map2.getProteinIdentifications().size(),0)
+  TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),0)
 }
 END_SECTION
 
 START_SECTION((void sortByOverallQuality(bool reverse=false)))
-
 	FeatureMap to_be_sorted;
 
 	Feature f1;
@@ -565,28 +526,27 @@ START_SECTION((void sortByOverallQuality(bool reverse=false)))
 
 	to_be_sorted.sortByOverallQuality();
 
-	TEST_EQUAL(to_be_sorted[0].getPosition()[0],1);
-	TEST_EQUAL(to_be_sorted[1].getPosition()[0],3);
-	TEST_EQUAL(to_be_sorted[2].getPosition()[0],2);
+	TEST_EQUAL(to_be_sorted[0].getPosition()[0],1)
+	TEST_EQUAL(to_be_sorted[1].getPosition()[0],3)
+	TEST_EQUAL(to_be_sorted[2].getPosition()[0],2)
 
-	TEST_EQUAL(to_be_sorted[0].getOverallQuality(),10);
-	TEST_EQUAL(to_be_sorted[1].getOverallQuality(),20);
-	TEST_EQUAL(to_be_sorted[2].getOverallQuality(),30);
+	TEST_EQUAL(to_be_sorted[0].getOverallQuality(),10)
+	TEST_EQUAL(to_be_sorted[1].getOverallQuality(),20)
+	TEST_EQUAL(to_be_sorted[2].getOverallQuality(),30)
 
 	to_be_sorted.sortByOverallQuality(true);
 
-	TEST_EQUAL(to_be_sorted[0].getPosition()[0],2);
-	TEST_EQUAL(to_be_sorted[1].getPosition()[0],3);
-	TEST_EQUAL(to_be_sorted[2].getPosition()[0],1);
+	TEST_EQUAL(to_be_sorted[0].getPosition()[0],2)
+	TEST_EQUAL(to_be_sorted[1].getPosition()[0],3)
+	TEST_EQUAL(to_be_sorted[2].getPosition()[0],1)
 
-	TEST_EQUAL(to_be_sorted[0].getOverallQuality(),30);
-	TEST_EQUAL(to_be_sorted[1].getOverallQuality(),20);
-	TEST_EQUAL(to_be_sorted[2].getOverallQuality(),10);
-
+	TEST_EQUAL(to_be_sorted[0].getOverallQuality(),30)
+	TEST_EQUAL(to_be_sorted[1].getOverallQuality(),20)
+	TEST_EQUAL(to_be_sorted[2].getOverallQuality(),10)
 END_SECTION
 
 START_SECTION((void clear(bool clear_meta_data=true)))
-  FeatureMap map1;
+    FeatureMap map1;
 	map1.setIdentifier("stupid comment");
 	map1.push_back(feature1);
 	map1.push_back(feature2);
@@ -609,73 +569,73 @@ END_SECTION
 
 START_SECTION(([EXTRA] void uniqueIdToIndex()))
 {
-	  FeatureMap fm;
-	  Feature f;
-	  f.setMZ(23.9);
-	  std::vector< std::pair < Size, UInt64 > > pairs;
-	  const Size num_features = 4;
-	  for ( Size i = 0; i < num_features; ++i )
-	  {
-	    f.setRT(i*100);
-	    f.setUniqueId();
-	    pairs.push_back(make_pair(i,f.getUniqueId()));
-      fm.push_back(f);
-	  }
-    for ( Size i = 0; i < num_features; ++i )
-    {
-      TEST_EQUAL(fm.uniqueIdToIndex(pairs[i].second),pairs[i].first);
-    }
-    STATUS("shuffling ...");
-    Math::RandomShuffler r{0};
-    r.portable_random_shuffle(pairs.begin(),pairs.end());
-    r.portable_random_shuffle(fm.begin(),fm.end());
-    for ( Size i = 0; i < num_features; ++i )
-    {
-      STATUS("pairs[i]:  " << pairs[i].first << ", " << pairs[i].second )
-      TEST_EQUAL(fm.uniqueIdToIndex(fm[pairs[i].first].getUniqueId()),pairs[i].first);
-      TEST_EQUAL(fm[fm.uniqueIdToIndex(pairs[i].second)].getUniqueId(),pairs[i].second);
-    }
-
-    f.setRT(98765421);
+  FeatureMap fm;
+  Feature f;
+  f.setMZ(23.9);
+  std::vector<std::pair <Size, UInt64>> pairs;
+  const Size num_features = 4;
+  for (Size i = 0; i < num_features; ++i)
+  {
+    f.setRT(i*100);
     f.setUniqueId();
-    pairs.push_back(make_pair(987654321,f.getUniqueId()));
-
-    TEST_EQUAL(fm.uniqueIdToIndex(pairs.back().second),Size(-1));
+    pairs.push_back(make_pair(i,f.getUniqueId()));
     fm.push_back(f);
-    TEST_EQUAL(fm.uniqueIdToIndex(pairs.back().second),fm.size()-1);
+  }
+  for (Size i = 0; i < num_features; ++i)
+  {
+    TEST_EQUAL(fm.uniqueIdToIndex(pairs[i].second),pairs[i].first)
+  }
+  STATUS("shuffling ...");
+  Math::RandomShuffler r{0};
+  r.portable_random_shuffle(pairs.begin(),pairs.end());
+  r.portable_random_shuffle(fm.begin(),fm.end());
+  for ( Size i = 0; i < num_features; ++i )
+  {
+    STATUS("pairs[i]:  " << pairs[i].first << ", " << pairs[i].second )
+    TEST_EQUAL(fm.uniqueIdToIndex(fm[pairs[i].first].getUniqueId()),pairs[i].first)
+    TEST_EQUAL(fm[fm.uniqueIdToIndex(pairs[i].second)].getUniqueId(),pairs[i].second)
+  }
 
-    fm.push_back(Feature());
-    fm.push_back(f);
-    fm.push_back(Feature());
-    fm.push_back(Feature());
-    STATUS("fm: " << fm);
-    fm.erase(fm.begin()+1);
-    fm.erase(fm.begin()+2);
-    STATUS("fm: " << fm);
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::Postcondition,fm.updateUniqueIdToIndex(),"Duplicate valid unique ids detected!   RandomAccessContainer has size()==7, num_valid_unique_id==4, uniqueid_to_index_.size()==3");
+  f.setRT(98765421);
+  f.setUniqueId();
+  pairs.push_back(make_pair(987654321,f.getUniqueId()));
+
+  TEST_EQUAL(fm.uniqueIdToIndex(pairs.back().second),Size(-1))
+  fm.push_back(f);
+  TEST_EQUAL(fm.uniqueIdToIndex(pairs.back().second),fm.size()-1)
+
+  fm.push_back(Feature());
+  fm.push_back(f);
+  fm.push_back(Feature());
+  fm.push_back(Feature());
+  STATUS("fm: " << fm);
+  fm.erase(fm.begin()+1);
+  fm.erase(fm.begin()+2);
+  STATUS("fm: " << fm);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::Postcondition,fm.updateUniqueIdToIndex(),"Duplicate valid unique ids detected!   RandomAccessContainer has size()==7, num_valid_unique_id==4, uniqueid_to_index_.size()==3");
 }
 END_SECTION
 
-START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*member_function)())))
+START_SECTION((template <typename Type> Size applyMemberFunction(Size(Type::*member_function)())))
 {
   FeatureMap fm;
   fm.push_back(Feature());
   fm.push_back(Feature());
   fm.back().getSubordinates().push_back(Feature());
 
-  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),4);
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),4)
   fm.setUniqueId();
-  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),3);
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),3)
   fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),4);
-  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),0);
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),4)
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),0)
   fm.begin()->clearUniqueId();
-  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),3);
-  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),1);
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),3)
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),1)
 }
 END_SECTION
 
-START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*member_function)() const ) const ))
+START_SECTION((template <typename Type> Size applyMemberFunction(Size(Type::*member_function)() const) const))
 {
   FeatureMap fm;
   FeatureMap const & fmc(fm);
@@ -683,56 +643,66 @@ START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*m
   fm.push_back(Feature());
   fm.back().getSubordinates().push_back(Feature());
 
-  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),4);
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),4)
   fm.setUniqueId();
-  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),3);
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),3)
   fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),4);
-  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),0);
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),4)
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),0)
   fm.begin()->clearUniqueId();
-  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),3);
-  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),1);
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),3)
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),1)
 }
 END_SECTION
 
-START_SECTION((  AnnotationStatistics getAnnotationStatistics() const ))
+START_SECTION((AnnotationStatistics getAnnotationStatistics() const))
   FeatureMap fm;
 
   AnnotationStatistics stats, res;
   stats = fm.getAnnotationStatistics();
-  TEST_EQUAL(stats == res, true)
+  TEST_TRUE(stats == res)
 
   fm.push_back(feature1); // single hit
   stats = fm.getAnnotationStatistics();
   ++res.states[BaseFeature::FEATURE_ID_SINGLE];
   std::cout << res;
-  TEST_EQUAL(stats == res, true)
+  TEST_TRUE(stats == res)
 
   fm.push_back(feature4); // single hit + no hit
   stats = fm.getAnnotationStatistics();
   ++res.states[BaseFeature::FEATURE_ID_NONE];
   std::cout << res;
-  TEST_EQUAL(stats == res, true)
+  TEST_TRUE(stats == res)
 
   fm.push_back(feature4); // single hit + 2x no hit
   stats = fm.getAnnotationStatistics();
   ++res.states[BaseFeature::FEATURE_ID_NONE];
   std::cout << res;
-  TEST_EQUAL(stats == res, true)
+  TEST_TRUE(stats == res)
 
   fm.push_back(feature2); // single hit + 2x no hit + multi-hit (same)
   stats = fm.getAnnotationStatistics();
   ++res.states[BaseFeature::FEATURE_ID_MULTIPLE_SAME];
   std::cout << res;
-  TEST_EQUAL(stats == res, true)
+  TEST_TRUE(stats == res)
 
   fm.push_back(feature3); // single hit + 2x no hit + multi-hit (same) + multi (divergent)
   stats = fm.getAnnotationStatistics();
   ++res.states[BaseFeature::FEATURE_ID_MULTIPLE_DIVERGENT];
   std::cout << res;
   std::cout << stats;
-  TEST_EQUAL(stats == res, true)
+  TEST_TRUE(stats == res)
+END_SECTION
 
+START_SECTION([EXTRA] ExposedVector Ctor)
+  FeatureMap fm(10);
+  TEST_EQUAL(fm.size(), 10);
+
+  Feature f4;
+  f4.getPosition()[0] = 5.25;
+  FeatureMap fm2(10, f4);
+  TEST_EQUAL(fm2.size(), 10)
+  TEST_EQUAL(fm2[6].getPosition()[0], 5.25)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

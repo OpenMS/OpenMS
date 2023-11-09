@@ -15,8 +15,8 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
         # wrap-inherits:
         #   ProgressLogger
 
-        InternalCalibration()      nogil except + # wrap-doc:A mass recalibration method using linear/quadratic interpolation (robust/weighted) of given reference masses
-        InternalCalibration(InternalCalibration &) nogil except + # compiler
+        InternalCalibration()      except + nogil  # wrap-doc:A mass recalibration method using linear/quadratic interpolation (robust/weighted) of given reference masses
+        InternalCalibration(InternalCalibration &) except + nogil  # compiler
 
 
         Size fillCalibrants(MSExperiment,
@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                             bool lock_require_mono,
                             bool lock_require_iso,
                             CalibrationData& failed_lock_masses,
-                            bool verbose) nogil except +
+                            bool verbose) except + nogil 
             # wrap-doc:
                 #  Extract calibrants from Raw data (mzML)\n
                 #  
@@ -48,7 +48,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                 #  :param verbose: Print information on 'lock_require_XXX' matches during search
                 #  :return: Number of calibration masses found
 
-        Size fillCalibrants(FeatureMap, double) nogil except +
+        Size fillCalibrants(FeatureMap, double) except + nogil 
             # wrap-doc:
                 #  Extract calibrants from identifications\n
                 #  
@@ -70,7 +70,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                 #  :param tol_ppm: Only accept ID's whose theoretical mass deviates at most this much from annotated
                 #  :return: Number of calibration masses found
 
-        Size fillCalibrants(libcpp_vector[PeptideIdentification], double) nogil except +
+        Size fillCalibrants(libcpp_vector[PeptideIdentification], double) except + nogil 
             # wrap-doc:
                 #  Extract calibrants from identifications\n
                 #  
@@ -91,7 +91,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                 #  :param tol_ppm: Only accept ID's whose theoretical mass deviates at most this much from annotated
                 #  :return: Number of calibration masses found
 
-        CalibrationData getCalibrationPoints() nogil except +
+        CalibrationData getCalibrationPoints() except + nogil 
             # wrap-doc:
                 #  Get container of calibration points\n
                 #  
@@ -111,7 +111,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                        String file_models_plot,
                        String file_residuals,
                        String file_residuals_plot,
-                       String rscript_executable) nogil except +
+                       String rscript_executable) except + nogil 
             # wrap-doc:
                 #  Apply calibration to data\n
                 #  
@@ -140,17 +140,17 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
 cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS::InternalCalibration":
 
     void applyTransformation(libcpp_vector[Precursor]& pcs,
-                             MZTrafoModel& trafo) nogil except + # wrap-attach:InternalCalibration
+                             MZTrafoModel& trafo) except + nogil  # wrap-attach:InternalCalibration
     void applyTransformation(MSSpectrum & spec, IntList& target_mslvl,
-                             MZTrafoModel & trafo) nogil except + # wrap-attach:InternalCalibration
+                             MZTrafoModel & trafo) except + nogil  # wrap-attach:InternalCalibration
     void applyTransformation(MSExperiment & exp,
-                             IntList& target_mslvl, MZTrafoModel& trafo) nogil except + # wrap-attach:InternalCalibration
+                             IntList& target_mslvl, MZTrafoModel& trafo) except + nogil  # wrap-attach:InternalCalibration
 
 cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS::InternalCalibration":
 
     cdef cppclass InternalCalibration_LockMass "OpenMS::InternalCalibration::LockMass":
-        InternalCalibration_LockMass(double mz_, int lvl_, int charge_) nogil except +
-        InternalCalibration_LockMass(InternalCalibration_LockMass &) nogil except + # compiler
+        InternalCalibration_LockMass(double mz_, int lvl_, int charge_) except + nogil 
+        InternalCalibration_LockMass(InternalCalibration_LockMass &) except + nogil  # compiler
         double mz # m/z of the lock mass (incl. adducts)
         unsigned int ms_level # MS level where it occurs
         int charge # charge of the ion (to find isotopes)

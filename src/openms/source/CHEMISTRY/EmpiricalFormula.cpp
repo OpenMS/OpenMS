@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow, Ahmed Khalil $
@@ -76,6 +50,18 @@ namespace OpenMS
     for (const auto& it : formula_)
     {
       weight += it.first->getMonoWeight() * (double)it.second;
+    }
+    return weight;
+  }
+
+  double EmpiricalFormula::getLightestIsotopeWeight() const
+  {
+    double weight = Constants::PROTON_MASS_U * charge_;
+    for (const auto& it : formula_)
+    {
+      // Isotopes should be filled sorted by mz in Elements, so we use
+      //  the first element instead of getMin()
+      weight += it.first->getIsotopeDistribution()[0].getMZ() * (double)it.second;
     }
     return weight;
   }
@@ -155,6 +141,43 @@ namespace OpenMS
 
     double remaining_mass = average_weight-getAverageWeight();
     SignedSize adjusted_H = Math::round(remaining_mass / db->getElement("H")->getAverageWeight());
+
+    // It's possible for a very small mass to get a negative value here.
+    if (adjusted_H < 0)
+    {
+      // The approximation can still be useful, but we set the return flag to false to explicitly notify the programmer.
+      return false;
+    }
+
+    // Only insert hydrogens if their number is not negative.
+    formula_.insert(make_pair(db->getElement("H"), adjusted_H));
+    // The approximation had no issues.
+    return true;
+  }
+
+  bool EmpiricalFormula::estimateFromMonoWeightAndComp(double mono_weight, double C, double H, double N, double O, double S, double P)
+  {
+    const ElementDB* db = ElementDB::getInstance();
+
+    double monoTotal = (C * db->getElement("C")->getMonoWeight() +
+                       H * db->getElement("H")->getMonoWeight() +
+                       N * db->getElement("N")->getMonoWeight() +
+                       O * db->getElement("O")->getMonoWeight() +
+                       S * db->getElement("S")->getMonoWeight() +
+                       P * db->getElement("P")->getMonoWeight());
+
+    double factor = mono_weight / monoTotal;
+
+    formula_.clear();
+
+    formula_.insert(make_pair(db->getElement("C"), (SignedSize) Math::round(C * factor)));
+    formula_.insert(make_pair(db->getElement("N"), (SignedSize) Math::round(N * factor)));
+    formula_.insert(make_pair(db->getElement("O"), (SignedSize) Math::round(O * factor)));
+    formula_.insert(make_pair(db->getElement("S"), (SignedSize) Math::round(S * factor)));
+    formula_.insert(make_pair(db->getElement("P"), (SignedSize) Math::round(P * factor)));
+
+    double remaining_mass = mono_weight-getMonoWeight();
+    SignedSize adjusted_H = Math::round(remaining_mass / db->getElement("H")->getMonoWeight());
 
     // It's possible for a very small mass to get a negative value here.
     if (adjusted_H < 0)

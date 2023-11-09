@@ -41,6 +41,7 @@ OutputDirectory.cpp
 OutputDirectory.ui
 Painter1DBase.cpp
 Painter2DBase.cpp
+PainterBase.cpp
 ParamEditor.cpp
 ParamEditor.ui
 Plot1DCanvas.cpp

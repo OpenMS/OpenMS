@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Authors: Ruben Grünberg $
@@ -171,20 +145,20 @@ START_TEST(ParamValue, "$Id$")
         START_SECTION((ParamValue(const vector<string> &)))
                 vector<string> sl = {"test string", "test String 2"};
                 ParamValue d(sl);
-                TEST_EQUAL(d == sl, true)
+                TEST_TRUE(d == sl)
         END_SECTION
 
         START_SECTION((ParamValue(const vector<int> &)))
                 vector<int> il = {1, 2};
                 ParamValue d(il);
-                TEST_EQUAL(d == il, true)
+                TEST_TRUE(d == il)
         END_SECTION
 
         START_SECTION((ParamValue(const vector<double> &)))
                 vector<double> dl = {1.2, 22.3333};
                 ParamValue d(dl);
                 //vector<double> dldv = d;
-                TEST_EQUAL(d == dl, true);
+                TEST_TRUE(d == dl);
         END_SECTION
 
 // copy ctor
@@ -262,16 +236,16 @@ START_TEST(ParamValue, "$Id$")
                     TEST_EQUAL( copy_of_p10 == ListUtils::create<int>("1,2,3,4,5"), true)
                     TEST_EQUAL( copy_of_p11 == ListUtils::create<double>("1.2,2.3,3.4"), true)
 
-                    TEST_EQUAL(p1 == empty, true)
-                    TEST_EQUAL(p3 == empty, true)
-                    TEST_EQUAL(p4 == empty, true)
-                    TEST_EQUAL(p5 == empty, true)
-                    TEST_EQUAL(p6 == empty, true)
-                    TEST_EQUAL(p7 == empty, true)
-                    TEST_EQUAL(p8 == empty, true)
-                    TEST_EQUAL(p9 == empty, true)
-                    TEST_EQUAL(p10 == empty, true)
-                    TEST_EQUAL(p11 == empty, true)
+                    TEST_TRUE(p1 == empty)
+                    TEST_TRUE(p3 == empty)
+                    TEST_TRUE(p4 == empty)
+                    TEST_TRUE(p5 == empty)
+                    TEST_TRUE(p6 == empty)
+                    TEST_TRUE(p7 == empty)
+                    TEST_TRUE(p8 == empty)
+                    TEST_TRUE(p9 == empty)
+                    TEST_TRUE(p10 == empty)
+                    TEST_TRUE(p11 == empty)
                 }
         END_SECTION
 
@@ -351,16 +325,16 @@ START_TEST(ParamValue, "$Id$")
                     copy_of_p = std::move(p11);
                     TEST_EQUAL(copy_of_p == ListUtils::create<double>("1.2,2.3,3.4"), true)
 
-                    TEST_EQUAL(p1 == empty, true)
-                    TEST_EQUAL(p3 == empty, true)
-                    TEST_EQUAL(p4 == empty, true)
-                    TEST_EQUAL(p5 == empty, true)
-                    TEST_EQUAL(p6 == empty, true)
-                    TEST_EQUAL(p7 == empty, true)
-                    TEST_EQUAL(p8 == empty, true)
-                    TEST_EQUAL(p9 == empty, true)
-                    TEST_EQUAL(p10 == empty, true)
-                    TEST_EQUAL(p11 == empty, true)
+                    TEST_TRUE(p1 == empty)
+                    TEST_TRUE(p3 == empty)
+                    TEST_TRUE(p4 == empty)
+                    TEST_TRUE(p5 == empty)
+                    TEST_TRUE(p6 == empty)
+                    TEST_TRUE(p7 == empty)
+                    TEST_TRUE(p8 == empty)
+                    TEST_TRUE(p9 == empty)
+                    TEST_TRUE(p10 == empty)
+                    TEST_TRUE(p11 == empty)
                 }
         END_SECTION
 
@@ -394,21 +368,21 @@ START_TEST(ParamValue, "$Id$")
                 vector<string> sl = {"test string list"};
                 ParamValue d(sl);
                 vector<string> sl_op = d;
-                TEST_EQUAL(sl_op == d, true)
+                TEST_TRUE(sl_op == d)
         END_SECTION
 
         START_SECTION((vector<string> toStringVector() const))
                 vector<string> sl = {"test string list"};
                 ParamValue d(sl);
                 vector<string> sl_op = d.toStringVector();
-                TEST_EQUAL(sl_op == d, true)
+                TEST_TRUE(sl_op == d)
         END_SECTION
 
         START_SECTION((operator vector<int>() const))
                 vector<int> il = {1, 2};
                 ParamValue d(il);
                 vector<int> il_op = d;
-                TEST_EQUAL(il_op == il, true)
+                TEST_TRUE(il_op == il)
                 TEST_EXCEPTION(Exception::ConversionError, vector<string> sl = ParamValue("abc,ab");)
         END_SECTION
 
@@ -416,7 +390,7 @@ START_TEST(ParamValue, "$Id$")
                 vector<int> il = {1, 2};
                 ParamValue d(il);
                 vector<int> il_op = d.toIntVector();
-                TEST_EQUAL(il_op == il, true)
+                TEST_TRUE(il_op == il)
                 TEST_EXCEPTION(Exception::ConversionError, vector<string> sl = ParamValue("abc,ab").toStringVector();)
         END_SECTION
 
@@ -424,14 +398,14 @@ START_TEST(ParamValue, "$Id$")
                 vector<double> dl = {1.2, 22.34455};
                 ParamValue d(dl);
                 vector<double> dl_op = d;
-                TEST_EQUAL(dl_op == d, true);
+                TEST_TRUE(dl_op == d);
         END_SECTION
 
         START_SECTION((DoubleList toDoubleVector() const))
                 vector<double> dl = {1.2, 22.34455};
                 ParamValue d(dl);
                 vector<double> dl_op = d.toDoubleVector();
-                TEST_EQUAL(dl_op == d, true);
+                TEST_TRUE(dl_op == d);
         END_SECTION
 
         START_SECTION((operator long double() const))

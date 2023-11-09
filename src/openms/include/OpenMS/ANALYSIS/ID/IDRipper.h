@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -36,6 +10,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <unordered_map>
 
 
 namespace OpenMS
@@ -75,28 +50,32 @@ public:
     struct OPENMS_DLLAPI RipFileIdentifier
     {
         /// The numerical index of the source IdentificationRun
-        UInt ident_run_idx;
+        UInt ident_run_idx{};
         /// The numerical index of the source file_origin / spectra_data element
-        UInt file_origin_idx;
+        UInt file_origin_idx{};
         /// The output basename derived from the file_origin / spectra_data element
         String out_basename;
         /// The full length origin read from the file_origin / spectra_data element
         String origin_fullname;
 
         /// Constructs a new RipFileIdentifier object
-        RipFileIdentifier(const IDRipper::IdentificationRuns& id_runs, const PeptideIdentification& pep_id, const std::map<String, UInt>& file_origin_map, const IDRipper::OriginAnnotationFormat origin_annotation_fmt, bool split_ident_runs);
+        RipFileIdentifier(const IDRipper::IdentificationRuns& id_runs, 
+          const PeptideIdentification& pep_id, 
+          const std::map<String, UInt>& file_origin_map, 
+          const IDRipper::OriginAnnotationFormat origin_annotation_fmt, 
+          bool split_ident_runs);
 
         /// Get identification run index
-        UInt getIdentRunIdx();
+        UInt getIdentRunIdx() const;
 
         /// Get file origin index
-        UInt getFileOriginIdx();
+        UInt getFileOriginIdx() const;
 
         /// Get origin full name
-        const String & getOriginFullname();
+        const String & getOriginFullname() const;
 
         /// Get output base name
-        const String & getOutputBasename();
+        const String & getOutputBasename() const;
     };
 
     /// Provides a 'less' operation for RipFileIdentifiers that ignores the out_basename and origin_fullname members
@@ -182,11 +161,11 @@ private:
     /// helper function, detects file origin annotation standard from collections of protein and peptide hits
     OriginAnnotationFormat detectOriginAnnotationFormat_(std::map<String, UInt> & file_origin_map, const std::vector<PeptideIdentification> & peptide_idents);
     /// helper function, extracts all protein hits that match the protein accession
-    void getProteinHits_(std::vector<ProteinHit> & result, const std::vector<ProteinHit> & protein_hits, const std::vector<String> & protein_accessions);
+    void getProteinHits_(std::vector<ProteinHit> & result, const std::unordered_map<String, const ProteinHit*> & acc2protein_hits, const std::set<String> & protein_accessions);
     /// helper function, returns the string representation of the peptide hit accession
-    void getProteinAccessions_(std::vector<String> & result, const std::vector<PeptideHit> & peptide_hits);
-    /// helper function, returns the protein identification for the given peptide identification based on the same identifier
-    void getProteinIdentification_(ProteinIdentification & result, const PeptideIdentification& pep_ident, std::vector<ProteinIdentification> & prot_idents);
+    std::set<String> getProteinAccessions_(const std::vector<PeptideHit> & peptide_hits);
+    /// helper function, returns the index of the protein identification for the given peptide identification based on the same identifier using id_runs as lookup
+    int getProteinIdentification_(const PeptideIdentification& pep_ident, const IdentificationRuns& id_runs);
     /// helper function, register a potential output file basename to detect duplicate output basenames
     bool registerBasename_(std::map<String, std::pair<UInt, UInt> >& basename_to_numeric, const IDRipper::RipFileIdentifier& rfi);
     /// helper function, sets the value of mode to new_value and returns true if the old value was identical or unset (-1)

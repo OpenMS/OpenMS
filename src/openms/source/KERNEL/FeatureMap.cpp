@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -99,23 +73,24 @@ namespace OpenMS
   }
 
   FeatureMap::FeatureMap() :
-    Base(),
     MetaInfoInterface(),
     RangeManagerContainerType(),
     DocumentIdentifier(),
+    ExposedVector<Feature>(),
     UniqueIdInterface(),
     UniqueIdIndexer<FeatureMap>(),
     protein_identifications_(),
     unassigned_peptide_identifications_(),
-    data_processing_()
+    data_processing_(),
+    id_data_()
   {
   }
 
   FeatureMap::FeatureMap(const FeatureMap& source) :
-    Base(source),
     MetaInfoInterface(source),
     RangeManagerContainerType(source),
     DocumentIdentifier(source),
+    ExposedVector<Feature>(source),
     UniqueIdInterface(source),
     UniqueIdIndexer<FeatureMap>(source),
     protein_identifications_(source.protein_identifications_),
@@ -135,27 +110,38 @@ namespace OpenMS
 
   FeatureMap::~FeatureMap() = default;
 
-  FeatureMap& FeatureMap::operator=(const FeatureMap& rhs)
+  FeatureMap& FeatureMap::operator=(const FeatureMap& rhs)  // TODO: cannot be defaulted since OpenMS::IdentificationData is missing operator=
   {
     if (&rhs == this)
     {
       return *this;
     }
-    Base::operator=(rhs);
     MetaInfoInterface::operator=(rhs);
     RangeManagerType::operator=(rhs);
     DocumentIdentifier::operator=(rhs);
     UniqueIdInterface::operator=(rhs);
+    data_ = rhs.data_;
     protein_identifications_ = rhs.protein_identifications_;
     unassigned_peptide_identifications_ = rhs.unassigned_peptide_identifications_;
     data_processing_ = rhs.data_processing_;
 
+    // copy ID data and update references in features:
+    id_data_.clear();
+    IdentificationData::RefTranslator trans = id_data_.merge(rhs.id_data_);
+    for (Feature& feature : *this)
+    {
+      feature.updateAllIDReferences(trans);
+    }
+
     return *this;
   }
 
+  //FeatureMap& FeatureMap::operator=(FeatureMap&&) = default; // TODO: cannot be defaulted since OpenMS::IdentificationData is missing operator=
+
+
   bool FeatureMap::operator==(const FeatureMap& rhs) const
   {
-    return std::operator==(*this, rhs) &&
+    return data_ == rhs.data_ &&
            MetaInfoInterface::operator==(rhs) &&
            RangeManagerType::operator==(rhs) &&
            DocumentIdentifier::operator==(rhs) &&
@@ -219,7 +205,7 @@ namespace OpenMS
     }
     catch (Exception::Postcondition&) // assign new UID's for conflicting entries
     {
-      Size replaced_uids =  UniqueIdIndexer<FeatureMap>::resolveUniqueIdConflicts();
+      Size replaced_uids = UniqueIdIndexer<FeatureMap>::resolveUniqueIdConflicts();
       OPENMS_LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
     }
 
@@ -268,7 +254,7 @@ namespace OpenMS
   void FeatureMap::updateRanges()
   {
     clearRanges();
-    for (const auto& f : (Base&) *this)
+    for (const auto& f : *this)
     {
       extendRT(f.getRT());
       extendMZ(f.getMZ());
@@ -291,8 +277,7 @@ namespace OpenMS
 
   void FeatureMap::swapFeaturesOnly(FeatureMap& from)
   {
-    // TODO used by FeatureFinderAlgorithmPicked -- could it also use regular swap?
-    Base::swap(from);
+    data_.swap(from.data_);
 
     // swap range information (otherwise its false in both maps)
     FeatureMap tmp;
@@ -422,7 +407,7 @@ namespace OpenMS
 
   void FeatureMap::clear(bool clear_meta_data)
   {
-    Base::clear();
+    data_.clear();
 
     if (clear_meta_data)
     {
@@ -464,8 +449,8 @@ namespace OpenMS
     }
     std::set<IdentificationData::ObservationMatchRef> result;
     std::set_difference(all_matches.begin(), all_matches.end(),
-                   assigned_matches.begin(), assigned_matches.end(),
-                   inserter(result, result.end()));
+                        assigned_matches.begin(), assigned_matches.end(),
+                        inserter(result, result.end()));
     return result;
   }
 

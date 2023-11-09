@@ -20,10 +20,10 @@ installation instructions.
 --       TOPP tools         --
 ------------------------------
 
-In addition to the OpenMS library 'The OpenMS Proteomics 
-Pipeline' (TOPP) is also included in this package.
-The installation instructions for OpenMS also contain 
-installation instructions for TOPP!
+In addition to the OpenMS library 'The OpenMS 
+PiPeline' (TOPP) is also included in this package.
+The installation instructions for OpenMS also 
+contain installation instructions for TOPP!
 
 ------------------------------
 --      Contributing       --

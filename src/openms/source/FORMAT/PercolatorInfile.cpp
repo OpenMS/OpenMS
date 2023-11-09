@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -37,6 +11,12 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/FORMAT/CsvFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
+#include <regex>
+#include <functional>
+#include <unordered_set>
 
 namespace OpenMS
 {
@@ -57,7 +37,7 @@ namespace OpenMS
   String PercolatorInfile::getScanIdentifier(const PeptideIdentification& pid, size_t index)
   {
     // MSGF+ uses this field, is empty if not specified
-    String scan_identifier = pid.getMetaValue("spectrum_reference");
+    String scan_identifier = pid.getSpectrumReference();
 
     if (scan_identifier.empty())
     {
@@ -74,6 +54,214 @@ namespace OpenMS
       }
     }
     return scan_identifier.removeWhitespaces();
+  }
+
+  vector<PeptideIdentification> PercolatorInfile::load(
+    const String& pin_file,
+    bool higher_score_better,
+    const String& score_name,
+    const StringList& extra_scores,
+    StringList& filenames,
+    String decoy_prefix)
+  {
+    CsvFile csv(pin_file, '\t');
+    StringList header;
+    //TODO DANGEROUS! Our CSV reader does not support comment lines!!
+    csv.getRow(0, header);
+
+    unordered_map<String, size_t> to_idx; // map column name to column index
+    {
+      int idx{};
+      for (const auto& h : header) { to_idx[h] = idx++; }
+    }
+
+    int file_name_column_index{-1};
+    if (auto it = std::find(header.begin(), header.end(), "FileName"); it != header.end())
+    {
+      file_name_column_index = it - header.begin();
+    }
+
+    // get column indices of extra scores
+    std::set<String> found_extra_scores; // additional (non-main) scores that should be stored in the PeptideHit, order important for comparable idXML
+    for (const String& s : extra_scores)
+    {
+      if (auto it = std::find(header.begin(), header.end(), s); it != header.end())
+      {
+        found_extra_scores.insert(s);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "Extra score: " << s << " not found in Percolator input file." << endl;
+      }
+    }
+
+    // charge columns are not standardized, so we check for the format and create hash to lookup column name to charge mapping
+    std::regex charge_one_hot_pattern("^charge\\d+$");
+    std::regex sage_one_hot_pattern("^z=\\d+$");
+    String charge_prefix;
+    unordered_map<String, int> col_name_to_charge;
+
+    // Special handling for sage: sage produces an additional column for PSMs outside of the "suggested" charge search range (e.g., charge 2-5).
+    // The reason is that sage searches always for the charge annotated in the spectrum raw file. Only if the annotation is missing it will search
+    // the suggested charge range.
+    bool found_sage_otherz_charge_column{false}; 
+    for (const String& c : header)
+    {
+      if (std::regex_match(c, charge_one_hot_pattern))
+      {
+        col_name_to_charge[c] = c.substr(6).toInt();
+        charge_prefix = "charge";
+      }
+      else if (std::regex_match(c, sage_one_hot_pattern))
+      {
+        col_name_to_charge[c] = c.substr(2).toInt();
+        charge_prefix = "z=";
+      }      
+      else if (c == "z=other") // SAGE
+      {
+        found_sage_otherz_charge_column = true;
+        OPENMS_LOG_DEBUG << "Found SAGE charge column 'z=other'. Will extract charge from this column if charge was not set in the one-hot encoded charge columns." << endl;
+      }
+    }
+
+    auto n_rows = csv.rowCount();
+
+    vector<PeptideIdentification> pids;
+    pids.reserve(n_rows);
+    String spec_id;
+    String raw_file_name("UNKNOWN");
+    unordered_map<String, size_t> map_filename_to_idx; // fast lookup of filename to index in filenames vector
+
+    for (size_t i = 1; i != n_rows; ++i)
+    {
+      StringList row;
+      csv.getRow(i, row);
+
+      if (row.size() != header.size())
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: line " + String(i) + " of file '" + pin_file + "' does not have the same number of columns as the header!", String(i));
+      }
+
+      if (file_name_column_index >= 0)
+      {
+        raw_file_name = row[file_name_column_index];
+        if (map_filename_to_idx.find(raw_file_name) == map_filename_to_idx.end())
+        {
+          filenames.push_back(raw_file_name);
+          map_filename_to_idx[raw_file_name] = filenames.size() - 1;
+        }
+      }
+
+      // NOTE: In our pin files that we WRITE, SpecID will be filename + vendor spectrum native ID
+      // However, many search engines (e.g. Sage) choose arbitrary IDs, which is unfortunately allowed
+      //  by this loosely defined format.
+      const String& sSpecId = row[to_idx.at("SpecId")];
+
+      // In theory, this should be an integer, but Sage currently cannot extract the number from all vendor spectrum IDs,
+      //  so it writes the full ID as string
+      String sScanNr = row[to_idx.at("ScanNr")];
+
+      if (sSpecId != spec_id)
+      {
+        pids.resize(pids.size() + 1);
+        pids.back().setHigherScoreBetter(higher_score_better);
+        pids.back().setScoreType(score_name);
+        pids.back().setMetaValue(Constants::UserParam::ID_MERGE_INDEX, map_filename_to_idx.at(raw_file_name));
+        pids.back().setRT(row[to_idx.at("retentiontime")].toDouble() * 60.0); // search engines typically write minutes (e.g., sage)
+        pids.back().setMetaValue("PinSpecId", sSpecId);
+        // Since ScanNr is the closest to help in identifying the spectrum in the file later on,
+        // we use it as spectrum_reference. Since it can be integer only or the complete
+        // vendor ID, you will need a lookup in case of number only later!!
+        pids.back().setSpectrumReference(sScanNr);
+      }
+
+      String sPeptide = row[to_idx.at("Peptide")];
+      const double score = row[to_idx.at(score_name)].toDouble();
+      String target_decoy = row[to_idx.at("Label")].toInt() == 1 ? "target" : "decoy";
+      const String& sProteins = row[to_idx.at("Proteins")];
+      int rank = to_idx.count("rank") ? row[to_idx.at("rank")].toInt() : 1;
+      StringList accessions;
+
+      int charge = 0;
+      for (const auto& [name, z] : col_name_to_charge)
+      {        
+        if (row[to_idx.at(name)] == "1")
+        {
+          charge = z;
+          break;
+        }
+      }
+
+      // all one-hot encoded charge columns are zero. Use value in the sage "z=other" column if it exists.
+      if (charge == 0 && found_sage_otherz_charge_column)
+      {
+        charge = row[to_idx.at("z=other")].toInt();
+      }
+      
+      if (charge != 0)
+      {
+        pids.back().setMZ(row[to_idx.at("ExpMass")].toDouble() / std::fabs(charge) + Constants::PROTON_MASS_U);
+      }
+
+      sProteins.split(';', accessions);
+
+      // deduce decoy state from accessions if decoy_prefix is set
+      if (!decoy_prefix.empty())
+      {
+        bool dec = false;
+        bool tgt = false;
+        for (const auto& acc : accessions)
+        {
+          if (!(dec && tgt))
+          {
+            if (acc.hasPrefix(decoy_prefix))
+            {
+              dec = true;
+            }
+            else
+            {
+              tgt = true;
+            }
+          }
+          else
+          {
+            break;
+          }
+        }
+        if (tgt && dec)
+        {
+          target_decoy = "target+decoy";
+        }
+        else if (tgt)
+        {
+          target_decoy = "target";
+        }
+        else {
+          target_decoy = "decoy";
+        }
+      }
+
+      // needs to handle strings like: [+42]-MVLVQDLLHPTAASEAR, [+304.207]-ETC[+57.0215]RQLGLGTNIYNAER etc.
+      sPeptide.substitute("]-", "]."); // we can parse [+42].MVLVQDLLHPTAASEAR
+      sPeptide.substitute("-[", ".["); // we can parse MVLVQDLLHPTAASEAR.[+111]
+      AASequence aa_seq = AASequence::fromString(sPeptide);
+      PeptideHit ph(score, rank, charge, std::move(aa_seq));
+      ph.setMetaValue("target_decoy", target_decoy);
+      for (const auto& name : found_extra_scores)
+      {
+        ph.setMetaValue(name, row[to_idx.at(name)]);
+      }
+      ph.setRank(rank);
+
+      // add link to protein (we only know the accession but not start/end, aa_before/after in protein at this point)
+      for (const String& accession : accessions)
+      {
+        ph.addPeptideEvidence(PeptideEvidence(accession));
+      }
+
+      pids.back().insertHit(std::move(ph));
+    }
+    return pids;
   }
 
 
@@ -106,7 +294,12 @@ namespace OpenMS
     for (const PeptideIdentification& pep_id : peptide_ids)
     {
       index++;
+      // try to make a file and scan unique identifier
       String scan_identifier = getScanIdentifier(pep_id, index);
+      String file_identifier = pep_id.getMetaValue("file_origin", String());
+
+      file_identifier += (String)pep_id.getMetaValue("id_merge_index", String());
+
       Int scan_number = SpectrumLookup::extractScanNumber(scan_identifier, scan_regex, true);
       
       double exp_mass = pep_id.getMZ();
@@ -121,7 +314,7 @@ namespace OpenMS
           continue;
         }
         PeptideHit hit(psm); // make a copy of the hit to store temporary features
-        hit.setMetaValue("SpecId", scan_identifier);
+        hit.setMetaValue("SpecId", file_identifier + scan_identifier);
         hit.setMetaValue("ScanNr", scan_number);
         
         if (!hit.metaValueExists("target_decoy") 
@@ -344,4 +537,3 @@ namespace OpenMS
   }
 
 }
-

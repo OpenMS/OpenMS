@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -338,19 +312,19 @@ public:
     ///@name Iterating ranges and areas
     //@{
     /// Returns an area iterator for @p area
-    AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz);
+    AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt  ms_level = 1);
 
     /// Returns a area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
-    AreaIterator areaBegin(const RangeManagerType& range);
+    AreaIterator areaBegin(const RangeManagerType& range, UInt ms_level = 1);
 
     /// Returns an invalid area iterator marking the end of an area
     AreaIterator areaEnd();
 
     /// Returns a non-mutable area iterator for @p area
-    ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const;
+    ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level = 1) const;
 
     /// Returns a non-mutable area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
-    ConstAreaIterator areaBeginConst(const RangeManagerType& range) const;
+    ConstAreaIterator areaBeginConst(const RangeManagerType& range, UInt ms_level = 1) const;
 
     /// Returns an non-mutable invalid area iterator marking the end of an area
     ConstAreaIterator areaEndConst() const;
@@ -367,20 +341,55 @@ public:
         if (it.getRT() != t) 
         {
           t = (float)it.getRT();
-          rt.emplace_back(t);
-          mz.resize(mz.size() + 1); 
-          rt.resize(rt.size() + 1);
-          intensity.resize(intensity.size() + 1);
+          rt.push_back(t);
         }
         mz.back().push_back((float)it->getMZ());
-        intensity.back().emplace_back(it->getIntensity());
+        intensity.back().push_back(it->getIntensity());
+      }
+    }
+
+    // for fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity, ion mobility]]
+    void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
+      std::vector<float>& rt, 
+      std::vector<std::vector<float>>& mz,
+      std::vector<std::vector<float>>& intensity, 
+      std::vector<std::vector<float>>& ion_mobility) const
+    {
+      float t = -1.0;
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
+      {
+        if (it.getRT() != t)
+        {
+          t = (float)it.getRT();
+          rt.push_back(t);
+        }
+        
+        const MSSpectrum& spectrum = it.getSpectrum();
+        bool has_IM = spectrum.containsIMData();
+        float peak_IM{-1.0f};
+        if (has_IM)
+        {
+          const auto& im_data = spectrum.getIMData();
+          const Size peak_index = it.getPeakIndex().peak;
+          if (spectrum.getFloatDataArrays()[im_data.first].size() == spectrum.size())
+          {
+            peak_IM = spectrum.getFloatDataArrays()[im_data.first][peak_index];
+          }          
+        }
+        ion_mobility.back().push_back(peak_IM);
+        mz.back().push_back((float)it->getMZ());
+        intensity.back().push_back(it->getIntensity());
       }
     }
 
     // for fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity]
-    void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
-      std::vector<float>& rt, 
-      std::vector<float>& mz, 
+    void get2DPeakData(
+      CoordinateType min_rt,
+      CoordinateType max_rt,
+      CoordinateType min_mz,
+      CoordinateType max_mz,
+      std::vector<float>& rt,
+      std::vector<float>& mz,
       std::vector<float>& intensity) const
     {
       for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
@@ -391,6 +400,38 @@ public:
       }
     }
 
+    // for fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity, ion mobility]
+    void get2DPeakDataIon(
+      CoordinateType min_rt,
+      CoordinateType max_rt,
+      CoordinateType min_mz,
+      CoordinateType max_mz,
+      std::vector<float>& rt,
+      std::vector<float>& mz,
+      std::vector<float>& intensity,
+      std::vector<float>& ion_mobility) const
+    {
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
+      {
+        rt.push_back((float)it.getRT());
+        mz.push_back((float)it->getMZ());
+        intensity.push_back(it->getIntensity());
+
+        const MSSpectrum& spectrum = it.getSpectrum();
+        bool has_IM = spectrum.containsIMData();
+        float peak_IM = -1.0;
+        if (has_IM)
+        {
+          const auto& im_data = spectrum.getIMData();
+          const Size& peak_index = it.getPeakIndex().peak;
+          if (spectrum.getFloatDataArrays()[im_data.first].size() == spectrum.size())
+          {
+            peak_IM = spectrum.getFloatDataArrays()[im_data.first][peak_index];
+          }          
+        }        
+        ion_mobility.push_back(peak_IM);
+      }
+    }
 
     /**
       @brief Fast search for spectrum range begin

@@ -8,35 +8,35 @@ from FeatureMap cimport *
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "OpenMS":
 
     cdef cppclass DataFilters "OpenMS::DataFilters":
-        DataFilters() nogil except + # compiler
-        DataFilters(DataFilters &) nogil except + # compiler 
-        Size size() nogil except +
-        DataFilter operator[](size_t) nogil except + # wrap-upper-limit:size()
-        void add(DataFilter & filter_) nogil except +
-        void remove(Size index) nogil except +
-        void replace(Size index, DataFilter & filter_) nogil except +
-        void clear() nogil except +
-        void setActive(bool is_active) nogil except +
-        bool isActive() nogil except +
-        bool passes(Feature & feature) nogil except +
-        bool passes(ConsensusFeature & consensus_feature) nogil except +
-        bool passes(MSSpectrum & spectrum, Size peak_index) nogil except +
+        DataFilters() except + nogil  # compiler
+        DataFilters(DataFilters &) except + nogil  # compiler 
+        Size size() except + nogil 
+        DataFilter operator[](size_t) except + nogil  # wrap-upper-limit:size()
+        void add(DataFilter & filter_) except + nogil 
+        void remove(Size index) except + nogil 
+        void replace(Size index, DataFilter & filter_) except + nogil 
+        void clear() except + nogil 
+        void setActive(bool is_active) except + nogil 
+        bool isActive() except + nogil 
+        bool passes(Feature & feature) except + nogil 
+        bool passes(ConsensusFeature & consensus_feature) except + nogil 
+        bool passes(MSSpectrum & spectrum, Size peak_index) except + nogil 
 
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "OpenMS::DataFilters":
 
     cdef cppclass DataFilter "OpenMS::DataFilters::DataFilter":
-        DataFilter() nogil except + # compiler
-        DataFilter(DataFilter &) nogil except + # compiler
+        DataFilter() except + nogil  # compiler
+        DataFilter(DataFilter &) except + nogil  # compiler
         FilterType field
         FilterOperation op
         double value
         String value_string
         String meta_name
         bool value_is_numerical
-        String toString() nogil except +
-        void fromString(const String & filter_) nogil except +
-        bool operator==(DataFilter & rhs) nogil except +
-        bool operator!=(DataFilter & rhs) nogil except +
+        String toString() except + nogil 
+        void fromString(const String & filter_) except + nogil 
+        bool operator==(DataFilter & rhs) except + nogil 
+        bool operator!=(DataFilter & rhs) except + nogil 
 
 
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "OpenMS::DataFilters":

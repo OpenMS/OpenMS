@@ -1236,7 +1236,9 @@ HTML_EXTRA_STYLESHEET  = "@CF_OPENMS_SRC_PATH@/doc/doxygen/doxygen-awesome-css/d
 # files will be copied as-is; there are no commands or markers available.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_FILES       = @CF_OPENMS_SRC_PATH@/doc/doxygen/common/favicon.ico
+HTML_EXTRA_FILES       = "@CF_OPENMS_SRC_PATH@/doc/doxygen/common/favicon.ico" \
+                         "@CF_OPENMS_SRC_PATH@/doc/doxygen/common/selectversion.js"
+
 
 # The HTML_COLORSTYLE_HUE tag controls the color of the HTML output. Doxygen
 # will adjust the colors in the style sheet and background images according to
@@ -1578,7 +1580,7 @@ FORMULA_TRANSPARENT    = YES
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-USE_MATHJAX            = NO
+USE_MATHJAX            = YES
 
 # When MathJax is enabled you can set the default output format to be used for
 # the MathJax output. See the MathJax site (see:
@@ -1601,7 +1603,7 @@ MATHJAX_FORMAT         = HTML-CSS
 # The default value is: https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/.
 # This tag requires that the tag USE_MATHJAX is set to YES.
 
-MATHJAX_RELPATH        = http://cdn.mathjax.org/mathjax/latest
+MATHJAX_RELPATH        = https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 
 # The MATHJAX_EXTENSIONS tag can be used to specify one or more MathJax
 # extension names that should be enabled during MathJax rendering. For example
@@ -2534,7 +2536,7 @@ DOT_TRANSPARENT        = NO
 # The default value is: NO.
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-DOT_MULTI_TARGETS      = NO
+DOT_MULTI_TARGETS      = YES
 
 # If the GENERATE_LEGEND tag is set to YES doxygen will generate a legend page
 # explaining the meaning of the various boxes and arrows in the dot generated

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -40,9 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -67,9 +39,9 @@
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MSGFPlusAdapter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; MSGFPlusAdapter &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes @n (or another centroiding tool)</td>
@@ -165,9 +137,6 @@ protected:
     registerInputFile_("executable", "<file>", "MSGFPlus.jar", "The MSGFPlus Java archive file. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
     registerInputFile_("database", "<file>", "", "Protein sequence database (FASTA file; MS-GF+ parameter '-d'). Non-existing relative filenames are looked up via 'OpenMS.ini:id_db_dir'.", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
-
-    registerStringOption_("add_decoys", "<choice>", "false", "Create decoy proteins (reversed sequences) and append them to the database for the search (MS-GF+ parameter '-tda'). This allows the calculation of FDRs, but should only be used if the database does not already contain decoys.", false, true);
-    setValidStrings_("add_decoys", ListUtils::create<String>("true,false"));
 
     registerDoubleOption_("precursor_mass_tolerance", "<value>", 10, "Precursor monoisotopic mass tolerance (MS-GF+ parameter '-t')", false);
     registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor mass tolerance (MS-GF+ parameter '-t')", false);
@@ -333,10 +302,10 @@ protected:
     {
       PeakMap exp;
       // load only MS2 spectra:
-      MzMLFile f;
+      FileHandler f;
       f.getOptions().addMSLevel(2);
       f.getOptions().setFillData(false);
-      f.load(exp_name, exp);
+      f.loadExperiment(exp_name, exp, {FileTypes::MZML});
       exp.getPrimaryMSRunPath(primary_ms_run_path_);
       // if no primary run is assigned, the mzML file is the (unprocessed) primary file
       if (primary_ms_run_path_.empty())
@@ -522,7 +491,6 @@ protected:
                    << "-d" << db_name.toQString()
                    << "-t" << QString::number(precursor_mass_tol) + precursor_error_units.toQString()
                    << "-ti" << getStringOption_("isotope_error_range").toQString()
-                   << "-tda" << QString::number(int(getStringOption_("add_decoys") == "true"))
                    << "-m" << QString::number(fragment_method_code)
                    << "-inst" << QString::number(instrument_code)
                    << "-e" << QString::number(enzyme_code)
@@ -768,7 +736,7 @@ protected:
       }
       else // no legacy conversion
       {
-        MzIdentMLFile().load(mzid_temp, protein_ids, peptide_ids);
+        FileHandler().loadIdentifications(mzid_temp, protein_ids, peptide_ids, {FileTypes::MZIDENTML});
 
         // MzID might contain missed_cleavages set to -1 which leads to a crash in PeptideIndexer
         for (auto& pid : protein_ids)
@@ -807,7 +775,7 @@ protected:
       // if "reindex" parameter is set to true will perform reindexing
       if (auto ret = reindex_(protein_ids, peptide_ids); ret != EXECUTION_OK) return ret;
 
-      IdXMLFile().store(out, protein_ids, peptide_ids);
+      FileHandler().storeIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML});
     }
 
     //-------------------------------------------------------------

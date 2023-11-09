@@ -9,21 +9,21 @@ cdef extern from "<OpenMS/CHEMISTRY/RNaseDB.h>" namespace "OpenMS":
         #    cdef AutowrapPtrHolder[_RNaseDB] inst
 
         # protected
-        RNaseDB() nogil except + # wrap-ignore
+        RNaseDB() except + nogil  # wrap-ignore
         # due to wrap-manual-memory
-        RNaseDB(RNaseDB &) nogil except + # wrap-ignore
+        RNaseDB(RNaseDB &) except + nogil  # wrap-ignore
 
-        const DigestionEnzymeRNA* getEnzyme(const String& name) nogil except +
-        const DigestionEnzymeRNA* getEnzymeByRegEx(const String& cleavage_regex) nogil except +
-        void getAllNames(libcpp_vector[ String ]& all_names) nogil except +
-        bool hasEnzyme(const String& name) nogil except +
-        bool hasRegEx(const String& cleavage_regex) nogil except +
-        # bool hasEnzyme(DigestionEnzymeRNA* enzyme) nogil except + # does not make sense as the ptr wont match
+        const DigestionEnzymeRNA* getEnzyme(const String& name) except + nogil 
+        const DigestionEnzymeRNA* getEnzymeByRegEx(const String& cleavage_regex) except + nogil 
+        void getAllNames(libcpp_vector[ String ]& all_names) except + nogil 
+        bool hasEnzyme(const String& name) except + nogil 
+        bool hasRegEx(const String& cleavage_regex) except + nogil 
+        # bool hasEnzyme(DigestionEnzymeRNA* enzyme) except + nogil  # does not make sense as the ptr wont match
 
-        # ConstEnzymeIterator beginEnzyme() nogil except +
-        # ConstEnzymeIterator endEnzyme() nogil except +
+        # ConstEnzymeIterator beginEnzyme() except + nogil 
+        # ConstEnzymeIterator endEnzyme() except + nogil 
 
 ## wrap static methods
 cdef extern from "<OpenMS/CHEMISTRY/RNaseDB.h>" namespace "OpenMS::RNaseDB":
 
-    RNaseDB* getInstance() nogil except + # wrap-ignore
+    RNaseDB* getInstance() except + nogil  # wrap-ignore

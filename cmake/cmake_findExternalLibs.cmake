@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -54,9 +54,50 @@ find_boost(iostreams ${OpenMS_BOOST_COMPONENTS})
 if(Boost_FOUND)
   message(STATUS "Found Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}" )
   set(CF_OPENMS_BOOST_VERSION_MAJOR ${Boost_MAJOR_VERSION})
-	set(CF_OPENMS_BOOST_VERSION_MINOR ${Boost_MINOR_VERSION})
+  set(CF_OPENMS_BOOST_VERSION_MINOR ${Boost_MINOR_VERSION})
   set(CF_OPENMS_BOOST_VERSION_SUBMINOR ${Boost_SUBMINOR_VERSION})
-	set(CF_OPENMS_BOOST_VERSION ${Boost_VERSION})
+  set(CF_OPENMS_BOOST_VERSION ${Boost_VERSION})
+
+  get_target_property(location Boost::iostreams LOCATION)
+  get_target_property(target_type Boost::iostreams TYPE)
+  if (target_type STREQUAL "STATIC_LIBRARY" AND location MATCHES "^/usr/local/")
+    message(WARNING "Statically linked Boost from system installations like brew, are not fully supported yet.
+Either use '-DBOOST_USE_STATIC=OFF' to use the shared library or build boost with our contrib. Nonetheless,
+we are going to try to continue building.")
+    get_target_property(libs Boost::iostreams INTERFACE_LINK_LIBRARIES)
+    # If boost from brew, replace simple "link flags" like "-lzstd" with
+    # find_package calls and their resulting imported targets
+    # since boost CMake does not expose this transitive dependency as targets!
+    # see https://github.com/boostorg/boost_install/issues/64
+    foreach (lib ${libs})
+      if (lib MATCHES "zstd")
+        find_package(zstd)
+      elseif (lib MATCHES "lzma")
+        find_package(LibLZMA)
+      endif()
+    endforeach ()
+    ##
+    set_target_properties(Boost::iostreams
+          PROPERTIES INTERFACE_LINK_LIBRARIES "BZip2::BZip2;ZLIB::ZLIB;zstd::libzstd_shared;LibLZMA::LibLZMA")
+  endif()
+
+  get_target_property(location Boost::regex LOCATION)
+  get_target_property(target_type Boost::regex TYPE)
+  if (target_type STREQUAL "STATIC_LIBRARY" AND location MATCHES "^/usr/local/")
+    get_target_property(libs Boost::regex INTERFACE_LINK_LIBRARIES)
+    # If boost from brew, replace simple "link flags" like "-lzstd" with
+    # find_package calls and their resulting imported targets
+    # since boost CMake does not expose this transitive dependency as targets!
+    # see https://github.com/boostorg/boost_install/issues/64
+    foreach (lib ${libs})
+      if (lib MATCHES "icui18n")
+        find_package(ICU COMPONENTS "data" "uc" "i18n")
+      endif()
+    endforeach ()
+    ##
+    set_target_properties(Boost::regex
+            PROPERTIES INTERFACE_LINK_LIBRARIES "ICU::data;ICU:uc;ICU::i18n")
+  endif()
 else()
   message(FATAL_ERROR "Boost or one of its components not found!")
 endif()
@@ -122,20 +163,14 @@ if (WITH_CRAWDAD)
 endif()
 
 #------------------------------------------------------------------------------
-# SQLITE
-# creates SQLite::SQLite3 target
-# In our contrib we make a subdir in the includes -> Add PATH_SUFFIXES
-# Look for the necessary header
-find_path(SQLite3_INCLUDE_DIR NAMES sqlite3.h PATH_SUFFIXES "sqlite")
-find_package(SQLite3 3.15.0 REQUIRED)
-
-#------------------------------------------------------------------------------
 # HDF5
-# For MSVC use static linking to the HDF5 libraries
-if(MSVC)
-  set(HDF5_USE_STATIC_LIBRARIES ON)
+if (WITH_HDF5)
+  # For MSVC use static linking to the HDF5 libraries
+  if(MSVC)
+    set(HDF5_USE_STATIC_LIBRARIES ON)
+  endif()
+  find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
 endif()
-find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
 
 #------------------------------------------------------------------------------
 # Done finding contrib libraries
@@ -152,15 +187,17 @@ endif()
 SET(QT_MIN_VERSION "5.6.0")
 
 # find qt
-set(OpenMS_QT_COMPONENTS Core Network Sql CACHE INTERNAL "QT components for core lib")
+set(OpenMS_QT_COMPONENTS Core Network CACHE INTERNAL "QT components for core lib")
 find_package(Qt5 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
 IF (NOT Qt5Core_FOUND)
-  message(STATUS "QT5Core not found!")
+  message(STATUS "Qt5Core not found!")
   message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
 ELSE()
   message(STATUS "Found Qt ${Qt5Core_VERSION}")
 ENDIF()
+
+
 
 # see https://github.com/ethereum/solidity/issues/4124
 if("${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}" VERSION_LESS "1.59")
@@ -170,6 +207,10 @@ endif()
 #------------------------------------------------------------------------------
 # PTHREAD
 #------------------------------------------------------------------------------
+# Prefer the -pthread compiler flag to be consistent with SQLiteCpp and avoid
+# rebuilds
+# TODO Do we even need this, when OpenMP is not active?
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
 
 
@@ -187,7 +228,9 @@ if (WITH_GUI)
 
   set(OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} CACHE INTERNAL "QT components for GUI lib")
 
-  set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
+  if(NOT NO_WEBENGINE_WIDGETS)
+    set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
+  endif()
 
   find_package(Qt5 REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
 
@@ -196,16 +239,37 @@ if (WITH_GUI)
     message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
   ENDIF()
 
-  find_package(Qt5 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
+  ## QuickWidgets is a runtime-only dependency that we need to copy and install when WebEngine is found.
+  # https://gitlab.kitware.com/cmake/cmake/-/issues/16462
+  # https://bugreports.qt.io/browse/QTBUG-110118
+  find_package(Qt5 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT} QuickWidgets)
 
   # TODO only works if WebEngineWidgets is the only optional component
   set(OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
   if(Qt5WebEngineWidgets_FOUND)
     list(APPEND OpenMS_GUI_QT_FOUND_COMPONENTS_OPT "WebEngineWidgets")
+    # we assume that it is available for now. They should have dependencies when installing Qt.
+    install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::QuickWidgets"
+            DESTINATION "${INSTALL_LIB_DIR}"
+            RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
+            COMPONENT Dependencies)
   else()
-    message(WARNING "Qt5WebEngineWidgets not found, disabling JS Views in TOPPView!")
+    message(WARNING "Qt5WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
   endif()
-    
+
+  # The following can be checked since Qt 5.12 https://github.com/qtwebkit/qtwebkit/issues/846
+  # evaluates to False if it does not exist
+  # TODO check what needs to be done for other values
+  if (${Qt5Gui_OPENGL_IMPLEMENTATION} STREQUAL GLESv2)
+      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::Gui_EGL"
+            DESTINATION "${INSTALL_LIB_DIR}"
+            RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
+            COMPONENT Dependencies)
+      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::Gui_GLESv2"
+            DESTINATION "${INSTALL_LIB_DIR}"
+            RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
+            COMPONENT Dependencies)
+  endif()
 
   set(OpenMS_GUI_DEP_LIBRARIES "OpenMS")
 

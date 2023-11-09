@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -39,6 +13,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+
 
 ///////////////////////////
 
@@ -67,6 +42,7 @@ START_SECTION((static String typeToName(Type type)))
   TEST_EQUAL(FileTypes::typeToName(FileTypes::PNG), "png");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::TXT), "txt");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::CSV), "csv");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::MZTAB), "mzTab");
 
   // try them all, just to make sure they are all there
   for (int i = 0; i < (int)FileTypes::SIZE_OF_TYPE; ++i)
@@ -144,6 +120,24 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
   TEST_EQUAL(list.fromFileDialogFilter("bzip2 compressed file (*.bz2)", FileTypes::CONSENSUSXML), FileTypes::BZ2);
   TEST_EXCEPTION(Exception::ElementNotFound, list.fromFileDialogFilter("not a valid filter", FileTypes::CONSENSUSXML));
 
+  END_SECTION
+
+  START_SECTION(static FileTypes::FileTypeList typesWithProperties(const std::vector<FileProperties>& features))
+  {
+    std::vector<FileTypes::FileProperties> f;
+    f.push_back(FileTypes::FileProperties::READABLE);
+    FileTypeList g = FileTypeList::typesWithProperties(f);
+    TEST_EQUAL(g.getTypes().size(), 38);
+    // Test that empty filter returns the full list
+    TEST_EQUAL(FileTypeList::typesWithProperties({}).size(), 61);
+    // Test that the full list is equal to the list of known file types
+    TEST_EQUAL(FileTypeList::typesWithProperties({}).size(),static_cast<size_t>(FileTypes::Type::SIZE_OF_TYPE));
+    // Check that we don't have duplicate Types in our type_with_annotation__
+    vector<FileTypes::Type> vec = FileTypeList::typesWithProperties({});
+    sort(vec.begin(),vec.end());
+    auto it = std::unique(vec.begin(), vec.end());
+    TEST_TRUE(it ==vec.end());
+  }
   END_SECTION
 
 END_TEST
