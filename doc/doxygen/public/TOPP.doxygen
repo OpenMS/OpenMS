@@ -20,6 +20,7 @@
   - @subpage TOPP_TOPPAS - An assistant for GUI-driven TOPP workflow design.
   - @subpage TOPP_INIFileEditor - An editor for %OpenMS configuration files.
   - @subpage TOPP_SwathWizard - A user-friendly step-by-step wizard for SWATH data analysis
+  - @subpage TOPP_FLASHDeconvWizard - A user-friendly step-by-step wizard for the @ref TOPP_FLASHDeconv tool
   
   <b>File Converter</b>
   - @subpage TOPP_FileConverter - Converts between different MS file formats.
