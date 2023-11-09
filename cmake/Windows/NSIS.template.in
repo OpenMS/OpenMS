@@ -568,28 +568,6 @@ SectionGroup "Register File Extensions" SEC_RegisterExt
 
 SectionGroupEnd
 
-# TODO make selectable or remove altogether by shipping the vcredist dlls instead of installer.
-Section "Microsoft Visual Studio Runtime" SEC_VSRuntime
-    SectionIn 1 3
-    SetOutPath $TEMP
-    SetOverwrite on
-
-    File "${VS_REDISTRIBUTABLE_PATH}\${VS_REDISTRIBUTABLE_EXE}"
-    # this requires admin privileges!
-    #${If} $IsAdmin == 1
-        ClearErrors
-        ExecWait '$TEMP\${VS_REDISTRIBUTABLE_EXE} /install /passive /norestart' $0
-        StrCmp $0 0 vs_install_success
-        StrCmp $0 1638 vs_install_success
-        MessageBox MB_OK|MB_ICONEXCLAMATION "The installation of the Visual Studio redistributable package '${VS_REDISTRIBUTABLE_EXE}' failed! OpenMS will not work unless this package is installed! The package is located at '$TEMP\${VS_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
-    #${Else}
-    #    MessageBox MB_OK|MB_ICONEXCLAMATION "Single user install was selected. '${VS_REDISTRIBUTABLE_EXE}' was not installed since it requires admin rights! OpenMS will probably not work unless this package is installed! The package is located at '$TEMP\${VS_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
-    #${EndIf}
-
-	vs_install_success:
-
-SectionEnd
-
 ## This is done by NsisMultiUser plugin now
 Section -post SEC0008
      SetOutPath $INSTDIR
@@ -711,7 +689,7 @@ Function .onInit
     !if ${PLATFORM} == 64
     ${If} ${RunningX64}
     ${else}
-      MessageBox mb_iconstop "You are running a 32bit operating system. The executables of this setup are 64bit, and thus cannot be run after installation. Use a 64bit OS, or use the 32bit setup of OpenMS."
+      MessageBox mb_iconstop "You are running a 32bit operating system. The executables of this setup are 64bit, and thus cannot be run after installation. Use a 64bit OS (there is no 32bit installer for OpenMS anymore)."
       Abort
     ${EndIf}
     !endif
@@ -783,7 +761,7 @@ FunctionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_ThirdParty} "Install third party libraries (e.g., ProteoWizard)."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_dotnet} "Install .NET and Microsoft Visual Studio Runtime for Proteowizard. (may require the installer to be run in admin mode). Deactivate if you are not admin and think this is installed already (or will be installed later) by an admin."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_RegisterExt} "Register certain file types (e.g., '.mzML') with TOPPView.exe."
-!insertmacro MUI_DESCRIPTION_TEXT ${SEC_VSRuntime} "Install the required Microsoft Visual Studio runtime (may require the installer to be run in admin mode). Deactivate if you are not admin and think this is installed already (or will be installed later) by an admin."
+#!insertmacro MUI_DESCRIPTION_TEXT ${SEC_VSRuntime} "Install the required Microsoft Visual Studio runtime (may require the installer to be run in admin mode). Deactivate if you are not admin and think this is installed already (or will be installed later) by an admin."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ################
