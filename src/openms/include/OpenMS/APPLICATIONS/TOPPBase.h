@@ -22,7 +22,7 @@
 
 #include <fstream>
 
-#include <QString>
+#include <QtCore/QString>
 
 class QStringList;
 

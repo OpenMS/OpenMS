@@ -11,7 +11,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
-#include <QDir>
+#include <QtCore/QDir>
 
 using std::map;
 using std::vector;

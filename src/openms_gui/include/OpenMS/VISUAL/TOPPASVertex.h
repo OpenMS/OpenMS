@@ -52,9 +52,10 @@
 #include <QtWidgets/QGraphicsSceneMouseEvent>
 #include <QtWidgets/QGraphicsSceneContextMenuEvent>
 #include <QtWidgets/QGraphicsItem>
-#include <QtCore/QProcess>
 #include <QtWidgets/QMenu>
-#include <QStringList>
+
+#include <QtCore/QProcess>
+#include <QtCore/QStringList>
 
 namespace OpenMS
 {

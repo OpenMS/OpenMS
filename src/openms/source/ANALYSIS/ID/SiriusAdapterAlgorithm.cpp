@@ -19,9 +19,9 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QDir>
-#include <QDirIterator>
-#include <QString>
+#include <QtCore/QDir>
+#include <QtCore/QDirIterator>
+#include <QtCore/QString>
 #include <QtCore/QProcess>
 #include <sstream>
 

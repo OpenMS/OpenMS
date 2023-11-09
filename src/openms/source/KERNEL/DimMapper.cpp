@@ -10,7 +10,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <QLocale>
+#include <QtCore/QLocale>
 
 using namespace std;
 
