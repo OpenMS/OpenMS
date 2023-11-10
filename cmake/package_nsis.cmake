@@ -34,6 +34,19 @@
 
 ## Windows installer
 
+## check for correct NSIS version
+execute_process(COMMAND makensis /HDRINFO
+                OUTPUT_VARIABLE NSIS_INFO 
+                COMMAND_ERROR_IS_FATAL ANY)                
+STRING(FIND ${NSIS_INFO} "Size of each section is 16408 bytes" NSIS_IS_8K) ## the 1k version gives "2072 bytes"
+
+if (NSIS_IS_8K EQUAL -1)
+  MESSAGE(FATAL_ERROR "NSIS (makensis.exe) needs to be the 'special build', which allows for 8k-length strings. This seems to be the 1k version. Please update NSIS. See https://github.com/OpenMS/NSIS")
+else()
+  MESSAGE(STATUS "Found 8k version of NSIS. Great!")
+endif()
+                
+
 ## check if we are packaging at least Qt 5.15 (5.14 may also work but is untested), which is "-relocatable", i.e. can find ./bin/plugins/platforms/qwindows.dll without a qt.conf (which we do not ship anymore)
 message(STATUS "Packaging: Checking Qt version ... found: ${Qt5Core_VERSION}")
 if (Qt5Core_VERSION VERSION_LESS 5.15.0)
