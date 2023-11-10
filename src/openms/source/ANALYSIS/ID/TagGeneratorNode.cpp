@@ -43,14 +43,24 @@ namespace OpenMS
     71.03711, 103.00919, 115.02694, 129.04259, 147.06841, 57.02146, 137.05891, 113.08406, 128.09496, 131.04049, 114.04293, 97.05276, 128.05858, 156.10111, 87.03203, 101.04768, 99.06841, 186.07932, 163.06332
   };
 
+  /// Generator
   TagGeneratorNode::TagGeneratorNode(const Peak1D& peak):
     charge_(1), peak_(peak), norm_intensity_(0), confidence_(0), connected_nodes_({}), distance_to_nodes({}), connected_AA({})
   {
-
   }
 
+  /// Generator for different charges
+  TagGeneratorNode::TagGeneratorNode(const OpenMS::Peak1D& peak, uint32_t charge, bool include) :
+      TagGeneratorNode(peak)
+  {
+    charge_ = charge;
+    include_ = include;
+  }
+
+  /// copy
   TagGeneratorNode::TagGeneratorNode(const OpenMS::TagGeneratorNode& cp) = default;
 
+  /// copy with new charge
   TagGeneratorNode::TagGeneratorNode(const OpenMS::TagGeneratorNode& cp, uint16_t charge) :
   charge_(charge), peak_(cp.peak_), norm_intensity_(cp.norm_intensity_), confidence_(0), connected_nodes_({}), distance_to_nodes({}), connected_AA({})
   {
@@ -86,44 +96,43 @@ namespace OpenMS
     return true;
   }
 
-  void TagGeneratorNode::generateAllQuadPeaksRecursion(vector<MultiPeak>& quad_peaks, MultiPeak quad_peak, uint32_t recursion_step, double delta_mz, string prev_AA)
+
+  // Important Note: For correct generation of ALL MultiPeaks, we have to pass the current constructed multi_peak as copy and not by reference
+  void TagGeneratorNode::generateAllMultiPeaksRecursion(std::vector<MultiPeak>& multi_peaks, MultiPeak multi_peak, uint32_t recursion_step, double delta_mz, string prev_AA)
   {
-    quad_peak.addFollowUpPeak(delta_mz, prev_AA);
 
+    multi_peak.addFollowUpPeak(delta_mz, prev_AA);
 
-    quad_peak.addScore(confidence_);
+    multi_peak.addScore(confidence_);
 
     if(recursion_step == 0){
-
-
-      quad_peaks.push_back(quad_peak);
+      multi_peaks.push_back(multi_peak);
 
       return;
     }
 
     for(size_t i = 0; i < connected_nodes_.size(); i++){
-      connected_nodes_[i]->generateAllQuadPeaksRecursion(quad_peaks, quad_peak, recursion_step - 1, distance_to_nodes.at(i), connected_AA.at(i));
+      connected_nodes_[i]->generateAllMultiPeaksRecursion(multi_peaks, multi_peak, recursion_step - 1, distance_to_nodes.at(i), connected_AA.at(i));
     }
   }
 
-  void TagGeneratorNode::generateAllMultiPeaks(std::vector<MultiPeak>& quad_peaks, uint8_t recursion_step)
+  void TagGeneratorNode::generateAllMultiPeaks(std::vector<MultiPeak>& multi_peaks, uint8_t recursion_step)
   {
 
     for(size_t i = 0; i < connected_nodes_.size(); i++){
 
 
-      MultiPeak qp(peak_, confidence_);
-      connected_nodes_[i]->generateAllQuadPeaksRecursion(quad_peaks, qp, recursion_step - 1, distance_to_nodes.at(i), connected_AA.at(i));
+      MultiPeak qp(peak_, confidence_);   // start a new multi peak and start the recursion
+      connected_nodes_[i]->generateAllMultiPeaksRecursion(multi_peaks, qp, recursion_step - 1, distance_to_nodes.at(i), connected_AA.at(i));
     }
 
   }
 
-  void TagGeneratorNode::calculateConfidence(const OpenMS::MSSpectrum& spectrum, double max_intensity)
+  void TagGeneratorNode::calculateConfidence(const OpenMS::MSSpectrum& spectrum, double max_intensity)  //TODO: currently completely useless, needs an update
   {
     norm_intensity_ = peak_.getIntensity() / max_intensity;
     confidence_ = norm_intensity_;
   }
-
 
 
   uint16_t TagGeneratorNode::getCharge() const

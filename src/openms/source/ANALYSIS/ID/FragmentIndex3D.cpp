@@ -38,7 +38,7 @@ namespace OpenMS
 {
   FragmentIndex3D::FragmentIndex3D() : FragmentIndexTD()
   {
-    defaults_.setValue("depth", 2, "The number of adjacent peaks that are taken into account");
+    defaults_.setValue("depth", 3, "The number of adjacent peaks that are taken into account");
     defaultsToParam_();
   }
   void FragmentIndex3D::updateMembers_()
@@ -166,14 +166,14 @@ namespace OpenMS
                                        std::pair<size_t, size_t> peptide_idx_range,
                                        std::pair<double, double> window,
                                        size_t recursion_step,
-                                       size_t current_slice,
+                                       size_t current_slice,              // From the last recursiv step. Holds the info in which branch of the tree we are in
                                        double fragment_tolerance)
   {
     vector<double>* current_level;
     double current_query;
     std::pair<double, double> applied_window;
 
-    if(recursion_step == 0){
+    if(recursion_step == 0){ // last (precursor mz) level of the tree. Push hits into the hits vector
       auto last_slice_start = fi_fragments_.begin() + current_slice * bucketsize_;
       auto last_slice_end = ((current_slice +1) * bucketsize_) > fi_fragments_.size() ? fi_fragments_.end() : fi_fragments_.begin() + (current_slice+1)* bucketsize_;
       vector<MultiFragment> last_slice(last_slice_start, last_slice_end);
@@ -191,15 +191,15 @@ namespace OpenMS
       }
       return;
     }
-    if(recursion_step == 1){
+    if(recursion_step == 1){  // Fragment mz level
       current_level = &bucket_min_mz_;
       current_query = peak.getPeak().getMZ();
       applied_window = window;
     }
-    if(recursion_step > 1){
-      current_level = &(follow_up_peaks_buckets_min_mz.at(depth_ +1 - recursion_step));
-      current_query = peak.getFollowUpPeaks().at(depth_ +1 -recursion_step);
-      applied_window = make_pair<double, double>(0, 0);
+    if(recursion_step > 1){  // All follow up peak levels
+      current_level = &(follow_up_peaks_buckets_min_mz.at(depth_ +1 - recursion_step));   // get the current vector of interests
+      current_query = peak.getFollowUpPeaks().at(depth_ +1 -recursion_step);              // current query value of interst
+      applied_window = make_pair<double, double>(0, 0);                                 // For the follow up peaks we do not have any window
     }
     auto slice_start = (*current_level).begin() + current_slice * bucketsize_;
     auto slice_end = ((current_slice +1) * bucketsize_) > (*current_level).size() ? (*current_level).end() : (*current_level).begin() + (current_slice+1)* bucketsize_;

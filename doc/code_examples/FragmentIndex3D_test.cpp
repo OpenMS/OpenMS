@@ -76,13 +76,14 @@ int main()
  FASTAFile fasta;
   vector<FASTAFile::FASTAEntry> entries2;
   fasta.load("/home/trapho/test/OpenMS/doc/code_examples/data/47128_bovine.fasta", entries2);
-  cout << entries2[218].identifier << endl;
+  cout << entries2[774].identifier << endl;
   auto e1 = entries2.begin();
   auto e2 = entries2.begin() + 10000;
   vector<FASTAFile::FASTAEntry> entries2_s(e1, e2);
 
   FragmentIndex3D sdb2;
   sdb2.build(entries2_s);
+  cout << "DB build " << endl;
 
   // Real data
   MzMLFile reader;

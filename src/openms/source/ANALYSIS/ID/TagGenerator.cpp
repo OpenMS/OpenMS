@@ -42,6 +42,20 @@ namespace OpenMS
   }
   TagGenerator::~TagGenerator() = default;
 
+  TagGenerator::TagGenerator(const OpenMS::TagGenerator& cp) = default;
+
+  TagGenerator& TagGenerator::operator=(const OpenMS::TagGenerator& source)
+  {
+    if(this != &source)
+    {
+      spectrum_ = source.spectrum_;
+      selected_peaks_ = source.selected_peaks_;
+      n = source.n;
+      dag_ = source.dag_;
+    }
+  }
+
+
   void TagGenerator::setMSSpectrum(const MSSpectrum& spectrum)
   {
     spectrum_.clear(true);
@@ -96,6 +110,22 @@ namespace OpenMS
     }
   }
 
+  void TagGenerator::generateAllNodes(uint32_t max_charge)
+  {
+    //should there already be a graph delete it
+    dag_.clear();
+    size_t peak_counter = 0;
+    for(Peak1D peak: spectrum_){
+      for(uint32_t charge = 1; charge <= max_charge; charge++){
+        dag_.push_back(make_shared<TagGeneratorNode>(peak, charge, selected_peaks_[peak_counter]));
+      }
+      peak_counter++;
+    }
+    sort(dag_.begin(), dag_.end(), [](shared_ptr<TagGeneratorNode> a, shared_ptr<TagGeneratorNode> b){
+      return a->calculateMass() < b->calculateMass();
+    });
+  }
+
   void TagGenerator::generateDirectedAcyclicGraph(double fragment_tolerance)
   {
     //first extract the max intensity to later normalize the intensities
@@ -108,9 +138,9 @@ namespace OpenMS
       if(selected_peaks_[i-1]){
         shared_ptr<TagGeneratorNode> newNode = make_shared<TagGeneratorNode>(spectrum_[i-1]);
         newNode->calculateConfidence(spectrum_, max);
-        for(auto dag_iter = dag_.end() - 1; dag_iter != dag_.begin()-1 ; dag_iter--){
-          if(!newNode->generateConnection(*dag_iter, fragment_tolerance))
-            break;
+        for(auto dag_iter = dag_.end() - 1; dag_iter != dag_.begin()-1 ; dag_iter--){    // loop through the complete loop
+          if(!newNode->generateConnection(*dag_iter, fragment_tolerance))                      // this function returns false if we out of any
+            break;                                                                                  // AA range, in which case we will break the loop
         }
         dag_.push_back(newNode);
 
@@ -122,7 +152,7 @@ namespace OpenMS
   {
     for(shared_ptr<TagGeneratorNode> node: dag_){
       vector<MultiPeak> quad_peaks_per_node;
-      node->generateAllMultiPeaks(quad_peaks_per_node, depth);
+      node->generateAllMultiPeaks(quad_peaks_per_node, depth);  // for every node in the dag start a recursiv chain
       quad_peaks.insert(quad_peaks.end(), quad_peaks_per_node.begin(), quad_peaks_per_node.end());
     }
   }
@@ -139,20 +169,20 @@ namespace OpenMS
       return;
     }
     const PeakSpectrum::StringDataArray  & ion_types = spectrum_.getStringDataArrays().at(0);
-    for(size_t i = 0; i < spectrum_.size(); i++){
+    for(size_t i = 0; i < spectrum_.size(); i++){                   // loop through all peaks, check if they have mz in the window
       if((frag_min_mz > spectrum_[i].getMZ()) && (spectrum_[i].getMZ() > frag_max_mz))
         continue;
       vector<double> temp_follow_up;
       size_t j = i +1;
       size_t last_j = i;
-      while(temp_follow_up.size()< depth && j < spectrum_.size()){
+      while(temp_follow_up.size()< depth && j < spectrum_.size()){               // look at all follow up peaks of the same ion type
         if(ion_types[i].substr(0,1) == ion_types[j].substr(0,1)){
           temp_follow_up.push_back(spectrum_[j].getMZ() - spectrum_[last_j].getMZ());
           last_j = j;
         }
         j++;
       }
-      if(temp_follow_up.size() == 2)
+      if(temp_follow_up.size() == depth)
         multi_frags.emplace_back(peptide_idx, spectrum_[i].getMZ(), temp_follow_up);
     }
   }

@@ -28,6 +28,7 @@ namespace OpenMS
     Peak1D peak_;
     double norm_intensity_;
     double confidence_;
+    bool include_;
     std::vector<std::shared_ptr<TagGeneratorNode>> connected_nodes_; // all peaks to the right, which have a mz distance of an AA-mass
     std::vector<double> distance_to_nodes;  // This is what we actually want
     std::vector<std::string> connected_AA; //for debugging only //TODO: can later be removed
@@ -39,6 +40,9 @@ namespace OpenMS
 
     /// Constructor
     TagGeneratorNode(const Peak1D& peak);
+
+    /// Constructor with charge
+    TagGeneratorNode(const Peak1D& peak, uint32_t charge, bool include);
 
     /// copy consturctor
     TagGeneratorNode(const TagGeneratorNode& cp);
@@ -59,18 +63,27 @@ namespace OpenMS
     double calculateMass();
 
 
-
-
     /** @brief gets one of the peaks TO THE RIGHT and checks if the distance is in the AA-mass range
-     *
-     *
      * @param other: a peak to the right !
      */
     bool generateConnection( const std::shared_ptr<TagGeneratorNode>& other, double fragment_tolerance);
 
-    void generateAllMultiPeaks(std::vector<MultiPeak>& quad_peaks, uint8_t recursion_step);
+    /**
+     * @brief Starts the recursiv generation of all Multi Peaks with the origin in this node
+     * @param multi_peaks output
+     * @param recursion_step the number of recursion steps to follow (equals the depth)
+     */
+    void generateAllMultiPeaks(std::vector<MultiPeak>& multi_peaks, uint8_t recursion_step);
 
-    void generateAllQuadPeaksRecursion(std::vector<MultiPeak>& quad_peaks, MultiPeak quad_peak, uint32_t recursion_step, double delta_mz, std::string prev_AA);
+    /**
+     * @brief recursiv chain that generates the multipeaks
+     * @param multi_peaks vector in which all results are safed
+     * @param multi_peak The current multipeak which is constructed
+     * @param recursion_step current step we are in
+     * @param delta_mz the delta mz between the last node and this node
+     * @param prev_AA the AA which resembles the delta_mz  // TODO: This is for debugging and can be removed in the final version
+     */
+    void generateAllMultiPeaksRecursion(std::vector<MultiPeak>& multi_peaks, MultiPeak multi_peak, uint32_t recursion_step, double delta_mz, std::string prev_AA);
 
     void calculateConfidence(const MSSpectrum& spectrum, double max_intensity);
 
