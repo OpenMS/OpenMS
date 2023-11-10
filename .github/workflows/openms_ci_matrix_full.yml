@@ -361,6 +361,15 @@ jobs:
           ${{ github.workspace }}/OpenMS/bld/*.exe
           ${{ github.workspace }}/OpenMS/bld/*.deb
           ${{ github.workspace }}/OpenMS/bld/*.pkg
+
+    - if: steps.set-vars.outputs.pkg_type != 'none' && [[ "${{ matrix.os }}" == ubuntu-* ]] # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
+      name: Upload Documentation as artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: documentation
+        path: |
+          ${{ github.workspace }}/OpenMS/doc/**
+
         
     - if: steps.set-vars.outputs.pkg_type != 'none' || inputs.knime
       name: Generate KNIME descriptors and payloads
@@ -371,7 +380,6 @@ jobs:
         cmake -DSEARCH_ENGINES_DIRECTORY="$GITHUB_WORKSPACE/_thirdparty" -DENABLE_PREPARE_KNIME_PACKAGE=ON .
         cmake --build . --target prepare_knime_package
         
-
     - if: steps.set-vars.outputs.pkg_type != 'none' || inputs.knime
       name: Upload KNIME payload and descriptors as artifacts
       uses: actions/upload-artifact@v3
@@ -413,7 +421,7 @@ jobs:
         run: |
           echo "Upload"
           if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
-            folder=nightly
+            folder=nightlyGHA                                                    # TODO: Change back when we deactivate Jenkins
           elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
             tmpfolder=${{ env.RUN_NAME }}
             folder=${tmpfolder/release/RC_GHA}                                   # TODO: change back to RC after proper release
@@ -427,6 +435,35 @@ jobs:
           sudo chmod 600 ~/.ssh/private.key
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
 
+      - name: Download Documentation
+        uses: actions/download-artifact@v3
+        with:
+          name: documentation
+
+      - name: Upload Documentation
+        shell: bash
+        env:
+          PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+          HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+        run: |
+          echo "Upload"
+          if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
+            folder=nightlyGHA                                                    # TODO: Change back when we deactivate Jenkins
+          elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
+            tmpfolder=${{ env.RUN_NAME }}
+            folder=${tmpfolder/release/RC_GHA}                                   # TODO: change back to RC after proper release
+          else
+            folder=experimental/${{ env.RUN_NAME }}
+          fi
+          echo $folder
+
+          mkdir -p ~/.ssh/
+          echo "$PASS" > ~/.ssh/private.key
+          sudo chmod 600 ~/.ssh/private.key
+
+          # Upload documentation FIXME
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/OpenMS/doc "$USER@$HOST:/Documentation/${folder}"
         # TODO create softlinks to latest nightly
         # TODO create and upload file hashes, at least for release candidate
 
