@@ -29,7 +29,7 @@
 #include <iomanip>
 #include <fstream>
 
-#include <QFileInfo>
+#include <QtCore/QFileInfo>
 
 namespace OpenMS::Internal::ClassTest
 {

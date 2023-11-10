@@ -8,7 +8,7 @@
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <boost/mem_fn.hpp>
-#include <QStringList>
+#include <QtCore/QStringList>
 
 using namespace std;
 

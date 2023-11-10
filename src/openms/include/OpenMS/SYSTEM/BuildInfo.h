@@ -10,8 +10,10 @@
 
 #include <OpenMS/build_config.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <QSysInfo>
-#include <QString>
+
+#include <QtCore/QSysInfo>
+#include <QtCore/QString>
+
 #ifdef _OPENMP
   #include "omp.h"
 #endif

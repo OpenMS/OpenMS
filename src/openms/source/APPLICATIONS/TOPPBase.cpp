@@ -41,8 +41,8 @@
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/SYSTEM/UpdateCheck.h>
 
-#include <QDir>
-#include <QStringList>
+#include <QtCore/QDir>
+#include <QtCore/QStringList>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 

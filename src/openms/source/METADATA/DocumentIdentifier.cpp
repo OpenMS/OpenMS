@@ -11,7 +11,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
-#include <QDir>
+#include <QtCore/QDir>
 
 namespace OpenMS
 {

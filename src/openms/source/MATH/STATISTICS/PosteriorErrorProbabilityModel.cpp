@@ -19,7 +19,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 
-#include <QDir>
+#include <QtCore/QDir>
 
 #include <algorithm>
 
