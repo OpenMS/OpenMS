@@ -95,6 +95,12 @@ void setIdOrName(InputType& input, std::string name) {
 }
 template<typename InputType = cwl::CommandInputParameter, typename OutputType = cwl::CommandOutputParameter, size_t deep = 5, typename InputCB, typename OutputCB, typename BaseCommandCB>
 inline void f(Node::Children const& children, ToolInfo const& doc, InputCB const& inputCB, OutputCB const& outputCB, BaseCommandCB const& baseCommandCB) {
+    //!WORKAROUND MSVC warns about unused variables
+    (void)inputCB;
+    (void)outputCB;
+    (void)baseCommandCB;
+    (void)doc;
+    (void)children;
     if constexpr (deep > 0) {
     for (auto child : children) {
         // find CLIMapping
