@@ -428,7 +428,7 @@ jobs:
           else
             folder=experimental/${{ env.RUN_NAME }}
           fi
-          echo $folder
+          echo "Uploading installers to: " $folder
 
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
@@ -632,14 +632,14 @@ jobs:
         run: |
           echo "Upload"
           if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
-            folder=nightly
+            folder=nightlyGHA
           elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
             tmpfolder=${{ env.RUN_NAME }}
-            folder=${tmpfolder/release/RC}
+            folder=${tmpfolder/release/RC}GHA
           else
             folder=experimental/${{ env.RUN_NAME }}
           fi
-          echo $folder
+          echo "Uploading KNIME site to:" $folder
 
           # correct permissions of files to upload
           chmod -R o+r $GITHUB_WORKSPACE/de.openms.update/target/repository/*
