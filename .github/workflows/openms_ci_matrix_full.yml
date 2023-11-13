@@ -172,7 +172,7 @@ jobs:
             # uses a custom NSIS, which provides 8-k string support and has UltraModernUI integrated already
             curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
             ## overwrite existing NSIS (which has only 1k-string support)
-            7z x -so NSIS.tar.gz | 7z x -si -ttar -o"C:/Program Files (x86)/NSIS/"
+            7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"
           fi
         fi
 
