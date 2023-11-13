@@ -362,7 +362,8 @@ jobs:
           ${{ github.workspace }}/OpenMS/bld/*.deb
           ${{ github.workspace }}/OpenMS/bld/*.pkg
 
-    - if: steps.set-vars.outputs.pkg_type != 'none' && [[ "${{ matrix.os }}" == ubuntu-* ]] # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
+    - if: steps.set-vars.outputs.pkg_type != 'none' && matrix.os == ubuntu-* 
+    # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
       name: Upload Documentation as artifacts
       uses: actions/upload-artifact@v3
       with:
