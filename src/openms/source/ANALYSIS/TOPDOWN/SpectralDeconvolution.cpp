@@ -457,7 +457,6 @@ namespace OpenMS
             if (iso_exist)
             {
               double h_threshold = intensity + mz_intensities[next_iso_bin];//std::min(intensity, mz_intensities[next_iso_bin]); //
-              double h_threshold2 = std::max(intensity, mz_intensities[next_iso_bin]); //
 
               for (size_t k = 0; k < h_charge_size; k++)
               {
@@ -811,7 +810,6 @@ namespace OpenMS
         for (int peak_index = max_peak_index; peak_index < log_mz_peak_size; peak_index++)
         {
           const double observed_mz = log_mz_peaks_[peak_index].mz;
-          const float intensity = log_mz_peaks_[peak_index].intensity;
           double mz_diff = observed_mz - mz;
           int tmp_i = (int)round(mz_diff / iso_delta);
 
@@ -893,7 +891,6 @@ namespace OpenMS
         for (int peak_index = max_peak_index - 1; peak_index >= 0; peak_index--)
         {
           const double observed_mz = log_mz_peaks_[peak_index].mz;
-          const float intensity = log_mz_peaks_[peak_index].intensity;
           double mz_diff = observed_mz - mz;
           int tmp_i = (int)round(mz_diff / iso_delta);
 
@@ -1078,7 +1075,7 @@ namespace OpenMS
       std::sort(previously_deconved_mono_masses_for_decoy_.begin(), previously_deconved_mono_masses_for_decoy_.end());
       previously_deconved_mass_bins_for_decoy_ = boost::dynamic_bitset<>(mass_bins_.size());
       // always positive
-      auto bin_offset = (unsigned)round(tol_div_factor);
+      int bin_offset = (int)round(tol_div_factor);
       for (double m : previously_deconved_mono_masses_for_decoy_)
       {
         if (m <= 0)
@@ -1088,7 +1085,7 @@ namespace OpenMS
         Size j = getBinNumber_(log(m), mass_bin_min_value_, bin_mul_factors_[ms_level_ - 1]);
         if (j >= bin_offset && j < previously_deconved_mass_bins_for_decoy_.size() - bin_offset - 1)
         {
-          for (int k = -bin_offset; k <= (int)bin_offset; k++)
+          for (int k = -bin_offset; k <= bin_offset; k++)
             previously_deconved_mass_bins_for_decoy_[j + k] = true;
         }
       }
@@ -1151,7 +1148,6 @@ namespace OpenMS
         int offset = 0;
         auto peak_group = deconvolved_spectrum_[i];
         peak_group.setTargetDecoyType(target_decoy_type_);
-        float prev_cos = peak_group.getIsotopeCosine();
         float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -peak_group.getMinNegativeIsotopeIndex(), -1,
                                                              allowed_iso_error_, target_decoy_type_);
         auto prev_mono_mass = peak_group.getMonoMass() + offset * iso_da_distance_;
