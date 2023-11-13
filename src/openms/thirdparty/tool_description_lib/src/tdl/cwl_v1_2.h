@@ -170,7 +170,7 @@ class heap_object {
 
 public:
     using value_t = T;
-    heap_object() noexcept(false) = default;
+    heap_object() noexcept(false) {}
     heap_object(heap_object const& oth) {
         *data = *oth;
     }
