@@ -144,12 +144,12 @@ namespace OpenMS
 
     if (isotope_cosine_score_ < min_cos)
     {
-      return 0;
+      return h_offset;
     }
 
     if (max_abs_charge_ - min_abs_charge_ < max_abs_charge_ / 20) // if charge range is too small ...
     {
-      return 0;
+      return h_offset;
     }
     updatePerChargeCos_(avg);
     updateAvgPPMError_();
@@ -179,6 +179,7 @@ namespace OpenMS
 
   float PeakGroup::getNoisePeakPower_(const std::vector<FLASHDeconvHelperStructs::LogMzPeak>& noisy_peaks, const std::vector<FLASHDeconvHelperStructs::LogMzPeak>& signal_peaks) const
   {
+    if (noisy_peaks.empty()) return 0;
     const Size max_noisy_peaks = 50; // too many noise peaks will slow down the process
     const Size max_bin_number = 29;  // 24 bin + 5 extra bin
     float threshold = 0;
@@ -190,9 +191,9 @@ namespace OpenMS
     int z = 0;
 
     // get intensity threshold
-    if (noisy_peaks.size() + signal_peaks.size() > max_noisy_peaks)
+    if (noisy_peaks.size() > max_noisy_peaks)
     {
-      std::vector<float> intensities(noisy_peaks.size() + signal_peaks.size(), .0f);
+      std::vector<float> intensities(noisy_peaks.size());
       for (const auto& noisy_peak : noisy_peaks)
       {
         intensities.push_back(noisy_peak.intensity);
@@ -532,6 +533,7 @@ namespace OpenMS
   std::vector<FLASHDeconvHelperStructs::LogMzPeak> PeakGroup::recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
                                                                                         double mono_mass, const std::unordered_set<double>& excluded_peak_mzs)
   {
+    const double mul_tol = .8;// not all peaks within tolerance are considered as signal peaks.
     std::vector<LogMzPeak> noisy_peaks;
     if (mono_mass < 0)
     {
@@ -561,7 +563,7 @@ namespace OpenMS
 
       double cmz = (mono_mass) / c + FLASHDeconvHelperStructs::getChargeMass(is_positive_);
       double left_mz = (mono_mass - (1 - min_negative_isotope_index_) * iso_da_distance_) / c + FLASHDeconvHelperStructs::getChargeMass(is_positive_);
-      Size index = spec.findNearest(left_mz * (1 - tol));
+      Size index = spec.findNearest(left_mz * (1 - tol * mul_tol));
       double iso_delta = iso_da_distance_ / c;
 
       for (; index < spec.size(); index++)
@@ -585,7 +587,7 @@ namespace OpenMS
         // if excluded_peak_mzs_ is not empty, these mzs should be ignored in this raw spectrum for this peak group! But they can be included in noisy peaks.
         bool excluded = excluded_peak_mzs.size() > 0 && excluded_peak_mzs.find(pmz) != excluded_peak_mzs.end();
 
-        if (!excluded && abs(pmz - cmz - iso_index * iso_delta) <= pmz * tol)
+        if (!excluded && abs(pmz - cmz - iso_index * iso_delta) <= pmz * tol * mul_tol)
         {
           auto p = LogMzPeak(spec[index], is_positive_);
           p.isotopeIndex = iso_index;

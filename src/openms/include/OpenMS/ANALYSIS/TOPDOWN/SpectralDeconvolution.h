@@ -284,6 +284,9 @@ namespace OpenMS
     /// filter out overlapping masses
     void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec, double tol);
 
+    /// filter out excluded masses
+    void removeExcludedMasses_(DeconvolvedSpectrum& dspec) const;
+
     void setTargetPrecursorCharge_();
 
   };

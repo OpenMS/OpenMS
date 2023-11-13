@@ -87,7 +87,7 @@ namespace OpenMS
      * @brief given a monoisotopic mass, recruit raw peaks from the raw input spectrum and add to this peakGroup. This is a bit time-consuming and is done for only a small number of selected
      * high-quality peakgroups.
      * @param spec raw spectrum
-     * @param tol mass tolerance
+     * @param tol ppm tolerance
      * @param avg precalculated averagine
      * @param mono_mass monoisotopic mass
      * @param excluded_peak_mzs mzs that will be included - only for decoy generation
