@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "OpenMS/METADATA/ProteinIdentification.h"
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 

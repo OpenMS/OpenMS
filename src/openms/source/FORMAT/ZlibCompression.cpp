@@ -7,7 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ZlibCompression.h>
-#include <QByteArray>
+
+#include <QtCore/QByteArray>
 
 #include <zlib.h>
 

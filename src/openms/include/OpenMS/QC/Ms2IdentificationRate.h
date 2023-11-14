@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "OpenMS/QC/QCBase.h"
+#include <OpenMS/QC/QCBase.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <string>

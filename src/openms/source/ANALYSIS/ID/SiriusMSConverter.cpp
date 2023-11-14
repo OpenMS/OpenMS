@@ -13,7 +13,7 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QDir>
+#include <QtCore/QDir>
 #include <cstdint>
 
 using namespace OpenMS;
