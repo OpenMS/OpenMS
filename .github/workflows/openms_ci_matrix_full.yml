@@ -294,7 +294,7 @@ jobs:
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
-          ENABLE_TUTORIALS: "ON"
+          ENABLE_TUTORIALS: "OFF"
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
