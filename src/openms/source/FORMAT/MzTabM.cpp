@@ -486,7 +486,7 @@ namespace OpenMS
         identification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
         id_mslevel = 1;
       }
-      if (identification_software == "SiriusAdapter")
+      if (identification_software == "SiriusExport")
       {
         ControlledVocabulary::CVTerm cvterm;
         cvterm = cv.getTermByName("de novo search");

@@ -234,7 +234,7 @@ namespace OpenMS
         }
         else if (spectrum_ms_file.eof())
         {
-          OPENMS_LOG_WARN << "No SiriusAdapter m_id was found - please check your input mzML. " << std::endl;
+          OPENMS_LOG_WARN << "No SiriusExport m_id was found - please check your input mzML. " << std::endl;
           break;
         }
       }

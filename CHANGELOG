@@ -385,7 +385,7 @@ Deprecated and removed tools:
 - RNPxl -- Tool for RNP cross linking experiment analysis (UTIL) (superseded by RNPxlSearch)
   
 Changed Tools:
-- SiriusAdapter now supports several input data
+- SiriusExport now supports several input data
 - FileFilter now supports filtering spectra by similarity
 - PeptideIndexer now supports automatic detection of decoy suffix/prefix string and position
 - PeakPickerHiRes now supports automatic detection and picking of profile spectra
@@ -436,7 +436,7 @@ New tools:
   - OpenPepXL -- Tool for protein-protein cross-linking identification using labeled linkers (UTIL)
   - OpenPepXLLF -- Tool for protein-protein cross linking with label-free linkers (UTIL)
   - PSMFeatureExtractor -- Computes extra features for each input PSM (UTIL)
-  - SiriusAdapter -- Tool for metabolite identification using single and tandem mass spectrometry (UTIL)
+  - SiriusExport -- Tool for metabolite identification using single and tandem mass spectrometry (UTIL)
   - XFDR -- Calculates false discovery rate estimates on protein-protein-crosslink identifications (UTIL)
 
 Deprecated and removed tools:

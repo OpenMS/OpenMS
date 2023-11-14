@@ -102,7 +102,7 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
                              const Size& top_n_hits,
                              MzTab& result)
 {
-  SiriusMzTabWriter::SiriusAdapterRun sirius_result;
+  SiriusMzTabWriter::SiriusExportRun sirius_result;
 
   for (const auto& it : sirius_output_paths)
   {
@@ -125,7 +125,7 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
         const UInt top_n_hits_cor = (top_n_hits >= rowcount) ? rowcount-header : top_n_hits;
         
         // fill identification structure containing all candidate hits for a single spectrum
-        SiriusMzTabWriter::SiriusAdapterIdentification sirius_id;
+        SiriusMzTabWriter::SiriusExportIdentification sirius_id;
 
         // extract scan_number from path
         OpenMS::String str = File::path(pathtosiriuscsv);
@@ -145,7 +145,7 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
         {
           StringList sl;
           compounds.getRow(j, sl);
-          SiriusMzTabWriter::SiriusAdapterHit sirius_hit;
+          SiriusMzTabWriter::SiriusExportHit sirius_hit;
 
           // maybe should check columnname instead?
           // rank	molecularFormula	adduct	precursorFormula	rankingScore	TreeIsotope_Score	Tree_Score	Isotope_Score	explainedPeaks	explainedIntensity
@@ -193,10 +193,10 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
         MzTabSmallMoleculeSectionRows smsd;
         for (Size i = 0; i < sirius_result.identifications.size(); ++i)
         {
-          const SiriusMzTabWriter::SiriusAdapterIdentification &id = sirius_result.identifications[i];
+          const SiriusMzTabWriter::SiriusExportIdentification &id = sirius_result.identifications[i];
           for (Size j = 0; j < id.hits.size(); ++j)
           {
-            const SiriusMzTabWriter::SiriusAdapterHit &hit = id.hits[j];
+            const SiriusMzTabWriter::SiriusExportHit &hit = id.hits[j];
             MzTabSmallMoleculeSectionRow smsr;
 
             map<Size, MzTabDouble> engine_score;

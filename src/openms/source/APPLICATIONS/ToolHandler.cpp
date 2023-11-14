@@ -180,7 +180,7 @@ namespace OpenMS
     tools_map["SemanticValidator"] = Internal::ToolDescription("SemanticValidator", cat_dev);
     tools_map["SequenceCoverageCalculator"] = Internal::ToolDescription("SequenceCoverageCalculator", cat_ID_proc);
     tools_map["SimpleSearchEngine"] = Internal::ToolDescription("SimpleSearchEngine", cat_ID_search);
-    tools_map["SiriusAdapter"] = Internal::ToolDescription("SiriusAdapter", cat_ID_MTX);
+    tools_map["SiriusExport"] = Internal::ToolDescription("SiriusExport", cat_ID_MTX);
     tools_map["SpecLibCreator"] = Internal::ToolDescription("SpecLibCreator", cat_ID_proc);
     tools_map["SpecLibSearcher"] = Internal::ToolDescription("SpecLibSearcher", cat_ID_search);
     tools_map["SpectraFilterBernNorm"] = Internal::ToolDescription("SpectraFilterBernNorm", cat_signal_proc_smooth_normalize);

@@ -3210,7 +3210,7 @@ Selenocysteine
 Ser
 Serine
 SimTandem
-SiriusAdapter
+SiriusExport
 SparseVectors
 Specqual
 Spectronaut

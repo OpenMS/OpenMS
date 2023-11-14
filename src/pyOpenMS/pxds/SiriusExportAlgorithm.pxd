@@ -9,14 +9,14 @@ from libcpp.pair cimport pair as libcpp_pair
 
 from DefaultParamHandler cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>" namespace "OpenMS":
 
-    cdef cppclass SiriusAdapterAlgorithm(DefaultParamHandler):
+    cdef cppclass SiriusExportAlgorithm(DefaultParamHandler):
         # wrap-inherits:
         #   DefaultParamHandler
 
-        SiriusAdapterAlgorithm() except + nogil 
-        SiriusAdapterAlgorithm(SiriusAdapterAlgorithm &) except + nogil  # compiler
+        SiriusExportAlgorithm() except + nogil 
+        SiriusExportAlgorithm(SiriusExportAlgorithm &) except + nogil  # compiler
 
         bool isFeatureOnly() except + nogil 
         UInt getFilterByNumMassTraces() except + nogil 
@@ -61,40 +61,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
                 #  :param feature_mapping: FeatureToMs2Indices with feature mapping
                 #  :param spectra: Input of MSExperiment with spectra information
 
-        void logInSiriusAccount(String& executable,
-                                const String& email,
-                                const String& password) except + nogil 
-        # wrap-doc:
-                #  Log in to SIRIUS using your personal account
-                #  
-                #  :param executable: Path to executable.
-                #  :param email: User account E-Mail.
-                #  :param password: User account password.
-     
-        libcpp_vector[String] callSiriusQProcess(const String& tmp_ms_file,
-                                                 const String& tmp_out_dir,
-                                                 String& executable,
-                                                 const String& out_csifingerid,
-                                                 bool decoy_generation) except + nogil 
-        # wrap-doc:
-                #  Call SIRIUS with QProcess
-                #  
-                #  :param tmp_ms_file: Path to temporary .ms file
-                #  :param tmp_out_dir: Path to temporary output folder
-                #  :param executable: Path to executable
-                #  :param out_csifingerid: Path to CSI:FingerID output (can be empty)
-
-cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "OpenMS::SiriusAdapterAlgorithm":
-
-    cdef cppclass SiriusTemporaryFileSystemObjects "OpenMS::SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects":
-        SiriusTemporaryFileSystemObjects(int debug_level) except + nogil 
-        SiriusTemporaryFileSystemObjects(SiriusTemporaryFileSystemObjects &) except + nogil  # compiler
-        
-        String getTmpDir() except + nogil 
-        String getTmpOutDir() except + nogil 
-        String getTmpMsFile() except + nogil  
 
 # wrap static method:
-cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "OpenMS::SiriusAdapterAlgorithm":
+cdef extern from "<OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>" namespace "OpenMS::SiriusExportAlgorithm":
 
-        void  sortSiriusWorkspacePathsByScanIndex(libcpp_vector[ String ]& subdirs) except + nogil  # wrap-attach:SiriusAdapterAlgorithm
+        void  sortSiriusWorkspacePathsByScanIndex(libcpp_vector[ String ]& subdirs) except + nogil  # wrap-attach:SiriusExportAlgorithm

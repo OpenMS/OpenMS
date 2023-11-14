@@ -148,7 +148,7 @@ RNPxlSearch
 SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
-SiriusAdapter
+SiriusExport
 SpecLibCreator
 SpectraSTSearchAdapter
 StaticModification

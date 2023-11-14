@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.9" id="fm_10428424608955185744" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="2018-06-27T12:59:03">
-		<software name="FeatureFinderMetabo" version="2.4.0-feature-SiriusAdapter-featuremapping-2018-06-27" />
+		<software name="FeatureFinderMetabo" version="2.4.0-feature-SiriusExport-featuremapping-2018-06-27" />
 		<processingAction name="Quantitation" />
-		<UserParam type="string" name="parameter: in" value="/Users/alka/Desktop/SiriusAdapter_test/SiriusAdapter_5_input.mzML"/>
-		<UserParam type="string" name="parameter: out" value="/Users/alka/Desktop/SiriusAdapter_test/FFM/test.featureXML"/>
+		<UserParam type="string" name="parameter: in" value="/Users/alka/Desktop/SiriusExport_test/SiriusExport_5_input.mzML"/>
+		<UserParam type="string" name="parameter: out" value="/Users/alka/Desktop/SiriusExport_test/FFM/test.featureXML"/>
 		<UserParam type="string" name="parameter: log" value=""/>
 		<UserParam type="int" name="parameter: debug" value="0"/>
 		<UserParam type="int" name="parameter: threads" value="1"/>

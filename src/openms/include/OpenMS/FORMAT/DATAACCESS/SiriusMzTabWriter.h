@@ -18,11 +18,11 @@ namespace OpenMS
   public:
 
     /**
-    @brief Internal structure used in @ref TOPP_SiriusAdapter that is used
+    @brief Internal structure used in @ref TOPP_SiriusExport that is used
     for the conversion of the sirius output to an mzTab.
     @ingroup ID
 
-    SiriusAdapterHit:
+    SiriusExportHit:
     formula (String) - Sumformula
     adduct (String) - Assigned adduct
     precursor_formula (String) - Sumformula of the precursor (can be the same as formula)
@@ -34,20 +34,20 @@ namespace OpenMS
     explainedpeaks (int) - Number of explained peaks
     explainedintensity (double) - Relative amount of explained intensity
 
-    SiriusAdapterIdentification:
+    SiriusExportIdentification:
     scan_index (int) - Index of the spectrum used
     scan_number (int) - NativeId of the spectrum used
     feature_id (String) - FeatureId (if spectrum was assigned to a feature)
-    hits (vector<SiriusAdapterHit>)
+    hits (vector<SiriusExportHit>)
 
-    SiriusAdapterRun:
-    identifications (vector<SiriusAdapterIdentification>)
+    SiriusExportRun:
+    identifications (vector<SiriusExportIdentification>)
 
     Store a specific @param number of lines from sirius output
     @return mzTab
     */
 
-    class SiriusAdapterHit
+    class SiriusExportHit
     {
     public:
       OpenMS::String formula;
@@ -64,7 +64,7 @@ namespace OpenMS
       double mass_error_precursor_ppm = 0.0;
     };
 
-    class SiriusAdapterIdentification
+    class SiriusExportIdentification
     {
     public:
       double mz = 0.;
@@ -73,13 +73,13 @@ namespace OpenMS
       int scan_index = -1;
       int scan_number = -1;
       OpenMS::String feature_id;
-      std::vector<SiriusAdapterHit> hits;
+      std::vector<SiriusExportHit> hits;
     };
 
-    class SiriusAdapterRun
+    class SiriusExportRun
     {
     public:
-      std::vector<SiriusAdapterIdentification> identifications;
+      std::vector<SiriusExportIdentification> identifications;
     };
 
     class SiriusSpectrumMSInfo
@@ -120,7 +120,7 @@ namespace OpenMS
     
     Output of Sirius is one directory per spectrum/compound
     @param sirius_output_paths: Path to output directories of Sirius
-    @param original_input_mzml: Path to mzml input of SiriusAdapter
+    @param original_input_mzml: Path to mzml input of SiriusExport
     @param top_n_hits: Top n  entries for each compound written to the result file     
     
     @return: Result written to mzTab

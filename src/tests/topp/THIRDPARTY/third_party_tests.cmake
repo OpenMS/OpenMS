@@ -261,15 +261,15 @@ if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
     
     # test mzMl as input
     # test internal .ms output (converter mode)
-    add_test("TOPP_SiriusAdapter_5" ${TOPP_BIN_PATH}/SiriusAdapter -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_input.featureXML -out_ms SiriusAdapter_5_output.tmp.ms -converter_mode -read_sirius_stdout)
-    add_test("TOPP_SiriusAdapter_5_out" ${DIFF} -in1 SiriusAdapter_5_output.tmp.ms -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_5_output.ms)
-    set_tests_properties("TOPP_SiriusAdapter_5" PROPERTIES DEPENDS "TOPP_SiriusAdapter_3")
-    set_tests_properties("TOPP_SiriusAdapter_5_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_5")
+    add_test("TOPP_SiriusExport_5" ${TOPP_BIN_PATH}/SiriusExport -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusExport_3_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusExport_3_input.featureXML -out_ms SiriusExport_5_output.tmp.ms -converter_mode -read_sirius_stdout)
+    add_test("TOPP_SiriusExport_5_out" ${DIFF} -in1 SiriusExport_5_output.tmp.ms -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusExport_5_output.ms)
+    set_tests_properties("TOPP_SiriusExport_5" PROPERTIES DEPENDS "TOPP_SiriusExport_3")
+    set_tests_properties("TOPP_SiriusExport_5_out" PROPERTIES DEPENDS "TOPP_SiriusExport_5")
     # test internal .ms output negative
-    add_test("TOPP_SiriusAdapter_6" ${TOPP_BIN_PATH}/SiriusAdapter -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_4_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_4_input.featureXML -out_ms SiriusAdapter_6_output.tmp.ms -converter_mode -read_sirius_stdout)
-    add_test("TOPP_SiriusAdapter_6_out" ${DIFF} -in1 SiriusAdapter_6_output.tmp.ms -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_6_output.ms)
-    set_tests_properties("TOPP_SiriusAdapter_6" PROPERTIES DEPENDS "TOPP_SiriusAdapter_5")
-    set_tests_properties("TOPP_SiriusAdapter_6_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_6")
+    add_test("TOPP_SiriusExport_6" ${TOPP_BIN_PATH}/SiriusExport -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusExport_4_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusExport_4_input.featureXML -out_ms SiriusExport_6_output.tmp.ms -converter_mode -read_sirius_stdout)
+    add_test("TOPP_SiriusExport_6_out" ${DIFF} -in1 SiriusExport_6_output.tmp.ms -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusExport_6_output.ms)
+    set_tests_properties("TOPP_SiriusExport_6" PROPERTIES DEPENDS "TOPP_SiriusExport_5")
+    set_tests_properties("TOPP_SiriusExport_6_out" PROPERTIES DEPENDS "TOPP_SiriusExport_6")
     # test internal .ms using assigned ms2
    
     # use AccurateMassSearch data
@@ -347,9 +347,9 @@ if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
 
   # Note that with FingerID, output for compound 79 without feature only
   if (ENABLE_FINGERID_TEST)
-    add_test("TOPP_SiriusAdapter_4" ${TOPP_BIN_PATH}/SiriusAdapter -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_2_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_2_input.featureXML  -out_sirius SiriusAdapter_4_output.tmp.mzTab -out_fingerid SiriusAdapter_4_foutput.tmp.mzTab -sirius:profile qtof -sirius:db ALL -fingerid:db BIO -read_sirius_stdout)
-    add_test("TOPP_SiriusAdapter_4_out" ${DIFF} -in1 SiriusAdapter_4_foutput.tmp.mzTab -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_4_foutput.mzTab -whitelist "MTD" "C10H18Cl2N6O4S2")
-    set_tests_properties("TOPP_SiriusAdapter_4_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_4")
+    add_test("TOPP_SiriusExport_4" ${TOPP_BIN_PATH}/SiriusExport -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusExport_2_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusExport_2_input.featureXML  -out_sirius SiriusExport_4_output.tmp.mzTab -out_fingerid SiriusExport_4_foutput.tmp.mzTab -sirius:profile qtof -sirius:db ALL -fingerid:db BIO -read_sirius_stdout)
+    add_test("TOPP_SiriusExport_4_out" ${DIFF} -in1 SiriusExport_4_foutput.tmp.mzTab -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusExport_4_foutput.mzTab -whitelist "MTD" "C10H18Cl2N6O4S2")
+    set_tests_properties("TOPP_SiriusExport_4_out" PROPERTIES DEPENDS "TOPP_SiriusExport_4")
   endif()
 
 endif()

@@ -17,7 +17,7 @@ namespace OpenMS
           public:
 
           /**
-          @brief Internal structure used in @ref TOPP_SiriusAdapter that is used
+          @brief Internal structure used in @ref TOPP_SiriusExport that is used
            for the conversion of the Csi:FingerID output to an mzTab.
 
            CsiAdapterHit:
@@ -85,7 +85,7 @@ namespace OpenMS
           
           Output of CSI:FingerID is one directory per spectrum/compound
           @param sirius_output_paths: Path to output directories of Sirius
-          @param original_input_mzml: Path to original input mzml of SiriusAdapter
+          @param original_input_mzml: Path to original input mzml of SiriusExport
           @param top_n_hits: Top n  entries for each compound written to the result file
           
           @return Result written to mzTab

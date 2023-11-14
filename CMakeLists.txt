@@ -250,14 +250,14 @@ if(CLANG_TIME_TRACE)
 endif()
 
 #------------------------------------------------------------------------------
-# Enable SIRIUS_test (SiriusAdapter/AssayGeneratorMetabo)
+# Enable SIRIUS_test (SiriusExport/AssayGeneratorMetabo)
 #------------------------------------------------------------------------------
-option(ENABLE_SIRIUS_TEST "Enable test for SIRIUS (SiriusAdapter)" OFF)
+option(ENABLE_SIRIUS_TEST "Enable test for SIRIUS (SiriusExport)" OFF)
 
 #------------------------------------------------------------------------------
-# Enable CSI:FingerID_test (SiriusAdapter)
+# Enable CSI:FingerID_test (SiriusExport)
 #------------------------------------------------------------------------------
-option(ENABLE_FINGERID_TEST "Enable test for CSI:FingerID (SiriusAdapter)" OFF)
+option(ENABLE_FINGERID_TEST "Enable test for CSI:FingerID (SiriusExport)" OFF)
 
 #------------------------------------------------------------------------------
 # Enable Coverage

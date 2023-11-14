@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Alka $
+// $Maintainer: Oliver Alka, Axel Walter $
 // $Authors: Oliver Alka, Lukas Zimmermann $
 // --------------------------------------------------------------------------
 
@@ -24,11 +24,11 @@ namespace OpenMS
   class File;
   class KDTreeFeatureMaps;
 
-  class OPENMS_DLLAPI SiriusAdapterAlgorithm : public DefaultParamHandler
+  class OPENMS_DLLAPI SiriusExportAlgorithm : public DefaultParamHandler
     {
     public:
       /// default constructor
-      SiriusAdapterAlgorithm();
+      SiriusExportAlgorithm();
 
       /*
        * Accessors for Preprocessing Parameters
@@ -41,25 +41,6 @@ namespace OpenMS
       bool precursorMzToleranceUnitIsPPM() const { return preprocessing.getValue("precursor_mz_tolerance_unit") == "ppm"; }
       bool isNoMasstraceInfoIsotopePattern() const { return preprocessing.getValue("no_masstrace_info_isotope_pattern").toBool(); }
       int getIsotopePatternIterations() const { return  preprocessing.getValue("isotope_pattern_iterations"); }
-
-      /**
-       * @brief Accessors for Sirius Parameters
-       */
-
-      int getNumberOfSiriusCandidates() const 
-      {
-        int number_of_candidates = sirius.getValue("candidates");
-        // default for SiriusAdapter is -1 to not pass a value to command and use SIRIUS 5 default (10)
-        // therefore 10 needs to be returned in this case
-        if (number_of_candidates == -1)
-        {
-          return 10;
-        }
-        else
-        {
-          return number_of_candidates;
-        }
-      }
 
       /**
        * @brief Updates all parameters that already exist in this DefaultParamHandler
@@ -76,49 +57,6 @@ namespace OpenMS
        * @return Whether this DefaultParamHandler has an ParamEntry for the provided name.
        */
       bool hasFullNameParameter(const String &name) const;
-
-      /// Struct for temporary folder structure
-      class OPENMS_DLLAPI SiriusTemporaryFileSystemObjects
-      {
-      public:
-
-        /// Construct temporary folder structure for SIRIUS (SiriusTemporaryFileSystemObjects)
-        SiriusTemporaryFileSystemObjects(int debug_level);
-
-        /// Destructor of SiriusTemporaryFileSystemObjects based on debug level
-        ~SiriusTemporaryFileSystemObjects();
-
-        const String& getTmpDir() const;
-        const String& getTmpOutDir() const;
-        const String& getTmpMsFile() const;
-      
-      private:
-        int debug_level_;
-
-        String tmp_dir_;
-        String tmp_ms_file_;
-        String tmp_out_dir_;
-      };
-
-      /**
-      @brief Checks if the provided String points to a valid SIRIUS executable, otherwise tries
-       to select the executable from the environment
-
-      @return Path to SIRIUS executable
-
-      @param executable Path to the potential executable
-      */
-      static String determineSiriusExecutable(String& executable);
-
-      /**
-
-      @brief Sort function using the extracted scan_index from the sirius workspace file path
-
-      @return Vector of sorted sirius workspace paths based on the scan_index
-
-      */
-      static void sortSiriusWorkspacePathsByScanIndex(std::vector<String>& subdirs);
-
 
       /**
       @brief Preprocessing needed for SIRIUS
@@ -150,38 +88,14 @@ namespace OpenMS
                                    const FeatureMapping::FeatureToMs2Indices& feature_mapping,
                                    const MSExperiment& spectra) const;
 
-      /**
-      @brief Log in to Sirius with personal user account (required in Sirius >= 5).
-
-      @param email User account E-Mail.
-      @param password User account password.
-      */
-      void logInSiriusAccount(String& executable, const String& email, const String& password) const;
-
-      /**
-      @brief Call SIRIUS with QProcess
-
-      @param tmp_ms_file path to temporary .ms file
-      @param tmp_out_dir path to temporary output folder
-      @param executable path to executable
-      @param out_csifingerid path to CSI:FingerID output (can be empty).
-
-      @return Vector with paths to a compound
-      */
-      const vector<String> callSiriusQProcess(const String& tmp_ms_file,
-                                              const String& tmp_out_dir,
-                                              String& executable,
-                                              const String& out_csifingerid,
-                                              const bool decoy_generation) const;
-
-    private:
+   private:
     class ParameterModifier
     {
       const String openms_param_name;
-      SiriusAdapterAlgorithm *enclose;
+      SiriusExportAlgorithm *enclose;
 
     public:
-      explicit ParameterModifier(const String &param_name, SiriusAdapterAlgorithm *enclose) :
+      explicit ParameterModifier(const String &param_name, SiriusExportAlgorithm *enclose) :
               openms_param_name(param_name), enclose(enclose) {}
 
       void withValidStrings(initializer_list<std::string> choices)
@@ -216,12 +130,12 @@ namespace OpenMS
               const String &parameter_name,
               const String &parameter_description);
 
-      explicit ParameterSection(SiriusAdapterAlgorithm* enclose): enclose(enclose) {}
+      explicit ParameterSection(SiriusExportAlgorithm* enclose): enclose(enclose) {}
 
       virtual void parameters() = 0;
       virtual String sectionName() const = 0;
 
-      SiriusAdapterAlgorithm *enclose;
+      SiriusExportAlgorithm *enclose;
 
     public:
       virtual ~ParameterSection() = default;
@@ -261,47 +175,11 @@ namespace OpenMS
     {
       String sectionName() const override { return "preprocessing"; }
     public:
-      explicit Preprocessing(SiriusAdapterAlgorithm *enclose) : ParameterSection(enclose) {}
+      explicit Preprocessing(SiriusExportAlgorithm *enclose) : ParameterSection(enclose) {}
       void parameters() override;
     };
-
-    class Project final : public SiriusSubtool
-    {
-      String sectionName() const override { return "project"; }
-    public:
-      explicit Project(SiriusAdapterAlgorithm *enclose) : ParameterSection(enclose) {}
-      void parameters() override;
-    };
-
-    class Sirius final : public SiriusSubtool
-    {
-      String sectionName() const override { return "sirius"; }
-    public:
-      explicit Sirius(SiriusAdapterAlgorithm *enclose) : ParameterSection(enclose) {}
-      void parameters() override;
-    };
-
-    class Fingerid final : public SiriusSubtool
-    {
-      String sectionName() const override { return "fingerid"; }
-    public:
-      explicit Fingerid(SiriusAdapterAlgorithm *enclose) : ParameterSection(enclose) {}
-      void parameters() override;
-    };
-
-    class Passatutto final : public SiriusSubtool
-    {
-      String sectionName() const override { return "passatutto"; }
-    public:
-      explicit Passatutto(SiriusAdapterAlgorithm *enclose) : ParameterSection(enclose) {}
-      void parameters() override;
-     };
 
     Preprocessing preprocessing;
-    Project project;
-    Sirius sirius;
-    Fingerid fingerid;
-    Passatutto passatutto;
 
     };
 } // namespace OpenMS
