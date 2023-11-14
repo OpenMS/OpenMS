@@ -21,7 +21,7 @@ using namespace std;
 /**
   @page TOPP_SpectraFilterNormalizer SpectraFilterNormalizer
 
-  @brief Normalizes intensity of peak spectra.
+  @brief Scale intensities per spectrum to either sum to 1 or have a maximum of 1.
 
   <CENTER>
   <table>
@@ -54,7 +54,7 @@ class TOPPSpectraFilterNormalizer :
 {
 public:
   TOPPSpectraFilterNormalizer() :
-    TOPPBase("SpectraFilterNormalizer", "Normalizes intensity of peak spectra.")
+    TOPPBase("SpectraFilterNormalizer", "Scale intensities per spectrum to either sum to 1 or have a maximum of 1.")
   {
   }
 

@@ -140,10 +140,7 @@ protected:
     //-------------------------------------------------------------
     // load database
     //-------------------------------------------------------------
-    FileTypes::Type database_type = FileHandler::getTypeByFileName(database);
-
     PeakMap spec_db;
-
     FileHandler().loadExperiment(spec_db_filename, spec_db, {FileTypes::MSP, FileTypes::MZML, FileTypes::MGF});
 
     if (spec_db.empty())

@@ -13,11 +13,11 @@
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
-#include "OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
-#include "OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h"
-#include "OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
-#include "OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h"
-#include "OpenMS/OPENSWATHALGO/ALGO/Scoring.h"
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 
 namespace OpenSwath
 {

@@ -21,7 +21,7 @@ using namespace std;
 /**
   @page TOPP_SpectraFilterScaler SpectraFilterScaler
 
-  @brief Filters the top Peaks in the given spectra according to a given schema/thresholdset
+  @brief Assigns new intensity per spectrum according to intensity rank.
 
   <CENTER>
   <table>

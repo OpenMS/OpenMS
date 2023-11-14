@@ -49,8 +49,8 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
 {
   MRMFeatureFinderScoring ff;
   // Param picker_param = ff.getDefaults();
-  // picker_param.setValue("TransitionGroupPicker:PeakPickerMRM:method", "legacy"); // old parameters
-  // picker_param.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", 40.0); // old parameters
+  // picker_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:method", "legacy"); // old parameters
+  // picker_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:peak_width", 40.0); // old parameters
   // ff.setParameters(picker_param);
       
   MRMFeature feature;
@@ -147,8 +147,8 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   {
     
     Param picker_param = ff.getDefaults();
-    picker_param.setValue("TransitionGroupPicker:PeakPickerMRM:method", "legacy"); // old parameters
-    picker_param.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", 40.0); // old parameters
+    picker_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:method", "legacy"); // old parameters
+    picker_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:peak_width", 40.0); // old parameters
     ff.setParameters(picker_param);
 
     transition_group_map.clear();
@@ -211,8 +211,8 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   scores_to_use.setValue("use_uis_scores", "true", "Use UIS scores for peptidoform identification ", {"advanced"});
   scores_to_use.setValidStrings("use_uis_scores", {"true","false"});
   ff_param.insert("Scores:", scores_to_use);
-  ff_param.setValue("TransitionGroupPicker:PeakPickerMRM:method", "legacy"); // old parameters
-  ff_param.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", 40.0); // old parameters
+  ff_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:method", "legacy"); // old parameters
+  ff_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:peak_width", 40.0); // old parameters
   ff.setParameters(ff_param);
 
   MRMFeature feature;

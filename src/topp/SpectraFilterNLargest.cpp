@@ -52,7 +52,7 @@ class TOPPSpectraFilterNLargest :
 {
 public:
   TOPPSpectraFilterNLargest() :
-    TOPPBase("SpectraFilterNLargest", "Applies thresholdfilter to peak spectra.")
+    TOPPBase("SpectraFilterNLargest", "Keeps only the n largest peaks per spectrum.")
   {
   }
 

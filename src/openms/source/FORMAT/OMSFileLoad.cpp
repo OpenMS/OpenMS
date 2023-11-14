@@ -12,7 +12,7 @@
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
-#include <QString>
+#include <QtCore/QString>
 // JSON export:
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
