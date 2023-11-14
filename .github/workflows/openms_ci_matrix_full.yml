@@ -10,7 +10,7 @@ on:
     inputs:
       package:
         type: boolean
-        description: Build and upload packages/installer/Documentation?
+        description: Build and upload packages/installer/documentation?
         default: false
       knime:
         type: boolean
@@ -156,6 +156,8 @@ jobs:
           
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             sudo apt-get -qq install -y doxygen ghostscript graphviz
+            echo "Testing doxygen"
+            doxygen --version
           fi
         fi
         
