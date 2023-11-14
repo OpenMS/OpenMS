@@ -10,7 +10,7 @@ on:
     inputs:
       package:
         type: boolean
-        description: Build and upload packages/installer?
+        description: Build and upload packages/installer/Documentation?
         default: false
       knime:
         type: boolean
@@ -294,7 +294,7 @@ jobs:
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
-          ENABLE_TUTORIALS: "OFF"
+          ENABLE_TUTORIALS: "ON"
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
@@ -440,6 +440,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: documentation
+          path: $GITHUB_WORKSPACE/docs
 
       - name: Upload Documentation
         shell: bash
@@ -464,7 +465,7 @@ jobs:
           sudo chmod 600 ~/.ssh/private.key
 
           # Upload documentation FIXME
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/Documentation/${folder}"
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/docs "$USER@$HOST:/Documentation/${folder}"
         # TODO create softlinks to latest nightly
         # TODO create and upload file hashes, at least for release candidate
 
