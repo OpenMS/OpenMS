@@ -14,7 +14,7 @@
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/FORMAT/ParamCWLFile.h>
+#include <OpenMS/FORMAT/ParamJSONFile.h>
 
 ///////////////////////////
 
@@ -23,9 +23,9 @@
 
 using namespace OpenMS;
 
-START_TEST(ParamCWLFile, "$Id")
+START_TEST(ParamJSONFile, "$Id")
 
-START_SECTION((bool ParamCWLFile::load(const std::string& filename, Param& param)))
+START_SECTION((bool ParamJSONFile::load(const std::string& filename, Param& param)))
 {
   String filename;
   NEW_TMP_FILE(filename)
@@ -33,14 +33,14 @@ START_SECTION((bool ParamCWLFile::load(const std::string& filename, Param& param
   param.setValue("test:1:value", 1, "description");
 
   // Check that FileNotFound is being thrown
-  TEST_EXCEPTION(Exception::FileNotFound, ParamCWLFile::load("/does/not/exist/FileDoesNotExist.json", param))
+  TEST_EXCEPTION(Exception::FileNotFound, ParamJSONFile::load("/does/not/exist/FileDoesNotExist.json", param))
 
   // Check parsing error is thrown
   std::ofstream ofs(filename.c_str(), std::ios::out);
   ofs << "not a json";
   ofs.close();
 
-  TEST_EXCEPTION(Exception::ParseError, ParamCWLFile::load(filename.c_str(), param))
+  TEST_EXCEPTION(Exception::ParseError, ParamJSONFile::load(filename.c_str(), param))
 
   // Check all types can be parsed
   /// set all expected params
@@ -84,7 +84,7 @@ START_SECTION((bool ParamCWLFile::load(const std::string& filename, Param& param
          "  }\n"
          "}\n";
   ofs.close();
-  ParamCWLFile::load(filename.c_str(), param);
+  ParamJSONFile::load(filename.c_str(), param);
 
   TEST_EQUAL(param.getValue("test:1:bool1").toBool(), true);
   TEST_EQUAL(param.getValue("test:1:bool2").toBool(), false);

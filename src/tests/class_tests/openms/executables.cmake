@@ -239,7 +239,7 @@ set(format_executables_list
   OSWFile_test
   PTMXMLFile_test
   ParamCTDFile_test
-  ParamCWLFile_test
+  ParamJSONFile_test
   ParamXMLFile_test
   PeakFileOptions_test
   PeakTypeEstimator_test
