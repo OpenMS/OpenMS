@@ -21,8 +21,8 @@
 #include <sys/stat.h>
 
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
-#include <QDir>
-#include <QCoreApplication>
+#include <QtCore/QDir>
+#include <QtCore/QCoreApplication>
 #include <QtCore/QDateTime>
 #include <QtCore/QTimer>
 

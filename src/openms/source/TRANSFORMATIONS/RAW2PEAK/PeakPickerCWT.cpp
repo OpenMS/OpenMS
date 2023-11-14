@@ -73,13 +73,13 @@ namespace OpenMS
     defaults_.setMinInt("thresholds:search_radius", 0);
 
     //Optimization parameters
-    defaults_.setValue("optimization", "no", "If the peak parameters position, intensity and left/right width" \
-                                             "shall be optimized set optimization to one_dimensional or two_dimensional.", {"advanced"});
+    defaults_.setValue("optimization:type", "no", "If the peak parameters position, intensity and left/right width" \
+                                                  "shall be optimized set optimization to one_dimensional or two_dimensional.", {"advanced"});
     std::vector<std::string> valid_opts;
     valid_opts.emplace_back("no");
     valid_opts.emplace_back("one_dimensional");
     valid_opts.emplace_back("two_dimensional");
-    defaults_.setValidStrings("optimization", valid_opts);
+    defaults_.setValidStrings("optimization:type", valid_opts);
     defaults_.setValue("optimization:penalties:position", 0.0, "penalty term for the fitting of the position:" \
                                                                "If it differs too much from the initial one it can be penalized ", {"advanced"});
     defaults_.setMinFloat("optimization:penalties:position", 0.0);
@@ -156,7 +156,7 @@ namespace OpenMS
     scale_ = (float)param_.getValue("peak_width");
     fwhm_bound_ = (float)param_.getValue("fwhm_lower_bound_factor") * scale_;
     peak_corr_bound_ = (float)param_.getValue("thresholds:correlation");
-    String opt = param_.getValue("optimization").toString();
+    String opt = param_.getValue("optimization:type").toString();
     if (opt == "one_dimensional")
     {
       optimization_ = true;

@@ -10,11 +10,35 @@ INI file - parameter configuration file, holding custom parameter settings for T
 INIFileEditor - graphical parameter editor for INI files
 Parameters - list of algorithm or TOPP tool parameters that changed in this release
 PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
-#<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit https://github.com/OpenMS/OpenMS/pull/4957 for details
-
+#<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit e.g. https://github.com/OpenMS/OpenMS/pull/XXXX (replace XXXX with number of interest) for details
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.1.0     (released: under development)    ----
+----                                OpenMS 3.2     (in development)                   ----
+------------------------------------------------------------------------------------------
+
+What's new:
+- Breaking change: Rename of parameters for FeatureFinderCentroided (debug->advanced), and PeakPickerWavelet/TOFCalibration (optimization -> optimization:type) (#7154)
+Library:
+- Extend FileHandler to support load and store operations for our major datastructures (spectra, features, identifications, etc.). Replaced file type specific code with the more generic FileHandler calls to decouple the IO code from other parts of the library.
+- better documentation for all SpectraFilter... tools (#7183)
+
+Fixes:
+- more robust parsing of mzIdentML (#7153)
+- more robust FileConverter (#7176)
+- MSFragger: allow relative path to database (#7155)
+- ParamEditor: fixed error for the subsection parameter (ParamNode) to go through store function (#7180)
+
+
+Misc:
+- OpenMSInfo reports the ILP solver (CoinOr or glpk) (#7156)
+- Add export for Common Workflow Language (CWL) (#6156)
+- Add tool description lib (TDL) dependency (#6156)
+
+Cleanup/Removal:
+- Removed SpectraFilterMarkerMower TOPP tool (#7183)
+
+------------------------------------------------------------------------------------------
+----                                OpenMS 3.1     (released 10/2023)                 ----
 ------------------------------------------------------------------------------------------
 
 We are excited to share an experimental update with our community, mainly targeted at platforms that depend on Conda packages.
@@ -26,24 +50,25 @@ Important Notes:
 - We welcome your feedback and suggestions to help us improve and refine these experimental features.
 - For stability and production use, we recommend sticking with the latest stable release.
 
-Please use this opportunity to test and provide feedback on these new features, as your input will play a vital role in shaping their development. 
+Please use this opportunity to test and provide feedback on these new features, as your input will play a vital role in shaping their development.
 
 Thank you for being a part of our community and for helping us make OpenMS even better!
 
 What's new:
 - Major change: removed the distinction between TOPP tool and util and the TOPP and UTIL build targets were merged to a single TOPP target. All utils are considered tools now and categorized as "Utilities".
-- Added SageAdapter. Support for standard identification tasks with sage (https://github.com/lazear/sage).
+- Added SageAdapter. Support for standard identification tasks with sage (https://github.com/lazear/sage) (experimental).
 - Require some advanced instruction sets for x64 CPUs: SSE3 (g++/clang) or AVX (MSVC); and NEON for ARM64 CPUs (#6978)
   and report them via the OpenMSInfo tool (#7022)
 - Base64 encoding/decoding using the SIMDe library (#6978)
 - Filter features in ProteomicsLFQ according to feature p-value (additional parameters feature_with(out)_id_min_score, MBR is automatically active if targeted_only = false)
+- TOPPAS: filter TOPP tools by name for faster access when building a pipeline (#7139)
 
 Fixes:
 - Fix a crash when loading mzML data with multiple threads which contains non-MS spectra, e.g. 'electromagnetic radiation spectrum' (#7011)
 - InternalCalibration: improve visualization of calibration plots (#7064)
 - Restore TOPPAS tutorial (#7076)
 - various low impact UBSan fixes
-- make mzData more robust against wrong 'length' attributes for binary data (#7113) 
+- make mzData more robust against wrong 'length' attributes for binary data (#7113)
 
 Misc:
 - Report reading/writing throughput (MiB/sec) when loading/storing mzML (#7035)
@@ -61,7 +86,6 @@ Cleanup of old/unused tools and code:
 - Removed simplistic evaluation tools FFEval, LabeledEval, TransformationEvaluation
 - Removed EnzymaticDigestionLogModel
 - Removed FidoAdapter (same functionality now in our own inference engines)
-
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.0     (released 7/2023)                  ----
@@ -94,7 +118,7 @@ e.g.
     Faster compile time (#6618)
     Improving code quality by fixing lots of linting warnings and leaks (e.g. #6839, #6831, #6829)
 
-Documentation
+Documentation:
 
     website redesign (visit openms.org)
     OpenMS user documentation is moved to openms.readthedocs.io/en/latest.

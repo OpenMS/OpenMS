@@ -19,7 +19,7 @@ namespace OpenMS
 {
 
   /**
-    @brief WindowMower augments the highest peaks in a sliding or jumping window
+    @brief Retains the highest peaks in a sliding or jumping window
 
     @htmlinclude OpenMS_WindowMower.parameters
 

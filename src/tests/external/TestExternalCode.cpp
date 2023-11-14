@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include "ExampleLibraryFile.h"
 
@@ -23,11 +23,11 @@ int main(int argc, char * argv[])
   std::cout << "From external lib: " << s << "\n";
 
   PeakMap exp;
-  MzMLFile f;
+  FileHandler f;
   String tmpfilename = "tmpfile.mzML";
 
-  f.store(tmpfilename,exp);
-  f.load(tmpfilename,exp);
+  f.storeExperiment(tmpfilename,exp, {FileTypes::MZML});
+  f.loadExperiment(tmpfilename,exp, {FileTypes::MZML});
 
   std::cout << "Loading and storing of mzML worked!\n";
 

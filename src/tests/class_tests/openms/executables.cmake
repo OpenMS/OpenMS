@@ -239,7 +239,7 @@ set(format_executables_list
   OSWFile_test
   PTMXMLFile_test
   ParamCTDFile_test
-  ParamCWLFile_test
+  ParamJSONFile_test
   ParamXMLFile_test
   PeakFileOptions_test
   PeakTypeEstimator_test
@@ -619,7 +619,6 @@ set(transformations_executables_list
   PeakPickerHiRes_test
   PeakPickerIterative_test
   PeakPickerMaxima_test
-  PeakPickerSH_test
   PeakWidthEstimator_test
   PeakShape_test
   ProductModel_test
@@ -654,7 +653,7 @@ if(NOT DISABLE_OPENSWATH)
     OpenSwathScoring_test
     OpenSwathScores_test
     PeakIntegrator_test
-    PeakPickerMRM_test
+    PeakPickerChromatogram_test
     MRMTransitionGroupPicker_test
     DIAHelper_test
     DIAScoring_test
@@ -693,7 +692,7 @@ set(Boost_dependent_tests
   OpenSwathHelper_test
   OpenSwathMRMFeatureAccessOpenMS_test
   OpenSwathSpectrumAccessOpenMS_test
-  PeakPickerMRM_test
+  PeakPickerChromatogram_test
   SpectrumLookup_test
   SpectrumMetaDataLookup_test
   StatisticFunctions_test

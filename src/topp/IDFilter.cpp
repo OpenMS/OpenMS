@@ -13,9 +13,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -232,11 +230,11 @@ protected:
     const auto& infiletype = FileHandler::getType(inputfile_name);
     if (infiletype == FileTypes::IDXML)
     {
-      IdXMLFile().load(inputfile_name, proteins, peptides);
+      FileHandler().loadIdentifications(inputfile_name, proteins, peptides, {FileTypes::IDXML});
     }
     else if (infiletype == FileTypes::CONSENSUSXML)
     {
-      ConsensusXMLFile().load(inputfile_name, cmap);
+      FileHandler().loadConsensusFeatures(inputfile_name, cmap, {FileTypes::CONSENSUSXML});
       for (auto& f : cmap)
       {
         UInt64 id = f.getUniqueId();
@@ -362,8 +360,8 @@ protected:
       OPENMS_LOG_INFO << "Filtering by inclusion peptide whitelisting..." << endl;
       vector<PeptideIdentification> inclusion_peptides;
       vector<ProteinIdentification> inclusion_proteins; // ignored
-      IdXMLFile().load(whitelist_peptides, inclusion_proteins,
-                       inclusion_peptides);
+      FileHandler().loadIdentifications(whitelist_peptides, inclusion_proteins,
+                       inclusion_peptides, {FileTypes::IDXML});
       bool ignore_mods = getFlag_("whitelist:ignore_modifications");
       IDFilter::keepPeptidesWithMatchingSequences(peptides, inclusion_peptides,
                                                   ignore_mods);
@@ -412,8 +410,8 @@ protected:
       OPENMS_LOG_INFO << "Filtering by exclusion peptide blacklisting..." << endl;
       vector<PeptideIdentification> exclusion_peptides;
       vector<ProteinIdentification> exclusion_proteins; // ignored
-      IdXMLFile().load(blacklist_peptides, exclusion_proteins,
-                       exclusion_peptides);
+      FileHandler().loadIdentifications(blacklist_peptides, exclusion_proteins,
+                       exclusion_peptides, {FileTypes::IDXML});
       bool ignore_mods = getFlag_("blacklist:ignore_modifications");
       IDFilter::removePeptidesWithMatchingSequences(
         peptides, exclusion_peptides, ignore_mods);
@@ -777,7 +775,7 @@ protected:
 
     if (infiletype == FileTypes::IDXML)
     {
-      IdXMLFile().store(outputfile_name, proteins, peptides);
+      FileHandler().storeIdentifications(outputfile_name, proteins, peptides, {FileTypes::IDXML});
     }
     else if (infiletype == FileTypes::CONSENSUSXML)
     {
@@ -799,7 +797,7 @@ protected:
       peptides.clear();
       std::swap(proteins, cmap.getProteinIdentifications());
       proteins.clear();
-      ConsensusXMLFile().store(outputfile_name, cmap);
+      FileHandler().storeConsensusFeatures(outputfile_name, cmap, {FileTypes::CONSENSUSXML});
     }
 
     return EXECUTION_OK;

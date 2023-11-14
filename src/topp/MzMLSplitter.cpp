@@ -8,7 +8,6 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QFile>
@@ -113,7 +112,7 @@ protected:
     writeLogInfo_("Splitting file into " + String(parts) + " parts...");
 
     PeakMap experiment;
-    MzMLFile().load(in, experiment);
+    FileHandler().loadExperiment(in, experiment, {FileTypes::MZML});
 
     vector<MSSpectrum> spectra;
     vector<MSChromatogram> chromatograms;
@@ -172,7 +171,7 @@ protected:
       chrom_start += n_chrom;
 
       writeLogInfo_("Part " + String(counter) + ": " + String(n_spec) + " spectra, " + String(n_chrom) + " chromatograms");
-      MzMLFile().store(out_name.str(), part);
+      FileHandler().storeExperiment(out_name.str(), part, {FileTypes::MZML});
     }
 
     return EXECUTION_OK;

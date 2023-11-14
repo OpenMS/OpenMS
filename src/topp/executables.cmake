@@ -81,7 +81,6 @@ SageAdapter
 SeedListGenerator
 SpecLibSearcher
 SpectraFilterBernNorm
-SpectraFilterMarkerMower
 SpectraFilterNLargest
 SpectraFilterNormalizer
 SpectraFilterParentPeakMower
