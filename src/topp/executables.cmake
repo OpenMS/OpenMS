@@ -22,12 +22,10 @@ DigestorMotif
 DTAExtractor
 EICExtractor
 Epifany
-ERPairFinder
 ExternalCalibration
 FalseDiscoveryRate
 FeatureFinderCentroided
 FeatureFinderIdentification
-FeatureFinderIsotopeWavelet
 FeatureFinderMetabo
 FeatureFinderMetaboIdent
 FeatureFinderMRM
@@ -99,12 +97,9 @@ OpenSwathDecoyGenerator
 OpenSwathFeatureXMLToTSV
 OpenSwathRTNormalizer
 PeakPickerHiRes
-PeakPickerIterative
-PeakPickerWavelet
 PeptideIndexer
 PercolatorAdapter
 PhosphoScoring
-PrecursorMassCorrector
 ProteinInference
 ProteinQuantifier
 ProteinResolver
@@ -135,7 +130,6 @@ SpectraFilterThresholdMower
 SpectraFilterWindowMower
 SpectraMerger
 TextExporter
-TOFCalibration
 XFDR
 XTandemAdapter
 )
