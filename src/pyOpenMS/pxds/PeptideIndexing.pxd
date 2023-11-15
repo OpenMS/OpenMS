@@ -18,15 +18,15 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideIndexing.h>" namespace "OpenMS":
         #  only in decoy proteins, or in both. The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool.
         #  (For FDR calculations, "target+decoy" peptide hits count as target hits.)
 
-        PeptideIndexing() nogil except +
-        PeptideIndexing(PeptideIndexing &) nogil except + # compiler
+        PeptideIndexing() except + nogil 
+        PeptideIndexing(PeptideIndexing &) except + nogil  # compiler
 
         PeptideIndexing_ExitCodes run(libcpp_vector[ FASTAEntry ] & proteins,
                                       libcpp_vector[ ProteinIdentification ] & prot_ids,
-                                      libcpp_vector[ PeptideIdentification ] & pep_ids) nogil except +
+                                      libcpp_vector[ PeptideIdentification ] & pep_ids) except + nogil 
 
-        String getDecoyString() nogil except +
-        bool isPrefix() nogil except +
+        String getDecoyString() except + nogil 
+        bool isPrefix() except + nogil 
 
 cdef extern from "<OpenMS/ANALYSIS/ID/PeptideIndexing.h>" namespace "OpenMS::PeptideIndexing":
     cdef enum PeptideIndexing_ExitCodes "OpenMS::PeptideIndexing::ExitCodes":

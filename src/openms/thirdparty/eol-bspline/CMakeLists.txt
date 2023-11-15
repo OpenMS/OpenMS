@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -60,3 +60,6 @@ foreach(_file ${_EOL_BSPLINE_SOURCES})
     ${PROJECT_SOURCE_DIR}/BSpline/${_file}
   )
 endforeach()
+
+file(APPEND ${TPLICENSEFILE} "\neol-bspline:\n")
+cat(${PROJECT_SOURCE_DIR}/LICENSE ${TPLICENSEFILE})

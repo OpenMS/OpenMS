@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Kyowon Jeong, Jihyung Kim $
@@ -38,13 +12,10 @@
 
 namespace OpenMS
 {
-  FLASHDeconvHelperStructs::PrecalculatedAveragine::PrecalculatedAveragine(const double min_mass,
-                                                                           const double max_mass,
-                                                                           const double delta,
-                                                                           CoarseIsotopePatternGenerator& generator,
-                                                                           const bool use_RNA_averagine)
-      :
-      mass_interval_(delta), min_mass_(min_mass)
+  FLASHDeconvHelperStructs::PrecalculatedAveragine::PrecalculatedAveragine(const double min_mass, const double max_mass, const double delta, CoarseIsotopePatternGenerator& generator,
+                                                                           const bool use_RNA_averagine) :
+      mass_interval_(delta),
+      min_mass_(min_mass)
   {
     int i = 0;
     while (true)
@@ -60,9 +31,7 @@ namespace OpenMS
         break;
       }
 
-      auto iso = use_RNA_averagine ?
-                 generator.estimateFromRNAMonoWeight(mass) :
-                 generator.estimateFromPeptideMonoWeight(mass);
+      auto iso = use_RNA_averagine ? generator.estimateFromRNAMonoWeight(mass) : generator.estimateFromPeptideMonoWeight(mass);
 
       const double min_pwr = .9999;
       const Size min_iso_length = 2;
@@ -88,7 +57,7 @@ namespace OpenMS
       int right_count = (int)iso.size() - 1;
       int trim_count = 0;
 
-      while (iso.size() - trim_count > min_iso_length && left_count<right_count)
+      while (iso.size() - trim_count > min_iso_length && left_count < right_count)
       {
         double lint = iso[left_count].getIntensity();
         double rint = iso[right_count].getIntensity();
@@ -124,7 +93,7 @@ namespace OpenMS
       right_count = right_count - (int)most_abundant_index_;
       iso.trimRight(1e-10);
 
-      for (auto & k : iso)
+      for (auto& k : iso)
       {
         float ori_int = k.getIntensity();
         k.setIntensity(ori_int / (float)sqrt(total_pwr));
@@ -143,7 +112,7 @@ namespace OpenMS
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::massToIndex_(const double mass) const
   {
-    Size i = (Size) round(std::max(.0, mass - min_mass_) / mass_interval_);
+    Size i = (Size)round(std::max(.0, mass - min_mass_) / mass_interval_);
     i = std::min(i, isotopes_.size() - 1);
     return i;
   }
@@ -160,7 +129,7 @@ namespace OpenMS
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getLeftCountFromApex(const double mass) const
   {
-    return (Size) left_count_from_apex_[massToIndex_(mass)];
+    return (Size)left_count_from_apex_[massToIndex_(mass)];
   }
 
   double FLASHDeconvHelperStructs::PrecalculatedAveragine::getAverageMassDelta(const double mass) const
@@ -175,7 +144,7 @@ namespace OpenMS
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getRightCountFromApex(const double mass) const
   {
-    return (Size) right_count_from_apex_[massToIndex_(mass)];
+    return (Size)right_count_from_apex_[massToIndex_(mass)];
   }
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getApexIndex(const double mass) const
@@ -195,12 +164,7 @@ namespace OpenMS
   }
 
   FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(const Peak1D& peak, const bool positive) :
-      mz(peak.getMZ()),
-      intensity(peak.getIntensity()),
-      logMz(getLogMz(peak.getMZ(), positive)),
-      abs_charge(0),
-      is_positive(positive),
-      isotopeIndex(0)
+      mz(peak.getMZ()), intensity(peak.getIntensity()), logMz(getLogMz(peak.getMZ(), positive)), abs_charge(0), is_positive(positive), isotopeIndex(0)
   {
   }
 
@@ -219,7 +183,7 @@ namespace OpenMS
 
   bool FLASHDeconvHelperStructs::LogMzPeak::operator<(const LogMzPeak& a) const
   {
-    if(this->logMz == a.logMz)
+    if (this->logMz == a.logMz)
     {
       return this->intensity < a.intensity;
     }
@@ -228,7 +192,7 @@ namespace OpenMS
 
   bool FLASHDeconvHelperStructs::LogMzPeak::operator>(const LogMzPeak& a) const
   {
-    if(this->logMz == a.logMz)
+    if (this->logMz == a.logMz)
     {
       return this->intensity > a.intensity;
     }
@@ -249,4 +213,4 @@ namespace OpenMS
   {
     return std::log(mz - getChargeMass(positive));
   }
-}
+} // namespace OpenMS

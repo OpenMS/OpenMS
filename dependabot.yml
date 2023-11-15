@@ -1,7 +1,0 @@
-# checks if submodules (contrib and thirdparty) were updated
-version: 2
-updates:
-  - package-ecosystem: "submodules"
-    directory: "/"
-    schedule:
-      interval: "daily"

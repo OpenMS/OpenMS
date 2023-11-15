@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Jihyung Kim$
@@ -89,6 +63,7 @@ sample_pg.push_back(tmp_peak2);
 
 LogMzPeak tmp_peak3 = fillPeak(1127.0168377586081, 7506.6767578125, 2, 3);
 sample_pg.push_back(tmp_peak3);
+sample_pg.updateMonoMassAndIsotopeIntensities();
 
 /// detailed constructor test
 START_SECTION((PeakGroup(const int min_abs_charge, const int max_abs_charge, const bool is_positive)))
@@ -242,17 +217,17 @@ START_SECTION((int getRepAbsCharge() const))
 END_SECTION
 
 
-START_SECTION((void setQScore(const float qscore)))
+START_SECTION((void setQscore(const float qscore)))
 {
-  sample_pg.setQScore(0.1);
-  double temp_score = sample_pg.getQScore();
+  sample_pg.Qscore(0.1);
+  double temp_score = sample_pg.getQscore();
   TEST_REAL_SIMILAR(temp_score, 0.1);
 }
 END_SECTION
 
-START_SECTION((float getQScore() const))
+START_SECTION((float getQscore() const))
 {
-  double temp_score = sample_pg.getQScore();
+  double temp_score = sample_pg.getQscore();
   TEST_REAL_SIMILAR(temp_score, 0.1);
 }
 END_SECTION
@@ -320,7 +295,6 @@ START_SECTION((float getChargeSNR(const int abs_charge) const))
 }
 END_SECTION
 
-sample_pg.updateMonomassAndIsotopeIntensities();
 START_SECTION((double getMonoMass() const))
 {
   double tmp_mass = sample_pg.getMonoMass();
@@ -339,14 +313,13 @@ END_SECTION
 PeakGroup sample_pg2(sample_pg);
 LogMzPeak tmp_peak4 = fillPeak(1127.5185151766082, 2504.3433, 2, 4);
 sample_pg2.push_back(tmp_peak4);
-
-START_SECTION((void updateMonomassAndIsotopeIntensities()))
+sample_pg2.updateMonoMassAndIsotopeIntensities();
+START_SECTION((void updateMonom assAndIsotopeIntensities()))
 {
-  sample_pg2.updateMonomassAndIsotopeIntensities();
   double temp_mass = sample_pg2.getMonoMass();
   double temp_inty = sample_pg2.getIntensity();
   TEST_REAL_SIMILAR(temp_mass, 2249.0101025181098);
-  TEST_REAL_SIMILAR(temp_inty, 12880886.145019531);
+  TEST_REAL_SIMILAR(temp_inty, 12880881);
 }
 END_SECTION
 
@@ -379,8 +352,8 @@ END_SECTION
 
 
 /// TODOs
-/// - updateIsotopeCosineAndQScore, recruitAllPeaksInSpectrum, isSignalMZ, setTargeted, getIsotopeIntensities
-/// - isTargeted, getDecoyFlag, setDecoyFlag, getQvalue, setQvalue, getQvalueWithChargeDecoyOnly, setQvalueWithChargeDecoyOnly
+/// - updateIsotopeCosineAndQscore, recruitAllPeaksInSpectrum, isSignalMZ, setTargeted, getIsotopeIntensities
+/// - isTargeted, getTargetDummyType, setTargetDummyType, getQvalue, setQvalue, getQvalueWithChargeDecoyOnly, setQvalueWithChargeDecoyOnly
 
 
 /////////////////////////////////////////////////////////////

@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -75,11 +75,10 @@ if (MSVC)
 										COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "The following make targets are available:"
-										COMMAND ${CMAKE_COMMAND} -E echo "    ALL_BUILD       [Visual Studio only] builds the OpenMS library, TOPP tools and UTILS tools"
-										COMMAND ${CMAKE_COMMAND} -E echo "    [no target]     [NMake only]         builds the OpenMS library, TOPP tools and UTILS tools"
+										COMMAND ${CMAKE_COMMAND} -E echo "    ALL_BUILD       [Visual Studio only] builds the OpenMS library, TOPP tools"
+										COMMAND ${CMAKE_COMMAND} -E echo "    [no target]     [NMake only]         builds the OpenMS library, TOPP tools"
 										COMMAND ${CMAKE_COMMAND} -E echo "    OpenMS          builds the OpenMS library"
 										COMMAND ${CMAKE_COMMAND} -E echo "    TOPP            builds the TOPP tools"
-										COMMAND ${CMAKE_COMMAND} -E echo "    UTILS           builds the UTILS tools"
 										COMMAND ${CMAKE_COMMAND} -E echo "    GUI             builds the GUI tools (TOPPView,...)"
 										COMMAND ${CMAKE_COMMAND} -E echo "    RUN_TESTS       [Visual Studio only] executes OpenMS and TOPP tests (*)"
 										COMMAND ${CMAKE_COMMAND} -E echo "    test            [NMake only]         executes OpenMS and TOPP tests (*)"
@@ -94,7 +93,7 @@ if (MSVC)
 										${pyopenms_targets}
 										${coverage_target}
 										COMMAND ${CMAKE_COMMAND} -E echo ""
-										COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools and UTILS have their own target, e.g. TOPPView"
+										COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools have their own target, e.g. TOPPView"
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
 										COMMAND ${CMAKE_COMMAND} -E echo ""
@@ -106,10 +105,9 @@ else()
 										COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "The following make targets are available:"
-										COMMAND ${CMAKE_COMMAND} -E echo "    [no target]     builds the OpenMS library, TOPP tools and UTILS tools"
+										COMMAND ${CMAKE_COMMAND} -E echo "    [no target]     builds the OpenMS library, TOPP tools"
 										COMMAND ${CMAKE_COMMAND} -E echo "    OpenMS          builds the OpenMS library"
 										COMMAND ${CMAKE_COMMAND} -E echo "    TOPP            builds the TOPP tools"
-										COMMAND ${CMAKE_COMMAND} -E echo "    UTILS           builds the UTILS tools"
 										COMMAND ${CMAKE_COMMAND} -E echo "    GUI             builds the GUI tools (TOPPView,...)"
 										COMMAND ${CMAKE_COMMAND} -E echo "    test            executes OpenMS and TOPP tests"
 										COMMAND ${CMAKE_COMMAND} -E echo "                    make sure they are built using the 'all' target"
@@ -124,7 +122,7 @@ else()
 										${pyopenms_targets}
 										${coverage_target}
 										COMMAND ${CMAKE_COMMAND} -E echo ""
-										COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools and UTILS have their own target, e.g. TOPPView"
+										COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools have their own target, e.g. TOPPView"
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
 										COMMAND ${CMAKE_COMMAND} -E echo ""

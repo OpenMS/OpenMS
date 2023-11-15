@@ -10,10 +10,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDDecoyProbability.h>" namespace "OpenMS":
         # wrap-inherits:
         #   DefaultParamHandler
 
-        IDDecoyProbability() nogil except + # wrap-doc:IDDecoyProbability calculates probabilities using decoy approach
-        IDDecoyProbability(IDDecoyProbability) nogil except +
+        IDDecoyProbability() except + nogil  # wrap-doc:IDDecoyProbability calculates probabilities using decoy approach
+        IDDecoyProbability(IDDecoyProbability) except + nogil 
 
-        void apply(libcpp_vector[PeptideIdentification] & prob_ids, libcpp_vector[PeptideIdentification] & fwd_ids, libcpp_vector[PeptideIdentification] & rev_ids)  nogil except +
+        void apply(libcpp_vector[PeptideIdentification] & prob_ids, libcpp_vector[PeptideIdentification] & fwd_ids, libcpp_vector[PeptideIdentification] & rev_ids)  except + nogil 
             # wrap-doc:
             #  Converts the forward and reverse identification into probabilities
             #  
@@ -22,4 +22,4 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDDecoyProbability.h>" namespace "OpenMS":
             #  :param fwd_ids: Input parameter which represents the identifications of the forward search
             #  :param rev_ids: Input parameter which represents the identifications of the reversed search
 
-        void apply(libcpp_vector[PeptideIdentification] & ids)  nogil except +
+        void apply(libcpp_vector[PeptideIdentification] & ids)  except + nogil 

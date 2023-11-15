@@ -16,22 +16,22 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>" nam
 
     cdef cppclass OpenSwathDataAccessHelper:
 
-        OpenSwathDataAccessHelper() nogil except + # compiler
-        OpenSwathDataAccessHelper(OpenSwathDataAccessHelper &) nogil except + # compiler
+        OpenSwathDataAccessHelper() except + nogil  # compiler
+        OpenSwathDataAccessHelper(OpenSwathDataAccessHelper &) except + nogil  # compiler
 
-        void convertToOpenMSSpectrum(shared_ptr[OSSpectrum] sptr, MSSpectrum & spectrum) nogil except + # wrap-doc:Converts a SpectrumPtr to an OpenMS Spectrum
+        void convertToOpenMSSpectrum(shared_ptr[OSSpectrum] sptr, MSSpectrum & spectrum) except + nogil  # wrap-doc:Converts a SpectrumPtr to an OpenMS Spectrum
 
-        shared_ptr[OSSpectrum] convertToSpectrumPtr(MSSpectrum spectrum) nogil except + # wrap-ignore
+        shared_ptr[OSSpectrum] convertToSpectrumPtr(MSSpectrum spectrum) except + nogil  # wrap-ignore
 
-        shared_ptr[OSChromatogram] convertToChromatogramPtr(MSChromatogram chromatogram) nogil except + # wrap-ignore
+        shared_ptr[OSChromatogram] convertToChromatogramPtr(MSChromatogram chromatogram) except + nogil  # wrap-ignore
 
-        void convertToOpenMSChromatogram(shared_ptr[OSChromatogram] cptr, MSChromatogram & chromatogram) nogil except + # wrap-doc:Converts a ChromatogramPtr to an OpenMS Chromatogram
+        void convertToOpenMSChromatogram(shared_ptr[OSChromatogram] cptr, MSChromatogram & chromatogram) except + nogil  # wrap-doc:Converts a ChromatogramPtr to an OpenMS Chromatogram
         void convertToOpenMSChromatogramFilter(MSChromatogram & chromatogram, shared_ptr[OSChromatogram] cptr,
-                                               double rt_min, double rt_max) nogil except +
+                                               double rt_min, double rt_max) except + nogil 
 
-        void convertTargetedExp(TargetedExperiment & transition_exp_, LightTargetedExperiment & transition_exp) nogil except + # wrap-doc:Converts from the OpenMS TargetedExperiment to the OpenMs LightTargetedExperiment
+        void convertTargetedExp(TargetedExperiment & transition_exp_, LightTargetedExperiment & transition_exp) except + nogil  # wrap-doc:Converts from the OpenMS TargetedExperiment to the OpenMs LightTargetedExperiment
 
-        void convertPeptideToAASequence(LightCompound & peptide, AASequence & aa_sequence) nogil except + # wrap-doc:Converts from the LightCompound to an OpenMS AASequence (with correct modifications)
+        void convertPeptideToAASequence(LightCompound & peptide, AASequence & aa_sequence) except + nogil  # wrap-doc:Converts from the LightCompound to an OpenMS AASequence (with correct modifications)
         
-        void convertTargetedCompound(Peptide pep, LightCompound & p) nogil except + # wrap-doc:Converts from the OpenMS TargetedExperiment Peptide to the LightTargetedExperiment Peptide
+        void convertTargetedCompound(Peptide pep, LightCompound & p) except + nogil  # wrap-doc:Converts from the OpenMS TargetedExperiment Peptide to the LightTargetedExperiment Peptide
 

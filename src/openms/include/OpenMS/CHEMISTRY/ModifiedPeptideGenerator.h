@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -41,9 +15,8 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <set>
-
-#include <boost/container/flat_map.hpp>
 
 namespace OpenMS
 {
@@ -55,7 +28,7 @@ namespace OpenMS
 
   public:
     // struct needed to wrap the template for pyOpenMS
-    struct MapToResidueType { boost::container::flat_map<const ResidueModification*, const Residue*> val; };
+    struct MapToResidueType { std::unordered_map<const ResidueModification*, const Residue*> val; };
 
       /**
       * @brief Retrieve modifications from strings
@@ -83,18 +56,11 @@ namespace OpenMS
      bool keep_original=true);
 
   protected:
-    // Lookup datastructure to allow lock-free generation of modified peptides
+    static const int N_TERM_MODIFICATION_INDEX; // magic constant to distinguish N_TERM only modifications from ANYWHERE modifications placed at N-term residue
+    static const int C_TERM_MODIFICATION_INDEX; // magic constant to distinguish C_TERM only modifications from ANYWHERE modifications placed at C-term residue
+
+    // Lookup datastructure to allow lock-free generation of modified peptides. Modifications without origin (e.g., "Protein N-term") set the residue to nullptr.
     static MapToResidueType createResidueModificationToResidueMap_(const std::vector<const ResidueModification*>& mods);
-
-
-    // Recursively generate all combinatoric placements at compatible sites
-    static void recurseAndGenerateVariableModifiedPeptides_(
-      const std::vector<int>& subset_indices, 
-      const std::map<int, std::vector<const ResidueModification*> >& map_compatibility, 
-      const MapToResidueType& var_mods,
-      int depth, 
-      const AASequence& current_peptide, 
-      std::vector<AASequence>& modified_peptides);
 
     // Fast implementation of modification placement. No combinatoric placement is needed in this case - just every site is modified once by each compatible modification. Already modified residues are skipped
     static void applyAtMostOneVariableModification_(
@@ -103,7 +69,10 @@ namespace OpenMS
       std::vector<AASequence>& all_modified_peptides, 
       bool keep_original=true);
 
+  private:
+    /// take a vector of AASequences @p original_sequences, and for each mod in @p mods, add a version with mod at index @p idx_to_modify. In-place, with the original sequences recieving the first mod in @p mods.
+    static void applyAllModsAtIdxAndExtend_(std::vector<AASequence>& original_sequences, int idx_to_modify, const std::vector<const ResidueModification*>& mods, const MapToResidueType& var_mods);
+    /// applies a modification @p m to the @p current_peptide at @p current_index. Overwrites mod if it exists. Looks up in var_mods for existing modified Residue pointers.
+    static void applyModToPep_(AASequence& current_peptide, int current_index, const ResidueModification* m, const MapToResidueType& var_mods);
   };
 }
-
-

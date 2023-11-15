@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -129,12 +103,17 @@ START_SECTION(void addElement(const std::string& name,
   TEST_REAL_SIMILAR(oxygen->getAverageWeight(), 15.99940532316)
   map<unsigned int, double> oxygen_abundance = {{16u, 0.7}, {19u, 0.3}};
   map<unsigned int, double> oxygen_mass = {{16u, 15.994915000000001}, {19u, 19.01}};
-  e_ptr->addElement("Oxygen", "O", 8u, oxygen_abundance, oxygen_mass, true);
+  e_ptr->addElement("Oxygen", "O", 8u, oxygen_abundance, oxygen_mass, true); // true: replace existing
 
   const Element * new_oxygen = e_ptr->getElement(8);
   // ptr addresses cannot change, otherwise we are in trouble since EmpiricalFormula uses those
   TEST_EQUAL(oxygen, new_oxygen)
   TEST_REAL_SIMILAR(oxygen->getAverageWeight(), 16.8994405) // average weight has changed
+
+  // cannot add invalid element (name and symbol conflict when compared existing element 
+  // -- this would invalidate the lookup, since e_ptr->getSymbols().at("O")->getSymbol() == 'P'
+  TEST_EXCEPTION(Exception::InvalidValue, e_ptr->addElement("Oxygen", "P", 8u, oxygen_abundance, oxygen_mass, true)) // true: replace existing
+
 }
 END_SECTION
 

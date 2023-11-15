@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -34,3 +34,7 @@
 
 add_library(Quadtree INTERFACE)
 target_include_directories(Quadtree INTERFACE "include")
+
+get_filename_component(QUADTREE_FOLDER "${CMAKE_CURRENT_LIST_FILE}" PATH)
+file(APPEND ${TPLICENSEFILE} "\nQuadtree:\n")
+cat(${QUADTREE_FOLDER}/LICENSE ${TPLICENSEFILE})

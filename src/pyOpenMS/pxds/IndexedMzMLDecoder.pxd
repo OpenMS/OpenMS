@@ -19,12 +19,12 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>" namespace "Open
             #  to extract all elements contained in the <indexList> tag and thus get access
             #  to all spectra and chromatogram offsets
 
-        IndexedMzMLDecoder() nogil except +
-        IndexedMzMLDecoder(IndexedMzMLDecoder &) nogil except +
+        IndexedMzMLDecoder() except + nogil 
+        IndexedMzMLDecoder(IndexedMzMLDecoder &) except + nogil 
         int parseOffsets(String in_, int indexoffset, 
                 libcpp_vector[ libcpp_pair[ libcpp_string, streampos] ]& spectra_offsets,
-                libcpp_vector[ libcpp_pair[ libcpp_string, streampos] ]& chromatograms_offsets) nogil except + #wrap-ignore
-        streampos findIndexListOffset(String in_, int buffersize) nogil except +
+                libcpp_vector[ libcpp_pair[ libcpp_string, streampos] ]& chromatograms_offsets) except + nogil  #wrap-ignore
+        streampos findIndexListOffset(String in_, int buffersize) except + nogil 
             # wrap-doc:
                 #  Tries to extract the indexList offset from an indexedmzML\n
                 #  

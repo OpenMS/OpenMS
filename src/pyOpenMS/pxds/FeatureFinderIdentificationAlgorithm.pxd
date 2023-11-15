@@ -64,15 +64,15 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificat
         #    # 6 peptides without features (6 internal, 0 external)
         #  
 
-        FeatureFinderIdentificationAlgorithm() nogil except +
+        FeatureFinderIdentificationAlgorithm() except + nogil 
 
-        FeatureFinderIdentificationAlgorithm(FeatureFinderIdentificationAlgorithm) nogil except + #wrap-ignore
+        FeatureFinderIdentificationAlgorithm(FeatureFinderIdentificationAlgorithm) except + nogil  #wrap-ignore
 
         void run(libcpp_vector[ PeptideIdentification ] peptides,
                  libcpp_vector[ ProteinIdentification ] & proteins,
                  libcpp_vector[ PeptideIdentification ] peptides_ext,
                  libcpp_vector[ ProteinIdentification ] proteins_ext,
-                 FeatureMap & features) nogil except +
+                 FeatureMap & features) except + nogil 
                  # wrap-doc:
                  #  Run feature detection
                  #  
@@ -88,7 +88,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificat
                  libcpp_vector[ PeptideIdentification ] peptides_ext,
                  libcpp_vector[ ProteinIdentification ] proteins_ext,
                  FeatureMap & features, 
-                 FeatureMap & seeds) nogil except + 
+                 FeatureMap & seeds) except + nogil  
                  # wrap-doc:
                  #  Run feature detection
                  #  
@@ -106,7 +106,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificat
                  libcpp_vector[ ProteinIdentification ] proteins_ext,
                  FeatureMap & features, 
                  FeatureMap & seeds,
-                 String & spectra_file) nogil except + 
+                 String & spectra_file) except + nogil  
                  # wrap-doc:
                  #  Run feature detection
                  #  
@@ -119,15 +119,15 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificat
                  #  :param seeds: Optional seeds for feature detection from e.g. untargeted FeatureFinders                 
                  #  :param spectra_file: Path will be stored in features in case the MSExperiment has no proper primaryMSRunPath
 
-        void runOnCandidates(FeatureMap & features) nogil except + # wrap-doc:Run feature detection on identified features (e.g. loaded from an IdXML file)
+        void runOnCandidates(FeatureMap & features) except + nogil  # wrap-doc:Run feature detection on identified features (e.g. loaded from an IdXML file)
 
-        void setMSData(const MSExperiment&) nogil except + # wrap-doc:Sets ms data
+        void setMSData(const MSExperiment&) except + nogil  # wrap-doc:Sets ms data
 
-        MSExperiment getMSData() nogil except + # wrap-doc:Returns ms data as MSExperiment
+        MSExperiment getMSData() except + nogil  # wrap-doc:Returns ms data as MSExperiment
 
-        MSExperiment getChromatograms() nogil except + # wrap-doc:Returns chromatogram data as MSExperiment 
+        MSExperiment getChromatograms() except + nogil  # wrap-doc:Returns chromatogram data as MSExperiment 
 
-        ProgressLogger getProgressLogger() nogil except + # wrap-ignore
+        ProgressLogger getProgressLogger() except + nogil  # wrap-ignore
 
-        TargetedExperiment getLibrary() nogil except + # wrap-doc:Returns constructed assay library
+        TargetedExperiment getLibrary() except + nogil  # wrap-doc:Returns constructed assay library
 

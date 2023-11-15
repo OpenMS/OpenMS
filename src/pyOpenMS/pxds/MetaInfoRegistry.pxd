@@ -23,18 +23,18 @@ cdef extern from "<OpenMS/METADATA/MetaInfoRegistry.h>" namespace "OpenMS":
                 #  12 - low_quality
                 #  13 - charge
 
-        MetaInfoRegistry() nogil except +
-        MetaInfoRegistry(MetaInfoRegistry &) nogil except +
-        UInt registerName(const String & name, const String & description, const String & unit) nogil except + # wrap-doc:Registers a string, stores its description and unit, and returns the corresponding index. If the string is already registered, it returns the index of the string
-        void setDescription(UInt index, const String & description) nogil except + # wrap-doc:Sets the description (String), corresponding to an index
-        void setDescription(const String & name, const String & description) nogil except + # wrap-doc:Sets the description (String), corresponding to a name
-        void setUnit(UInt index, const String & unit) nogil except + # wrap-doc:Sets the unit (String), corresponding to an index
-        void setUnit(const String & name, const String & unit) nogil except + # wrap-doc:Sets the unit (String), corresponding to a name
-        UInt getIndex(const String & name) nogil except + # wrap-doc:Returns the integer index corresponding to a string. If the string is not registered, returns UInt(-1) (= UINT_MAX)
-        String getName(UInt index) nogil except + # wrap-doc:Returns the corresponding name to an index
-        String getDescription(UInt index) nogil except + # wrap-doc:Returns the description of an index
-        String getDescription(const String & name) nogil except + # wrap-doc:Returns the description of a name
-        String getUnit(UInt index) nogil except + # wrap-doc:Returns the unit of an index
-        String getUnit(const String & name) nogil except + # wrap-doc:Returns the unit of a name
+        MetaInfoRegistry() except + nogil 
+        MetaInfoRegistry(MetaInfoRegistry &) except + nogil 
+        UInt registerName(const String & name, const String & description, const String & unit) except + nogil  # wrap-doc:Registers a string, stores its description and unit, and returns the corresponding index. If the string is already registered, it returns the index of the string
+        void setDescription(UInt index, const String & description) except + nogil  # wrap-doc:Sets the description (String), corresponding to an index
+        void setDescription(const String & name, const String & description) except + nogil  # wrap-doc:Sets the description (String), corresponding to a name
+        void setUnit(UInt index, const String & unit) except + nogil  # wrap-doc:Sets the unit (String), corresponding to an index
+        void setUnit(const String & name, const String & unit) except + nogil  # wrap-doc:Sets the unit (String), corresponding to a name
+        UInt getIndex(const String & name) except + nogil  # wrap-doc:Returns the integer index corresponding to a string. If the string is not registered, returns UInt(-1) (= UINT_MAX)
+        String getName(UInt index) except + nogil  # wrap-doc:Returns the corresponding name to an index
+        String getDescription(UInt index) except + nogil  # wrap-doc:Returns the description of an index
+        String getDescription(const String & name) except + nogil  # wrap-doc:Returns the description of a name
+        String getUnit(UInt index) except + nogil  # wrap-doc:Returns the unit of an index
+        String getUnit(const String & name) except + nogil  # wrap-doc:Returns the unit of a name
 
 

@@ -10,13 +10,13 @@ from ConsensusMap cimport *
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricNormalizer.h>" namespace "OpenMS":
     
     cdef cppclass IsobaricNormalizer "OpenMS::IsobaricNormalizer":
-        IsobaricNormalizer(IsobaricNormalizer &) nogil except +
+        IsobaricNormalizer(IsobaricNormalizer &) except + nogil 
 
-        IsobaricNormalizer(IsobaricQuantitationMethod *quant_method) nogil except + # wrap-ignore
-        IsobaricNormalizer(ItraqFourPlexQuantitationMethod *quant_method) nogil except +
-        IsobaricNormalizer(ItraqEightPlexQuantitationMethod *quant_method) nogil except +
-        IsobaricNormalizer(TMTSixPlexQuantitationMethod *quant_method) nogil except +
-        IsobaricNormalizer(TMTTenPlexQuantitationMethod *quant_method) nogil except +
+        IsobaricNormalizer(IsobaricQuantitationMethod *quant_method) except + nogil  # wrap-ignore
+        IsobaricNormalizer(ItraqFourPlexQuantitationMethod *quant_method) except + nogil 
+        IsobaricNormalizer(ItraqEightPlexQuantitationMethod *quant_method) except + nogil 
+        IsobaricNormalizer(TMTSixPlexQuantitationMethod *quant_method) except + nogil 
+        IsobaricNormalizer(TMTTenPlexQuantitationMethod *quant_method) except + nogil 
 
-        void normalize(ConsensusMap & consensus_map) nogil except +
+        void normalize(ConsensusMap & consensus_map) except + nogil 
 

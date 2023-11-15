@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -130,6 +104,9 @@ START_SECTION(DRange(CoordinateType minx, CoordinateType miny, CoordinateType ma
 	TEST_REAL_SIMILAR(r2.minPosition()[1],2.0f);
 	TEST_REAL_SIMILAR(r2.maxPosition()[0],3.0f);
 	TEST_REAL_SIMILAR(r2.maxPosition()[1],4.0f);
+  DRange<2> r {2, 3, -2, -3}; // min > max
+  TEST_EQUAL(r.minPosition(), DPosition<2>(-2, -3))
+  TEST_EQUAL(r.maxPosition(), DPosition<2>(2, 3))
 END_SECTION
 
 START_SECTION(bool operator == (const DRange& rhs) const )
@@ -429,6 +406,38 @@ p2[1]=4.0f;
   TEST_REAL_SIMILAR(other.maxPosition()[0], 5.0f);
 END_SECTION
 
+START_SECTION(DRange<D>& extend(typename Base::PositionType addition))
+  DRange<2> r(p1, p2);
+  /*
+  p1[0]=-1.0f;
+  p1[1]=-2.0f;
+  p2[0]=3.0f;
+  p2[1]=4.0f;
+  */
+  auto other = r.extend({2.0, 3.0});
+  TEST_REAL_SIMILAR(r.minPosition()[0], -2.0f);
+  TEST_REAL_SIMILAR(r.maxPosition()[0], 4.0f);
+  TEST_REAL_SIMILAR(r.minPosition()[1], -3.5f);
+  TEST_REAL_SIMILAR(r.maxPosition()[1], 5.5f);
+  TEST_REAL_SIMILAR(other.minPosition()[0], -2.0f);
+  TEST_REAL_SIMILAR(other.maxPosition()[0], 4.0f);
+
+  // test shrinking to a single point
+  r.extend({-200.0, 0.0});
+  TEST_REAL_SIMILAR(r.minPosition()[0], 1.0f);
+  TEST_REAL_SIMILAR(r.maxPosition()[0], 1.0f);
+  TEST_REAL_SIMILAR(r.minPosition()[1], -3.5f);
+  TEST_REAL_SIMILAR(r.maxPosition()[1], 5.5f);
+END_SECTION
+
+START_SECTION(DRange<D>& ensureMinSpan(typename  Base::PositionType min_span))
+  DRange<2> r(-0.1, 10, 0.1, 20);
+  r.ensureMinSpan({1.0, 3.0});
+  TEST_REAL_SIMILAR(r.minPosition()[0], -0.5f);
+  TEST_REAL_SIMILAR(r.maxPosition()[0], 0.5f);
+  TEST_REAL_SIMILAR(r.minPosition()[1], 10.0f);
+  TEST_REAL_SIMILAR(r.maxPosition()[1], 20.0f);
+END_SECTION
 
 START_SECTION(DRange<D>& swapDimensions())
 	DRange<2> r(p1, p2);

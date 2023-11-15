@@ -37,7 +37,6 @@ IndexedMzMLFileLoader.cpp
 InspectInfile.cpp
 InspectOutfile.cpp
 KroenikFile.cpp
-LibSVMEncoder.cpp
 MRMFeaturePickerFile.cpp
 MRMFeatureQCFile.cpp
 MS2File.cpp
@@ -68,6 +67,8 @@ OMSSACSVFile.cpp
 OMSSAXMLFile.cpp
 OSWFile.cpp
 ParamCTDFile.cpp
+ParamCWLFile.cpp
+ParamJSONFile.cpp
 ParamXMLFile.cpp
 PTMXMLFile.cpp
 PeakTypeEstimator.cpp

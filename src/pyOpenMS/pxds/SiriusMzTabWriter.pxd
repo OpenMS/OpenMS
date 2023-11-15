@@ -10,13 +10,13 @@ from CsvFile cimport *
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>" namespace "OpenMS":
     
     cdef cppclass SiriusMzTabWriter:
-        SiriusMzTabWriter() nogil except + 
-        SiriusMzTabWriter(SiriusMzTabWriter &) nogil except + # compiler
+        SiriusMzTabWriter() except + nogil  
+        SiriusMzTabWriter(SiriusMzTabWriter &) except + nogil  # compiler
 
     cdef cppclass SiriusMzTabWriter_SiriusSpectrumMSInfo "OpenMS::SiriusMzTabWriter::SiriusSpectrumMSInfo":
 
-      SiriusMzTabWriter_SiriusSpectrumMSInfo() nogil except +
-      SiriusMzTabWriter_SiriusSpectrumMSInfo(SiriusMzTabWriter_SiriusSpectrumMSInfo &) nogil except + # compiler
+      SiriusMzTabWriter_SiriusSpectrumMSInfo() except + nogil 
+      SiriusMzTabWriter_SiriusSpectrumMSInfo(SiriusMzTabWriter_SiriusSpectrumMSInfo &) except + nogil  # compiler
 
       StringList ext_n_id
       double ext_mz
@@ -25,14 +25,14 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>" namespace "Ope
 # wrap static method:
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>" namespace "OpenMS::SiriusMzTabWriter":
 
-        int extractScanIndex(const String& path) nogil except +  # wrap-attach:SiriusMzTabWriter
-        int extractScanNumber(const String& path) nogil except + # wrap-attach:SiriusMzTabWriter
-        String extractFeatureId(const String& path) nogil except + # wrap-attach:SiriusMzTabWriter
-        libcpp_map[ libcpp_string, Size ] extract_columnname_to_columnindex(CsvFile& csvfile) nogil except + # wrap-attach:SiriusMzTabWriter
+        int extractScanIndex(const String& path) except + nogil   # wrap-attach:SiriusMzTabWriter
+        int extractScanNumber(const String& path) except + nogil  # wrap-attach:SiriusMzTabWriter
+        String extractFeatureId(const String& path) except + nogil  # wrap-attach:SiriusMzTabWriter
+        libcpp_map[ libcpp_string, Size ] extract_columnname_to_columnindex(CsvFile& csvfile) except + nogil  # wrap-attach:SiriusMzTabWriter
 
-        SiriusMzTabWriter_SiriusSpectrumMSInfo extractSpectrumMSInfo(const String& single_sirius_path) nogil except + # wrap-attach:SiriusMzTabWriter
+        SiriusMzTabWriter_SiriusSpectrumMSInfo extractSpectrumMSInfo(const String& single_sirius_path) except + nogil  # wrap-attach:SiriusMzTabWriter
 
         void read(libcpp_vector[ String ]& sirius_output_paths, 
                   const String& original_input_mzml, 
                   Size top_n_hits, 
-                  MzTab& result) nogil except + # wrap-attach:SiriusMzTabWriter
+                  MzTab& result) except + nogil  # wrap-attach:SiriusMzTabWriter

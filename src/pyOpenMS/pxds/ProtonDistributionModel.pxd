@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>" namespace "Ope
     cdef cppclass ProtonDistributionModel(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
-        ProtonDistributionModel() nogil except +
+        ProtonDistributionModel() except + nogil 
             # wrap-doc:
             #  A proton distribution model to calculate the proton distribution over charged peptides
             #  
@@ -32,8 +32,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>" namespace "Ope
             #  Charge state intensities of differently charged equal (e.g. y7+ and y7++) ions can be calculated
             #  using the getChargeStateIntensities function
 
-        ProtonDistributionModel(ProtonDistributionModel &) nogil except +
-        void getProtonDistribution(libcpp_vector[ double ] & bb_charges, libcpp_vector[ double ] & sc_charges, AASequence & peptide, Int charge, ResidueType res_type) nogil except +
+        ProtonDistributionModel(ProtonDistributionModel &) except + nogil 
+        void getProtonDistribution(libcpp_vector[ double ] & bb_charges, libcpp_vector[ double ] & sc_charges, AASequence & peptide, Int charge, ResidueType res_type) except + nogil 
             # wrap-doc:
             #  Calculates a proton distribution of the given charged peptide
             #  
@@ -44,7 +44,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>" namespace "Ope
             #  :param charge: The charge
             #  :param res_type: The type of the ion given in peptide. Peptides are handled as y-ions, i.e. Residue::YIon
 
-        void getChargeStateIntensities(AASequence & peptide, AASequence & n_term_ion, AASequence & c_term_ion, Int charge, ResidueType n_term_type, libcpp_vector[ double ] & n_term_intensities, libcpp_vector[ double ] & c_term_intensities, FragmentationType type_) nogil except +
+        void getChargeStateIntensities(AASequence & peptide, AASequence & n_term_ion, AASequence & c_term_ion, Int charge, ResidueType n_term_type, libcpp_vector[ double ] & n_term_intensities, libcpp_vector[ double ] & c_term_intensities, FragmentationType type_) except + nogil 
             # wrap-doc:
             #  Calculates the charge state intensities of different charge states of the same ion
             #  
@@ -58,7 +58,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>" namespace "Ope
             #  :param c_term_intensities: The probability of seeing a charged suffix ions (first index corresponds to ion of charge 2)
             #  :param type: The type of fragmentation (charge-directed, charge-remote of side chain)
 
-        void setPeptideProtonDistribution(libcpp_vector[ double ] & bb_charge, libcpp_vector[ double ] & sc_charge) nogil except +
+        void setPeptideProtonDistribution(libcpp_vector[ double ] & bb_charge, libcpp_vector[ double ] & sc_charge) except + nogil 
 
 cdef extern from "<OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>" namespace "OpenMS::ProtonDistributionModel":
     cdef enum FragmentationType "OpenMS::ProtonDistributionModel::FragmentationType":

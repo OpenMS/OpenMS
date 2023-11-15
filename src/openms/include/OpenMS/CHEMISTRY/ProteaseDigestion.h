@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow, Xiao Liang $
@@ -43,7 +17,7 @@
 namespace OpenMS
 {
   /**
-     @brief Class for the enzymatic digestion of proteins
+     @brief Class for the enzymatic digestion of proteins represented as AASequence or String
 
      Digestion can be performed using simple regular expressions,
      e.g. [KR] | [^P]
@@ -51,8 +25,6 @@ namespace OpenMS
      due to enzyme malfunction/access restrictions. If @em n missed cleavages are allowed, all possible resulting
      peptides (cleaved and uncleaved) with up to @em n missed cleavages are returned.
      Thus @b no random selection of just @em n specific missed cleavage sites is performed.
-
-     An alternative model is also available in EnzymaticDigestionLogModel.
 
      @ingroup Chemistry
   */
@@ -65,7 +37,7 @@ namespace OpenMS
     void setEnzyme(const String& name);
 
     /** 
-       @brief: Performs the enzymatic digestion of a protein.
+       @brief Performs the enzymatic digestion of a protein represented as AASequence
 
        @param protein Sequence to digest
        @param output Digestion products (peptides)
@@ -75,6 +47,18 @@ namespace OpenMS
 
     */
     Size digest(const AASequence& protein, std::vector<AASequence>& output, Size min_length = 1, Size max_length = 0) const;
+
+    /** 
+       @brief Performs the enzymatic digestion of a protein represented as AASequence
+
+       @param protein Sequence to digest
+       @param output Digestion products (start and end indices of peptides)
+       @param min_length Minimal length of reported products
+       @param max_length Maximal length of reported products (0 = no restriction)
+       @return Number of discarded digestion products (which are not matching length restrictions)
+
+    */
+    Size digest(const AASequence& protein, std::vector<std::pair<size_t,size_t>>& output, Size min_length = 1, Size max_length = 0) const;
 
     /// Returns the number of peptides a digestion of @p protein would yield under the current enzyme and missed cleavage settings.
     Size peptideCount(const AASequence& protein);

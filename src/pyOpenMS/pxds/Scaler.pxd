@@ -11,9 +11,9 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/Scaler.h>" namespace "OpenMS":
         # wrap-inherits:
         #   DefaultParamHandler
 
-        Scaler()       nogil except +
-        Scaler(Scaler &) nogil except + #wrap-ignore
+        Scaler()       except + nogil 
+        Scaler(Scaler &) except + nogil  #wrap-ignore
 
-        void filterSpectrum(MSSpectrum & spec) nogil except +
-        void filterPeakSpectrum(MSSpectrum & spec) nogil except +
-        void filterPeakMap(MSExperiment & exp) nogil except +
+        void filterSpectrum(MSSpectrum & spec) except + nogil 
+        void filterPeakSpectrum(MSSpectrum & spec) except + nogil 
+        void filterPeakMap(MSExperiment & exp) except + nogil 

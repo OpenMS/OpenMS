@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Veit $
@@ -38,8 +12,6 @@
 #include <QDrag>
 #include <QApplication>
 #include <QtCore/QMimeData>
-
-#include <iostream>
 
 using namespace std;
 
@@ -55,7 +27,65 @@ namespace OpenMS
 
   TOPPASTreeView::~TOPPASTreeView() = default;
 
-  void TOPPASTreeView::mousePressEvent(QMouseEvent * event)
+  void TOPPASTreeView::filter(const QString& must_match)
+  {
+    // hide all
+    QTreeWidgetItemIterator it(this);
+    while (*it)
+    {
+      (*it)->setHidden(true);
+      (*it)->setExpanded(false);
+      ++it;
+    }
+
+    // recursive lambda: show items and its subchildren (e.g. when a category matches)
+    function<void(QTreeWidgetItem*)> show_sub_tree = [&](QTreeWidgetItem* item) {
+      item->setHidden(false);
+      for (int i = 0; i < item->childCount(); i++)
+      {
+        QTreeWidgetItem* child = item->child(i);
+        child->setHidden(false);
+        child->setExpanded(true); // technically not required, since our tree is only 2 layers deep, but maybe in the future...
+        show_sub_tree(child);
+      }
+    };
+
+    // show stuff that matches
+    auto items = this->findItems(must_match, Qt::MatchContains | Qt::MatchRecursive);
+    for (auto& it : items)
+    {
+      // show parent (if any) -- otherwise the children will not be displayed
+      if (it->parent())
+      {
+        it->parent()->setHidden(false);
+        it->parent()->setExpanded(true);
+      }
+      show_sub_tree(it); // also show all children
+      it->setExpanded(true);
+    }
+  }
+
+  void TOPPASTreeView::expandAll()
+  {
+    QTreeWidgetItemIterator it(this);
+    while (*it)
+    {
+      (*it)->setExpanded(true);
+      ++it;
+    }
+  }
+
+  void TOPPASTreeView::collapseAll()
+  {
+    QTreeWidgetItemIterator it(this);
+    while (*it)
+    {
+      (*it)->setExpanded(false);
+      ++it;
+    }
+  }
+
+  void TOPPASTreeView::mousePressEvent(QMouseEvent* event)
   {
     QTreeWidget::mousePressEvent(event);
 
@@ -65,7 +95,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPASTreeView::mouseMoveEvent(QMouseEvent * event)
+  void TOPPASTreeView::mouseMoveEvent(QMouseEvent* event)
   {
     QTreeWidget::mouseMoveEvent(event);
 
@@ -93,7 +123,7 @@ namespace OpenMS
     drag->exec(Qt::CopyAction);
   }
 
-  void TOPPASTreeView::keyPressEvent(QKeyEvent * e)
+  void TOPPASTreeView::keyPressEvent(QKeyEvent* e)
   {
     QTreeWidget::keyPressEvent(e);
     if (currentItem() && e->key() == Qt::Key_Return)
@@ -107,14 +137,13 @@ namespace OpenMS
     }
   }
 
-  void TOPPASTreeView::enterEvent(QEvent * /*e*/)
+  void TOPPASTreeView::enterEvent(QEvent* /*e*/)
   {
     setFocus();
   }
 
-  void TOPPASTreeView::leaveEvent(QEvent * /*e*/)
+  void TOPPASTreeView::leaveEvent(QEvent* /*e*/)
   {
-
   }
 
 } //namespace OpenMS

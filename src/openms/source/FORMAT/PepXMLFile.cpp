@@ -1,41 +1,15 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow, Hendrik Weisser $
 // $Authors: Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/CHEMISTRY/AASequence.h"
-#include "OpenMS/CHEMISTRY/Residue.h"
-#include "OpenMS/CONCEPT/Constants.h"
-#include "OpenMS/CONCEPT/Exception.h"
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
@@ -419,7 +393,7 @@ namespace OpenMS
 
       PeakMap experiment;
       FileHandler fh;
-      fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, ProgressLogger::NONE, false, false);
+      fh.loadExperiment(mz_file, experiment, {}, ProgressLogger::NONE, false, false);
       lookup.readSpectra(experiment.getSpectra());
     }
     else
@@ -596,7 +570,7 @@ namespace OpenMS
           if (pep.metaValueExists("spectrum_reference"))
           {
             //findByNativeID will fall back to RT lookup if none of the regexes registered in lookup can extract a meaningful ID or scan nr
-            scan_index = lookup.findByNativeID(pep.getMetaValue("spectrum_reference"));
+            scan_index = lookup.findByNativeID(pep.getSpectrumReference());
           }
           else
           {
@@ -1212,6 +1186,7 @@ namespace OpenMS
         if (search_engine_ == "Comet")
         {
           peptide_hit_.setMetaValue("MS:1002252", value); // name: Comet:xcorr
+          peptide_hit_.setMetaValue("COMET:xcorr", value); // name: COMET:xcorr
         }
         else
         {
@@ -1243,22 +1218,53 @@ namespace OpenMS
         {
           value = attributeAsDouble_(attributes, "value");
           peptide_hit_.setMetaValue("MS:1002253", value); // name: Comet:deltacn
+          peptide_hit_.setMetaValue("COMET:deltaCn", value);
         }
         else if (name == "spscore")
         {
           value = attributeAsDouble_(attributes, "value");
           peptide_hit_.setMetaValue("MS:1002255", value); // name: Comet:spscore
+          peptide_hit_.setMetaValue("COMET:spscore", value); // name: Comet:spscore
         }
         else if (name == "sprank")
         {
           value = attributeAsDouble_(attributes, "value");
           peptide_hit_.setMetaValue("MS:1002256", value); // name: Comet:sprank
+          peptide_hit_.setMetaValue("COMET:sprank", value); // name: Comet:sprank
         }
         else if (name == "deltacnstar")
         {
           value = attributeAsDouble_(attributes, "value");
           peptide_hit_.setMetaValue("MS:1002254", value); // name: Comet:deltacnstar
+          peptide_hit_.setMetaValue("COMET:deltacnstar", value); // name: Comet:deltacnstar
         }
+        else if (name == "lnrSp")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("Comet:lnrSp", value); // name: Comet:lnrSp
+          peptide_hit_.setMetaValue("COMET:lnRankSP", value); // name: COMET:lnRankSP
+        }              
+        else if (name == "deltLCn")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("COMET:deltaLCn", value); // name: Comet:deltLCn
+        }
+        else if (name == "lnExpect")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("COMET:lnExpect", value); // name: Comet:lnExpect          
+        }
+        else if (name == "IonFrac")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("Comet:IonFrac", value); // name: Comet:IonFrac
+          peptide_hit_.setMetaValue("COMET:IonFrac", value); // matched_ions / total_ions
+        }
+        else if (name == "lnNumSP")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("COMET:lnNumSP", value); // name: Comet:lnNumSP
+        }        
       }
       else if (parse_unknown_scores_)
       {
@@ -1380,11 +1386,11 @@ namespace OpenMS
       //TODO: we really need something uniform here, like scan number - and not in metainfointerface
       if (SpectrumLookup::isNativeID(native_spectrum_name_))
       {
-        current_peptide_.setMetaValue("spectrum_reference", native_spectrum_name_); 
+        current_peptide_.setSpectrumReference( native_spectrum_name_);
       }
       else if (scannr_ != 0)
       {
-        current_peptide_.setMetaValue("spectrum_reference", String("scan=") + String(scannr_));
+        current_peptide_.setSpectrumReference( String("scan=") + String(scannr_));
       }
       //TODO else error?
       
@@ -1423,8 +1429,6 @@ namespace OpenMS
       optionalAttributeAsString_(experiment_label_, attributes, "experiment_label");
       optionalAttributeAsString_(swath_assay_, attributes, "swath_assay");
       optionalAttributeAsString_(status_, attributes, "status");
-
-
     }
     else if (element == "analysis_result") // parent: "search_hit"
     {

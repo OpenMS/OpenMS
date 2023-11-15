@@ -6,8 +6,8 @@ from String cimport *
 cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS::QcMLFile":
     
     cdef cppclass Attachment "OpenMS::QcMLFile::Attachment":
-        Attachment() nogil except +
-        Attachment(Attachment &) nogil except +
+        Attachment() except + nogil 
+        Attachment(Attachment &) except + nogil 
         String name
         String id
         String value
@@ -19,9 +19,9 @@ cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS::QcMLFile":
         String qualityRef
         libcpp_vector[ String ] colTypes
         libcpp_vector[ libcpp_vector[ String ] ] tableRows # wrap-ignore
-        bool operator==(Attachment &rhs) nogil except +
-        bool operator<(Attachment &rhs) nogil except +
-        bool operator>(Attachment &rhs) nogil except +
-        String toXMLString(UInt indentation_level) nogil except +
-        String toCSVString(String separator) nogil except +
+        bool operator==(Attachment &rhs) except + nogil 
+        bool operator<(Attachment &rhs) except + nogil 
+        bool operator>(Attachment &rhs) except + nogil 
+        String toXMLString(UInt indentation_level) except + nogil 
+        String toCSVString(String separator) except + nogil 
 

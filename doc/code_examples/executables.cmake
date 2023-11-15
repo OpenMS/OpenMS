@@ -17,6 +17,8 @@ Tutorial_FeatureMap
 Tutorial_FileIO
 Tutorial_FileIO_mzML
 Tutorial_FileIO_Consumer
+# Tutorial final is ONLY used for snippets in the developer tutorial
+Tutorial_Final
 Tutorial_GaussFilter
 Tutorial_IdentificationClasses
 Tutorial_Labeled
@@ -26,18 +28,15 @@ Tutorial_MSSpectrum
 Tutorial_MapAlignment
 Tutorial_MetaInfo
 Tutorial_Param
-Tutorial_PeakPickerCWT
 Tutorial_Precursor
 Tutorial_RangeManager
 Tutorial_Residue
 Tutorial_ResidueModification
 Tutorial_SavitzkyGolayFilter
-Tutorial_TOFCalibration
 Tutorial_TheoreticalSpectrumGenerator
 Tutorial_MorphologicalFilter
 Tutorial_Unlabeled
 Tutorial_typeAsString
-Tutorial_PeakIntensityPredictor
 )
 
 # --------------------------------------------------------------------------

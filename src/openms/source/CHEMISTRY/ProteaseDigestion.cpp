@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow, Xiao Liang $
@@ -35,6 +9,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <algorithm>
 #include <boost/regex.hpp>
 
 #include <limits>
@@ -97,6 +72,22 @@ namespace OpenMS
   {
     // initialization
     output.clear();
+    std::vector<std::pair<size_t,size_t>> idcs; // small overhead filling intermediate vector first and iterating again
+    Size wrong_size = digest(protein, idcs, min_length, max_length);
+    output.reserve(idcs.size());
+    std::transform(idcs.begin(), idcs.end(), std::back_inserter(output),
+      [&protein](std::pair<size_t, size_t>& start_end)
+      {
+        return protein.getSubsequence(start_end.first, UInt(start_end.second - start_end.first));
+      }
+    );
+    return wrong_size;
+  }
+
+  Size ProteaseDigestion::digest(const AASequence& protein, vector<std::pair<size_t,size_t>>& output, Size min_length, Size max_length) const
+  {
+    // initialization
+    output.clear();
 
     // disable max length filter by setting to maximum length
     if (max_length == 0 || max_length > protein.size())
@@ -117,7 +108,7 @@ namespace OpenMS
       Size l = pep_positions[i] - begin;
       if (l >= min_length && l <= max_length)
       {
-        output.push_back(protein.getSubsequence(begin, l));
+        output.emplace_back(begin, pep_positions[i]);
       }
       else
       {
@@ -138,7 +129,7 @@ namespace OpenMS
           Size l = pep_positions[j + mcs] - begin;
           if (l >= min_length && l <= max_length)
           {
-            output.push_back(protein.getSubsequence(begin, l));
+            output.emplace_back(begin, pep_positions[j + mcs]);
           }
           else
           {

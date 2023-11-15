@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -73,9 +47,9 @@ namespace OpenMS
       bool OPENMS_DLLAPI
       validate(const std::vector<std::string>& file_names);
 
-      /// Creates a temporary file name from the test name and the line
+      /// Creates a temporary file name from the test name and the line with the specified extension
       std::string OPENMS_DLLAPI
-      tmpFileName(const std::string& file, int line);
+      createTmpFileName(const std::string& file, int line, const std::string& extension = "");
 
       /// This overload returns true; @c float is a floating point type.
       inline bool OPENMS_DLLAPI
@@ -829,13 +803,17 @@ namespace TEST = OpenMS::Internal::ClassTest;
       TEST::exception = 2;                                                                \
       TEST::exception_name = e.getName();                                                 \
     }                                                                                     \
-    catch (...)                                                                           \
+    catch (const std::exception& e)                                                       \
     {                                                                                     \
       TEST::exception = 3;                                                                \
+      TEST::exception_name = e.what();                                                    \
+    }                                                                                     \
+    catch (...)                                                                           \
+    {                                                                                     \
+      TEST::exception = 4;                                                                \
     }                                                                                     \
     TEST::this_test = (TEST::exception == 1);                                             \
     TEST::test = TEST::test && TEST::this_test;                                           \
-                                                                                          \
     {                                                                                     \
       TEST::initialNewline();                                                             \
       switch (TEST::exception)                                                            \
@@ -864,13 +842,20 @@ namespace TEST = OpenMS::Internal::ClassTest;
       case 3:                                                                             \
         stdcout << " -  line " << TEST::test_line <<                                    \
           ":  TEST_EXCEPTION(" # exception_type "," # command                               \
+          "): wrong exception thrown!  \""                                                  \
+                  << TEST::exception_name << "\"\n";                                     \
+        TEST::failed_lines_list.push_back(TEST::test_line);                               \
+        break;                                                                            \
+      case 4:                                                                             \
+        stdcout << " -  line " << TEST::test_line <<                                    \
+          ":  TEST_EXCEPTION(" # exception_type "," # command                               \
           "): wrong exception thrown!\n";                                                 \
         TEST::failed_lines_list.push_back(TEST::test_line);                               \
         break;                                                                            \
       }                                                                                   \
     }                                                                                     \
   }
-
+  
 /** @brief Precondition test macro
 
   This macro checks if a precondition violation is detected while executing the command,
@@ -969,8 +954,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
           stdcout << " +  line " << TEST::test_line <<                                    \
             ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
             "): OK\n";                                                                      \
-          break;                                                                            \
         }                                                                                 \
+        break;                                                                            \
       case 2:                                                                             \
         stdcout << " -  line " << TEST::test_line <<                                    \
           ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
@@ -1006,25 +991,15 @@ namespace TEST = OpenMS::Internal::ClassTest;
  line 268.  All temporary files are deleted if #END_TEST is called.  @param
  filename string will contain the filename on completion of the macro.
 
- All temporary files are validated using the XML schema,if the type of file
- can be determined by FileHandler. Therefore for each file written in a test
- NEW_TMP_FILE should be called. Otherwise only the last written file is checked.
+ There is a version that defines the extension and one that uses tmp.
 
  @hideinitializer
  */
-#define NEW_TMP_FILE(filename)                                                            \
-  {                                                                                       \
-    filename = TEST::tmpFileName(__FILE__, __LINE__);                                     \
-    TEST::tmp_file_list.push_back(filename);                                              \
-    {                                                                                     \
-      TEST::initialNewline();                                                             \
-      stdcout << "    creating new temporary filename '"                                  \
-                << filename                                                               \
-                << "' (line "                                                             \
-                << __LINE__                                                               \
-                << ")\n";                                                                 \
-    }                                                                                     \
-  }
+#define NEW_TMP_FILE_EXT(filename, extension) filename = TEST::createTmpFileName(__FILE__, __LINE__, extension);
+
+
+#define NEW_TMP_FILE(filename) filename = TEST::createTmpFileName(__FILE__, __LINE__);
+
 
 /** @brief Skip the remainder of the current subtest.
 

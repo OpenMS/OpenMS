@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -39,15 +13,10 @@
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -595,19 +564,17 @@ namespace OpenMS
     {
       if (file_type == FileTypes::FEATUREXML)
       {
-        FeatureXMLFile().load(abs_filename, *feature_map);
+        FileHandler().loadFeatures(abs_filename, *feature_map, {FileTypes::FEATUREXML});
         data_type = LayerDataBase::DT_FEATURE;
       }
       else if (file_type == FileTypes::CONSENSUSXML)
       {
-        ConsensusXMLFile().load(abs_filename, *consensus_map);
+        FileHandler().loadConsensusFeatures(abs_filename, *consensus_map, {FileTypes::CONSENSUSXML});
         data_type = LayerDataBase::DT_CONSENSUS;
       }
       else if (file_type == FileTypes::IDXML || file_type == FileTypes::MZIDENTML)
       {
-        if (file_type == FileTypes::IDXML) IdXMLFile().load(abs_filename, proteins, peptides);
-        else if (file_type == FileTypes::MZIDENTML) MzIdentMLFile().load(abs_filename, proteins, peptides);
-
+        FileHandler().loadIdentifications(abs_filename, proteins, peptides, {FileTypes::IDXML, FileTypes::MZIDENTML});
         if (peptides.empty())
         {
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications found");
@@ -727,7 +694,7 @@ namespace OpenMS
         // Load all data into memory if e.g. other file type than mzML
         if (!parsing_success)
         {
-          fh.loadExperiment(abs_filename, *peak_map_sptr, file_type, ProgressLogger::GUI);
+          fh.loadExperiment(abs_filename, *peak_map_sptr, {file_type}, ProgressLogger::GUI, true, true);
         }
         OPENMS_LOG_INFO << "INFO: done loading all " << std::endl;
 
@@ -1583,7 +1550,7 @@ namespace OpenMS
     {
       cerr << "Unable to load INI File: '" << filename << "'" << endl;
     }
-    // Scan for tools/utils if scan_mode is set to FORCE_SCAN or if the tool/util params could not be added for whatever reason
+    // Scan for tools if scan_mode is set to FORCE_SCAN or if the tool/util params could not be added for whatever reason
     if (!tool_params_added && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
     {
       tool_scanner_.loadToolParams();
@@ -2351,11 +2318,7 @@ namespace OpenMS
       ExperimentType exp;
       try
       {
-        if (!fh.loadExperiment(*it, exp))
-        {
-          QMessageBox::critical(this, "Error", "Only raw data files (mzML, DTA etc) are supported to view their meta data.");
-          return;
-        }
+        QMessageBox::critical(this, "Error", "Only raw data files (mzML, DTA etc) are supported to view their meta data.");
       }
       catch (Exception::BaseException& e)
       {
@@ -2446,10 +2409,14 @@ namespace OpenMS
         if (data->hasUrls())
         {
           QList<QUrl> urls = data->urls();
-          for (QList<QUrl>::const_iterator it = urls.begin(); it != urls.end(); ++it)
-          {
-            addDataFile(it->toLocalFile(), false, true, "", new_id);
-          }
+          // use a QTimer for external sources to make the source (e.g. Windows Explorer responsive again)
+          // Using a QueuedConnection for the DragEvent does not solve the problem (Qt 5.15) -- see previous (reverted) commit
+          QTimer::singleShot(50, [this, urls, new_id]() {
+            for (const QUrl& url : urls)
+            {
+              addDataFile(url.toLocalFile(), false, true, "", new_id);
+            }
+          });
         }
       }
     }
@@ -2557,7 +2524,7 @@ namespace OpenMS
     {
       try
       {
-        FileHandler().loadExperiment(layer.filename, *lp->getPeakDataMuteable());
+        FileHandler().loadExperiment(layer.filename, *lp->getPeakDataMuteable(), {}, ProgressLogger::NONE, true, true);
       }
       catch (Exception::BaseException& e)
       {
@@ -2584,7 +2551,7 @@ namespace OpenMS
     {
       try
       {
-        ConsensusXMLFile().load(layer.filename, *lp->getConsensusMap());
+        FileHandler().loadConsensusFeatures(layer.filename, *lp->getConsensusMap(), {FileTypes::CONSENSUSXML});
       }
       catch (Exception::BaseException& e)
       {
@@ -2598,7 +2565,7 @@ namespace OpenMS
       // TODO CHROM
       try
       {
-        FileHandler().loadExperiment(layer.filename, *lp->getChromatogramData());
+        FileHandler().loadExperiment(layer.filename, *lp->getChromatogramData(), {}, ProgressLogger::NONE, true, true);
       }
       catch (Exception::BaseException& e)
       {

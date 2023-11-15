@@ -44,11 +44,6 @@ The most important CMake variables are:
     not. If you plan to use %OpenMS without a GUI, set this flag to "Off" (Default: On)</td>
   </tr>
   <tr>
-    <td valign="top">\c ENABLE_TUTORIALS=On/Off</td>
-    <td>Enables targets to build and install the pdf tutorials (needs LaTeX).
-    (Default: On)</td>
-  </tr>
-  <tr>
     <td valign="top">\c ENABLE_DOCS=On/Off</td>
     <td>Enables documentation targets, allowing to build the %OpenMS documentation.
     (Default: On)</td>
@@ -60,7 +55,7 @@ The most important CMake variables are:
   </tr>
   <tr>
     <td valign="top">\c ENABLE_UPDATE_CHECK=On/Off</td>
-    <td>Check online for %OpenMS Updates upon invocation of any TOPP/UTIL.
+    <td>Check online for %OpenMS Updates upon invocation of any TOPP tool.
     (Default: On)</td>
   </tr>
   <tr>
@@ -89,7 +84,7 @@ The most important CMake variables are:
   </tr>
   <tr>
     <td valign="top">\c SEARCH_ENGINES_DIRECTORY (optional)</td>
-    <td>The location where thirdparty search engines (X!Tandem, MSGF+, Fido)
+    <td>The location where thirdparty search engines (X!Tandem, MSGF+)
     are located. This directory should have the same structure as the example
     in the search engine repository at https://github.com/OpenMS/THIRDPARTY after flattening for your platform.
     /.
