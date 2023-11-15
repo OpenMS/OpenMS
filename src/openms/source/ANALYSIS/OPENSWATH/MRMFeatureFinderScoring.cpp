@@ -1019,9 +1019,9 @@ namespace OpenMS
     uis_threshold_peak_area_ = param_.getValue("uis_threshold_peak_area");
     scoring_model_ = param_.getValue("scoring_model").toString();
 
-    sn_win_len_ = (double)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
-    sn_bin_count_ = (unsigned int)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
-    write_log_messages_ = (bool)param_.getValue("TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages").toBool();
+    sn_win_len_ = (double)param_.getValue("TransitionGroupPicker:PeakPickerChromatogram:sn_win_len");
+    sn_bin_count_ = (unsigned int)param_.getValue("TransitionGroupPicker:PeakPickerChromatogram:sn_bin_count");
+    write_log_messages_ = (bool)param_.getValue("TransitionGroupPicker:PeakPickerChromatogram:write_sn_log_messages").toBool();
 
     // set SONAR values
     Param p = sonarscoring_.getDefaults();

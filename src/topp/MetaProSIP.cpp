@@ -8,12 +8,11 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
@@ -2987,9 +2986,8 @@ protected:
     }
 
     OPENMS_LOG_INFO << "loading feature map..." << endl;
-    FeatureXMLFile fh;
     FeatureMap feature_map;
-    fh.load(in_features, feature_map);
+    FileHandler().loadFeatures(in_features, feature_map, {FileTypes::FEATUREXML});
 
     // annotate as features found using feature finding (to distinguish them from averagine features oder id based features ... see below)
     for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
@@ -3035,10 +3033,10 @@ protected:
     {
       // load only MS2 spectra with precursor information
       PeakMap peak_map;
-      MzMLFile mh;
+      FileHandler mh;
       std::vector<Int> ms_level(1, 2);
       mh.getOptions().setMSLevels(ms_level);
-      mh.load(in_mzml, peak_map);
+      mh.loadExperiment(in_mzml, peak_map, {FileTypes::MZML});
       peak_map.sortSpectra();
       peak_map.updateRanges();
 
@@ -3122,10 +3120,10 @@ protected:
 
     OPENMS_LOG_INFO << "loading experiment..." << endl;
     PeakMap peak_map;
-    MzMLFile mh;
+    FileHandler mh;
     std::vector<Int> ms_level(1, 1);
     mh.getOptions().setMSLevels(ms_level);
-    mh.load(in_mzml, peak_map);
+    mh.loadExperiment(in_mzml, peak_map, {FileTypes::MZML});
     peak_map.updateRanges();
     ThresholdMower tm;
     Param tm_parameters;

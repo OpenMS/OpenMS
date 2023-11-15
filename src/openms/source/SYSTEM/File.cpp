@@ -37,18 +37,18 @@
 #endif
 
 
-#include <QObject>
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QUrl>
-#include <QDateTime>
-#include <QFile>
-#include <QDebug>
+#include <QtCore/QObject>
+#include <QtNetwork/QNetworkAccessManager>
+#include <QtNetwork/QNetworkRequest>
+#include <QtNetwork/QNetworkReply>
+#include <QtCore/QUrl>
+#include <QtCore/QDateTime>
+#include <QtCore/QFile>
+#include <QtCore/QDebug>
 
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
-#include <QDir>
-#include <QCoreApplication>
+#include <QtCore/QDir>
+#include <QtCore/QCoreApplication>
 #include <QtCore/QDateTime>
 #include <QtCore/QTimer>
 

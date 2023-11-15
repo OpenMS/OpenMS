@@ -83,9 +83,9 @@ public:
     SearchEngineBase("SageAdapter", "Annotates MS/MS spectra using Sage.", true,
              {
                  {"Michael Lazear",
-                 "https://lazear.github.io/sage/",
-                 "",
-                 ""}
+                 "Sage: An Open-Source Tool for Fast Proteomics Searching and Quantification at Scale",
+                 "J. Proteome Res. 2023, 22, 11, 3652–3659",
+                 "https://doi.org/10.1021/acs.jproteome.3c00486"}
              })
   {
   }
@@ -510,7 +510,7 @@ protected:
       auto& hits = id.getHits();
       for (auto& h : hits)
       {
-        for (const auto meta : extra_scores)
+        for (const auto& meta : extra_scores)
         {
           if (h.metaValueExists(meta))
           {

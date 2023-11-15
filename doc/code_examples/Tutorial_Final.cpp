@@ -4,14 +4,13 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
 // $Authors: Oliver Alka $
+// This file is ONLY used for code snippets in the developer tutorial
 // --------------------------------------------------------------------------
 
 //! [Includes]
 
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -154,17 +153,13 @@ protected:
      vector<ProteinIdentification> protein_identifications;
      vector<PeptideIdentification> peptide_identifications;
 
-     if (ids_type == FileTypes::IDXML)
+     if (ids_type == FileTypes::IDXML || ids_type == FileTypes::MZIDENTML )
      {
-       IdXMLFile().load(ids, protein_identifications, peptide_identifications);
-     }
-     else if (ids_type == FileTypes::MZIDENTML)
-     {
-       MzIdentMLFile().load(ids, protein_identifications, peptide_identifications);
+      FileHandler().loadIdentifications(ids, protein_identifications, peptide_identifications, {FileTypes::IDXML, FileTypes::MZIDENTML});
      }
      else
      {
-       writeLog_("Error: Unknown input file type given. Aborting!");
+       OPENMS_LOG_ERROR << "Error: Unknown input file type given. Aborting!";
        printUsage_();
        return ILLEGAL_PARAMETERS;
      }
@@ -194,7 +189,9 @@ protected:
 int main(int argc, const char ** argv)
 {
  TOPPDatabaseFilter tool;
- return tool.main(argc, argv);
+ OPENMS_LOG_FATAL_ERROR << "THIS IS TEST CODE AND SHOULD NEVER BE RUN OUTSIDE OF TESTING" << endl;
+ tool.main(argc, argv);
+ return 0;
 }
 
 /// @endcond

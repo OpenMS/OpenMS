@@ -9,7 +9,6 @@
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -73,8 +72,8 @@ protected:
   void mergePepXMLProtXML_(StringList filenames, vector<ProteinIdentification>&
                            proteins, vector<PeptideIdentification>& peptides)
   {
-    IdXMLFile idxml;
-    idxml.load(filenames[0], proteins, peptides);
+    FileHandler idxml;
+    idxml.loadIdentifications(filenames[0], proteins, peptides, {FileTypes::IDXML});
     vector<ProteinIdentification> pepxml_proteins, protxml_proteins;
     vector<PeptideIdentification> pepxml_peptides, protxml_peptides;
 
@@ -82,7 +81,7 @@ protected:
     {
       proteins.swap(pepxml_proteins);
       peptides.swap(pepxml_peptides);
-      idxml.load(filenames[1], protxml_proteins, protxml_peptides);
+      idxml.loadIdentifications(filenames[1], protxml_proteins, protxml_peptides, {FileTypes::IDXML});
       if (protxml_proteins[0].getProteinGroups().empty())
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "None of the input files seems to be derived from a protXML file (information about protein groups is missing).");
@@ -92,7 +91,7 @@ protected:
     {
       proteins.swap(protxml_proteins);
       peptides.swap(protxml_peptides);
-      idxml.load(filenames[1], pepxml_proteins, pepxml_peptides);
+      idxml.loadIdentifications(filenames[1], pepxml_proteins, pepxml_peptides, {FileTypes::IDXML});
     }
 
     if ((protxml_peptides.size() > 1) || (protxml_proteins.size() > 1))
@@ -300,7 +299,7 @@ protected:
     else if (merge_proteins_add_PSMs)
     {
       proteins.resize(1);
-      IdXMLFile idXMLf;
+      FileHandler idXMLf;
       IDMergerAlgorithm merger{};
       Param p = merger.getParameters();
       p.setValue("annotate_origin", annotate_file_origin ? "true" : "false");
@@ -309,7 +308,7 @@ protected:
       {
         vector<ProteinIdentification> prots;
         vector<PeptideIdentification> peps;
-        idXMLf.load(file,prots,peps);
+        idXMLf.loadIdentifications(file,prots,peps, {FileTypes::IDXML});
         merger.insertRuns(prots, peps);
       }
       merger.returnResultsAndClear(proteins[0], peptides);
@@ -324,7 +323,7 @@ protected:
     //-------------------------------------------------------------
     OPENMS_LOG_DEBUG << "protein IDs: " << proteins.size() << endl
               << "peptide IDs: " << peptides.size() << endl;
-    IdXMLFile().store(out, proteins, peptides);
+    FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML});
 
     return EXECUTION_OK;
   }
@@ -350,7 +349,7 @@ protected:
     {
       const String& file_name = file_names[i];
       vector<ProteinIdentification> additional_proteins;
-      IdXMLFile().load(file_name, additional_proteins, peptides_by_file[i]);
+      FileHandler().loadIdentifications(file_name, additional_proteins, peptides_by_file[i], {FileTypes::IDXML});
 
       if (annotate_file_origin) // set MetaValue "file_origin" if flag is set
       {

@@ -15,8 +15,6 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/XTandemInfile.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -218,11 +216,10 @@ protected:
     String xtandem_executable = getStringOption_("xtandem_executable");
 
     PeakMap exp;
-    MzMLFile mzml_file;
+    FileHandler mzml_file;
     mzml_file.getOptions().addMSLevel(2); // only load MS level 2
     mzml_file.getOptions().setFillData(false); // do not fill the actual spectra. We only need RT and mz info for mapping
-    mzml_file.setLogType(log_type_);
-    mzml_file.load(in, exp);
+    mzml_file.loadExperiment(in, exp, {FileTypes::MZML});
 
     ofstream tax_out(tandem_taxonomy_filename.c_str());
     tax_out << "<?xml version=\"1.0\"?>" << "\n";
@@ -376,7 +373,7 @@ protected:
     // if "reindex" parameter is set to true will perform reindexing
       if (auto ret = reindex_(protein_ids, peptide_ids); ret != EXECUTION_OK) return ret;
 
-      IdXMLFile().store(out, protein_ids, peptide_ids);
+      FileHandler().storeIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML});
     }
 
     // some stats (note that only MS2 spectra were loaded into "exp"):

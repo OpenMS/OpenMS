@@ -412,7 +412,6 @@ namespace OpenMS::Internal
         if (parent_tag == "mzArrayBinary")
         {
           peak_count_ = attributeAsInt_(attributes, s_length);
-          spec_.reserve(peak_count_);
         }
       }
       else if (tag == "mzArrayBinary")
@@ -492,7 +491,7 @@ namespace OpenMS::Internal
             Base64::decode(data_to_decode_[i], Base64::BYTEORDER_LITTLEENDIAN, decoded_double);
           }
           // push_back the decoded double data - and an empty one into
-          // the dingle-precision vector, so that we don't mess up the index
+          // the single-precision vector, so that we don't mess up the index
           //std::cout << "list size: " << decoded_double.size() << std::endl;
           decoded_double_list_.push_back(decoded_double);
           decoded_list_.emplace_back();
@@ -529,13 +528,32 @@ namespace OpenMS::Internal
           int_precision_64 = false;
         }
 
-        //reserve space for meta data arrays (peak count)
+        // no data was decoded?
+        if (data_to_decode_.size() < 2) return;
+
+        const size_t peak_count_mz = mz_precision_64 ? decoded_double_list_[0].size() : decoded_list_[0].size();
+        const size_t peak_count_int = int_precision_64 ? decoded_double_list_[1].size() : decoded_list_[1].size();
+        if (peak_count_mz != peak_count_int)
+        {
+          error(LOAD, String("Length of data array for m/z differs from length of intensity data: ") + peak_count_mz + " vs. " + peak_count_int + " . The first array starts with: '" +
+                        data_to_decode_[0].substr(0, 10) + " ...'");
+        }
+        if (peak_count_ != peak_count_mz)
+        {
+          warning(LOAD, String("Length of data arrays (m/z and int) differs from value in attribute 'length': ") + peak_count_mz + " vs. " + peak_count_ + ".");
+          peak_count_ = peak_count_mz;
+        }
+
+        // reserve space for spectrum
+        spec_.reserve(peak_count_);
+
+        // reserve space for meta data arrays (peak count)
         for (Size i = 0; i < spec_.getFloatDataArrays().size(); ++i)
         {
           spec_.getFloatDataArrays()[i].reserve(peak_count_);
         }
 
-        //push_back the peaks into the container
+        // push_back the peaks into the container
         for (Size n = 0; n < peak_count_; ++n)
         {
           double mz = mz_precision_64 ? decoded_double_list_[0][n] : decoded_list_[0][n];

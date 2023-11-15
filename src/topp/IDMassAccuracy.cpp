@@ -6,13 +6,12 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
@@ -143,21 +142,20 @@ protected:
     pep_ids.resize(id_in.size());
     prot_ids.resize(id_in.size());
 
-    IdXMLFile idxmlfile;
+    FileHandler idxmlfile;
     for (Size i = 0; i != id_in.size(); ++i)
     {
-      String doc_id;
-      idxmlfile.load(id_in[i], prot_ids[i], pep_ids[i], doc_id);
+      idxmlfile.loadIdentifications(id_in[i], prot_ids[i], pep_ids[i], {FileTypes::IDXML});
     }
 
     // read mzML files
     vector<PeakMap> maps_raw;
     maps_raw.resize(in_raw.size());
 
-    MzMLFile mzml_file;
+    FileHandler mzml_file;
     for (Size i = 0; i != in_raw.size(); ++i)
     {
-      mzml_file.load(in_raw[i], maps_raw[i]);
+      mzml_file.loadExperiment(in_raw[i], maps_raw[i], {FileTypes::MZML});
     }
 
     //-------------------------------------------------------------

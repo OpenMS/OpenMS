@@ -13,8 +13,8 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <unordered_map>
-#include <QString>
-#include <QStringList>
+#include <QtCore/QString>
+#include <QtCore/QStringList>
 
 using namespace std;
 

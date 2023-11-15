@@ -59,7 +59,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         path: OpenMS
 
@@ -75,7 +75,7 @@ jobs:
         echo $DO_PACKAGE
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
           echo "tp_folder=Linux" >> $GITHUB_OUTPUT
-          echo "xvfb=xvfb-run" >> $GITHUB_OUTPUT
+          echo "xvfb=xvfb-run -a" >> $GITHUB_OUTPUT
           echo "static_boost=OFF" >> $GITHUB_OUTPUT
           if [ "$DO_PACKAGE" = true ]; then
             echo "pkg_type=deb" >> $GITHUB_OUTPUT
@@ -169,9 +169,10 @@ jobs:
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             choco install doxygen.portable ghostscript graphviz -y --no-progress
-            # TODO save this zip somewhere on our infrastructure or github since the project is deprecated
-            curl --no-progress-meter -L -o UltraModernUI_2.0b6.zip  https://github.com/SuperPat45/UltraModernUI/releases/download/2.0b6/UltraModernUI_2.0b6.zip
-            7z -y x UltraModernUI_2.0b6.zip -o"C:/Program Files (x86)/NSIS/"
+            # uses a custom NSIS, which provides 8-k string support and has UltraModernUI integrated already
+            curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
+            ## overwrite existing NSIS (which has only 1k-string support)
+            7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"
           fi
         fi
 
@@ -415,7 +416,7 @@ jobs:
             folder=nightly
           elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
             tmpfolder=${{ env.RUN_NAME }}
-            folder=${tmpfolder/release/RC}
+            folder=${tmpfolder/release/RC_GHA}                                   # TODO: change back to RC after proper release
           else
             folder=experimental/${{ env.RUN_NAME }}
           fi
@@ -424,7 +425,7 @@ jobs:
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
+#          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
 
         # TODO create softlinks to latest nightly
         # TODO create and upload file hashes, at least for release candidate
@@ -612,4 +613,4 @@ jobs:
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"
+#          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"

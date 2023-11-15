@@ -28,7 +28,7 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
         FileHandler() except + nogil 
         FileHandler(FileHandler) except + nogil  # wrap-ignore
 
-        bool loadExperiment(String, MSExperiment &) except + nogil
+        void loadExperiment(String, MSExperiment &) except + nogil
             # wrap-doc:
             #  Loads a file into an MSExperiment
             #  
@@ -58,7 +58,7 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             #  :raises:
             #    Exception: UnableToCreateFile is thrown if the file could not be written
 
-        bool loadFeatures(String, FeatureMap &) except + nogil 
+        void loadFeatures(String, FeatureMap &) except + nogil 
             # wrap-doc:
             #  Loads a file into a FeatureMap
             #  
