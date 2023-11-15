@@ -132,7 +132,6 @@ namespace OpenMS
     tools_map["Digestor"] = Internal::ToolDescription("Digestor", util_category);
     tools_map["DigestorMotif"] = Internal::ToolDescription("DigestorMotif", util_category);
     tools_map["Epifany"] = Internal::ToolDescription("Epifany", util_category);
-    tools_map["ERPairFinder"] = Internal::ToolDescription("ERPairFinder", util_category);
     tools_map["FeatureFinderMetaboIdent"] = Internal::ToolDescription("FeatureFinderMetaboIdent", util_category);
     tools_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", util_category);
     tools_map["IDDecoyProbability"] = Internal::ToolDescription("IDDecoyProbability", util_category);

@@ -110,7 +110,6 @@ DeMeanderize
 Digestor
 DigestorMotif
 Epifany
-ERPairFinder
 FeatureFinderMetaboIdent
 FuzzyDiff
 IDDecoyProbability

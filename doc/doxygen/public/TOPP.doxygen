@@ -205,7 +205,6 @@
   - @subpage TOPP_RNPxlXICFilter - Removes MS2 spectra from treatment based on the fold change between control and treatment for RNA-to-peptide cross-linking experiments.
 
   <b>Quantitation</b>
-  - @subpage TOPP_ERPairFinder - Evaluates pair ratios on enhanced resolution (zoom) scans.
   - @subpage TOPP_FeatureFinderMetaboIdent - Detects features in MS1 data corresponding to small molecule identifications.
   - @subpage TOPP_ProteomicsLFQ - A standard Proteomics LFQ pipeline.
   - @subpage TOPP_MetaboliteAdductDecharger - Decharges and merges different feature charge variants of the same small molecule.
