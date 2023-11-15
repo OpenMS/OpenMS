@@ -63,18 +63,22 @@ elseif (COIN_VCPKG_INCLUDE_DIR)
 endif() # find_package_handle_standard_args will handle missingness
 
 # helper macro to find specific coin sub-libraries
-macro(_coin_find_lib _libname _lib_file_names _lib_file_names_debug)
+macro(_coin_find_lib _libname _libname_camel _lib_file_names _lib_file_names_debug)
   if(NOT COIN_${_libname})
-    string(TOLOWER ${_libname} _libnamelower)
-    if(_libnamelower STREQUAL "osi_clp")
-      set(_libnamelower "clp")
+    if (${_libname} STREQUAL "OSI_CLP")
+      set(FOLDER "clp")
+      set(HNAME "OsiClpSolverInterface.hpp")
+    else()
+      string(TOLOWER ${_libname_camel} FOLDER)
+      set(HNAME ${_libname_camel}Config.h)
     endif()
+    message("${FOLDER}   ${HNAME}")
 
     # find release version
     find_library(COIN_${_libname}_LIBRARY_RELEASE
       NAMES ${_lib_file_names}
       HINTS ${COIN_ROOT_DIR}/lib/coin
-      HINTS ${COIN_ROOT_DIR}/lib
+            ${COIN_ROOT_DIR}/lib
     )
     # .. and debug version
     find_library(COIN_${_libname}_LIBRARY_DEBUG
@@ -83,13 +87,36 @@ macro(_coin_find_lib _libname _lib_file_names _lib_file_names_debug)
       HINTS ${COIN_ROOT_DIR}/lib
     )
 
-    if(EXISTS "${COIN_INCLUDE_DIR}/${_libnamelower}/coin")
-      ## Unfortunately coin uses a weird include model and includes headers from different subpackages
-      ## via include<File.hpp> instead of include<coin/File.hpp>
-      set(_libspecific_include "${COIN_INCLUDE_DIR}/${_libnamelower}" "${COIN_INCLUDE_DIR}/${_libnamelower}/coin")
-    else()
-      set(_libspecific_include)
+    find_path(
+      ${_libname}_INCLUDE_DIR
+      NAMES 
+        ${FOLDER}/coin/${HNAME} 
+    )
+
+    message(" INclude ${${_libname}_INCLUDE_DIR}")
+
+    set (INCLUDE_DIRS)
+    if (EXISTS "${${_libname}_INCLUDE_DIR}/${FOLDER}")
+      # we (in OpenMS) include the coin headers with e.g., coin/ClpInterface.h
+      list(APPEND INCLUDE_DIRS "${${_libname}_INCLUDE_DIR}/${FOLDER}")
+      # while coin-or includes headers from other sublibraries with just e.g., ClpModel.h
+      list(APPEND INCLUDE_DIRS "${${_libname}_INCLUDE_DIR}/${FOLDER}/coin")
     endif()
+
+    if (EXISTS ${COIN_INCLUDE_DIR})
+      list(APPEND INCLUDE_DIRS ${COIN_INCLUDE_DIR})
+    endif()
+
+    # Before, we handled the vcpkg specific sublibrary structure as follows. This should be handled equally
+    # by the more generic searching above (which also works for brew). But needs to be tested. I don't use
+    # vcpkg currently
+    # _libnamelower = FOLDER
+
+    #if(EXISTS "${COIN_INCLUDE_DIR}/${_libnamelower}/coin")
+    #  set(_libspecific_include "${COIN_INCLUDE_DIR}/${_libnamelower}" "${COIN_INCLUDE_DIR}/${_libnamelower}/coin")
+    #else()
+    #  set(_libspecific_include)
+    #endif()
 
     # create final library to be exported
     select_library_configurations(COIN_${_libname})
@@ -97,9 +124,9 @@ macro(_coin_find_lib _libname _lib_file_names _lib_file_names_debug)
       add_library(CoinOR::${_libname} UNKNOWN IMPORTED) # TODO we could try to infer shared/static instead of UNKNOWN
       set_property(TARGET CoinOR::${_libname} PROPERTY IMPORTED_LOCATION "${COIN_${_libname}_LIBRARY_RELEASE}")
       set_property(TARGET CoinOR::${_libname} PROPERTY IMPORTED_LOCATION_DEBUG "${COIN_${_libname}_LIBRARY_DEBUG}")
-      set_property(TARGET CoinOR::${_libname} PROPERTY INCLUDE_DIRECTORIES "${COIN_INCLUDE_DIR}" ${_libspecific_include})
-      set_property(TARGET CoinOR::${_libname} PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${COIN_INCLUDE_DIR}" ${_libspecific_include})
-      # TODO there are probably dependencies across the single libs but we don't care for now. We always include all.
+      set_property(TARGET CoinOR::${_libname} PROPERTY INCLUDE_DIRECTORIES "${INCLUDE_DIRS}")
+      set_property(TARGET CoinOR::${_libname} PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${INCLUDE_DIRS}")
+      # TODO there are probably dependencies across the single libs but we don't care for now. We always included all.
       set_property(TARGET CoinOR::CoinOR APPEND PROPERTY INTERFACE_LINK_LIBRARIES CoinOR::${_libname})
     endif()
   endif()
@@ -120,19 +147,16 @@ if(NOT TARGET CoinOR::CoinOR)
   endif()
 endif()
 
-# actually find the required libs and add them as dependencies
-# to the parent CoinOR::CoinOR interface target
-_coin_find_lib("CBC" "libCbc;Cbc" "libCbcd;Cbc")
-_coin_find_lib("CGL" "libCgl;Cgl" "libCgld;Cgl")
-_coin_find_lib("CLP" "libClp;Clp" "libClpd;Clp")
-_coin_find_lib("COINUTILS" "libCoinUtils;CoinUtils" "libCoinUtilsd;CoinUtils")
-_coin_find_lib("OSI" "libOsi;Osi" "libOsid;Osi")
-_coin_find_lib("OSI_CLP" "libOsiClp;OsiClp" "libOsiClpd;OsiClp")
+_coin_find_lib("CBC" "Cbc" "libCbc;Cbc" "libCbcd;Cbc")
+_coin_find_lib("CGL" "Cgl" "libCgl;Cgl" "libCgld;Cgl")
+_coin_find_lib("CLP" "Clp" "libClp;Clp" "libClpd;Clp")
+_coin_find_lib("COIN_UTILS" "CoinUtils" "libCoinUtils;CoinUtils" "libCoinUtilsd;CoinUtils")
+_coin_find_lib("OSI" "Osi" "libOsi;Osi" "libOsid;Osi")
+_coin_find_lib("OSI_CLP" "Clp" "libOsiClp;OsiClp" "libOsiClpd;OsiClp")
 
 # TODO allow for COMPONENTS and version parsing/checking
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(COIN DEFAULT_MSG
-  COIN_INCLUDE_DIR
   COIN_CBC_LIBRARY
   COIN_CGL_LIBRARY
   COIN_CLP_LIBRARY
@@ -143,7 +167,6 @@ find_package_handle_standard_args(COIN DEFAULT_MSG
 
 # export the libraries
 if(COIN_FOUND)
-  set(COIN_INCLUDE_DIRS ${COIN_INCLUDE_DIR})
   set(COIN_LIBRARIES 
     ${COIN_CBC_LIBRARY}
     ${COIN_CGL_LIBRARY}
@@ -155,7 +178,6 @@ if(COIN_FOUND)
 endif(COIN_FOUND)
 
 mark_as_advanced(
-  COIN_INCLUDE_DIR
   COIN_CBC_LIBRARY
   COIN_CGL_LIBRARY
   COIN_CLP_LIBRARY
