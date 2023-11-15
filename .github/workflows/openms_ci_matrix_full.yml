@@ -63,6 +63,8 @@ jobs:
       with:
         path: OpenMS
 
+    - uses: rui314/setup-mold@v1
+
     - name: Extract branch/PR infos
       shell: bash
       run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_OUTPUT
