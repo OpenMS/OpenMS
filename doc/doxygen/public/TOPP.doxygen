@@ -191,7 +191,6 @@
   - @subpage TOPP_QCMerger - Merges two qcML files together.
   - @subpage TOPP_QCShrinker - Removes extra verbose table attachments from a qcML file that are not needed anymore, e.g. for a final report.
 
-
   <b>Metabolite Identification</b>
   - @subpage TOPP_AccurateMassSearch - Finds potential HMDB IDs within the given mass error window.
   - @subpage TOPP_MetaboliteSpectralMatcher - Identifies small molecules from tandem MS spectra.
