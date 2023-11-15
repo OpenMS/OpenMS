@@ -169,7 +169,7 @@ if (WITH_HDF5)
   if(MSVC)
     set(HDF5_USE_STATIC_LIBRARIES ON)
   endif()
-  find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
+  find_package(HDF5 MODULE REQUIRED COMPONENTS CXX)
 endif()
 
 #------------------------------------------------------------------------------
