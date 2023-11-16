@@ -232,6 +232,11 @@ namespace OpenMS
     */
     inline const double CAL_PER_JOULE = (1 / 4.184);
 
+    /** Character that indicates a comment line in a CSV file. (Required for CsvFile)
+        String
+    */
+    inline const std::string   COMMENT_CHAR = "#";
+
     namespace UserParam
     {
       /** User parameter name for identifier of concatenated peptides

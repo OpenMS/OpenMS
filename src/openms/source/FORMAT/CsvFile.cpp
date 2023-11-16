@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/CsvFile.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace std;
 
@@ -62,11 +63,27 @@ namespace OpenMS
   bool CsvFile::getRow(Size row, StringList& list)
   {
     // it is assumed that the value to be cast won't be so large to overflow an ulong int
-    if (static_cast<int>(row) > static_cast<int>(TextFile::buffer_.size()) - 1)
+    if (static_cast<int>(row) > static_cast<int>(CsvFile::rowCount()) - 1)
     {
       throw Exception::InvalidIterator(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    bool splitted = buffer_[row].split(itemseperator_, list);
+
+    // look for lines starting with '#' and increase the position of the retrieved row
+    // this way 'content_row' will ignore comment rows for the count
+    Size content_row = row;
+    Size j = 0;
+    // loop over all lines, looking for comments, until reaching the requested content 'row'
+    while (j <= content_row)
+    {
+      // if the first letter is the comment char #, then add 1 to the retrieved row number
+      if (buffer_[j].hasPrefix(Constants::COMMENT_CHAR))
+      {
+        ++content_row;
+      }
+      ++j;
+    }
+
+    bool splitted = buffer_[content_row].split(itemseperator_, list);
     if (!splitted)
     {
       return splitted;
@@ -83,7 +100,17 @@ namespace OpenMS
 
   std::vector<String>::size_type CsvFile::rowCount() const
   {
-    return TextFile::buffer_.size();
+    std::vector<String>::size_type content_size = 0;
+    // loop over all lines and count, ignoring comments
+    for (Size i = 0; i < TextFile::buffer_.size(); i++)
+    {
+      // if the first letter is not the comment char #, increase the count of content rows
+      if (!buffer_[i].hasPrefix(Constants::COMMENT_CHAR))
+      {
+        ++content_size;
+      }
+    }
+    return content_size;
   }
 
 } // namespace OpenMS
