@@ -20,7 +20,7 @@ What's new:
 - Breaking change: Rename of parameters for FeatureFinderCentroided (debug->advanced), and PeakPickerWavelet/TOFCalibration (optimization -> optimization:type) (#7154)
 Library:
 - Extend FileHandler to support load and store operations for our major datastructures (spectra, features, identifications, etc.). Replaced file type specific code with the more generic FileHandler calls to decouple the IO code from other parts of the library.
-- better documentation for all SpectraFilter... tools (#7183) 
+- better documentation for all SpectraFilter... tools (#7183)
 
 Fixes:
 - more robust parsing of mzIdentML (#7153)
@@ -31,9 +31,39 @@ Fixes:
 
 Misc:
 - OpenMSInfo reports the ILP solver (CoinOr or glpk) (#7156)
+- Add export for Common Workflow Language (CWL) (#6156)
+- Add tool description lib (TDL) dependency (#6156)
+
+Note: The goal of our library is to provide useful, reusable code in a way that’s easy to understand and use.
+To make OpenMS simpler, more focused and more accessible we gradually remove potentially outdated tools and algorithms.
+If you, as a user, are negatively affected by this step please contact us. We listen to our users and will try to find 
+an alternative solution or reverse a particular decision for removal.
 
 Cleanup/Removal:
-- Removed SpectraFilterMarkerMower TOPP tool (#7183)
+
+- removed tools:
+  - Removed SpectraFilterMarkerMower TOPP tool (#7183)
+  - FeatureFinderIsotopeWavelet
+  - PeakPickerWavelet
+  - PrecursorMassCorrector
+  - TOFCalibration
+  - ERPairFinder
+
+- removed tutorials:
+  - Tutorial_PeakPickerCWT
+  - Tutorial_TOFCalibration
+
+- removed tests:
+  - TOFCalibration_test
+  - ContinuousWaveletTransformNumIntegration_test
+  - ContinuousWaveletTransform_test
+  - FeatureFinderAlgorithmIsotopeWavelet_test
+  - IsotopeWaveletTransform_test
+  - IsotopeWavelet_test
+  - OptimizePeakDeconvolution_test
+  - OptimizePick_test
+  - PeakPickerCWT_test
+  - PeakShape_test
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.1     (released 10/2023)                 ----

@@ -72,7 +72,7 @@ namespace OpenMS
       bool is_internal = false;
       String name;
       String category;
-      StringList types; ///< -types of the tool (if any, e.g. ['centroided','wavelet'])
+      StringList types; ///< -types of the tool
 
       /// default C'Tor
       ToolDescriptionInternal() = default;

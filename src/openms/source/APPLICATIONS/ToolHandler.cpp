@@ -63,13 +63,11 @@ namespace OpenMS
     tools_map["DTAExtractor"] = Internal::ToolDescription("DTAExtractor", cat_file_filter_extract_merge);
     tools_map["EICExtractor"] = Internal::ToolDescription("EICExtractor", cat_quant);
     tools_map["Epifany"] = Internal::ToolDescription("Epifany", cat_ID_proc);
-    tools_map["ERPairFinder"] = Internal::ToolDescription("ERPairFinder", cat_quant);
     tools_map["ExecutePipeline"] = Internal::ToolDescription("ExecutePipeline", cat_misc);
     tools_map["ExternalCalibration"] = Internal::ToolDescription("ExternalCalibration", cat_calibration);
     tools_map["FalseDiscoveryRate"] = Internal::ToolDescription("FalseDiscoveryRate", cat_ID_proc);
     tools_map["FeatureFinderCentroided"] = Internal::ToolDescription("FeatureFinderCentroided", cat_quant);
     tools_map["FeatureFinderIdentification"] = Internal::ToolDescription("FeatureFinderIdentification", cat_quant);
-    tools_map["FeatureFinderIsotopeWavelet"] = Internal::ToolDescription("FeatureFinderIsotopeWavelet", cat_quant);
     tools_map["FeatureFinderMetabo"] = Internal::ToolDescription("FeatureFinderMetabo", cat_quant);
     tools_map["FeatureFinderMetaboIdent"] = Internal::ToolDescription("FeatureFinderMetaboIdent", cat_quant);
     tools_map["FeatureFinderMRM"] = Internal::ToolDescription("FeatureFinderMRM", cat_quant);
@@ -152,11 +150,9 @@ namespace OpenMS
     tools_map["OpenSwathWorkflow"] = Internal::ToolDescription("OpenSwathWorkflow", cat_targeted);
     tools_map["PeakPickerHiRes"] = Internal::ToolDescription("PeakPickerHiRes", cat_centroiding);
     tools_map["PeakPickerIterative"] = Internal::ToolDescription("PeakPickerIterative", cat_centroiding);
-    tools_map["PeakPickerWavelet"] = Internal::ToolDescription("PeakPickerWavelet", cat_centroiding);
     tools_map["PeptideIndexer"] = Internal::ToolDescription("PeptideIndexer", cat_ID_proc);
     tools_map["PercolatorAdapter"] = Internal::ToolDescription("PercolatorAdapter", cat_ID_proc);
     tools_map["PhosphoScoring"] = Internal::ToolDescription("PhosphoScoring", cat_ID_proc);
-    tools_map["PrecursorMassCorrector"] = Internal::ToolDescription("PrecursorMassCorrector", cat_calibration);
     tools_map["ProteinInference"] = Internal::ToolDescription("ProteinInference", cat_ID_proc);
     tools_map["ProteinQuantifier"] = Internal::ToolDescription("ProteinQuantifier", cat_quant);
     tools_map["ProteinResolver"] = Internal::ToolDescription("ProteinResolver", cat_quant);
@@ -197,7 +193,6 @@ namespace OpenMS
     tools_map["TargetedFileConverter"] = Internal::ToolDescription("TargetedFileConverter", cat_file_converter);
     tools_map["TextExporter"] = Internal::ToolDescription("TextExporter", cat_file_converter);
     tools_map["TICCalculator"] = Internal::ToolDescription("TICCalculator", cat_misc);
-    tools_map["TOFCalibration"] = Internal::ToolDescription("TOFCalibration", cat_calibration);
     tools_map["TriqlerConverter"] = Internal::ToolDescription("TriqlerConverter", cat_file_converter);
     tools_map["XFDR"] = Internal::ToolDescription("XFDR", cat_crosslinking);
     tools_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", cat_dev); 
