@@ -375,7 +375,7 @@ jobs:
       with:
         name: documentation
         path: |
-          ${{ github.workspace }}/OpenMS/doc/**
+          ${{ github.workspace }}/OpenMS/bld/doc/**
 
         
     - if: steps.set-vars.outputs.pkg_type != 'none' || inputs.knime
