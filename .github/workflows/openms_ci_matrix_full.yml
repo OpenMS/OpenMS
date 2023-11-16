@@ -78,14 +78,17 @@ jobs:
           echo "xvfb=xvfb-run -a" >> $GITHUB_OUTPUT
           echo "static_boost=OFF" >> $GITHUB_OUTPUT
           if [ "$DO_PACKAGE" = true ]; then
+            echo "enable_docs=ON" >> $GITHUB_OUTPUT
             echo "pkg_type=deb" >> $GITHUB_OUTPUT
           else
+            echo "enable_docs=OFF" >> $GITHUB_OUTPUT
             echo "pkg_type=none" >> $GITHUB_OUTPUT
           fi
           echo "cxx_compiler=${{ matrix.compiler }}-${{ matrix.compiler_ver }}" >> $GITHUB_OUTPUT
         fi
         
         if [[ "${{ matrix.os }}" == windows-* ]]; then
+          echo "enable_docs=OFF" >> $GITHUB_OUTPUT
           echo "tp_folder=Windows" >> $GITHUB_OUTPUT
           echo "contrib_os=windows" >> $GITHUB_OUTPUT
           echo "contrib_os_ver=" >> $GITHUB_OUTPUT
@@ -101,6 +104,7 @@ jobs:
         fi
 
         if [[ "${{ matrix.os }}" == macos-* ]]; then
+          echo "enable_docs=OFF" >> $GITHUB_OUTPUT
           echo "tp_folder=MacOS" >> $GITHUB_OUTPUT
           echo "contrib_os=macOS" >> $GITHUB_OUTPUT
           echo "contrib_os_ver=10.15.5/" >> $GITHUB_OUTPUT
@@ -170,7 +174,7 @@ jobs:
           echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            choco install doxygen.portable ghostscript graphviz -y --no-progress
+            # choco install doxygen.portable ghostscript graphviz -y --no-progress
             # uses a custom NSIS, which provides 8-k string support and has UltraModernUI integrated already
             curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
             ## overwrite existing NSIS (which has only 1k-string support)
@@ -183,9 +187,9 @@ jobs:
           echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
           brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
 
-          if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            brew install --quiet doxygen ghostscript graphviz
-          fi
+          #if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
+          #  brew install --quiet doxygen ghostscript graphviz
+          #fi
         fi
 
 
@@ -296,7 +300,7 @@ jobs:
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
-          ENABLE_TUTORIALS: "OFF"
+          ENABLE_DOCS: ${{ steps.set-vars.outputs.enable_docs }}
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
