@@ -88,7 +88,7 @@ jobs:
         fi
         
         if [[ "${{ matrix.os }}" == windows-* ]]; then
-          echo "enable_docs=OFF" >> $GITHUB_OUTPUT
+          echo "enable_docs=ON" >> $GITHUB_OUTPUT
           echo "tp_folder=Windows" >> $GITHUB_OUTPUT
           echo "contrib_os=windows" >> $GITHUB_OUTPUT
           echo "contrib_os_ver=" >> $GITHUB_OUTPUT
@@ -174,7 +174,7 @@ jobs:
           echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            # choco install doxygen.portable ghostscript graphviz -y --no-progress
+            choco install doxygen.portable ghostscript graphviz -y --no-progress
             # uses a custom NSIS, which provides 8-k string support and has UltraModernUI integrated already
             curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
             ## overwrite existing NSIS (which has only 1k-string support)
