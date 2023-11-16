@@ -368,6 +368,15 @@ jobs:
           ${{ github.workspace }}/OpenMS/bld/*.deb
           ${{ github.workspace }}/OpenMS/bld/*.pkg
 
+    #Zip the documentation first, since there are :: which make the upload action choke.
+    - if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
+      name: Zip Documentation
+      uses: thedoctor0/zip-release@0.7.6
+      with:
+        type: 'zip'
+        path: ${{ github.workspace }}/OpenMS/bld/doc/**
+        filename: 'documentation.zip'
+
     - if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
     # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
       name: Upload Documentation as artifacts
@@ -375,7 +384,7 @@ jobs:
       with:
         name: documentation
         path: |
-          ${{ github.workspace }}/OpenMS/bld/doc/**
+          ${{ github.workspace }}/documentation.zip
 
         
     - if: steps.set-vars.outputs.pkg_type != 'none' || inputs.knime
@@ -455,6 +464,8 @@ jobs:
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
         run: |
+          unzip $GITHUB_WORKSPACE/docs/documentation.zip -d $GITHUB_WORKSPACE/docs
+          rm $GITHUB_WORKSPACE/docs/documentation.zip
           echo "Upload"
           if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
             folder=nightlyGHA                                                    # TODO: Change back when we deactivate Jenkins
