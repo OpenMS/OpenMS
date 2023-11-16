@@ -455,7 +455,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: documentation
-          path: $GITHUB_WORKSPACE/docs
+          path: docs
 
       - name: Upload Documentation
         shell: bash
@@ -464,7 +464,7 @@ jobs:
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
         run: |
-          unzip $GITHUB_WORKSPACE/docs/documentation.zip -d /docs
+          unzip $GITHUB_WORKSPACE/docs/documentation.zip -d $GITHUB_WORKSPACE/docs
           rm $GITHUB_WORKSPACE/docs/documentation.zip
           echo "Upload"
           if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
