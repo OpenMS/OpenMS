@@ -280,6 +280,7 @@ jobs:
         if [[ ${{ steps.extract_branch.outputs.RUN_NAME }} =~ ^release\/([0-9]+\.[0-9]+\.[0-9]+) ]]; then #TODO readd trailing $ for regex to ONLY match actual releases.
           VERSION_NUMBER=${BASH_REMATCH[1]}
           echo "Version number: $VERSION_NUMBER"
+          VERSION_NUMBER="3.0.0" #FIXME remove this override, we apparently didn't actually put anything in the changelog for 2.9.1...
           grep -ne "----[[:space:]]*OpenMS" ${{ github.workspace }}/OpenMS/CHANGELOG > index_changelog.txt 
           START=$(cat index_changelog.txt | grep -A 1 -e " $VERSION_NUMBER " | cut -f1 -d: | head -1)
           END=$(cat index_changelog.txt | grep -A 1 -e " $VERSION_NUMBER " | cut -f1 -d: | tail -1)
