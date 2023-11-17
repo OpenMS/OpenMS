@@ -67,7 +67,7 @@ jobs:
       shell: bash
       run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_OUTPUT
       id: extract_branch
-
+      
     - id: set-vars
       name: Set extra variables
       run: |
@@ -270,6 +270,36 @@ jobs:
               echo $thirdpartytool >> $GITHUB_PATH
             fi
           done
+
+    # Create the changelog for the release from our overall changelog
+    - if: matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release')
+      shell: bash
+      name: Create changelog for release on Ubuntu + GCC
+      id: create_changelog
+      run: |
+        if [[ $branch_name =~ ^release([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+          VERSION_NUMBER=${BASH_REMATCH[1]}
+          echo "Version number: $version_number"
+          grep -ne "----[[:space:]]*OpenMS" ${{ github.workspace }}/OpenMS/CHANGELOG > index_changelog.txt 
+          START=$(cat index_changelog.txt | grep -A 1 -e " $VERSION " | cut -f1 -d: | head -1)
+          END=$(cat index_changelog.txt | grep -A 1 -e " $VERSION " | cut -f1 -d: | tail -1)
+          echo "Extracting between lines:"
+          echo $START
+          echo $END
+          awk "NR > $START && NR < $END" OpenMS/CHANGELOG > ${{ github.workspace }}/changelog_$VERSION.txt
+        else
+          echo "Branch name does not match the expected pattern."
+          exit 1
+        fi
+
+   # Upload the changelog to the same artifact that we will add the installers to.
+    - if: steps.set-vars.outputs.pkg_type != 'none' && matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release')
+      name: Upload changelog as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: installer-${{ steps.set-vars.outputs.tp_folder }}
+        path: |
+          ${{ github.workspace }}/OpenMS/changelog_*.txt
 
     - name: Build
       shell: bash
