@@ -277,7 +277,7 @@ jobs:
       name: Create changelog for release on Ubuntu + GCC
       id: create_changelog
       run: |
-        if [[ ${{ steps.extract_branch.outputs.RUN_NAME }} =~ ^release([0-9]+\.[0-9]+\.[0-9]+) ]]; then #TODO readd trailing $ for regex to ONLY match actual releases.
+        if [[ ${{ steps.extract_branch.outputs.RUN_NAME }} == ^release([0-9]+\.[0-9]+\.[0-9]+) ]]; then #TODO readd trailing $ for regex to ONLY match actual releases.
           VERSION_NUMBER=${BASH_REMATCH[1]}
           echo "Version number: $version_number"
           grep -ne "----[[:space:]]*OpenMS" ${{ github.workspace }}/OpenMS/CHANGELOG > index_changelog.txt 
