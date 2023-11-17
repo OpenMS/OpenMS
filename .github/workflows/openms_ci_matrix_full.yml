@@ -375,6 +375,7 @@ jobs:
       with:
         type: 'zip'
         directory: ${{ github.workspace }}/OpenMS/bld/doc
+        exclusions: '/CMakeFiles/* /doxygen/* /code_examples/*'
         filename: 'documentation.zip'
 
     - if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
@@ -384,7 +385,7 @@ jobs:
       with:
         name: documentation
         path: |
-          ${{ github.workspace }}/documentation.zip
+          ${{ github.workspace }}/OpenMS/bld/doc/documentation.zip
 
         
     - if: steps.set-vars.outputs.pkg_type != 'none' || inputs.knime
