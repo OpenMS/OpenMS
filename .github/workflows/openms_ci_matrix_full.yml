@@ -374,7 +374,7 @@ jobs:
       uses: thedoctor0/zip-release@0.7.6
       with:
         type: 'zip'
-        path: ${{ github.workspace }}/OpenMS/bld/doc/**
+        directory: ${{ github.workspace }}/OpenMS/bld/doc
         filename: 'documentation.zip'
 
     - if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
