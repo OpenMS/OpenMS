@@ -293,9 +293,9 @@ jobs:
           VERSION_NUMBER=${BASH_REMATCH[1]}
           echo "Version number: $VERSION_NUMBER"
           VERSION_NUMBER="3.0.0" #FIXME remove this override, we apparently didn't actually put anything in the changelog for 2.9.1...
-          if [ "${VERSION##*.}" -eq "0" ] # Handle trailing 0 in major releases (eg 3.0.0)
+          if [ "${VERSION_NUMBER##*.}" -eq "0" ] # Handle trailing 0 in major releases (eg 3.0.0)
           then
-            VERSION=${VERSION%.*}
+            VERSION_NUMBER=${VERSION_NUMBER%.*}
           fi
           grep -ne "----[[:space:]]*OpenMS" ${{ github.workspace }}/OpenMS/CHANGELOG > index_changelog.txt 
           START=$(cat index_changelog.txt | grep -A 1 -e " $VERSION_NUMBER " | cut -f1 -d: | head -1)
