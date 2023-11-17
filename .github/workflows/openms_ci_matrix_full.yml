@@ -718,3 +718,16 @@ jobs:
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"
+
+#TODO
+#if do release:
+#create tags from SHAs
+#create RELEASE_TEXT
+#run GHA release action.
+#
+#If mark as latest:
+#update links to latest (documentation, installers)
+#merge branch back into develop
+#
+#If do_announce:
+#create text for website and update it.
