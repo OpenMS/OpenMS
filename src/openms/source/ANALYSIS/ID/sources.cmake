@@ -22,7 +22,7 @@ FalseDiscoveryRate.cpp
 FIAMSDataProcessor.cpp
 FIAMSScheduler.cpp
 FragmentIndex3D.cpp
-FragmentIndexTD.cpp
+        FragmentIndex.cpp
 FragmentIndexTDScorer.cpp
 HiddenMarkovModel.cpp
 IDBoostGraph.cpp

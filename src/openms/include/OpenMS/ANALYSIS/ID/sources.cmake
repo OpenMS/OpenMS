@@ -22,7 +22,7 @@ FalseDiscoveryRate.h
 FIAMSDataProcessor.h
 FIAMSScheduler.h
 FragmentIndex3D.h
-FragmentIndexTD.h
+        FragmentIndex.h
 FragmentIndexTDScorer.h
 HiddenMarkovModel.h
 IDBoostGraph.h

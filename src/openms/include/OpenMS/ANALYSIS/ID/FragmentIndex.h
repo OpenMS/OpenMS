@@ -22,7 +22,7 @@ namespace OpenMS
    * The FI has two options: Bottom-up and Top Down. In later digestion is skiped and the fragments have a direct
    * reference to the mass of the proteins instead of digested peptides.
    */
-  class OPENMS_DLLAPI FragmentIndexTD : public DefaultParamHandler
+  class OPENMS_DLLAPI FragmentIndex : public DefaultParamHandler
   {
 
 
@@ -35,23 +35,32 @@ namespace OpenMS
       bool expType;        //0 for top-down or 1 for bottom-up
       AASequence sequence; // containing the sequence including modification information
       Size protein_idx;    // the Id from the Fasta file
-      Size position;  //Todo: is this really needed? Check when finished if it can be removed!
       double mass;         // precursor-mass
 
     };
 
 
     /// DefaultConstructor
-    FragmentIndexTD();
+    FragmentIndex();
 
     /// Default destructor
-    ~FragmentIndexTD() override = default;
+    ~FragmentIndex() override = default;
 
     //getter
     std::vector<AASequence> getFiPeptidesSequences() const;
     bool isBuild() const;
 
     const std::vector<Peptide>& getFiPeptides() const;
+
+    /**
+     * @brief (only for debugging) Manually add a peptide to the DB. The peptide can be modified
+     * IMPORTANT: add peptide after the other peptides are generated and before the FragmentIndex is build
+     * @param peptide
+     */
+    void addSpecialPeptide(AASequence& peptide, Size source_idx);
+
+    void clear();
+
 
     /**@brief Generates all peptides from given fasta entries. If Bottom-up is set to false
      * skips digestion. If set to true the Digestion enzyme can be set in the parameters.
@@ -109,7 +118,7 @@ namespace OpenMS
      */
     std::pair<size_t, size_t > getPeptideRange(double precursor_mass, std::pair<double, double> window);
 
-    std::vector<Hit> query(Peak1D peak, std::pair<size_t, size_t> peptide_idx_range, std::pair<double, double> window);
+    std::vector<Hit> query(Peak1D peak, std::pair<size_t, size_t> peptide_idx_range, uint16_t peak_charge);
 
 
 
@@ -140,8 +149,6 @@ namespace OpenMS
     size_t peptide_max_length_;
     double fragment_min_mz_;
     double fragment_max_mz_;
-    size_t fragment_min_charge_;   // TODO: Delete?
-    size_t fragment_max_charge_;   // TODO: Delete?
     size_t bucketsize_; ///< number of fragments per outer node
     double precursor_mz_tolerance_;
     std::string precursor_mz_tolerance_unit_;
@@ -150,7 +157,6 @@ namespace OpenMS
     StringList modifications_fixed_; ///< Modification that are one all peptides
     StringList modifications_variable_; ///< Variable Modification -> all possible comibnations are created
     size_t max_variable_mods_per_peptide_;
-    size_t max_missed_peaks_;
     bool is_build_;               ///< true, if the database is built
     std::vector<Peptide> fi_peptides_;   ///< vector of all (digested) peptides
     std::vector<Fragment> fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions)

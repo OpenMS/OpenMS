@@ -1,12 +1,9 @@
 //
 // Created by trapho on 10/31/23.
 //
-#include <OpenMS/ANALYSIS/ID/FragmentIndexTD.h>
+#include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
 #include <OpenMS/ANALYSIS/ID/FragmentIndex3D.h>
 #include <OpenMS/ANALYSIS/ID/TagGenerator.h>
-#include <OpenMS/DATASTRUCTURES/MultiPeak.h>
-#include <OpenMS/DATASTRUCTURES/MultiFragment.h>
-
 #include <OpenMS/CHEMISTRY/AAIndex.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
@@ -18,6 +15,8 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/MultiFragment.h>
+#include <OpenMS/DATASTRUCTURES/MultiPeak.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
@@ -26,7 +25,6 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/QC/QCBase.h>
-
 #include <functional>
 
 
@@ -36,7 +34,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  FragmentIndex3D::FragmentIndex3D() : FragmentIndexTD()
+  FragmentIndex3D::FragmentIndex3D() : FragmentIndex()
   {
     defaults_.setValue("depth", 3, "The number of adjacent peaks that are taken into account");
     defaultsToParam_();
@@ -44,7 +42,7 @@ namespace OpenMS
   void FragmentIndex3D::updateMembers_()
   {
     depth_ = param_.getValue("depth");
-    FragmentIndexTD::updateMembers_();
+    FragmentIndex::updateMembers_();
   }
 
   void FragmentIndex3D::build (const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
@@ -149,7 +147,7 @@ namespace OpenMS
     return true;
   }
 
-  void FragmentIndex3D::query(vector<FragmentIndexTD::Hit>& hits,
+  void FragmentIndex3D::query(vector<FragmentIndex::Hit>& hits,
                               const MultiPeak& peak, std::pair<size_t, size_t> peptide_idx_range,
                               std::pair<double, double> window)
   {
@@ -161,7 +159,7 @@ namespace OpenMS
 
   }
 
-  void FragmentIndex3D::recursiveQuery(vector<OpenMS::FragmentIndexTD::Hit>& hits,
+  void FragmentIndex3D::recursiveQuery(vector<OpenMS::FragmentIndex::Hit>& hits,
                                        const OpenMS::MultiPeak& peak,
                                        std::pair<size_t, size_t> peptide_idx_range,
                                        std::pair<double, double> window,
@@ -177,7 +175,7 @@ namespace OpenMS
       auto last_slice_start = fi_fragments_.begin() + current_slice * bucketsize_;
       auto last_slice_end = ((current_slice +1) * bucketsize_) > fi_fragments_.size() ? fi_fragments_.end() : fi_fragments_.begin() + (current_slice+1)* bucketsize_;
       vector<MultiFragment> last_slice(last_slice_start, last_slice_end);
-      auto hits_slice = FragmentIndexTD::binary_search_slice_mf(last_slice,
+      auto hits_slice = FragmentIndex::binary_search_slice_mf(last_slice,
                                                                    peptide_idx_range.first,
                                                                    peptide_idx_range.second,
                                                                    [](MultiFragment a){return a.getPeptideIdx();},
@@ -206,7 +204,7 @@ namespace OpenMS
     if(recursion_step == depth_+1)            //edge case for the very first tree layer
       slice_end = (*current_level).end();
     vector<double> slice(slice_start, slice_end);
-    auto next_slices = FragmentIndexTD::binary_search_slice_double(slice,
+    auto next_slices = FragmentIndex::binary_search_slice_double(slice,
                                                            current_query -fragment_tolerance + applied_window.first,
                                                            current_query + fragment_tolerance + applied_window.second,
                                                             true);

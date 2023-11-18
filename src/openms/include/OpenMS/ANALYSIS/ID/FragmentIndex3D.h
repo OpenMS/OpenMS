@@ -4,19 +4,18 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/MultiFragment.h>
-#include <OpenMS/DATASTRUCTURES/MultiPeak.h>
+#include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
+#include <OpenMS/ANALYSIS/ID/TagGeneratorNode.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/MultiFragment.h>
+#include <OpenMS/DATASTRUCTURES/MultiPeak.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/ANALYSIS/ID/TagGeneratorNode.h>
-#include <OpenMS/ANALYSIS/ID/FragmentIndexTD.h>
-
+#include <functional>
 #include <utility>
 #include <vector>
-#include <functional>
 
 
 namespace OpenMS
@@ -28,11 +27,12 @@ namespace OpenMS
    * The FI has two options: Bottom-up and Top Down. In later digestion is skiped and the fragments have a direct
    * reference to the mass of the proteins instead of digested peptides.
    */
-  class OPENMS_DLLAPI FragmentIndex3D : public  FragmentIndexTD
+  class OPENMS_DLLAPI FragmentIndex3D : public FragmentIndex
   {
 
 
   public:
+
 
     /**
      * Builds the Index Database in a multi-dimensional/multi-leveled tree structure
@@ -54,7 +54,7 @@ namespace OpenMS
     FragmentIndex3D() ;
 
     /// Default destructor
-    //~FragmentIndexTD();
+    //FragmentIndex;
 
   protected:
 

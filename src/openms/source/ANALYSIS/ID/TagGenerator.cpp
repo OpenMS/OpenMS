@@ -53,6 +53,7 @@ namespace OpenMS
       n = source.n;
       dag_ = source.dag_;
     }
+    return *this;
   }
 
 
