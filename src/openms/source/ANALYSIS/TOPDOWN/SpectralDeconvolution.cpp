@@ -1011,7 +1011,7 @@ namespace OpenMS
             continue;
           }
           pg.setScanNumber(deconvolved_spectrum_.getScanNumber());
-
+          pg.sort();
           deconvolved_spectrum_.push_back(pg); //
         }
       }

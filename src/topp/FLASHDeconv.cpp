@@ -5,12 +5,13 @@
 // $Maintainer: Kyowon Jeong, Jihyung Kim $
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
-// #define USE_TAGGER
+#define USE_TAGGER
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #ifdef USE_TAGGER
   #include <OpenMS/ANALYSIS/TOPDOWN/TopDownTagger.h>
+  #include <OpenMS/FORMAT/FASTAFile.h>
 #endif
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
@@ -92,9 +93,9 @@ protected:
     setValidFormats_("out_annotated_mzml", ListUtils::create<String>("mzML"));
 
     registerOutputFile_("out_msalign1", "<file>", "",
-                            "Output msalign (topFD and ProMex compatible) file containing MS1 deconvolved spectra. Likewise, use -out_msalign2 for MS2 spectra."
-                            " The file names for MS1 and MS2 should end with ms1.msalign and ms2.msalgin respectively to be able to be recognized by TopPIC GUI. ",
-                            false);
+                        "Output msalign (topFD and ProMex compatible) file containing MS1 deconvolved spectra. Likewise, use -out_msalign2 for MS2 spectra."
+                        " The file names for MS1 and MS2 should end with ms1.msalign and ms2.msalgin respectively to be able to be recognized by TopPIC GUI. ",
+                        false);
     setValidFormats_("out_msalign1", ListUtils::create<String>("msalign"), false);
 
     registerOutputFile_("out_msalign2", "<file>", "",
@@ -102,24 +103,24 @@ protected:
                         " The file name should end with ms2.msalign to be able to be recognized by TopPIC GUI. ",
                         false, true);
     setValidFormats_("out_msalign2", ListUtils::create<String>("msalign"), false);
-//
-//    registerOutputFile_("out_msalign3", "<file>", "",
-//                        "Output msalign (topFD and ProMex compatible) file containing MS3 deconvolved spectra."
-//                        " The file name should end with ms3.msalign to be able to be recognized by TopPIC GUI. ",
-//                        false);
-//    setValidFormats_("out_msalign3", ListUtils::create<String>("msalign"), false);
-//
-//    registerOutputFile_("out_msalign4", "<file>", "",
-//                        "Output msalign (topFD and ProMex compatible) file containing MS4 deconvolved spectra."
-//                        " The file name should end with ms4.msalign to be able to be recognized by TopPIC GUI. ",
-//                        false);
-//    setValidFormats_("out_msalign4", ListUtils::create<String>("msalign"), false);
+    //
+    //    registerOutputFile_("out_msalign3", "<file>", "",
+    //                        "Output msalign (topFD and ProMex compatible) file containing MS3 deconvolved spectra."
+    //                        " The file name should end with ms3.msalign to be able to be recognized by TopPIC GUI. ",
+    //                        false);
+    //    setValidFormats_("out_msalign3", ListUtils::create<String>("msalign"), false);
+    //
+    //    registerOutputFile_("out_msalign4", "<file>", "",
+    //                        "Output msalign (topFD and ProMex compatible) file containing MS4 deconvolved spectra."
+    //                        " The file name should end with ms4.msalign to be able to be recognized by TopPIC GUI. ",
+    //                        false);
+    //    setValidFormats_("out_msalign4", ListUtils::create<String>("msalign"), false);
 
 
     registerOutputFile_("out_feature1", "<file>", "",
-                            "Output feature (topFD compatible) file containing MS1 deconvolved features. Likewise, use -out_feature2 for MS2 features. "
-                            "The MS1 and MS2 feature files are necessary for TopPIC feature intensity output.",
-                            false);
+                        "Output feature (topFD compatible) file containing MS1 deconvolved features. Likewise, use -out_feature2 for MS2 features. "
+                        "The MS1 and MS2 feature files are necessary for TopPIC feature intensity output.",
+                        false);
 
     setValidFormats_("out_feature1", ListUtils::create<String>("feature"), false);
 
@@ -184,14 +185,10 @@ protected:
     else if (prefix == "tagger")
     {
       auto tagger_param = TopDownTagger().getDefaults();
-      tagger_param.setValue("max_count", 0,
-                            "Maximum count of the generated sequence tags per spectrum. If set positive, sequence "
-                            "tags are generated from deconvlved spectra. FLASHDeconv keeps reducing ppm tolerance for tagging"
-                            " till the number of generated sequence tags reaches this maximum count.");
-      tagger_param.setMinInt("max_count", 0);
-      tagger_param.setValue("tol", DoubleList {}, "Starting ppm tolerances for tag generation. If not set, SD:tol multiplied by two will be used.");
-      tagger_param.addTag("tol", "advanced");
-      tagger_param.setValue("seq", "", "Target protein sequence against which tags will be matched. If specified, only the matched tags are displayed. Otherwise, all tags are displayed.");
+      tagger_param.remove("min_charge");
+      tagger_param.remove("max_charge");
+
+      tagger_param.setValue("fasta", "", "Target protein sequence database against which tags will be matched.");
       return tagger_param;
     }
 #endif
@@ -213,11 +210,10 @@ protected:
     String out_file = getStringOption_("out");
     // String in_train_file {};
     bool keep_empty_out = getFlag_("keep_empty_out");
-    auto out_spec_file = StringList{getStringOption_("out_spec1"), getStringOption_("out_spec2"),
-        getStringOption_("out_spec3"), getStringOption_("out_spec4") };
+    auto out_spec_file = StringList {getStringOption_("out_spec1"), getStringOption_("out_spec2"), getStringOption_("out_spec3"), getStringOption_("out_spec4")};
 
-    auto out_topfd_file =  StringList{getStringOption_("out_msalign1"), getStringOption_("out_msalign2")};
-    auto out_topfd_feature_file =  StringList{getStringOption_("out_feature1"), getStringOption_("out_feature2") };
+    auto out_topfd_file = StringList {getStringOption_("out_msalign1"), getStringOption_("out_msalign2")};
+    auto out_topfd_feature_file = StringList {getStringOption_("out_feature1"), getStringOption_("out_feature2")};
 
     String out_mzml_file = getStringOption_("out_mzml");
     String out_anno_mzml_file = getStringOption_("out_annotated_mzml");
@@ -319,51 +315,43 @@ protected:
 #ifdef USE_TAGGER
     // Run tagger
     TopDownTagger tagger;
-
-    DoubleList tag_tols;
     auto tagger_param = getParam_().copy("tagger:", true);
-    Size max_tag_count = tagger_param.getValue("max_count");
-    if (max_tag_count > 0)
+    if ((int)tagger_param.getValue("max_tag_count") > 0)
     {
-      OPENMS_LOG_INFO << "finding sequence tags from deconvolved spectra ..." << endl;
-      if (((DoubleList)tagger_param.getValue("tol")).empty())
-      {
-        tag_tols = tols;
-        for (auto& tol : tag_tols)
-          tol /= 2.0;
-        tagger_param.setValue("tol", tag_tols);
-      }
-      String seq = tagger_param.getValue("seq").toString();
-      tagger_param.remove("seq");
-      tagger_param.remove("max_count");
+      OPENMS_LOG_INFO << "Finding sequence tags from deconvolved spectra ..." << endl;
+
+      String fastaname = tagger_param.getValue("fasta").toString();
+      tagger_param.remove("fasta");
       tagger.setParameters(tagger_param);
 
-      std::vector<std::string> tags;
+      std::vector<FASTAFile::FASTAEntry> fasta_entry;
+      FASTAFile ffile;
+      ffile.load(fastaname, fasta_entry);
+
+      std::vector<FLASHDeconvHelperStructs::Tag> tags;
       for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
-        DoubleList tmp_tag_tols = tag_tols;
-        while (true)
-        {
-          tags.clear();
-          tagger.run(deconvolved_spectrum, tags);
-          if (tags.size() * 2 > max_tag_count)
-            break;
-          tmp_tag_tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1] *= 1.2;
-          tagger_param.setValue("tol", tmp_tag_tols);
-          tagger.setParameters(tagger_param);
-        }
+        tagger.run(deconvolved_spectrum, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1], tags);
+        std::cout << "Total tag count: " << tags.size() << std::endl;
+        int fcntr = 1;
 
-        for (auto& tag : tags)
+        for (auto& fe : fasta_entry)
         {
-          if (seq.empty() || seq.hasSubstring(tag))
-            std::cout << tag << std::endl;
-
-          std::reverse(tag.begin(), tag.end());
-          if (seq.empty() || seq.hasSubstring(tag))
-            std::cout << tag << std::endl;
+          auto seq = fe.sequence;
+          int cntr = 1;
+          for (auto& tag : tags)
+          {
+            bool matched = !seq.empty() && seq.hasSubstring(tag.getSequence().toUpper());
+            if (matched)
+            {
+              if (cntr == 1)
+              {
+                std::cout <<fcntr++ << " " << fe.identifier << " " <<fe.description << "\n";
+              }
+              std::cout << "\t" << cntr++ << " " << tag.toString() << "\n";
+            }
+          }
         }
-        std::cout << "Total tag count: " << tags.size() * 2 << std::endl;
-        tags.clear();
       }
     }
 #endif

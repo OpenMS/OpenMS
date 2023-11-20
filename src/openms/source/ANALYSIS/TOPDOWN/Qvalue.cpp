@@ -219,11 +219,13 @@ namespace OpenMS
 
         if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() == ms_level + 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
         {
-          double qs = deconvolved_spectrum.getPrecursorPeakGroup().getFeatureQscore();
+          auto precursor_pg = deconvolved_spectrum.getPrecursorPeakGroup();
+          double qs = precursor_pg.getFeatureQscore();
 
-          deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(map_iso[qs], PeakGroup::TargetDecoyType::isotope_decoy);
-          deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(map_noise[qs], PeakGroup::TargetDecoyType::noise_decoy);
-          deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(map_charge[qs], PeakGroup::TargetDecoyType::charge_decoy);
+          precursor_pg.setQvalue(map_iso[qs], PeakGroup::TargetDecoyType::isotope_decoy);
+          precursor_pg.setQvalue(map_noise[qs], PeakGroup::TargetDecoyType::noise_decoy);
+          precursor_pg.setQvalue(map_charge[qs], PeakGroup::TargetDecoyType::charge_decoy);
+          deconvolved_spectrum.setPrecursorPeakGroup(precursor_pg);
         }
 
         if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != ms_level)

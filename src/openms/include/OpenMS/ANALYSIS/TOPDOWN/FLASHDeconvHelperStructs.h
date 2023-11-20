@@ -204,6 +204,38 @@ namespace OpenMS
       bool operator==(const LogMzPeak& other) const;
     };
 
+    /// Sequence tag. No mass gap is allowed in the seq. The mass gap containing tag should be enumerated into multiple Tag instances from outside.
+    class OPENMS_DLLAPI Tag
+    {
+    public:
+      /// constructor
+      explicit Tag(String  seq, double n_mass, double c_mass, int charge, double score, std::vector<double>& mzs);
+
+      /// copy constructor
+      Tag(const Tag&) = default;
+
+      /// destructor
+      ~Tag() = default;
+
+      bool operator<(const Tag& a) const;
+      bool operator>(const Tag& a) const;
+      bool operator==(const Tag& other) const;
+
+      String getSequence() const;
+      double getNtermMass() const;
+      double getCtermMass() const;
+      int getCharge() const;
+      double getScore() const;
+      String toString() const;
+
+    private:
+      String seq_;
+      double n_mass_ = -1, c_mass_ = -1;
+      int charge_;
+      double score_;
+      std::vector<double> mzs_;
+    };
+
     /**
        @brief calculate log mzs from mzs
        @param mz mz
