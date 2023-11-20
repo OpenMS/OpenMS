@@ -84,10 +84,18 @@ namespace OpenMS
   bool TOPPASInputFileListVertex::fileNamesValid()
   {
     QStringList fl = getFileNames();
+    std::set<std::string> unique_names;
     foreach(const QString& file, fl)
     {
       if (!File::exists(file))
       {
+        return false;
+      }
+      QFileInfo fi(file);
+      auto& [it, was_inserted] = unique_names.insert(fi.canonicalFilePath().toStdString());
+      if (!was_inserted) // duplicate
+      {
+        OPENMS_LOG_ERROR << "File '" << file << "' (resolved to '" << *it << "') appears twice in the input list!" << std::endl;
         return false;
       }
     }

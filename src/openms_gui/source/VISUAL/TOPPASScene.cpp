@@ -2098,11 +2098,11 @@ namespace OpenMS
                              + (strange_vertices.size() > 1 ? "s " : " ")
                              + strange_vertices.join(", ")
                              + (strange_vertices.size() > 1 ? " have " : " has ")
-                             + " invalid (non-existing) input files!");
+                             + " invalid (non-existing or duplicate) input files!");
       }
       else
       {
-        std::cerr << "Pipeline contains input file nodes with invalid (non-existing) input files!" << std::endl;
+        std::cerr << "Pipeline contains input file nodes with invalid (non-existing or duplicate) input files!" << std::endl;
       }
       return false;
     }
