@@ -229,7 +229,7 @@ namespace OpenMS
   {
     // from source to sink, connect but the edge direction is from sink to source.
     edge_aa_map_.clear();
-    int start_index = 0;
+    int start_index = 1; // zeroth = source.  
     int end_index = 1;
     boost::dynamic_bitset<> visited(dac.size());
     visited[getVertex_(0, 0, 0, 0)] = true;
@@ -436,7 +436,7 @@ namespace OpenMS
 
   void TopDownTagger::updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>& tag_set, const std::vector<int>& path, const std::vector<double>& mzs, int z, int score)
   {
-    double nmass = 0, cmass = 0;
+    double nmass = -1, cmass = -1;
     bool is_positive = min_charge_ > 0;
 
     std::vector<String> seqs {""};

@@ -12,6 +12,7 @@
 #ifdef USE_TAGGER
   #include <OpenMS/ANALYSIS/TOPDOWN/TopDownTagger.h>
   #include <OpenMS/FORMAT/FASTAFile.h>
+  #include <OpenMS/CHEMISTRY/AASequence.h>
 #endif
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
@@ -189,6 +190,7 @@ protected:
       tagger_param.remove("max_charge");
 
       tagger_param.setValue("fasta", "", "Target protein sequence database against which tags will be matched.");
+      tagger_param.setValue("franking_mass_tol", 1000.0, "Flanking mass tolerance in Da.");
       return tagger_param;
     }
 #endif
@@ -321,7 +323,9 @@ protected:
       OPENMS_LOG_INFO << "Finding sequence tags from deconvolved spectra ..." << endl;
 
       String fastaname = tagger_param.getValue("fasta").toString();
+      double franking_mass_tol =  tagger_param.getValue("franking_mass_tol");
       tagger_param.remove("fasta");
+      tagger_param.remove("franking_mass_tol");
       tagger.setParameters(tagger_param);
 
       std::vector<FASTAFile::FASTAEntry> fasta_entry;
@@ -342,6 +346,26 @@ protected:
           for (auto& tag : tags)
           {
             bool matched = !seq.empty() && seq.hasSubstring(tag.getSequence().toUpper());
+
+            if (matched)
+            {
+              auto pos = seq.find(tag.getSequence().toUpper());
+              if (tag.getNtermMass() > 0)
+              {
+                auto nterm = seq.substr(0, pos);
+                double aamass = nterm.empty()? 0 : AASequence::fromString(nterm).getMonoWeight();
+                if (std::abs(tag.getNtermMass() - aamass) > franking_mass_tol)
+                  matched = false;
+              }
+              if (matched && tag.getCtermMass() > 0)
+              {
+                auto cterm = seq.substr(pos + tag.getSequence().length());
+                double aamass = cterm.empty()? 0 : AASequence::fromString(cterm).getMonoWeight();
+                if (std::abs(tag.getCtermMass() - aamass) > franking_mass_tol)
+                  matched = false;
+              }
+            }
+
             if (matched)
             {
               if (cntr == 1)

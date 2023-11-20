@@ -282,10 +282,10 @@ namespace OpenMS
   String FLASHDeconvHelperStructs::Tag::toString() const
   {
     String ret;
-    if (n_mass_ > 0)
+    if (n_mass_ >= 0)
       ret = '[' + std::to_string(n_mass_) + "]\t";
     ret += seq_;
-    if (c_mass_ > 0)
+    if (c_mass_ >= 0)
       ret += "\t[" + std::to_string(c_mass_) + "]";
     ret += "\tscore : " + std::to_string(score_) + "\tmzs : ";
 
@@ -296,6 +296,4 @@ namespace OpenMS
 
     return ret;
   }
-
-
 } // namespace OpenMS
