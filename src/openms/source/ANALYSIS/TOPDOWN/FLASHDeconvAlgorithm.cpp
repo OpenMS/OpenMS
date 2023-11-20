@@ -576,7 +576,6 @@ namespace OpenMS
           }
 
           auto score = pg.getChargeSNR(tmp_precursor->abs_charge); // most intense one should determine the mass
-
           if (score < max_score)
           {
             continue;
@@ -610,9 +609,10 @@ namespace OpenMS
 
     for (auto& dspec : deconvolved_spectra)
     {
-      auto& precursor_pg = dspec.getPrecursorPeakGroup();
-      if (precursor_pg.empty())
+      if (dspec.getPrecursorPeakGroup().empty())
         continue;
+
+      auto precursor_pg = dspec.getPrecursorPeakGroup();
 
       int pscan = precursor_pg.getScanNumber();
       if (scan_fullscan.find(pscan) == scan_fullscan.end())
@@ -637,6 +637,7 @@ namespace OpenMS
         // std::cout<<iter->getMonoMass() << " " <<  precursor_pg.getMonoMass() << std::endl;
         precursor_pg.setFeatureIndex(0);
       }
+      dspec.setPrecursorPeakGroup(precursor_pg);
     }
   }
 

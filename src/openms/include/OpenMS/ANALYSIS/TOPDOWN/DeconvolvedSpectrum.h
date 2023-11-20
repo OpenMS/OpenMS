@@ -63,7 +63,7 @@ namespace OpenMS
     const MSSpectrum& getOriginalSpectrum() const;
 
     /// get precursor peak group for MSn (n>1) spectrum. It returns an empty peak group if no peak group is registered (by registerPrecursor)
-    PeakGroup& getPrecursorPeakGroup();
+    const PeakGroup& getPrecursorPeakGroup() const;
 
     /// precursor charge getter (set in registerPrecursor)
     int getPrecursorCharge() const;

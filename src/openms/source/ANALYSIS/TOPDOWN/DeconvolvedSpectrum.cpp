@@ -150,7 +150,7 @@ namespace OpenMS
     return spec_;
   }
 
-  PeakGroup& DeconvolvedSpectrum::getPrecursorPeakGroup()
+  const PeakGroup& DeconvolvedSpectrum::getPrecursorPeakGroup() const
   {
     return precursor_peak_group_;
   }
