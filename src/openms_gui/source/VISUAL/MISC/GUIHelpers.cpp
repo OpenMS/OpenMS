@@ -89,18 +89,16 @@ namespace OpenMS
     app_path = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
 #endif
 
-    qint64 pid = -1;
-    QProcess::startDetached(app_path, args, "", &pid);
-
-    if (pid == -1)
+    if (!QProcess::startDetached(app_path, args))
     {
       // execution failed
       OPENMS_LOG_ERROR << "Could not start '" << app_path << "'. Please see above for error messages." << std::endl;
   #if defined(__APPLE__)
       OPENMS_LOG_ERROR << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
   #endif
+      return false;
     }
-    return pid != -1;
+    return true;
   }
 
   void GUIHelpers::openURL(const QString& target)
