@@ -189,9 +189,10 @@ jobs:
           echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
           brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
 
-          #if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-          #  brew install --quiet doxygen ghostscript graphviz
-          #fi
+          if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
+            brew install python@3.11 --force --overwrite
+            brew install --quiet doxygen ghostscript graphviz
+          fi
         fi
 
 
