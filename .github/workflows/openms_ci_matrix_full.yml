@@ -100,7 +100,6 @@ jobs:
         fi
         
         if [[ "${{ matrix.os }}" == windows-* ]]; then
-          echo "enable_docs=ON" >> $GITHUB_OUTPUT
           echo "tp_folder=Windows" >> $GITHUB_OUTPUT
           echo "contrib_os=windows" >> $GITHUB_OUTPUT
           echo "contrib_os_ver=" >> $GITHUB_OUTPUT
@@ -109,24 +108,27 @@ jobs:
           echo "static_boost=ON" >> $GITHUB_OUTPUT
           if [ "$DO_PACKAGE" = true ]; then
             echo "pkg_type=nsis" >> $GITHUB_OUTPUT
+            echo "enable_docs=ON" >> $GITHUB_OUTPUT
           else
-            echo "pkg_type=none" >> $GITHUB_OUTPUT
+            echo "pkg_type=none" >> $GITHUB_OUTPUT           
+            echo "enable_docs=OFF" >> $GITHUB_OUTPUT
           fi
           echo "cxx_compiler=${{ matrix.compiler }}" >> $GITHUB_OUTPUT
         fi
 
         if [[ "${{ matrix.os }}" == macos-* ]]; then
-          echo "enable_docs=OFF" >> $GITHUB_OUTPUT
-          echo "tp_folder=MacOS" >> $GITHUB_OUTPUT
-          echo "contrib_os=macOS" >> $GITHUB_OUTPUT
+          echo "tp_folder=MacOS" >> $GITHUB_OUTPUT          echo "contrib_os=macOS" >> $GITHUB_OUTPUT
           echo "contrib_os_ver=10.15.5/" >> $GITHUB_OUTPUT
           echo "contrib_compiler=appleclang-11.0.0/" >> $GITHUB_OUTPUT
           echo "xvfb=" >> $GITHUB_OUTPUT
           echo "static_boost=ON" >> $GITHUB_OUTPUT
           if [ "$DO_PACKAGE" = true ]; then
             echo "pkg_type=pkg" >> $GITHUB_OUTPUT
+            echo "enable_docs=ON" >> $GITHUB_OUTPUT
           else
             echo "pkg_type=none" >> $GITHUB_OUTPUT
+            echo "enable_docs=OFF" >> $GITHUB_OUTPUT
+
           fi
           if [[ "${{ matrix.compiler }}" == "xcode" ]]; then
             sudo xcode-select -s '/Applications/Xcode_${{ matrix.compiler_ver }}.app/Contents/Developer'
@@ -199,9 +201,10 @@ jobs:
           echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
           brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
 
-          #if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-          #  brew install --quiet doxygen ghostscript graphviz
-          #fi
+          if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
+            brew install python@3.11 --force --overwrite
+            brew install --quiet doxygen ghostscript graphviz
+          fi
         fi
 
 
