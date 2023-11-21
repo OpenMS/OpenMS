@@ -190,6 +190,7 @@ Plot a single spectrum with plot_spectrum or two with mirror_plot_spectrum, usin
 import math
 from typing import Dict, Optional, Tuple, Union, List, Set
 import itertools
+import logging
 
 colors = {'a': '#388E3C', 'b': '#1976D2', 'c': '#00796B',
           'x': '#7B1FA2', 'y': '#D32F2F', 'z': '#F57C00',
@@ -248,14 +249,17 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
     """
 
     # No annotation -> Just return peak styling information.
-    if annotation is None:
+    if not annotation:
         return colors.get(None), zorders.get(None)
     # Else: Add the textual annotation.
-    ion_type = annotation[0]
+    ion_type = ''
+    if annotation:
+     ion_type = annotation[0]
     if ion_type == '[': # precursor ion
         ion_type = 'p'
     if ion_type not in colors and color_ions:
-        raise ValueError('Ion type not supported')
+        logging.warning(f'Ion type {ion_type} not supported')
+        return colors.get(None), zorders.get(None)
 
     color = (colors[ion_type] if color_ions else
              colors[None])
@@ -273,6 +277,7 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
         ax.text(mz, annotation_pos, str(annotation), color=color,
                 zorder=zorder, **kws)
 
+    print(color)
     return color, zorder
 
 
@@ -343,7 +348,7 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
         if mirror_intensity:
             peak_intensity *= -1
 
-        matched = matched_peaks is not None and i_peak in matched_peaks
+        matched = (matched_peaks is not None and i_peak in matched_peaks) or annotations is not None
 
         color, zorder = _annotate_ion(
             peak_mz, peak_intensity, peak_annotation, color_ions, annotate_ions,
