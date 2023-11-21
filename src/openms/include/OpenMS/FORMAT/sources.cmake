@@ -28,6 +28,7 @@ CompressedInputSource.h
 CVMappingFile.h
 ConsensusXMLFile.h
 ControlledVocabulary.h
+Connection_mzMLb.h
 CsvFile.h
 DTA2DFile.h
 DTAFile.h

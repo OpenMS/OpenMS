@@ -12,6 +12,7 @@ CachedMzML.cpp
 ChromeleonFile.cpp
 CompressedInputSource.cpp
 CVMappingFile.cpp
+Connection_mzMLb.cpp
 ConsensusXMLFile.cpp
 ControlledVocabulary.cpp
 CsvFile.cpp
