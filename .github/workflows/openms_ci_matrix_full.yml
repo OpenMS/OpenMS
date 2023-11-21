@@ -312,6 +312,7 @@ jobs:
           echo "Branch name does not match the expected pattern."
           exit 1
         fi
+        echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
 
    # Upload the changelog to the same artifact that we will add the installers to.
     - if: steps.set-vars.outputs.pkg_type != 'none' && matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu')
@@ -722,16 +723,130 @@ jobs:
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"
+      
+      
+  do-release:
+    if: inputs.do_release
+    runs-on: ubuntu-latest
+    needs: [build-deploy-knime-updatesite,deploy-installer]
+    steps:
+      # NB we create the tag for the OpenMS repo next in a separate action.
+      # TODO handle updating if the ref already exists.
+      - name: create tags from SHAs
+        uses: actions/github-script@v7
+        id: create_SHA
+        with:
+          script: |
+            latest_ref = octokit.rest.git.getRef({
+              owner: context.repo.owner,
+              repot: 'OpenMS-docs',
+              ref: 'heads/develop',
+            });
+            octokit.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: 'OpenMS-docs',
+              ref: steps.create_changelog.outputs.version_number,
+              sha: latest_ref,
+            });
 
-#TODO
-#if do release:
-#create tags from SHAs
-#create RELEASE_TEXT
-#run GHA release action.
-#
-#If mark as latest:
-#update links to latest (documentation, installers)
-#merge branch back into develop
-#
-#If do_announce:
-#create text for website and update it.
+            latest_ref = octokit.rest.git.getRef({
+              owner: context.repo.owner,
+              repot: 'Tutorials',
+              ref: 'heads/master',
+            });
+            octokit.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: 'Tutorials',
+              ref: steps.create_changelog.outputs.version_number,
+              sha: latest_ref,
+            });
+
+            latest_ref = octokit.rest.git.getRef({
+              owner: context.repo.owner,
+              repot: 'pyopenms-docs',
+              ref: 'github.sha',
+            });
+            octokit.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: 'pyopenms-docs',
+              ref: steps.create_changelog.outputs.version_number,
+              sha: latest_ref,
+            });
+
+            latest_ref = octokit.rest.git.getRef({
+              owner: context.repo.owner,
+              repot: 'THIRDPARTY',
+              ref: 'github.sha',
+            });
+            octokit.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: 'THIRDPARTY',
+              ref: steps.create_changelog.outputs.version_number,
+              sha: latest_ref,
+            });
+              
+            latest_ref = octokit.rest.git.getRef({
+              owner: 'genericworkflownodes',
+              repo: 'GenericKnimeNodes',
+              ref: 'heads/develop',
+            });
+            octokit.rest.git.createRef({
+              owner: 'genericworkflownodes',
+              repo: 'GenericKnimeNodes',
+              ref: steps.create_changelog.outputs.version_number,
+              sha: latest_ref,
+            });
+
+            latest_ref = octokit.rest.git.getRef({
+              owner: 'genericworkflownodes',
+              repo: 'de.openms.knime.dynamicJSViewers',
+              ref: 'heads/master',
+            });
+            octokit.rest.git.createRef({
+              owner: 'genericworkflownodes',
+              repo: 'de.openms.knime.dynamicJSViewers',
+              ref: steps.create_changelog.outputs.version_number,
+              sha: latest_ref,
+            });
+
+            latest_ref = octokit.rest.git.getRef({
+              owner: 'genericworkflownodes',
+              repo: 'buildresources',
+              ref: 'heads/master',
+            });
+            octokit.rest.git.createRef({
+              owner: 'genericworkflownodes',
+              repo: 'buildresources',
+              ref: steps.create_changelog.outputs.version_number,
+              sha: latest_ref,
+            });
+
+            latest_ref = octokit.rest.git.getRef({
+              owner: context.repo.owner,
+              repot: 'de.openms.knime',
+              ref: 'heads/develop',
+            });
+            octokit.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: 'de.openms.knime',
+              ref: steps.create_changelog.outputs.version_number,
+              sha: latest_ref,
+            });
+      - name: create RELEASE_TEXT
+        run: #FIXME
+
+      - name: run GHA release action.
+        run: #FIXME
+
+      - if: inputs.mark_as_latest
+        name: update links to latest (documentation, installers)
+        run: #FIXME
+      
+      - if: inputs.mark_as_latest
+        name: merge branch back into develop
+        run: #FIXME
+
+      - if: inputs.do_announce
+        name: create text for website and update it.
+        run: #FIXME
+
