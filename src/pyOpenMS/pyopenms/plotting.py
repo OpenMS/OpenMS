@@ -277,7 +277,6 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
         ax.text(mz, annotation_pos, str(annotation), color=color,
                 zorder=zorder, **kws)
 
-    print(color)
     return color, zorder
 
 
