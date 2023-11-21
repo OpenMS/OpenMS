@@ -105,7 +105,8 @@ jobs:
         fi
 
         if [[ "${{ matrix.os }}" == macos-* ]]; then
-          echo "tp_folder=MacOS" >> $GITHUB_OUTPUT          echo "contrib_os=macOS" >> $GITHUB_OUTPUT
+          echo "tp_folder=MacOS" >> $GITHUB_OUTPUT
+          echo "contrib_os=macOS" >> $GITHUB_OUTPUT
           echo "contrib_os_ver=10.15.5/" >> $GITHUB_OUTPUT
           echo "contrib_compiler=appleclang-11.0.0/" >> $GITHUB_OUTPUT
           echo "xvfb=" >> $GITHUB_OUTPUT
