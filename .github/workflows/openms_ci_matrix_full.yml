@@ -43,20 +43,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        #  - os: windows-2022
+          - os: windows-2022
             # cl.exe is currently the only supported. Needs a VS shell to be set up (especially if used without VS CMake Generator)
             # clang.exe is also installed but untested (might crash with our VS specific compiler definitions)
             # clang-cl.exe might be used instead.
-        #    compiler: cl.exe
-        #    compiler_ver: default
+            compiler: cl.exe
+            compiler_ver: default
 
-        #  - os: macos-13
+          - os: macos-13
             # Since the appleclang version is dependent on the XCode versions that are installed
             #  on the GH runners, use this as the choice for a specific version
             # TODO currently unused but XCode/appleclang is the default
-        #    compiler: xcode
+            compiler: xcode
             # TODO implement support for other versions
-        #    compiler_ver: 14.2
+            compiler_ver: 14.2
 
           # Make sure the compilers are available in that version on the GH runners
           # We are not installing anything.
