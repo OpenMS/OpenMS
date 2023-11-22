@@ -318,7 +318,7 @@ jobs:
       with:
         name: installer-${{ steps.set-vars.outputs.tp_folder }}
         path: |
-          ${{ github.workspace }}/OpenMS/changelog.txt
+          ${{ github.workspace }}/changelog.txt
 
     - name: Build
       shell: bash
