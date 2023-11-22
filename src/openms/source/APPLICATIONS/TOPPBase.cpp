@@ -27,6 +27,7 @@
 #include <OpenMS/FORMAT/IndentedStream.h>
 #include <OpenMS/FORMAT/ParamCTDFile.h>
 #include <OpenMS/FORMAT/ParamCWLFile.h>
+#include <OpenMS/FORMAT/ParamJSONFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
@@ -41,8 +42,8 @@
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/SYSTEM/UpdateCheck.h>
 
-#include <QDir>
-#include <QStringList>
+#include <QtCore/QDir>
+#include <QtCore/QStringList>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -156,6 +157,10 @@ namespace OpenMS
     registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool", false);
     registerStringOption_("write_ini", "<file>", "", "Writes the default configuration file", false);
     registerStringOption_("write_ctd", "<out_dir>", "", "Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>", false, true);
+    registerStringOption_("write_nested_cwl", "<out_dir>", "", "Writes the Common Workflow Language file(s) (Toolname(s).cwl) to <out_dir>", false, true);
+    registerStringOption_("write_cwl", "<out_dir>", "", "Writes the Common Workflow Language file(s) (Toolname(s).cwl) to <out_dir>, but enforce a flat parameter hierarchy", false, true);
+    registerStringOption_("write_nested_json", "<out_dir>", "", "Writes the default configuration file", false, true);
+    registerStringOption_("write_json", "<out_dir>", "", "Writes the default configuration file, but compatible to the flat hierarchy", false, true);
     registerFlag_("no_progress", "Disables progress logging to command line", true);
     registerFlag_("force", "Overrides tool-specific checks", true);
     registerFlag_("test", "Enables the test mode (needed for internal use only)", true);
@@ -239,6 +244,10 @@ namespace OpenMS
     ExitCodes result;
     try
     {
+      //-------------------------------------------------------------
+      // store configuration or tool description files
+      //-------------------------------------------------------------
+
       // '-write_ini' given
       if (param_cmdline_.exists("write_ini"))
       {
@@ -259,7 +268,7 @@ namespace OpenMS
             // We hand an additional parameter object with the default values, so we have information
             // about the tree when parsing the JSON file.
             ini_params = getDefaultParameters_();
-            if (!ParamCWLFile::load(in_ini_path, ini_params))
+            if (!ParamJSONFile::load(in_ini_path, ini_params))
             {
               return ILLEGAL_PARAMETERS;
             }
@@ -272,7 +281,7 @@ namespace OpenMS
           // update default params with outdated params given in -ini and be verbose
           default_params.update(ini_params, false);
         }
-        ParamXMLFile paramFile;
+        ParamXMLFile paramFile{};
         paramFile.store(write_ini_file, default_params);
         return EXECUTION_OK;
       }
@@ -280,13 +289,45 @@ namespace OpenMS
       // '-write_ctd' given
       if (param_cmdline_.exists("write_ctd"))
       {
-        if (!writeCTD_())
-        {
-          writeLogError_("Error: Could not write CTD file!");
-          return INTERNAL_ERROR;
-        }
+        ParamCTDFile paramFile{};
+        writeToolDescription_(paramFile, "write_ctd", ".ctd");
         return EXECUTION_OK;
       }
+
+      // '-write_cwl' given
+      if (param_cmdline_.exists("write_nested_cwl"))
+      {
+        ParamCWLFile paramFile{};
+        writeToolDescription_(paramFile, "write_nested_cwl", ".cwl");
+        return EXECUTION_OK;
+      }
+
+      // '-write_flat_cwl' given
+      if (param_cmdline_.exists("write_cwl"))
+      {
+        ParamCWLFile paramFile{};
+        paramFile.flatHierarchy = true;
+        writeToolDescription_(paramFile, "write_cwl", ".cwl");
+        return EXECUTION_OK;
+      }
+
+      // '-write_json' given
+      if (param_cmdline_.exists("write_nested_json"))
+      {
+        ParamJSONFile paramFile{};
+        writeToolDescription_(paramFile, "write_nested_json", ".json");
+        return EXECUTION_OK;
+      }
+
+      // '-write_flat_json' given
+      if (param_cmdline_.exists("write_json"))
+      {
+        ParamJSONFile paramFile{};
+        paramFile.flatHierarchy = true;
+        writeToolDescription_(paramFile, "write_json", ".json");
+        return EXECUTION_OK;
+      }
+
 
       //-------------------------------------------------------------
       // load INI file
@@ -307,7 +348,7 @@ namespace OpenMS
             // We prepopulate the param object with the default values, so we have information
             // about the tree when parsing the JSON file.
             param_inifile_ = getDefaultParameters_();
-            if (!ParamCWLFile::load(value_ini, param_inifile_))
+            if (!ParamJSONFile::load(value_ini, param_inifile_))
             {
               return ILLEGAL_PARAMETERS;
             }
@@ -2016,7 +2057,7 @@ namespace OpenMS
     //parameters
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
-      if (it->name == "ini" || it->name == "-help" || it->name == "-helphelp" || it->name == "instance" || it->name == "write_ini" || it->name == "write_ctd") // do not store those params in ini file
+      if (std::unordered_set<std::string>{"ini", "-help", "-helphelp", "instance", "write_ini", "write_ctd", "write_cwl", "write_nested_cwl", "write_json", "write_nested_json"}.count(it->name) > 0) // do not store these params in ini file
       {
         continue;
       }
@@ -2320,10 +2361,11 @@ namespace OpenMS
     }
   }
 
-  bool TOPPBase::writeCTD_()
+  template <typename Writer>
+  void TOPPBase::writeToolDescription_(Writer& writer, std::string write_type, std::string fileExtension)
   {
     //store ini-file content in ini_file_str
-    QString out_dir_str = String(param_cmdline_.getValue("write_ctd").toString()).toQString();
+    QString out_dir_str = String(param_cmdline_.getValue(write_type).toString()).toQString();
     if (out_dir_str == "")
     {
       out_dir_str = QDir::currentPath();
@@ -2334,8 +2376,9 @@ namespace OpenMS
 
     for (Size i = 0; i < type_list.size(); ++i)
     {
-      QString write_ctd_file = out_dir_str + QDir::separator() + tool_name_.toQString() + type_list[i].toQString() + ".ctd";
-      outputFileWritable_(write_ctd_file, "write_ctd");
+      // check file is writable
+      QString write_file = out_dir_str + QDir::separator() + tool_name_.toQString() + type_list[i].toQString() + fileExtension.c_str();
+      outputFileWritable_(write_file, write_type);
 
       // set type on command line, so that getDefaultParameters_() does not fail (as it calls getSubSectionDefaults() of tool)
       if (!type_list[i].empty())
@@ -2347,8 +2390,8 @@ namespace OpenMS
         default_params.setValue(this->ini_location_ + "type", type_list[i]);
 
       std::stringstream ss;
-      ParamCTDFile paramFile;
 
+      // fill program category and docurl
       std::string docurl = getDocumentationURL();
       std::string category;
       if (official_)
@@ -2356,6 +2399,7 @@ namespace OpenMS
         category = ToolHandler::getCategory(tool_name_);
       }
 
+      // collect citation information
       std::vector<std::string> citation_dois;
       citation_dois.reserve(citations_.size() + 1);
       citation_dois.push_back(cite_openms_.doi);
@@ -2364,11 +2408,18 @@ namespace OpenMS
         citation_dois.push_back(citation.doi);
       }
 
-      paramFile.store(write_ctd_file.toStdString(), default_params,
-                      {version_, tool_name_, docurl, category, tool_description_, citation_dois});
-    }
+      // fill tool information
+      ToolInfo toolInfo{};
+      toolInfo.version_     = version_;
+      toolInfo.name_        = tool_name_;
+      toolInfo.docurl_      = docurl;
+      toolInfo.category_    = category;
+      toolInfo.description_ = tool_description_;
+      toolInfo.citations_   = citation_dois;
 
-    return true;
+      // this will write the actual data to disk
+      writer.store(write_file.toStdString(), default_params, toolInfo);
+    }
   }
 
   Param TOPPBase::parseCommandLine_(const int argc, const char** argv, const String& misc, const String& unknown)

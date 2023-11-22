@@ -11,9 +11,9 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 
-#include <QCoreApplication>
-#include <QProcess>
-#include <QStringList>
+#include <QtCore/QCoreApplication>
+#include <QtCore/QProcess>
+#include <QtCore/QStringList>
 #include <utility>
 
 

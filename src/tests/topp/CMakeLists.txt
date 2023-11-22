@@ -112,7 +112,7 @@ endforeach()
 # test if write_ini does the correct updates when given an old INI file (using
 # one arbitrary TOPP tool)
 #------------------------------------------------------------------------------
-add_test("TOPPWRITEINI_OVERWRITE" ${TOPP_BIN_PATH}/PeakPickerWavelet -test -write_ini "WRITE_INI.tmp.ini" -ini "${DATA_DIR_TOPP}/WRITE_INI_IN.ini")
+add_test("TOPPWRITEINI_OVERWRITE" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -write_ini "WRITE_INI.tmp.ini" -ini "${DATA_DIR_TOPP}/WRITE_INI_IN.ini")
 add_test("TOPPWRITEINI_OVERWRITE_out" ${DIFF} -in1 WRITE_INI.tmp.ini -in2 "${DATA_DIR_TOPP}/WRITE_INI_OUT.ini" -whitelist "version")
 set_tests_properties("TOPPWRITEINI_OVERWRITE_out" PROPERTIES DEPENDS "TOPPWRITEINI_OVERWRITE")
 ##
@@ -1498,10 +1498,10 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathChromatogramExtractor_test_5_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 OpenSwathChromatogramExtractor_5_output.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_5_output.mzML)
   set_tests_properties("TOPP_OpenSwathChromatogramExtractor_test_5_out1" PROPERTIES DEPENDS "TOPP_OpenSwathChromatogramExtractor_test_5")
 
-  add_test("TOPP_OpenSwathAnalyzer_test_1" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_1_output.featureXML.tmp.featureXML -rt_norm ${DATA_DIR_TOPP}/OpenSwathAnalyzer_input.trafoXML -algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerMRM:method legacy -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_1" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_1_output.featureXML.tmp.featureXML -rt_norm ${DATA_DIR_TOPP}/OpenSwathAnalyzer_input.trafoXML -algorithm:TransitionGroupPicker:PeakPickerChromatogram:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerChromatogram:method legacy -test)
   add_test("TOPP_OpenSwathAnalyzer_test_1_out1" ${DIFF} -whitelist "id="  -in1 OpenSwathAnalyzer_1_output.featureXML.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_output.featureXML)
   set_tests_properties("TOPP_OpenSwathAnalyzer_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_1")
-  add_test("TOPP_OpenSwathAnalyzer_test_2" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_2_output.featureXML.tmp.featureXML -swath_files ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_swathfile.mzML -algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerMRM:method legacy -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_2" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_2_output.featureXML.tmp.featureXML -swath_files ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_swathfile.mzML -algorithm:TransitionGroupPicker:PeakPickerChromatogram:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerChromatogram:method legacy -test)
   add_test("TOPP_OpenSwathAnalyzer_test_2_out1" ${DIFF} -whitelist "id="  -in1 OpenSwathAnalyzer_2_output.featureXML.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_output.featureXML)
   set_tests_properties("TOPP_OpenSwathAnalyzer_test_2_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_2")
   add_test("TOPP_OpenSwathAnalyzer_test_5_mod" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_mod_input.TraML -out OpenSwathAnalyzer_5_output.featureXML.tmp.featureXML -swath_files ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_swathfile.mzML -ini ${DATA_DIR_TOPP}/OpenSwathAnalyzer_5.ini -test)
@@ -1516,17 +1516,17 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathAnalyzer_test_7_backgroundSubtraction" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_7_output.featureXML.tmp.featureXML -ini ${DATA_DIR_TOPP}/OpenSwathAnalyzer_7_backgroundSubtraction.ini -test)
   add_test("TOPP_OpenSwathAnalyzer_test_7_backgroundSubtraction_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathAnalyzer_7_output.featureXML.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_7_output.featureXML)
   set_tests_properties("TOPP_OpenSwathAnalyzer_test_7_backgroundSubtraction_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_7_backgroundSubtraction")
-  add_test("TOPP_OpenSwathAnalyzer_test_8" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_8_output.featureXML.tmp.featureXML -rt_norm ${DATA_DIR_TOPP}/OpenSwathAnalyzer_input.trafoXML -algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerMRM:method legacy -algorithm:Scores:use_ms1_mi -algorithm:Scores:use_mi_score -algorithm:Scores:use_total_mi_score -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_8" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_8_output.featureXML.tmp.featureXML -rt_norm ${DATA_DIR_TOPP}/OpenSwathAnalyzer_input.trafoXML -algorithm:TransitionGroupPicker:PeakPickerChromatogram:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerChromatogram:method legacy -algorithm:Scores:use_ms1_mi -algorithm:Scores:use_mi_score -algorithm:Scores:use_total_mi_score -test)
   add_test("TOPP_OpenSwathAnalyzer_test_8_out1" ${DIFF} -whitelist "id="  -in1 OpenSwathAnalyzer_8_output.featureXML.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_8_output.featureXML)
   set_tests_properties("TOPP_OpenSwathAnalyzer_test_8_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_8")
 
-  add_test("TOPP_OpenSwathAnalyzer_test_9" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_9_output.featureXML.tmp.featureXML -rt_norm ${DATA_DIR_TOPP}/OpenSwathAnalyzer_input.trafoXML -algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerMRM:method legacy -algorithm:Scores:use_mi_score -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_9" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_9_output.featureXML.tmp.featureXML -rt_norm ${DATA_DIR_TOPP}/OpenSwathAnalyzer_input.trafoXML -algorithm:TransitionGroupPicker:PeakPickerChromatogram:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerChromatogram:method legacy -algorithm:Scores:use_mi_score -test)
   add_test("TOPP_OpenSwathAnalyzer_test_9_out1" ${DIFF} -whitelist "id="  -in1 OpenSwathAnalyzer_9_output.featureXML.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_9_output.featureXML)
   set_tests_properties("TOPP_OpenSwathAnalyzer_test_9_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_9")
-  add_test("TOPP_OpenSwathAnalyzer_test_10" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_10_output.featureXML.tmp.featureXML -rt_norm ${DATA_DIR_TOPP}/OpenSwathAnalyzer_input.trafoXML -algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerMRM:method legacy -algorithm:Scores:use_mi_score -algorithm:Scores:use_total_mi_score -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_10" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_10_output.featureXML.tmp.featureXML -rt_norm ${DATA_DIR_TOPP}/OpenSwathAnalyzer_input.trafoXML -algorithm:TransitionGroupPicker:PeakPickerChromatogram:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerChromatogram:method legacy -algorithm:Scores:use_mi_score -algorithm:Scores:use_total_mi_score -test)
   add_test("TOPP_OpenSwathAnalyzer_test_10_out1" ${DIFF} -whitelist "id="  -in1 OpenSwathAnalyzer_10_output.featureXML.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_10_output.featureXML)
   set_tests_properties("TOPP_OpenSwathAnalyzer_test_10_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_10")
-  add_test("TOPP_OpenSwathAnalyzer_test_11" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_11_output.featureXML.tmp.featureXML -rt_norm ${DATA_DIR_TOPP}/OpenSwathAnalyzer_input.trafoXML -algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerMRM:method legacy -algorithm:Scores:use_total_mi_score -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_11" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_11_output.featureXML.tmp.featureXML -rt_norm ${DATA_DIR_TOPP}/OpenSwathAnalyzer_input.trafoXML -algorithm:TransitionGroupPicker:PeakPickerChromatogram:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerChromatogram:method legacy -algorithm:Scores:use_total_mi_score -test)
   add_test("TOPP_OpenSwathAnalyzer_test_11_out1" ${DIFF} -whitelist "id="  -in1 OpenSwathAnalyzer_11_output.featureXML.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_11_output.featureXML)
   set_tests_properties("TOPP_OpenSwathAnalyzer_test_11_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_11")
 
@@ -1588,23 +1588,23 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
 
   # Testing the OpenSwathAnalyzer together with the FileCacher (for spectra and chromatograms)
   add_test("TOPP_OpenSwathAnalyzer_test_3_prepare" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_swathfile.mzML -out OpenSwathAnalyzer_3_swathfile.mzML.cached.tmp.mzML -out_type mzML -test)
-  add_test("TOPP_OpenSwathAnalyzer_test_3" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out MRMFeatureFinderScore_output_3.featureXML.tmp.featureXML -swath_files OpenSwathAnalyzer_3_swathfile.mzML.cached.tmp.mzML -algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerMRM:method legacy -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_3" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out MRMFeatureFinderScore_output_3.featureXML.tmp.featureXML -swath_files OpenSwathAnalyzer_3_swathfile.mzML.cached.tmp.mzML -algorithm:TransitionGroupPicker:PeakPickerChromatogram:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerChromatogram:method legacy -test)
   add_test("TOPP_OpenSwathAnalyzer_test_3_out1" ${DIFF} -whitelist "id=" -in1 MRMFeatureFinderScore_output_3.featureXML.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_output.featureXML)
   set_tests_properties("TOPP_OpenSwathAnalyzer_test_3" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_3_prepare")
   set_tests_properties("TOPP_OpenSwathAnalyzer_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_3")
   add_test("TOPP_OpenSwathAnalyzer_test_4_prepare1" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_swathfile.mzML -out OpenSwathAnalyzer_4_swathfile.mzML.cached.tmp.mzML -out_type mzML -test)
   add_test("TOPP_OpenSwathAnalyzer_test_4_prepare2" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -out OpenSwathAnalyzer_4_input_chrom.mzML.cached.tmp.mzML -out_type mzML -test)
-  add_test("TOPP_OpenSwathAnalyzer_test_4" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in OpenSwathAnalyzer_4_input_chrom.mzML.cached.tmp.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out MRMFeatureFinderScore_output_4.featureXML.tmp.featureXML -swath_files OpenSwathAnalyzer_4_swathfile.mzML.cached.tmp.mzML -algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerMRM:method legacy -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_4" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in OpenSwathAnalyzer_4_input_chrom.mzML.cached.tmp.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out MRMFeatureFinderScore_output_4.featureXML.tmp.featureXML -swath_files OpenSwathAnalyzer_4_swathfile.mzML.cached.tmp.mzML -algorithm:TransitionGroupPicker:PeakPickerChromatogram:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerChromatogram:method legacy -test)
   add_test("TOPP_OpenSwathAnalyzer_test_4_out1" ${DIFF} -whitelist "id=" -in1 MRMFeatureFinderScore_output_4.featureXML.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_output.featureXML)
   set_tests_properties("TOPP_OpenSwathAnalyzer_test_4" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_4_prepare1;TOPP_OpenSwathAnalyzer_test_4_prepare2")
   set_tests_properties("TOPP_OpenSwathAnalyzer_test_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_4")
 
-  add_test("TOPP_MRMTransitionGroupPicker_test_1" ${TOPP_BIN_PATH}/MRMTransitionGroupPicker -in ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_1_input.mzML -tr ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_1_input.TraML -out MRMTransitionGroupPicker_test_1.featureXML.tmp.featureXML -test -algorithm:PeakPickerMRM:remove_overlapping_peaks true -algorithm:PeakPickerMRM:method legacy -algorithm:PeakPickerMRM:peak_width 40.0)
+  add_test("TOPP_MRMTransitionGroupPicker_test_1" ${TOPP_BIN_PATH}/MRMTransitionGroupPicker -in ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_1_input.mzML -tr ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_1_input.TraML -out MRMTransitionGroupPicker_test_1.featureXML.tmp.featureXML -test -algorithm:PeakPickerChromatogram:remove_overlapping_peaks true -algorithm:PeakPickerChromatogram:method legacy -algorithm:PeakPickerChromatogram:peak_width 40.0)
   add_test("TOPP_MRMTransitionGroupPicker_test_1_out" ${DIFF} -whitelist "id=" -in1 MRMTransitionGroupPicker_test_1.featureXML.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_1_output.featureXML)
   set_tests_properties("TOPP_MRMTransitionGroupPicker_test_1_out" PROPERTIES DEPENDS "TOPP_MRMTransitionGroupPicker_test_1")
 
   # test MI scoring
-  add_test("TOPP_MRMTransitionGroupPicker_test_2" ${TOPP_BIN_PATH}/MRMTransitionGroupPicker -in ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_1_input.mzML -tr ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_1_input.TraML -out MRMTransitionGroupPicker_test_2.featureXML.tmp.featureXML -test -algorithm:PeakPickerMRM:remove_overlapping_peaks true -algorithm:PeakPickerMRM:method legacy -algorithm:PeakPickerMRM:peak_width 40.0 -algorithm:compute_total_mi)
+  add_test("TOPP_MRMTransitionGroupPicker_test_2" ${TOPP_BIN_PATH}/MRMTransitionGroupPicker -in ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_1_input.mzML -tr ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_1_input.TraML -out MRMTransitionGroupPicker_test_2.featureXML.tmp.featureXML -test -algorithm:PeakPickerChromatogram:remove_overlapping_peaks true -algorithm:PeakPickerChromatogram:method legacy -algorithm:PeakPickerChromatogram:peak_width 40.0 -algorithm:compute_total_mi)
   add_test("TOPP_MRMTransitionGroupPicker_test_2_out" ${DIFF} -whitelist "id=" -in1 MRMTransitionGroupPicker_test_2.featureXML.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_2_output.featureXML)
   set_tests_properties("TOPP_MRMTransitionGroupPicker_test_2_out" PROPERTIES DEPENDS "TOPP_MRMTransitionGroupPicker_test_2")
 
@@ -1869,18 +1869,6 @@ set_tests_properties("TOPP_NoiseFilterSGolay_4_out1" PROPERTIES DEPENDS "TOPP_No
 
 #------------------------------------------------------------------------------
 # PeakPicker tests
-add_test("TOPP_PeakPickerWavelet_1" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_input.mzML -out PeakPickerWavelet_1.tmp.mzML)
-add_test("TOPP_PeakPickerWavelet_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerWavelet_1.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_output.mzML )
-set_tests_properties("TOPP_PeakPickerWavelet_1_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_1")
-add_test("TOPP_PeakPickerWavelet_2" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_input.mzML -out PeakPickerWavelet_2.tmp.mzML)
-add_test("TOPP_PeakPickerWavelet_2_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerWavelet_2.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_output.mzML)
-set_tests_properties("TOPP_PeakPickerWavelet_2_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_2")
-add_test("TOPP_PeakPickerWavelet_4" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_input.mzML -out PeakPickerWavelet_4.tmp.mzML -threads 2)
-add_test("TOPP_PeakPickerWavelet_4_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerWavelet_4.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_output.mzML)
-set_tests_properties("TOPP_PeakPickerWavelet_4_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_4")
-add_test("TOPP_PeakPickerWavelet_5" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_parameters_noMetaData.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_input.mzML -out PeakPickerWavelet_5.tmp.mzML -threads 2)
-add_test("TOPP_PeakPickerWavelet_5_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerWavelet_5.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_output_noMetaData.mzML)
-set_tests_properties("TOPP_PeakPickerWavelet_5_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_5")
 
 # "high_res" algorithm with "ms_levels" option set to only 1:
 # .. spectra
@@ -1903,7 +1891,7 @@ add_test("TOPP_PeakPickerHiRes_4" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -ini ${
 add_test("TOPP_PeakPickerHiRes_4_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerHiRes_4.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerHiRes_2_output.mzML)
 set_tests_properties("TOPP_PeakPickerHiRes_4_out1" PROPERTIES DEPENDS "TOPP_PeakPickerHiRes_4")
 
-# peak picking of a smoothed chromatogram (like in PeakPickerMRM; requires disabling of spacing constraints):
+# peak picking of a smoothed chromatogram (like in PeakPickerChromatogram; requires disabling of spacing constraints):
 add_test("TOPP_PeakPickerHiRes_5" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -in ${DATA_DIR_TOPP}/PeakPickerHiRes_5_input.mzML -out PeakPickerHiRes_5.tmp.mzML)
 add_test("TOPP_PeakPickerHiRes_5_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerHiRes_5.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerHiRes_5_output.mzML)
 set_tests_properties("TOPP_PeakPickerHiRes_5_out1" PROPERTIES DEPENDS "TOPP_PeakPickerHiRes_5")
@@ -2028,16 +2016,6 @@ set_tests_properties("TOPP_ExternalCalibration_1_out1" PROPERTIES DEPENDS "TOPP_
 add_test("TOPP_ExternalCalibration_2_MS2" ${TOPP_BIN_PATH}/ExternalCalibration -test -in ${DATA_DIR_TOPP}/ExternalCalibration_1_input.mzML -out ExternalCalibration_2_MS2_out.tmp.mzML -offset -5.5 -slope 0.0001 -ms_level 2)
 add_test("TOPP_ExternalCalibration_2_out1" ${DIFF} -in1 ExternalCalibration_2_MS2_out.tmp.mzML -in2 ${DATA_DIR_TOPP}/ExternalCalibration_2_MS2_out.mzML)
 set_tests_properties("TOPP_ExternalCalibration_2_out1" PROPERTIES DEPENDS "TOPP_ExternalCalibration_2_MS2")
-
-
-#------------------------------------------------------------------------------
-# TOFCalibration tests
-add_test("TOPP_TOFCalibration_1" ${TOPP_BIN_PATH}/TOFCalibration -test -in ${DATA_DIR_TOPP}/TOFCalibration_1_input.mzML -out TOFCalibration.tmp.mzML -ref_masses ${DATA_DIR_TOPP}/TOFCalibration_ref_masses.tsv -ini ${DATA_DIR_TOPP}/TOFCalibration_parameters.ini -tof_const ${DATA_DIR_TOPP}/TOFCalibration_const.tsv -ext_calibrants ${DATA_DIR_TOPP}/TOFCalibration_1_calibrants.mzML)
-#add_test("TOPP_TOFCalibration_1_out1" ${DIFF} -in1 TOFCalibration.tmp.mzML -in2 ${DATA_DIR_TOPP}/TOFCalibration_1_output.mzML )
-#set_tests_properties("TOPP_TOFCalibration_1_out1" PROPERTIES DEPENDS "TOPP_TOFCalibration_1")
-add_test("TOPP_TOFCalibration_2" ${TOPP_BIN_PATH}/TOFCalibration -test -in ${DATA_DIR_TOPP}/TOFCalibration_2_input.mzML -out TOFCalibration_2.tmp.mzML -ref_masses ${DATA_DIR_TOPP}/TOFCalibration_ref_masses.tsv -ini ${DATA_DIR_TOPP}/TOFCalibration_parameters.ini -tof_const ${DATA_DIR_TOPP}/TOFCalibration_const.tsv -ext_calibrants ${DATA_DIR_TOPP}/TOFCalibration_2_calibrants.mzML -peak_data)
-#add_test("TOPP_TOFCalibration_2_out1" ${DIFF} -in1 TOFCalibration_2.tmp.mzML -in2 ${DATA_DIR_TOPP}/TOFCalibration_2_output.mzML )
-#set_tests_properties("TOPP_TOFCalibration_2_out1" PROPERTIES DEPENDS "TOPP_TOFCalibration_2")
 
 #------------------------------------------------------------------------------
 # TextExporter tests
@@ -2254,12 +2232,6 @@ set_tests_properties("TOPP_ConsensusID_7_out1" PROPERTIES DEPENDS "TOPP_Consensu
 add_test("TOPP_ConsensusID_8" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_8_input.idXML -out ConsensusID_8_output.tmp.idXML -algorithm best -per_spectrum -filter:keep_old_scores)
 add_test("TOPP_ConsensusID_8_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ConsensusID_8_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/ConsensusID_8_output.idXML )
 set_tests_properties("TOPP_ConsensusID_8_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_8")
-
-#------------------------------------------------------------------------------
-# PrecursorMassCorrector tests
-add_test("TOPP_PrecursorMassCorrector_1" ${TOPP_BIN_PATH}/PrecursorMassCorrector -test -in ${DATA_DIR_TOPP}/PrecursorMassCorrector_1_input.mzML -ini ${DATA_DIR_TOPP}/PrecursorMassCorrector_1.ini -out PrecursorMassCorrector_1_output.tmp.mzML)
-add_test("TOPP_PrecursorMassCorrector_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} "location=" -in1 PrecursorMassCorrector_1_output.tmp.mzML -in2 ${DATA_DIR_TOPP}/PrecursorMassCorrector_1_output.mzML )
-set_tests_properties("TOPP_PrecursorMassCorrector_1_out1" PROPERTIES DEPENDS "TOPP_PrecursorMassCorrector_1")
 
 #------------------------------------------------------------------------------
 # FalseDiscoveryRate_tests (1: default param, 2: with runs separated, 3: with charge variants individual, 4: with charge variants and no charge 1 decoys -> q_value 0)
@@ -3225,7 +3197,7 @@ set_tests_properties("TOPP_PSMFeatureExtractor_3_out" PROPERTIES DEPENDS "TOPP_P
 
 
 #------------------------------------------------------------------------------
-# TOPP tests with json
+# TOPP tests reading nested json input
 #------------------------------------------------------------------------------
 # MassTraceExtractor test
 add_test("TOPP_MassTraceExtractor_1_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor.ini.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_1_json.tmp.featureXML)
@@ -3234,3 +3206,28 @@ set_tests_properties("TOPP_MassTraceExtractor_1_out_json" PROPERTIES DEPENDS "TO
 add_test("TOPP_MassTraceExtractor_2_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_2.ini.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_2_json.tmp.featureXML)
 add_test("TOPP_MassTraceExtractor_2_out_json" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_2_json.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_2_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_2_out_json" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_2_json")
+
+#------------------------------------------------------------------------------
+# TOPP tests reading flat json input
+#------------------------------------------------------------------------------
+# MassTraceExtractor test
+add_test("TOPP_MassTraceExtractor_1_flat_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor.ini.flat.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_1_json.tmp)
+add_test("TOPP_MassTraceExtractor_1_out_flat_json" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_1_json.tmp -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_1_output.featureXML )
+set_tests_properties("TOPP_MassTraceExtractor_1_out_flat_json" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_1_flat_json")
+add_test("TOPP_MassTraceExtractor_2_flat_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_2.ini.flat.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_2_json.tmp)
+add_test("TOPP_MassTraceExtractor_2_out_flat_json" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_2_json.tmp -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_2_output.featureXML )
+set_tests_properties("TOPP_MassTraceExtractor_2_out_flat_json" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_2_flat_json")
+
+#------------------------------------------------------------------------------
+# TOPP tests reading json and writing ini
+#------------------------------------------------------------------------------
+# MassTraceExtractor test
+add_test("TOPP_MassTraceExtractor_3_flat_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_3.ini.flat.json -write_ini MassTraceExtractor_3.ini)
+#add_test("TOPP_MassTraceExtractor_3_json_out" ${CMAKE_COMMAND} -E compare_files --ignore-eol ${DATA_DIR_TOPP}/MassTraceExtractor_3_expected.ini)
+add_test("TOPP_MassTraceExtractor_3_flat_json_out" ${DIFF} -whitelist "Version of the tool that generated this parameters file." -in1 MassTraceExtractor_3.ini -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_3_expected.ini )
+set_tests_properties("TOPP_MassTraceExtractor_3_flat_json_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_3_flat_json")
+
+add_test("TOPP_MassTraceExtractor_3_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_3.ini.json -write_ini MassTraceExtractor_3.ini)
+#add_test("TOPP_MassTraceExtractor_3_json_out" ${CMAKE_COMMAND} -E compare_files --ignore-eol ${DATA_DIR_TOPP}/MassTraceExtractor_3_expected.ini)
+add_test("TOPP_MassTraceExtractor_3_json_out" ${DIFF} -whitelist "Version of the tool that generated this parameters file." -in1 MassTraceExtractor_3.ini -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_3_expected.ini )
+set_tests_properties("TOPP_MassTraceExtractor_3_json_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_3_json")

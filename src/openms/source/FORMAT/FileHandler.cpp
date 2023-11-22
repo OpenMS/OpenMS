@@ -45,8 +45,8 @@
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
 
-#include <QFile>
-#include <QCryptographicHash>
+#include <QtCore/QFile>
+#include <QtCore/QCryptographicHash>
 
 using namespace std;
 

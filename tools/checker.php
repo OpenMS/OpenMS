@@ -563,7 +563,6 @@ foreach ($files_todo as $f)
     "Macros.h",
     "Benchmark.h",
     "Constants.h",
-    "IsotopeWaveletConstants.h",
     "openms_package_version.h",
   );
 
@@ -675,7 +674,6 @@ foreach ($files_todo as $f)
       "Serialization.h",
       "IsotopeCluster.h",
       "Param.h",
-      "IsotopeWaveletConstants.h",
       "include/OpenMS/openms_package_version.h",
       "include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
       "include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h",

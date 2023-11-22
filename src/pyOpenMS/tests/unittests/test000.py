@@ -1492,31 +1492,6 @@ def testFeatureFinderAlgorithmPicked():
     ff.setName("test")
     assert ff.getName() == "test"
 
-@report
-def testFeatureFinderAlgorithmIsotopeWavelet():
-    """
-    @tests: FeatureFinderAlgorithmIsotopeWavelet
-     FeatureFinderAlgorithmIsotopeWavelet.__init__
-     FeatureFinderAlgorithmIsotopeWavelet.getDefaults
-     FeatureFinderAlgorithmIsotopeWavelet.getName
-     FeatureFinderAlgorithmIsotopeWavelet.getParameters
-     FeatureFinderAlgorithmIsotopeWavelet.getProductName
-     FeatureFinderAlgorithmIsotopeWavelet.setName
-     FeatureFinderAlgorithmIsotopeWavelet.setParameters
-    """
-    ff = pyopenms.FeatureFinderAlgorithmIsotopeWavelet()
-    p = ff.getDefaults()
-    _testParam(p)
-
-    # _testParam(ff.getParameters())
-
-    assert ff.getName() == "FeatureFinderAlgorithm"
-    assert pyopenms.FeatureFinderAlgorithmIsotopeWavelet.getProductName() == "isotope_wavelet"
-
-    ff.setParameters(pyopenms.Param())
-
-    ff.setName("test")
-    assert ff.getName() == "test"
 
 @report
 def testExperimentalSettings():
@@ -1605,19 +1580,6 @@ def testSeedListGenerator():
 
     # TODO 
     # assert pyopenms.SeedListGenerator().compute is not None
-
-@report
-def testTOFCalibration():
-    """
-    @tests: TOFCalibration
-     TOFCalibration.__init__
-    """
-    ff = pyopenms.TOFCalibration()
-    p = ff.getDefaults()
-    # _testParam(p)
-
-    assert pyopenms.TOFCalibration().calibrate is not None
-    assert pyopenms.TOFCalibration().pickAndCalibrate is not None
 
 # TODO: re-enable as soon as ConsensusIDAlgorithm classes are wrapped
 # @report
@@ -1756,17 +1718,6 @@ def testFeatureFinderAlgorithmPicked():
 
     assert pyopenms.FeatureFinderAlgorithmPicked().setData is not None
     assert pyopenms.FeatureFinderAlgorithmPicked().run is not None
-
-@report
-def testFeatureFinderAlgorithmIsotopeWavelet():
-    """
-    @tests: FeatureFinderAlgorithmIsotopeWavelet
-     FeatureFinderAlgorithmIsotopeWavelet.__init__
-    """
-    ff = pyopenms.FeatureFinderAlgorithmIsotopeWavelet()
-
-    assert pyopenms.FeatureFinderAlgorithmIsotopeWavelet().setData is not None
-    assert pyopenms.FeatureFinderAlgorithmIsotopeWavelet().run is not None
 
 
 @report
@@ -4040,14 +3991,14 @@ def testMRMMapping():
     assert o.getNrChromatograms() == 0 # not so easy to test
 
 @report
-def testPeakPickerMRM():
+def testPeakPickerChromatogram():
     """
-    @tests: PeakPickerMRM
-     PeakPickerMRM.__init__
-     PeakPickerMRM.pickChromatogram
+    @tests: PeakPickerChromatogram
+     PeakPickerChromatogram.__init__
+     PeakPickerChromatogram.pickChromatogram
     """
 
-    p = pyopenms.PeakPickerMRM()
+    p = pyopenms.PeakPickerChromatogram()
     assert p.pickChromatogram is not None
 
 @report
@@ -4905,33 +4856,6 @@ def testAttachment():
     inst.tableRows = [ [b"test", b"test2"], [b"otherTest"] ]
 
     assert inst.tableRows[1][0] == b"otherTest"
-
-@report
-def testOptimizePeakDeconvolution():
-    """
-    @tests: OptimizePeakDeconvolution
-     OptimizePeakDeconvolution.__init__
-    """
-    inst = pyopenms.OptimizePeakDeconvolution()
-    assert inst.getParameters
-
-    assert inst.getPenalties is not None
-    assert inst.setPenalties is not None
-    assert inst.getCharge is not None
-    assert inst.setCharge is not None
-    assert inst.optimize is not None
-
-
-    inst = pyopenms.PenaltyFactorsIntensity()
-    assert inst.height is not None
-
-    inst = pyopenms.OptimizePeakDeconvolution_Data()
-    assert inst.peaks is not None
-    assert inst.peaks is not None
-    assert inst.signal is not None
-    assert inst.penalties is not None
-    assert inst.charge is not None
-
 
 @report
 def testKernelMassTrace():

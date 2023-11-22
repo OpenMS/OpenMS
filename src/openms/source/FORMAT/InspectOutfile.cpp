@@ -14,7 +14,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
-#include <QRegExp>
+#include <QtCore/QRegExp>
 
 #include <fstream>
 

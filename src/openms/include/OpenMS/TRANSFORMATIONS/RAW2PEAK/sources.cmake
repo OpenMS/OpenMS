@@ -3,17 +3,9 @@ set(directory include/OpenMS/TRANSFORMATIONS/RAW2PEAK)
 
 ### list all header files of the directory here
 set(sources_list_h
-ContinuousWaveletTransform.h
-ContinuousWaveletTransformNumIntegration.h
-OptimizePeakDeconvolution.h
-OptimizePick.h
-PeakPickerCWT.h
 PeakPickerHiRes.h
 PeakPickerIterative.h
 PeakPickerMaxima.h
-PeakPickerSH.h
-PeakShape.h
-TwoDOptimization.h
 )
 
 ### add path to the filenames

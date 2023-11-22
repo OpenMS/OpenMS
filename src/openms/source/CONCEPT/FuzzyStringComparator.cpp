@@ -11,7 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QDir>
+#include <QtCore/QDir>
 #include <fstream>
 #include <istream>
 #include <iomanip>

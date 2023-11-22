@@ -6,7 +6,6 @@ set(sources_list
 InternalCalibration.cpp
 MZTrafoModel.cpp
 PrecursorCorrection.cpp
-TOFCalibration.cpp
 )
 
 ### add path to the filenames
