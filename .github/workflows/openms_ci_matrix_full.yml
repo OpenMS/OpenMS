@@ -547,7 +547,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with: 
           body_path: RELEASE_TEXT_GH.md
-          name: ${{ steps.extract_branch.outputs.RUN_NAME }}
+          tag_name: ${{ steps.extract_branch.outputs.RUN_NAME }}
           files:
             ${{ github.workspace }}/*.exe
             ${{ github.workspace }}/*.deb
@@ -777,7 +777,7 @@ jobs:
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
           {
-            rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/" &&
+            rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"
           } || { # If we try to access rsync at the same time as the other job, wait.
             sleep 90
             rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"
