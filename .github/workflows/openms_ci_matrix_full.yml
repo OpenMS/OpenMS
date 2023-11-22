@@ -83,7 +83,7 @@ jobs:
     - id: set-vars
       name: Set extra variables
       run: |
-        DO_PACKAGE=$( [[ ( "${{ inputs.package }}" || "${{ steps.extract_branch.outputs.RUN_NAME }}" == "nightly" || "${{ steps.extract_branch.outputs.RUN_NAME }}" == "release*" ) && "${{ matrix.compiler }}" != "clang++" ]] && echo true || echo false)
+        DO_PACKAGE=$( [[ ( "${{ inputs.package }}" || "${{ steps.extract_branch.outputs.RUN_NAME }}" == "nightly" || "${{ steps.extract_branch.outputs.RUN_NAME }}" == "release/*" ) && "${{ matrix.compiler }}" != "clang++" ]] && echo true || echo false)
         echo $DO_PACKAGE
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
           echo "tp_folder=Linux" >> $GITHUB_OUTPUT
@@ -313,7 +313,7 @@ jobs:
 
    # Upload the changelog to the same artifact that we will add the installers to.
     - name: Upload changelog as artifact
-      if: steps.set-vars.outputs.pkg_type != 'none' && matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu')
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu')
       uses: actions/upload-artifact@v3
       with:
         name: installer-${{ steps.set-vars.outputs.tp_folder }}
