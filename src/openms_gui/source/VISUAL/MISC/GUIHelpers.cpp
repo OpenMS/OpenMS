@@ -92,7 +92,7 @@ namespace OpenMS
     if (!QProcess::startDetached(app_path, args))
     {
       // execution failed
-      OPENMS_LOG_ERROR << "Could not start '" << app_path << "'. Please see above for error messages." << std::endl;
+      OPENMS_LOG_ERROR << "Could not start '" << app_path.toStdString() << "'. Please see above for error messages." << std::endl;
   #if defined(__APPLE__)
       OPENMS_LOG_ERROR << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
   #endif
