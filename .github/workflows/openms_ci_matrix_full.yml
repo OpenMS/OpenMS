@@ -316,7 +316,7 @@ jobs:
       if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu')
       uses: actions/upload-artifact@v3
       with:
-        name: installer-${{ steps.set-vars.outputs.tp_folder }}
+        name: changelog.txt
         path: |
           ${{ github.workspace }}/changelog.txt
 
@@ -483,9 +483,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: changelog.txt
-
-
-          
+      
       - name: Upload installer
         shell: bash
         env:
