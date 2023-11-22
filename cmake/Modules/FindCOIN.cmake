@@ -72,7 +72,6 @@ macro(_coin_find_lib _libname _libname_camel _lib_file_names _lib_file_names_deb
       string(TOLOWER ${_libname_camel} FOLDER)
       set(HNAME ${_libname_camel}Config.h)
     endif()
-    message("${FOLDER}   ${HNAME}")
 
     # find release version
     find_library(COIN_${_libname}_LIBRARY_RELEASE
