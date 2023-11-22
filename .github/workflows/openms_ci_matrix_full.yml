@@ -547,7 +547,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with: 
           bodyFile: RELEASE_TEXT_GH.md
-          tag: ${{ steps.extract_branch.outputs.RUN_NAME }}
+          tag: 2.9,1-test #${{ steps.extract_branch.outputs.RUN_NAME }}
           artifacts:
             ${{ github.workspace }}/*.exe
             ${{ github.workspace }}/*.deb
