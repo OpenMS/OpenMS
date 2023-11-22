@@ -75,10 +75,10 @@ jobs:
       with:
         path: OpenMS
 
-    - name: Extract branch/PR infos
+    - id: extract_branch
+      name: Extract branch/PR infos
       shell: bash
       run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_OUTPUT
-      id: extract_branch
       
     - id: set-vars
       name: Set extra variables
@@ -143,15 +143,15 @@ jobs:
         fi
       shell: bash
 
-    - if: startsWith(matrix.os, 'windows')
-      name: Emulate a Visual Studio shell (Windows)
+    - name: Emulate a Visual Studio shell (Windows)
+      if: startsWith(matrix.os, 'windows')
       uses: egor-tensin/vs-shell@v2
       with:
         # NOTE: x64 is hardcoded. No support for 32bit
         arch: x64
 
-    - if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
-      name: Install Qt (Windows and macOS)
+    - name: Install Qt (Windows and macOS)
+      if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
       uses: jurplel/install-qt-action@v3
       with:
         version: '5.15.2' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715, > 5.15.2 is not available on official archives (https://github.com/miurahr/aqtinstall/issues/636)
@@ -159,8 +159,8 @@ jobs:
         aqtversion: '==3.1.*'
         archives: 'qtsvg qtimageformats qtbase'
 
-    - name: Setup build tools (and system contrib on Linux)
-      id: tools-prefix
+    - id: tools-prefix
+      name: Setup build tools (and system contrib on Linux)
       shell: bash
       run: |
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
@@ -208,18 +208,16 @@ jobs:
           fi
         fi
 
-
-
-    - if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
+    - id: cache-contrib
+      if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
       name: Cache contrib (Windows and macOS)
-      id: cache-contrib
       uses: actions/cache@v3
       with:
         path: ${{ github.workspace }}/OpenMS/contrib
         key: ${{ runner.os }}-contrib3
 
-    - if: (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && steps.cache-contrib.outputs.cache-hit != 'true'
-      name: Download contrib build from archive (Windows and macOS)
+    - name: Download contrib build from archive (Windows and macOS)
+      if: (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && steps.cache-contrib.outputs.cache-hit != 'true'
       shell: bash
       run: |
           cd OpenMS/contrib
@@ -228,8 +226,8 @@ jobs:
           rm contribbld.tar.gz
           ls -la
 
-    - if: startsWith(matrix.os, 'macos')
-      name: Fix contrib install names (macOS)
+    - name: Fix contrib install names (macOS)
+      if: startsWith(matrix.os, 'macos')
       shell: bash
       run: |
           shopt -s nullglob # ensure that for loop is only executed if there is at least one .dylib file
@@ -288,12 +286,12 @@ jobs:
           done
 
     # Create the changelog for the release from our overall changelog
-    - if: matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu')
+    - id: create_changelog
+      if: matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu')
       shell: bash
       name: Create changelog for release on Ubuntu + GCC
-      id: create_changelog
       run: |
-        if [[ ${{ steps.extract_branch.outputs.RUN_NAME }} =~ ^release\/([0-9]+\.[0-9]+\.[0-9]+) ]]; then #TODO readd trailing $ for regex to ONLY match actual releases.
+        if [[ ${{ steps.extract_branch.outputs.RUN_NAME }} =~ ^release\/([0-9]+\.[0-9]+\.[0-9]+) ]]; then #FIXME readd trailing $ for regex to ONLY match actual releases.
           VERSION_NUMBER=${BASH_REMATCH[1]}
           echo "Version number: $VERSION_NUMBER"
           VERSION_NUMBER="3.0.0" #FIXME remove this override, we apparently didn't actually put anything in the changelog for 2.9.1...
@@ -307,21 +305,20 @@ jobs:
           echo "Extracting between lines:"
           echo $START
           echo $END
-          awk "NR > $START && NR < $END" OpenMS/CHANGELOG > ${{ github.workspace }}/changelog_$VERSION.txt
+          awk "NR > $START && NR < $END" OpenMS/CHANGELOG > ${{ github.workspace }}/changelog.txt
         else
           echo "Branch name does not match the expected pattern."
           exit 1
         fi
-        echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
 
    # Upload the changelog to the same artifact that we will add the installers to.
-    - if: steps.set-vars.outputs.pkg_type != 'none' && matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu')
-      name: Upload changelog as artifact
+    - name: Upload changelog as artifact
+      if: steps.set-vars.outputs.pkg_type != 'none' && matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu')
       uses: actions/upload-artifact@v3
       with:
         name: installer-${{ steps.set-vars.outputs.tp_folder }}
         path: |
-          ${{ github.workspace }}/OpenMS/changelog_*.txt
+          ${{ github.workspace }}/OpenMS/changelog.txt
 
     - name: Build
       shell: bash
@@ -383,9 +380,8 @@ jobs:
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ matrix.compiler }}-class-topp-${{ github.run_number }}"
           # The rest of the vars should be saved in the CMakeCache
 
-
-    - if: steps.set-vars.outputs.pkg_type != 'none'
-      name: Package
+    - name: Package
+      if: steps.set-vars.outputs.pkg_type != 'none'
       shell: bash
       run: |
           # do not fail immediately
@@ -410,8 +406,8 @@ jobs:
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ matrix.compiler }}-class-topp-${{ github.run_number }}"
 
     # WARNING: Here you have to make sure that only one matrix configuration per OS produces packages. See set-vars steps.
-    - if: steps.set-vars.outputs.pkg_type != 'none'
-      name: Upload packages as artifacts
+    - name: Upload packages as artifacts
+      if: steps.set-vars.outputs.pkg_type != 'none'
       uses: actions/upload-artifact@v3
       with:
         name: installer-${{ steps.set-vars.outputs.tp_folder }}
@@ -421,8 +417,8 @@ jobs:
           ${{ github.workspace }}/OpenMS/bld/*.pkg
 
     #Zip the documentation first, since there are :: which make the upload action choke.
-    - if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
-      name: Zip Documentation
+    - name: Zip Documentation
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
       uses: thedoctor0/zip-release@0.7.6
       with:
         type: 'zip'
@@ -430,18 +426,17 @@ jobs:
         exclusions: '/CMakeFiles/* /doxygen/* /code_examples/*'
         filename: 'documentation.zip'
 
-    - if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
     # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
-      name: Upload Documentation as artifacts
+    - name: Upload Documentation as artifacts
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
       uses: actions/upload-artifact@v3
       with:
         name: documentation
         path: |
           ${{ github.workspace }}/OpenMS/bld/doc/documentation.zip
-
-        
-    - if: steps.set-vars.outputs.pkg_type != 'none' || inputs.knime
-      name: Generate KNIME descriptors and payloads
+   
+    - name: Generate KNIME descriptors and payloads
+      if: steps.set-vars.outputs.pkg_type != 'none' || inputs.knime
       shell: bash
       run: |
         cd $GITHUB_WORKSPACE/OpenMS/bld/
@@ -449,12 +444,13 @@ jobs:
         cmake -DSEARCH_ENGINES_DIRECTORY="$GITHUB_WORKSPACE/_thirdparty" -DENABLE_PREPARE_KNIME_PACKAGE=ON .
         cmake --build . --target prepare_knime_package
         
-    - if: steps.set-vars.outputs.pkg_type != 'none' || inputs.knime
-      name: Upload KNIME payload and descriptors as artifacts
+    - name: Upload KNIME payload and descriptors as artifacts
+      if: steps.set-vars.outputs.pkg_type != 'none' || inputs.knime
       uses: actions/upload-artifact@v3
       with:
         name: knime-${{ steps.set-vars.outputs.tp_folder }}
         path: ${{ github.workspace }}/OpenMS/bld/knime/**/*
+
 
   deploy-installer:
     if: github.ref == 'refs/heads/nightly' || contains(github.ref, 'release/') || inputs.package
@@ -472,14 +468,23 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: installer-MacOS
+
       - name: Download win installer artifacts
         uses: actions/download-artifact@v3
         with:
           name: installer-Windows
+          
       - name: Download lnx installer artifacts
         uses: actions/download-artifact@v3
         with:
           name: installer-Linux
+
+      - name: Download changelog as artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: changelog.txt
+
+
           
       - name: Upload installer
         shell: bash
@@ -503,6 +508,53 @@ jobs:
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
+
+      - name: create RELEASE_TEXT
+        if: inputs.do_release
+        shell: bash
+        run: |
+            #TODO Handle changelog_params
+            ## Header
+            cat > releaseTextHeader.txt << EOF
+            Dear OpenMS-Users,
+
+            we are proud to announce the release of OpenMS $version. Grab it
+            <a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/release/$version">here</a>
+
+            In the following you find all important changes to the previous version:
+
+            EOF
+
+            ## Header
+            cat > releaseTextParamHeader.txt << EOF
+
+            Additionally, the following changes were made to parameters of our TOPP tools:
+
+            EOF
+
+            ##Footer
+            cat > releaseTextFooter.txt << EOF
+
+            Best regards,
+            The OpenMS-Developers
+
+            EOF
+            RELEASE_TEXT=$(cat releaseTextHeader.txt $GITHUB_WORKSPACE/OpenMS/changelog_* releaseTextFooter.txt)
+            RELEASE_TEXT_ESCAPED_QUOTES="${RELEASE_TEXT//\"/\\\"}"
+            cat releaseTextHeader.txt $GITHUB_WORKSPACE/OpenMS/changelog_* releaseTextFooter.txt > RELEASE_TEXT_GH.md
+            # cat RELEASE_TEXT_GH.md | jq -R -s '.' > RELEASE_TEXT_GH.json
+
+      - name: run GHA release action.
+        if: inputs.do_release
+        uses: softprops/action-gh-release@v1
+        with: 
+          body_path: RELEASE_TEXT_GH.md
+          name: ${{ steps.extract_branch.outputs.RUN_NAME }}
+          files:
+            ${{ github.workspace }}/*.exe
+            ${{ github.workspace }}/*.deb
+            ${{ github.workspace }}/*.pkg
+            # TODO add src
 
       - name: Download Documentation
         uses: actions/download-artifact@v3
@@ -536,10 +588,12 @@ jobs:
 
           # Upload documentation FIXME
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/docs/ "$USER@$HOST:/Documentation/${folder}"
+      
+
         # TODO create softlinks to latest nightly
         # TODO create and upload file hashes, at least for release candidate
 
-
+        
   build-deploy-knime-updatesite:
     env:
       KNIME: 5.1
@@ -561,11 +615,13 @@ jobs:
         with:
           name: knime-MacOS
           path: ${{ env.PLUGIN_SOURCE }}
+
       - name: Download win installer artifacts
         uses: actions/download-artifact@v3
         with:
           name: knime-Windows
           path: ${{ env.PLUGIN_SOURCE }}
+
       - name: Download lnx installer artifacts
         uses: actions/download-artifact@v3
         with:
@@ -732,56 +788,56 @@ jobs:
     steps:
       # NB we create the tag for the OpenMS repo next in a separate action.
       # TODO handle updating if the ref already exists.
-      - name: create tags from SHAs
+      - id: create_SHA
+        name: create tags from SHAs
         uses: actions/github-script@v7
-        id: create_SHA
         with:
           script: |
             latest_ref = octokit.rest.git.getRef({
               owner: context.repo.owner,
-              repot: 'OpenMS-docs',
+              repo: 'OpenMS-docs',
               ref: 'heads/develop',
             });
             octokit.rest.git.createRef({
               owner: context.repo.owner,
               repo: 'OpenMS-docs',
-              ref: steps.create_changelog.outputs.version_number,
+              ref: ${{ steps.extract_branch.outputs.RUN_NAME }},
               sha: latest_ref,
             });
 
             latest_ref = octokit.rest.git.getRef({
               owner: context.repo.owner,
-              repot: 'Tutorials',
+              repo: 'Tutorials',
               ref: 'heads/master',
             });
             octokit.rest.git.createRef({
               owner: context.repo.owner,
               repo: 'Tutorials',
-              ref: steps.create_changelog.outputs.version_number,
+              ref: ${{ steps.extract_branch.outputs.RUN_NAME }},
               sha: latest_ref,
             });
 
             latest_ref = octokit.rest.git.getRef({
               owner: context.repo.owner,
-              repot: 'pyopenms-docs',
+              repo: 'pyopenms-docs',
               ref: 'github.sha',
             });
             octokit.rest.git.createRef({
               owner: context.repo.owner,
               repo: 'pyopenms-docs',
-              ref: steps.create_changelog.outputs.version_number,
+              ref: ${{ steps.extract_branch.outputs.RUN_NAME }},
               sha: latest_ref,
             });
 
             latest_ref = octokit.rest.git.getRef({
               owner: context.repo.owner,
-              repot: 'THIRDPARTY',
+              repo: 'THIRDPARTY',
               ref: 'github.sha',
             });
             octokit.rest.git.createRef({
               owner: context.repo.owner,
               repo: 'THIRDPARTY',
-              ref: steps.create_changelog.outputs.version_number,
+              ref: ${{ steps.extract_branch.outputs.RUN_NAME }},
               sha: latest_ref,
             });
               
@@ -793,7 +849,7 @@ jobs:
             octokit.rest.git.createRef({
               owner: 'genericworkflownodes',
               repo: 'GenericKnimeNodes',
-              ref: steps.create_changelog.outputs.version_number,
+              ref: ${{ steps.extract_branch.outputs.RUN_NAME }},
               sha: latest_ref,
             });
 
@@ -805,7 +861,7 @@ jobs:
             octokit.rest.git.createRef({
               owner: 'genericworkflownodes',
               repo: 'de.openms.knime.dynamicJSViewers',
-              ref: steps.create_changelog.outputs.version_number,
+              ref: ${{ steps.extract_branch.outputs.RUN_NAME }},
               sha: latest_ref,
             });
 
@@ -817,36 +873,31 @@ jobs:
             octokit.rest.git.createRef({
               owner: 'genericworkflownodes',
               repo: 'buildresources',
-              ref: steps.create_changelog.outputs.version_number,
+              ref: ${{ steps.extract_branch.outputs.RUN_NAME }},
               sha: latest_ref,
             });
 
             latest_ref = octokit.rest.git.getRef({
               owner: context.repo.owner,
-              repot: 'de.openms.knime',
+              repo: 'de.openms.knime',
               ref: 'heads/develop',
             });
             octokit.rest.git.createRef({
               owner: context.repo.owner,
               repo: 'de.openms.knime',
-              ref: steps.create_changelog.outputs.version_number,
+              ref: ${{ steps.extract_branch.outputs.RUN_NAME }},
               sha: latest_ref,
             });
-      - name: create RELEASE_TEXT
-        run: #FIXME
 
-      - name: run GHA release action.
-        run: #FIXME
-
-      - if: inputs.mark_as_latest
-        name: update links to latest (documentation, installers)
+      - name: update links to latest (documentation, installers)
+        if: inputs.mark_as_latest
         run: #FIXME
       
-      - if: inputs.mark_as_latest
-        name: merge branch back into develop
+      - name: merge branch back into develop
+        if: inputs.mark_as_latest
         run: #FIXME
 
-      - if: inputs.do_announce
-        name: create text for website and update it.
+      - name: create text for website and update it.
+        if: inputs.announce_release
         run: #FIXME
 
