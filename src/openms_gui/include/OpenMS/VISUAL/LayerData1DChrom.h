@@ -36,10 +36,12 @@ namespace OpenMS
 
     RangeAllType getRangeForArea(const RangeAllType partial_range) const override
     {
+      // update ranges based on given RT range
       if (partial_range.RangeRT::isEmpty())
-      {
-        auto chrom = getCurrentChrom();
-        return RangeAllType().assign(chrom.getRange());
+      { // .. unless RT is empty, then we use the whole RT range
+        auto r = RangeAllType(partial_range);
+        r.extend(getCurrentChrom().getRange());
+        return r;
       }
       const auto& chrom = getCurrentChrom();
       auto chrom_filtered = MSExperiment::ChromatogramType();
