@@ -542,6 +542,13 @@ jobs:
             cat releaseTextHeader.txt $GITHUB_WORKSPACE/changelog.txt releaseTextFooter.txt > RELEASE_TEXT_GH.md
             # cat RELEASE_TEXT_GH.md | jq -R -s '.' > RELEASE_TEXT_GH.json
 
+      - name: Create tag for release
+        if: inputs.do_release
+        uses: laputansoft/github-tag-action@v4.6
+        with:
+          github_token: ${{ env.github.token }}
+          tag: ${{ steps.extract_branch.outputs.RUN_NAME }}
+      
       - name: run GHA release action.
         if: inputs.do_release
         uses: softprops/action-gh-release@v1
