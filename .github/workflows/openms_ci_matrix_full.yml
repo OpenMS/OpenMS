@@ -889,15 +889,15 @@ jobs:
               sha: latest_ref,
             });
 
-      - name: update links to latest (documentation, installers)
-        if: inputs.mark_as_latest
-        run: #FIXME
+      #- name: update links to latest (documentation, installers)
+      #  if: inputs.mark_as_latest
+      #  run: #FIXME
       
-      - name: merge branch back into develop
-        if: inputs.mark_as_latest
-        run: #FIXME
+      #- name: merge branch back into develop
+      #  if: inputs.mark_as_latest
+      #  run: #FIXME
 
-      - name: create text for website and update it.
-        if: inputs.announce_release
-        run: #FIXME
+      #- name: create text for website and update it.
+      #  if: inputs.announce_release
+      #  run: #FIXME
 
