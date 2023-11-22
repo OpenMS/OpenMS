@@ -539,7 +539,7 @@ jobs:
             EOF
             RELEASE_TEXT=$(cat releaseTextHeader.txt $GITHUB_WORKSPACE/changelog.txt releaseTextFooter.txt)
             RELEASE_TEXT_ESCAPED_QUOTES="${RELEASE_TEXT//\"/\\\"}"
-            cat releaseTextHeader.txt $GITHUB_WORKSPACE/OpenMS/changelog.txt releaseTextFooter.txt > RELEASE_TEXT_GH.md
+            cat releaseTextHeader.txt $GITHUB_WORKSPACE/changelog.txt releaseTextFooter.txt > RELEASE_TEXT_GH.md
             # cat RELEASE_TEXT_GH.md | jq -R -s '.' > RELEASE_TEXT_GH.json
 
       - name: run GHA release action.
