@@ -78,7 +78,7 @@ namespace OpenMS
       app_args.append("--args");
       app_args.append(args);
       args = app_args;
-      app_path = "/usr/bin/open"
+      app_path = "/usr/bin/open";
     }
     else
     { // we could not find the app, try it the Linux way

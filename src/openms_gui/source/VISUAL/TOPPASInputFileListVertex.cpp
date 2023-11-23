@@ -92,10 +92,10 @@ namespace OpenMS
         return false;
       }
       QFileInfo fi(file);
-      const auto& [it, was_inserted] = unique_names.insert(fi.canonicalFilePath().toStdString());
+      const auto& [it_unique, was_inserted] = unique_names.insert(fi.canonicalFilePath().toStdString());
       if (!was_inserted) // duplicate
       {
-        OPENMS_LOG_ERROR << "File '" << file.toStdString() << "' (resolved to '" << *it << "') appears twice in the input list!" << std::endl;
+        OPENMS_LOG_ERROR << "File '" << file.toStdString() << "' (resolved to '" << *it_unique << "') appears twice in the input list!" << std::endl;
         return false;
       }
     }
