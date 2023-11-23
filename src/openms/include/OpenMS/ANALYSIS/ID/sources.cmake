@@ -22,8 +22,8 @@ FalseDiscoveryRate.h
 FIAMSDataProcessor.h
 FIAMSScheduler.h
 FragmentIndex3D.h
-        FragmentIndex.h
-        FragmentIndexScorer.h
+FragmentIndex.h
+FragmentIndexScorer.h
 HiddenMarkovModel.h
 IDBoostGraph.h
 IDDecoyProbability.h
@@ -45,8 +45,8 @@ PercolatorFeatureSetHelper.h
 SimpleSearchEngineAlgorithm.h
 SiriusAdapterAlgorithm.h
 SiriusMSConverter.h
-TagGenerator.h
-TagGeneratorNode.h
+FragmentIndexTagGenerator.h
+FragmentIndexTagGeneratorNode.h
 )
 
 ### add path to the filenames

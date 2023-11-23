@@ -22,8 +22,8 @@ FalseDiscoveryRate.cpp
 FIAMSDataProcessor.cpp
 FIAMSScheduler.cpp
 FragmentIndex3D.cpp
-        FragmentIndex.cpp
-        FragmentIndexScorer.cpp
+FragmentIndex.cpp
+FragmentIndexScorer.cpp
 HiddenMarkovModel.cpp
 IDBoostGraph.cpp
 IDConflictResolverAlgorithm.cpp
@@ -45,8 +45,8 @@ PercolatorFeatureSetHelper.cpp
 SimpleSearchEngineAlgorithm.cpp
 SiriusAdapterAlgorithm.cpp
 SiriusMSConverter.cpp
-TagGenerator.cpp
-TagGeneratorNode.cpp
+FragmentIndexTagGenerator.cpp
+FragmentIndexTagGeneratorNode.cpp
 )
 
 ### add path to the filenames
