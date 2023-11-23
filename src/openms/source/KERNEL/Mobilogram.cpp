@@ -24,6 +24,7 @@ namespace OpenMS
   {
     return data_ == rhs.data_ && retention_time_ == rhs.retention_time_ && drift_time_unit_ == rhs.drift_time_unit_;
   }
+  
   void Mobilogram::updateRanges()
   {
     clearRanges();

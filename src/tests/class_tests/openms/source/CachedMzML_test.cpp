@@ -147,6 +147,7 @@ START_SECTION(( [EXTRA] testCaching))
       auto tmp2 = exp.getChromatogram(i);
       tmp1.getDataProcessing().clear();
       tmp2.getDataProcessing().clear();
+
       TEST_TRUE(tmp1 == tmp2)
     }
 

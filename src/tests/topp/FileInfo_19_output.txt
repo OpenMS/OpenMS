@@ -7,13 +7,13 @@ File type: mzML
 Instrument: 
 
 MS levels: 1, 2
-Total number of peaks: 2679
+Total number of peaks: 2681
 Number of spectra: 2
 
 Ranges:
   retention time: 18.25 .. 18.39 sec (0.0 min)
-  mass-to-charge: 110.07 .. 1590.88
-  intensity:      0.00 .. 5057372.00
+  mass-to-charge: 0.00 .. 1590.88
+  intensity:      0.00 .. 31878566.00
 
 Number of spectra per MS level:
   level 1: 1

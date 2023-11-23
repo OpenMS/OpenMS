@@ -55,8 +55,12 @@ namespace OpenMS
     // open the filestream
     ifs_.open(filename_cached_.c_str(), std::ios::binary);
 
-    // load the meta data from disk
-    FileHandler().loadExperiment(filename, meta_ms_experiment_, {OpenMS::FileTypes::MZML});
+    // load only (!) the meta data from disk
+    MzMLFile f;
+    PeakFileOptions options = f.getOptions();
+    options.setFillData(false);
+    f.setOptions(options);    
+    f.load(filename, meta_ms_experiment_);
   }
 
   MSSpectrum CachedmzML::getSpectrum(Size id)
@@ -73,6 +77,7 @@ namespace OpenMS
 
     MSSpectrum s = meta_ms_experiment_.getSpectrum(id);
     Internal::CachedMzMLHandler::readSpectrum(s, ifs_);
+    s.updateRanges();
     return s;
   }
 
@@ -90,6 +95,7 @@ namespace OpenMS
 
     MSChromatogram c = meta_ms_experiment_.getChromatogram(id);
     Internal::CachedMzMLHandler::readChromatogram(c, ifs_);
+    c.updateRanges();
     return c;
   }
 

@@ -287,14 +287,6 @@ namespace OpenMS
     // update intensity, m/z and RT according to chromatograms as well:
     for (ChromatogramType& cp : chromatograms_)
     {
-
-      // ignore TICs and ECs (as these are usually positioned at 0 and therefor lead to a large white margin in plots if included)
-      if (cp.getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM ||
-        cp.getChromatogramType() == ChromatogramSettings::EMISSION_CHROMATOGRAM)
-      {
-        continue;
-      }
-
       total_size_ += cp.size();
 
       // ranges
@@ -337,6 +329,12 @@ namespace OpenMS
   /// returns an array of MS levels
   const std::vector<UInt>& MSExperiment::getMSLevels() const
   {
+    // if we have spectra enforce MS level information
+    // prevents uninitialized use uf ms_levels_
+    if (!spectra_.empty() && ms_levels_.empty()) 
+    {
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, spectra_.size());
+    }
     return ms_levels_;
   }
 

@@ -22,6 +22,7 @@ namespace OpenMS
     OpenMS::Internal::MzMLSqliteHandler sql_mass(filename, 0);
     sql_mass.setConfig(config_.write_full_meta, config_.use_lossy_numpress, config_.linear_fp_mass_acc);
     sql_mass.readExperiment(map);
+    map.updateRanges();
   }
 
   void SqMassFile::store(const String& filename, const MapType& map) const

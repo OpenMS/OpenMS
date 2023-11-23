@@ -694,6 +694,7 @@ namespace OpenMS
         exp.reset();
         exp.resize(1);
         DTAFile().load(filename, exp[0]);
+        exp.updateRanges();        
       }
       break;
 
@@ -762,7 +763,9 @@ namespace OpenMS
         exp.resize(1);
         XMassFile().load(filename, exp[0]);
         XMassFile().importExperimentalSettings(filename, exp);
+        exp.updateRanges();
       }
+
       break;
 
       case FileTypes::MSP: 
@@ -810,6 +813,8 @@ namespace OpenMS
       exp.getSourceFiles().clear();
       exp.getSourceFiles().push_back(src_file);
     }
+
+    return true;
   }
 
   void FileHandler::storeExperiment(const String& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
