@@ -92,8 +92,6 @@ macro(_coin_find_lib _libname _libname_camel _lib_file_names _lib_file_names_deb
         ${FOLDER}/coin/${HNAME} 
     )
 
-    message(" INclude ${${_libname}_INCLUDE_DIR}")
-
     set (INCLUDE_DIRS)
     if (EXISTS "${${_libname}_INCLUDE_DIR}/${FOLDER}")
       # we (in OpenMS) include the coin headers with e.g., coin/ClpInterface.h
@@ -149,13 +147,14 @@ endif()
 _coin_find_lib("CBC" "Cbc" "libCbc;Cbc" "libCbcd;Cbc")
 _coin_find_lib("CGL" "Cgl" "libCgl;Cgl" "libCgld;Cgl")
 _coin_find_lib("CLP" "Clp" "libClp;Clp" "libClpd;Clp")
-_coin_find_lib("COIN_UTILS" "CoinUtils" "libCoinUtils;CoinUtils" "libCoinUtilsd;CoinUtils")
+_coin_find_lib("COINUTILS" "CoinUtils" "libCoinUtils;CoinUtils" "libCoinUtilsd;CoinUtils")
 _coin_find_lib("OSI" "Osi" "libOsi;Osi" "libOsid;Osi")
 _coin_find_lib("OSI_CLP" "Clp" "libOsiClp;OsiClp" "libOsiClpd;OsiClp")
 
 # TODO allow for COMPONENTS and version parsing/checking
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(COIN DEFAULT_MSG
+  COIN_INCLUDE_DIR
   COIN_CBC_LIBRARY
   COIN_CGL_LIBRARY
   COIN_CLP_LIBRARY
