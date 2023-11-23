@@ -494,7 +494,7 @@ jobs:
           echo "Upload"
           if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
             folder=nightlyGHA                                                    # TODO: Change back when we deactivate Jenkins
-          elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
+          elif [[ "${{ env.RUN_NAME }}" =~ release/* ]]; then
             tmpfolder=${{ env.RUN_NAME }}
             folder=${tmpfolder/release/RC_GHA}                                   # TODO: change back to RC after proper release
           else
@@ -547,7 +547,8 @@ jobs:
         uses: ncipollo/release-action@v1
         with: 
           bodyFile: RELEASE_TEXT_GH.md
-          tag: 2.9,1-test #${{ steps.extract_branch.outputs.RUN_NAME }}
+          tag: 2.9.1-test #${{ steps.extract_branch.outputs.RUN_NAME }}
+          draft: true
           artifacts:
             ${{ github.workspace }}/*.exe
             ${{ github.workspace }}/*.deb
