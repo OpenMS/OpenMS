@@ -23,6 +23,7 @@ Library:
 - better documentation for all SpectraFilter... tools (#7183)
 
 Fixes:
+- TOPPView: fix crash when viewing certain Chromatograms (#7220)
 - more robust parsing of mzIdentML (#7153)
 - more robust FileConverter (#7176)
 - MSFragger: allow relative path to database (#7155)
