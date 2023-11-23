@@ -8,7 +8,7 @@
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
+#include <OpenMS/ANALYSIS/ID/FragmentIndexScorer.h> // TODO: rename
 
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -44,13 +44,16 @@ class OPENMS_DLLAPI PeptideSearchEngineAlgorithm :
   protected:
     void updateMembers_() override;
 
-    FragmentIndex fragment_index_;
+    FragmentIndexScorer fragment_index_;
 
     /// Slimmer structure as storing all scored candidates in PeptideHit objects takes too much space
     struct AnnotatedHit_
     {
+      AASequence sequence;
+      /*
       StringView sequence;
       SignedSize peptide_mod_index; ///< enumeration index of the non-RNA peptide modification
+      */
       double score = 0; ///< main score
       std::vector<PeptideHit::PeakAnnotation> fragment_annotations;      
       double prefix_fraction = 0; ///< fraction of annotated b-ions
@@ -60,9 +63,6 @@ class OPENMS_DLLAPI PeptideSearchEngineAlgorithm :
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
       {
         if (a.score != b.score) return a.score > b.score;
-        // compare the mod_index first, as it is cheaper than the strncmp() of the sequences
-        // there doesn't have to be a certain ordering (that makes sense), we just need it to be thread-safe
-        if (b.peptide_mod_index != a.peptide_mod_index) return a.peptide_mod_index < b.peptide_mod_index;
         return a.sequence < b.sequence;
       }
     };

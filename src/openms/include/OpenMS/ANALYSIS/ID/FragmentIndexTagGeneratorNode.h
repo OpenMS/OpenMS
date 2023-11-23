@@ -18,8 +18,6 @@
 #include <vector>
 #include <functional>
 
-
-
 namespace OpenMS
 {
 

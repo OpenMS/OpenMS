@@ -31,7 +31,7 @@ namespace OpenMS
   {
   private:
     std::string fragmentation_;
-    FragmentIndex* db_;       ///< The FragmentIndex(TD) database (can also be a 3D database)
+    FragmentIndex db_;            ///< The FragmentIndex database
     uint16_t min_matched_peaks_;  ///< PSM with less hits are discarded
     int16_t min_isotope_error_;   ///< Minimal possible isotope error
     int16_t max_isotope_error_;   ///< Maximal possible isotope error (both only used for closed search)
@@ -69,6 +69,8 @@ namespace OpenMS
 
   public:
 
+    const FragmentIndex& getDB() const;
+
     /**For some reason templated functions can not be called in different classes? So this is the work around
      * A function only for TagGeneration
      *
@@ -80,105 +82,66 @@ namespace OpenMS
 
     void testHeapify();
 
-    /// getter
-    const FragmentIndex* getDb() const;
-
     /**
      * @brief Every potential Peptide/Protein has such an struct. Inside the number of peaks-to-Fragment hits are safed
      */
-    struct PreHits
+    struct SpectrumMatch
     {
-      uint32_t num_matched_; ///< Number of peaks-fragment hits
-      size_t peptide_idx_;   ///< The idx this struct belongs to
-      uint32_t precursor_charge_;  ///< The precursor_charged used for the performed search
-      int16_t isotope_error_;      /// < The isotope_error used for the performed search
-
-      PreHits(){
-        num_matched_ = 0;
-        peptide_idx_ = 0;
-        precursor_charge_ = 0;
-        isotope_error_ = 0;
-      }
+      uint32_t num_matched_{};       ///< Number of peaks-fragment hits
+      uint32_t precursor_charge_{};  ///< The precursor_charged used for the performed search
+      size_t peptide_idx_{};         ///< The idx this struct belongs to
+      int16_t isotope_error_{};      /// < The isotope_error used for the performed search
     };
 
-
     /**
-     * @brief A container for the PreHits
+     * @brief all SpectrumMatchesTopN of a spectrum, the number of matched peaks and the number of scored candidates
      */
-    struct InitHits
+    struct SpectrumMatchesTopN
     {
-      uint32_t matched_peaks_;
-      uint32_t scored_candidates_;
-      std::vector<PreHits> hits_;
+      std::vector<SpectrumMatch> hits_;     ///< The preliminary candidates
+      uint32_t matched_peaks_{};      ///< The number of matched peaks TODO: statistic needed?
+      uint32_t scored_candidates_{};  ///< The number of scored candidates
 
-      InitHits(){
-        matched_peaks_ = 0;
-        scored_candidates_ = 0;
+      SpectrumMatchesTopN() = default;
 
-      }
-
-      InitHits& operator+=(const InitHits& other)
+      SpectrumMatchesTopN& operator+=(const SpectrumMatchesTopN& other)
       {
-        this-> matched_peaks_ += other.matched_peaks_;
+        this->matched_peaks_ += other.matched_peaks_;
         this->scored_candidates_ += other.scored_candidates_;
         this->hits_.insert(this->hits_.end(), other.hits_.begin(), other.hits_.end());
         return *this;
       }
-
-      void clear()
-      {
-        hits_.clear();
-        matched_peaks_ = 0;
-        scored_candidates_=0;
-      }
-    };
-
-    /// Feature of a candidate peptide spectrum match
-    struct Score 
-    {
-      size_t peptide_idx_;
-      uint16_t charge_;
-      int16_t isotope_error_;
-      int matched_b_;
-      int matched_y_;
-      float summed_b_;
-      float summed_y_;
-      int longest_y;
-      int longest_b;
     };
 
     /// Constructor
     FragmentIndexScorer();
 
-    /// FID setter and builder
-    void setDB(FragmentIndex* db);
+    void buildDB(const std::vector<FASTAFile::FASTAEntry> & fasta_entries);  // Only builds standard
 
-    void buildDB(const std::vector<FASTAFile::FASTAEntry> & fasta_entries);  //Only builds standard
-
-    void extractHits(InitHits& candidates ,
+    void extractHits(SpectrumMatchesTopN& candidates ,
                      const std::vector<FragmentIndex::Hit>& hits,
                      uint32_t charge,
                      int16_t isotope_error,
                      std::pair<size_t , size_t > peptide_range);
 
     /// The "scoring" function
-    void simpleScoring(MSSpectrum& spectrum, InitHits& initHits);
+    void querySpectrum(const MSSpectrum& spectrum, SpectrumMatchesTopN& sms);
 
-
-    void peakQuery(InitHits& candidates, const Peak1D& peak, std::pair<size_t, size_t> candidates_range, int16_t isotope_error, uint16_t precursor_charge);
+    void queryPeak(SpectrumMatchesTopN& candidates, const Peak1D& peak, std::pair<size_t, size_t> candidates_range, int16_t isotope_error, uint16_t precursor_charge);
+    
     /// Closed Scoring. NO open window for PTM search
-    void closedSearch(MSSpectrum& spectrum, float mz, InitHits& initHits, uint16_t charge);
+    void closedSearch(const MSSpectrum& spectrum, float mz, SpectrumMatchesTopN& sms, uint16_t charge);
 
     /** @brief The idea is to search witch an wider precursor tolerance window and actively adjust the fragment window
      *
      */
-    void openSearch(MSSpectrum& spectrum, float precursor_mass, InitHits& initHits, uint16_t charge);
+    void openSearch(const MSSpectrum& spectrum, float precursor_mass, SpectrumMatchesTopN& sms, uint16_t charge);
 
 /*
      * @brief Scoring for the MultiDim FragmentIndex!
      * @param spectrum
-     * @param initHits
-    void multiDimScoring(const MSSpectrum& spectrum, InitHits& initHits);
+     * @param SpectrumMatchesTopN
+    void multiDimScoring(const MSSpectrum& spectrum, SpectrumMatchesTopN& SpectrumMatchesTopN);
 */
 
   protected:
@@ -187,7 +150,7 @@ namespace OpenMS
     /** @brief places the k-largest elements in the front of the input array. Inside of the k-largest elements and outside the elements are not sorted
      * Brazenly stolen from sage.
      */
-    void trimHits(InitHits& init_hits);
+    void trimHits(SpectrumMatchesTopN& init_hits);
 
   };
 }

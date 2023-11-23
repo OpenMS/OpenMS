@@ -6,9 +6,9 @@
 // $Authors:  $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/PeptideSearchEngineAlgorithm.h>
-
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
+#include <OpenMS/ANALYSIS/ID/PeptideSearchEngineAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/FragmentIndexScorer.h>
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -77,6 +77,10 @@ namespace OpenMS
 
     defaults_.setValue("fragment:mass_tolerance_unit", "ppm", "Unit of fragment m");
     defaults_.setValidStrings("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
+
+
+    defaults_.setValue("fragment:min_mz", 150, "Minimal fragment mz for database");
+    defaults_.setValue("fragment:max_mz", 2000, "Maximal fragment mz for database");    
 
     defaults_.setSectionDescription("fragment", "Fragments (Product Ion) Options");
 
@@ -166,6 +170,11 @@ namespace OpenMS
 
     decoys_ = param_.getValue("decoys") == "true";
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
+
+    auto p = fragment_index_.getParameters();
+    p.setValue("fragment_min_mz", param_.getValue("fragment:min_mz"));
+    p.setValue("fragment_max_mz", param_.getValue("fragment:max_mz"));
+    fragment_index_.setParameters(p);
   }
 
   // static
@@ -235,7 +244,7 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       const String& enzyme,
       const String& database_name) const
   {
-    // remove all but top n scoring
+    // remove all but top n scoring TODO: use two parameters to distinguish between number of reported peptides and number of pre-scored peptides
 #pragma omp parallel for default(none) shared(annotated_hits, top_hits)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
@@ -283,26 +292,15 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         {
           PeptideHit ph;
           ph.setCharge(charge);
-
-          // get unmodified string
-          AASequence aas = AASequence::fromString(ah.sequence.getString());
-
-          // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
-          vector<AASequence> all_modified_peptides;
-          ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, aas);
-          ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, max_variable_mods_per_peptide, all_modified_peptides);
-
-          // reannotate much more memory heavy AASequence object
-          AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index]; 
           ph.setScore(ah.score);
-          ph.setSequence(fixed_and_variable_modified_peptide);
+          ph.setSequence(ah.sequence);
 
           if (annotation_fragment_error_ppm)
           {
             TheoreticalSpectrumGenerator tsg;
             vector<pair<Size, Size> > alignment;
             MSSpectrum theoretical_spec;
-            tsg.getSpectrum(theoretical_spec, fixed_and_variable_modified_peptide, 1, std::min((int)charge - 1, 2));
+            tsg.getSpectrum(theoretical_spec, ah.sequence, 1, std::min((int)charge - 1, 2));
             SpectrumAlignment sa;
             sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
 
@@ -319,7 +317,7 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
           if (annotation_precursor_error_ppm)
           {
-            double theo_mz = fixed_and_variable_modified_peptide.getMZ(charge);
+            double theo_mz = ah.sequence.getMZ(charge);
             double ppm_difference = Math::getPPM(mz, theo_mz);
             ph.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, ppm_difference);
           }
@@ -399,18 +397,12 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
   PeptideSearchEngineAlgorithm::ExitCodes PeptideSearchEngineAlgorithm::search(const String& in_mzML, const String& in_db, vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids) const
   {
-    boost::regex peptide_motif_regex(peptide_motif_);
-
     bool precursor_mass_tolerance_unit_ppm = (precursor_mass_tolerance_unit_ == "ppm");
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
-
-    ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
-    ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
 
     // load MS2 map
     PeakMap spectra;
     FileHandler f;
-    //f.setLogType(log_type_);
 
     PeakFileOptions options;
     options.clearMSLevels();
@@ -423,39 +415,6 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
     endProgress();
 
-    // build multimap of precursor mass to scan index
-    multimap<double, Size> multimap_mass_2_scan_index;
-    for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
-    {
-      int scan_index = s_it - spectra.begin();
-      vector<Precursor> precursor = s_it->getPrecursors();
-
-      // there should only one precursor and MS2 should contain at least a few peaks to be considered (e.g. at least for every AA in the peptide)
-      if (precursor.size() == 1 && s_it->size() >= peptide_min_size_)
-      {
-        Size precursor_charge = precursor[0].getCharge();
-
-        if (precursor_charge < precursor_min_charge_ 
-         || precursor_charge > precursor_max_charge_)
-        {
-          continue;
-        }
-
-        double precursor_mz = precursor[0].getMZ();
-
-        // calculate precursor mass (optionally corrected for misassignment) and map it to MS scan index
-        for (int isotope_number : precursor_isotopes_)
-        {
-          double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
-
-          // correct for monoisotopic misassignments of the precursor annotation
-          if (isotope_number != 0) { precursor_mass -= isotope_number * Constants::C13C12_MASSDIFF_U; }
-
-          multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
-        }
-      }
-    }
-
     // create spectrum generator
     TheoreticalSpectrumGenerator spectrum_generator;
     Param param(spectrum_generator.getParameters());
@@ -465,16 +424,7 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
     // preallocate storage for PSMs
     vector<vector<AnnotatedHit_> > annotated_hits(spectra.size(), vector<AnnotatedHit_>());
-    for (auto & a : annotated_hits) { a.reserve(2 * report_top_hits_); }
-
-#ifdef _OPENMP
-    // we want to do locking at the spectrum level so we get good parallelization
-    vector<omp_lock_t> annotated_hits_lock(annotated_hits.size());
-    for (size_t i = 0; i != annotated_hits_lock.size(); i++)
-    { 
-      omp_init_lock(&(annotated_hits_lock[i]));
-    }
-#endif
+    for (auto & a : annotated_hits) { a.reserve(report_top_hits_); }
 
     vector<FASTAFile::FASTAEntry> fasta_db;
     FASTAFile().load(in_db, fasta_db);
@@ -501,156 +451,74 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       shuffler.portable_random_shuffle(fasta_db.begin(), fasta_db.end());
       endProgress();
     }
-    ProteaseDigestion digestor;
-    digestor.setEnzyme(enzyme_);
-    digestor.setMissedCleavages(peptide_missed_cleavages_);
-    startProgress(0, fasta_db.size(), "Scoring peptide models against spectra...");
+    
+    // build fragment index
+    startProgress(0, 1, "Building fragment index...");    
+    FragmentIndexScorer fragment_index_;
+    auto p = fragment_index_.getParameters();
+    p.setValue("max_processed_hits", report_top_hits_);
+    fragment_index_.setParameters(p);
+    fragment_index_.buildDB(fasta_db);
+    endProgress();
 
-    // lookup for processed peptides. must be defined outside of omp section and synchronized
-    set<StringView> processed_petides;
+    startProgress(0, spectra.size(), "Scoring peptide models against spectra...");
+    size_t count_spectra{};
 
-    Size count_proteins(0), count_peptides(0);
-
-#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, spectrum_generator, multimap_mass_2_scan_index, fixed_modifications, variable_modifications, fasta_db, digestor, processed_petides, count_proteins, count_peptides, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, peptide_motif_regex, spectra, annotated_hits_lock)
-      for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
-      {
+#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fragment_index_, spectrum_generator, fasta_db, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, spectra)
+    for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
+    {
 
       #pragma omp atomic
-      ++count_proteins;
+      ++count_spectra;
 
       IF_MASTERTHREAD
       {
-        setProgress(count_proteins);
+        setProgress(count_spectra);
       }
 
-      vector<StringView> current_digest;
-      digestor.digestUnmodified(fasta_db[fasta_index].sequence, current_digest, peptide_min_size_, peptide_max_size_);
+      const MSSpectrum& exp_spectrum = spectra[scan_index];
+      FragmentIndexScorer::SpectrumMatchesTopN top_sms;
+      fragment_index_.querySpectrum(exp_spectrum, top_sms); // TODO: expose top N as argument here and use report_top_hits_
 
-      for (auto const & c : current_digest)
-      { 
-        const String current_peptide = c.getString();
-        if (current_peptide.find_first_of("XBZ") != std::string::npos)
-        {
-          continue;
+      for (const auto& sms : top_sms.hits_)
+      {
+        AASequence candidate = fragment_index_.getDB().getPeptides()[sms.peptide_idx_].sequence;
+
+        // create theoretical spectrum
+        PeakSpectrum theo_spectrum;
+
+        // add peaks for b and y ions with charge 1
+        spectrum_generator.getSpectrum(theo_spectrum, candidate, 1, 1);
+
+        // sort by mz
+        theo_spectrum.sortByPosition();
+
+        // const int& charge = exp_spectrum.getPrecursors()[0].getCharge();
+        HyperScore::PSMDetail detail;
+        const double& score = HyperScore::computeWithDetail(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
+
+        if (score == 0)
+        { 
+          continue; // no hit?
         }
 
-        // if a peptide motif is provided skip all peptides without match
-        if (!peptide_motif_.empty() && !boost::regex_match(current_peptide, peptide_motif_regex))
-        {
-          continue;
-        }          
-      
-        bool already_processed = false;
-        #pragma omp critical (processed_peptides_access)
-        {
-          // peptide (and all modified variants) already processed so skip it
-          if (processed_petides.find(c) != processed_petides.end())
-          {
-            already_processed = true;
-          }
-          else
-          {
-            processed_petides.insert(c);
-          }
-        }
+        // add peptide hit
+        AnnotatedHit_ ah;
+        ah.sequence = std::move(candidate);
+        ah.score = score;
+        double seq_length = (double)ah.sequence.size();
+        ah.prefix_fraction = (double)detail.matched_b_ions/seq_length;
+        ah.suffix_fraction = (double)detail.matched_y_ions/seq_length;
+        ah.mean_error = detail.mean_error;
 
-        // skip peptides that have already been processed
-        if (already_processed) { continue; }
-
-        #pragma omp atomic
-        ++count_peptides;
-
-        vector<AASequence> all_modified_peptides;
-
-        // this critical section is because ResidueDB is not thread safe and new residues are created based on the PTMs
-        #pragma omp critical (residuedb_access)
-        {
-          AASequence aas = AASequence::fromString(current_peptide);
-          ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, aas);
-          ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, modifications_max_variable_mods_per_peptide_, all_modified_peptides);
-        }
-
-        for (SignedSize mod_pep_idx = 0; mod_pep_idx < (SignedSize)all_modified_peptides.size(); ++mod_pep_idx)
-        {
-          const AASequence& candidate = all_modified_peptides[mod_pep_idx];
-          double current_peptide_mass = candidate.getMonoWeight();
-
-          // determine MS2 precursors that match to the current peptide mass
-          multimap<double, Size>::const_iterator low_it;
-          multimap<double, Size>::const_iterator up_it;
-
-          if (precursor_mass_tolerance_unit_ppm) // ppm
-          {
-            low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - current_peptide_mass * precursor_mass_tolerance_ * 1e-6);
-            up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + current_peptide_mass * precursor_mass_tolerance_ * 1e-6);
-          }
-          else // Dalton
-          {
-            low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - precursor_mass_tolerance_);
-            up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + precursor_mass_tolerance_);
-          }
-
-          // no matching precursor in data
-          if (low_it == up_it)
-          { 
-            continue;
-          }
-
-          // create theoretical spectrum
-          PeakSpectrum theo_spectrum;
-
-          // add peaks for b and y ions with charge 1
-          spectrum_generator.getSpectrum(theo_spectrum, candidate, 1, 1);
-
-          // sort by mz
-          theo_spectrum.sortByPosition();
-
-          for (; low_it != up_it; ++low_it)
-          {
-            const Size& scan_index = low_it->second;
-            const PeakSpectrum& exp_spectrum = spectra[scan_index];
-            // const int& charge = exp_spectrum.getPrecursors()[0].getCharge();
-            HyperScore::PSMDetail detail;
-            const double& score = HyperScore::computeWithDetail(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
-
-            if (score == 0)
-            { 
-              continue; // no hit?
-            }
-            // add peptide hit
-            AnnotatedHit_ ah;
-            ah.sequence = c;
-            ah.peptide_mod_index = mod_pep_idx;
-            ah.score = score;
-            ah.prefix_fraction = (double)detail.matched_b_ions/(double)c.size();
-            ah.suffix_fraction = (double)detail.matched_y_ions/(double)c.size();
-            ah.mean_error = detail.mean_error;
-
-#ifdef _OPENMP
-            omp_set_lock(&(annotated_hits_lock[scan_index]));
-            {
-#endif
-              annotated_hits[scan_index].push_back(ah);
-
-              // prevent vector from growing indefinitely (memory) but don't shrink the vector every time
-              if (annotated_hits[scan_index].size() >= 2 * report_top_hits_)
-              {
-                std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + report_top_hits_, annotated_hits[scan_index].end(), AnnotatedHit_::hasBetterScore);
-                annotated_hits[scan_index].resize(report_top_hits_); 
-              }
-#ifdef _OPENMP
-            }
-            omp_unset_lock(&(annotated_hits_lock[scan_index]));
-#endif
-          }
-        }
+        annotated_hits[scan_index].push_back(std::move(ah)); 
       }
     }
+
     endProgress();
 
-    OPENMS_LOG_INFO << "Proteins: " << count_proteins << endl;
-    OPENMS_LOG_INFO << "Peptides: " << count_peptides << endl;
-    OPENMS_LOG_INFO << "Processed peptides: " << processed_petides.size() << endl;
+    ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
+    ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
 
     startProgress(0, 1, "Post-processing PSMs...");
     PeptideSearchEngineAlgorithm::postProcessHits_(spectra, 
@@ -705,15 +573,7 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       {
         return ExitCodes::UNKNOWN_ERROR;
       }
-    } 
-
-#ifdef _OPENMP
-    // free locks
-    for (size_t i = 0; i != annotated_hits_lock.size(); i++) 
-    {
-      omp_destroy_lock(&(annotated_hits_lock[i]));
     }
-#endif
 
     return ExitCodes::EXECUTION_OK;
   }

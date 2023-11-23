@@ -262,8 +262,7 @@ namespace OpenMS
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
 
-    vector<string> tolerance_units{"DA", "PPM"};
-    defaults_.setValue("experiment_type","false", "Bottom Up (true) or TopDown (false)");
+    vector<string> tolerance_units{"DA", "PPM"}; // TODO: check if same string in other OpenMS files
     defaults_.setValue("digestor_enzyme", "Trypsin", "Enzyme for digestion");
     defaults_.setValidStrings("digestor_enzyme", ListUtils::create<std::string>(all_enzymes));
     defaults_.setValue("missed_cleavages", 0, "Missed cleavages for digestion");
