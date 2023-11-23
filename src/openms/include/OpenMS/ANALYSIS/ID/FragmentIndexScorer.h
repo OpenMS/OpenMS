@@ -1,11 +1,16 @@
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
-// Created by trapho on 10/12/23.
-//
+// --------------------------------------------------------------------------
+// $Maintainer:  $
+// $Authors:  $
+// --------------------------------------------------------------------------
+
 
 #pragma once
 
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
-#include <OpenMS/ANALYSIS/ID/TagGenerator.h>
+#include <OpenMS/ANALYSIS/ID/FragmentIndexTagGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/FASTAFile.h>

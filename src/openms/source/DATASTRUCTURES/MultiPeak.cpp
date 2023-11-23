@@ -1,5 +1,5 @@
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
-#include <OpenMS/ANALYSIS/ID/TagGeneratorNode.h>
+#include <OpenMS/ANALYSIS/ID/FragmentIndexTagGeneratorNode.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/MultiPeak.h>

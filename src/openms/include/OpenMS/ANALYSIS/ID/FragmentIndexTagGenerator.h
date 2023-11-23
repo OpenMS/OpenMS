@@ -1,6 +1,11 @@
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
-// Created by trapho on 10/20/23.
-//
+// --------------------------------------------------------------------------
+// $Maintainer:  $
+// $Authors:  $
+// --------------------------------------------------------------------------
+
 #pragma once
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -8,7 +13,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/ANALYSIS/ID/TagGeneratorNode.h>
+#include <OpenMS/ANALYSIS/ID/FragmentIndexTagGeneratorNode.h>
 #include <OpenMS/DATASTRUCTURES/MultiPeak.h>
 #include <OpenMS/DATASTRUCTURES/MultiFragment.h>
 

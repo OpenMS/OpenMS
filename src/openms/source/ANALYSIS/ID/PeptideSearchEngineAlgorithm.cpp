@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Maintainer:  $
+// $Authors:  $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/PeptideSearchEngineAlgorithm.h>
