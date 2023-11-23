@@ -760,7 +760,7 @@ jobs:
           echo "Upload"
           if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
             folder=nightlyGHA
-          elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
+          elif [[ "${{ env.RUN_NAME }}" =~ release/* ]]; then
             tmpfolder=${{ env.RUN_NAME }}
             folder=${tmpfolder/release/RC}GHA
           else
