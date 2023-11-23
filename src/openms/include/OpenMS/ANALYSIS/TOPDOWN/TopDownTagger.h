@@ -8,12 +8,13 @@
 
 #pragma once
 
+#include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
+#include <boost/dynamic_bitset.hpp>
 #include <iomanip>
 #include <iostream>
-#include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/Residue.h>
-#include <boost/dynamic_bitset.hpp>
 
 namespace OpenMS
 {
@@ -40,10 +41,12 @@ namespace OpenMS
     /// assignment operator
     TopDownTagger& operator=(const TopDownTagger& other);
 
-    ///Find sequence tags from @p mzs and @p intensities then store them in @p tags.
+    /// Find sequence tags from @p mzs and @p intensities then store them in @p tags.
     void run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm, std::vector<FLASHDeconvHelperStructs::Tag>& tags, const std::function<int(int, int)>& edge_score);
     void run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm, std::vector<FLASHDeconvHelperStructs::Tag>& tags);
     void run(const DeconvolvedSpectrum& dspec, double ppm, std::vector<FLASHDeconvHelperStructs::Tag>& tags);
+    std::vector<std::pair<FASTAFile::FASTAEntry, std::vector<FLASHDeconvHelperStructs::Tag>>> runMatching(const std::vector<FLASHDeconvHelperStructs::Tag>& tags,
+                                                                                                          const std::vector<FASTAFile::FASTAEntry>& fasta_entry) const;
 
 
   protected:
@@ -54,7 +57,7 @@ namespace OpenMS
   private:
     class DAC_;
 
-    void constructDAC_(TopDownTagger::DAC_& dac, const std::vector<double>& mzs, const std::vector<int>& scores, int z, double tol);
+    void constructDAC_(TopDownTagger::DAC_& dac, const std::vector<double>& mzs, const std::vector<int>& scores, int z, int length, double tol);
     std::vector<Residue> getAA_(double l, double r, double tol, int z) const;
     std::vector<std::vector<Residue>> getGap_(double l, double r, double tol, int z) const;
     void updateEdgeMasses_();
@@ -75,13 +78,15 @@ namespace OpenMS
 
     int allowed_isotope_error_ = 0;
     int max_tag_count_ = 0;
-    int tag_length_ = 0;
+    int min_tag_length_ = 0;
+    int max_tag_length_ = 0;
     int max_aa_in_gap_ = 0;
     int max_gap_count_ = 0;
     int max_path_score_ = 0;
     int min_path_score_ = 0;
 
     double max_edge_mass_ = 0;
+    double flanking_mass_tol_ = 200.0;
     int min_charge_ = 0;
     int max_charge_ = 0;
   };

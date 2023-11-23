@@ -14,6 +14,7 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/Qvalue.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/TopDownIsobaricQuantifier.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #ifdef _OPENMP
   #include <omp.h>
@@ -132,19 +133,18 @@ namespace OpenMS
 
   void FLASHDeconvAlgorithm::filterLowPeaks_(MSExperiment& map, Size count)
   {
+    ThresholdMower threshold_mower_filter; //threshold
+    Param t_filter_param = threshold_mower_filter.getParameters(); //"threshold", .00001
+    t_filter_param.setValue("threshold", 1e-6);
+    threshold_mower_filter.setParameters(t_filter_param);
+    threshold_mower_filter.filterPeakMap(map);
+
     for (auto& it : map)
     {
       double threshold;
-
       if (it.getType(false) == SpectrumSettings::CENTROID)
       {
-        Size non_zero_count = 0;
-        for (auto& p : it)
-        {
-          if (p.getIntensity() > 0)
-            non_zero_count++;
-        }
-        if (non_zero_count <= count && non_zero_count == it.size()) // no zero intensity peaks and not too many peaks then go.
+        if (it.size() <= count) // no zero intensity peaks and not too many peaks then go.
         {
           continue;
         }
@@ -152,7 +152,7 @@ namespace OpenMS
       it.sortByIntensity(true);
       threshold = it.getType(false) == SpectrumSettings::CENTROID && it.size() >= count ? it[count].getIntensity() : 0;
       threshold = std::max(threshold, (double)it.begin()->getIntensity() / 1000);
-
+      threshold_mower_filter.filterSpectrum(it);
       // pop back the low intensity peaks using threshold
       while (!it.empty() && it.back().getIntensity() <= threshold)
       {

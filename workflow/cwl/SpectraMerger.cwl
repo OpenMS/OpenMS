@@ -51,12 +51,6 @@ inputs:
   algorithm__average_gaussian__cutoff:
     doc: Intensity cutoff for Gaussian. The Gaussian RT profile decreases from 1 at its apex to 0 at infinity. Spectra for which the intensity of the Gaussian drops below the cutoff do not contribute to the average.
     type: double?
-  algorithm__average_gaussian__precursor_mass_tol:
-    doc: PPM mass tolerance for precursor mass. If set, MSn (n>2) spectra of precursor masses within the tolerance are averaged.
-    type: double?
-  algorithm__average_gaussian__precursor_max_charge:
-    doc: Possible maximum precursor ion charge. Effective only when average_gaussian:precursor_mass_tol option is active.
-    type: long?
   algorithm__average_tophat__spectrum_type:
     doc: Spectrum type of the MS level to be averaged
     type: string?
@@ -80,9 +74,6 @@ inputs:
     type: double?
   algorithm__precursor_method__mz_tolerance:
     doc: Max m/z distance of the precursor entries of two spectra to be merged in [Da].
-    type: double?
-  algorithm__precursor_method__mass_tolerance:
-    doc: Max mass distance of the precursor entries of two spectra to be merged in [Da]. Active when set to a positive value.
     type: double?
   algorithm__precursor_method__rt_tolerance:
     doc: Max RT distance of the precursor entries of two spectra to be merged in [s].

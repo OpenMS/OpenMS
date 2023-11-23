@@ -11,8 +11,8 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #ifdef USE_TAGGER
   #include <OpenMS/ANALYSIS/TOPDOWN/TopDownTagger.h>
-  #include <OpenMS/FORMAT/FASTAFile.h>
   #include <OpenMS/CHEMISTRY/AASequence.h>
+  #include <OpenMS/FORMAT/FASTAFile.h>
 #endif
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
@@ -188,9 +188,13 @@ protected:
       auto tagger_param = TopDownTagger().getDefaults();
       tagger_param.remove("min_charge");
       tagger_param.remove("max_charge");
+      tagger_param.setValue("min_matched_aa", 0, "Minimum number of amino acids in matched proteins, covered by tags.");
 
       tagger_param.setValue("fasta", "", "Target protein sequence database against which tags will be matched.");
-      tagger_param.setValue("franking_mass_tol", 1000.0, "Flanking mass tolerance in Da.");
+      tagger_param.addTag("fasta", "input file");
+      tagger_param.setValue("out", "", "Tagger output file.");
+      tagger_param.addTag("out", "output file");
+
       return tagger_param;
     }
 #endif
@@ -323,60 +327,63 @@ protected:
       OPENMS_LOG_INFO << "Finding sequence tags from deconvolved spectra ..." << endl;
 
       String fastaname = tagger_param.getValue("fasta").toString();
-      double franking_mass_tol =  tagger_param.getValue("franking_mass_tol");
+      String out_tagger = tagger_param.getValue("out").toString();
+      int min_cov_aa = (int)tagger_param.getValue("min_matched_aa");
+
       tagger_param.remove("fasta");
-      tagger_param.remove("franking_mass_tol");
+      tagger_param.remove("out");
+      tagger_param.remove("min_matched_aa");
       tagger.setParameters(tagger_param);
 
       std::vector<FASTAFile::FASTAEntry> fasta_entry;
       FASTAFile ffile;
       ffile.load(fastaname, fasta_entry);
+      fstream out_tagger_stream = fstream(out_tagger, fstream::out);
+      out_tagger_stream << "Scan\tProteinIndex\tTagIndex\tProteinAccession\tProteinDescription\tMatchedAminoAcidCount\tCoverage\tTagSequence\tNmass\tCmass\tScore\tCharge\tLength\tmzs\n";
 
       std::vector<FLASHDeconvHelperStructs::Tag> tags;
-      for (auto& deconvolved_spectrum : deconvolved_spectra)
+      for (const auto& deconvolved_spectrum : deconvolved_spectra)
       {
         tagger.run(deconvolved_spectrum, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1], tags);
-        std::cout << "Total tag count: " << tags.size() << std::endl;
-        int fcntr = 1;
+        auto matches = tagger.runMatching(tags, fasta_entry);
+        if (matches.empty())
+          continue;
 
-        for (auto& fe : fasta_entry)
+        int protein_index = 1;
+
+        for (const auto& match : matches)
         {
-          auto seq = fe.sequence;
-          int cntr = 1;
-          for (auto& tag : tags)
+          int tag_index = 1;
+
+          auto matched_fasta_entry = match.first;
+          std::set<Size> matched_aa;
+          for (const auto& matched_tag : match.second)
           {
-            bool matched = !seq.empty() && seq.hasSubstring(tag.getSequence().toUpper());
-
-            if (matched)
-            {
-              auto pos = seq.find(tag.getSequence().toUpper());
-              if (tag.getNtermMass() > 0)
-              {
-                auto nterm = seq.substr(0, pos);
-                double aamass = nterm.empty()? 0 : AASequence::fromString(nterm).getMonoWeight();
-                if (std::abs(tag.getNtermMass() - aamass) > franking_mass_tol)
-                  matched = false;
-              }
-              if (matched && tag.getCtermMass() > 0)
-              {
-                auto cterm = seq.substr(pos + tag.getSequence().length());
-                double aamass = cterm.empty()? 0 : AASequence::fromString(cterm).getMonoWeight();
-                if (std::abs(tag.getCtermMass() - aamass) > franking_mass_tol)
-                  matched = false;
-              }
-            }
-
-            if (matched)
-            {
-              if (cntr == 1)
-              {
-                std::cout <<fcntr++ << " " << fe.identifier << " " <<fe.description << "\n";
-              }
-              std::cout << "\t" << cntr++ << " " << tag.toString() << "\n";
-            }
+            auto tagseq = matched_tag.getSequence();
+            auto start_pos = matched_fasta_entry.sequence.find(tagseq);
+            for (Size t = 0; t < tagseq.length(); t++)
+              matched_aa.insert(start_pos + t);
           }
+          if (matched_aa.size() < min_cov_aa)
+            continue;
+
+          for (const auto& matched_tag : match.second)
+          {
+            out_tagger_stream << deconvolved_spectrum.getScanNumber() << "\t" << protein_index << "\t" << tag_index++ << "\t" << matched_fasta_entry.identifier << "\t"
+                              << matched_fasta_entry.description << "\t" << matched_aa.size() << "\t" << (double)matched_aa.size() / matched_fasta_entry.sequence.length() << "\t"
+                              << matched_tag.getSequence() << "\t" << matched_tag.getNtermMass() << "\t" << matched_tag.getCtermMass() << "\t" << matched_tag.getScore() << "\t" << matched_tag.getCharge()<< "\t" << matched_tag.getLength()<< "\t";
+
+            for (const auto& mz : matched_tag.getMzs())
+            {
+              out_tagger_stream << mz <<",";
+            }
+            out_tagger_stream <<"\n";
+          }
+          protein_index++;
         }
       }
+
+      out_tagger_stream.close();
     }
 #endif
     OPENMS_LOG_INFO << "FLASHDeconv run complete. Now writing the results in output files ..." << endl;

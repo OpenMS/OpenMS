@@ -225,8 +225,10 @@ namespace OpenMS
       double getNtermMass() const;
       double getCtermMass() const;
       int getCharge() const;
+      Size getLength() const;
       double getScore() const;
       String toString() const;
+      const std::vector<double>& getMzs() const;
 
     private:
       String seq_;
@@ -234,6 +236,7 @@ namespace OpenMS
       int charge_;
       double score_;
       std::vector<double> mzs_;
+      Size length_;
     };
 
     /**

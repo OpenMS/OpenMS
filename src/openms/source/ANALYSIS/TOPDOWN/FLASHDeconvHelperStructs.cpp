@@ -221,13 +221,23 @@ namespace OpenMS
     return quantities.empty();
   }
   FLASHDeconvHelperStructs::Tag::Tag(String seq, double n_mass, double c_mass, int charge, double score, std::vector<double>& mzs) : seq_(std::move(seq)), n_mass_(n_mass), c_mass_(c_mass),
-      charge_(charge), score_(score), mzs_(mzs)
+      charge_(charge), score_(score), mzs_(mzs), length_(mzs.size() - 1)
   {
   }
 
   String FLASHDeconvHelperStructs::Tag::getSequence() const
   {
     return seq_;
+  }
+
+  Size FLASHDeconvHelperStructs::Tag::getLength() const
+  {
+    return length_;
+  }
+
+  const std::vector<double>& FLASHDeconvHelperStructs::Tag::getMzs() const
+  {
+    return mzs_;
   }
 
   double FLASHDeconvHelperStructs::Tag::getNtermMass() const
