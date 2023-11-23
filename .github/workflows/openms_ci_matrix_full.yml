@@ -549,10 +549,9 @@ jobs:
           bodyFile: RELEASE_TEXT_GH.md
           tag: 2.9.1-test #${{ steps.extract_branch.outputs.RUN_NAME }}
           draft: true
+          artifactErrorsFailBuild: true
           artifacts:
-            ${{ github.workspace }}/*.exe
-            ${{ github.workspace }}/*.deb
-            ${{ github.workspace }}/*.pkg
+            ${{ github.workspace }}/*.exe, ${{ github.workspace }}/*.deb, ${{ github.workspace }}/*.pkg
             # TODO add src
 
       - name: Download Documentation
@@ -778,7 +777,8 @@ jobs:
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"
-      
+
+
   do-release:
     if: inputs.do_release
     runs-on: ubuntu-latest
