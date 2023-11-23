@@ -33,6 +33,7 @@ IDScoreSwitcherAlgorithm.h
 IonIdentityMolecularNetworking.h
 MessagePasserFactory.h
 MetaboliteSpectralMatching.h
+PeptideSearchEngineAlgorithm.h
 PeptideProteinResolution.h
 PrecursorPurity.h
 ProtonDistributionModel.h

@@ -28,6 +28,7 @@ FileFilter
 FileInfo
 FileMerger
 FLASHDeconv
+FLASHIdent
 GenericWrapper
 GNPSExport
 HighResPrecursorMassCorrector
@@ -70,6 +71,7 @@ OpenSwathRTNormalizer
 PeakPickerHiRes
 PeakPickerWavelet
 PeptideIndexer
+PeptideSearchEngine
 PercolatorAdapter
 PhosphoScoring
 PrecursorMassCorrector

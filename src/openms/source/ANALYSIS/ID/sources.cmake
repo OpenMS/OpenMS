@@ -34,6 +34,7 @@ IonIdentityMolecularNetworking.cpp
 MessagePasserFactory.cpp
 MetaboliteSpectralMatching.cpp
 PeptideProteinResolution.cpp
+PeptideSearchEngineAlgorithm.cpp
 PrecursorPurity.cpp
 ProtonDistributionModel.cpp
 PeptideIndexing.cpp
