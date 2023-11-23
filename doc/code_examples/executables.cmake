@@ -8,6 +8,7 @@ set(executables_list
 FragmentIndex_tests
 FragmentIndex3D_test
 TagGenerator_tests
+compare_closed_vs_open
 Tutorial_AASequence
 Tutorial_Clustering
 Tutorial_DPosition
