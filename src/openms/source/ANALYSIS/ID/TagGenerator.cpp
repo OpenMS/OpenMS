@@ -1,10 +1,9 @@
 //
 // Created by trapho on 10/23/23.
 //
+#include <OpenMS/ANALYSIS/ID/FragmentIndexScorer.h>
 #include <OpenMS/ANALYSIS/ID/TagGenerator.h>
-#include <OpenMS/ANALYSIS/ID/FragmentIndexTDScorer.h>
 #include <OpenMS/ANALYSIS/ID/TagGeneratorNode.h>
-
 #include <OpenMS/CHEMISTRY/AAIndex.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
@@ -16,6 +15,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/MultiPeak.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
@@ -24,8 +24,6 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/QC/QCBase.h>
-#include <OpenMS/DATASTRUCTURES/MultiPeak.h>
-
 #include <functional>
 
 
@@ -78,7 +76,7 @@ namespace OpenMS
       idx_count++;
     }
     //we can use the same heap structure as in the scoring to get the top k hits
-    FragmentIndexTDScorer fitds;
+    FragmentIndexScorer fitds;
     fitds.buildKMinHeapforTag(idx_intensity, n);
 
     for(auto iai = idx_intensity.begin();iai != idx_intensity.end() && iai != idx_intensity.begin() + n; iai++){
@@ -122,7 +120,7 @@ namespace OpenMS
       }
       peak_counter++;
     }
-    sort(dag_.begin(), dag_.end(), [](shared_ptr<TagGeneratorNode> a, shared_ptr<TagGeneratorNode> b){
+    sort(dag_.begin(), dag_.end(), [](const shared_ptr<TagGeneratorNode>& a, const shared_ptr<TagGeneratorNode>& b){
       return a->calculateMass() < b->calculateMass();
     });
   }

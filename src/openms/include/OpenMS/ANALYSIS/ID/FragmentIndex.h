@@ -46,9 +46,13 @@ namespace OpenMS
     /// Default destructor
     ~FragmentIndex() override = default;
 
+    /// assignment operator
+    virtual FragmentIndex& operator=(const FragmentIndex& fi);
+
     //getter
     std::vector<AASequence> getFiPeptidesSequences() const;
     bool isBuild() const;
+    bool containsFragmentation(const std::string& fragmentation) const;
 
     const std::vector<Peptide>& getFiPeptides() const;
 
@@ -140,6 +144,15 @@ namespace OpenMS
 
   protected:
 
+    //since we work with TheoreticalSpectrumGenerator, we must transfer some of those member variables
+    bool add_b_ions_;
+    bool add_y_ions_;
+    bool add_a_ions_;
+    bool add_c_ions_;
+    bool add_x_ions_;
+    bool add_z_ions_;
+
+    // SpectrumGenerator independend member variables
     bool exp_type_;   ///< Bottom-up or Top-Down
     std::string digestion_enzyme_;
     size_t missed_cleavages_; ///< number of missed cleavages

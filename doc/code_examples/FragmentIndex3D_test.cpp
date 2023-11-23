@@ -1,26 +1,25 @@
 //
 // Created by trapho on 10/31/23.
 //
+#include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
+#include <OpenMS/ANALYSIS/ID/FragmentIndex3D.h>
+#include <OpenMS/ANALYSIS/ID/FragmentIndexScorer.h>
+#include <OpenMS/ANALYSIS/ID/TagGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <iostream>
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
-#include <OpenMS/ANALYSIS/ID/FragmentIndexTD.h>
-#include <OpenMS/ANALYSIS/ID/FragmentIndexTDScorer.h>
-#include <OpenMS/ANALYSIS/ID/FragmentIndex3D.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/DATASTRUCTURES/MultiFragment.h>
+#include <OpenMS/DATASTRUCTURES/MultiPeak.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/DATASTRUCTURES/MultiPeak.h>
-#include <OpenMS/DATASTRUCTURES/MultiFragment.h>
-
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/ANALYSIS/ID/TagGenerator.h>
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <iostream>
 
 using namespace OpenMS;
 using namespace std;
@@ -62,11 +61,11 @@ int main()
   sdb.build(entries);
 
   auto range = sdb.getPeptideRange(prec.getMZ(), {0,0});
-  vector<FragmentIndexTD::Hit> hits;
+  vector<FragmentIndex::Hit> hits;
   sdb.query(hits, mPeaks[10], range, {0,0});
 
 
-  for(FragmentIndexTD::Hit hit: hits){
+  for(FragmentIndex::Hit hit: hits){
     cout << hit.peptide_idx << endl;
     cout << sdb.getFiPeptides().at(hit.peptide_idx).protein_idx << endl;
   }
@@ -90,6 +89,7 @@ int main()
   PeakMap map;
   reader.load("/home/trapho/test/OpenMS/doc/code_examples/data/Targeted_carbonic_anhydrase_CID12pt5V_deconv.mzML", map);
   MSSpectrum spectrum_exp = map.getSpectrum(0);
+
   //Comp data
   TheoreticalSpectrumGenerator tsg;
   PeakSpectrum b_y_ions;
@@ -104,8 +104,8 @@ int main()
     spec.push_back(p);
   }
 
-  FragmentIndexTDScorer::InitHits hits;
-  FragmentIndexTDScorer scorer;
+  FragmentIndexScorer::InitHits hits;
+  FragmentIndexScorer scorer;
   scorer.setDB(&sdb2);
   scorer.simpleScoring(spectrum_exp, hits);
   scorer.multiDimScoring(spectrum_exp, hits);

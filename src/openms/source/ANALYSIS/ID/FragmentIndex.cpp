@@ -32,6 +32,17 @@ using namespace std;
 namespace OpenMS
 {
 
+  FragmentIndex& FragmentIndex::operator=(const OpenMS::FragmentIndex& fi)
+  {
+    DefaultParamHandler::operator=(fi);
+    this->fi_fragments_ = fi.fi_fragments_;
+    this->fi_peptides_ = fi.fi_peptides_;
+    this->bucket_min_mz_ = fi.bucket_min_mz_;
+    this->bucketsize_ = fi.bucketsize_;
+    this->is_build_ = fi.is_build_;
+    return *this;
+  }
+
   void FragmentIndex::addSpecialPeptide( OpenMS::AASequence& peptide, Size source_idx)
 
   {
@@ -43,6 +54,14 @@ namespace OpenMS
   {
     fi_fragments_.clear();
     fi_peptides_.clear();
+  }
+
+  bool FragmentIndex::containsFragmentation(const string& fragmentation) const
+  {
+    if(fragmentation == "a_x" ) return (add_a_ions_ && add_x_ions_);
+    if(fragmentation == "b_y" ) return (add_b_ions_ && add_y_ions_);
+    if(fragmentation == "c_z" ) return (add_c_ions_ && add_z_ions_);
+    return false;
   }
 
   void FragmentIndex::generate_peptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
@@ -112,7 +131,16 @@ namespace OpenMS
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
+
+      // get the spectrum generator and set the ion-types
       TheoreticalSpectrumGenerator tsg;
+      auto tsg_params = tsg.getParameters();
+      tsg_params.setValue("add_a_ions", add_a_ions_);
+      tsg_params.setValue("add_b_ions", add_b_ions_);
+      tsg_params.setValue("add_c_ions", add_c_ions_);
+      tsg_params.setValue("add_x_ions", add_x_ions_);
+      tsg_params.setValue("add_y_ions", add_y_ions_);
+      tsg_params.setValue("add_z_ions", add_z_ions_);
       PeakSpectrum b_y_ions;
       std::vector<Fragment> all_frags;
       /// generate all Peptides
@@ -120,7 +148,7 @@ namespace OpenMS
 
       size_t peptide_idx = 0;
       /// For each Peptides get all theoretical b and y ions // TODO: include other fragmentation methods
-      for (Peptide pep: fi_peptides_){
+      for (const Peptide& pep: fi_peptides_){
         tsg.getSpectrum(b_y_ions, pep.sequence, 1, 1);
         for (Peak1D frag : b_y_ions){
           if (fragment_min_mz_ > frag.getMZ() && frag.getMZ() > fragment_max_mz_  ) continue;
@@ -247,7 +275,23 @@ namespace OpenMS
 
   FragmentIndex::FragmentIndex() : DefaultParamHandler("FragmentIndex")
   {
+      defaults_.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
+      defaults_.setValidStrings("add_y_ions", {"true","false"});
 
+      defaults_.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
+      defaults_.setValidStrings("add_b_ions", {"true","false"});
+
+      defaults_.setValue("add_a_ions", "false", "Add peaks of a-ions to the spectrum");
+      defaults_.setValidStrings("add_a_ions", {"true","false"});
+
+      defaults_.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
+      defaults_.setValidStrings("add_c_ions", {"true","false"});
+
+      defaults_.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
+      defaults_.setValidStrings("add_x_ions", {"true","false"});
+
+      defaults_.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
+      defaults_.setValidStrings("add_z_ions", {"true","false"});
 
     vector<String> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
@@ -282,6 +326,12 @@ namespace OpenMS
 
   void FragmentIndex::updateMembers_()
   {
+    add_b_ions_ = param_.getValue("add_b_ions").toBool();
+    add_y_ions_ = param_.getValue("add_y_ions").toBool();
+    add_a_ions_ = param_.getValue("add_a_ions").toBool();
+    add_c_ions_ = param_.getValue("add_c_ions").toBool();
+    add_x_ions_ = param_.getValue("add_x_ions").toBool();
+    add_z_ions_ = param_.getValue("add_z_ions").toBool();
     exp_type_ = param_.getValue("experiment_type").toBool();
     digestion_enzyme_ = param_.getValue("digestor_enzyme").toString();
     missed_cleavages_ = param_.getValue("missed_cleavages");
