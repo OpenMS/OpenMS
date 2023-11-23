@@ -799,7 +799,7 @@ jobs:
             octokit.rest.git.createRef({
               owner: context.repo.owner,
               repo: 'OpenMS-docs',
-              ref: ${{ steps.extract_branch.outputs.RUN_NAME }},
+              ref: ${{ env.RUN_NAME }},
               sha: latest_ref,
             });
 
@@ -811,7 +811,7 @@ jobs:
             octokit.rest.git.createRef({
               owner: context.repo.owner,
               repo: 'Tutorials',
-              ref: ${{ steps.extract_branch.outputs.RUN_NAME }},
+              ref: ${{ env.RUN_NAME }},
               sha: latest_ref,
             });
 
@@ -823,7 +823,7 @@ jobs:
             octokit.rest.git.createRef({
               owner: context.repo.owner,
               repo: 'pyopenms-docs',
-              ref: ${{ steps.extract_branch.outputs.RUN_NAME }},
+              ref: ${{ env.RUN_NAME }},
               sha: latest_ref,
             });
 
@@ -835,7 +835,7 @@ jobs:
             octokit.rest.git.createRef({
               owner: context.repo.owner,
               repo: 'THIRDPARTY',
-              ref: ${{ steps.extract_branch.outputs.RUN_NAME }},
+              ref: ${{ env.RUN_NAME }},
               sha: latest_ref,
             });
               
@@ -847,7 +847,7 @@ jobs:
             octokit.rest.git.createRef({
               owner: 'genericworkflownodes',
               repo: 'GenericKnimeNodes',
-              ref: ${{ steps.extract_branch.outputs.RUN_NAME }},
+              ref: ${{ env.RUN_NAME }},
               sha: latest_ref,
             });
 
@@ -859,7 +859,7 @@ jobs:
             octokit.rest.git.createRef({
               owner: 'genericworkflownodes',
               repo: 'de.openms.knime.dynamicJSViewers',
-              ref: ${{ steps.extract_branch.outputs.RUN_NAME }},
+              ref: ${{ env.RUN_NAME }},
               sha: latest_ref,
             });
 
@@ -871,7 +871,7 @@ jobs:
             octokit.rest.git.createRef({
               owner: 'genericworkflownodes',
               repo: 'buildresources',
-              ref: ${{ steps.extract_branch.outputs.RUN_NAME }},
+              ref: ${{ env.RUN_NAME }},
               sha: latest_ref,
             });
 
@@ -883,7 +883,7 @@ jobs:
             octokit.rest.git.createRef({
               owner: context.repo.owner,
               repo: 'de.openms.knime',
-              ref: ${{ steps.extract_branch.outputs.RUN_NAME }},
+              ref: ${{ env.RUN_NAME }},
               sha: latest_ref,
             });
 
