@@ -8,7 +8,7 @@
 
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 namespace OpenMS
 {
@@ -37,11 +37,11 @@ namespace OpenMS
   {
     meta_ms_experiment_ = boost::shared_ptr< PeakMap >(new PeakMap);
 
-    MzMLFile f;
+    FileHandler f;
     PeakFileOptions options = f.getOptions();
     options.setFillData(false);
     f.setOptions(options);
-    f.load(filename, *meta_ms_experiment_.get());
+    f.loadExperiment(filename, *meta_ms_experiment_.get(), {FileTypes::MZML});
   }
 
   MSChromatogram OnDiscMSExperiment::getMetaChromatogramById_(const std::string& id)

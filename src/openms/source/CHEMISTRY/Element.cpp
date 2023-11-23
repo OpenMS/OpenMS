@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 //
 
-#include "OpenMS/KERNEL/Peak1D.h"
+#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 
 #include <ostream>

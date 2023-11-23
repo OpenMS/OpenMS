@@ -80,11 +80,11 @@ namespace OpenMS
       const String& header = h.first;
       const Size& i = h.second;
       boost::smatch m;
-      if (boost::regex_search(header, m, boost::regex("TransitionGroupPicker:(?!PeakPickerMRM:)(.+)")))
+      if (boost::regex_search(header, m, boost::regex("TransitionGroupPicker:(?!PeakPickerChromatogram:)(.+)")))
       {
         setCastValue_(String(m[1]), line[i], cgp.params);
       }
-      else if (boost::regex_search(header, m, boost::regex("TransitionGroupPicker:PeakPickerMRM:(.+)")))
+      else if (boost::regex_search(header, m, boost::regex("TransitionGroupPicker:PeakPickerChromatogram:(.+)")))
       {
         setCastValue_(String(m[1]), line[i], cp.params);
       }

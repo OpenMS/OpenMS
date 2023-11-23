@@ -19,7 +19,7 @@ namespace OpenMS
 {
 
   /**
-    @brief ParentPeakMower gets rid of high peaks that could stem from unfragmented precursor ions
+    @brief Removes high peaks that could stem from unfragmented precursor ions
 
     @htmlinclude OpenMS_ParentPeakMower.parameters
 

@@ -55,8 +55,8 @@ def main(options):
     pp = pyopenms.MRMTransitionGroupPicker()
 
     pp_params = pp.getDefaults();
-    pp_params.setValue("PeakPickerMRM:remove_overlapping_peaks", options.remove_overlapping_peaks, '')
-    pp_params.setValue("PeakPickerMRM:method", options.method, '')
+    pp_params.setValue("PeakPickerChromatogram:remove_overlapping_peaks", options.remove_overlapping_peaks, '')
+    pp_params.setValue("PeakPickerChromatogram:method", options.method, '')
     pp.setParameters(pp_params);
 
     chromatograms = pyopenms.MSExperiment()

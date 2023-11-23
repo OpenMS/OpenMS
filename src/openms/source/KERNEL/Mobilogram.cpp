@@ -6,7 +6,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/KERNEL/Peak1D.h"
+#include <OpenMS/KERNEL/Peak1D.h>
 
 #include <OpenMS/KERNEL/Mobilogram.h>
 

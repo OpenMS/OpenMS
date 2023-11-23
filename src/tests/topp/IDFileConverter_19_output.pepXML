@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd" summary_xml=".xml">
-<msms_run_summary base_name="IDFileConverter_19_output" raw_data_type="raw" raw_data=".mzML" search_engine="Percolator">
+<msms_run_summary base_name="IDFileConverter_19_output_tmp" raw_data_type="raw" raw_data=".mzML" search_engine="Percolator">
 	<sample_enzyme name="unknown_enzyme">
 		<specificity cut="" sense="C"/>
 	</sample_enzyme>
-	<search_summary base_name="IDFileConverter_19_output" search_engine="Percolator" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
+	<search_summary base_name="IDFileConverter_19_output_tmp" search_engine="Percolator" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
 		<search_database local_path="" type="AA"/>
-		<aminoacid_modification aminoacid="N" massdiff="0.984016" mass="115.0269441595" variable="Y" binary="N" description="Deamidated (N)"/>
+		<aminoacid_modification aminoacid="N" massdiff="0.984016" mass="115.026944159500005" variable="Y" binary="N" description="Deamidated (N)"/>
 		<aminoacid_modification aminoacid="Q" massdiff="0.984016" mass="129.0425942233" variable="Y" binary="N" description="Deamidated (Q)"/>
-		<aminoacid_modification aminoacid="M" massdiff="15.994915" mass="147.0354000171" variable="Y" binary="N" description="Oxidation (M)"/>
-		<terminal_modification terminus="n" massdiff="42.010565" mass="0" variable="Y" description="Acetyl (N-term)" protein_terminus=""/>
-		<terminal_modification terminus="n" massdiff="57.021464" mass="0" variable="Y" description="Carbamidomethyl (N-term)" protein_terminus=""/>
+		<aminoacid_modification aminoacid="M" massdiff="15.994915000000001" mass="147.035400017099988" variable="Y" binary="N" description="Oxidation (M)"/>
+		<terminal_modification terminus="n" massdiff="42.010565" mass="0.0" variable="Y" description="Acetyl (N-term)" protein_terminus=""/>
+		<terminal_modification terminus="n" massdiff="57.021464000000002" mass="0.0" variable="Y" description="Carbamidomethyl (N-term)" protein_terminus=""/>
 	</search_summary>
-	<spectrum_query spectrum="IDFileConverter_19_output.1.1.2" start_scan="1" end_scan="1" precursor_neutral_mass="2184.0407156255" assumed_charge="2" index="0" retention_time_sec="2187.96" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.1.1.2" start_scan="1" end_scan="1" precursor_neutral_mass="2184.040715625500525" assumed_charge="2" index="0" retention_time_sec="2187.96" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="SLAGSSGPGASSGTSGDHGELVVR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E9PI39" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2184.0407156255" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="SLAGSSGPGASSGTSGDHGELVVR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E9PI39" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2184.040715625500525" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_E9PIZ1" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_E9PK01" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_E9PL12" num_tol_term="1"/>
@@ -52,9 +52,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.2.2.2" start_scan="2" end_scan="2" precursor_neutral_mass="1662.8100906366" assumed_charge="2" index="1" retention_time_sec="2605.29" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.2.2.2" start_scan="2" end_scan="2" precursor_neutral_mass="1662.810090636600307" assumed_charge="2" index="1" retention_time_sec="2605.29" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="AAAFEEQENETVVVK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q5TCU6" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1662.8100906366" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="AAAFEEQENETVVVK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q5TCU6" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1662.810090636600307" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q9Y490" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000314888_9_35697791-35725694_-1" num_tol_term="1"/>
 			<search_score name="Percolator_score" value="9.36298"/>
@@ -66,9 +66,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.3.3.2" start_scan="3" end_scan="3" precursor_neutral_mass="1536.7671624452" assumed_charge="2" index="2" retention_time_sec="3320.48" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.3.3.2" start_scan="3" end_scan="3" precursor_neutral_mass="1536.767162445200256" assumed_charge="2" index="2" retention_time_sec="3320.48" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="FALQDLSVEETSAK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B2RCS5" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1536.7671624452" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="FALQDLSVEETSAK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B2RCS5" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1536.767162445200256" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_G3V2E8" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_G3V2N5" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_G3V2W4" num_tol_term="1"/>
@@ -106,9 +106,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.4.4.2" start_scan="4" end_scan="4" precursor_neutral_mass="1429.7776664133" assumed_charge="2" index="3" retention_time_sec="3127.2" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.4.4.2" start_scan="4" end_scan="4" precursor_neutral_mass="1429.777666413299812" assumed_charge="2" index="3" retention_time_sec="3127.2" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LDSLSAQLSQLQK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P02545" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1429.7776664133" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LDSLSAQLSQLQK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P02545" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1429.777666413299812" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P02545-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P02545-3" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P02545-4" num_tol_term="1"/>
@@ -132,9 +132,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.5.5.2" start_scan="5" end_scan="5" precursor_neutral_mass="1551.7198950795" assumed_charge="2" index="4" retention_time_sec="1943.52" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.5.5.2" start_scan="5" end_scan="5" precursor_neutral_mass="1551.719895079500248" assumed_charge="2" index="4" retention_time_sec="1943.52" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="TSTTSSMVASAEQPR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E7EMN6" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1551.7198950795" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="TSTTSSMVASAEQPR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E7EMN6" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1551.719895079500248" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_E7EUI7" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P41236" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q6NXS1" num_tol_term="1"/>
@@ -150,9 +150,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.6.6.2" start_scan="6" end_scan="6" precursor_neutral_mass="1263.6492936967" assumed_charge="2" index="5" retention_time_sec="2685.51" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.6.6.2" start_scan="6" end_scan="6" precursor_neutral_mass="1263.649293696699942" assumed_charge="2" index="5" retention_time_sec="2685.51" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="STSGGTAALGCLVK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P01857" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1263.6492936967" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="STSGGTAALGCLVK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P01857" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1263.649293696699942" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P01860" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000390542_14_105741473-105743071_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000390548_14_105737762-105743071_-1" num_tol_term="1"/>
@@ -175,9 +175,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.7.7.2" start_scan="7" end_scan="7" precursor_neutral_mass="1624.8056735728" assumed_charge="2" index="6" retention_time_sec="2244.71" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.7.7.2" start_scan="7" end_scan="7" precursor_neutral_mass="1624.80567357280006" assumed_charge="2" index="6" retention_time_sec="2244.71" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="DALQNPNDLQLQEK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_C9IYV6" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1624.8056735728" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="DALQNPNDLQLQEK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_C9IYV6" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1624.80567357280006" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_C9JPE5" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q9H0Q0" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000381323_2_16552936-16588119_-1" num_tol_term="1"/>
@@ -193,9 +193,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.8.8.2" start_scan="8" end_scan="8" precursor_neutral_mass="1785.8169676685" assumed_charge="2" index="7" retention_time_sec="2874.06" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.8.8.2" start_scan="8" end_scan="8" precursor_neutral_mass="1785.816967668500411" assumed_charge="2" index="7" retention_time_sec="2874.06" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="NKDQGTYEDYVEGLR" peptide_prev_aa="X" peptide_next_aa="X" protein="Augustus2_AUGUSTUS00000061902_12_56160654-56153919_1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1785.8169676685" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="NKDQGTYEDYVEGLR" peptide_prev_aa="X" peptide_next_aa="X" protein="Augustus2_AUGUSTUS00000061902_12_56160654-56153919_1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1785.816967668500411" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_B7Z6Z4" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_F8VPF3" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_F8VZU9" num_tol_term="1"/>
@@ -228,9 +228,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.9.9.3" start_scan="9" end_scan="9" precursor_neutral_mass="1209.6353577753" assumed_charge="3" index="8" retention_time_sec="2506.81" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.9.9.3" start_scan="9" end_scan="9" precursor_neutral_mass="1209.635357775300008" assumed_charge="3" index="8" retention_time_sec="2506.81" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="TANDAVELHLK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q9P2B2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1209.6353577753" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="TANDAVELHLK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q9P2B2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1209.635357775300008" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="genCDS_ENST00000393203_1_116910204-116986967_1" num_tol_term="1"/>
 			<search_score name="Percolator_score" value="7.03952"/>
 			<search_score name="Percolator_qvalue" value="0"/>
@@ -241,9 +241,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.10.10.2" start_scan="10" end_scan="10" precursor_neutral_mass="1575.7814323347" assumed_charge="2" index="9" retention_time_sec="3010.12" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.10.10.2" start_scan="10" end_scan="10" precursor_neutral_mass="1575.781432334700185" assumed_charge="2" index="9" retention_time_sec="3010.12" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="EGCTVSPETLSLNVK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E5KLJ5" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1575.7814323347" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="EGCTVSPETLSLNVK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E5KLJ5" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1575.781432334700185" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_E5KLJ6" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_E5KLJ9" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_E5KLK1" num_tol_term="1"/>
@@ -264,9 +264,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.11.11.2" start_scan="11" end_scan="11" precursor_neutral_mass="1253.6364207753" assumed_charge="2" index="10" retention_time_sec="1646.41" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.11.11.2" start_scan="11" end_scan="11" precursor_neutral_mass="1253.636420775300167" assumed_charge="2" index="10" retention_time_sec="1646.41" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LEPGGGAEAQAVR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q14315" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1253.6364207753" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LEPGGGAEAQAVR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q14315" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1253.636420775300167" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q14315-2" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000325888_7_128830638-128858523_1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000346177_7_128830638-128858523_1" num_tol_term="1"/>
@@ -279,9 +279,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.12.12.2" start_scan="12" end_scan="12" precursor_neutral_mass="1441.7412812857" assumed_charge="2" index="11" retention_time_sec="2878.99" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.12.12.2" start_scan="12" end_scan="12" precursor_neutral_mass="1441.741281285700097" assumed_charge="2" index="11" retention_time_sec="2878.99" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="EAGAGGLSLAVEGPSK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E7EN95" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1441.7412812857" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="EAGAGGLSLAVEGPSK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E7EN95" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1441.741281285700097" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_O75369" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_O75369-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_O75369-3" num_tol_term="1"/>
@@ -307,9 +307,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.13.13.3" start_scan="13" end_scan="13" precursor_neutral_mass="1854.8483288918" assumed_charge="3" index="12" retention_time_sec="2152.13" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.13.13.3" start_scan="13" end_scan="13" precursor_neutral_mass="1854.84832889180052" assumed_charge="3" index="12" retention_time_sec="2152.13" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="SEETKENEGFTVTAEGK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_M0QYC8" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1854.8483288918" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="SEETKENEGFTVTAEGK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_M0QYC8" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1854.84832889180052" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P01024" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000245907_19_6677882-6720589_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000596548_19_6680159-6685038_-1" num_tol_term="1"/>
@@ -322,15 +322,15 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.14.14.3" start_scan="14" end_scan="14" precursor_neutral_mass="2612.2606066463" assumed_charge="3" index="13" retention_time_sec="2726.33" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.14.14.3" start_scan="14" end_scan="14" precursor_neutral_mass="2612.260606646300403" assumed_charge="3" index="13" retention_time_sec="2726.33" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="SEAEEALTSFNGHKPPGSSEPLTVK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B4DVB8" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2612.2606066463" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="SEAEEALTSFNGHKPPGSSEPLTVK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B4DVB8" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2612.260606646300403" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q15717" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000351593_19_7963483-7991815_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000407627_19_7963483-7991815_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000596459_19_7963483-7991815_-1" num_tol_term="1"/>
 			<modification_info modified_peptide="SEAEEALTSFN[115]GHKPPGSSEPLTVK">
-				<mod_aminoacid_mass position="11" mass="115.0269441595"/>
+				<mod_aminoacid_mass position="11" mass="115.02694415949999"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="5.99128"/>
 			<search_score name="Percolator_qvalue" value="0"/>
@@ -341,16 +341,16 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.15.15.2" start_scan="15" end_scan="15" precursor_neutral_mass="1430.7187709838" assumed_charge="2" index="14" retention_time_sec="2072.32" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.15.15.2" start_scan="15" end_scan="15" precursor_neutral_mass="1430.718770983800141" assumed_charge="2" index="14" retention_time_sec="2072.32" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="VASSPVMVSNPATR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_A6NEM2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1430.7187709838" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="VASSPVMVSNPATR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_A6NEM2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1430.718770983800141" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P51610" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P51610-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P51610-4" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000310441_X_153949347-153970840_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000369984_X_153949347-153970840_-1" num_tol_term="1"/>
 			<modification_info modified_peptide="VASSPVM[147]VSNPATR">
-				<mod_aminoacid_mass position="7" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="7" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="5.83486"/>
 			<search_score name="Percolator_qvalue" value="0"/>
@@ -361,9 +361,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.16.16.2" start_scan="16" end_scan="16" precursor_neutral_mass="1313.7343431581" assumed_charge="2" index="15" retention_time_sec="3407.52" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.16.16.2" start_scan="16" end_scan="16" precursor_neutral_mass="1313.734343158099819" assumed_charge="2" index="15" retention_time_sec="3407.52" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="EHALLAYTLGVK" peptide_prev_aa="X" peptide_next_aa="X" protein="Augustus2_AUGUSTUS00000028250_3_184026960-184027756_-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1313.7343431581" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="EHALLAYTLGVK" peptide_prev_aa="X" peptide_next_aa="X" protein="Augustus2_AUGUSTUS00000028250_3_184026960-184027756_-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1313.734343158099819" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P68104" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q05639" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q5VTE0" num_tol_term="1"/>
@@ -396,9 +396,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.17.17.2" start_scan="17" end_scan="17" precursor_neutral_mass="1542.6773008562" assumed_charge="2" index="16" retention_time_sec="1845.25" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.17.17.2" start_scan="17" end_scan="17" precursor_neutral_mass="1542.677300856200191" assumed_charge="2" index="16" retention_time_sec="1845.25" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="FYEQMNGPVAGASR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E9PI39" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1542.6773008562" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="FYEQMNGPVAGASR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E9PI39" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1542.677300856200191" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_E9PIZ1" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_E9PK01" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_E9PK06" num_tol_term="1"/>
@@ -448,8 +448,8 @@
 		<alternative_protein protein="genpseudogene_ENST00000433698_9_92836826-92837668_-1_1_ORF1" num_tol_term="1"/>
 		<alternative_protein protein="yalePseudo_PGOHUM00000236264_9_95599111-95599989_-1_1_ORF1" num_tol_term="1"/>
 			<modification_info modified_peptide="FYEQM[147]N[115]GPVAGASR">
-				<mod_aminoacid_mass position="5" mass="147.0354000171"/>
-				<mod_aminoacid_mass position="6" mass="115.0269441595"/>
+				<mod_aminoacid_mass position="5" mass="147.03540001709996"/>
+				<mod_aminoacid_mass position="6" mass="115.02694415949999"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="5.59137"/>
 			<search_score name="Percolator_qvalue" value="0"/>
@@ -460,9 +460,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.18.18.2" start_scan="18" end_scan="18" precursor_neutral_mass="1278.645588871" assumed_charge="2" index="17" retention_time_sec="1950.76" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.18.18.2" start_scan="18" end_scan="18" precursor_neutral_mass="1278.645588870999973" assumed_charge="2" index="17" retention_time_sec="1950.76" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="YLAEVAAGDDKK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B0AZS6" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1278.645588871" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="YLAEVAAGDDKK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B0AZS6" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1278.645588870999973" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_B7Z2E6" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_E7EX29" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_H0YB80" num_tol_term="1"/>
@@ -492,9 +492,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.19.19.2" start_scan="19" end_scan="19" precursor_neutral_mass="1203.6897008243" assumed_charge="2" index="18" retention_time_sec="3098.02" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.19.19.2" start_scan="19" end_scan="19" precursor_neutral_mass="1203.689700824299962" assumed_charge="2" index="18" retention_time_sec="3098.02" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="TLMALGSLAVTK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_H0YCU9" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1203.6897008243" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="TLMALGSLAVTK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_H0YCU9" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1203.689700824299962" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q01995" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000278968_11_117203014-117204359_1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000392951_11_117203014-117204359_1" num_tol_term="1"/>
@@ -511,9 +511,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.20.20.3" start_scan="20" end_scan="20" precursor_neutral_mass="2173.0327755936" assumed_charge="3" index="19" retention_time_sec="3439.5" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.20.20.3" start_scan="20" end_scan="20" precursor_neutral_mass="2173.032775593600491" assumed_charge="3" index="19" retention_time_sec="3439.5" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LEWLESHQDADLEDFKAK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P11021" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2173.0327755936" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LEWLESHQDADLEDFKAK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P11021" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2173.032775593600491" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="genCDS_ENST00000324460_9_125236592-125241126_-1" num_tol_term="1"/>
 			<search_score name="Percolator_score" value="5.26056"/>
 			<search_score name="Percolator_qvalue" value="0"/>
@@ -524,9 +524,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.21.21.2" start_scan="21" end_scan="21" precursor_neutral_mass="1155.6499448391" assumed_charge="2" index="20" retention_time_sec="2603.98" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.21.21.2" start_scan="21" end_scan="21" precursor_neutral_mass="1155.649944839100044" assumed_charge="2" index="20" retention_time_sec="2603.98" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="VKGDVDVSLPK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q09666" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1155.6499448391" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="VKGDVDVSLPK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q09666" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1155.649944839100044" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="genCDS_ENST00000378024_11_62516744-62536098_-1" num_tol_term="1"/>
 			<search_score name="Percolator_score" value="5.23568"/>
 			<search_score name="Percolator_qvalue" value="0"/>
@@ -537,9 +537,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.22.22.2" start_scan="22" end_scan="22" precursor_neutral_mass="1550.9144338918" assumed_charge="2" index="21" retention_time_sec="3500.05" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.22.22.2" start_scan="22" end_scan="22" precursor_neutral_mass="1550.914433891800172" assumed_charge="2" index="21" retention_time_sec="3500.05" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LVQVALNGLENLLR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_F5GYL8" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1550.9144338918" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LVQVALNGLENLLR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_F5GYL8" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1550.914433891800172" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_F5H4G7" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_H0Y3K0" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_O15131" num_tol_term="1"/>
@@ -559,9 +559,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.23.23.2" start_scan="23" end_scan="23" precursor_neutral_mass="1340.6347509348" assumed_charge="2" index="22" retention_time_sec="2044.34" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.23.23.2" start_scan="23" end_scan="23" precursor_neutral_mass="1340.634750934800195" assumed_charge="2" index="22" retention_time_sec="2044.34" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="YELEETETVTK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_C9J813" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1340.6347509348" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="YELEETETVTK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_C9J813" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1340.634750934800195" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_E7EX44" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_E9PGZ1" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_F5H1Z9" num_tol_term="1"/>
@@ -589,9 +589,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.24.24.4" start_scan="24" end_scan="24" precursor_neutral_mass="1448.7888383176" assumed_charge="4" index="23" retention_time_sec="2784.99" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.24.24.4" start_scan="24" end_scan="24" precursor_neutral_mass="1448.788838317600039" assumed_charge="4" index="23" retention_time_sec="2784.99" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="VVAGVANALAHKYH" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P02042" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1448.7888383176" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="VVAGVANALAHKYH" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P02042" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1448.788838317600039" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P68871" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000335295_11_5225598-5227021_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000380299_11_5232964-5234433_-1" num_tol_term="1"/>
@@ -604,9 +604,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.25.25.2" start_scan="25" end_scan="25" precursor_neutral_mass="1401.6008257753" assumed_charge="2" index="24" retention_time_sec="912.458" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.25.25.2" start_scan="25" end_scan="25" precursor_neutral_mass="1401.600825775299882" assumed_charge="2" index="24" retention_time_sec="912.458" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="SDESDQQESLHK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_G3V5E5" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1401.6008257753" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="SDESDQQESLHK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_G3V5E5" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1401.600825775299882" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_H0YJJ8" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P49770" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000266126_14_75002991-75009188_1" num_tol_term="1"/>
@@ -621,9 +621,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.26.26.2" start_scan="26" end_scan="26" precursor_neutral_mass="1043.5975145839" assumed_charge="2" index="25" retention_time_sec="1137.9" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.26.26.2" start_scan="26" end_scan="26" precursor_neutral_mass="1043.597514583899965" assumed_charge="2" index="25" retention_time_sec="1137.9" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="TSTGAPAALKK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B8ZZL6" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1043.5975145839" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="TSTGAPAALKK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B8ZZL6" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1043.597514583899965" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_E7ENU9" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P40121" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P40121-2" num_tol_term="1"/>
@@ -644,11 +644,11 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.27.27.2" start_scan="27" end_scan="27" precursor_neutral_mass="1191.5407893925" assumed_charge="2" index="26" retention_time_sec="2303.32" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.27.27.2" start_scan="27" end_scan="27" precursor_neutral_mass="1191.540789392500074" assumed_charge="2" index="26" retention_time_sec="2303.32" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="EAESSPFVER" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P14625" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1191.5407893925" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="EAESSPFVER" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P14625" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1191.540789392500074" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="genCDS_ENST00000299767_12_103930516-103947662_1" num_tol_term="1"/>
-			<modification_info modified_peptide="n[43]EAESSPFVER" mod_nterm_mass="43.0183900319">
+			<modification_info modified_peptide="n[43]EAESSPFVER" mod_nterm_mass="43.018390031899997">
 			</modification_info>
 			<search_score name="Percolator_score" value="4.29846"/>
 			<search_score name="Percolator_qvalue" value="0"/>
@@ -659,9 +659,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.28.28.2" start_scan="28" end_scan="28" precursor_neutral_mass="1489.7599071433" assumed_charge="2" index="27" retention_time_sec="2835.91" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.28.28.2" start_scan="28" end_scan="28" precursor_neutral_mass="1489.75990714329987" assumed_charge="2" index="27" retention_time_sec="2835.91" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="NQYVTLHDMLLK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B3KQ25" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1489.7599071433" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="NQYVTLHDMLLK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B3KQ25" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1489.75990714329987" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_K7ESG5" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P61289" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P61289-2" num_tol_term="1"/>
@@ -673,7 +673,7 @@
 		<alternative_protein protein="genCDS_ENST00000592169_17_42833632-42841578_1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000622892_17_42833632-42841578_1" num_tol_term="1"/>
 			<modification_info modified_peptide="NQYVTLHDM[147]LLK">
-				<mod_aminoacid_mass position="9" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="9" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="4.24758"/>
 			<search_score name="Percolator_qvalue" value="0"/>
@@ -684,9 +684,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.29.29.3" start_scan="29" end_scan="29" precursor_neutral_mass="1594.8678787642" assumed_charge="3" index="28" retention_time_sec="2532.44" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.29.29.3" start_scan="29" end_scan="29" precursor_neutral_mass="1594.867878764200214" assumed_charge="3" index="28" retention_time_sec="2532.44" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="GLHQSTLDLKNELK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q14258" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1594.8678787642" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="GLHQSTLDLKNELK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q14258" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1594.867878764200214" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="genCDS_ENST00000316881_17_56891700-56913988_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000537230_17_56891700-56913988_-1" num_tol_term="1"/>
 			<search_score name="Percolator_score" value="4.23343"/>
@@ -698,9 +698,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.30.30.2" start_scan="30" end_scan="30" precursor_neutral_mass="2285.169209104" assumed_charge="2" index="29" retention_time_sec="3304.6" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.30.30.2" start_scan="30" end_scan="30" precursor_neutral_mass="2285.169209104000402" assumed_charge="2" index="29" retention_time_sec="3304.6" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="YTPVQQGPVGVNVTYGGDPLPK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P21333" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2285.169209104" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="YTPVQQGPVGVNVTYGGDPLPK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P21333" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2285.169209104000402" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P21333-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q5HY54" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000344736_X_154348849-154371245_-1" num_tol_term="1"/>
@@ -718,9 +718,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.31.31.3" start_scan="31" end_scan="31" precursor_neutral_mass="1755.8315547323" assumed_charge="3" index="30" retention_time_sec="2698.67" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.31.31.3" start_scan="31" end_scan="31" precursor_neutral_mass="1755.831554732300447" assumed_charge="3" index="30" retention_time_sec="2698.67" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="SPFEVYVDKSQGDASK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_F8WE98" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1755.8315547323" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="SPFEVYVDKSQGDASK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_F8WE98" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1755.831554732300447" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P21333" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P21333-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q5HY54" num_tol_term="1"/>
@@ -740,9 +740,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.32.32.2" start_scan="32" end_scan="32" precursor_neutral_mass="904.4688078992" assumed_charge="2" index="31" retention_time_sec="1930.62" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.32.32.2" start_scan="32" end_scan="32" precursor_neutral_mass="904.468807899199874" assumed_charge="2" index="31" retention_time_sec="1930.62" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="ATDVMLAGK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P23526" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="904.4688078992" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="ATDVMLAGK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P23526" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="904.468807899199874" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P23526-2" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000217426_20_34281034-34303270_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000538132_20_34281034-34295529_-1" num_tol_term="1"/>
@@ -755,9 +755,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.33.33.3" start_scan="33" end_scan="33" precursor_neutral_mass="1264.6451938072" assumed_charge="3" index="32" retention_time_sec="3442.78" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.33.33.3" start_scan="33" end_scan="33" precursor_neutral_mass="1264.64519380720003" assumed_charge="3" index="32" retention_time_sec="3442.78" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="TEFSLLHYAGK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P35749" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1264.6451938072" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="TEFSLLHYAGK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P35749" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1264.64519380720003" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P35749-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P35749-3" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P35749-4" num_tol_term="1"/>
@@ -776,9 +776,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.34.34.3" start_scan="34" end_scan="34" precursor_neutral_mass="1514.805278509" assumed_charge="3" index="33" retention_time_sec="2944.82" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.34.34.3" start_scan="34" end_scan="34" precursor_neutral_mass="1514.805278509000118" assumed_charge="3" index="33" retention_time_sec="2944.82" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="TLRDLEVVEGSAAR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q15746" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1514.805278509" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="TLRDLEVVEGSAAR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q15746" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1514.805278509000118" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q15746-10" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q15746-11" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q15746-2" num_tol_term="1"/>
@@ -807,9 +807,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.35.35.2" start_scan="35" end_scan="35" precursor_neutral_mass="1137.5138009949" assumed_charge="2" index="34" retention_time_sec="1630.22" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.35.35.2" start_scan="35" end_scan="35" precursor_neutral_mass="1137.513800994899839" assumed_charge="2" index="34" retention_time_sec="1630.22" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="WCALSHHER" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_J3KN47" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1137.5138009949" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="WCALSHHER" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_J3KN47" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1137.513800994899839" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P02787" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000402696_3_133746441-133778620_1" num_tol_term="1"/>
 			<search_score name="Percolator_score" value="3.62415"/>
@@ -821,9 +821,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.36.36.2" start_scan="36" end_scan="36" precursor_neutral_mass="1226.6692997286" assumed_charge="2" index="35" retention_time_sec="3247.74" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.36.36.2" start_scan="36" end_scan="36" precursor_neutral_mass="1226.669299728599981" assumed_charge="2" index="35" retention_time_sec="3247.74" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="EVMLLLTGAHK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B7Z3X4" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1226.6692997286" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="EVMLLLTGAHK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B7Z3X4" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1226.669299728599981" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_D6R9P4" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_D6RFF8" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_E7EVU7" num_tol_term="1"/>
@@ -846,7 +846,7 @@
 		<alternative_protein protein="genCDS_ENST00000513454_5_141991865-142012035_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000609092_4_44682339-44711023_-1" num_tol_term="1"/>
 			<modification_info modified_peptide="EVM[147]LLLTGAHK">
-				<mod_aminoacid_mass position="3" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="3" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="3.44948"/>
 			<search_score name="Percolator_qvalue" value="0"/>
@@ -857,9 +857,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.37.37.2" start_scan="37" end_scan="37" precursor_neutral_mass="959.5552543287" assumed_charge="2" index="36" retention_time_sec="3493.94" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.37.37.2" start_scan="37" end_scan="37" precursor_neutral_mass="959.555254328700016" assumed_charge="2" index="36" retention_time_sec="3493.94" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="FQNALLVR" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_P02768-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="959.5552543287" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="FQNALLVR" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_P02768-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="959.555254328700016" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_B7WNR0" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_C9JKR2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_D6RHD5" num_tol_term="1"/>
@@ -883,9 +883,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.38.38.3" start_scan="38" end_scan="38" precursor_neutral_mass="1416.6885170624" assumed_charge="3" index="37" retention_time_sec="1715.59" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.38.38.3" start_scan="38" end_scan="38" precursor_neutral_mass="1416.688517062399797" assumed_charge="3" index="37" retention_time_sec="1715.59" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="DLSTNYYASQKK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_H0YIV0" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1416.6885170624" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="DLSTNYYASQKK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_H0YIV0" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1416.688517062399797" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P14625" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000299767_12_103930516-103947662_1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000550595_12_103943796-103953394_1" num_tol_term="1"/>
@@ -898,11 +898,11 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.39.39.2" start_scan="39" end_scan="39" precursor_neutral_mass="1921.9051319089" assumed_charge="2" index="38" retention_time_sec="2525.59" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.39.39.2" start_scan="39" end_scan="39" precursor_neutral_mass="1921.905131908900103" assumed_charge="2" index="38" retention_time_sec="2525.59" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="DLQMTQSPSSLSVSVGDR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P01605" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1921.9051319089" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="DLQMTQSPSSLSVSVGDR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P01605" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1921.905131908900103" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 			<modification_info modified_peptide="DLQM[147]TQSPSSLSVSVGDR">
-				<mod_aminoacid_mass position="4" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="4" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="3.3544"/>
 			<search_score name="Percolator_qvalue" value="0"/>
@@ -913,9 +913,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.40.40.2" start_scan="40" end_scan="40" precursor_neutral_mass="1048.5090331692" assumed_charge="2" index="39" retention_time_sec="2586.03" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.40.40.2" start_scan="40" end_scan="40" precursor_neutral_mass="1048.509033169200166" assumed_charge="2" index="39" retention_time_sec="2586.03" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="HTNFVEFR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_M0QYZ2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1048.5090331692" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="HTNFVEFR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_M0QYZ2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1048.509033169200166" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_M0QZ21" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_M0R0N4" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P53680" num_tol_term="1"/>
@@ -932,9 +932,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.41.41.2" start_scan="41" end_scan="41" precursor_neutral_mass="1264.75032719" assumed_charge="2" index="40" retention_time_sec="3300.56" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.41.41.2" start_scan="41" end_scan="41" precursor_neutral_mass="1264.75032718999978" assumed_charge="2" index="40" retention_time_sec="3300.56" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="VVLAPQDVVVAR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q13308" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1264.75032719" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="VVLAPQDVVVAR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q13308" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1264.75032718999978" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q13308-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q13308-3" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q13308-4" num_tol_term="1"/>
@@ -957,9 +957,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.42.42.3" start_scan="42" end_scan="42" precursor_neutral_mass="2018.1524349445" assumed_charge="3" index="41" retention_time_sec="3106.63" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.42.42.3" start_scan="42" end_scan="42" precursor_neutral_mass="2018.152434944500101" assumed_charge="3" index="41" retention_time_sec="3106.63" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LKPEDLTQLQPQQLVLR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_C9JPK5" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2018.1524349445" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LKPEDLTQLQPQQLVLR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_C9JPK5" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2018.152434944500101" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_E7EQW5" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_E7ERX5" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_E7EUI6" num_tol_term="1"/>
@@ -988,9 +988,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.43.43.2" start_scan="43" end_scan="43" precursor_neutral_mass="928.5341852968" assumed_charge="2" index="42" retention_time_sec="1931.52" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.43.43.2" start_scan="43" end_scan="43" precursor_neutral_mass="928.534185296799933" assumed_charge="2" index="42" retention_time_sec="1931.52" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="QVNLTVQK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_H3BPZ1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="928.5341852968" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="QVNLTVQK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_H3BPZ1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="928.534185296799933" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_H3BS72" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q9P035" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000261875_15_65530632-65576379_1" num_tol_term="1"/>
@@ -1005,9 +1005,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.44.44.2" start_scan="44" end_scan="44" precursor_neutral_mass="1487.7766202071" assumed_charge="2" index="43" retention_time_sec="1335.79" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.44.44.2" start_scan="44" end_scan="44" precursor_neutral_mass="1487.776620207099995" assumed_charge="2" index="43" retention_time_sec="1335.79" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="RKPDTLEVQQMK" peptide_prev_aa="X" peptide_next_aa="X" protein="Augustus2_AUGUSTUS00000009543_5_25910749-25909503_1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1487.7766202071" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="RKPDTLEVQQMK" peptide_prev_aa="X" peptide_next_aa="X" protein="Augustus2_AUGUSTUS00000009543_5_25910749-25909503_1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1487.776620207099995" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_E7EQR4" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P15311" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P26038" num_tol_term="1"/>
@@ -1030,7 +1030,7 @@
 		<alternative_protein protein="genpseudogene_ENST00000511640_5_25909503-25911234_1_3_ORF3" num_tol_term="1"/>
 		<alternative_protein protein="yalePseudo_PGOHUM00000235534_5_25909612-25911337_1_3_ORF3" num_tol_term="1"/>
 			<modification_info modified_peptide="RKPDTLEVQQM[147]K">
-				<mod_aminoacid_mass position="11" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="11" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="2.94029"/>
 			<search_score name="Percolator_qvalue" value="4.11168e-05"/>
@@ -1041,12 +1041,12 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.45.45.2" start_scan="45" end_scan="45" precursor_neutral_mass="1308.5755215372" assumed_charge="2" index="44" retention_time_sec="1964.03" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.45.45.2" start_scan="45" end_scan="45" precursor_neutral_mass="1308.575521537200075" assumed_charge="2" index="44" retention_time_sec="1964.03" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="EVEVEVESMDK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q7KZF4" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1308.5755215372" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="EVEVEVESMDK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q7KZF4" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1308.575521537200075" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="genCDS_ENST00000354725_7_127652374-128092058_1" num_tol_term="1"/>
 			<modification_info modified_peptide="EVEVEVESM[147]DK">
-				<mod_aminoacid_mass position="9" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="9" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="2.93857"/>
 			<search_score name="Percolator_qvalue" value="4.11168e-05"/>
@@ -1057,9 +1057,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.46.46.2" start_scan="46" end_scan="46" precursor_neutral_mass="1290.656821871" assumed_charge="2" index="45" retention_time_sec="2494.06" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.46.46.2" start_scan="46" end_scan="46" precursor_neutral_mass="1290.656821871000148" assumed_charge="2" index="45" retention_time_sec="2494.06" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="AQSLEPYGTGLR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_K7ERU2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1290.656821871" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="AQSLEPYGTGLR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_K7ERU2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1290.656821871000148" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q63ZY3" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q63ZY3-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q63ZY3-3" num_tol_term="1"/>
@@ -1076,9 +1076,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.47.47.2" start_scan="47" end_scan="47" precursor_neutral_mass="1318.5135892182" assumed_charge="2" index="46" retention_time_sec="1490.8" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.47.47.2" start_scan="47" end_scan="47" precursor_neutral_mass="1318.513589218199968" assumed_charge="2" index="46" retention_time_sec="1490.8" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="YTMGDAPDYDR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B9ZVX7" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1318.5135892182" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="YTMGDAPDYDR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B9ZVX7" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1318.513589218199968" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_E7EWW9" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_E9PHN6" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_E9PHN7" num_tol_term="1"/>
@@ -1108,7 +1108,7 @@
 		<alternative_protein protein="genCDS_ENST00000467579_1_109668116-109671486_1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000483399_1_109687874-109689305_1" num_tol_term="1"/>
 			<modification_info modified_peptide="YTM[147]GDAPDYDR">
-				<mod_aminoacid_mass position="3" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="3" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="2.87129"/>
 			<search_score name="Percolator_qvalue" value="4.11168e-05"/>
@@ -1119,9 +1119,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.48.48.2" start_scan="48" end_scan="48" precursor_neutral_mass="1510.6028164586" assumed_charge="2" index="47" retention_time_sec="1266.09" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.48.48.2" start_scan="48" end_scan="48" precursor_neutral_mass="1510.602816458599818" assumed_charge="2" index="47" retention_time_sec="1266.09" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LECDDKGDGSCDVR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P21333" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1510.6028164586" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LECDDKGDGSCDVR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P21333" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1510.602816458599818" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P21333-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q14315" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q14315-2" num_tol_term="1"/>
@@ -1143,9 +1143,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.49.49.3" start_scan="49" end_scan="49" precursor_neutral_mass="1987.9864322427" assumed_charge="3" index="48" retention_time_sec="2273.32" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.49.49.3" start_scan="49" end_scan="49" precursor_neutral_mass="1987.986432242700403" assumed_charge="3" index="48" retention_time_sec="2273.32" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="VNPFRPGDSEPPPAPGAQR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_C9IZ41" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1987.9864322427" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="VNPFRPGDSEPPPAPGAQR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_C9IZ41" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1987.986432242700403" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_H0Y2Y8" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q15942" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000322764_7_143381572-143390682_1" num_tol_term="1"/>
@@ -1160,9 +1160,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.50.50.3" start_scan="50" end_scan="50" precursor_neutral_mass="1657.7518631433" assumed_charge="3" index="49" retention_time_sec="1543.09" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.50.50.3" start_scan="50" end_scan="50" precursor_neutral_mass="1657.751863143299943" assumed_charge="3" index="49" retention_time_sec="1543.09" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="QEPERNECFLQHK" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_P02768-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1657.7518631433" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="QEPERNECFLQHK" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_P02768-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1657.751863143299943" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_H7C013" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P02768" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000295897_4_73404328-73420298_1" num_tol_term="1"/>
@@ -1171,7 +1171,7 @@
 		<alternative_protein protein="genCDS_ENST00000621085_4_73404328-73420298_1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000621628_4_73404328-73420298_1" num_tol_term="1"/>
 			<modification_info modified_peptide="QEPERN[115]ECFLQHK">
-				<mod_aminoacid_mass position="6" mass="115.0269441595"/>
+				<mod_aminoacid_mass position="6" mass="115.02694415949999"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="2.67373"/>
 			<search_score name="Percolator_qvalue" value="5.68587e-05"/>
@@ -1182,9 +1182,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.51.51.2" start_scan="51" end_scan="51" precursor_neutral_mass="1432.70205792" assumed_charge="2" index="50" retention_time_sec="2615.44" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.51.51.2" start_scan="51" end_scan="51" precursor_neutral_mass="1432.702057920000016" assumed_charge="2" index="50" retention_time_sec="2615.44" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="AYGPGLEPTGNMVK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_F8WE98" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1432.70205792" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="AYGPGLEPTGNMVK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_F8WE98" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1432.702057920000016" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P21333" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P21333-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q5HY54" num_tol_term="1"/>
@@ -1204,9 +1204,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.52.52.4" start_scan="52" end_scan="52" precursor_neutral_mass="1697.9100779237" assumed_charge="4" index="51" retention_time_sec="2830.36" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.52.52.4" start_scan="52" end_scan="52" precursor_neutral_mass="1697.910077923699873" assumed_charge="4" index="51" retention_time_sec="2830.36" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="TGVELGKPTHFTVNAK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P21333" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1697.9100779237" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="TGVELGKPTHFTVNAK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P21333" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1697.910077923699873" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P21333-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q5HY54" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000344736_X_154348849-154371245_-1" num_tol_term="1"/>
@@ -1224,9 +1224,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.53.53.3" start_scan="53" end_scan="53" precursor_neutral_mass="1673.7685594133" assumed_charge="3" index="52" retention_time_sec="2461.58" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.53.53.3" start_scan="53" end_scan="53" precursor_neutral_mass="1673.768559413300181" assumed_charge="3" index="52" retention_time_sec="2461.58" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LSPQFPNEEDSFHK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P49770" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1673.7685594133" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LSPQFPNEEDSFHK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P49770" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1673.768559413300181" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="genCDS_ENST00000266126_14_75002991-75009188_1" num_tol_term="1"/>
 			<search_score name="Percolator_score" value="2.52804"/>
 			<search_score name="Percolator_qvalue" value="6.99035e-05"/>
@@ -1237,9 +1237,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.54.54.3" start_scan="54" end_scan="54" precursor_neutral_mass="1754.8475387642" assumed_charge="3" index="53" retention_time_sec="3414.38" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.54.54.3" start_scan="54" end_scan="54" precursor_neutral_mass="1754.847538764199953" assumed_charge="3" index="53" retention_time_sec="3414.38" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="VFDKDGNGYLSAAELR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E7EMB3" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1754.8475387642" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="VFDKDGNGYLSAAELR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E7EMB3" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1754.847538764199953" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_E7ETZ0" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_G3V361" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_H0Y7A7" num_tol_term="1"/>
@@ -1260,7 +1260,7 @@
 		<alternative_protein protein="genCDS_ENST00000598871_19_46608271-46609153_1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000599839_19_46608271-46609153_1" num_tol_term="1"/>
 			<modification_info modified_peptide="VFDKDGN[115]GYLSAAELR">
-				<mod_aminoacid_mass position="7" mass="115.0269441595"/>
+				<mod_aminoacid_mass position="7" mass="115.02694415949999"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="2.48232"/>
 			<search_score name="Percolator_qvalue" value="6.99035e-05"/>
@@ -1271,9 +1271,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.55.55.3" start_scan="55" end_scan="55" precursor_neutral_mass="1231.6924779667" assumed_charge="3" index="54" retention_time_sec="2371.79" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.55.55.3" start_scan="55" end_scan="55" precursor_neutral_mass="1231.692477966699926" assumed_charge="3" index="54" retention_time_sec="2371.79" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="SNFKPSLLAQK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_C9JJ47" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1231.6924779667" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="SNFKPSLLAQK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_C9JJ47" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1231.692477966699926" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_E9PFW3" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q96CW1" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q96CW1-2" num_tol_term="1"/>
@@ -1292,9 +1292,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.56.56.2" start_scan="56" end_scan="56" precursor_neutral_mass="858.4633278354" assumed_charge="2" index="55" retention_time_sec="2030.02" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.56.56.2" start_scan="56" end_scan="56" precursor_neutral_mass="858.463327835399923" assumed_charge="2" index="55" retention_time_sec="2030.02" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LQLPNMK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_G3V281" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="858.4633278354" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LQLPNMK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_G3V281" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="858.463327835399923" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_G3V5R2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_H0YJ34" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q96AC1" num_tol_term="1"/>
@@ -1309,7 +1309,7 @@
 		<alternative_protein protein="genCDS_ENST00000554712_14_52893359-52950568_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000555692_14_52893288-52928044_-1" num_tol_term="1"/>
 			<modification_info modified_peptide="LQLPNM[147]K">
-				<mod_aminoacid_mass position="6" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="6" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="2.43497"/>
 			<search_score name="Percolator_qvalue" value="6.99035e-05"/>
@@ -1320,9 +1320,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.57.57.2" start_scan="57" end_scan="57" precursor_neutral_mass="924.5280372968" assumed_charge="2" index="56" retention_time_sec="2707.23" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.57.57.2" start_scan="57" end_scan="57" precursor_neutral_mass="924.528037296799994" assumed_charge="2" index="56" retention_time_sec="2707.23" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="VPSGLPDLK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P21810" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="924.5280372968" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="VPSGLPDLK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P21810" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="924.528037296799994" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="genCDS_ENST00000331595_X_153504632-153508445_1" num_tol_term="1"/>
 			<search_score name="Percolator_score" value="2.37455"/>
 			<search_score name="Percolator_qvalue" value="6.99035e-05"/>
@@ -1333,9 +1333,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.58.58.2" start_scan="58" end_scan="58" precursor_neutral_mass="1005.5495013925" assumed_charge="2" index="57" retention_time_sec="2660.72" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.58.58.2" start_scan="58" end_scan="58" precursor_neutral_mass="1005.549501392500019" assumed_charge="2" index="57" retention_time_sec="2660.72" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LVLEYVDR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E7ETH0" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1005.5495013925" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LVLEYVDR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E7ETH0" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1005.549501392500019" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_G3XAM2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P05156" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000394634_4_109740893-109801971_-1" num_tol_term="1"/>
@@ -1350,9 +1350,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.59.59.2" start_scan="59" end_scan="59" precursor_neutral_mass="728.454476914" assumed_charge="2" index="58" retention_time_sec="2550.23" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.59.59.2" start_scan="59" end_scan="59" precursor_neutral_mass="728.454476913999997" assumed_charge="2" index="58" retention_time_sec="2550.23" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="ATVGLLR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B4DGU4" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="728.454476914" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="ATVGLLR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B4DGU4" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="728.454476913999997" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P35222" num_tol_term="1"/>
 		<alternative_protein protein="calCuffs_CUFF.144442.10_7_134101990-134117256_-1_3_ORF25" num_tol_term="1"/>
 		<alternative_protein protein="calCuffs_CUFF.144442.11_7_134101990-134117266_-1_2_ORF13" num_tol_term="1"/>
@@ -1373,9 +1373,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.60.60.2" start_scan="60" end_scan="60" precursor_neutral_mass="892.5018221692" assumed_charge="2" index="59" retention_time_sec="2796.88" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.60.60.2" start_scan="60" end_scan="60" precursor_neutral_mass="892.501822169200068" assumed_charge="2" index="59" retention_time_sec="2796.88" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="TLLFSGQK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q07954" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="892.5018221692" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="TLLFSGQK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q07954" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="892.501822169200068" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="genCDS_ENST00000243077_12_57128965-57212555_1" num_tol_term="1"/>
 			<search_score name="Percolator_score" value="2.29139"/>
 			<search_score name="Percolator_qvalue" value="0.000102579"/>
@@ -1386,9 +1386,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.61.61.2" start_scan="61" end_scan="61" precursor_neutral_mass="879.4338029459" assumed_charge="2" index="60" retention_time_sec="1790.49" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.61.61.2" start_scan="61" end_scan="61" precursor_neutral_mass="879.43380294589997" assumed_charge="2" index="60" retention_time_sec="1790.49" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="AEFAEVSK" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_P02768-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="879.4338029459" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="AEFAEVSK" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_P02768-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="879.43380294589997" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_B7WNR0" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_C9JKR2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_D6RHD5" num_tol_term="1"/>
@@ -1410,9 +1410,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.62.62.3" start_scan="62" end_scan="62" precursor_neutral_mass="1840.9544030832" assumed_charge="3" index="61" retention_time_sec="2560.2" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.62.62.3" start_scan="62" end_scan="62" precursor_neutral_mass="1840.954403083200077" assumed_charge="3" index="61" retention_time_sec="2560.2" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="HVVPAQVHVNGGALASER" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E7ERH1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1840.9544030832" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="HVVPAQVHVNGGALASER" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E7ERH1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1840.954403083200077" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_E9PF55" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_E9PGF5" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q9HBL0" num_tol_term="1"/>
@@ -1423,7 +1423,7 @@
 		<alternative_protein protein="genCDS_ENST00000611415_2_217804459-217897965_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000615025_2_217804459-217880904_-1" num_tol_term="1"/>
 			<modification_info modified_peptide="HVVPAQVHVN[115]GGALASER">
-				<mod_aminoacid_mass position="10" mass="115.0269441595"/>
+				<mod_aminoacid_mass position="10" mass="115.02694415949999"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="2.19403"/>
 			<search_score name="Percolator_qvalue" value="0.000116791"/>
@@ -1434,9 +1434,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.63.63.2" start_scan="63" end_scan="63" precursor_neutral_mass="1036.501170963" assumed_charge="2" index="62" retention_time_sec="2498.24" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.63.63.2" start_scan="63" end_scan="63" precursor_neutral_mass="1036.50117096300005" assumed_charge="2" index="62" retention_time_sec="2498.24" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="VNFAMNVGK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P14618" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1036.501170963" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="VNFAMNVGK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P14618" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1036.50117096300005" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P14618-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P14618-3" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q504U3" num_tol_term="1"/>
@@ -1448,8 +1448,8 @@
 		<alternative_protein protein="genCDS_ENST00000565184_15_72199650-72219097_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000568459_15_72199650-72219097_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000568883_15_72199650-72219097_-1" num_tol_term="1"/>
-			<modification_info modified_peptide="n[43]VNFAM[147]NVGK" mod_nterm_mass="43.0183900319">
-				<mod_aminoacid_mass position="5" mass="147.0354000171"/>
+			<modification_info modified_peptide="n[43]VNFAM[147]NVGK" mod_nterm_mass="43.018390031899997">
+				<mod_aminoacid_mass position="5" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="2.15281"/>
 			<search_score name="Percolator_qvalue" value="0.000132074"/>
@@ -1460,13 +1460,13 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.64.64.3" start_scan="64" end_scan="64" precursor_neutral_mass="1394.7340259838" assumed_charge="3" index="63" retention_time_sec="2796" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.64.64.3" start_scan="64" end_scan="64" precursor_neutral_mass="1394.734025983799938" assumed_charge="3" index="63" retention_time_sec="2796" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="VEHGSVALPALMR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q5TCU6" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1394.7340259838" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="VEHGSVALPALMR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q5TCU6" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1394.734025983799938" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q9Y490" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000314888_9_35697791-35725694_-1" num_tol_term="1"/>
 			<modification_info modified_peptide="VEHGSVALPALM[147]R">
-				<mod_aminoacid_mass position="12" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="12" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="2.15095"/>
 			<search_score name="Percolator_qvalue" value="0.000132074"/>
@@ -1477,9 +1477,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.65.65.2" start_scan="65" end_scan="65" precursor_neutral_mass="1176.6754309348" assumed_charge="2" index="64" retention_time_sec="3432.2" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.65.65.2" start_scan="65" end_scan="65" precursor_neutral_mass="1176.675430934800033" assumed_charge="2" index="64" retention_time_sec="3432.2" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="EKGDYLLLVK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q14315" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1176.6754309348" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="EKGDYLLLVK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q14315" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1176.675430934800033" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q14315-2" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000325888_7_128830638-128858523_1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000346177_7_128830638-128858523_1" num_tol_term="1"/>
@@ -1492,9 +1492,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.66.66.3" start_scan="66" end_scan="66" precursor_neutral_mass="1475.6739910943" assumed_charge="3" index="65" retention_time_sec="1268.73" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.66.66.3" start_scan="66" end_scan="66" precursor_neutral_mass="1475.673991094299936" assumed_charge="3" index="65" retention_time_sec="1268.73" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LEEAEKAADESER" peptide_prev_aa="X" peptide_next_aa="X" protein="Augustus2_AUGUSTUS00000096365_2_230573165-230575961_-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1475.6739910943" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LEEAEKAADESER" peptide_prev_aa="X" peptide_next_aa="X" protein="Augustus2_AUGUSTUS00000096365_2_230573165-230575961_-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1475.673991094299936" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="CON_Q3SX28" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_B7Z596" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_D6R904" num_tol_term="1"/>
@@ -1584,9 +1584,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.67.67.3" start_scan="67" end_scan="67" precursor_neutral_mass="1082.5396653606" assumed_charge="3" index="66" retention_time_sec="1714.94" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.67.67.3" start_scan="67" end_scan="67" precursor_neutral_mass="1082.539665360600111" assumed_charge="3" index="66" retention_time_sec="1714.94" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="VYLYHSSSK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B4DDT0" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1082.5396653606" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="VYLYHSSSK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B4DDT0" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1082.539665360600111" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_H0YA32" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_K7EMU3" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P26006" num_tol_term="1"/>
@@ -1604,15 +1604,15 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.68.68.2" start_scan="68" end_scan="68" precursor_neutral_mass="964.4688078992" assumed_charge="2" index="67" retention_time_sec="2183.66" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.68.68.2" start_scan="68" end_scan="68" precursor_neutral_mass="964.468807899199874" assumed_charge="2" index="67" retention_time_sec="2183.66" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="VDFNVPMK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E7ERH5" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="964.4688078992" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="VDFNVPMK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E7ERH5" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="964.468807899199874" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P00558" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P07205" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000304801_6_49785934-49787187_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000373316_X_78104341-78125830_1" num_tol_term="1"/>
 			<modification_info modified_peptide="VDFNVPM[147]K">
-				<mod_aminoacid_mass position="7" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="7" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="2.06983"/>
 			<search_score name="Percolator_qvalue" value="0.000144798"/>
@@ -1623,12 +1623,12 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.69.69.2" start_scan="69" end_scan="69" precursor_neutral_mass="1007.4705999311" assumed_charge="2" index="68" retention_time_sec="1377.49" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.69.69.2" start_scan="69" end_scan="69" precursor_neutral_mass="1007.470599931099969" assumed_charge="2" index="68" retention_time_sec="1377.49" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="SLMSADNVR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_O43143" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1007.4705999311" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="SLMSADNVR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_O43143" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1007.470599931099969" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="genCDS_ENST00000336812_4_24527924-24584393_-1" num_tol_term="1"/>
 			<modification_info modified_peptide="SLM[147]SADNVR">
-				<mod_aminoacid_mass position="3" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="3" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="2.02503"/>
 			<search_score name="Percolator_qvalue" value="0.000173319"/>
@@ -1639,9 +1639,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.70.70.3" start_scan="70" end_scan="70" precursor_neutral_mass="1516.70926892" assumed_charge="3" index="69" retention_time_sec="2676.85" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.70.70.3" start_scan="70" end_scan="70" precursor_neutral_mass="1516.709268920000113" assumed_charge="3" index="69" retention_time_sec="2676.85" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="QVDVTSFAGHPCTR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_H0Y5U1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1516.70926892" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="QVDVTSFAGHPCTR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_H0Y5U1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1516.709268920000113" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_O00468" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_O00468-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_O00468-3" num_tol_term="1"/>
@@ -1661,9 +1661,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.71.71.2" start_scan="71" end_scan="71" precursor_neutral_mass="1148.6077456796" assumed_charge="2" index="70" retention_time_sec="2777.5" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.71.71.2" start_scan="71" end_scan="71" precursor_neutral_mass="1148.607745679600157" assumed_charge="2" index="70" retention_time_sec="2777.5" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LVNEVTEFAK" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_P02768-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1148.6077456796" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LVNEVTEFAK" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_P02768-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1148.607745679600157" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_H7C013" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P02768" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000295897_4_73404328-73420298_1" num_tol_term="1"/>
@@ -1680,9 +1680,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.72.72.2" start_scan="72" end_scan="72" precursor_neutral_mass="869.3953086121" assumed_charge="2" index="71" retention_time_sec="1155.55" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.72.72.2" start_scan="72" end_scan="72" precursor_neutral_mass="869.395308612100052" assumed_charge="2" index="71" retention_time_sec="1155.55" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="CQYVTEK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_H3BPS8" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="869.3953086121" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="CQYVTEK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_H3BPS8" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="869.395308612100052" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_H3BQN4" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_J3KPS3" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P04075" num_tol_term="1"/>
@@ -1710,12 +1710,12 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.73.73.3" start_scan="73" end_scan="73" precursor_neutral_mass="1134.6107214734" assumed_charge="3" index="72" retention_time_sec="3171.84" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.73.73.3" start_scan="73" end_scan="73" precursor_neutral_mass="1134.610721473399963" assumed_charge="3" index="72" retention_time_sec="3171.84" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="FKMPELNLK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q09666" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1134.6107214734" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="FKMPELNLK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q09666" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1134.610721473399963" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="genCDS_ENST00000378024_11_62516744-62536098_-1" num_tol_term="1"/>
 			<modification_info modified_peptide="FKM[147]PELNLK">
-				<mod_aminoacid_mass position="3" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="3" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="1.8485"/>
 			<search_score name="Percolator_qvalue" value="0.000212479"/>
@@ -1726,10 +1726,10 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.74.74.2" start_scan="74" end_scan="74" precursor_neutral_mass="883.5127211373" assumed_charge="2" index="73" retention_time_sec="2988.18" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.74.74.2" start_scan="74" end_scan="74" precursor_neutral_mass="883.512721137299877" assumed_charge="2" index="73" retention_time_sec="2988.18" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="VATVSLPR" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_P00761" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="883.5127211373" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
-			<modification_info modified_peptide="n[43]VATVSLPR" mod_nterm_mass="43.0183900319">
+		<search_hit hit_rank="1" peptide="VATVSLPR" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_P00761" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="883.512721137299877" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<modification_info modified_peptide="n[43]VATVSLPR" mod_nterm_mass="43.018390031899997">
 			</modification_info>
 			<search_score name="Percolator_score" value="1.7864"/>
 			<search_score name="Percolator_qvalue" value="0.000268723"/>
@@ -1740,15 +1740,15 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.75.75.3" start_scan="75" end_scan="75" precursor_neutral_mass="1291.6343115691" assumed_charge="3" index="74" retention_time_sec="762.55" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.75.75.3" start_scan="75" end_scan="75" precursor_neutral_mass="1291.634311569099737" assumed_charge="3" index="74" retention_time_sec="762.55" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="HMQANPEPPKK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q15404" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1291.6343115691" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="HMQANPEPPKK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q15404" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1291.634311569099737" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q15404-2" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000345264_10_16593394-16817081_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000377921_10_16593394-16817081_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000602389_10_16593394-16782034_-1" num_tol_term="1"/>
 			<modification_info modified_peptide="HM[147]QANPEPPKK">
-				<mod_aminoacid_mass position="2" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="2" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="1.68922"/>
 			<search_score name="Percolator_qvalue" value="0.000320239"/>
@@ -1759,9 +1759,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.76.76.2" start_scan="76" end_scan="76" precursor_neutral_mass="788.4643740416" assumed_charge="2" index="75" retention_time_sec="2103.35" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.76.76.2" start_scan="76" end_scan="76" precursor_neutral_mass="788.464374041599967" assumed_charge="2" index="75" retention_time_sec="2103.35" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LVTDLTK" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_P02768-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="788.4643740416" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LVTDLTK" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_P02768-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="788.464374041599967" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="CON_P02769" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_B7WNR0" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_C9JKR2" num_tol_term="1"/>
@@ -1784,9 +1784,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.77.77.3" start_scan="77" end_scan="77" precursor_neutral_mass="1349.7190881581" assumed_charge="3" index="76" retention_time_sec="2783.38" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.77.77.3" start_scan="77" end_scan="77" precursor_neutral_mass="1349.719088158100021" assumed_charge="3" index="76" retention_time_sec="2783.38" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="TAAENEFVTLKK" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_P02538" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1349.7190881581" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="TAAENEFVTLKK" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_P02538" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1349.719088158100021" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="CON_P04259" num_tol_term="1"/>
 		<alternative_protein protein="CON_P12035" num_tol_term="1"/>
 		<alternative_protein protein="CON_P48668" num_tol_term="1"/>
@@ -1809,9 +1809,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.78.78.2" start_scan="78" end_scan="78" precursor_neutral_mass="877.4697930097" assumed_charge="2" index="77" retention_time_sec="3590.06" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.78.78.2" start_scan="78" end_scan="78" precursor_neutral_mass="877.46979300969997" assumed_charge="2" index="77" retention_time_sec="3590.06" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="FVADLWK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P35749" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="877.4697930097" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="FVADLWK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P35749" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="877.46979300969997" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P35749-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P35749-3" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P35749-4" num_tol_term="1"/>
@@ -1830,9 +1830,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.79.79.3" start_scan="79" end_scan="79" precursor_neutral_mass="1354.7278779838" assumed_charge="3" index="78" retention_time_sec="2886.61" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.79.79.3" start_scan="79" end_scan="79" precursor_neutral_mass="1354.727877983799999" assumed_charge="3" index="78" retention_time_sec="2886.61" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="VTGEVHLGGVMLK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_G3V281" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1354.7278779838" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="VTGEVHLGGVMLK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_G3V281" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1354.727877983799999" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_G3V379" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q96AC1" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q96AC1-2" num_tol_term="1"/>
@@ -1845,7 +1845,7 @@
 		<alternative_protein protein="genCDS_ENST00000554712_14_52893359-52950568_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000557562_14_52919335-52950568_-1" num_tol_term="1"/>
 			<modification_info modified_peptide="VTGEVHLGGVM[147]LK">
-				<mod_aminoacid_mass position="11" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="11" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="1.60885"/>
 			<search_score name="Percolator_qvalue" value="0.000371014"/>
@@ -1856,9 +1856,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.80.80.3" start_scan="80" end_scan="80" precursor_neutral_mass="1077.5203272649" assumed_charge="3" index="79" retention_time_sec="1413.26" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.80.80.3" start_scan="80" end_scan="80" precursor_neutral_mass="1077.520327264899834" assumed_charge="3" index="79" retention_time_sec="1413.26" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="FLENEDRR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P01009" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1077.5203272649" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="FLENEDRR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P01009" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1077.520327264899834" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P01009-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P01009-3" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000355814_14_94378449-94383237_-1" num_tol_term="1"/>
@@ -1880,9 +1880,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.81.81.2" start_scan="81" end_scan="81" precursor_neutral_mass="976.606955552" assumed_charge="2" index="80" retention_time_sec="2716.22" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.81.81.2" start_scan="81" end_scan="81" precursor_neutral_mass="976.606955552000045" assumed_charge="2" index="80" retention_time_sec="2716.22" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="KLELHLPK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P29622" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="976.606955552" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="KLELHLPK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P29622" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="976.606955552000045" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="genCDS_ENST00000298841_14_94563483-94569595_1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000555095_14_94563483-94569595_1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000557004_14_94563483-94569595_1" num_tol_term="1"/>
@@ -1895,15 +1895,15 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.82.82.3" start_scan="82" end_scan="82" precursor_neutral_mass="1636.7185149052" assumed_charge="3" index="81" retention_time_sec="1004.75" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.82.82.3" start_scan="82" end_scan="82" precursor_neutral_mass="1636.718514905199982" assumed_charge="3" index="81" retention_time_sec="1004.75" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LGREEPAMSMDANGK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B4DZI8" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1636.7185149052" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LGREEPAMSMDANGK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B4DZI8" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1636.718514905199982" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P35606" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000333188_3_139357863-139389550_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000507777_3_139357863-139383351_-1" num_tol_term="1"/>
 			<modification_info modified_peptide="LGREEPAM[147]SM[147]DANGK">
-				<mod_aminoacid_mass position="8" mass="147.0354000171"/>
-				<mod_aminoacid_mass position="10" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="8" mass="147.03540001709996"/>
+				<mod_aminoacid_mass position="10" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="1.28237"/>
 			<search_score name="Percolator_qvalue" value="0.000726094"/>
@@ -1914,9 +1914,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.83.83.2" start_scan="83" end_scan="83" precursor_neutral_mass="1032.5604004244" assumed_charge="2" index="82" retention_time_sec="2307.21" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.83.83.2" start_scan="83" end_scan="83" precursor_neutral_mass="1032.560400424400086" assumed_charge="2" index="82" retention_time_sec="2307.21" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="YVPGVGNVTK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q8IWV7" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1032.5604004244" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="YVPGVGNVTK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q8IWV7" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1032.560400424400086" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q8IWV7-2" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000290650_15_42945329-43106022_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000546274_15_43015684-43106022_-1" num_tol_term="1"/>
@@ -1930,9 +1930,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.84.84.2" start_scan="84" end_scan="84" precursor_neutral_mass="900.5432922968" assumed_charge="2" index="83" retention_time_sec="3344.97" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.84.84.2" start_scan="84" end_scan="84" precursor_neutral_mass="900.543292296800018" assumed_charge="2" index="83" retention_time_sec="3344.97" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="GPFLVALGK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_F5H7Y0" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="900.5432922968" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="GPFLVALGK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_F5H7Y0" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="900.543292296800018" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_H0Y8Y3" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q96HC4" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q96HC4-4" num_tol_term="1"/>
@@ -1954,9 +1954,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.85.85.2" start_scan="85" end_scan="85" precursor_neutral_mass="936.5069071692" assumed_charge="2" index="84" retention_time_sec="1783.6" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.85.85.2" start_scan="85" end_scan="85" precursor_neutral_mass="936.506907169200076" assumed_charge="2" index="84" retention_time_sec="1783.6" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LLHTYYK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B5ME19" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="936.5069071692" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LLHTYYK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_B5ME19" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="936.506907169200076" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_H3BRV0" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q99613" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000331666_16_28711687-28735513_1" num_tol_term="1"/>
@@ -1975,9 +1975,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.86.86.4" start_scan="86" end_scan="86" precursor_neutral_mass="1713.9148900513" assumed_charge="4" index="85" retention_time_sec="1838.93" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.86.86.4" start_scan="86" end_scan="86" precursor_neutral_mass="1713.914890051300063" assumed_charge="4" index="85" retention_time_sec="1838.93" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LDSEDKDKEGKPLLK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P13639" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1713.9148900513" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LDSEDKDKEGKPLLK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P13639" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1713.914890051300063" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="genCDS_ENST00000309311_19_3976554-3985380_-1" num_tol_term="1"/>
 			<search_score name="Percolator_score" value="1.16869"/>
 			<search_score name="Percolator_qvalue" value="0.000861273"/>
@@ -1988,9 +1988,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.87.87.2" start_scan="87" end_scan="87" precursor_neutral_mass="845.4606860097" assumed_charge="2" index="86" retention_time_sec="1581.19" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.87.87.2" start_scan="87" end_scan="87" precursor_neutral_mass="845.460686009699998" assumed_charge="2" index="86" retention_time_sec="1581.19" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="ATEVTVAR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_F5GZL7" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="845.4606860097" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="ATEVTVAR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_F5GZL7" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="845.460686009699998" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_F8W8Q1" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_H0Y390" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_H3BPE1" num_tol_term="1"/>
@@ -2015,9 +2015,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.88.88.2" start_scan="88" end_scan="88" precursor_neutral_mass="734.3962937226" assumed_charge="2" index="87" retention_time_sec="2167.57" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.88.88.2" start_scan="88" end_scan="88" precursor_neutral_mass="734.396293722599921" assumed_charge="2" index="87" retention_time_sec="2167.57" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="GDVAFVK" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_Q0IIK2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="734.3962937226" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="GDVAFVK" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_Q0IIK2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="734.396293722599921" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="CON_Q29443" num_tol_term="1"/>
 		<alternative_protein protein="CON_Q2HJF0" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_H7C5E8" num_tol_term="1"/>
@@ -2034,9 +2034,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.89.89.3" start_scan="89" end_scan="89" precursor_neutral_mass="1347.6378788391" assumed_charge="3" index="88" retention_time_sec="926.016" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.89.89.3" start_scan="89" end_scan="89" precursor_neutral_mass="1347.63787883910004" assumed_charge="3" index="88" retention_time_sec="926.016" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="SDDNRESLEKR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P30085" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1347.6378788391" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="SDDNRESLEKR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P30085" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1347.63787883910004" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P30085-2" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000371873_1_47333946-47376745_1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000450808_1_47333946-47376745_1" num_tol_term="1"/>
@@ -2049,9 +2049,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.90.90.2" start_scan="90" end_scan="90" precursor_neutral_mass="1248.5371014244" assumed_charge="2" index="89" retention_time_sec="1963.17" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.90.90.2" start_scan="90" end_scan="90" precursor_neutral_mass="1248.537101424399907" assumed_charge="2" index="89" retention_time_sec="1963.17" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="DNVDDPTGNFR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q12907" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1248.5371014244" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="DNVDDPTGNFR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q12907" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1248.537101424399907" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="genCDS_ENST00000303127_5_177332086-177351647_-1" num_tol_term="1"/>
 			<search_score name="Percolator_score" value="1.11901"/>
 			<search_score name="Percolator_qvalue" value="0.000928303"/>
@@ -2062,9 +2062,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.91.91.2" start_scan="91" end_scan="91" precursor_neutral_mass="985.4828791373" assumed_charge="2" index="90" retention_time_sec="1021.76" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.91.91.2" start_scan="91" end_scan="91" precursor_neutral_mass="985.48287913729996" assumed_charge="2" index="90" retention_time_sec="1021.76" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="ASPEAASTPR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_H3BT29" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="985.4828791373" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="ASPEAASTPR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_H3BT29" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="985.48287913729996" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_H3BT57" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_H3BUJ5" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_H3BVD2" num_tol_term="1"/>
@@ -2106,9 +2106,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.92.92.2" start_scan="92" end_scan="92" precursor_neutral_mass="1020.5604004244" assumed_charge="2" index="91" retention_time_sec="2167.71" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.92.92.2" start_scan="92" end_scan="92" precursor_neutral_mass="1020.560400424400086" assumed_charge="2" index="91" retention_time_sec="2167.71" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="DLPEHAVLK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q00839" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1020.5604004244" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="DLPEHAVLK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q00839" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1020.560400424400086" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q00839-2" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000283179_1_244854450-244864307_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000444376_1_244854450-244864307_-1" num_tol_term="1"/>
@@ -2121,9 +2121,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.93.93.2" start_scan="93" end_scan="93" precursor_neutral_mass="2226.9851742598" assumed_charge="2" index="92" retention_time_sec="3262.17" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.93.93.2" start_scan="93" end_scan="93" precursor_neutral_mass="2226.985174259800715" assumed_charge="2" index="92" retention_time_sec="3262.17" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="AMLSGPGQFAENETNEVNFR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E5RHG8" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2226.9851742598" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="AMLSGPGQFAENETNEVNFR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E5RHG8" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2226.985174259800715" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q15369" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q15369-2" num_tol_term="1"/>
 		<alternative_protein protein="calCuffs_CUFF.49941.1_15_41849132-41849866_1_1_ORF2" num_tol_term="1"/>
@@ -2137,7 +2137,7 @@
 		<alternative_protein protein="genCDS_ENST00000523815_8_73946630-73959768_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000622804_8_73946630-73959768_-1" num_tol_term="1"/>
 			<modification_info modified_peptide="AM[147]LSGPGQ[129]FAENETNEVNFR">
-				<mod_aminoacid_mass position="2" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="2" mass="147.03540001709996"/>
 				<mod_aminoacid_mass position="8" mass="129.0425942233"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="1.02402"/>
@@ -2149,9 +2149,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.94.94.2" start_scan="94" end_scan="94" precursor_neutral_mass="726.4064637226" assumed_charge="2" index="93" retention_time_sec="2722.7" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.94.94.2" start_scan="94" end_scan="94" precursor_neutral_mass="726.406463722600051" assumed_charge="2" index="93" retention_time_sec="2722.7" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="YLYLR" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_Q05443" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="726.4064637226" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="YLYLR" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_Q05443" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="726.406463722600051" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_A2RUS2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_A2RUS2-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_E9PF32" num_tol_term="1"/>
@@ -2232,9 +2232,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.95.95.4" start_scan="95" end_scan="95" precursor_neutral_mass="2578.1982960573" assumed_charge="4" index="94" retention_time_sec="2195.32" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.95.95.4" start_scan="95" end_scan="95" precursor_neutral_mass="2578.198296057300468" assumed_charge="4" index="94" retention_time_sec="2195.32" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="QEPERNECFLQHKDDNPNLPR" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_P02768-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2578.1982960573" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="QEPERNECFLQHKDDNPNLPR" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_P02768-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2578.198296057300468" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_H7C013" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P02768" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000295897_4_73404328-73420298_1" num_tol_term="1"/>
@@ -2251,9 +2251,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.96.96.2" start_scan="96" end_scan="96" precursor_neutral_mass="760.4516997716" assumed_charge="2" index="95" retention_time_sec="2666.74" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.96.96.2" start_scan="96" end_scan="96" precursor_neutral_mass="760.451699771599806" assumed_charge="2" index="95" retention_time_sec="2666.74" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LMVALAK" peptide_prev_aa="X" peptide_next_aa="X" protein="Augustus2_AUGUSTUS00000042791_4_153307709-153311274_-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="760.4516997716" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LMVALAK" peptide_prev_aa="X" peptide_next_aa="X" protein="Augustus2_AUGUSTUS00000042791_4_153307709-153311274_-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="760.451699771599806" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_A6NMY6" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_H0YKS4" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_H0YL33" num_tol_term="1"/>
@@ -2285,7 +2285,7 @@
 		<alternative_protein protein="genCDS_ENST00000560466_15_60351733-60360946_-1" num_tol_term="1"/>
 		<alternative_protein protein="genpseudogene_ENST00000435128_9_33624274-33625293_1_1_ORF1" num_tol_term="1"/>
 			<modification_info modified_peptide="LM[147]VALAK">
-				<mod_aminoacid_mass position="2" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="2" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="0.532423"/>
 			<search_score name="Percolator_qvalue" value="0.00282806"/>
@@ -2296,9 +2296,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.97.97.2" start_scan="97" end_scan="97" precursor_neutral_mass="861.5072411373" assumed_charge="2" index="96" retention_time_sec="3415" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.97.97.2" start_scan="97" end_scan="97" precursor_neutral_mass="861.507241137300071" assumed_charge="2" index="96" retention_time_sec="3415" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="FLLSNLR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E9PGM4" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="861.5072411373" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="FLLSNLR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E9PGM4" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="861.507241137300071" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q04446" num_tol_term="1"/>
 		<alternative_protein protein="XXX_3648561" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000429644_3_81490407-81761517_-1" num_tol_term="1"/>
@@ -2312,9 +2312,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.98.98.2" start_scan="98" end_scan="98" precursor_neutral_mass="889.4579088673" assumed_charge="2" index="97" retention_time_sec="2020.57" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.98.98.2" start_scan="98" end_scan="98" precursor_neutral_mass="889.457908867300148" assumed_charge="2" index="97" retention_time_sec="2020.57" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="CLLVEEGK" peptide_prev_aa="X" peptide_next_aa="X" protein="Augustus2_AUGUSTUS00000097311_8_73984804-73984493_1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="889.4579088673" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="CLLVEEGK" peptide_prev_aa="X" peptide_next_aa="X" protein="Augustus2_AUGUSTUS00000097311_8_73984804-73984493_1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="889.457908867300148" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_F6RFD5" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P60981" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P60981-2" num_tol_term="1"/>
@@ -2333,9 +2333,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.99.99.2" start_scan="99" end_scan="99" precursor_neutral_mass="938.4821501054" assumed_charge="2" index="98" retention_time_sec="1903.97" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.99.99.2" start_scan="99" end_scan="99" precursor_neutral_mass="938.482150105400137" assumed_charge="2" index="98" retention_time_sec="1903.97" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="VSSYGGTLR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_O15230" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="938.4821501054" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="VSSYGGTLR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_O15230" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="938.482150105400137" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="genCDS_ENST00000252999_20_62309336-62367245_-1" num_tol_term="1"/>
 			<search_score name="Percolator_score" value="0.374892"/>
 			<search_score name="Percolator_qvalue" value="0.00415655"/>
@@ -2346,11 +2346,11 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.100.100.2" start_scan="100" end_scan="100" precursor_neutral_mass="865.454537914" assumed_charge="2" index="99" retention_time_sec="2095.35" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.100.100.2" start_scan="100" end_scan="100" precursor_neutral_mass="865.454537913999957" assumed_charge="2" index="99" retention_time_sec="2095.35" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="YLSALNK" peptide_prev_aa="X" peptide_next_aa="X" protein="genlncRNA_ENST00000433639_3_6490479-6736129_1_3_ORF9" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="865.454537914" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
-			<modification_info modified_peptide="n[58]YLSALN[115]K" mod_nterm_mass="58.0292890319">
-				<mod_aminoacid_mass position="6" mass="115.0269441595"/>
+		<search_hit hit_rank="1" peptide="YLSALNK" peptide_prev_aa="X" peptide_next_aa="X" protein="genlncRNA_ENST00000433639_3_6490479-6736129_1_3_ORF9" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="865.454537913999957" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<modification_info modified_peptide="n[58]YLSALN[115]K" mod_nterm_mass="58.029289031899999">
+				<mod_aminoacid_mass position="6" mass="115.02694415949999"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="0.337635"/>
 			<search_score name="Percolator_qvalue" value="0.00458149"/>
@@ -2361,9 +2361,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.101.101.2" start_scan="101" end_scan="101" precursor_neutral_mass="1146.5781764882" assumed_charge="2" index="100" retention_time_sec="1290.25" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.101.101.2" start_scan="101" end_scan="101" precursor_neutral_mass="1146.578176488200143" assumed_charge="2" index="100" retention_time_sec="1290.25" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="ESKPAQGQFR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q05707" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1146.5781764882" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="ESKPAQGQFR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q05707" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1146.578176488200143" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q05707-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q05707-3" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q4G0W3" num_tol_term="1"/>
@@ -2380,9 +2380,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.102.102.3" start_scan="102" end_scan="102" precursor_neutral_mass="1749.8897378599" assumed_charge="3" index="101" retention_time_sec="2663.68" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.102.102.3" start_scan="102" end_scan="102" precursor_neutral_mass="1749.889737859900151" assumed_charge="3" index="101" retention_time_sec="2663.68" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LRTEGDGVYTLNDKK" peptide_prev_aa="X" peptide_next_aa="X" protein="Augustus2_AUGUSTUS00000011721_16_72077081-72063214_1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1749.8897378599" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LRTEGDGVYTLNDKK" peptide_prev_aa="X" peptide_next_aa="X" protein="Augustus2_AUGUSTUS00000011721_16_72077081-72063214_1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1749.889737859900151" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_H0Y300" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_J3KRH2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_J3KTC3" num_tol_term="1"/>
@@ -2399,7 +2399,7 @@
 		<alternative_protein protein="genCDS_ENST00000567185_16_72056161-72060890_1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000567612_16_72056161-72060890_1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000576168_16_72056161-72059199_1" num_tol_term="1"/>
-			<modification_info modified_peptide="n[43]LRTEGDGVYTLNDKK" mod_nterm_mass="43.0183900319">
+			<modification_info modified_peptide="n[43]LRTEGDGVYTLNDKK" mod_nterm_mass="43.018390031899997">
 			</modification_info>
 			<search_score name="Percolator_score" value="0.201002"/>
 			<search_score name="Percolator_qvalue" value="0.00605916"/>
@@ -2410,13 +2410,13 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.103.103.2" start_scan="103" end_scan="103" precursor_neutral_mass="1039.5736073139" assumed_charge="2" index="102" retention_time_sec="2617.01" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.103.103.2" start_scan="103" end_scan="103" precursor_neutral_mass="1039.573607313899856" assumed_charge="2" index="102" retention_time_sec="2617.01" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="SVPMVPPGLK" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_Q05443" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1039.5736073139" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="SVPMVPPGLK" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_Q05443" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1039.573607313899856" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_P51884" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000266718_12_91104165-91108979_-1" num_tol_term="1"/>
 			<modification_info modified_peptide="SVPM[147]VPPGLK">
-				<mod_aminoacid_mass position="4" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="4" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="0.17738"/>
 			<search_score name="Percolator_qvalue" value="0.00651168"/>
@@ -2427,9 +2427,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.104.104.2" start_scan="104" end_scan="104" precursor_neutral_mass="1073.5353093925" assumed_charge="2" index="103" retention_time_sec="1721.6" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.104.104.2" start_scan="104" end_scan="104" precursor_neutral_mass="1073.535309392500039" assumed_charge="2" index="103" retention_time_sec="1721.6" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LDELRDEGK" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_P02768-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1073.5353093925" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LDELRDEGK" peptide_prev_aa="X" peptide_next_aa="X" protein="CON_P02768-1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1073.535309392500039" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_B7WNR0" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_D6RHD5" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_H0YA55" num_tol_term="1"/>
@@ -2448,9 +2448,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.105.105.2" start_scan="105" end_scan="105" precursor_neutral_mass="1203.5302411863" assumed_charge="2" index="104" retention_time_sec="906.603" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.105.105.2" start_scan="105" end_scan="105" precursor_neutral_mass="1203.530241186300145" assumed_charge="2" index="104" retention_time_sec="906.603" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="QQQQMEQER" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_H0YDN1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1203.5302411863" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="QQQQMEQER" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_H0YDN1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1203.530241186300145" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q15149" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q15149-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q15149-3" num_tol_term="1"/>
@@ -2479,9 +2479,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.106.106.2" start_scan="106" end_scan="106" precursor_neutral_mass="1141.6342947753" assumed_charge="2" index="105" retention_time_sec="3329.4" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.106.106.2" start_scan="106" end_scan="106" precursor_neutral_mass="1141.634294775300077" assumed_charge="2" index="105" retention_time_sec="3329.4" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="VKGDVDVSVPK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q09666" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1141.6342947753" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="VKGDVDVSVPK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q09666" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1141.634294775300077" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="genCDS_ENST00000378024_11_62516744-62536098_-1" num_tol_term="1"/>
 			<search_score name="Percolator_score" value="-0.0664699"/>
 			<search_score name="Percolator_qvalue" value="0.0118764"/>
@@ -2492,9 +2492,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.107.107.2" start_scan="107" end_scan="107" precursor_neutral_mass="774.4123388502" assumed_charge="2" index="106" retention_time_sec="1441.57" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.107.107.2" start_scan="107" end_scan="107" precursor_neutral_mass="774.412338850199831" assumed_charge="2" index="106" retention_time_sec="1441.57" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LASLDEK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E9PNR6" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="774.4123388502" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LASLDEK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_E9PNR6" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="774.412338850199831" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_H0YE29" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q07960" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000311956_11_46679037-46696107_-1" num_tol_term="1"/>
@@ -2509,9 +2509,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.108.108.2" start_scan="108" end_scan="108" precursor_neutral_mass="730.3973567226" assumed_charge="2" index="107" retention_time_sec="1827.57" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.108.108.2" start_scan="108" end_scan="108" precursor_neutral_mass="730.397356722599966" assumed_charge="2" index="107" retention_time_sec="1827.57" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="DNTLLR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_A6NN80" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="730.3973567226" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="DNTLLR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_A6NN80" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="730.397356722599966" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_H0YG46" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_J3KNE4" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_P08133" num_tol_term="1"/>
@@ -2557,9 +2557,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.109.109.2" start_scan="109" end_scan="109" precursor_neutral_mass="987.5349143287" assumed_charge="2" index="108" retention_time_sec="1390.27" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.109.109.2" start_scan="109" end_scan="109" precursor_neutral_mass="987.534914328700097" assumed_charge="2" index="108" retention_time_sec="1390.27" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="KQVENKNK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q15431" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="987.5349143287" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="KQVENKNK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q15431" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="987.534914328700097" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q5VXJ5" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000369518_1_114855465-114995019_1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000369522_1_114855465-114995019_1" num_tol_term="1"/>
@@ -2567,7 +2567,7 @@
 		<alternative_protein protein="genCDS_ENST00000613524_1_114855465-114995019_1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000618516_1_114855465-114995019_1" num_tol_term="1"/>
 			<modification_info modified_peptide="KQVENKN[115]K">
-				<mod_aminoacid_mass position="7" mass="115.0269441595"/>
+				<mod_aminoacid_mass position="7" mass="115.02694415949999"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="-0.390915"/>
 			<search_score name="Percolator_qvalue" value="0.0229485"/>
@@ -2578,9 +2578,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.110.110.2" start_scan="110" end_scan="110" precursor_neutral_mass="874.4548719778" assumed_charge="2" index="109" retention_time_sec="2620.9" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.110.110.2" start_scan="110" end_scan="110" precursor_neutral_mass="874.45487197779994" assumed_charge="2" index="109" retention_time_sec="2620.9" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="QGGPEFLK" peptide_prev_aa="X" peptide_next_aa="X" protein="calCuffs_CUFF.56789.1_16_67551854-67597900_-1_1_ORF3" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="874.4548719778" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="QGGPEFLK" peptide_prev_aa="X" peptide_next_aa="X" protein="calCuffs_CUFF.56789.1_16_67551854-67597900_-1_1_ORF3" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="874.45487197779994" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="calCuffs_CUFF.56789.2_16_67551854-67562677_-1_1_ORF3" num_tol_term="1"/>
 		<alternative_protein protein="calCuffs_CUFF.56789.3_16_67551854-67562643_-1_3_ORF2" num_tol_term="1"/>
 		<alternative_protein protein="calCuffs_CUFF.56789.4_16_67551854-67564404_-1_2_ORF5" num_tol_term="1"/>
@@ -2599,10 +2599,10 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.111.111.2" start_scan="111" end_scan="111" precursor_neutral_mass="1900.9544030194" assumed_charge="2" index="110" retention_time_sec="3058.62" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.111.111.2" start_scan="111" end_scan="111" precursor_neutral_mass="1900.954403019400388" assumed_charge="2" index="110" retention_time_sec="3058.62" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="KPGAAGQHPAPFDPQSVR" peptide_prev_aa="X" peptide_next_aa="X" protein="genlncRNA_ENST00000449990_9_90463659-90582744_-1_3_ORF1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1900.9544030194" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
-			<modification_info modified_peptide="n[43]KPGAAGQHPAPFDPQSVR" mod_nterm_mass="43.0183900319">
+		<search_hit hit_rank="1" peptide="KPGAAGQHPAPFDPQSVR" peptide_prev_aa="X" peptide_next_aa="X" protein="genlncRNA_ENST00000449990_9_90463659-90582744_-1_3_ORF1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1900.954403019400388" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<modification_info modified_peptide="n[43]KPGAAGQHPAPFDPQSVR" mod_nterm_mass="43.018390031899997">
 			</modification_info>
 			<search_score name="Percolator_score" value="-0.634256"/>
 			<search_score name="Percolator_qvalue" value="0.0352042"/>
@@ -2613,9 +2613,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.112.112.2" start_scan="112" end_scan="112" precursor_neutral_mass="1381.6700287605" assumed_charge="2" index="111" retention_time_sec="2699.4" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.112.112.2" start_scan="112" end_scan="112" precursor_neutral_mass="1381.670028760500145" assumed_charge="2" index="111" retention_time_sec="2699.4" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="STDNVFLACWVK" peptide_prev_aa="X" peptide_next_aa="X" protein="calCuffs_CUFF.6079.5_1_107514034-107541205_-1_3_ORF3" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1381.6700287605" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="STDNVFLACWVK" peptide_prev_aa="X" peptide_next_aa="X" protein="calCuffs_CUFF.6079.5_1_107514034-107541205_-1_3_ORF3" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1381.670028760500145" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 			<search_score name="Percolator_score" value="-0.816145"/>
 			<search_score name="Percolator_qvalue" value="0.0457039"/>
 			<search_score name="Percolator_PEP" value="0.814517"/>
@@ -2625,9 +2625,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.113.113.2" start_scan="113" end_scan="113" precursor_neutral_mass="1060.5413962968" assumed_charge="2" index="112" retention_time_sec="2604.3" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.113.113.2" start_scan="113" end_scan="113" precursor_neutral_mass="1060.541396296800031" assumed_charge="2" index="112" retention_time_sec="2604.3" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="KQWERTGR" peptide_prev_aa="X" peptide_next_aa="X" protein="calCuffs_CUFF.84105.1_2_227648862-227677259_1_3_ORF138" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1060.5413962968" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="KQWERTGR" peptide_prev_aa="X" peptide_next_aa="X" protein="calCuffs_CUFF.84105.1_2_227648862-227677259_1_3_ORF138" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1060.541396296800031" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="calCuffs_CUFF.84105.2_2_227653754-227677259_1_1_ORF74" num_tol_term="1"/>
 			<modification_info modified_peptide="KQ[129]WERTGR">
 				<mod_aminoacid_mass position="2" mass="129.0425942233"/>
@@ -2641,9 +2641,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.114.114.2" start_scan="114" end_scan="114" precursor_neutral_mass="746.4439118502" assumed_charge="2" index="113" retention_time_sec="2891.89" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.114.114.2" start_scan="114" end_scan="114" precursor_neutral_mass="746.443911850200038" assumed_charge="2" index="113" retention_time_sec="2891.89" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="FLLQAR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P07360" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="746.4439118502" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="FLLQAR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_P07360" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="746.443911850200038" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q5SQ08" num_tol_term="1"/>
 		<alternative_protein protein="XXX_2911659" num_tol_term="1"/>
 		<alternative_protein protein="XXX_2911660" num_tol_term="1"/>
@@ -2661,11 +2661,11 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.115.115.3" start_scan="115" end_scan="115" precursor_neutral_mass="1932.8775197494" assumed_charge="3" index="114" retention_time_sec="3596.01" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.115.115.3" start_scan="115" end_scan="115" precursor_neutral_mass="1932.87751974939988" assumed_charge="3" index="114" retention_time_sec="3596.01" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="SKCFASNSQLLYSQGEK" peptide_prev_aa="X" peptide_next_aa="X" protein="genlncRNA_ENST00000428520_10_10934524-10952095_-1_1_ORF2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1932.8775197494" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
-			<modification_info modified_peptide="n[43]SKCFASN[115]SQ[129]LLYSQGEK" mod_nterm_mass="43.0183900319">
-				<mod_aminoacid_mass position="7" mass="115.0269441595"/>
+		<search_hit hit_rank="1" peptide="SKCFASNSQLLYSQGEK" peptide_prev_aa="X" peptide_next_aa="X" protein="genlncRNA_ENST00000428520_10_10934524-10952095_-1_1_ORF2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1932.87751974939988" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<modification_info modified_peptide="n[43]SKCFASN[115]SQ[129]LLYSQGEK" mod_nterm_mass="43.018390031899997">
+				<mod_aminoacid_mass position="7" mass="115.02694415949999"/>
 				<mod_aminoacid_mass position="9" mass="129.0425942233"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="-1.09757"/>
@@ -2677,9 +2677,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.116.116.2" start_scan="116" end_scan="116" precursor_neutral_mass="1458.6773007605" assumed_charge="2" index="115" retention_time_sec="2652.62" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.116.116.2" start_scan="116" end_scan="116" precursor_neutral_mass="1458.677300760499975" assumed_charge="2" index="115" retention_time_sec="2652.62" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="NNPVMSLQDQVR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_A6ND99" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1458.6773007605" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="NNPVMSLQDQVR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_A6ND99" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1458.677300760499975" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_K7EP71" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q7LGA3" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q7LGA3-2" num_tol_term="1"/>
@@ -2688,8 +2688,8 @@
 		<alternative_protein protein="genCDS_ENST00000370550_1_86915037-87104696_1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000370551_1_86915037-87097939_1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000591456_1_87072984-87092588_1" num_tol_term="1"/>
-			<modification_info modified_peptide="n[58]NN[115]PVMSLQDQ[129]VR" mod_nterm_mass="58.0292890319">
-				<mod_aminoacid_mass position="2" mass="115.0269441595"/>
+			<modification_info modified_peptide="n[58]NN[115]PVMSLQDQ[129]VR" mod_nterm_mass="58.029289031899999">
+				<mod_aminoacid_mass position="2" mass="115.02694415949999"/>
 				<mod_aminoacid_mass position="10" mass="129.0425942233"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="-1.13897"/>
@@ -2701,9 +2701,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.117.117.2" start_scan="117" end_scan="117" precursor_neutral_mass="836.4868400416" assumed_charge="2" index="116" retention_time_sec="2212.53" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.117.117.2" start_scan="117" end_scan="117" precursor_neutral_mass="836.48684004160009" assumed_charge="2" index="116" retention_time_sec="2212.53" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="KSRFTAK" peptide_prev_aa="X" peptide_next_aa="X" protein="calCuffs_CUFF.117687.1_5_43436710-43444350_-1_3_ORF32" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="836.4868400416" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="KSRFTAK" peptide_prev_aa="X" peptide_next_aa="X" protein="calCuffs_CUFF.117687.1_5_43436710-43444350_-1_3_ORF32" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="836.48684004160009" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 			<search_score name="Percolator_score" value="-1.35549"/>
 			<search_score name="Percolator_qvalue" value="0.0765402"/>
 			<search_score name="Percolator_PEP" value="1"/>
@@ -2713,12 +2713,12 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.118.118.2" start_scan="118" end_scan="118" precursor_neutral_mass="1266.6568218072" assumed_charge="2" index="117" retention_time_sec="1983.63" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.118.118.2" start_scan="118" end_scan="118" precursor_neutral_mass="1266.656821807200004" assumed_charge="2" index="117" retention_time_sec="1983.63" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="KGLDVAEPGPSR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q01433" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1266.6568218072" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="KGLDVAEPGPSR" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q01433" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1266.656821807200004" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="genCDS_ENST00000256578_1_109621014-109631152_1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000528667_1_109621014-109631152_1" num_tol_term="1"/>
-			<modification_info modified_peptide="n[43]KGLDVAEPGPSR" mod_nterm_mass="43.0183900319">
+			<modification_info modified_peptide="n[43]KGLDVAEPGPSR" mod_nterm_mass="43.018390031899997">
 			</modification_info>
 			<search_score name="Percolator_score" value="-1.63897"/>
 			<search_score name="Percolator_qvalue" value="0.0885601"/>
@@ -2729,12 +2729,12 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.119.119.2" start_scan="119" end_scan="119" precursor_neutral_mass="1143.5230301863" assumed_charge="2" index="118" retention_time_sec="1350.11" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.119.119.2" start_scan="119" end_scan="119" precursor_neutral_mass="1143.523030186300048" assumed_charge="2" index="118" retention_time_sec="1350.11" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="LGGQMQVHQK" peptide_prev_aa="X" peptide_next_aa="X" protein="genpseudogene_ENST00000442645_7_14985378-14986074_-1_3_ORF2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1143.5230301863" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="LGGQMQVHQK" peptide_prev_aa="X" peptide_next_aa="X" protein="genpseudogene_ENST00000442645_7_14985378-14986074_-1_3_ORF2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1143.523030186300048" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 			<modification_info modified_peptide="LGGQ[129]M[147]Q[129]VHQ[129]K">
 				<mod_aminoacid_mass position="4" mass="129.0425942233"/>
-				<mod_aminoacid_mass position="5" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="5" mass="147.03540001709996"/>
 				<mod_aminoacid_mass position="6" mass="129.0425942233"/>
 				<mod_aminoacid_mass position="9" mass="129.0425942233"/>
 			</modification_info>
@@ -2747,9 +2747,9 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.120.120.3" start_scan="120" end_scan="120" precursor_neutral_mass="2827.1728410744" assumed_charge="3" index="119" retention_time_sec="1694.59" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.120.120.3" start_scan="120" end_scan="120" precursor_neutral_mass="2827.172841074400367" assumed_charge="3" index="119" retention_time_sec="1694.59" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="YEDSQQEEAQYGAMFQEQLMTLK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_F5H4J1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2827.1728410744" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="YEDSQQEEAQYGAMFQEQLMTLK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_F5H4J1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2827.172841074400367" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q14980" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q14980-2" num_tol_term="1"/>
 		<alternative_protein protein="UniProt_Q14980-3" num_tol_term="1"/>
@@ -2759,11 +2759,11 @@
 		<alternative_protein protein="genCDS_ENST00000542977_11_72014948-72035943_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000616538_11_72003527-72035943_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000620566_11_72003527-72035943_-1" num_tol_term="1"/>
-			<modification_info modified_peptide="n[43]YEDSQQ[129]EEAQ[129]YGAMFQ[129]EQLM[147]TLK" mod_nterm_mass="43.0183900319">
+			<modification_info modified_peptide="n[43]YEDSQQ[129]EEAQ[129]YGAMFQ[129]EQLM[147]TLK" mod_nterm_mass="43.018390031899997">
 				<mod_aminoacid_mass position="6" mass="129.0425942233"/>
 				<mod_aminoacid_mass position="10" mass="129.0425942233"/>
 				<mod_aminoacid_mass position="16" mass="129.0425942233"/>
-				<mod_aminoacid_mass position="20" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="20" mass="147.03540001709996"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="-2.1027"/>
 			<search_score name="Percolator_qvalue" value="0.100208"/>
@@ -2774,14 +2774,14 @@
 		</search_hit>
 	</search_result>
 	</spectrum_query>
-	<spectrum_query spectrum="IDFileConverter_19_output.121.121.2" start_scan="121" end_scan="121" precursor_neutral_mass="1319.6258556158" assumed_charge="2" index="120" retention_time_sec="2297.68" >
+	<spectrum_query spectrum="IDFileConverter_19_output_tmp.121.121.2" start_scan="121" end_scan="121" precursor_neutral_mass="1319.625855615799992" assumed_charge="2" index="120" retention_time_sec="2297.68" >
 	<search_result>
-		<search_hit hit_rank="1" peptide="AHNFDERVFK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q96M60" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1319.6258556158" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<search_hit hit_rank="1" peptide="AHNFDERVFK" peptide_prev_aa="X" peptide_next_aa="X" protein="UniProt_Q96M60" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1319.625855615799992" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="UniProt_Q96M60-2" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000299338_15_49328568-49615171_-1" num_tol_term="1"/>
 		<alternative_protein protein="genCDS_ENST00000561064_15_49422710-49615171_-1" num_tol_term="1"/>
-			<modification_info modified_peptide="n[58]AHN[115]FDERVFK" mod_nterm_mass="58.0292890319">
-				<mod_aminoacid_mass position="3" mass="115.0269441595"/>
+			<modification_info modified_peptide="n[58]AHN[115]FDERVFK" mod_nterm_mass="58.029289031899999">
+				<mod_aminoacid_mass position="3" mass="115.02694415949999"/>
 			</modification_info>
 			<search_score name="Percolator_score" value="-2.46345"/>
 			<search_score name="Percolator_qvalue" value="0.104155"/>

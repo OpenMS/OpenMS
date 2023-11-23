@@ -10,7 +10,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
-#include <QDir>
+#include <QtCore/QDir>
 #include <array>
 #include <unordered_set>
 

@@ -16,7 +16,6 @@ ExtendedIsotopeFitter1D.h
 ExtendedIsotopeModel.h
 FeatureFinder.h
 FeatureFinderAlgorithm.h
-FeatureFinderAlgorithmIsotopeWavelet.h
 FeatureFinderAlgorithmMRM.h
 FeatureFinderAlgorithmPicked.h
 FeatureFinderAlgorithmPickedHelperStructs.h
@@ -31,9 +30,6 @@ GaussTraceFitter.h
 InterpolationModel.h
 IsotopeFitter1D.h
 IsotopeModel.h
-IsotopeWavelet.h
-IsotopeWaveletConstants.h
-IsotopeWaveletTransform.h
 LevMarqFitter1D.h
 MaxLikeliFitter1D.h
 ModelDescription.h

@@ -654,8 +654,6 @@ IsolationWindowLow
 IsolationWindowUp
 IsotopeDisribution
 IsotopeSpecies
-IsotopeWaveletFF
-IsotopeWaveletFeatureFinder
 KDTreeMaps
 LabelType
 LayerData

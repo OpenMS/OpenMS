@@ -6,7 +6,6 @@ set(sources_list_h
 InternalCalibration.h
 MZTrafoModel.h
 PrecursorCorrection.h
-TOFCalibration.h
 )
 
 ### add path to the filenames

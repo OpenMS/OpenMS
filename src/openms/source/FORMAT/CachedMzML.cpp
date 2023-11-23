@@ -7,8 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/CachedMzML.h>
-
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/KERNEL/StandardDeclarations.h>
@@ -56,7 +55,7 @@ namespace OpenMS
     // open the filestream
     ifs_.open(filename_cached_.c_str(), std::ios::binary);
 
-    // load the meta data from disk
+    // load only (!) the meta data from disk
     MzMLFile f;
     PeakFileOptions options = f.getOptions();
     options.setFillData(false);
