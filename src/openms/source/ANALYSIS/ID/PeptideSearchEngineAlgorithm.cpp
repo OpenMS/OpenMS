@@ -42,7 +42,6 @@
   #include <omp.h>
 #endif
 
-
 using namespace std;
 
 namespace OpenMS
@@ -164,7 +163,7 @@ namespace OpenMS
     peptide_min_size_ = param_.getValue("peptide:min_size");
     peptide_max_size_ = param_.getValue("peptide:max_size");
     peptide_missed_cleavages_ = param_.getValue("peptide:missed_cleavages");
-    peptide_motif_ = param_.getValue("peptide:motif").toString();
+    peptide_motif_ = param_.getValue("peptide:motif").toString(); // TODO: remove unused parameters
 
     report_top_hits_ = param_.getValue("report:top_hits");
 

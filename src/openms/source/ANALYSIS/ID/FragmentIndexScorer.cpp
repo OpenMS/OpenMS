@@ -82,10 +82,10 @@ namespace OpenMS
 
     // two posible modes. Precursor has a charge or we test all possible charges
     vector<size_t> charges;
-    cout << "precursor charge = " << precursor[0].getCharge() << endl;
+    //cout << "precursor charge = " << precursor[0].getCharge() << endl;
     if (precursor[0].getCharge())
     {
-      cout << "precursor charge found" << endl;
+      //cout << "precursor charge found" << endl;
       charges.push_back(precursor[0].getCharge());
     }
     else
@@ -101,7 +101,7 @@ namespace OpenMS
     {
       SpectrumMatchesTopN candidates_charge;
 
-      cout << "mz" << precursor[0].getMZ() << " uw " << precursor[0].getUnchargedMass() << endl;
+      //cout << "mz" << precursor[0].getMZ() << " uw " << precursor[0].getUnchargedMass() << endl;
       float mz;
       if (precursor[0].getCharge())
         mz = precursor[0].getMZ(); // TODO: What does this do? precursor[0].getUnchargedMass()
