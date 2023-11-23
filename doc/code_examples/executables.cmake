@@ -5,6 +5,9 @@ set(directory source/EXAMPLES)
 # --------------------------------------------------------------------------
 # list all filenames of the directory here
 set(executables_list
+FragmentIndex_tests
+FragmentIndex3D_test
+TagGenerator_tests
 Tutorial_AASequence
 Tutorial_Clustering
 Tutorial_DPosition

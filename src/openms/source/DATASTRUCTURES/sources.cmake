@@ -35,6 +35,8 @@ LPWrapper.cpp
         MassExplainer.cpp
 MatchedIterator.cpp
 Matrix.cpp
+MultiFragment.cpp
+MultiPeak.cpp
 OSWData.cpp
 Param.cpp
 ParamValue.cpp
