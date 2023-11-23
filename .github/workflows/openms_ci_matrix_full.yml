@@ -494,9 +494,9 @@ jobs:
           echo "Upload"
           if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
             folder=nightlyGHA                                                    # TODO: Change back when we deactivate Jenkins
-          elif [[ "${{ env.RUN_NAME }}" =~ release/* ]]; then
-            tmpfolder=${{ env.RUN_NAME }}
-            folder=${tmpfolder/release/RC_GHA}                                   # TODO: change back to RC after proper release
+          elif [[ "${{ env.RUN_NAME }}" =~ release/([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+            tmpfolder=${BASH_REMATCH[1]}
+            folder=release/RC_GHA/$tmpfolder                                   # TODO: change back to RC after proper release
           else
             folder=experimental/${{ env.RUN_NAME }}
           fi
@@ -506,6 +506,11 @@ jobs:
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
+
+          if [[${{ inputs.mark_as_latest }}]]; then
+            ln -s ./$tmpfolder latest  #create link to the release folder
+            rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/OpenMSInstaller/release/RC_GHA" # FIXME REVERT
+          fi
 
       - name: create RELEASE_TEXT
         if: inputs.do_release
@@ -548,12 +553,22 @@ jobs:
         with: 
           bodyFile: RELEASE_TEXT_GH.md
           tag: ${{ env.RUN_NAME }}
-          draft: true
+          draft: true #FIXME revert
           artifactErrorsFailBuild: true
+          makeLatest: ${{ inputs.mark_as_latest }}
           artifacts:
             ${{ github.workspace }}/*.exe, ${{ github.workspace }}/*.deb, ${{ github.workspace }}/*.pkg
             # TODO add src
 
+  deploy-docs:
+    if: github.ref == 'refs/heads/nightly' || contains(github.ref, 'release/') || inputs.package
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - name: Extract branch/PR infos
+        shell: bash
+        run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
+    
       - name: Download Documentation
         uses: actions/download-artifact@v3
         with:
@@ -572,9 +587,9 @@ jobs:
           echo "Upload"
           if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
             folder=nightlyGHA                                                    # TODO: Change back when we deactivate Jenkins
-          elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
-            tmpfolder=${{ env.RUN_NAME }}
-            folder=${tmpfolder/release/RC_GHA}                                   # TODO: change back to RC after proper release
+          elif [[ "${{ env.RUN_NAME }}" =~ release/([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+            tmpfolder=${BASH_REMATCH[1]}
+            folder=release/RC_GHA/$tmpfolder                                   # TODO: change back to RC after proper release
           else
             folder=experimental/${{ env.RUN_NAME }}
           fi
@@ -586,8 +601,12 @@ jobs:
 
           # Upload documentation FIXME
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/docs/ "$USER@$HOST:/Documentation/${folder}"
-      
 
+          if [[${{ inputs.mark_as_latest }}]]; then
+            ln -s ./$tmpfolder latest  #we can use the same link from above.
+            rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/Documentation/release/RC_GHA" # FIXME REVERT
+          fi
+      
         # TODO create softlinks to latest nightly
         # TODO create and upload file hashes, at least for release candidate
 
@@ -759,9 +778,9 @@ jobs:
           echo "Upload"
           if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
             folder=nightlyGHA
-          elif [[ "${{ env.RUN_NAME }}" =~ release/* ]]; then
-            tmpfolder=${{ env.RUN_NAME }}
-            folder=${tmpfolder/release/RC}GHA
+          elif [[ "${{ env.RUN_NAME }}" =~ release/([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+            tmpfolder=${BASH_REMATCH[1]}
+            folder=release/RC_GHA/$tmpfolder                                   # TODO: change back to RC after proper release
           else
             folder=experimental/${{ env.RUN_NAME }}
           fi
@@ -778,12 +797,20 @@ jobs:
           sudo chmod 600 ~/.ssh/private.key
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"
 
+          if [[${{ inputs.mark_as_latest }}]]; then
+            ln -s ./$tmpfolder latest  #create link to the release folder
+            rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/knime-plugin/updateSite/release/RC_GHA" # FIXME REVERT
+          fi
 
   do-release:
     if: inputs.do_release
     runs-on: ubuntu-latest
     needs: [build-deploy-knime-updatesite,deploy-installer]
     steps:
+      - name: Extract branch/PR infos
+        shell: bash
+        run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
+    
       # NB we create the tag for the OpenMS repo next in a separate action.
       # TODO handle updating if the ref already exists.
       - id: create_SHA
@@ -887,13 +914,30 @@ jobs:
               sha: latest_ref,
             });
 
-      #- name: update links to latest (documentation, installers)
-      #  if: inputs.mark_as_latest
-      #  run: #FIXME
-      
       #- name: merge branch back into develop
-      #  if: inputs.mark_as_latest
-      #  run: #FIXME
+      - name: Merge to Develop
+        if: inputs.mark_as_latest
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { repo, owner } = context.repo;
+            const result = await github.rest.pulls.create({
+              title: 'Merge latest release into develop',
+              owner,
+              repo,
+              head: '${{ github.ref_name }}',
+              base: 'develop',
+              body: [
+                'DO NOT MERGE ME!!!!! This PR is auto-generated by',
+                '[actions/github-script](https://github.com/actions/github-script).'
+              ].join('\n')
+            });
+            github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: result.data.number,
+              labels: ['feature', 'automated pr']
+            });
 
       #- name: create text for website and update it.
       #  if: inputs.announce_release
