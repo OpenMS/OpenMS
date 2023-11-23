@@ -33,11 +33,7 @@ namespace OpenMS
    */
   class OPENMS_DLLAPI FragmentIndex3D : public FragmentIndex
   {
-
-
   public:
-
-
     /**
      * Builds the Index Database in a multi-dimensional/multi-leveled tree structure
      * @param fasta_entries
@@ -51,8 +47,7 @@ namespace OpenMS
      * @param peptide_idx_range The range of all possible Peptides
      * @param window The window in which we want to search, enabeling finding of modified peptides
      */
-    void query(std::vector<Hit>& hits, const MultiPeak& peak, std::pair<size_t, size_t> peptide_idx_range, std::pair<double, double> window);
-
+    void query(std::vector<Hit>& hits, const MultiPeak& peak, std::pair<size_t, size_t> peptide_idx_range, std::pair<float, float> window);
 
     /// DefaultConstructor
     FragmentIndex3D() ;

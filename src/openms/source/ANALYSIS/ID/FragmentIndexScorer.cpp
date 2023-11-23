@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
-#include <OpenMS/ANALYSIS/ID/FragmentIndex3D.h>
+//#include <OpenMS/ANALYSIS/ID/FragmentIndex3D.h>
 #include <OpenMS/ANALYSIS/ID/FragmentIndexScorer.h>
 #include <OpenMS/ANALYSIS/ID/FragmentIndexTagGenerator.h>
 #include <OpenMS/CHEMISTRY/AAIndex.h>
@@ -41,31 +41,35 @@ namespace OpenMS
   {
     db_ = db;
   }
+
   void FragmentIndexScorer::buildDB(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
     db_->build(fasta_entries);
   }
 
-
   void FragmentIndexScorer::simpleScoring(MSSpectrum& spectrum, InitHits& initHits)
   {
+    /*
     auto* ptrBase = dynamic_cast<FragmentIndex3D*>(db_);
+
     if (ptrBase)
     {
       OPENMS_LOG_WARN << "The Database has the wrong format" << endl;
       return;
     }
+    */
     if (!db_->isBuild())
     {
       OPENMS_LOG_WARN << "FragmentIndex not yet build \n";
       return;
     }
 
-    if(!db_->containsFragmentation(fragmentation_)){
+/* TODO:
+    if(db_->getIonTypes() != ){
       OPENMS_LOG_WARN << "FragmentIndex was not build with ions set by the Scorer object" << endl;
       return;
     }
-
+*/    
     if (spectrum.empty() || (spectrum.getMSLevel() != 2))
       return;
 
@@ -101,7 +105,7 @@ namespace OpenMS
       InitHits candidates_charge;
 
       cout << "mz" << precursor[0].getMZ() << " uw " << precursor[0].getUnchargedMass() << endl;
-      double mz;
+      float mz;
       if (precursor[0].getCharge())
         mz = precursor[0].getMZ(); // TODO: What does this do? precursor[0].getUnchargedMass()
       else
@@ -127,27 +131,27 @@ namespace OpenMS
         // the following part is 1:1 from sage
         size_t idx = hit.peptide_idx - candidates_range.first;
 
-        auto source = &candidates.hits_[idx];
-        if (source->num_matched_ == 0)
+        auto& source = candidates.hits_[idx];
+        if (source.num_matched_ == 0)
         {
-          candidates.scored_candidates_ += 1;
-          source->precursor_charge_ = precursor_charge;
-          source->peptide_idx_ = hit.peptide_idx;
-          source->isotope_error_ = isotope_error;
+          ++candidates.scored_candidates_;
+          source.precursor_charge_ = precursor_charge;
+          source.peptide_idx_ = hit.peptide_idx;
+          source.isotope_error_ = isotope_error;
         }
-        source->num_matched_ += 1;
-        candidates.matched_peaks_ += 1;
+        ++source.num_matched_;
+        ++candidates.matched_peaks_;
       }
     }
   }
 
-  void FragmentIndexScorer::closedSearch(MSSpectrum& spectrum, double mz, InitHits& initHits, uint16_t charge)
+  void FragmentIndexScorer::closedSearch(MSSpectrum& spectrum, float mz, InitHits& initHits, uint16_t charge)
   {
     for (int16_t isotope_error = min_isotope_error_; isotope_error <= max_isotope_error_; isotope_error++)
     {
       InitHits candidates_iso_error;
       mz += isotope_error * Constants::NEUTRON_MASS;
-      auto candidates_range = db_->getPeptideRange(mz, {0, 0}); // for the simple search we do not apply any modification window!!
+      auto candidates_range = db_->getPeptidesInPrecursorRange(mz, {0, 0}); // for the simple search we do not apply any modification window!!
       candidates_iso_error.hits_.resize(candidates_range.second - candidates_range.first + 1);
 
       for (Peak1D peak : spectrum)
@@ -161,19 +165,19 @@ namespace OpenMS
   }
 
 
-  void FragmentIndexScorer::openSearch(MSSpectrum& spectrum, double precursor_mass, InitHits& initHits, uint16_t charge)
+  void FragmentIndexScorer::openSearch(MSSpectrum& spectrum, float precursor_mass, InitHits& initHits, uint16_t charge)
   {
-    pair<double, double> precursor_window;
+    pair<float, float> precursor_window;
     if (open_precursor_window == 0)
       precursor_window = make_pair(-precursor_mass * 0.05, precursor_mass * 0.01);
     else
       precursor_window = make_pair(-open_precursor_window, open_precursor_window); // sage took (-500, 100) fixed
     OPENMS_LOG_WARN << "The Precursor mass window was set to: " << precursor_window.first << " " << precursor_window.second << endl;
-    auto candidates_range = db_->getPeptideRange(precursor_mass, precursor_window);
+    auto candidates_range = db_->getPeptidesInPrecursorRange(precursor_mass, precursor_window);
 
     // adjust the window. with each decreasing peak the prob. that we have all modifications inside gets lower
     // the linear decrease of the window below is a very coarse approximation and must be improved
-    pair<double, double> fragment_window;
+    pair<float, float> fragment_window;
 
     InitHits hits_per_window;
     hits_per_window.hits_.resize(candidates_range.second - candidates_range.first + 1);
@@ -207,6 +211,7 @@ namespace OpenMS
     }
   }
 
+/*
   void FragmentIndexScorer::multiDimScoring(const OpenMS::MSSpectrum& spectrum, OpenMS::FragmentIndexScorer::InitHits& initHits)
   {
     // 1.) First check all requirements for the function to actually work
@@ -265,8 +270,8 @@ namespace OpenMS
     {
       InitHits candidates_charge;
       vector<FragmentIndex::Hit> hits_charge;
-      double mz = precursor[0].getMZ() * static_cast<double>(charge);
-      auto range = ptrDerived->getPeptideRange(mz, {-open_precursor_window, open_precursor_window});
+      float mz = precursor[0].getMZ() * static_cast<float>(charge);
+      auto range = ptrDerived->getPeptidesInPrecursorRange(mz, {-open_precursor_window, open_precursor_window});
       candidates_charge.hits_.resize(range.second - range.first + 1);
       for (const MultiPeak& mp : mPeaks)
       {
@@ -280,6 +285,7 @@ namespace OpenMS
     }
     trimHits(initHits);
   }
+*/
 
   void FragmentIndexScorer::trimHits(OpenMS::FragmentIndexScorer::InitHits& init_hits)
   {
@@ -353,95 +359,13 @@ namespace OpenMS
     }
   }
 
-  shared_ptr<FragmentIndexScorer::Score> FragmentIndexScorer::scoreCandidate(OpenMS::FragmentIndexScorer::PreHits hit, OpenMS::MSSpectrum& spectrum)
-  {
-
-    shared_ptr<Score> result = make_shared<Score>();
-
-    //0.) Add information to the score that needs no computation and is already in the PreHit
-    result->peptide_idx_ = hit.peptide_idx_;
-    result->charge_ = hit.precursor_charge_;
-    result->isotope_error_ = hit.isotope_error_;
-
-    //Rebuild the theoretical spectrum, because in the Database we might have set a min and max Fragment size
-    //1.) get the spectrum generator and set the correct parameters that align with the parameters of this object
-    TheoreticalSpectrumGenerator tsg;
-    auto tsg_params = tsg.getParameters();  // defaults are b and y
-    tsg_params.setValue("add_metainfo", "true");
-    if(fragmentation_ != "b_y"){
-      tsg_params.setValue("add_b_ion", "false");
-      tsg_params.setValue("add_y_ion", "false");
-    }
-    if(fragmentation_ == "a_x"){
-      tsg_params.setValue("add_a_ions", "true");
-      tsg_params.setValue("add_x_ions", "true");
-    }
-    if(fragmentation_ == "c_z"){
-      tsg_params.setValue("add_c_ions", "true");
-      tsg_params.setValue("add_z_ions", "true");
-    }
-    tsg.setParameters(tsg_params);
-
-    //2.) With the info from PreHit retrive the original peptide from the DB
-    auto pep = &(db_->getFiPeptides().at(hit.peptide_idx_));
-    PeakSpectrum b_y_ions;
-    tsg.getSpectrum(b_y_ions, pep->sequence, 1, max_fragment_charge_); //TODO: is max_charge the fragment charge or the precursor charge??
-    const PeakSpectrum::StringDataArray  & ion_types = b_y_ions.getStringDataArrays().at(0);
-
-    //3.) now compare all peaks with each other
-    // bc b_y_ions is sorted, we can save the locations which were already compared to safe some runtime
-    size_t b_y_ions_position = 0;
-    pair<int,int> b_run = make_pair(0,0);   // left the current run, right the so far max run
-    pair<int,int> y_run = make_pair(0,0);
-
-    // use the same tolerance as used in the DB
-    double frag_tol = db_->getParameters().getValue("fragment_mz_tolerance");
-    string frag_tol_unit = db_->getParameters().getValue("fragment_mz_tolerance_unit").toString();
-    double applied_frag_tol = 0;
-
-    for(Peak1D peak : spectrum){
-      applied_frag_tol = (frag_tol_unit == "DA") ? frag_tol : Math::ppmToMass(frag_tol, peak.getMZ());
-
-      while((b_y_ions_position < b_y_ions.size()) && (b_y_ions[b_y_ions_position].getMZ() < (peak.getMZ() + applied_frag_tol))){
-        string ion_type = ion_types[b_y_ions_position].substr(0,1);
-        if((b_y_ions[b_y_ions_position].getMZ() >= peak.getMZ() - applied_frag_tol) && (b_y_ions[b_y_ions_position].getMZ() <= peak.getMZ() + applied_frag_tol)){
-          if((ion_type == "a") || (ion_type == "b") || (ion_type == "c")){
-            result->summed_b_ += peak.getIntensity();
-            result->matched_b_ += 1;
-            b_run.first += 1;
-          }else{
-            result->summed_y_ += peak.getIntensity();
-            result->matched_y_ += 1;
-            y_run.first += 1;
-          }
-          b_y_ions_position++;
-          break;
-        }
-        if((ion_type == "a") || (ion_type == "b") || (ion_type == "c")){
-          b_run.second= max(b_run.first, b_run.second);
-          b_run.first = 0;
-        }
-        if((ion_type == "x") || (ion_type == "y") || (ion_type == "z")){
-          y_run.second= max(y_run.first, y_run.second);
-          y_run.first = 0;
-        }
-        b_y_ions_position++;
-      }
-    }
-    result->longest_b = max(b_run.first, b_run.second);
-    result->longest_y = max(y_run.first, y_run.second);
-    return result;
-  }
-
-
   void FragmentIndexScorer::buildKMinHeapforTag(std::vector<TagGenerator::IdxAndIntensity>& slice, uint32_t size)
   {
-    buildKMinHeap<TagGenerator::IdxAndIntensity, double>(slice, size, [](TagGenerator::IdxAndIntensity a) { return a.intensity_; });
+    buildKMinHeap<TagGenerator::IdxAndIntensity, float>(slice, size, [](TagGenerator::IdxAndIntensity a) { return a.intensity_; });
   }
 
   FragmentIndexScorer::FragmentIndexScorer() : DefaultParamHandler("FragmentIndexScorer")
   {
-
     defaults_.setValue("Min_matched_peaks", 5, "Minimal number of matched ions to report a PSM");
     defaults_.setValue("min_isotope_error", 0, "Precursor isotope error");
     defaults_.setValue("max_isotope_error", 0, "precursor isotope error");

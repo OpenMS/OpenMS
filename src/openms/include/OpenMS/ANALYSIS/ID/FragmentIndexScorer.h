@@ -40,11 +40,9 @@ namespace OpenMS
     uint16_t max_fragment_charge_;
     uint32_t max_processed_hits_;   ///< The amount of PSM that will be used. the rest is filtered out
     bool open_search;               ///< true if a unrestrictive open search for potential PTM is performed
-    double open_fragment_window;    // TODO: Should be dependent of prec_window and also adaptable!!! so I guess i could delete this later
-    double open_precursor_window;   ///< (Only for open_search) The window in which the precursor-mz could be located, due to PTM
+    float open_fragment_window;    // TODO: Should be dependent of prec_window and also adaptable!!! so I guess i could delete this later
+    float open_precursor_window;   ///< (Only for open_search) The window in which the precursor-mz could be located, due to PTM
     std::string fragmentation_method;
-
-
 
     /**
      * @brief simple minHeapify for entry idx inside the first size elements of an vector
@@ -88,7 +86,8 @@ namespace OpenMS
     /**
      * @brief Every potential Peptide/Protein has such an struct. Inside the number of peaks-to-Fragment hits are safed
      */
-    struct PreHits{
+    struct PreHits
+    {
       uint32_t num_matched_; ///< Number of peaks-fragment hits
       size_t peptide_idx_;   ///< The idx this struct belongs to
       uint32_t precursor_charge_;  ///< The precursor_charged used for the performed search
@@ -106,7 +105,8 @@ namespace OpenMS
     /**
      * @brief A container for the PreHits
      */
-    struct InitHits{
+    struct InitHits
+    {
       uint32_t matched_peaks_;
       uint32_t scored_candidates_;
       std::vector<PreHits> hits_;
@@ -117,7 +117,8 @@ namespace OpenMS
 
       }
 
-      InitHits& operator+=(const InitHits& other){
+      InitHits& operator+=(const InitHits& other)
+      {
         this-> matched_peaks_ += other.matched_peaks_;
         this->scored_candidates_ += other.scored_candidates_;
         this->hits_.insert(this->hits_.end(), other.hits_.begin(), other.hits_.end());
@@ -133,31 +134,25 @@ namespace OpenMS
     };
 
     /// Feature of a candidate peptide spectrum match
-    struct Score{
+    struct Score 
+    {
       size_t peptide_idx_;
       uint16_t charge_;
       int16_t isotope_error_;
       int matched_b_;
       int matched_y_;
-      double summed_b_;
-      double summed_y_;
+      float summed_b_;
+      float summed_y_;
       int longest_y;
       int longest_b;
     };
-
-    /**
-     * @brief Given one candidate, received from simpleScoring we compute a score
-     * @param hit The candidate hit
-     * @param spectrum  the query spectrum
-     * @return a Score
-     */
-    std::shared_ptr<Score> scoreCandidate(PreHits hit, MSSpectrum& spectrum);
 
     /// Constructor
     FragmentIndexScorer();
 
     /// FID setter and builder
     void setDB(FragmentIndex* db);
+
     void buildDB(const std::vector<FASTAFile::FASTAEntry> & fasta_entries);  //Only builds standard
 
     void extractHits(InitHits& candidates ,
@@ -172,23 +167,19 @@ namespace OpenMS
 
     void peakQuery(InitHits& candidates, const Peak1D& peak, std::pair<size_t, size_t> candidates_range, int16_t isotope_error, uint16_t precursor_charge);
     /// Closed Scoring. NO open window for PTM search
-    void closedSearch(MSSpectrum& spectrum, double mz, InitHits& initHits, uint16_t charge);
+    void closedSearch(MSSpectrum& spectrum, float mz, InitHits& initHits, uint16_t charge);
 
     /** @brief The idea is to search witch an wider precursor tolerance window and actively adjust the fragment window
      *
      */
-    void openSearch(MSSpectrum& spectrum, double precursor_mass, InitHits& initHits, uint16_t charge);
+    void openSearch(MSSpectrum& spectrum, float precursor_mass, InitHits& initHits, uint16_t charge);
 
-    /**
+/*
      * @brief Scoring for the MultiDim FragmentIndex!
      * @param spectrum
      * @param initHits
-     */
     void multiDimScoring(const MSSpectrum& spectrum, InitHits& initHits);
-
-
-
-
+*/
 
   protected:
     void updateMembers_() override;
@@ -197,9 +188,6 @@ namespace OpenMS
      * Brazenly stolen from sage.
      */
     void trimHits(InitHits& init_hits);
-
-
-
 
   };
 }

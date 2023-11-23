@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
 
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -42,6 +43,8 @@ class OPENMS_DLLAPI PeptideSearchEngineAlgorithm :
       std::vector<PeptideIdentification>& pep_ids) const;
   protected:
     void updateMembers_() override;
+
+    FragmentIndex fragment_index_;
 
     /// Slimmer structure as storing all scored candidates in PeptideHit objects takes too much space
     struct AnnotatedHit_

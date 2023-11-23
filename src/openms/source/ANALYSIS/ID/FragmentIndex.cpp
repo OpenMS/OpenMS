@@ -37,36 +37,35 @@ using namespace std;
 namespace OpenMS
 {
 
-  FragmentIndex& FragmentIndex::operator=(const OpenMS::FragmentIndex& fi)
-  {
-    DefaultParamHandler::operator=(fi);
-    this->fi_fragments_ = fi.fi_fragments_;
-    this->fi_peptides_ = fi.fi_peptides_;
-    this->bucket_min_mz_ = fi.bucket_min_mz_;
-    this->bucketsize_ = fi.bucketsize_;
-    this->is_build_ = fi.is_build_;
-    return *this;
-  }
+#ifdef DEBUG_FRAGMENT_INDEX
+    static void print_slice(const std::vector<FragmentIndex::Fragment>& slice, size_t low, size_t high)
+    {
+      cout << "Slice: ";
+      for(size_t i = low; i <= high; i++)
+      {
+        cout << slice[i].fragment_mz << " ";
+      }
+      cout << endl;
+    }
+
 
   void FragmentIndex::addSpecialPeptide( OpenMS::AASequence& peptide, Size source_idx)
-
   {
-    double temp_mono = peptide.getMonoWeight();
-    fi_peptides_.push_back({exp_type_, AASequence(std::move(peptide)), source_idx,temp_mono});
+    float temp_mono = peptide.getMonoWeight();
+    fi_peptides_.push_back({AASequence(std::move(peptide)), source_idx,temp_mono});
   }
+#endif
 
   void FragmentIndex::clear()
   {
     fi_fragments_.clear();
     fi_peptides_.clear();
+    is_build_ = false;
   }
 
-  bool FragmentIndex::containsFragmentation(const string& fragmentation) const
+  FragmentIndex::IonTypes FragmentIndex::getIonTypes() const
   {
-    if(fragmentation == "a_x" ) return (add_a_ions_ && add_x_ions_);
-    if(fragmentation == "b_y" ) return (add_b_ions_ && add_y_ions_);
-    if(fragmentation == "c_z" ) return (add_c_ions_ && add_z_ions_);
-    return false;
+    return ion_types_;
   }
 
   void FragmentIndex::generate_peptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
@@ -82,17 +81,15 @@ namespace OpenMS
 
 
       size_t protein_idx = 0;
-      for(FASTAFile::FASTAEntry protein: fasta_entries){
+      for(FASTAFile::FASTAEntry protein: fasta_entries)
+      {
         vector<pair<size_t ,size_t >> digested_peptides;
-        /// DIGEST (if bottom-up)
-        if(exp_type_)
-        {
-          digestor.digestUnmodified(StringView(protein.sequence), digested_peptides, peptide_min_length_, peptide_max_length_);
-        }else{
-          digested_peptides.push_back(make_pair(0, protein.sequence.length())); // in case of top down the whole protein is the peptide
-        }
 
-        for(pair<size_t, size_t > digested_peptide : digested_peptides){
+        /// DIGEST (if bottom-up)
+        digestor.digestUnmodified(StringView(protein.sequence), digested_peptides, peptide_min_length_, peptide_max_length_);
+
+        for (pair<size_t, size_t > digested_peptide : digested_peptides)
+        {
 
           //remove peptides containing unknown AA
           if (protein.sequence.substr(digested_peptide.first, digested_peptide.second).find('X') != string::npos){
@@ -102,7 +99,7 @@ namespace OpenMS
 
           /// MODIFY (if modifications are specified)
           AASequence unmod_peptide = AASequence::fromString(protein.sequence.substr(digested_peptide.first, digested_peptide.second));
-          double unmodified_mz = unmod_peptide.getMZ(1); // TODO: What is getMonoWeight??
+          float unmodified_mz = unmod_peptide.getMZ(1); // TODO: What is getMonoWeight??
 
           if (!(modifications_fixed_.empty() && modifications_variable_.empty())){
             vector<AASequence> modified_peptides;
@@ -112,15 +109,19 @@ namespace OpenMS
             ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, mod_peptide, max_variable_mods_per_peptide_, modified_peptides);
 
             for(AASequence modified_peptide: modified_peptides){
-              double modified_mz = modified_peptide.getMZ(1);
+              float modified_mz = modified_peptide.getMZ(1);
               if(peptide_min_mass_ > modified_mz && modified_mz > peptide_max_mass_) //exclude peptides that are not in the min-max window
                 continue;
 
-              fi_peptides_.push_back({exp_type_, modified_peptide, protein_idx, modified_mz});
+              fi_peptides_.push_back({modified_peptide, protein_idx, modified_mz});
             }
-          }else{
-            if(peptide_min_mass_ < unmodified_mz && unmodified_mz < peptide_max_mass_)
-              fi_peptides_.push_back({exp_type_,unmod_peptide, protein_idx, unmodified_mz});
+          }
+          else
+          {
+            if (peptide_min_mass_ < unmodified_mz && unmodified_mz < peptide_max_mass_)
+            {
+              fi_peptides_.push_back({unmod_peptide, protein_idx, unmodified_mz});
+            }              
           }
 
 
@@ -131,12 +132,11 @@ namespace OpenMS
       if(skipped_peptides > 0)
         OPENMS_LOG_WARN << skipped_peptides << " peptides skipped due to unkown AA \n";
       //sort the peptide vector, critical for following steps
-      sort(fi_peptides_.begin(), fi_peptides_.end(), [](const Peptide& a, const Peptide& b){return a.mass < b.mass;});
+      sort(fi_peptides_.begin(), fi_peptides_.end(), [](const Peptide& a, const Peptide& b){return a.precursor_mz < b.precursor_mz;});
   }
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
-
       // get the spectrum generator and set the ion-types
       TheoreticalSpectrumGenerator tsg;
       auto tsg_params = tsg.getParameters();
@@ -147,18 +147,18 @@ namespace OpenMS
       tsg_params.setValue("add_y_ions", add_y_ions_);
       tsg_params.setValue("add_z_ions", add_z_ions_);
       PeakSpectrum b_y_ions;
-      std::vector<Fragment> all_frags;
       /// generate all Peptides
       generate_peptides(fasta_entries);
 
       size_t peptide_idx = 0;
       /// For each Peptides get all theoretical b and y ions // TODO: include other fragmentation methods
-      for (const Peptide& pep: fi_peptides_){
+      for (const Peptide& pep: fi_peptides_)
+      {
         tsg.getSpectrum(b_y_ions, pep.sequence, 1, 1);
-        for (Peak1D frag : b_y_ions){
+        for (Peak1D frag : b_y_ions)
+        {
           if (fragment_min_mz_ > frag.getMZ() && frag.getMZ() > fragment_max_mz_  ) continue;
           fi_fragments_.push_back({peptide_idx,frag.getMZ()});
-
         }
         peptide_idx ++;
         b_y_ions.clear(true);
@@ -187,122 +187,81 @@ namespace OpenMS
 
   }
 
-  std::pair<size_t, size_t > FragmentIndex::getPeptideRange(double precursor_mass, std::pair<double, double> window)
+  std::pair<size_t, size_t > FragmentIndex::getPeptidesInPrecursorRange(float precursor_mass, std::pair<float, float> window)
   {
-      double prec_tol = (precursor_mz_tolerance_unit_ == "DA") ? precursor_mz_tolerance_ : Math::ppmToMass(precursor_mz_tolerance_, precursor_mass);
-      //set include to false, be we dont want the lower element
-      return binary_search_slice<Peptide, double>(fi_peptides_, precursor_mass - prec_tol + window.first, precursor_mass + prec_tol + window.second, [](Peptide a){return a.mass;}, false);
-  }
+      float prec_tol = precursor_mz_tolerance_unit_ppm_ ? Math::ppmToMass(precursor_mz_tolerance_, precursor_mass) : precursor_mz_tolerance_ ;  //TODO??? apply ppm to mass * charge or not
 
+      auto left_it = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(), precursor_mass - prec_tol + window.first, [](const Peptide& a, float b) { return a.precursor_mz < b;});
+      auto right_it = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(), precursor_mass + prec_tol + window.second, [](float b, const Peptide& a) { return b < a.precursor_mz;});
+      return make_pair(std::distance(fi_peptides_.begin(), left_it), std::distance(fi_peptides_.begin(), right_it));
+  }
 
   vector<FragmentIndex::Hit> FragmentIndex::query(OpenMS::Peak1D peak, pair<size_t, size_t> peptide_idx_range, uint16_t peak_charge)
   {
-      double adjusted_mass = peak.getMZ() * peak_charge;
+      float adjusted_mass = peak.getMZ() * peak_charge;
+
+      float frag_tol = fragment_mz_tolerance_unit_ppm_ ? Math::ppmToMass(fragment_mz_tolerance_, adjusted_mass) : fragment_mz_tolerance_;  //TODO??? apply ppm to mass * charge or not
+
+      auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), adjusted_mass - frag_tol);
+      auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), adjusted_mass + frag_tol);      
+      if (left_it != bucket_min_mz_.begin()) --left_it;
+
+      auto in_range_buckets = make_pair(std::distance(bucket_min_mz_.begin(), left_it), std::distance(bucket_min_mz_.begin(), right_it));
 
       vector<FragmentIndex::Hit> hits;
-      double frag_tol = (fragment_mz_tolerance_unit_ == "DA") ? fragment_mz_tolerance_ : Math::ppmToMass(fragment_mz_tolerance_, adjusted_mass);  //TODO??? apply ppm to mass * charge or not
+      hits.reserve(64);
 
-      //include set to true, because the lowest element might contain the actuall value
-      auto in_range_buckets = binary_search_slice<double,double>(bucket_min_mz_, adjusted_mass- frag_tol , adjusted_mass + frag_tol, [](double a){return a;},true);
+      for (size_t j = in_range_buckets.first; j <= in_range_buckets.second; j++)
+      {
+        auto slice_begin = fi_fragments_.begin() + (j*bucketsize_);
+        auto slice_end = ((j+1) * bucketsize_) >= fi_fragments_.size() ? fi_fragments_.end() : fi_fragments_.begin() + ((j+1) * bucketsize_) + 1;
 
-      for (size_t j = in_range_buckets.first; j <= in_range_buckets.second; j++){
+        auto left_it = std::lower_bound(slice_begin, slice_end, peptide_idx_range.first, [](Fragment a, UInt32 b) { return a.peptide_idx < b;} ); 
 
-        auto slice_start = fi_fragments_.begin() + (j*bucketsize_);
-        auto slice_end = ((j+1) * bucketsize_) > fi_fragments_.size() ? fi_fragments_.end() : fi_fragments_.begin()+((j+1)*bucketsize_);
-        vector<Fragment> slice(slice_start, slice_end);
-        //include set to false, bc we do not want lower idx
-        auto in_range_fragments = binary_search_slice<Fragment, size_t >(slice, peptide_idx_range.first, peptide_idx_range.second,
-                                               [](Fragment a){return a.peptide_idx;}, false);
-       for(size_t candidate = in_range_fragments.first; candidate <= in_range_fragments.second; candidate++){
-          if(slice[candidate].fragment_mz >= (adjusted_mass - frag_tol ) && slice[candidate].fragment_mz <= (adjusted_mass + frag_tol)){
-            hits.push_back({slice[candidate].peptide_idx, slice[candidate]. fragment_mz});
-            if(slice[candidate].peptide_idx < peptide_idx_range.first || slice[candidate].peptide_idx > peptide_idx_range.second)
+        while (left_it != slice_end && left_it->peptide_idx < peptide_idx_range.second) // sequential scan
+        {
+          if (left_it->fragment_mz >= (adjusted_mass - frag_tol ) && left_it->fragment_mz <= (adjusted_mass + frag_tol))
+          {
+            hits.emplace_back(left_it->peptide_idx, left_it->fragment_mz);
+            #ifdef DEBUG_FRAGMENT_INDEX
+            if (left_it->peptide_idx < peptide_idx_range.first || left_it->peptide_idx > peptide_idx_range.second)
               OPENMS_LOG_WARN << "idx out of range" << endl;
+            #endif
           }
-       }
+          ++left_it;
+        }
+
       }
 
       return hits;
   }
 
-
-  template<class S, class B> std::pair<size_t, size_t> FragmentIndex::binary_search_slice(const std::vector<S>& slice, B low, B high, B (*access)(S), bool include)
-  {
-      pair<size_t, size_t> out;
-
-      ///1.) find low index
-      auto low_idx = slice.begin();
-      auto high_idx = slice.end() - 1;
-      auto mid_idx = low_idx + (high_idx - low_idx)/2;
-
-      while((high_idx - low_idx) > 1){
-
-        mid_idx = low_idx + (high_idx - low_idx)/2;
-        if(low > access(*mid_idx))    // here is the only difference between low and high
-          low_idx = mid_idx;
-        else
-          high_idx = mid_idx;
-      }
-
-
-      out.first = std::distance(slice.begin(),((access(*high_idx) >= low) || (access(*high_idx) == access(*low_idx))) ? low_idx : high_idx);
-      //must be >= because of how exclude works!
-      if(!include)  // we do not want to include elements that are lower, with this we also get such pairs (4,3) if the value is incorrect
-                    // this automatically results later that we wont enter loops were we did not find any slices!!
-        out.first++;
-
-
-      ///2.) high index
-      low_idx = slice.begin();
-      high_idx =  slice.end() - 1;
-      while((high_idx - low_idx) > 1){
-
-        mid_idx = low_idx + (high_idx - low_idx)/2;
-        if(high >= access(*mid_idx))
-          low_idx = mid_idx;
-        else
-          high_idx = mid_idx;
-      }
-      out.second = std::distance(slice.begin(),(access(*high_idx) <= high) ? high_idx : low_idx);
-      return out;
-
-  }
-
-  std::pair<size_t, size_t> FragmentIndex::binary_search_slice_double(const std::vector<double>& slice, double low, double high, bool include)
-  {
-      return binary_search_slice<double, double>(slice, low, high, [](double a){return a;}, include);
-  }
-
-  std::pair<size_t, size_t> FragmentIndex::binary_search_slice_mf(const std::vector<OpenMS::MultiFragment>& slice, size_t low, size_t high, size_t (*access) (OpenMS::MultiFragment), bool include)
-  {
-      return binary_search_slice<MultiFragment, size_t >(slice, low, high, access, include);
-  }
-
   FragmentIndex::FragmentIndex() : DefaultParamHandler("FragmentIndex")
   {
-      defaults_.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
-      defaults_.setValidStrings("add_y_ions", {"true","false"});
+    defaults_.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
+    defaults_.setValidStrings("add_y_ions", {"true","false"});
 
-      defaults_.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
-      defaults_.setValidStrings("add_b_ions", {"true","false"});
+    defaults_.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
+    defaults_.setValidStrings("add_b_ions", {"true","false"});
 
-      defaults_.setValue("add_a_ions", "false", "Add peaks of a-ions to the spectrum");
-      defaults_.setValidStrings("add_a_ions", {"true","false"});
+    defaults_.setValue("add_a_ions", "false", "Add peaks of a-ions to the spectrum");
+    defaults_.setValidStrings("add_a_ions", {"true","false"});
 
-      defaults_.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
-      defaults_.setValidStrings("add_c_ions", {"true","false"});
+    defaults_.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
+    defaults_.setValidStrings("add_c_ions", {"true","false"});
 
-      defaults_.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
-      defaults_.setValidStrings("add_x_ions", {"true","false"});
+    defaults_.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
+    defaults_.setValidStrings("add_x_ions", {"true","false"});
 
-      defaults_.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
-      defaults_.setValidStrings("add_z_ions", {"true","false"});
+    defaults_.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
+    defaults_.setValidStrings("add_z_ions", {"true","false"});
 
     vector<String> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
+
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    all_mods.push_back({});
+
     vector<string> tolerance_units{"DA", "PPM"};
     defaults_.setValue("experiment_type","false", "Bottom Up (true) or TopDown (false)");
     defaults_.setValue("digestor_enzyme", "Trypsin", "Enzyme for digestion");
@@ -325,9 +284,9 @@ namespace OpenMS
     defaults_.setValue("modifications_variable", std::vector<std::string>{}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
     defaults_.setValidStrings("modifications_variable", ListUtils::create<std::string>(all_mods));
     defaults_.setValue("max_variable_mods_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
-    is_build_ = false;
+    is_build_ = false; // TODO: remove this and build on construction
     defaultsToParam_();
-  }
+}
 
   void FragmentIndex::updateMembers_()
   {
@@ -337,7 +296,6 @@ namespace OpenMS
     add_c_ions_ = param_.getValue("add_c_ions").toBool();
     add_x_ions_ = param_.getValue("add_x_ions").toBool();
     add_z_ions_ = param_.getValue("add_z_ions").toBool();
-    exp_type_ = param_.getValue("experiment_type").toBool();
     digestion_enzyme_ = param_.getValue("digestor_enzyme").toString();
     missed_cleavages_ = param_.getValue("missed_cleavages");
     peptide_min_mass_ = param_.getValue("peptide_min_mass");
@@ -349,26 +307,20 @@ namespace OpenMS
 
     precursor_mz_tolerance_ = param_.getValue("precursor_mz_tolerance");
     fragment_mz_tolerance_ = param_.getValue("fragment_mz_tolerance");
-    precursor_mz_tolerance_unit_ = param_.getValue("precursor_mz_tolerance_unit").toString();
-    fragment_mz_tolerance_unit_ = param_.getValue("fragment_mz_tolerance_unit").toString();
+    precursor_mz_tolerance_unit_ppm_ = param_.getValue("precursor_mz_tolerance_unit").toString() == "ppm";
+    fragment_mz_tolerance_unit_ppm_ = param_.getValue("fragment_mz_tolerance_unit").toString() == "ppm";
 
     modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications_fixed"));
     modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications_variable"));
     max_variable_mods_per_peptide_ = param_.getValue("max_variable_mods_per_peptide");
   }
-  vector<AASequence> FragmentIndex::getFiPeptidesSequences() const
-  {
-    vector<AASequence> output;
-    for(Peptide pep: fi_peptides_){
-        output.push_back(AASequence(pep.sequence));
-    }
-    return output;
-  }
+ 
   bool FragmentIndex::isBuild() const
   {
     return is_build_;
   }
-  const vector<FragmentIndex::Peptide>& FragmentIndex::getFiPeptides() const
+
+  const vector<FragmentIndex::Peptide>& FragmentIndex::getPeptides() const
   {
     return fi_peptides_;
   }

@@ -50,7 +50,7 @@ namespace OpenMS
     FragmentIndex::updateMembers_();
   }
 
-  void FragmentIndex3D::build (const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
+  void FragmentIndex3D::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
     TheoreticalSpectrumGenerator tsg;
     //store ion types for each peak
@@ -59,13 +59,14 @@ namespace OpenMS
     tsg.setParameters(tsg_settings);
 
     PeakSpectrum b_y_ions;
-    std::vector<Fragment> all_frags;
+
     /// generate all Peptides
     generate_peptides(fasta_entries);
 
     size_t peptide_idx = 0;
+
     /// For each Peptides get all theoretical b and y ions // TODO: include other fragmentation methods
-    for (Peptide pep: fi_peptides_)
+    for (const Peptide& pep: fi_peptides_)
     {
       tsg.getSpectrum(b_y_ions, pep.sequence, 1, 1);
       TagGenerator tag_generator{b_y_ions};
@@ -77,7 +78,7 @@ namespace OpenMS
     }
 
     ///Calculate bucket size
-    bucketsize_ = static_cast<size_t>(pow(static_cast<double>(fi_fragments_.size()), (1.0/static_cast<double>(depth_+2))));  // The bucketsize depends on the dimensionallity, thus on the depth
+    bucketsize_ = static_cast<size_t>(pow(static_cast<float>(fi_fragments_.size()), (1.0/static_cast<float>(depth_+2))));  // The bucketsize depends on the dimensionallity, thus on the depth
     vector<size_t> iterBucketsize;
     iterBucketsize.push_back(fi_fragments_.size());
     cout << "DB size: " << fi_fragments_.size() << "\n Bucket sizes: " ;
@@ -130,16 +131,14 @@ namespace OpenMS
     }
 
     is_build_ = true;
-
-
   }
 
-  bool FragmentIndex3D::inRange(double hit, double query, double tolerance, std::pair<double, double> window)
+  bool FragmentIndex3D::inRange(float hit, float query, float tolerance, std::pair<float, float> window)
   {
     return (query >= (hit -tolerance +window.first)) && (query <= (hit + tolerance + window.second));
   }
 
-  bool FragmentIndex3D::inRangeFollowUpPeaks(std::vector<double> hit, std::vector<double> query, double tolerance)
+  bool FragmentIndex3D::inRangeFollowUpPeaks(std::vector<float> hit, std::vector<float> query, float tolerance)
   {
     if(hit.size() != query.size()){
       OPENMS_LOG_WARN << "The Query has a different Neighborhood depth than the Database!";
@@ -152,29 +151,27 @@ namespace OpenMS
     return true;
   }
 
+
   void FragmentIndex3D::query(vector<FragmentIndex::Hit>& hits,
                               const MultiPeak& peak, std::pair<size_t, size_t> peptide_idx_range,
-                              std::pair<double, double> window)
+                              std::pair<float, float> window)
   {
-
-    double frag_tol = (fragment_mz_tolerance_unit_ == "DA") ? fragment_mz_tolerance_ : Math::ppmToMass(fragment_mz_tolerance_, peak.getPeak().getMZ());
+    float frag_tol = fragment_mz_tolerance_unit_ppm_ ? Math::ppmToMass(fragment_mz_tolerance_, peak.getPeak().getMZ()) : fragment_mz_tolerance_;  //TODO??? apply ppm to mass * charge or not
 
     recursiveQuery(hits, peak, peptide_idx_range, window, depth_+1, 0, frag_tol);
-
-
   }
 
   void FragmentIndex3D::recursiveQuery(vector<OpenMS::FragmentIndex::Hit>& hits,
                                        const OpenMS::MultiPeak& peak,
                                        std::pair<size_t, size_t> peptide_idx_range,
-                                       std::pair<double, double> window,
+                                       std::pair<float, float> window,
                                        size_t recursion_step,
                                        size_t current_slice,              // From the last recursiv step. Holds the info in which branch of the tree we are in
-                                       double fragment_tolerance)
+                                       float fragment_tolerance)
   {
-    vector<double>* current_level;
-    double current_query;
-    std::pair<double, double> applied_window;
+    vector<float>* current_level;
+    float current_query;
+    std::pair<float, float> applied_window;
 
     if(recursion_step == 0){ // last (precursor mz) level of the tree. Push hits into the hits vector
       auto last_slice_start = fi_fragments_.begin() + current_slice * bucketsize_;
@@ -202,14 +199,14 @@ namespace OpenMS
     if(recursion_step > 1){  // All follow up peak levels
       current_level = &(follow_up_peaks_buckets_min_mz.at(depth_ +1 - recursion_step));   // get the current vector of interests
       current_query = peak.getFollowUpPeaks().at(depth_ +1 -recursion_step);              // current query value of interst
-      applied_window = make_pair<double, double>(0, 0);                                 // For the follow up peaks we do not have any window
+      applied_window = make_pair<float, float>(0, 0);                                 // For the follow up peaks we do not have any window
     }
     auto slice_start = (*current_level).begin() + current_slice * bucketsize_;
     auto slice_end = ((current_slice +1) * bucketsize_) > (*current_level).size() ? (*current_level).end() : (*current_level).begin() + (current_slice+1)* bucketsize_;
     if(recursion_step == depth_+1)            //edge case for the very first tree layer
       slice_end = (*current_level).end();
-    vector<double> slice(slice_start, slice_end);
-    auto next_slices = FragmentIndex::binary_search_slice_double(slice,
+    vector<float> slice(slice_start, slice_end);
+    auto next_slices = FragmentIndex::binary_search_slice_float(slice,
                                                            current_query -fragment_tolerance + applied_window.first,
                                                            current_query + fragment_tolerance + applied_window.second,
                                                             true);

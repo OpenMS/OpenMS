@@ -42,8 +42,9 @@ namespace OpenMS
      */
     struct IdxAndIntensity{
       uint32_t idx_;
-      double intensity_;
-      IdxAndIntensity(uint32_t idx, double intensity){
+      float intensity_;
+      IdxAndIntensity(uint32_t idx, float intensity)
+      {
         idx_ = idx;
         intensity_ = intensity;
       }

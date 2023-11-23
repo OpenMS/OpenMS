@@ -21,7 +21,7 @@ ConsensusMapMergerAlgorithm.cpp
 FalseDiscoveryRate.cpp
 FIAMSDataProcessor.cpp
 FIAMSScheduler.cpp
-FragmentIndex3D.cpp
+#FragmentIndex3D.cpp
 FragmentIndex.cpp
 FragmentIndexScorer.cpp
 HiddenMarkovModel.cpp
