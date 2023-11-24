@@ -852,10 +852,10 @@ jobs:
               -f sha=${SHA} \
               -F force=true
           }
-
+          #FIX THIS ON MONDAY TRAILING SLASHES? BAD NEWS! ALSO SOME OF THESE DON't HAVE 2.9.1 tags?
           DEOPENMS_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/de.openms.knime/git/ref/heads/develop |jq '.object.sha')
           GKN_SHA=$(curl -s -X GET https://api.github.com/repos/genericworkflownodes/GenericKnimeNodes/git/ref/heads/develop |jq '.object.sha')
-          JSViewer_SHA=$(curl -s -X GET https://api.github.com/repos/genericworkflownodes/de.openms.knime.dynamicJSViewers/git/ref/heads/develop |jq '.object.sha')
+          JSViewer_SHA=$(curl -s -X GET https://api.github.com/repos/genericworkflownodes/de.openms.knime.dynamicJSViewers/git/ref/heads/master |jq '.object.sha')
           CONTRIB_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/OpenMS/contents/contrib\?ref\=$GITHUB_SHA | jq -r ".sha")
           THIRDPARTY_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/OpenMS/contents/THIRDPARTY\?ref\=$GITHUB_SHA | jq -r ".sha")
           PYDOCS_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/OpenMS/contents/src/pyOpenMS/pyopenms-docs\?ref\=$GITHUB_SHA | jq -r ".sha")
