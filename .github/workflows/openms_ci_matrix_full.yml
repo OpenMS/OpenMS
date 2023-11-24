@@ -521,8 +521,7 @@ jobs:
             cat > releaseTextHeader.txt << EOF
             Dear OpenMS-Users,
 
-            we are proud to announce the release of OpenMS $version. Grab it
-            <a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/release/$version">here</a>
+            we are proud to announce the release of OpenMS $version. Grab it <a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/release/$version">here</a>
 
             In the following you find all important changes to the previous version:
 
@@ -812,107 +811,68 @@ jobs:
         run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
     
       # NB we create the tag for the OpenMS repo next in a separate action.
-      # TODO handle updating if the ref already exists.
-      - id: create_SHA
-        name: create tags from SHAs
-        uses: actions/github-script@v7
-        with:
-          script: |
-            latest_ref = octokit.rest.git.getRef({
-              owner: context.repo.owner,
-              repo: 'OpenMS-docs',
-              ref: 'heads/develop',
-            });
-            octokit.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: 'OpenMS-docs',
-              ref: ${{ env.RUN_NAME }},
-              sha: latest_ref,
-            });
+      - id: bash_create_tags
+        name: create tags for other repos
+        shell: bash
+        run: |
+          function createGitTag() {
+            OWNER=$1
+            REPO=$2
+            REF=$3
+            SHA= gh api \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              /repos/$OWNER/$REPO/git/ref/$REF | jq '.object.sha'
 
-            latest_ref = octokit.rest.git.getRef({
-              owner: context.repo.owner,
-              repo: 'Tutorials',
-              ref: 'heads/master',
-            });
-            octokit.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: 'Tutorials',
-              ref: ${{ env.RUN_NAME }},
-              sha: latest_ref,
-            });
+            gh api \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              /repos/${REPO}/git/refs \
+              -f ref="refs/tags/${{ env.RUN_NAME }} \
+            -f sha=${SHA}
+          }
+          
+          function updateGitTag() {
+            OWNER=$1
+            REPO=$2
+            REF=$3
+            SHA= gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/$OWNER/$REPO/git/ref/$REF | jq '.object.sha'
 
-            latest_ref = octokit.rest.git.getRef({
-              owner: context.repo.owner,
-              repo: 'pyopenms-docs',
-              ref: 'github.sha',
-            });
-            octokit.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: 'pyopenms-docs',
-              ref: ${{ env.RUN_NAME }},
-              sha: latest_ref,
-            });
+            gh api \
+              --method PATCH \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              /repos/${REPO}/git/refs/tags/${{ env.RUN_NAME }} \
+              -f sha=${SHA} \
+              -F force=true
+          }
 
-            latest_ref = octokit.rest.git.getRef({
-              owner: context.repo.owner,
-              repo: 'THIRDPARTY',
-              ref: 'github.sha',
-            });
-            octokit.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: 'THIRDPARTY',
-              ref: ${{ env.RUN_NAME }},
-              sha: latest_ref,
-            });
-              
-            latest_ref = octokit.rest.git.getRef({
-              owner: 'genericworkflownodes',
-              repo: 'GenericKnimeNodes',
-              ref: 'heads/develop',
-            });
-            octokit.rest.git.createRef({
-              owner: 'genericworkflownodes',
-              repo: 'GenericKnimeNodes',
-              ref: ${{ env.RUN_NAME }},
-              sha: latest_ref,
-            });
+          OPENMS_SHA = $GITHUB_SHA
 
-            latest_ref = octokit.rest.git.getRef({
-              owner: 'genericworkflownodes',
-              repo: 'de.openms.knime.dynamicJSViewers',
-              ref: 'heads/master',
-            });
-            octokit.rest.git.createRef({
-              owner: 'genericworkflownodes',
-              repo: 'de.openms.knime.dynamicJSViewers',
-              ref: ${{ env.RUN_NAME }},
-              sha: latest_ref,
-            });
+          DEOPENMS_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/de.openms.knime/git/ref/heads/develop |jq '.object.sha')
+          GKN_SHA=$(curl -s -X GET https://api.github.com/repos/genericworkflownodes/GenericKnimeNodes/git/ref/heads/develop |jq '.object.sha')
+          JSViewer_SHA=$(curl -s -X GET https://api.github.com/repos/genericworkflownodes/de.openms.knime.dynamicJSViewers/git/ref/heads/develop |jq '.object.sha')
+          CONTRIB_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/OpenMS/contents/contrib\?ref\=$OPENMS_SHA | jq -r ".sha")
+          THIRDPARTY_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/OpenMS/contents/THIRDPARTY\?ref\=$OPENMS_SHA | jq -r ".sha")
+          PYDOCS_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/OpenMS/contents/src/pyOpenMS/pyopenms-docs\?ref\=$OPENMS_SHA | jq -r ".sha")
+          TUTORIAL_SHA=$(curl https://api.github.com/repos/OpenMS/Tutorials/git/refs/heads/master | jq -r ".object.sha")
+          DOCS_SHA=$(curl https://api.github.com/repos/OpenMS/OpenMS-docs/git/refs/heads/develop | jq -r ".object.sha")
 
-            latest_ref = octokit.rest.git.getRef({
-              owner: 'genericworkflownodes',
-              repo: 'buildresources',
-              ref: 'heads/master',
-            });
-            octokit.rest.git.createRef({
-              owner: 'genericworkflownodes',
-              repo: 'buildresources',
-              ref: ${{ env.RUN_NAME }},
-              sha: latest_ref,
-            });
+          
+          createGitTag OpenMS/contrib $CONTRIB_SHA  || updateGitTag OpenMS/contrib $CONTRIB_SHA 
+          createGitTag OpenMS/pyopenms-docs $PYDOCS_SHA  || updateGitTag OpenMS/pyopenms-docs $PYDOCS_SHA 
+          createGitTag OpenMS/THIRDPARTY $THIRDPARTY_SHA  || updateGitTag OpenMS/THIRDPARTY $THIRDPARTY_SHA 
+          createGitTag OpenMS/Tutorials $TUTORIAL_SHA  || updateGitTag OpenMS/Tutorials $TUTORIAL_SHA 
+          createGitTag OpenMS/OpenMS-docs $DOCS_SHA  || updateGitTag OpenMS/OpenMS-docs $DOCS_SHA 
+          createGitTag OpenMS/de.openms.knime $DEOPENMS_SHA  || updateGitTag OpenMS/de.openms.knime $DEOPENMS_SHA 
+          
+          createGitTag genericworkflownodes/GenericKnimeNodes $JSViewer_SHA openms/Release${version} || updateGitTag genericworkflownodes/GenericKnimeNodes $GKN_SHA openms/Release${version}
+          createGitTag genericworkflownodes/GenericKnimeNodes $GKN_SHA openms/Release${version} || updateGitTag genericworkflownodes/GenericKnimeNodes $GKN_SHA openms/Release${version}
 
-            latest_ref = octokit.rest.git.getRef({
-              owner: context.repo.owner,
-              repo: 'de.openms.knime',
-              ref: 'heads/develop',
-            });
-            octokit.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: 'de.openms.knime',
-              ref: ${{ env.RUN_NAME }},
-              sha: latest_ref,
-            });
 
       #- name: merge branch back into develop
       - name: Merge to Develop
