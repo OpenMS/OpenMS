@@ -814,7 +814,8 @@ jobs:
       - id: bash_create_tags
         name: create tags for other repos
         shell: bash
-        env: GH_TOKEN: ${{ github.token }}
+        env: 
+          GH_TOKEN: ${{ github.token }}
         run: |
           function createGitTag() {
             OWNER=$1
