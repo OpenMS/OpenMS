@@ -95,9 +95,7 @@ namespace OpenMS
       updateOutputParamFromWidgets_();
       Param fq_param;
       fq_param.insert("FLASHQuant:1:", flashquant_param_);
-
       String tmp_ini = File::getTemporaryFile();
-
       StringList in_mzMLs = getMzMLInputFiles();
       writeLog_(QString("Starting FLASHQuant with %1 mzML file(s)").arg(in_mzMLs.size()), Qt::darkGreen, true);
 
@@ -344,7 +342,11 @@ namespace OpenMS
 
         // output file name
         String tmp_infile = infileToFQoutput(group[0], "tsv");
-        String output_prefix = tmp_infile.substr(0, tmp_infile.find(given_prefix));
+        String output_prefix = tmp_infile;
+        if (given_prefix.empty())
+          output_prefix = tmp_infile.substr(0, tmp_infile.find(".fq."));
+        else
+          output_prefix = tmp_infile.substr(0, tmp_infile.find(given_prefix));
         String consensus_path = output_prefix + ".fq.consensus.tsv";
 
         // run

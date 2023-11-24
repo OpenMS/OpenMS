@@ -7,11 +7,11 @@
 // --------------------------------------------------------------------------
 
 #include <include/OpenMS/ANALYSIS/TOPDOWN/FLASHQuantAlgorithm.h>
-#include <queue>
-#include <include/OpenMS/DATASTRUCTURES/Matrix.h>
-#include <include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
-#include <include/OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 #include <include/OpenMS/CONCEPT/LogStream.h>
+#include <include/OpenMS/DATASTRUCTURES/Matrix.h>
+#include <include/OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
+#include <include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
+#include <queue>
 
 namespace OpenMS
 {
@@ -60,16 +60,14 @@ namespace OpenMS
 
   Param FLASHQuantAlgorithm::getFLASHDeconvParams_() const
   {
-    Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
+    Param fd_defaults = SpectralDeconvolution().getDefaults();
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
     fd_defaults.setValue("min_charge", (int) charge_lower_bound_);
     fd_defaults.setValue("max_charge", (int) charge_upper_bound_);
     fd_defaults.setValue("min_mass", min_mass_);
     fd_defaults.setValue("max_mass", max_mass_);
-    fd_defaults.setValue("min_isotope_cosine", DoubleList{.8, .8});
-
+    fd_defaults.setValue("min_cos", DoubleList{.8, .8});
     fd_defaults.setValue("tol", DoubleList{mz_tolerance_, 10.0});
-
     return fd_defaults;
   }
 
@@ -78,13 +76,6 @@ namespace OpenMS
     // *********************************************************** //
     // Step 1 deconvolute mass traces
     // *********************************************************** //
-//    getFLASHDeconvConsensusResult();
-
-//    if (Constants::C13C12_MASSDIFF_U * max_nr_traces_ / (int)charge_lower_bound_ < local_mz_range_)
-//    {
-//      local_mz_range_ = Constants::C13C12_MASSDIFF_U * (int)max_nr_traces_ / charge_lower_bound_;
-//    }
-
     // initialize input & output
     std::vector<FeatureSeed> input_seeds;
     input_seeds.reserve(input_mtraces.size());
@@ -194,8 +185,8 @@ namespace OpenMS
         int max_isotope_index = std::distance( this_cs_isos.begin(), (std::find_if( this_cs_isos.rbegin(), this_cs_isos.rend(), [](auto &x) { return x != 0; }) + 1).base());
 
         auto iso_dist = iso_model_.get(fgroup.getMonoisotopicMass());
-        float cos_score = FLASHDeconvAlgorithm::getCosine(per_cs_isos[cs], min_isotope_index, max_isotope_index + 1,
-                                                          iso_dist, iso_dist.size(), 0, 2); // min_iso_size_: based on FLASHDeconv
+        float cos_score = SpectralDeconvolution::getCosine(per_cs_isos[cs], min_isotope_index, max_isotope_index + 1,
+                                                           iso_dist, iso_dist.size(), 0, 2); // min_iso_size_: based on FLASHDeconv
         per_charge_cos[cs] = cos_score;
       }
       // calculate average mass
@@ -217,10 +208,9 @@ namespace OpenMS
      makeMSSpectrum_(local_traces, spec, rt);
 
      // run deconvolution
-     std::vector<DeconvolvedSpectrum> null_survey_scan; // empty one, since only MS1s are considered.
-     const std::map<int, std::vector<std::vector<float>>> null_map; // empty one
-     fd_.performSpectrumDeconvolution(spec, null_survey_scan, 0, null_map);
-     DeconvolvedSpectrum deconv_spec = fd_.getDeconvolvedSpectrum();
+     PeakGroup empty_pg; // empty one, since only MS1s are considered.
+     deconv_.performSpectrumDeconvolution(spec, 0, empty_pg);
+     DeconvolvedSpectrum& deconv_spec = deconv_.getDeconvolvedSpectrum();
 
      if (deconv_spec.empty()) // if no result was found
      {
@@ -482,8 +472,9 @@ namespace OpenMS
 
     /// isotope cosine calculation
     int offset = 0;
-    float isotope_score =
-        FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(fg.getMonoisotopicMass(), fg.getIsotopeIntensities(), offset, iso_model_, -1);
+    float isotope_score = SpectralDeconvolution::getIsotopeCosineAndDetermineIsotopeIndex(fg.getMonoisotopicMass(),
+                                                                                          fg.getIsotopeIntensities(),
+                                                                                          offset, iso_model_, -1);
     fg.setIsotopeCosine(isotope_score);
     if ( isNotTarget && isotope_score < min_iso_score )
     {
@@ -800,13 +791,13 @@ namespace OpenMS
     in_features.swap(out_feature);
   }
 
-  void FLASHQuantAlgorithm:: buildMassTraceGroups_(std::vector<FeatureSeed> &mtraces, std::vector<FeatureGroup> &features)
+  void FLASHQuantAlgorithm::buildMassTraceGroups_(std::vector<FeatureSeed> &mtraces, std::vector<FeatureGroup> &features)
   {
     /// FLASHDeconvAlgorithm setting
     Param fd_defaults = getFLASHDeconvParams_();
-    fd_.setParameters(fd_defaults);
-    fd_.calculateAveragine(false);
-    iso_model_ = fd_.getAveragine();
+    deconv_.setParameters(fd_defaults);
+    deconv_.calculateAveragine(false);
+    iso_model_ = deconv_.getAveragine();
 //    std::vector<double> target_masses_; // monoisotope
 //    fd_.setTargetMasses(target_masses_, ms_level);
 

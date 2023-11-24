@@ -149,6 +149,7 @@ SpecLibCreator
 SpectraSTSearchAdapter
 StaticModification
 TICCalculator
+TopDownConsensusFeatureGroup
 TriqlerConverter
 XMLValidator
 )

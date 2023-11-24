@@ -8,9 +8,7 @@
 
 #pragma once
 
-#include "boost/dynamic_bitset.hpp"
-
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHQuantHelper.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
@@ -165,8 +163,8 @@ namespace OpenMS
     /// cosine threshold between observed and theoretical isotope patterns for MS1
     double min_isotope_cosine_;
 
-    /// FLASHDeconvAlgorithm class for deconvolution
-    FLASHDeconvAlgorithm fd_;
+    /// SpectralDeconvolution class for deconvolution
+    SpectralDeconvolution deconv_;
 
     // loop up table
     std::vector<std::pair<double, double>> target_masses_; // mass and rt
