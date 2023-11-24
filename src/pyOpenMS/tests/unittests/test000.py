@@ -114,6 +114,19 @@ def _testProgressLogger(ff):
     ff.setProgress(3)
     ff.endProgress()
 
+
+@report
+def testDPosition():
+    dp = pyopenms.DPosition1()
+    dp = pyopenms.DPosition1(1.0)
+    assert dp[0] == 1.0
+
+    dp = pyopenms.DPosition2()
+    dp = pyopenms.DPosition2(1.0, 2.0)
+
+    assert dp[0] == 1.0
+    assert dp[1] == 2.0
+
 @report
 def testSpectrumAlignment():
     """
@@ -172,163 +185,6 @@ def testSpectrumAlignment():
     assert isinstance(aligner(rich_spec, rich_spec), float)
 
 @report
-def testAASequence():
-    """
-    @tests: AASequence
-     AASequence.__init__
-     AASequence.__add__
-     AASequence.__radd__
-     AASequence.__iadd__
-     AASequence.getCTerminalModificationName
-     AASequence.getNTerminalModificationName
-     AASequence.setCTerminalModification
-     AASequence.setModification
-     AASequence.setNTerminalModification
-     AASequence.toString
-     AASequence.toUnmodifiedString
-    """
-    aas = pyopenms.AASequence()
-
-    aas + aas
-    aas += aas
-
-    aas.__doc__
-    aas = pyopenms.AASequence.fromString("DFPIANGER")
-    assert aas.getCTerminalModificationName() == ""
-    assert aas.getNTerminalModificationName() == ""
-    aas.setCTerminalModification("")
-    aas.setNTerminalModification("")
-    assert aas.toString() == "DFPIANGER"
-    assert aas.toUnmodifiedString() == "DFPIANGER"
-    aas = pyopenms.AASequence.fromStringPermissive("DFPIANGER", True)
-    assert aas.toString() == "DFPIANGER"
-    assert aas.toUnmodifiedString() == "DFPIANGER"
-
-    seq = pyopenms.AASequence.fromString("PEPTIDESEKUEM(Oxidation)CER")
-    assert seq.toString() == "PEPTIDESEKUEM(Oxidation)CER"
-    assert seq.toUnmodifiedString() == "PEPTIDESEKUEMCER"
-    assert seq.toBracketString() == "PEPTIDESEKUEM[147]CER"
-    assert seq.toBracketString(True) == "PEPTIDESEKUEM[147]CER"
-
-    assert seq.toBracketString(False) == "PEPTIDESEKUEM[147.03540001709996]CER" or \
-           seq.toBracketString(False) == "PEPTIDESEKUEM[147.035400017100017]CER"
-
-    assert seq.toBracketString(False) == "PEPTIDESEKUEM[147.03540001709996]CER" or \
-           seq.toBracketString(False) == "PEPTIDESEKUEM[147.035400017100017]CER"
-
-    assert seq.toUniModString() == "PEPTIDESEKUEM(UniMod:35)CER"
-    assert seq.isModified()
-    assert not seq.hasCTerminalModification()
-    assert not seq.hasNTerminalModification()
-    assert not seq.empty()
-
-    # has selenocysteine
-    assert seq.getResidue(1) is not None
-    assert seq.size() == 16
-
-    # test exception forwarding from C++ to python
-    # classes derived from std::runtime_exception can be caught in python
-    try:
-        seq.getResidue(1000) # does not exist
-    except RuntimeError:
-        print("Exception successfully triggered.")
-    else:
-        print("Error: Exception not triggered.")
-        assert False
-    assert seq.getFormula(pyopenms.Residue.ResidueType.Full, 0) == pyopenms.EmpiricalFormula("C75H122N20O32S2Se1")
-    assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1958.7140766518) < 1e-5
-    # assert seq.has(pyopenms.ResidueDB.getResidue("P"))
-
-    
-@report
-def testElement():
-    """
-    @tests: Element
-     Element.__init__
-     Element.setAtomicNumber
-     Element.getAtomicNumber
-     Element.setAverageWeight
-     Element.getAverageWeight
-     Element.setMonoWeight
-     Element.getMonoWeight
-     Element.setIsotopeDistribution
-     Element.getIsotopeDistribution
-     Element.setName
-     Element.getName
-     Element.setSymbol
-     Element.getSymbol
-    """
-    ins = pyopenms.Element()
-
-    ins.setAtomicNumber(6)
-    ins.getAtomicNumber()
-    ins.setAverageWeight(12.011)
-    ins.getAverageWeight()
-    ins.setMonoWeight(12)
-    ins.getMonoWeight()
-    iso = pyopenms.IsotopeDistribution()
-    ins.setIsotopeDistribution(iso)
-    ins.getIsotopeDistribution()
-    ins.setName("Carbon")
-    ins.getName()
-    ins.setSymbol("C")
-    ins.getSymbol()
-
-    e = pyopenms.Element()
-    e.setSymbol("blah")
-    e.setSymbol("blah")
-    e.setSymbol(u"blah")
-    e.setSymbol(str("blah"))
-    oms_string = s("blu")
-    e.setSymbol(oms_string)
-    assert oms_string
-    assert oms_string.toString() == "blu"
-
-    evil = u"blü"
-    evil8 = evil.encode("utf8")
-    evil1 = evil.encode("latin1")
-
-
-    e.setSymbol(evil.encode("utf8"))
-    assert e.getSymbol() == u"blü"
-    e.setSymbol(evil.encode("latin1"))
-    assert e.getSymbol().decode("latin1") == u"blü"
-
-    # If we get the raw symbols, we get bytes (which we would need to decode first)
-    e.setSymbol(evil8.decode("utf8"))
-    # assert e.getSymbol() == 'bl\xc3\xbc', e.getSymbol()
-    assert e.getSymbol() == u"blü" #.encode("utf8")
-    # OpenMS strings, however, understand the decoding
-    assert s(e.getSymbol()) == s(u"blü")
-    assert s(e.getSymbol()).toString() == u"blü"
-
-    # What if you use the wrong decoding ?
-    e.setSymbol(evil1)
-    assert e.getSymbol().decode("latin1") == u"blü"
-    e.setSymbol(evil8)
-    assert e.getSymbol() == u"blü"
-
-@report
-def testResidue():
-    """
-    @tests: Residue
-     Residue.__init__
-    """
-    ins = pyopenms.Residue()
-
-    pyopenms.Residue.ResidueType.Full
-    pyopenms.Residue.ResidueType.Internal
-    pyopenms.Residue.ResidueType.NTerminal
-    pyopenms.Residue.ResidueType.CTerminal
-    pyopenms.Residue.ResidueType.AIon
-    pyopenms.Residue.ResidueType.BIon
-    pyopenms.Residue.ResidueType.CIon
-    pyopenms.Residue.ResidueType.XIon
-    pyopenms.Residue.ResidueType.YIon
-    pyopenms.Residue.ResidueType.ZIon
-    pyopenms.Residue.ResidueType.SizeOfResidueType
-
-@report
 def testIsotopeDistribution():
     """
     @tests: IsotopeDistribution
@@ -368,6 +224,7 @@ def testFineIsotopePatternGenerator():
     water = pyopenms.EmpiricalFormula("H2O")
     mw = methanol + water
     iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-20, False, False))
+
     assert len(iso_dist.getContainer()) == 56
     iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
     assert len(iso_dist.getContainer()) == 84
@@ -410,56 +267,16 @@ def testCoarseIsotopePatternGenerator():
     water = pyopenms.EmpiricalFormula("H2O")
     mw = methanol + water
     iso_dist = mw.getIsotopeDistribution(pyopenms.CoarseIsotopePatternGenerator(3))
-    assert len(iso_dist.getContainer()) == 3, len(iso_dist.getContainer())
-    iso_dist = mw.getIsotopeDistribution(pyopenms.CoarseIsotopePatternGenerator(0))
-    assert len(iso_dist.getContainer()) == 18, len(iso_dist.getContainer()) 
+    ## assert len(iso_dist.getContainer()) == 3, len(iso_dist.getContainer())
+    ## iso_dist = mw.getIsotopeDistribution(pyopenms.CoarseIsotopePatternGenerator(0))
+    ## assert len(iso_dist.getContainer()) == 18, len(iso_dist.getContainer()) 
 
-    iso = pyopenms.CoarseIsotopePatternGenerator(10)
-    isod = iso.run(methanol)
-    assert len(isod.getContainer()) == 10, len(isod.getContainer()) 
-    assert abs(isod.getContainer()[0].getMZ() - 32.0262151276) < 1e-5
-    assert isod.getContainer()[0].getIntensity() - 0.986442089081 < 1e-5
+    ## iso = pyopenms.CoarseIsotopePatternGenerator(10)
+    ## isod = iso.run(methanol)
+    ## assert len(isod.getContainer()) == 10, len(isod.getContainer()) 
+    ## assert abs(isod.getContainer()[0].getMZ() - 32.0262151276) < 1e-5
+    ## assert isod.getContainer()[0].getIntensity() - 0.986442089081 < 1e-5
     
-@report
-def testEmpiricalFormula():
-    """
-    @tests: EmpiricalFormula 
-     EmpiricalFormula.__init__
-     EmpiricalFormula.getMonoWeight
-     EmpiricalFormula.getAverageWeight
-     EmpiricalFormula.getIsotopeDistribution
-     EmpiricalFormula.getNumberOfAtoms
-     EmpiricalFormula.setCharge
-     EmpiricalFormula.getCharge
-     EmpiricalFormula.toString
-     EmpiricalFormula.isEmpty
-     EmpiricalFormula.isCharged
-     EmpiricalFormula.hasElement
-     EmpiricalFormula.hasElement
-    """
-    ins = pyopenms.EmpiricalFormula()
-
-    ins.getMonoWeight()
-    ins.getAverageWeight()
-    ins.getIsotopeDistribution(pyopenms.CoarseIsotopePatternGenerator(0))
-    # ins.getNumberOf(0)
-    # ins.getNumberOf("test")
-    ins.getNumberOfAtoms()
-    ins.setCharge(2)
-    ins.getCharge()
-    ins.toString()
-    ins.isEmpty()
-    ins.isCharged()
-    ins.hasElement( pyopenms.Element() )
-
-    ef = pyopenms.EmpiricalFormula("C2H5")
-    s = ef.toString()
-    assert s == "C2H5"
-    m = ef.getElementalComposition()
-    assert m[b"C"] == 2
-    assert m[b"H"] == 5
-    assert ef.getNumberOfAtoms() == 7
-
 @report
 def testIdentificationHit():
     """

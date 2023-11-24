@@ -2,6 +2,7 @@ from libcpp cimport bool
 from Types cimport *
 from String cimport *
 from IsotopeDistribution cimport *
+from Isotope cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/Element.h>" namespace "OpenMS":
 
@@ -53,4 +54,12 @@ cdef extern from "<OpenMS/CHEMISTRY/Element.h>" namespace "OpenMS":
 
         # returns symbol of the element
         String getSymbol() except + nogil  # wrap-doc:Returns symbol of the element
+
+        bool isIsotope() nogil except + # wrap-doc:Whether this is an Isotope or an Element (for casting)
+
+        void updateIsotopeDistr() nogil except +
+
+        void setIsotopes(libcpp_vector[const Isotope*] isotopes) nogil except +
+
+        libcpp_vector[const Isotope*] getIsotopes() nogil except +
 

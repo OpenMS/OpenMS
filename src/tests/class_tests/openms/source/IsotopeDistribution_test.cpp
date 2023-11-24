@@ -128,9 +128,9 @@ END_SECTION
 
 START_SECTION(Size getMax() const)
   IsotopeDistribution iso(EmpiricalFormula("H2").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
-  TEST_REAL_SIMILAR(iso.getMax(), 6.02907)
+  TEST_REAL_SIMILAR(iso.getMax(), 4.0223597394)
   IsotopeDistribution iso2(EmpiricalFormula("H2").getIsotopeDistribution(CoarseIsotopePatternGenerator(11, true)));
-  TEST_EQUAL(iso2.getMax(), 6)
+  TEST_EQUAL(iso2.getMax(), 4)
 
   iso.insert(11.2, 2.0);
   iso.insert(10.2, 2.0);

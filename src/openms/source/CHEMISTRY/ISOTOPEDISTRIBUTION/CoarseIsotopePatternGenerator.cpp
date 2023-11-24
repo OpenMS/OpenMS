@@ -63,6 +63,15 @@ namespace OpenMS
     for (; it != formula.end(); ++it)
     {
       IsotopeDistribution tmp = it->first->getIsotopeDistribution();
+
+      // filter out unstable isotopes / those with zero natural abundance as
+      // they just blow up the computations we have do to but have zero
+      // abundance
+      auto data = tmp.getContainer();
+      data.erase(std::remove_if(data.begin(), data.end(),
+                        [](const Peak1D & p) { return p.getIntensity() <= 0.0; }),
+                  data.end());
+      tmp.set(std::move(data));
       result.set(convolve(result.getContainer(),
                           convolvePow_(tmp.getContainer(), it->second)));
     }

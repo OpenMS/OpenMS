@@ -738,6 +738,7 @@ set(pyopenms_unittest_testfiles
   test_ChromatogramExtractor.py
   test_ChromatogramExtractorAlgorithm.py
   test_Convexhull.py
+  test_Chemistry.py
   testCVTermList.py
   test_DIAScoring.py
   test_FileIO.py

@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/Isotope.h>
 
 #include <map>
 #include <memory>
@@ -20,6 +20,7 @@
 namespace OpenMS
 {
   class Element;
+  class Isotope;
 
   /** @ingroup Chemistry
 
@@ -34,12 +35,12 @@ namespace OpenMS
           Pure Appl. Chem., 2003, Vol. 75, No. 6, pp. 683-799
           doi:10.1351/pac200375060683
 
-      Specific isotopes of elements can be accessed by writing the atomic number of the isotope
-      in brackets followed by the element name, e.g. "(2)H" for deuterium.
+      Individual elements can be accessed through getElement(). Specific
+      isotopes of elements can be accessed through getIsotope() by writing the
+      atomic number of the isotope in brackets followed by the element name,
+      e.g. "(2)H" for deuterium.
 
-      @improvement include exact mass values for the isotopes (done) and update IsotopeDistribution (Andreas)
-      @improvement add exact isotope distribution based on exact isotope values (Andreas)
-*/
+  */
 
   class OPENMS_DLLAPI ElementDB
   {
@@ -61,24 +62,36 @@ public:
     /// returns a hashmap that contains atomic numbers mapped to pointers of the elements
     const std::unordered_map<unsigned int, const Element*>& getAtomicNumbers() const;
 
+    /// returns a hashmap that contains isotopic names mapped to pointers of the isotopes
+    const std::unordered_map<std::string, const Isotope*>& getIsotopeSymbols() const;
+
     /** returns a pointer to the element with name or symbol given in parameter name;
-        *	if no element exists with that name or symbol 0 is returned
-        *	@param name: name or symbol of the element
+        *	if no element exists with that name or symbol, a nullptr is returned
+        *	@param name: name or symbol of the element (e.g. "C" for carbon)
     */
     const Element* getElement(const std::string& name) const;
+
+    /** returns a pointer to the isotope with symbol given in parameter name;
+        *	if no element exists with that symbol, a nullptr is returned
+        *	@param name: symbol of the element (e.g. "(14)C" for carbon-14)
+    */
+    const Isotope* getIsotope(const std::string& name) const;
 
     /// returns a pointer to the element of atomic number; if no element is found 0 is returned
     const Element* getElement(unsigned int atomic_number) const;
 
     /** Adds or replaces a new element to the database
      *
-     * Adds a new element (or replaces an existing one if @em replace_existing is true). 
+     * Adds a new element (or replaces an existing one if @em replace_existing is true).
      *
      * @param name Common name of the element
      * @param symbol Element symbol (one or two letter)
      * @param an Atomic number (number of protons)
      * @param abundance List of abundances for each isotope (e.g. {{12u, 0.9893}, {13u, 0.0107}} for Carbon)
      * @param abundance List of masses for each isotope (e.g. {{12u, 12.0}, {13u, 13.003355}} for Carbon)
+     * @param replace_existing Whether to replace an existing element
+     *
+     * @exception Exception::IllegalArgument is thrown if an element with the same atomic number already exists
      *
      * @note Do not use this function inside parallel code as it modifies a singleton that is shared between threads.
     */
@@ -87,6 +100,32 @@ public:
                     const unsigned int an,
                     const std::map<unsigned int, double>& abundance,
                     const std::map<unsigned int, double>& mass,
+                    bool replace_existing);
+
+    /** Adds or replaces a new isotope in the database
+     *
+     * Adds a new isotope (or replaces an existing one if @em replace_existing is true).
+     *
+     * @param name Common name of the element
+     * @param symbol Element symbol (one or two letter)
+     * @param an Atomic number (number of protons)
+     * @param abundance natural abundance of the isotope (use 0 for unstable isotopes)
+     * @param mass mass of the isotope
+     * @param half_life Half life of the isotope in seconds (use -1 for stable isotopes)
+     * @param decay Main decay mode for unstable isotopes (use NONE for stable isotopes)
+     * @param replace_existing Whether to replace an existing isotope
+     *
+     * @exception Exception::IllegalArgument is thrown if the isotope already exists
+     *
+     * @note Do not use this function inside parallel code as it modifies a singleton that is shared between threads.
+    */
+    void addIsotope(const std::string& name,
+                    const std::string& symbol,
+                    unsigned int an,
+                    double abundance,
+                    double mass,
+                    double half_life,
+                    Isotope::DecayMode decay,
                     bool replace_existing);
     //@}
 
@@ -102,30 +141,42 @@ public:
 
 protected:
 
-    /** parses a isotope distribution of abundances and masses
-
-    **/
-    IsotopeDistribution parseIsotopeDistribution_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
-
     /** calculates the average weight based on isotope abundance and mass
      **/
     double calculateAvgWeight_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
-    /**_ calculates the mono weight based on the most abundant isotope 
+    /** Calculates the mono weight based on the most abundant isotope
      **/
     double calculateMonoWeight_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
 	  /// constructs element objects
     void storeElements_();
 
-    /// build element objects from given abundances, masses, name, symbol, and atomic number
-    void buildElement_(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
+    /// build element objects from given abundances, masses, half lifes, decay mode name, symbol, and atomic number
+    void buildElement_(const std::string& name,
+                       const std::string& symbol,
+                       const unsigned int an,
+                       const std::map<unsigned int, double>& abundance,
+                       const std::map<unsigned int, double>& mass,
+                       const std::map<unsigned int, double>& half_lifes =
+                         std::map<unsigned int, double>(),
+                       const std::map<unsigned int, Isotope::DecayMode>& decay_modes =
+                         std::map<unsigned int, Isotope::DecayMode>());
+
+    /// helper to build all isotopes from an input list
+    std::vector<const Isotope *> buildIsotopes_(const std::string& name,
+                        const std::string& symbol,
+                        const unsigned int an,
+                        const std::map<unsigned int, double>& abundance,
+                        const std::map<unsigned int, double>& mass,
+                        const std::map<unsigned int, double>& half_life,
+                        const std::map<unsigned int, Isotope::DecayMode>& decay);
 
     /// add element objects to documentation maps
     void addElementToMaps_(const std::string& name, const std::string& symbol, const unsigned int an, std::unique_ptr<const Element> e);
 
-    /// constructs isotope objects
-    void storeIsotopes_(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& Z_to_mass, const IsotopeDistribution& isotopes);
+    /// add element objects to documentation maps
+    const Isotope* addIsotopeToMaps_(const std::string& name, const std::string& symbol, const Isotope* e);
 
     /**_ resets all containers
     **/
@@ -136,6 +187,8 @@ protected:
     std::unordered_map<std::string, const Element*> symbols_;
 
     std::unordered_map<unsigned int, const Element*> atomic_numbers_;
+
+    std::unordered_map<std::string, const Isotope*> isotopes_;
 
 private:
     ElementDB();

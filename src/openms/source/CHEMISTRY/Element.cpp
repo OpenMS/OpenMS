@@ -10,6 +10,8 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 
+#include <OpenMS/CHEMISTRY/Isotope.h>
+
 #include <ostream>
 #include <algorithm>
 #include <cassert>
@@ -80,10 +82,34 @@ namespace OpenMS
   {
     //force sortedness by mz. A lot of code relies on this.
     assert(std::is_sorted(distribution.begin(), distribution.end(), Peak1D::MZLess()));
-    isotopes_ = distribution;
+    isotope_distr_ = distribution;
+    // TODO: remove this fxn, the only way to change the isotope distribution should be through setIsotopes()
   }
 
   const IsotopeDistribution & Element::getIsotopeDistribution() const
+  {
+    return isotope_distr_;
+  }
+
+  void Element::setIsotopes(const std::vector<const Isotope*>& isotopes)
+  {
+    isotopes_ = isotopes;
+    updateIsotopeDistr_(); // calculate new cached distribution
+  }
+
+  void Element::updateIsotopeDistr_()
+  {
+    auto dist = isotope_distr_.getContainer();
+    dist.clear();
+    dist.reserve(isotopes_.size());
+    for (const auto& isotope : isotopes_)
+    {
+      dist.emplace_back(isotope->getMonoWeight(), isotope->getAbundance());
+    }
+    isotope_distr_.set(std::move(dist));
+  }
+
+  const std::vector<const Isotope*>& Element::getIsotopes() const
   {
     return isotopes_;
   }
@@ -110,6 +136,7 @@ namespace OpenMS
 
   Element & Element::operator=(const Element & element) = default;
 
+
   bool Element::operator==(const Element & element) const
   {
     return name_ == element.name_ &&
@@ -117,25 +144,28 @@ namespace OpenMS
            atomic_number_ == element.atomic_number_ &&
            average_weight_ == element.average_weight_ &&
            mono_weight_ == element.mono_weight_ &&
+           isotope_distr_ == element.isotope_distr_ &&
            isotopes_ == element.isotopes_;
   }
 
   bool Element::operator<(const Element & rhs) const
   {
     return std::tie(
-     atomic_number_, 
-     mono_weight_, 
-     symbol_, 
-     name_, 
-     average_weight_, 
-     isotopes_) 
-     < 
+     atomic_number_,
+     mono_weight_,
+     symbol_,
+     name_,
+     average_weight_,
+     isotope_distr_,
+     isotopes_)
+     <
      std::tie(
-      rhs.atomic_number_, 
-      rhs.mono_weight_, 
-      rhs.symbol_, 
-      rhs.name_, 
-      rhs.average_weight_, 
+      rhs.atomic_number_,
+      rhs.mono_weight_,
+      rhs.symbol_,
+      rhs.name_,
+      rhs.average_weight_,
+      rhs.isotope_distr_,
       rhs.isotopes_);
   }
 
@@ -151,15 +181,14 @@ namespace OpenMS
     << element.atomic_number_ << " "
     << element.average_weight_ << " "
     << element.mono_weight_;
+    os << "\nIsotopes: \n";
 
     for (const auto& isotope : element.isotopes_)
     {
-      if (isotope.getIntensity() > 0.0f)
-      {
-        os << " " << isotope.getPosition() << "=" << isotope.getIntensity() * 100 << "%";
-      }
+      os << (*isotope) << "\n";;
     }
     return os;
   }
 
 } // namespace OpenMS
+

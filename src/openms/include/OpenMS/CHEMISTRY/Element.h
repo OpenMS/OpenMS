@@ -21,18 +21,21 @@
 
 namespace OpenMS
 {
+  class Isotope;
+
   /** @ingroup Chemistry
 
       @brief Representation of an element
 
       This contains information on an element and its isotopes, including a
-      common name, atomic symbol and mass/abundance of its isotopes.
+      common name, atomic symbol and mass/abundance of its isotopes. Individual
+      isotopes are represented using Isotope.
   */
   class OPENMS_DLLAPI Element
   {
 public:
 
-   
+
     /** @name Constructor and Destructors
     */
     //@{
@@ -48,7 +51,7 @@ public:
             unsigned int atomic_number,
             double average_weight,
             double mono_weight,
-            const IsotopeDistribution & isotopes);
+            const IsotopeDistribution & isotopes = IsotopeDistribution());
 
     /// destructor
     virtual ~Element();
@@ -81,6 +84,12 @@ public:
     /// returns the isotope distribution of the element
     const IsotopeDistribution & getIsotopeDistribution() const;
 
+    /// sets the list of isotopes of the element
+    void setIsotopes(const std::vector<const Isotope*>& isotopes);
+
+    /// returns the list of isotopes of the element
+    const std::vector<const Isotope*>& getIsotopes() const;
+
     /// set the name of the element
     void setName(const std::string & name);
 
@@ -92,6 +101,9 @@ public:
 
     /// returns symbol of the element
     const std::string & getSymbol() const;
+
+    /// Whether this is an Isotope or an Element (for casting)
+    virtual bool isIsotope() const {return false;}
     //@}
 
     /** @name Assignment
@@ -119,6 +131,9 @@ public:
 
 protected:
 
+    /// Update cached isotope distribution in case any of the isotopes has been changed
+    void updateIsotopeDistr_();
+
     /// name of the element
     std::string name_;
 
@@ -135,7 +150,10 @@ protected:
     double mono_weight_;
 
     /// distribution of the isotopes (mass and natural frequency)
-    IsotopeDistribution isotopes_;
+    IsotopeDistribution isotope_distr_;
+
+    /// list of isotopes
+    std::vector<const Isotope*> isotopes_;
   };
 
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream &, const Element &);

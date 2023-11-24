@@ -9,7 +9,10 @@
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 
+#include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CHEMISTRY/Isotope.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 
@@ -52,6 +55,11 @@ namespace OpenMS
     return atomic_numbers_;
   }
 
+  const unordered_map<string, const Isotope*>& ElementDB::getIsotopeSymbols() const
+  {
+    return isotopes_;
+  }
+
   const Element* ElementDB::getElement(const string& name) const
   {
     if (auto entry = symbols_.find(name); entry != symbols_.end())
@@ -64,6 +72,15 @@ namespace OpenMS
       {
         return entry->second;
       }
+    }
+    return nullptr;
+  }
+
+  const Isotope* ElementDB::getIsotope(const string& name) const
+  {
+    if (auto entry = isotopes_.find(name); entry != isotopes_.end())
+    {
+      return entry->second;
     }
     return nullptr;
   }
@@ -101,6 +118,52 @@ namespace OpenMS
     buildElement_(name, symbol, an, abundance, mass);
   }
 
+  void ElementDB::addIsotope(const std::string& name,
+                  const std::string& symbol,
+                  const unsigned int an,
+                  double abundance,
+                  double mass,
+                  double half_life,
+                  Isotope::DecayMode decay,
+                  bool replace_existing)
+  {
+    unsigned int mass_number = std::round(mass);
+    string iso_name = "(" + std::to_string(mass_number) + ")" + name;
+    string iso_symbol = "(" + std::to_string(mass_number) + ")" + symbol;
+
+    if (!hasElement( an )  )
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Cannot add isotope ") +
+          name + " since the element with  atomic number " + an + " does not yet exsist -- create it first!");
+    }
+
+    if (hasElement( iso_symbol )  )
+    {
+      if (!replace_existing)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Isotope with symbol ") + iso_symbol + " already exists and replace_existing is set to false.");
+      }
+      const Isotope* isotope = new Isotope(iso_name, iso_symbol, an, mass_number - an, mass, abundance, half_life, decay);
+      addIsotopeToMaps_(iso_name, iso_symbol, isotope);
+      // we changed/updated the isotopes, so we need to update
+      const Element* const_ele = isotope->getElement();
+      Element* element = const_cast<Element*>(const_ele);
+      element->setIsotopes(element->getIsotopes());
+    }
+    else
+    {
+      const Isotope* isotope = new Isotope(iso_name, iso_symbol, an, mass_number - an, mass, abundance, half_life, decay);
+      isotope = addIsotopeToMaps_(iso_name, iso_symbol, isotope);
+
+      // we added a new isotope, so we need to add it to the element
+      const Element* const_ele = isotope->getElement();
+      Element* element = const_cast<Element*>(const_ele);
+      auto iso_list = element->getIsotopes();
+      iso_list.push_back(isotope);
+      element->setIsotopes(iso_list);
+    }
+  }
+
   double ElementDB::calculateAvgWeight_(const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
   {
     double avg = 0;
@@ -131,7 +194,6 @@ namespace OpenMS
     else return 0.0;
   }
 
-  
   template<class CONT, class KEY>
   void addIfUniqueOrThrow(CONT& container, const KEY& key, unique_ptr<const Element>& replacement)
   {
@@ -144,7 +206,7 @@ namespace OpenMS
   }
 
   void ElementDB::storeElements_()
-  {	
+  {
     map<unsigned int, double> hydrogen_abundance = {{1u, 0.999885}, {2u, 0.000115}, {3u, 0.0}};
     map<unsigned int, double> hydrogen_mass = {{1u, 1.0078250319}, {2u, 2.01410178}, {3u, 3.01604927}};
     buildElement_("Hydrogen", "H", 1u, hydrogen_abundance, hydrogen_mass);
@@ -169,11 +231,11 @@ namespace OpenMS
     map<unsigned int, double> bor_mass = {{10u, 10.012937000000001}, {11u, 11.009304999999999}};
     buildElement_("Boron", "B", 5u, bor_abundance, bor_mass);
 
-
-    map<unsigned int, double> carbon_abundance = {{12u, 0.9893000000000001}, {13u, 0.010700000000000001}};
-    map<unsigned int, double> carbon_mass = {{12u, 12.0}, {13u, 13.003355000000001}};
-    buildElement_("Carbon", "C", 6u, carbon_abundance, carbon_mass);
-
+    map<unsigned int, double> carbon_abundance = {{12u, 0.9893000000000001}, {13u, 0.010700000000000001}, {14u, 0.0}, {15u, 0.0}};
+    map<unsigned int, double> carbon_mass = {{12u, 12.0}, {13u, 13.003355000000001}, {14u, 14.003241989}, {15u, 15.0105993}};
+    map<unsigned int, double> carbon_half_life = {{12u, -1.0}, {13u, -1.0}, {14u, 5.70*1e3 * Constants::SECONDS_PER_YEAR}, {15u, 2.449} };
+    map<unsigned int, Isotope::DecayMode> carbon_decay = {{12u, Isotope::DecayMode::NONE}, {13u, Isotope::DecayMode::NONE}, {14u, Isotope::DecayMode::BETA_MINUS}, {15u, Isotope::DecayMode::BETA_MINUS}};
+    buildElement_("Carbon", "C", 6u, carbon_abundance, carbon_mass, carbon_half_life, carbon_decay);
 
     map<unsigned int, double> nitrogen_abundance = {{14u, 0.9963200000000001}, {15u, 0.00368}};
     map<unsigned int, double> nitrogen_mass = {{14u, 14.003074}, {15u, 15.000109}};
@@ -558,6 +620,13 @@ namespace OpenMS
     buildElement_("Bismuth", "Bi", 83u, bismuth_abundance, bismuth_mass);
 
 
+    // unstable isotopes of Radon
+    map<unsigned int, double> radon_abundance = {{219u, 0.0}, {220, 0.0}, {221, 0.0}, {222, 0.0}};
+    map<unsigned int, double> radon_mass = {{219u, 219.0094802}, {220, 220.0113940}, {221, 221.015537}, {222, 222.0175777}};
+    map<unsigned int, double> radon_half_life = { {219u, 3.96}, {220u, 55.6}, {221u, 25.7 * 60}, {222u, 3.8235 * 3600 * 24}};
+    map<unsigned int, Isotope::DecayMode> radon_decay = { {219u, Isotope::DecayMode::ALPHA}, {220u, Isotope::DecayMode::ALPHA}, {221u, Isotope::DecayMode::BETA_MINUS}, {222u, Isotope::DecayMode::ALPHA}};
+    buildElement_("Radon", "Rn", 86u, radon_abundance, radon_mass, radon_half_life, radon_decay);
+
     // Polonium (Pb) abundance is not known.
 
     // Astatine(At) abundance is not known.
@@ -578,7 +647,9 @@ namespace OpenMS
 
     map<unsigned int, double> uranium_abundance = {{234u,  0.000054}, {235u, 0.007204}, {238u, 0.992742}};
     map<unsigned int, double> uranium_mass = {{234u,  234.040950}, {235u,  235.043928}, {238u,   238.05079}};
-    buildElement_("Uranium", "U", 92u, uranium_abundance, uranium_mass);
+    map<unsigned int, double> uranium_half_life = {{234u, 2.455 *1e5* Constants::SECONDS_PER_YEAR}, {235u, 7.038 *1e8* Constants::SECONDS_PER_YEAR}, {238u, 4.468 *1e9* Constants::SECONDS_PER_YEAR} };
+    map<unsigned int, Isotope::DecayMode> uranium_decay = {{234u, Isotope::DecayMode::ALPHA}, {235u, Isotope::DecayMode::ALPHA}, {238u, Isotope::DecayMode::ALPHA} };
+    buildElement_("Uranium", "U", 92u, uranium_abundance, uranium_mass, uranium_half_life, uranium_decay);
 
     // special case for deuterium and tritium: add symbol alias
     const Element* deuterium = getElement("(2)H");
@@ -590,32 +661,44 @@ namespace OpenMS
 
   }
 
-
-  void ElementDB::buildElement_(const string& name, const string& symbol, const unsigned int an, const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
+  void ElementDB::buildElement_(const string& name,
+                                const string& symbol,
+                                const unsigned int an,
+                                const map<unsigned int, double>& abundance,
+                                const map<unsigned int, double>& mass,
+                                const std::map<unsigned int, double>& half_lifes,
+                                const std::map<unsigned int, Isotope::DecayMode>& decay_modes)
   {
-    IsotopeDistribution isotopes = parseIsotopeDistribution_(abundance, mass);
     double avg_weight = calculateAvgWeight_(abundance, mass);
     double mono_weight = calculateMonoWeight_(abundance, mass);
 
-    addElementToMaps_(name, symbol, an, make_unique<const Element>(name, symbol, an, avg_weight, mono_weight, isotopes));
-    storeIsotopes_(name, symbol, an, mass, isotopes);
+    addElementToMaps_(name, symbol, an, make_unique<const Element>(name, symbol, an, avg_weight, mono_weight));
+
+    // Element is now guaranteed to be in the map
+    Element* e = const_cast<Element*>(atomic_numbers_.find(an)->second);
+    auto isotope_vec = buildIsotopes_(name, symbol, an, abundance, mass, half_lifes, decay_modes);
+    e->setIsotopes(isotope_vec);
   }
+
 
   void overwrite(const Element* old, unique_ptr<const Element>& new_e)
   {
     if (old->getSymbol() != new_e->getSymbol())
     { // -- this would invalidate the lookup, since e_ptr->getSymbols().at("O")->getSymbol() == 'P'
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_e->getSymbol(),
-                                    "Replacing element with name " + old->getName() + " and symbol " + old->getSymbol() + " has different new symbol: " + new_e->getSymbol());
+                                    "Replacing element with name " + old->getName() + " and symbol " + old->getSymbol() + 
+                                    " has different new symbol: " + new_e->getSymbol());
     }
     if (old->getName() != new_e->getName())
     { // -- this would invalidate the lookup, since e_ptr->getName().at("Oxygen")->getName() == 'Something'
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_e->getSymbol(), "Replacing element with name " + old->getName() + " has different new name: " + new_e->getName());
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_e->getSymbol(), "Replacing element with name " + 
+              old->getName() + " has different new name: " + new_e->getName());
     }
     if (old->getAtomicNumber() != new_e->getAtomicNumber())
     { // -- this would invalidate the lookup, since e_ptr->getAtomicNumbers().at(12)->getAtomicNumber() == 14
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_e->getSymbol(),
-                                    "Replacing element with atomic number " + String(old->getAtomicNumber()) + " has different new atomic number: " + String(new_e->getAtomicNumber()));
+                                    "Replacing element with atomic number " + String(old->getAtomicNumber()) +  
+                                    " has different new atomic number: " + String(new_e->getAtomicNumber()));
     }
     // ... overwrite
     *(const_cast<Element*>(old)) = *new_e;
@@ -624,7 +707,6 @@ namespace OpenMS
   void ElementDB::addElementToMaps_(const string& name, const string& symbol, const unsigned int an, unique_ptr<const Element> e)
   {
     // overwrite existing element if it already exists
-    // find() has to be protected here in a parallel context
     if (atomic_numbers_.find(an) != atomic_numbers_.end())
     {
       // in order to ensure that existing elements are still valid and memory
@@ -640,53 +722,60 @@ namespace OpenMS
       addIfUniqueOrThrow(atomic_numbers_, an, e);
       e.release(); // allocation will be cleaned up by ~ElementDB now
     }
+    OPENMS_POSTCONDITION( atomic_numbers_.find(an) != atomic_numbers_.end(), "Element has to exist")
   }
 
-  void ElementDB::storeIsotopes_(const string& name, const string& symbol, const unsigned int an, const map<unsigned int, double>& mass, const IsotopeDistribution& isotopes)
+  std::vector<const Isotope *> ElementDB::buildIsotopes_(const std::string& name,
+                                                         const std::string& symbol,
+                                                         const unsigned int an,
+                                                         const std::map<unsigned int, double>& abundance,
+                                                         const std::map<unsigned int, double>& mass,
+                                                         const std::map<unsigned int, double>& half_lifes,
+                                                         const std::map<unsigned int, Isotope::DecayMode>& decay_modes)
   {
-    for (const auto& isotope : isotopes)
+    std::vector<const Isotope *> isotopes;
+    bool stable_only = half_lifes.empty();
+    for (const auto& m : mass)
     {
-      double atomic_mass = isotope.getMZ();
+      double atomic_mass = m.second;
       unsigned int mass_number = std::round(atomic_mass);
       string iso_name = "(" + std::to_string(mass_number) + ")" + name;
       string iso_symbol = "(" + std::to_string(mass_number) + ")" + symbol;
 
-      // set avg and mono to same value for isotopes (old hack...)
-      double iso_avg_weight = mass.at(mass_number);
-      double iso_mono_weight = iso_avg_weight;
-      IsotopeDistribution iso_isotopes;
-      IsotopeDistribution::ContainerType iso_container;
-      iso_container.push_back(Peak1D(atomic_mass, 1.0));
-      iso_isotopes.set(iso_container);  
-
-      auto iso_element = make_unique<const Element>(iso_name, iso_symbol, an, iso_avg_weight, iso_mono_weight, iso_isotopes);
-      if (auto has_elem = names_.find(iso_name); has_elem != names_.end())
-      { // already exists: overwrite (affects all maps, since they all point to the same thing)
-        overwrite(has_elem->second, iso_element);
-        // do not release 'iso_element' here; it needs to be deleted when it goes out if scope
-      }
-      else
+      double half_life = -1;
+      Isotope::DecayMode dm = Isotope::DecayMode::NONE;
+      if (!stable_only)
       {
-        addIfUniqueOrThrow(names_, iso_name, iso_element);
-        addIfUniqueOrThrow(symbols_, iso_symbol, iso_element);
-        iso_element.release(); // allocation will be cleaned up by ~ElementDB now
+        half_life = half_lifes.at(m.first);
+        dm = decay_modes.at(m.first);
       }
-    } 
+
+      const Isotope* isotope = new Isotope(iso_name, iso_symbol, an, mass_number - an, atomic_mass, abundance.at(m.first), half_life, dm);
+      isotope = addIsotopeToMaps_(iso_name, iso_symbol, isotope);
+      isotopes.push_back(isotope);
+    }
+    return isotopes;
   }
 
-  IsotopeDistribution ElementDB::parseIsotopeDistribution_(const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
+  const Isotope* ElementDB::addIsotopeToMaps_(const std::string& iso_name, const std::string& iso_symbol, const Isotope* isotope)
   {
-    IsotopeDistribution::ContainerType dist;
-    
-    for (map<unsigned int, double>::const_iterator it = abundance.begin(); it != abundance.end(); ++it)
-    { 
-      dist.push_back(Peak1D(mass.at(it->first) , abundance.at(it->first)));
+    if (isotopes_.find(iso_symbol) != isotopes_.end())
+    {
+      // TODO: check that lookup is still valid after this
+      const Isotope* const_iso = isotopes_[iso_symbol];
+      Isotope* iso = const_cast<Isotope*>(const_iso);
+      *iso = *isotope; // copy all data from input to the existing element
+      delete isotope;
+      return iso;
     }
-
-    IsotopeDistribution iso_dist;
-    iso_dist.set(dist);
-    
-    return iso_dist;
+    else
+    {
+      names_[iso_name] = isotope;
+      symbols_[iso_symbol] = isotope;
+      isotopes_[iso_symbol] = isotope;
+      isotopes_[iso_name] = isotope;
+      return isotope;
+    }
   }
 
   void ElementDB::clear_()

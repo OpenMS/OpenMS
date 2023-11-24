@@ -96,7 +96,7 @@ START_SECTION(void setMaxIsotope(Size max_isotope))
 {
     IsotopeDistribution iso = solver->estimateFromPeptideWeight(1234.2);
     TEST_EQUAL(solver->getMaxIsotope(), 0)
-    TEST_EQUAL(iso.getContainer().size(), 317)
+    TEST_EQUAL(iso.getContainer().size(), 210)
     solver->setMaxIsotope(117);
     TEST_EQUAL(solver->getMaxIsotope(), 117)
 }

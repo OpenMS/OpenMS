@@ -202,6 +202,11 @@ namespace OpenMS
     */
     //@{
 
+    /** Seconds per Gregorian year  
+            31556952
+    */
+    inline const int SECONDS_PER_YEAR = 31556952;
+      
     /** Degree per rad.
             57.2957795130823209
     */

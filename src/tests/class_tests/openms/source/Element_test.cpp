@@ -99,6 +99,15 @@ START_SECTION(void setAverageWeight(double weight))
 	NOT_TESTABLE
 END_SECTION
 
+START_SECTION(( void setIsotopes(const std::vector<const Isotope*>& isotopes) ))
+  std::vector<const Isotope*> isotopes = {new Isotope(), new Isotope()};
+  e_ptr->setIsotopes(isotopes);
+END_SECTION
+
+START_SECTION(( const std::vector<const Isotope*>& getIsotopes() const))
+  TEST_EQUAL(e_ptr->getIsotopes().size(), 2)
+END_SECTION
+
 START_SECTION(double getAverageWeight() const)
 	TEST_REAL_SIMILAR(e_ptr->getAverageWeight(), average_weight)
 END_SECTION
@@ -110,6 +119,10 @@ END_SECTION
 
 START_SECTION(double getMonoWeight() const)
 	TEST_REAL_SIMILAR(e_ptr->getMonoWeight(), 2.333)
+END_SECTION
+
+START_SECTION(virtual bool isIsotope())
+  TEST_EQUAL( e_ptr->isIsotope(), false )
 END_SECTION
 
 START_SECTION(Element& operator = (const Element& element))
