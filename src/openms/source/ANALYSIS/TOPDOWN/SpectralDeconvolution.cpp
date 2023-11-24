@@ -110,7 +110,7 @@ namespace OpenMS
     iso_da_distance_ =
       target_decoy_type_ != PeakGroup::noise_decoy ?
         Constants::ISOTOPE_MASSDIFF_55K_U :
-        Constants::ISOTOPE_MASSDIFF_55K_U * sqrt(7.0) / 2.0; // sqrt(7.0)/2.0 Da is used instead of C13 - C12 to make sure masses detected with this nonsensical mass difference are not true.
+        Constants::ISOTOPE_MASSDIFF_55K_U * sqrt(13.0) / 2.0; // sqrt(7.0)/2.0 Da is used instead of C13 - C12 to make sure masses detected with this nonsensical mass difference are not true.
     previously_deconved_mono_masses_for_decoy_.clear();
     previously_deconved_mass_bins_for_decoy_.reset();
     excluded_peak_mzs_.clear();
@@ -1148,6 +1148,7 @@ namespace OpenMS
         int offset = 0;
         auto peak_group = deconvolved_spectrum_[i];
         peak_group.setTargetDecoyType(target_decoy_type_);
+        float prev_cos = peak_group.getIsotopeCosine();
         float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -peak_group.getMinNegativeIsotopeIndex(), -1,
                                                              allowed_iso_error_, target_decoy_type_);
         auto prev_mono_mass = peak_group.getMonoMass() + offset * iso_da_distance_;
@@ -1186,11 +1187,11 @@ namespace OpenMS
           continue;
         }
 
-        //if (target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy)
-        //{
-        //  if (peak_group.getIsotopeCosine() < prev_cos * .98) // if target cosine and isotope decoy cosine are too different, we do not take this decoy.
-        //    continue;                                         // TDOO is this right though?
-        //}
+        if (target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy)
+        {
+          if (peak_group.getIsotopeCosine() < prev_cos * .98) // if target cosine and isotope decoy cosine are too different, we do not take this decoy.
+            continue;                                         // TDOO is this right though?
+        }
 
         if (!target_mono_masses_.empty())
         {

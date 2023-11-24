@@ -446,7 +446,6 @@ namespace OpenMS
   {
     double nmass = -1, cmass = -1;
     bool is_positive = min_charge_ > 0;
-    int length = 0;
 
     std::vector<String> seqs {""};
     std::vector<double> tag_mzs;
