@@ -7,8 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
@@ -128,8 +127,8 @@ protected:
     OpenMS::PeakMap chromatogram_map;
     OpenMS::PeakMap output;
 
-    TraMLFile().load(tr_file, targeted_exp);
-    MzMLFile().load(in, chromatogram_map);
+    FileHandler().loadTransitions(tr_file, targeted_exp, {FileTypes::TRAML});
+    FileHandler().loadExperiment(in, chromatogram_map, {FileTypes::MZML});
 
     Param param = getParam_().copy("algorithm:", true);
 
@@ -147,7 +146,7 @@ protected:
     }
     output.setChromatograms(chromatograms);
 
-    MzMLFile().store(out, output);
+    FileHandler().storeExperiment(out, output, {FileTypes::MZML});
     return EXECUTION_OK;
   }
 

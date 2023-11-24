@@ -18,7 +18,7 @@
 namespace OpenMS
 {
   /**
-    @brief Scaler scales the peak by ranking the peaks and assigning intensity according to rank
+    @brief Scales each peak by ranking the peaks per spectrum and assigning intensity according to rank
 
         @ingroup SpectraPreprocessers
   */

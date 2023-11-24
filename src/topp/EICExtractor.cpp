@@ -11,16 +11,14 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/EDTAFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
-
 #include <functional>
 #include <numeric>
 
@@ -93,6 +91,7 @@ as well as RT delta (in [s]) and m/z delta (in ppm) from the expected position a
   mzobs - m/z position of the quantified entity
   dppm  - m/z delta (in parts-per-million) to the input m/z value (as specified in input file) intensity quantification (height of centroided peak); this is an average over multiple scans, thus does usually not correspond to the maximum peak ppm
   intensity
+  area  - area of EIC (trapezoid integration)
  </pre>
 
   Each input experiment gives rise to the two RT and mz columns plus additional five columns (starting from RTobs) for each input file.
@@ -232,25 +231,32 @@ public:
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    MzMLFile mzml_file;
-    mzml_file.setLogType(log_type_);
+    FileHandler mzml_file;
+    PeakFileOptions options;
+    options.clearMSLevels();
+    options.addMSLevel(1);
+    mzml_file.getOptions() = options;
+      
     PeakMap exp, exp_pp;
 
-    EDTAFile ed;
+    FileHandler ed;
     ConsensusMap cm;
-    ed.load(edta, cm);
+    ed.loadConsensusFeatures(edta, cm);
 
     StringList tf_single_header0, tf_single_header1, tf_single_header2; // header content, for each column
 
     std::vector<String> vec_single; // one line for each compound, multiple columns per experiment
     vec_single.resize(cm.size());
 
-    PeakIntegrator peak_integrator;    
+    PeakIntegrator peak_integrator; // for raw signal integration
+    auto pi_param = peak_integrator.getDefaults();
+    pi_param.setValue("integration_type", "trapezoid");
+    peak_integrator.setParameters(pi_param);
 
     for (Size fi = 0; fi < in.size(); ++fi)
     {
       // load raw data
-      mzml_file.load(in[fi], exp);
+      mzml_file.loadExperiment(in[fi], exp, {FileTypes::MZML}, log_type_);
       exp.sortSpectra(true);
 
       if (exp.empty())
@@ -328,7 +334,7 @@ public:
           // get rid of "native-id" missing warning
           for (Size id = 0; id < out_debug.size(); ++id) out_debug[id].setNativeID(String("spectrum=") + id);
 
-          mzml_file.store(out_TIC_debug, out_debug);
+          mzml_file.storeExperiment(out_TIC_debug, out_debug,{FileTypes::MZML});
           OPENMS_LOG_DEBUG << "Storing debug AUTO-RT: " << out_TIC_debug << std::endl;
         }
 
@@ -408,7 +414,7 @@ public:
         max_peak.setRT(cm[i].getRT());
         max_peak.setMZ(cm[i].getMZ());
 
-        map<double, double> rt_intsum;
+        map<double, double> rt_highest;
         for (; it != exp.areaEndConst(); ++it)
         {
           // extract intensity of highest peak
@@ -418,21 +424,23 @@ public:
             max_peak.setRT(it.getRT());
             max_peak.setMZ(it->getMZ());
           }
-          // sum up intensities for each RT
-          rt_intsum[it.getRT()] += it->getIntensity();
+          // take maximum only for each RT
+          if (rt_highest[it.getRT()] < it->getIntensity()) rt_highest[it.getRT()] = it->getIntensity();
         }
 
-        // copy to EIC for peak area integration
+        // copy to EIC for area integration
         MSChromatogram eic;
-        eic.reserve(rt_intsum.size());
-        for (const auto& rt_int : rt_intsum)
+        eic.reserve(rt_highest.size());
+        for (const auto& rt_int : rt_highest)
         {
           ChromatogramPeak p;
           p.setRT(rt_int.first);
           p.setIntensity(rt_int.second);
+          // std::cout << rt_int.first << "\t" << rt_int.second << std::endl; // for debugging. output a single chromatogram
           eic.push_back(std::move(p));
         }
-        auto peak_area = peak_integrator.integratePeak(eic, max_peak.getRT() - rttol / 2, max_peak.getRT() + rttol / 2);
+
+        PeakIntegrator::PeakArea peak_area = peak_integrator.integratePeak(eic, max_peak.getRT() - rttol / 2, max_peak.getRT() + rttol / 2);
 
         double ppm = 0; // observed m/z offset
 

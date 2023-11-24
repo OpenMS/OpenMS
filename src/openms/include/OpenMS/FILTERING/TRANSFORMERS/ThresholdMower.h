@@ -16,11 +16,11 @@
 namespace OpenMS
 {
   /**
-    @brief ThresholdMower removes all peaks below a threshold.
+    @brief Removes all peaks below an intensity threshold.
 
     @htmlinclude OpenMS_ThresholdMower.parameters
 
-        @ingroup SpectraPreprocessers
+    @ingroup SpectraPreprocessers
   */
   class OPENMS_DLLAPI ThresholdMower :
     public DefaultParamHandler

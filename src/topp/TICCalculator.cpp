@@ -15,7 +15,7 @@
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/CachedMzML.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
+//TODO add support for indexed mzml to handler
 #include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>

@@ -27,16 +27,13 @@ namespace OpenMS
   {
   public:
     /// write header line for regular file output
-    static void writeHeader(std::fstream& fs, bool report_dummy = false);
+    static void writeHeader(std::fstream& fs, bool report_decoy = false);
 
-    /// write header line for promex file output
-    static void writePromexHeader(std::fstream& fs);
-
-    /// write header line for topFD feature files
-    static void writeTopFDFeatureHeader(std::vector<std::fstream>& fs);
+    /// write header line for topFD feature file
+    static void writeTopFDFeatureHeader(std::fstream& fs, uint ms_level);
 
     /// write the features in regular file output
-    static void writeFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const String& file_name, std::fstream& fs, bool report_dummy = false, bool is_dummy = false);
+    static void writeFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const String& file_name, std::fstream& fs, bool report_decoy = false);
 
     /**
      * @brief Find mass features and write features in TopFD format files.
@@ -45,21 +42,11 @@ namespace OpenMS
      * @param scan_rt_map scan number to retention time map
      * @param file_name input spectrum file name
      * @param fs file stream
+     * @param ms_level ms level
      */
 
     static void writeTopFDFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const std::map<int, PeakGroup>& precursor_peak_groups,
-                                   const std::map<int, double>& scan_rt_map, const String& file_name, std::vector<std::fstream>& fs);
+                                   const std::map<int, double>& scan_rt_map, const String& file_name, std::fstream& fs, uint ms_level);
 
-    /**
-     * @brief Find mass features and write features in Promex format files.
-     * @param mass_features mass features to be written
-     * @param precursor_peak_groups precursor peak groups of MSn spectra that are used only when topfd_feature_out is set
-     * @param scan_rt_map scan number to retention time map
-     * @param avg averagine to determine isotope pattern range
-     * @param fs file stream
-     */
-
-    static void writePromexFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const std::map<int, PeakGroup>& precursor_peak_groups,
-                                    const std::map<int, double>& scan_rt_map, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream& fs);
   };
 } // namespace OpenMS

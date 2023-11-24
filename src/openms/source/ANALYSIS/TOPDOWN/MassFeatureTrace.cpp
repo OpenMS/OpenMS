@@ -6,8 +6,8 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 
 
 namespace OpenMS
@@ -29,11 +29,13 @@ namespace OpenMS
     mtd_defaults.addTag("quant_method", "advanced"); // hide entry
 
     defaults_.insert("", mtd_defaults);
-    defaults_.setValue("min_isotope_cosine", .75, "cosine threshold between avg. and observed isotope pattern for MS1");
+    defaults_.setValue("min_cos", .75, "Cosine similarity threshold between avg. and observed isotope pattern.");
+
     defaultsToParam_();
   }
 
-  std::vector<FLASHDeconvHelperStructs::MassFeature> MassFeatureTrace::findFeatures(const PrecalculatedAveragine& averagine, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int ms_level)
+  std::vector<FLASHDeconvHelperStructs::MassFeature> MassFeatureTrace::findFeatures(const PrecalculatedAveragine& averagine,
+                                                                                    std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int ms_level,  bool is_decoy)
   {
     static uint findex = 1;
     MSExperiment map;
@@ -49,6 +51,8 @@ namespace OpenMS
     for (Size i = 0; i < deconvolved_spectra.size(); i++)
     {
       auto deconvolved_spectrum = deconvolved_spectra[i];
+      if (is_decoy != deconvolved_spectrum.isDecoy())
+        continue;
       if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != ms_level)
         continue;
       int scan = deconvolved_spectrum.getScanNumber();
@@ -72,7 +76,7 @@ namespace OpenMS
       }
       map.addSpectrum(deconv_spec);
     }
-
+    map.sortSpectra();
     // when map size is less than 3, MassTraceDetection aborts - too few spectra for mass tracing.
     if (map.size() < 3)
     {
@@ -81,8 +85,7 @@ namespace OpenMS
 
     MassTraceDetection mtdet;
     Param mtd_param = getParameters().copy("");
-    mtd_param.remove("min_isotope_cosine");
-
+    mtd_param.remove("min_cos");
     mtdet.setParameters(mtd_param);
     std::vector<MassTrace> m_traces;
 
@@ -109,10 +112,12 @@ namespace OpenMS
       std::vector<double> qscores;
 
       prev_scan = 0;
-
       for (auto& p2 : mt)
       {
         auto& dspec = deconvolved_spectra[rt_index_map[p2.getRT()]];
+
+        if (is_decoy != dspec.isDecoy())
+          continue;
 
         PeakGroup comp;
         comp.setMonoisotopicMass(p2.getMZ());
@@ -137,10 +142,10 @@ namespace OpenMS
         prev_scan = scan;
         pgs.push_back(pg);
       }
-
       feature_qscore = 1.0 - feature_qscore;
       for (auto& pg : pgs)
       {
+
         for (size_t z = min_abs_charge; z < per_charge_intensity.size(); z++)
         {
           float zint = pg->getChargeIntensity((int)z);
@@ -151,11 +156,10 @@ namespace OpenMS
           charges[z - min_abs_charge] = true;
           per_charge_intensity[z] += zint;
         }
-
         int iso_off = int(.5 + (pg->getMonoMass() - mass) / pg->getIsotopeDaDistance());
         max_iso_off = std::max(max_iso_off, abs(iso_off));
         auto iso_int = pg->getIsotopeIntensities();
-        for (size_t i = 0; i < per_isotope_intensity.size() - iso_off; i++)
+        for (int i = 0; i + iso_off < per_isotope_intensity.size(); i++)
         {
           if ((int)i + iso_off < 0 || i >= iso_int.size())
           {
@@ -166,16 +170,15 @@ namespace OpenMS
       }
 
       int offset = 0;
-      double isotope_score = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(mass, per_isotope_intensity, offset, averagine, 0, 0);
+      double isotope_score = SpectralDeconvolution::getIsotopeCosineAndDetermineIsotopeIndex(mass, per_isotope_intensity, offset, averagine, 0, 0);
 
-      if (isotope_score < min_isotope_cosine_)
+      if (isotope_score < .5)
       {
         continue;
       }
 
       double max_int = 0;
       PeakGroup rep_pg = *pgs[0];
-
       for (auto& pg : pgs)
       {
         if (max_int <= pg->getIntensity())
@@ -208,6 +211,7 @@ namespace OpenMS
       mass_feature.scan_number = rep_pg.getScanNumber();
       mass_feature.rep_charge = rep_pg.getRepAbsCharge();
       mass_feature.index = findex;
+      mass_feature.is_decoy = is_decoy;
       mass_features.push_back(mass_feature);
       findex++;
     }
@@ -216,6 +220,5 @@ namespace OpenMS
 
   void MassFeatureTrace::updateMembers_()
   {
-    min_isotope_cosine_ = param_.getValue("min_isotope_cosine");
   }
 } // namespace OpenMS

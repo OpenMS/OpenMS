@@ -168,7 +168,7 @@ namespace OpenMS
           opts.setFillData(false);
           opts.setSkipXMLChecks(true);
           fh.setOptions(opts);
-          fh.loadExperiment(filename, exp);
+          fh.loadExperiment(filename, exp, {FileTypes::MZXML, FileTypes::MZML, FileTypes::MZDATA, FileTypes::MGF}, OpenMS::ProgressLogger::NONE, true, true);
           lookup.readSpectra(exp.getSpectra());
         }
         String spectrum_id = pep.getSpectrumReference();
@@ -204,7 +204,7 @@ namespace OpenMS
       opts.setFillData(false);
       opts.setSkipXMLChecks(true);
       fh.setOptions(opts);
-      fh.loadExperiment(filename, exp);
+      fh.loadExperiment(filename, exp, {FileTypes::MZXML, FileTypes::MZML, FileTypes::MZDATA, FileTypes::MGF}, OpenMS::ProgressLogger::NONE, true, true);
       lookup.readSpectra(exp.getSpectra());
       lookup.setSpectraDataRef(filename);
     }

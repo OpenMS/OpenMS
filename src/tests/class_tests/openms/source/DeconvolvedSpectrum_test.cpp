@@ -11,7 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 ///////////////////////////
 
@@ -73,23 +73,20 @@ START_SECTION((const MSSpectrum& getOriginalSpectrum() const))
 END_SECTION
 
 
-FLASHDeconvAlgorithm fd_algo = FLASHDeconvAlgorithm();
+SpectralDeconvolution fd_algo = SpectralDeconvolution();
 Param fd_param;
 fd_param.setValue("min_charge", 5);
 fd_param.setValue("max_charge", 20);
 fd_algo.setParameters(fd_param);
 fd_algo.calculateAveragine(false);
-std::vector<DeconvolvedSpectrum> survey_specs;
-const std::map<int, std::vector<std::vector<float>>> null_map;
 
-    fd_algo.performSpectrumDeconvolution(input[1], survey_specs, 2, null_map);
+    fd_algo.performSpectrumDeconvolution(input[1], 2, PeakGroup());
 DeconvolvedSpectrum prec_deconv_spec_1 = fd_algo.getDeconvolvedSpectrum();
 
-    fd_algo.performSpectrumDeconvolution(input[3], survey_specs, 4, null_map);
+    fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
 DeconvolvedSpectrum prec_deconv_spec_2 = fd_algo.getDeconvolvedSpectrum();
 
-survey_specs.push_back(prec_deconv_spec_2);
-    fd_algo.performSpectrumDeconvolution(input[5], survey_specs, 6, null_map);
+    fd_algo.performSpectrumDeconvolution(input[5], 6, PeakGroup());
 DeconvolvedSpectrum ms2_deconv_spec = fd_algo.getDeconvolvedSpectrum();
 
 START_SECTION((double getCurrentMaxMass(const double max_mass) const))
@@ -114,7 +111,7 @@ END_SECTION
 START_SECTION((MSSpectrum toSpectrum(const int mass_charge)))
 {
   MSSpectrum peakgroup_spec = prec_deconv_spec_1.toSpectrum(9, 1);
-  TEST_EQUAL(peakgroup_spec.size(), 0);
+  TEST_EQUAL(peakgroup_spec.size(), 1);
   TEST_REAL_SIMILAR(peakgroup_spec.getRT(), 251.72280736002);
 }
 END_SECTION
@@ -151,7 +148,7 @@ END_SECTION
 START_SECTION((int getPrecursorScanNumber() const))
 {
   int p_scan_num = ms2_deconv_spec.getPrecursorScanNumber();
-  TEST_EQUAL(p_scan_num, 4);
+  TEST_EQUAL(p_scan_num, 0);
 }
 END_SECTION
 

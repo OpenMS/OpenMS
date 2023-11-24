@@ -11,10 +11,10 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 ///////////////////////////
@@ -151,7 +151,7 @@ START_SECTION((std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(c
 {
   // prepare findFeature arguments
   std::unordered_map<int, PeakGroup> null_map;
-  FLASHDeconvAlgorithm fd = FLASHDeconvAlgorithm();
+  SpectralDeconvolution fd = SpectralDeconvolution();
   Param fd_param;
   fd_param.setValue("min_charge", 5);
   fd_param.setValue("max_charge", 20);

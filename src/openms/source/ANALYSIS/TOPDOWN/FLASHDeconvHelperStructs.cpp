@@ -9,6 +9,7 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <random>
+#include <utility>
 
 namespace OpenMS
 {
@@ -204,6 +205,7 @@ namespace OpenMS
     return this->logMz == a.logMz && this->intensity == a.intensity;
   }
 
+
   float FLASHDeconvHelperStructs::getChargeMass(const bool positive_ioniziation_mode)
   {
     return (float)(positive_ioniziation_mode ? Constants::PROTON_MASS_U : -Constants::PROTON_MASS_U);
@@ -214,8 +216,94 @@ namespace OpenMS
     return std::log(mz - getChargeMass(positive));
   }
 
-  bool FLASHDeconvHelperStructs::IsobaricQuantities::empty()
+  bool FLASHDeconvHelperStructs::IsobaricQuantities::empty() const
   {
     return quantities.empty();
+  }
+  FLASHDeconvHelperStructs::Tag::Tag(String seq, double n_mass, double c_mass, int charge, double score, std::vector<double>& mzs) : seq_(std::move(seq)), n_mass_(n_mass), c_mass_(c_mass),
+      charge_(charge), score_(score), mzs_(mzs), length_(mzs.size() - 1)
+  {
+  }
+
+  String FLASHDeconvHelperStructs::Tag::getSequence() const
+  {
+    return seq_;
+  }
+
+  Size FLASHDeconvHelperStructs::Tag::getLength() const
+  {
+    return length_;
+  }
+
+  const std::vector<double>& FLASHDeconvHelperStructs::Tag::getMzs() const
+  {
+    return mzs_;
+  }
+
+  double FLASHDeconvHelperStructs::Tag::getNtermMass() const
+  {
+    return n_mass_;
+  }
+
+  double FLASHDeconvHelperStructs::Tag::getCtermMass() const
+  {
+    return c_mass_;
+  }
+
+  int FLASHDeconvHelperStructs::Tag::getCharge() const
+  {
+    return charge_;
+  }
+
+  double FLASHDeconvHelperStructs::Tag::getScore() const
+  {
+    return score_;
+  }
+
+
+  bool FLASHDeconvHelperStructs::Tag::operator<(const Tag& a) const
+  {
+    if (this->c_mass_ == a.c_mass_)
+    {
+      if (this->n_mass_ == a.n_mass_)
+        return this->seq_ < a.seq_;
+      return this->n_mass_ < a.n_mass_;
+    }
+    return this->c_mass_ < a.c_mass_;
+  }
+
+  bool FLASHDeconvHelperStructs::Tag::operator>(const Tag& a) const
+  {
+    if (this->c_mass_ == a.c_mass_)
+    {
+      if (this->n_mass_ == a.n_mass_)
+        return this->seq_ > a.seq_;
+      return this->n_mass_ > a.n_mass_;
+    }
+    return this->c_mass_ > a.c_mass_;
+  }
+
+  bool FLASHDeconvHelperStructs::Tag::operator==(const Tag& a) const
+  {
+    return this->seq_ == a.seq_ && this->n_mass_ == a.n_mass_ && this->c_mass_ == a.c_mass_;
+  }
+
+
+  String FLASHDeconvHelperStructs::Tag::toString() const
+  {
+    String ret;
+    if (n_mass_ >= 0)
+      ret = '[' + std::to_string(n_mass_) + "]\t";
+    ret += seq_;
+    if (c_mass_ >= 0)
+      ret += "\t[" + std::to_string(c_mass_) + "]";
+    ret += "\tscore : " + std::to_string(score_) + "\tmzs : ";
+
+    for (auto mz : mzs_)
+    {
+      ret += std::to_string(mz) + " ";
+    }
+
+    return ret;
   }
 } // namespace OpenMS

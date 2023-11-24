@@ -14,6 +14,21 @@ namespace OpenMS
   {
   }
 
+  bool DeconvolvedSpectrum::operator<(const DeconvolvedSpectrum& a) const
+  {
+    return this->scan_number_ < a.scan_number_;
+  }
+
+  bool DeconvolvedSpectrum::operator>(const DeconvolvedSpectrum& a) const
+  {
+    return this->scan_number_ > a.scan_number_;
+  }
+
+  bool DeconvolvedSpectrum::operator==(const DeconvolvedSpectrum& a) const
+  {
+    return this->scan_number_ == a.scan_number_;
+  }
+
   MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge, uint min_ms_level, double tol, bool retain_undeconvolved)
   {
     auto out_spec = MSSpectrum(spec_);
@@ -135,7 +150,7 @@ namespace OpenMS
     return spec_;
   }
 
-  PeakGroup& DeconvolvedSpectrum::getPrecursorPeakGroup()
+  const PeakGroup& DeconvolvedSpectrum::getPrecursorPeakGroup() const
   {
     return precursor_peak_group_;
   }
@@ -151,7 +166,7 @@ namespace OpenMS
     {
       return max_mass;
     }
-    return precursor_peak_group_.getMonoMass();
+    return std::min(max_mass, precursor_peak_group_.getMonoMass());
   }
 
   double DeconvolvedSpectrum::getCurrentMinMass(const double min_mass) const
@@ -169,7 +184,7 @@ namespace OpenMS
     {
       return max_abs_charge;
     }
-    return abs(precursor_peak_.getCharge());
+    return std::min(max_abs_charge, abs(precursor_peak_group_.getRepAbsCharge()));
   }
 
   const Precursor& DeconvolvedSpectrum::getPrecursor() const
@@ -216,7 +231,6 @@ namespace OpenMS
   {
     spec_ = spec;
   }
-
 
   void DeconvolvedSpectrum::setPrecursorScanNumber(const int scan_number)
   {
@@ -276,6 +290,24 @@ namespace OpenMS
   bool DeconvolvedSpectrum::empty() const
   {
     return peak_groups_.empty();
+  }
+
+  bool DeconvolvedSpectrum::isDecoy() const
+  {
+    if (empty()) return false;
+    if (peak_groups_[0].getTargetDecoyType() != PeakGroup::TargetDecoyType::target) return true;
+    if (!precursor_peak_group_.empty() && precursor_peak_group_.getTargetDecoyType() != PeakGroup::TargetDecoyType::target) return true;
+    return false;
+  }
+
+  FLASHDeconvHelperStructs::IsobaricQuantities DeconvolvedSpectrum::getQuantities() const
+  {
+    return quantities_;
+  }
+
+  void DeconvolvedSpectrum::setQuantities(const FLASHDeconvHelperStructs::IsobaricQuantities& quantities)
+  {
+    quantities_ = quantities;
   }
 
   void DeconvolvedSpectrum::setPeakGroups(std::vector<PeakGroup>& x)

@@ -14,7 +14,9 @@ MassFeatureTrace.cpp
 PeakGroup.cpp
 Qscore.cpp
 Qvalue.cpp
+SpectralDeconvolution.cpp
 TopDownIsobaricQuantifier.cpp
+TopDownTagger.cpp
 )
 
 ### add path to the filenames

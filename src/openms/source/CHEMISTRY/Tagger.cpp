@@ -19,17 +19,29 @@
 
 namespace OpenMS
 {
-  char Tagger::getAAByMass_(double m) const
+  char Tagger::getAAByMass_(double m, double abs_mass) const
   {
     // fast check for border cases
     if (m < min_gap_ || m > max_gap_) return ' ';
 
-    const double delta = Math::ppmToMass(ppm_, m);
+    const double delta = Math::ppmToMass(ppm_, (abs_mass > 0 ? abs_mass : m));
     auto left = mass2aa_.lower_bound(m - delta);
     //if (left == mass2aa_.end()) return ' '; // cannot happen, since we checked boundaries above
+    if (fabs(left->first - m) >= delta) return ' ';
+    // return the most exact one.
+    auto best_aa = left;
+    double min_delta = delta;
+    while (fabs(left->first - m) < delta)
+    {
+      left++;
+      if (min_delta >  fabs(left->first - m))
+      {
+        best_aa = left;
+        min_delta = fabs(left->first - m);
+      }
+    }
 
-    if (fabs(left->first - m) < delta) return left->second;
-    return ' ';
+    return best_aa->second;
   }
 
   void Tagger::getTag_(std::string & tag, const std::vector<double>& mzs, const size_t i, std::vector<std::string>& tags, const size_t charge) const
@@ -48,7 +60,7 @@ namespace OpenMS
         return; // already too far away - continue with next parent 
       } 
 
-      const char aa = getAAByMass_(gap * charge);
+      const char aa = use_absolute_mz_tol_? getAAByMass_(gap * charge, mzs[j]) : getAAByMass_(gap * charge);
       if (aa == ' ') { ++j; continue; } // can't extend tag
 
       tag += aa;
@@ -170,5 +182,10 @@ namespace OpenMS
   void Tagger::setMaxCharge(size_t max_charge)
   {
     max_charge_ = max_charge;
+  }
+
+  void Tagger::setUseAbsoluteMzForTol()
+  {
+    use_absolute_mz_tol_ = true;
   }
 }

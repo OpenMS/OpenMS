@@ -9,9 +9,6 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -137,12 +134,11 @@ protected:
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    MzMLFile mz_data_file;
-    mz_data_file.setLogType(log_type_);
+    FileHandler mz_data_file;
     PeakMap ms_peakmap;
     std::vector<Int> ms_level(1, 1);
     (mz_data_file.getOptions()).setMSLevels(ms_level);
-    mz_data_file.load(in, ms_peakmap);
+    mz_data_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML}, log_type_);
 
     if (ms_peakmap.empty())
     {
@@ -261,7 +257,7 @@ protected:
       consensus_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
       addDataProcessing_(consensus_map, getProcessingInfo_(DataProcessing::QUANTITATION));
       consensus_map.setUniqueId();
-      ConsensusXMLFile().store(out, consensus_map);
+      FileHandler().storeConsensusFeatures(out, consensus_map, {FileTypes::CONSENSUSXML});
 
     }
     else //(out_type == FileTypes::FEATUREXML)
@@ -334,7 +330,7 @@ protected:
       addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
       //ms_feat_map.setUniqueId();
 
-      FeatureXMLFile().store(out, ms_feat_map);
+      FileHandler().storeFeatures(out, ms_feat_map, {FileTypes::FEATUREXML});
     }
 
     return EXECUTION_OK;

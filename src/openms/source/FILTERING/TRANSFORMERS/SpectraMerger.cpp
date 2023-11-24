@@ -49,14 +49,6 @@ namespace OpenMS
                        {"advanced"});
     defaults_.setMinFloat("average_gaussian:cutoff", 0.0);
     defaults_.setMaxFloat("average_gaussian:cutoff", 1.0);
-    defaults_.setValue("average_gaussian:precursor_mass_tol",
-                       0.0,
-                       "PPM mass tolerance for precursor mass. If set, MSn (n>2) spectra of precursor masses within the tolerance are averaged.");
-    defaults_.setValue("average_gaussian:precursor_max_charge",
-                       1,
-                       "Possible maximum precursor ion charge. Effective only when average_gaussian:precursor_mass_tol option is active.");
-    defaults_.setMinFloat("average_gaussian:precursor_mass_tol", 0.0);
-    defaults_.setMinInt("average_gaussian:precursor_max_charge", 1);
 
     // top-hat average
     defaults_.setValue("average_tophat:spectrum_type", "automatic", "Spectrum type of the MS level to be averaged");
@@ -93,10 +85,6 @@ namespace OpenMS
                        10e-5,
                        "Max m/z distance of the precursor entries of two spectra to be merged in [Da].");
     defaults_.setMinFloat("precursor_method:mz_tolerance", 0);
-    defaults_.setValue("precursor_method:mass_tolerance",
-                       .0,
-                       "Max mass distance of the precursor entries of two spectra to be merged in [Da]. Active when set to a positive value.");
-    defaults_.setMinFloat("precursor_method:mass_tolerance", 0);
     defaults_.setValue("precursor_method:rt_tolerance",
                        5.0,
                        "Max RT distance of the precursor entries of two spectra to be merged in [s].");

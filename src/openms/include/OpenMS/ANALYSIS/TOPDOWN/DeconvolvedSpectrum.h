@@ -66,7 +66,7 @@ namespace OpenMS
     const DeconvolvedSpectrum getTargetSpectrum() const;
 
     /// get precursor peak group for MSn (n>1) spectrum. It returns an empty peak group if no peak group is registered (by registerPrecursor)
-    PeakGroup& getPrecursorPeakGroup();
+    const PeakGroup& getPrecursorPeakGroup() const;
 
     /// precursor charge getter (set in registerPrecursor)
     int getPrecursorCharge() const;
@@ -97,6 +97,12 @@ namespace OpenMS
 
     /// get activation method
     const Precursor::ActivationMethod& getActivationMethod() const;
+
+    /// return isobaric  quantities
+    FLASHDeconvHelperStructs::IsobaricQuantities getQuantities() const;
+
+    /// set isobaric quantities
+    void setQuantities(const FLASHDeconvHelperStructs::IsobaricQuantities& quantities);
 
     /// set precursor for MSn for n>1
     void setPrecursor(const Precursor& precursor);
@@ -133,11 +139,20 @@ namespace OpenMS
     void clear();
     void reserve(Size n);
     bool empty() const;
+    bool isDecoy() const;
 
     /// sort by deconvolved monoisotopic masses
     void sort();
     /// sort by setQscore of peakGroups
     void sortByQscore();
+
+    /// comparison operators
+    bool operator<(const DeconvolvedSpectrum& a) const;
+
+    bool operator>(const DeconvolvedSpectrum& a) const;
+
+    bool operator==(const DeconvolvedSpectrum& a) const;
+
 
   private:
     /// peak groups (deconvolved masses)
@@ -149,8 +164,10 @@ namespace OpenMS
     /// precursor raw peak (not deconvolved one)
     Precursor precursor_peak_;
     /// activation method for file output
-    Precursor::ActivationMethod activation_method_;
+    Precursor::ActivationMethod activation_method_ = Precursor::ActivationMethod::CID;
     /// scan number and precursor scan number
     int scan_number_ = 0, precursor_scan_number_ = 0;
+    /// isobaric quantities
+    FLASHDeconvHelperStructs::IsobaricQuantities quantities_;
   };
 } // namespace OpenMS

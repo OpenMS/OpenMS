@@ -23,7 +23,7 @@ namespace OpenMS
    * averagine model should be quickly calculated. To do so, precalculate averagines for different masses at the beginning of FLASHDeconv runs
    * ii) TopPicItem - represent TopPic identification. Currently used for setQscore training. TopPic is the top-down proteomics identification tool (https://www.toppic.org/).
    * iii) LogMzPeak - Log transformed peak from original peak. Contains information such as charge, isotope index, and uncharged mass.
-   * @see FLASHDeconvAlgorithm
+   * @see SpectralDeconvolution
    * @reference: FeatureFinderAlgorithmPickedHelperStructs
    */
 
@@ -131,7 +131,7 @@ namespace OpenMS
       int min_charge, max_charge, charge_count;
       double isotope_score, qscore;
       double rep_mz;
-
+      bool is_decoy;
       /// features are compared
       bool operator<(const MassFeature& a) const
       {
@@ -157,7 +157,7 @@ namespace OpenMS
       std::vector<double> quantities;
       std::vector<double> merged_quantities;
 
-      bool empty();
+      bool empty() const;
     };
 
     /// log transformed peak. After deconvolution, all necessary information from deconvolution such as charge and isotope index is stored.
@@ -202,6 +202,41 @@ namespace OpenMS
       bool operator<(const LogMzPeak& a) const;
       bool operator>(const LogMzPeak& a) const;
       bool operator==(const LogMzPeak& other) const;
+    };
+
+    /// Sequence tag. No mass gap is allowed in the seq. The mass gap containing tag should be enumerated into multiple Tag instances from outside.
+    class OPENMS_DLLAPI Tag
+    {
+    public:
+      /// constructor
+      explicit Tag(String  seq, double n_mass, double c_mass, int charge, double score, std::vector<double>& mzs);
+
+      /// copy constructor
+      Tag(const Tag&) = default;
+
+      /// destructor
+      ~Tag() = default;
+
+      bool operator<(const Tag& a) const;
+      bool operator>(const Tag& a) const;
+      bool operator==(const Tag& other) const;
+
+      String getSequence() const;
+      double getNtermMass() const;
+      double getCtermMass() const;
+      int getCharge() const;
+      Size getLength() const;
+      double getScore() const;
+      String toString() const;
+      const std::vector<double>& getMzs() const;
+
+    private:
+      String seq_;
+      double n_mass_ = -1, c_mass_ = -1;
+      int charge_;
+      double score_;
+      std::vector<double> mzs_;
+      Size length_;
     };
 
     /**

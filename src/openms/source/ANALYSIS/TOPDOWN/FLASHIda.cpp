@@ -32,9 +32,9 @@
 // $Authors: Kyowon Jeong $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/Qscore.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <sstream>
 #ifdef _OPENMP
@@ -105,13 +105,13 @@ namespace OpenMS
     {
       std::cout << ss.str() << "file(s) is(are) used for exclusion mode\n";
     }
-    Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
+    Param fd_defaults = SpectralDeconvolution().getDefaults();
 
     fd_defaults.setValue("min_charge", (int)inputs["min_charge"][0]);
     fd_defaults.setValue("max_charge", (int)inputs["max_charge"][0]);
     fd_defaults.setValue("min_mass", inputs["min_mass"][0]);
     fd_defaults.setValue("max_mass", inputs["max_mass"][0]);
-    fd_defaults.setValue("min_isotope_cosine", DoubleList {.85, .85});
+    fd_defaults.setValue("min_qscore", DoubleList {.5, .5});
     // fd_defaults.setValue("min_qscore", .0);
     fd_defaults.setValue("tol", inputs["tol"]);
     tol_ = std::vector<double>(inputs["tol"]);
@@ -275,7 +275,7 @@ namespace OpenMS
     }
 
     std::vector<DeconvolvedSpectrum> tmp;
-    std::map<int, std::vector<std::vector<float>>> empty;
+    PeakGroup empty;
 
     target_masses_.clear();
     excluded_masses_.clear();
@@ -311,7 +311,7 @@ namespace OpenMS
     selected_peak_groups_.clear();
     deconvolved_spectrum_.clear();
 
-    fd_.performSpectrumDeconvolution(spec, tmp, 0, empty);
+    fd_.performSpectrumDeconvolution(spec, 0, empty);
     deconvolved_spectrum_ = fd_.getDeconvolvedSpectrum();
     // per spec deconvolution
     FLASHIda::filterPeakGroupsUsingMassExclusion_(ms_level, rt);
@@ -344,7 +344,7 @@ namespace OpenMS
     {
       for (auto& [mass, rts] : target_mass_rt_map_)
       {
-        int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(mass);
+        int nominal_mass = SpectralDeconvolution::getNominalMass(mass);
         auto qscores = target_mass_qscore_map_[mass];
         for (uint i = 0; i < rts.size(); i++)
         {
@@ -432,7 +432,7 @@ namespace OpenMS
           auto [mz1, mz2] = pg.getRepMzRange();
           double center_mz = (mz1 + mz2) / 2.0;
 
-          int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(mass);
+          int nominal_mass = SpectralDeconvolution::getNominalMass(mass);
           bool target_matched = false;
           double snr_threshold = snr_threshold_;
           double qscore_threshold = qscore_threshold_;
@@ -709,7 +709,6 @@ namespace OpenMS
   std::map<int, std::vector<std::vector<float>>> FLASHIda::parseFLASHIdaLog(const String& in_log_file)
   {
     std::map<int, std::vector<std::vector<float>>> precursor_map_for_real_time_acquisition; // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
-
 
     if (in_log_file.empty())
     {

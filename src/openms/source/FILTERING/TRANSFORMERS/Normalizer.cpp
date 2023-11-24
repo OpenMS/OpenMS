@@ -15,7 +15,7 @@ namespace OpenMS
   Normalizer::Normalizer() :
     DefaultParamHandler("Normalizer")
   {
-    defaults_.setValue("method", "to_one", "Normalize via dividing by TIC ('to_TIC') per spectrum or normalize to max. intensity of one ('to_one') per spectrum.");
+    defaults_.setValue("method", "to_one", "Normalize via dividing by TIC ('to_TIC') per spectrum (i.e. all peaks sum to 1) or normalize to max. intensity to one ('to_one') per spectrum.");
     defaults_.setValidStrings("method", {"to_one","to_TIC"});
     defaultsToParam_();
   }

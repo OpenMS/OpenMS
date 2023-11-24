@@ -479,6 +479,11 @@ protected:
     writeDebug_("call command: " + call, 1);
 
     builder.setWorkingDirectory(tde_.working_directory.toQString());
+    // TODO: start() with single argument is deprecated in Qt 5.15. Can probably be replaced with
+    // QStringList commandArgs = QString::fromStdString(command_args).split(" ");
+    // QString program = commandArgs.takeFirst();
+    // builder.start(program, commandArgs);
+
     builder.start(call.toQString());
 
     if (!builder.waitForFinished(-1) || builder.exitStatus() != 0 || builder.exitCode() != 0)

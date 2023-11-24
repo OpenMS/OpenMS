@@ -23,8 +23,8 @@ namespace OpenMS
     Examples of parameters are:
     "TransitionGroupPicker:compute_peak_quality"
     "TransitionGroupPicker:stop_after_feature"
-    "TransitionGroupPicker:PeakPickerMRM:signal_to_noise"
-    "TransitionGroupPicker:PeakPickerMRM:sn_bin_count"
+    "TransitionGroupPicker:PeakPickerChromatogram:signal_to_noise"
+    "TransitionGroupPicker:PeakPickerChromatogram:sn_bin_count"
   */
   class OPENMS_DLLAPI MRMFeaturePicker
   {

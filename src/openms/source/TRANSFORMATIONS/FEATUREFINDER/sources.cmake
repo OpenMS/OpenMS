@@ -15,7 +15,6 @@ ExtendedIsotopeFitter1D.cpp
 ExtendedIsotopeModel.cpp
 FeatureFinder.cpp
 FeatureFinderAlgorithm.cpp
-FeatureFinderAlgorithmIsotopeWavelet.cpp
 FeatureFinderAlgorithmMRM.cpp
 FeatureFinderAlgorithmPicked.cpp
 FeatureFinderAlgorithmPickedHelperStructs.cpp
@@ -29,8 +28,6 @@ GaussTraceFitter.cpp
 InterpolationModel.cpp
 IsotopeFitter1D.cpp
 IsotopeModel.cpp
-IsotopeWavelet.cpp
-IsotopeWaveletTransform.cpp
 LevMarqFitter1D.cpp
 MaxLikeliFitter1D.cpp
 ModelDescription.cpp

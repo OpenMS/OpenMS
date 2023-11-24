@@ -8,11 +8,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -108,7 +104,7 @@ protected:
     if (in_type == FileTypes::MZML)
     {
       PeakMap experiment;
-      MzMLFile().load(in, experiment);
+      FileHandler().loadExperiment(in, experiment, {FileTypes::MZML});
       // what about unassigned peptide IDs?
       for (PeakMap::Iterator exp_it = experiment.begin();
            exp_it != experiment.end(); ++exp_it)
@@ -123,13 +119,13 @@ protected:
       {
         addDataProcessing_(experiment,
                            getProcessingInfo_(DataProcessing::FILTERING));
-        MzMLFile().store(out, experiment);
+        FileHandler().storeExperiment(out, experiment, {FileTypes::MZML});
       }
     }
     else if (in_type == FileTypes::FEATUREXML)
     {
       FeatureMap features;
-      FeatureXMLFile().load(in, features);
+      FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML});
       features.getUnassignedPeptideIdentifications().swap(peptides);
       for (FeatureMap::Iterator feat_it = features.begin();
            feat_it != features.end(); ++feat_it)
@@ -144,13 +140,13 @@ protected:
       {
         addDataProcessing_(features,
                            getProcessingInfo_(DataProcessing::FILTERING));
-        FeatureXMLFile().store(out, features);
+        FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
       }
     }
     else         // consensusXML
     {
       ConsensusMap consensus;
-      ConsensusXMLFile().load(in, consensus);
+      FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
       consensus.getUnassignedPeptideIdentifications().swap(peptides);
       for (ConsensusMap::Iterator cons_it = consensus.begin();
            cons_it != consensus.end(); ++cons_it)
@@ -165,7 +161,7 @@ protected:
       {
         addDataProcessing_(consensus,
                            getProcessingInfo_(DataProcessing::FILTERING));
-        ConsensusXMLFile().store(out, consensus);
+        FileHandler().storeConsensusFeatures(out, consensus, {FileTypes::CONSENSUSXML});
       }
     }
 
@@ -174,7 +170,7 @@ protected:
       // IDMapper can match a peptide ID to several overlapping features,
       // resulting in duplicates; this shouldn't be the case for peak data
       if (in_type != FileTypes::MZML) removeDuplicates_(peptides);
-      IdXMLFile().store(id_out, proteins, peptides);
+      FileHandler().storeIdentifications(id_out, proteins, peptides, {FileTypes::IDXML});
     }
 
     return EXECUTION_OK;
