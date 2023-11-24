@@ -68,31 +68,33 @@ namespace OpenMS
     return ion_types_;
   }
 
+  // TODO: check if it makes sense to stream fasta from disc (we have some code for that... would safe memory but might have other drawbacks)
   void FragmentIndex::generate_peptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
-  { //TODO: Multithreading
-    ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
-    ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
-    size_t skipped_peptides = 0;
-
+  { 
+      ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
+      ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
+      size_t skipped_peptides = 0;
 
       ProteaseDigestion digestor;
       digestor.setEnzyme(digestion_enzyme_);
       digestor.setMissedCleavages(missed_cleavages_);
 
-
       size_t protein_idx = 0;
-      for(FASTAFile::FASTAEntry protein: fasta_entries)
+      
+      vector<pair<size_t, size_t>> digested_peptides; // every thread gets it own copy that is only cleared, not destructed (prevents frequent reallocations)
+      #pragma omp parallel for private(digested_peptides)
+      for (SignedSize i = 0; i < fasta_entries.size(); ++i)
       {
-        vector<pair<size_t ,size_t >> digested_peptides;
-
+        digested_peptides.clear();
+        const FASTAFile::FASTAEntry& protein = fasta_entries[i];
         /// DIGEST (if bottom-up)
         digestor.digestUnmodified(StringView(protein.sequence), digested_peptides, peptide_min_length_, peptide_max_length_);
 
-        for (pair<size_t, size_t > digested_peptide : digested_peptides)
+        for (const pair<size_t, size_t>& digested_peptide : digested_peptides)
         {
-
           //remove peptides containing unknown AA
-          if (protein.sequence.substr(digested_peptide.first, digested_peptide.second).find('X') != string::npos){
+          if (protein.sequence.substr(digested_peptide.first, digested_peptide.second).find('X') != string::npos)
+          {
             skipped_peptides++;
             continue;
           }
@@ -101,38 +103,42 @@ namespace OpenMS
           AASequence unmod_peptide = AASequence::fromString(protein.sequence.substr(digested_peptide.first, digested_peptide.second));
           float unmodified_mz = unmod_peptide.getMZ(1); // TODO: What is getMonoWeight??
 
-          if (!(modifications_fixed_.empty() && modifications_variable_.empty())){
+          if (!(modifications_fixed_.empty() && modifications_variable_.empty()))
+          {
             vector<AASequence> modified_peptides;
-            AASequence mod_peptide = AASequence(unmod_peptide); //copy the peptide
+            AASequence mod_peptide = AASequence(unmod_peptide); // copy the peptide
 
             ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, mod_peptide);
             ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, mod_peptide, max_variable_mods_per_peptide_, modified_peptides);
 
-            for(AASequence modified_peptide: modified_peptides){
+            for (const AASequence& modified_peptide : modified_peptides)
+            {
               float modified_mz = modified_peptide.getMZ(1);
-              if(peptide_min_mass_ > modified_mz && modified_mz > peptide_max_mass_) //exclude peptides that are not in the min-max window
+              if (modified_mz < peptide_min_mass_ || modified_mz > peptide_max_mass_) // exclude peptides that are not in the min-max window
+              {
                 continue;
-
+              }
+                
               fi_peptides_.push_back({modified_peptide, protein_idx, modified_mz});
             }
           }
           else
           {
-            if (peptide_min_mass_ < unmodified_mz && unmodified_mz < peptide_max_mass_)
+            if (peptide_min_mass_ < unmodified_mz && unmodified_mz < peptide_max_mass_) // TODO: <= instad of <?
             {
               fi_peptides_.push_back({unmod_peptide, protein_idx, unmodified_mz});
             }              
           }
-
-
         }
 
         protein_idx++;
       }
-      if(skipped_peptides > 0)
+      if (skipped_peptides > 0)
+      {
         OPENMS_LOG_WARN << skipped_peptides << " peptides skipped due to unkown AA \n";
-      //sort the peptide vector, critical for following steps
-      sort(fi_peptides_.begin(), fi_peptides_.end(), [](const Peptide& a, const Peptide& b){return a.precursor_mz < b.precursor_mz;});
+      }        
+      // sort the peptide vector, critical for following steps
+      sort(fi_peptides_.begin(), fi_peptides_.end(), [](const Peptide& a, const Peptide& b){ return a.precursor_mz < b.precursor_mz; });
   }
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
@@ -146,25 +152,29 @@ namespace OpenMS
       tsg_params.setValue("add_x_ions", add_x_ions_);
       tsg_params.setValue("add_y_ions", add_y_ions_);
       tsg_params.setValue("add_z_ions", add_z_ions_);
+      tsg.setParameters(tsg_params); // TODO: this was missing before!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       PeakSpectrum b_y_ions;
+
       /// generate all Peptides
       generate_peptides(fasta_entries);
 
       size_t peptide_idx = 0;
+
       /// For each Peptides get all theoretical b and y ions // TODO: include other fragmentation methods
       for (const Peptide& pep: fi_peptides_)
       {
         tsg.getSpectrum(b_y_ions, pep.sequence, 1, 1);
         for (Peak1D frag : b_y_ions)
         {
-          if (fragment_min_mz_ > frag.getMZ() && frag.getMZ() > fragment_max_mz_  ) continue;
+          if (fragment_min_mz_ > frag.getMZ() || frag.getMZ() > fragment_max_mz_  ) continue;
           fi_fragments_.push_back({peptide_idx,frag.getMZ()});
         }
         peptide_idx ++;
         b_y_ions.clear(true);
       }
       /// 1.) First all Fragments are sorted by their own mass!
-      sort(fi_fragments_.begin(), fi_fragments_.end(), [](const Fragment& a, const Fragment& b) {
+      sort(fi_fragments_.begin(), fi_fragments_.end(), [](const Fragment& a, const Fragment& b) 
+      {
         return a.fragment_mz < b.fragment_mz;
       });
 
@@ -173,18 +183,19 @@ namespace OpenMS
       cout << "creating DB with bucket_size " << bucketsize_ << endl;
 
       /// 2.) next sort after precursor mass and save the min_mz of each bucket
-      for (size_t i = 0; i < fi_fragments_.size(); i += bucketsize_){
+      for (size_t i = 0; i < fi_fragments_.size(); i += bucketsize_)
+      {
         bucket_min_mz_.emplace_back(fi_fragments_[i].fragment_mz);
 
-        auto bucket_start = fi_fragments_.begin()+i;
+        auto bucket_start = fi_fragments_.begin() + i;
         auto bucket_end = (i + bucketsize_) > fi_fragments_.size() ? fi_fragments_.end() : bucket_start + bucketsize_;
 
-        sort(bucket_start, bucket_end, [](const Fragment& a, const Fragment& b) {
+        sort(bucket_start, bucket_end, [](const Fragment& a, const Fragment& b) 
+        {
           return a.peptide_idx < b.peptide_idx;
         });
       }
       is_build_ = true;
-
   }
 
   std::pair<size_t, size_t > FragmentIndex::getPeptidesInPrecursorRange(float precursor_mass, std::pair<float, float> window)
