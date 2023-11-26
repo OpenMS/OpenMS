@@ -88,11 +88,10 @@ namespace OpenMS
      * @param a_start non zero start index of a
      * @param a_end non zero end index of a (exclusive)
      * @param b vector b
-     * @param b_size size of b
      * @param offset element index offset between a and b
      * @param min_iso_size minimum isotope size. If isotope size is less than this, return 0
      */
-    static float getCosine(const std::vector<float>& a, int a_start, int a_end, const IsotopeDistribution& b, int b_size, int offset, int min_iso_size);
+    static float getCosine(const std::vector<float>& a, int a_start, int a_end, const IsotopeDistribution& b, int offset, int min_iso_size, bool decoy = false);
 
 
     /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
@@ -102,14 +101,14 @@ namespace OpenMS
         @param avg precalculated averagine
         @param iso_int_shift isotope shift in per_isotope_intensities.
         @param window_width isotope offset value range. If -1, set automatically.
-        @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If target_dummy_type is not PeakGroup::TargetDecoyType::target, the second best cosine and
+        @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If target_decoy_type is not PeakGroup::TargetDecoyType::target, the second best cosine and
        its corresponding offset will be output
-        @param target_dummy_type  This target_dummy_type specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
+        @param target_decoy_type  This target_decoy_type specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
         @return calculated cosine similar score
      */
     static float getIsotopeCosineAndDetermineIsotopeIndex(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int iso_int_shift = 0,
                                                           int window_width = -1, int allowed_iso_error_for_second_best_cos = 0,
-                                                          PeakGroup::TargetDecoyType target_dummy_type = PeakGroup::TargetDecoyType::target);
+                                                          PeakGroup::TargetDecoyType target_decoy_type = PeakGroup::TargetDecoyType::target);
 
     /**
      * add m/zs in input DeconvolvedSpectrum into exclusion list. The exclusion list is used to generate noise dummy masses.
@@ -123,7 +122,7 @@ namespace OpenMS
      * @param target_decoy_type  This target_decoy_type_ specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
      * @param target_dspec_for_decoy_calcualtion target masses from normal deconvolution
      */
-    void setTargetDecoyType(PeakGroup::TargetDecoyType target_decoy_type, DeconvolvedSpectrum& target_dspec_for_decoy_calcualtion);
+    void setTargetDecoyType(PeakGroup::TargetDecoyType target_decoy_type, const DeconvolvedSpectrum& target_dspec_for_decoy_calcualtion);
 
   protected:
     void updateMembers_() override;
@@ -161,8 +160,8 @@ namespace OpenMS
     DoubleList min_snr_;
     /// Q value threshold for each MS level
     DoubleList max_qvalue_;
-    /// the deconvolved spectrum from normal run. This is used when dummy masses are generated.
-    DeconvolvedSpectrum* target_dspec_for_decoy_calcualtion_;
+    /// the peak group vector from normal run. This is used when dummy masses are generated.
+    const DeconvolvedSpectrum* target_dspec_for_decoy_calcualtion_;
 
     /// PeakGroup::TargetDecoyType values
     PeakGroup::TargetDecoyType target_decoy_type_ = PeakGroup::TargetDecoyType::target;

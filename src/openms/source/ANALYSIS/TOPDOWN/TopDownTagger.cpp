@@ -585,9 +585,6 @@ namespace OpenMS
           break;
       }
     }
-
-    // std::sort(tags.begin(), tags.end(), [](FLASHDeconvHelperStructs::Tag& a, FLASHDeconvHelperStructs::Tag& b) { return a.getScore() > b.getScore(); });
-
     OPENMS_LOG_INFO << "Total tag count: " << tags.size() << std::endl;
   }
 

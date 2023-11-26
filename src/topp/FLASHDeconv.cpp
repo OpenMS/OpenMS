@@ -413,13 +413,31 @@ protected:
         FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail, report_decoy);
       }
 
+      std::map<int, DeconvolvedSpectrum> target_spec_map;
       for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
-        uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+         uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
         if (out_spec_file[ms_level - 1].empty())
           continue;
+        if (deconvolved_spectrum.isDecoy()) continue;
+        if (report_decoy) target_spec_map[deconvolved_spectrum.getScanNumber()] = deconvolved_spectrum;
         FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail,
                                                         report_decoy);
+      }
+
+      if (report_decoy)
+      {
+        for (auto& deconvolved_spectrum : deconvolved_spectra)
+        {
+          uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+          if (out_spec_file[ms_level - 1].empty())
+            continue;
+          if (!deconvolved_spectrum.isDecoy()) continue;
+          DeconvolvedSpectrum target_dspec;
+          if (target_spec_map.find(deconvolved_spectrum.getScanNumber()) != target_spec_map.end()) target_dspec = target_spec_map[deconvolved_spectrum.getScanNumber()];
+          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, target_dspec, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail,
+                                                          report_decoy);
+        }
       }
 
       for (Size i = 0; i < out_spec_file.size(); i++)

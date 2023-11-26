@@ -144,21 +144,19 @@ namespace OpenMS
       double threshold;
       if (it.getType(false) == SpectrumSettings::CENTROID)
       {
-        if (it.size() <= count) // no zero intensity peaks and not too many peaks then go.
+        if (it.size() <= count)
         {
           continue;
         }
       }
       it.sortByIntensity(true);
-      threshold = it.getType(false) == SpectrumSettings::CENTROID && it.size() >= count ? it[count].getIntensity() : 0;
+      threshold = it.getType(false) == SpectrumSettings::CENTROID? it[count].getIntensity() : 0;
       threshold = std::max(threshold, (double)it.begin()->getIntensity() / 1000);
-      threshold_mower_filter.filterSpectrum(it);
       // pop back the low intensity peaks using threshold
       while (!it.empty() && it.back().getIntensity() <= threshold)
       {
         it.pop_back();
       }
-
       it.sortByPosition();
     }
   }
@@ -321,11 +319,11 @@ namespace OpenMS
 #pragma omp section
             sd_isotope_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
           }
-          DeconvolvedSpectrum dummy_deconvolved_spectrum(scan_number);
+          DeconvolvedSpectrum decoy_deconvolved_spectrum(scan_number);
           deconvolved_spectrum.sortByQscore();
           double qscore_threshold_for_decoy = deconvolved_spectrum[deconvolved_spectrum.size() - 1].getQscore();
-          dummy_deconvolved_spectrum.setOriginalSpectrum(spec);
-          dummy_deconvolved_spectrum.reserve(sd_isotope_decoy_.getDeconvolvedSpectrum().size() + sd_charge_decoy_.getDeconvolvedSpectrum().size() + sd_noise_decoy_.getDeconvolvedSpectrum().size());
+          decoy_deconvolved_spectrum.setOriginalSpectrum(spec);
+          decoy_deconvolved_spectrum.reserve(sd_isotope_decoy_.getDeconvolvedSpectrum().size() + sd_charge_decoy_.getDeconvolvedSpectrum().size() + sd_noise_decoy_.getDeconvolvedSpectrum().size());
 
           for (auto& pg : sd_charge_decoy_.getDeconvolvedSpectrum())
           {
@@ -333,7 +331,7 @@ namespace OpenMS
             {
               continue;
             }
-            dummy_deconvolved_spectrum.push_back(pg);
+            decoy_deconvolved_spectrum.push_back(pg);
           }
 
           for (auto& pg : sd_isotope_decoy_.getDeconvolvedSpectrum())
@@ -342,7 +340,7 @@ namespace OpenMS
             {
               continue;
             }
-            dummy_deconvolved_spectrum.push_back(pg);
+            decoy_deconvolved_spectrum.push_back(pg);
           }
 
           for (auto& pg : sd_noise_decoy_.getDeconvolvedSpectrum())
@@ -351,13 +349,13 @@ namespace OpenMS
             {
               continue;
             }
-            dummy_deconvolved_spectrum.push_back(pg);
+            decoy_deconvolved_spectrum.push_back(pg);
           }
 
           deconvolved_spectrum.sort();
-          dummy_deconvolved_spectrum.sort();
+          decoy_deconvolved_spectrum.sort();
 
-          deconvolved_spectra.push_back(dummy_deconvolved_spectrum);
+          deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
         }
         deconvolved_spectra.push_back(deconvolved_spectrum);
       }
@@ -388,10 +386,6 @@ namespace OpenMS
 
     if (report_decoy_)
     {
-      sd_charge_decoy_.setParameters(sd_param);
-      sd_charge_decoy_.setAveragine(avg);
-      sd_charge_decoy_.setTargetDecoyType(PeakGroup::TargetDecoyType::charge_decoy, sd_.getDeconvolvedSpectrum()); // charge
-
       sd_noise_decoy_.setParameters(sd_param);
       sd_noise_decoy_.setAveragine(avg);
       sd_noise_decoy_.setTargetDecoyType(PeakGroup::TargetDecoyType::noise_decoy, sd_.getDeconvolvedSpectrum()); // noise
@@ -399,6 +393,10 @@ namespace OpenMS
       sd_isotope_decoy_.setParameters(sd_param);
       sd_isotope_decoy_.setAveragine(avg);
       sd_isotope_decoy_.setTargetDecoyType(PeakGroup::TargetDecoyType::isotope_decoy, sd_.getDeconvolvedSpectrum()); // isotope
+
+      sd_charge_decoy_.setParameters(sd_param);
+      sd_charge_decoy_.setAveragine(avg);
+      sd_charge_decoy_.setTargetDecoyType(PeakGroup::TargetDecoyType::charge_decoy, sd_.getDeconvolvedSpectrum()); // charge
     }
 
     setLogType(CMD);
@@ -634,7 +632,6 @@ namespace OpenMS
       }
       else
       {
-        // std::cout<<iter->getMonoMass() << " " <<  precursor_pg.getMonoMass() << std::endl;
         precursor_pg.setFeatureIndex(0);
       }
       dspec.setPrecursorPeakGroup(precursor_pg);
@@ -701,7 +698,7 @@ namespace OpenMS
               continue;
             auto pg = dspec[i];
             double pg_mass = pg.getMonoMass();
-            if (abs(f_mass - pg_mass) < 1e-6 * tols_[0] * pg_mass)
+            if (abs(f_mass - pg_mass) < 1e-6 * tols_[dspec.getOriginalSpectrum().getMSLevel() - 1] * pg_mass)
             {
               remove_index[i] = true;
             }
