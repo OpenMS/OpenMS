@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Alka $
+// $Maintainer: Oliver Alka, Axel Walter $
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
@@ -23,9 +23,13 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QDir>
+#include <QtCore/QDir>
+#include <QtCore/QDirIterator>
+#include <QtCore/QString>
+#include <QtCore/QProcess>
 #include <algorithm>
 #include <map>
+#include <boost/algorithm/string.hpp>
 
 using namespace OpenMS;
 
@@ -77,9 +81,9 @@ using namespace OpenMS;
   9. Extract and write transitions (tsv, traml) \n
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_SiriusAdapter.cli
+  @verbinclude TOPP_SiriusExport.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_SiriusAdapter.html
+  @htmlinclude TOPP_SiriusExport.html
  */
 
 /// @cond TOPPCLASSES
@@ -94,7 +98,7 @@ public:
     {}
 
 private:
-  SiriusAdapterAlgorithm algorithm;
+  SiriusExportAlgorithm algorithm;
 
 protected:
 
@@ -113,6 +117,8 @@ protected:
 
     registerStringOption_("fragment_annotation", "<choice>", "sirius", "Fragment annotation method", false);
     setValidStrings_("fragment_annotation", ListUtils::create<String>("none,sirius"));
+    
+    registerStringOption_("sirius_workspace_directory", "<directory>", "", "SIRIUS workspace directory", false);
 
     registerDoubleOption_("ambiguity_resolution_mz_tolerance", "<num>", 10.0, "Mz tolerance for the resolution of identification ambiguity over multiple files", false);
     registerStringOption_("ambiguity_resolution_mz_tolerance_unit", "<choice>", "ppm", "Unit of the ambiguity_resolution_mz_tolerance", false, true);
@@ -169,9 +175,8 @@ protected:
     registerFlag_("deisotoping:keep_only_deisotoped", "Only monoisotopic peaks of fragments with isotopic pattern are retained", false);
     registerFlag_("deisotoping:annotate_charge", "Annotate the charge to the peaks", false);
 
-    // sirius
-    registerFullParam_(algorithm.getDefaults());
-    registerStringOption_("out_workspace_directory", "<directory>", "", "Output directory for SIRIUS workspace", false);
+    // // sirius
+    // registerFullParam_(algorithm.getDefaults());
   }
 
   ExitCodes main_(int, const char **) override
@@ -186,14 +191,16 @@ protected:
     String out = getStringOption_("out");
     String fragment_annotation = getStringOption_("fragment_annotation");
     String method = getStringOption_("method");
-    bool use_fragment_annotation = fragment_annotation == "sirius" ? true : false;
+    // bool use_fragment_annotation = fragment_annotation == "sirius" ? true : false;
+    // SIRIUS workspace (currently needed for fragmentation trees)
+    String sirius_workspace_directory = getStringOption_("sirius_workspace_directory");
     double ar_mz_tol = getDoubleOption_("ambiguity_resolution_mz_tolerance");
     String ar_mz_tol_unit_res = getStringOption_("ambiguity_resolution_mz_tolerance_unit");
     double ar_rt_tol = getDoubleOption_("ambiguity_resolution_rt_tolerance");
     double total_occurrence_filter = getDoubleOption_("total_occurrence_filter");
     double score_threshold = getDoubleOption_("fragment_annotation_score_threshold");
     bool decoy_generation = getFlag_("decoy_generation");
-    if (decoy_generation && !use_fragment_annotation)
+    if (decoy_generation && !sirius_workspace_directory.empty())
     {
       decoy_generation = false;
       OPENMS_LOG_WARN << "Warning: Decoy generation was switched off, due to the use of no or an unsupported fragment annotation method." << std::endl;
@@ -255,60 +262,13 @@ protected:
     bool keep_only_deisotoped = getFlag_("deisotoping:keep_only_deisotoped");
     bool annotate_charge = getFlag_("deisotoping:annotate_charge");
 
-    // param SiriusAdapterAlgorithm
-    String sirius_executable = getStringOption_("sirius_executable");
+    // param SiriusExportAlgorithm
+    // String sirius_executable = getStringOption_("sirius_executable");
 
     algorithm.updateExistingParameter(getParam_());
 
-    writeDebug_("Parameters passed to SiriusAdapterAlgorithm", algorithm.getParameters(), 3);
+    writeDebug_("Parameters passed to SiriusExportAlgorithm", algorithm.getParameters(), 3);
 
-    // SIRIUS workspace (currently needed for fragmentation trees)
-    String sirius_workspace_directory = getStringOption_("out_workspace_directory");
-
-    // assess the SIRIUS executable from SIRIUS_PATH or the PATH
-    if (use_fragment_annotation && sirius_executable.empty())
-    {
-      OPENMS_LOG_INFO << "Fragment annotation with SIRIUS should be performed, but no executable was provided via '-sirius_execuable'. \n" 
-                      << "Try to automatically assess the SIRIUS executable location." << std::endl;
-
-      if (sirius_executable.empty())
-      {
-        const char* sirius_env_var = std::getenv("SIRIUS_PATH"); // returns nullptr of not found
-        if (sirius_env_var == nullptr)
-        {
-            OPENMS_LOG_INFO << "SIRIUS executable could not be recovered from SIRIUS_PATH." << std::endl;
-        } 
-        else
-        {
-          const String sirius_path(sirius_env_var);
-          sirius_executable = QFileInfo(sirius_path.toQString()).canonicalFilePath().toStdString();
-          OPENMS_LOG_INFO << "Success: sirius_executable resolved to '" + sirius_executable + "'" << std::endl;
-        }
-      }
-
-      // was not found in the SIRIUS_PATH
-      // assess the SIRIUS executable from the PATH
-      if (sirius_executable.empty())
-      {
-        #ifdef OPENMS_WINDOWSPLATFORM
-          sirius_executable = "sirius.bat";
-        #else
-          sirius_executable = "sirius";
-        #endif
-        if (File::findExecutable(sirius_executable))
-        {
-          OPENMS_LOG_INFO << "Success: sirius_executable resolved to '" + sirius_executable + "'" << std::endl;
-        }
-        else
-        {
-          throw Exception::InvalidValue(__FILE__,
-                    __LINE__,
-                    OPENMS_PRETTY_FUNCTION,
-                    "FATAL: Executable of SIRIUS could not be found. Please either use SIRIUS_PATH env variable, add the Sirius directory to our PATH or provide the executable with -sirius_executable",
-                    "");
-        }
-      }
-    }
 
     //-------------------------------------------------------------
     // input and check
@@ -433,74 +393,97 @@ protected:
       }
 
       vector< MetaboTargetedAssay::CompoundTargetDecoyPair > v_cmp_spec;
-
-      if (use_fragment_annotation && !sirius_executable.empty())
+      if (!sirius_workspace_directory.empty())
       {
-        // make temporary files
-        SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects sirius_tmp(debug_level_);
-
-        // write msfile and store the compound information in CompoundInfo Object
-        vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
-        SiriusMSFile::store(spectra,
-                            sirius_tmp.getTmpMsFile(),
-                            feature_mapping,
-                            algorithm.isFeatureOnly(),
-                            algorithm.getIsotopePatternIterations(),
-                            algorithm.isNoMasstraceInfoIsotopePattern(),
-                            v_cmpinfo);
-
-        algorithm.logFeatureSpectraNumber(id[file_counter],
-                                          feature_mapping,
-                                          spectra);
-
-        // calls SIRIUS and returns vector of paths to sirius folder structure
+        // create vector with all subdirectories
         std::vector<String> subdirs;
-        String out_csifingerid;
-        subdirs = algorithm.callSiriusQProcess(sirius_tmp.getTmpMsFile(),
-                                               sirius_tmp.getTmpOutDir(),
-                                               sirius_executable,
-                                               out_csifingerid,
-                                               decoy_generation);
-  
+        QDirIterator it(sirius_workspace_directory.toQString(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
+        while (it.hasNext())
+        {
+          subdirs.emplace_back(it.next());
+        }  
         OPENMS_LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl;
-
         if (subdirs.empty())
         {
-            throw OpenMS::Exception::Postcondition(__FILE__,__LINE__, OPENMS_PRETTY_FUNCTION, "Sirius was executed, but an empty output was generated");
+          decoy_generation = false;
+          throw OpenMS::Exception::Postcondition(__FILE__,__LINE__, OPENMS_PRETTY_FUNCTION, "SIRIUS workspace is empty.");
         }
-
-        // sort vector path list
-        SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(subdirs);
-
-        // extract Sirius/Passatutto FragmentAnnotation and DecoyAnnotation from subdirs
-        // and resolve ambiguous identifications in one file based on the native_id_ids and the SIRIUS IsotopeTree_Score
-        vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra =
-          SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(subdirs, score_threshold, use_exact_mass);
-
-        // combine compound information (SiriusMSFile) with annotated spectra (SiriusFragmentAnnotation)
-        v_cmp_spec = MetaboTargetedAssay::pairCompoundWithAnnotatedTDSpectraPairs(v_cmpinfo, annotated_spectra);
-
-        // should the sirius workspace be retained
-        if (!sirius_workspace_directory.empty())
+        // sort vector with subdirs by scan index
+        SiriusExportAlgorithm::sortSiriusWorkspacePathsByScanIndex(subdirs);
+        // collect required compound info from each subdir
+        vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
+        for (const auto& subdir : subdirs)
         {
-          // convert path to absolute path
-          QDir sw_dir(sirius_workspace_directory.toQString());
-          sirius_workspace_directory = String(sw_dir.absolutePath());
-
-          // move tmp folder to new location
-          bool copy_status = File::copyDirRecursively(sirius_tmp.getTmpDir().toQString(), sirius_workspace_directory.toQString());
-          if (copy_status)
+          SiriusMSFile::CompoundInfo cmpinfo;
+          // file path for compound.info file
+          String file_path_compound_info = subdir + "/compound.info";
+          // open file and extract information
+          std::ifstream compound_info_file(file_path_compound_info);
+          if (compound_info_file.is_open())
           {
-            OPENMS_LOG_INFO << "Sirius Workspace was successfully copied to " << sirius_workspace_directory << std::endl;
+            // read the file line by line
+            std::string line;
+            while (std::getline(compound_info_file, line))
+            {
+              std::istringstream iss(line);
+              String key, value;
+              // split each line into key and value
+              if (iss >> key)
+              {
+                  // read the rest of the line (including spaces) into the value
+                  std::getline(iss, value);
+                  // trim spaces
+                  boost::algorithm::trim(value);
+                  // extract data
+                  if (key == "name")
+                      cmpinfo.cmp = value;
+                  else if (key == "ionMass")
+                      cmpinfo.pmass = std::stod(value);
+                  else if (key == "rt")
+                      cmpinfo.rt = std::stod(value);
+                  else if (key == "ionType")
+                      cmpinfo.ionization = value;
+                }
+            }
+            compound_info_file.close();
           }
           else
           {
-            OPENMS_LOG_INFO << "Sirius Workspace could not be copied to " << sirius_workspace_directory << ". Please run AssayGeneratorMetabo with debug >= 2." << std::endl;
+            OPENMS_LOG_WARN << "Error opening compound.info file: " << file_path_compound_info << std::endl;
           }
+          // file path for spectrum.ms file
+          String file_path_spectrum_ms = subdir + "/spectrum.ms";
+          std::ifstream spectrum_ms_file(file_path_spectrum_ms);
+          // open file and get m_ids_id from MS2 spec
+          if (spectrum_ms_file.is_open())
+          {
+            String line;
+            while (std::getline(spectrum_ms_file, line)) {
+                // check if the line starts with "##m_id"
+                if (line.compare(0, 7, "##m_id ") == 0) {
+                    // extract line excluding the prefix
+                    cmpinfo.m_ids_id = line.substr(7);
+              }
+            }
+            spectrum_ms_file.close();
+          }
+          else
+          {
+            OPENMS_LOG_WARN << "Error opening spectrum.ms file: " << file_path_spectrum_ms << std::endl;
+          }
+          // add the populated CompoundInfo object to the vector
+          v_cmpinfo.push_back(cmpinfo);
         }
+        // get annotated spectra
+        vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra =
+          SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(subdirs, score_threshold, use_exact_mass);
+        // combine compound information (SiriusMSFile) with annotated spectra (SiriusFragmentAnnotation)
+        v_cmp_spec = MetaboTargetedAssay::pairCompoundWithAnnotatedTDSpectraPairs(v_cmpinfo, annotated_spectra);
       }
-      else // use heuristic
+      // use heuristic if no SIRIUS workspace was given
+      else
       {
+        OPENMS_LOG_DEBUG << "No SIRIUS workspace defined, using heuristics instead." << std::endl;
         if (use_deisotoper)
         {
           bool make_single_charged = false;
@@ -558,7 +541,7 @@ protected:
 
       // potential transitions of one file
       vector<MetaboTargetedAssay> tmp_mta;
-      if (use_fragment_annotation)
+      if (!sirius_workspace_directory.empty())
       {
         tmp_mta = MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(v_cmp_spec,
                                                                                     transition_threshold,
@@ -620,7 +603,7 @@ protected:
 
     // remove decoys which do not have a respective target after min/max transition filtering
     // based on the TransitionGroupID (similar for targets "0_Acephate_[M+H]+_0" and decoys "0_Acephate_decoy_[M+H]+_0")
-    if (use_fragment_annotation && decoy_generation)
+    if (!sirius_workspace_directory.empty() && decoy_generation)
     {
       assay.filterUnreferencedDecoysCompound(t_exp);
     }
@@ -629,7 +612,7 @@ protected:
     // after selection of decoy masses based on highest intensity (arbitrary, since passatutto uses
     // the intensities based on the previous fragmentation tree), overlapping masses between targets
     // and decoys of one respective metabolite_adduct combination can be resolved by adding a CH2 mass
-    if (use_fragment_annotation && decoy_generation && !original)
+    if (!sirius_workspace_directory.empty() && decoy_generation && !original)
     {
       const double chtwo_mass = EmpiricalFormula("CH2").getMonoWeight();
       vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping> mappings = MetaboTargetedTargetDecoy::constructTargetDecoyMassMapping(t_exp);

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Alka $
+// $Maintainer: Oliver Alka., Axel Walter $
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
@@ -266,7 +266,7 @@ namespace OpenMS
         candidates.getRow(i, sl);
         String adduct = sl[columnname_to_columnindex.at("adduct")];
         adduct.erase(std::remove_if(adduct.begin(), adduct.end(), ::isspace), adduct.end());
-        rank_filename.emplace(std::make_pair(sl[columnname_to_columnindex.at("rank")].toInt(),
+        rank_filename.emplace(std::make_pair(sl[columnname_to_columnindex.at("formulaRank")].toInt(),
                               String(sl[columnname_to_columnindex.at("molecularFormula")] + "_" + adduct + ".tsv")));
       }
     }
@@ -297,7 +297,7 @@ namespace OpenMS
       {
         StringList sl;
         candidates.getRow(i, sl);
-        rank_score.emplace(std::make_pair(sl[columnname_to_columnindex.at("rank")].toInt(),
+        rank_score.emplace(std::make_pair(sl[columnname_to_columnindex.at("formulaRank")].toInt(),
                                              sl[columnname_to_columnindex.at("explainedIntensity")].toDouble()));
       }
     }
