@@ -118,19 +118,24 @@ namespace OpenMS
               {
                 continue;
               }
-                
-              fi_peptides_.push_back({modified_peptide, protein_idx, modified_mz});
+              #pragma omp critical (FIIndex)
+              {  
+                fi_peptides_.push_back({modified_peptide, protein_idx, modified_mz});
+              } 
             }
           }
           else
           {
             if (peptide_min_mass_ < unmodified_mz && unmodified_mz < peptide_max_mass_) // TODO: <= instad of <?
             {
-              fi_peptides_.push_back({unmod_peptide, protein_idx, unmodified_mz});
+              #pragma omp critical (FIIndex)
+              {  
+                fi_peptides_.push_back({unmod_peptide, protein_idx, unmodified_mz});
+              }
             }              
           }
         }
-
+        #pragma omp atomic
         protein_idx++;
       }
       if (skipped_peptides > 0)
