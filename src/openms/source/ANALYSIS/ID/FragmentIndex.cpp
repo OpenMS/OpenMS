@@ -75,7 +75,7 @@ namespace OpenMS
       digestor.setEnzyme(digestion_enzyme_);
       digestor.setMissedCleavages(missed_cleavages_);
 
-      UInt32 protein_idx = 0;
+     // UInt32 protein_idx = 0;
       
       vector<pair<size_t, size_t>> digested_peptides; // every thread gets it own copy that is only cleared, not destructed (prevents frequent reallocations)
       #pragma omp parallel for private(digested_peptides)
@@ -117,9 +117,9 @@ namespace OpenMS
               }
               #pragma omp critical (FIIndex)
               {
-                fi_peptides_.push_back({protein_idx, modification_idx, digested_peptide, modified_mz});
-                ++modification_idx;              }
-
+                fi_peptides_.push_back({static_cast<UInt32>(i), modification_idx, digested_peptide, modified_mz});
+                ++modification_idx;
+              }
             }
           }
           else
@@ -128,13 +128,13 @@ namespace OpenMS
             {
               #pragma omp critical (FIIndex)
               {
-                fi_peptides_.push_back({protein_idx, 0, digested_peptide, unmodified_mz});
+                fi_peptides_.push_back({static_cast<UInt32>(i), 0, digested_peptide, unmodified_mz});
               }
             }
           }
         }
-        #pragma omp atomic
-        protein_idx++;
+        //#pragma omp atomic
+        //protein_idx++;
       }
       if (skipped_peptides > 0)
       {
@@ -173,14 +173,19 @@ namespace OpenMS
 
       for (const sPeptide& pep: fi_peptides_)
       {
+        auto debugingStuff = fasta_entries[pep.protein_idx_].sequence;
         AASequence unmod_peptide = AASequence::fromString(fasta_entries[pep.protein_idx_].sequence.substr(pep.sequence.first, pep.sequence.second));
         vector<AASequence> mod_peptides;
-        ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, unmod_peptide);
-        ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, unmod_peptide, max_variable_mods_per_peptide_, mod_peptides);
+        if(!(modifications_fixed_.empty() && modifications_variable_.empty()))
+        {
+          AASequence mod_peptide = AASequence(unmod_peptide); // copy the peptide
+          ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, mod_peptide);
+          ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, mod_peptide, max_variable_mods_per_peptide_, mod_peptides);
+          tsg.getSpectrum(b_y_ions, mod_peptides[pep.modification_idx], 1,1);
+        }else{
+          tsg.getSpectrum(b_y_ions, unmod_peptide, 1,1);
+        }
 
-
-
-        tsg.getSpectrum(b_y_ions, mod_peptides[pep.modification_idx], 1, 1);
         for (Peak1D frag : b_y_ions)
         {
           if (fragment_min_mz_ > frag.getMZ() || frag.getMZ() > fragment_max_mz_  ) continue;
@@ -189,6 +194,7 @@ namespace OpenMS
         peptide_idx++;
         b_y_ions.clear(true);
       }
+      cout << "test3" <<endl;
       /// 1.) First all Fragments are sorted by their own mass!
       sort(fi_fragments_.begin(), fi_fragments_.end(), [](const Fragment& a, const Fragment& b) 
       {
