@@ -131,6 +131,8 @@ namespace OpenMS
       "AREA_INTENSITY REAL NOT NULL," \
       "TOTAL_AREA_INTENSITY REAL NOT NULL," \
       "APEX_INTENSITY REAL NOT NULL," \
+      "RT_FWHM REAL NOT NULL," \
+      "MASSERROR_PPM REAL NULL,"
       "TOTAL_MI REAL NULL," \
       "VAR_INTENSITY_SCORE REAL NULL," \
       "VAR_INTENSITY_RATIO_SCORE REAL NULL," \
@@ -211,22 +213,36 @@ namespace OpenMS
     {
       int64_t feature_id = Internal::SqliteHelper::clearSignBit(feature_it.getUniqueId()); // clear sign bit
 
-      for (const auto& sub_it : feature_it.getSubordinates())
+      auto masserror_ppm = feature_it.metaValueExists("masserror_ppm") ? (feature_it.getMetaValue("masserror_ppm")).toDoubleList() : OpenMS::DoubleList();
+
+      auto subordinates = feature_it.getSubordinates();
+      for (Size i=0; i < subordinates.size(); i++) 
       {
+        std::cout << "masseerror_ppm: " << masserror_ppm[i] << std::endl;
+        auto sub_it = subordinates[i];
         if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS2")
         {
           std::string total_mi = "NULL"; // total_mi is not guaranteed to be set
+          std::string masserror_ppm_query = "NULL"; // masserror_ppm is not guaranteed to be set
+
+          if (!masserror_ppm.empty())
+          {
+            masserror_ppm_query = std::to_string(masserror_ppm[i]);
+            std::cout << "masseerror_ppm_query: " << masserror_ppm_query << std::endl;
+          }
           if (!sub_it.getMetaValue("total_mi").isEmpty())
           {
             total_mi = sub_it.getMetaValue("total_mi").toString();
           }
           sql_feature_ms2_transition  << "INSERT INTO FEATURE_TRANSITION "\
-            "(FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI) VALUES ("
+            "(FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, RT_FWHM, MASSERROR_PPM, TOTAL_MI) VALUES ("
                                       << feature_id << ", "
                                       << sub_it.getMetaValue("native_id") << ", "
                                       << sub_it.getIntensity() << ", "
                                       << sub_it.getMetaValue("total_xic") << ", "
                                       << sub_it.getMetaValue("peak_apex_int") << ", "
+                                      << sub_it.getMetaValue("width_at_50") << ", "
+                                      << masserror_ppm_query << ", "
                                       << total_mi << "); ";
         }
         else if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS1" && sub_it.getIntensity() > 0.0)
