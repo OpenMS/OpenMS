@@ -154,7 +154,6 @@ namespace OpenMS
     Size min_nr_mtraces_ = 3; // minimum number of consecutive bridges among mass traces to support feature
     Size min_nr_peaks_in_mtraces_ = 4; // at least 4 is needed for EGHTraceFitter
     bool use_smoothed_intensities_;
-    double rt_window_ = 1; // TODO : remove?
 
     /// variables for internal use (not for user input)
     FLASHDeconvHelperStructs::PrecalculatedAveragine iso_model_;

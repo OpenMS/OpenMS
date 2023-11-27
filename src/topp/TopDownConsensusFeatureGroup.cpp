@@ -43,6 +43,7 @@ private:
   String MASS_TOL_UNIT_;
   int RT_TOL_;
   Size REP_COUNT_;
+  bool MAX_ABUNDANCE_WHEN_DUPLICATE;
 
 protected:
   void registerOptionsAndFlags_() override
@@ -62,6 +63,8 @@ protected:
     setValidStrings_("quant_method", {"FeatureGroupQuantity", "AllAreaUnderTheCurve", "SumIntensity"});
     registerStringOption_("consensus_as_input", "<choice>", "false", "Set it true when input files are consensus files", false);
     setValidStrings_("consensus_as_input", {"false", "true"});
+    registerStringOption_("when_duplicate", "<choice>", "max_abundance", "Method to pick a mass when multiple candidates were found in the same replicate", false, true);
+    setValidStrings_("when_duplicate", {"max_abundance", "nearest_mass"});
   }
 
   struct FeatureGroup
@@ -316,21 +319,8 @@ protected:
       std::vector<Size> collected_indices; // index from fgroups (for erase, later)
       for (Size rep_index : rep_set)
       {
-        double max_abundance = .0;
-        Size chosen_index = 0; // index of candidate_fgs
-        for (Size i = 0; i < candidate_fgs.size(); ++i)
-        {
-          if (candidate_fgs[i]->rep_index != rep_index) // ignore the candidate from different replicate
-          {
-            continue;
-          }
-          if (max_abundance > candidate_fgs[i]->abundance)
-          {
-            continue;
-          }
-          max_abundance = candidate_fgs[i]->abundance;
-          chosen_index = i;
-        }
+        Size chosen_index = MAX_ABUNDANCE_WHEN_DUPLICATE? getIndexOfMaxAdundanceFromFGs(candidate_fgs, rep_index) :
+                                                           getIndexOfNearestMassFromFGs(candidate_fgs, rep_index, reference_mass);
         collected_fgs[rep_index] = candidate_fgs[chosen_index];
         collected_indices.push_back(candidate_indices[chosen_index]);
       }
@@ -362,6 +352,47 @@ protected:
     consensus.shrink_to_fit();
   }
 
+  Size getIndexOfMaxAdundanceFromFGs(std::vector<FeatureGroup*> &candidate_fgs, Size current_rep_index)
+  {
+    double max_abundance = .0;
+    Size chosen_index = 0; // index of candidate_fgs
+    for (Size i = 0; i < candidate_fgs.size(); ++i)
+    {
+      if (candidate_fgs[i]->rep_index != current_rep_index) // ignore the candidate from different replicate
+      {
+        continue;
+      }
+      if (max_abundance > candidate_fgs[i]->abundance)
+      {
+        continue;
+      }
+      max_abundance = candidate_fgs[i]->abundance;
+      chosen_index = i;
+    }
+    return chosen_index;
+  }
+
+  Size getIndexOfNearestMassFromFGs(std::vector<FeatureGroup*> &candidate_fgs, Size &current_rep_index, double reference_mass)
+  {
+    double mass_difference = INFINITY;
+    Size chosen_index = 0; // index of candidate_fgs
+    for (Size i = 0; i < candidate_fgs.size(); ++i)
+    {
+      if (candidate_fgs[i]->rep_index != current_rep_index) // ignore the candidate from different replicate
+      {
+        continue;
+      }
+      double tmp_diff = abs(candidate_fgs[i]->mass - reference_mass);
+      if (mass_difference < tmp_diff)
+      {
+        continue;
+      }
+      mass_difference = tmp_diff;
+      chosen_index = i;
+    }
+    return chosen_index;
+  }
+
   ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
@@ -376,6 +407,10 @@ protected:
     QUANT_METHOD_ = getStringOption_("quant_method");
     REP_COUNT_ = ins.size();
     String consensus_input = getStringOption_("consensus_as_input");
+    if (getStringOption_("when_duplicate") == "max_abundance")
+      MAX_ABUNDANCE_WHEN_DUPLICATE = true;
+    else
+      MAX_ABUNDANCE_WHEN_DUPLICATE = false;
     if (MASS_TOL_UNIT_ == "ppm")
     {
       MASS_TOL_ *= 1e-6;

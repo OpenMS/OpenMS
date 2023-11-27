@@ -809,20 +809,20 @@ namespace OpenMS
     int counter = 0;
 
     // collect rt information from mtraces to generate spectrum
-    double min_fwhm_length = numeric_limits<double>::max();
+    double rt_binning_size = numeric_limits<double>::max();
     for (auto &trace: mtraces)
     {
       mt_rt_starts.push_back(std::make_pair(trace.getFwhmStart(), &trace));
       mt_rt_ends.push_back(std::make_pair(trace.getFwhmEnd(), &trace));
-      if (trace.getMassTrace().getFWHM() < min_fwhm_length)
+      if (trace.getMassTrace().getFWHM() < rt_binning_size)
       {
-        min_fwhm_length = trace.getMassTrace().getFWHM();
+        rt_binning_size = trace.getMassTrace().getFWHM();
       }
     }
-
-    if (min_fwhm_length > rt_window_)
+    // minimum bin size is 1
+    if (rt_binning_size < 1)
     {
-      rt_window_ = min_fwhm_length;
+      rt_binning_size = 1;
     }
 
     // sorting mass traces in rt
@@ -839,7 +839,7 @@ namespace OpenMS
     std::vector<FeatureSeed *> local_traces;
     local_traces.reserve(mtraces.size());
 
-    int possible_spec_size = int((mt_rt_starts[mt_rt_starts.size() - 1].first - end_of_current_rt_window) / rt_window_);
+    int possible_spec_size = int((mt_rt_starts[mt_rt_starts.size() - 1].first - end_of_current_rt_window) / rt_binning_size);
     this->startProgress(0, possible_spec_size, "assembling mass traces to features");
 
     while (rt_s_iter != end_of_iter && end_of_current_rt_window < last_rt)
@@ -847,7 +847,7 @@ namespace OpenMS
       this->setProgress(counter);
 
       // initial rt binning is 1 sec (for generating spectrum)
-      end_of_current_rt_window += rt_window_;
+      end_of_current_rt_window += rt_binning_size;
 
       // add mass traces within rt range
       bool is_new_mt_added = false;
