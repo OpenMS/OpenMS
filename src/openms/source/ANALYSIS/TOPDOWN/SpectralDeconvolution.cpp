@@ -117,14 +117,11 @@ namespace OpenMS
 
     if (target_decoy_type_ == PeakGroup::charge_decoy) // charge decoy
     {
-      for (const auto& pg : *target_dspec_for_decoy_calcualtion_)//->getNonOverlappingPeakGroups())
+      for (const auto& pg : *target_dspec_for_decoy_calcualtion_)
       {
-        //int min_iso = -1, max_iso = 0;
         for (const auto& p : pg)
         {
           previously_deconved_mono_masses_for_decoy_.push_back(p.getUnchargedMass());
-          //min_iso = min_iso < 0 ? p.isotopeIndex : std::min(min_iso, p.isotopeIndex);
-          //max_iso = std::max(max_iso, p.isotopeIndex);
         }
       }
     }
@@ -1221,7 +1218,7 @@ namespace OpenMS
           }
         }
 
-        double snr_threshold = min_snr_[ms_level_ - 1]; //.5;
+        double snr_threshold = min_snr_[ms_level_ - 1];
         double qvalue_threshold = max_qvalue_[ms_level_ - 1];
         if (!peak_group.isTargeted() && (peak_group.getQvalue() > qvalue_threshold || peak_group.getSNR() < snr_threshold)) // snr check prevents harmonics or noise.
         {
@@ -1280,8 +1277,8 @@ namespace OpenMS
     removeOverlappingPeakGroups_(deconvolved_spectrum_, 0);
     removeChargeErrorPeakGroups_(deconvolved_spectrum_);
     removeOverlappingPeakGroups_(deconvolved_spectrum_, 1.5 * tol);
-
     removeExcludedMasses_(deconvolved_spectrum_);
+
   }
 
   float SpectralDeconvolution::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg,
@@ -1386,7 +1383,7 @@ namespace OpenMS
     {
       for (int i = 0; i < b.size(); i++)
       {
-        float f = i % 2 == 0 ? .5f : 2;
+        float f = i % 2 == 0 ? .25f : 4;
         b_norm += b[i].getIntensity() * b[i].getIntensity() * f * f;
       }
     }
@@ -1413,7 +1410,7 @@ namespace OpenMS
       }
       else
       {
-        float f = decoy? (i % 2 == 0 ? .5f : 2) : 1;
+        float f = decoy? (i % 2 == 0 ? .25f : 4) : 1;
         n += a[j] * b[i].getIntensity() * f; //
       }
     }
