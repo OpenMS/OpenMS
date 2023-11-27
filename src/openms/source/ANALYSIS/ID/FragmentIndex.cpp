@@ -115,20 +115,25 @@ namespace OpenMS
               {
                 continue;
               }
-                
-              fi_peptides_.push_back({protein_idx, modification_idx, digested_peptide, modified_mz});
-              ++modification_idx;
+              #pragma omp critical (FIIndex)
+              {
+                fi_peptides_.push_back({protein_idx, modification_idx, digested_peptide, modified_mz});
+                ++modification_idx;              }
+
             }
           }
           else
           {
             if (peptide_min_mass_ <= unmodified_mz && unmodified_mz <= peptide_max_mass_)
             {
-              fi_peptides_.push_back({protein_idx, 0, digested_peptide, unmodified_mz});
-            }              
+              #pragma omp critical (FIIndex)
+              {
+                fi_peptides_.push_back({protein_idx, 0, digested_peptide, unmodified_mz});
+              }
+            }
           }
         }
-
+        #pragma omp atomic
         protein_idx++;
       }
       if (skipped_peptides > 0)
@@ -153,7 +158,6 @@ namespace OpenMS
       tsg_params.setValue("add_z_ions", this_params.getValue("add_z_ions"));
       tsg.setParameters(tsg_params);
       PeakSpectrum b_y_ions;
-      cout << "test1" << endl;
 
       /// generate all Peptides
       generate_peptides(fasta_entries);
@@ -185,8 +189,6 @@ namespace OpenMS
         peptide_idx++;
         b_y_ions.clear(true);
       }
-
-      cout << "test3" << endl;
       /// 1.) First all Fragments are sorted by their own mass!
       sort(fi_fragments_.begin(), fi_fragments_.end(), [](const Fragment& a, const Fragment& b) 
       {
