@@ -104,7 +104,7 @@ namespace OpenMS
       //cout << "mz" << precursor[0].getMZ() << " uw " << precursor[0].getUnchargedMass() << endl;
       float mz;
       if (precursor[0].getCharge())
-        mz = precursor[0].getMZ(); // TODO: What does this do? precursor[0].getUnchargedMass()
+        mz = precursor[0].getMZ();
       else
         mz = precursor[0].getMZ() * charge;
 
@@ -284,12 +284,24 @@ namespace OpenMS
   }
 */
 
-  void FragmentIndexScorer::trimHits(OpenMS::FragmentIndexScorer::SpectrumMatchesTopN& init_hits)
+  void FragmentIndexScorer::trimHits(OpenMS::FragmentIndexScorer::SpectrumMatchesTopN& init_hits) const
   {
-    buildKMinHeap<SpectrumMatch, uint32_t>(init_hits.hits_, max_processed_hits_, [](SpectrumMatch a) { return a.num_matched_; });
     if (max_processed_hits_ < init_hits.hits_.size())
     {
+      std::partial_sort(init_hits.hits_.begin(), init_hits.hits_.begin() + max_processed_hits_, init_hits.hits_.end(), [](SpectrumMatch a, SpectrumMatch b){
+        return a.num_matched_ > b.num_matched_;
+      });
+
       init_hits.hits_.resize(max_processed_hits_);
+    }
+    for(auto hit_iter = init_hits.hits_.begin(); hit_iter != init_hits.hits_.end();){
+      if(hit_iter->num_matched_ < min_matched_peaks_)
+      {
+        init_hits.hits_.erase(hit_iter);
+      }else
+      {
+        ++hit_iter;
+      }
     }
   }
 
@@ -372,7 +384,6 @@ namespace OpenMS
     defaults_.setValue("max_processed_hits", 50, "The number of initial hits for which we calculate a score");
     defaults_.setValue("open_search", "false", "Open or standard search");
     defaults_.setValue("open_precursor_window", 200.0, "Size of the open precursor window, if set to 0 it is set automatically");
-    defaults_.setValue("open_fragment_window", 0, "Size of the (multiple) open fragment windows");
     vector<string> frag{"a_x", "b_y", "c_z"};
     defaults_.setValue("fragmentation", "b_y");
     defaults_.setValidStrings("fragmentation", frag);
@@ -392,7 +403,7 @@ namespace OpenMS
     max_processed_hits_ = param_.getValue("max_processed_hits");
     open_search = param_.getValue("open_search").toBool();
     open_precursor_window = param_.getValue("open_precursor_window");
-    open_fragment_window = param_.getValue("open_fragment_window");
+
     fragmentation_ = param_.getValue("fragmentation").toString();
   }
   const FragmentIndex& FragmentIndexScorer::getDB() const

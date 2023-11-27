@@ -170,10 +170,6 @@ namespace OpenMS
     decoys_ = param_.getValue("decoys") == "true";
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
 
-    auto p = fragment_index_.getParameters();
-    p.setValue("fragment_min_mz", param_.getValue("fragment:min_mz"));
-    p.setValue("fragment_max_mz", param_.getValue("fragment:max_mz"));
-    fragment_index_.setParameters(p);
   }
 
   // static
@@ -453,11 +449,13 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     
     // build fragment index
     startProgress(0, 1, "Building fragment index...");    
-    FragmentIndexScorer fragment_index_;
+    FragmentIndex fragment_index_;
     auto p = fragment_index_.getParameters();
     p.setValue("max_processed_hits", report_top_hits_);
+    p.setValue("fragment_min_mz", param_.getValue("fragment:min_mz"));
+    p.setValue("fragment_max_mz", param_.getValue("fragment:max_mz"));
     fragment_index_.setParameters(p);
-    fragment_index_.buildDB(fasta_db);
+    fragment_index_.build(fasta_db);
     endProgress();
 
     startProgress(0, spectra.size(), "Scoring peptide models against spectra...");
@@ -476,13 +474,13 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       }
 
       const MSSpectrum& exp_spectrum = spectra[scan_index];
-      FragmentIndexScorer::SpectrumMatchesTopN top_sms;
+      FragmentIndex::SpectrumMatchesTopN top_sms;
       fragment_index_.querySpectrum(exp_spectrum, top_sms); // TODO: expose top N as argument here and use report_top_hits_
 
       for (const auto& sms : top_sms.hits_)
       {
-        AASequence candidate = fragment_index_.getDB().getPeptides()[sms.peptide_idx_].sequence;
-
+        pair<size_t, size_t> candidate_snippet = fragment_index_.getPeptides()[sms.peptide_idx_].sequence;
+        AASequence candidate = AASequence::fromString(fasta_db[sms.peptide_idx_].sequence.substr(candidate_snippet.first, candidate_snippet.second));
         // create theoretical spectrum
         PeakSpectrum theo_spectrum;
 

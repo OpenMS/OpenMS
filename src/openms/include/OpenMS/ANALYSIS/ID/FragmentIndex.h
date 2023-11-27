@@ -39,6 +39,41 @@ namespace OpenMS
       float precursor_mz;  // charge 1 precursor m/z
     };
 
+    struct sPeptide
+    {
+      UInt32 protein_idx_;
+      UInt32 modification_idx;
+      std::pair<Size, Size> sequence;
+      float precursor_mz;
+    };
+
+    /**
+     * @brief Every potential Peptide/Protein has such an struct. Inside the number of peaks-to-Fragment hits are safed
+     */
+    struct SpectrumMatch
+    {
+      uint32_t num_matched_{};       ///< Number of peaks-fragment hits
+      uint32_t precursor_charge_{};  ///< The precursor_charged used for the performed search
+      size_t peptide_idx_{};         ///< The idx this struct belongs to
+      int16_t isotope_error_{};      /// < The isotope_error used for the performed search
+    };
+
+    struct SpectrumMatchesTopN
+    {
+      std::vector<SpectrumMatch> hits_;     ///< The preliminary candidates
+      uint32_t matched_peaks_{};      ///< The number of matched peaks TODO: statistic needed?
+      uint32_t scored_candidates_{};  ///< The number of scored candidates
+
+      SpectrumMatchesTopN() = default;
+
+      SpectrumMatchesTopN& operator+=(const SpectrumMatchesTopN& other)
+      {
+        this->matched_peaks_ += other.matched_peaks_;
+        this->scored_candidates_ += other.scored_candidates_;
+        this->hits_.insert(this->hits_.end(), other.hits_.begin(), other.hits_.end());
+        return *this;
+      }
+    };
     /// DefaultConstructor
     FragmentIndex();
 
@@ -48,16 +83,10 @@ namespace OpenMS
     // returns true if already built, false otherwise
     bool isBuild() const;
 
-    enum class IonTypes
-    {
-      AX_IONS,
-      BY_IONS,
-      CZ_IONS
-    };
 
-    IonTypes getIonTypes() const;
 
-    const std::vector<Peptide>& getPeptides() const;
+
+    const std::vector<sPeptide>& getPeptides() const;
 
 #ifdef DEBUG_FRAGMENT_INDEX
     /**
@@ -101,7 +130,21 @@ namespace OpenMS
       float fragment_mz;
     };
 
+    /**@brief Queries one peak
+     * @param peak
+     * @param peptide_idx_range
+     * @param peak_charge
+     * @return
+     */
     std::vector<Hit> query(Peak1D peak, std::pair<size_t, size_t> peptide_idx_range, uint16_t peak_charge);
+
+
+    /**
+     * @brief: queries one complete experimental spectra against the Database. loops over all precursor charges
+     * @param spectrum experimental spectrum
+     * @param sms output
+     */
+    void querySpectrum(const MSSpectrum& spectrum, SpectrumMatchesTopN& sms);
 
 protected:
     bool is_build_{false};              ///< true, if the database has been populated with fragments
@@ -116,7 +159,7 @@ protected:
      */
     void generate_peptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
 
-    std::vector<Peptide> fi_peptides_;   ///< vector of all (digested) peptides
+    std::vector<sPeptide> fi_peptides_;   ///< vector of all (digested) peptides
 
     float fragment_min_mz_;  ///< smallest fragment mz
     float fragment_max_mz_;  ///< largest fragment mz    
@@ -132,9 +175,46 @@ private:
      */
     struct Fragment
     {
-      UInt32 peptide_idx; // TODO: check size in sage implementation (32bit vs 64bit)
+      UInt32 peptide_idx; // 32 bit in sage
       float fragment_mz;
     };
+
+
+    /**
+     * @brief queries exactly one peak, with a set range of potential peptides, isotope error and precursor charge Hits are transfered into the a PSM
+     * @param candidates
+     * @param peak
+     * @param candidates_range
+     * @param isotope_error
+     * @param precursor_charge
+     */
+    void queryPeak(SpectrumMatchesTopN& candidates,
+                   const Peak1D& peak,
+                   std::pair<size_t, size_t> candidates_range,
+                   int16_t isotope_error,
+                   uint16_t precursor_charge);
+
+    /**
+     * @brief queries all peaks of a spectrum. loops over all preset isotope errors. The precursor-mass-window is ignored
+     * @param spectrum experimental query-spectrum
+     * @param mz
+     * @param sms
+     * @param charge
+     */
+    void closedSearch(const MSSpectrum& spectrum, float mz, SpectrumMatchesTopN& sms, uint16_t charge);
+
+    /**@brief queries all peaks of a spectrum. ignores isotope error, applies open window
+     * @param spectrum
+     * @param precursor_mass
+     * @param sms
+     * @param charge
+     */
+    void openSearch(const MSSpectrum& spectrum, float precursor_mass, SpectrumMatchesTopN& sms, uint16_t charge);
+
+    /** @brief places the k-largest elements in the front of the input array. Inside of the k-largest elements and outside the elements are not sorted
+     *
+     */
+    void trimHits(SpectrumMatchesTopN& init_hits) const;
 
     //since we work with TheoreticalSpectrumGenerator, we must transfer some of those member variables
     bool add_b_ions_;
@@ -146,7 +226,6 @@ private:
 
     // SpectrumGenerator independend member variables
     std::string digestion_enzyme_;
-    IonTypes ion_types_{FragmentIndex::IonTypes::BY_IONS};
 
     size_t missed_cleavages_; ///< number of missed cleavages
     float peptide_min_mass_;
@@ -159,6 +238,20 @@ private:
     size_t max_variable_mods_per_peptide_;
 
     std::vector<Fragment> fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions)
+
+    // Search Related member variables
+
+    uint16_t min_matched_peaks_;  ///< PSM with less hits are discarded
+    int16_t min_isotope_error_;   ///< Minimal possible isotope error
+    int16_t max_isotope_error_;   ///< Maximal possible isotope error (both only used for closed search)
+    uint16_t min_precursor_charge_; ///< minimal possible precursor charge (usually always 1)
+    uint16_t max_precursor_charge_; ///< maximal possible precursor charge
+    uint16_t max_fragment_charge_;
+    uint32_t max_processed_hits_;   ///< The amount of PSM that will be used. the rest is filtered out
+    bool open_search;               ///< true if a unrestrictive open search for potential PTM is performed
+    float open_precursor_window;
+
+
   };
 
 }

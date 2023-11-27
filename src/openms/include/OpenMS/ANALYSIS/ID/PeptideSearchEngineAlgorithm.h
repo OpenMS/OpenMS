@@ -44,7 +44,7 @@ class OPENMS_DLLAPI PeptideSearchEngineAlgorithm :
   protected:
     void updateMembers_() override;
 
-    FragmentIndexScorer fragment_index_;
+    //FragmentIndex fragment_index_;
 
     /// Slimmer structure as storing all scored candidates in PeptideHit objects takes too much space
     struct AnnotatedHit_

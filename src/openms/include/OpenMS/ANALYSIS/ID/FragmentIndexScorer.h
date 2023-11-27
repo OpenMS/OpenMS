@@ -40,7 +40,6 @@ namespace OpenMS
     uint16_t max_fragment_charge_;
     uint32_t max_processed_hits_;   ///< The amount of PSM that will be used. the rest is filtered out
     bool open_search;               ///< true if a unrestrictive open search for potential PTM is performed
-    float open_fragment_window;    // TODO: Should be dependent of prec_window and also adaptable!!! so I guess i could delete this later
     float open_precursor_window;   ///< (Only for open_search) The window in which the precursor-mz could be located, due to PTM
     std::string fragmentation_method;
 
@@ -118,7 +117,7 @@ namespace OpenMS
 
     void buildDB(const std::vector<FASTAFile::FASTAEntry> & fasta_entries);  // Only builds standard
 
-    void extractHits(SpectrumMatchesTopN& candidates ,
+    static void extractHits(SpectrumMatchesTopN& candidates ,
                      const std::vector<FragmentIndex::Hit>& hits,
                      uint32_t charge,
                      int16_t isotope_error,
@@ -150,7 +149,7 @@ namespace OpenMS
     /** @brief places the k-largest elements in the front of the input array. Inside of the k-largest elements and outside the elements are not sorted
      * Brazenly stolen from sage.
      */
-    void trimHits(SpectrumMatchesTopN& init_hits);
+    void trimHits(SpectrumMatchesTopN& init_hits) const;
 
   };
 }
