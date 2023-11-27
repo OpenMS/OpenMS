@@ -196,7 +196,7 @@ namespace OpenMS
       ~LogMzPeak() = default;
 
       /// get uncharged mass of this peak. It is NOT a monoisotopic mass of a PeakGroup, rather a monoisotopic mass of each LogMzPeak. Returns 0 if no charge set
-      double getUnchargedMass();
+      double getUnchargedMass() const;
 
       /// log mz values are compared
       bool operator<(const LogMzPeak& a) const;

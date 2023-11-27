@@ -78,10 +78,11 @@ namespace OpenMS
            @param noisy_peaks noisy peaks to calculate setQscore
            @param avg precalculated averagine
            @param min_cos the peak groups with cosine score less than this will have setQscore 0.
+           @param is_low_charge if set, charge fit score calculation becomes less harshy
            @param allowed_iso_error this set the allowed isotope error in decoy mass generation.
            @return returns isotope offset after isotope cosine calculation
       */
-    int updateQscore(std::vector<LogMzPeak>& noisy_peaks, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, int allowed_iso_error = 1);
+    int updateQscore(std::vector<LogMzPeak>& noisy_peaks, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, bool is_low_charge, int allowed_iso_error = 1);
 
     /**
      * @brief given a monoisotopic mass, recruit raw peaks from the raw input spectrum and add to this peakGroup. This is a bit time-consuming and is done for only a small number of selected
@@ -289,7 +290,7 @@ namespace OpenMS
 
   private:
     /// update chargefit score and also update per charge intensities here.
-    void updateChargeFitScoreAndChargeIntensities_();
+    void updateChargeFitScoreAndChargeIntensities_(bool is_low_charge);
     /// update avg ppm error
     void updateAvgPPMError_();
     /// update avg Da error
@@ -297,7 +298,7 @@ namespace OpenMS
     /// get ppm error of a logMzPeak
     float getAbsPPMError_(const LogMzPeak& p) const;
     /// get Da error of a logMzPeak from the closest isotope
-    float getAbsDaError_(LogMzPeak& p) const;
+    float getAbsDaError_(const LogMzPeak& p) const;
     /// using signal and total (signal + noise) power, update SNR value
     void updateSNR_();
     /// clear peaks
@@ -313,9 +314,10 @@ namespace OpenMS
      * calculate noisy peak power. The goal of this function is to group noisy peaks that are possibly from the same molecule and sum their intensities before calculate power
      * @param noisy_peaks noisy peaks to calculate power
      * @param signal_peaks signal peaks - they may make a part of noisy isotopes
+     * @param z charge
      * @return calculated noise power
      */
-    float getNoisePeakPower_(const std::vector<LogMzPeak>& noisy_peaks, const std::vector<LogMzPeak>& signal_peaks) const;
+    float getNoisePeakPower_(const std::vector<LogMzPeak>& noisy_peaks, const std::vector<LogMzPeak>& signal_peaks, const int z) const;
     std::vector<Matrix<float>> dl_matrices_;
 
     /// log Mz peaks

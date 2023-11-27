@@ -169,7 +169,7 @@ namespace OpenMS
   {
   }
 
-  double FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass()
+  double FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass() const
   {
     if (abs_charge == 0)
     {
@@ -177,7 +177,7 @@ namespace OpenMS
     }
     if (mass <= 0)
     {
-      mass = (mz - getChargeMass(is_positive)) * (float)abs_charge;
+      return (mz - getChargeMass(is_positive)) * (float)abs_charge;
     }
     return mass;
   }

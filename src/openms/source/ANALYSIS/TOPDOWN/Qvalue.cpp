@@ -81,15 +81,10 @@ namespace OpenMS
       auto& dscore_charge = dscore_charge_decoy_map[ms_level];
       auto& dscore_noise = dscore_noise_decoy_map[ms_level];
 
-      auto mixed_dist = getDistribution(qscores, bin_number);
-      auto charge_dist = getDistribution(dscore_charge, bin_number);
-      auto noise_dist = getDistribution(dscore_noise, bin_number);
-      auto iso_dist = getDistribution(dscore_iso, bin_number);
-
-      std::vector<double> weight_limit;
-      weight_limit.push_back(((double)dscore_charge.size()) / qscores.size());
-      weight_limit.push_back(((double)dscore_noise.size()) / qscores.size());
-      weight_limit.push_back(((double)dscore_iso.size()) / qscores.size());
+      const auto mixed_dist = getDistribution(qscores, bin_number);
+      const auto charge_dist = getDistribution(dscore_charge, bin_number);
+      const auto noise_dist = getDistribution(dscore_noise, bin_number);
+      const auto iso_dist = getDistribution(dscore_iso, bin_number);
 
       std::vector<double> weights(4, .25);
       std::vector<double> target_dist(bin_number);
@@ -102,10 +97,7 @@ namespace OpenMS
         {
           double fp = (charge_dist[i] * weights[0] + noise_dist[i] * weights[1] + iso_dist[i] * weights[2]);
           target_dist[i] = std::max(.0, mixed_dist[i] - fp);
-          if (mixed_dist[i] > 0 && mixed_dist[i] < charge_dist[i] * weight_limit[0] + noise_dist[i] * weight_limit[1] + iso_dist[i] * weight_limit[2])
-          {
-            break;
-          }
+          if (target_dist[i] > 0 && target_dist[i] < fp) break;
         }
 
         double csum = .0;
@@ -126,14 +118,6 @@ namespace OpenMS
         comp_dists.push_back(target_dist);
 
         auto tmp_weight = getDistributionWeights(mixed_dist, comp_dists);
-        double tmp_sum = 0;
-        for (Size i = 0; i < tmp_weight.size() - 1; i++)
-        {
-          tmp_weight[i] = std::min(tmp_weight[i], weight_limit[i]);
-          tmp_sum += tmp_weight[i];
-        }
-
-        tmp_weight[tmp_weight.size() - 1] = 1 - tmp_sum;
 
         if (tmp_weight == weights)
         {
@@ -152,7 +136,7 @@ namespace OpenMS
       std::sort(dscore_charge.begin(), dscore_charge.end());
 
       auto& map_charge = qscore_charge_decoy_map[ms_level];
-      double tmp_q_charge = 1;
+      double tmp_q_charge;
 
       // calculate q values using targets and charge dummies
       for (size_t i = 0; i < qscores.size(); i++)
@@ -170,7 +154,7 @@ namespace OpenMS
       }
 
       auto& map_iso = qscore_iso_decoy_map[ms_level];
-      double tmp_q_iso = 1;
+      double tmp_q_iso;
 
       // calculate q values using targets and isotope dummies
       for (size_t i = 0; i < qscores.size(); i++)
@@ -187,7 +171,7 @@ namespace OpenMS
       }
 
       auto& map_noise = qscore_noise_decoy_map[ms_level];
-      double tmp_q_noise = 1;
+      double tmp_q_noise;
 
       // calculate q values using targets and noise dummies
       for (size_t i = 0; i < qscores.size(); i++)
@@ -289,7 +273,7 @@ namespace OpenMS
   {
     uint weight_cntr = comp_dists.size();
     uint bin_number = mixed_dist.size();
-    std::vector<double> weights(weight_cntr, 1.0f / weight_cntr);
+    std::vector<double> weights(weight_cntr, 1.0 / weight_cntr);
 
     for (uint n = 0; n < num_iterations; n++)
     {

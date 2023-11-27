@@ -29,6 +29,48 @@ namespace OpenMS
     return this->scan_number_ == a.scan_number_;
   }
 
+  /*
+  std::vector<PeakGroup> DeconvolvedSpectrum::getNonOverlappingPeakGroups() const
+  {
+    std::map<double, std::set<int>> peak_to_pgs;
+    std::vector<PeakGroup> filtered_pg_vec;
+    filtered_pg_vec.reserve(size());
+    std::vector<PeakGroup> ret;
+    ret.reserve(size());
+
+    int i = 0;
+    for (const auto& pg : *this)
+    {
+      for (const auto& p : pg)
+      {
+        peak_to_pgs[p.mz].insert(i);
+      }
+      i++;
+    }
+
+    std::set<int> max_indices;
+    for (const auto& e : peak_to_pgs)
+    {
+      int max_index = 0;
+      double max_qscore = 0;
+      for (const auto pg_index : e.second)
+      {
+        auto pg = peak_groups_[pg_index];
+        if (max_qscore > pg.getFeatureQscore())
+          continue;
+
+        max_qscore = pg.getFeatureQscore();
+        max_index = pg_index;
+      }
+      max_indices.insert(max_index);
+    }
+    for (int mi : max_indices) ret.push_back(peak_groups_[mi]);
+
+    std::sort(ret.begin(), ret.end());
+    return ret;
+  }*/
+
+
   MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge, uint min_ms_level, double tol, bool retain_undeconvolved)
   {
     auto out_spec = MSSpectrum(spec_);
@@ -294,9 +336,12 @@ namespace OpenMS
 
   bool DeconvolvedSpectrum::isDecoy() const
   {
-    if (empty()) return false;
-    if (peak_groups_[0].getTargetDecoyType() != PeakGroup::TargetDecoyType::target) return true;
-    if (!precursor_peak_group_.empty() && precursor_peak_group_.getTargetDecoyType() != PeakGroup::TargetDecoyType::target) return true;
+    if (empty())
+      return false;
+    if (peak_groups_[0].getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
+      return true;
+    if (!precursor_peak_group_.empty() && precursor_peak_group_.getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
+      return true;
     return false;
   }
 

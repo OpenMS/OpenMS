@@ -125,6 +125,8 @@ namespace OpenMS
     /// set peak groups in this spectrum
     void setPeakGroups(std::vector<PeakGroup>& x);
 
+    //std::vector<PeakGroup> getNonOverlappingPeakGroups() const;
+
     /// iterators and vector operators for std::vector<PeakGroup> peak_groups_ in this spectrum
     std::vector<PeakGroup>::const_iterator begin() const noexcept;
     std::vector<PeakGroup>::const_iterator end() const noexcept;
