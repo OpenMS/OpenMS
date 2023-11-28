@@ -11,8 +11,12 @@
 
 ///////////////////////////
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
-#if COINOR_SOLVER==1
-  #include "coin/CoinModel.hpp"
+#if COINOR_SOLVER == 1
+  #if COIN_INCLUDE_SUBDIR_IS_COIN == 1
+    #include "coin/CoinModel.hpp"
+  #else
+    #include "coin-or/CoinModel.hpp"
+  #endif
 #endif
 ///////////////////////////
 
