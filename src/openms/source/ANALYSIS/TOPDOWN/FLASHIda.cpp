@@ -105,15 +105,13 @@ namespace OpenMS
     {
       std::cout << ss.str() << "file(s) is(are) used for exclusion mode\n";
     }
-    Param fd_defaults = SpectralDeconvolution().getDefaults();
+    Param sd_defaults = SpectralDeconvolution().getDefaults();
 
-    fd_defaults.setValue("min_charge", (int)inputs["min_charge"][0]);
-    fd_defaults.setValue("max_charge", (int)inputs["max_charge"][0]);
-    fd_defaults.setValue("min_mass", inputs["min_mass"][0]);
-    fd_defaults.setValue("max_mass", inputs["max_mass"][0]);
-    fd_defaults.setValue("min_qscore", DoubleList {.5, .5});
-    // fd_defaults.setValue("min_qscore", .0);
-    fd_defaults.setValue("tol", inputs["tol"]);
+    sd_defaults.setValue("min_charge", (int)inputs["min_charge"][0]);
+    sd_defaults.setValue("max_charge", (int)inputs["max_charge"][0]);
+    sd_defaults.setValue("min_mass", inputs["min_mass"][0]);
+    sd_defaults.setValue("max_mass", inputs["max_mass"][0]);
+    sd_defaults.setValue("tol", inputs["tol"]);
     tol_ = std::vector<double>(inputs["tol"]);
     // fd_defaults.setValue("rt_window", rt_window_);
     // fd_defaults.setValue("min_peaks", IntList{3, 3});//
@@ -250,11 +248,10 @@ namespace OpenMS
       }
     }
 
-    fd_.setParameters(fd_defaults);
+    fd_.setParameters(sd_defaults);
     fd_.calculateAveragine(false);
 
-    std::cout << "QScore threshold: " << qscore_threshold_ << std::endl;
-    std::cout << fd_defaults << std::endl;
+    std::cout << sd_defaults << std::endl;
   }
 
   int FLASHIda::getPeakGroups(const double* mzs, const double* ints,

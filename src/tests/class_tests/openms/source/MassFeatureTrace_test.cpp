@@ -160,7 +160,7 @@ START_SECTION((std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(c
   fd.calculateAveragine(false);
   FLASHDeconvHelperStructs::PrecalculatedAveragine averagine = fd.getAveragine();
 
-  std::vector<FLASHDeconvHelperStructs::MassFeature> found_feature = mass_tracer.findFeatures(averagine, deconvolved_specs, 1);
+  std::vector<FLASHDeconvHelperStructs::MassFeature> found_feature = mass_tracer.findFeaturesAndUpdateQscore2D(averagine, deconvolved_specs, 1);
   OPENMS_LOG_INFO << found_feature.size() << std::endl;
 }
 END_SECTION

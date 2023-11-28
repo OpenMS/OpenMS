@@ -132,6 +132,7 @@ namespace OpenMS
       double isotope_score, qscore;
       double rep_mz;
       bool is_decoy;
+      uint ms_level;
       /// features are compared
       bool operator<(const MassFeature& a) const
       {

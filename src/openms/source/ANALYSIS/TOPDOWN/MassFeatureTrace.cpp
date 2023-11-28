@@ -34,8 +34,8 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  std::vector<FLASHDeconvHelperStructs::MassFeature> MassFeatureTrace::findFeatures(const PrecalculatedAveragine& averagine,
-                                                                                    std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int ms_level,  bool is_decoy)
+  std::vector<FLASHDeconvHelperStructs::MassFeature> MassFeatureTrace::findFeaturesAndUpdateQscore2D(const PrecalculatedAveragine& averagine, std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
+                                                                                                     int ms_level, bool is_decoy)
   {
     static uint findex = 1;
     MSExperiment map;
@@ -46,7 +46,7 @@ namespace OpenMS
     std::vector<FLASHDeconvHelperStructs::MassFeature> mass_features;
     std::map<double, Size> rt_index_map;
 
-    std::vector<int> prev_scans(deconvolved_spectra.rbegin()->getScanNumber() + 1,0);
+    std::map<int, int> prev_scans;
     int prev_scan = 0;
     for (Size i = 0; i < deconvolved_spectra.size(); i++)
     {
@@ -89,6 +89,7 @@ namespace OpenMS
     mtdet.setParameters(mtd_param);
     std::vector<MassTrace> m_traces;
 
+    mtdet.setLogType(ProgressLogger::NONE);
     mtdet.run(map, m_traces); // m_traces : output of this function
 
     int charge_range = max_abs_charge - min_abs_charge + 1;
@@ -145,7 +146,6 @@ namespace OpenMS
       feature_qscore = 1.0 - feature_qscore;
       for (auto& pg : pgs)
       {
-
         for (size_t z = min_abs_charge; z < per_charge_intensity.size(); z++)
         {
           float zint = pg->getChargeIntensity((int)z);
@@ -189,7 +189,7 @@ namespace OpenMS
 
         pg->setFeatureIndex(findex);
         if (findex > 0)
-          pg->setFeatureQscore(feature_qscore);
+          pg->setQscore2D(feature_qscore);
       }
 
       FLASHDeconvHelperStructs::MassFeature mass_feature;
@@ -212,6 +212,7 @@ namespace OpenMS
       mass_feature.rep_charge = rep_pg.getRepAbsCharge();
       mass_feature.index = findex;
       mass_feature.is_decoy = is_decoy;
+      mass_feature.ms_level = ms_level;
       mass_features.push_back(mass_feature);
       findex++;
     }

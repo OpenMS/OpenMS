@@ -176,7 +176,7 @@ namespace OpenMS
     double getQscore() const;
 
     /// get feature Q score
-    double getFeatureQscore() const;
+    double getQscore2D() const;
 
     /// get total SNR
     float getSNR() const;
@@ -228,8 +228,8 @@ namespace OpenMS
     /// set index of this peak group
     void setIndex(uint i);
 
-    /// set feature Q score
-    void setFeatureQscore(double fqscore);
+    /// set Q score 2D
+    void setQscore2D(double fqscore);
 
     /// set feature index
     void setFeatureIndex(uint findex);
@@ -281,6 +281,7 @@ namespace OpenMS
 
     /// vector operators for the LogMzPeaks in this PeakGroup
     void push_back(const FLASHDeconvHelperStructs::LogMzPeak& pg);
+    FLASHDeconvHelperStructs::LogMzPeak& back();
     Size size() const noexcept;
 
     void reserve(Size n);
@@ -363,7 +364,7 @@ namespace OpenMS
     float isotope_cosine_score_ = 0;
     float charge_score_ = 0;
     double qscore_ = .0f;
-    double fqscore_ = -1.0f;
+    double qscore2D_ = -1.0f;
     float avg_ppm_error_ = 0;
     float avg_da_error_ = 0;
     float snr_ = 0;

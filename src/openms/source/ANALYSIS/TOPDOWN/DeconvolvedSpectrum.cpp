@@ -59,7 +59,7 @@ namespace OpenMS
         if (max_qscore > pg.getFeatureQscore())
           continue;
 
-        max_qscore = pg.getFeatureQscore();
+        max_qscore = pg.getQscore2D();
         max_index = pg_index;
       }
       max_indices.insert(max_index);
@@ -314,6 +314,16 @@ namespace OpenMS
     peak_groups_.push_back(pg);
   }
 
+  void DeconvolvedSpectrum::pop_back()
+  {
+    peak_groups_.pop_back();
+  }
+
+  PeakGroup& DeconvolvedSpectrum::back()
+  {
+    return peak_groups_.back();
+  }
+
   Size DeconvolvedSpectrum::size() const noexcept
   {
     return peak_groups_.size();
@@ -368,6 +378,6 @@ namespace OpenMS
 
   void DeconvolvedSpectrum::sortByQscore()
   {
-    std::sort(peak_groups_.begin(), peak_groups_.end(), [](const PeakGroup& p1, const PeakGroup& p2) { return p1.getQscore() > p2.getQscore(); });
+    std::sort(peak_groups_.begin(), peak_groups_.end(), [](const PeakGroup& p1, const PeakGroup& p2) { return p1.getQscore2D() > p2.getQscore2D(); });
   }
 } // namespace OpenMS

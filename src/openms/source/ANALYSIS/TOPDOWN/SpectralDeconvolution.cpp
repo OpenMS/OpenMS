@@ -1036,7 +1036,7 @@ namespace OpenMS
     int tmp_peak_cntr = current_charge_range - min_support_peak_count_;
 
     tmp_peak_cntr = tmp_peak_cntr < 0 ? 0 : tmp_peak_cntr;
-    double mass_bin_max_value = std::min(log_mz_peaks_[log_mz_peaks_.size() - 1].logMz - filter_[tmp_peak_cntr], log(current_max_mass_ + (double)avg_.getRightCountFromApex(current_max_mass_) + 1.0));
+    double mass_bin_max_value = std::min(log_mz_peaks_.back().logMz - filter_[tmp_peak_cntr], log(current_max_mass_ + (double)avg_.getRightCountFromApex(current_max_mass_) + 1.0));
 
     double bin_mul_factor = bin_mul_factors_[ms_level_ - 1];
 
@@ -1044,7 +1044,7 @@ namespace OpenMS
     mass_bin_min_value_ = log(std::max(1.0, 50 - avg_.getAverageMassDelta(50)));
     mz_bin_min_value_ = log_mz_peaks_[0].logMz;
 
-    double mz_bin_max_value = log_mz_peaks_[log_mz_peaks_.size() - 1].logMz;
+    double mz_bin_max_value = log_mz_peaks_.back().logMz;
     Size mass_bin_number = getBinNumber_(mass_bin_max_value, mass_bin_min_value_, bin_mul_factor) + 1;
     bin_offsets_.clear();
     harmonic_bin_offset_matrix_.clear();
@@ -1274,11 +1274,10 @@ namespace OpenMS
     deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
     deconvolved_spectrum_.sort();
 
-    removeOverlappingPeakGroups_(deconvolved_spectrum_, 0);
+    removeOverlappingPeakGroups(deconvolved_spectrum_, 0, target_decoy_type_);
     removeChargeErrorPeakGroups_(deconvolved_spectrum_);
-    removeOverlappingPeakGroups_(deconvolved_spectrum_, 1.5 * tol);
+    removeOverlappingPeakGroups(deconvolved_spectrum_, tol, target_decoy_type_);
     removeExcludedMasses_(deconvolved_spectrum_);
-
   }
 
   float SpectralDeconvolution::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg,
@@ -1410,7 +1409,7 @@ namespace OpenMS
       }
       else
       {
-        float f = decoy? (i % 2 == 0 ? .25f : 4) : 1;
+        float f = decoy ? (i % 2 == 0 ? .25f : 4) : 1;
         n += a[j] * b[i].getIntensity() * f; //
       }
     }
@@ -1537,12 +1536,13 @@ namespace OpenMS
     dspec.setPeakGroups(filtered_pg_vec);
   }
 
-  void SpectralDeconvolution::removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec, double tol)
+  void SpectralDeconvolution::removeOverlappingPeakGroups(DeconvolvedSpectrum& dspec, double tol, PeakGroup::TargetDecoyType target_decoy_type)
   {
     if (dspec.empty())
     {
       return;
     }
+
     std::vector<PeakGroup> filtered_pg_vec; //
     filtered_pg_vec.reserve(dspec.size());
 
@@ -1554,11 +1554,11 @@ namespace OpenMS
     for (Size i = 0; i < dspec.size(); i++)
     {
       double mass = dspec[i].getMonoMass();
-      if (mass - start_mass > mass * tol)
+      if (mass - start_mass > mass * tol * 1.5)
       {
         if (!dspec[local_max_index].isTargeted()) // targeted ones were already push_backed.
         {
-          if (dspec[local_max_index].getTargetDecoyType() == target_decoy_type_ && last_local_max_index != local_max_index)
+          if (dspec[local_max_index].getTargetDecoyType() == target_decoy_type && last_local_max_index != local_max_index)
             filtered_pg_vec.push_back(dspec[local_max_index]);
         }
         last_local_max_index = local_max_index;
@@ -1566,14 +1566,14 @@ namespace OpenMS
         local_max_SNR = -1.0;
       }
 
-      if (local_max_SNR < dspec[i].getSNR())
+      if (local_max_SNR < dspec[i].getQscore2D())
       {
-        local_max_SNR = dspec[i].getSNR();
+        local_max_SNR = dspec[i].getQscore2D();
         local_max_index = i;
       }
       if (dspec[i].isTargeted())
       {
-        if (dspec[i].getTargetDecoyType() == target_decoy_type_)
+        if (dspec[i].getTargetDecoyType() == target_decoy_type)
           filtered_pg_vec.push_back(dspec[i]);
       }
     }
@@ -1582,7 +1582,7 @@ namespace OpenMS
     {
       if (!dspec[local_max_index].isTargeted()) // targeted ones were already push_backed.
       {
-        if (dspec[local_max_index].getTargetDecoyType() == target_decoy_type_ && last_local_max_index != local_max_index)
+        if (dspec[local_max_index].getTargetDecoyType() == target_decoy_type && last_local_max_index != local_max_index)
           filtered_pg_vec.push_back(dspec[local_max_index]);
       }
     }
