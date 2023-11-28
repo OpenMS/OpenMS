@@ -17,12 +17,12 @@ namespace OpenMS
 
   void FLASHDeconvFeatureFile::writeHeader(std::fstream& fs, bool report_decoy)
   {
-    fs << "FeatureIndex\tFileName";
+    fs << "FeatureIndex\tFileName\tMSLevel";
     if (report_decoy) fs << "\tIsDecoy";
 
     fs << "\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
           "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-          "\tSumIntensity\tMaxIntensity\tFeatureQuantity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tFeatureQscore\tPerChargeIntensity\tPerIsotopeIntensity"
+          "\tSumIntensity\tMaxIntensity\tFeatureQuantity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tQscore2D\tPerChargeIntensity\tPerIsotopeIntensity"
           "\n";
   }
 
@@ -54,7 +54,7 @@ namespace OpenMS
         sum_intensity += p.getIntensity();
       }
 
-      fs << mass_feature.index << "\t" << file_name;
+      fs << mass_feature.index << "\t" << file_name << "\t" << mass_feature.ms_level;
 
       if (report_decoy)
       {

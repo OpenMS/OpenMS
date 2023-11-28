@@ -188,7 +188,7 @@ protected:
       auto tagger_param = TopDownTagger().getDefaults();
       tagger_param.remove("min_charge");
       tagger_param.remove("max_charge");
-      tagger_param.setValue("min_matched_aa", 0, "Minimum number of amino acids in matched proteins, covered by tags.");
+      tagger_param.setValue("min_matched_aa", 6, "Minimum number of amino acids in matched proteins, covered by tags.");
 
       tagger_param.setValue("fasta", "", "Target protein sequence database against which tags will be matched.");
       tagger_param.addTag("fasta", "input file");
@@ -322,7 +322,7 @@ protected:
     // Run tagger
     TopDownTagger tagger;
     auto tagger_param = getParam_().copy("tagger:", true);
-    if ((int)tagger_param.getValue("max_tag_count") > 0)
+    if ((int)tagger_param.getValue("max_tag_count") > 0 && !deconvolved_spectra.empty())
     {
       OPENMS_LOG_INFO << "Finding sequence tags from deconvolved spectra ..." << endl;
 
@@ -342,45 +342,61 @@ protected:
       out_tagger_stream << "Scan\tProteinIndex\tTagIndex\tProteinAccession\tProteinDescription\tMatchedAminoAcidCount\tCoverage\tTagSequence\tNmass\tCmass\tScore\tCharge\tLength\tmzs\n";
 
       std::vector<FLASHDeconvHelperStructs::Tag> tags;
-      for (const auto& deconvolved_spectrum : deconvolved_spectra)
+      DeconvolvedSpectrum dspec_for_tagging;
+
+
+      for (const auto& dspec : deconvolved_spectra)
       {
-        tagger.run(deconvolved_spectrum, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1], tags);
-        auto matches = tagger.runMatching(tags, fasta_entry);
-        if (matches.empty())
+        if (dspec.isDecoy()) continue;
+        for (const auto& pg : dspec)
+          dspec_for_tagging.push_back(pg);
+      }
+
+      if (deconvolved_spectra.size() > 1)
+      {
+        dspec_for_tagging.sort();
+        SpectralDeconvolution::removeOverlappingPeakGroups(dspec_for_tagging, tols[dspec_for_tagging.getOriginalSpectrum().getMSLevel() - 1]); // merged peak groups have scan number information!
+      }
+
+      dspec_for_tagging.sortByQscore();
+      while (dspec_for_tagging.size() > 1000) dspec_for_tagging.pop_back();
+      dspec_for_tagging.sort();
+
+      tagger.run(dspec_for_tagging, tols[dspec_for_tagging.getOriginalSpectrum().getMSLevel() - 1], tags);
+      auto matches = tagger.runMatching(tags, fasta_entry);
+
+      int protein_index = 1;
+
+      for (const auto& match : matches)
+      {
+        int tag_index = 1;
+
+        auto matched_fasta_entry = match.first;
+        std::set<Size> matched_aa;
+        for (const auto& matched_tag : match.second)
+        {
+          auto tagseq = matched_tag.getSequence();
+          auto start_pos = matched_fasta_entry.sequence.find(tagseq);
+          for (Size t = 0; t < tagseq.length(); t++)
+            matched_aa.insert(start_pos + t);
+        }
+        if (matched_aa.size() < min_cov_aa)
           continue;
 
-        int protein_index = 1;
-
-        for (const auto& match : matches)
+        for (const auto& matched_tag : match.second)
         {
-          int tag_index = 1;
+          out_tagger_stream << dspec_for_tagging.getScanNumber() << "\t" << protein_index << "\t" << tag_index++ << "\t" << matched_fasta_entry.identifier << "\t" << matched_fasta_entry.description
+                            << "\t" << matched_aa.size() << "\t" << (double)matched_aa.size() / matched_fasta_entry.sequence.length() << "\t" << matched_tag.getSequence() << "\t"
+                            << matched_tag.getNtermMass() << "\t" << matched_tag.getCtermMass() << "\t" << matched_tag.getScore() << "\t" << matched_tag.getCharge() << "\t" << matched_tag.getLength()
+                            << "\t";
 
-          auto matched_fasta_entry = match.first;
-          std::set<Size> matched_aa;
-          for (const auto& matched_tag : match.second)
+          for (const auto& mz : matched_tag.getMzs())
           {
-            auto tagseq = matched_tag.getSequence();
-            auto start_pos = matched_fasta_entry.sequence.find(tagseq);
-            for (Size t = 0; t < tagseq.length(); t++)
-              matched_aa.insert(start_pos + t);
+            out_tagger_stream << mz << ",";
           }
-          if (matched_aa.size() < min_cov_aa)
-            continue;
-
-          for (const auto& matched_tag : match.second)
-          {
-            out_tagger_stream << deconvolved_spectrum.getScanNumber() << "\t" << protein_index << "\t" << tag_index++ << "\t" << matched_fasta_entry.identifier << "\t"
-                              << matched_fasta_entry.description << "\t" << matched_aa.size() << "\t" << (double)matched_aa.size() / matched_fasta_entry.sequence.length() << "\t"
-                              << matched_tag.getSequence() << "\t" << matched_tag.getNtermMass() << "\t" << matched_tag.getCtermMass() << "\t" << matched_tag.getScore() << "\t" << matched_tag.getCharge()<< "\t" << matched_tag.getLength()<< "\t";
-
-            for (const auto& mz : matched_tag.getMzs())
-            {
-              out_tagger_stream << mz <<",";
-            }
-            out_tagger_stream <<"\n";
-          }
-          protein_index++;
+          out_tagger_stream << "\n";
         }
+        protein_index++;
       }
 
       out_tagger_stream.close();
@@ -390,7 +406,6 @@ protected:
 
     // Write output files
     // default feature deconvolution tsv output
-
     if (keep_empty_out || !deconvolved_features.empty())
     {
       OPENMS_LOG_INFO << "writing feature tsv ..." << endl;
@@ -416,11 +431,13 @@ protected:
       std::map<int, DeconvolvedSpectrum> target_spec_map;
       for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
-         uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+        uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
         if (out_spec_file[ms_level - 1].empty())
           continue;
-        if (deconvolved_spectrum.isDecoy()) continue;
-        if (report_decoy) target_spec_map[deconvolved_spectrum.getScanNumber()] = deconvolved_spectrum;
+        if (deconvolved_spectrum.isDecoy())
+          continue;
+        if (report_decoy)
+          target_spec_map[deconvolved_spectrum.getScanNumber()] = deconvolved_spectrum;
         FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail,
                                                         report_decoy);
       }
@@ -432,9 +449,11 @@ protected:
           uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
           if (out_spec_file[ms_level - 1].empty())
             continue;
-          if (!deconvolved_spectrum.isDecoy()) continue;
+          if (!deconvolved_spectrum.isDecoy())
+            continue;
           DeconvolvedSpectrum target_dspec;
-          if (target_spec_map.find(deconvolved_spectrum.getScanNumber()) != target_spec_map.end()) target_dspec = target_spec_map[deconvolved_spectrum.getScanNumber()];
+          if (target_spec_map.find(deconvolved_spectrum.getScanNumber()) != target_spec_map.end())
+            target_dspec = target_spec_map[deconvolved_spectrum.getScanNumber()];
           FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, target_dspec, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail,
                                                           report_decoy);
         }

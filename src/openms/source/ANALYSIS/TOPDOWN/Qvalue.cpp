@@ -42,7 +42,7 @@ namespace OpenMS
         if (pg.getFeatureIndex() > 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
           continue;
         used_feature_indices.insert(pg.getFeatureIndex());
-        tscore_map[ms_level].push_back(pg.getFeatureQscore());
+        tscore_map[ms_level].push_back(pg.getQscore2D());
       }
     }
 
@@ -62,15 +62,15 @@ namespace OpenMS
         used_feature_indices.insert(pg.getFeatureIndex());
         if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::isotope_decoy)
         {
-          dscore_iso_decoy_map[ms_level].push_back(pg.getFeatureQscore());
+          dscore_iso_decoy_map[ms_level].push_back(pg.getQscore2D());
         }
         else if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::noise_decoy)
         {
-          dscore_noise_decoy_map[ms_level].push_back(pg.getFeatureQscore());
+          dscore_noise_decoy_map[ms_level].push_back(pg.getQscore2D());
         }
         else if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::charge_decoy)
         {
-          dscore_charge_decoy_map[ms_level].push_back(pg.getFeatureQscore());
+          dscore_charge_decoy_map[ms_level].push_back(pg.getQscore2D());
         }
       }
     }
@@ -204,7 +204,7 @@ namespace OpenMS
         if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() == ms_level + 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
         {
           auto precursor_pg = deconvolved_spectrum.getPrecursorPeakGroup();
-          double qs = precursor_pg.getFeatureQscore();
+          double qs = precursor_pg.getQscore2D();
 
           precursor_pg.setQvalue(map_iso[qs], PeakGroup::TargetDecoyType::isotope_decoy);
           precursor_pg.setQvalue(map_noise[qs], PeakGroup::TargetDecoyType::noise_decoy);
@@ -219,9 +219,9 @@ namespace OpenMS
 
         for (auto& pg : deconvolved_spectrum)
         {
-          pg.setQvalue(map_charge[pg.getFeatureQscore()], PeakGroup::TargetDecoyType::charge_decoy);
-          pg.setQvalue(map_noise[pg.getFeatureQscore()], PeakGroup::TargetDecoyType::noise_decoy);
-          pg.setQvalue(map_iso[pg.getFeatureQscore()], PeakGroup::TargetDecoyType::isotope_decoy);
+          pg.setQvalue(map_charge[pg.getQscore2D()], PeakGroup::TargetDecoyType::charge_decoy);
+          pg.setQvalue(map_noise[pg.getQscore2D()], PeakGroup::TargetDecoyType::noise_decoy);
+          pg.setQvalue(map_iso[pg.getQscore2D()], PeakGroup::TargetDecoyType::isotope_decoy);
         }
       }
     }

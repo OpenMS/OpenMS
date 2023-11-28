@@ -219,11 +219,11 @@ namespace OpenMS
   {
     if (vertex1 < 0 || vertex2 < 0 || vertex1 >= visited.size() || vertex2 >= visited.size())
       return false;
-    if (!visited[vertex1] && !visited[vertex2])
+    if (!visited[vertex2])
       return false;
 
     dac.addEdge(vertex1, vertex2);
-    return visited[vertex1] = visited[vertex2] = true;
+    return visited[vertex1] = true;
   }
 
 
@@ -431,7 +431,7 @@ namespace OpenMS
     for (auto& pg : dspec)
     {
       mzs.push_back(pg.getMonoMass());
-      int score = (int)round(100 * log10(1e-6 + pg.getQscore()));
+      int score = (int)round(100 * log10(1e-6 + pg.getQscore2D()));
       scores.push_back(score); //
     }
     run(mzs, scores, ppm, tags);
@@ -554,6 +554,7 @@ namespace OpenMS
     {
       for (int length = min_tag_length_; length <= max_tag_length_; length++)
       {
+
         TopDownTagger::DAC_ dac(_mzs.size() * (1 + max_tag_length_) * (1 + max_gap_count_) * (1 + max_path_score_ - min_path_score_));
         constructDAC_(dac, _mzs, _scores, z, length, ppm);
         std::vector<std::vector<int>> all_paths;
@@ -572,7 +573,7 @@ namespace OpenMS
         tagSet.insert(_tagSet.begin(), _tagSet.end());
       }
     }
-    OPENMS_LOG_INFO << "Total tag count: " << tagSet.size() << std::endl;
+    // OPENMS_LOG_INFO << "Total tag count: " << tagSet.size() << std::endl;
     for (int length = min_tag_length_; length <= max_tag_length_; length++)
     {
       int count = 0;
@@ -584,8 +585,9 @@ namespace OpenMS
         if (++count == max_tag_count_)
           break;
       }
+      std::sort(tags.begin(), tags.end(), [](const FLASHDeconvHelperStructs::Tag& a, const FLASHDeconvHelperStructs::Tag& b) {return a.getLength() == b.getLength()? a.getScore() > b.getScore() : a.getLength() < b.getLength(); });
+      OPENMS_LOG_INFO << "Tag count with length " << length << ": "<< count << std::endl;
     }
-    OPENMS_LOG_INFO << "Total tag count: " << tags.size() << std::endl;
   }
 
   std::vector<std::pair<FASTAFile::FASTAEntry, std::vector<FLASHDeconvHelperStructs::Tag>>> TopDownTagger::runMatching(const std::vector<FLASHDeconvHelperStructs::Tag>& tags,

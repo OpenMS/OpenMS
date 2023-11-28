@@ -124,6 +124,9 @@ namespace OpenMS
      */
     void setTargetDecoyType(PeakGroup::TargetDecoyType target_decoy_type, const DeconvolvedSpectrum& target_dspec_for_decoy_calcualtion);
 
+    /// filter out overlapping masses
+    static void removeOverlappingPeakGroups(DeconvolvedSpectrum& dspec, double tol, PeakGroup::TargetDecoyType target_decoy_type = PeakGroup::TargetDecoyType::target);
+
   protected:
     void updateMembers_() override;
 
@@ -279,9 +282,6 @@ namespace OpenMS
 
     /// filter out charge error masses
     void removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec) const;
-
-    /// filter out overlapping masses
-    void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec, double tol);
 
     /// filter out excluded masses
     void removeExcludedMasses_(DeconvolvedSpectrum& dspec) const;

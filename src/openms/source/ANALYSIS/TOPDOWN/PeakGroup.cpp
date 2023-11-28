@@ -858,11 +858,11 @@ namespace OpenMS
     return qscore_;
   }
 
-  double PeakGroup::getFeatureQscore() const
+  double PeakGroup::getQscore2D() const
   {
-    // if (fqscore_ < 0)
+    // if (qscore2D_ < 0)
     //   return qscore_;
-    return std::max(qscore_, fqscore_);
+    return std::max(qscore_, qscore2D_);
   }
 
   void PeakGroup::setFeatureIndex(uint findex)
@@ -1005,9 +1005,9 @@ namespace OpenMS
     return findex_;
   }
 
-  void PeakGroup::setFeatureQscore(double fqscore)
+  void PeakGroup::setQscore2D(double fqscore)
   {
-    fqscore_ = fqscore;
+    qscore2D_ = fqscore;
   }
 
   std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator PeakGroup::begin() const noexcept
@@ -1038,6 +1038,11 @@ namespace OpenMS
   void PeakGroup::push_back(const FLASHDeconvHelperStructs::LogMzPeak& pg)
   {
     logMzpeaks_.push_back(pg);
+  }
+
+  FLASHDeconvHelperStructs::LogMzPeak& PeakGroup::back()
+  {
+    return logMzpeaks_.back();
   }
 
   Size PeakGroup::size() const noexcept

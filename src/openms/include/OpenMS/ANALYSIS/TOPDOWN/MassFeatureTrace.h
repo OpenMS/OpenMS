@@ -57,8 +57,8 @@ namespace OpenMS
        @param ms_level ms level to process
        @param is_decoy if set, only process decoy spectra. otherwise only target spectra
        */
-    std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(const PrecalculatedAveragine& averagine, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int ms_level = 1
-                                                                    , bool is_decoy = false);
+    std::vector<FLASHDeconvHelperStructs::MassFeature> findFeaturesAndUpdateQscore2D(const PrecalculatedAveragine& averagine, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int ms_level = 1,
+                                                                                     bool is_decoy = false);
 
   protected:
     void updateMembers_() override;
