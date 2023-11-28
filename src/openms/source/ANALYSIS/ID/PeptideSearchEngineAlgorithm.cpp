@@ -448,6 +448,8 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     }
     
     // build fragment index
+    //TODO: Pass all the other parameters from this class to FragmentIndex
+    //TODO: Can we do it with p.setValue or is there a more sophisticated way?
     startProgress(0, 1, "Building fragment index...");    
     FragmentIndex fragment_index_;
     auto p = fragment_index_.getParameters();
@@ -479,13 +481,31 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
       for (const auto& sms : top_sms.hits_)
       {
-        pair<size_t, size_t> candidate_snippet = fragment_index_.getPeptides()[sms.peptide_idx_].sequence;
-        AASequence candidate = AASequence::fromString(fasta_db[sms.peptide_idx_].sequence.substr(candidate_snippet.first, candidate_snippet.second));
+        FragmentIndex::Peptide sms_pep = fragment_index_.getPeptides()[sms.peptide_idx_];
+        pair<size_t, size_t> candidate_snippet = sms_pep.sequence;
+        AASequence unmod_candidate = AASequence::fromString(fasta_db[sms_pep.protein_idx_].sequence.substr(candidate_snippet.first, candidate_snippet.second));
+        AASequence mod_candidate;
+        //reapply modifications.
+        if (!(modifications_variable_.empty() && modifications_fixed_.empty()))
+        {
+          vector<AASequence> mod_candidates;
+          ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
+          ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
+          ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, unmod_candidate);
+          ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, unmod_candidate, modifications_max_variable_mods_per_peptide_, mod_candidates);
+          mod_candidate = mod_candidates[sms_pep.modification_idx];
+        }
+        else
+        {
+          mod_candidate = unmod_candidate;
+        }
+
+
         // create theoretical spectrum
         PeakSpectrum theo_spectrum;
 
         // add peaks for b and y ions with charge 1
-        spectrum_generator.getSpectrum(theo_spectrum, candidate, 1, 1);
+        spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, 1);
 
         // sort by mz
         theo_spectrum.sortByPosition();
@@ -501,7 +521,7 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
         // add peptide hit
         AnnotatedHit_ ah;
-        ah.sequence = std::move(candidate);
+        ah.sequence = std::move(mod_candidate);
         ah.score = score;
         double seq_length = (double)ah.sequence.size();
         ah.prefix_fraction = (double)detail.matched_b_ions/seq_length;

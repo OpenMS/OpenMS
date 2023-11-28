@@ -27,7 +27,7 @@ namespace OpenMS
   {
   }
 
-  MultiFragment::MultiFragment(OpenMS::Size peptide_idx, double fragment_mz, const vector<double>& follow_up):
+  MultiFragment::MultiFragment(OpenMS::UInt32 peptide_idx, float fragment_mz, const vector<float>& follow_up):
   peptide_idx_(peptide_idx),
   fragment_mz_(fragment_mz),
   follow_up_peaks_(follow_up)
@@ -35,7 +35,7 @@ namespace OpenMS
   {
   }
 
-  MultiFragment::MultiFragment(OpenMS::Size peptide_idx, double fragment_mz, const OpenMS::MultiPeak& multiPeak) :
+  MultiFragment::MultiFragment(OpenMS::UInt32 peptide_idx, float fragment_mz, const OpenMS::MultiPeak& multiPeak) :
   peptide_idx_(peptide_idx), fragment_mz_(fragment_mz)
   {
     follow_up_peaks_ = multiPeak.getFollowUpPeaks();
@@ -63,16 +63,16 @@ namespace OpenMS
     std::swap(fragment_mz_, other.fragment_mz_);
   }
 
-  size_t MultiFragment::getPeptideIdx() const
+  UInt32 MultiFragment::getPeptideIdx() const
   {
     return peptide_idx_;
   }
-  double MultiFragment::getFragmentMz() const
+  float MultiFragment::getFragmentMz() const
   {
     return fragment_mz_;
   }
 
-  const vector<double>& MultiFragment::getFollowUpPeaks() const
+  const vector<float>& MultiFragment::getFollowUpPeaks() const
   {
     return follow_up_peaks_;
   }

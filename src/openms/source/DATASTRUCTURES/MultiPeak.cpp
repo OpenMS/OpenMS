@@ -18,7 +18,7 @@ namespace OpenMS
   MultiPeak::MultiPeak() : peak_(), score_(0), follow_up_peaks({})
   {
   }
-  MultiPeak::MultiPeak(OpenMS::Peak1D peak, double score) : peak_(peak), score_(score), follow_up_peaks()
+  MultiPeak::MultiPeak(OpenMS::Peak1D peak, float score) : peak_(peak), score_(score), follow_up_peaks()
   {
   }
   MultiPeak::MultiPeak(const OpenMS::MultiPeak& other) = default;
@@ -32,7 +32,7 @@ namespace OpenMS
     follow_up_peaks = other.follow_up_peaks;
     return  *this;
   }
-  void MultiPeak::addScore(double score)
+  void MultiPeak::addScore(float score)
   {
     score_ += score;
   }
@@ -41,7 +41,7 @@ namespace OpenMS
   {
     return peak_;
   }
-  double MultiPeak::getScore() const
+  float MultiPeak::getScore() const
   {
     return score_;
   }
@@ -49,12 +49,12 @@ namespace OpenMS
   {
     return follow_up_peaks_AA;
   }
-  const vector<double>& MultiPeak::getFollowUpPeaks() const
+  const vector<float>& MultiPeak::getFollowUpPeaks() const
   {
     return follow_up_peaks;
   }
 
-  void MultiPeak::addFollowUpPeak(double distance, const std::string &AA)
+  void MultiPeak::addFollowUpPeak(float distance, const std::string &AA)
   {
     follow_up_peaks_AA += AA;
     follow_up_peaks.push_back(distance);

@@ -24,11 +24,11 @@ namespace OpenMS
   public:
     MultiFragment();
 
-    MultiFragment(size_t peptide_idx,
-                  double fragment_mz,
-                  const std::vector<double>& follow_up);
+    MultiFragment(UInt32 peptide_idx,
+                  float fragment_mz,
+                  const std::vector<float>& follow_up);
 
-    MultiFragment(Size peptide_idx, double fragment_mz, const MultiPeak& multiPeak);
+    MultiFragment(UInt32 peptide_idx, float fragment_mz, const MultiPeak& multiPeak);
 
     MultiFragment(const MultiFragment& other);
 
@@ -42,16 +42,16 @@ namespace OpenMS
     void swap(MultiFragment& other);
 
 
-    size_t getPeptideIdx() const;
-    double getFragmentMz() const;
+    UInt32 getPeptideIdx() const;
+    float getFragmentMz() const;
     //const std::string& getFollowUpPeaksAa() const;
-    const std::vector<double>& getFollowUpPeaks() const;
+    const std::vector<float>& getFollowUpPeaks() const;
 
 
   protected:
-    size_t peptide_idx_;
-    double fragment_mz_;
-    std::vector<double> follow_up_peaks_;
+    UInt32 peptide_idx_;
+    float fragment_mz_;
+    std::vector<float> follow_up_peaks_;
 
 
   };

@@ -117,7 +117,10 @@ namespace OpenMS
               }
               #pragma omp critical (FIIndex)
               {
-                fi_peptides_.push_back({static_cast<UInt32>(i), modification_idx, digested_peptide, modified_mz});
+                fi_peptides_.push_back({static_cast<UInt32>(i),
+                                        modification_idx,
+                                        {static_cast<uint16_t>(digested_peptide.first), static_cast<uint16_t>(digested_peptide.second)},
+                                        modified_mz});
                 ++modification_idx;
               }
             }
@@ -141,7 +144,8 @@ namespace OpenMS
         OPENMS_LOG_WARN << skipped_peptides << " peptides skipped due to unkown AA \n";
       }        
       // sort the peptide vector, critical for following steps
-      sort(fi_peptides_.begin(), fi_peptides_.end(), [](const sPeptide& a, const sPeptide& b){ return a.precursor_mz < b.precursor_mz; });
+      sort(fi_peptides_.begin(), fi_peptides_.end(), [](const Peptide& a, const Peptide& b){
+        return std::tie(a.precursor_mz, a.protein_idx_) < std::tie(b.precursor_mz, b.protein_idx_); });
   }
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
@@ -162,7 +166,6 @@ namespace OpenMS
       /// generate all Peptides
       generate_peptides(fasta_entries);
 
-      cout << "test2" <<endl;
       /// Since we (the new) Peptide struct does not store the AASequence, we must reconstruct the modified ones
       /// therefore we need the modificationGenerators:
       ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
@@ -171,18 +174,19 @@ namespace OpenMS
       UInt32 peptide_idx = 0;
 
 
-      for (const sPeptide& pep: fi_peptides_)
+      for (const Peptide& pep: fi_peptides_)
       {
-        auto debugingStuff = fasta_entries[pep.protein_idx_].sequence;
         AASequence unmod_peptide = AASequence::fromString(fasta_entries[pep.protein_idx_].sequence.substr(pep.sequence.first, pep.sequence.second));
         vector<AASequence> mod_peptides;
-        if(!(modifications_fixed_.empty() && modifications_variable_.empty()))
+        if (!(modifications_fixed_.empty() && modifications_variable_.empty()))
         {
           AASequence mod_peptide = AASequence(unmod_peptide); // copy the peptide
           ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, mod_peptide);
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, mod_peptide, max_variable_mods_per_peptide_, mod_peptides);
           tsg.getSpectrum(b_y_ions, mod_peptides[pep.modification_idx], 1,1);
-        }else{
+        }
+        else
+        {
           tsg.getSpectrum(b_y_ions, unmod_peptide, 1,1);
         }
 
@@ -194,11 +198,10 @@ namespace OpenMS
         peptide_idx++;
         b_y_ions.clear(true);
       }
-      cout << "test3" <<endl;
       /// 1.) First all Fragments are sorted by their own mass!
       sort(fi_fragments_.begin(), fi_fragments_.end(), [](const Fragment& a, const Fragment& b) 
       {
-        return a.fragment_mz < b.fragment_mz;
+        return std::tie(a.fragment_mz, a.peptide_idx) < std::tie(b.fragment_mz, b.peptide_idx);
       });
 
       /// Calculate the bucket size
@@ -215,7 +218,7 @@ namespace OpenMS
 
         sort(bucket_start, bucket_end, [](const Fragment& a, const Fragment& b) 
         {
-          return a.peptide_idx < b.peptide_idx;
+          return a.peptide_idx < b.peptide_idx;  // we don´t need a tie, because the idx are unique
         });
       }
       is_build_ = true;
@@ -225,8 +228,8 @@ namespace OpenMS
   {
       float prec_tol = precursor_mz_tolerance_unit_ppm_ ? Math::ppmToMass(precursor_mz_tolerance_, precursor_mass) : precursor_mz_tolerance_ ;
 
-      auto left_it = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(), precursor_mass - prec_tol + window.first, [](const sPeptide& a, float b) { return a.precursor_mz < b;});
-      auto right_it = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(), precursor_mass + prec_tol + window.second, [](float b, const sPeptide& a) { return b < a.precursor_mz;});
+      auto left_it = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(), precursor_mass - prec_tol + window.first, [](const Peptide& a, float b) { return a.precursor_mz < b;});
+      auto right_it = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(), precursor_mass + prec_tol + window.second, [](float b, const Peptide& a) { return b < a.precursor_mz;});
       return make_pair(std::distance(fi_peptides_.begin(), left_it), std::distance(fi_peptides_.begin(), right_it));
   }
 
@@ -299,58 +302,52 @@ namespace OpenMS
 
   void FragmentIndex::trimHits(OpenMS::FragmentIndex::SpectrumMatchesTopN& init_hits) const
   {
-      if (max_processed_hits_ < init_hits.hits_.size())
+      if (init_hits.hits_.size() > max_processed_hits_)
       {
-        std::partial_sort(init_hits.hits_.begin(), init_hits.hits_.begin() + max_processed_hits_, init_hits.hits_.end(), [](SpectrumMatch a, SpectrumMatch b){
-          return a.num_matched_ > b.num_matched_;
+        std::partial_sort(init_hits.hits_.begin(), init_hits.hits_.begin() + max_processed_hits_, init_hits.hits_.end(), [](const SpectrumMatch& a,const SpectrumMatch& b){
+          if(a.num_matched_ != b.num_matched_) return a.num_matched_ > b.num_matched_;
+          else return std::tie(a.isotope_error_, a.precursor_charge_) < std::tie(b.isotope_error_, b.precursor_charge_);
         });
 
         init_hits.hits_.resize(max_processed_hits_);
       }
-      for(auto hit_iter = init_hits.hits_.begin(); hit_iter != init_hits.hits_.end();){
-        if(hit_iter->num_matched_ < min_matched_peaks_)
+      for (auto hit_iter = init_hits.hits_.rbegin(); hit_iter != init_hits.hits_.rend(); hit_iter++)
+      {
+        if(hit_iter->num_matched_ >= min_matched_peaks_)           // search for the first element
         {
-          init_hits.hits_.erase(hit_iter);
-        }else
-        {
-          ++hit_iter;
+          init_hits.hits_.resize(distance(init_hits.hits_.rbegin(), hit_iter)+1);
+          break;
         }
       }
   }
 
-  void FragmentIndex::openSearch(const OpenMS::MSSpectrum& spectrum, float precursor_mass, OpenMS::FragmentIndex::SpectrumMatchesTopN& sms, uint16_t charge)
+
+
+  void FragmentIndex::searchDifferentPrecursorRanges(const MSSpectrum& spectrum, float precursor_mass, SpectrumMatchesTopN& sms, uint16_t charge)
   {
-      pair<float, float> precursor_window;
-      if (open_precursor_window == 0)
-        precursor_window = make_pair(-precursor_mass * 0.05, precursor_mass * 0.01);
-      else
-        precursor_window = make_pair(-open_precursor_window, open_precursor_window); // sage took (-500, 100) fixed
-      OPENMS_LOG_WARN << "The Precursor mass window was set to: " << precursor_window.first << " " << precursor_window.second << endl;
-      auto candidates_range = getPeptidesInPrecursorRange(precursor_mass, precursor_window);
-
-      // adjust the window. with each decreasing peak the prob. that we have all modifications inside gets lower
-      // the linear decrease of the window below is a very coarse approximation and must be improved
-      pair<float, float> fragment_window;
-
-      SpectrumMatchesTopN hits_per_window;
-      hits_per_window.hits_.resize(candidates_range.second - candidates_range.first + 1);
-
-      for (auto peak = spectrum.end() - 1; peak >= spectrum.begin(); peak--)
-      {
-        queryPeak(hits_per_window, *peak, candidates_range, 0, charge);
+      int16_t  min_isotope_error_applied;
+      int16_t  max_isotope_error_applied;
+      float precursor_window_upper_applied;
+      float precursor_window_lower_applied;
+      if(open_search){
+        min_isotope_error_applied = 0;
+        max_isotope_error_applied = 0;
+        precursor_window_upper_applied = open_precursor_window_upper;
+        precursor_window_lower_applied = open_precursor_window_lower;
       }
-      trimHits(hits_per_window);
-      sms += hits_per_window;
-  }
-
-  void FragmentIndex::closedSearch(const OpenMS::MSSpectrum& spectrum, float mz, OpenMS::FragmentIndex::SpectrumMatchesTopN& sms, uint16_t charge)
-  {
-      for (int16_t isotope_error = min_isotope_error_; isotope_error <= max_isotope_error_; isotope_error++)
+      else
+      {
+        min_isotope_error_applied = min_isotope_error_;
+        max_isotope_error_applied = max_isotope_error_;
+        precursor_window_upper_applied = 0;
+        precursor_window_lower_applied = 0;
+      }
+      for (int16_t isotope_error = min_isotope_error_applied; isotope_error <= max_isotope_error_applied; isotope_error++)
       {
         SpectrumMatchesTopN candidates_iso_error;
-        mz += (float)isotope_error *  (float)Constants::NEUTRON_MASS;
-        auto candidates_range = getPeptidesInPrecursorRange(mz, {0, 0}); // for the simple search we do not apply any modification window!!
-        candidates_iso_error.hits_.resize(candidates_range.second - candidates_range.first + 1);
+        precursor_mass += (float)isotope_error *  (float)Constants::C13C12_MASSDIFF_U; // TODO: Potentially still wrong
+        auto candidates_range = getPeptidesInPrecursorRange(precursor_mass, {precursor_window_lower_applied, precursor_window_upper_applied}); // for the simple search we do not apply any modification window!!
+        candidates_iso_error.hits_.reserve(candidates_range.second - candidates_range.first + 1);
 
         for (const Peak1D& peak : spectrum)
         {
@@ -360,6 +357,7 @@ namespace OpenMS
         trimHits(candidates_iso_error);
         sms += candidates_iso_error;
       }
+      trimHits(sms);
   }
 
   void FragmentIndex::querySpectrum(const OpenMS::MSSpectrum& spectrum, OpenMS::FragmentIndex::SpectrumMatchesTopN& sms)
@@ -409,12 +407,8 @@ namespace OpenMS
         else
           mz = precursor[0].getMZ() * charge;
 
-        if (open_search)
-          openSearch(spectrum, mz, candidates_charge, charge);
-        else
-          closedSearch(spectrum, mz, candidates_charge, charge);
+        searchDifferentPrecursorRanges(spectrum, mz, candidates_charge, charge);
 
-        trimHits(candidates_charge);
         sms += candidates_charge;
       }
       trimHits(sms);
@@ -452,10 +446,10 @@ namespace OpenMS
     defaults_.setValue("missed_cleavages", 0, "Missed cleavages for digestion");
     defaults_.setValue("peptide_min_mass", 1, "Minimal peptide mass for database");
     defaults_.setValue("peptide_max_mass", 500000, "Maximal peptide mass for database"); //Todo: set unlimited option
-    defaults_.setValue("peptide_min_length", 10, "Minimal peptide length for database");
-    defaults_.setValue("peptide_max_length", 5000000, "Maximal peptide length for database");
-    defaults_.setValue("fragment_min_mz", 150, "Minimal fragment mz for database");
-    defaults_.setValue("fragment_max_mz", 500000, "Maximal fragment mz for database");
+    defaults_.setValue("peptide_min_length", 500, "Minimal peptide length for database");
+    defaults_.setValue("peptide_max_length", 10000, "Maximal peptide length for database");
+    defaults_.setValue("fragment_min_mz", 0, "Minimal fragment mz for database");
+    defaults_.setValue("fragment_max_mz", 2000, "Maximal fragment mz for database");
     defaults_.setValue("precursor_mz_tolerance", 2.0, "Tolerance for precursor-m/z in search");
     defaults_.setValue("fragment_mz_tolerance", 0.05, "Tolerance for fragment-m/z in search");
     defaults_.setValue("precursor_mz_tolerance_unit", "DA", "Unit of tolerance for precursor-m/z");
@@ -471,15 +465,16 @@ namespace OpenMS
 
     //Search-related params
 
-    defaults_.setValue("Min_matched_peaks", 5, "Minimal number of matched ions to report a PSM");
-    defaults_.setValue("min_isotope_error", 0, "Precursor isotope error");
-    defaults_.setValue("max_isotope_error", 0, "precursor isotope error");
+    defaults_.setValue("min_matched_peaks", 5, "Minimal number of matched ions to report a PSM");
+    defaults_.setValue("min_isotope_error", -1, "Precursor isotope error");
+    defaults_.setValue("max_isotope_error", 3, "precursor isotope error");
     defaults_.setValue("min_precursor_charge", 1, "min precursor charge");
-    defaults_.setValue("max_precursor_charge", 1, "max precursor charge");
+    defaults_.setValue("max_precursor_charge", 4, "max precursor charge");
     defaults_.setValue("max_fragment_charge", 1, "max fragment charge");
     defaults_.setValue("max_processed_hits", 50, "The number of initial hits for which we calculate a score");
     defaults_.setValue("open_search", "false", "Open or standard search");
-    defaults_.setValue("open_precursor_window", 200.0, "Size of the open precursor window, if set to 0 it is set automatically");
+    defaults_.setValue("open_precursor_window_lower", -100.0, "lower bound of the open precursor window");
+    defaults_.setValue("open_precursor_window_upper", 200.0, "upper bound of the open precursor window");
 
     defaultsToParam_();
 }
@@ -510,7 +505,7 @@ namespace OpenMS
     modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications_variable"));
     max_variable_mods_per_peptide_ = param_.getValue("max_variable_mods_per_peptide");
 
-    min_matched_peaks_ = param_.getValue("Min_matched_peaks");
+    min_matched_peaks_ = param_.getValue("min_matched_peaks");
     min_isotope_error_ = param_.getValue("min_isotope_error");
     max_isotope_error_ = param_.getValue("max_isotope_error");
     min_precursor_charge_ = param_.getValue("min_precursor_charge");
@@ -518,7 +513,8 @@ namespace OpenMS
     max_fragment_charge_ = param_.getValue("max_fragment_charge");
     max_processed_hits_ = param_.getValue("max_processed_hits");
     open_search = param_.getValue("open_search").toBool();
-    open_precursor_window = param_.getValue("open_precursor_window");
+    open_precursor_window_lower = param_.getValue("open_precursor_window_lower");
+    open_precursor_window_upper = param_.getValue("open_precursor_window_upper");
   }
  
   bool FragmentIndex::isBuild() const
@@ -526,7 +522,7 @@ namespace OpenMS
     return is_build_;
   }
 
-  const vector<FragmentIndex::sPeptide>& FragmentIndex::getPeptides() const
+  const vector<FragmentIndex::Peptide>& FragmentIndex::getPeptides() const
   {
     return fi_peptides_;
   }

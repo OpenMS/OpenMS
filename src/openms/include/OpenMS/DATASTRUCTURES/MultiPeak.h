@@ -23,7 +23,7 @@ namespace OpenMS
   public:
     MultiPeak();
 
-    MultiPeak(Peak1D peak, double score);
+    MultiPeak(Peak1D peak, float score);
 
     /// Copy
     MultiPeak(const MultiPeak& other);
@@ -33,17 +33,17 @@ namespace OpenMS
     virtual ~MultiPeak() = default;
 
     [[nodiscard]] const Peak1D& getPeak() const;
-    double getScore() const;
+    float getScore() const;
     const std::string& getFollowUpPeaksAa() const;
-    const std::vector<double>& getFollowUpPeaks() const;
+    const std::vector<float>& getFollowUpPeaks() const;
 
-    void addFollowUpPeak(double distance, const std::string& AA);
-    void addScore(double score);
+    void addFollowUpPeak(float distance, const std::string& AA);
+    void addScore(float score);
 
   protected:
     Peak1D peak_;
-    double score_;
+    float score_;
     std::string follow_up_peaks_AA;
-    std::vector<double> follow_up_peaks;
+    std::vector<float> follow_up_peaks;
   };
 }

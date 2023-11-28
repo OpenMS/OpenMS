@@ -32,19 +32,11 @@ namespace OpenMS
 
     /** @brief Peptide with all important infos needed for the FI-structure
      */
-    struct Peptide
-    {
-      AASequence sequence; // containing the sequence including modification information
-      UInt32 protein_idx;  // the Id from the Fasta file
-      float precursor_mz;  // charge 1 precursor m/z
-    };
-
-    struct sPeptide
-    {
-      UInt32 protein_idx_;
-      UInt32 modification_idx;
-      std::pair<Size, Size> sequence;
-      float precursor_mz;
+    struct Peptide {
+      UInt32 protein_idx_;            ///< The index in fasta entries vector
+      UInt32 modification_idx;        ///< The modification index which needed to reconstruct the modification
+      std::pair<uint16_t , uint16_t> sequence; ///< The substring of the protein at position protein_idx_
+      float precursor_mz;                  ///< mz of the peptide
     };
 
     /**
@@ -53,9 +45,9 @@ namespace OpenMS
     struct SpectrumMatch
     {
       uint32_t num_matched_{};       ///< Number of peaks-fragment hits
-      uint32_t precursor_charge_{};  ///< The precursor_charged used for the performed search
-      size_t peptide_idx_{};         ///< The idx this struct belongs to
+      uint16_t precursor_charge_{};  ///< The precursor_charged used for the performed search
       int16_t isotope_error_{};      /// < The isotope_error used for the performed search
+      size_t peptide_idx_{};         ///< The idx this struct belongs to
     };
 
     struct SpectrumMatchesTopN
@@ -66,6 +58,12 @@ namespace OpenMS
 
       SpectrumMatchesTopN() = default;
 
+      /**
+       * @brief Appends the a SpectrumMatchesTopN to another one. Add the number of all matched peaks up. Same for number of scored candidates
+       * The
+       * @param other The appended struct
+       * @return The struct after the attachment
+       */
       SpectrumMatchesTopN& operator+=(const SpectrumMatchesTopN& other)
       {
         this->matched_peaks_ += other.matched_peaks_;
@@ -86,7 +84,7 @@ namespace OpenMS
 
 
 
-    const std::vector<sPeptide>& getPeptides() const;
+    const std::vector<Peptide>& getPeptides() const;
 
 #ifdef DEBUG_FRAGMENT_INDEX
     /**
@@ -103,7 +101,7 @@ namespace OpenMS
      *
      * @param fasta_entries
      */
-    virtual void build(const std::vector<FASTAFile::FASTAEntry> & fasta_entries);
+    void build(const std::vector<FASTAFile::FASTAEntry> & fasta_entries);
 
     /** @brief Delete fragment index. Sets is_build=false*/
     void clear();
@@ -131,18 +129,20 @@ namespace OpenMS
     };
 
     /**@brief Queries one peak
-     * @param peak
-     * @param peptide_idx_range
-     * @param peak_charge
-     * @return
+     * @param peak The queried peak
+     * @param peptide_idx_range The range of precursors/peptides the peptide could potentially belongs to
+     * @param peak_charge The charge of the peak. Is used to calculate the mass from the mz
+     * @return a vector of Hits(matching peptide_idx_range and matching fragment_mz) containing the idx of the hitted peptide and the mass of the hit
      */
     std::vector<Hit> query(Peak1D peak, std::pair<size_t, size_t> peptide_idx_range, uint16_t peak_charge);
 
 
     /**
-     * @brief: queries one complete experimental spectra against the Database. loops over all precursor charges
+     * @brief: queries one complete experimental spectra against the Database. Loops over all precursor charges
+     * Starts at min_precursor_charge and iteratively goes to max_precursor_charge. We query all peaks multiple times with all the
+     * different precursor charges and corresponding precursor masses
      * @param spectrum experimental spectrum
-     * @param sms output
+     * @param sms[out] The n best Spectrum matches
      */
     void querySpectrum(const MSSpectrum& spectrum, SpectrumMatchesTopN& sms);
 
@@ -159,7 +159,7 @@ protected:
      */
     void generate_peptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
 
-    std::vector<sPeptide> fi_peptides_;   ///< vector of all (digested) peptides
+    std::vector<Peptide> fi_peptides_;   ///< vector of all (digested) peptides
 
     float fragment_min_mz_;  ///< smallest fragment mz
     float fragment_max_mz_;  ///< largest fragment mz    
@@ -182,11 +182,12 @@ private:
 
     /**
      * @brief queries exactly one peak, with a set range of potential peptides, isotope error and precursor charge Hits are transfered into the a PSM
-     * @param candidates
-     * @param peak
-     * @param candidates_range
-     * @param isotope_error
-     * @param precursor_charge
+     * Technically an adapter between query(...) and openSearch(...)/searchDifferentPrecursorRanges(...)
+     * @param[out] candidates The n best Spectrum matches
+     * @param peak The queried peak
+     * @param candidates_range The range of precursors/peptides the peptide could potentially belongs to
+     * @param isotope_error The applied isotope_error
+     * @param precursor_charge The applied precursor charge
      */
     void queryPeak(SpectrumMatchesTopN& candidates,
                    const Peak1D& peak,
@@ -195,21 +196,14 @@ private:
                    uint16_t precursor_charge);
 
     /**
-     * @brief queries all peaks of a spectrum. loops over all preset isotope errors. The precursor-mass-window is ignored
+     * @brief If closed search loops over all isotope errors. For each iteration loop over all peaks with queryPeak.
+     * @brief If open search applies a precursor-mass window
      * @param spectrum experimental query-spectrum
-     * @param mz
-     * @param sms
-     * @param charge
+     * @param precursor_mass The mass of the precursor (mz * charge)
+     * @param[out] sms The Top m SpectrumMatches
+     * @param charge Applied charge
      */
-    void closedSearch(const MSSpectrum& spectrum, float mz, SpectrumMatchesTopN& sms, uint16_t charge);
-
-    /**@brief queries all peaks of a spectrum. ignores isotope error, applies open window
-     * @param spectrum
-     * @param precursor_mass
-     * @param sms
-     * @param charge
-     */
-    void openSearch(const MSSpectrum& spectrum, float precursor_mass, SpectrumMatchesTopN& sms, uint16_t charge);
+    void searchDifferentPrecursorRanges(const MSSpectrum& spectrum, float precursor_mass, SpectrumMatchesTopN& sms, uint16_t charge);
 
     /** @brief places the k-largest elements in the front of the input array. Inside of the k-largest elements and outside the elements are not sorted
      *
@@ -246,10 +240,11 @@ private:
     int16_t max_isotope_error_;   ///< Maximal possible isotope error (both only used for closed search)
     uint16_t min_precursor_charge_; ///< minimal possible precursor charge (usually always 1)
     uint16_t max_precursor_charge_; ///< maximal possible precursor charge
-    uint16_t max_fragment_charge_;
+    uint16_t max_fragment_charge_;  ///< The maximal possible charge of the fragments
     uint32_t max_processed_hits_;   ///< The amount of PSM that will be used. the rest is filtered out
     bool open_search;               ///< true if a unrestrictive open search for potential PTM is performed
-    float open_precursor_window;
+    float open_precursor_window_lower; ///< Defines the lower bound of the precursor-mass range
+    float open_precursor_window_upper; ///< Defines the upper bound of the precursor-mass range
 
 
   };
