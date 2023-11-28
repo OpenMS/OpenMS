@@ -14,13 +14,14 @@
 
 namespace OpenMS
 {
-  OpenSwathOSWWriter::OpenSwathOSWWriter(const String& output_filename, const UInt64 run_id, const String& input_filename, bool ms1_scores, bool sonar, bool uis_scores) :
+  OpenSwathOSWWriter::OpenSwathOSWWriter(const String& output_filename, const UInt64 run_id, const String& input_filename, bool ms1_scores, bool sonar, bool compute_peak_shape_metrics, bool uis_scores) :
     output_filename_(output_filename),
     input_filename_(input_filename),
     run_id_(Internal::SqliteHelper::clearSignBit(run_id)),
     doWrite_(!output_filename.empty()),
     use_ms1_traces_(ms1_scores),
     sonar_(sonar),
+    compute_peak_shape_metrics_(compute_peak_shape_metrics),
     enable_uis_scoring_(uis_scores)
   {}
 
@@ -144,7 +145,21 @@ namespace OpenMS
       "VAR_MI_SCORE REAL NULL," \
       "VAR_MI_RATIO_SCORE REAL NULL," \
       "VAR_ISOTOPE_CORRELATION_SCORE REAL NULL," \
-      "VAR_ISOTOPE_OVERLAP_SCORE REAL NULL);";
+      "VAR_ISOTOPE_OVERLAP_SCORE REAL NULL, " \
+      "START_POSITION_AT_5 REAL NULL, " \
+      "END_POSITION_AT_5 REAL NULL, " \
+      "START_POSITION_AT_10 REAL NULL, " \
+      "END_POSITION_AT_10 REAL NULL, " \
+      "START_POSITION_AT_50 REAL NULL, " \
+      "END_POSITION_AT_50 REAL NULL, " \
+      "TOTAL_WIDTH REAL NULL, " \
+      "TAILING_FACTOR REAL NULL, " \
+      "ASYMMETRY_FACTOR REAL NULL, " \
+      "SLOPE_OF_BASELINE REAL NULL, " \
+      "BASELINE_DELTA_2_HEIGHT REAL NULL, " \
+      "POINTS_ACROSS_BASELINE REAL NULL, " \
+      "POINTS_ACROSS_HALF_HEIGHT REAL NULL); ";
+
 
     // Execute SQL create statement
     conn.executeStatement(create_sql);
@@ -207,18 +222,18 @@ namespace OpenMS
                                          const FeatureMap& output,
                                          const String& id) const
   {
+    std::cout << "compute peak shape metrics:" << compute_peak_shape_metrics_;
     std::stringstream sql, sql_feature, sql_feature_ms1, sql_feature_ms1_precursor, sql_feature_ms2, sql_feature_ms2_transition, sql_feature_uis_transition;
 
     for (const auto& feature_it : output)
     {
       int64_t feature_id = Internal::SqliteHelper::clearSignBit(feature_it.getUniqueId()); // clear sign bit
 
-      auto masserror_ppm = feature_it.metaValueExists("masserror_ppm") ? (feature_it.getMetaValue("masserror_ppm")).toDoubleList() : OpenMS::DoubleList();
+      std::vector<String> masserror_ppm = feature_it.metaValueExists("masserror_ppm") ? getSeparateScore(feature_it, "masserror_ppm") : std::vector<String>();
 
       auto subordinates = feature_it.getSubordinates();
       for (Size i=0; i < subordinates.size(); i++) 
       {
-        std::cout << "masseerror_ppm: " << masserror_ppm[i] << std::endl;
         auto sub_it = subordinates[i];
         if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS2")
         {
@@ -227,23 +242,50 @@ namespace OpenMS
 
           if (!masserror_ppm.empty())
           {
-            masserror_ppm_query = std::to_string(masserror_ppm[i]);
+            masserror_ppm_query = masserror_ppm[i];
             std::cout << "masseerror_ppm_query: " << masserror_ppm_query << std::endl;
           }
           if (!sub_it.getMetaValue("total_mi").isEmpty())
           {
             total_mi = sub_it.getMetaValue("total_mi").toString();
           }
-          sql_feature_ms2_transition  << "INSERT INTO FEATURE_TRANSITION "\
-            "(FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, RT_FWHM, MASSERROR_PPM, TOTAL_MI) VALUES ("
-                                      << feature_id << ", "
-                                      << sub_it.getMetaValue("native_id") << ", "
-                                      << sub_it.getIntensity() << ", "
-                                      << sub_it.getMetaValue("total_xic") << ", "
-                                      << sub_it.getMetaValue("peak_apex_int") << ", "
-                                      << sub_it.getMetaValue("width_at_50") << ", "
-                                      << masserror_ppm_query << ", "
-                                      << total_mi << "); ";
+          std::cout << "left width is:" << sub_it.getMetaValue("leftWidth") << std::endl;
+
+          // Create sql query for storing transition level data, include peak shape metrics if they exist
+          sql_feature_ms2_transition << "INSERT INTO FEATURE_TRANSITION "
+                         << "(FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, RT_FWHM, MASSERROR_PPM, TOTAL_MI"
+                         << (compute_peak_shape_metrics_ ? ", START_POSITION_AT_5, END_POSITION_AT_5, "
+                                         "START_POSITION_AT_10, END_POSITION_AT_10, START_POSITION_AT_50, END_POSITION_AT_50, "
+                                         "TOTAL_WIDTH, TAILING_FACTOR, ASYMMETRY_FACTOR, SLOPE_OF_BASELINE, BASELINE_DELTA_2_HEIGHT, "
+                                         "POINTS_ACROSS_BASELINE, POINTS_ACROSS_HALF_HEIGHT" : "")
+                         << ") VALUES ("
+                         << feature_id << ", "
+                         << sub_it.getMetaValue("native_id") << ", "
+                         << sub_it.getIntensity() << ", "
+                         << sub_it.getMetaValue("total_xic") << ", "
+                         << sub_it.getMetaValue("peak_apex_int") << ", "
+                         << sub_it.getMetaValue("width_at_50") << ", "
+                         << masserror_ppm_query << ", "
+                         << total_mi;
+
+                         if (compute_peak_shape_metrics_)
+                         {
+                            sql_feature_ms2_transition << ", "
+                                          << sub_it.getMetaValue("start_position_at_5") << ", "
+                                          << sub_it.getMetaValue("end_position_at_5") << ", "
+                                          << sub_it.getMetaValue("start_position_at_10") << ", "
+                                          << sub_it.getMetaValue("end_position_at_10") << ", "
+                                          << sub_it.getMetaValue("start_position_at_50") << ", "
+                                          << sub_it.getMetaValue("end_position_at_50") << ", "
+                                          << sub_it.getMetaValue("total_width") << ", "
+                                          << sub_it.getMetaValue("tailing_factor") << ", "
+                                          << sub_it.getMetaValue("asymmetry_factor") << ", "
+                                          << sub_it.getMetaValue("slope_of_baseline") << ", "
+                                          << sub_it.getMetaValue("baseline_delta_2_height") << ", "
+                                          << sub_it.getMetaValue("points_across_baseline") << ", "
+                                          << sub_it.getMetaValue("points_across_half_height");
+                         }
+                         sql_feature_ms2_transition << "); ";
         }
         else if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS1" && sub_it.getIntensity() > 0.0)
         {

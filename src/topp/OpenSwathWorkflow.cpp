@@ -534,6 +534,7 @@ protected:
       feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "false");
       feature_finder_param.setValue("TransitionGroupPicker:minimal_quality", -1.5);
       feature_finder_param.setValue("TransitionGroupPicker:background_subtraction", "none");
+      feature_finder_param.setValue("TransitionGroupPicker:compute_peak_shape_metrics", "false");
       feature_finder_param.remove("TransitionGroupPicker:stop_after_intensity_ratio");
 
       // Peak Picker
@@ -755,6 +756,7 @@ protected:
     cp_ms1.im_extraction_window  = getDoubleOption_("im_extraction_window_ms1");
 
     Param feature_finder_param = getParam_().copy("Scoring:", true);
+    bool compute_peak_shape_metrics = feature_finder_param.getValue("TransitionGroupPicker:compute_peak_shape_metrics") == "true";
     Param tsv_reader_param = getParam_().copy("Library:", true);
     if (use_emg_score)
     {
@@ -921,7 +923,7 @@ protected:
     ///////////////////////////////////
     FeatureMap out_featureFile;
     OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, sonar); // only active if filename not empty
-    OpenSwathOSWWriter oswwriter(out_osw, run_id, file_list[0], use_ms1_traces, sonar, enable_uis_scoring); // only active if filename not empty
+    OpenSwathOSWWriter oswwriter(out_osw, run_id, file_list[0], use_ms1_traces, sonar, compute_peak_shape_metrics, enable_uis_scoring); // only active if filename not empty
 
     ///////////////////////////////////
     // Extract and score

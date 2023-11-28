@@ -94,6 +94,7 @@ namespace OpenMS
     bool doWrite_;
     bool use_ms1_traces_;
     bool sonar_;
+    bool compute_peak_shape_metrics_;
     bool enable_uis_scoring_;
 
   public:
@@ -103,6 +104,7 @@ namespace OpenMS
                        const String& input_filename = "inputfile",
                        bool ms1_scores = false,
                        bool sonar = false,
+                       bool compute_peak_shape = false,
                        bool uis_scores = false);
 
     bool isActive() const;
