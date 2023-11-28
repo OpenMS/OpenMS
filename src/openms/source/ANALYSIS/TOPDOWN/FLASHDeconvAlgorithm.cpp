@@ -237,8 +237,9 @@ namespace OpenMS
     auto native_id_str = map[index].getNativeID();
     std::vector<String> native_ids;
     native_id_str.split(",", native_ids);
-
-    int scan_number = map.getSourceFiles().empty() ? -1 : SpectrumLookup::extractScanNumber(native_ids.back(), map.getSourceFiles()[0].getNativeIDTypeAccession());
+    auto type_accession = map.getSourceFiles()[0].getNativeIDTypeAccession();
+    if (type_accession.empty()) type_accession = "MS:1000768";
+    int scan_number = map.getSourceFiles().empty() ? -1 : SpectrumLookup::extractScanNumber(native_ids.back(), type_accession);
     if (scan_number < 0)
     {
       scan_number = (int)index + 1;
