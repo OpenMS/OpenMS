@@ -587,7 +587,7 @@ namespace OpenMS
          << "MS_ONE_SCAN=" << dspec.getPrecursorScanNumber() << "\n"
          << "PRECURSOR_MZ=" << std::to_string(dspec.getPrecursor().getMZ()) << "\n"
          << "PRECURSOR_CHARGE=" << (int)(dspec.getPrecursorCharge()) << "\n"
-         << "PRECURSOR_MASS=" << std::to_string(precursor_mass + (randomize_precursor_mass ? (((double)rand() / (RAND_MAX)) * 200.0 - 100.0) : .0)) << "\n" // random number between 0 to 100.
+         << "PRECURSOR_MASS=" << std::to_string(precursor_mass + (randomize_precursor_mass ? (((double)rand() / (RAND_MAX)) * 200.0 - 100.0) : .0)) << "\n" // random number between 0 and 100.
          << "PRECURSOR_INTENSITY=" << dspec.getPrecursor().getIntensity() << "\n";
     }
 
@@ -601,7 +601,7 @@ namespace OpenMS
       qscores.reserve(dspec.size());
       for (auto& pg : dspec)
       {
-        qscores.push_back(pg.getQscore());
+        qscores.push_back(pg.getQscore2D());
       }
       std::sort(qscores.begin(), qscores.end());
       qscore_threshold = qscores[qscores.size() - topFD_max_peak_count_];
@@ -611,7 +611,7 @@ namespace OpenMS
     int size = 0;
     for (auto& pg : dspec)
     {
-      if (pg.getQscore() < qscore_threshold)
+      if (pg.getQscore2D() < qscore_threshold)
       {
         continue;
       }
