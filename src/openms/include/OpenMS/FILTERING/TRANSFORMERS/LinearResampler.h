@@ -53,7 +53,7 @@ public:
     }
 
     /**
-        @brief Applies the resampling algorithm to an MSSpectrum.
+        @brief Applies the resampling algorithm to an MSSpectrum, without alignment between spectra.
     */
     void raster(MSSpectrum& spectrum) const
     {
@@ -115,7 +115,7 @@ public:
     }
 
     /**
-        @brief Resamples the data in an MSExperiment.
+        @brief Resamples the data in an MSExperiment, without alignment between spectra.
     */
     void rasterExperiment(PeakMap& exp)
     {
