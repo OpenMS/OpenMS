@@ -41,7 +41,7 @@ namespace OpenMS
     };
 
     /**
-     * @brief Every potential Peptide/Protein has such an struct. Inside the number of peaks-to-Fragment hits are safed
+     * @brief The Match between a query peak and an entry in the DB
      */
     struct SpectrumMatch
     {
@@ -51,6 +51,9 @@ namespace OpenMS
       size_t peptide_idx_{};         ///< The idx this struct belongs to
     };
 
+    /**
+     * @brief container for SpectrumMatch. Also keeps count of total number of candidates and total number of matches.
+     */
     struct SpectrumMatchesTopN
     {
       std::vector<SpectrumMatch> hits_;     ///< The preliminary candidates
@@ -74,6 +77,7 @@ namespace OpenMS
       }
     };
 
+
     struct Hit
     {
       Hit(UInt32 peptide_idx, float fragment_mz) :
@@ -91,12 +95,18 @@ namespace OpenMS
      */
     void build(const std::vector<FASTAFile::FASTAEntry> &fasta_entries);
 
+    /** Return index range of all possible Peptides/Proteins, such that a vector can be created fitting that range (safe some memory)
+     * @param precursor_mass The mono-charged precursor mass (M+H)
+     * @param window Defines the lower and upper bound for the precusor mass. For closed search it only contains the tolerance. In case of open search
+     *                  it contains both tolerance and open-search-window
+     * @return a pair of indexes defining all possible peptides which the current peak could hit
+     */
     std::pair<size_t, size_t > getPeptidesInPrecursorRange(float precursor_mass, std::pair<float, float> window);
 
     /**
-     * Takes a MultiPeak as input and recursively searches for a hit in the DB
-     * @param hits output
-     * @param peak the query Multipeak
+     * @brief Takes a MultiPeak as input calculates the tolerance and starts a recursiv query chain
+     * @param hits[out] All entries in the DB with fragment mass and precursor mass in the range of the query
+     * @param peak the queried Multipeak
      * @param peptide_idx_range The range of all possible Peptides
      * @param window The window in which we want to search, enabeling finding of modified peptides
      */
@@ -120,7 +130,7 @@ namespace OpenMS
      * @brief Check if potential hit is in the range of [query-tolerance + window, query + tolerance + window]
      * @param hit entry in the DB which could be a potential hit
      * @param query the current query
-     * @param tolerance
+     * @param tolerance The applied tolerance
      * @param window
      * @return
      */
@@ -136,6 +146,18 @@ namespace OpenMS
 
 
 
+    /**
+     * @brief The DB is build in a tree-like structure, with each call we descend the tree. The first n-levels are neighbor hood dependend.
+     * The second last level is the fragment mass. The last level is the precursor mass. At each level the descend all branches that fullfill the current query
+     *
+     * @param[out] hits at the last level we append all hits
+     * @param peak current queried peak
+     * @param peptide_idx_range The range of peptides that are possible
+     * @param window The applied window
+     * @param recursion_step Current level of the tree. We start at the highest level and descend.
+     * @param current_slice At each call we enter a new branch. Current slice represents this
+     * @param fragment_tolerance
+     */
     void recursiveQuery(std::vector<Hit>& hits,
                         const MultiPeak& peak,
                         std::pair<size_t, size_t> peptide_idx_range,

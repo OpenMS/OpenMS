@@ -40,7 +40,7 @@ namespace OpenMS
     };
 
     /**
-     * @brief Every potential Peptide/Protein has such an struct. Inside the number of peaks-to-Fragment hits are safed
+     * @brief Match between a query peak and an entry in the DB
      */
     struct SpectrumMatch
     {
@@ -50,6 +50,10 @@ namespace OpenMS
       size_t peptide_idx_{};         ///< The idx this struct belongs to
     };
 
+
+    /**
+     * @brief container for SpectrumMatch. Also keeps count of total number of candidates and total number of matches.
+     */
     struct SpectrumMatchesTopN
     {
       std::vector<SpectrumMatch> hits_;     ///< The preliminary candidates
