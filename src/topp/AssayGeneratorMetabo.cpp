@@ -98,14 +98,12 @@ public:
     {}
 
 private:
-  SiriusExportAlgorithm algorithm;
+  SiriusExportAlgorithm sirius_export_algorithm;
 
 protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("sirius_executable", "<executable>", "", "The Sirius executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", false, false);
-
     registerInputFileList_("in", "<file(s)>", StringList(), "MzML input file(s) used for assay library generation");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
@@ -176,7 +174,7 @@ protected:
     registerFlag_("deisotoping:annotate_charge", "Annotate the charge to the peaks", false);
 
     // // sirius
-    // registerFullParam_(algorithm.getDefaults());
+    registerFullParam_(sirius_export_algorithm.getDefaults());
   }
 
   ExitCodes main_(int, const char **) override
@@ -262,12 +260,9 @@ protected:
     bool keep_only_deisotoped = getFlag_("deisotoping:keep_only_deisotoped");
     bool annotate_charge = getFlag_("deisotoping:annotate_charge");
 
-    // param SiriusExportAlgorithm
-    // String sirius_executable = getStringOption_("sirius_executable");
+    sirius_export_algorithm.updateExistingParameter(getParam_());
 
-    algorithm.updateExistingParameter(getParam_());
-
-    writeDebug_("Parameters passed to SiriusExportAlgorithm", algorithm.getParameters(), 3);
+    writeDebug_("Parameters passed to SiriusExportAlgorithm", sirius_export_algorithm.getParameters(), 3);
 
 
     //-------------------------------------------------------------
@@ -363,10 +358,10 @@ protected:
       // run masstrace filter and feature mapping
       FeatureMapping::FeatureMappingInfo fm_info;
       FeatureMapping::FeatureToMs2Indices feature_mapping; // reference to *basefeature in vector<FeatureMap>
-      algorithm.preprocessingSirius(id[file_counter],
-                                    spectra,
-                                    fm_info,
-                                    feature_mapping);
+      sirius_export_algorithm.preprocessingSirius(id[file_counter],
+                                                  spectra,
+                                                  fm_info,
+                                                  feature_mapping);
     
       // filter known_unkowns based on description (UNKNOWN) (AMS)
       std::map<const BaseFeature*, std::vector<size_t>> feature_ms2_spectra_map = feature_mapping.assignedMS2;
