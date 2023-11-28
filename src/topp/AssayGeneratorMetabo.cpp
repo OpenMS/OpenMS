@@ -438,6 +438,8 @@ protected:
                       cmpinfo.rt = std::stod(value);
                   else if (key == "ionType")
                       cmpinfo.ionization = value;
+                  // set fixed precursor charge, SIRIUS supports only charge 1
+                  cmpinfo.charge = 1;
                 }
             }
             compound_info_file.close();
