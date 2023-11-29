@@ -10,10 +10,10 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
-#include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
+#include <OpenMS/ANALYSIS/ID/MorpheusScore.h>
+#include <OpenMS/ANALYSIS/ID/HyperScore.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>
-#include <OpenMS/ANALYSIS/RNPXL/MorpheusScore.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlFragmentAnnotationHelper.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>

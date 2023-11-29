@@ -2,7 +2,7 @@ from Types cimport *
 from libcpp cimport bool
 from MSSpectrum cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/RNPXL/MorpheusScore.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/ANALYSIS/ID/MorpheusScore.h>" namespace "OpenMS":
     
     cdef cppclass MorpheusScore "OpenMS::MorpheusScore":
         MorpheusScore() except + nogil  # compiler
