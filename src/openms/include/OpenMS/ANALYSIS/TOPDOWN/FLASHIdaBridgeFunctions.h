@@ -75,7 +75,11 @@ namespace OpenMS
                                                     double *snrs, double *charge_scores,
                                                     double *ppm_errors,
                                                     double *precursor_intensities,
-                                                    double *peakgroup_intensities);
+                                                    double *peakgroup_intensities,
+                                                    int *ids);
+
+  // bridges removeFromExclusionList in FLASHida class to C# FLASHIda side
+  extern "C" OPENMS_DLLAPI void RemoveFromExclusionList(FLASHIda *object, int id);
 
   extern "C" OPENMS_DLLAPI int GetAllPeakGroupSize(FLASHIda *pObject);
 

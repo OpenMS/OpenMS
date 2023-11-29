@@ -329,6 +329,10 @@ namespace OpenMS
     trigger_left_isolation_mzs_.reserve(mass_count);
     trigger_right_isolation_mzs_.clear();
     trigger_right_isolation_mzs_.reserve(mass_count);
+    trigger_ids_.clear();
+    trigger_ids_.reserve(mass_count);
+
+
 
     selected_peak_groups_.reserve(mass_count_.size());
     std::set<double> current_selected_mzs; // current selected mzs
@@ -480,7 +484,7 @@ namespace OpenMS
             if (target_matched)
             {
               snr_threshold = 0.0;
-              qscore_threshold = 0.0; // stop exclusion for targets. TODO tqscore lowest first? charge change.
+              qscore_threshold = 0.0; // stop exclusion for targets. todo tqscore lowest first? charge change.
             }
             else
             {
@@ -629,6 +633,12 @@ namespace OpenMS
             tqscore_exceeding_mz_rt_map_[integer_mz] = rt;
           }
 
+          id_mass_map_[window_id_] = nominal_mass;
+          id_mz_map_[window_id_] = integer_mz;
+          id_qscore_map_[window_id_] = qscore;
+          trigger_ids_.push_back(window_id_);
+          window_id_++;
+          
           selected_peak_groups_.push_back(pg);
           trigger_charges.push_back(charge);
 
@@ -639,6 +649,36 @@ namespace OpenMS
         }
       }
     }
+  }
+
+  void FLASHIda::removeFromExlusionList(int id)    
+  {
+      // Check if id is valid
+      if (id >= window_id_) 
+      {
+        return; 
+      }
+
+      // Obtain information needed for removal
+      int nominal_mass = id_mass_map_[id];
+      int integer_mz = id_mz_map_[id];
+      double qscore = id_qscore_map_[id];
+
+      // Remove from mass exclusion
+      if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end()) {
+        tqscore_exceeding_mass_rt_map_.erase(nominal_mass);
+      }
+
+      // Remove from mz exclusion
+      if (tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
+      {
+        tqscore_exceeding_mz_rt_map_.erase(integer_mz);
+      }
+
+      // Remove qscore from further calculations
+      if (mass_qscore_map_.find(nominal_mass) != mass_qscore_map_.end()) {
+        mass_qscore_map_[nominal_mass] /= 1 - qscore;
+      }
   }
 
   void FLASHIda::getAllMonoisotopicMasses(double *masses, int length)
@@ -656,7 +696,7 @@ namespace OpenMS
   }
 
   void FLASHIda::getIsolationWindows(double* wstart, double* wend, double* qscores, int* charges, int* min_charges, int* max_charges, double* mono_masses, double* chare_cos, double* charge_snrs,
-                                     double* iso_cos, double* snrs, double* charge_scores, double* ppm_errors, double* precursor_intensities, double* peakgroup_intensities)
+                                     double* iso_cos, double* snrs, double* charge_scores, double* ppm_errors, double* precursor_intensities, double* peakgroup_intensities, int* ids)
   {
     // std::sort(selected_peak_groups_.begin(), selected_peak_groups_.end(), QscoreComparator_);
 
@@ -685,6 +725,7 @@ namespace OpenMS
       ppm_errors[i] = peakgroup.getAvgPPMError();
       peakgroup_intensities[i] = peakgroup.getIntensity();
       precursor_intensities[i] = peakgroup.getChargeIntensity(charges[i]);
+      ids[i] = trigger_ids_[i];
     }
   }
 
