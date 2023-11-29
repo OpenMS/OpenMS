@@ -49,6 +49,7 @@ Cleanup/Removal:
   - PrecursorMassCorrector
   - TOFCalibration
   - ERPairFinder
+  - RNPxlSearch
 
 - removed tutorials:
   - Tutorial_PeakPickerCWT

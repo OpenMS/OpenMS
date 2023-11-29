@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/MorpheusScore.h>" namespace "OpenMS":
                                      const MSSpectrum & exp_spectrum,
                                      const MSSpectrum & theo_spectrum) except + nogil  # wrap-doc:Returns Morpheus Score
 
-cdef extern from "<OpenMS/ANALYSIS/RNPXL/MorpheusScore.h>" namespace "OpenMS::MorpheusScore":
+cdef extern from "<OpenMS/ANALYSIS/ID/MorpheusScore.h>" namespace "OpenMS::MorpheusScore":
     
     cdef cppclass MorpheusScore_Result "OpenMS::MorpheusScore::Result":
         MorpheusScore_Result() except + nogil  # compiler
