@@ -1935,13 +1935,13 @@
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
       <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK"/>
     </Transition>
-    <Transition id="0_UISDECOY_{AHLDHHECYEK(Carbamidomethyl)}_411.516999999999996_406.497900000000016_-24.57_b10-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="0_UISDECOY_{ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_348.787399999999991_-24.57_b10-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="406.4979" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="348.7874" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
@@ -1957,15 +1957,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b10-H2O1^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value="AHLDHHECYEK(Carbamidomethyl)"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="1_UISDECOY_{.(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK}_411.516999999999996_425.505100000000027_-24.57_b10-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="1_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.516999999999996_367.794500000000028_-24.57_b10-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="425.5051" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="367.7945" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
@@ -1981,15 +1981,63 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b10-H2O1^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK"/>
     </Transition>
-    <Transition id="2_UISDECOY_{AHLDHHECYEK(Carbamidomethyl)}_411.516999999999996_412.501500000000021_-24.57_b10^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="2_UISDECOY_{ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_349.115400000000022_-24.57_b10-H3N1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="412.5015" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="349.1154" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="annotation" type="xsd:string" value="b10-H3N1^3"/>
+      <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHECYDK(Carbamidomethyl)"/>
+    </Transition>
+    <Transition id="3_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.516999999999996_368.122500000000002_-24.57_b10-H3N1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="368.1225" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="annotation" type="xsd:string" value="b10-H3N1^3"/>
+      <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK"/>
+    </Transition>
+    <Transition id="4_UISDECOY_{ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_354.790900000000022_-24.57_b10^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="354.7909" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
@@ -2004,15 +2052,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b10^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value="AHLDHHECYEK(Carbamidomethyl)"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="3_UISDECOY_{.(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK}_411.516999999999996_431.508600000000001_-24.57_b10^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="5_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.516999999999996_373.798100000000034_-24.57_b10^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="431.5086" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="373.7981" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
@@ -2027,15 +2075,63 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b10^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK"/>
     </Transition>
-    <Transition id="4_UISDECOY_{AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)}_411.516999999999996_70.372600000000006_-24.57_b2^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="6_UISDECOY_{ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_57.025100000000002_-24.57_b2-H3N1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="70.3726" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="57.0251" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="annotation" type="xsd:string" value="b2-H3N1^3"/>
+      <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
+    </Transition>
+    <Transition id="7_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_76.032300000000006_-24.57_b2-H3N1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="76.0323" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="annotation" type="xsd:string" value="b2-H3N1^3"/>
+      <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
+    </Transition>
+    <Transition id="8_UISDECOY_{ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_62.700600000000002_-24.57_b2^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="62.7006" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
@@ -2050,15 +2146,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b2^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value="AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="5_UISDECOY_{.(Carbamidomethyl)AHLDHHECYEK}_411.516999999999996_89.379800000000003_-24.57_b2^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="9_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_81.707800000000006_-24.57_b2^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="89.3798" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="81.7078" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
@@ -2073,15 +2169,63 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b2^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AHLDHHECYEK"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="6_UISDECOY_{AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)}_411.516999999999996_108.067300000000003_-24.57_b3^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="10_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_76.032300000000006_-24.57_b3-H3N1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="108.0673" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="76.0323" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="annotation" type="xsd:string" value="b3-H3N1^3"/>
+      <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
+    </Transition>
+    <Transition id="11_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_411.516999999999996_95.039400000000001_-24.57_b3-H3N1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="95.0394" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="annotation" type="xsd:string" value="b3-H3N1^3"/>
+      <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK"/>
+    </Transition>
+    <Transition id="12_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_81.707800000000006_-24.57_b3^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="81.7078" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
@@ -2096,15 +2240,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b3^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value="AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="7_UISDECOY_{.(Carbamidomethyl)AHLDHHECYEK}_411.516999999999996_127.0745_-24.57_b3^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="13_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_411.516999999999996_100.7149_-24.57_b3^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="127.0745" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="100.7149" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
@@ -2119,15 +2263,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b3^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AHLDHHECYEK"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK"/>
     </Transition>
-    <Transition id="8_UISDECOY_{AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)}_411.516999999999996_140.406100000000009_-24.57_b4-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="14_UISDECOY_{ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_114.046600000000012_-24.57_b4-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="140.4061" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="114.0466" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
@@ -2143,15 +2287,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b4-H2O1^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value="AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="9_UISDECOY_{.(Carbamidomethyl)AHLDHHECYEK}_411.516999999999996_159.413300000000021_-24.57_b4-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="15_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_133.053700000000021_-24.57_b4-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="159.4133" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="133.0537" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
@@ -2167,15 +2311,63 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b4-H2O1^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AHLDHHECYEK"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="10_UISDECOY_{AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)}_411.516999999999996_146.409600000000012_-24.57_b4^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="16_UISDECOY_{ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_114.374600000000001_-24.57_b4-H3N1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="146.4096" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="114.3746" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="annotation" type="xsd:string" value="b4-H3N1^3"/>
+      <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
+    </Transition>
+    <Transition id="17_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_133.381699999999995_-24.57_b4-H3N1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="133.3817" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="annotation" type="xsd:string" value="b4-H3N1^3"/>
+      <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
+    </Transition>
+    <Transition id="18_UISDECOY_{ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_120.0501_-24.57_b4^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="120.0501" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
@@ -2190,15 +2382,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b4^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value="AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="11_UISDECOY_{.(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK}_411.516999999999996_165.416799999999995_-24.57_b4^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="19_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_139.057199999999995_-24.57_b4^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="165.4168" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="139.0572" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
@@ -2213,15 +2405,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b4^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="12_UISDECOY_{AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)}_411.516999999999996_186.092399999999998_-24.57_b5-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="20_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_133.053700000000021_-24.57_b5-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="186.0924" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="133.0537" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
@@ -2237,15 +2429,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b5-H2O1^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value="AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="13_UISDECOY_{.(Carbamidomethyl)AHLDHHECYEK}_411.516999999999996_205.099600000000009_-24.57_b5-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="21_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_411.516999999999996_152.060900000000004_-24.57_b5-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="205.0996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="152.0609" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
@@ -2261,15 +2453,63 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b5-H2O1^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AHLDHHECYEK"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK"/>
     </Transition>
-    <Transition id="14_UISDECOY_{AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)}_411.516999999999996_192.0959_-24.57_b5^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="22_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_133.381699999999995_-24.57_b5-H3N1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="192.0959" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="133.3817" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="annotation" type="xsd:string" value="b5-H3N1^3"/>
+      <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
+    </Transition>
+    <Transition id="23_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK}_411.516999999999996_152.388900000000007_-24.57_b5-H3N1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="152.3889" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="annotation" type="xsd:string" value="b5-H3N1^3"/>
+      <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK"/>
+    </Transition>
+    <Transition id="24_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_139.057199999999995_-24.57_b5^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="139.0572" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
@@ -2284,15 +2524,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b5^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value="AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="15_UISDECOY_{.(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK}_411.516999999999996_211.103100000000012_-24.57_b5^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="25_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK}_411.516999999999996_158.064400000000006_-24.57_b5^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="211.1031" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="158.0644" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
@@ -2307,15 +2547,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b5^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK"/>
     </Transition>
-    <Transition id="16_UISDECOY_{AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)}_411.516999999999996_231.778700000000015_-24.57_b6-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="26_UISDECOY_{ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_178.740000000000009_-24.57_b6-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="231.7787" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="178.74" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
@@ -2331,15 +2571,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b6-H2O1^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value="AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="17_UISDECOY_{.(Carbamidomethyl)AHLDHHECYEK|AHLDHH(Carbamidomethyl)ECYEK}_411.516999999999996_250.785899999999998_-24.57_b6-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="27_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGDGH(Carbamidomethyl)ECYDK}_411.516999999999996_197.747200000000021_-24.57_b6-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="250.7859" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="197.7472" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
@@ -2355,15 +2595,63 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b6-H2O1^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AHLDHHECYEK|AHLDHH(Carbamidomethyl)ECYEK"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGDGH(Carbamidomethyl)ECYDK"/>
     </Transition>
-    <Transition id="18_UISDECOY_{AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)}_411.516999999999996_237.782200000000017_-24.57_b6^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="28_UISDECOY_{ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_179.068000000000012_-24.57_b6-H3N1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="237.7822" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="179.068" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="annotation" type="xsd:string" value="b6-H3N1^3"/>
+      <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
+    </Transition>
+    <Transition id="29_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK}_411.516999999999996_198.075200000000024_-24.57_b6-H3N1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="198.0752" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="annotation" type="xsd:string" value="b6-H3N1^3"/>
+      <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK"/>
+    </Transition>
+    <Transition id="30_UISDECOY_{ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_184.743600000000015_-24.57_b6^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="184.7436" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
@@ -2378,15 +2666,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b6^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value="AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="19_UISDECOY_{.(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK}_411.516999999999996_256.789400000000001_-24.57_b6^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="31_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK}_411.516999999999996_203.750700000000023_-24.57_b6^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="256.7894" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="203.7507" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
@@ -2401,15 +2689,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b6^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK"/>
     </Transition>
-    <Transition id="20_UISDECOY_{AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)}_411.516999999999996_274.792900000000032_-24.57_b7-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="32_UISDECOY_{ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_221.754199999999997_-24.57_b7-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="274.7929" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="221.7542" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
@@ -2425,15 +2713,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b7-H2O1^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value="AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="21_UISDECOY_{.(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK}_411.516999999999996_293.800099999999986_-24.57_b7-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="33_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK}_411.516999999999996_240.761400000000009_-24.57_b7-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="293.8001" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="240.7614" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
@@ -2449,15 +2737,63 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b7-H2O1^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK"/>
     </Transition>
-    <Transition id="22_UISDECOY_{AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)}_411.516999999999996_280.796400000000006_-24.57_b7^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="34_UISDECOY_{ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_222.0822_-24.57_b7-H3N1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="280.7964" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="222.0822" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="annotation" type="xsd:string" value="b7-H3N1^3"/>
+      <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
+    </Transition>
+    <Transition id="35_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK}_411.516999999999996_241.089400000000012_-24.57_b7-H3N1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="241.0894" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="annotation" type="xsd:string" value="b7-H3N1^3"/>
+      <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK"/>
+    </Transition>
+    <Transition id="36_UISDECOY_{ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_227.757800000000003_-24.57_b7^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="227.7578" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
@@ -2472,15 +2808,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b7^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value="AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="23_UISDECOY_{.(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK}_411.516999999999996_299.803600000000017_-24.57_b7^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="37_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK}_411.516999999999996_246.764900000000012_-24.57_b7^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="299.8036" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="246.7649" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
@@ -2495,15 +2831,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b7^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK"/>
     </Transition>
-    <Transition id="24_UISDECOY_{AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)}_411.516999999999996_309.129300000000001_-24.57_b8-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="38_UISDECOY_{ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_256.090599999999995_-24.57_b8-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="309.1293" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="256.0906" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
@@ -2519,15 +2855,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b8-H2O1^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value="AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="25_UISDECOY_{.(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK}_411.516999999999996_328.136500000000012_-24.57_b8-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="39_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK}_411.516999999999996_275.097800000000007_-24.57_b8-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="328.1365" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="275.0978" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
@@ -2543,15 +2879,63 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b8-H2O1^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK"/>
     </Transition>
-    <Transition id="26_UISDECOY_{AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)}_411.516999999999996_315.132800000000032_-24.57_b8^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="40_UISDECOY_{ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_256.418600000000026_-24.57_b8-H3N1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="315.1328" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="256.4186" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="annotation" type="xsd:string" value="b8-H3N1^3"/>
+      <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
+    </Transition>
+    <Transition id="41_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK}_411.516999999999996_275.425800000000038_-24.57_b8-H3N1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="275.4258" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="annotation" type="xsd:string" value="b8-H3N1^3"/>
+      <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK"/>
+    </Transition>
+    <Transition id="42_UISDECOY_{ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_262.094100000000026_-24.57_b8^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="262.0941" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
@@ -2566,15 +2950,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b8^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value="AHLDHHECY(Carbamidomethyl)EK|AHLDHHECYEK(Carbamidomethyl)"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="27_UISDECOY_{.(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK}_411.516999999999996_334.140000000000043_-24.57_b8^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="43_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK}_411.516999999999996_281.101300000000037_-24.57_b8^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="334.14" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="281.1013" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
@@ -2589,15 +2973,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b8^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK"/>
     </Transition>
-    <Transition id="28_UISDECOY_{AHLDHHECYEK(Carbamidomethyl)}_411.516999999999996_363.483699999999999_-24.57_b9-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="44_UISDECOY_{ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_310.445100000000025_-24.57_b9-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="363.4837" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="310.4451" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
@@ -2613,15 +2997,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b9-H2O1^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value="AHLDHHECYEK(Carbamidomethyl)"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="29_UISDECOY_{.(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK}_411.516999999999996_382.490900000000011_-24.57_b9-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="45_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.516999999999996_329.452200000000005_-24.57_b9-H2O1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="382.4909" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="329.4522" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
@@ -2637,15 +3021,63 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b9-H2O1^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK"/>
     </Transition>
-    <Transition id="30_UISDECOY_{AHLDHHECYEK(Carbamidomethyl)}_411.516999999999996_369.487300000000005_-24.57_b9^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="46_UISDECOY_{ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_310.7731_-24.57_b9-H3N1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="369.4873" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="310.7731" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="annotation" type="xsd:string" value="b9-H3N1^3"/>
+      <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHECYDK(Carbamidomethyl)"/>
+    </Transition>
+    <Transition id="47_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.516999999999996_329.780200000000036_-24.57_b9-H3N1^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="329.7802" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="annotation" type="xsd:string" value="b9-H3N1^3"/>
+      <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK"/>
+    </Transition>
+    <Transition id="48_UISDECOY_{ANGDGHECYDK(Carbamidomethyl)}_411.516999999999996_316.448599999999999_-24.57_b9^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="316.4486" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
@@ -2660,15 +3092,15 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b9^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value="AHLDHHECYEK(Carbamidomethyl)"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
-    <Transition id="31_UISDECOY_{.(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK}_411.516999999999996_388.494400000000042_-24.57_b9^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="49_UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.516999999999996_335.455700000000036_-24.57_b9^3" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="388.4944" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="335.4557" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
@@ -2683,7 +3115,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="b9^3"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
-      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AHLDHHECYEK|AHLD(Carbamidomethyl)HHECYEK|AHLDHH(Carbamidomethyl)ECYEK|AHLDHHE(Carbamidomethyl)CYEK|AHLDHHEC(Carbamidomethyl)YEK|AHLDHHECY(Carbamidomethyl)EK"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK"/>
     </Transition>
   </TransitionList>
 </TraML>
