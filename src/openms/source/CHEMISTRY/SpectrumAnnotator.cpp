@@ -127,7 +127,7 @@ namespace OpenMS
     const Param& sap = sa.getParameters();
 
     spec.setMetaValue("fragment_mass_tolerance", sap.getValue("tolerance"));
-    spec.setMetaValue("fragment_mass_tolerance_ppm", false);
+    spec.setMetaValue("fragment_mass_tolerance_ppm", sap.getValue("is_relative_tolerance").toBool());
     spec.setFloatDataArrays(PeakSpectrum::FloatDataArrays(1, std::move(error_annotations)));
     spec.setStringDataArrays(PeakSpectrum::StringDataArrays(1, std::move(type_annotations)));
     spec.setIntegerDataArrays(PeakSpectrum::IntegerDataArrays(1, std::move(charge_annotations)));

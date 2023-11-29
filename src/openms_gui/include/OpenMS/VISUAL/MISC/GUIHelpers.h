@@ -49,8 +49,9 @@ namespace OpenMS
                                               const FileTypes::Type fallback_extension);
 
 
-    /// Open TOPPView (e.g. from within TOPPAS)
-    OPENMS_GUI_DLLAPI void startTOPPView(const QStringList& args);
+    /// Open TOPPView (e.g. from within TOPPAS) as a detached process (i.e. will continue running when this process ends)
+    /// @return true if process started successfully
+    OPENMS_GUI_DLLAPI bool startTOPPView(QStringList args);
 
     /// Open a certain URL (in a browser)
     /// Will show a message box on failure
