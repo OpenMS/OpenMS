@@ -1323,7 +1323,7 @@ namespace OpenMS
             mytransition.fragment_type = "z.";
             break;
           case Residue::Zp2Ion: 
-            mytransition::fragment_type = "z'";
+            mytransition.fragment_type = "z'";
             break;
           case Residue::Precursor:
             mytransition.fragment_type = "prec";
