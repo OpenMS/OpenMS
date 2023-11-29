@@ -42,7 +42,7 @@ namespace OpenMS
       double signal_proportion = 0.0;
       Size target_peak_count = 0;
       Size interfering_peak_count = 0;
-      PeakSpectrum interfering_peaks; // interfering peaks
+      PeakSpectrum interfering_peaks; // peaks left after precursor (isotopic) peaks have been removed
     };
 
     /** @brief compute precursor purity metrics for each MS2 spectrum in a PeakMap
