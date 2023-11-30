@@ -396,9 +396,6 @@ def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", spec
         Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
     :type spec_bottom: MSSpectrum
 
-    :param alignment: List of aligned peak pairs.
-    :type alignment: Optional[List], optional
-
     :param spectrum_top_kws: Keyword arguments for `Plotting.plot_spectrum` of top spectrum.
     :type spectrum_top_kws: Optional[Dict], optional
 
