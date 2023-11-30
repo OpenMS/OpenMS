@@ -140,7 +140,7 @@ if(NOT TARGET CoinOR::CoinOR)
     #  an external coin-or. Should be rare to impossible.
     find_package(BLAS)
     find_package(LAPACK)
-    target_link_libraries(CoinOR::CoinOR INTERFACE BLAS LAPACK)
+    target_link_libraries(CoinOR::CoinOR INTERFACE BLAS::BLAS LAPACK::LAPACK)
   endif()
 endif()
 

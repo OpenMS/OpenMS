@@ -139,7 +139,6 @@ ProteomicsLFQ
 RNADigestor
 RNAMassCalculator
 RNPxlXICFilter
-RNPxlSearch
 SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
