@@ -884,15 +884,15 @@ jobs:
           DOCS_SHA=$(curl https://api.github.com/repos/OpenMS/OpenMS-docs/git/refs/heads/develop | jq -r ".object.sha")
 
           
-          createGitTag OpenMS/contrib $CONTRIB_SHA  || updateGitTag OpenMS/contrib $CONTRIB_SHA 
-          createGitTag OpenMS/pyopenms-docs $PYDOCS_SHA  || updateGitTag OpenMS/pyopenms-docs $PYDOCS_SHA 
-          createGitTag OpenMS/THIRDPARTY $THIRDPARTY_SHA  || updateGitTag OpenMS/THIRDPARTY $THIRDPARTY_SHA 
-          createGitTag OpenMS/Tutorials $TUTORIAL_SHA  || updateGitTag OpenMS/Tutorials $TUTORIAL_SHA 
-          createGitTag OpenMS/OpenMS-docs $DOCS_SHA  || updateGitTag OpenMS/OpenMS-docs $DOCS_SHA 
-          createGitTag OpenMS/de.openms.knime $DEOPENMS_SHA  || updateGitTag OpenMS/de.openms.knime $DEOPENMS_SHA 
+          createGitTag OpenMS contrib $CONTRIB_SHA  || updateGitTag OpenMS contrib $CONTRIB_SHA 
+          createGitTag OpenMS pyopenms-docs $PYDOCS_SHA  || updateGitTag OpenMS pyopenms-docs $PYDOCS_SHA 
+          createGitTag OpenMS THIRDPARTY $THIRDPARTY_SHA  || updateGitTag OpenMS THIRDPARTY $THIRDPARTY_SHA 
+          createGitTag OpenMS Tutorials $TUTORIAL_SHA  || updateGitTag OpenMS Tutorials $TUTORIAL_SHA 
+          createGitTag OpenMS OpenMS-docs $DOCS_SHA  || updateGitTag OpenMS OpenMS-docs $DOCS_SHA 
+          createGitTag OpenMS de.openms.knime $DEOPENMS_SHA  || updateGitTag OpenMS de.openms.knime $DEOPENMS_SHA 
           
-          createGitTag genericworkflownodes/GenericKnimeNodes $JSViewer_SHA openms/Release${version} || updateGitTag genericworkflownodes/GenericKnimeNodes $GKN_SHA openms/Release${version}
-          createGitTag genericworkflownodes/GenericKnimeNodes $GKN_SHA openms/Release${version} || updateGitTag genericworkflownodes/GenericKnimeNodes $GKN_SHA openms/Release${version}
+          createGitTag genericworkflownodes GenericKnimeNodes $JSViewer_SHA || updateGitTag genericworkflownodes GenericKnimeNodes $GKN_SHA 
+          createGitTag genericworkflownodes GenericKnimeNodes $GKN_SHA  || updateGitTag genericworkflownodes GenericKnimeNodes $GKN_SHA 
 
 
       #- name: merge branch back into develop
