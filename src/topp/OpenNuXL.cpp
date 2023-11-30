@@ -52,11 +52,12 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 
+#include <OpenMS/ANALYSIS/ID/MorpheusScore.h>
+#include <OpenMS/ANALYSIS/ID/HyperScore.h>
 
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLReport.h>
-#include <OpenMS/ANALYSIS/NUXL/MorpheusScore.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLAnnotatedHit.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLAnnotateAndLocate.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLConstants.h>
@@ -90,7 +91,6 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/ANALYSIS/NUXL/HyperScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 
 #include <OpenMS/FORMAT/IdXMLFile.h>

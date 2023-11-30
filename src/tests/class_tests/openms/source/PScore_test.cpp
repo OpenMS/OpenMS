@@ -11,7 +11,7 @@
 #include <OpenMS/FORMAT/DTAFile.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/NUXL/PScore.h>
+#include <OpenMS/ANALYSIS/ID/PScore.h>
 ///////////////////////////
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>

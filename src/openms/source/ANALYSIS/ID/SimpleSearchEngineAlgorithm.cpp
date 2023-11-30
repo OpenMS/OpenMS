@@ -9,7 +9,7 @@
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/ANALYSIS/NUXL/HyperScore.h>
+#include <OpenMS/ANALYSIS/ID/HyperScore.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>

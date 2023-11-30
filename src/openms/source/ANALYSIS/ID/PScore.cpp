@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/ANALYSIS/NUXL/PScore.h>
+#include <OpenMS/ANALYSIS/ID/PScore.h>
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>

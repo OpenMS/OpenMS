@@ -13,7 +13,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/ANALYSIS/NUXL/PScore.h>
+#include <OpenMS/ANALYSIS/ID/PScore.h>
 
 #include <limits>
 #include <vector>

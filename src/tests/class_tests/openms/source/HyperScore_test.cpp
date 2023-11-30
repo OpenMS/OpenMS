@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/NUXL/HyperScore.h>
+#include <OpenMS/ANALYSIS/ID/HyperScore.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
