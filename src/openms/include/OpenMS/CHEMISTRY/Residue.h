@@ -50,6 +50,9 @@ public:
      *
      * Formulae that need to be added to the internal residues to get to
      * fragment type from http://www.matrixscience.com/help/fragmentation_help.html
+     * 
+     * Which means that we follow Biemann nomenclature.
+     * For a small description of the differernt ion types, see the enum @ref ResidueType.
      */
     //@{
 
@@ -117,15 +120,35 @@ public:
       return to_full;
     }
 
+    inline static const EmpiricalFormula& getInternalToZp1Ion()
+    {
+      // Mind the "-"
+      static const EmpiricalFormula to_full =
+        getInternalToCTerm() - EmpiricalFormula("NH");
+      return to_full;
+    }
+
+    inline static const EmpiricalFormula& getInternalToZp2Ion()
+    {
+      // Mind the "-"
+      static const EmpiricalFormula to_full =
+        getInternalToCTerm() - EmpiricalFormula("N");
+      return to_full;
+    }
+
     //@}
 
     /** @name Enums
     */
     //@{
+
+    /// Residue types: Note that all weights and elemental compositions of fragment "ions" are given for their neutral forms.
+    /// Furthermore, all fragment ion types are based on the Biemann nomenclature (http://www.matrixscience.com/help/fragmentation_help.html)
+    /// See https://github.com/OpenMS/OpenMS/issues/7219 for a discussion with more details and links.
     enum ResidueType
     {
       Full = 0,       ///< with N-terminus and C-terminus
-      Internal,       ///< internal, without any termini
+      Internal,       ///< internal residue, without any termini
       NTerminal,      ///< only N-terminus
       CTerminal,      ///< only C-terminus
       AIon,           ///< MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
@@ -133,7 +156,9 @@ public:
       CIon,           ///< MS:1001231 N-terminus up to the amide/C-alpha bond
       XIon,           ///< MS:1001228 amide/C-alpha bond up to the C-terminus
       YIon,           ///< MS:1001220 peptide bond up to the C-terminus
-      ZIon,           ///< MS:1001230 C-alpha/carbonyl carbon bond
+      ZIon,           ///< MS:1001230 C-alpha/carbonyl carbon bond [CID fragment]
+      Zp1Ion,         ///< MS:1001230 C-alpha/carbonyl carbon bond (free radical, z+1 "ion") [main EAD fragment]
+      Zp2Ion,         ///< MS:1001230 C-alpha/carbonyl carbon bond (free radical, z+2 "ion" with additional abstracted hydrogen) [EAD fragment at higher precursor charges]
       Precursor,      ///< MS:1001523 Precursor ion
       BIonMinusH20,   ///< MS:1001222 b ion without water
       YIonMinusH20,   ///< MS:1001223 y ion without water
@@ -377,7 +402,7 @@ public:
     //@}
 
     /// helper for mapping residue types to letters for Text annotations and labels
-    static char residueTypeToIonLetter(const ResidueType& res_type);
+    static std::string residueTypeToIonLetter(const ResidueType& res_type);
 
     /// Write as Origin+Modification, e.g. M(Oxidation), or X[945.34] or N[+14.54] for user-defined mods.
     /// This requires the Residue to have a valid OneLetterCode and an optional (but valid) ResidueModification (see ResidueModification::toString())
@@ -446,15 +471,17 @@ protected:
     std::set<String> residue_sets_;
 
     // pre-calculated residue type delta weights for more efficient weight calculation
-    double internal_to_full_monoweight_ = getInternalToFull().getMonoWeight();
-    double internal_to_nterm_monoweight_ = getInternalToNTerm().getMonoWeight();
-    double internal_to_cterm_monoweight_ = getInternalToCTerm().getMonoWeight();
-    double internal_to_a_monoweight_ = getInternalToAIon().getMonoWeight();
-    double internal_to_b_monoweight_ = getInternalToBIon().getMonoWeight();
-    double internal_to_c_monoweight_ = getInternalToCIon().getMonoWeight();
-    double internal_to_x_monoweight_ = getInternalToXIon().getMonoWeight();
-    double internal_to_y_monoweight_ = getInternalToYIon().getMonoWeight();
-    double internal_to_z_monoweight_ = getInternalToZIon().getMonoWeight();
+    static const double internal_to_full_monoweight_;
+    static const double internal_to_nterm_monoweight_;
+    static const double internal_to_cterm_monoweight_;
+    static const double internal_to_a_monoweight_;
+    static const double internal_to_b_monoweight_;
+    static const double internal_to_c_monoweight_;
+    static const double internal_to_x_monoweight_;
+    static const double internal_to_y_monoweight_;
+    static const double internal_to_z_monoweight_;
+    static const double internal_to_zp1_monoweight_;
+    static const double internal_to_zp2_monoweight_;
   };
 
   // write 'name threelettercode onelettercode formula'

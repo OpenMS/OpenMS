@@ -89,21 +89,22 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network)
 
 ## setup the argumentes to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
-set(OPENMS_DEP_PRIVATE_LIBRARIES 
+set(OPENMS_DEP_PRIVATE_LIBRARIES
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
-  ${LPTARGET} 
+  ${LPTARGET}
   BZip2::BZip2
   Boost::boost
   Boost::date_time
   Boost::iostreams
   Boost::regex
   Eigen3::Eigen
-  GTE 
-  Quadtree 
+  GTE
+  Quadtree
   SIMDe
   SQLiteCpp
   ZLIB::ZLIB
   nlohmann_json::nlohmann_json
+  tdl::tdl
   )
 
 ## ----------

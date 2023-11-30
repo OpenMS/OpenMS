@@ -17,7 +17,7 @@
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
-#include <QFileInfo>
+#include <QtCore/QFileInfo>
 #include <QtCore/QRegExp>
 
 #include <iomanip>     // setw

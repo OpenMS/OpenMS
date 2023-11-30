@@ -167,7 +167,7 @@ namespace OpenMS
         pids.back().setHigherScoreBetter(higher_score_better);
         pids.back().setScoreType(score_name);
         pids.back().setMetaValue(Constants::UserParam::ID_MERGE_INDEX, map_filename_to_idx.at(raw_file_name));
-        pids.back().setRT(row[to_idx.at("retentiontime")].toDouble());
+        pids.back().setRT(row[to_idx.at("retentiontime")].toDouble() * 60.0); // search engines typically write minutes (e.g., sage)
         pids.back().setMetaValue("PinSpecId", sSpecId);
         // Since ScanNr is the closest to help in identifying the spectrum in the file later on,
         // we use it as spectrum_reference. Since it can be integer only or the complete
@@ -200,7 +200,7 @@ namespace OpenMS
       
       if (charge != 0)
       {
-        pids.back().setMZ((row[to_idx.at("ExpMass")].toDouble() - std::fabs(charge) * Constants::PROTON_MASS_U) / std::fabs(charge));
+        pids.back().setMZ(row[to_idx.at("ExpMass")].toDouble() / std::fabs(charge) + Constants::PROTON_MASS_U);
       }
 
       sProteins.split(';', accessions);

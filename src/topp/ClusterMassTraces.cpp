@@ -7,8 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 
@@ -102,10 +101,8 @@ class TOPPClusterMassTraces
     double add_precursor = getDoubleOption_("add_precursor");
     // double max_intensity_cutoff_ = getDoubleOption_("max_intensity_cutoff");
 
-    ConsensusXMLFile consensus_f;
-    consensus_f.setLogType(log_type_);
     ConsensusMap masstrace_map;
-    consensus_f.load(infile, masstrace_map);
+    FileHandler().loadConsensusFeatures(infile, masstrace_map, {FileTypes::CONSENSUSXML}, log_type_);
 
     MSExperiment pseudo_spectra;
 
@@ -140,7 +137,7 @@ class TOPPClusterMassTraces
         pseudo_spectra[i].setPrecursors(preclist);
       }
     }
-    MzMLFile().store(out,pseudo_spectra);
+    FileHandler().storeExperiment(out,pseudo_spectra, {FileTypes::MZML});
 
     return EXECUTION_OK;
   }

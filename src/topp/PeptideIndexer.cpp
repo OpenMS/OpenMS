@@ -9,7 +9,6 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -116,9 +115,7 @@ protected:
     std::vector<ProteinIdentification> prot_ids;
     std::vector<PeptideIdentification> pep_ids;
 
-    IdXMLFile idxmlfile;
-    idxmlfile.setLogType(this->log_type_);
-    idxmlfile.load(in, prot_ids, pep_ids);
+    FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
 
     if (db_name.empty())
     { // determine from metadata in idXML
@@ -179,7 +176,7 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    idxmlfile.store(out, prot_ids, pep_ids);
+    FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
 
     if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
     {

@@ -13,10 +13,6 @@
 // Files
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
@@ -142,7 +138,7 @@ using namespace OpenMS;
   setting @p -Scoring:TransitionGroupPicker:compute_peak_quality false which will
   disable the filtering of peaks by chromatographic quality. Furthermore, you
   can adjust the smoothing parameters for the peak picking, by adjusting
-  @p -Scoring:TransitionGroupPicker:PeakPickerMRM:sgolay_frame_length or using a
+  @p -Scoring:TransitionGroupPicker:PeakPickerChromatogram:sgolay_frame_length or using a
   Gaussian smoothing based on your estimated peak width. Adjusting the signal
   to noise threshold will make the peaks wider or smaller.
 
@@ -541,23 +537,23 @@ protected:
       feature_finder_param.remove("TransitionGroupPicker:stop_after_intensity_ratio");
 
       // Peak Picker
-      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:use_gauss", "false");
-      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:sgolay_polynomial_order", 3);
-      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:sgolay_frame_length", 11);
-      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
-      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:remove_overlapping_peaks", "true");
-      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages", "false"); // no log messages
+      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:use_gauss", "false");
+      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:sgolay_polynomial_order", 3);
+      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:sgolay_frame_length", 11);
+      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:peak_width", -1.0);
+      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:remove_overlapping_peaks", "true");
+      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:write_sn_log_messages", "false"); // no log messages
       // TODO it seems that the legacy method produces slightly larger peaks, e.g. it will not cut off peaks too early
-      // however the same can be achieved by using a relatively low SN cutoff in the -Scoring:TransitionGroupPicker:PeakPickerMRM:signal_to_noise 0.5
+      // however the same can be achieved by using a relatively low SN cutoff in the -Scoring:TransitionGroupPicker:PeakPickerChromatogram:signal_to_noise 0.5
       feature_finder_param.setValue("TransitionGroupPicker:recalculate_peaks_max_z", 0.75);
-      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
-      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 0.1);
-      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 30.0);
+      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:method", "corrected");
+      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:signal_to_noise", 0.1);
+      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:gauss_width", 30.0);
       feature_finder_param.setValue("uis_threshold_sn", -1);
       feature_finder_param.setValue("uis_threshold_peak_area", 0);
-      feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
-      feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
-      feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:stop_after_feature");
+      feature_finder_param.remove("TransitionGroupPicker:PeakPickerChromatogram:sn_win_len");
+      feature_finder_param.remove("TransitionGroupPicker:PeakPickerChromatogram:sn_bin_count");
+      feature_finder_param.remove("TransitionGroupPicker:PeakPickerChromatogram:stop_after_feature");
 
       // EMG Scoring - turn off by default since it is very CPU-intensive
       feature_finder_param.remove("Scores:use_elution_model_score");
@@ -949,7 +945,7 @@ protected:
     {
       addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));
       out_featureFile.ensureUniqueId();
-      FeatureXMLFile().store(out, out_featureFile);
+      FileHandler().storeFeatures(out, out_featureFile, {FileTypes::FEATUREXML});
     }
 
     delete chromatogramConsumer;

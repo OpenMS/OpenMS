@@ -20,7 +20,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <memory> // for std::unique_ptr
@@ -216,10 +216,8 @@ protected:
     // loading input
     //-------------------------------------------------------------
 
-    MzMLFile mz_data_file;
     PeakMap exp;
-    mz_data_file.setLogType(log_type_);
-    mz_data_file.load(in, exp);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
     //-------------------------------------------------------------
     // init quant method
@@ -263,7 +261,7 @@ protected:
     const auto empty_feat = [](const ConsensusFeature& c){return c.getPeptideIdentifications().empty() && c.metaValueExists("all_empty") && c.getMetaValue("all_empty") == "true";};
     consensus_map_quant.erase(remove_if(consensus_map_quant.begin(), consensus_map_quant.end(), empty_feat), consensus_map_quant.end());
     consensus_map_quant.ensureUniqueId();
-    ConsensusXMLFile().store(out, consensus_map_quant);
+    FileHandler().storeConsensusFeatures(out, consensus_map_quant);
 
     return EXECUTION_OK;
   }

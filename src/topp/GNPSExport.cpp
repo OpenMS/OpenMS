@@ -13,7 +13,7 @@
 #include <OpenMS/FORMAT/GNPSQuantificationFile.h>
 #include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -84,7 +84,7 @@ class TOPPGNPSExport : public TOPPBase
 public:
   TOPPGNPSExport() : TOPPBase(
     "GNPSExport",
-    "Tool to export representative consensus MS/MS scan per consensusElement into a .MGF file format.\nSee the documentation on https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking-with-openms",
+    "Export representative consensus MS/MS scan per consensusElement into a .MGF file format.\nSee the documentation on https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking-with-openms",
     true,
     {
       {
@@ -139,7 +139,7 @@ protected:
 
     // load ConsensusMap from file
     ConsensusMap cm;
-    ConsensusXMLFile().load(consensus_file_path, cm);
+    FileHandler().loadConsensusFeatures(consensus_file_path, cm, {FileTypes::CONSENSUSXML});
 
     // if at least one of the features has an annotation for Constants::UserParam::IIMN_LINKED_GROUPS, annotate ConsensusMap for IIMN
     for (const auto& f: cm)

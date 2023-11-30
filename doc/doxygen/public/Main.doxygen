@@ -52,6 +52,7 @@
 
         Development:
         <UL>
+          <LI> @subpage developer_tutorial
           <LI> @subpage coding_conventions
           <LI> @subpage developer_faq
           <LI> @subpage cpp_guide

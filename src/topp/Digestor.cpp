@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -227,9 +226,10 @@ protected:
     }
     else
     {
-      IdXMLFile().store(outputfile_name,
+      FileHandler().storeIdentifications(outputfile_name,
                         protein_identifications,
-                        identifications);
+                        identifications,
+                        {FileTypes::IDXML});
     }
 
     Size pep_remaining_count = (has_FASTA_output ? fasta_out_count : identifications.size());

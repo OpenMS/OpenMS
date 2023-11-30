@@ -10,9 +10,9 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <QtGui/QTextDocument>
-#include <QNetworkReply>
-#include <QNetworkProxy>
-#include <QSslSocket>
+#include <QtNetwork/QNetworkReply>
+#include <QtNetwork/QNetworkProxy>
+#include <QtNetwork/QSslSocket>
 
 // #define MASCOTREMOTEQUERY_DEBUG
 // #define MASCOTREMOTEQUERY_DEBUG_FULL_QUERY

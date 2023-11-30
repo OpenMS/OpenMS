@@ -1348,138 +1348,9 @@ namespace OpenMS::Internal
                                      const String& unit_accession)
     {
       // the actual value stored in the CVParam
-      // we assume for now that it is a string value, we update the type later on
-      DataValue termValue = value;
-
-      //Abort on unknown terms
-      if (!cv_.exists(accession))
-      {
-        //in 'sample' several external CVs are used (Brenda, GO, ...). Do not warn then.
-        if (parent_tag != "sample")
-        {
-          warning(LOAD, String("Unknown cvParam '") + accession + "' in tag '" + parent_tag + "'.");
-          return;
-        }
-      }
-      else
-      {
-        const ControlledVocabulary::CVTerm& term = cv_.getTerm(accession);
-
-        //obsolete CV terms
-        if (term.obsolete)
-        {
-          warning(LOAD, String("Obsolete CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "'.");
-        }
-        //check if term name and parsed name match
-        String parsed_name = name;
-        parsed_name.trim();
-        String correct_name = term.name;
-        correct_name.trim();
-        if (parsed_name != correct_name)
-        {
-          warning(LOAD, String("Name of CV term not correct: '") + term.id + " - " + parsed_name + "' should be '" + correct_name + "'");
-        }
-        if (term.obsolete)
-        {
-          warning(LOAD, String("Obsolete CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "'.");
-        }
-        //values used in wrong places and wrong value types
-        if (!value.empty())
-        {
-          if (term.xref_type == ControlledVocabulary::CVTerm::NONE)
-          {
-            //Quality CV does not state value type :(
-            if (!accession.hasPrefix("PATO:"))
-            {
-              warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
-            }
-          }
-          else
-          {
-            switch (term.xref_type)
-            {
-              //string value can be anything
-              case ControlledVocabulary::CVTerm::XSD_STRING:
-                break;
-
-              //int value => try casting
-              case ControlledVocabulary::CVTerm::XSD_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_NEGATIVE_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_POSITIVE_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_NON_NEGATIVE_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_NON_POSITIVE_INTEGER:
-                try
-                {
-                  termValue = value.toInt();
-                }
-                catch (Exception::ConversionError&)
-                {
-                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
-                  return;
-                }
-                break;
-
-              //double value => try casting
-              case ControlledVocabulary::CVTerm::XSD_DECIMAL:
-                try
-                {
-                  termValue = value.toDouble();
-                }
-                catch (Exception::ConversionError&)
-                {
-                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
-                  return;
-                }
-                break;
-
-              //date string => try conversion
-              case ControlledVocabulary::CVTerm::XSD_DATE:
-                try
-                {
-                  DateTime tmp;
-                  tmp.set(value);
-                }
-                catch (Exception::ParseError&)
-                {
-                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
-                  return;
-                }
-                break;
-
-              default:
-                warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' has the unknown value type '" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type) + "'.");
-                break;
-            }
-          }
-        }
-        //no value, although there should be a numerical value
-        else if (term.xref_type != ControlledVocabulary::CVTerm::NONE &&
-                 term.xref_type != ControlledVocabulary::CVTerm::XSD_STRING && // should be numerical
-                 !cv_.isChildOf(accession, "MS:1000513") // here the value type relates to the binary data array, not the 'value=' attribute!
-                )
-        {
-          warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
-          return;
-        }
-      }
-
-      if (!unit_accession.empty())
-      {
-        if (unit_accession.hasPrefix("UO:"))
-        {
-          termValue.setUnit(unit_accession.suffix(unit_accession.size() - 3).toInt());
-          termValue.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
-        }
-        else if (unit_accession.hasPrefix("MS:"))
-        {
-          termValue.setUnit(unit_accession.suffix(unit_accession.size() - 3).toInt());
-          termValue.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
-        }
-        else
-        {
-          warning(LOAD, String("Unhandled unit '") + unit_accession + "' in tag '" + parent_tag + "'.");
-        }
-      }
+      DataValue termValue = XMLHandler::cvParamToValue(cv_, parent_tag, accession, name, value, unit_accession);
+      
+      if (termValue == DataValue::EMPTY) return; // conversion failed (warning message was emitted in cvParamToValue())
 
       //------------------------- run ----------------------------
       if (parent_tag == "run")
@@ -1914,6 +1785,14 @@ namespace OpenMS::Internal
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ETD);
           }
+          else if (accession == "MS:1003182") //electron transfer and collision-induced dissociation
+          {
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ETciD);
+          }
+          else if (accession == "MS:1002631") //electron transfer and higher-energy collision dissociation
+          {
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::EThcD);
+          }
           else if (accession == "MS:1000599") //pulsed q dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PQD);
@@ -2025,6 +1904,14 @@ namespace OpenMS::Internal
           else if (accession == "MS:1000598") //electron transfer dissociation
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ETD);
+          }
+          else if (accession == "MS:1003182") //electron transfer and collision-induced dissociation
+          {
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ETciD);
+          }
+          else if (accession == "MS:1002631") //electron transfer and higher-energy collision dissociation
+          {
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::EThcD);
           }
           else if (accession == "MS:1000599") //pulsed q dissociation
           {
@@ -3965,6 +3852,14 @@ namespace OpenMS::Internal
       if (precursor.getActivationMethods().count(Precursor::ETD) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000598\" name=\"electron transfer dissociation\" />\n";
+      }
+      if (precursor.getActivationMethods().count(Precursor::ETciD) != 0)
+      {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1003182\" name=\"electron transfer and collision-induced dissociation\" />\n";
+      }
+      if (precursor.getActivationMethods().count(Precursor::EThcD) != 0)
+      {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002631\" name=\"electron transfer and higher-energy collision dissociation\" />\n";
       }
       if (precursor.getActivationMethods().count(Precursor::PQD) != 0)
       {

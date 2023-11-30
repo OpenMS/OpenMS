@@ -11,9 +11,9 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <QtCore/QObject>
 #include <QtCore/QString>
+#include <QtCore/QTimer>
 #include <QtNetwork/QNetworkAccessManager>
-#include <QTimer>
-#include <QNetworkReply>
+#include <QtNetwork/QNetworkReply>
 
 
 namespace OpenMS
