@@ -1,0 +1,3 @@
+FeatureGroupIndex	FileName	MonoisotopicMass	AverageMass	StartRetentionTime(FWHM)	EndRetentionTime(FWHM)	HighestApexRetentionTime	MedianApexRetentionTime	FeatureGroupQuantity	AllAreaUnderTheCurve	SumIntensity	MinCharge	MaxCharge	ChargeCount	MostAbundantFeatureCharge	IsotopeCosineScore	FeatureScore
+0	/Users/jeek/Documents/A4B/FDQ/spike-in/20220414_Ecoli_ProtMix_A_R2.mzML	9106.356725	9111.983329	3818.642169	3872.587401	3833.982205	3833.982205	96057395638.766891	99301427620.246201	99301427696.246170	6	11	6	8	0.993723	0.434236
+1	/Users/jeek/Documents/A4B/FDQ/spike-in/20220414_Ecoli_ProtMix_A_R2.mzML	11859.06083	11866.41579	4274.758914	4339.394321	4301.454786	4304.966854	34051978684.965397	36135322458.337585	36135322614.337563	7	17	11	13	0.999814	0.762729

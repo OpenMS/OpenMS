@@ -775,6 +775,20 @@ add_test("TOPP_FLASHDeconv_1" ${TOPP_BIN_PATH}/FLASHDeconv -test -in ${DATA_DIR_
 # FuzzyDiff cannot give out tolerances/whitelist for tabular format outputs (.tsv)
 
 #------------------------------------------------------------------------------
+# FLASHQuant tests
+add_test("TOPP_FLASHQuant_1" ${TOPP_BIN_PATH}/FLASHQuant -test -in ${DATA_DIR_TOPP}/FLASHQuant_sample_input.mzML -out FLASHQuant_1.tmp.tsv)
+# Currently just testing if the tool runs
+# We cannot currently test the correctness of the tsv output
+# FuzzyDiff cannot give out tolerances/whitelist for tabular format outputs (.tsv)
+
+#------------------------------------------------------------------------------
+# TopDownConsensusFeatureGroup tests
+add_test("TOPP_TopDownConsensusFeatureGroup_1" ${TOPP_BIN_PATH}/TopDownConsensusFeatureGroup -test -in ${DATA_DIR_TOPP}/FLASHQuant_sample_output_1.tsv ${DATA_DIR_TOPP}/FLASHQuant_sample_output_2.tsv -out TopDownConsensusFeatureGroup_1.tmp.tsv)
+# Currently just testing if the tool runs
+# We cannot currently test the correctness of the tsv output
+# FuzzyDiff cannot give out tolerances/whitelist for tabular format outputs (.tsv)
+
+#------------------------------------------------------------------------------
 # GNPSExport tests
 # test mostintense output
 add_test("TOPP_GNPSExport_1" ${TOPP_BIN_PATH}/GNPSExport -test -ini ${DATA_DIR_TOPP}/GNPSExport_1_mostint.ini -in_cm ${DATA_DIR_TOPP}/GNPSExport_cons1.consensusXML -in_mzml ${DATA_DIR_TOPP}/GNPSExport_mzml1.mzML ${DATA_DIR_TOPP}/GNPSExport_mzml2.mzML -out GNPSExport_1_out.tmp.mgf -out_quantification GNPSExport_1_out_quant.tmp.txt)
@@ -2349,7 +2363,7 @@ add_test("TOPP_ProteinQuantifier_8" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in
 add_test("TOPP_ProteinQuantifier_8_out1" ${DIFF} -in1 ProteinQuantifier_8_output.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_8_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_8_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_8")
 add_test("TOPP_ProteinQuantifier_9" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_9_output.tmp.csv -mztab ProteinQuantifier_9_output_mztab.tmp.mzTab -top:N 3 -top:include_all -consensus:fix_peptides -top:aggregate sum)
-add_test("TOPP_ProteinQuantifier_9_out1" ${DIFF} -in1 ProteinQuantifier_9_output.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_9_output.txt -whitelist "computed from file" )
+add_test("TOPP_ProteinQuantifier_9_out1" ${DIFF} -in1 ProteinQuantifierㅣ_9_output.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_9_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_9_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_9")
 add_test("TOPP_ProteinQuantifier_9_out2" ${DIFF} -in1 ProteinQuantifier_9_output_mztab.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_9_output_mztab.mzTab -whitelist "software")
 set_tests_properties("TOPP_ProteinQuantifier_9_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_9")

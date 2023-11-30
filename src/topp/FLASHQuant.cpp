@@ -44,7 +44,7 @@ public:
   typedef FLASHQuantHelper::FeatureSeed FeatureSeed;
 
   TOPPFLASHQuant():
-    TOPPBase("FLASHQuant", "The intact protein feature detection for quantification", false, {}, false), ProgressLogger()
+    TOPPBase("FLASHQuant", "The intact protein feature detection for quantification", false, {}), ProgressLogger()
   {
     this->setLogType(CMD);
   }
