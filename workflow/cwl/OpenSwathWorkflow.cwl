@@ -252,6 +252,9 @@ inputs:
   Scoring__strict:
     doc: Whether to error (true) or skip (false) if a transition in a transition group does not have a corresponding chromatogram.
     type: string?
+  Scoring__use_ms1_ion_mobility:
+    doc: Performs ion mobility extraction in MS1. Set to false if MS1 spectra do not contain ion mobility
+    type: string?
   Scoring__TransitionGroupPicker__stop_after_feature:
     doc: Stop finding after feature (ordered by intensity; -1 means do not stop).
     type: long?
