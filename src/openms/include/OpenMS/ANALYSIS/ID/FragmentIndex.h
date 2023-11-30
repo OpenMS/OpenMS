@@ -33,10 +33,19 @@ namespace OpenMS
     /** @brief Peptide with all important infos needed for the FI-structure
      */
     struct Peptide {
-      UInt32 protein_idx_;            ///< The index in fasta entries vector
-      UInt32 modification_idx;        ///< The modification index which needed to reconstruct the modification
-      std::pair<uint16_t , uint16_t> sequence; ///< The substring of the protein at position protein_idx_
-      float precursor_mz;                  ///< mz of the peptide
+
+      // We need a constructor in order to emplace back
+      Peptide(UInt32 protein_idx, UInt32 modification_idx, std::pair<uint16_t , uint16_t> sequence, float precursor_mz):
+        protein_idx_(protein_idx),
+        modification_idx_(modification_idx),
+        sequence_(sequence),
+        precursor_mz_(precursor_mz)
+        {}
+
+        UInt32 protein_idx_;            ///< The index in fasta entries vector
+        UInt32 modification_idx_;        ///< The modification index which needed to reconstruct the modification
+        std::pair<uint16_t , uint16_t> sequence_; ///< The substring of the protein at position protein_idx_
+        float precursor_mz_;                  ///< mz of the peptide
     };
 
     /**
@@ -44,7 +53,7 @@ namespace OpenMS
      */
     struct SpectrumMatch
     {
-      uint32_t num_matched_{};       ///< Number of peaks-fragment hits
+      uint32_t num_matched_{};      ///< Number of peaks-fragment hits
       uint16_t precursor_charge_{};  ///< The precursor_charged used for the performed search
       int16_t isotope_error_{};      /// < The isotope_error used for the performed search
       size_t peptide_idx_{};         ///< The idx this struct belongs to
@@ -136,7 +145,7 @@ namespace OpenMS
      * @param peak The queried peak
      * @param peptide_idx_range The range of precursors/peptides the peptide could potentially belongs to
      * @param peak_charge The charge of the peak. Is used to calculate the mass from the mz
-     * @return a vector of Hits(matching peptide_idx_range and matching fragment_mz) containing the idx of the hitted peptide and the mass of the hit
+     * @return a vector of Hits(matching peptide_idx_range and matching fragment_mz_) containing the idx of the hitted peptide and the mass of the hit
      */
     std::vector<Hit> query(Peak1D peak, std::pair<size_t, size_t> peptide_idx_range, uint16_t peak_charge);
 
@@ -161,7 +170,7 @@ protected:
      *
      * @param fasta_entries
      */
-    void generate_peptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
+    void generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
 
     std::vector<Peptide> fi_peptides_;   ///< vector of all (digested) peptides
 
@@ -179,8 +188,12 @@ private:
      */
     struct Fragment
     {
-      UInt32 peptide_idx; // 32 bit in sage
-      float fragment_mz;
+      Fragment(UInt32 peptide_idx, float fragment_mz):
+          peptide_idx_(peptide_idx),
+          fragment_mz_(fragment_mz)
+      {}
+      UInt32 peptide_idx_; // 32 bit in sage
+      float fragment_mz_;
     };
 
 

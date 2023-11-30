@@ -35,8 +35,8 @@ LPWrapper.h
 MassExplainer.h
 MatchedIterator.h
 Matrix.h
-MultiFragment.h
-MultiPeak.h
+#MultiFragment.h
+#MultiPeak.h
 OSWData.h
 Param.h
 ParamValue.h

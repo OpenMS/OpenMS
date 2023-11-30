@@ -45,8 +45,8 @@ PercolatorFeatureSetHelper.cpp
 SimpleSearchEngineAlgorithm.cpp
 SiriusAdapterAlgorithm.cpp
 SiriusMSConverter.cpp
-FragmentIndexTagGenerator.cpp
-FragmentIndexTagGeneratorNode.cpp
+#FragmentIndexTagGenerator.cpp
+#FragmentIndexTagGeneratorNode.cpp
 )
 
 ### add path to the filenames

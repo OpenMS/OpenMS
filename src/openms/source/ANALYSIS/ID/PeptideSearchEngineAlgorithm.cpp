@@ -482,7 +482,7 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       for (const auto& sms : top_sms.hits_)
       {
         FragmentIndex::Peptide sms_pep = fragment_index_.getPeptides()[sms.peptide_idx_];
-        pair<size_t, size_t> candidate_snippet = sms_pep.sequence;
+        pair<size_t, size_t> candidate_snippet = sms_pep.sequence_;
         AASequence unmod_candidate = AASequence::fromString(fasta_db[sms_pep.protein_idx_].sequence.substr(candidate_snippet.first, candidate_snippet.second));
         AASequence mod_candidate;
         //reapply modifications.
@@ -493,7 +493,7 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
           ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, unmod_candidate);
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, unmod_candidate, modifications_max_variable_mods_per_peptide_, mod_candidates);
-          mod_candidate = mod_candidates[sms_pep.modification_idx];
+          mod_candidate = mod_candidates[sms_pep.modification_idx_];
         }
         else
         {

@@ -486,6 +486,7 @@ set(analysis_executables_list
   FIAMSScheduler_test
   FLASHDeconvAlgorithm_test
   FLASHDeconvHelperStructs_test
+  FragmentIndex_test
   HiddenMarkovModel_test
   IDBoostGraph_test
   IDMapper_test
