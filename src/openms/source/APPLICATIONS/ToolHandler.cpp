@@ -81,6 +81,7 @@ namespace OpenMS
     tools_map["FileInfo"] = Internal::ToolDescription("FileInfo", cat_file_filter_extract_merge);
     tools_map["FileMerger"] = Internal::ToolDescription("FileMerger", cat_file_filter_extract_merge);
     tools_map["FLASHDeconv"] = Internal::ToolDescription("FLASHDeconv", cat_topdown);
+    tools_map["FLASHQuant"] = Internal::ToolDescription("FLASHQuant", cat_topdown);
     tools_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", cat_dev);
     // tools_map["GenericWrapper"] = ... below (extra handling)
     tools_map["GNPSExport"] = Internal::ToolDescription("GNPSExport", cat_file_converter);
@@ -193,6 +194,7 @@ namespace OpenMS
     tools_map["TargetedFileConverter"] = Internal::ToolDescription("TargetedFileConverter", cat_file_converter);
     tools_map["TextExporter"] = Internal::ToolDescription("TextExporter", cat_file_converter);
     tools_map["TICCalculator"] = Internal::ToolDescription("TICCalculator", cat_misc);
+    tools_map["TopDownConsensusFeatureGroup"] = Internal::ToolDescription("TopDownConsensusFeatureGroup", cat_topdown);
     tools_map["TriqlerConverter"] = Internal::ToolDescription("TriqlerConverter", cat_file_converter);
     tools_map["XFDR"] = Internal::ToolDescription("XFDR", cat_crosslinking);
     tools_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", cat_dev); 
