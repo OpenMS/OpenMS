@@ -249,7 +249,7 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
     """
 
     # No annotation -> Just return peak styling information.
-    if not annotation:
+    if not annotation and matched is None:
         return colors.get(None), zorders.get(None)
     # Else: Add the textual annotation.
     ion_type = ''
@@ -267,6 +267,8 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
 
     if matched is not None and not matched:
         color = '#aaaaaa'
+    if matched is not None and matched:
+        color = '#ff0000'
 
     if annotate_ions:
         annotation_pos = intensity
@@ -322,6 +324,10 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
     if ax is None:
         ax = plt.gca()
 
+    if matched_peaks is not None and color_ions:
+        logging.warning('color_ions is ignored when matched_peaks is provided')
+        color_ions = False
+
     mz, intensity = spectrum.get_peaks()
     min_mz = max(0, math.floor(mz[0] / 100 - 1) * 100)
     max_mz = math.ceil(mz[-1] / 100 + 1) * 100
@@ -347,7 +353,10 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
         if mirror_intensity:
             peak_intensity *= -1
 
-        matched = (matched_peaks is not None and i_peak in matched_peaks) or annotations is not None
+        if matched_peaks is not None:
+            matched = matched_peaks is not None and i_peak in matched_peaks
+        else:
+            matched = None
 
         color, zorder = _annotate_ion(
             peak_mz, peak_intensity, peak_annotation, color_ions, annotate_ions,
@@ -375,9 +384,8 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
     return ax
 
 
-def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", alignment: Optional[List] = None,
-                         spectrum_top_kws: Optional[Dict] = None, spectrum_bottom_kws: Optional[Dict] = None,
-                         ax=None):
+def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", spectrum_top_kws: Optional[Dict] = None,
+                         spectrum_bottom_kws: Optional[Dict] = None, ax=None):
     """Mirror plot two MS/MS spectra.
 
     :param spec_top: The spectrum to be plotted on the top.
@@ -416,16 +424,11 @@ def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", alig
     if spectrum_bottom_kws is None:
         spectrum_bottom_kws = {}
 
-    if alignment is not None:
-        matched_peaks_bottom, matched_peaks_top = set(zip(*alignment))
-    else:
-        matched_peaks_bottom, matched_peaks_top = None, None
-
     # Top spectrum.
-    plot_spectrum(spec_top, mirror_intensity=False, ax=ax, matched_peaks=matched_peaks_top, **spectrum_top_kws)
+    plot_spectrum(spec_top, mirror_intensity=False, ax=ax, **spectrum_top_kws)
     y_max = ax.get_ylim()[1]
     # Mirrored bottom spectrum.
-    plot_spectrum(spec_bottom, mirror_intensity=True, ax=ax, matched_peaks=matched_peaks_bottom, **spectrum_bottom_kws)
+    plot_spectrum(spec_bottom, mirror_intensity=True, ax=ax, **spectrum_bottom_kws)
     y_min = ax.get_ylim()[0]
     ax.set_ylim(y_min, y_max)
 
