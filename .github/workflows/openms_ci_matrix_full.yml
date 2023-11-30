@@ -143,6 +143,53 @@ jobs:
         fi
       shell: bash
 
+    # Create the changelog for the release from our overall changelog
+    - id: create_changelog
+      if: matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu')
+      shell: bash
+      name: Create changelog for release on Ubuntu + GCC
+      run: |
+        if [[ ${{ steps.extract_branch.outputs.RUN_NAME }} =~ ^release\/([0-9]+\.[0-9]+\.[0-9]+) ]]; then #FIXME readd trailing $ for regex to ONLY match actual releases.
+          VERSION_NUMBER=${BASH_REMATCH[1]}
+          echo "Version number: $VERSION_NUMBER"
+          VERSION_NUMBER="3.0.0" #FIXME remove this override, we apparently didn't actually put anything in the changelog for 2.9.1...
+          if [ "${VERSION_NUMBER##*.}" -eq "0" ] # Handle trailing 0 in major releases (eg 3.0.0)
+          then
+            VERSION_NUMBER=${VERSION_NUMBER%.*}
+          fi
+          grep -ne "----[[:space:]]*OpenMS" ${{ github.workspace }}/OpenMS/CHANGELOG > index_changelog.txt 
+          START=$(cat index_changelog.txt | grep -A 1 -e " $VERSION_NUMBER " | cut -f1 -d: | head -1)
+          END=$(cat index_changelog.txt | grep -A 1 -e " $VERSION_NUMBER " | cut -f1 -d: | tail -1)
+          echo "Extracting between lines:"
+          echo $START
+          echo $END
+          awk "NR > $START && NR < $END" OpenMS/CHANGELOG > ${{ github.workspace }}/changelog.txt
+
+          # check if we want to be marked as latest, and if we actually should.
+          if [[ 'true' == ${{ inputs.do_release }} ]]; then
+            if [['false' == ${{ inputs.knime }} || 'false' == ${{inputs.package}} ]]; then
+              echo "Can't do a release without building the OpenMS package and the KNIME package"
+              exit 1
+            else
+              if [['true' == ${{ inputs.mark_as_latest }} && "$(git tag -l $VERSION_NUMBER)" ]]; then
+                echo "Can't mark as latest, a tag with the same version already exists"
+                exit 1
+              fi
+            fi
+          else
+            if [['true' == ${{ inputs.mark_as_latest }} || 'true' == ${{inputs.announce_release}} ]]; then
+              echo "Can't mark as lates or announce release unless we do a release"
+              exit 1
+            fi
+          fi
+
+        else
+          echo "Branch name does not match the expected pattern."
+          exit 1
+        fi
+
+
+      
     - name: Emulate a Visual Studio shell (Windows)
       if: startsWith(matrix.os, 'windows')
       uses: egor-tensin/vs-shell@v2
@@ -284,32 +331,6 @@ jobs:
               echo $thirdpartytool >> $GITHUB_PATH
             fi
           done
-
-    # Create the changelog for the release from our overall changelog
-    - id: create_changelog
-      if: matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu')
-      shell: bash
-      name: Create changelog for release on Ubuntu + GCC
-      run: |
-        if [[ ${{ steps.extract_branch.outputs.RUN_NAME }} =~ ^release\/([0-9]+\.[0-9]+\.[0-9]+) ]]; then #FIXME readd trailing $ for regex to ONLY match actual releases.
-          VERSION_NUMBER=${BASH_REMATCH[1]}
-          echo "Version number: $VERSION_NUMBER"
-          VERSION_NUMBER="3.0.0" #FIXME remove this override, we apparently didn't actually put anything in the changelog for 2.9.1...
-          if [ "${VERSION_NUMBER##*.}" -eq "0" ] # Handle trailing 0 in major releases (eg 3.0.0)
-          then
-            VERSION_NUMBER=${VERSION_NUMBER%.*}
-          fi
-          grep -ne "----[[:space:]]*OpenMS" ${{ github.workspace }}/OpenMS/CHANGELOG > index_changelog.txt 
-          START=$(cat index_changelog.txt | grep -A 1 -e " $VERSION_NUMBER " | cut -f1 -d: | head -1)
-          END=$(cat index_changelog.txt | grep -A 1 -e " $VERSION_NUMBER " | cut -f1 -d: | tail -1)
-          echo "Extracting between lines:"
-          echo $START
-          echo $END
-          awk "NR > $START && NR < $END" OpenMS/CHANGELOG > ${{ github.workspace }}/changelog.txt
-        else
-          echo "Branch name does not match the expected pattern."
-          exit 1
-        fi
 
    # Upload the changelog to the same artifact that we will add the installers to.
     - name: Upload changelog as artifact
