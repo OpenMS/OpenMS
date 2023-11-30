@@ -54,7 +54,6 @@ namespace OpenMS
 
   OpenSwath::SpectrumPtr SpectrumAddition::addUpSpectra(const SpectrumSequence& all_spectra, double sampling_rate, bool filter_zeros)
   {
-    OPENMS_PRECONDITION(all_spectra.empty() || all_spectra[0]->getDataArrays().size() == 2, "Can only resample spectra with 2 data dimensions (no ion mobility spectra)")
 
     if (all_spectra.size() == 1) return all_spectra[0];
     if (all_spectra.empty())
@@ -136,8 +135,8 @@ namespace OpenMS
 
     if (!filter_zeros)
     {
-      OPENMS_POSTCONDITION( std::adjacent_find(added_spec->getMZArray()->data.begin(),
-           added_spec->getMZArray()->data.end(), std::greater<double>()) == added_spec->getMZArray()->data.end(),
+      OPENMS_POSTCONDITION(std::adjacent_find(resampled_peak_container->getMZArray()->data.begin(),
+           resampled_peak_container->getMZArray()->data.end(), std::greater<double>()) == resampled_peak_container->getMZArray()->data.end(),
            "Postcondition violated: m/z vector needs to be sorted!" )
 
 
@@ -155,8 +154,8 @@ namespace OpenMS
         }
       }
 
-      OPENMS_POSTCONDITION( std::adjacent_find(added_spec->getMZArray()->data.begin(),
-           added_spec->getMZArray()->data.end(), std::greater<double>()) == added_spec->getMZArray()->data.end(),
+      OPENMS_POSTCONDITION( std::adjacent_find(master_spectrum_filtered->getMZArray()->data.begin(),
+           master_spectrum_filtered->getMZArray()->data.end(), std::greater<double>()) == master_spectrum_filtered->getMZArray()->data.end(),
            "Postcondition violated: m/z vector needs to be sorted!" )
 
 
@@ -170,7 +169,6 @@ namespace OpenMS
                                              double sampling_rate,
                                              bool filter_zeros)
   {
-    OPENMS_PRECONDITION(! (im_range.isEmpty() || all_spectra[0].getFloatDataArrays().empty()), "Can only resample spectra with 2 data dimensions (no ion mobility spectra)")
     OpenSwath::SpectrumPtr added_spec(new OpenSwath::Spectrum);
 
     // If no spectra found return

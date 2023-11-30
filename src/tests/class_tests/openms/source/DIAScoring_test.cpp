@@ -68,7 +68,7 @@ OpenSwath::SpectrumPtr prepareIMSpectrum()
     // note that this peak at 602 is special since it is integrated from
     // [(600+2*1.0033548) - 0.025, (600+2*1.0033548)  + 0.025] = [601.9817096 to 602.0317096]
     601.97, 601.98, 601.99, 602.0, 602.01, 602.02, 602.03,
-    602.99, 603.0, 603.015, 603.01
+    602.99, 603.0, 603.01, 603.01
   };
 
   std::vector<double> imVector = {
