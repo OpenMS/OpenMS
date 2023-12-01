@@ -29,22 +29,21 @@ namespace OpenMS
     // using std::stable_sort instead of std::sort
     // to avoid unnecessary index re-orderings
     // when v contains elements of equal values
-    auto mzArr = spec.getMZArray()->data.begin();
+    // get the ordering of the indices where mz is sorted
+    OpenSwath::BinaryDataArrayPtr mzArr = spec.getMZArray();
     std::stable_sort(sorted_indices.begin(), sorted_indices.end(),
-       [mzArr](size_t i1, size_t i2) {return mzArr[i1] < mzArr[i2];});
+       [mzArr](size_t i1, size_t i2) {return mzArr->data[i1] < mzArr->data[i2];});
 
     // apply sorting across all arrays
     for (auto& da : spec.getDataArrays() )
     {
       if (da->data.empty()) continue;
-      OpenSwath::BinaryDataArrayPtr tmp(new OpenSwath::BinaryDataArray);
-      tmp->description = da->description;
-      tmp->data.reserve(sorted_indices.size());
       for (Size i = 0; i < sorted_indices.size(); ++i)
       {
-        tmp->data.push_back( da->data[ sorted_indices[i] ] );
+        auto j = sorted_indices[i];
+        while (j<i) j = sorted_indices[j];
+        std::swap(da->data[i], da->data[j]);
       }
-      da = tmp;
     }
 
     OPENMS_POSTCONDITION( std::adjacent_find(spec.getMZArray()->data.begin(),

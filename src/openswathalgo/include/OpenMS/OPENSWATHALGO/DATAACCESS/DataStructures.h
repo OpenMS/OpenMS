@@ -231,6 +231,12 @@ public:
       binaryDataArrayPtrs[1] = data;
     }
 
+    void setDriftTimeArray(BinaryDataArrayPtr data)
+    {
+      data->description = "Ion Mobility";
+      binaryDataArrayPtrs.push_back(data);
+    }
+
     /// get drift time array (may be null)
     BinaryDataArrayPtr getDriftTimeArray() const
     {
