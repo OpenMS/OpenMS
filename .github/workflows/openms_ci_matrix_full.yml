@@ -839,41 +839,29 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           function createGitTag() {
-            OWNER=$1
-            REPO=$2
-            REF=$3
-            SHA= gh api \
-              -H "Accept: application/vnd.github+json" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              /repos/$OWNER/$REPO/git/ref/$REF | jq '.object.sha'
-
+            REPO=$1
+            SHA=$2
             gh api \
               --method POST \
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
               /repos/${REPO}/git/refs \
               -f ref="refs/tags/${{ env.RUN_NAME }}" \
-            -f sha=${SHA}
+            -f sha="${SHA}"
           }
           
           function updateGitTag() {
-            OWNER=$1
-            REPO=$2
-            REF=$3
-            SHA= gh api \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            /repos/$OWNER/$REPO/git/ref/$REF | jq '.object.sha'
+            REPO=$1
+            SHA=$2
 
             gh api \
               --method PATCH \
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
               /repos/${REPO}/git/refs/tags/${{ env.RUN_NAME }} \
-              -f sha=${SHA} \
+              -f sha="${SHA}" \
               -F force=true
           }
-          #FIX THIS ON MONDAY TRAILING SLASHES? BAD NEWS! ALSO SOME OF THESE DON't HAVE 2.9.1 tags?
           DEOPENMS_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/de.openms.knime/git/ref/heads/develop |jq '.object.sha')
           GKN_SHA=$(curl -s -X GET https://api.github.com/repos/genericworkflownodes/GenericKnimeNodes/git/ref/heads/develop |jq '.object.sha')
           JSViewer_SHA=$(curl -s -X GET https://api.github.com/repos/genericworkflownodes/de.openms.knime.dynamicJSViewers/git/ref/heads/master |jq '.object.sha')
@@ -883,16 +871,15 @@ jobs:
           TUTORIAL_SHA=$(curl https://api.github.com/repos/OpenMS/Tutorials/git/refs/heads/master | jq -r ".object.sha")
           DOCS_SHA=$(curl https://api.github.com/repos/OpenMS/OpenMS-docs/git/refs/heads/develop | jq -r ".object.sha")
 
+          createGitTag OpenMS/contrib $CONTRIB_SHA  || updateGitTag OpenMS/contrib $CONTRIB_SHA 
+          createGitTag OpenMS/pyopenms-docs $PYDOCS_SHA  || updateGitTag OpenMS/pyopenms-docs $PYDOCS_SHA 
+          createGitTag OpenMS/THIRDPARTY $THIRDPARTY_SHA  || updateGitTag OpenMS/THIRDPARTY $THIRDPARTY_SHA 
+          createGitTag OpenMS/Tutorials $TUTORIAL_SHA  || updateGitTag OpenMS/Tutorials $TUTORIAL_SHA 
+          createGitTag OpenMS/OpenMS-docs $DOCS_SHA  || updateGitTag OpenMS/OpenMS-docs $DOCS_SHA 
+          createGitTag OpenMS/de.openms.knime $DEOPENMS_SHA  || updateGitTag OpenMS/de.openms.knime $DEOPENMS_SHA 
           
-          createGitTag OpenMS contrib $CONTRIB_SHA  || updateGitTag OpenMS contrib $CONTRIB_SHA 
-          createGitTag OpenMS pyopenms-docs $PYDOCS_SHA  || updateGitTag OpenMS pyopenms-docs $PYDOCS_SHA 
-          createGitTag OpenMS THIRDPARTY $THIRDPARTY_SHA  || updateGitTag OpenMS THIRDPARTY $THIRDPARTY_SHA 
-          createGitTag OpenMS Tutorials $TUTORIAL_SHA  || updateGitTag OpenMS Tutorials $TUTORIAL_SHA 
-          createGitTag OpenMS OpenMS-docs $DOCS_SHA  || updateGitTag OpenMS OpenMS-docs $DOCS_SHA 
-          createGitTag OpenMS de.openms.knime $DEOPENMS_SHA  || updateGitTag OpenMS de.openms.knime $DEOPENMS_SHA 
-          
-          createGitTag genericworkflownodes GenericKnimeNodes $JSViewer_SHA || updateGitTag genericworkflownodes GenericKnimeNodes $GKN_SHA 
-          createGitTag genericworkflownodes GenericKnimeNodes $GKN_SHA  || updateGitTag genericworkflownodes GenericKnimeNodes $GKN_SHA 
+          createGitTag genericworkflownodes/de.openms.knime.dynamicJSViewers $JSViewer_SHA || updateGitTag genericworkflownodes/de.openms.knime.dynamicJSViewers $GKN_SHA 
+          createGitTag genericworkflownodes/GenericKnimeNodes $GKN_SHA  || updateGitTag genericworkflownodes/GenericKnimeNodes $GKN_SHA 
 
 
       #- name: merge branch back into develop
