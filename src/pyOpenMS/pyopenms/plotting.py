@@ -252,9 +252,6 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
 
     annotation = annotation if annotation is not None and len(annotation.strip()) > 0 else ''
 
-    # No annotation -> Just return peak styling information.
-    if annotation and matched is None:
-        return colors.get(None), zorders.get(None)
     # Else: Add the textual annotation.
     ion_type = None if len(annotation) == 0 else annotation[0]
     if ion_type == '[': # precursor ion
