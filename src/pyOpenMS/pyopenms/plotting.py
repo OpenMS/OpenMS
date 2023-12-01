@@ -192,13 +192,6 @@ from typing import Dict, Optional, Tuple, Union, List, Set
 import itertools
 import logging
 
-colors = {'a': '#388E3C', 'b': '#1976D2', 'c': '#00796B',
-          'x': '#7B1FA2', 'y': '#D32F2F', 'z': '#F57C00',
-          'p': '#512DA8', '?': '#212121', 'f': '#212121', None: '#212121'}
-zorders = {'a': 3, 'b': 4, 'c': 3, 'x': 3, 'y': 4, 'z': 3,
-           'p': 3, '?': 2, 'f': 5, None: 1}
-
-
 
 # TODO switch to forward declarations via from __future__ import annotations
 # when py 3.7 is minimum. Then you can use types instead of strings
@@ -219,7 +212,7 @@ def plot_chromatogram(c: "MSChromatogram"):
 
 def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
                   color_ions: bool, annotate_ions: bool, matched: Optional[bool],
-                  annotation_kws: Dict[str, object], ax) -> Tuple[str, int]:
+                  annotation_kws: Dict[str, object], colormap: Dict[str, str], ax) -> Tuple[str, int]:
     """Annotate a specific fragment peak.
 
     :param mz: The peak's m/z value (position of the annotation on the x axis).
@@ -247,14 +240,23 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
     :return: A tuple of the annotation's color as a hex string and the annotation's zorder.
     :rtype: Tuple[str, int]
     """
+    colors = {'a': '#388E3C', 'b': '#1976D2', 'c': '#00796B',
+              'x': '#7B1FA2', 'y': '#D32F2F', 'z': '#F57C00',
+              'p': '#512DA8', '?': '#212121', 'f': '#212121',
+              None: '#212121', 'matched': '#ff0000', 'unmatched': '#aaaaaa'}
+    zorders = {'a': 3, 'b': 4, 'c': 3, 'x': 3, 'y': 4, 'z': 3,
+               'p': 3, '?': 2, 'f': 5, None: 1}
+
+    if colormap is not None:
+        colors.update(colormap)
+
+    annotation = annotation if annotation is not None and len(annotation.strip()) > 0 else ''
 
     # No annotation -> Just return peak styling information.
-    if not annotation and matched is None:
+    if annotation and matched is None:
         return colors.get(None), zorders.get(None)
     # Else: Add the textual annotation.
-    ion_type = ''
-    if annotation:
-     ion_type = annotation[0]
+    ion_type = None if len(annotation) == 0 else annotation[0]
     if ion_type == '[': # precursor ion
         ion_type = 'p'
     if ion_type not in colors and color_ions:
@@ -266,9 +268,9 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
     zorder = (1 if ion_type not in zorders else zorders[ion_type])
 
     if matched is not None and not matched:
-        color = '#aaaaaa'
-    if matched is not None and matched:
-        color = '#ff0000'
+        color = colors.get('unmatched')
+    if matched is not None and matched and not color_ions:
+        color = colors.get('matched')
 
     if annotate_ions:
         annotation_pos = intensity
@@ -284,7 +286,8 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
 
 def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
                   annotate_ions: bool = True, matched_peaks: Optional[Set] = None, annot_kws: Optional[Dict] = None,
-                  mirror_intensity: bool = False, grid: Union[bool, str] = True, ax=None):
+                  mirror_intensity: bool = False, grid: Union[bool, str] = True, colormap: Optional[Dict] = None,
+                  ax=None):
     """Plot an MS/MS spectrum.
 
     :param spectrum: The spectrum to be plotted.
@@ -310,6 +313,9 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
         and minor grid lines or 'major'/'minor' to enable major or minor grid lines respectively.
     :type grid: Union[bool, str], optional
 
+    :param colormap: A dictionary mapping ion types to colors.
+    :type colormap: Optional[Dict], optional
+
     :param ax: Axes instance on which to plot the spectrum. If None the current Axes instance is used.
     :type ax : Optional[plt.Axes], optional
 
@@ -323,10 +329,6 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
 
     if ax is None:
         ax = plt.gca()
-
-    if matched_peaks is not None and color_ions:
-        logging.warning('color_ions is ignored when matched_peaks is provided')
-        color_ions = False
 
     mz, intensity = spectrum.get_peaks()
     min_mz = max(0, math.floor(mz[0] / 100 - 1) * 100)
@@ -360,7 +362,7 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
 
         color, zorder = _annotate_ion(
             peak_mz, peak_intensity, peak_annotation, color_ions, annotate_ions,
-            matched, annotation_kws, ax)
+            matched, annotation_kws, colormap, ax)
 
         ax.plot([peak_mz, peak_mz], [0, peak_intensity], color=color, zorder=zorder)
 
