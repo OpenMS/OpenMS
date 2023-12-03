@@ -222,7 +222,6 @@ namespace OpenMS
                                          const FeatureMap& output,
                                          const String& id) const
   {
-    std::cout << "compute peak shape metrics:" << compute_peak_shape_metrics_;
     std::stringstream sql, sql_feature, sql_feature_ms1, sql_feature_ms1_precursor, sql_feature_ms2, sql_feature_ms2_transition, sql_feature_uis_transition;
 
     for (const auto& feature_it : output)
@@ -232,7 +231,7 @@ namespace OpenMS
       std::vector<String> masserror_ppm = feature_it.metaValueExists("masserror_ppm") ? getSeparateScore(feature_it, "masserror_ppm") : std::vector<String>();
 
       auto subordinates = feature_it.getSubordinates();
-      for (Size i=0; i < subordinates.size(); i++) 
+      for (Size i=0; i < subordinates.size(); i++)
       {
         auto sub_it = subordinates[i];
         if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS2")
@@ -243,13 +242,11 @@ namespace OpenMS
           if (!masserror_ppm.empty())
           {
             masserror_ppm_query = masserror_ppm[i];
-            std::cout << "masseerror_ppm_query: " << masserror_ppm_query << std::endl;
           }
           if (!sub_it.getMetaValue("total_mi").isEmpty())
           {
             total_mi = sub_it.getMetaValue("total_mi").toString();
           }
-          std::cout << "left width is:" << sub_it.getMetaValue("leftWidth") << std::endl;
 
           // Create sql query for storing transition level data, include peak shape metrics if they exist
           sql_feature_ms2_transition << "INSERT INTO FEATURE_TRANSITION "
