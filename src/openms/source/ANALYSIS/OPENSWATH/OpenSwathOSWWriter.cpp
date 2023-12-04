@@ -228,12 +228,12 @@ namespace OpenMS
     {
       int64_t feature_id = Internal::SqliteHelper::clearSignBit(feature_it.getUniqueId()); // clear sign bit
 
-      std::vector<String> masserror_ppm = feature_it.metaValueExists("masserror_ppm") ? getSeparateScore(feature_it, "masserror_ppm") : std::vector<String>();
+      const auto& masserror_ppm = feature_it.metaValueExists("masserror_ppm") ? getSeparateScore(feature_it, "masserror_ppm") : std::vector<String>();
 
-      auto subordinates = feature_it.getSubordinates();
+      const auto& subordinates = feature_it.getSubordinates();
       for (Size i=0; i < subordinates.size(); i++)
       {
-        auto sub_it = subordinates[i];
+        const auto& sub_it = subordinates[i];
         if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS2")
         {
           std::string total_mi = "NULL"; // total_mi is not guaranteed to be set
