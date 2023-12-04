@@ -169,7 +169,6 @@ namespace OpenMS
     tools_map["Resampler"] = Internal::ToolDescription("Resampler", cat_signal_proc_misc);
     tools_map["RNADigestor"] = Internal::ToolDescription("RNADigestor", cat_rna);
     tools_map["RNAMassCalculator"] = Internal::ToolDescription("RNAMassCalculator", cat_rna);
-    tools_map["RNPxlSearch"] = Internal::ToolDescription("RNPxlSearch", cat_crosslinking);
     tools_map["RNPxlXICFilter"] = Internal::ToolDescription("RNPxlXICFilter", cat_crosslinking);
     tools_map["SageAdapter"] = Internal::ToolDescription("SageAdapter", cat_ID_search);
     tools_map["SeedListGenerator"] = Internal::ToolDescription("SeedListGenerator", cat_quant);
