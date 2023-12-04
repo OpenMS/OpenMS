@@ -48,12 +48,12 @@ private:
 protected:
   void registerOptionsAndFlags_() override
   {
-    registerInputFileList_("in", "<files>", StringList(), "Input files to align (*.tsv)", true);
+    registerInputFileList_("in", "<files>", StringList(), "Input tsv files to align containing feature groups (output files of FLASHQuant)", true);
     setValidFormats_("in", ListUtils::create<String>("tsv"));
-    registerOutputFile_("out", "<file>", "", "Output tsv file", true);
+    registerOutputFile_("out", "<file>", "", "Output tsv file of consensus feature groups", true);
     setValidFormats_("out", ListUtils::create<String>("tsv"));
 
-    registerDoubleOption_("mass_tol", "<value>", 100, "Mass tolerance.", false);
+    registerDoubleOption_("mass_tol", "<value>", 100, "Mass tolerance (Da)", false);
     setMinFloat_("mass_tol", 0.0);
     registerStringOption_("mass_tol_unit", "<choice>", "ppm", "Mass tolerance unit", false);
     setValidStrings_("mass_tol_unit", {"ppm", "dalton"});

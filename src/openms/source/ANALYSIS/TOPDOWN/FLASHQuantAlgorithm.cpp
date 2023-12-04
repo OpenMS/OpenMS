@@ -19,13 +19,13 @@ namespace OpenMS
       ProgressLogger(),
       DefaultParamHandler("FLASHQuantAlgorithm")
   {
-    defaults_.setValue("charge_lower_bound", 5, "Lowest charge state to consider");
-    defaults_.setValue("charge_upper_bound", 50, "Highest charge state to consider");
+    defaults_.setValue("min_charge", 5, "Minimum charge state to consider");
+    defaults_.setValue("max_charge", 50, "Maximum charge state to consider");
     defaults_.setValue("min_mass", 10000, "Minimum mass (Da)");
     defaults_.setValue("max_mass", 70000, "Maximum mass (Da)");
-    defaults_.setValue("mz_tol", 10, "ppm tolerance for m/z in deconvolution");
-    defaults_.setValue("mass_tol", 3, "Mass tolerance in Dalton for collecting similar feature groups into a single one");
-    defaults_.setValue("min_isotope_cosine", 0.85, "Cosine threshold between avg. and observed isotope pattern. Note that 0.8 is used for deconvolution", {"advanced"});
+    defaults_.setValue("mz_tol", 10, "Ppm tolerance for m/z values in deconvolution");
+    defaults_.setValue("mass_tol", 3, "Mass tolerance in Dalton for integrating similar feature groups into a single one");
+    defaults_.setValue("min_isotope_cosine", 0.85, "Cosine threshold between averagine and observed isotope pattern. Note that 0.8 is used for deconvolution", {"advanced"});
 
     defaults_.setValue("use_smoothed_intensities",
                        "true",
@@ -34,7 +34,7 @@ namespace OpenMS
     defaults_.setValidStrings("use_smoothed_intensities", {"false", "true"});
     defaults_.setValue("out_shared_details", "false", "Outputs a tsv file including detailed information about the resolved signals (filename = <out_file_name>_shared.tsv", {"advanced"});
     defaults_.setValidStrings("out_shared_details", {"false", "true"});
-    defaults_.setValue("resolving_shared_signal", "true", "Resolve shared signal between FeatureGroups(i.e., coelution)", {"advanced"});
+    defaults_.setValue("resolving_shared_signal", "true", "Resolve shared signals between feature groups (i.e., co-elution)", {"advanced"});
     defaults_.setValidStrings("resolving_shared_signal", {"true", "false"});
     defaultsToParam_();
 
@@ -43,8 +43,8 @@ namespace OpenMS
 
   void FLASHQuantAlgorithm::updateMembers_()
   {
-    charge_lower_bound_ = (Size) param_.getValue("charge_lower_bound");
-    charge_upper_bound_ = (Size) param_.getValue("charge_upper_bound");
+    charge_lower_bound_ = (Size) param_.getValue("min_charge");
+    charge_upper_bound_ = (Size) param_.getValue("max_charge");
 
     min_mass_ = (double) param_.getValue("min_mass");
     max_mass_ = (double) param_.getValue("max_mass");

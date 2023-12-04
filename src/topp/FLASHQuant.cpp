@@ -52,16 +52,16 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in", "<file>", "", "input file (mzML)", true);
+    registerInputFile_("in", "<file>", "", "MzML input file", true);
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
-    registerOutputFile_("out", "<file>", "", "feature level quantification output tsv file", true);
+    registerOutputFile_("out", "<file>", "", "Tsv output file with quantified feature groups (putative proteoform)", true);
     setValidFormats_("out", ListUtils::create<String>("tsv"));
 
-    registerOutputFile_("out_feat", "<file>", "", "featureXML format feature level quantification output file", false);
+    registerOutputFile_("out_feat", "<file>", "", "FeatureXML output file with quantified feature groups (putative proteoform)", false);
     setValidFormats_("out_feat", ListUtils::create<String>("featureXML"));
 
-    registerOutputFile_("out_detail", "<file>", "", "Mass trace information per feature group in tsv format", false);
+    registerOutputFile_("out_detail", "<file>", "", "Tsv output file with mass trace information per feature group", false);
     setValidFormats_("out_detail", ListUtils::create<String>("tsv"));
 
     addEmptyLine_();
