@@ -283,8 +283,8 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
 
 def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
                   annotate_ions: bool = True, matched_peaks: Optional[Set] = None, annot_kws: Optional[Dict] = None,
-                  mirror_intensity: bool = False, grid: Union[bool, str] = True, colormap: Optional[Dict] = None,
-                  ax=None):
+                  mirror_intensity: bool = False, grid: Union[bool, str] = False, colormap: Optional[Dict] = None,
+                  spine: bool=False, ax=None):
     """Plot an MS/MS spectrum.
 
     :param spectrum: The spectrum to be plotted.
@@ -312,6 +312,9 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
 
     :param colormap: A dictionary mapping ion types to colors.
     :type colormap: Optional[Dict], optional
+
+    :param spine: Flag indicating whether to show the right and top spines.
+    :type spine: bool, optional
 
     :param ax: Axes instance on which to plot the spectrum. If None the current Axes instance is used.
     :type ax : Optional[plt.Axes], optional
@@ -367,6 +370,8 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
     ax.yaxis.set_minor_locator(mticker.AutoLocator())
     ax.xaxis.set_minor_locator(mticker.AutoMinorLocator())
     ax.yaxis.set_minor_locator(mticker.AutoMinorLocator())
+    ax.spines['right'].set_visible(spine)
+    ax.spines['top'].set_visible(spine)
     if grid in (True, 'both', 'major'):
         ax.grid(visible=True, which='major', color='#9E9E9E', linewidth=0.2)
     if grid in (True, 'both', 'minor'):
