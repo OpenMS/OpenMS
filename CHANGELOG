@@ -385,7 +385,7 @@ Deprecated and removed tools:
 - RNPxl -- Tool for RNP cross linking experiment analysis (UTIL) (superseded by RNPxlSearch)
   
 Changed Tools:
-- SiriusExport now supports several input data
+- SiriusAdapter now supports several input data
 - FileFilter now supports filtering spectra by similarity
 - PeptideIndexer now supports automatic detection of decoy suffix/prefix string and position
 - PeakPickerHiRes now supports automatic detection and picking of profile spectra
