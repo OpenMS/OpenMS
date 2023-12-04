@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS
@@ -112,6 +113,11 @@ namespace OpenMS
           @param path_to_sirius_workspace Path to SIRIUS workspace.
           */
           static OpenMS::String extractFeatureIDFromSiriusMS_(const String& path_to_sirius_workspace);
+
+          /**
+          @brief Extract columnname and index based in SIRIUS entries
+          */
+          static std::map< std::string, Size > extract_columnname_to_columnindex(CsvFile& csvfile);
 
           /**
           @brief extractCompoundRankingAndFilename

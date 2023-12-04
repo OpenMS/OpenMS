@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
-#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <fstream>
@@ -244,6 +243,20 @@ namespace OpenMS
     return ext_m_id;
   }
 
+  std::map< std::string, Size > SiriusFragmentAnnotation::extract_columnname_to_columnindex(CsvFile& csvfile)
+  {
+    StringList header_row;
+    std::map< std::string, Size > columnname_to_columnindex;
+    csvfile.getRow(0, header_row);
+
+    for (size_t i = 0; i < header_row.size(); i++)
+    {
+      columnname_to_columnindex.insert(make_pair(header_row[i], i));
+    }
+
+    return columnname_to_columnindex;
+  };
+
   // provides a mapping of rank and the file it belongs to since this is not encoded in the directory structure/filename
   std::map< Size, String > SiriusFragmentAnnotation::extractCompoundRankingAndFilename_(const String& path_to_sirius_workspace)
   {
@@ -257,7 +270,7 @@ namespace OpenMS
       CsvFile candidates(sirius_formula_candidates, '\t');
       const UInt rowcount = candidates.rowCount();
 
-      std::map< std::string, Size > columnname_to_columnindex = SiriusMzTabWriter::extract_columnname_to_columnindex(candidates);
+      std::map< std::string, Size > columnname_to_columnindex = SiriusFragmentAnnotation::extract_columnname_to_columnindex(candidates);
 
       // i starts at 1, due to header
       for (size_t i = 1; i < rowcount; i++)
@@ -290,7 +303,7 @@ namespace OpenMS
       CsvFile candidates(sirius_formula_candidates, '\t');
       const UInt rowcount = candidates.rowCount();
 
-      std::map< std::string, Size > columnname_to_columnindex = SiriusMzTabWriter::extract_columnname_to_columnindex(candidates);
+      std::map< std::string, Size > columnname_to_columnindex = SiriusFragmentAnnotation::extract_columnname_to_columnindex(candidates);
 
       // i starts at 1, due to header
       for (size_t i = 1; i < rowcount; i++)

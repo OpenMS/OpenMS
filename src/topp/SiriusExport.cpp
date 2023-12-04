@@ -13,8 +13,6 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
-#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
@@ -40,9 +38,7 @@ using namespace std;
 
   To use this feature, the Sirius command line tool as well as a java installation is needed.
 
-  Sirius can be found on https://bio.informatik.uni-jena.de/software/sirius/ 
-
-  Please use Sirius Version 4.0.1
+  Sirius can be found on https://bio.informatik.uni-jena.de/software/sirius/
 
   If you want to use the software with the Gurobi solver or CPLEX instead of GLPK, please follow the instructions in the sirius manual.
 
@@ -50,10 +46,6 @@ using namespace std;
   1. Input mzML (and optional featureXML) \n
   2. Preprocessing (see below)\n
   3. Parsed by SiriusMSConverter into (sirius internal) .ms format \n
-  4. Submission of .ms and additional parameters to wrapped SIRIUS CLI \n
-  5. Sirius output saved in internal temporary folder structure \n
-  6. Sirius output is parsed (SiriusMzTabWriter/CsiFingerIDMzTabWriter) \n
-  7. Merge corresponding output in one mzTab (out_sirius/out_fingerid) \n
 
   Preprocessing (featureXML): 
   By providing a featureXML, the feature information can be used for feature mapping.

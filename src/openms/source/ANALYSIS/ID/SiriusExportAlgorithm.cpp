@@ -14,9 +14,9 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QtCore/QDir>
@@ -24,6 +24,7 @@
 #include <QtCore/QString>
 #include <QtCore/QProcess>
 #include <sstream>
+#include <boost/regex.hpp>
 
 namespace OpenMS
 {
@@ -110,7 +111,15 @@ namespace OpenMS
 
     bool SiriusExportAlgorithm::hasFullNameParameter(const OpenMS::String &name) const
     {
-  return std::any_of(param_.begin(), param_.end(), [&](const auto& it) { return it.getName() == name; });
+      //alternative: return std::any_of(param_.begin(), param_.end(), [&](const auto& it) { return it.name == name; });
+      for (auto it = param_.begin(); it != param_.end(); ++it)
+      {
+        if (it.getName() == name)
+        {
+          return true;
+        }
+      }
+      return false;
     }
 
 
@@ -203,9 +212,10 @@ namespace OpenMS
       std::vector<String> sorted_subdirs;
       std::vector<SiriusWorkspaceIndex> indices;
 
+      boost::regex regexp(R"(--(?<SCAN>\d+)--)");
       for (size_t i = 0; i < subdirs.size(); i++)
       {
-        indices.emplace_back(i, SiriusMzTabWriter::extractScanIndex(subdirs[i]));
+        indices.emplace_back(i, SpectrumLookup::extractScanNumber(subdirs[i], regexp, false));
       }
 
       std::sort(indices.begin(),

@@ -423,7 +423,7 @@ namespace OpenMS
       inline const std::string   OPENPEPXL_BETA_PEPEV_END = "BetaPepEv:end";
 
       /** @name User parameters in/from Sirius annotated mzMLs
-        *  E.g., when running SiriusExport with annotation output
+        *  E.g., when running SiriusAdapter with annotation output
        */
       ///@{
 

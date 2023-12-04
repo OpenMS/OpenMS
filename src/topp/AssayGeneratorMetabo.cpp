@@ -18,7 +18,6 @@
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
-#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
