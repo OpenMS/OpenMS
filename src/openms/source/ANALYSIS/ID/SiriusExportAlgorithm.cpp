@@ -200,14 +200,11 @@ namespace OpenMS
       }
     }
 
-    class OPENMS_DLLAPI SiriusWorkspaceIndex
+    struct OPENMS_DLLAPI SiriusWorkspaceIndex
     {
-    public:
-      int array_index, scan_index;
-
       SiriusWorkspaceIndex(int array_index, int scan_index) : array_index {array_index}, scan_index {scan_index} {}
+      int array_index, scan_index;
     };
-
     void  SiriusExportAlgorithm::sortSiriusWorkspacePathsByScanIndex(std::vector<String>& subdirs)
     {
       std::vector<String> sorted_subdirs;
