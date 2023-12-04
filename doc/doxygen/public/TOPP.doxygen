@@ -199,7 +199,7 @@
   <b>Metabolite Identification</b>
   - @subpage TOPP_AccurateMassSearch - Finds potential HMDB IDs within the given mass error window.
   - @subpage TOPP_MetaboliteSpectralMatcher - Identifies small molecules from tandem MS spectra.
-  - @subpage TOPP_SiriusExport - De novo metabolite identification.
+  - @subpage TOPP_SiriusExport - Export for Sirius de novo metabolite identification.
 
   <b>RNA</b>
   - @subpage TOPP_NucleicAcidSearchEngine - Search MzML files for oligonucleotides and their modifications.
