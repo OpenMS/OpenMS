@@ -110,14 +110,7 @@ namespace OpenMS
 
     bool SiriusExportAlgorithm::hasFullNameParameter(const OpenMS::String &name) const
     {
-      for (auto it = param_.begin(); it != param_.end(); ++it)
-      {
-        if (it.getName() == name)
-        {
-          return true;
-        }
-      }
-      return false;
+  return std::any_of(param_.begin(), param_.end(), [&](const auto& it) { return it.getName() == name; });
     }
 
 
