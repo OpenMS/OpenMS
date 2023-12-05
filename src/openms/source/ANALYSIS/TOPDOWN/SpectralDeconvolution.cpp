@@ -1003,7 +1003,6 @@ namespace OpenMS
         int offset = 0;
         auto peak_group = deconvolved_spectrum_[i];
         peak_group.setTargetDecoyType(target_decoy_type_);
-        float prev_cos = peak_group.getIsotopeCosine();
 
         float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -peak_group.getMinNegativeIsotopeIndex(), -1,
                                                              allowed_iso_error_, target_decoy_type_);

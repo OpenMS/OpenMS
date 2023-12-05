@@ -14,7 +14,7 @@ namespace OpenMS
 {
   void Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra) // per ms level + precursor update as well.
   {
-    uint bin_number = 100;                           // 15 is enough resolution for qvalue calculation. In most cases FDR 5% will be used.
+    uint bin_number = 60;
     const uint iteration_count = 100;
 
     std::map<uint, std::vector<double>> tscore_map; // per ms level
@@ -104,9 +104,7 @@ namespace OpenMS
           if (max_Y > y) continue;
           max_Y = y;
           max_X = bin_number - i - 1;
-
         }
-
 
         Math::GumbelDistributionFitter fitter;
         Math::GumbelDistributionFitter::GumbelDistributionFitResult init_param;
