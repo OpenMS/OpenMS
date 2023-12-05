@@ -17,6 +17,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
@@ -407,54 +408,26 @@ protected:
         vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
         for (const auto& subdir : subdirs)
         {
+          // parse compound.info file (tab separated)
           SiriusMSFile::CompoundInfo cmpinfo;
-          // file path for compound.info file
-          String file_path_compound_info = subdir + "/compound.info";
-          // open file and extract information
-          std::ifstream compound_info_file(file_path_compound_info);
-          if (compound_info_file.is_open())
-          {
-            // read the file line by line
-            std::string line;
-            while (std::getline(compound_info_file, line))
-            {
-              std::istringstream iss(line);
-              String key, value;
-              // split each line into key and value
-              if (iss >> key)
-              {
-                  // read the rest of the line (including spaces) into the value
-                  std::getline(iss, value);
-                  // trim spaces
-                  size_t start = value.find_first_not_of(" \t\n\r");
-                  size_t end = value.find_last_not_of(" \t\n\r");
-                  if (start == std::string::npos || end == std::string::npos)
-                  {
-                    continue; // value is emtpy
-                  }
-                  value = value.substr(start, end - start + 1);
-                  // extract data
-                  if (key == "name")
-                      cmpinfo.cmp = value;
-                  else if (key == "ionMass")
-                      cmpinfo.pmass = std::stod(value);
-                  else if (key == "rt")
-                      cmpinfo.rt = std::stod(value);
-                  else if (key == "ionType")
-                      cmpinfo.ionization = value;
-                  // set fixed precursor charge, SIRIUS supports only charge 1
-                  cmpinfo.charge = 1;
-                }
-            }
-            compound_info_file.close();
+          CsvFile csv_file(subdir + "/compound.info", '\t');
+          for (Size i = 0; i < csv_file.rowCount(); ++i) {
+            StringList row;
+            csv_file.getRow(i, row);
+            // extract data
+            if (row[0] == "name")
+                cmpinfo.cmp = row[1];
+            else if (row[0] == "ionMass")
+                cmpinfo.pmass = std::stod(row[1]);
+            else if (row[0] == "rt")
+                cmpinfo.rt = std::stod(row[1]);
+            else if (row[0] == "ionType")
+                cmpinfo.ionization = row[1];
           }
-          else
-          {
-            OPENMS_LOG_WARN << "Error opening compound.info file: " << file_path_compound_info << std::endl;
-          }
-          // file path for spectrum.ms file
-          String file_path_spectrum_ms = subdir + "/spectrum.ms";
-          std::ifstream spectrum_ms_file(file_path_spectrum_ms);
+          // set fixed precursor charge, SIRIUS supports only charge 1
+          cmpinfo.charge = 1;
+          // parse spectrum.ms file
+          std::ifstream spectrum_ms_file(subdir + "/spectrum.ms");
           // open file and get m_ids_id from MS2 spec
           if (spectrum_ms_file.is_open())
           {
