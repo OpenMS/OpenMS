@@ -28,7 +28,6 @@
 #include <QtCore/QProcess>
 #include <algorithm>
 #include <map>
-#include <boost/algorithm/string.hpp>
 
 using namespace OpenMS;
 
@@ -427,7 +426,13 @@ protected:
                   // read the rest of the line (including spaces) into the value
                   std::getline(iss, value);
                   // trim spaces
-                  boost::algorithm::trim(value);
+                  size_t start = value.find_first_not_of(" \t\n\r");
+                  size_t end = value.find_last_not_of(" \t\n\r");
+                  if (start == std::string::npos || end == std::string::npos)
+                  {
+                    continue; // value is emtpy
+                  }
+                  value = value.substr(start, end - start + 1);
                   // extract data
                   if (key == "name")
                       cmpinfo.cmp = value;
