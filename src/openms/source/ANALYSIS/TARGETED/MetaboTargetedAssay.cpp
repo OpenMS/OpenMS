@@ -690,24 +690,6 @@ namespace OpenMS
     return v_cmp_spec;
   }
 
-  // method to pair compound information (SiriusMSFile) with the annotated target spectrum from Sirius based on the m_id (unique identifier)
-  std::vector< MetaboTargetedAssay::CompoundSpectrumPair > MetaboTargetedAssay::pairCompoundWithAnnotatedSpectra(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
-                                                                                                                  const std::vector<MSSpectrum>& annotated_spectra)
-  {
-    vector< MetaboTargetedAssay::CompoundSpectrumPair > v_cmp_spec;
-    for (const auto& cmp : v_cmpinfo)
-    {
-      for (const auto& spectrum : annotated_spectra)
-      {
-        if (cmp.m_ids_id == spectrum.getName()) // the m_id is saved at MSSpectrum level as its name
-        {
-          v_cmp_spec.emplace_back(cmp, spectrum);
-        }
-      }
-    }
-    return v_cmp_spec;
-  }
-
   std::unordered_map< UInt64 , vector<MetaboTargetedAssay> > MetaboTargetedAssay::buildAmbiguityGroup(const vector<MetaboTargetedAssay>& v_mta,const double& ar_mz_tol, const double& ar_rt_tol, const String& ar_mz_tol_unit_res, size_t in_files_size)
   {
     String decoy_suffix = "_decoy";

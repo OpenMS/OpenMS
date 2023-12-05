@@ -45,8 +45,6 @@ namespace OpenMS
           */
           static std::vector<SiriusTargetDecoySpectra> extractAndResolveSiriusAnnotations(const std::vector<String>& sirius_workspace_subdirs, double score_threshold,
                                                                                           bool use_exact_mass);
-          static std::vector<MSSpectrum> extractSiriusAnnotationsTgtOnly(const std::vector<String>& sirius_workspace_subdirs, double score_threshold, bool use_exact_mass, bool resolve);
-
 
           /**
           @brief extractSiriusFragmentAnnotationMapping  

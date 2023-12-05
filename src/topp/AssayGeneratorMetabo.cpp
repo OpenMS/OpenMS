@@ -21,12 +21,10 @@
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QtCore/QDir>
 #include <QtCore/QDirIterator>
 #include <QtCore/QString>
-#include <QtCore/QProcess>
 #include <algorithm>
 #include <map>
 
@@ -443,7 +441,7 @@ protected:
           }
           else
           {
-            OPENMS_LOG_WARN << "Error opening spectrum.ms file: " << file_path_spectrum_ms << std::endl;
+            OPENMS_LOG_WARN << "Error opening spectrum.ms file: " << subdir + "/spectrum.ms" << std::endl;
           }
           // add the populated CompoundInfo object to the vector
           v_cmpinfo.push_back(cmpinfo);
