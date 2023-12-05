@@ -235,13 +235,21 @@ namespace OpenMS
     auto native_id_str = map[index].getNativeID();
     std::vector<String> native_ids;
     native_id_str.split(",", native_ids);
+
+    if (map.getSourceFiles().empty())
+    {
+      return (int)index + 1;
+    }
+
     auto type_accession = map.getSourceFiles()[0].getNativeIDTypeAccession();
     if (type_accession.empty()) type_accession = "MS:1000768";
-    int scan_number = map.getSourceFiles().empty() ? -1 : SpectrumLookup::extractScanNumber(native_ids.back(), type_accession);
+
+    int scan_number = SpectrumLookup::extractScanNumber(native_ids.back(), type_accession);
     if (scan_number < 0)
     {
       scan_number = (int)index + 1;
     }
+
     return scan_number;
   }
 
@@ -283,7 +291,6 @@ namespace OpenMS
         {
           continue;
         }
-
         String native_id = spec.getNativeID();
 
         PeakGroup precursor_pg; // TODO implement decoy precursor peak group
@@ -291,6 +298,7 @@ namespace OpenMS
           precursor_pg = native_id_precursor_peak_group_map_[native_id];
 
         // now do it
+
         sd_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
 
         auto& deconvolved_spectrum = sd_.getDeconvolvedSpectrum();

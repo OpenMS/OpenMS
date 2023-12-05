@@ -114,7 +114,7 @@ namespace OpenMS
     }
   }
 
-  int PeakGroup::updateQscore(std::vector<LogMzPeak>& noisy_peaks, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, bool is_low_charge, bool is_profile, int allowed_iso_error)
+  int PeakGroup::updateQscore(std::vector<LogMzPeak>& noisy_peaks, const MSSpectrum& spec, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, bool is_low_charge, int allowed_iso_error)
   {
     qscore_ = 0;
 
@@ -167,7 +167,7 @@ namespace OpenMS
         continue;
       }
 
-      double q_score = Qscore::getQscore(this, is_profile);
+      double q_score = Qscore::getQscore(this, spec);
       if (qscore_ < q_score)
       {
         qscore_ = q_score;

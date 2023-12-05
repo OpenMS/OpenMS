@@ -1022,7 +1022,7 @@ namespace OpenMS
           auto noisy_peaks = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_);
           // min cosine is checked in here. mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
           const auto& [z1, z2] = peak_group.getAbsChargeRange();
-          offset = peak_group.updateQscore(noisy_peaks, avg_, min_isotope_cosine_[ms_level_ - 1], (z1 + z2) < 2 * low_charge_, deconvolved_spectrum_.getOriginalSpectrum().getType(false) != SpectrumSettings::CENTROID, allowed_iso_error_);
+          offset = peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], (z1 + z2) < 2 * low_charge_, allowed_iso_error_);
           if (offset == 0)
           {
             break;
