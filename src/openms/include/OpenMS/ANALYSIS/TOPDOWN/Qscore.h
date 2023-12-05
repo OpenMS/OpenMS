@@ -46,9 +46,9 @@ namespace OpenMS
 
     static std::vector<double> toFeatureVector_(const PeakGroup* pg);
 
-    //static std::vector<double> weight_centroid_;
+    static std::vector<double> weight_centroid_;
     static std::vector<double> weight_profile_;
-    //static std::vector<double> weight_CV_;
+    static std::vector<double> weight_CV_;
     // the weights for per cosine, SNR, PPM error, charge score, and intercept.
     // ======================================
     // IsotopeCosine                  40.7425

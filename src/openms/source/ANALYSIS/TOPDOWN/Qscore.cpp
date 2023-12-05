@@ -13,15 +13,15 @@
 
 namespace OpenMS
 {
-  // ﻿IsotopeCosine                   42.2496
+  // IsotopeCosine                   42.2496
   // ChargeCosine                      2.8767
   // MassSNR1                         -0.1523
   // ChargeSNR1                        0.4797
   // Intercept                       -45.5284
 
- // std::vector<double> Qscore::weight_centroid_{-40.7425, -.205, 0.1984, -0.213, 40.3701};
+  std::vector<double> Qscore::weight_centroid_{-42.2496, -2.8767, 0.1523, -0.4797,  45.5284};
   std::vector<double> Qscore::weight_profile_{-42.2496, -2.8767, 0.1523, -0.4797,  45.5284};
-  //std::vector<double> Qscore::weight_CV_{-55.8387, 0.0253, 0.2473, -0.6765,  55.8594};
+  std::vector<double> Qscore::weight_CV_{-42.2496, -2.8767, 0.1523, -0.4797,  45.5284};
 
   double Qscore::getQscore(const PeakGroup* pg, bool is_profile, double cv)
   {
@@ -30,7 +30,7 @@ namespace OpenMS
       return .0;
     }
 
-    auto weights = weight_profile_;//cv > 0 ? weight_CV_ : (is_profile? weight_profile_ : weight_centroid_);
+    auto weights = cv > 0 ? weight_CV_ : (is_profile? weight_profile_ : weight_centroid_);
     double score = weights.back();
     auto fv = toFeatureVector_(pg);
 
