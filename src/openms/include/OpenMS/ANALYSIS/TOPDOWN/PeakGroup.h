@@ -28,13 +28,14 @@ namespace OpenMS
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
 
   public:
-    /// target decoy type of PeakGroup. This specifies if a PeakGroup is a target (0), charge decoy (1), noise decoy (2), or isotope decoy (3).
+    /// target decoy type of PeakGroup. This specifies if a PeakGroup is a target (0), charge decoy (1), noise decoy (2), or isotope decoy (3). Added non_specific (4) to allow all types in some functions
     enum TargetDecoyType
     {
       target = 0,
       charge_decoy,
       noise_decoy,
-      isotope_decoy
+      isotope_decoy,
+      non_specific
     };
 
 
@@ -79,10 +80,11 @@ namespace OpenMS
            @param avg precalculated averagine
            @param min_cos the peak groups with cosine score less than this will have setQscore 0.
            @param is_low_charge if set, charge fit score calculation becomes less harshy
+           @param is_profile if input spectrum is a profile spectrum or now
            @param allowed_iso_error this set the allowed isotope error in decoy mass generation.
            @return returns isotope offset after isotope cosine calculation
       */
-    int updateQscore(std::vector<LogMzPeak>& noisy_peaks, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, bool is_low_charge, int allowed_iso_error = 1);
+    int updateQscore(std::vector<LogMzPeak>& noisy_peaks, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, bool is_low_charge, bool is_profile = false, int allowed_iso_error = 1);
 
     /**
      * @brief given a monoisotopic mass, recruit raw peaks from the raw input spectrum and add to this peakGroup. This is a bit time-consuming and is done for only a small number of selected
@@ -91,11 +93,9 @@ namespace OpenMS
      * @param tol ppm tolerance
      * @param avg precalculated averagine
      * @param mono_mass monoisotopic mass
-     * @param excluded_peak_mzs mzs that will be included - only for decoy generation
      * @return returns the noisy peaks for this peakgroup - i.e., the raw peaks within the range of this peakGroup that are not matched to any istope of this peakGroup mass.
      */
-    std::vector<LogMzPeak> recruitAllPeaksInSpectrum(const MSSpectrum& spec, double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double mono_mass,
-                                                     const std::unordered_set<double>& excluded_peak_mzs);
+    std::vector<LogMzPeak> recruitAllPeaksInSpectrum(const MSSpectrum& spec, double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double mono_mass);
 
     /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance). Assume logMzPeaks are sorted.
     bool isSignalMZ(double mz, double tol) const;

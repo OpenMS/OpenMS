@@ -438,7 +438,7 @@ protected:
           continue;
         if (report_decoy)
           target_spec_map[deconvolved_spectrum.getScanNumber()] = deconvolved_spectrum;
-        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail,
+        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail,
                                                         report_decoy);
       }
 
@@ -451,10 +451,7 @@ protected:
             continue;
           if (!deconvolved_spectrum.isDecoy())
             continue;
-          DeconvolvedSpectrum target_dspec;
-          if (target_spec_map.find(deconvolved_spectrum.getScanNumber()) != target_spec_map.end())
-            target_dspec = target_spec_map[deconvolved_spectrum.getScanNumber()];
-          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, target_dspec, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail,
+          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail,
                                                           report_decoy);
         }
       }

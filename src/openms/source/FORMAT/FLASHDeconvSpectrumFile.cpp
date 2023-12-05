@@ -19,7 +19,7 @@ namespace OpenMS
 
    */
 
-  void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, DeconvolvedSpectrum& target_spec, std::fstream& fs, const String& file_name,
+  void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, std::fstream& fs, const String& file_name,
                                                        const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double tol, const bool write_detail, const bool report_decoy)
   {
     static std::vector<uint> indices {};
@@ -48,7 +48,6 @@ namespace OpenMS
       pg.setIndex(index);
       fs << index++ << "\t" << file_name << "\t" << pg.getScanNumber() << "\t" << (pg.getFeatureIndex() == 0 ? "nan" : std::to_string(pg.getFeatureIndex())) << "\t";
 
-
       if (report_decoy)
       {
         fs << pg.getTargetDecoyType() << "\t";
@@ -58,12 +57,7 @@ namespace OpenMS
 
       if (write_detail)
       {
-        std::unordered_set<double> excluded_peak_mzs;
-        if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::noise_decoy)
-        {
-          SpectralDeconvolution::addMZsToExcludsionList(target_spec, excluded_peak_mzs);
-        }
-        auto noisy_peaks = pg.recruitAllPeaksInSpectrum(dspec.getOriginalSpectrum(), tol * 1e-6, avg, pg.getMonoMass(), excluded_peak_mzs);
+        auto noisy_peaks = pg.recruitAllPeaksInSpectrum(dspec.getOriginalSpectrum(), tol * 1e-6, avg, pg.getMonoMass());
 
         std::sort(noisy_peaks.begin(), noisy_peaks.end());
         fs << std::fixed << std::setprecision(2);

@@ -111,13 +111,6 @@ namespace OpenMS
                                                           PeakGroup::TargetDecoyType target_decoy_type = PeakGroup::TargetDecoyType::target);
 
     /**
-     * add m/zs in input DeconvolvedSpectrum into exclusion list. The exclusion list is used to generate noise dummy masses.
-     * @param dspec input DeconvolvedSpectrum
-     * @param excluded_mzs mz exclusion list to be updated
-     */
-    static void addMZsToExcludsionList(const DeconvolvedSpectrum& dspec, std::unordered_set<double>& excluded_mzs);
-
-    /**
      *  set target dummy type for the SpectralDeconvolution run. All masses from the target SpectralDeconvolution run will have the target_decoy_type_.
      * @param target_decoy_type  This target_decoy_type_ specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
      * @param target_dspec_for_decoy_calcualtion target masses from normal deconvolution
@@ -182,7 +175,6 @@ namespace OpenMS
     /// mass bins that are previsouly deconvolved and excluded for dummy mass generation
     boost::dynamic_bitset<> previously_deconved_mass_bins_for_decoy_;
     std::vector<double> previously_deconved_mono_masses_for_decoy_;
-    std::unordered_set<double> excluded_peak_mzs_;
 
     /// Stores log mz peaks
     std::vector<LogMzPeak> log_mz_peaks_;
@@ -281,7 +273,7 @@ namespace OpenMS
     void scoreAndFilterPeakGroups_();
 
     /// filter out charge error masses
-    void removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec) const;
+    void removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec, const PeakGroup::TargetDecoyType& target_decoy_type) const;
 
     /// filter out excluded masses
     void removeExcludedMasses_(DeconvolvedSpectrum& dspec) const;

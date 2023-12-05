@@ -8,15 +8,15 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/Qvalue.h>
+#include <OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h>
 
 namespace OpenMS
 {
-  void Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra
-                                      //std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra,
-                                      //bool in_features
-                                      ) // per ms level + precursor update as well.
+  void Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra) // per ms level + precursor update as well.
   {
-    uint bin_number = 25;                           // 25 is enough resolution for qvalue calculation. In most cases FDR 5% will be used.
+    uint bin_number = 100;                           // 15 is enough resolution for qvalue calculation. In most cases FDR 5% will be used.
+    const uint iteration_count = 100;
+
     std::map<uint, std::vector<double>> tscore_map; // per ms level
 
     std::map<uint, std::vector<double>> dscore_iso_decoy_map;
@@ -54,9 +54,6 @@ namespace OpenMS
       uint ms_level = decoy_deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : decoy_deconvolved_spectrum)
       {
-       // if (in_features && pg.getFeatureIndex() == 0) continue;
-       // if (!in_features && pg.getFeatureIndex() > 0) continue;
-
         if (pg.getFeatureIndex() > 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
           continue;
         used_feature_indices.insert(pg.getFeatureIndex());
@@ -86,28 +83,48 @@ namespace OpenMS
       const auto noise_dist = getDistribution(dscore_noise, bin_number);
       const auto iso_dist = getDistribution(dscore_iso, bin_number);
 
-      std::vector<double> weights(4, .25);
-      std::vector<double> target_dist(bin_number);
+      std::vector<double> weights(4, 1.0 / 4.0);
+      std::vector<double> true_positive_dist(bin_number);
 
-      for (uint iteration = 0; iteration < 100; iteration++)
+      for (uint iteration = 0; iteration < iteration_count; iteration++)
       {
-        std::fill(target_dist.begin(), target_dist.end(), .0f);
+        std::vector<DPosition<2>> fit_data;
 
-        for (int i = (int)bin_number - 1; i >= 0; i--) //
+        double max_X = 0;
+        double max_Y = 0;
+        for (int i = bin_number - 1; i >= 0; i--) //
         {
-          double fp = (charge_dist[i] * weights[0] + noise_dist[i] * weights[1] + iso_dist[i] * weights[2]);
-          target_dist[i] = std::max(.0, mixed_dist[i] - fp);
-          if (target_dist[i] > 0 && target_dist[i] < fp) break;
+          double fp = charge_dist[i] * weights[0] + noise_dist[i] * weights[1] + iso_dist[i] * weights[2];
+          double y = std::max(.0, mixed_dist[i] - fp);
+
+          DPosition<2> pos;
+          pos.setX(bin_number - i - 1);
+          pos.setY(y);
+          fit_data.push_back(pos);
+          if (max_Y > y) continue;
+          max_Y = y;
+          max_X = bin_number - i - 1;
+
         }
 
-        double csum = .0;
 
-        for (auto r : target_dist)
+        Math::GumbelDistributionFitter fitter;
+        Math::GumbelDistributionFitter::GumbelDistributionFitResult init_param;
+        init_param.a = max_X;
+        init_param.b = 4.0; //
+        fitter.setInitialParameters(init_param);
+        auto fit_result = fitter.fit(fit_data);
+        for (int i = 0; i < bin_number; i++)
+          true_positive_dist[i] = exp(fit_result.log_eval_no_normalize(bin_number - i - 1));
+
+
+        double csum = .0;
+        for (const auto& r : true_positive_dist)
           csum += r;
 
         if (csum > 0)
         {
-          for (auto& r : target_dist)
+          for (auto& r : true_positive_dist)
             r /= csum;
         }
 
@@ -115,7 +132,7 @@ namespace OpenMS
         comp_dists.push_back(charge_dist);
         comp_dists.push_back(noise_dist);
         comp_dists.push_back(iso_dist);
-        comp_dists.push_back(target_dist);
+        comp_dists.push_back(true_positive_dist);
 
         auto tmp_weight = getDistributionWeights(mixed_dist, comp_dists);
 
@@ -123,12 +140,13 @@ namespace OpenMS
         {
           break;
         }
+
         weights = tmp_weight;
       }
 
-      weights[0] *= dscore_charge.empty() ? .0 : (((double)qscores.size()) / dscore_charge.size());
-      weights[1] *= dscore_noise.empty() ? .0 : (((double)qscores.size()) / dscore_noise.size());
-      weights[2] *= dscore_iso.empty() ? .0 : (((double)qscores.size()) / dscore_iso.size());
+      weights[0] *= dscore_charge.empty() ? .0 : (((double)(qscores.size())) / dscore_charge.size());
+      weights[1] *= dscore_noise.empty() ? .0 : (((double)(qscores.size())) / dscore_noise.size());
+      weights[2] *= dscore_iso.empty() ? .0 : (((double)(qscores.size())) / dscore_iso.size());
 
       std::sort(qscores.begin(), qscores.end());
       std::sort(dscore_iso.begin(), dscore_iso.end());
@@ -142,7 +160,8 @@ namespace OpenMS
       for (size_t i = 0; i < qscores.size(); i++)
       {
         double ts = qscores[i];
-        if (map_charge.find(ts) != map_charge.end()) continue;
+        if (map_charge.find(ts) != map_charge.end())
+          continue;
 
         size_t dindex = dscore_charge.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_charge.begin(), dscore_charge.end(), ts), dscore_charge.end());
         size_t tindex = qscores.size() - i;
@@ -160,7 +179,8 @@ namespace OpenMS
       for (size_t i = 0; i < qscores.size(); i++)
       {
         double ts = qscores[i];
-        if (map_iso.find(ts) != map_iso.end()) continue;
+        if (map_iso.find(ts) != map_iso.end())
+          continue;
 
         size_t dindex = dscore_iso.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_iso.begin(), dscore_iso.end(), ts), dscore_iso.end());
         size_t tindex = qscores.size() - i;
@@ -177,7 +197,8 @@ namespace OpenMS
       for (size_t i = 0; i < qscores.size(); i++)
       {
         double ts = qscores[i];
-        if (map_noise.find(ts) != map_noise.end()) continue;
+        if (map_noise.find(ts) != map_noise.end())
+          continue;
 
         size_t dindex = dscore_noise.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_noise.begin(), dscore_noise.end(), ts), dscore_noise.end());
         size_t tindex = qscores.size() - i;
@@ -195,6 +216,33 @@ namespace OpenMS
       auto& map_iso = qscore_iso_decoy_map[ms_level];
       auto& map_noise = qscore_noise_decoy_map[ms_level];
       auto& map_charge = qscore_charge_decoy_map[ms_level];
+
+      double cummin = 1.0;
+      {
+        for (auto&& rit = map_iso.begin(); rit != map_iso.end(); ++rit)
+        {
+          cummin = std::min(rit->second, cummin);
+          rit->second = cummin;
+        }
+      }
+
+      cummin = 1.0;
+      {
+        for (auto&& rit = map_noise.begin(); rit != map_noise.end(); ++rit)
+        {
+          cummin = std::min(rit->second, cummin);
+          rit->second = cummin;
+        }
+      }
+
+      cummin = 1.0;
+      {
+        for (auto&& rit = map_charge.begin(); rit != map_charge.end(); ++rit)
+        {
+          cummin = std::min(rit->second, cummin);
+          rit->second = cummin;
+        }
+      }
 
       for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
@@ -229,47 +277,54 @@ namespace OpenMS
 
   uint Qvalue::getBinNumber(double qscore, uint total_bin_number)
   {
-    return (uint)(pow(qscore, 3.0) * (total_bin_number - 1.0) + .5f);
+    return (uint)round(pow(qscore, 1) * (total_bin_number - 1.0));
   }
 
-  double Qvalue::getBinValue(uint bin_number, uint total_bin_number)
-  {
-    return pow((double)(bin_number) / (total_bin_number - 1.0), 1.0 / 3.0);
-  }
-
-  std::vector<double> Qvalue::getDistribution(const std::vector<double>& qscores, uint bin_number)
-  {
-    std::vector<double> ret(bin_number, .0f);
+std::vector<double> Qvalue::getDistribution(const std::vector<double>& qscores, uint bin_number)
+{
+    std::vector<double> ret(bin_number, .0);
 
     for (double qscore : qscores)
     {
-      if (qscore < 0.0f || qscore > 1.0f)
+      if (qscore < 0 || qscore > 1.0f)
       {
         continue;
       }
       uint bin = getBinNumber(qscore, bin_number);
       ret[bin]++;
     }
-    if (qscores.size() > 0)
+
+    if (ret.size() >= 3)
     {
-      for (uint i = 0; i < bin_number; i++)
+      std::vector<double> result(ret);
+      for (size_t i = 1; i < ret.size() - 1; ++i)
       {
-        ret[i] /= qscores.size();
+        double avg = (ret[i - 1] + ret[i] + ret[i + 1]) / 3.0;
+        result[i] = avg;
       }
+      ret = result;
     }
-    double csum = .0;
-    for (auto r : ret)
-      csum += r;
+
+    double csum = 0;
+
+    for (uint i = 0; i < bin_number; i++)
+    {
+      csum += ret[i];
+    }
+
     if (csum > 0)
     {
       for (auto& r : ret)
         r /= csum;
     }
+
     // ret = smoothByMovingAvg(ret);
     return ret;
   }
 
-  std::vector<double> Qvalue::getDistributionWeights(const std::vector<double>& mixed_dist, const std::vector<std::vector<double>>& comp_dists, uint num_iterations)
+  std::vector<double> Qvalue::getDistributionWeights(
+    const std::vector<double>& mixed_dist, const std::vector<std::vector<double>>& comp_dists,
+    uint num_iterations) // Richardson-Lucy algorithm https://stats.stackexchange.com/questions/501288/estimating-weights-of-known-component-distributions-in-a-mixture-distribution
   {
     uint weight_cntr = comp_dists.size();
     uint bin_number = mixed_dist.size();
@@ -296,7 +351,6 @@ namespace OpenMS
           }
         }
         tmp_weights[i] *= t;
-        tmp_weights[i] = std::max(.0, tmp_weights[i]);
         tmp_weight_sum += tmp_weights[i];
       }
 
@@ -311,7 +365,7 @@ namespace OpenMS
       {
         break;
       }
-      weights.swap(tmp_weights);
+      weights = tmp_weights;
     }
     return weights;
   }

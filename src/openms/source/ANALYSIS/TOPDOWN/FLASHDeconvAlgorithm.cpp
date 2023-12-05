@@ -104,10 +104,8 @@ namespace OpenMS
   void FLASHDeconvAlgorithm::updateMSLevels_(MSExperiment& map)
   {
     // read input dataset once to count spectra
-    double gradient_rt = .0;
     for (auto& it : map)
     {
-      gradient_rt = std::max(gradient_rt, it.getRT());
       // if forced_ms_level > 0, force MS level of all spectra to 1.
       if (forced_ms_level_ > 0)
       {
@@ -251,10 +249,9 @@ namespace OpenMS
   {
     // merge spectra if the merging option is turned on (> 0)
     filterLowPeaks_(map);
-
+    startProgress(0, (SignedSize)map.size(), "running FLASHDeconv");
     for (uint ms_level = 1; ms_level <= current_max_ms_level_; ms_level++)
     {
-      startProgress(0, (SignedSize)map.size(), "running FLASHDeconv for MS" + std::to_string(ms_level));
       if (ms_level > 1)
       {
         // here, register precursor peak groups to the ms2 spectra.
@@ -276,7 +273,6 @@ namespace OpenMS
       {
         int scan_number = getScanNumber_(map, index);
         auto spec = map[index];
-        nextProgress();
 
         if (spec.empty())
         {
@@ -316,48 +312,30 @@ namespace OpenMS
             sd_isotope_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
           }
           DeconvolvedSpectrum decoy_deconvolved_spectrum(scan_number);
-          deconvolved_spectrum.sortByQscore();
-          double qscore_threshold_for_decoy = deconvolved_spectrum.back().getQscore();
           decoy_deconvolved_spectrum.setOriginalSpectrum(spec);
           decoy_deconvolved_spectrum.reserve(sd_isotope_decoy_.getDeconvolvedSpectrum().size() + sd_charge_decoy_.getDeconvolvedSpectrum().size() + sd_noise_decoy_.getDeconvolvedSpectrum().size());
 
           for (auto& pg : sd_charge_decoy_.getDeconvolvedSpectrum())
-          {
-            if (pg.getQscore() < qscore_threshold_for_decoy)
-            {
-              continue;
-            }
             decoy_deconvolved_spectrum.push_back(pg);
-          }
 
           for (auto& pg : sd_isotope_decoy_.getDeconvolvedSpectrum())
-          {
-            if (pg.getQscore() < qscore_threshold_for_decoy)
-            {
-              continue;
-            }
             decoy_deconvolved_spectrum.push_back(pg);
-          }
 
           for (auto& pg : sd_noise_decoy_.getDeconvolvedSpectrum())
-          {
-            if (pg.getQscore() < qscore_threshold_for_decoy)
-            {
-              continue;
-            }
             decoy_deconvolved_spectrum.push_back(pg);
-          }
 
-          deconvolved_spectrum.sort();
           decoy_deconvolved_spectrum.sort();
 
-          deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
+          if (!decoy_deconvolved_spectrum.empty())
+            deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
         }
+
         deconvolved_spectra.push_back(deconvolved_spectrum);
+        nextProgress();
       }
       std::sort(deconvolved_spectra.begin(), deconvolved_spectra.end());
-      endProgress();
     }
+    endProgress();
   }
 
 
@@ -664,59 +642,17 @@ namespace OpenMS
 
     mass_tracer.setParameters(mf_param); // maybe go to set param
     // decoy_mass_tracer.setParameters(mf_param);
-
     // Find features for MS1 or the minimum MS level in the dataset.
     deconvolved_features = mass_tracer.findFeaturesAndUpdateQscore2D(sd_.getAveragine(), deconvolved_spectra, current_min_ms_level_, false);
 
     if (report_decoy_)
     {
-      // remove the decoy peak groups overlapping with target features.
-      /*
-      for (auto& dspec : deconvolved_spectra)
-      {
-        if (!dspec.isDecoy())
-          continue;
-
-        double rt = dspec.getOriginalSpectrum().getRT();
-        auto filtered_dspec = dspec;
-        filtered_dspec.clear();
-
-        boost::dynamic_bitset<> remove_index;
-        remove_index.resize(dspec.size());
-
-        for (auto& feature : deconvolved_features)
-        {
-          double frt_begin = feature.mt.begin()->getRT();
-          double frt_end = feature.mt.rbegin()->getRT();
-          if (rt < frt_begin || rt > frt_end)
-            continue;
-
-          double f_mass = feature.mt.getCentroidMZ() + feature.iso_offset * Constants::ISOTOPE_MASSDIFF_55K_U;
-          for (uint i = 0; i < dspec.size(); i++)
-          {
-            if (remove_index[i])
-              continue;
-            auto pg = dspec[i];
-            double pg_mass = pg.getMonoMass();
-            if (abs(f_mass - pg_mass) < 1e-6 * tols_[dspec.getOriginalSpectrum().getMSLevel() - 1] * pg_mass)
-            {
-              remove_index[i] = true;
-            }
-          }
-        }
-
-        for (uint i = 0; i < dspec.size(); i++)
-        {
-          if (remove_index[i])
-            continue;
-          filtered_dspec.push_back(dspec[i]);
-        }
-        dspec = filtered_dspec;
-      }*/
       auto decoy_deconvolved_features = mass_tracer.findFeaturesAndUpdateQscore2D(sd_.getAveragine(), deconvolved_spectra, current_min_ms_level_, true);
       deconvolved_features.insert(deconvolved_features.end(), decoy_deconvolved_features.begin(), decoy_deconvolved_features.end());
     }
 
+    mf_param.setValue("min_trace_length", 1e-5); // allow all traces for MSn
+    mass_tracer.setParameters(mf_param);
     // Find features for MSn
     for (int ms_level = current_min_ms_level_ + 1; ms_level <= current_max_ms_level_; ms_level++)
     {

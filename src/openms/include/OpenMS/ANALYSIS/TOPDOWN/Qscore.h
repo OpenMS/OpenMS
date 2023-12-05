@@ -34,7 +34,7 @@ namespace OpenMS
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     /// get QScore for a peak group of specific abs_charge
-    static double getQscore(const PeakGroup* pg);
+    static double getQscore(const PeakGroup* pg, bool is_profile = false, double cv = -1);
 
     static void writeAttCsvFromDummy(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f);
 
@@ -42,6 +42,26 @@ namespace OpenMS
 
   private:
     /// convert a peak group to a feature vector for setQscore calculation
+
+
     static std::vector<double> toFeatureVector_(const PeakGroup* pg);
+
+    //static std::vector<double> weight_centroid_;
+    static std::vector<double> weight_profile_;
+    //static std::vector<double> weight_CV_;
+    // the weights for per cosine, SNR, PPM error, charge score, and intercept.
+    // ======================================
+    // IsotopeCosine                  40.7425
+    // ChargeCosine                      0.205
+    // MassSNR1                        -0.1984
+    // ChargeSNR1                        0.213
+    // Intercept                      -40.3701
+    //
+    // IsotopeCosine    -55.8387
+    // ChargeCosine        0.0253
+    // MassSNR1            0.2473
+    // ChargeSNR2         -0.6765
+    // Intercept          55.8594
+
   };
 } // namespace OpenMS

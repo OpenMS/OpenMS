@@ -114,7 +114,7 @@ namespace OpenMS
     }
   }
 
-  int PeakGroup::updateQscore(std::vector<LogMzPeak>& noisy_peaks, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, bool is_low_charge, int allowed_iso_error)
+  int PeakGroup::updateQscore(std::vector<LogMzPeak>& noisy_peaks, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, bool is_low_charge, bool is_profile, int allowed_iso_error)
   {
     qscore_ = 0;
 
@@ -140,7 +140,10 @@ namespace OpenMS
 
     int h_offset;
     isotope_cosine_score_ =
-      SpectralDeconvolution::getIsotopeCosineAndDetermineIsotopeIndex(monoisotopic_mass_, per_isotope_int_, h_offset, avg, -min_negative_isotope_index_, -1, allowed_iso_error, target_decoy_type_);
+      SpectralDeconvolution::getIsotopeCosineAndDetermineIsotopeIndex(monoisotopic_mass_, per_isotope_int_, h_offset, avg, -min_negative_isotope_index_, // change if to select cosine calculation and if to get second best hits
+                                                                      target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy? 0 : -1, allowed_iso_error, target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy ? PeakGroup::TargetDecoyType::target : target_decoy_type_);
+
+    if (h_offset != 0) return h_offset;
 
     if (isotope_cosine_score_ < min_cos)
     {
@@ -151,6 +154,7 @@ namespace OpenMS
     {
       return h_offset;
     }
+
     updatePerChargeCos_(avg);
     updateAvgPPMError_();
     updateAvgDaError_();
@@ -163,7 +167,7 @@ namespace OpenMS
         continue;
       }
 
-      double q_score = Qscore::getQscore(this);
+      double q_score = Qscore::getQscore(this, is_profile);
       if (qscore_ < q_score)
       {
         qscore_ = q_score;
@@ -510,7 +514,7 @@ namespace OpenMS
   }
 
   std::vector<FLASHDeconvHelperStructs::LogMzPeak> PeakGroup::recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                                                                                        double mono_mass, const std::unordered_set<double>& excluded_peak_mzs)
+                                                                                        double mono_mass)
   {
     const double mul_tol = .8; // not all peaks within tolerance are considered as signal peaks.
     std::vector<LogMzPeak> noisy_peaks;
@@ -563,10 +567,8 @@ namespace OpenMS
         {
           continue;
         }
-        // if excluded_peak_mzs_ is not empty, these mzs should be ignored in this raw spectrum for this peak group! But they can be included in noisy peaks.
-        bool excluded = excluded_peak_mzs.size() > 0 && excluded_peak_mzs.find(pmz) != excluded_peak_mzs.end();
 
-        if (!excluded && abs(pmz - cmz - iso_index * iso_delta) <= pmz * tol * mul_tol)
+        if (abs(pmz - cmz - iso_index * iso_delta) <= pmz * tol * mul_tol)
         {
           auto p = LogMzPeak(spec[index], is_positive_);
           p.isotopeIndex = iso_index;
@@ -958,7 +960,7 @@ namespace OpenMS
 
   float PeakGroup::getChargeIntensity(const int abs_charge) const
   {
-    if (abs_charge < 0 || (int)per_charge_int_.size() <= abs_charge)
+    if (abs_charge < 0 || per_charge_int_.empty() || (int)per_charge_int_.size() <= abs_charge)
     {
       return 0;
     }
@@ -1083,8 +1085,7 @@ namespace OpenMS
   void PeakGroup::calculateDLMatrices(const MSSpectrum& spec, double tol, const PrecalculatedAveragine& avg)
   {
     dl_matrices_.clear();
-    std::unordered_set<double> excluded_peak_mzs;
-    std::vector<LogMzPeak> noisy_peaks = recruitAllPeaksInSpectrum(spec, tol, avg, getMonoMass(), excluded_peak_mzs);
+    std::vector<LogMzPeak> noisy_peaks = recruitAllPeaksInSpectrum(spec, tol, avg, getMonoMass());
 
     int center_z = std::distance(per_charge_snr_.begin(), std::max_element(per_charge_snr_.begin(), per_charge_snr_.end()));
 
