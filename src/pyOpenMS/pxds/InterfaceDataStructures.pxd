@@ -9,8 +9,8 @@ cdef extern from "<OpenMS/INTERFACES/DataStructures.h>" namespace "OpenMS::Inter
         #
         # wrap-instances:
         #  _Interfaces_BinaryDataArray := BinaryDataArray
-        BinaryDataArray() nogil except +
-        BinaryDataArray(BinaryDataArray &) nogil except +
+        BinaryDataArray() except + nogil 
+        BinaryDataArray(BinaryDataArray &) except + nogil 
         libcpp_vector[double] data
 
   ctypedef shared_ptr[BinaryDataArray] BinaryDataArrayPtr
@@ -22,12 +22,12 @@ cdef extern from "<OpenMS/INTERFACES/DataStructures.h>" namespace "OpenMS::Inter
         #
         # wrap-instances:
         #  _Interfaces_Spectrum := Spectrum
-        Spectrum() nogil except +
-        Spectrum(Spectrum &) nogil except +
-        BinaryDataArrayPtr getMZArray() nogil except + #wrap-ignore
-        BinaryDataArrayPtr getIntensityArray() nogil except + #wrap-ignore
-        void setMZArray(BinaryDataArrayPtr data) nogil except + #wrap-ignore
-        void setIntensityArray(BinaryDataArrayPtr data) nogil except + #wrap-ignore
+        Spectrum() except + nogil 
+        Spectrum(Spectrum &) except + nogil 
+        BinaryDataArrayPtr getMZArray() except + nogil  #wrap-ignore
+        BinaryDataArrayPtr getIntensityArray() except + nogil  #wrap-ignore
+        void setMZArray(BinaryDataArrayPtr data) except + nogil  #wrap-ignore
+        void setIntensityArray(BinaryDataArrayPtr data) except + nogil  #wrap-ignore
 
   ctypedef shared_ptr[Spectrum] SpectrumPtr
 
@@ -38,12 +38,12 @@ cdef extern from "<OpenMS/INTERFACES/DataStructures.h>" namespace "OpenMS::Inter
         #
         # wrap-instances:
         #  _Interfaces_Chromatogram := Chromatogram
-        Chromatogram() nogil except +
-        Chromatogram(Chromatogram &) nogil except +
-        BinaryDataArrayPtr getTimeArray() nogil except + #wrap-ignore
-        BinaryDataArrayPtr getIntensityArray() nogil except + #wrap-ignore
-        void setTimeArray(BinaryDataArrayPtr data) nogil except + #wrap-ignore
-        void setIntensityArray(BinaryDataArrayPtr data) nogil except + #wrap-ignore
+        Chromatogram() except + nogil 
+        Chromatogram(Chromatogram &) except + nogil 
+        BinaryDataArrayPtr getTimeArray() except + nogil  #wrap-ignore
+        BinaryDataArrayPtr getIntensityArray() except + nogil  #wrap-ignore
+        void setTimeArray(BinaryDataArrayPtr data) except + nogil  #wrap-ignore
+        void setIntensityArray(BinaryDataArrayPtr data) except + nogil  #wrap-ignore
 
   ctypedef shared_ptr[Chromatogram] ChromatogramPtr
 

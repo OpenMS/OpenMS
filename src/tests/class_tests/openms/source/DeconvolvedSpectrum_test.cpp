@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Jihyung Kim$
@@ -37,7 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 ///////////////////////////
 
@@ -99,23 +73,20 @@ START_SECTION((const MSSpectrum& getOriginalSpectrum() const))
 END_SECTION
 
 
-FLASHDeconvAlgorithm fd_algo = FLASHDeconvAlgorithm();
+SpectralDeconvolution fd_algo = SpectralDeconvolution();
 Param fd_param;
 fd_param.setValue("min_charge", 5);
 fd_param.setValue("max_charge", 20);
 fd_algo.setParameters(fd_param);
 fd_algo.calculateAveragine(false);
-std::vector<DeconvolvedSpectrum> survey_specs;
-const std::map<int, std::vector<std::vector<float>>> null_map;
 
-    fd_algo.performSpectrumDeconvolution(input[1], survey_specs, 2, null_map);
+    fd_algo.performSpectrumDeconvolution(input[1], 2, PeakGroup());
 DeconvolvedSpectrum prec_deconv_spec_1 = fd_algo.getDeconvolvedSpectrum();
 
-    fd_algo.performSpectrumDeconvolution(input[3], survey_specs, 4, null_map);
+    fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
 DeconvolvedSpectrum prec_deconv_spec_2 = fd_algo.getDeconvolvedSpectrum();
 
-survey_specs.push_back(prec_deconv_spec_2);
-    fd_algo.performSpectrumDeconvolution(input[5], survey_specs, 6, null_map);
+    fd_algo.performSpectrumDeconvolution(input[5], 6, PeakGroup());
 DeconvolvedSpectrum ms2_deconv_spec = fd_algo.getDeconvolvedSpectrum();
 
 START_SECTION((double getCurrentMaxMass(const double max_mass) const))
@@ -140,7 +111,7 @@ END_SECTION
 START_SECTION((MSSpectrum toSpectrum(const int mass_charge)))
 {
   MSSpectrum peakgroup_spec = prec_deconv_spec_1.toSpectrum(9, 1);
-  TEST_EQUAL(peakgroup_spec.size(), 0);
+  TEST_EQUAL(peakgroup_spec.size(), 1);
   TEST_REAL_SIMILAR(peakgroup_spec.getRT(), 251.72280736002);
 }
 END_SECTION
@@ -177,7 +148,7 @@ END_SECTION
 START_SECTION((int getPrecursorScanNumber() const))
 {
   int p_scan_num = ms2_deconv_spec.getPrecursorScanNumber();
-  TEST_EQUAL(p_scan_num, 4);
+  TEST_EQUAL(p_scan_num, 0);
 }
 END_SECTION
 

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -177,6 +151,16 @@ namespace OpenMS
     id_ = id;
   }
 
+  String PeptideIdentification::getSpectrumReference() const
+  {
+    return this->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, "");
+  }
+
+  void PeptideIdentification::setSpectrumReference(const String& id)
+  {
+    this->setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, id);
+  }
+
   const String& PeptideIdentification::getBaseName() const
   {
     return base_name_;
@@ -191,14 +175,7 @@ namespace OpenMS
   {
     // implement as meta value in order to reduce bloat of PeptideIdentification object
     //  -> this is mostly used for pepxml at the moment which allows each peptide id to belong to a different experiment
-    if (metaValueExists("experiment_label"))
-    {
-      return getMetaValue("experiment_label").toString();
-    }
-    else
-    {
-      return "";
-    }
+    return this->getMetaValue("experiment_label", "");
   }
 
   void PeptideIdentification::setExperimentLabel(const String& label)
@@ -321,12 +298,12 @@ namespace OpenMS
     const auto &ms_run_path = fidentifier_to_msrunpath.at(pep_id.getIdentifier());
     if (ms_run_path.size() == 1)
     {
-      UID = ms_run_path[0] + '|' + pep_id.getMetaValue("spectrum_reference").toString();
+      UID = ms_run_path[0] + '|' + pep_id.getSpectrumReference();
     }
     else if (pep_id.metaValueExists("map_index"))
     {
       UID = pep_id.getMetaValue("map_index").toString() + '|' +
-            pep_id.getMetaValue("spectrum_reference").toString();
+            pep_id.getSpectrumReference();
     }
     else
     {

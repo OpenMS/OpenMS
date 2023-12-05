@@ -9,25 +9,25 @@ from MSExperiment cimport *
 cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>" namespace "OpenMS":
     
     cdef cppclass RNPxlReport "OpenMS::RNPxlReport":
-        RNPxlReport() nogil except + # compiler
-        RNPxlReport(RNPxlReport &) nogil except + # compiler
+        RNPxlReport() except + nogil  # compiler
+        RNPxlReport(RNPxlReport &) except + nogil  # compiler
         libcpp_vector[ RNPxlReportRow ] annotate(MSExperiment & spectra,
                                                  libcpp_vector[ PeptideIdentification ] & peptide_ids,
-                                                 double marker_ions_tolerance) nogil except +
+                                                 double marker_ions_tolerance) except + nogil 
 
 
 cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>" namespace "OpenMS":
     
     cdef cppclass RNPxlReportRowHeader "OpenMS::RNPxlReportRowHeader":
-        RNPxlReportRowHeader() nogil except + # compiler
-        RNPxlReportRowHeader(RNPxlReportRowHeader &) nogil except + # compiler
-        String getString(const String & separator) nogil except +
+        RNPxlReportRowHeader() except + nogil  # compiler
+        RNPxlReportRowHeader(RNPxlReportRowHeader &) except + nogil  # compiler
+        String getString(const String & separator) except + nogil 
 
 cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>" namespace "OpenMS":
     
     cdef cppclass RNPxlReportRow "OpenMS::RNPxlReportRow":
-        RNPxlReportRow() nogil except + # compiler
-        RNPxlReportRow(RNPxlReportRow &) nogil except + # compiler
+        RNPxlReportRow() except + nogil  # compiler
+        RNPxlReportRow(RNPxlReportRow &) except + nogil  # compiler
 
         bool no_id
         double rt
@@ -52,4 +52,4 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>" namespace "OpenMS":
         double m_4H
         int rank
 
-        String getString(const String & separator) nogil except +
+        String getString(const String & separator) except + nogil 

@@ -11,17 +11,17 @@ cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS":
         # wrap-inherits:
         #    MetaInfoInterface
 
-        DataProcessing()  nogil except +
-        DataProcessing(DataProcessing &) nogil except +
+        DataProcessing()  except + nogil 
+        DataProcessing(DataProcessing &) except + nogil 
 
-        void setProcessingActions(libcpp_set[ProcessingAction]) nogil except +
-        libcpp_set[ProcessingAction] getProcessingActions() nogil except +
+        void setProcessingActions(libcpp_set[ProcessingAction]) except + nogil 
+        libcpp_set[ProcessingAction] getProcessingActions() except + nogil 
 
-        Software getSoftware() nogil except +
-        void setSoftware(Software s) nogil except +
+        Software getSoftware() except + nogil 
+        void setSoftware(Software s) except + nogil 
 
-        DateTime getCompletionTime()  nogil except +
-        void setCompletionTime(DateTime t) nogil except +
+        DateTime getCompletionTime()  except + nogil 
+        void setCompletionTime(DateTime t) except + nogil 
 
     ctypedef shared_ptr[DataProcessing] DataProcessingPtr
 

@@ -14,57 +14,57 @@ cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace "
         #   ProgressLogger
         #   DefaultParamHandler
 
-        MetaboliteSpectralMatching() nogil except +
-        MetaboliteSpectralMatching(MetaboliteSpectralMatching &) nogil except + # compiler
+        MetaboliteSpectralMatching() except + nogil 
+        MetaboliteSpectralMatching(MetaboliteSpectralMatching &) except + nogil  # compiler
 
-        void run(MSExperiment & exp, MSExperiment & speclib, MzTab & mz_tab, String & out_spectra) nogil except +
+        void run(MSExperiment & exp, MSExperiment & speclib, MzTab & mz_tab, String & out_spectra) except + nogil 
         
     cdef cppclass SpectralMatch:
 
-        SpectralMatch() nogil except +# TODO(Whole file)
-        SpectralMatch(SpectralMatch &) nogil except +
+        SpectralMatch() except + nogil # TODO(Whole file)
+        SpectralMatch(SpectralMatch &) except + nogil 
 
-        double getObservedPrecursorMass() nogil except +
-        void setObservedPrecursorMass(double)nogil except +
+        double getObservedPrecursorMass() except + nogil 
+        void setObservedPrecursorMass(double) except + nogil 
 
-        double getObservedPrecursorRT() nogil except +
-        void setObservedPrecursorRT(double)nogil except +
+        double getObservedPrecursorRT() except + nogil 
+        void setObservedPrecursorRT(double) except + nogil 
 
-        double getFoundPrecursorMass() nogil except +
-        void setFoundPrecursorMass(double)nogil except +
+        double getFoundPrecursorMass() except + nogil 
+        void setFoundPrecursorMass(double) except + nogil 
 
-        Int getFoundPrecursorCharge() nogil except +
-        void setFoundPrecursorCharge(Int)nogil except +
+        Int getFoundPrecursorCharge() except + nogil 
+        void setFoundPrecursorCharge(Int) except + nogil 
 
-        double getMatchingScore() nogil except +
-        void setMatchingScore(double)nogil except +
+        double getMatchingScore() except + nogil 
+        void setMatchingScore(double) except + nogil 
 
-        Size getObservedSpectrumIndex() nogil except +
-        void setObservedSpectrumIndex(Size)nogil except +
+        Size getObservedSpectrumIndex() except + nogil 
+        void setObservedSpectrumIndex(Size) except + nogil 
 
-        Size getMatchingSpectrumIndex() nogil except +
-        void setMatchingSpectrumIndex(Size)nogil except +
+        Size getMatchingSpectrumIndex() except + nogil 
+        void setMatchingSpectrumIndex(Size) except + nogil 
 
-        String getPrimaryIdentifier() nogil except +
-        void setPrimaryIdentifier(String)nogil except +
+        String getPrimaryIdentifier() except + nogil 
+        void setPrimaryIdentifier(String) except + nogil 
 
-        String getSecondaryIdentifier() nogil except +
-        void setSecondaryIdentifier(String)nogil except +
+        String getSecondaryIdentifier() except + nogil 
+        void setSecondaryIdentifier(String) except + nogil 
 
-        String getCommonName() nogil except +
-        void setCommonName(String)nogil except +
+        String getCommonName() except + nogil 
+        void setCommonName(String) except + nogil 
 
-        String getSumFormula() nogil except +
-        void setSumFormula(String)nogil except +
+        String getSumFormula() except + nogil 
+        void setSumFormula(String) except + nogil 
 
-        String getInchiString() nogil except +
-        void setInchiString(String)nogil except +
+        String getInchiString() except + nogil 
+        void setInchiString(String) except + nogil 
 
-        String getSMILESString() nogil except +
-        void setSMILESString(String)nogil except +
+        String getSMILESString() except + nogil 
+        void setSMILESString(String) except + nogil 
 
-        String getPrecursorAdduct() nogil except +
-        void setPrecursorAdduct(String)nogil except +
+        String getPrecursorAdduct() except + nogil 
+        void setPrecursorAdduct(String) except + nogil 
 
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace"OpenMS::MetaboliteSpectralMatching":
@@ -73,24 +73,24 @@ cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace"O
         # double computeHyperScore(double fragment_mass_error,
         #                         bool fragment_mass_tolerance_unit_ppm,
         #                         MSSpectrum exp_spectrum,
-        #                         MSSpectrum db_spectrum) nogil except +  # wrap-attach:MetaboliteSpectralMatching
+        #                         MSSpectrum db_spectrum) except + nogil   # wrap-attach:MetaboliteSpectralMatching
         # 
         # double computeHyperScore(double fragment_mass_error,
         #                         bool fragment_mass_tolerance_unit_ppm,
         #                         MSSpectrum exp_spectrum,
         #                         MSSpectrum db_spectrum,
-        #                         double mz_lower_bound) nogil except + # wrap-attach:MetaboliteSpectralMatching
+        #                         double mz_lower_bound) except + nogil  # wrap-attach:MetaboliteSpectralMatching
         # 
         # double computeHyperScore(double fragment_mass_error,
         #                         bool fragment_mass_tolerance_unit_ppm,
         #                         MSSpectrum exp_spectrum,
         #                         MSSpectrum db_spectrum,
-        #                         libcpp_vector[PeptideHit_PeakAnnotation]& annotations) nogil except + 
+        #                         libcpp_vector[PeptideHit_PeakAnnotation]& annotations) except + nogil  
         #    
         double computeHyperScore(double fragment_mass_error,
                                  bool fragment_mass_tolerance_unit_ppm,
                                  MSSpectrum exp_spectrum,
                                  MSSpectrum db_spectrum,
                                  libcpp_vector[PeptideHit_PeakAnnotation]& annotations,
-                                 double mz_lower_bound) nogil except + # wrap-attach:MetaboliteSpectralMatching
+                                 double mz_lower_bound) except + nogil  # wrap-attach:MetaboliteSpectralMatching
         

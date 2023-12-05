@@ -7,8 +7,8 @@ from libcpp.vector cimport vector as libcpp_vector
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>" namespace "OpenMS::SiriusMzTabWriter":
 
     cdef cppclass SiriusAdapterIdentification "OpenMS::SiriusMzTabWriter::SiriusAdapterIdentification":
-        SiriusAdapterIdentification() nogil except +
-        SiriusAdapterIdentification(SiriusAdapterIdentification &) nogil except + # compiler
+        SiriusAdapterIdentification() except + nogil 
+        SiriusAdapterIdentification(SiriusAdapterIdentification &) except + nogil  # compiler
 
         double mz
         double rt

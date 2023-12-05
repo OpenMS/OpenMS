@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Kyowon Jeong, Jihyung Kim $
@@ -39,6 +13,63 @@ namespace OpenMS
   DeconvolvedSpectrum::DeconvolvedSpectrum(const int scan_number) : scan_number_(scan_number)
   {
   }
+
+  bool DeconvolvedSpectrum::operator<(const DeconvolvedSpectrum& a) const
+  {
+    return this->scan_number_ < a.scan_number_;
+  }
+
+  bool DeconvolvedSpectrum::operator>(const DeconvolvedSpectrum& a) const
+  {
+    return this->scan_number_ > a.scan_number_;
+  }
+
+  bool DeconvolvedSpectrum::operator==(const DeconvolvedSpectrum& a) const
+  {
+    return this->scan_number_ == a.scan_number_;
+  }
+
+  /*
+  std::vector<PeakGroup> DeconvolvedSpectrum::getNonOverlappingPeakGroups() const
+  {
+    std::map<double, std::set<int>> peak_to_pgs;
+    std::vector<PeakGroup> filtered_pg_vec;
+    filtered_pg_vec.reserve(size());
+    std::vector<PeakGroup> ret;
+    ret.reserve(size());
+
+    int i = 0;
+    for (const auto& pg : *this)
+    {
+      for (const auto& p : pg)
+      {
+        peak_to_pgs[p.mz].insert(i);
+      }
+      i++;
+    }
+
+    std::set<int> max_indices;
+    for (const auto& e : peak_to_pgs)
+    {
+      int max_index = 0;
+      double max_qscore = 0;
+      for (const auto pg_index : e.second)
+      {
+        auto pg = peak_groups_[pg_index];
+        if (max_qscore > pg.getFeatureQscore())
+          continue;
+
+        max_qscore = pg.getQscore2D();
+        max_index = pg_index;
+      }
+      max_indices.insert(max_index);
+    }
+    for (int mi : max_indices) ret.push_back(peak_groups_[mi]);
+
+    std::sort(ret.begin(), ret.end());
+    return ret;
+  }*/
+
 
   MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge, uint min_ms_level, double tol, bool retain_undeconvolved)
   {
@@ -161,7 +192,7 @@ namespace OpenMS
     return spec_;
   }
 
-  PeakGroup& DeconvolvedSpectrum::getPrecursorPeakGroup()
+  const PeakGroup& DeconvolvedSpectrum::getPrecursorPeakGroup() const
   {
     return precursor_peak_group_;
   }
@@ -177,7 +208,7 @@ namespace OpenMS
     {
       return max_mass;
     }
-    return precursor_peak_group_.getMonoMass();
+    return std::min(max_mass, precursor_peak_group_.getMonoMass());
   }
 
   double DeconvolvedSpectrum::getCurrentMinMass(const double min_mass) const
@@ -195,7 +226,7 @@ namespace OpenMS
     {
       return max_abs_charge;
     }
-    return abs(precursor_peak_.getCharge());
+    return std::min(max_abs_charge, abs(precursor_peak_group_.getRepAbsCharge()));
   }
 
   const Precursor& DeconvolvedSpectrum::getPrecursor() const
@@ -243,7 +274,6 @@ namespace OpenMS
     spec_ = spec;
   }
 
-
   void DeconvolvedSpectrum::setPrecursorScanNumber(const int scan_number)
   {
     precursor_scan_number_ = scan_number;
@@ -284,6 +314,16 @@ namespace OpenMS
     peak_groups_.push_back(pg);
   }
 
+  void DeconvolvedSpectrum::pop_back()
+  {
+    peak_groups_.pop_back();
+  }
+
+  PeakGroup& DeconvolvedSpectrum::back()
+  {
+    return peak_groups_.back();
+  }
+
   Size DeconvolvedSpectrum::size() const noexcept
   {
     return peak_groups_.size();
@@ -304,6 +344,27 @@ namespace OpenMS
     return peak_groups_.empty();
   }
 
+  bool DeconvolvedSpectrum::isDecoy() const
+  {
+    if (empty())
+      return false;
+    if (peak_groups_[0].getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
+      return true;
+    if (!precursor_peak_group_.empty() && precursor_peak_group_.getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
+      return true;
+    return false;
+  }
+
+  FLASHDeconvHelperStructs::IsobaricQuantities DeconvolvedSpectrum::getQuantities() const
+  {
+    return quantities_;
+  }
+
+  void DeconvolvedSpectrum::setQuantities(const FLASHDeconvHelperStructs::IsobaricQuantities& quantities)
+  {
+    quantities_ = quantities;
+  }
+
   void DeconvolvedSpectrum::setPeakGroups(std::vector<PeakGroup>& x)
   {
     std::vector<PeakGroup>().swap(peak_groups_);
@@ -317,6 +378,6 @@ namespace OpenMS
 
   void DeconvolvedSpectrum::sortByQscore()
   {
-    std::sort(peak_groups_.begin(), peak_groups_.end(), [](const PeakGroup& p1, const PeakGroup& p2) { return p1.getQscore() > p2.getQscore(); });
+    std::sort(peak_groups_.begin(), peak_groups_.end(), [](const PeakGroup& p1, const PeakGroup& p2) { return p1.getQscore2D() > p2.getQscore2D(); });
   }
 } // namespace OpenMS

@@ -14,5 +14,5 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>"
 
         SpectrumAccessOpenMS() # wrap-pass-constructor
 
-        SpectrumAccessOpenMS(SpectrumAccessOpenMS &) nogil except + 
-        SpectrumAccessOpenMS(shared_ptr[ MSExperiment ] & ms_experiment) nogil except +
+        SpectrumAccessOpenMS(SpectrumAccessOpenMS &) except + nogil  
+        SpectrumAccessOpenMS(shared_ptr[ MSExperiment ] & ms_experiment) except + nogil 

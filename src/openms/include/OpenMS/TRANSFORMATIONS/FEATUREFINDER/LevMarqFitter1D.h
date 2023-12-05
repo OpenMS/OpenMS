@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -34,21 +8,18 @@
 
 #pragma once
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
-
-
-#include <algorithm>
-
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
+#include <algorithm>
 
 // forward decl
 namespace Eigen
 {
-    template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-    class Matrix;
-    using MatrixXd = Matrix<double, -1, -1, 0, -1, -1>;
-    using VectorXd = Matrix<double, -1, 1, 0, -1, 1>;
-}
+  template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+  class Matrix;
+  using MatrixXd = Matrix<double, -1, -1, 0, -1, -1>;
+  using VectorXd = Matrix<double, -1, 1, 0, -1, 1>;
+} // namespace Eigen
 
 namespace OpenMS
 {
@@ -56,47 +27,50 @@ namespace OpenMS
   /**
     @brief Abstract class for 1D-model fitter using Levenberg-Marquardt algorithm for parameter optimization.
       */
-  class OPENMS_DLLAPI LevMarqFitter1D :
-    public Fitter1D
+  class OPENMS_DLLAPI LevMarqFitter1D : public Fitter1D
   {
-
-public:
-
+  public:
     typedef std::vector<double> ContainerType;
 
     /** Generic functor for LM-Optimization */
-    //TODO: This is copy and paste from TraceFitter.h. Make a generic wrapper for LM optimization
+    // TODO: This is copy and paste from TraceFitter.h. Make a generic wrapper for LM optimization
     class GenericFunctor
     {
     public:
-      int inputs() const { return m_inputs; }
-      int values() const { return m_values; }
+      int inputs() const
+      {
+        return m_inputs;
+      }
+      int values() const
+      {
+        return m_values;
+      }
 
-      GenericFunctor(int dimensions, int num_data_points)
-      : m_inputs(dimensions), m_values(num_data_points) {}
+      GenericFunctor(int dimensions, int num_data_points) : m_inputs(dimensions), m_values(num_data_points)
+      {
+      }
 
-      virtual ~GenericFunctor() {}
+      virtual ~GenericFunctor()
+      {
+      }
 
-      virtual int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const = 0;
+      virtual int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) const = 0;
 
       // compute Jacobian matrix for the different parameters
-      virtual int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J) const = 0;
+      virtual int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) const = 0;
 
     protected:
       const int m_inputs, m_values;
     };
 
     /// Default constructor
-    LevMarqFitter1D() :
-      Fitter1D()
+    LevMarqFitter1D() : Fitter1D()
     {
       this->defaults_.setValue("max_iteration", 500, "Maximum number of iterations using by Levenberg-Marquardt algorithm.", {"advanced"});
     }
 
     /// copy constructor
-    LevMarqFitter1D(const LevMarqFitter1D & source) :
-      Fitter1D(source),
-      max_iteration_(source.max_iteration_)
+    LevMarqFitter1D(const LevMarqFitter1D& source) : Fitter1D(source), max_iteration_(source.max_iteration_)
     {
     }
 
@@ -106,9 +80,10 @@ public:
     }
 
     /// assignment operator
-    virtual LevMarqFitter1D & operator=(const LevMarqFitter1D & source)
+    LevMarqFitter1D& operator=(const LevMarqFitter1D& source)
     {
-      if (&source == this) return *this;
+      if (&source == this)
+        return *this;
 
       Fitter1D::operator=(source);
       max_iteration_ = source.max_iteration_;
@@ -116,8 +91,7 @@ public:
       return *this;
     }
 
-protected:
-
+  protected:
     /// Parameter indicates symmetric peaks
     bool symmetric_;
     /// Maximum number of iterations
@@ -131,7 +105,5 @@ protected:
     void optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor) const;
 
     void updateMembers_() override;
-
   };
-}
-
+} // namespace OpenMS

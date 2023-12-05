@@ -1,35 +1,9 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow, Moritz Aubermann $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -45,13 +19,17 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <algorithm>
-#include <iterator>
-#include <cmath>
-#include <vector>
+#include <OpenMS/FORMAT/ZlibCompression.h>
 
-#include <QByteArray>
-#include <zlib.h>
+#include <QtCore/QByteArray>
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <iostream>
+#include <iterator>
+#include <string>
+#include <vector>
 
 #ifdef OPENMS_COMPILER_MSVC
 #pragma comment(linker, "/export:compress")
@@ -75,7 +53,7 @@ public:
     /// Byte order type
     enum ByteOrder
     {
-      BYTEORDER_BIGENDIAN,                  ///< Big endian type
+      BYTEORDER_BIGENDIAN,              ///< Big endian type
       BYTEORDER_LITTLEENDIAN            ///< Little endian type
     };
 	
@@ -182,12 +160,20 @@ private:
     ///Decodes a compressed Base64 string to a vector of integer numbers
     template <typename ToType>
     static void decodeIntegersCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
+
+    static void stringSimdEncoder_(std::string& in, std::string& out);
+
+    static void stringSimdDecoder_(const std::string& in, std::string& out);
   };
 
+  // Possible optimization: add simd registerwise endianizer (this will only be beneficial for ARM, since mzML + x64 CPU does not need to convert since both use LITTLE_ENDIAN).
+  // mzXML(!), which is outdated uses BIG_ENDIAN, i.e. "network", in its base64 encoding, so there x64 will benefit, but not ARM.
+  // However: the code below gets optimized to the bswap instruction by most compilers, which is very fast (1 cycle latency + 1 ops)
+  // and it is doubtful that SSE4's _mm_shuffle_epi8 will do better, see https://dev.to/wunk/fast-array-reversal-with-simd-j3p
   /// Endianizes a 32 bit type from big endian to little endian and vice versa
   inline UInt32 endianize32(const UInt32& n)
   {
-    return ((n & 0x000000ff) << 24) | 
+    return ((n & 0x000000ff) << 24) |
            ((n & 0x0000ff00) <<  8) |
            ((n & 0x00ff0000) >>  8) |
            ((n & 0xff000000) >> 24);
@@ -197,12 +183,12 @@ private:
   inline UInt64 endianize64(const UInt64& n)
   {
     return ((n >> 56) & 0x00000000000000FF) |
-           ((n >> 40) & 0x000000000000FF00) | 
-           ((n >> 24) & 0x0000000000FF0000) | 
+           ((n >> 40) & 0x000000000000FF00) |
+           ((n >> 24) & 0x0000000000FF0000) |
            ((n >>  8) & 0x00000000FF000000) |
            ((n <<  8) & 0x000000FF00000000) |
            ((n << 24) & 0x0000FF0000000000) |
-           ((n << 40) & 0x00FF000000000000) | 
+           ((n << 40) & 0x00FF000000000000) |
            ((n << 56) & 0xFF00000000000000);
   }
 
@@ -211,15 +197,14 @@ private:
   {
     out.clear();
     if (in.empty())
+    {
       return;
+    }
 
-    //initialize
+    // initialize
     const Size element_size = sizeof(FromType);
     const Size input_bytes = element_size * in.size();
-    String compressed;
-    Byte * it;
-    Byte * end;
-    //Change endianness if necessary
+    // change endianness if necessary
     if ((OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_BIGENDIAN))
     {
       if (element_size == 4)
@@ -242,98 +227,25 @@ private:
           in[i] = tmp.f;
         }
       }
+      /////////////////////////endianize registerwise
     }
 
-    //encode with compression
+    // encode with compression
     if (zlib_compression)
     {
-      unsigned long sourceLen =   (unsigned long)in.size();
-      unsigned long compressed_length =       //compressBound((unsigned long)in.size());
-                                        sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11; // taken from zlib's compress.c, as we cannot use compressBound*
-      //
-      // (*) compressBound is not defined in the QtCore lib, which forces the linker under windows to link in our zlib.
-      //     This leads to multiply defined symbols as compress() is then defined twice.
-
-      int zlib_error;
-      do
-      {
-        compressed.resize(compressed_length);
-        zlib_error = compress(reinterpret_cast<Bytef *>(&compressed[0]), &compressed_length, reinterpret_cast<Bytef *>(&in[0]), (unsigned long)input_bytes);
-
-        switch (zlib_error)
-        {
-        case Z_MEM_ERROR:
-          throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, compressed_length);
-          break;
-
-        case Z_BUF_ERROR:
-          compressed_length *= 2;
-        }
-      }
-      while (zlib_error == Z_BUF_ERROR);
-
-      if (zlib_error != Z_OK)
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compression error?");
-      }
-
-      String(compressed).swap(compressed);
-      it = reinterpret_cast<Byte *>(&compressed[0]);
-      end = it + compressed_length;
-      out.resize((Size)ceil(compressed_length / 3.) * 4);     //resize output array in order to have enough space for all characters
+      String compressed;
+      ZlibCompression::compressData((void*)in.data(), input_bytes, compressed);
+      stringSimdEncoder_(compressed, out);
     }
-    //encode without compression
-    else
+    else // encode without compression
     {
-      out.resize((Size)ceil(input_bytes / 3.) * 4);     //resize output array in order to have enough space for all characters
-      it = reinterpret_cast<Byte *>(&in[0]);
-      end = it + input_bytes;
+      String str((char*)in.data(), input_bytes);
+      stringSimdEncoder_(str, out);
     }
 
-    Byte * to = reinterpret_cast<Byte *>(&out[0]);
-
-
-    Size written = 0;
-
-    while (it != end)
-    {
-      Int int_24bit = 0;
-      Int padding_count = 0;
-
-      // construct 24-bit integer from 3 bytes
-      for (Size i = 0; i < 3; i++)
-      {
-        if (it != end)
-        {
-          int_24bit |= *it++ << ((2 - i) * 8);
-        }
-        else
-        {
-          padding_count++;
-        }
-      }
-
-      // write out 4 characters
-      for (Int i = 3; i >= 0; i--)
-      {
-        to[i] = encoder_[int_24bit & 0x3F];
-        int_24bit >>= 6;
-      }
-
-      // fixup for padding
-      if (padding_count > 0)
-        to[3] = '=';
-      if (padding_count > 1)
-        to[2] = '=';
-
-      to += 4;
-      written += 4;
-    }
-
-    out.resize(written);         //no more space is needed
   }
 
-  template <typename ToType>
+  template <typename ToType>  ////////////////////////////////////////////nothing to change here, magic happenes elsewhere
   void Base64::decode(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out, bool zlib_compression)
   {
     if (zlib_compression)
@@ -346,18 +258,39 @@ private:
     }
   }
 
+  template <int type_size>
+  inline void invertEndianess(void* byte_buffer, const size_t element_count);
+  template<>
+  inline void invertEndianess<4>(void* byte_buffer, const size_t element_count)
+  {
+    UInt32* p = reinterpret_cast<UInt32*>(byte_buffer);
+    std::transform(p, p + element_count, p, endianize32);
+  }
+  template<>
+  inline void invertEndianess<8>(void* byte_buffer, const size_t element_count)
+  {
+    UInt64* p = reinterpret_cast<UInt64*>(byte_buffer);
+    std::transform(p, p + element_count, p, endianize64);
+  }
+
+
   template <typename ToType>
   void Base64::decodeCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
   {
     out.clear();
     if (in.empty()) return;
 
-    const Size element_size = sizeof(ToType);
+    constexpr Size element_size = sizeof(ToType);
 
     String decompressed;
 
-    QByteArray qt_byte_array = QByteArray::fromRawData(in.c_str(), (int) in.size());
-    QByteArray bazip = QByteArray::fromBase64(qt_byte_array);
+    String s;
+    stringSimdDecoder_(in, s);
+    QByteArray bazip = QByteArray::fromRawData(s.c_str(), (int) s.size());
+
+   /////////////////////////////////////////////////////////////////////////////////////if faster: first encode then call fromRawData
+   // QByteArray qt_byte_array = QByteArray::fromRawData(in.c_str(), (int) in.size());
+   // QByteArray bazip = QByteArray::fromBase64(qt_byte_array);
     QByteArray czip;
     czip.resize(4);
     czip[0] = (bazip.size() & 0xff000000) >> 24;
@@ -389,16 +322,7 @@ private:
     // change endianness if necessary
     if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
     {
-      if (element_size == 4) // 32 bit
-      {
-        UInt32 * p = reinterpret_cast<UInt32 *>(byte_buffer);
-        std::transform(p, p + float_count, p, endianize32);
-      }
-      else // 64 bit
-      {
-        UInt64 * p = reinterpret_cast<UInt64 *>(byte_buffer);
-        std::transform(p, p + float_count, p, endianize64);
-      }
+      invertEndianess<element_size>(byte_buffer, float_count);
     }
 
     // copy values
@@ -406,11 +330,11 @@ private:
   }
 
   template <typename ToType>
-  void Base64::decodeUncompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
+  void Base64::decodeUncompressed_(const String& in, ByteOrder from_byte_order , std::vector<ToType>& out)
   {
     out.clear();
 
-    // The length of a base64 string is a always a multiple of 4 (always 3
+    // The length of a base64 string is always a multiple of 4 (always 3
     // bytes are encoded as 4 characters)
     if (in.size() < 4)
     {
@@ -429,96 +353,19 @@ private:
 
     src_size -= padding;
 
-    UInt a;
-    UInt b;
+    constexpr Size element_size = sizeof(ToType);
+    String s;
+    stringSimdDecoder_(in,s);
 
-    UInt offset = 0;
-    int inc = 1;
-    UInt written = 0;
-
-    const Size element_size = sizeof(ToType);
-
-    // enough for either float or double
-    char element[8] = "\x00\x00\x00\x00\x00\x00\x00";
-
-    // Parse little endian data in big endian OpenMS (or other way round)
-    if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || 
-       (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
+    // change endianness if necessary (mzML is always LITTLE_ENDIAN; x64 is LITTLE_ENDIAN)
+    if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
     {
-      offset = (element_size - 1);              // other endian
-      inc = -1;
-    }
-    else
-    {
-      offset = 0;
-      inc = 1;
+      invertEndianess<element_size>((void*)s.data(), s.size() / element_size);
     }
 
-    //reserve enough space in the output vector
-    out.reserve((UInt)(std::ceil((4.0 * src_size) / 3.0) + 6.0));
-
-    // sort all read bytes correctly into a char[4] (double) or
-    // char[8] (float) and push_back when necessary.
-    for (Size i = 0; i < src_size; i += 4)
-    {
-      // decode 4 Base64-Chars to 3 Byte
-      // -------------------------------
-
-      // decode the first two chars
-      a = decoder_[(int)in[i] - 43] - 62;
-      b = decoder_[(int)in[i + 1] - 43] - 62;
-      if (i + 1 >= src_size)
-      {
-        b = 0;
-      }
-      // write first byte (6 bits from a and 2 highest bits from b)
-      element[offset] = (unsigned char) ((a << 2) | (b >> 4));
-      written++;
-      offset = (offset + inc) % element_size;
-
-      if (written % element_size == 0)
-      {
-        ToType * to_type = reinterpret_cast<ToType *>(&element[0]);
-        out.push_back((*to_type));
-        strcpy(element, "");
-      }
-
-      // decode the third char
-      a = decoder_[(int)in[i + 2] - 43] - 62;
-      if (i + 2 >= src_size)
-      {
-        a = 0;
-      }
-      // write second byte (4 lowest bits from b and 4 highest bits from a)
-      element[offset] = (unsigned char) (((b & 15) << 4) | (a >> 2));
-      written++;
-      offset = (offset + inc) % element_size;
-
-      if (written % element_size == 0)
-      {
-        ToType * to_type = reinterpret_cast<ToType *>(&element[0]);
-        out.push_back((*to_type));
-        strcpy(element, "");
-      }
-
-      // decode the fourth char
-      b = decoder_[(int)in[i + 3] - 43] - 62;
-      if (i + 3 >= src_size)
-      {
-        b = 0;
-      }
-      // write third byte (2 lowest bits from a and 6 bits from b)
-      element[offset] = (unsigned char) (((a & 3) << 6) | b);
-      written++;
-      offset = (offset + inc) % element_size;
-
-      if (written % element_size == 0)
-      {
-        ToType * to_type = reinterpret_cast<ToType *>(&element[0]);
-        out.push_back((*to_type));
-        strcpy(element, "");
-      }
-    }
+    const char* cptr = s.data();
+    const ToType * fptr = reinterpret_cast<const ToType*>(cptr);
+    out.assign(fptr,fptr + s.size()/element_size);
   }
 
   template <typename FromType>
@@ -528,13 +375,11 @@ private:
     if (in.empty())
       return;
 
-    //initialize
+    // initialize
     const Size element_size = sizeof(FromType);
     const Size input_bytes = element_size * in.size();
-    String compressed;
-    Byte * it;
-    Byte * end;
-    //Change endianness if necessary
+
+    // change endianness if necessary
     if ((OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_BIGENDIAN))
     {
       if (element_size == 4)
@@ -557,75 +402,18 @@ private:
       }
     }
 
-    //encode with compression (use Qt because of zlib support)
+    // encode with compression (use Qt because of zlib support)
     if (zlib_compression)
     {
-      unsigned long sourceLen =   (unsigned long)input_bytes;
-      unsigned long compressed_length =       //compressBound((unsigned long)in.size());
-                                        sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11; // taken from zlib's compress.c, as we cannot use compressBound*
-
-      compressed.resize(compressed_length);
-      while (compress(reinterpret_cast<Bytef *>(&compressed[0]), &compressed_length, reinterpret_cast<Bytef *>(&in[0]), (unsigned long)input_bytes) != Z_OK)
-      {
-        compressed_length *= 2;
-        compressed.reserve(compressed_length);
-      }
-
-
-      String(compressed).swap(compressed);
-      it = reinterpret_cast<Byte *>(&compressed[0]);
-      end = it + compressed_length;
-      out.resize((Size)ceil(compressed_length / 3.) * 4);     //resize output array in order to have enough space for all characters
+      String compressed;
+      ZlibCompression::compressData((void*)in.data(), input_bytes, compressed);
+      stringSimdEncoder_(compressed, out);
     }
-    //encode without compression
-    else
+    else // encode without compression
     {
-      out.resize((Size)ceil(input_bytes / 3.) * 4);     //resize output array in order to have enough space for all characters
-      it = reinterpret_cast<Byte *>(&in[0]);
-      end = it + input_bytes;
+      String str((char*)in.data(), input_bytes);
+      stringSimdEncoder_(str, out);
     }
-
-    Byte * to = reinterpret_cast<Byte *>(&out[0]);
-
-
-    Size written = 0;
-
-    while (it != end)
-    {
-      Int int_24bit = 0;
-      Int padding_count = 0;
-
-      // construct 24-bit integer from 3 bytes
-      for (Size i = 0; i < 3; i++)
-      {
-        if (it != end)
-        {
-          int_24bit |= *it++ << ((2 - i) * 8);
-        }
-        else
-        {
-          padding_count++;
-        }
-      }
-
-      // write out 4 characters
-      for (Int i = 3; i >= 0; i--)
-      {
-        to[i] = encoder_[int_24bit & 0x3F];
-        int_24bit >>= 6;
-      }
-
-      // fixup for padding
-      if (padding_count > 0)
-        to[3] = '=';
-      if (padding_count > 1)
-        to[2] = '=';
-
-      to += 4;
-      written += 4;
-    }
-
-    out.resize(written);         //no more space is needed
   }
 
   template <typename ToType>
@@ -650,7 +438,7 @@ private:
 
     void * byte_buffer;
     Size buffer_size;
-    const Size element_size = sizeof(ToType);
+    constexpr Size element_size = sizeof(ToType);
 
     String decompressed;
 
@@ -675,10 +463,10 @@ private:
     byte_buffer = reinterpret_cast<void *>(&decompressed[0]);
     buffer_size = decompressed.size();
 
-    //change endianness if necessary
+    // change endianness if necessary
     if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
     {
-      if (element_size == 4)
+      if constexpr(element_size == 4)
       {
         const Int32 * float_buffer = reinterpret_cast<const Int32 *>(byte_buffer);
         if (buffer_size % element_size != 0)
@@ -700,7 +488,7 @@ private:
         const Int64 * float_buffer = reinterpret_cast<const Int64 *>(byte_buffer);
 
         if (buffer_size % element_size != 0)
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount?");
+             throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount?");
 
         Size float_count = buffer_size / element_size;
 
@@ -718,7 +506,7 @@ private:
     }
     else
     {
-      if (element_size == 4)
+      if constexpr(element_size == 4)
       {
         const Int * float_buffer = reinterpret_cast<const Int *>(byte_buffer);
         if (buffer_size % element_size != 0)
@@ -796,7 +584,7 @@ private:
       inc = 1;
     }
 
-    //reserve enough space in the output vector
+    // reserve enough space in the output vector
     out.reserve((UInt)(std::ceil((4.0 * src_size) / 3.0) + 6.0));
 
     // sort all read bytes correctly into a char[4] (double) or

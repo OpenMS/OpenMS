@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
@@ -102,18 +76,25 @@ namespace OpenMS
           */
       void setMaxCharge(size_t max_charge);
 
+      /// Call this so that the absolute m/z value is used to determine mass tolerance instead of m/z difference value.
+      void setUseAbsoluteMzForTol();
+
     private:
       double min_gap_; ///< will be set to smallest residue mass in ResidueDB
       double max_gap_; ///< will be set to highest residue mass in ResidueDB
       double ppm_; ///< tolerance
+      bool use_absolute_mz_tol_ = false; /// if set, the absolute m/z value is used to determine mass tolerance instead of m/z difference value.
       size_t min_tag_length_; ///< minimum tag length
       size_t max_tag_length_; ///< maximum tag length
       size_t min_charge_; ///< minimal fragment charge
       size_t max_charge_; ///< maximal fragment charge
       std::map<double, char> mass2aa_; ///< mapping of residue masses to their one letter codes
 
-      /// get a residue one letter code by matching the mass @p m to the map of residues mass2aa_, returns ' ' if there is no match
-      char getAAByMass_(double m) const;
+      /// get a residue one letter code by matching the mass @p m to the map of residues mass2aa_, returns ' ' if there is no match.
+      /// By default, the mass tolerance is determined by m * ppm_ / 1e6. But if @p abs_m is a positive value,
+      /// abs_m * ppm_ / 1e6 is used instead. Useful when the absolute m/z value should be considered to determine tolarence.
+      char getAAByMass_(double m, double abs_m = .0) const;
+
       /// start searching for tags starting from peak @p i of the mz vector @p mzs
       void getTag_(std::string& tag, const std::vector<double>& mzs, const size_t i, std::vector<std::string>& tags, const size_t charge) const;
   };

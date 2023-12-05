@@ -1,0 +1,33 @@
+{
+  "algorithm": {
+    "common": {
+      "chrom_fwhm": 4.9,
+      "chrom_peak_snr": 3.1,
+      "noise_threshold_int": 9.9
+    },
+    "epd": {
+      "enabled": true,
+      "masstrace_snr_filtering": false,
+      "max_fwhm": 59.75,
+      "min_fwhm": 1.1,
+      "width_filtering": "off"
+    },
+    "mtd": {
+      "mass_error_ppm": 20.0,
+      "max_trace_length": 12.0,
+      "min_sample_rate": 0.4,
+      "min_trace_length": 5.5,
+      "reestimate_mt_sd": true
+    }
+  },
+  "debug": 0,
+  "in": {
+    "class": "File",
+    "path": "/some/path/for/in"
+  },
+  "log": "/some/path/to/log",
+  "no_progress": false,
+  "out": "/some/path/for/out",
+  "test": false,
+  "threads": 2
+}

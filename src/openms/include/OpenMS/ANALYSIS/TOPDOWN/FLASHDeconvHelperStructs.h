@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Kyowon Jeong, Jihyung Kim $
@@ -49,7 +23,7 @@ namespace OpenMS
    * averagine model should be quickly calculated. To do so, precalculate averagines for different masses at the beginning of FLASHDeconv runs
    * ii) TopPicItem - represent TopPic identification. Currently used for setQscore training. TopPic is the top-down proteomics identification tool (https://www.toppic.org/).
    * iii) LogMzPeak - Log transformed peak from original peak. Contains information such as charge, isotope index, and uncharged mass.
-   * @see FLASHDeconvAlgorithm
+   * @see SpectralDeconvolution
    * @reference: FeatureFinderAlgorithmPickedHelperStructs
    */
 
@@ -157,7 +131,8 @@ namespace OpenMS
       int min_charge, max_charge, charge_count;
       double isotope_score, qscore;
       double rep_mz;
-
+      bool is_decoy;
+      uint ms_level;
       /// features are compared
       bool operator<(const MassFeature& a) const
       {
@@ -183,7 +158,7 @@ namespace OpenMS
       std::vector<double> quantities;
       std::vector<double> merged_quantities;
 
-      bool empty();
+      bool empty() const;
     };
 
     /// log transformed peak. After deconvolution, all necessary information from deconvolution such as charge and isotope index is stored.
@@ -222,12 +197,47 @@ namespace OpenMS
       ~LogMzPeak() = default;
 
       /// get uncharged mass of this peak. It is NOT a monoisotopic mass of a PeakGroup, rather a monoisotopic mass of each LogMzPeak. Returns 0 if no charge set
-      double getUnchargedMass();
+      double getUnchargedMass() const;
 
       /// log mz values are compared
       bool operator<(const LogMzPeak& a) const;
       bool operator>(const LogMzPeak& a) const;
       bool operator==(const LogMzPeak& other) const;
+    };
+
+    /// Sequence tag. No mass gap is allowed in the seq. The mass gap containing tag should be enumerated into multiple Tag instances from outside.
+    class OPENMS_DLLAPI Tag
+    {
+    public:
+      /// constructor
+      explicit Tag(String  seq, double n_mass, double c_mass, int charge, double score, std::vector<double>& mzs);
+
+      /// copy constructor
+      Tag(const Tag&) = default;
+
+      /// destructor
+      ~Tag() = default;
+
+      bool operator<(const Tag& a) const;
+      bool operator>(const Tag& a) const;
+      bool operator==(const Tag& other) const;
+
+      String getSequence() const;
+      double getNtermMass() const;
+      double getCtermMass() const;
+      int getCharge() const;
+      Size getLength() const;
+      double getScore() const;
+      String toString() const;
+      const std::vector<double>& getMzs() const;
+
+    private:
+      String seq_;
+      double n_mass_ = -1, c_mass_ = -1;
+      int charge_;
+      double score_;
+      std::vector<double> mzs_;
+      Size length_;
     };
 
     /**

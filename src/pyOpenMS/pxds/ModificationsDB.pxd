@@ -11,16 +11,16 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
         #  cdef AutowrapPtrHolder[_ModificationsDB] inst
 
         # private
-        ModificationsDB() nogil except + # wrap-ignore
+        ModificationsDB() except + nogil  # wrap-ignore
         # private
-        ModificationsDB(ModificationsDB) nogil except + # wrap-ignore
+        ModificationsDB(ModificationsDB) except + nogil  # wrap-ignore
 
-        Size getNumberOfModifications() nogil except + # wrap-doc:Returns the number of modifications read from the unimod.xml file
+        Size getNumberOfModifications() except + nogil  # wrap-doc:Returns the number of modifications read from the unimod.xml file
 
         void searchModifications(libcpp_set[ const ResidueModification * ] & mods,
                                  const String& mod_name,
                                  const String& residue,
-                                 TermSpecificity term_spec) nogil except +
+                                 TermSpecificity term_spec) except + nogil 
             # wrap-doc:
                 #  Collects all modifications which have the given name as synonym
                 #  
@@ -28,30 +28,30 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
                 #  If `term_spec` is set, only modifications with matching term specificity are considered
                 #  The resulting set of modifications will be empty if no modification exists that fulfills the criteria
 
-        const ResidueModification * getModification(Size index) nogil except + # wrap-doc:Returns the modification with the given index
+        const ResidueModification * getModification(Size index) except + nogil  # wrap-doc:Returns the modification with the given index
 
-        const ResidueModification * getModification(const String & mod_name) nogil except + # wrap-doc:Returns the modification with the given name
+        const ResidueModification * getModification(const String & mod_name) except + nogil  # wrap-doc:Returns the modification with the given name
 
         const ResidueModification * getModification(const String & mod_name,
                                             const String & residue,
-                                            TermSpecificity term_spec) nogil except + # wrap-doc:Returns the modification with the given arguments
+                                            TermSpecificity term_spec) except + nogil  # wrap-doc:Returns the modification with the given arguments
 
-        bool has(String modification) nogil except + # wrap-doc:Returns true if the modification exists
+        bool has(String modification) except + nogil  # wrap-doc:Returns true if the modification exists
 
         # unique_ptrs do not have a conversion provider in autowrap yet. Also, we would probably make a copy to not steal memory from the python object, defeating the purpose.
-        #void addModification(libcpp_unique_ptr[ResidueModification] new_mod) nogil except +
+        #void addModification(libcpp_unique_ptr[ResidueModification] new_mod) except + nogil 
 
         # TODO also do a function with bool return type to save a copy?
-        const ResidueModification * addModification(const ResidueModification & new_mod) nogil except + # wrap-doc:Add a new modification to ModificationsDB. If the modification already exists (based on its fullID) it is not added. Returns the modification in the ModificationDB (which can differ from input if mod was already present).
+        const ResidueModification * addModification(const ResidueModification & new_mod) except + nogil  # wrap-doc:Add a new modification to ModificationsDB. If the modification already exists (based on its fullID) it is not added. Returns the modification in the ModificationDB (which can differ from input if mod was already present).
 
-        Size findModificationIndex(const String & mod_name) nogil except + # wrap-doc:Returns the index of the modification in the mods_ vector; a unique name must be given
+        Size findModificationIndex(const String & mod_name) except + nogil  # wrap-doc:Returns the index of the modification in the mods_ vector; a unique name must be given
 
         void searchModificationsByDiffMonoMass(libcpp_vector[ String ] & mods, double mass, double max_error,
-                                               const String & residue, TermSpecificity term_spec) nogil except + # wrap-doc:Collects all modifications with delta mass inside a tolerance window
+                                               const String & residue, TermSpecificity term_spec) except + nogil  # wrap-doc:Collects all modifications with delta mass inside a tolerance window
 
 
         const ResidueModification* getBestModificationByDiffMonoMass(double mass, double max_error,
-                                                                     const String& residue, TermSpecificity term_spec) nogil except +
+                                                                     const String& residue, TermSpecificity term_spec) except + nogil 
             # wrap-doc:
                 #  Returns the best matching modification for the given delta mass and residue
                 #  
@@ -71,16 +71,16 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
                 #  :param max_error: The maximal mass error in the modification search
                 #  :return: A pointer to the best matching modification (or NULL if none was found)
 
-        void getAllSearchModifications(libcpp_vector[ String ] & modifications) nogil except + # wrap-doc:Collects all modifications that can be used for identification searches
+        void getAllSearchModifications(libcpp_vector[ String ] & modifications) except + nogil  # wrap-doc:Collects all modifications that can be used for identification searches
 
-        bool isInstantiated() nogil except + # wrap-doc:Check whether ModificationsDB was instantiated before
+        bool isInstantiated() except + nogil  # wrap-doc:Check whether ModificationsDB was instantiated before
 
 ## wrap static methods
 cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS::ModificationsDB":
     
-    ModificationsDB* getInstance() nogil except + # wrap-ignore
+    ModificationsDB* getInstance() except + nogil  # wrap-ignore
     
     ModificationsDB* getInstance(String unimod_file, 
                                  String psimod_file,
-                                 String xlmod_file) nogil except + # wrap-ignore
+                                 String xlmod_file) except + nogil  # wrap-ignore
 

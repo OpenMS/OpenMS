@@ -34,16 +34,16 @@
 
 #pragma once
 
-#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 
 namespace OpenMS
 {
   /**
    * @brief FLASHIda class for real time deconvolution
-   * This class contains functions to perform deconvolution (by FLASHDeconvAlgorithm) for the spectrum received from Thermo iAPI.
+   * This class contains functions to perform deconvolution (by SpectralDeconvolution) for the spectrum received from Thermo iAPI.
    * Also precursor selection is done in this class.
    * The functions in this class are invoked in C# Thermo iAPI side through the functions in FLASHIdaBridgeFunctions class
    * @see FLASHIdaBridgeFunctions
@@ -199,8 +199,8 @@ namespace OpenMS
     std::vector<int> trigger_ids_;
     
 
-    /// FLASHDeconvAlgorithm class for deconvolution
-    FLASHDeconvAlgorithm fd_;
+    /// SpectralDeconvolution class for deconvolution
+    SpectralDeconvolution fd_;
 
     /// total QScore threshold
     double tqscore_threshold = .8;

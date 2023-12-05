@@ -1,31 +1,5 @@
-//--------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Kyowon Jeong$
@@ -34,14 +8,15 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/Qvalue.h>
+#include <OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h>
 
 namespace OpenMS
 {
-  void Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
-                                      std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra,
-                                      bool in_features) // per ms level + precursor update as well.
+  void Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra) // per ms level + precursor update as well.
   {
-    uint bin_number = 25;                           // 25 is enough resolution for qvalue calculation. In most cases FDR 5% will be used.
+    uint bin_number = 60;
+    const uint iteration_count = 100;
+
     std::map<uint, std::vector<double>> tscore_map; // per ms level
 
     std::map<uint, std::vector<double>> dscore_iso_decoy_map;
@@ -55,43 +30,44 @@ namespace OpenMS
 
     // to calculate qvalues per ms level, store Qscores per ms level
     std::set<uint> used_feature_indices;
+
     for (auto& deconvolved_spectrum : deconvolved_spectra)
     {
+      if (deconvolved_spectrum.empty() || deconvolved_spectrum.isDecoy())
+        continue;
+
       uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : deconvolved_spectrum)
       {
-        if (in_features && pg.getFeatureIndex() == 0) continue;
-        if (!in_features && pg.getFeatureIndex() > 0) continue;
-
         if (pg.getFeatureIndex() > 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
           continue;
         used_feature_indices.insert(pg.getFeatureIndex());
-        tscore_map[ms_level].push_back(pg.getFeatureQscore());
+        tscore_map[ms_level].push_back(pg.getQscore2D());
       }
     }
 
-    for (auto& decoy_deconvolved_spectrum : deconvolved_decoy_spectra)
+    for (auto& decoy_deconvolved_spectrum : deconvolved_spectra)
     {
+      if (decoy_deconvolved_spectrum.empty() || !decoy_deconvolved_spectrum.isDecoy())
+        continue;
+
       uint ms_level = decoy_deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : decoy_deconvolved_spectrum)
       {
-        if (in_features && pg.getFeatureIndex() == 0) continue;
-        if (!in_features && pg.getFeatureIndex() > 0) continue;
-
         if (pg.getFeatureIndex() > 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
           continue;
         used_feature_indices.insert(pg.getFeatureIndex());
-        if (pg.getTargetDummyType() == PeakGroup::TargetDummyType::isotope_dummy)
+        if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::isotope_decoy)
         {
-          dscore_iso_decoy_map[ms_level].push_back(pg.getFeatureQscore());
+          dscore_iso_decoy_map[ms_level].push_back(pg.getQscore2D());
         }
-        else if (pg.getTargetDummyType() == PeakGroup::TargetDummyType::noise_dummy)
+        else if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::noise_decoy)
         {
-          dscore_noise_decoy_map[ms_level].push_back(pg.getFeatureQscore());
+          dscore_noise_decoy_map[ms_level].push_back(pg.getQscore2D());
         }
-        else if (pg.getTargetDummyType() == PeakGroup::TargetDummyType::charge_dummy)
+        else if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::charge_decoy)
         {
-          dscore_charge_decoy_map[ms_level].push_back(pg.getFeatureQscore());
+          dscore_charge_decoy_map[ms_level].push_back(pg.getQscore2D());
         }
       }
     }
@@ -102,41 +78,51 @@ namespace OpenMS
       auto& dscore_charge = dscore_charge_decoy_map[ms_level];
       auto& dscore_noise = dscore_noise_decoy_map[ms_level];
 
-      auto mixed_dist = getDistribution(qscores, bin_number);
-      auto charge_dist = getDistribution(dscore_charge, bin_number);
-      auto noise_dist = getDistribution(dscore_noise, bin_number);
-      auto iso_dist = getDistribution(dscore_iso, bin_number);
+      const auto mixed_dist = getDistribution(qscores, bin_number);
+      const auto charge_dist = getDistribution(dscore_charge, bin_number);
+      const auto noise_dist = getDistribution(dscore_noise, bin_number);
+      const auto iso_dist = getDistribution(dscore_iso, bin_number);
 
-      std::vector<double> weight_limit;
-      weight_limit.push_back(((double)dscore_charge.size()) / qscores.size());
-      weight_limit.push_back(((double)dscore_noise.size()) / qscores.size());
-      weight_limit.push_back(((double)dscore_iso.size()) / qscores.size());
+      std::vector<double> weights(4, 1.0 / 4.0);
+      std::vector<double> true_positive_dist(bin_number);
 
-      std::vector<double> weights(4, .25);
-      std::vector<double> target_dist(bin_number);
-
-      for (uint iteration = 0; iteration < 100; iteration++)
+      for (uint iteration = 0; iteration < iteration_count; iteration++)
       {
-        std::fill(target_dist.begin(), target_dist.end(), .0f);
+        std::vector<DPosition<2>> fit_data;
 
-        for (int i = (int)bin_number - 1; i >= 0; i--) //
+        double max_X = 0;
+        double max_Y = 0;
+        for (int i = bin_number - 1; i >= 0; i--) //
         {
-          double fp = (charge_dist[i] * weights[0] + noise_dist[i] * weights[1] + iso_dist[i] * weights[2]);
-          target_dist[i] = std::max(.0, mixed_dist[i] - fp);
-          if (mixed_dist[i] > 0 && mixed_dist[i] < charge_dist[i] * weight_limit[0] + noise_dist[i] * weight_limit[1] + iso_dist[i] * weight_limit[2])
-          {
-            break;
-          }
+          double fp = charge_dist[i] * weights[0] + noise_dist[i] * weights[1] + iso_dist[i] * weights[2];
+          double y = std::max(.0, mixed_dist[i] - fp);
+
+          DPosition<2> pos;
+          pos.setX(bin_number - i - 1);
+          pos.setY(y);
+          fit_data.push_back(pos);
+          if (max_Y > y) continue;
+          max_Y = y;
+          max_X = bin_number - i - 1;
         }
 
-        double csum = .0;
+        Math::GumbelDistributionFitter fitter;
+        Math::GumbelDistributionFitter::GumbelDistributionFitResult init_param;
+        init_param.a = max_X;
+        init_param.b = 4.0; //
+        fitter.setInitialParameters(init_param);
+        auto fit_result = fitter.fit(fit_data);
+        for (int i = 0; i < bin_number; i++)
+          true_positive_dist[i] = exp(fit_result.log_eval_no_normalize(bin_number - i - 1));
 
-        for (auto r : target_dist)
+
+        double csum = .0;
+        for (const auto& r : true_positive_dist)
           csum += r;
 
         if (csum > 0)
         {
-          for (auto& r : target_dist)
+          for (auto& r : true_positive_dist)
             r /= csum;
         }
 
@@ -144,28 +130,21 @@ namespace OpenMS
         comp_dists.push_back(charge_dist);
         comp_dists.push_back(noise_dist);
         comp_dists.push_back(iso_dist);
-        comp_dists.push_back(target_dist);
+        comp_dists.push_back(true_positive_dist);
 
         auto tmp_weight = getDistributionWeights(mixed_dist, comp_dists);
-        double tmp_sum = 0;
-        for (Size i = 0; i < tmp_weight.size() - 1; i++)
-        {
-          tmp_weight[i] = std::min(tmp_weight[i], weight_limit[i]);
-          tmp_sum += tmp_weight[i];
-        }
-
-        tmp_weight[tmp_weight.size() - 1] = 1 - tmp_sum;
 
         if (tmp_weight == weights)
         {
           break;
         }
+
         weights = tmp_weight;
       }
 
-      weights[0] *= dscore_charge.empty() ? .0 : (((double)qscores.size()) / dscore_charge.size());
-      weights[1] *= dscore_noise.empty() ? .0 : (((double)qscores.size()) / dscore_noise.size());
-      weights[2] *= dscore_iso.empty() ? .0 : (((double)qscores.size()) / dscore_iso.size());
+      weights[0] *= dscore_charge.empty() ? .0 : (((double)(qscores.size())) / dscore_charge.size());
+      weights[1] *= dscore_noise.empty() ? .0 : (((double)(qscores.size())) / dscore_noise.size());
+      weights[2] *= dscore_iso.empty() ? .0 : (((double)(qscores.size())) / dscore_iso.size());
 
       std::sort(qscores.begin(), qscores.end());
       std::sort(dscore_iso.begin(), dscore_iso.end());
@@ -173,13 +152,14 @@ namespace OpenMS
       std::sort(dscore_charge.begin(), dscore_charge.end());
 
       auto& map_charge = qscore_charge_decoy_map[ms_level];
-      double tmp_q_charge = 1;
+      double tmp_q_charge;
 
       // calculate q values using targets and charge dummies
       for (size_t i = 0; i < qscores.size(); i++)
       {
         double ts = qscores[i];
-        if (map_charge.find(ts) != map_charge.end()) continue;
+        if (map_charge.find(ts) != map_charge.end())
+          continue;
 
         size_t dindex = dscore_charge.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_charge.begin(), dscore_charge.end(), ts), dscore_charge.end());
         size_t tindex = qscores.size() - i;
@@ -191,13 +171,14 @@ namespace OpenMS
       }
 
       auto& map_iso = qscore_iso_decoy_map[ms_level];
-      double tmp_q_iso = 1;
+      double tmp_q_iso;
 
       // calculate q values using targets and isotope dummies
       for (size_t i = 0; i < qscores.size(); i++)
       {
         double ts = qscores[i];
-        if (map_iso.find(ts) != map_iso.end()) continue;
+        if (map_iso.find(ts) != map_iso.end())
+          continue;
 
         size_t dindex = dscore_iso.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_iso.begin(), dscore_iso.end(), ts), dscore_iso.end());
         size_t tindex = qscores.size() - i;
@@ -208,13 +189,14 @@ namespace OpenMS
       }
 
       auto& map_noise = qscore_noise_decoy_map[ms_level];
-      double tmp_q_noise = 1;
+      double tmp_q_noise;
 
       // calculate q values using targets and noise dummies
       for (size_t i = 0; i < qscores.size(); i++)
       {
         double ts = qscores[i];
-        if (map_noise.find(ts) != map_noise.end()) continue;
+        if (map_noise.find(ts) != map_noise.end())
+          continue;
 
         size_t dindex = dscore_noise.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_noise.begin(), dscore_noise.end(), ts), dscore_noise.end());
         size_t tindex = qscores.size() - i;
@@ -233,18 +215,47 @@ namespace OpenMS
       auto& map_noise = qscore_noise_decoy_map[ms_level];
       auto& map_charge = qscore_charge_decoy_map[ms_level];
 
+      double cummin = 1.0;
+      {
+        for (auto&& rit = map_iso.begin(); rit != map_iso.end(); ++rit)
+        {
+          cummin = std::min(rit->second, cummin);
+          rit->second = cummin;
+        }
+      }
+
+      cummin = 1.0;
+      {
+        for (auto&& rit = map_noise.begin(); rit != map_noise.end(); ++rit)
+        {
+          cummin = std::min(rit->second, cummin);
+          rit->second = cummin;
+        }
+      }
+
+      cummin = 1.0;
+      {
+        for (auto&& rit = map_charge.begin(); rit != map_charge.end(); ++rit)
+        {
+          cummin = std::min(rit->second, cummin);
+          rit->second = cummin;
+        }
+      }
+
       for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
+        if (deconvolved_spectrum.empty() || deconvolved_spectrum.isDecoy())
+          continue;
+
         if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() == ms_level + 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
         {
-          if (in_features && deconvolved_spectrum.getPrecursorPeakGroup().getFeatureIndex() == 0) continue;
-          if (!in_features && deconvolved_spectrum.getPrecursorPeakGroup().getFeatureIndex() > 0) continue;
+          auto precursor_pg = deconvolved_spectrum.getPrecursorPeakGroup();
+          double qs = precursor_pg.getQscore2D();
 
-          double qs = deconvolved_spectrum.getPrecursorPeakGroup().getFeatureQscore();
-
-          deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(map_iso[qs], PeakGroup::TargetDummyType::isotope_dummy);
-          deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(map_noise[qs], PeakGroup::TargetDummyType::noise_dummy);
-          deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(map_charge[qs], PeakGroup::TargetDummyType::charge_dummy);
+          precursor_pg.setQvalue(map_iso[qs], PeakGroup::TargetDecoyType::isotope_decoy);
+          precursor_pg.setQvalue(map_noise[qs], PeakGroup::TargetDecoyType::noise_decoy);
+          precursor_pg.setQvalue(map_charge[qs], PeakGroup::TargetDecoyType::charge_decoy);
+          deconvolved_spectrum.setPrecursorPeakGroup(precursor_pg);
         }
 
         if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != ms_level)
@@ -254,12 +265,9 @@ namespace OpenMS
 
         for (auto& pg : deconvolved_spectrum)
         {
-          if (in_features && pg.getFeatureIndex() == 0) continue;
-          if (!in_features && pg.getFeatureIndex() > 0) continue;
-
-          pg.setQvalue(map_charge[pg.getFeatureQscore()], PeakGroup::TargetDummyType::charge_dummy);
-          pg.setQvalue(map_noise[pg.getFeatureQscore()], PeakGroup::TargetDummyType::noise_dummy);
-          pg.setQvalue(map_iso[pg.getFeatureQscore()], PeakGroup::TargetDummyType::isotope_dummy);
+          pg.setQvalue(map_charge[pg.getQscore2D()], PeakGroup::TargetDecoyType::charge_decoy);
+          pg.setQvalue(map_noise[pg.getQscore2D()], PeakGroup::TargetDecoyType::noise_decoy);
+          pg.setQvalue(map_iso[pg.getQscore2D()], PeakGroup::TargetDecoyType::isotope_decoy);
         }
       }
     }
@@ -267,51 +275,58 @@ namespace OpenMS
 
   uint Qvalue::getBinNumber(double qscore, uint total_bin_number)
   {
-    return (uint)(pow(qscore, 3.0) * (total_bin_number - 1.0) + .5f);
+    return (uint)round(pow(qscore, 1) * (total_bin_number - 1.0));
   }
 
-  double Qvalue::getBinValue(uint bin_number, uint total_bin_number)
-  {
-    return pow((double)(bin_number) / (total_bin_number - 1.0), 1.0 / 3.0);
-  }
-
-  std::vector<double> Qvalue::getDistribution(const std::vector<double>& qscores, uint bin_number)
-  {
-    std::vector<double> ret(bin_number, .0f);
+std::vector<double> Qvalue::getDistribution(const std::vector<double>& qscores, uint bin_number)
+{
+    std::vector<double> ret(bin_number, .0);
 
     for (double qscore : qscores)
     {
-      if (qscore < 0.0f || qscore > 1.0f)
+      if (qscore < 0 || qscore > 1.0f)
       {
         continue;
       }
       uint bin = getBinNumber(qscore, bin_number);
       ret[bin]++;
     }
-    if (qscores.size() > 0)
+
+    if (ret.size() >= 3)
     {
-      for (uint i = 0; i < bin_number; i++)
+      std::vector<double> result(ret);
+      for (size_t i = 1; i < ret.size() - 1; ++i)
       {
-        ret[i] /= qscores.size();
+        double avg = (ret[i - 1] + ret[i] + ret[i + 1]) / 3.0;
+        result[i] = avg;
       }
+      ret = result;
     }
-    double csum = .0;
-    for (auto r : ret)
-      csum += r;
+
+    double csum = 0;
+
+    for (uint i = 0; i < bin_number; i++)
+    {
+      csum += ret[i];
+    }
+
     if (csum > 0)
     {
       for (auto& r : ret)
         r /= csum;
     }
+
     // ret = smoothByMovingAvg(ret);
     return ret;
   }
 
-  std::vector<double> Qvalue::getDistributionWeights(const std::vector<double>& mixed_dist, const std::vector<std::vector<double>>& comp_dists, uint num_iterations)
+  std::vector<double> Qvalue::getDistributionWeights(
+    const std::vector<double>& mixed_dist, const std::vector<std::vector<double>>& comp_dists,
+    uint num_iterations) // Richardson-Lucy algorithm https://stats.stackexchange.com/questions/501288/estimating-weights-of-known-component-distributions-in-a-mixture-distribution
   {
     uint weight_cntr = comp_dists.size();
     uint bin_number = mixed_dist.size();
-    std::vector<double> weights(weight_cntr, 1.0f / weight_cntr);
+    std::vector<double> weights(weight_cntr, 1.0 / weight_cntr);
 
     for (uint n = 0; n < num_iterations; n++)
     {
@@ -334,7 +349,6 @@ namespace OpenMS
           }
         }
         tmp_weights[i] *= t;
-        tmp_weights[i] = std::max(.0, tmp_weights[i]);
         tmp_weight_sum += tmp_weights[i];
       }
 
@@ -349,7 +363,7 @@ namespace OpenMS
       {
         break;
       }
-      weights.swap(tmp_weights);
+      weights = tmp_weights;
     }
     return weights;
   }

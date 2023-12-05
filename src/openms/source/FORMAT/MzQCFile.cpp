@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Axel Walter $
@@ -104,10 +78,10 @@ namespace OpenMS
     auto addMetric = [&cv, &quality_metrics](const String& accession, const auto& value) -> void
       {
         json qm;
-        qm["accession"] = accession;
+        qm["accession"] = accession.c_str();
         if (cv.exists(accession)) 
         {
-          qm["name"] = cv.getTerm(accession).name;
+          qm["name"] = cv.getTerm(accession).name.c_str();
         } 
         else
         {
@@ -212,21 +186,21 @@ namespace OpenMS
     json out;
     // required: creationDate, version
     DateTime currentTime = DateTime::now();
-    out["mzQC"]["creationDate"] = currentTime.toString();
+    out["mzQC"]["creationDate"] = currentTime.toString().c_str();
     out["mzQC"]["version"] = "1.0.0";
 
     // optional: contact_name, contact_address, description
     if (!contact_name.empty()) 
     {
-      out["mzQC"]["contactName"] = contact_name;
+      out["mzQC"]["contactName"] = contact_name.c_str();
     }
     if (!contact_address.empty()) 
     {
-      out["mzQC"]["contactAddress"] = contact_address;
+      out["mzQC"]["contactAddress"] = contact_address.c_str();
     }
     if (!description.empty()) 
     {
-      out["mzQC"]["description"] = description;
+      out["mzQC"]["description"] = description.c_str();
     }
     // get OpenMS version for runQualities
     VersionInfo::VersionDetails version = VersionInfo::getVersionStruct();
@@ -235,12 +209,12 @@ namespace OpenMS
       {
         {"metadata",
           {
-            {"label", label},
+            {"label", label.c_str()},
             {"inputFiles",
               {
                 {
-                  {"location", File::absolutePath(input_file)},
-                  {"name", File::basename(input_file)},
+                  {"location", File::absolutePath(input_file).c_str()},
+                  {"name", File::basename(input_file).c_str()},
                   {"fileFormat",
                     {
                       {"accession", "MS:10000584"},
@@ -252,17 +226,17 @@ namespace OpenMS
                       {
                         {"accession", "MS:1000747"},
                         {"name", "completion time"},
-                        {"value", String(exp.getDateTime().getDate() + "T" + exp.getDateTime().getTime())}
+                        {"value", String(exp.getDateTime().getDate() + "T" + exp.getDateTime().getTime()).c_str()}
                       },
                       {
                         {"accession", "MS:1000569"},
                         {"name", "SHA-1"},
-                        {"value", String(FileHandler::computeFileHash(input_file))}
+                        {"value", String(FileHandler::computeFileHash(input_file)).c_str()}
                       },
                       {
                         {"accession", "MS:1000031"},
                         {"name", "instrument model"},
-                        {"value", String(exp.getInstrument().getName())}
+                        {"value", String(exp.getInstrument().getName()).c_str()}
                       }
                     }
                   }
@@ -274,7 +248,7 @@ namespace OpenMS
                 {
                   {"accession", "MS:1009001" }, // create new qc-cv for QCCalculator: MS:1009001 quality control metrics generating software
                   {"name", "QCCalculator"},
-                  {"version", String(version.version_major)+"."+String(version.version_minor)+"."+String(version.version_patch)},
+                  {"version", (String(version.version_major)+"."+String(version.version_minor)+"."+String(version.version_patch)).c_str()},
                   {"uri", "https://www.openms.de"}
                 }
               }

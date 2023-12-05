@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
@@ -45,17 +19,29 @@
 
 namespace OpenMS
 {
-  char Tagger::getAAByMass_(double m) const
+  char Tagger::getAAByMass_(double m, double abs_mass) const
   {
     // fast check for border cases
     if (m < min_gap_ || m > max_gap_) return ' ';
 
-    const double delta = Math::ppmToMass(ppm_, m);
+    const double delta = Math::ppmToMass(ppm_, (abs_mass > 0 ? abs_mass : m));
     auto left = mass2aa_.lower_bound(m - delta);
     //if (left == mass2aa_.end()) return ' '; // cannot happen, since we checked boundaries above
+    if (fabs(left->first - m) >= delta) return ' ';
+    // return the most exact one.
+    auto best_aa = left;
+    double min_delta = delta;
+    while (fabs(left->first - m) < delta)
+    {
+      left++;
+      if (min_delta >  fabs(left->first - m))
+      {
+        best_aa = left;
+        min_delta = fabs(left->first - m);
+      }
+    }
 
-    if (fabs(left->first - m) < delta) return left->second;
-    return ' ';
+    return best_aa->second;
   }
 
   void Tagger::getTag_(std::string & tag, const std::vector<double>& mzs, const size_t i, std::vector<std::string>& tags, const size_t charge) const
@@ -74,7 +60,7 @@ namespace OpenMS
         return; // already too far away - continue with next parent 
       } 
 
-      const char aa = getAAByMass_(gap * charge);
+      const char aa = use_absolute_mz_tol_? getAAByMass_(gap * charge, mzs[j]) : getAAByMass_(gap * charge);
       if (aa == ' ') { ++j; continue; } // can't extend tag
 
       tag += aa;
@@ -196,5 +182,10 @@ namespace OpenMS
   void Tagger::setMaxCharge(size_t max_charge)
   {
     max_charge_ = max_charge;
+  }
+
+  void Tagger::setUseAbsoluteMzForTol()
+  {
+    use_absolute_mz_tol_ = true;
   }
 }

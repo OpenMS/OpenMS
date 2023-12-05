@@ -1,45 +1,16 @@
 //! [final]
-
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
 // $Authors: Oliver Alka $
+// This file is ONLY used for code snippets in the developer tutorial
 // --------------------------------------------------------------------------
 
 //! [Includes]
 
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -54,7 +25,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page UTILS_DatabaseFilter DatabaseFilter
+   @page TOPP_DatabaseFilter DatabaseFilter
 
    @brief The DatabaseFilter tool filters a protein database in fasta format according to one or multiple filtering criteria.
 
@@ -65,9 +36,9 @@ using namespace std;
        ID: Filter database according to the set of proteinIDs contained in an identification file (idXML, mzIdentML)
 
    <B>The command line parameters of this tool are:</B>
-   @verbinclude UTILS_DatabaseFilter.cli
+   @verbinclude TOPP_DatabaseFilter.cli
    <B>INI file documentation of this tool:</B>
-   @htmlinclude UTILS_DatabaseFilter.html
+   @htmlinclude TOPP_DatabaseFilter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -78,7 +49,7 @@ class TOPPDatabaseFilter :
 {
 public:
  TOPPDatabaseFilter() :
-   TOPPBase("DatabaseFilter", "Filters a protein database (FASTA format) based on identified proteins", false)
+   TOPPBase("DatabaseFilter", "Filters a protein database (FASTA format) based on identified proteins", false) // false: mark as unofficial tool
  {
  }
 
@@ -182,17 +153,13 @@ protected:
      vector<ProteinIdentification> protein_identifications;
      vector<PeptideIdentification> peptide_identifications;
 
-     if (ids_type == FileTypes::IDXML)
+     if (ids_type == FileTypes::IDXML || ids_type == FileTypes::MZIDENTML )
      {
-       IdXMLFile().load(ids, protein_identifications, peptide_identifications);
-     }
-     else if (ids_type == FileTypes::MZIDENTML)
-     {
-       MzIdentMLFile().load(ids, protein_identifications, peptide_identifications);
+      FileHandler().loadIdentifications(ids, protein_identifications, peptide_identifications, {FileTypes::IDXML, FileTypes::MZIDENTML});
      }
      else
      {
-       writeLog_("Error: Unknown input file type given. Aborting!");
+       OPENMS_LOG_ERROR << "Error: Unknown input file type given. Aborting!";
        printUsage_();
        return ILLEGAL_PARAMETERS;
      }
@@ -222,7 +189,9 @@ protected:
 int main(int argc, const char ** argv)
 {
  TOPPDatabaseFilter tool;
- return tool.main(argc, argv);
+ OPENMS_LOG_FATAL_ERROR << "THIS IS TEST CODE AND SHOULD NEVER BE RUN OUTSIDE OF TESTING" << endl;
+ tool.main(argc, argv);
+ return 0;
 }
 
 /// @endcond
