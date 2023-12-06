@@ -6,7 +6,7 @@
 // $Authors: Timo Sachsenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
+#include <OpenMS/ANALYSIS/ID/HyperScore.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>

@@ -1319,6 +1319,12 @@ namespace OpenMS
           case Residue::ZIon:
             mytransition.fragment_type = "z";
             break;
+          case Residue::Zp1Ion: 
+            mytransition.fragment_type = "z.";
+            break;
+          case Residue::Zp2Ion: 
+            mytransition.fragment_type = "z'";
+            break;
           case Residue::Precursor:
             mytransition.fragment_type = "prec";
             break;
