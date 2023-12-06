@@ -101,7 +101,8 @@ namespace OpenMS
     else if (targeting_mode_ == 2)
     {
       std::cout << ss.str() << "file(s) is(are) used for in-depth mode\n";
-    }else if (targeting_mode_ == 3)
+    }
+    else if (targeting_mode_ == 3)
     {
       std::cout << ss.str() << "file(s) is(are) used for exclusion mode\n";
     }
@@ -123,7 +124,7 @@ namespace OpenMS
       mass_count_.push_back((int)j);
     }
 
-    for (auto& log_file : log_files)
+    for (const auto& log_file : log_files)
     {
       std::ifstream instream(log_file);
       if (instream.good())
@@ -191,7 +192,7 @@ namespace OpenMS
               {
                 exclusion_rt_masses_map_[rt * 60.0] = std::vector<double>();
               }
-              for(double m : results)
+              for (double m : results)
               {
                 exclusion_rt_masses_map_[rt * 60.0].push_back(m);
               }
@@ -202,7 +203,7 @@ namespace OpenMS
       }
     }
 
-    for (auto& log_file : out_files)
+    for (const auto& log_file : out_files)
     {
       std::ifstream instream(log_file);
       double rt = .0;
@@ -254,10 +255,9 @@ namespace OpenMS
     std::cout << sd_defaults << std::endl;
   }
 
-  int FLASHIda::getPeakGroups(const double* mzs, const double* ints,
-                              const int length, const double rt, const int ms_level, const char* name)
+  int FLASHIda::getPeakGroups(const double* mzs, const double* ints, const int length, const double rt, const int ms_level, const char* name)
   {
-    //int ret[2] = {0,0};
+    // int ret[2] = {0,0};
     auto spec = makeMSSpectrum_(mzs, ints, length, rt, ms_level, name);
     // selected_peak_groups_ = DeconvolvedSpectrum(spec, 1);
     if (ms_level == 1)
@@ -278,7 +278,7 @@ namespace OpenMS
     excluded_masses_.clear();
     if (targeting_mode_ == 1)
     {
-      for (auto& [mass, rts] : target_mass_rt_map_)
+      for (const auto& [mass, rts] : target_mass_rt_map_)
       {
         for (double prt : rts)
         {
@@ -291,9 +291,10 @@ namespace OpenMS
       }
       std::sort(target_masses_.begin(), target_masses_.end());
       fd_.setTargetMasses(target_masses_, false);
-    }else if (targeting_mode_ == 3)
+    }
+    else if (targeting_mode_ == 3)
     {
-      for (auto& [prt, masses] : exclusion_rt_masses_map_)
+      for (const auto& [prt, masses] : exclusion_rt_masses_map_)
       {
         if (std::abs(rt - prt) >= rt_window_ && prt != 0)
           continue;
@@ -332,7 +333,7 @@ namespace OpenMS
 
 
     selected_peak_groups_.reserve(mass_count_.size());
-    std::set<double> current_selected_mzs; // current selected mzs
+    std::set<double> current_selected_mzs;    // current selected mzs
     std::set<double> current_selected_masses; // current selected mzs
 
     std::unordered_map<int, double> new_mz_rt_map_;
@@ -343,7 +344,7 @@ namespace OpenMS
 
     if (targeting_mode_ == 2)
     {
-      for (auto& [mass, rts] : target_mass_rt_map_)
+      for (const auto& [mass, rts] : target_mass_rt_map_)
       {
         int nominal_mass = SpectralDeconvolution::getNominalMass(mass);
         auto qscores = target_mass_qscore_map_[mass];
@@ -367,7 +368,7 @@ namespace OpenMS
       }
     }
 
-    for (auto& [m, r] : tqscore_exceeding_mz_rt_map_)
+    for (const auto& [m, r] : tqscore_exceeding_mz_rt_map_)
     {
       if (rt - r > rt_window_)
       {
@@ -378,7 +379,7 @@ namespace OpenMS
     new_mz_rt_map_.swap(tqscore_exceeding_mz_rt_map_);
     std::unordered_map<int, double>().swap(new_mz_rt_map_);
 
-    for (auto& [m, r] : tqscore_exceeding_mass_rt_map_)
+    for (const auto& [m, r] : tqscore_exceeding_mass_rt_map_)
     {
       if (rt - r > rt_window_)
       {
@@ -389,7 +390,7 @@ namespace OpenMS
     new_mass_rt_map_.swap(tqscore_exceeding_mass_rt_map_);
     std::unordered_map<int, double>().swap(new_mass_rt_map_);
 
-    for (auto& item : all_mass_rt_map_)
+    for (const auto& item : all_mass_rt_map_)
     {
       if (rt - item.second > rt_window_)
       {
@@ -397,10 +398,9 @@ namespace OpenMS
       }
       new_all_mass_rt_map_[item.first] = item.second;
 
-      //auto inter = new_mass_qscore_map_.find(item.first);
+      // auto inter = new_mass_qscore_map_.find(item.first);
 
       new_mass_qscore_map_[item.first] = mass_qscore_map_[item.first];
-
     }
     new_all_mass_rt_map_.swap(all_mass_rt_map_);
     std::unordered_map<int, double>().swap(new_all_mass_rt_map_);
@@ -416,11 +416,11 @@ namespace OpenMS
     // for target inclusive masses, qscore precursor snr threshold is not applied.
     // In all phase, for target exclusive mode, all the exclusive masses are excluded. For target inclusive mode, only the target masses are considered.
 
-    for (int iteration = targeting_mode_ == 2? 0 : 1; iteration < 2 ;iteration++) // for mass exclusion, first collect masses with exclusion list. Then collect without exclusion. This works the best
+    for (int iteration = targeting_mode_ == 2 ? 0 : 1; iteration < 2; iteration++) // for mass exclusion, first collect masses with exclusion list. Then collect without exclusion. This works the best
     {
       for (int selection_phase = selection_phase_start; selection_phase <= selection_phase_end; selection_phase++)
       {
-        for (auto& pg : deconvolved_spectrum_)
+        for (const auto& pg : deconvolved_spectrum_)
         {
           if (selected_peak_groups_.size() >= mass_count)
           {
@@ -487,7 +487,8 @@ namespace OpenMS
             {
               continue;
             }
-          }else if (targeting_mode_ == 3 && excluded_masses_.size() > 0) // inclusive mode
+          }
+          else if (targeting_mode_ == 3 && excluded_masses_.size() > 0) // inclusive mode
           {
             bool to_exclude = false;
             double delta = 2 * tol_[0] * mass * 1e-6;
@@ -603,7 +604,6 @@ namespace OpenMS
             }
             mz1 = std::max(center_mz - max_isolation_window_half_, lmz);
             mz2 = std::min(center_mz + max_isolation_window_half_, rmz);
-
           }
 
 
@@ -678,10 +678,70 @@ namespace OpenMS
       }
   }
 
-  void FLASHIda::getAllMonoisotopicMasses(double *masses, int length)
+  void FLASHIda::removeFromExlusionList(int id)    
+  {
+      // Check if id is valid
+      if (id >= window_id_) 
+      {
+        return; 
+      }
+
+      // Obtain information needed for removal
+      int nominal_mass = id_mass_map_[id];
+      int integer_mz = id_mz_map_[id];
+      double qscore = id_qscore_map_[id];
+
+      // Remove from mass exclusion
+      if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end()) {
+        tqscore_exceeding_mass_rt_map_.erase(nominal_mass);
+      }
+
+      // Remove from mz exclusion
+      if (tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
+      {
+        tqscore_exceeding_mz_rt_map_.erase(integer_mz);
+      }
+
+      // Remove qscore from further calculations
+      if (mass_qscore_map_.find(nominal_mass) != mass_qscore_map_.end()) {
+        mass_qscore_map_[nominal_mass] /= 1 - qscore;
+      }
+  }
+
+  void FLASHIda::removeFromExlusionList(int id)    
+  {
+      // Check if id is valid
+      if (id >= window_id_) 
+      {
+        return; 
+      }
+
+      // Obtain information needed for removal
+      int nominal_mass = id_mass_map_[id];
+      int integer_mz = id_mz_map_[id];
+      double qscore = id_qscore_map_[id];
+
+      // Remove from mass exclusion
+      if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end()) {
+        tqscore_exceeding_mass_rt_map_.erase(nominal_mass);
+      }
+
+      // Remove from mz exclusion
+      if (tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
+      {
+        tqscore_exceeding_mz_rt_map_.erase(integer_mz);
+      }
+
+      // Remove qscore from further calculations
+      if (mass_qscore_map_.find(nominal_mass) != mass_qscore_map_.end()) {
+        mass_qscore_map_[nominal_mass] /= 1 - qscore;
+      }
+  }
+
+  void FLASHIda::getAllMonoisotopicMasses(double* masses, int length)
   {
     int len = std::min(length, (int)deconvolved_spectrum_.size());
-    for(int i=0;i<len;i++)
+    for (int i = 0; i < len; i++)
     {
       masses[i] = deconvolved_spectrum_[i].getMonoMass();
     }
@@ -712,7 +772,7 @@ namespace OpenMS
       wstart[i] = trigger_left_isolation_mzs_[i]; // std::get<0>(mz_range) - min_isolation_window_half_;
       wend[i] = trigger_right_isolation_mzs_[i];  // std::get<1>(mz_range) + min_isolation_window_half_;
 
-      qscores[i] = Qscore::getQscore(&peakgroup);
+      qscores[i] = Qscore::getQscore(&peakgroup, deconvolved_spectrum_.getOriginalSpectrum());
       mono_masses[i] = peakgroup.getMonoMass();
       chare_cos[i] = peakgroup.getChargeIsotopeCosine(charges[i]);
       charge_snrs[i] = peakgroup.getChargeSNR(charges[i]);
@@ -886,12 +946,12 @@ namespace OpenMS
       std::cout << in_log_file << " not found\n";
     }
     int mass_cntr = 0;
-    for(auto& v : precursor_map_for_real_time_acquisition)
+    for (const auto& v : precursor_map_for_real_time_acquisition)
     {
-      mass_cntr+=v.second.size();
+      mass_cntr += v.second.size();
     }
 
-    std::cout << "Used precursor size : " << precursor_map_for_real_time_acquisition.size() << " precursor masses : " << mass_cntr <<  std::endl;
+    std::cout << "Used precursor size : " << precursor_map_for_real_time_acquisition.size() << " precursor masses : " << mass_cntr << std::endl;
 
     return precursor_map_for_real_time_acquisition;
   }

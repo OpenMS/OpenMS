@@ -77,14 +77,14 @@ namespace OpenMS
     /**
            @brief Update setQscore. Cosine and SNRs are also updated.
            @param noisy_peaks noisy peaks to calculate setQscore
+           @param spec the original spectrum that generated this peak group.
            @param avg precalculated averagine
            @param min_cos the peak groups with cosine score less than this will have setQscore 0.
            @param is_low_charge if set, charge fit score calculation becomes less harshy
-           @param is_profile if input spectrum is a profile spectrum or now
            @param allowed_iso_error this set the allowed isotope error in decoy mass generation.
            @return returns isotope offset after isotope cosine calculation
       */
-    int updateQscore(std::vector<LogMzPeak>& noisy_peaks, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, bool is_low_charge, bool is_profile = false, int allowed_iso_error = 1);
+    int updateQscore(std::vector<LogMzPeak>& noisy_peaks, const MSSpectrum& spec, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, bool is_low_charge, int allowed_iso_error = 1);
 
     /**
      * @brief given a monoisotopic mass, recruit raw peaks from the raw input spectrum and add to this peakGroup. This is a bit time-consuming and is done for only a small number of selected
