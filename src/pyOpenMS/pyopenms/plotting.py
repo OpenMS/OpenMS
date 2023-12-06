@@ -242,8 +242,8 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
     """
     colors = {'a': '#388E3C', 'b': '#1976D2', 'c': '#00796B',
               'x': '#7B1FA2', 'y': '#D32F2F', 'z': '#F57C00',
-              'p': '#512DA8', '?': '#212121', 'f': '#212121',
-              None: '#212121', 'matched': '#ff0000', 'unmatched': '#aaaaaa'}
+              'p': '#512DA8', 'f': '#212121', None: '#212121',
+              'matched': '#ff0000', 'unmatched': '#aaaaaa'}
     zorders = {'a': 3, 'b': 4, 'c': 3, 'x': 3, 'y': 4, 'z': 3,
                'p': 3, '?': 2, 'f': 5, None: 1}
 
@@ -284,7 +284,7 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
 def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
                   annotate_ions: bool = True, matched_peaks: Optional[Set] = None, annot_kws: Optional[Dict] = None,
                   mirror_intensity: bool = False, grid: Union[bool, str] = False, colormap: Optional[Dict] = None,
-                  spine: bool=False, ax=None):
+                  spine: bool=False, show_unmatched_peaks=True, ax=None):
     """Plot an MS/MS spectrum.
 
     :param spectrum: The spectrum to be plotted.
@@ -310,11 +310,16 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
         and minor grid lines or 'major'/'minor' to enable major or minor grid lines respectively.
     :type grid: Union[bool, str], optional
 
-    :param colormap: A dictionary mapping ion types to colors.
+    :param colormap: A dictionary mapping ion types to colors. Accepted keys are the ion types: 'a', 'b', 'c', 'x', 'y',
+    'z', 'p', 'f'. None for unannotated peaks. 'matched' and 'unmatched' for peaks in matched_peaks and not in
+    matched_peaks, respectively, if provided.
     :type colormap: Optional[Dict], optional
 
     :param spine: Flag indicating whether to show the right and top spines.
     :type spine: bool, optional
+
+    :param show_unmatched_peaks: Flag indicating whether to show unmatched peaks.
+    :type show_unmatched_peaks: bool, optional
 
     :param ax: Axes instance on which to plot the spectrum. If None the current Axes instance is used.
     :type ax : Optional[plt.Axes], optional
@@ -359,6 +364,9 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
             matched = matched_peaks is not None and i_peak in matched_peaks
         else:
             matched = None
+
+        if not show_unmatched_peaks and not matched:
+            continue
 
         color, zorder = _annotate_ion(
             peak_mz, peak_intensity, peak_annotation, color_ions, annotate_ions,
