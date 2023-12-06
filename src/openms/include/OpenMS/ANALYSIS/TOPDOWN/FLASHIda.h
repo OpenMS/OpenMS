@@ -85,7 +85,8 @@ namespace OpenMS
                       int length,
                       double rt,
                       int ms_level,
-                      const char *name);
+                      const char *name,
+                      const char *cv);
 
     /**
            @brief get isolation windows using FLASHDeconv algorithm. Many parameters are in primitive types so they can be passed to C# FLASHIda side.

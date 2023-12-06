@@ -48,6 +48,9 @@ namespace OpenMS
 
     static std::vector<double> weight_centroid_;
     static std::vector<double> weight_profile_;
-    static std::vector<double> weight_CV_0_, weight_CV_40_, weight_CV_50_, weight_CV_60_;
+    static std::vector<double> weight_CV_0_;
+    static std::vector<double> weight_CV_40_;
+    static std::vector<double> weight_CV_50_;
+    static std::vector<double> weight_CV_60_;
   };
 } // namespace OpenMS

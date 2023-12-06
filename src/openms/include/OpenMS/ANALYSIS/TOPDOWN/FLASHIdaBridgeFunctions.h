@@ -58,7 +58,8 @@ namespace OpenMS
                                                 int length,
                                                 double rt_min,
                                                 int ms_level,
-                                                char *name);
+                                                char *name,
+                                                char *cv);
 
   /// bridges getIsolationWindows in FLASHIda class to C# FLASHIda side
   extern "C" OPENMS_DLLAPI void GetIsolationWindows(FLASHIda *object,

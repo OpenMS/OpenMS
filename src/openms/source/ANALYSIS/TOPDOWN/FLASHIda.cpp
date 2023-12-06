@@ -255,10 +255,13 @@ namespace OpenMS
     std::cout << sd_defaults << std::endl;
   }
 
-  int FLASHIda::getPeakGroups(const double* mzs, const double* ints, const int length, const double rt, const int ms_level, const char* name)
+  int FLASHIda::getPeakGroups(const double* mzs, const double* ints, const int length, const double rt, const int ms_level, const char* name, const char* cv)
   {
     // int ret[2] = {0,0};
     auto spec = makeMSSpectrum_(mzs, ints, length, rt, ms_level, name);
+    if (cv != nullptr) {
+        spec.setMetaValue("filter string", DataValue("cv="+std::to_string(*cv)));
+    }
     // selected_peak_groups_ = DeconvolvedSpectrum(spec, 1);
     if (ms_level == 1)
     {
@@ -646,66 +649,6 @@ namespace OpenMS
         }
       }
     }
-  }
-
-  void FLASHIda::removeFromExlusionList(int id)    
-  {
-      // Check if id is valid
-      if (id >= window_id_) 
-      {
-        return; 
-      }
-
-      // Obtain information needed for removal
-      int nominal_mass = id_mass_map_[id];
-      int integer_mz = id_mz_map_[id];
-      double qscore = id_qscore_map_[id];
-
-      // Remove from mass exclusion
-      if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end()) {
-        tqscore_exceeding_mass_rt_map_.erase(nominal_mass);
-      }
-
-      // Remove from mz exclusion
-      if (tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
-      {
-        tqscore_exceeding_mz_rt_map_.erase(integer_mz);
-      }
-
-      // Remove qscore from further calculations
-      if (mass_qscore_map_.find(nominal_mass) != mass_qscore_map_.end()) {
-        mass_qscore_map_[nominal_mass] /= 1 - qscore;
-      }
-  }
-
-  void FLASHIda::removeFromExlusionList(int id)    
-  {
-      // Check if id is valid
-      if (id >= window_id_) 
-      {
-        return; 
-      }
-
-      // Obtain information needed for removal
-      int nominal_mass = id_mass_map_[id];
-      int integer_mz = id_mz_map_[id];
-      double qscore = id_qscore_map_[id];
-
-      // Remove from mass exclusion
-      if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end()) {
-        tqscore_exceeding_mass_rt_map_.erase(nominal_mass);
-      }
-
-      // Remove from mz exclusion
-      if (tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
-      {
-        tqscore_exceeding_mz_rt_map_.erase(integer_mz);
-      }
-
-      // Remove qscore from further calculations
-      if (mass_qscore_map_.find(nominal_mass) != mass_qscore_map_.end()) {
-        mass_qscore_map_[nominal_mass] /= 1 - qscore;
-      }
   }
 
   void FLASHIda::removeFromExlusionList(int id)    
