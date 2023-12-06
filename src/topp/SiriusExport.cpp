@@ -93,8 +93,8 @@ protected:
     registerInputFile_("in_featureinfo", "<file>", "", "FeatureXML input with feature and adduct information", false);
     setValidFormats_("in_featureinfo", ListUtils::create<String>("featureXML"));
 
-    registerOutputFile_("out_ms","<file>", "", "Internal SIRIUS .ms format after OpenMS preprocessing", false);
-    setValidFormats_("out_ms", ListUtils::create<String>("ms"));
+    registerOutputFile_("out","<file>", "", "Internal SIRIUS .ms format after OpenMS preprocessing");
+    setValidFormats_("out", ListUtils::create<String>("ms"));
 
     addEmptyLine_();
 
@@ -111,7 +111,7 @@ protected:
     //-------------------------------------------------------------
     String in = getStringOption_("in");
     String featureinfo = getStringOption_("in_featureinfo");
-    String out_ms = getStringOption_("out_ms");
+    String out_ms = getStringOption_("out");
 
     auto params = getParam_();
     if (debug_level_ > 3)
