@@ -100,6 +100,7 @@ AssayGeneratorMetabo
 ClusterMassTraces
 ClusterMassTracesByPrecursor
 CVInspector
+ConsensusFeatureGroupDetector
 DatabaseFilter
 DecoyDatabase
 DeMeanderize
@@ -149,7 +150,6 @@ SpecLibCreator
 SpectraSTSearchAdapter
 StaticModification
 TICCalculator
-TopDownConsensusFeatureGroup
 TriqlerConverter
 XMLValidator
 )

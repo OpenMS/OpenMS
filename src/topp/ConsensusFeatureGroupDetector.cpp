@@ -19,20 +19,20 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_TopDownConsensusFeatureGroup TopDownConsensusFeatureGroup
-  @brief TopDownConsensusFeatureGroup build ConsensusFeatureGroup from FLASHQuant outputs
+  @page TOPP_ConsensusFeatureGroupDetector ConsensusFeatureGroupDetector
+  @brief Detecting ConsensusFeatureGroups from FLASHQuant outputs
 **/
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TopDownConsensusFeatureGroup:
+class ConsensusFeatureGroupDetector :
     public TOPPBase,
     public ProgressLogger
 {
 public:
-  TopDownConsensusFeatureGroup():
-      TOPPBase("TopDownConsensusFeatureGroup", "TopDownConsensusFeatureGroup from FLASHQuant", false, {}, false),
+  ConsensusFeatureGroupDetector():
+      TOPPBase("ConsensusFeatureGroupDetector", "Detecting ConsensusFeatureGroups from FLASHQuant outputs", false, {}, false),
       ProgressLogger()
   {
   }
@@ -455,6 +455,6 @@ protected:
 
 int main(int argc, const char ** argv)
 {
-  TopDownConsensusFeatureGroup tool;
+  ConsensusFeatureGroupDetector tool;
   return tool.main(argc, argv);
 }

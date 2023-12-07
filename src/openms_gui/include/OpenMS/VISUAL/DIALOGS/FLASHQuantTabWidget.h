@@ -87,8 +87,8 @@ namespace OpenMS
       /// Group replicate LC-MS files with prefix of tags
       std::vector<std::vector<String>> groupReplicateFiles_(String prefix);
 
-      /// run TopDownConsensusFeatureGroup
-      void runTopDownConsensusFeatureGroup_();
+      /// run ConsensusFeatureGroupDetector
+      void runConsensusFeatureGroupDetector_();
 
       Ui::FLASHQuantTabWidget*ui;
       Param flashquant_param_; ///< the global FLASHQuant parameters which will be passed to FLASHQuant.exe, once updated with parameters the Wizard holds separately

@@ -1,7 +1,7 @@
 # Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 # SPDX-License-Identifier: Apache-2.0
-label: TopDownConsensusFeatureGroup
-doc: TopDownConsensusFeatureGroup from FLASHQuant
+label: ConsensusFeatureGroupDetector
+doc: Detecting ConsensusFeatureGroups from FLASHQuant outputs
 inputs:
   in:
     doc: Input tsv files to align containing feature groups (output files of FLASHQuant)
@@ -53,7 +53,7 @@ outputs:
 cwlVersion: v1.2
 class: CommandLineTool
 baseCommand:
-  - TopDownConsensusFeatureGroup
+  - ConsensusFeatureGroupDetector
 requirements:
   InlineJavascriptRequirement: {}
   InitialWorkDirRequirement:

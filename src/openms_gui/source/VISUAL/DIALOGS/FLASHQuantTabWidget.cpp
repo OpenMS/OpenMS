@@ -43,9 +43,9 @@ namespace OpenMS
       return dir;
     }
 
-    String getTopDownConsensusFeatureGroupExe()
+    String getConsensusFeatureGroupDetectorExe()
     {
-      return File::findSiblingTOPPExecutable("TopDownConsensusFeatureGroup");
+      return File::findSiblingTOPPExecutable("ConsensusFeatureGroupDetector");
     }
 
     FLASHQuantTabWidget::FLASHQuantTabWidget(QWidget* parent) :
@@ -132,7 +132,7 @@ namespace OpenMS
       /// consensus feature group calculation
       if (ui->checkbox_consensus->isChecked())
       {
-        runTopDownConsensusFeatureGroup_();
+        runConsensusFeatureGroupDetector_();
       }
     }
 
@@ -315,22 +315,22 @@ namespace OpenMS
       return file_groups;
     }
 
-    void FLASHQuantTabWidget::runTopDownConsensusFeatureGroup_()
+    void FLASHQuantTabWidget::runConsensusFeatureGroupDetector_()
     {
-      writeLog_(QString("Starting TopDownConsensusFeatureGroup..."), Qt::darkGreen, true);
+      writeLog_(QString("Starting ConsensusFeatureGroupDetector..."), Qt::darkGreen, true);
 
       /// find replicate groups
       String given_prefix = ui->consensus_name_edit->text();
       std::vector<std::vector<String>> file_groups = groupReplicateFiles_(given_prefix);
 
       /// small dialog in front of main window
-      QProgressDialog progress("Running TopDownConsensusFeatureGroup ", "Abort ...", 0, (int)file_groups.size(), this);
+      QProgressDialog progress("Running ConsensusFeatureGroupDetector ", "Abort ...", 0, (int)file_groups.size(), this);
       progress.setWindowModality(Qt::ApplicationModal);
       progress.setMinimumDuration(0); // show immediately
       progress.setValue(0);
       int step = 0;
 
-      // run TopDownConsensusFeatureGroup
+      // run ConsensusFeatureGroupDetector
       for (auto& group : file_groups)
       {
         // get FDQ result file names
@@ -352,7 +352,7 @@ namespace OpenMS
         // run
         QStringList params = QStringList() << "-in" << fdq_results << "-out" << consensus_path.toQString();
         auto r = ep_.run(this,
-                         getTopDownConsensusFeatureGroupExe().toQString(),
+                         getConsensusFeatureGroupDetectorExe().toQString(),
                          params,
                          "",
                          true);

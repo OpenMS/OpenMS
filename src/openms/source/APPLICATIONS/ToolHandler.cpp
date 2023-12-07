@@ -50,6 +50,7 @@ namespace OpenMS
     tools_map["ClusterMassTraces"] = Internal::ToolDescription("ClusterMassTraces", cat_misc);
     tools_map["ClusterMassTracesByPrecursor"] = Internal::ToolDescription("ClusterMassTracesByPrecursor", cat_targeted);
     tools_map["CometAdapter"] = Internal::ToolDescription("CometAdapter", cat_ID_search);
+    tools_map["ConsensusFeatureGroupDetector"] = Internal::ToolDescription("ConsensusFeatureGroupDetector", cat_topdown);
     tools_map["ConsensusID"] = Internal::ToolDescription("ConsensusID", cat_ID_proc);
     tools_map["ConsensusMapNormalizer"] = Internal::ToolDescription("ConsensusMapNormalizer", cat_quant);
     tools_map["CVInspector"] = Internal::ToolDescription("CVInspector", cat_dev);
@@ -194,7 +195,6 @@ namespace OpenMS
     tools_map["TargetedFileConverter"] = Internal::ToolDescription("TargetedFileConverter", cat_file_converter);
     tools_map["TextExporter"] = Internal::ToolDescription("TextExporter", cat_file_converter);
     tools_map["TICCalculator"] = Internal::ToolDescription("TICCalculator", cat_misc);
-    tools_map["TopDownConsensusFeatureGroup"] = Internal::ToolDescription("TopDownConsensusFeatureGroup", cat_topdown);
     tools_map["TriqlerConverter"] = Internal::ToolDescription("TriqlerConverter", cat_file_converter);
     tools_map["XFDR"] = Internal::ToolDescription("XFDR", cat_crosslinking);
     tools_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", cat_dev); 
