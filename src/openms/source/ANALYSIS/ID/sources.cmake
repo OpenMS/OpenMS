@@ -24,6 +24,7 @@ FIAMSScheduler.cpp
 FragmentIndex3D.cpp
 FragmentIndex.cpp
 HiddenMarkovModel.cpp
+HyperScore.cpp
 IDBoostGraph.cpp
 IDConflictResolverAlgorithm.cpp
 IDMapper.cpp
@@ -35,17 +36,21 @@ IDScoreSwitcherAlgorithm.cpp
 IonIdentityMolecularNetworking.cpp
 MessagePasserFactory.cpp
 MetaboliteSpectralMatching.cpp
+MorpheusScore.cpp
 PeptideProteinResolution.cpp
 PeptideSearchEngineAlgorithm.cpp
 PrecursorPurity.cpp
 ProtonDistributionModel.cpp
 PeptideIndexing.cpp
 PercolatorFeatureSetHelper.cpp
+PrecursorPurity.cpp
+ProtonDistributionModel.cpp
+PScore.cpp
 SimpleSearchEngineAlgorithm.cpp
 SiriusAdapterAlgorithm.cpp
 SiriusMSConverter.cpp
-FragmentIndexTagGenerator.cpp
-FragmentIndexTagGeneratorNode.cpp
+#FragmentIndexTagGenerator.cpp
+#FragmentIndexTagGeneratorNode.cpp
 )
 
 ### add path to the filenames

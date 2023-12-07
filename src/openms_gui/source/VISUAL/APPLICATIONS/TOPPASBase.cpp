@@ -1511,7 +1511,10 @@ namespace OpenMS
       }
     }
     
-    GUIHelpers::startTOPPView(files);
+    if (!GUIHelpers::startTOPPView(files))
+    {
+      QMessageBox::warning(this, "Could not start TOPPView", "TOPPView failed to start. Please see the commandline for details.");
+    }
 
   }
 

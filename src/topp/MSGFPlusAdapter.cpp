@@ -530,6 +530,9 @@ protected:
     TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params, proc_stdout, proc_stderr);
     if (exit_code != EXECUTION_OK)
     {
+      // if there was sth like a segfault, runExternalProcess_ will write a warning about the type of error,
+      //  but not print the output of the program.
+      OPENMS_LOG_ERROR << "The output of MSGF+ was:\nSTDOUT:\n" << proc_stdout << "\nSTDERR:\n" << proc_stderr << endl;
       return exit_code;
     }
 
@@ -541,7 +544,7 @@ protected:
       if (!File::exists(mzid_temp))
       {
         OPENMS_LOG_ERROR << "MSGF+ failed. Temporary output file '" << mzid_temp << "' was not created.\n"
-                         << "The output of MSGF+ was:\n" << proc_stdout << "\n" << proc_stderr << endl;
+                         << "The output of MSGF+ was:\nSTDOUT:\n" << proc_stdout << "\nSTDERR:\n" << proc_stderr << endl;
         return EXTERNAL_PROGRAM_ERROR;
       }
 
