@@ -109,7 +109,13 @@ inputs:
     doc: Add peaks of  x-ions to the spectrum
     type: boolean?
   fasta_to_mzml__add_z_ions:
-    doc: Add peaks of z-ions to the spectrum
+    doc: Add peaks of z-ions to the spectrum (sometimes observed in CID and for some AAs in ExD due to H abstraction)
+    type: boolean?
+  fasta_to_mzml__add_zp1_ions:
+    doc: Add peaks of z+1-radical cations (also [z+H]*^{+} or simply z*) to the spectrum (often observed in ExD)
+    type: boolean?
+  fasta_to_mzml__add_zp2_ions:
+    doc: Add peaks of z+2-radical cations (also [z+2H]*^{2+} or simply z') to the spectrum (often observed in ExD esp. with higher precursor charges >3 and smaller z-ions.)
     type: boolean?
   fasta_to_mzml__y_intensity:
     doc: Intensity of the y-ions

@@ -60,13 +60,14 @@ namespace OpenMS
     return file_name;
   }
 
-  void GUIHelpers::startTOPPView(const QStringList& args)
+
+
+  bool GUIHelpers::startTOPPView(QStringList args)
   {
-    QProcess p;
-    p.setProcessChannelMode(QProcess::ForwardedChannels);
+    QString app_path;
 #if defined(__APPLE__)
     // check if we can find the TOPPView.app
-    QString app_path = (File::getExecutablePath() + "../../../TOPPView.app").toQString();
+    app_path = (File::getExecutablePath() + "../../../TOPPView.app").toQString();
 
     if (File::exists(app_path))
     {
@@ -76,29 +77,28 @@ namespace OpenMS
       app_args.append(app_path);
       app_args.append("--args");
       app_args.append(args);
-      p.start("/usr/bin/open", app_args);
+      args = app_args;
+      app_path = "/usr/bin/open";
     }
     else
-    {
-      // we could not find the app, try it the Linux way
-      QString toppview_executable = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
-      p.start(toppview_executable, args);
+    { // we could not find the app, try it the Linux way
+      app_path = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
     }
 #else
     // LINUX+WIN
-    QString toppview_executable = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
-    p.start(toppview_executable, args);
+    app_path = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
 #endif
 
-
-    if (!p.waitForStarted())
+    if (!QProcess::startDetached(app_path, args))
     {
       // execution failed
-      OPENMS_LOG_ERROR << p.errorString().toStdString() << std::endl;
-  #if defined(Q_WS_MAC)
+      OPENMS_LOG_ERROR << "Could not start '" << app_path.toStdString() << "'. Please see above for error messages." << std::endl;
+  #if defined(__APPLE__)
       OPENMS_LOG_ERROR << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
   #endif
+      return false;
     }
+    return true;
   }
 
   void GUIHelpers::openURL(const QString& target)
