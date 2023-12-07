@@ -14,8 +14,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/ANALYSIS/ID/FragmentIndexTagGeneratorNode.h>
-#include <OpenMS/DATASTRUCTURES/MultiPeak.h>
-#include <OpenMS/DATASTRUCTURES/MultiFragment.h>
+
 
 #include <vector>
 #include <functional>
@@ -34,6 +33,70 @@ namespace OpenMS
 
 
   public:
+
+    class MultiFragment
+    {
+    public:
+      MultiFragment();
+
+      MultiFragment(UInt32 peptide_idx,
+                    float fragment_mz,
+                    const std::vector<float>& follow_up);
+
+      MultiFragment(UInt32 peptide_idx, float fragment_mz, const MultiPeak& multiPeak);
+
+      MultiFragment(const MultiFragment& other);
+
+      /// Assignment operator
+      MultiFragment& operator=(const MultiFragment& other);
+
+      ///Destructor
+      virtual ~MultiFragment() = default;
+
+      /// ValueSwappable
+      void swap(MultiFragment& other);
+
+
+      UInt32 getPeptideIdx() const;
+      float getFragmentMz() const;
+      //const std::string& getFollowUpPeaksAa() const;
+      const std::vector<float>& getFollowUpPeaks() const;
+
+
+    protected:
+      UInt32 peptide_idx_;
+      float fragment_mz_;
+      std::vector<float> follow_up_peaks_;
+    };
+
+    class MultiPeak
+    {
+    public:
+      MultiPeak();
+
+      MultiPeak(Peak1D peak, float score);
+
+      /// Copy
+      MultiPeak(const MultiPeak& other);
+      /// Assignment
+      MultiPeak& operator=(const MultiPeak& other);
+      /// Destructor
+      virtual ~MultiPeak() = default;
+
+      [[nodiscard]] const Peak1D& getPeak() const;
+      float getScore() const;
+      const std::string& getFollowUpPeaksAa() const;
+      const std::vector<float>& getFollowUpPeaks() const;
+
+      void addFollowUpPeak(float distance, const std::string& AA);
+      void addScore(float score);
+
+    protected:
+      Peak1D peak_;
+      float score_;
+      std::string follow_up_peaks_AA;
+      std::vector<float> follow_up_peaks;
+    };
 
 
     /**
@@ -90,7 +153,7 @@ namespace OpenMS
      * if they have a distance equal to the monoisotopic mass of any Amino Acid
      * @param fragment_tolerance : The allowed tolerance between peak distance and any monoisotopic mass
      */
-    void generateDirectedAcyclicGraph(double fragment_tolerance);
+    void generateDirectedAcyclicGraph(float fragment_tolerance);
 
     /**
      * @brief Given the dag, generates all possible Multi Peaks and calculates their score.
@@ -108,7 +171,7 @@ namespace OpenMS
      * @param frag_min_mz : The min frag mz that is included
      * @param frag_max_mz
      */
-    void generateAllMultiFragments(std::vector<MultiFragment>& multi_frags, size_t depth, size_t peptide_idx, double frag_min_mz, double frag_max_mz);
+    void generateAllMultiFragments(std::vector<MultiFragment>& multi_frags, size_t depth, size_t peptide_idx, float frag_min_mz, float frag_max_mz);
 
   };
 }

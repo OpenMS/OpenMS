@@ -12,8 +12,6 @@
 #include <OpenMS/ANALYSIS/ID/FragmentIndexTagGeneratorNode.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/MultiFragment.h>
-#include <OpenMS/DATASTRUCTURES/MultiPeak.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
@@ -34,6 +32,9 @@ namespace OpenMS
   class OPENMS_DLLAPI FragmentIndex3D : public DefaultParamHandler
   {
   public:
+
+
+
     // STRUCTS
     struct Peptide {
       UInt32 protein_idx_;            ///< The index in fasta entries vector
@@ -47,8 +48,8 @@ namespace OpenMS
     {
       uint32_t num_matched_{};       ///< Number of peaks-fragment hits
       uint16_t precursor_charge_{};  ///< The precursor_charged used for the performed search
-      int16_t isotope_error_{};      /// < The isotope_error used for the performed search
       size_t peptide_idx_{};         ///< The idx this struct belongs to
+      float delta_precursor_mass{};
     };
 
     /**
@@ -112,6 +113,12 @@ namespace OpenMS
      */
     void query(std::vector<Hit>& hits, const MultiPeak& peak, std::pair<size_t, size_t> peptide_idx_range, std::pair<float, float> window);
 
+    /** @brief Scoring for the MultiDim FragmentIndex!
+    * @param spectrum
+    * @param SpectrumMatchesTopN
+    */
+    void multiDimScoring(const MSSpectrum& spectrum, SpectrumMatchesTopN& SpectrumMatchesTopN);
+
     /// DefaultConstructor
     FragmentIndex3D() ;
 
@@ -123,6 +130,8 @@ namespace OpenMS
     void updateMembers_() override;
 
   private:
+
+    void trimHits(SpectrumMatchesTopN& init_hits) const;
 
     void generate_peptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
 
@@ -185,7 +194,7 @@ namespace OpenMS
 
     uint16_t depth_; // The depth of the database (e.q. Depth 3. We include the next three peaks on the right. The database is then (3+2) Dimensional)
     std::vector<Peptide> fi_peptides_;   ///< vector of all (digested) peptides
-    std::vector<MultiFragment> fi_fragments_;
+    std::vector<TagGenerator::MultiFragment> fi_fragments_;
     std::vector<std::vector<float>> follow_up_peaks_buckets_min_mz;
     size_t bucketsize_;       ///< number of fragments per outer node
     std::vector<float> bucket_min_mz_;  ///< vector of the smalles fragment mz of each bucket
@@ -196,10 +205,10 @@ namespace OpenMS
     uint16_t max_precursor_charge_; ///< maximal possible precursor charge
     uint16_t max_fragment_charge_;  ///< The maximal possible charge of the fragments
     uint32_t max_processed_hits_;   ///< The amount of PSM that will be used. the rest is filtered out
-    float open_precursor_window_lower; ///< Defines the lower bound of the precursor-mass range
-    float open_precursor_window_upper; ///< Defines the upper bound of the precursor-mass range
-    float open_fragment_window_lower;  ///< Defines the lower bound of the fragment-mass range
-    float open_fragment_window_upper;  ///< Defines the upper bound of the fragment-mass range
+    float open_precursor_window_lower_; ///< Defines the lower bound of the precursor-mass range
+    float open_precursor_window_upper_; ///< Defines the upper bound of the precursor-mass range
+    float open_fragment_window_lower_;  ///< Defines the lower bound of the fragment-mass range
+    float open_fragment_window_upper_;  ///< Defines the upper bound of the fragment-mass range
   };
 
 }

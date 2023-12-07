@@ -75,7 +75,7 @@ namespace OpenMS
      * @param multi_peaks output
      * @param recursion_step the number of recursion steps to follow (equals the depth)
      */
-    void generateAllMultiPeaks(std::vector<MultiPeak>& multi_peaks, uint8_t recursion_step);
+    void generateAllMultiPeaks(std::vector<OpenMS::TagGenerator::MultiPeak> multi_peaks, uint8_t recursion_step);
 
     /**
      * @brief recursiv chain that generates the multipeaks

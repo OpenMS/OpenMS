@@ -10,22 +10,13 @@
 #include <OpenMS/ANALYSIS/ID/FragmentIndexTagGenerator.h>
 #include <OpenMS/CHEMISTRY/AAIndex.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/MultiFragment.h>
-#include <OpenMS/DATASTRUCTURES/MultiPeak.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/QC/QCBase.h>
@@ -106,10 +97,10 @@ namespace OpenMS
     max_precursor_charge_ = param_.getValue("max_precursor_charge");
     max_fragment_charge_ = param_.getValue("max_fragment_charge");
     max_processed_hits_ = param_.getValue("max_processed_hits");
-    open_precursor_window_lower = param_.getValue("open_precursor_window_lower");
-    open_precursor_window_upper = param_.getValue("open_precursor_window_upper");
-    open_fragment_window_lower = param_.getValue("open_fragment_window_lower");
-    open_fragment_window_upper = param_.getValue("open_fragment_window_upper");
+    open_precursor_window_lower_ = param_.getValue("open_precursor_window_lower");
+    open_precursor_window_upper_ = param_.getValue("open_precursor_window_upper");
+    open_fragment_window_lower_ = param_.getValue("open_fragment_window_lower");
+    open_fragment_window_upper_ = param_.getValue("open_fragment_window_upper");
   }
 
 
@@ -151,7 +142,7 @@ namespace OpenMS
 
   void FragmentIndex3D::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
-    TheoreticalSpectrumGenerator tsg;
+    TheoreticalSpectrumGenerator tsg;     /// here we actually need the TSG because we need the meta info
     // store ion types for each peak
     Param tsg_settings = tsg.getParameters();
     tsg_settings.setValue("add_metainfo", "true");
@@ -256,10 +247,10 @@ namespace OpenMS
 
   std::pair<size_t, size_t> FragmentIndex3D::getPeptidesInPrecursorRange(float precursor_mass, std::pair<float, float> window)
   {
-    float prec_tol = precursor_mz_tolerance_unit_ppm_ ? Math::ppmToMass(precursor_mz_tolerance_, precursor_mass) : precursor_mz_tolerance_ ;
+    float prec_tol = precursor_mz_tolerance_unit_ppm_ ? Math::ppmToMass(precursor_mz_tolerance_, precursor_mass) : precursor_mz_tolerance_;
 
-    auto left_it = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(), precursor_mass - prec_tol + window.first, [](const Peptide& a, float b) { return a.precursor_mz < b;});
-    auto right_it = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(), precursor_mass + prec_tol + window.second, [](float b, const Peptide& a) { return b < a.precursor_mz;});
+    auto left_it = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(), precursor_mass - prec_tol + window.first, [](const Peptide& a, float b) { return a.precursor_mz < b; });
+    auto right_it = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(), precursor_mass + prec_tol + window.second, [](float b, const Peptide& a) { return b < a.precursor_mz; });
     return make_pair(std::distance(fi_peptides_.begin(), left_it), std::distance(fi_peptides_.begin(), right_it));
   }
 
@@ -270,7 +261,7 @@ namespace OpenMS
     recursiveQuery(hits, peak, peptide_idx_range, window, depth_ + 1, 0, frag_tol);
   }
 
-  void FragmentIndex3D::recursiveQuery(vector<OpenMS::FragmentIndex3D::Hit>& hits, const OpenMS::MultiPeak& peak, std::pair<size_t, size_t> peptide_idx_range, std::pair<float, float> window,
+  void FragmentIndex3D::recursiveQuery(vector<OpenMS::FragmentIndex3D::Hit>& hits, const MultiPeak& peak, std::pair<size_t, size_t> peptide_idx_range, std::pair<float, float> window,
                                        size_t recursion_step,
                                        size_t current_slice, // From the last recursiv step. Holds the info in which branch of the tree we are in
                                        float fragment_tolerance)
@@ -282,16 +273,13 @@ namespace OpenMS
     if (recursion_step == 0)
     { // last (precursor mz) level of the tree. Push hits into the hits vector
       auto last_slice_begin = fi_fragments_.begin() + current_slice * bucketsize_;
-      auto last_slice_end = ((current_slice + 1) * bucketsize_) > fi_fragments_.size() ? fi_fragments_.end() : fi_fragments_.begin() + (current_slice + 1) * bucketsize_ +1;
+      auto last_slice_end = ((current_slice + 1) * bucketsize_) > fi_fragments_.size() ? fi_fragments_.end() : fi_fragments_.begin() + (current_slice + 1) * bucketsize_ + 1;
 
-      auto left_it = std::lower_bound(last_slice_begin, last_slice_end, peptide_idx_range.first, [](MultiFragment a, UInt32 b){
-        return a.getPeptideIdx() < b;
-      });
+      auto left_it = std::lower_bound(last_slice_begin, last_slice_end, peptide_idx_range.first, [](MultiFragment a, UInt32 b) { return a.getPeptideIdx() < b; });
 
       while (left_it != last_slice_end && left_it->getPeptideIdx() <= peptide_idx_range.second)
       {
-        if (inRange(left_it->getFragmentMz(), peak.getPeak().getMZ(), fragment_tolerance, window) &&
-            inRangeFollowUpPeaks(left_it->getFollowUpPeaks(), peak.getFollowUpPeaks(), fragment_tolerance))
+        if (inRange(left_it->getFragmentMz(), peak.getPeak().getMZ(), fragment_tolerance, window) && inRangeFollowUpPeaks(left_it->getFollowUpPeaks(), peak.getFollowUpPeaks(), fragment_tolerance))
         {
           hits.push_back({left_it->getPeptideIdx(), left_it->getFragmentMz()});
         }
@@ -322,11 +310,126 @@ namespace OpenMS
     auto next_slices = make_pair(std::distance(current_level->begin(), left_it), distance(current_level->begin(), right_it));
     for (size_t next_slice = next_slices.first; next_slice < next_slices.second; next_slice++)
     {
-      recursiveQuery(hits, peak, peptide_idx_range, window, recursion_step - 1,
-                      next_slice,
-                     fragment_tolerance);
+      recursiveQuery(hits, peak, peptide_idx_range, window, recursion_step - 1, next_slice, fragment_tolerance);
     }
   }
+
+
+  void FragmentIndex3D::multiDimScoring(const OpenMS::MSSpectrum& spectrum, OpenMS::FragmentIndex3D::SpectrumMatchesTopN& SpectrumMatchesTopN)
+  {
+    // b) The database was build
+    if (!is_build_)
+    {
+      OPENMS_LOG_WARN << "FragmentIndex not yet build \n";
+      return;
+    }
+    // c) The query spectrum has the correct MS level and contains data
+    if (spectrum.empty() || (spectrum.getMSLevel() != 2))
+      return;
+
+    // d) The number of precursors is correct
+    auto precursor = spectrum.getPrecursors();
+    if (precursor.size() != 1)
+    {
+      OPENMS_LOG_WARN << "Number of precursors is not equal 1 \n";
+      return;
+    }
+
+
+    // 2.) Generate all MultiPeaks (Tags) (this should introduce all possible fragment charges)
+    TagGenerator tagGenerator(spectrum);
+    tagGenerator.globalSelection();
+    tagGenerator.localSelection();
+    cout << "DEBUG: frag mz tol: " << getParameters().getValue("fragment_mz_tolerance") << endl;
+    tagGenerator.generateDirectedAcyclicGraph(getParameters().getValue("fragment_mz_tolerance"));
+    vector<MultiPeak> mPeaks;
+    tagGenerator.generateAllMultiPeaks(mPeaks, getParameters().getValue("depth"));
+
+    // 3.) Loop over all precursor charges
+    vector<size_t> charges;
+    cout << "precursor charge = " << precursor[0].getCharge() << endl;
+    if (precursor[0].getCharge())
+    {
+      cout << "precursor charge found" << endl;
+      charges.push_back(precursor[0].getCharge());
+    }
+    else
+    {
+      for (size_t i = min_precursor_charge_; i <= max_precursor_charge_; i++)
+      {
+        charges.push_back(i);
+      }
+    }
+    // loop over all PRECURSOR-charges
+    for (size_t charge : charges)
+    {
+      FragmentIndex3D::SpectrumMatchesTopN candidates_charge;
+      vector<FragmentIndex3D::Hit> hits_charge;
+      float mz = precursor[0].getMZ() * static_cast<float>(charge);
+      auto range = getPeptidesInPrecursorRange(mz, {-open_precursor_window_lower_, open_precursor_window_upper_});
+      candidates_charge.hits_.resize(range.second - range.first + 1);
+      for (const MultiPeak& mp : mPeaks)
+      {
+        query(hits_charge, mp, range, {-open_precursor_window_lower_, open_precursor_window_upper_});
+        {
+          for (FragmentIndex3D::Hit hit : hits_charge)
+          {
+            // the following part is 1:1 from sage
+            size_t idx = hit.peptide_idx - range.first;
+
+            auto source = &candidates_charge.hits_[idx];
+            if (source->num_matched_ == 0)
+            {
+              candidates_charge.scored_candidates_ += 1;
+              source->precursor_charge_ = charge;
+              source->peptide_idx_ = hit.peptide_idx;
+              source->delta_precursor_mass = mz - fi_peptides_[hit.peptide_idx].precursor_mz;
+            }
+            source->num_matched_ += 1;
+            candidates_charge.matched_peaks_ += 1;
+          }
+        }
+        hits_charge.clear();
+      }
+
+      trimHits(candidates_charge);
+      SpectrumMatchesTopN += candidates_charge;
+    }
+    trimHits(SpectrumMatchesTopN);
+  }
+
+
+  void FragmentIndex3D::trimHits(OpenMS::FragmentIndex3D::SpectrumMatchesTopN& init_hits) const
+  {
+    if (init_hits.hits_.size() > max_processed_hits_)
+    {
+      std::partial_sort(init_hits.hits_.begin(), init_hits.hits_.begin() + max_processed_hits_, init_hits.hits_.end(), [](const SpectrumMatch& a, const SpectrumMatch& b) {
+        if (a.num_matched_ != b.num_matched_)
+        {
+          return a.num_matched_ > b.num_matched_;
+        }
+        else
+        {
+          return std::tie(a.delta_precursor_mass, a.precursor_charge_) < std::tie(b.delta_precursor_mass, b.precursor_charge_);
+        }
+      });
+
+      init_hits.hits_.resize(max_processed_hits_);
+    }
+    for (auto hit_iter = init_hits.hits_.rbegin(); hit_iter != init_hits.hits_.rend(); hit_iter++)
+    {
+      if (hit_iter->num_matched_ >= min_matched_peaks_) // search for the first element that should be included
+      {
+        init_hits.hits_.resize(init_hits.hits_.size() - (distance(init_hits.hits_.rbegin(), hit_iter)));
+        break;
+      }
+      if (hit_iter == init_hits.hits_.rend() - 1) // we reached the last element without activating the previous if statement -> no hits at all
+      {
+        init_hits.hits_.resize(0);
+      }
+    }
+  }
+
 
 
 } // namespace OpenMS
