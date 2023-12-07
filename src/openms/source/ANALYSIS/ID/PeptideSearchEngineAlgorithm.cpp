@@ -6,9 +6,9 @@
 // $Authors:  $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/PeptideSearchEngineAlgorithm.h>
-#include <OpenMS/ANALYSIS/ID/FragmentIndexScorer.h>
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -456,6 +456,7 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     p.setValue("max_processed_hits", report_top_hits_);
     p.setValue("fragment_min_mz", param_.getValue("fragment:min_mz"));
     p.setValue("fragment_max_mz", param_.getValue("fragment:max_mz"));
+
     fragment_index_.setParameters(p);
     fragment_index_.build(fasta_db);
     endProgress();
@@ -483,7 +484,7 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       {
         FragmentIndex::Peptide sms_pep = fragment_index_.getPeptides()[sms.peptide_idx_];
         pair<size_t, size_t> candidate_snippet = sms_pep.sequence_;
-        AASequence unmod_candidate = AASequence::fromString(fasta_db[sms_pep.protein_idx_].sequence.substr(candidate_snippet.first, candidate_snippet.second));
+        AASequence unmod_candidate = AASequence::fromString(fasta_db[sms_pep.protein_idx].sequence.substr(candidate_snippet.first, candidate_snippet.second));
         AASequence mod_candidate;
         //reapply modifications.
         if (!(modifications_variable_.empty() && modifications_fixed_.empty()))

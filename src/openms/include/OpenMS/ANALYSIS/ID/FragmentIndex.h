@@ -30,21 +30,85 @@ namespace OpenMS
   {
   public:
 
+    class MultiFragment
+    {
+    public:
+      MultiFragment();
+
+      MultiFragment(UInt32 peptide_idx,
+                    float fragment_mz,
+                    const std::vector<float>& follow_up);
+
+      MultiFragment(UInt32 peptide_idx, float fragment_mz, const MultiPeak& multiPeak);
+
+      MultiFragment(const MultiFragment& other);
+
+      /// Assignment operator
+      MultiFragment& operator=(const MultiFragment& other);
+
+      ///Destructor
+      virtual ~MultiFragment() = default;
+
+      /// ValueSwappable
+      void swap(MultiFragment& other);
+
+
+      UInt32 getPeptideIdx() const;
+      float getFragmentMz() const;
+      //const std::string& getFollowUpPeaksAa() const;
+      const std::vector<float>& getFollowUpPeaks() const;
+
+
+    protected:
+      UInt32 peptide_idx_;
+      float fragment_mz_;
+      std::vector<float> follow_up_peaks_;
+    };
+
+    class MultiPeak
+    {
+    public:
+      MultiPeak();
+
+      MultiPeak(Peak1D peak, float score);
+
+      /// Copy
+      MultiPeak(const MultiPeak& other);
+      /// Assignment
+      MultiPeak& operator=(const MultiPeak& other);
+      /// Destructor
+      virtual ~MultiPeak() = default;
+
+      [[nodiscard]] const Peak1D& getPeak() const;
+      float getScore() const;
+      const std::string& getFollowUpPeaksAa() const;
+      const std::vector<float>& getFollowUpPeaks() const;
+
+      void addFollowUpPeak(float distance, const std::string& AA);
+      void addScore(float score);
+
+    protected:
+      Peak1D peak_;
+      float score_;
+      std::string follow_up_peaks_AA;
+      std::vector<float> follow_up_peaks;
+    };
+
     /** @brief Peptide with all important infos needed for the FI-structure
      */
     struct Peptide {
 
       // We need a constructor in order to emplace back
       Peptide(UInt32 protein_idx, UInt32 modification_idx, std::pair<uint16_t , uint16_t> sequence, float precursor_mz):
-        protein_idx_(protein_idx),
+          protein_idx(protein_idx),
         modification_idx_(modification_idx),
         sequence_(sequence),
         precursor_mz_(precursor_mz)
         {}
 
-        UInt32 protein_idx_;            ///< The index in fasta entries vector
+        UInt32 protein_idx;            ///< The index in fasta entries vector
         UInt32 modification_idx_;        ///< The modification index which needed to reconstruct the modification
-        std::pair<uint16_t , uint16_t> sequence_; ///< The substring of the protein at position protein_idx_
+        std::pair<uint16_t , uint16_t> sequence_; ///< The substring of the protein at position protein_idx
         float precursor_mz_;                  ///< mz of the peptide
     };
 
@@ -160,6 +224,19 @@ namespace OpenMS
     void querySpectrum(const MSSpectrum& spectrum, SpectrumMatchesTopN& sms);
 
 protected:
+
+  /**@brief One entry in the fragment index
+   */
+  struct Fragment
+  {
+      Fragment(UInt32 peptide_idx, float fragment_mz):
+          peptide_idx_(peptide_idx),
+          fragment_mz_(fragment_mz)
+      {}
+      UInt32 peptide_idx_; // 32 bit in sage
+      float fragment_mz_;
+  };
+
     bool is_build_{false};              ///< true, if the database has been populated with fragments
 
     void updateMembers_() override;
@@ -173,6 +250,7 @@ protected:
     void generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
 
     std::vector<Peptide> fi_peptides_;   ///< vector of all (digested) peptides
+    std::vector<Fragment> fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions)
 
     float fragment_min_mz_;  ///< smallest fragment mz
     float fragment_max_mz_;  ///< largest fragment mz    
@@ -183,18 +261,6 @@ protected:
     float fragment_mz_tolerance_;
     bool fragment_mz_tolerance_unit_ppm_{true};    
 private:
-  
-    /**@brief One entry in the fragment index
-     */
-    struct Fragment
-    {
-      Fragment(UInt32 peptide_idx, float fragment_mz):
-          peptide_idx_(peptide_idx),
-          fragment_mz_(fragment_mz)
-      {}
-      UInt32 peptide_idx_; // 32 bit in sage
-      float fragment_mz_;
-    };
 
 
     /**
@@ -248,7 +314,7 @@ private:
     StringList modifications_variable_; ///< Variable Modification -> all possible comibnations are created
     size_t max_variable_mods_per_peptide_;
 
-    std::vector<Fragment> fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions)
+
 
     // Search Related member variables
 
@@ -260,8 +326,8 @@ private:
     uint16_t max_fragment_charge_;  ///< The maximal possible charge of the fragments
     uint32_t max_processed_hits_;   ///< The amount of PSM that will be used. the rest is filtered out
     bool open_search;               ///< true if a unrestrictive open search for potential PTM is performed
-    float open_precursor_window_lower; ///< Defines the lower bound of the precursor-mass range
-    float open_precursor_window_upper; ///< Defines the upper bound of the precursor-mass range
+    float open_precursor_window_lower_; ///< Defines the lower bound of the precursor-mass range
+    float open_precursor_window_upper_; ///< Defines the upper bound of the precursor-mass range
 
 
   };

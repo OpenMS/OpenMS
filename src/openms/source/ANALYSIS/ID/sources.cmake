@@ -23,8 +23,7 @@ FIAMSDataProcessor.cpp
 FIAMSScheduler.cpp
 #FragmentIndex3D.cpp
 FragmentIndex.cpp
-FragmentIndexScorer.cpp
-HiddenMarkovModel.cpp
+        HiddenMarkovModel.cpp
 IDBoostGraph.cpp
 IDConflictResolverAlgorithm.cpp
 IDMapper.cpp
