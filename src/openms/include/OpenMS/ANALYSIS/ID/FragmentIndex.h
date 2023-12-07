@@ -30,69 +30,7 @@ namespace OpenMS
   {
   public:
 
-    class MultiFragment
-    {
-    public:
-      MultiFragment();
 
-      MultiFragment(UInt32 peptide_idx,
-                    float fragment_mz,
-                    const std::vector<float>& follow_up);
-
-      MultiFragment(UInt32 peptide_idx, float fragment_mz, const MultiPeak& multiPeak);
-
-      MultiFragment(const MultiFragment& other);
-
-      /// Assignment operator
-      MultiFragment& operator=(const MultiFragment& other);
-
-      ///Destructor
-      virtual ~MultiFragment() = default;
-
-      /// ValueSwappable
-      void swap(MultiFragment& other);
-
-
-      UInt32 getPeptideIdx() const;
-      float getFragmentMz() const;
-      //const std::string& getFollowUpPeaksAa() const;
-      const std::vector<float>& getFollowUpPeaks() const;
-
-
-    protected:
-      UInt32 peptide_idx_;
-      float fragment_mz_;
-      std::vector<float> follow_up_peaks_;
-    };
-
-    class MultiPeak
-    {
-    public:
-      MultiPeak();
-
-      MultiPeak(Peak1D peak, float score);
-
-      /// Copy
-      MultiPeak(const MultiPeak& other);
-      /// Assignment
-      MultiPeak& operator=(const MultiPeak& other);
-      /// Destructor
-      virtual ~MultiPeak() = default;
-
-      [[nodiscard]] const Peak1D& getPeak() const;
-      float getScore() const;
-      const std::string& getFollowUpPeaksAa() const;
-      const std::vector<float>& getFollowUpPeaks() const;
-
-      void addFollowUpPeak(float distance, const std::string& AA);
-      void addScore(float score);
-
-    protected:
-      Peak1D peak_;
-      float score_;
-      std::string follow_up_peaks_AA;
-      std::vector<float> follow_up_peaks;
-    };
 
     /** @brief Peptide with all important infos needed for the FI-structure
      */
