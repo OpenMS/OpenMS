@@ -355,11 +355,11 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     // protein identifications (leave as is...)
     protein_ids = vector<ProteinIdentification>(1);
     protein_ids[0].setDateTime(DateTime::now());
-    protein_ids[0].setSearchEngine("SimpleSearchEngine");
+    protein_ids[0].setSearchEngine("PeptideSearchEngine");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
 
     DateTime now = DateTime::now();
-    String identifier("SSE_" + now.get());
+    String identifier("PSE_" + now.get());
     protein_ids[0].setIdentifier(identifier);
     for (auto & pid : peptide_ids) { pid.setIdentifier(identifier); }
 

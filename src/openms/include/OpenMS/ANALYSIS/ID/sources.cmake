@@ -23,7 +23,6 @@ FIAMSDataProcessor.h
 FIAMSScheduler.h
 #FragmentIndex3D.h
 FragmentIndex.h
-FragmentIndexScorer.h
 HiddenMarkovModel.h
 IDBoostGraph.h
 IDDecoyProbability.h
