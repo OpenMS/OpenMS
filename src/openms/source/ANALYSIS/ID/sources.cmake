@@ -21,9 +21,9 @@ ConsensusMapMergerAlgorithm.cpp
 FalseDiscoveryRate.cpp
 FIAMSDataProcessor.cpp
 FIAMSScheduler.cpp
-#FragmentIndex3D.cpp
+FragmentIndex3D.cpp
 FragmentIndex.cpp
-        HiddenMarkovModel.cpp
+HiddenMarkovModel.cpp
 IDBoostGraph.cpp
 IDConflictResolverAlgorithm.cpp
 IDMapper.cpp
@@ -44,8 +44,8 @@ PercolatorFeatureSetHelper.cpp
 SimpleSearchEngineAlgorithm.cpp
 SiriusAdapterAlgorithm.cpp
 SiriusMSConverter.cpp
-#FragmentIndexTagGenerator.cpp
-#FragmentIndexTagGeneratorNode.cpp
+FragmentIndexTagGenerator.cpp
+FragmentIndexTagGeneratorNode.cpp
 )
 
 ### add path to the filenames

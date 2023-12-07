@@ -22,7 +22,7 @@
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI TagGenerator
+  class OPENMS_DLLAPI FragmentIndexTagGenerator
   {
   private:
     MSSpectrum spectrum_;
@@ -33,6 +33,35 @@ namespace OpenMS
 
 
   public:
+
+    class MultiPeak
+    {
+    public:
+      MultiPeak();
+
+      MultiPeak(Peak1D peak, float score);
+
+      /// Copy
+      MultiPeak(const MultiPeak& other);
+      /// Assignment
+      MultiPeak& operator=(const MultiPeak& other);
+      /// Destructor
+      virtual ~MultiPeak() = default;
+
+      [[nodiscard]] const Peak1D& getPeak() const;
+      float getScore() const;
+      const std::string& getFollowUpPeaksAa() const;
+      const std::vector<float>& getFollowUpPeaks() const;
+
+      void addFollowUpPeak(float distance, const std::string& AA);
+      void addScore(float score);
+
+    protected:
+      Peak1D peak_;
+      float score_;
+      std::string follow_up_peaks_AA;
+      std::vector<float> follow_up_peaks;
+    };
 
     class MultiFragment
     {
@@ -69,34 +98,7 @@ namespace OpenMS
       std::vector<float> follow_up_peaks_;
     };
 
-    class MultiPeak
-    {
-    public:
-      MultiPeak();
 
-      MultiPeak(Peak1D peak, float score);
-
-      /// Copy
-      MultiPeak(const MultiPeak& other);
-      /// Assignment
-      MultiPeak& operator=(const MultiPeak& other);
-      /// Destructor
-      virtual ~MultiPeak() = default;
-
-      [[nodiscard]] const Peak1D& getPeak() const;
-      float getScore() const;
-      const std::string& getFollowUpPeaksAa() const;
-      const std::vector<float>& getFollowUpPeaks() const;
-
-      void addFollowUpPeak(float distance, const std::string& AA);
-      void addScore(float score);
-
-    protected:
-      Peak1D peak_;
-      float score_;
-      std::string follow_up_peaks_AA;
-      std::vector<float> follow_up_peaks;
-    };
 
 
     /**
@@ -114,16 +116,16 @@ namespace OpenMS
     };
 
     /// Constructor
-    TagGenerator(const MSSpectrum& spectrum);
+    FragmentIndexTagGenerator(const MSSpectrum& spectrum);
 
     /// copy constructor
-    TagGenerator(const TagGenerator& cp);
+    FragmentIndexTagGenerator(const FragmentIndexTagGenerator& cp);
 
     /// assignemnt operator
-    TagGenerator& operator=(const TagGenerator& source);
+    FragmentIndexTagGenerator& operator=(const FragmentIndexTagGenerator& source);
 
     /// Destructor
-    ~TagGenerator();
+    ~FragmentIndexTagGenerator();
 
     /// setter
     void setMSSpectrum(const MSSpectrum &spectrum);

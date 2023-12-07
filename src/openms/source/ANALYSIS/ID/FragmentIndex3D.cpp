@@ -11,8 +11,8 @@
 #include <OpenMS/CHEMISTRY/AAIndex.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
@@ -142,42 +142,49 @@ namespace OpenMS
 
   void FragmentIndex3D::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
-    TheoreticalSpectrumGenerator tsg;     /// here we actually need the TSG because we need the meta info
+    TheoreticalSpectrumGenerator tsg; /// here we actually need the TSG because we need the meta info
     // store ion types for each peak
-    Param tsg_settings = tsg.getParameters();
-    tsg_settings.setValue("add_metainfo", "true");
-    tsg.setParameters(tsg_settings);
+    auto this_params = getParameters();
+    Param tsg_params = tsg.getParameters();
+    tsg_params.setValue("add_metainfo", "true");
+    tsg_params.setValue("add_a_ions", this_params.getValue("add_a_ions"));
+    tsg_params.setValue("add_b_ions", this_params.getValue("add_b_ions"));
+    tsg_params.setValue("add_c_ions", this_params.getValue("add_c_ions"));
+    tsg_params.setValue("add_x_ions", this_params.getValue("add_x_ions"));
+    tsg_params.setValue("add_y_ions", this_params.getValue("add_y_ions"));
+    tsg_params.setValue("add_z_ions", this_params.getValue("add_z_ions"));
+    tsg.setParameters(tsg_params);
 
     PeakSpectrum b_y_ions;
 
     /// generate all Peptides
     generate_peptides(fasta_entries);
 
-    size_t peptide_idx = 0;
 
     /// For each Peptides get all theoretical b and y ions // TODO: include other fragmentation methods
-    for (const Peptide& pep : fi_peptides_)
+    // #pragma omp parallel for private(b_y_ions)
+    for (size_t peptide_idx = 0; peptide_idx < fi_peptides_.size(); peptide_idx++)
     {
-      AASequence pep_sequence = AASequence::fromString(fasta_entries[pep.protein_idx_].sequence);
+      AASequence pep_sequence = AASequence::fromString(fasta_entries[fi_peptides_[peptide_idx].protein_idx_].sequence);
 
       tsg.getSpectrum(b_y_ions, pep_sequence, 1, 1);
-      TagGenerator tag_generator {b_y_ions};
+      FragmentIndexTagGenerator tag_generator {b_y_ions};
 
+      // #pragma omp critical
       tag_generator.generateAllMultiFragments(fi_fragments_, depth_, peptide_idx, fragment_min_mz_, fragment_max_mz_);
 
-      peptide_idx++;
       b_y_ions.clear(true);
     }
 
     /// Calculate bucket size
     bucketsize_ = static_cast<size_t>(pow(static_cast<float>(fi_fragments_.size()), (1.0 / static_cast<float>(depth_ + 2)))); // The bucketsize depends on the dimensionallity, thus on the depth
-    vector<size_t> iterBucketsize;
-    iterBucketsize.push_back(fi_fragments_.size());
+    vector<size_t> iter_bucketsize;
+    iter_bucketsize.push_back(fi_fragments_.size());
     cout << "DB size: " << fi_fragments_.size() << "\n Bucket sizes: ";
     for (uint16_t d = depth_ + 1; d >= 1; d--)
     {
-      iterBucketsize.push_back(pow(bucketsize_, d));
-      cout << iterBucketsize[iterBucketsize.size() - 1] << endl;
+      iter_bucketsize.push_back(pow(bucketsize_, d));
+      cout << iter_bucketsize[iter_bucketsize.size() - 1] << endl;
     }
 
 
@@ -186,38 +193,51 @@ namespace OpenMS
     {
       if (d > 0)
         follow_up_peaks_buckets_min_mz.emplace_back();
-      for (size_t i = 0; i < fi_fragments_.size(); i += iterBucketsize[d])
+      for (size_t i = 0; i < fi_fragments_.size(); i += iter_bucketsize[d])
       {
         if (d > 0)
           follow_up_peaks_buckets_min_mz[follow_up_peaks_buckets_min_mz.size() - 1].emplace_back(fi_fragments_[i].getFollowUpPeaks()[follow_up_peaks_buckets_min_mz.size() - 1]);
         auto sec_bucket_start = fi_fragments_.begin() + i;
-        auto sec_bucket_end = (i + (iterBucketsize[d])) > fi_fragments_.size() ? fi_fragments_.end() : (sec_bucket_start + iterBucketsize[d]);
-        sort(sec_bucket_start, sec_bucket_end, [d](const MultiFragment& a, const MultiFragment& b) { return a.getFollowUpPeaks()[d] < b.getFollowUpPeaks()[d]; });
+        auto sec_bucket_end = (i + (iter_bucketsize[d])) > fi_fragments_.size() ? fi_fragments_.end() : (sec_bucket_start + iter_bucketsize[d]);
+        sort(sec_bucket_start, sec_bucket_end,
+             [d](const FragmentIndexTagGenerator::MultiFragment& a, const FragmentIndexTagGenerator::MultiFragment& b) {
+               if (a.getFollowUpPeaks()[d] == b.getFollowUpPeaks()[d])
+                 return a.getPeptideIdx() < b.getPeptideIdx();
+               else
+                 return a.getFollowUpPeaks()[d] < b.getFollowUpPeaks()[d];
+             });
       }
     }
 
 
     /// 2.) Sort by Fragment mass
     follow_up_peaks_buckets_min_mz.emplace_back();
-    for (size_t i = 0; i < fi_fragments_.size(); i += (iterBucketsize[depth_]))
+    for (size_t i = 0; i < fi_fragments_.size(); i += (iter_bucketsize[depth_]))
     {
       follow_up_peaks_buckets_min_mz[follow_up_peaks_buckets_min_mz.size() - 1].emplace_back(fi_fragments_[i].getFollowUpPeaks()[follow_up_peaks_buckets_min_mz.size() - 1]);
       auto sec_bucket_start = fi_fragments_.begin() + i;
-      auto sec_bucket_end = (i + (iterBucketsize[depth_])) > fi_fragments_.size() ? fi_fragments_.end() : sec_bucket_start + iterBucketsize[depth_];
+      auto sec_bucket_end = (i + (iter_bucketsize[depth_])) > fi_fragments_.size() ? fi_fragments_.end() : sec_bucket_start + iter_bucketsize[depth_];
 
-      sort(sec_bucket_start, sec_bucket_end, [](const MultiFragment& a, const MultiFragment& b) { return a.getFragmentMz() < b.getFragmentMz(); });
+      sort(sec_bucket_start, sec_bucket_end,
+           [](const FragmentIndexTagGenerator::MultiFragment& a, const FragmentIndexTagGenerator::MultiFragment& b)
+           {
+             if (a.getFragmentMz() == b.getFragmentMz())
+               return a.getPeptideIdx() < b.getPeptideIdx();
+             else
+               return a.getFragmentMz() < b.getFragmentMz();
+           });
     }
 
 
     /// 3.) Sort by Precursor mass
-    for (size_t j = 0; j < fi_fragments_.size(); j += iterBucketsize[depth_ + 1])
+    for (size_t j = 0; j < fi_fragments_.size(); j += iter_bucketsize[depth_ + 1])
     {
       bucket_min_mz_.emplace_back(fi_fragments_[j].getFragmentMz());
 
       auto bucket_start = fi_fragments_.begin() + j;
       auto bucket_end = (j + bucketsize_) > fi_fragments_.size() ? fi_fragments_.end() : bucket_start + bucketsize_;
 
-      sort(bucket_start, bucket_end, [](const MultiFragment& a, const MultiFragment& b) { return a.getPeptideIdx() < b.getPeptideIdx(); });
+      sort(bucket_start, bucket_end, [](const FragmentIndexTagGenerator::MultiFragment& a, const FragmentIndexTagGenerator::MultiFragment& b) { return a.getPeptideIdx() < b.getPeptideIdx(); });
     }
 
     is_build_ = true;
@@ -254,16 +274,17 @@ namespace OpenMS
     return make_pair(std::distance(fi_peptides_.begin(), left_it), std::distance(fi_peptides_.begin(), right_it));
   }
 
-  void FragmentIndex3D::query(vector<FragmentIndex3D::Hit>& hits, const MultiPeak& peak, std::pair<size_t, size_t> peptide_idx_range, std::pair<float, float> window)
+  void FragmentIndex3D::query(vector<FragmentIndex3D::Hit>& hits, const FragmentIndexTagGenerator::MultiPeak& peak, std::pair<size_t, size_t> peptide_idx_range, std::pair<float, float> window)
   {
     float frag_tol = fragment_mz_tolerance_unit_ppm_ ? Math::ppmToMass(fragment_mz_tolerance_, (float)peak.getPeak().getMZ()) : fragment_mz_tolerance_; // TODO??? apply ppm to mass * charge or not
 
+    hits.reserve(64);
     recursiveQuery(hits, peak, peptide_idx_range, window, depth_ + 1, 0, frag_tol);
   }
 
-  void FragmentIndex3D::recursiveQuery(vector<OpenMS::FragmentIndex3D::Hit>& hits, const MultiPeak& peak, std::pair<size_t, size_t> peptide_idx_range, std::pair<float, float> window,
-                                       size_t recursion_step,
-                                       size_t current_slice, // From the last recursiv step. Holds the info in which branch of the tree we are in
+  void FragmentIndex3D::recursiveQuery(vector<OpenMS::FragmentIndex3D::Hit>& hits, const FragmentIndexTagGenerator::MultiPeak& peak, std::pair<size_t, size_t> peptide_idx_range,
+                                       std::pair<float, float> window, size_t recursion_step,
+                                       size_t current_slice, // From the last recursive step. Holds the info in which branch of the tree we are in
                                        float fragment_tolerance)
   {
     vector<float>* current_level;
@@ -273,15 +294,15 @@ namespace OpenMS
     if (recursion_step == 0)
     { // last (precursor mz) level of the tree. Push hits into the hits vector
       auto last_slice_begin = fi_fragments_.begin() + current_slice * bucketsize_;
-      auto last_slice_end = ((current_slice + 1) * bucketsize_) > fi_fragments_.size() ? fi_fragments_.end() : fi_fragments_.begin() + (current_slice + 1) * bucketsize_ + 1;
+      auto last_slice_end = ((current_slice + 1) * bucketsize_) > fi_fragments_.size() ? fi_fragments_.end() : fi_fragments_.begin() + (current_slice + 1) * bucketsize_;
 
-      auto left_it = std::lower_bound(last_slice_begin, last_slice_end, peptide_idx_range.first, [](MultiFragment a, UInt32 b) { return a.getPeptideIdx() < b; });
+      auto left_it = std::lower_bound(last_slice_begin, last_slice_end, peptide_idx_range.first, [](FragmentIndexTagGenerator::MultiFragment a, UInt32 b) { return a.getPeptideIdx() < b; });
 
       while (left_it != last_slice_end && left_it->getPeptideIdx() <= peptide_idx_range.second)
       {
         if (inRange(left_it->getFragmentMz(), peak.getPeak().getMZ(), fragment_tolerance, window) && inRangeFollowUpPeaks(left_it->getFollowUpPeaks(), peak.getFollowUpPeaks(), fragment_tolerance))
         {
-          hits.push_back({left_it->getPeptideIdx(), left_it->getFragmentMz()});
+          hits.emplace_back(left_it->getPeptideIdx(), left_it->getFragmentMz());
         }
         ++left_it;
       }
@@ -300,12 +321,14 @@ namespace OpenMS
       applied_window = make_pair<float, float>(0, 0);                                    // For the follow up peaks we do not have any window
     }
     auto slice_begin = (*current_level).begin() + current_slice * bucketsize_;
-    auto slice_end = ((current_slice + 1) * bucketsize_) > (*current_level).size() ? (*current_level).end() : (*current_level).begin() + (current_slice + 1) * bucketsize_ + 1;
+    auto slice_end = ((current_slice + 1) * bucketsize_) > (*current_level).size() ? (*current_level).end() : (*current_level).begin() + (current_slice + 1) * bucketsize_;
     if (recursion_step == depth_ + 1) // edge case for the very first tree layer
       slice_end = (*current_level).end();
 
     auto left_it = std::lower_bound(slice_begin, slice_end, current_query - fragment_tolerance + applied_window.first);
     auto right_it = std::upper_bound(slice_begin, slice_end, current_query + fragment_tolerance + applied_window.second);
+    if (left_it != slice_begin)
+      --left_it;
 
     auto next_slices = make_pair(std::distance(current_level->begin(), left_it), distance(current_level->begin(), right_it));
     for (size_t next_slice = next_slices.first; next_slice < next_slices.second; next_slice++)
@@ -315,7 +338,7 @@ namespace OpenMS
   }
 
 
-  void FragmentIndex3D::multiDimScoring(const OpenMS::MSSpectrum& spectrum, OpenMS::FragmentIndex3D::SpectrumMatchesTopN& SpectrumMatchesTopN)
+  void FragmentIndex3D::multiDimSpectrumQuery(const MSSpectrum& spectrum, SpectrumMatchesTopN& SpectrumMatchesTopN)
   {
     // b) The database was build
     if (!is_build_)
@@ -337,12 +360,12 @@ namespace OpenMS
 
 
     // 2.) Generate all MultiPeaks (Tags) (this should introduce all possible fragment charges)
-    TagGenerator tagGenerator(spectrum);
+    FragmentIndexTagGenerator tagGenerator(spectrum);
     tagGenerator.globalSelection();
     tagGenerator.localSelection();
     cout << "DEBUG: frag mz tol: " << getParameters().getValue("fragment_mz_tolerance") << endl;
     tagGenerator.generateDirectedAcyclicGraph(getParameters().getValue("fragment_mz_tolerance"));
-    vector<MultiPeak> mPeaks;
+    vector<FragmentIndexTagGenerator::MultiPeak> mPeaks;
     tagGenerator.generateAllMultiPeaks(mPeaks, getParameters().getValue("depth"));
 
     // 3.) Loop over all precursor charges
@@ -368,7 +391,7 @@ namespace OpenMS
       float mz = precursor[0].getMZ() * static_cast<float>(charge);
       auto range = getPeptidesInPrecursorRange(mz, {-open_precursor_window_lower_, open_precursor_window_upper_});
       candidates_charge.hits_.resize(range.second - range.first + 1);
-      for (const MultiPeak& mp : mPeaks)
+      for (const FragmentIndexTagGenerator::MultiPeak& mp : mPeaks)
       {
         query(hits_charge, mp, range, {-open_precursor_window_lower_, open_precursor_window_upper_});
         {
@@ -429,7 +452,6 @@ namespace OpenMS
       }
     }
   }
-
 
 
 } // namespace OpenMS

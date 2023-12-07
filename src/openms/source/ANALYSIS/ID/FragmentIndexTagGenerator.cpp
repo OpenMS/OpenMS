@@ -35,17 +35,17 @@ using namespace std;
 
 namespace OpenMS
 {
-  TagGenerator::TagGenerator(const OpenMS::MSSpectrum& spectrum)
+  FragmentIndexTagGenerator::FragmentIndexTagGenerator(const OpenMS::MSSpectrum& spectrum)
   {
     spectrum_ = spectrum;
     selected_peaks_.resize(spectrum_.size());
     n = spectrum_.getPrecursors()[0].getMZ()/ 35;  // TODO: Does this make sense??
   }
-  TagGenerator::~TagGenerator() = default;
+  FragmentIndexTagGenerator::~FragmentIndexTagGenerator() = default;
 
-  TagGenerator::TagGenerator(const OpenMS::TagGenerator& cp) = default;
+  FragmentIndexTagGenerator::FragmentIndexTagGenerator(const OpenMS::FragmentIndexTagGenerator& cp) = default;
 
-  TagGenerator& TagGenerator::operator=(const OpenMS::TagGenerator& source)
+  FragmentIndexTagGenerator& FragmentIndexTagGenerator::operator=(const OpenMS::FragmentIndexTagGenerator& source)
   {
     if(this != &source)
     {
@@ -58,7 +58,7 @@ namespace OpenMS
   }
 
 
-  void TagGenerator::setMSSpectrum(const MSSpectrum& spectrum)
+  void FragmentIndexTagGenerator::setMSSpectrum(const MSSpectrum& spectrum)
   {
     spectrum_.clear(true);
     selected_peaks_.clear();
@@ -70,7 +70,7 @@ namespace OpenMS
   }
 
 
-  void TagGenerator::globalSelection()
+  void FragmentIndexTagGenerator::globalSelection()
   {
     vector<IdxAndIntensity> idx_intensity;
     uint32_t idx_count = 0;
@@ -96,7 +96,7 @@ namespace OpenMS
 
   }
 
-  void TagGenerator::localSelection()
+  void FragmentIndexTagGenerator::localSelection()
   {
     size_t lower_peak = 0;
     size_t upper_peak = 0;
@@ -119,23 +119,23 @@ namespace OpenMS
     }
   }
 
-  void TagGenerator::generateAllNodes(uint32_t max_charge)
+  void FragmentIndexTagGenerator::generateAllNodes(uint32_t max_charge)
   {
     //should there already be a graph delete it
     dag_.clear();
     size_t peak_counter = 0;
     for(Peak1D peak: spectrum_){
       for(uint32_t charge = 1; charge <= max_charge; charge++){
-        dag_.push_back(make_shared<TagGeneratorNode>(peak, charge, selected_peaks_[peak_counter]));
+        dag_.push_back(make_shared<FragmentIndexTagGeneratorNode>(peak, charge, selected_peaks_[peak_counter]));
       }
       peak_counter++;
     }
-    sort(dag_.begin(), dag_.end(), [](const shared_ptr<TagGeneratorNode>& a, const shared_ptr<TagGeneratorNode>& b){
+    sort(dag_.begin(), dag_.end(), [](const shared_ptr<FragmentIndexTagGeneratorNode>& a, const shared_ptr<FragmentIndexTagGeneratorNode>& b){
       return a->calculateMass() < b->calculateMass();
     });
   }
 
-  void TagGenerator::generateDirectedAcyclicGraph(float fragment_tolerance)
+  void FragmentIndexTagGenerator::generateDirectedAcyclicGraph(float fragment_tolerance)
   {
     //first extract the max intensity to later normalize the intensities
     float max = 0;
@@ -145,7 +145,7 @@ namespace OpenMS
 
     for(size_t i = selected_peaks_.size(); i > 0; i--){
       if(selected_peaks_[i-1]){
-        shared_ptr<TagGeneratorNode> newNode = make_shared<TagGeneratorNode>(spectrum_[i-1]);
+        shared_ptr<FragmentIndexTagGeneratorNode> newNode = make_shared<FragmentIndexTagGeneratorNode>(spectrum_[i-1]);
         newNode->calculateConfidence(spectrum_, max);
         for(auto dag_iter = dag_.end() - 1; dag_iter != dag_.begin()-1 ; dag_iter--){    // loop through the complete loop
           if(!newNode->generateConnection(*dag_iter, fragment_tolerance))                      // this function returns false if we out of any
@@ -157,16 +157,16 @@ namespace OpenMS
     }
   }
 
-  void TagGenerator::generateAllMultiPeaks(std::vector<TagGenerator::MultiPeak>& quad_peaks, size_t depth)
+  void FragmentIndexTagGenerator::generateAllMultiPeaks(std::vector<FragmentIndexTagGenerator::MultiPeak>& quad_peaks, size_t depth)
   {
-    for(shared_ptr<TagGeneratorNode> node: dag_){
+    for(shared_ptr<FragmentIndexTagGeneratorNode> node: dag_){
       vector<MultiPeak> quad_peaks_per_node;
       node->generateAllMultiPeaks(quad_peaks_per_node, depth);  // for every node in the dag start a recursiv chain
       quad_peaks.insert(quad_peaks.end(), quad_peaks_per_node.begin(), quad_peaks_per_node.end());
     }
   }
 
-  void TagGenerator::generateAllMultiFragments(std::vector<MultiFragment>& multi_frags,
+  void FragmentIndexTagGenerator::generateAllMultiFragments(std::vector<FragmentIndexTagGenerator::MultiFragment>& multi_frags,
                                                size_t depth,
                                                size_t peptide_idx, float frag_min_mz, float frag_max_mz)
   {
@@ -195,14 +195,14 @@ namespace OpenMS
   }
 
 
-  TagGenerator::MultiFragment::MultiFragment() :
+  FragmentIndexTagGenerator::MultiFragment::MultiFragment() :
       peptide_idx_(0),
       fragment_mz_(0),
       follow_up_peaks_(3,0.0)
   {
   }
 
-  TagGenerator::MultiFragment::MultiFragment(OpenMS::UInt32 peptide_idx, float fragment_mz, const vector<float>& follow_up):
+  FragmentIndexTagGenerator::MultiFragment::MultiFragment(OpenMS::UInt32 peptide_idx, float fragment_mz, const vector<float>& follow_up):
       peptide_idx_(peptide_idx),
       fragment_mz_(fragment_mz),
       follow_up_peaks_(follow_up)
@@ -210,16 +210,16 @@ namespace OpenMS
   {
   }
 
-  TagGenerator::MultiFragment::MultiFragment(OpenMS::UInt32 peptide_idx, float fragment_mz, const OpenMS::MultiPeak& multiPeak) :
+  FragmentIndexTagGenerator::MultiFragment::MultiFragment(OpenMS::UInt32 peptide_idx, float fragment_mz, const FragmentIndexTagGenerator::MultiPeak& multiPeak) :
       peptide_idx_(peptide_idx), fragment_mz_(fragment_mz)
   {
     follow_up_peaks_ = multiPeak.getFollowUpPeaks();
     //follow_up_peaks_AA_ = multiPeak.getFollowUpPeaksAa();
   }
 
-  TagGenerator::MultiFragment::MultiFragment(const TagGenerator::MultiFragment& other) = default;
+  FragmentIndexTagGenerator::MultiFragment::MultiFragment(const FragmentIndexTagGenerator::MultiFragment& other) = default;
 
-  TagGenerator::MultiFragment& TagGenerator::MultiFragment::operator=(const TagGenerator::MultiFragment& other)
+  FragmentIndexTagGenerator::MultiFragment& FragmentIndexTagGenerator::MultiFragment::operator=(const FragmentIndexTagGenerator::MultiFragment& other)
   {
     if(&other == this)
       return *this;
@@ -230,7 +230,7 @@ namespace OpenMS
     return *this;
   }
 
-  void TagGenerator::MultiFragment::swap(TagGenerator::MultiFragment& other)
+  void FragmentIndexTagGenerator::MultiFragment::swap(FragmentIndexTagGenerator::MultiFragment& other)
   {
     follow_up_peaks_.swap(other.follow_up_peaks_);
     //follow_up_peaks_AA_.swap(other.follow_up_peaks_AA_);
@@ -238,28 +238,28 @@ namespace OpenMS
     std::swap(fragment_mz_, other.fragment_mz_);
   }
 
-  UInt32 TagGenerator::MultiFragment::getPeptideIdx() const
+  UInt32 FragmentIndexTagGenerator::MultiFragment::getPeptideIdx() const
   {
     return peptide_idx_;
   }
-  float TagGenerator::MultiFragment::getFragmentMz() const
+  float FragmentIndexTagGenerator::MultiFragment::getFragmentMz() const
   {
     return fragment_mz_;
   }
 
-  const vector<float>& TagGenerator::MultiFragment::getFollowUpPeaks() const
+  const vector<float>& FragmentIndexTagGenerator::MultiFragment::getFollowUpPeaks() const
   {
     return follow_up_peaks_;
   }
 
-  MultiPeak::MultiPeak() : peak_(), score_(0), follow_up_peaks({})
+  FragmentIndexTagGenerator::MultiPeak::MultiPeak() : peak_(), score_(0), follow_up_peaks({})
   {
   }
-  MultiPeak::MultiPeak(OpenMS::Peak1D peak, float score) : peak_(peak), score_(score), follow_up_peaks()
+  FragmentIndexTagGenerator::MultiPeak::MultiPeak(OpenMS::Peak1D peak, float score) : peak_(peak), score_(score), follow_up_peaks()
   {
   }
-  MultiPeak::MultiPeak(const OpenMS::MultiPeak& other) = default;
-  MultiPeak& MultiPeak::operator=(const OpenMS::MultiPeak& other)
+  FragmentIndexTagGenerator::MultiPeak::MultiPeak(const FragmentIndexTagGenerator::MultiPeak& other) = default;
+  FragmentIndexTagGenerator::MultiPeak& FragmentIndexTagGenerator::MultiPeak::operator=(const FragmentIndexTagGenerator::MultiPeak& other)
   {
     if (&other == this)
       return *this;
@@ -269,29 +269,29 @@ namespace OpenMS
     follow_up_peaks = other.follow_up_peaks;
     return  *this;
   }
-  void MultiPeak::addScore(float score)
+  void FragmentIndexTagGenerator::MultiPeak::addScore(float score)
   {
     score_ += score;
   }
 
-  const Peak1D& MultiPeak::getPeak() const
+  const Peak1D& FragmentIndexTagGenerator::MultiPeak::getPeak() const
   {
     return peak_;
   }
-  float MultiPeak::getScore() const
+  float FragmentIndexTagGenerator::MultiPeak::getScore() const
   {
     return score_;
   }
-  const string& MultiPeak::getFollowUpPeaksAa() const
+  const string& FragmentIndexTagGenerator::MultiPeak::getFollowUpPeaksAa() const
   {
     return follow_up_peaks_AA;
   }
-  const vector<float>& MultiPeak::getFollowUpPeaks() const
+  const vector<float>& FragmentIndexTagGenerator::MultiPeak::getFollowUpPeaks() const
   {
     return follow_up_peaks;
   }
 
-  void MultiPeak::addFollowUpPeak(float distance, const std::string &AA)
+  void FragmentIndexTagGenerator::MultiPeak::addFollowUpPeak(float distance, const std::string &AA)
   {
     follow_up_peaks_AA += AA;
     follow_up_peaks.push_back(distance);

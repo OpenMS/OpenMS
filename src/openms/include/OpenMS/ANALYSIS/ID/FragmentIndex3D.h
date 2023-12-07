@@ -111,13 +111,13 @@ namespace OpenMS
      * @param peptide_idx_range The range of all possible Peptides
      * @param window The window in which we want to search, enabeling finding of modified peptides
      */
-    void query(std::vector<Hit>& hits, const MultiPeak& peak, std::pair<size_t, size_t> peptide_idx_range, std::pair<float, float> window);
+    void query(std::vector<Hit>& hits, const FragmentIndexTagGenerator::MultiPeak& peak, std::pair<size_t, size_t> peptide_idx_range, std::pair<float, float> window);
 
     /** @brief Scoring for the MultiDim FragmentIndex!
     * @param spectrum
     * @param SpectrumMatchesTopN
     */
-    void multiDimScoring(const MSSpectrum& spectrum, SpectrumMatchesTopN& SpectrumMatchesTopN);
+    void multiDimSpectrumQuery(const MSSpectrum& spectrum, SpectrumMatchesTopN& SpectrumMatchesTopN);
 
     /// DefaultConstructor
     FragmentIndex3D() ;
@@ -168,7 +168,7 @@ namespace OpenMS
      * @param fragment_tolerance
      */
     void recursiveQuery(std::vector<Hit>& hits,
-                        const MultiPeak& peak,
+                        const FragmentIndexTagGenerator::MultiPeak& peak,
                         std::pair<size_t, size_t> peptide_idx_range,
                         std::pair<float, float> window,  // The window for the Fragment mass ONLY!!!
                         size_t recursion_step,
@@ -194,7 +194,7 @@ namespace OpenMS
 
     uint16_t depth_; // The depth of the database (e.q. Depth 3. We include the next three peaks on the right. The database is then (3+2) Dimensional)
     std::vector<Peptide> fi_peptides_;   ///< vector of all (digested) peptides
-    std::vector<TagGenerator::MultiFragment> fi_fragments_;
+    std::vector<FragmentIndexTagGenerator::MultiFragment> fi_fragments_;
     std::vector<std::vector<float>> follow_up_peaks_buckets_min_mz;
     size_t bucketsize_;       ///< number of fragments per outer node
     std::vector<float> bucket_min_mz_;  ///< vector of the smalles fragment mz of each bucket

@@ -13,7 +13,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/DATASTRUCTURES/MultiPeak.h>
+#include <OpenMS/ANALYSIS/ID/FragmentIndexTagGenerator.h>
 
 #include <vector>
 #include <functional>
@@ -22,7 +22,7 @@ namespace OpenMS
 {
 
 
-  class OPENMS_DLLAPI TagGeneratorNode
+  class OPENMS_DLLAPI FragmentIndexTagGeneratorNode
   {
   private:
 
@@ -31,7 +31,7 @@ namespace OpenMS
     double norm_intensity_;
     double confidence_;
     bool include_;
-    std::vector<std::shared_ptr<TagGeneratorNode>> connected_nodes_; // all peaks to the right, which have a mz distance of an AA-mass
+    std::vector<std::shared_ptr<FragmentIndexTagGeneratorNode>> connected_nodes_; // all peaks to the right, which have a mz distance of an AA-mass
     std::vector<double> distance_to_nodes;  // This is what we actually want
     std::vector<std::string> connected_AA; //for debugging only //TODO: can later be removed
 
@@ -41,22 +41,22 @@ namespace OpenMS
 
 
     /// Constructor
-    TagGeneratorNode(const Peak1D& peak);
+    FragmentIndexTagGeneratorNode(const Peak1D& peak);
 
     /// Constructor with charge
-    TagGeneratorNode(const Peak1D& peak, uint32_t charge, bool include);
+    FragmentIndexTagGeneratorNode(const Peak1D& peak, uint32_t charge, bool include);
 
     /// copy consturctor
-    TagGeneratorNode(const TagGeneratorNode& cp);
+    FragmentIndexTagGeneratorNode(const FragmentIndexTagGeneratorNode& cp);
 
     /// copy a charged version
-    TagGeneratorNode(const TagGeneratorNode& cp, uint16_t charge);
+    FragmentIndexTagGeneratorNode(const FragmentIndexTagGeneratorNode& cp, uint16_t charge);
 
     /// assignment operator
-    TagGeneratorNode& operator=(const TagGeneratorNode& source);
+    FragmentIndexTagGeneratorNode& operator=(const FragmentIndexTagGeneratorNode& source);
 
     /// destructor
-    ~TagGeneratorNode();
+    ~FragmentIndexTagGeneratorNode();
 
 
     /// getter
@@ -68,14 +68,14 @@ namespace OpenMS
     /** @brief gets one of the peaks TO THE RIGHT and checks if the distance is in the AA-mass range
      * @param other: a peak to the right !
      */
-    bool generateConnection( const std::shared_ptr<TagGeneratorNode>& other, double fragment_tolerance);
+    bool generateConnection( const std::shared_ptr<FragmentIndexTagGeneratorNode>& other, double fragment_tolerance);
 
     /**
      * @brief Starts the recursiv generation of all Multi Peaks with the origin in this node
      * @param multi_peaks output
      * @param recursion_step the number of recursion steps to follow (equals the depth)
      */
-    void generateAllMultiPeaks(std::vector<OpenMS::TagGenerator::MultiPeak> multi_peaks, uint8_t recursion_step);
+    void generateAllMultiPeaks(std::vector<FragmentIndexTagGenerator::MultiPeak>&  multi_peaks, uint8_t recursion_step);
 
     /**
      * @brief recursiv chain that generates the multipeaks
@@ -85,7 +85,7 @@ namespace OpenMS
      * @param delta_mz the delta mz between the last node and this node
      * @param prev_AA the AA which resembles the delta_mz  // TODO: This is for debugging and can be removed in the final version
      */
-    void generateAllMultiPeaksRecursion(std::vector<MultiPeak>& multi_peaks, MultiPeak multi_peak, uint32_t recursion_step, double delta_mz, std::string prev_AA);
+    void generateAllMultiPeaksRecursion(std::vector<FragmentIndexTagGenerator::MultiPeak>& multi_peaks, FragmentIndexTagGenerator::MultiPeak multi_peak, uint32_t recursion_step, double delta_mz, std::string prev_AA);
 
     void calculateConfidence(const MSSpectrum& spectrum, double max_intensity);
 

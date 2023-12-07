@@ -27,7 +27,6 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/QC/QCBase.h>
-#include <OpenMS/DATASTRUCTURES/MultiPeak.h>
 
 
 #include <functional>
@@ -48,31 +47,31 @@ namespace OpenMS
   };
 
   /// Generator
-  TagGeneratorNode::TagGeneratorNode(const Peak1D& peak):
+  FragmentIndexTagGeneratorNode::FragmentIndexTagGeneratorNode(const Peak1D& peak):
     charge_(1), peak_(peak), norm_intensity_(0), confidence_(0), connected_nodes_({}), distance_to_nodes({}), connected_AA({})
   {
   }
 
   /// Generator for different charges
-  TagGeneratorNode::TagGeneratorNode(const OpenMS::Peak1D& peak, uint32_t charge, bool include) :
-      TagGeneratorNode(peak)
+  FragmentIndexTagGeneratorNode::FragmentIndexTagGeneratorNode(const OpenMS::Peak1D& peak, uint32_t charge, bool include) :
+      FragmentIndexTagGeneratorNode(peak)
   {
     charge_ = charge;
     include_ = include;
   }
 
   /// copy
-  TagGeneratorNode::TagGeneratorNode(const OpenMS::TagGeneratorNode& cp) = default;
+  FragmentIndexTagGeneratorNode::FragmentIndexTagGeneratorNode(const OpenMS::FragmentIndexTagGeneratorNode& cp) = default;
 
   /// copy with new charge
-  TagGeneratorNode::TagGeneratorNode(const OpenMS::TagGeneratorNode& cp, uint16_t charge) :
+  FragmentIndexTagGeneratorNode::FragmentIndexTagGeneratorNode(const OpenMS::FragmentIndexTagGeneratorNode& cp, uint16_t charge) :
   charge_(charge), peak_(cp.peak_), norm_intensity_(cp.norm_intensity_), confidence_(0), connected_nodes_({}), distance_to_nodes({}), connected_AA({})
   {
   }
 
-  TagGeneratorNode::~TagGeneratorNode() = default;
+  FragmentIndexTagGeneratorNode::~FragmentIndexTagGeneratorNode() = default;
 
-  TagGeneratorNode& TagGeneratorNode::operator=(const OpenMS::TagGeneratorNode& source)
+  FragmentIndexTagGeneratorNode& FragmentIndexTagGeneratorNode::operator=(const OpenMS::FragmentIndexTagGeneratorNode& source)
   {
     if(this != &source)
     {
@@ -83,7 +82,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool TagGeneratorNode::generateConnection(const shared_ptr<TagGeneratorNode>& other, double fragment_tolerance)
+  bool FragmentIndexTagGeneratorNode::generateConnection(const shared_ptr<FragmentIndexTagGeneratorNode>& other, double fragment_tolerance)
   {
 
     double delta_mass = abs(peak_.getMZ() * charge_ - other->peak_.getMZ() * other->charge_);
@@ -102,7 +101,10 @@ namespace OpenMS
 
 
   // Important Note: For correct generation of ALL MultiPeaks, we have to pass the current constructed multi_peak as copy and not by reference
-  void TagGeneratorNode::generateAllMultiPeaksRecursion(std::vector<MultiPeak>& multi_peaks, MultiPeak multi_peak, uint32_t recursion_step, double delta_mz, string prev_AA)
+  void FragmentIndexTagGeneratorNode::generateAllMultiPeaksRecursion(std::vector<FragmentIndexTagGenerator::MultiPeak>& multi_peaks,
+                                                                     FragmentIndexTagGenerator::MultiPeak multi_peak,
+                                                                     uint32_t recursion_step,
+                                                                     double delta_mz, string prev_AA)
   {
 
     multi_peak.addFollowUpPeak(delta_mz, prev_AA);
@@ -120,35 +122,36 @@ namespace OpenMS
     }
   }
 
-  void TagGeneratorNode::generateAllMultiPeaks(std::vector<MultiPeak>& multi_peaks, uint8_t recursion_step)
+  void FragmentIndexTagGeneratorNode::generateAllMultiPeaks(std::vector<FragmentIndexTagGenerator::MultiPeak>& multi_peaks,
+                                                            uint8_t recursion_step)
   {
 
     for(size_t i = 0; i < connected_nodes_.size(); i++){
 
 
-      MultiPeak qp(peak_, confidence_);   // start a new multi peak and start the recursion
+      FragmentIndexTagGenerator::MultiPeak qp(peak_, confidence_);   // start a new multi peak and start the recursion
       connected_nodes_[i]->generateAllMultiPeaksRecursion(multi_peaks, qp, recursion_step - 1, distance_to_nodes.at(i), connected_AA.at(i));
     }
 
   }
 
-  void TagGeneratorNode::calculateConfidence(const OpenMS::MSSpectrum& spectrum, double max_intensity)  //TODO: currently completely useless, needs an update
+  void FragmentIndexTagGeneratorNode::calculateConfidence(const OpenMS::MSSpectrum& spectrum, double max_intensity)  //TODO: currently completely useless, needs an update
   {
     norm_intensity_ = peak_.getIntensity() / max_intensity;
     confidence_ = norm_intensity_;
   }
 
 
-  uint16_t TagGeneratorNode::getCharge() const
+  uint16_t FragmentIndexTagGeneratorNode::getCharge() const
   {
     return charge_;
   }
-  const Peak1D TagGeneratorNode::getPeak() const
+  const Peak1D FragmentIndexTagGeneratorNode::getPeak() const
   {
     return peak_;
   }
 
-  double TagGeneratorNode::calculateMass()
+  double FragmentIndexTagGeneratorNode::calculateMass()
   {
     return peak_.getMZ() * charge_;
   }
