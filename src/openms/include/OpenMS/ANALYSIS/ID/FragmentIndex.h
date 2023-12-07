@@ -158,9 +158,6 @@ namespace OpenMS
     // returns true if already built, false otherwise
     bool isBuild() const;
 
-
-
-
     const std::vector<Peptide>& getPeptides() const;
 
 #ifdef DEBUG_FRAGMENT_INDEX
@@ -190,7 +187,7 @@ namespace OpenMS
      *                  it contains both tolerance and open-search-window
      * @return a pair of indexes defining all possible peptides which the current peak could hit
      */
-    std::pair<size_t, size_t> getPeptidesInPrecursorRange(float precursor_mass, std::pair<float, float> window);
+    std::pair<size_t, size_t> getPeptidesInPrecursorRange(float precursor_mass, const std::pair<float, float>& window);
 
     /**
      * A match between a single query peak and a database fragment
@@ -211,8 +208,7 @@ namespace OpenMS
      * @param peak_charge The charge of the peak. Is used to calculate the mass from the mz
      * @return a vector of Hits(matching peptide_idx_range and matching fragment_mz_) containing the idx of the hitted peptide and the mass of the hit
      */
-    std::vector<Hit> query(Peak1D peak, std::pair<size_t, size_t> peptide_idx_range, uint16_t peak_charge);
-
+    std::vector<Hit> query(const Peak1D& peak, const std::pair<size_t, size_t>& peptide_idx_range, const uint16_t peak_charge);
 
     /**
      * @brief: queries one complete experimental spectra against the Database. Loops over all precursor charges
@@ -274,10 +270,9 @@ private:
      */
     void queryPeak(SpectrumMatchesTopN& candidates,
                    const Peak1D& peak,
-                   std::pair<size_t, size_t> candidates_range,
-                   int16_t isotope_error,
-                   uint16_t precursor_charge);
-
+                   const std::pair<size_t, size_t>& candidates_range,
+                   const int16_t isotope_error,
+                   const uint16_t precursor_charge);
     /**
      * @brief If closed search loops over all isotope errors. For each iteration loop over all peaks with queryPeak.
      * @brief If open search applies a precursor-mass window

@@ -24,6 +24,7 @@ FIAMSScheduler.h
 #FragmentIndex3D.h
 FragmentIndex.h
 HiddenMarkovModel.h
+HyperScore.h
 IDBoostGraph.h
 IDDecoyProbability.h
 IDConflictResolverAlgorithm.h
@@ -36,11 +37,13 @@ IonIdentityMolecularNetworking.h
 MessagePasserFactory.h
 MetaboliteSpectralMatching.h
 PeptideSearchEngineAlgorithm.h
+MorpheusScore.h
+PeptideIndexing.h
 PeptideProteinResolution.h
+PercolatorFeatureSetHelper.h
 PrecursorPurity.h
 ProtonDistributionModel.h
-PeptideIndexing.h
-PercolatorFeatureSetHelper.h
+PScore.h
 SimpleSearchEngineAlgorithm.h
 SiriusAdapterAlgorithm.h
 SiriusMSConverter.h

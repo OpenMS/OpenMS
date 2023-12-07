@@ -371,7 +371,6 @@ set(filtering_executables_list
   SignalToNoiseEstimator_test
   SqrtMower_test
   TICFilter_test
-  TOFCalibration_test
   ThresholdMower_test
   WindowMower_test
   SpectraMerger_test
@@ -554,7 +553,6 @@ set(analysis_executables_list
   QTClusterFinder_test
   QuantitativeExperimentalDesign_test
   ReactionMonitoringTransition_test
-  RNPxlModificationsGenerator_test
   SimpleSearchEngineAlgorithm_test
   SimplePairFinder_test
   SimpleSVM_test
@@ -584,15 +582,12 @@ set(transformations_executables_list
   BaseModel_test
   BiGaussFitter1D_test
   BiGaussModel_test
-  ContinuousWaveletTransformNumIntegration_test
-  ContinuousWaveletTransform_test
   EGHTraceFitter_test
   ElutionModelFitter_test
   EmgFitter1D_test
   EmgModel_test
   ExtendedIsotopeFitter1D_test
-  ExtendedIsotopeModel_test
-  FeatureFinderAlgorithmIsotopeWavelet_test
+  ExtendedIsotopeModel_test  
   FeatureFinderAlgorithmMRM_test
   FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
@@ -609,19 +604,13 @@ set(transformations_executables_list
   InterpolationModel_test
   IsotopeFitter1D_test
   IsotopeModel_test
-  IsotopeWaveletTransform_test
-  IsotopeWavelet_test
   LevMarqFitter1D_test
   MaxLikeliFitter1D_test
   ModelDescription_test
-  OptimizePeakDeconvolution_test
-  OptimizePick_test
-  PeakPickerCWT_test
   PeakPickerHiRes_test
   PeakPickerIterative_test
   PeakPickerMaxima_test
   PeakWidthEstimator_test
-  PeakShape_test
   ProductModel_test
   SeedListGenerator_test
   TraceFitter_test

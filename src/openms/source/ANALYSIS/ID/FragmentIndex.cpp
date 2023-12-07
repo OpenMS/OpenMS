@@ -80,7 +80,7 @@ namespace OpenMS
       digestor.setEnzyme(digestion_enzyme_);
       digestor.setMissedCleavages(missed_cleavages_);
 
-
+      std::cout << "Generating peptides..." << std::endl;
       
       vector<pair<size_t, size_t>> digested_peptides; // every thread gets it own copy that is only cleared, not destructed (prevents frequent reallocations)
       #pragma omp parallel for private(digested_peptides)
@@ -146,12 +146,14 @@ namespace OpenMS
       if (skipped_peptides > 0)
       {
         OPENMS_LOG_WARN << skipped_peptides << " peptides skipped due to unkown AA \n";
-      }        
+      }
+      std::cout << "Sorting peptides..." << std::endl;        
       // sort the peptide vector, critical for following steps
       sort(fi_peptides_.begin(), fi_peptides_.end(), [](const Peptide& a, const Peptide& b)
            {
         return std::tie(a.precursor_mz_, a.protein_idx) < std::tie(b.precursor_mz_, b.protein_idx);
            });
+      std::cout << "done." << std::endl;        
   }
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
@@ -186,11 +188,15 @@ namespace OpenMS
 
       vector<AASequence> mod_peptides;
       std::vector<SimpleTSGXLMS::SimplePeak> b_y_ions;
+
+      OPENMS_LOG_INFO << "Generating fragments..." << std::endl;
+
       #pragma omp parallel for private(mod_peptides, b_y_ions)
       for(size_t peptide_idx = 0; peptide_idx < fi_peptides_.size(); peptide_idx++)
       {
         const Peptide& pep = fi_peptides_[peptide_idx];
         mod_peptides.clear();
+        b_y_ions.clear();
         AASequence unmod_peptide = AASequence::fromString(fasta_entries[pep.protein_idx].sequence.substr(pep.sequence_.first, pep.sequence_.second));
 
         if (!(modifications_fixed_.empty() && modifications_variable_.empty()))
@@ -205,19 +211,19 @@ namespace OpenMS
         {
          //tsg.getSpectrum(b_y_ions, unmod_peptide, 1,1);
           tsg.getLinearIonSpectrum(b_y_ions, unmod_peptide, unmod_peptide.size(), 1, 1);
-
         }
 
-        for (SimpleTSGXLMS::SimplePeak frag : b_y_ions)
+        for (const SimpleTSGXLMS::SimplePeak& frag : b_y_ions)
         {
           if (fragment_min_mz_ > frag.mz || frag.mz > fragment_max_mz_  ) continue;
 
           #pragma omp critical (CreateFragment)
           fi_fragments_.emplace_back(static_cast<UInt32>(peptide_idx),(float) frag.mz);
-        }
-
-        b_y_ions.clear();
+        }        
       }
+
+      std::cout << "Sorting fragments..." << std::endl;
+
       /// 1.) First all Fragments are sorted by their own mass!
       sort(fi_fragments_.begin(), fi_fragments_.end(), [](const Fragment& a, const Fragment& b)
       {
@@ -226,7 +232,7 @@ namespace OpenMS
 
       /// Calculate the bucket size
       bucketsize_ = sqrt(fi_fragments_.size()); //Todo: MSFragger uses a different approach, which might be better
-      cout << "creating DB with bucket_size " << bucketsize_ << endl;
+      OPENMS_LOG_INFO << "Creating DB with bucket_size " << bucketsize_ << endl;
 
       /// 2.) next sort after precursor mass and save the min_mz of each bucket
       #pragma omp parallel for
@@ -244,12 +250,14 @@ namespace OpenMS
           return a.peptide_idx_ < b.peptide_idx_; // we don´t need a tie, because the idx are unique
         });
       }
-      //Resort in case the parallelization block above messed something up
+      OPENMS_LOG_INFO << "Sorting by bucket min m/z:" << bucketsize_ << endl;
+      //Resort in case the parallelization block above messed something up TODO: check if this can happen
       std::sort( bucket_min_mz_.begin(), bucket_min_mz_.end());
       is_build_ = true;
+      OPENMS_LOG_INFO << "Fragment index built!" << endl;
   }
 
-  std::pair<size_t, size_t > FragmentIndex::getPeptidesInPrecursorRange(float precursor_mass, std::pair<float, float> window)
+  std::pair<size_t, size_t > FragmentIndex::getPeptidesInPrecursorRange(float precursor_mass, const std::pair<float, float>& window)
   {
       float prec_tol = precursor_mz_tolerance_unit_ppm_ ? Math::ppmToMass(precursor_mz_tolerance_, precursor_mass) : precursor_mz_tolerance_ ;
 
@@ -258,7 +266,7 @@ namespace OpenMS
       return make_pair(std::distance(fi_peptides_.begin(), left_it), std::distance(fi_peptides_.begin(), right_it));
   }
 
-  vector<FragmentIndex::Hit> FragmentIndex::query(OpenMS::Peak1D peak, pair<size_t, size_t> peptide_idx_range, uint16_t peak_charge)
+  vector<FragmentIndex::Hit> FragmentIndex::query(const OpenMS::Peak1D& peak, const pair<size_t, size_t>& peptide_idx_range, uint16_t peak_charge)
   {
       float adjusted_mass = peak.getMZ() * (float)peak_charge -((peak_charge-1) * Constants::PROTON_MASS_U);
 
@@ -279,20 +287,11 @@ namespace OpenMS
         auto slice_begin = fi_fragments_.begin() + (j*bucketsize_);
         auto slice_end = ((j+1) * bucketsize_) >= fi_fragments_.size() ? fi_fragments_.end() : (fi_fragments_.begin() + ((j+1) * bucketsize_)) ;
 
-        if (peptide_idx_range.first == 328145 && peptide_idx_range.second == 328578)
-        {
-          std::cout << "j:" << j << std::endl;
-          
-        }
-
-
-
         auto left_iter = std::lower_bound(slice_begin, slice_end, peptide_idx_range.first, [](Fragment a, UInt32 b) { return a.peptide_idx_ < b;} );
 
         while (left_iter != slice_end) // sequential scan
         {
           if(left_iter->peptide_idx_ > peptide_idx_range.second) break;
-
 
           if ((adjusted_mass >= left_iter->fragment_mz_ - frag_tol ) && adjusted_mass <= (left_iter->fragment_mz_+ frag_tol))
           {
@@ -304,7 +303,6 @@ namespace OpenMS
           }
           ++left_iter;
         }
-
       }
 
       return hits;
@@ -312,20 +310,18 @@ namespace OpenMS
 
   void FragmentIndex::queryPeak(OpenMS::FragmentIndex::SpectrumMatchesTopN& candidates,
                                 const OpenMS::Peak1D& peak,
-                                std::pair<size_t, size_t> candidates_range,
-                                int16_t isotope_error,
-                                uint16_t precursor_charge)
+                                const std::pair<size_t, size_t>& candidates_range,
+                                const int16_t isotope_error,
+                                const uint16_t precursor_charge)
   {
       vector<Hit> query_hits;
       uint16_t actual_max = std::min(precursor_charge, max_fragment_charge_);
       for (uint16_t fragment_charge = 1; fragment_charge <= actual_max; fragment_charge++)
       {
-        query_hits.clear();
         query_hits = query(peak, candidates_range, fragment_charge);
 
         for (const auto& hit : query_hits)
         {
-
           size_t idx = hit.peptide_idx - candidates_range.first;
 
           auto& source = candidates.hits_[idx];
@@ -372,8 +368,6 @@ namespace OpenMS
         }
       }
   }
-
-
 
   void FragmentIndex::searchDifferentPrecursorRanges(const MSSpectrum& spectrum, float precursor_mass, SpectrumMatchesTopN& sms, uint16_t charge)
   {
