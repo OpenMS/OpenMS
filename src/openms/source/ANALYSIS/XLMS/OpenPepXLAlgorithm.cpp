@@ -845,7 +845,7 @@ using namespace OpenMS;
             csm.precursor_target_intensity = precursor_purities[spectrum_light.getNativeID()].target_intensity;
             csm.precursor_signal_proportion = precursor_purities[spectrum_light.getNativeID()].signal_proportion;
             csm.precursor_target_peak_count = precursor_purities[spectrum_light.getNativeID()].target_peak_count;
-            csm.precursor_residual_peak_count = precursor_purities[spectrum_light.getNativeID()].residual_peak_count;
+            csm.precursor_residual_peak_count = precursor_purities[spectrum_light.getNativeID()].interfering_peak_count;
           }
 
           // num_iso_peaks array from deisotoping

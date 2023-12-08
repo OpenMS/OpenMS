@@ -6,7 +6,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/RNPXL/MorpheusScore.h>
+#include <OpenMS/ANALYSIS/ID/MorpheusScore.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <cmath>
 

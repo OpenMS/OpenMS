@@ -76,6 +76,9 @@ Architecture: 64 bit
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
+/// this needs to be done before TOPPBase is initialized, since it will set OMP's max_threads to 1
+const auto max_threads = Internal::OpenMSBuildInfo::getOpenMPMaxNumThreads();
+
 class TOPPOpenMSInfo : public TOPPBase
 {
 public:
@@ -123,7 +126,7 @@ protected:
     cout << "LP-Solver    : GLPK\n";
 #endif
     #ifdef _OPENMP
-    cout << "OpenMP       : " << "enabled (maxThreads = " << Internal::OpenMSBuildInfo::getOpenMPMaxNumThreads() << ")" << "\n";
+    cout << "OpenMP       : " << "enabled (maxThreads = " << max_threads << ")" << "\n";
     #else
     cout << "OpenMP       : " << "disabled" << "\n";
     #endif

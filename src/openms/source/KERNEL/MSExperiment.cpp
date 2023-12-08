@@ -287,8 +287,10 @@ namespace OpenMS
     // update intensity, m/z and RT according to chromatograms as well:
     for (ChromatogramType& cp : chromatograms_)
     {
+      // update range of EACH chrom, if we need them individually later
+      cp.updateRanges();
 
-      // ignore TICs and ECs (as these are usually positioned at 0 and therefor lead to a large white margin in plots if included)
+      // ignore TICs and ECs for the whole experiments range (as these are usually positioned at 0 and therefor lead to a large white margin in plots if included)
       if (cp.getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM ||
         cp.getChromatogramType() == ChromatogramSettings::EMISSION_CHROMATOGRAM)
       {
@@ -299,7 +301,6 @@ namespace OpenMS
 
       // ranges
       this->extendMZ(cp.getMZ());// MZ
-      cp.updateRanges();
       this->extend(cp);// RT and intensity from chroms's range
     }
   }
