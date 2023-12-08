@@ -318,6 +318,7 @@ namespace OpenMS
     auto mz_bin_index_reverse = std::vector<Size>();
     mz_bin_index_reverse.reserve(mz_bins_.count());
     // invert mz bins so charges are counted from small to large given a mass
+
     while (mz_bin_index != mz_bins_.npos)
     {
       mz_bin_index_reverse.push_back(mz_bin_index);
@@ -339,19 +340,18 @@ namespace OpenMS
     double bin_mul_factor = bin_mul_factors_[ms_level_ - 1];
     std::vector<float> sub_max_h_intensity(h_charge_size, .0f);
 
-    for (int i = (int)mz_bin_index_reverse.size() - 1; i >= 0; i--)
+    for (auto iter = mz_bin_index_reverse.rbegin(); iter < mz_bin_index_reverse.rend(); iter++)
     {
-      mz_bin_index = mz_bin_index_reverse[i];
-      float intensity = mz_intensities[mz_bin_index];
-      double mz = -1.0, log_mz = 0;
-
-      log_mz = getBinValue_(mz_bin_index, mz_bin_min_value_, bin_mul_factor); // uncharged log mz
-      mz = exp(log_mz);                                                       // uncharged mz
+      mz_bin_index = *iter;
+      const float intensity = mz_intensities[mz_bin_index];
+      const double log_mz = getBinValue_(mz_bin_index, mz_bin_min_value_, bin_mul_factor); // uncharged log mz;
+      const double mz = exp(log_mz);                                                       // uncharged mz
+      const double iso_div_by_mz = iso_da_distance_ / mz;
       // scan through charges
       for (int j = 0; j < current_max_charge_; j++) // take all charge one ?
       {
         // mass is given by shifting by bin_offsets_[j]
-        long mass_bin_index = (long)mz_bin_index + bin_offsets_[j];
+        const long mass_bin_index = (long)mz_bin_index + bin_offsets_[j];
 
         if (mass_bin_index < 0)
         {
@@ -368,18 +368,18 @@ namespace OpenMS
         }
 
         auto& spc = support_peak_count[mass_bin_index];
-        int abs_charge = (j + 1);
+        const int abs_charge = (j + 1);
         float& prev_intensity = prev_intensities[mass_bin_index];
         auto& prev_charge = prev_charges[mass_bin_index];
-        bool charge_not_continous = prev_charge - j != -1 && (prev_charge <= current_max_charge_);
+        const bool charge_not_continous = prev_charge - j != -1 && (prev_charge <= current_max_charge_);
         bool pass_first_check = false;
 
         // intensity ratio between consecutive charges should not exceed the factor.
-        float highest_factor = 10.0;
-        float factor = abs_charge <= low_charge_ ? highest_factor : (highest_factor / 2 + highest_factor / 2 * low_charge_ / (float)abs_charge);
+        const float highest_factor = 10.0;
+        const float factor = abs_charge <= low_charge_ ? highest_factor : (highest_factor / 2 + highest_factor / 2 * low_charge_ / (float)abs_charge);
         // intensity ratio between consecutive charges for possible harmonic should be within this factor
 
-        float hfactor = factor / 2.0f;
+        const float hfactor = factor / 2.0f;
         // intensity of previous charge
         // intensity ratio between current and previous charges
         float intensity_ratio = prev_intensity <= 0 ? (factor + 1) : (intensity / prev_intensity);
@@ -409,11 +409,11 @@ namespace OpenMS
           {
             bool iso_exist = false;
             int next_iso_bin = 0;
-            int nib = (int)getBinNumber_(log_mz + d * iso_da_distance_ / abs_charge / mz, mz_bin_min_value_, bin_mul_factor);
-            int nibr = abs_charge > 1 ? (int)getBinNumber_(log_mz + (d * iso_da_distance_ / (abs_charge - 1) / mz), mz_bin_min_value_, bin_mul_factor) : 0;
-            int nibl = (int)getBinNumber_(log_mz + (d * iso_da_distance_ / (abs_charge + 1) / mz), mz_bin_min_value_, bin_mul_factor);
+            const int nib = (int)getBinNumber_(log_mz + d * iso_div_by_mz / abs_charge, mz_bin_min_value_, bin_mul_factor);
+            const int nibr = abs_charge > 1 ? (int)getBinNumber_(log_mz + (d * iso_div_by_mz / (abs_charge - 1)), mz_bin_min_value_, bin_mul_factor) : 0;
+            const int nibl = (int)getBinNumber_(log_mz + (d * iso_div_by_mz / (abs_charge + 1)), mz_bin_min_value_, bin_mul_factor);
             if (abs(nib - nibr) < tol_div_factor || abs(nib - nibl) < tol_div_factor) // if different charges are not distinguishable, we ignore. Not informative and the source of the errors..
-              continue;
+              break;
 
             for (int t = -1; t < 2; t++)
             {
@@ -433,20 +433,20 @@ namespace OpenMS
             // harmonic check
             if (iso_exist)
             {
-              double h_threshold = intensity + mz_intensities[next_iso_bin]; // std::min(intensity, mz_intensities[next_iso_bin]); //
+              const double h_threshold = intensity + mz_intensities[next_iso_bin]; // std::min(intensity, mz_intensities[next_iso_bin]); //
 
               for (size_t k = 0; k < h_charge_size; k++)
               {
-                int hc = harmonic_charges_[k];
+                const int hc = harmonic_charges_[k];
                 int harmonic_cntr = 0;
                 if (ms_level_ > 1 && hc * abs_charge > current_max_charge_)
                 {
                   break;
                 }
 
-                int hdiff = (int)round((double)(next_iso_bin - mz_bin_index)) / hc * (hc / 2);
+                const int hdiff = (int)round((double)(next_iso_bin - mz_bin_index)) / hc * (hc / 2);
 
-                int next_harmonic_iso_bin = mz_bin_index + hdiff; //(int)getBinNumber_(log_mz + hdiff, mz_bin_min_value_, bin_mul_factor);
+                const int next_harmonic_iso_bin = mz_bin_index + hdiff; //(int)getBinNumber_(log_mz + hdiff, mz_bin_min_value_, bin_mul_factor);
                 // check if there are harmonic peaks between the current peak and the next isotope peak.
 
                 // no perfect filtration. Just obvious ones are filtered out by checking if a peak is in the harmonic position and the intensity ratio is within two folds from the current peak
@@ -493,8 +493,8 @@ namespace OpenMS
               max_intensity = tmpi;
             }
 
-            float high_threshold = max_intensity * hfactor;
-            float low_threshold = min_intensity / hfactor;
+            const float high_threshold = max_intensity * hfactor;
+            const float low_threshold = min_intensity / hfactor;
 
             bool is_harmonic = false;
 
@@ -548,10 +548,7 @@ namespace OpenMS
             if (!mass_bins_[mass_bin_index])
             {
               spc++;
-              // if (spc >= min_support_peak_count_ || spc >= abs_charge / 2)
-              {
-                mass_bins_[mass_bin_index] = true;
-              }
+              mass_bins_[mass_bin_index] = true;
             }
           }
         }
@@ -1008,7 +1005,6 @@ namespace OpenMS
                                                              allowed_iso_error_, target_decoy_type_);
         peak_group.setIsotopeCosine(cos);
         // first filtration to remove false positives before further processing.
-        // first filtration to remove false positives before further processing.
         if (cos < std::min(.5, min_isotope_cosine_[ms_level_ - 1]) - .3)
         {
           continue;
@@ -1069,7 +1065,6 @@ namespace OpenMS
             --upper;
           }
         }
-
         double snr_threshold = min_snr_[ms_level_ - 1];
         double qvalue_threshold = max_qvalue_[ms_level_ - 1];
         if (!peak_group.isTargeted() && (peak_group.getQvalue() > qvalue_threshold || peak_group.getSNR() < snr_threshold)) // snr check prevents harmonics or noise.
@@ -1350,7 +1345,7 @@ namespace OpenMS
         continue;
       }
 
-      double mul_factor = .5;//dspec[i].getRepAbsCharge() < low_charge_ ? .5 : .5;
+      double mul_factor = .5;       // dspec[i].getRepAbsCharge() < low_charge_ ? .5 : .5;
       if (!dspec[i].isTargeted() && // z1 != z2 &&
           overlap_intensity[i] >=
             dspec[i].getIntensity() * mul_factor) // If the overlapped intensity takes more than mul_factor * total intensity then it is a peakgroup with a charge error. the smaller, the harsher
