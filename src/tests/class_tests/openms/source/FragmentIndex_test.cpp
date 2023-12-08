@@ -86,8 +86,8 @@ public:
   {
     //fetch the parameters for the modifications
     auto param = getParameters();
-    StringList modifications_fixed_ = ListUtils::toStringList<std::string>(param.getValue("modifications_fixed"));
-    StringList modifications_variable_ = ListUtils::toStringList<std::string>(param.getValue("modifications_variable"));
+    StringList modifications_fixed_ = ListUtils::toStringList<std::string>(param.getValue("modifications:fixed"));
+    StringList modifications_variable_ = ListUtils::toStringList<std::string>(param.getValue("modifications:variable"));
     ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
     ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
 
@@ -117,7 +117,7 @@ public:
         AASequence unmod_peptide = AASequence::fromString(entries[0].sequence.substr(pep.sequence_.first, pep.sequence_.second));
         AASequence mod_peptide = AASequence(unmod_peptide); // copy the peptide
         ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, mod_peptide);
-        ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, mod_peptide, param.getValue("max_variable_mods_per_peptide"), mod_peptides);
+        ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, mod_peptide, param.getValue("modifications:variable_max_per_peptide"), mod_peptides);
         mod_peptide = mod_peptides[pep.modification_idx_];
         tsg.getSpectrum(b_y_ions, mod_peptide, charge, charge);
         prec_theo.setMZ(mod_peptide.getMZ(charge));
@@ -135,10 +135,10 @@ public:
         bool found_all_peaks = false;
         for (auto s : sms.hits_)
         {
-          if (s.peptide_idx_ == peptide_idx)
+          if ((s.peptide_idx_ == peptide_idx) && (s.precursor_charge_ ==  charge))
           {
             // The peak was found: All peaks which were created were found, and the correct charge was identified
-            found = (s.num_matched_ >= spec_theo.size()) && (s.precursor_charge_, charge);
+            found = (s.num_matched_ >= spec_theo.size());
           }
         }
         test = test && found;
@@ -197,13 +197,13 @@ std::vector<FragmentIndex::Peptide> peptides_unmod_minmax_missed_cleavage{{0,0,{
 
 FragmentIndex_test buildTest;
 auto param = buildTest.getParameters();
-param.setValue("digestor_enzyme", "Trypsin");
-param.setValue("missed_cleavages", 0);
-param.setValue("peptide_min_mass", 0);
-param.setValue("peptide_min_length", 0);
-param.setValue("peptide_max_mass", 5000);
-param.setValue("modifications_variable", std::vector<std::string>{});
-param.setValue("modifications_fixed", std::vector<std::string>{});
+param.setValue("enzyme", "Trypsin");
+param.setValue("peptide:missed_cleavages", 0);
+param.setValue("peptide:min_mass", 0);
+param.setValue("peptide:min_size", 0);
+param.setValue("peptide:max_mass", 5000);
+param.setValue("modifications:variable", std::vector<std::string>{});
+param.setValue("modifications:fixed", std::vector<std::string>{});
 buildTest.setParameters(param);
 
 buildTest.build(entries0);
@@ -212,8 +212,8 @@ TEST_TRUE(buildTest.peptidesSorted())
 TEST_TRUE(buildTest.fragmentsSorted())
 
 buildTest.clear();
-param.setValue("peptide_min_length", 2);
-param.setValue("peptide_max_length", 6);
+param.setValue("peptide:min_size", 2);
+param.setValue("peptide:max_size", 6);
 buildTest.setParameters(param);
 buildTest.build(entries0);
 TEST_TRUE(buildTest.testDigestion(peptides_unmod_minmax))
@@ -221,8 +221,8 @@ TEST_TRUE(buildTest.peptidesSorted())
 TEST_TRUE(buildTest.fragmentsSorted())
 
 buildTest.clear();
-param.setValue("peptide_max_length", 100);
-param.setValue("missed_cleavages", 1);
+param.setValue("peptide:max_size", 100);
+param.setValue("peptide:missed_cleavages", 1);
 buildTest.setParameters(param);
 buildTest.build(entries0);
 TEST_TRUE(buildTest.testDigestion(peptides_unmod_minmax_missed_cleavage))
@@ -230,12 +230,12 @@ TEST_TRUE(buildTest.peptidesSorted())
 TEST_TRUE(buildTest.fragmentsSorted())
 
 buildTest.clear();
-param.setValue("digestor_enzyme", "Trypsin");
-param.setValue("missed_cleavages", 0);
-param.setValue("peptide_min_mass", 0);
-param.setValue("peptide_min_length", 6);
-param.setValue("modifications_variable", std::vector<std::string>{"Oxidation (M)"});
-param.setValue("modifications_fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+param.setValue("enzyme", "Trypsin");
+param.setValue("peptide:missed_cleavages", 0);
+param.setValue("peptide:min_mass", 0);
+param.setValue("peptide:min_size", 6);
+param.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
+param.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
 buildTest.setParameters(param);
 buildTest.build(entries0);
 TEST_TRUE(buildTest.testDigestion(peptides_we_should_hit_mod))
@@ -255,13 +255,6 @@ TEST_TRUE(clearTest.getPeptides().empty())
 
 END_SECTION
 
-START_SECTION(setParameters())
-
-
-
-END_SECTION
-
-
 
 
 ////TEST Different Charges of the query Spectrum ////
@@ -273,16 +266,17 @@ std::vector<FASTAFile::FASTAEntry> entries{{"test1", "test1","MSDEREVAEAATGEDASS
 AASequence protein = AASequence::fromString(entries[0].sequence);
 
 FragmentIndex_test queryTest;
-queryTest.build(entries);
 
 auto param = queryTest.getParameters();
-param.setValue("max_fragment_charge", 4);
-param.setValue("min_precursor_charge", 1);
-param.setValue("max_precursor_charge", 4);
-
-param.setValue("fragment_max_mz", 5000000); // That we definitively create all peptides
+param.setValue("fragment:max_charge", 4);
+param.setValue("precursor:min_charge", 1);
+param.setValue("precursor:max_charge", 4);
+param.setValue("fragment:min_mz", 0);
+param.setValue("fragment:max_mz", 90000);
+param.setValue("fragment:max_mz", 5000000); // That we definitively create all peptides
 queryTest.setParameters(param);
 
+queryTest.build(entries);
 
 // Create different ms/ms spectra with different charges
 
@@ -303,6 +297,10 @@ isoTest.build(entries);
 auto param = isoTest.getParameters();
 param.setValue("min_isotope_error", -3);
 param.setValue("max_isotope_error", 3);
+param.setValue("fragment:min_mz", 0);
+param.setValue("fragment:max_mz", 90000);
+param.setValue("modifications:variable", std::vector<std::string>{});
+param.setValue("modifications:fixed", std::vector<std::string>{});
 isoTest.setParameters(param);
 
 TheoreticalSpectrumGenerator tsg;
@@ -341,12 +339,20 @@ START_SECTION(tolerance)
 std::vector<FASTAFile::FASTAEntry> entries{{"test1", "test1","MSDEREVAEAATGEDASSPPPKTEAASDPQHPAASEGAAAAAASPPLLRCLVLTGFGGYDKVKLQSRPAAPPAPGPGQLTLRLRACGLNFADLMARQGLYDRLPPLPVTPGMEGAGVVIAVGEGVSDRKAGDRVMVLNRSGMWQEEVTVPSVQTFLIPEAMTFEEAAALLVNYITAYMVLFDFGNLQPGHSVLVHMAAGGVGMAAVQLCRTVENVTVFGTASASKHEALKENGVTHPIDYHTTDYVDEIKKISPKGVDIVMDPLGGSDTAKGYNLLKPMGKVVTYGMANLLTGPKRNLMALARTWWNQFSVTALQLLQANRAVCGFHLGYLDGEVELVSGVVARLLALYNQGHIKPHIDSVWPFEKVADAMKQMQEKKNVGKVLLVPGPEKEN"}};
 
 FragmentIndex_test tolTest;
-tolTest.build(entries);
+
 
 auto param = tolTest.getParameters();
-param.setValue("fragment_mz_tolerance", 0.05);
-param.setValue("precursor_mz_tolerance", 2.0);
+param.setValue("fragment:min_mz", 0);
+param.setValue("fragment:max_mz", 90000);
+param.setValue("fragment:mass_tolerance", 0.05);
+param.setValue("fragment:mass_tolerance_unit", "Da");
+param.setValue("precursor:mass_tolerance", 2.0);
+param.setValue("precursor:mass_tolerance_unit", "Da");
+param.setValue("modifications:variable", std::vector<std::string>{});
+param.setValue("modifications:fixed", std::vector<std::string>{});
 tolTest.setParameters(param);
+
+tolTest.build(entries);
 
 TheoreticalSpectrumGenerator tsg;
 PeakSpectrum b_y_ions;

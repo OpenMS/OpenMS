@@ -99,8 +99,7 @@ namespace OpenMS
     defaults_.setValue("enzyme", "Trypsin", "The enzyme used for peptide digestion.");
     defaults_.setValidStrings("enzyme", ListUtils::create<std::string>(all_enzymes));
 
-    defaults_.setValue("decoys", "false", "Should decoys be generated?");
-    defaults_.setValidStrings("decoys", {"true","false"} );
+
 
     defaults_.setValue("annotate:PSM",  std::vector<std::string>{"ALL"}, "Annotations added to each PSM.");
     defaults_.setValidStrings("annotate:PSM", 
@@ -122,6 +121,34 @@ namespace OpenMS
 
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
+
+    // Add parameters which are only used by FragmentIndex
+    defaults_.setValue("peptide:min_mass", 100, "Minimal peptide mass for database");
+    defaults_.setValue("peptide:max_mass", 9000, "Maximal peptide mass for database");
+    defaults_.setValue("min_matched_peaks", 5, "Minimal number of matched ions to report a PSM");
+    defaults_.setValue("min_isotope_error", -1, "Precursor isotope error");
+    defaults_.setValue("max_isotope_error", 1, "precursor isotope error");
+    defaults_.setValue("fragment:max_charge", 4, "max fragment charge");
+    defaults_.setValue("max_processed_hits", 50, "The number of initial hits for which we calculate a score");
+    std::vector<std::string> open_search_option;
+    fragment_mass_tolerance_unit_valid_strings.emplace_back("true");
+    fragment_mass_tolerance_unit_valid_strings.emplace_back("false");
+    defaults_.setValue("open_search", "false", "Open or standard search");
+    defaults_.setValidStrings("open_search", open_search_option);
+    defaults_.setValue("open_precursor_window_lower_", -100.0, "lower bound of the open precursor window");
+    defaults_.setValue("open_precursor_window_upper_", 200.0, "upper bound of the open precursor window");
+    defaults_.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
+    defaults_.setValidStrings("add_y_ions", {"true","false"});
+    defaults_.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
+    defaults_.setValidStrings("add_b_ions", {"true","false"});
+    defaults_.setValue("add_a_ions", "false", "Add peaks of a-ions to the spectrum");
+    defaults_.setValidStrings("add_a_ions", {"true","false"});
+    defaults_.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
+    defaults_.setValidStrings("add_c_ions", {"true","false"});
+    defaults_.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
+    defaults_.setValidStrings("add_x_ions", {"true","false"});
+    defaults_.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
+    defaults_.setValidStrings("add_z_ions", {"true","false"});
 
     defaultsToParam_();
   }
@@ -452,12 +479,8 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     //TODO: Can we do it with p.setValue or is there a more sophisticated way?
     startProgress(0, 1, "Building fragment index...");    
     FragmentIndex fragment_index_;
-    auto p = fragment_index_.getParameters();
-    p.setValue("max_processed_hits", report_top_hits_);
-    p.setValue("fragment_min_mz", param_.getValue("fragment:min_mz"));
-    p.setValue("fragment_max_mz", param_.getValue("fragment:max_mz"));
-
-    fragment_index_.setParameters(p);
+    auto this_params = getParameters();
+    fragment_index_.setParameters(this_params);
     fragment_index_.build(fasta_db);
     endProgress();
 

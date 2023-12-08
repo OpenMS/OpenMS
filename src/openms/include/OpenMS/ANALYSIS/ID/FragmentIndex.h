@@ -125,7 +125,8 @@ namespace OpenMS
      *                  it contains both tolerance and open-search-window
      * @return a pair of indexes defining all possible peptides which the current peak could hit
      */
-    std::pair<size_t, size_t> getPeptidesInPrecursorRange(float precursor_mass, const std::pair<float, float>& window);
+    std::pair<size_t, size_t> getPeptidesInPrecursorRange(float precursor_mass,
+                                                          const std::pair<float, float>& window);
 
     /**
      * A match between a single query peak and a database fragment
@@ -146,7 +147,9 @@ namespace OpenMS
      * @param peak_charge The charge of the peak. Is used to calculate the mass from the mz
      * @return a vector of Hits(matching peptide_idx_range and matching fragment_mz_) containing the idx of the hitted peptide and the mass of the hit
      */
-    std::vector<Hit> query(const Peak1D& peak, const std::pair<size_t, size_t>& peptide_idx_range, const uint16_t peak_charge);
+    std::vector<Hit> query(const Peak1D& peak,
+                           const std::pair<size_t,size_t>& peptide_idx_range,
+                           uint16_t peak_charge);
 
     /**
      * @brief: queries one complete experimental spectra against the Database. Loops over all precursor charges
@@ -155,7 +158,8 @@ namespace OpenMS
      * @param spectrum experimental spectrum
      * @param sms[out] The n best Spectrum matches
      */
-    void querySpectrum(const MSSpectrum& spectrum, SpectrumMatchesTopN& sms);
+    void querySpectrum(const MSSpectrum& spectrum,
+                       SpectrumMatchesTopN& sms);
 
 protected:
 
@@ -219,7 +223,10 @@ private:
      * @param[out] sms The Top m SpectrumMatches
      * @param charge Applied charge
      */
-    void searchDifferentPrecursorRanges(const MSSpectrum& spectrum, float precursor_mass, SpectrumMatchesTopN& sms, uint16_t charge);
+    void searchDifferentPrecursorRanges(const MSSpectrum& spectrum,
+                                        float precursor_mass,
+                                        SpectrumMatchesTopN& sms,
+                                        uint16_t charge);
 
     /** @brief places the k-largest elements in the front of the input array. Inside of the k-largest elements and outside the elements are not sorted
      *
@@ -258,7 +265,7 @@ private:
     uint16_t max_precursor_charge_; ///< maximal possible precursor charge
     uint16_t max_fragment_charge_;  ///< The maximal possible charge of the fragments
     uint32_t max_processed_hits_;   ///< The amount of PSM that will be used. the rest is filtered out
-    bool open_search;               ///< true if a unrestrictive open search for potential PTM is performed
+    bool open_search_;               ///< true if a unrestrictive open search for potential PTM is performed
     float open_precursor_window_lower_; ///< Defines the lower bound of the precursor-mass range
     float open_precursor_window_upper_; ///< Defines the upper bound of the precursor-mass range
 
