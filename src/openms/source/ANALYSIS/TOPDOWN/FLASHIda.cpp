@@ -260,7 +260,7 @@ namespace OpenMS
     // int ret[2] = {0,0};
     auto spec = makeMSSpectrum_(mzs, ints, length, rt, ms_level, name);
     if (cv != nullptr) {
-        spec.setMetaValue("filter string", DataValue("cv="+std::to_string(*cv)));
+      spec.setMetaValue("filter string", DataValue("cv=" + std::string(cv)));
     }
     // selected_peak_groups_ = DeconvolvedSpectrum(spec, 1);
     if (ms_level == 1)
