@@ -62,7 +62,7 @@ namespace OpenMS
 
   void OpenMS::FLASHQuantWizardBase::on_actionVisit_FLASHQuant_homepage_triggered()
   {
-    const char* url = "https://www.openms.de/comp/FLASHQuant/";
+    const char* url = "https://www.openms.de/FLASHQuant/";
     if (!QDesktopServices::openUrl(QUrl(url)))
     {
       QMessageBox::warning(0, "Cannot open browser. Please check your default browser settings.", QString(url));
