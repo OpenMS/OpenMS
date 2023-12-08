@@ -190,7 +190,7 @@ namespace OpenMS
 
       OPENMS_LOG_INFO << "Generating fragments..." << std::endl;
 
-     // #pragma omp parallel for private(mod_peptides, b_y_ions)
+     #pragma omp parallel for private(mod_peptides, b_y_ions)
       for(size_t peptide_idx = 0; peptide_idx < fi_peptides_.size(); peptide_idx++)
       {
         const Peptide& pep = fi_peptides_[peptide_idx];
@@ -216,7 +216,7 @@ namespace OpenMS
         {
           if (fragment_min_mz_ > frag.mz || frag.mz > fragment_max_mz_  ) continue;
 
-         // #pragma omp critical (CreateFragment)
+         #pragma omp critical (CreateFragment)
           fi_fragments_.emplace_back(static_cast<UInt32>(peptide_idx),(float) frag.mz);
         }        
       }
