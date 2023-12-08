@@ -783,7 +783,7 @@ add_test("TOPP_FLASHQuant_1" ${TOPP_BIN_PATH}/FLASHQuant -test -in ${DATA_DIR_TO
 
 #------------------------------------------------------------------------------
 # ConsensusFeatureGroupDetector tests
-add_test("TOPP_TopDownConsensusFeatureGroup_1" ${TOPP_BIN_PATH}/TopDownConsensusFeatureGroup -test -in ${DATA_DIR_TOPP}/FLASHQuant_sample_output_1.tsv ${DATA_DIR_TOPP}/FLASHQuant_sample_output_2.tsv -out TopDownConsensusFeatureGroup_1.tmp.tsv)
+add_test("TOPP_ConsensusFeatureGroupDetector_1" ${TOPP_BIN_PATH}/ConsensusFeatureGroupDetector -test -in ${DATA_DIR_TOPP}/FLASHQuant_sample_output_1.tsv ${DATA_DIR_TOPP}/FLASHQuant_sample_output_2.tsv -out ConsensusFeatureGroupDetector_1.tmp.tsv)
 # Currently just testing if the tool runs
 # We cannot currently test the correctness of the tsv output
 # FuzzyDiff cannot give out tolerances/whitelist for tabular format outputs (.tsv)
