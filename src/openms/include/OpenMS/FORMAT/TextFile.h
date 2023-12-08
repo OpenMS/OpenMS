@@ -51,7 +51,7 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    TextFile(const String& filename, bool trim_lines = false, Int first_n = -1, bool skip_empty_lines = false);
+    TextFile(const String& filename, bool trim_lines = false, Int first_n = -1, bool skip_empty_lines = false, const String& comment_symbol = "");
 
     /**
       @brief Loads data from a text file.
@@ -63,7 +63,7 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    void load(const String& filename, bool trim_lines = false, Int first_n = -1, bool skip_empty_lines = false);
+    void load(const String& filename, bool trim_lines = false, Int first_n = -1, bool skip_empty_lines = false, const String& comment_symbol = "");
 
     /**
       @brief Writes the data to a file

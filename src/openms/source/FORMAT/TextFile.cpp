@@ -19,12 +19,12 @@ namespace OpenMS
 
   TextFile::~TextFile() = default;
 
-  TextFile::TextFile(const String& filename, bool trim_lines, Int first_n, bool skip_empty_lines)
+  TextFile::TextFile(const String& filename, bool trim_lines, Int first_n, bool skip_empty_lines, const String& comment_symbol)
   {
-    load(filename, trim_lines, first_n, skip_empty_lines);
+    load(filename, trim_lines, first_n, skip_empty_lines, comment_symbol);
   }
 
-  void TextFile::load(const String& filename, bool trim_lines, Int first_n, bool skip_empty_lines)
+  void TextFile::load(const String& filename, bool trim_lines, Int first_n, bool skip_empty_lines, const String& comment_symbol)
   {
     // stream in binary mode prevents interpretation and merging of \r on Windows & MacOS
     // .. so we can deal with it ourselves in a consistent way
@@ -46,6 +46,11 @@ namespace OpenMS
       }
       // skip? (only after trimming!)
       if (skip_empty_lines && str.empty())
+      {
+        continue;
+      }
+      // skip due to comment line
+      if ( (!comment_symbol.empty()) & str.hasPrefix(comment_symbol))
       {
         continue;
       }
