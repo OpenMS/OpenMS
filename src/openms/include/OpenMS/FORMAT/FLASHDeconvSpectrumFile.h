@@ -57,7 +57,6 @@ namespace OpenMS
             PeakMZs, PeakIntensities, PeakCharges, PeakMasses, PeakIsotopeIndices, PeakPPMErrors
         */
     static void writeDeconvolvedMasses(DeconvolvedSpectrum& dspec,
-                                       DeconvolvedSpectrum& target_spec,
                                        std::fstream& fs,
                                        const String& file_name,
                                        const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,

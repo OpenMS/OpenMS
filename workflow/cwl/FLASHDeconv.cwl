@@ -145,7 +145,7 @@ inputs:
     doc: Minimum fraction of scans along the feature trace that must contain a peak. To raise feature detection sensitivity, lower this value close to 0.
     type: double?
   ft__min_trace_length:
-    doc: Minimum expected length of a mass trace (in seconds).
+    doc: Minimum expected length of a mass trace (in seconds). Only for MS1 (or minimum MS level in the dataset) feature tracing. For MSn, all traces are kept regardless of this value.
     type: double?
   ft__max_trace_length:
     doc: Maximum expected length of a mass trace (in seconds). Set to a negative value to disable maximal length check during mass trace detection.

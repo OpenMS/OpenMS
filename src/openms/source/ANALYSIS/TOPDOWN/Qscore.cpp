@@ -13,20 +13,24 @@
 
 namespace OpenMS
 {
-  double Qscore::getQscore(const PeakGroup* pg)
+  // IsotopeCosine                   42.2496
+  // ChargeCosine                      2.8767
+  // MassSNR1                         -0.1523
+  // ChargeSNR1                        0.4797
+  // Intercept                       -45.5284
+
+  std::vector<double> Qscore::weight_centroid_{-42.2496, -2.8767, 0.1523, -0.4797,  45.5284};
+  std::vector<double> Qscore::weight_profile_{-42.2496, -2.8767, 0.1523, -0.4797,  45.5284};
+  std::vector<double> Qscore::weight_CV_{-42.2496, -2.8767, 0.1523, -0.4797,  45.5284};
+
+  double Qscore::getQscore(const PeakGroup* pg, bool is_profile, double cv)
   {
     if (pg->empty())
     { // all zero
       return .0;
     }
-    // the weights for per cosine, SNR, PPM error, charge score, and intercept.
-    // Cos    -8.9494
-    // SNR    -2.2977
-    // PPM error           0.3269
-    // charge score        -3.1663
-    // Intercept    12.3131
-    // const std::vector<double> weights({-8.9494, -2.2977, 0.3269, -3.1663, 12.3131});
-    const std::vector<double> weights({-2.2833, -3.2881, 0, 0, 4.5425});
+
+    auto weights = cv > 0 ? weight_CV_ : (is_profile? weight_profile_ : weight_centroid_);
     double score = weights.back();
     auto fv = toFeatureVector_(pg);
 
@@ -43,19 +47,17 @@ namespace OpenMS
   {
     std::vector<double> fvector(4); // length of weights vector - 1, excluding the intercept weight.
 
-    double a = pg->getIsotopeCosine();
-    double d = 1;
     int index = 0;
-    fvector[index++] = (log2(a + d));
+    fvector[index++] = pg->getIsotopeCosine(); // (log2(a + d));
 
-    a = pg->getSNR();
-    fvector[index++] = (log2(d + a / (d + a)));
+    // a = pg->getSNR();
+    fvector[index++] = pg->getChargeIsotopeCosine(pg->getRepAbsCharge()); // (log2(d + a / (d + a)));
 
-    a = pg->getAvgPPMError();
-    fvector[index++] = (log2(d + a / (d + a)));
+    // a = pg->getAvgPPMError();
+    fvector[index++] = log2(1 + pg->getSNR()); //(log2(d + a / (d + a)));
 
-    a = pg->getChargeScore();
-    fvector[index++] = (log2(a + d));
+    // a = pg->getChargeScore();
+    fvector[index++] = log2(1 + pg->getChargeSNR(pg->getRepAbsCharge())); //(log2(a + d));
 
     return fvector;
   }
