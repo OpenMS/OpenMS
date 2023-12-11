@@ -927,7 +927,7 @@ namespace OpenMS
   }
 
 
-  void TheoreticalSpectrumGenerator::getPrefixAndSuffixIonsMZtest(std::vector<float>& spectrum, const AASequence& peptide, int charge) const
+  void TheoreticalSpectrumGenerator::getPrefixAndSuffixIonsMZ(std::vector<float>& spectrum, const AASequence& peptide, int charge) const
   {
     for (Int z = charge; z >= 1; --z)
     {

@@ -204,11 +204,11 @@ namespace OpenMS
           AASequence mod_peptide = AASequence(unmod_peptide); // copy the peptide
           ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, mod_peptide);
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, mod_peptide, max_variable_mods_per_peptide_, mod_peptides);
-          tsg.getPrefixAndSuffixIonsMZtest(b_y_ions, mod_peptides[pep.modification_idx_], 1);
+          tsg.getPrefixAndSuffixIonsMZ(b_y_ions, mod_peptides[pep.modification_idx_], 1);
         }
         else
         {
-         tsg.getPrefixAndSuffixIonsMZtest(b_y_ions, unmod_peptide, 1);
+          tsg.getPrefixAndSuffixIonsMZ(b_y_ions, unmod_peptide, 1);
         }
 
         for (const float& frag : b_y_ions)
@@ -233,11 +233,11 @@ namespace OpenMS
       OPENMS_LOG_INFO << "Creating DB with bucket_size " << bucketsize_ << endl;
 
       /// 2.) next sort after precursor mass and save the min_mz of each bucket
-      //#pragma omp parallel for
+      #pragma omp parallel for
       for (size_t i = 0; i < fi_fragments_.size(); i += bucketsize_)
       {
 
-        //#pragma omp critical
+        #pragma omp critical
         bucket_min_mz_.emplace_back(fi_fragments_[i].fragment_mz_);
 
         auto bucket_start = fi_fragments_.begin() + i;
