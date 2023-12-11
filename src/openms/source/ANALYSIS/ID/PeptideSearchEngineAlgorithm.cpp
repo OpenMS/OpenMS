@@ -99,7 +99,8 @@ namespace OpenMS
     defaults_.setValue("enzyme", "Trypsin", "The enzyme used for peptide digestion.");
     defaults_.setValidStrings("enzyme", ListUtils::create<std::string>(all_enzymes));
 
-
+    defaults_.setValue("decoys", "false", "Should decoys be generated?");
+    defaults_.setValidStrings("decoys", {"true","false"} );
 
     defaults_.setValue("annotate:PSM",  std::vector<std::string>{"ALL"}, "Annotations added to each PSM.");
     defaults_.setValidStrings("annotate:PSM", 
