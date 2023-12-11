@@ -45,7 +45,7 @@ foreach(i ${TOPP_executables})
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${i})
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${i})
 #[[
-# CMakeLists.txt in the subdirectory for NameOfTheTool cool look like this:
+# CMakeLists.txt in the subdirectory for NameOfTheTool could look like this:
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project(NameOfTheTool)
 set(tool_sources
