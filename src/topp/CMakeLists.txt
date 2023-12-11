@@ -41,8 +41,26 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 # add all the tools
 include(executables.cmake)
 foreach(i ${TOPP_executables})
-  add_executable(${i} ${i}.cpp)
-  target_link_libraries(${i} OpenMS)
+  # support tools with subfolder or single cpp tools
+  if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${i})
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${i})
+#[[
+# CMakeLists.txt in the subdirectory for NameOfTheTool cool look like this:
+# project(NameOfTheTool)
+set(tool_sources
+  additional_file1.cpp
+  additional_file2.cpp
+  additional_header1.h
+  additional_header2.h
+)
+add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources}) # Add the main cpp file and additional files
+target_link_libraries(${PROJECT_NAME} OpenMS) # Link the executable with OpenMS
+#]] 
+  else()
+    add_executable(${i} ${i}.cpp)
+    target_link_libraries(${i} OpenMS)
+  endif()  
+  
   # we also want to install each topp tool
   install_tool(${i})
   if (OPENMP_FOUND AND NOT MSVC)
