@@ -1008,8 +1008,7 @@ namespace OpenMS
       for (Size j = peptide.size(); j >= 1; --j)
       {
         mono_weight += peptide[j-1].getMonoWeight(Residue::Internal);
-        spectrum.emplace_back(mono_weight / charge);
-
+        spectrum.emplace_back((float)mono_weight / charge);
       }
     }
     return;
