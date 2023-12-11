@@ -10,7 +10,6 @@
 #include <OpenMS/CHEMISTRY/AAIndex.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
@@ -191,7 +190,7 @@ namespace OpenMS
 
       OPENMS_LOG_INFO << "Generating fragments..." << std::endl;
 
-      #pragma omp parallel for private(mod_peptides, b_y_ions)
+     #pragma omp parallel for private(mod_peptides, b_y_ions)
       for(size_t peptide_idx = 0; peptide_idx < fi_peptides_.size(); peptide_idx++)
       {
         const Peptide& pep = fi_peptides_[peptide_idx];
@@ -205,19 +204,19 @@ namespace OpenMS
           ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, mod_peptide);
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, mod_peptide, max_variable_mods_per_peptide_, mod_peptides);
           //tsg.getSpectrum(b_y_ions, mod_peptides[pep.modification_idx_], 1,1);
-          tsg.getLinearIonSpectrum(b_y_ions, mod_peptides[pep.modification_idx_], mod_peptides[pep.modification_idx_].size(), 1, 1);
+          tsg.getLinearIonSpectrum(b_y_ions, mod_peptides[pep.modification_idx_], mod_peptides[pep.modification_idx_].size(), 1, 0);
         }
         else
         {
          //tsg.getSpectrum(b_y_ions, unmod_peptide, 1,1);
-          tsg.getLinearIonSpectrum(b_y_ions, unmod_peptide, unmod_peptide.size(), 1, 1);
+          tsg.getLinearIonSpectrum(b_y_ions, unmod_peptide, unmod_peptide.size(), 1, 0);
         }
 
         for (const SimpleTSGXLMS::SimplePeak& frag : b_y_ions)
         {
           if (fragment_min_mz_ > frag.mz || frag.mz > fragment_max_mz_  ) continue;
 
-          #pragma omp critical (CreateFragment)
+         #pragma omp critical (CreateFragment)
           fi_fragments_.emplace_back(static_cast<UInt32>(peptide_idx),(float) frag.mz);
         }        
       }
@@ -235,11 +234,11 @@ namespace OpenMS
       OPENMS_LOG_INFO << "Creating DB with bucket_size " << bucketsize_ << endl;
 
       /// 2.) next sort after precursor mass and save the min_mz of each bucket
-      #pragma omp parallel for
+      //#pragma omp parallel for
       for (size_t i = 0; i < fi_fragments_.size(); i += bucketsize_)
       {
 
-        #pragma omp critical
+        //#pragma omp critical
         bucket_min_mz_.emplace_back(fi_fragments_[i].fragment_mz_);
 
         auto bucket_start = fi_fragments_.begin() + i;
@@ -257,7 +256,8 @@ namespace OpenMS
       OPENMS_LOG_INFO << "Fragment index built!" << endl;
   }
 
-  std::pair<size_t, size_t > FragmentIndex::getPeptidesInPrecursorRange(float precursor_mass, const std::pair<float, float>& window)
+  std::pair<size_t, size_t > FragmentIndex::getPeptidesInPrecursorRange(float precursor_mass,
+                                                                       const std::pair<float, float>& window)
   {
       float prec_tol = precursor_mz_tolerance_unit_ppm_ ? Math::ppmToMass(precursor_mz_tolerance_, precursor_mass) : precursor_mz_tolerance_ ;
 
@@ -266,7 +266,9 @@ namespace OpenMS
       return make_pair(std::distance(fi_peptides_.begin(), left_it), std::distance(fi_peptides_.begin(), right_it));
   }
 
-  vector<FragmentIndex::Hit> FragmentIndex::query(const OpenMS::Peak1D& peak, const pair<size_t, size_t>& peptide_idx_range, uint16_t peak_charge)
+  vector<FragmentIndex::Hit> FragmentIndex::query(const OpenMS::Peak1D& peak,
+                                                  const pair<size_t, size_t>& peptide_idx_range,
+                                                  uint16_t peak_charge)
   {
       float adjusted_mass = peak.getMZ() * (float)peak_charge -((peak_charge-1) * Constants::PROTON_MASS_U);
 
@@ -369,13 +371,16 @@ namespace OpenMS
       }
   }
 
-  void FragmentIndex::searchDifferentPrecursorRanges(const MSSpectrum& spectrum, float precursor_mass, SpectrumMatchesTopN& sms, uint16_t charge)
+  void FragmentIndex::searchDifferentPrecursorRanges(const MSSpectrum& spectrum,
+                                                     float precursor_mass,
+                                                     SpectrumMatchesTopN& sms,
+                                                     uint16_t charge)
   {
       int16_t  min_isotope_error_applied;
       int16_t  max_isotope_error_applied;
       float precursor_window_upper_applied;
       float precursor_window_lower_applied;
-      if (open_search)
+      if (open_search_)
       {
         min_isotope_error_applied = 0;
         max_isotope_error_applied = 0;
@@ -407,7 +412,8 @@ namespace OpenMS
       trimHits(sms);
   }
 
-  void FragmentIndex::querySpectrum(const OpenMS::MSSpectrum& spectrum, OpenMS::FragmentIndex::SpectrumMatchesTopN& sms)
+  void FragmentIndex::querySpectrum(const OpenMS::MSSpectrum& spectrum,
+                                    OpenMS::FragmentIndex::SpectrumMatchesTopN& sms)
   {
       if (!isBuild())
       {
@@ -455,6 +461,9 @@ namespace OpenMS
       trimHits(sms);
   }
 
+
+
+
   FragmentIndex::FragmentIndex() : DefaultParamHandler("FragmentIndex")
   {
     defaults_.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
@@ -475,33 +484,49 @@ namespace OpenMS
     defaults_.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
     defaults_.setValidStrings("add_z_ions", {"true","false"});
 
-    vector<String> all_enzymes;
-    ProteaseDB::getInstance()->getAllNames(all_enzymes);
+
+    defaults_.setValue("precursor:mass_tolerance", 10.0, "Tolerance for precursor-m/z in search");
+    std::vector<std::string> precursor_mass_tolerance_unit_valid_strings;
+    precursor_mass_tolerance_unit_valid_strings.emplace_back("ppm");
+    precursor_mass_tolerance_unit_valid_strings.emplace_back("Da");
+    defaults_.setValue("precursor:mass_tolerance_unit", "ppm", "Unit of precursor mass tolerance.");
+    defaults_.setValidStrings("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_valid_strings);
+
+    defaults_.setValue("fragment:mass_tolerance", 10.0, "Fragment mass tolerance");
+    std::vector<std::string> fragment_mass_tolerance_unit_valid_strings;
+    fragment_mass_tolerance_unit_valid_strings.emplace_back("ppm");
+    fragment_mass_tolerance_unit_valid_strings.emplace_back("Da");
+    defaults_.setValue("fragment:mass_tolerance_unit", "ppm", "Unit of fragment m");
+    defaults_.setValidStrings("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
+
+    defaults_.setValue("precursor:min_charge", 2, "min precursor charge");
+    defaults_.setValue("precursor:max_charge", 5, "max precursor charge");
+
+    defaults_.setValue("fragment:min_mz", 150, "Minimal fragment mz for database");
+    defaults_.setValue("fragment:max_mz", 2000, "Maximal fragment mz for database");
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+    defaults_.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
+    defaults_.setValidStrings("modifications:fixed", ListUtils::create<std::string>(all_mods));
+    defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
+    defaults_.setValidStrings("modifications:variable", ListUtils::create<std::string>(all_mods));
+    defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
 
-    vector<string> tolerance_units{"Da", "ppm"}; // TODO: check if same string in other OpenMS files
+    vector<String> all_enzymes;
+    ProteaseDB::getInstance()->getAllNames(all_enzymes);
     defaults_.setValue("enzyme", "Trypsin", "Enzyme for digestion");
     defaults_.setValidStrings("enzyme", ListUtils::create<std::string>(all_enzymes));
+
+
     defaults_.setValue("peptide:missed_cleavages", 1, "Missed cleavages for digestion");
-    defaults_.setValue("peptide:min_mass", 100, "Minimal peptide mass for database");
-    defaults_.setValue("peptide:max_mass", 9000, "Maximal peptide mass for database"); //Todo: set unlimited option
     defaults_.setValue("peptide:min_size", 7, "Minimal peptide length for database");
     defaults_.setValue("peptide:max_size", 40, "Maximal peptide length for database");
-    defaults_.setValue("fragment_min_mz", 150, "Minimal fragment mz for database");
-    defaults_.setValue("fragment_max_mz", 2000, "Maximal fragment mz for database");
-    defaults_.setValue("precursor:mass_tolerance", 10, "Tolerance for precursor-m/z in search");
-    defaults_.setValue("fragment:mass_tolerance", 10, "Tolerance for fragment-m/z in search");
-    defaults_.setValue("precursor:mass_tolerance_unit", "ppm", "Unit of tolerance for precursor-m/z");
-    defaults_.setValidStrings("precursor:mass_tolerance_unit", tolerance_units);
-    defaults_.setValue("fragment:mass_tolerance_unit", "ppm", "Unit of tolerance for fragment-m/z");
-    defaults_.setValidStrings("fragment:mass_tolerance_unit", tolerance_units);
-    defaults_.setValue("modifications_fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
-    defaults_.setValidStrings("modifications_fixed", ListUtils::create<std::string>(all_mods));
-    defaults_.setValue("modifications_variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
-    defaults_.setValidStrings("modifications_variable", ListUtils::create<std::string>(all_mods));
-    defaults_.setValue("max_variable_mods_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
+
+    defaults_.setValue("peptide:min_mass", 100, "Minimal peptide mass for database");
+    defaults_.setValue("peptide:max_mass", 9000, "Maximal peptide mass for database"); //Todo: set unlimited option
+
+
     is_build_ = false; // TODO: remove this and build on construction
 
     //Search-related params
@@ -509,13 +534,29 @@ namespace OpenMS
     defaults_.setValue("min_matched_peaks", 5, "Minimal number of matched ions to report a PSM");
     defaults_.setValue("min_isotope_error", -1, "Precursor isotope error");
     defaults_.setValue("max_isotope_error", 1, "precursor isotope error");
-    defaults_.setValue("precursor:min_charge", 2, "min precursor charge");
-    defaults_.setValue("precursor:max_charge", 5, "max precursor charge");
+
     defaults_.setValue("fragment:max_charge", 4, "max fragment charge");
     defaults_.setValue("max_processed_hits", 50, "The number of initial hits for which we calculate a score");
     defaults_.setValue("open_search", "false", "Open or standard search");
     defaults_.setValue("open_precursor_window_lower_", -100.0, "lower bound of the open precursor window");
     defaults_.setValue("open_precursor_window_upper_", 200.0, "upper bound of the open precursor window");
+
+    //defaults from the searchEngine that are not needed for this class, but otherwise we would generate a warning
+    defaults_.setValue("decoys", "false", "Should decoys be generated?");
+    defaults_.setValidStrings("decoys", {"true","false"} );
+    defaults_.setValue("annotate:PSM",  std::vector<std::string>{"ALL"}, "Annotations added to each PSM.");
+    defaults_.setValidStrings("annotate:PSM",
+                              std::vector<std::string>{
+                                "ALL",
+                                Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM,
+                                Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
+                                Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION,
+                                Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION}
+    );
+    defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
+    defaults_.setSectionDescription("report", "Reporting Options");
+    defaults_.setValue("peptide:motif", "", "If set, only peptides that contain this motif (provided as RegEx) will be considered.");
+    defaults_.setSectionDescription("peptide", "Peptide Options");
 
     defaultsToParam_();
 }
@@ -534,17 +575,17 @@ namespace OpenMS
     peptide_max_mass_ = param_.getValue("peptide:max_mass");
     peptide_min_length_ = param_.getValue("peptide:min_size");
     peptide_max_length_ = param_.getValue("peptide:max_size");
-    fragment_min_mz_ = param_.getValue("fragment_min_mz");
-    fragment_max_mz_ = param_.getValue("fragment_max_mz");
+    fragment_min_mz_ = param_.getValue("fragment:min_mz");
+    fragment_max_mz_ = param_.getValue("fragment:max_mz");
 
     precursor_mz_tolerance_ = param_.getValue("precursor:mass_tolerance");
     fragment_mz_tolerance_ = param_.getValue("fragment:mass_tolerance");
     precursor_mz_tolerance_unit_ppm_ = param_.getValue("precursor:mass_tolerance_unit").toString() == "ppm";
     fragment_mz_tolerance_unit_ppm_ = param_.getValue("fragment:mass_tolerance_unit").toString() == "ppm";
 
-    modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications_fixed"));
-    modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications_variable"));
-    max_variable_mods_per_peptide_ = param_.getValue("max_variable_mods_per_peptide");
+    modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));
+    modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:variable"));
+    max_variable_mods_per_peptide_ = param_.getValue("modifications:variable_max_per_peptide");
 
     min_matched_peaks_ = param_.getValue("min_matched_peaks");
     min_isotope_error_ = param_.getValue("min_isotope_error");
@@ -553,7 +594,7 @@ namespace OpenMS
     max_precursor_charge_ = param_.getValue("precursor:max_charge");
     max_fragment_charge_ = param_.getValue("fragment:max_charge");
     max_processed_hits_ = param_.getValue("max_processed_hits");
-    open_search = param_.getValue("open_search").toBool();
+    open_search_ = param_.getValue("open_search").toBool();
     open_precursor_window_lower_ = param_.getValue("open_precursor_window_lower_");
     open_precursor_window_upper_ = param_.getValue("open_precursor_window_upper_");
   }
