@@ -114,9 +114,6 @@ namespace OpenMS
     /// helper for getPrefixAndSuffixIonsMZ. For given Ion-Type and charge calculates a peaks
     static void addPrefixAndSuffixIons_(std::vector< float >& spectrum, const AASequence& peptide, Residue::ResidueType res_type, int charge) ;
 
-
-
-
     bool add_b_ions_;
     bool add_y_ions_;
     bool add_a_ions_;

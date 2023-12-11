@@ -161,8 +161,6 @@ namespace OpenMS
       fi_fragments_.reserve(fi_peptides_.size() * 2 * peptide_min_length_); //TODO: Does this make senese?
 
       // get the spectrum generator and set the ion-types
-      //TheoreticalSpectrumGenerator tsg;
-      //SimpleTSGXLMS tsg;
       TheoreticalSpectrumGenerator tsg;
 
       auto tsg_params = tsg.getParameters();
@@ -173,7 +171,6 @@ namespace OpenMS
       tsg_params.setValue("add_x_ions", this_params.getValue("add_x_ions"));
       tsg_params.setValue("add_y_ions", this_params.getValue("add_y_ions"));
       tsg_params.setValue("add_z_ions", this_params.getValue("add_z_ions"));
-      //tsg_params.setValue("add_first_prefix_ion", "true");
       tsg.setParameters(tsg_params);
 
 
@@ -216,7 +213,7 @@ namespace OpenMS
           if (fragment_min_mz_ > frag || frag > fragment_max_mz_  ) continue;
 
          #pragma omp critical (CreateFragment)
-          fi_fragments_.emplace_back(static_cast<UInt32>(peptide_idx),(float) frag);
+          fi_fragments_.emplace_back(static_cast<UInt32>(peptide_idx), frag);
         }        
       }
 
@@ -482,7 +479,6 @@ namespace OpenMS
 
     defaults_.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
     defaults_.setValidStrings("add_z_ions", {"true","false"});
-
 
     defaults_.setValue("precursor:mass_tolerance", 10.0, "Tolerance for precursor-m/z in search");
     std::vector<std::string> precursor_mass_tolerance_unit_valid_strings;

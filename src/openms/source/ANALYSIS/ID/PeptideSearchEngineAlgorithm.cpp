@@ -480,8 +480,8 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     //TODO: Can we do it with p.setValue or is there a more sophisticated way?
     startProgress(0, 1, "Building fragment index...");    
     FragmentIndex fragment_index_;
-    auto this_params = getParameters();
-    fragment_index_.setParameters(this_params);
+    auto params = getParameters();
+    fragment_index_.setParameters(params);
     fragment_index_.build(fasta_db);
     endProgress();
 

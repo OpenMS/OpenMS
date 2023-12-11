@@ -17,8 +17,6 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 
-
-
 using namespace std;
 
 namespace OpenMS
@@ -926,7 +924,6 @@ namespace OpenMS
     }
   }
 
-
   void TheoreticalSpectrumGenerator::getPrefixAndSuffixIonsMZ(std::vector<float>& spectrum, const AASequence& peptide, int charge) const
   {
     for (Int z = charge; z >= 1; --z)
@@ -957,10 +954,7 @@ namespace OpenMS
       }
     }
 
-
     std::sort(spectrum.begin(), spectrum.end());
-
-
     return;
   }
 
@@ -992,9 +986,7 @@ namespace OpenMS
       for (; i < peptide.size(); ++i)
       {
         mono_weight += peptide[i].getMonoWeight(Residue::Internal);
-        double pos(mono_weight / charge);
-        spectrum.emplace_back(pos);
-
+        spectrum.emplace_back(mono_weight / charge);
       }
     }
     else // if (res_type == Residue::XIon || res_type == Residue::YIon || res_type == Residue::ZIon)
@@ -1016,9 +1008,7 @@ namespace OpenMS
       for (Size j = peptide.size(); j >= 1; --j)
       {
         mono_weight += peptide[j-1].getMonoWeight(Residue::Internal);
-        double pos(mono_weight / charge);
-
-        spectrum.emplace_back(pos);
+        spectrum.emplace_back(mono_weight / charge);
 
       }
     }

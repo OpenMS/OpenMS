@@ -356,12 +356,6 @@ tolTest.setParameters(param);
 tolTest.build(entries);
 
 TheoreticalSpectrumGenerator tsg2;
-
-
-
-
-
-
 TheoreticalSpectrumGenerator tsg;
 PeakSpectrum b_y_ions;
 
