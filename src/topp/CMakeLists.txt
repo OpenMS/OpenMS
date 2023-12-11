@@ -48,6 +48,12 @@ foreach(i ${TOPP_executables})
 # CMakeLists.txt in the subdirectory for NameOfTheTool could look like this:
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project(NameOfTheTool)
+
+# allow building separately from OpenMS
+if(NOT TARGET OpenMS)
+  find_package(OpenMS)
+endif()
+
 set(tool_sources
   additional_file1.cpp
   additional_file2.cpp
