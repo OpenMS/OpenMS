@@ -25,6 +25,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <iostream>
 
+
 using namespace OpenMS;
 using namespace std;
 
@@ -354,10 +355,20 @@ tolTest.setParameters(param);
 
 tolTest.build(entries);
 
+TheoreticalSpectrumGenerator tsg2;
+
+
+
+
+
+
 TheoreticalSpectrumGenerator tsg;
 PeakSpectrum b_y_ions;
+vector<float> b_y_ionzzz;
 AASequence peptide = AASequence::fromString("EVAEAATGEDASSPPPK");
 tsg.getSpectrum(b_y_ions, peptide,1,1);
+tsg.getPrefixAndSuffixIonsMZtest(b_y_ionzzz, peptide, 1);
+
 MSSpectrum theo_spec;
 Precursor theo_prec;
 theo_prec.setCharge(1);

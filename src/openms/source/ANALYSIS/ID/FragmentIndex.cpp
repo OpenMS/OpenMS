@@ -461,6 +461,9 @@ namespace OpenMS
       trimHits(sms);
   }
 
+
+
+
   FragmentIndex::FragmentIndex() : DefaultParamHandler("FragmentIndex")
   {
     defaults_.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");

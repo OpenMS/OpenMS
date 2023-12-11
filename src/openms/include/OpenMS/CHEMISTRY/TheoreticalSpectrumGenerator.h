@@ -60,6 +60,10 @@ namespace OpenMS
     /// assignment operator
     TheoreticalSpectrumGenerator& operator=(const TheoreticalSpectrumGenerator& tsg);
 
+
+    /// @throw Exception::InvalidParameter   Nothing so far.
+    void getPrefixAndSuffixIonsMZtest(std::vector<float>& spectrum, const AASequence& peptide, int charge) const;
+
     /** @name Acessors
      */
     //@{
@@ -75,9 +79,12 @@ namespace OpenMS
     /// @throw Exception::InvalidParameter   If fragmentation method is anything else than 'CID', 'HCID', 'ECD' or 'ETD'.
     static MSSpectrum generateSpectrum(const Precursor::ActivationMethod& fm, const AASequence& seq, int precursor_charge);
 
+
     /// overwrite
     void updateMembers_() override;
     //@}
+
+
 
     protected:
 
@@ -98,6 +105,11 @@ namespace OpenMS
 
     /// helper to add full neutral loss ladders (for single peaks), also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
     void addLossesFaster_(PeakSpectrum& spectrum, double mz, const std::set<EmpiricalFormula>& f_losses, int ion_ordinal, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, const std::map<EmpiricalFormula, String>& formula_str_cache, double intensity, const Residue::ResidueType res_type, bool add_metainfo, int charge) const;
+
+    static void addPrefixAndSuffixIons_(std::vector< float >& spectrum, const AASequence& peptide, Residue::ResidueType res_type, int charge) ;
+
+
+
 
     bool add_b_ions_;
     bool add_y_ions_;

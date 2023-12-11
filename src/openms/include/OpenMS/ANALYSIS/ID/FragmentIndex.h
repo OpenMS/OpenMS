@@ -31,7 +31,6 @@ namespace OpenMS
   public:
 
 
-
     /** @brief Peptide with all important infos needed for the FI-structure
      */
     struct Peptide {
@@ -162,6 +161,7 @@ namespace OpenMS
                        SpectrumMatchesTopN& sms);
 
 protected:
+
 
   /**@brief One entry in the fragment index
    */
