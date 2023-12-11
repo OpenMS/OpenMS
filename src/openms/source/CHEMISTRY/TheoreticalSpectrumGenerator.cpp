@@ -1013,9 +1013,9 @@ namespace OpenMS
         default: break;
       }
 
-      for (Size i = peptide.size()-1; i >= 0; --i)
+      for (Size j = peptide.size(); j >= 1; --j)
       {
-        mono_weight += peptide[i].getMonoWeight(Residue::Internal);
+        mono_weight += peptide[j-1].getMonoWeight(Residue::Internal);
         double pos(mono_weight / charge);
 
         spectrum.emplace_back(pos);
