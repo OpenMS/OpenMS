@@ -924,6 +924,96 @@ namespace OpenMS
     }
   }
 
+  void TheoreticalSpectrumGenerator::getPrefixAndSuffixIonsMZ(std::vector<float>& spectrum, const AASequence& peptide, int charge) const
+  {
+    for (Int z = charge; z >= 1; --z)
+    {
+      if (add_b_ions_)
+      {
+        addPrefixAndSuffixIons_(spectrum, peptide, Residue::BIon, z);
+      }
+      if (add_y_ions_)
+      {
+        addPrefixAndSuffixIons_(spectrum, peptide, Residue::YIon, z);
+      }
+      if (add_a_ions_)
+      {
+        addPrefixAndSuffixIons_(spectrum, peptide, Residue::AIon,  z );
+      }
+      if (add_x_ions_)
+      {
+        addPrefixAndSuffixIons_(spectrum, peptide, Residue::XIon, z);
+      }
+      if (add_c_ions_)
+      {
+        addPrefixAndSuffixIons_(spectrum, peptide, Residue::CIon, z);
+      }
+      if (add_z_ions_)
+      {
+        addPrefixAndSuffixIons_(spectrum, peptide, Residue::ZIon, z);
+      }
+    }
+
+    std::sort(spectrum.begin(), spectrum.end());
+    return;
+  }
+
+  void TheoreticalSpectrumGenerator::addPrefixAndSuffixIons_(std::vector<float>& spectrum, const OpenMS::AASequence& peptide, Residue::ResidueType res_type, int charge)
+  {
+    if (peptide.empty())
+    {
+      cout << "Warning: Attempt at creating Prefix and Suffix Ions Spectrum from empty string!" << endl;
+      return;
+    }
+
+    if (res_type == Residue::AIon || res_type == Residue::BIon || res_type == Residue::CIon)
+    {
+      double mono_weight(Constants::PROTON_MASS_U * charge);
+      if (peptide.hasNTerminalModification())
+      {
+        mono_weight += peptide.getNTerminalModification()->getDiffMonoMass();
+      }
+
+      switch (res_type)
+      {
+        case Residue::AIon: mono_weight += Residue::getInternalToAIon().getMonoWeight(); break;
+        case Residue::BIon: mono_weight += Residue::getInternalToBIon().getMonoWeight(); break;
+        case Residue::CIon: mono_weight += Residue::getInternalToCIon().getMonoWeight(); break;
+        default: break;
+      }
+
+      Size i = 0;
+      for (; i < peptide.size(); ++i)
+      {
+        mono_weight += peptide[i].getMonoWeight(Residue::Internal);
+        spectrum.emplace_back(mono_weight / charge);
+      }
+    }
+    else // if (res_type == Residue::XIon || res_type == Residue::YIon || res_type == Residue::ZIon)
+    {
+      double mono_weight(Constants::PROTON_MASS_U * charge);
+      if (peptide.hasCTerminalModification())
+      {
+        mono_weight += peptide.getCTerminalModification()->getDiffMonoMass();
+      }
+
+      switch (res_type)
+      {
+        case Residue::XIon: mono_weight += Residue::getInternalToXIon().getMonoWeight(); break;
+        case Residue::YIon: mono_weight += Residue::getInternalToYIon().getMonoWeight(); break;
+        case Residue::ZIon: mono_weight += Residue::getInternalToZIon().getMonoWeight(); break;
+        default: break;
+      }
+
+      for (Size j = peptide.size(); j >= 1; --j)
+      {
+        mono_weight += peptide[j-1].getMonoWeight(Residue::Internal);
+        spectrum.emplace_back((float)mono_weight / charge);
+      }
+    }
+    return;
+  }
+
   void TheoreticalSpectrumGenerator::updateMembers_()
   {
     add_b_ions_ = param_.getValue("add_b_ions").toBool();
