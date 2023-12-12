@@ -187,6 +187,7 @@ Wout Bittremieux. “spectrum_utils: A Python package for mass spectrometry data
 # END OF TERMS AND CONDITIONS
 
 from typing import Optional, Callable
+from pyopenms import MSSpectrum, StringDataArray
 
 
 def parse_annotation(annotation: str):
@@ -197,17 +198,29 @@ def parse_annotation(annotation: str):
     :returns: A dictionary containing the parsed annotation.
     """
     import re
-    regex = '([abcxyz]+\d+)-?(\w*)([\+\-]+)'
+    ion_type, neutral_loss, adduct, charge = None, None, None, 0
+    regex = '([abcxyz]+\d+)-?(\w*)([\+\-]?)'
     match = re.search(regex, annotation)
-    if len(match.regs) == 0:
-        raise ValueError(f'Could not parse annotation: {annotation}.')
+    adduct_regex = '(\[\S+\])\s?(\S+)?'
+    adduct_match = re.search(adduct_regex, annotation)
+
+    if match is not None:
+        ion_type = match.group(1)
+        neutral_loss = match.group(2) if match.group(2) != '' else None
+        charge = match.group(3).count('+') - match.group(3).count('-')
+    if annotation.find(':') != -1:  # compound
+        ion_type = '_' + annotation
+    if adduct_match is not None:
+        ion_type = 'f' if ion_type is None else ion_type
+        adduct = adduct_match.group(1)
+        neutral_loss = adduct_match.group(2) if adduct_match.group(2) != '' else None
+    if ion_type is None:
+        ion_type = '?' + annotation
+    if ion_type != '?' and charge == 0:
+        charge = 1
 
     analyte_number = None
-    ion_type = match.group(1)
-    neutral_loss = match.group(2) if match.group(2) != '' else None
     isotope = 0
-    charge = match.group(3).count('+') - match.group(3).count('-')
-    adduct = None
     mz_delta = None
     return {
         'analyte_number': analyte_number,
@@ -236,16 +249,23 @@ def spectrum_to_spectrum_utils(
     """
     from spectrum_utils.spectrum import MsmsSpectrum
     from spectrum_utils.fragment_annotation import FragmentAnnotation, PeakInterpretation
+    if len(spectrum.getPrecursors()) > 0:
+        precursor_mz = spectrum.getPrecursors()[0].getMZ()
+        precursor_charge = spectrum.getPrecursors()[0].getCharge()
+    else:
+        precursor_mz = -1
+        precursor_charge = -1
+
     utils_spectrum = MsmsSpectrum(
         identifier=spectrum.getNativeID(),
-        precursor_mz=spectrum.getPrecursors()[0].getMZ(),
-        precursor_charge=spectrum.getPrecursors()[0].getCharge(),
+        precursor_mz=precursor_mz,
+        precursor_charge=precursor_charge,
         mz=list(spectrum.get_peaks()[0]),
         intensity=list(spectrum.get_peaks()[1])
     )
     peak_interpretations = []
     for string_data in spectrum.getStringDataArrays()[0]:
-        annotation = str(string_data)[2:-1]
+        annotation = str(string_data)[1:].replace('"', '').replace("'", '')
         pi = PeakInterpretation()
         if annotation != '':
             annotation_data = annot_func(annotation)
@@ -254,3 +274,71 @@ def spectrum_to_spectrum_utils(
         peak_interpretations.append(pi)
     utils_spectrum._annotation = peak_interpretations
     return utils_spectrum
+
+
+def peptide_hit_to_spectrum_utils(
+        peptide_hit: "PeptideHit", annot_func: Optional[Callable] = lambda x: parse_annotation(x)
+):
+    """ Convert an OpenMS peptideHit to a spectrum_utils MsmsSpectrum.
+
+    :param peptide_hit: The OpenMS peptideHit to be plotted.
+    Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
+
+    :param annot_func: Fragment annotation function parsing the annotation string. Is required to return a dictionary
+    with the following keys: 'analyte_number', 'ion_type', 'neutral_loss', 'isotope', 'charge', 'adduct', 'mz_delta'.
+
+    :returns: The spectrum_utils MsmsSpectrum.
+
+    """
+    intensities, mass_to_charges, annotations = [], [], []
+
+    for peak in peptide_hit.getPeakAnnotations():
+        intensities.append(peak.intensity)
+        mass_to_charges.append(peak.mz)
+        annotations.append(str(peak.annotation))
+
+    spectrum = MSSpectrum()
+    spectrum.set_peaks([mass_to_charges, intensities])
+
+    # Sort the peaks according to ascending mass-to-charge ratio
+    spectrum.sortByPosition()
+
+    sda = StringDataArray()
+    sda.setName("Peak annotation")
+    for element in annotations:
+        sda.push_back(element)
+
+    spectrum.setStringDataArrays([sda])
+    return spectrum_to_spectrum_utils(spectrum, annot_func)
+
+
+def show_annotations(annotation: "FragmentAnnotation", ion_types: str='abcxyz', ions: Optional[bool]=True,
+                     charges: Optional[bool]=False, losses: Optional[bool]=False, adducts: Optional[bool]=False):
+    """ toggle which annotations to show.
+
+    :param annotation: The annotation string to be parsed.
+
+    :param ion_types: The ion types to show. Default: 'abcxyz'.
+
+    :param ions: Whether to show the ion type. Default: True.
+
+    :param charges: Whether to show the charge. Default: False.
+
+    :param losses: Whether to show the neutral loss. Default: False.
+
+    :param adducts: Whether to show the adduct. Default: False.
+
+    :returns: The annotation string.
+
+    """
+    output = ''
+    if ions:
+        output += annotation.ion_type if annotation.ion_type[0] in ion_types else annotation.ion_type[1:]
+    if charges:
+        output += f'{annotation.charge:+d}' if annotation.charge is not None else ''
+    if losses:
+        output += annotation.neutral_loss if annotation.neutral_loss is not None else ''
+    if adducts:
+        output += annotation.adduct if annotation.adduct is not None else ''
+    return output
+
