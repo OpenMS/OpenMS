@@ -145,6 +145,72 @@ namespace OpenMS
     return ConstAreaIterator();
   }
 
+  MSExperiment::CoordinateType MSExperiment::aggregate(ConstAreaIterator begin, ConstAreaIterator end, AggregatorFunc rt_agg, AggregatorFunc mz_agg) const
+  {
+    /*std::vector<MSExperiment::CoordinateType> ity;
+    std::vector<MSExperiment::CoordinateType> tmp;
+    float rt = -1.0f;
+    for (auto it = begin; it != end; ++it)
+    {
+      if (it.getRT() != rt) 
+      {
+        rt = (float)it.getRT();
+        
+        ity.push_back(mz_agg(tmp));
+      }
+      else
+      {
+        tmp.push_back(it->getMZ());
+      }
+    }
+    // TODO we could allow SOA instead of AOS here
+    return rt_agg(rt, mz);*/
+    return 0;
+  }
+
+  std::vector<MSExperiment::CoordinateType> MSExperiment::aggregate(double rt_start, double rt_end, double mz_start, double mz_end, unsigned int ms_level, std::string mz_agg) const
+  {
+    if (mz_agg == "sum")
+    {
+      return aggregate(rt_start, rt_end, mz_start, mz_end, ms_level, [](auto a, auto b) { return a + b; });
+    }
+    else if (mz_agg == "max")
+    {
+      return aggregate(rt_start, rt_end, mz_start, mz_end, ms_level, [](auto a, auto b) { return std::max(a, b); });
+    }
+    else if (mz_agg == "min")
+    {
+      return aggregate(rt_start, rt_end, mz_start, mz_end, ms_level, [](auto a, auto b) { return std::min(a, b); });
+    }
+    else
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid aggregation function", mz_agg);
+    }
+  }
+
+  std::vector<MSExperiment::CoordinateType> MSExperiment::aggregate(double rt_start, double rt_end, double mz_start, double mz_end, unsigned int ms_level, ReduceFunc mz_agg) const
+  {
+    auto idcs = this->getSpectraIdcsByRetentionTime(rt_start, rt_end, ms_level);
+    std::vector<CoordinateType> res;
+    res.resize(idcs.size());
+    
+    #pragma omp parallel for
+    for (Size i = 0; i < idcs.size(); ++i)
+    {
+      CoordinateType acc = 0.0;
+      const auto& spec = spectra_[idcs[i]];
+      auto it_start = spec.PosBegin(mz_start);
+      auto it_end = spec.PosEnd(mz_end);
+      for (auto it = it_start; it != it_end; ++it)
+      {
+        acc = mz_agg(acc, it->getIntensity());
+      }
+      res[i] = acc;
+    }
+
+    return res;
+  }
+
   /**
   @brief Fast search for spectrum range begin
 
@@ -212,6 +278,28 @@ namespace OpenMS
   }
 
   //@}
+
+  std::pair<Size, Size> MSExperiment::getSpectraIdxRangeByRetentionTime(double start, double end) const {
+    Size startIndex = this->RTBegin(start) - spectra_.begin();
+    Size endIndex = this->RTEnd(end) - spectra_.begin();
+
+    return {startIndex, endIndex};
+  }
+
+  std::vector<Size> MSExperiment::getSpectraIdcsByRetentionTime(double start, double end, unsigned int ms_level) const {
+    Size startIndex = this->RTBegin(start) - spectra_.begin();
+    Size endIndex = this->RTEnd(end) - spectra_.begin();
+
+    std::vector<Size> indices;
+    for (Size i = startIndex; i < endIndex; ++i)
+    {
+      if(spectra_[i].getMSLevel() == ms_level)
+      {
+        indices.push_back(i);
+      }
+    }
+    return indices;
+  }
 
   /**
   @name Range methods

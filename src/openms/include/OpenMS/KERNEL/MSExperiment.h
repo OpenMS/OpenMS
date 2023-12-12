@@ -312,9 +312,9 @@ public:
     ///@name Iterating ranges and areas
     //@{
     /// Returns an area iterator for @p area
-    AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt  ms_level = 1);
+    AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level = 1);
 
-    /// Returns a area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
+    /// Returns an area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
     AreaIterator areaBegin(const RangeManagerType& range, UInt ms_level = 1);
 
     /// Returns an invalid area iterator marking the end of an area
@@ -326,11 +326,27 @@ public:
     /// Returns a non-mutable area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
     ConstAreaIterator areaBeginConst(const RangeManagerType& range, UInt ms_level = 1) const;
 
-    /// Returns an non-mutable invalid area iterator marking the end of an area
+    /// Returns a non-mutable invalid area iterator marking the end of an area
     ConstAreaIterator areaEndConst() const;
 
+    std::pair<Size, Size> getSpectraIdxRangeByRetentionTime(double start, double end) const;
+    std::vector<Size> getSpectraIdcsByRetentionTime(double start, double end, unsigned int ms_level) const;
+    using AggregatorFunc = std::function<CoordinateType(const std::vector<CoordinateType>&)>;
+    using ReduceFunc = std::function<CoordinateType(CoordinateType&, CoordinateType)>;
+
+    /// Aggregate all spectra in the range given by the begin and end area iterators.
+    /// The aggregation is performed by applying the aggregator function to the peaks in the range, per dimension (RT and MZ).
+    /// 
+    MSExperiment::CoordinateType aggregate(ConstAreaIterator begin, ConstAreaIterator end, AggregatorFunc rt, AggregatorFunc mz) const;
+    MSExperiment::CoordinateType aggregate(ConstAreaIterator begin, ConstAreaIterator end, ReduceFunc rt, AggregatorFunc mz) const;
+    MSExperiment::CoordinateType aggregate(ConstAreaIterator begin, ConstAreaIterator end, AggregatorFunc rt, ReduceFunc mz) const;
+    MSExperiment::CoordinateType aggregate(ConstAreaIterator begin, ConstAreaIterator end, ReduceFunc rt, ReduceFunc mz) const;
+    std::vector<MSExperiment::CoordinateType> aggregate(double rt_start, double rt_end, double mz_start, double mz_end, unsigned int ms_level, std::string mz_agg) const;
+    std::vector<MSExperiment::CoordinateType> aggregate(double rt_start, double rt_end, double mz_start, double mz_end, unsigned int ms_level, ReduceFunc mz_agg) const;
+    std::vector<MSExperiment::CoordinateType> aggregate(double rt_start, double rt_end, double mz_start, double mz_end, unsigned int ms_level, AggregatorFunc mz_agg) const;
+
     // for fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity]]
-    void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
+    void get2DPeakDataPerSpec(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
       std::vector<float>& rt, 
       std::vector<std::vector<float>>& mz, 
       std::vector<std::vector<float>>& intensity) const
@@ -349,12 +365,15 @@ public:
     }
 
     // for fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity, ion mobility]]
-    void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
+    void get2DPeakDataIonPerSpec(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
+      // TODO rt and mz are by default doubles, does it help converting them just for python?
       std::vector<float>& rt, 
       std::vector<std::vector<float>>& mz,
       std::vector<std::vector<float>>& intensity, 
       std::vector<std::vector<float>>& ion_mobility) const
     {
+      DriftTimeUnit unit;
+      std::vector<float> im;
       float t = -1.0;
       for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
       {
@@ -362,21 +381,10 @@ public:
         {
           t = (float)it.getRT();
           rt.push_back(t);
+          std::tie(unit, im) = it.getSpectrum().maybeGetIMData();
         }
-        
-        const MSSpectrum& spectrum = it.getSpectrum();
-        bool has_IM = spectrum.containsIMData();
-        float peak_IM{-1.0f};
-        if (has_IM)
-        {
-          const auto& im_data = spectrum.getIMData();
-          const Size peak_index = it.getPeakIndex().peak;
-          if (spectrum.getFloatDataArrays()[im_data.first].size() == spectrum.size())
-          {
-            peak_IM = spectrum.getFloatDataArrays()[im_data.first][peak_index];
-          }          
-        }
-        ion_mobility.back().push_back(peak_IM);
+        const Size peak_index = it.getPeakIndex().peak;
+        ion_mobility.back().push_back(im[peak_index]);
         mz.back().push_back((float)it->getMZ());
         intensity.back().push_back(it->getIntensity());
       }
@@ -413,23 +421,19 @@ public:
     {
       for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
       {
+        DriftTimeUnit unit;
+        std::vector<float> im;
+        float t = -1.0;
+        if (it.getRT() != t)
+        {
+          t = (float)it.getRT();
+          std::tie(unit, im) = it.getSpectrum().maybeGetIMData();
+        }
         rt.push_back((float)it.getRT());
         mz.push_back((float)it->getMZ());
         intensity.push_back(it->getIntensity());
-
-        const MSSpectrum& spectrum = it.getSpectrum();
-        bool has_IM = spectrum.containsIMData();
-        float peak_IM = -1.0;
-        if (has_IM)
-        {
-          const auto& im_data = spectrum.getIMData();
-          const Size& peak_index = it.getPeakIndex().peak;
-          if (spectrum.getFloatDataArrays()[im_data.first].size() == spectrum.size())
-          {
-            peak_IM = spectrum.getFloatDataArrays()[im_data.first][peak_index];
-          }          
-        }        
-        ion_mobility.push_back(peak_IM);
+        const Size peak_index = it.getPeakIndex().peak;
+        ion_mobility.push_back(im[peak_index]);
       }
     }
 

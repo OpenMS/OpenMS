@@ -799,7 +799,7 @@ namespace OpenMS
       });
     }
 
-    /// Resets the dimension of the given @p range. Any type of ion mobility in @p range will clear the RTMobility dimension.
+    /// Resets the dimension of the given @p range. Any type of ion mobility in @p range will clear the Mobility dimension.
     /// If the @p range is not contained in this class, then nothing happens.
     ThisRangeType& clear(const DIM_UNIT range)
     {
