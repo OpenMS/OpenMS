@@ -162,7 +162,8 @@ namespace OpenMS
 
       // get the spectrum generator and set the ion-types
       //TheoreticalSpectrumGenerator tsg;
-      SimpleTSGXLMS tsg;
+      //SimpleTSGXLMS tsg;
+      TheoreticalSpectrumGenerator tsg;
 
       auto tsg_params = tsg.getParameters();
       auto this_params = getParameters();
@@ -172,7 +173,7 @@ namespace OpenMS
       tsg_params.setValue("add_x_ions", this_params.getValue("add_x_ions"));
       tsg_params.setValue("add_y_ions", this_params.getValue("add_y_ions"));
       tsg_params.setValue("add_z_ions", this_params.getValue("add_z_ions"));
-      tsg_params.setValue("add_first_prefix_ion", "true");
+      //tsg_params.setValue("add_first_prefix_ion", "true");
       tsg.setParameters(tsg_params);
 
 
@@ -186,7 +187,7 @@ namespace OpenMS
 
 
       vector<AASequence> mod_peptides;
-      std::vector<SimpleTSGXLMS::SimplePeak> b_y_ions;
+      std::vector<float> b_y_ions;
 
       OPENMS_LOG_INFO << "Generating fragments..." << std::endl;
 
@@ -203,21 +204,19 @@ namespace OpenMS
           AASequence mod_peptide = AASequence(unmod_peptide); // copy the peptide
           ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, mod_peptide);
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, mod_peptide, max_variable_mods_per_peptide_, mod_peptides);
-          //tsg.getSpectrum(b_y_ions, mod_peptides[pep.modification_idx_], 1,1);
-          tsg.getLinearIonSpectrum(b_y_ions, mod_peptides[pep.modification_idx_], mod_peptides[pep.modification_idx_].size(), 1, 0);
+          tsg.getPrefixAndSuffixIonsMZ(b_y_ions, mod_peptides[pep.modification_idx_], 1);
         }
         else
         {
-         //tsg.getSpectrum(b_y_ions, unmod_peptide, 1,1);
-          tsg.getLinearIonSpectrum(b_y_ions, unmod_peptide, unmod_peptide.size(), 1, 0);
+          tsg.getPrefixAndSuffixIonsMZ(b_y_ions, unmod_peptide, 1);
         }
 
-        for (const SimpleTSGXLMS::SimplePeak& frag : b_y_ions)
+        for (const float& frag : b_y_ions)
         {
-          if (fragment_min_mz_ > frag.mz || frag.mz > fragment_max_mz_  ) continue;
+          if (fragment_min_mz_ > frag || frag > fragment_max_mz_  ) continue;
 
          #pragma omp critical (CreateFragment)
-          fi_fragments_.emplace_back(static_cast<UInt32>(peptide_idx),(float) frag.mz);
+          fi_fragments_.emplace_back(static_cast<UInt32>(peptide_idx),(float) frag);
         }        
       }
 
@@ -234,11 +233,11 @@ namespace OpenMS
       OPENMS_LOG_INFO << "Creating DB with bucket_size " << bucketsize_ << endl;
 
       /// 2.) next sort after precursor mass and save the min_mz of each bucket
-      //#pragma omp parallel for
+      #pragma omp parallel for
       for (size_t i = 0; i < fi_fragments_.size(); i += bucketsize_)
       {
 
-        //#pragma omp critical
+        #pragma omp critical
         bucket_min_mz_.emplace_back(fi_fragments_[i].fragment_mz_);
 
         auto bucket_start = fi_fragments_.begin() + i;
@@ -557,6 +556,9 @@ namespace OpenMS
     defaults_.setSectionDescription("report", "Reporting Options");
     defaults_.setValue("peptide:motif", "", "If set, only peptides that contain this motif (provided as RegEx) will be considered.");
     defaults_.setSectionDescription("peptide", "Peptide Options");
+
+    IntList isotopes = {0, 1};
+    defaults_.setValue("precursor:isotopes", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)");
 
     defaultsToParam_();
 }
