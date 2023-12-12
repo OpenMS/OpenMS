@@ -84,10 +84,19 @@ namespace OpenMS
   bool TOPPASInputFileListVertex::fileNamesValid()
   {
     QStringList fl = getFileNames();
+    std::set<std::string> unique_names;
     foreach(const QString& file, fl)
     {
       if (!File::exists(file))
       {
+        return false;
+      }
+      QFileInfo fi(file);
+      const auto& [it_unique, was_inserted] = unique_names.insert(fi.canonicalFilePath().toStdString());
+      if (!was_inserted) // duplicate
+      {
+        const auto path = *it_unique;  // working around 'error: reference to local binding 'it_unique' declared in enclosing function' on Clang (capture of structured binding problem)
+        OPENMS_LOG_ERROR << "File '" << file.toStdString() << "' (resolved to '" << path << "') appears twice in the input list!" << std::endl;
         return false;
       }
     }
