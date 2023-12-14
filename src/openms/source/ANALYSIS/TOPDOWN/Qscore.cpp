@@ -53,7 +53,7 @@ namespace OpenMS
   // ChargeSNR1                     -0.4006
   // Intercept                     -29.7409
 
-  std::vector<double> Qscore::weight_CV_60_ {-32.4126, -41.463, -0.0073, 0.4006, 29.7409};
+  std::vector<double> Qscore::weight_CV_60_ {-32.4126, -1.463, -0.0073, 0.4006, 29.7409};
 
   std::vector<double> Qscore::weight_centroid_ {-42.2496, -2.8767, 0.1523, -0.4797, 45.5284};
   std::vector<double> Qscore::weight_profile_ {-42.2496, -2.8767, 0.1523, -0.4797, 45.5284};

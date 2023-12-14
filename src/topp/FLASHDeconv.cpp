@@ -344,7 +344,6 @@ protected:
       std::vector<FLASHDeconvHelperStructs::Tag> tags;
       DeconvolvedSpectrum dspec_for_tagging;
 
-
       for (const auto& dspec : deconvolved_spectra)
       {
         if (dspec.isDecoy()) continue;
@@ -355,7 +354,7 @@ protected:
       if (deconvolved_spectra.size() > 1)
       {
         dspec_for_tagging.sort();
-        SpectralDeconvolution::removeOverlappingPeakGroups(dspec_for_tagging, tols[dspec_for_tagging.getOriginalSpectrum().getMSLevel() - 1]); // merged peak groups have scan number information!
+        SpectralDeconvolution::removeOverlappingPeakGroups(dspec_for_tagging, 1e-6 * tols[deconvolved_spectra[0].getOriginalSpectrum().getMSLevel() - 1]); // merged peak groups have scan number information!
       }
 
       dspec_for_tagging.sortByQscore();

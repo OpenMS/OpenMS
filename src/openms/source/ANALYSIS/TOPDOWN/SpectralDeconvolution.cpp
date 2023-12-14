@@ -247,12 +247,13 @@ namespace OpenMS
     {
       int hc = harmonic_charges_[k];
       int n = hc / 2;
-
+      // int m = (1 + hc) / 2;
       for (int i = 0; i < charge_range; i++)
       {
         double a = i > 0 ? exp(-filter_[i - 1]) : 0;
         double b = exp(-filter_[i]);
         harmonic_filter_matrix_.setValue(k, i, -log(b - (b - a) * n / hc));
+        // harmonic_filter_matrix_.setValue(k * 2 + 1, i, -log(b - (b - a) * m / hc));
       }
     }
   }
@@ -303,7 +304,7 @@ namespace OpenMS
       Size bi = getBinNumber_(p.logMz, mz_bin_min_value_, bin_mul_factor);
       if (bi >= bin_number)
       {
-        continue;
+        break;
       }
       mz_bins_.set(bi);
 
@@ -503,21 +504,21 @@ namespace OpenMS
             {
               if (ms_level_ > 1 && harmonic_charges_[k] * abs_charge > current_max_charge_)
                 break;
+              float harmonic_intensity = 0;
               for (int t = -1; t < 2; t++)
               {
                 long hmz_bin_index = mass_bin_index - harmonic_bin_offset_matrix_.getValue(k, j) + t;
-
                 if (hmz_bin_index > 0 && hmz_bin_index != (long)mz_bin_index && hmz_bin_index < (int)mz_bins_.size() && mz_bins_[hmz_bin_index])
                 {
-                  float harmonic_intensity = mz_intensities[hmz_bin_index];
-                  if (harmonic_intensity > low_threshold && harmonic_intensity < high_threshold)
+                  float h_intensity = mz_intensities[hmz_bin_index];
+                  if (h_intensity > low_threshold && h_intensity < high_threshold)
                   {
-                    // sub_max_h_intensity[k] = sub_max_h_intensity[k] < harmonic_intensity ? harmonic_intensity : sub_max_h_intensity[k];
-                    sub_max_h_intensity[k] += harmonic_intensity;
+                    harmonic_intensity = std::max(harmonic_intensity, h_intensity);
                     is_harmonic = true;
                   }
                 }
               }
+              sub_max_h_intensity[k] += harmonic_intensity;
             }
 
             if (!is_harmonic) // if it is not harmonic
@@ -597,11 +598,6 @@ namespace OpenMS
         {
           break;
         }
-
-        // if (!previously_deconved_mono_masses_for_decoy_.empty() && previously_deconved_mass_bins_for_decoy_[mass_bin_index])
-        //{
-        //   continue;
-        // }
 
         if (!target_mono_masses_.empty() && target_mass_bins_[mass_bin_index])
         {
@@ -908,10 +904,10 @@ namespace OpenMS
       bin_offsets_.push_back((int)round((mz_bin_min_value_ - filter_[i] - mass_bin_min_value_) * bin_mul_factor));
     }
 
-    harmonic_bin_offset_matrix_.resize(harmonic_charges_.size(), current_charge_range);
-    for (Size k = 0; k < harmonic_charges_.size(); k++)
+    harmonic_bin_offset_matrix_.resize(harmonic_filter_matrix_.rows(), harmonic_filter_matrix_.cols());
+    for (Size k = 0; k < harmonic_filter_matrix_.rows(); k++)
     {
-      for (int i = 0; i < current_charge_range; i++)
+      for (Size i = 0; i < harmonic_filter_matrix_.cols(); i++)
       {
         harmonic_bin_offset_matrix_.setValue(k, i, (int)round((mz_bin_min_value_ - harmonic_filter_matrix_.getValue(k, i) - mass_bin_min_value_) * bin_mul_factor));
       }
@@ -987,13 +983,13 @@ namespace OpenMS
   void SpectralDeconvolution::scoreAndFilterPeakGroups_()
   {
     std::vector<PeakGroup> filtered_peak_groups;
-    filtered_peak_groups.reserve(deconvolved_spectrum_.size());
+    filtered_peak_groups.reserve(deconvolved_spectrum_.size() + (target_decoy_type_ == PeakGroup::TargetDecoyType::target ? 0 : target_dspec_for_decoy_calcualtion_->size()));
 
     double tol = tolerance_[ms_level_ - 1];
 #pragma omp parallel default(none) shared(tol, filtered_peak_groups)
     {
       std::vector<PeakGroup> filtered_peak_groups_private;
-      filtered_peak_groups_private.reserve(deconvolved_spectrum_.size());
+      filtered_peak_groups_private.reserve(deconvolved_spectrum_.size() / omp_get_num_threads() + 1);
 #pragma omp for nowait schedule(static)
       for (int i = 0; i < (int)deconvolved_spectrum_.size(); i++)
       {
