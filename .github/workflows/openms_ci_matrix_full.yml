@@ -871,17 +871,23 @@ jobs:
           PYDOCS_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/OpenMS/contents/src/pyOpenMS/pyopenms-docs\?ref\=${{ github.sha }} | jq -r ".sha")
           TUTORIAL_SHA=$(curl https://api.github.com/repos/OpenMS/Tutorials/git/refs/heads/master | jq -r ".object.sha")
           DOCS_SHA=$(curl https://api.github.com/repos/OpenMS/OpenMS-docs/git/refs/heads/develop | jq -r ".object.sha")
-
+          echo "Got all the shas"
           createGitTag OpenMS/contrib $CONTRIB_SHA  || updateGitTag OpenMS/contrib $CONTRIB_SHA 
+          echo "updated Contrib"
           createGitTag OpenMS/pyopenms-docs $PYDOCS_SHA  || updateGitTag OpenMS/pyopenms-docs $PYDOCS_SHA 
+          echo "updated pyopenms-docs"
           createGitTag OpenMS/THIRDPARTY $THIRDPARTY_SHA  || updateGitTag OpenMS/THIRDPARTY $THIRDPARTY_SHA 
+          echo "this is bullshit"
           createGitTag OpenMS/Tutorials $TUTORIAL_SHA  || updateGitTag OpenMS/Tutorials $TUTORIAL_SHA 
+          echo "my brother was once bit by a moose"
           createGitTag OpenMS/OpenMS-docs $DOCS_SHA  || updateGitTag OpenMS/OpenMS-docs $DOCS_SHA 
+          echo "he was minding his own business"
           createGitTag OpenMS/de.openms.knime $DEOPENMS_SHA  || updateGitTag OpenMS/de.openms.knime $DEOPENMS_SHA 
-          
+          echo "and the moose just came up and bit him"
           createGitTag genericworkflownodes/de.openms.knime.dynamicJSViewers $JSViewer_SHA || updateGitTag genericworkflownodes/de.openms.knime.dynamicJSViewers $GKN_SHA 
+          echo "I could be doing something useful now but instead I'm fighting with this"
           createGitTag genericworkflownodes/GenericKnimeNodes $GKN_SHA  || updateGitTag genericworkflownodes/GenericKnimeNodes $GKN_SHA 
-
+          echo "finished?"
 
       #- name: merge branch back into develop
       - name: Merge to Develop
