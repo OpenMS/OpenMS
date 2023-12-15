@@ -32,7 +32,7 @@ namespace OpenMS
     rt_normalization_factor_(1.0),
     spacing_for_spectra_resampling_(0.005),
     add_up_spectra_(1),
-    spectra_addition_method_(ADDITION),
+    spectra_addition_method_(SpectrumAdditionMethod::ADDITION),
     im_drift_extra_pcnt_(0.0)
   {
   }
@@ -53,11 +53,11 @@ namespace OpenMS
     this->add_up_spectra_ = add_up_spectra;
     if (spectrum_addition_method == "simple")
     {
-      this->spectra_addition_method_ = ADDITION;
+      this->spectra_addition_method_ = SpectrumAdditionMethod::ADDITION;
     }
     else if (spectrum_addition_method == "resample")
     {
-      this->spectra_addition_method_ = RESAMPLE;
+      this->spectra_addition_method_ = SpectrumAdditionMethod::RESAMPLE;
     }
     else
     {
@@ -502,11 +502,11 @@ namespace OpenMS
   {
 
     SpectrumSequence all_spectra = swathmap->getMultipleSpectra(RT, nr_spectra_to_add);
-    if (spectra_addition_method_ == ADDITION)
+    if (spectra_addition_method_ == SpectrumAdditionMethod::ADDITION)
     {
       return all_spectra; // return vector, addition is done later
     }
-    else // (spectra_addition_method_ == RESAMPLE)
+    else // (spectra_addition_method_ == SpectrumAdditionMethod::RESAMPLE)
     {
       std::vector<OpenSwath::SpectrumPtr> spectrum_out;
       //added_spec = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
@@ -533,14 +533,14 @@ namespace OpenMS
         // multiple SWATH maps for a single precursor -> this is SONAR data, in all cases only return a single spectrum
         SpectrumSequence all_spectra;
 
-        if (spectra_addition_method_ == ADDITION)
+        if (spectra_addition_method_ == SpectrumAdditionMethod::ADDITION)
         {
           for (size_t i = 0; i < swath_maps.size(); ++i)
           {
             SpectrumSequence spectrumSequence = swath_maps[i].sptr->getMultipleSpectra(RT, nr_spectra_to_add, im_range.getMin(), im_range.getMax());
           }
         }
-        else // (spectra_addition_method_ == RESAMPLE)
+        else // (spectra_addition_method_ == SpectrumAdditionMethod::RESAMPLE)
         {
           for (size_t i = 0; i < swath_maps.size(); ++i)
           {
@@ -555,7 +555,7 @@ namespace OpenMS
         // multiple SWATH maps for a single precursor -> this is SONAR data, in all cases only return a single spectrum
         SpectrumSequence all_spectra;
 
-        if (spectra_addition_method_ == ADDITION)
+        if (spectra_addition_method_ == SpectrumAdditionMethod::ADDITION)
         {
           for (size_t i = 0; i < swath_maps.size(); ++i)
           {
@@ -563,7 +563,7 @@ namespace OpenMS
             all_spectra.push_back(SpectrumAddition::concatenateSpectra(spectrumSequence));
           }
         }
-        else // (spectra_addition_method_ == RESAMPLE)
+        else // (spectra_addition_method_ == SpectrumAdditionMethod::RESAMPLE)
         {
           for (size_t i = 0; i < swath_maps.size(); ++i)
           {

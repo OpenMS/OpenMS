@@ -475,17 +475,18 @@ namespace OpenMS
     RangeMobility im_range;
     double drift_target(0);
 
+    auto setDriftTarget = [](auto& prec){
+      double lower_bound = prec.getDriftTime() - prec.getDriftTimeWindowLowerOffset();
+      double upper_bound = prec.getDriftTime() + prec.getDriftTimeWindowUpperOffset();
+      return RangeMobility(lower_bound, upper_bound);
+    };
+
     if ( !transition_group_detection.getChromatograms().empty() )
     {
       auto & prec = transition_group_detection.getChromatograms()[0].getPrecursor();
       drift_target = prec.getDriftTime();
 
-      if (drift_target > 0)
-      {
-        im_range.setMin(drift_target); // sets the minimum and maximum
-        // currently only works for symmetrical window
-        im_range.minSpanIfSingular(prec.getDriftTimeWindowLowerOffset() * 2);
-      }
+      if (drift_target > 0) im_range = setDriftTarget(prec);
     }
 
     else if ( !transition_group_detection.getPrecursorChromatograms().empty() )
@@ -493,12 +494,7 @@ namespace OpenMS
       auto & prec = transition_group_detection.getPrecursorChromatograms()[0].getPrecursor();
       drift_target = prec.getDriftTime();
 
-      if (drift_target > 0)
-      {
-        im_range.setMin(drift_target); // sets the minimum and maximum
-        // currently only works for symmetrical window
-        im_range.minSpanIfSingular(prec.getDriftTimeWindowLowerOffset() * 2);
-      }
+      if (drift_target > 0) im_range = setDriftTarget(prec);
     }
 
     // currently we cannot do much about the log messages and they mostly occur in decoy transition signals

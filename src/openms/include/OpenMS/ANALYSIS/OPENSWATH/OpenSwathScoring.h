@@ -43,7 +43,7 @@ namespace OpenMS
 
     using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>; // a vector of spectrum pointers that DIA scores can operate on, allows for clever integration of only the target region
 
-    enum SpectrumAdditionMethod
+    enum class SpectrumAdditionMethod
     {
       ADDITION,
       RESAMPLE
@@ -190,7 +190,7 @@ namespace OpenMS
      * @param diascoring DIA Scoring object to use for scoring
      * @param precursor_mz The m/z ratio of the precursor
      * @param rt The compound retention time
-     * @param compound the compond sequence
+     * @param compound the compound sequence
      * @param im_range drift time lower and upper bounds
      * @param scores The object to store the result
      *
@@ -285,19 +285,6 @@ namespace OpenMS
      *
     */
     SpectrumSequence fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add, const RangeMobility& im_range);
-
-
-  protected:
-
-    /** @breif converts a ion mobility enhanced spectrum to a non ion mobility spectrum by filtering by drift time
-     */
-    OpenSwath::SpectrumPtr filterByDrift_(const OpenSwath::SpectrumPtr& input, const RangeMobility& range_im);
-
-
-    /** @breif Adds up an array of spectrum into one spectrum. If the spectra are ion mobility enhanced, first filter by drift time and then add up spectra
-     */
-    OpenSwath::SpectrumPtr getAddedSpectra_(std::vector<OpenSwath::SpectrumPtr>&, const RangeMobility& range_im);
-
   };
 }
 

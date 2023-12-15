@@ -48,8 +48,16 @@ namespace OpenMS
 
     /**
       @brief Integrate intensities in a spectrum in range @p im_range (if defined) for multiple windows.
-    */
+      @p windows_center is a vector of the center location of the windows.
+      @p width is the width of the windows across mz
+      @p RangeMobility is the range of the IM dimension (if defined)
 
+      Returns:
+      integrated_windows_intensity is a vector of the integrated intensity for each window
+      integrated_windows_mz is a vector of the integrated intensity-weighted m/z for each window
+      integrated_windows_im is a vector of the integrated intensity-weighted im for each window
+
+    */
     OPENMS_DLLAPI void integrateWindows(const OpenSwath::SpectrumPtr& spectrum, //!< [in] Spectrum
                                         const std::vector<double>& windows_center, //!< [in] center location
                                         double width,

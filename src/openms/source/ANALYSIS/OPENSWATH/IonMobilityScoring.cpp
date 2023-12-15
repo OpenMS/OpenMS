@@ -211,7 +211,7 @@ namespace OpenMS
     OPENMS_PRECONDITION(!transitions.empty(), "Need at least one transition");
 
     //TODO not sure what error format is best
-    for (auto s:spectra)
+    for (const auto& s:spectra)
     {
       if (s->getDriftTimeArray() == nullptr)
       {
@@ -220,7 +220,7 @@ namespace OpenMS
       }
     }
 
-    for (auto s:ms1spectrum)
+    for (const auto& s:ms1spectrum)
     {
       if (s->getDriftTimeArray() == nullptr)
       {
