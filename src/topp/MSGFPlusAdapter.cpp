@@ -191,9 +191,10 @@ protected:
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("fixed_modifications", "<mods>", {"Carbamidomethyl (C)"}, "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("variable_modifications", "<mods>", {"Oxidation (M)"}, "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'",
+                        false);
     setValidStrings_("variable_modifications", all_mods);
 
     registerFlag_("legacy_conversion", "Use the indirect conversion of MS-GF+ results to idXML via export to TSV. Try this only if the default conversion takes too long or uses too much memory.", true);
@@ -425,7 +426,7 @@ protected:
     }
 
     String java_executable = getStringOption_("java_executable");
-    String db_name = getDBFilename();
+    const String db_name = getDBFilename();
 
     vector<String> fixed_mods = getStringList_("fixed_modifications");
     vector<String> variable_mods = getStringList_("variable_modifications");
@@ -581,7 +582,7 @@ protected:
 
         // handle the search parameters
         ProteinIdentification::SearchParameters search_parameters;
-        search_parameters.db = getStringOption_("database");
+        search_parameters.db = db_name;
         search_parameters.charges = "+" + String(min_precursor_charge) + "-+" + String(max_precursor_charge);
         search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
         search_parameters.fixed_modifications = fixed_mods;
