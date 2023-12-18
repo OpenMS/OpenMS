@@ -455,7 +455,10 @@ protected:
       process_params << java_memory 
                      << "-cp" << executable
                      << "edu.ucsd.msjava.msdbsearch.BuildSA"
-                     << "-d" << db_name.toQString();
+                     << "-d" << db_name.toQString()
+                     << "-tda" << 0; // do NOT add & index a reverse DB (i.e. '-tda=2'), since this DB may already contain FW+BW,
+                                     // and duplicating again will cause MSGF+ to error with 'too many redundant proteins'
+      
       // collect all output since MSGF+ might return 'success' even though it did not like the command arguments (e.g. if the version is too old)
       // If no output file is produced, we can print the stderr below.
       String proc_stdout, proc_stderr;
