@@ -417,7 +417,7 @@ protected:
     const String db_indexfile = FileHandler::stripExtension(db_name) + ".canno";
     const QString lockfile = (db_name + ".lock").toQString();
     QLockFile lock_db(lockfile);
-    OPENMS_LOG_DEBUG << "Checking for db index, using a lock file ...";
+    OPENMS_LOG_DEBUG << "Checking for db index, using a lock file ..." << std::endl;
     if (!lock_db.lock())
     {
       String msg;
@@ -456,8 +456,8 @@ protected:
                      << "-cp" << executable
                      << "edu.ucsd.msjava.msdbsearch.BuildSA"
                      << "-d" << db_name.toQString()
-                     << "-tda" << 0; // do NOT add & index a reverse DB (i.e. '-tda=2'), since this DB may already contain FW+BW,
-                                     // and duplicating again will cause MSGF+ to error with 'too many redundant proteins'
+                     << "-tda" << "0"; // do NOT add & index a reverse DB (i.e. '-tda=2'), since this DB may already contain FW+BW,
+                                       // and duplicating again will cause MSGF+ to error with 'too many redundant proteins'
       
       // collect all output since MSGF+ might return 'success' even though it did not like the command arguments (e.g. if the version is too old)
       // If no output file is produced, we can print the stderr below.
@@ -476,6 +476,7 @@ protected:
 
     // free lock, since database index exists at this point
     lock_db.unlock();
+    OPENMS_LOG_DEBUG << "... releasing DB lock" << std::endl;
     return true;
   }
 
