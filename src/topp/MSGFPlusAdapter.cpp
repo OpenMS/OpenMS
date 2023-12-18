@@ -442,7 +442,7 @@ protected:
         case QLockFile::UnknownError:
           msg = "Another error happened, for instance a full partition prevented writing out the lock file.";
       };
-      OPENMS_LOG_ERROR << "An error occurred while trying to acquire a file lock: " << msg << " using the file '" << lockfile
+      OPENMS_LOG_ERROR << "An error occurred while trying to acquire a file lock: " << msg << " using the file '" << lockfile.toStdString()
                        << "'.\nPlease check the previous error message and contact OpenMS support if you cannot solve the problem.";
       return false;
     }
