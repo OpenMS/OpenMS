@@ -339,7 +339,7 @@ protected:
       FASTAFile ffile;
       ffile.load(fastaname, fasta_entry);
       fstream out_tagger_stream = fstream(out_tagger, fstream::out);
-      out_tagger_stream << "Scan\tProteinIndex\tTagIndex\tProteinAccession\tProteinDescription\tMatchedAminoAcidCount\tCoverage\tTagSequence\tNmass\tCmass\tScore\tCharge\tLength\tmzs\n";
+      out_tagger_stream << "Scan\tProteinIndex\tTagIndex\tProteinAccession\tProteinDescription\tMatchedAminoAcidCount\tCoverage(%)\tTagSequence\tNmass\tCmass\tScore\tCharge\tLength\tmzs\n";
 
       std::vector<FLASHDeconvHelperStructs::Tag> tags;
       DeconvolvedSpectrum dspec_for_tagging;
@@ -385,13 +385,13 @@ protected:
         for (const auto& matched_tag : match.second)
         {
           out_tagger_stream << dspec_for_tagging.getScanNumber() << "\t" << protein_index << "\t" << tag_index++ << "\t" << matched_fasta_entry.identifier << "\t" << matched_fasta_entry.description
-                            << "\t" << matched_aa.size() << "\t" << (double)matched_aa.size() / matched_fasta_entry.sequence.length() << "\t" << matched_tag.getSequence() << "\t"
+                            << "\t" << matched_aa.size() << "\t" << 100.0 * matched_aa.size() / matched_fasta_entry.sequence.length() << "\t" << matched_tag.getSequence() << "\t"
                             << matched_tag.getNtermMass() << "\t" << matched_tag.getCtermMass() << "\t" << matched_tag.getScore() << "\t" << matched_tag.getCharge() << "\t" << matched_tag.getLength()
                             << "\t";
 
           for (const auto& mz : matched_tag.getMzs())
           {
-            out_tagger_stream << mz << ",";
+            out_tagger_stream << std::to_string(mz) << ",";
           }
           out_tagger_stream << "\n";
         }

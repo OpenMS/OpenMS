@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <OpenMS/OpenMS_MLConfig.h>
+#include <OpenMS/ML/OpenMS_MLConfig.h>
 
 #include <vector>
 #include <string>
