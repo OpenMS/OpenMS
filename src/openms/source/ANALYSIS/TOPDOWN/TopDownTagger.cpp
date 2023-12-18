@@ -379,7 +379,7 @@ namespace OpenMS
     defaults_.setMaxInt("min_length", 30);
     defaults_.setMinInt("min_length", 3);
 
-    defaults_.setValue("max_length", 15, "Maximum length of a tag. Each mass gap contributes to a single length (even if a mass gap is represented by multiple amino acids). ");
+    defaults_.setValue("max_length", 10, "Maximum length of a tag. Each mass gap contributes to a single length (even if a mass gap is represented by multiple amino acids). ");
     defaults_.setMaxInt("max_length", 30);
     defaults_.setMinInt("max_length", 3);
 
@@ -554,7 +554,6 @@ namespace OpenMS
     {
       for (int length = min_tag_length_; length <= max_tag_length_; length++)
       {
-
         TopDownTagger::DAC_ dac(_mzs.size() * (1 + max_tag_length_) * (1 + max_gap_count_) * (1 + max_path_score_ - min_path_score_));
         constructDAC_(dac, _mzs, _scores, z, length, ppm);
         std::vector<std::vector<int>> all_paths;
@@ -573,7 +572,7 @@ namespace OpenMS
         tagSet.insert(_tagSet.begin(), _tagSet.end());
       }
     }
-    // OPENMS_LOG_INFO << "Total tag count: " << tagSet.size() << std::endl;
+
     for (int length = min_tag_length_; length <= max_tag_length_; length++)
     {
       int count = 0;

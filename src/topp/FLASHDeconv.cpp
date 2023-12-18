@@ -417,12 +417,13 @@ protected:
     // Per ms level spectrum deconvolution tsv output
     if (!out_spec_file.empty())
     {
-      OPENMS_LOG_INFO << "writing spectrum tsv ..." << endl;
       std::vector<fstream> out_spec_streams = std::vector<fstream>(out_spec_file.size());
       for (Size i = 0; i < out_spec_file.size(); i++)
       {
         if (out_spec_file[i].empty() || (!keep_empty_out && per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()))
           continue;
+        OPENMS_LOG_INFO << "writing spectrum tsv for MS level " << (i + 1) << " ..." << endl;
+
         out_spec_streams[i].open(out_spec_file[i], fstream::out);
         FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail, report_decoy);
       }
@@ -465,13 +466,14 @@ protected:
     // topFD feature output
     if (!out_topfd_feature_file.empty())
     {
-      OPENMS_LOG_INFO << "writing topfd *.feature ..." << endl;
       std::vector<fstream> out_topfd_feature_streams;
       out_topfd_feature_streams = std::vector<fstream>(out_topfd_feature_file.size());
       for (Size i = 0; i < out_topfd_feature_file.size(); i++)
       {
         if (out_topfd_feature_file[i].empty() || (!keep_empty_out && per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()))
           continue;
+        OPENMS_LOG_INFO << "writing topfd *.feature for MS level " << (i + 1) << " ..." << endl;
+
         out_topfd_feature_streams[i].open(out_topfd_feature_file[i], fstream::out);
         FLASHDeconvFeatureFile::writeTopFDFeatureHeader(out_topfd_feature_streams[i], i + 1);
         FLASHDeconvFeatureFile::writeTopFDFeatures(deconvolved_features, msNscan_to_precursor_pg, scan_rt_map, in_file, out_topfd_feature_streams[i], i + 1);
@@ -482,12 +484,13 @@ protected:
     // topFD msalign output
     if (!out_topfd_file.empty())
     {
-      OPENMS_LOG_INFO << "writing topfd *.tsv ..." << endl;
       auto out_topfd_streams = std::vector<fstream>(out_topfd_file.size());
       for (Size i = 0; i < out_topfd_file.size(); i++)
       {
         if (out_topfd_file[i].empty() || (!keep_empty_out && per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()))
           continue;
+        OPENMS_LOG_INFO << "writing topfd *.tsv for MS level " << (i + 1) << " ..." << endl;
+
         out_topfd_streams[i].open(out_topfd_file[i], fstream::out);
         FLASHDeconvSpectrumFile::writeTopFDHeader(out_topfd_streams[i], getParam_().copy("SD:", true));
       }

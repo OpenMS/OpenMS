@@ -131,7 +131,7 @@ namespace OpenMS
       int ms2_scan_number = precursor.first;
       double rt = scan_rt_map.at(ms2_scan_number);
       bool selected = false;
-      int selected_index = -1;
+      int selected_index;
       for (Size l = 0; l < mass_features.size(); l++)
       {
         auto mass_feature = mass_features[l];

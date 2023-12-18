@@ -40,6 +40,8 @@ namespace OpenMS
       std::vector<double> average_mono_mass_difference_;
       /// mass differences between most abundant mass and monoisotopic mass
       std::vector<double> abundant_mono_mass_difference_;
+
+      std::vector<double> snr_mul_factor_;
       /// Isotope start indices: isotopes of the indices less than them have very low intensities
       std::vector<int> left_count_from_apex_;
       /// Isotope end indices: isotopes of the indices larger than them have very low intensities
@@ -115,6 +117,8 @@ namespace OpenMS
 
       /// get mass difference between most abundant mass and mono masses. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       double getMostAbundantMassDelta(double mass) const;
+
+      double getSNRMultiplicationFactor(double mass) const;
     };
 
     /// Mass feature (Deconvolved masses in spectra are traced by Mass tracing to generate mass features - like LC-MS features).

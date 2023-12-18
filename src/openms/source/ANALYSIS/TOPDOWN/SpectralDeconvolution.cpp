@@ -48,7 +48,7 @@ namespace OpenMS
     defaults_.setValue("min_cos", DoubleList {.85, .85},
                        "Cosine similarity thresholds between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_cos 0.3 0.6 to specify 0.3 and 0.6 for MS1 and MS2, respectively)");
     defaults_.addTag("min_cos", "advanced");
-    defaults_.setValue("min_snr", DoubleList {2.0, 2.0}, "SNR thresholds for MS1, 2, ... (e.g., -min_snr 1.0 0.6 to specify 1.0 and 0.6 for MS1 and MS2, respectively)");
+    defaults_.setValue("min_snr", DoubleList {1.0, 1.0}, "SNR thresholds for MS1, 2, ... (e.g., -min_snr 1.0 0.6 to specify 1.0 and 0.6 for MS1 and MS2, respectively)");
     defaults_.addTag("min_snr", "advanced");
     defaults_.setValue("max_qvalue", DoubleList {1.0, 1.0},
                        "Qvalue thresholds for MS1, 2, ... Effective only when FDR estimation is active. (e.g., -max_qvalue 0.1 0.2 to specify 0.1 and 0.2 for MS1 and MS2, respectively)");
@@ -1014,7 +1014,7 @@ namespace OpenMS
           auto noisy_peaks = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_);
           // min cosine is checked in here. mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
           const auto& [z1, z2] = peak_group.getAbsChargeRange();
-          offset = peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], (z1 + z2) < 2 * low_charge_, allowed_iso_error_);
+          offset = peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol, (z1 + z2) < 2 * low_charge_, allowed_iso_error_);
           if (offset == 0)
           {
             break;
@@ -1341,7 +1341,7 @@ namespace OpenMS
         continue;
       }
 
-      double mul_factor = .5;       // dspec[i].getRepAbsCharge() < low_charge_ ? .5 : .5;
+      double mul_factor = .5;
       if (!dspec[i].isTargeted() && // z1 != z2 &&
           overlap_intensity[i] >=
             dspec[i].getIntensity() * mul_factor) // If the overlapped intensity takes more than mul_factor * total intensity then it is a peakgroup with a charge error. the smaller, the harsher
