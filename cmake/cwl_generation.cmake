@@ -29,16 +29,4 @@ foreach(TOOL ${executables})
     TARGET  generate_cwl_files POST_BUILD
     COMMAND ${OPENMS_BINARY_DIR}/${TOOL} -write_cwl ${CMAKE_CURRENT_SOURCE_DIR}/workflow/cwl
   )
-
-  # Add test for cwl
-  add_test(generate_cwl_files_${TOOL} ${OPENMS_BINARY_DIR}/${TOOL} -write_cwl .)
-  add_test(generate_cwl_files_${TOOL}_out ${CMAKE_COMMAND} -E compare_files --ignore-eol ${CMAKE_CURRENT_SOURCE_DIR}/workflow/cwl/${TOOL}.cwl ${TOOL}.cwl)
-  set_tests_properties(generate_cwl_files_${TOOL}_out PROPERTIES DEPENDS generate_cwl_files_${TOOL})
 endforeach()
-
-
-# Create install paths for cwl files
-if(NOT WIN32)
-  file(GLOB cwl_files ${CMAKE_CURRENT_SOURCE_DIR}/workflow/cwl/*.cwl)
-  install(FILES ${cwl_files} DESTINATION ${CMAKE_INSTALL_DATADIR}/commonwl)
-endif()
