@@ -56,8 +56,6 @@ namespace OpenMS
 
   public:
 
-    using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>; // a vector of spectrum pointers that DIA scores can operate on, allows for clever integration of only the target region
-
     /// Constructor
     IonMobilityScoring();
 

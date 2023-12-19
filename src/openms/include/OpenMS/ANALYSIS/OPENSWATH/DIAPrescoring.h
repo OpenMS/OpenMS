@@ -39,7 +39,6 @@ namespace OpenMS
     int nr_charges_;
 public:
 
-    using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>; // a vector of spectrum pointers that DIA scores can operate on, allows for clever integration of only the target region
     DiaPrescore();
 
     DiaPrescore(double dia_extract_window, int nr_isotopes = 4, int nr_charges = 4);

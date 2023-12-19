@@ -23,7 +23,6 @@ namespace OpenMS
   inappropriate resampling rate is chosen.
 
   */
-  using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>;
   class OPENMS_DLLAPI SpectrumAddition
   {
 

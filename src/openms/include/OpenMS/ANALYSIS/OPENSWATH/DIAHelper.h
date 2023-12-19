@@ -10,6 +10,7 @@
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 #include <vector>
 namespace OpenMS
 {

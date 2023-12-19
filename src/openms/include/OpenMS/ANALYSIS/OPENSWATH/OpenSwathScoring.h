@@ -41,8 +41,6 @@ namespace OpenMS
     typedef OpenSwath::LightCompound CompoundType;
     typedef OpenSwath::LightTransition TransitionType;
 
-    using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>; // a vector of spectrum pointers that DIA scores can operate on, allows for clever integration of only the target region
-
     enum class SpectrumAdditionMethod
     {
       ADDITION,
