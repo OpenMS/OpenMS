@@ -121,21 +121,21 @@ START_SECTION((static void uncompressString(const void * compressed_data, size_t
   ZlibCompression::compressString(raw_data2, compressed_data);
   ZlibCompression::uncompressString(&compressed_data[0], compressed_data.size(), uncompressed_data);
   TEST_EQUAL(raw_data2.size(), 64)
-  TEST_TRUE(compressed_data.size() < raw_data.size())  
+  TEST_TRUE(compressed_data.size() < raw_data2.size())  
   TEST_EQUAL(uncompressed_data.size(), 64)
   TEST_TRUE(uncompressed_data == raw_data2)
 
   ZlibCompression::compressString(raw_data3, compressed_data);
   ZlibCompression::uncompressString(&compressed_data[0], compressed_data.size(), uncompressed_data);
   TEST_EQUAL(raw_data3.size(), 105)
-  TEST_TRUE(compressed_data.size() < raw_data.size())  
+  TEST_TRUE(compressed_data.size() < raw_data3.size())  
   TEST_EQUAL(uncompressed_data.size(), 105)
   TEST_TRUE(uncompressed_data == raw_data3)
 
   ZlibCompression::compressString(raw_data4, compressed_data);
   ZlibCompression::uncompressString(&compressed_data[0], compressed_data.size(), uncompressed_data);
   TEST_EQUAL(raw_data4.size(), 1052)
-  TEST_TRUE(compressed_data.size() < raw_data.size())  
+  TEST_TRUE(compressed_data.size() < raw_data4.size())  
   TEST_EQUAL(uncompressed_data.size(), 1052)
   TEST_TRUE(uncompressed_data == raw_data4)
 }
