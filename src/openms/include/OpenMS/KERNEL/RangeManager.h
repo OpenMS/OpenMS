@@ -39,10 +39,6 @@ namespace OpenMS
   public:
     /// C'tor: initialize with empty range
     RangeBase() = default;
-    /*
-    RangeBase():
-     min_(0), max_(-1);
-    */
 
     /// Cutom C'tor which sets the range to a singular point
     RangeBase(const double single) :
