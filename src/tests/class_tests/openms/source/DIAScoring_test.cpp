@@ -21,8 +21,6 @@ using namespace std;
 using namespace OpenMS;
 using namespace OpenSwath;
 
-using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>;
-
 void getMRMFeatureTest(MockMRMFeature * imrmfeature_test)
 {
   boost::shared_ptr<MockFeature> f1_ptr = boost::shared_ptr<MockFeature>(new MockFeature());

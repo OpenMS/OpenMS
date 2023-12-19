@@ -285,4 +285,3 @@ namespace OpenMS
     SpectrumSequence fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add, const RangeMobility& im_range);
   };
 }
-

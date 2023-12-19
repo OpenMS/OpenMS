@@ -163,7 +163,7 @@ namespace OpenMS
       // value. Otherwise, calculate the difference in ppm.
       if (!signalFound)
       {
-        ppm_score = (mz_range.getSpan()) / precursor_mz * 1000000;
+        ppm_score = Math::getPPMAbs(precursor_mz + mz_range.getSpan(), precursor_mz);
         return false;
       }
       else
