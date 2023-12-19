@@ -198,14 +198,14 @@ def parse_annotation(annotation: str):
     :returns: A dictionary containing the parsed annotation.
     """
     import re
-    ion_type, neutral_loss, adduct, charge = None, None, None, 0
-    regex = '([abcxyz]+\d+)-?(\w*)([\+\-]?)'
+    ion_type, neutral_loss, adduct, charge = None, None, None, None
+    regex = '([abcxyz]+\d+)-?(\w*)([\+\-]+)'
     match = re.search(regex, annotation)
     adduct_regex = '(\[\S+\])\s?(\S+)?'
     adduct_match = re.search(adduct_regex, annotation)
 
     if match is not None:
-        ion_type = match.group(1)
+        ion_type = match.group(1)[0] + fr'$_{{{match.group(1)[1:]}}}$'
         neutral_loss = match.group(2) if match.group(2) != '' else None
         charge = match.group(3).count('+') - match.group(3).count('-')
     if annotation.find(':') != -1:  # compound
@@ -216,7 +216,7 @@ def parse_annotation(annotation: str):
         neutral_loss = adduct_match.group(2) if adduct_match.group(2) != '' else None
     if ion_type is None:
         ion_type = '?' + annotation
-    if ion_type != '?' and charge == 0:
+    if ion_type != '?' and charge is None:
         charge = 1
 
     analyte_number = None
@@ -267,10 +267,11 @@ def spectrum_to_spectrum_utils(
     for string_data in spectrum.getStringDataArrays()[0]:
         annotation = str(string_data)[1:].replace('"', '').replace("'", '')
         pi = PeakInterpretation()
-        if annotation != '':
-            annotation_data = annot_func(annotation)
-            f = FragmentAnnotation(**annotation_data)
-            pi.fragment_annotations.append(f)
+        annotation_data = annot_func(annotation)
+        f = FragmentAnnotation(**annotation_data)
+        if annotation_data['adduct'] is None:  # no default adduct
+            f.adduct = ''
+        pi.fragment_annotations.append(f)
         peak_interpretations.append(pi)
     utils_spectrum._annotation = peak_interpretations
     return utils_spectrum
@@ -313,7 +314,8 @@ def peptide_hit_to_spectrum_utils(
 
 
 def show_annotations(annotation: "FragmentAnnotation", ion_types: str='abcxyz', ions: Optional[bool]=True,
-                     charges: Optional[bool]=False, losses: Optional[bool]=False, adducts: Optional[bool]=False):
+                     charges: Optional[bool]=False, losses: Optional[bool]=False, adducts: Optional[bool]=False,
+                     formula: Optional[bool]=False):
     """ toggle which annotations to show.
 
     :param annotation: The annotation string to be parsed.
@@ -328,17 +330,23 @@ def show_annotations(annotation: "FragmentAnnotation", ion_types: str='abcxyz', 
 
     :param adducts: Whether to show the adduct. Default: False.
 
+    :param formula: Whether to show a chemical formula. Default: False.
+
     :returns: The annotation string.
 
     """
     output = ''
-    if ions:
-        output += annotation.ion_type if annotation.ion_type[0] in ion_types else annotation.ion_type[1:]
-    if losses:
-        output += annotation.neutral_loss if annotation.neutral_loss is not None else ''
+    if ions and annotation.ion_type[0] in ion_types:
+        output += annotation.ion_type
+    if formula and annotation.ion_type[0] == 'f':
+        output += annotation.ion_type[1:]
+    if losses and annotation.neutral_loss is not None:
+        output += annotation.neutral_loss
     if adducts:
-        output += annotation.adduct if annotation.adduct is not None else ''
-    if charges:
-        output += f'{annotation.charge:+d}' if annotation.charge is not None else ''
+        output += annotation.adduct
+    if charges and annotation.charge is not None:
+        # don't show +1 charges, in case of -1 charge show a - sign
+        charge = f'{annotation.charge:+d}'.replace('+1', '').replace('1', '')
+        output += fr'$^{{{charge}}}$'
     return output
 
