@@ -13,50 +13,52 @@
 
 namespace OpenMS
 {
-  // IsotopeCosine                   42.2496 centroid + profile
-  // ChargeCosine                      2.8767
-  // MassSNR1                         -0.1523
-  // ChargeSNR1                        0.4797
-  // Intercept                       -45.5284
 
   //==================================== CV 0
-  // IsotopeCosine                27.6125
-  // ChargeCosine                  3.1915
-  // MassSNR1                      0.1087
-  // ChargeSNR1                   -0.5081
-  // Intercept                   -26.9646
+  // IsotopeCosine          16.7614
+  // ChargeCosine            -0.8677
+  // MassSNR1                 0.2665
+  // ChargeSNR1              -0.3478
+  // Intercept              -14.1557
 
-  std::vector<double> Qscore::weight_CV_0_ {-27.6125, -3.1915, -0.1087, 0.5081, 26.9646};
+  std::vector<double> Qscore::weight_CV_0_ {-16.7614, 0.8677, -0.2665, 0.3478, 14.1557};
 
   //====================================== CV 40
-  // IsotopeCosine                  24.3741
-  // ChargeCosine                    4.2927
-  // MassSNR1                        0.1893
-  // ChargeSNR1                     -0.5764
-  // Intercept                     -25.1341
+  // IsotopeCosine         13.9501
+  // ChargeCosine            -0.705
+  // MassSNR1                0.2562
+  // ChargeSNR1             -0.3645
+  // Intercept             -11.6675
 
-  std::vector<double> Qscore::weight_CV_40_ {-24.3741, -4.2927, -0.1893, 0.5764, 25.1341};
+  std::vector<double> Qscore::weight_CV_40_ {-13.9501, 0.705, -0.2562, 0.3645, 11.6675};
 
   // ====================================== CV 50
-  // IsotopeCosine                  28.0786
-  // ChargeCosine                      3.89
-  // MassSNR1                        0.1007
-  // ChargeSNR1                     -0.5481
-  // Intercept                     -27.8257
+  // IsotopeCosine           19.0932
+  // ChargeCosine             -0.4785
+  // MassSNR1                  0.2784
+  // ChargeSNR1               -0.3956
+  // Intercept               -16.5475
 
-  std::vector<double> Qscore::weight_CV_50_ {-28.0786, -3.89, -0.1007, 0.5481, 27.8257};
+  std::vector<double> Qscore::weight_CV_50_ {-19.0932, 0.4785, -0.2784, 0.3956, 16.5475};
 
   //====================================== CV 60
-  // IsotopeCosine                  32.4126
-  // ChargeCosine                     1.463
-  // MassSNR1                        0.0073
-  // ChargeSNR1                     -0.4006
-  // Intercept                     -29.7409
+  // IsotopeCosine           20.2079
+  // ChargeCosine             -1.4063
+  // MassSNR1                  0.1948
+  // ChargeSNR1               -0.2952
+  // Intercept               -16.1873
 
-  std::vector<double> Qscore::weight_CV_60_ {-32.4126, -1.463, -0.0073, 0.4006, 29.7409};
+  std::vector<double> Qscore::weight_CV_60_ {-20.2079, 1.4063, -0.1948, 0.2952, 16.1873};
 
-  std::vector<double> Qscore::weight_centroid_ {-42.2496, -2.8767, 0.1523, -0.4797, 45.5284};
-  std::vector<double> Qscore::weight_profile_ {-42.2496, -2.8767, 0.1523, -0.4797, 45.5284};
+  //====================================== Normal
+  // IsotopeCosine        12.778
+  // ChargeCosine         -1.6103
+  // MassSNR1             -0.0726
+  // ChargeSNR1           -0.0815
+  // Intercept            -9.7626
+
+  std::vector<double> Qscore::weight_centroid_ {-12.778, 1.6103, 0.0726, 0.0815, 9.7626};
+  std::vector<double> Qscore::weight_profile_ {-12.778, 1.6103, 0.0726, 0.0815, 9.7626};
 
 
   double Qscore::getQscore(const PeakGroup* pg, const MSSpectrum& spectrum)
@@ -140,33 +142,24 @@ namespace OpenMS
     return fvector;
   }
 
-  void Qscore::writeAttCsvFromDummyHeader(std::fstream& f)
+  void Qscore::writeAttCsvForQscoreTrainingHeader(std::fstream& f)
   {
-    f << "MSLevel,Cos,SNR,AvgPPMError,ChargeScore,Class\n";
+    Size att_count = weight_centroid_.size() - 1;
+    for (Size i = 0; i < att_count; i++)
+      f << "Att" << i << ",";
+    f << "Class\n";
   }
 
-  void Qscore::writeAttCsvFromDummy(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
+  void Qscore::writeAttCsvForQscoreTraining(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
   {
-    uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
-    String cns[] = {"T", "D", "D", "D"};
     for (auto& pg : deconvolved_spectrum)
     {
-      if (pg.getChargeSNR(pg.getRepAbsCharge()) < .5) // remove masses with too low SNRs - they act as outliers.
-      {
-        continue;
-      }
-      if (pg.getChargeIsotopeCosine(pg.getRepAbsCharge()) < .85) // remove masses with too low SNRs - they act as outliers.
-      {
-        continue;
-      }
-
       auto fv = toFeatureVector_(&pg);
-      f << ms_level << ",";
       for (auto& item : fv)
       {
         f << item << ",";
       }
-      f << cns[pg.getTargetDecoyType()] << "\n";
+      f << (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::target? "T" : "F") << "\n";
     }
   }
 } // namespace OpenMS

@@ -6,6 +6,7 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 #define USE_TAGGER
+#define TRAIN_OUT
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
@@ -20,7 +21,9 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <QFileInfo>
-
+#ifdef TRAIN_OUT
+  #include <OpenMS/ANALYSIS/TOPDOWN/Qscore.h>
+#endif
 using namespace OpenMS;
 using namespace std;
 
@@ -346,7 +349,8 @@ protected:
 
       for (const auto& dspec : deconvolved_spectra)
       {
-        if (dspec.isDecoy()) continue;
+        if (dspec.isDecoy())
+          continue;
         for (const auto& pg : dspec)
           dspec_for_tagging.push_back(pg);
       }
@@ -354,11 +358,13 @@ protected:
       if (deconvolved_spectra.size() > 1)
       {
         dspec_for_tagging.sort();
-        SpectralDeconvolution::removeOverlappingPeakGroups(dspec_for_tagging, 1e-6 * tols[deconvolved_spectra[0].getOriginalSpectrum().getMSLevel() - 1]); // merged peak groups have scan number information!
+        SpectralDeconvolution::removeOverlappingPeakGroups(dspec_for_tagging,
+                                                           1e-6 * tols[deconvolved_spectra[0].getOriginalSpectrum().getMSLevel() - 1]); // merged peak groups have scan number information!
       }
 
       dspec_for_tagging.sortByQscore();
-      while (dspec_for_tagging.size() > 1000) dspec_for_tagging.pop_back();
+      while (dspec_for_tagging.size() > 1000)
+        dspec_for_tagging.pop_back();
       dspec_for_tagging.sort();
 
       tagger.run(dspec_for_tagging, tols[dspec_for_tagging.getOriginalSpectrum().getMSLevel() - 1], tags);
@@ -418,6 +424,10 @@ protected:
     if (!out_spec_file.empty())
     {
       std::vector<fstream> out_spec_streams = std::vector<fstream>(out_spec_file.size());
+#ifdef TRAIN_OUT
+      std::vector<fstream> out_train_streams = std::vector<fstream>(out_spec_file.size());
+#endif
+
       for (Size i = 0; i < out_spec_file.size(); i++)
       {
         if (out_spec_file[i].empty() || (!keep_empty_out && per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()))
@@ -426,6 +436,10 @@ protected:
 
         out_spec_streams[i].open(out_spec_file[i], fstream::out);
         FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail, report_decoy);
+#ifdef TRAIN_OUT
+        out_train_streams[i].open(out_spec_file[i] + "_train.csv", fstream::out);
+        Qscore::writeAttCsvForQscoreTrainingHeader(out_train_streams[i]);
+#endif
       }
 
       std::map<int, DeconvolvedSpectrum> target_spec_map;
@@ -438,8 +452,10 @@ protected:
           continue;
         if (report_decoy)
           target_spec_map[deconvolved_spectrum.getScanNumber()] = deconvolved_spectrum;
-        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail,
-                                                        report_decoy);
+        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail, report_decoy);
+#ifdef TRAIN_OUT
+        Qscore::writeAttCsvForQscoreTraining(deconvolved_spectrum, out_train_streams[ms_level - 1]);
+#endif
       }
 
       if (report_decoy)
@@ -451,8 +467,10 @@ protected:
             continue;
           if (!deconvolved_spectrum.isDecoy())
             continue;
-          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail,
-                                                          report_decoy);
+          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail, report_decoy);
+#ifdef TRAIN_OUT
+          Qscore::writeAttCsvForQscoreTraining(deconvolved_spectrum, out_train_streams[ms_level - 1]);
+#endif
         }
       }
 
@@ -461,6 +479,9 @@ protected:
         if (out_spec_file[i].empty() || (!keep_empty_out && per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()))
           continue;
         out_spec_streams[i].close();
+#ifdef TRAIN_OUT
+        out_train_streams[i].close();
+#endif
       }
     }
     // topFD feature output

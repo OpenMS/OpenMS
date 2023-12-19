@@ -320,19 +320,24 @@ namespace OpenMS
             sd_isotope_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
           }
           DeconvolvedSpectrum decoy_deconvolved_spectrum(scan_number);
+
+          deconvolved_spectrum.sortByQscore();
+          double qscore_threshold_for_decoy = deconvolved_spectrum.back().getQscore();
+
           decoy_deconvolved_spectrum.setOriginalSpectrum(spec);
           decoy_deconvolved_spectrum.reserve(sd_isotope_decoy_.getDeconvolvedSpectrum().size() + sd_charge_decoy_.getDeconvolvedSpectrum().size() + sd_noise_decoy_.getDeconvolvedSpectrum().size());
 
           for (auto& pg : sd_charge_decoy_.getDeconvolvedSpectrum())
-            decoy_deconvolved_spectrum.push_back(pg);
+            if (pg.getQscore2D() >= qscore_threshold_for_decoy) decoy_deconvolved_spectrum.push_back(pg);
 
           for (auto& pg : sd_isotope_decoy_.getDeconvolvedSpectrum())
-            decoy_deconvolved_spectrum.push_back(pg);
+            if (pg.getQscore2D() >= qscore_threshold_for_decoy) decoy_deconvolved_spectrum.push_back(pg);
 
           for (auto& pg : sd_noise_decoy_.getDeconvolvedSpectrum())
-            decoy_deconvolved_spectrum.push_back(pg);
+            if (pg.getQscore2D() >= qscore_threshold_for_decoy) decoy_deconvolved_spectrum.push_back(pg);
 
           decoy_deconvolved_spectrum.sort();
+          deconvolved_spectrum.sort();
 
           if (!decoy_deconvolved_spectrum.empty())
             deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
