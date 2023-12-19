@@ -125,8 +125,7 @@ namespace OpenMS
     {
       const TransitionType& transition = transitions[k];
 
-      RangeMZ mz_range(transition.getProductMZ());
-      mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
+      RangeMZ mz_range = DIAHelpers::createMZRangePPM(transition.getProductMZ(), dia_extract_window_, dia_extraction_ppm_);
       double mz, intensity, im;
       bool signalFound = DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
       // Continue if no signal was found - we therefore don't make a statement
@@ -157,8 +156,7 @@ namespace OpenMS
     double mz, intensity, im;
     {
       // Calculate the difference of the theoretical mass and the actually measured mass
-      RangeMZ mz_range(precursor_mz);
-      mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
+      RangeMZ mz_range = DIAHelpers::createMZRangePPM(precursor_mz, dia_extract_window_, dia_extraction_ppm_);
       bool signalFound = DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
 
       // Catch if no signal was found and replace it with the most extreme
@@ -202,8 +200,7 @@ namespace OpenMS
     double abs_charge = std::fabs(static_cast<double>(charge_state));
     for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
     {
-      RangeMZ mz_range(precursor_mz + iso * C13C12_MASSDIFF_U / abs_charge);
-      mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
+      RangeMZ mz_range = DIAHelpers::createMZRangePPM(precursor_mz + iso * C13C12_MASSDIFF_U / abs_charge, dia_extract_window_, dia_extraction_ppm_);
       double mz, intensity, im;
 
       DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
@@ -242,8 +239,7 @@ namespace OpenMS
     OpenMS::DIAHelpers::getBYSeries(sequence, bseries, yseries, generator, charge);
     for (const auto& b_ion_mz : bseries)
     {
-      RangeMZ mz_range(b_ion_mz);
-      mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
+      RangeMZ mz_range = DIAHelpers::createMZRangePPM(b_ion_mz, dia_extract_window_, dia_extraction_ppm_);
 
       bool signalFound = DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
       double ppmdiff = Math::getPPMAbs(mz, b_ion_mz);
@@ -254,8 +250,7 @@ namespace OpenMS
     }
     for (const auto& y_ion_mz : yseries)
     {
-      RangeMZ mz_range(y_ion_mz);
-      mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
+      RangeMZ mz_range = DIAHelpers::createMZRangePPM(y_ion_mz, dia_extract_window_, dia_extraction_ppm_);
 
       bool signalFound = DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
       double ppmdiff = Math::getPPMAbs(mz, y_ion_mz);
@@ -314,9 +309,7 @@ namespace OpenMS
       double abs_charge = std::fabs(static_cast<double>(putative_fragment_charge));
       for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
       {
-
-        RangeMZ mz_range(transitions[k].getProductMZ() + iso * C13C12_MASSDIFF_U / abs_charge);
-        mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
+        RangeMZ mz_range = DIAHelpers::createMZRangePPM(transitions[k].getProductMZ() + iso * C13C12_MASSDIFF_U / abs_charge, dia_extract_window_, dia_extraction_ppm_);
         double mz, intensity, im;
         DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
         isotopes_int.push_back(intensity);
@@ -340,8 +333,7 @@ namespace OpenMS
     for (int ch = 1; ch <= dia_nr_charges_; ++ch)
     {
       double center =  mono_mz - C13C12_MASSDIFF_U / (double) ch;
-      RangeMZ mz_range(center);
-      mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
+      RangeMZ mz_range = DIAHelpers::createMZRangePPM(center, dia_extract_window_, dia_extraction_ppm_);
 
       bool signalFound = DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
       // Continue if no signal was found - we therefore don't make a statement

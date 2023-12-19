@@ -13,6 +13,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <utility>
 
@@ -155,7 +156,7 @@ namespace OpenMS::DIAHelpers
       {
         // assemble RangeMZ object based on window
         RangeMZ range_mz(*beg);
-        range_mz.minSpanIfSingular(width, false);
+        range_mz.minSpanIfSingular(width);
 
         if (integrateWindow(spectrum, mz, im, intensity, range_mz, range_im, false))
         {
@@ -209,7 +210,7 @@ namespace OpenMS::DIAHelpers
       {
         //assemble rangeMZ object based on windows
         RangeMZ range_mz(*beg);
-        range_mz.minSpanIfSingular(width, false);
+        range_mz.minSpanIfSingular(width);
 
         if (integrateWindow(spectra, mz, im, intensity, range_mz, range_im, false))
         {
@@ -508,6 +509,21 @@ namespace OpenMS::DIAHelpers
       {
         mass.push_back(peaks[i].second);
       }
+    }
+
+    RangeMZ createMZRangePPM(const double mzRef, const double dia_extraction_window, const bool is_ppm)
+    {
+      RangeMZ rangeMZ(mzRef);
+      if (is_ppm)
+      {
+        double ppm =  Math::ppmToMass(dia_extraction_window, mzRef);
+        rangeMZ.minSpanIfSingular(ppm);
+      }
+      else
+      {
+        rangeMZ.minSpanIfSingular(dia_extraction_window);
+      }
+      return rangeMZ;
     }
 
     //modify masses by charge

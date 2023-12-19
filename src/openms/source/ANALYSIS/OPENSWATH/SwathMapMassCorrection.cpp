@@ -229,9 +229,7 @@ namespace OpenMS
       {
         if (ms1_im_) {continue;}
         double intensity(0), im(0), mz(0);
-
-        RangeMZ mz_range(tr.product_mz);
-        mz_range.minSpanIfSingular(mz_extr_window, ppm);
+        RangeMZ mz_range = DIAHelpers::createMZRangePPM(tr.product_mz, mz_extr_window, ppm);
 
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
@@ -284,8 +282,7 @@ namespace OpenMS
       {
         const auto& tr = transition_group->getTransitions()[0];
         double intensity(0), im(0), mz(0);
-        RangeMZ mz_range(tr.precursor_mz);
-        mz_range.minSpanIfSingular(mz_extr_window, ppm);
+        RangeMZ mz_range = DIAHelpers::createMZRangePPM(tr.precursor_mz, mz_extr_window, ppm);
 
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
@@ -450,8 +447,7 @@ namespace OpenMS
       for (const auto& tr : transition_group->getTransitions())
       {
         double mz, intensity, im;
-        RangeMZ mz_range(tr.product_mz);
-        mz_range.minSpanIfSingular(mz_extr_window, ppm);
+        RangeMZ mz_range = DIAHelpers::createMZRangePPM(tr.product_mz, mz_extr_window, ppm);
         bool centroided = false;
 
         // integrate spectrum at the position of the theoretical mass

@@ -96,11 +96,11 @@ START_SECTION(bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum, doubl
 
   //Mz range from 101 to 103
   RangeMZ mz_range(102.);
-  mz_range.minSpanIfSingular(2., false); // not in ppm
+  mz_range.minSpanIfSingular(2.); // not in ppm
                                          //
   //mz range from 101 to 109
   RangeMZ mz_range_2(105.);
-  mz_range_2.minSpanIfSingular(8., false); // not in ppm
+  mz_range_2.minSpanIfSingular(8.); // not in ppm
 
   {
     //Test integration of empty spectrum
@@ -169,12 +169,12 @@ START_SECTION(bool integrateWindow(const SpectrumSequence& spectra, double & mz,
 
   //Mz range from 101 to 103
   RangeMZ mz_range(102.); // not in ppm
-  mz_range.minSpanIfSingular(2., false);
+  mz_range.minSpanIfSingular(2.);
 
 
   //mz range from 101 to 109
   RangeMZ mz_range_2(105.);
-  mz_range_2.minSpanIfSingular(8., false); // not in ppm
+  mz_range_2.minSpanIfSingular(8.); // not in ppm
 
 
   {

@@ -16,7 +16,6 @@
 #include <algorithm> // for min/max
 #include <cassert>
 #include <iosfwd>  // for std::ostream
-#include <iostream>
 
 namespace OpenMS
 {
@@ -394,28 +393,6 @@ namespace OpenMS
     bool containsMZ(const double value) const
     {
       return RangeBase::contains(value);
-    }
-
-    /* If the current range is a single point (e.g. min==max), then extend the range by min_span/2 on either side.
-     * If @p ppm is True, range min_span is assumed to be in ppm
-     * Unit of min_span is in ppm
-     * @note range min_ cannot be negative, will autocorrect to 0 if have a negative value
-     */
-    void minSpanIfSingular(const double initial_min_span, const bool ppm=false)
-    {
-      if (ppm & (min_ == max_) )
-      {
-        min_ -= min_ * initial_min_span / 2e6;
-        max_ += max_ * initial_min_span / 2e6;
-      }
-      else
-      {
-        RangeBase::minSpanIfSingular(initial_min_span);
-      }
-      if (min_ < 0)
-      {
-        min_ = 0;
-      }
     }
 
     /// is the range @p inner_range within [min, max] of this range?

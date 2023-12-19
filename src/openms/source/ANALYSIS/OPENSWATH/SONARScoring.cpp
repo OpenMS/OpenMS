@@ -187,8 +187,7 @@ namespace OpenMS
         OpenSwath::SpectrumPtr spectrum_ = swath_map->getSpectrumById(closest_idx);
 
         // integrate intensity within that scan
-        RangeMZ mz_range(transitions[k].getProductMZ());
-        mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
+        RangeMZ mz_range = DIAHelpers::createMZRangePPM(transitions[k].getProductMZ(), dia_extract_window_, dia_extraction_ppm_);
 
         double mz, intensity, im; // create im even though not used
         RangeMobility im_range;

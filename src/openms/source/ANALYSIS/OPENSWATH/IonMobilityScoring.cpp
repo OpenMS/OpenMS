@@ -243,8 +243,7 @@ namespace OpenMS
       IonMobilogram res;
       const TransitionType transition = transitions[k];
       // Calculate the difference of the theoretical ion mobility and the actually measured ion mobility
-      RangeMZ mz_range(transition.getProductMZ());
-      mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
+      RangeMZ mz_range = DIAHelpers::createMZRangePPM(transition.getProductMZ(), dia_extract_window_, dia_extraction_ppm_);
 
       computeIonMobilogram(spectra, mz_range, im_range, im, intensity, res, eps);
       mobilograms.push_back( std::move(res) );
@@ -253,8 +252,7 @@ namespace OpenMS
     // Step 2: MS1 extraction
     double im(0), intensity(0);
     IonMobilogram ms1_profile;
-    RangeMZ mz_range(transitions[0].getPrecursorMZ());
-    mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
+    RangeMZ mz_range = DIAHelpers::createMZRangePPM(transitions[0].getPrecursorMZ(), dia_extract_window_, dia_extraction_ppm_);
 
     computeIonMobilogram(ms1spectrum, mz_range, im_range, im, intensity, ms1_profile, eps); // TODO: aggregate over isotopes
     mobilograms.push_back(ms1_profile);
@@ -334,8 +332,8 @@ namespace OpenMS
     im_range.scaleBy(drift_extra * 2. + 1); // multiple by 2 because want drift extra to be extended by that amount on either side
 
     double im(0), intensity(0), mz(0);
-    RangeMZ mz_range(transitions[0].getPrecursorMZ());
-    mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
+    RangeMZ mz_range = DIAHelpers::createMZRangePPM(transitions[0].getPrecursorMZ(), dia_extract_window_, dia_extraction_ppm_);
+
     DIAHelpers::integrateWindow(spectra, mz, im, intensity, mz_range, im_range);
 
     // Record the measured ion mobility
@@ -387,8 +385,7 @@ namespace OpenMS
       double im(0), intensity(0);
 
       // Calculate the difference of the theoretical ion mobility and the actually measured ion mobility
-      RangeMZ mz_range(transition.getProductMZ());
-      mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
+      RangeMZ mz_range = DIAHelpers::createMZRangePPM(transition.getProductMZ(), dia_extract_window_, dia_extraction_ppm_);
 
       //double left(transition.getProductMZ()), right(transition.getProductMZ());
       //DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);

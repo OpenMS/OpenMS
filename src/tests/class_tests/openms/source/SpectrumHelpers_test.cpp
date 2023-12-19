@@ -66,7 +66,7 @@ START_SECTION ( [EXTRA] testscorefunction)
   // mz range from 499 to 501
   RangeMZ mz_range(500.);
   RangeMobility im_range_empty;
-  mz_range.minSpanIfSingular(2., false);
+  mz_range.minSpanIfSingular(2.);
   DIAHelpers::integrateWindow(sptrArr, mzres, imres, intensityres, mz_range, im_range_empty);
 
   TEST_REAL_SIMILAR(mzres, 499.392014652015);

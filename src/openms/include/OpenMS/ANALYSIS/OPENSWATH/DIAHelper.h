@@ -151,6 +151,13 @@ namespace OpenMS
     /// extract second from vector of pairs
     OPENMS_DLLAPI void extractSecond(const std::vector<std::pair<double, double> >& peaks, std::vector<double>& mass);
 
+    /** @brief optionally convert a DIA extraction window from ppm to m/z
+      @param dia_extraction_window - how wide the extraction window is total (can be in m/z or ppm)
+      @param ppm  - whether the extraction window is in ppm or not
+      @return the extraction window in m/z
+    */
+    OPENMS_DLLAPI RangeMZ createMZRangePPM(double mz_ref, double dia_extraction_window, const bool ppm);
+
 
     /**
       @brief Helper function for integrating a spectrum.
