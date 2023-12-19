@@ -51,14 +51,14 @@ namespace OpenMS
   std::vector<double> Qscore::weight_CV_60_ {-20.2079, 1.4063, -0.1948, 0.2952, 16.1873};
 
   //====================================== Normal
-  // IsotopeCosine        12.778
-  // ChargeCosine         -1.6103
-  // MassSNR1             -0.0726
-  // ChargeSNR1           -0.0815
-  // Intercept            -9.7626
+  // Att0               17.6821
+  // Att1               -5.0559
+  // Att2               -1.1103
+  // Att3                1.2378
+  // Intercept         -12.1375
 
-  std::vector<double> Qscore::weight_centroid_ {-12.778, 1.6103, 0.0726, 0.0815, 9.7626};
-  std::vector<double> Qscore::weight_profile_ {-12.778, 1.6103, 0.0726, 0.0815, 9.7626};
+  std::vector<double> Qscore::weight_centroid_ {-17.6821, 5.0559, 1.1103, -1.2378, 12.1375};
+  std::vector<double> Qscore::weight_profile_ {-17.6821, 5.0559, 1.1103, -1.2378, 12.1375};
 
 
   double Qscore::getQscore(const PeakGroup* pg, const MSSpectrum& spectrum)
