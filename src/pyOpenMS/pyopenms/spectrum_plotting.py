@@ -334,11 +334,11 @@ def show_annotations(annotation: "FragmentAnnotation", ion_types: str='abcxyz', 
     output = ''
     if ions:
         output += annotation.ion_type if annotation.ion_type[0] in ion_types else annotation.ion_type[1:]
-    if charges:
-        output += f'{annotation.charge:+d}' if annotation.charge is not None else ''
     if losses:
         output += annotation.neutral_loss if annotation.neutral_loss is not None else ''
     if adducts:
         output += annotation.adduct if annotation.adduct is not None else ''
+    if charges:
+        output += f'{annotation.charge:+d}' if annotation.charge is not None else ''
     return output
 
