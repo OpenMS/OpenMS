@@ -47,7 +47,20 @@ namespace OpenMS
       const MapToResidueType& fixed_mods, 
       AASequence& peptide);
 
-    // Applies variable modifications to a single peptide. If keep_original is set the original (e.g. unmodified version) is also returned
+    /**
+    * @brief Apply variable modifications to a peptide.
+    *
+    * This function applies variable modifications to a given peptide based on the provided mapping
+    * of modifications to residue types. It generates all possible modified peptide variants
+    * considering the specified constraints such as the maximum number of variable modifications
+    * allowed per peptide and whether unmodified peptides should be retained.
+    *
+    * @param var_mods A mapping of modifications to residue types.
+    * @param peptide The original peptide to which modifications will be applied.
+    * @param max_variable_mods_per_peptide The maximum number of variable modifications allowed per peptide.
+    * @param all_modified_peptides Output parameter to store all generated modified peptides.
+    * @param keep_unmodified Flag indicating whether unmodified peptides should be retained.
+    */    
     static void applyVariableModifications(
      const MapToResidueType& var_mods, 
      const AASequence& peptide, 
@@ -55,8 +68,24 @@ namespace OpenMS
      std::vector<AASequence>& all_modified_peptides, 
      bool keep_original=true);
 
+
+    /**
+    * @brief Apply variable modifications to a peptide to obtain the modified sequence and mass.
+    *
+    * This function applies variable modifications to a given peptide based on the provided mapping
+    * of modifications to residue types. It generates all possible modified peptide variants
+    * considering the specified constraints such as the maximum number of variable modifications
+    * allowed per peptide and whether unmodified peptides should be retained. Additionally, it
+    * calculates and stores the monoisotopic mass of each modified peptide.
+    *
+    * @param var_mods A mapping of modifications to residue types.
+    * @param peptide The original peptide to which modifications will be applied.
+    * @param max_variable_mods_per_peptide The maximum number of variable modifications allowed per peptide.
+    * @param all_modified_peptides Output parameter to store all generated modified peptides with their masses.
+    * @param keep_unmodified Flag indicating whether unmodified peptides should be retained.
+    */
     typedef std::pair<AASequence, double> AASequenceWMass;
-    static void applyVariableModificationsWithMasses(
+    static void generateVariableModifiedPeptidesWithMasses(
      const MapToResidueType& var_mods, 
      const AASequence& peptide, 
      Size max_variable_mods_per_peptide,

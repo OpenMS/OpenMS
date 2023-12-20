@@ -265,7 +265,7 @@ namespace OpenMS
     }
   }
 
-   void ModifiedPeptideGenerator::applyVariableModificationsWithMasses(
+   void ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(
      const MapToResidueType& var_mods, 
      const AASequence& peptide, 
      Size max_variable_mods_per_peptide,
