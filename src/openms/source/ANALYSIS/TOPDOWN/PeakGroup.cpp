@@ -291,7 +291,6 @@ namespace OpenMS
         double current_error = std::abs((double)bin - normalized_dist * (max_bin_number - 5));
         if (per_bin_edges[bin][i] != 0)
         {
-          Size l = per_bin_edges[bin][i];
           if (prev_error < current_error) continue;
         }
         per_bin_edges[bin][i] = j;

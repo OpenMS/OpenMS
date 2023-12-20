@@ -146,6 +146,9 @@ protected:
                   "If set to 1, all peak information (m/z, intensity, charge and isotope index) per mass is reported.",
                   false);
 
+
+    registerDoubleOption_("precursor_snr", "<snr value>", 1.0, "Precursor SNR threshold for TopFD MS2 msalign tsv files.", false, true);
+
     registerDoubleOption_("min_mz", "<m/z value>", -1.0, "If set to positive value, minimum m/z to deconvolve.", false, true);
     registerDoubleOption_("max_mz", "<m/z value>", -1.0, "If set to positive value, maximum m/z to deconvolve.", false, true);
     registerDoubleOption_("min_rt", "<RT value>", -1.0, "If set to positive value, minimum RT (in second) to deconvolve.", false, true);
@@ -242,6 +245,7 @@ protected:
     Param fd_param;
     fd_param.insert("", tmp_fd_param);
     bool report_decoy = tmp_fd_param.getValue("report_FDR") != "false";
+    double topfd_snr_threshold = tmp_fd_param.getValue("ida_log").toString().empty()?  getDoubleOption_("precursor_snr") : .0;
 
     tmp_fd_param = getParam_().copy("SD:", false);
     fd_param.insert("", tmp_fd_param);
@@ -501,6 +505,7 @@ protected:
     if (!out_topfd_file.empty())
     {
       auto out_topfd_streams = std::vector<fstream>(out_topfd_file.size());
+
       for (Size i = 0; i < out_topfd_file.size(); i++)
       {
         if (out_topfd_file[i].empty() || (!keep_empty_out && per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()))
@@ -517,7 +522,7 @@ protected:
         if (out_topfd_file[ms_level - 1].empty())
           continue;
 
-        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1], in_file, 0, 1, per_ms_level_deconv_spec_count.begin()->first, false, false);
+        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1], in_file, topfd_snr_threshold, 1, per_ms_level_deconv_spec_count.begin()->first, false, false);
       }
 
       for (Size i = 0; i < out_topfd_file.size(); i++)
