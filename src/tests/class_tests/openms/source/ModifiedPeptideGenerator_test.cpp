@@ -170,6 +170,27 @@ START_SECTION((static void generateVariableModifiedPeptidesWithMasses(const Modi
   ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, is_n_terminal_peptide, is_c_terminal_peptide, 3, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 0);
   modified_peptides.clear();
+
+  // Amidation is "C-term" and "Protein C-term" without AA preference in unimod
+  modNames.clear();
+  modNames << "Amidated (C-term)";
+  variable_mods = ModifiedPeptideGenerator::getModifications(modNames);
+  is_c_terminal_peptide = false;
+  is_n_terminal_peptide = false;
+  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, is_n_terminal_peptide, is_c_terminal_peptide, 3, modified_peptides, false);
+  TEST_EQUAL(modified_peptides.size(), 1);
+  TEST_EQUAL(modified_peptides[0].sequence.toString(), "FAAAFFAAF.(Amidated)"); // always assigned because it is C-term of the peptide
+  TEST_EQUAL(modified_peptides[0].mass, modified_peptides[0].sequence.getMonoWeight());
+  modified_peptides.clear();  
+
+  modNames.clear();
+  modNames << "Amidated (Protein C-term)";
+  variable_mods = ModifiedPeptideGenerator::getModifications(modNames);
+  is_c_terminal_peptide = false;
+  is_n_terminal_peptide = false;
+  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, is_n_terminal_peptide, is_c_terminal_peptide, 3, modified_peptides, false);
+  TEST_EQUAL(modified_peptides.size(), 0); // not assigned because it is an internal peptide
+  modified_peptides.clear();  
 }
 END_SECTION
 
