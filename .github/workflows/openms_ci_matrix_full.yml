@@ -167,7 +167,7 @@ jobs:
 
           # if we are running as the result of a push rather than a PR the ${{ inputs.* }} flat out don't exist, which makes this code choke.
           # so skip it when we are doing a push
-          if [[ 'true' == {{github.event_name == 'push'}} ]]; then
+          if [[ 'true' == {{ github.event_name == 'push' }} ]]; then
             # check if we want to be marked as latest, and if we actually should.
             if [[ 'true' == ${{ inputs.do_release }} ]]; then
               if [[ 'false' == ${{ inputs.knime }} || 'false' == ${{ inputs.package }} ]]; then
