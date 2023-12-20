@@ -99,55 +99,76 @@ START_SECTION((static void generateVariableModifiedPeptidesWithMasses(const Modi
 
   // test behavior if sequence empty
   AASequence seq;
-  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, 1, modified_peptides, false);
+  bool is_c_terminal_peptide = false;
+  bool is_n_terminal_peptide = false;
+  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, is_n_terminal_peptide, is_c_terminal_peptide, 1, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 0); // no generated peptide
   modified_peptides.clear();
 
   // test behavior if peptide empty
   seq = AASequence::fromString("");
-  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, 0, modified_peptides, false);
+  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, is_n_terminal_peptide, is_c_terminal_peptide, 0, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 0); // no generated peptide
   modified_peptides.clear();
-  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, 1, modified_peptides, false);
+  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, is_n_terminal_peptide, is_c_terminal_peptide, 1, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 0); // no generated peptide
   modified_peptides.clear();
-  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, 2, modified_peptides, false);
+  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, is_n_terminal_peptide, is_c_terminal_peptide, 2, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 0); // no generated peptide
   modified_peptides.clear();
 
   // test behavior if no target site in sequence
   seq = AASequence::fromString("AAAAAAAAA");
-  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, 1, modified_peptides, false);
+  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, is_n_terminal_peptide, is_c_terminal_peptide, 1, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 0); // no generated peptide
   modified_peptides.clear();
 
   // test flag to preserve passed peptide
-  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, 1, modified_peptides, true);
+  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, is_n_terminal_peptide, is_c_terminal_peptide, 1, modified_peptides, true);
   TEST_EQUAL(modified_peptides[0].sequence, AASequence::fromString("AAAAAAAAA")); // only the original peptide
   modified_peptides.clear();
 
   // test behavior if one target site in sequence and different number of maximum variable modifications are choosen
   seq = AASequence::fromString("AAAAMAAAA"); // exactly one target site
-  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, 0, modified_peptides, false);
+  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, is_n_terminal_peptide, is_c_terminal_peptide, 0, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 0); // no generated peptide
   modified_peptides.clear();
-  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, 1, modified_peptides, false);
+  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, is_n_terminal_peptide, is_c_terminal_peptide, 1, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 1); // one generated peptide
   TEST_EQUAL(modified_peptides[0].sequence.toString(), "AAAAM(Oxidation)AAAA");
   TEST_EQUAL(modified_peptides[0].mass, modified_peptides[0].sequence.getMonoWeight());
   modified_peptides.clear();
-  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, 2, modified_peptides, false);
+  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, is_n_terminal_peptide, is_c_terminal_peptide, 2, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 1); // also only one generated peptide as there is only one target site
   TEST_EQUAL(modified_peptides[0].sequence.toString(), "AAAAM(Oxidation)AAAA");
   TEST_EQUAL(modified_peptides[0].mass, modified_peptides[0].sequence.getMonoWeight());
   modified_peptides.clear();
   // test again keeping of the original peptides
-  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, 1, modified_peptides, true);
+  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq,is_n_terminal_peptide, is_c_terminal_peptide, 1, modified_peptides, true);
   TEST_EQUAL(modified_peptides.size(), 2); // original and modified peptide
   TEST_EQUAL(modified_peptides[0].sequence.toString(), "AAAAMAAAA");
   TEST_EQUAL(modified_peptides[0].mass, modified_peptides[0].sequence.getMonoWeight());
   TEST_EQUAL(modified_peptides[1].sequence.toString(), "AAAAM(Oxidation)AAAA");
   TEST_EQUAL(modified_peptides[1].mass, modified_peptides[1].sequence.getMonoWeight());
+  modified_peptides.clear();
+
+  // test protein-terminal modifications
+  seq = AASequence::fromString("FAAAFFAAF"); // first residue will be target site
+  modNames.clear();
+  modNames << "Deamidated (Protein N-term F)";
+  variable_mods = ModifiedPeptideGenerator::getModifications(modNames);
+  is_c_terminal_peptide = false;
+  is_n_terminal_peptide = true;
+  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, is_n_terminal_peptide, is_c_terminal_peptide, 3, modified_peptides, false);
+  TEST_EQUAL(modified_peptides.size(), 1); // modified peptide
+  TEST_EQUAL(modified_peptides[0].sequence.toString(), ".(Deamidated)FAAAFFAAF");
+  TEST_EQUAL(modified_peptides[0].mass, modified_peptides[0].sequence.getMonoWeight());
+  modified_peptides.clear();
+
+  is_c_terminal_peptide = false;
+  is_n_terminal_peptide = false;
+  ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, is_n_terminal_peptide, is_c_terminal_peptide, 3, modified_peptides, false);
+  TEST_EQUAL(modified_peptides.size(), 0);
   modified_peptides.clear();
 }
 END_SECTION

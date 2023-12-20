@@ -267,7 +267,9 @@ namespace OpenMS
 
    void ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(
      const MapToResidueType& var_mods, 
-     const AASequence& peptide, 
+     const AASequence& peptide,
+     bool peptide_is_n_terminal,
+     bool peptide_is_c_terminal,
      Size max_variable_mods_per_peptide,
      vector<ModifiedPeptideGenerator::SequenceMassPair>& all_modified_peptides,
      bool keep_unmodified)
@@ -276,8 +278,13 @@ namespace OpenMS
     if (peptide.size() > 0)
     {
       orig_monomass = peptide.getMonoWeight();
-    } else { // avoid warnings
-      if (keep_unmodified) { all_modified_peptides.emplace_back(peptide, orig_monomass);}
+    } 
+    else 
+    { // avoid warnings
+      if (keep_unmodified) 
+      { 
+        all_modified_peptides.emplace_back(peptide, orig_monomass);
+      }
       return;
     }
      
@@ -285,7 +292,10 @@ namespace OpenMS
     if (var_mods.val.empty() || max_variable_mods_per_peptide == 0)
     {
       // if unmodified peptides should be kept return the original list of digested peptides
-      if (keep_unmodified) { all_modified_peptides.emplace_back(peptide, orig_monomass);}
+      if (keep_unmodified) 
+      { 
+        all_modified_peptides.emplace_back(peptide, orig_monomass);
+      }
       return;
     }
 
@@ -306,6 +316,20 @@ namespace OpenMS
         }
       }
       else if (v->getTermSpecificity() == ResidueModification::C_TERM)
+      {
+        if (!peptide.hasCTerminalModification())
+        {
+          mod_compatibility[C_TERM_MODIFICATION_INDEX].push_back(v);
+        }
+      }
+      else if (peptide_is_n_terminal && v->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
+      {
+        if (!peptide.hasNTerminalModification())
+        {
+          mod_compatibility[N_TERM_MODIFICATION_INDEX].push_back(v);
+        }
+      }
+      else if (peptide_is_c_terminal && v->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
       {
         if (!peptide.hasCTerminalModification())
         {

@@ -101,12 +101,16 @@ namespace OpenMS
     * @param var_mods A mapping of modifications to residue types.
     * @param peptide The original peptide to which modifications will be applied.
     * @param max_variable_mods_per_peptide The maximum number of variable modifications allowed per peptide.
+    * @param peptide_is_n_terminal Whether the peptide is N-terminal in the protein sequence. Needed to correctly apply terminal modifications.
+    * @param  peptide_is_c_terminal Whether the peptide is C-terminal. Needed to correctly apply terminal modifications.          
     * @param all_modified_peptides Output container. Generated modified peptides with their masses are appended.
     * @param keep_unmodified Flag indicating whether unmodified peptides should be retained.
     */
     static void generateVariableModifiedPeptidesWithMasses(
      const MapToResidueType& var_mods, 
-     const AASequence& peptide, 
+     const AASequence& peptide,
+     bool peptide_is_n_terminal,
+     bool peptide_is_c_terminal,          
      Size max_variable_mods_per_peptide,
      std::vector<SequenceMassPair>& all_modified_peptides,
      bool keep_original=true);
@@ -168,8 +172,16 @@ namespace OpenMS
         AASequence peptide = AASequence::fromString(protein_sequence.substr(start, end - start).getString());
         ModifiedPeptideGenerator::applyFixedModifications(fixed_mods_, peptide); // this could be done on protein level. not sure if worth the rewrite
 
-        // TODO: we should be able to check start for C-terminal and end for N-terminal peptides and use modifications accordingly
-        ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods_, peptide, max_variable_mods_per_peptide_, modified_peptides, true);
+        // determine if peptide is C-terminal, N-terminal, both (or none of them) and pass it to ensure modifications are correctly applied
+        bool peptide_is_n_terminal = (start == 0);
+        bool peptide_is_c_terminal = (end == peptide.size() - 1);
+        ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods_, 
+          peptide,
+          peptide_is_c_terminal,
+          peptide_is_n_terminal,
+          max_variable_mods_per_peptide_, 
+          modified_peptides, 
+          true);
       }
       return;
     }
