@@ -511,6 +511,7 @@ namespace OpenMS
 
   void TopDownTagger::run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm, std::vector<FLASHDeconvHelperStructs::Tag>& tags, const std::function<int(int, int)>& edge_score)
   {
+    const Size max_node_cntr = 600;
     if (max_tag_count_ == 0)
       return;
 
@@ -518,13 +519,31 @@ namespace OpenMS
 
     std::vector<double> _mzs;
     std::vector<int> _scores;
-    _mzs.reserve(mzs.size() + 1);
-    _scores.reserve(_scores.size() + 1);
+    int threshold;
+
+    if (mzs.size() >= max_node_cntr)
+    {
+      _scores = scores;
+      std::sort(_scores.rbegin(), _scores.rend());
+      threshold = _scores[max_node_cntr - 1];
+      _scores.clear();
+
+      _mzs.reserve(max_node_cntr + 1);
+      _scores.reserve(max_node_cntr + 1);
+    }
+    else
+    {
+      _mzs.reserve(mzs.size() + 1);
+      _scores.reserve(_scores.size() + 1);
+      threshold = *std::min_element(scores.begin(), scores.end());
+    }
+
     _mzs.push_back(.0);
     _scores.push_back(0);
 
     for (int i = 0; i < mzs.size(); i++)
     {
+      if (scores[i] < threshold) continue;
       _mzs.push_back(mzs[i]);
       _scores.push_back(scores[i]);
     }

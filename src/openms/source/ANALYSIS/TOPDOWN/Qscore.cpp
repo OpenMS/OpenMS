@@ -13,52 +13,51 @@
 
 namespace OpenMS
 {
-
   //==================================== CV 0
-  // IsotopeCosine          16.7614
-  // ChargeCosine            -0.8677
-  // MassSNR1                 0.2665
-  // ChargeSNR1              -0.3478
-  // Intercept              -14.1557
+  // Att0         -2.9763
+  // Att1         -1.5465
+  // Att2         -0.3062
+  // Att3          0.2173
+  // Intercept     4.0676
 
-  std::vector<double> Qscore::weight_CV_0_ {-16.7614, 0.8677, -0.2665, 0.3478, 14.1557};
+  std::vector<double> Qscore::weight_CV_0_ {-2.9763, -1.5465, -0.3062, 0.2173, 4.0676};
 
   //====================================== CV 40
-  // IsotopeCosine         13.9501
-  // ChargeCosine            -0.705
-  // MassSNR1                0.2562
-  // ChargeSNR1             -0.3645
-  // Intercept             -11.6675
+  // Att0              15.6788
+  // Att1              -3.4887
+  // Att2              -0.2782
+  // Att3               0.3794
+  // Intercept        -11.3143
 
-  std::vector<double> Qscore::weight_CV_40_ {-13.9501, 0.705, -0.2562, 0.3645, 11.6675};
+  std::vector<double> Qscore::weight_CV_40_ {-15.6788, 3.4887, 0.2782, -0.3794, 11.3143};
 
   // ====================================== CV 50
-  // IsotopeCosine           19.0932
-  // ChargeCosine             -0.4785
-  // MassSNR1                  0.2784
-  // ChargeSNR1               -0.3956
-  // Intercept               -16.5475
+  // Att0                 21.7578
+  // Att1                  -4.259
+  // Att2                 -0.1171
+  // Att3                  0.2773
+  // Intercept           -16.2634
 
-  std::vector<double> Qscore::weight_CV_50_ {-19.0932, 0.4785, -0.2784, 0.3956, 16.5475};
+  std::vector<double> Qscore::weight_CV_50_ {-21.7578, 4.259, 0.1171, -0.2773, 16.2634};
 
   //====================================== CV 60
-  // IsotopeCosine           20.2079
-  // ChargeCosine             -1.4063
-  // MassSNR1                  0.1948
-  // ChargeSNR1               -0.2952
-  // Intercept               -16.1873
+  // Att0              20.7225
+  // Att1              -2.3573
+  // Att2                -0.29
+  // Att3               0.6051
+  // Intercept        -17.4618
 
-  std::vector<double> Qscore::weight_CV_60_ {-20.2079, 1.4063, -0.1948, 0.2952, 16.1873};
+  std::vector<double> Qscore::weight_CV_60_ {-20.7225, 2.3573, 0.29, -0.6051, 17.4618};
 
   //====================================== Normal
-  // Att0               17.6821
-  // Att1               -5.0559
-  // Att2               -1.1103
-  // Att3                1.2378
-  // Intercept         -12.1375
+  // Att0               17.7589
+  // Att1               -3.1289
+  // Att2                -0.113
+  // Att3                0.3179
+  // Intercept         -13.7447
 
-  std::vector<double> Qscore::weight_centroid_ {-17.6821, 5.0559, 1.1103, -1.2378, 12.1375};
-  std::vector<double> Qscore::weight_profile_ {-17.6821, 5.0559, 1.1103, -1.2378, 12.1375};
+  std::vector<double> Qscore::weight_centroid_ {-17.7589, 3.1289, 0.113, -0.3179, 13.7447};
+  std::vector<double> Qscore::weight_profile_ {-17.7589, 3.1289, 0.113, -0.3179, 13.7447};
 
 
   double Qscore::getQscore(const PeakGroup* pg, const MSSpectrum& spectrum)
@@ -155,11 +154,12 @@ namespace OpenMS
     for (auto& pg : deconvolved_spectrum)
     {
       auto fv = toFeatureVector_(&pg);
+      bool target = pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::target;
       for (auto& item : fv)
       {
         f << item << ",";
       }
-      f << (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::target? "T" : "F") << "\n";
+      f << (target? "T" : "F") << "\n";
     }
   }
 } // namespace OpenMS

@@ -1064,7 +1064,7 @@ namespace OpenMS
         }
         double snr_threshold = min_snr_[ms_level_ - 1];
         double qvalue_threshold = max_qvalue_[ms_level_ - 1];
-        if (!peak_group.isTargeted() && (peak_group.getQvalue() > qvalue_threshold || peak_group.getSNR() < snr_threshold)) // snr check prevents harmonics or noise.
+        if (!peak_group.isTargeted() && (peak_group.getQvalue() > qvalue_threshold || peak_group.getSNR() < snr_threshold || peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold)) // snr check prevents harmonics or noise.
         {
           continue;
         }

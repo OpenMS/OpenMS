@@ -164,22 +164,14 @@ namespace OpenMS
 
     for (int abs_charge = min_abs_charge_; abs_charge <= max_abs_charge_; abs_charge++)
     {
-      if (getChargeSNR(abs_charge) <= 0 || getChargeIsotopeCosine(abs_charge) <= 0)
-      {
-        continue;
-      }
-
-      double q_score = Qscore::getQscore(this, spec);
-      if (qscore_ < q_score)
-      {
-        qscore_ = q_score;
-      }
-
       if (getChargeSNR(abs_charge) > getChargeSNR(max_snr_abs_charge_))
       {
         max_snr_abs_charge_ = abs_charge;
       }
     }
+
+    qscore_ = Qscore::getQscore(this, spec);
+
     return h_offset;
   }
 
@@ -187,9 +179,9 @@ namespace OpenMS
   {
     if (noisy_peaks.empty())
       return 0;
-    // const Size max_noisy_peaks = 500; // too many noise peaks will slow down the process
+    const Size max_noisy_peak_number = 1000; // too many noise peaks will slow down the process
     const Size max_bin_number = 29; // 24 bin + 5 extra bin
-
+    float threshold = -1;
     std::vector<std::pair<FLASHDeconvHelperStructs::LogMzPeak, bool>> all_peaks; // peak + is signal?
 
     int noise_peak_count = 0, signal_peak_count = 0;
@@ -199,13 +191,34 @@ namespace OpenMS
         continue;
       noise_peak_count++;
     }
-
     if (noise_peak_count == 0)
       return 0;
+    // get intensity threshold
+    if (noise_peak_count > max_noisy_peak_number)
+    {
+      std::vector<float> intensities;
+      intensities.reserve(noise_peak_count);
+      for (const auto& noisy_peak : noisy_peaks)
+      {
+        if (noisy_peak.abs_charge != z) continue;
+        intensities.push_back(noisy_peak.intensity);
+      }
+
+      std::sort(intensities.rbegin(), intensities.rend());
+      threshold = intensities[max_noisy_peak_number];
+      noise_peak_count = 0;
+
+      for (const auto& noisy_peak : noisy_peaks)
+      {
+        if (noisy_peak.abs_charge != z || noisy_peak.intensity < threshold)
+          continue;
+        noise_peak_count++;
+      }
+    }
 
     for (const auto& peak : logMzpeaks_)
     {
-      if (peak.abs_charge != z)
+      if (peak.abs_charge != z || peak.intensity < threshold)
         continue;
       signal_peak_count++;
     }
@@ -215,7 +228,7 @@ namespace OpenMS
     // filter peaks and check which mzs are signal and which are noise.
     for (const auto& noisy_peak : noisy_peaks)
     {
-      if (noisy_peak.abs_charge != z)
+      if (noisy_peak.abs_charge != z || noisy_peak.intensity < threshold)
       {
         continue;
       }
@@ -227,7 +240,7 @@ namespace OpenMS
 
     for (const auto& signal_peak : logMzpeaks_)
     {
-      if (signal_peak.abs_charge != z)
+      if (signal_peak.abs_charge != z || signal_peak.intensity < threshold)
       {
         continue;
       }
@@ -251,6 +264,8 @@ namespace OpenMS
     for (Size i = 0; i < all_peaks.size(); i++)
     {
       const auto& [p1, p1_signal] = all_peaks[i];
+
+      double prev_error = 0;
       for (Size j = i + 1; j < all_peaks.size(); j++)
       {
         const auto& [p2, p2_signal] = all_peaks[j];
@@ -272,8 +287,15 @@ namespace OpenMS
           break;
         }
 
-        per_bin_edges[bin][i] = j;
         per_bin_start_index[bin] = -1;
+        double current_error = std::abs((double)bin - normalized_dist * (max_bin_number - 5));
+        if (per_bin_edges[bin][i] != 0)
+        {
+          Size l = per_bin_edges[bin][i];
+          if (prev_error < current_error) continue;
+        }
+        per_bin_edges[bin][i] = j;
+        prev_error = current_error;
       }
     }
 
@@ -345,13 +367,13 @@ namespace OpenMS
       if (unused[index])
       {
         sum_intensity += intensity;
+        sum_squared_intensity += intensity * intensity;
+        unused[index] = false;
       }
       else
       {
-        sum_squared_intensity += intensity * intensity;
         skiped_peak_cntr++;
       }
-      unused[index] = false;
 
       Size j = edges[index];
 
@@ -366,14 +388,14 @@ namespace OpenMS
         if (unused[j])
         {
           sum_intensity += intensity;
+          sum_squared_intensity += intensity * intensity;
+          unused[j] = false;
         }
         else
         {
-          sum_squared_intensity += intensity * intensity;
           skiped_peak_cntr++;
         }
 
-        unused[j] = false;
         const auto& [p2, p2_signal] = all_peaks[j];
         // if (!p2_signal)
         intensity = p2.intensity;

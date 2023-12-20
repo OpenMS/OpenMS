@@ -362,11 +362,6 @@ protected:
                                                            1e-6 * tols[deconvolved_spectra[0].getOriginalSpectrum().getMSLevel() - 1]); // merged peak groups have scan number information!
       }
 
-      dspec_for_tagging.sortByQscore();
-      while (dspec_for_tagging.size() > 1000)
-        dspec_for_tagging.pop_back();
-      dspec_for_tagging.sort();
-
       tagger.run(dspec_for_tagging, tols[dspec_for_tagging.getOriginalSpectrum().getMSLevel() - 1], tags);
       auto matches = tagger.runMatching(tags, fasta_entry);
 
