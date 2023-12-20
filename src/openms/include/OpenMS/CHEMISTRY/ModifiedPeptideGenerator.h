@@ -102,7 +102,7 @@ namespace OpenMS
     * @param peptide The original peptide to which modifications will be applied.
     * @param max_variable_mods_per_peptide The maximum number of variable modifications allowed per peptide.
     * @param peptide_is_n_terminal Whether the peptide is N-terminal in the protein sequence. Needed to correctly apply terminal modifications.
-    * @param  peptide_is_c_terminal Whether the peptide is C-terminal. Needed to correctly apply terminal modifications.          
+    * @param peptide_is_c_terminal Whether the peptide is C-terminal. Needed to correctly apply terminal modifications.          
     * @param all_modified_peptides Output container. Generated modified peptides with their masses are appended.
     * @param keep_unmodified Flag indicating whether unmodified peptides should be retained.
     */
