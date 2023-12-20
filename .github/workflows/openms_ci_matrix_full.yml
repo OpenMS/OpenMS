@@ -828,6 +828,16 @@ jobs:
     needs: [build-deploy-knime-updatesite,deploy-installer]
     permissions: write-all
     steps:
+    
+# get token
+      - name: get a token so that we can update the tags
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.OPENMS_GITHUB_APP_ID }}
+          private-key: ${{ secrets.OPENMS_GITHUB_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
       - name: Extract branch/PR infos
         shell: bash
         run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
@@ -837,7 +847,7 @@ jobs:
         name: create tags for other repos
         shell: bash
         env: 
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.event.issue.number }}
         run: |
           function createGitTag() {
             REPO=$1
