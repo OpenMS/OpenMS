@@ -996,7 +996,7 @@ namespace OpenMS
         int offset = 0;
         auto peak_group = deconvolved_spectrum_[i];
         peak_group.setTargetDecoyType(target_decoy_type_);
-        //float prev_cos = peak_group.getIsotopeCosine();
+        // float prev_qscore = peak_group.getQscore2D();
 
         float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -peak_group.getMinNegativeIsotopeIndex(), -1,
                                                              allowed_iso_error_, target_decoy_type_);
@@ -1037,6 +1037,12 @@ namespace OpenMS
           continue;
         }
 
+        // if (target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy)
+        // {
+        //  if (peak_group.getQscore2D() < prev_qscore * .9) // if target score and isotope decoy score are too different for isotope decoy, we do not take this decoy.
+        //    continue;
+        //}
+
         if (!target_mono_masses_.empty())
         {
           double delta = peak_group.getMonoMass() * tolerance_[ms_level_ - 1] * 2;
@@ -1062,9 +1068,11 @@ namespace OpenMS
             --upper;
           }
         }
+
         double snr_threshold = min_snr_[ms_level_ - 1];
         double qvalue_threshold = max_qvalue_[ms_level_ - 1];
-        if (!peak_group.isTargeted() && (peak_group.getQvalue() > qvalue_threshold || peak_group.getSNR() < snr_threshold || peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold)) // snr check prevents harmonics or noise.
+        if (!peak_group.isTargeted() && (peak_group.getQvalue() > qvalue_threshold || peak_group.getSNR() < snr_threshold ||
+                                         peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold)) // snr check prevents harmonics or noise.
         {
           continue;
         }

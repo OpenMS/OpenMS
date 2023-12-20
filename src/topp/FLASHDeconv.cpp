@@ -6,7 +6,7 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 #define USE_TAGGER
-#define TRAIN_OUT
+//#define TRAIN_OUT
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
@@ -245,7 +245,7 @@ protected:
     Param fd_param;
     fd_param.insert("", tmp_fd_param);
     bool report_decoy = tmp_fd_param.getValue("report_FDR") != "false";
-    double topfd_snr_threshold = tmp_fd_param.getValue("ida_log").toString().empty()?  getDoubleOption_("precursor_snr") : .0;
+    double topfd_snr_threshold = tmp_fd_param.getValue("ida_log").toString().empty() ? getDoubleOption_("precursor_snr") : .0;
 
     tmp_fd_param = getParam_().copy("SD:", false);
     fd_param.insert("", tmp_fd_param);
