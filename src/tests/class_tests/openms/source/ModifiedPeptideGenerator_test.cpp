@@ -95,7 +95,7 @@ START_SECTION((static void generateVariableModifiedPeptidesWithMasses(const Modi
 
   ModifiedPeptideGenerator::MapToResidueType variable_mods = ModifiedPeptideGenerator::getModifications(modNames);
 
-  vector<ModifiedPeptideGenerator::AASequenceWMass> modified_peptides;
+  vector<ModifiedPeptideGenerator::SequenceMassPair> modified_peptides;
 
   // test behavior if sequence empty
   AASequence seq;
@@ -123,7 +123,7 @@ START_SECTION((static void generateVariableModifiedPeptidesWithMasses(const Modi
 
   // test flag to preserve passed peptide
   ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, 1, modified_peptides, true);
-  TEST_EQUAL(modified_peptides[0].first, AASequence::fromString("AAAAAAAAA")); // only the original peptide
+  TEST_EQUAL(modified_peptides[0].sequence, AASequence::fromString("AAAAAAAAA")); // only the original peptide
   modified_peptides.clear();
 
   // test behavior if one target site in sequence and different number of maximum variable modifications are choosen
@@ -133,21 +133,21 @@ START_SECTION((static void generateVariableModifiedPeptidesWithMasses(const Modi
   modified_peptides.clear();
   ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, 1, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 1); // one generated peptide
-  TEST_EQUAL(modified_peptides[0].first.toString(), "AAAAM(Oxidation)AAAA");
-  TEST_EQUAL(modified_peptides[0].second, modified_peptides[0].first.getMonoWeight());
+  TEST_EQUAL(modified_peptides[0].sequence.toString(), "AAAAM(Oxidation)AAAA");
+  TEST_EQUAL(modified_peptides[0].mass, modified_peptides[0].sequence.getMonoWeight());
   modified_peptides.clear();
   ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, 2, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 1); // also only one generated peptide as there is only one target site
-  TEST_EQUAL(modified_peptides[0].first.toString(), "AAAAM(Oxidation)AAAA");
-  TEST_EQUAL(modified_peptides[0].second, modified_peptides[0].first.getMonoWeight());
+  TEST_EQUAL(modified_peptides[0].sequence.toString(), "AAAAM(Oxidation)AAAA");
+  TEST_EQUAL(modified_peptides[0].mass, modified_peptides[0].sequence.getMonoWeight());
   modified_peptides.clear();
   // test again keeping of the original peptides
   ModifiedPeptideGenerator::generateVariableModifiedPeptidesWithMasses(variable_mods, seq, 1, modified_peptides, true);
   TEST_EQUAL(modified_peptides.size(), 2); // original and modified peptide
-  TEST_EQUAL(modified_peptides[0].first.toString(), "AAAAMAAAA");
-  TEST_EQUAL(modified_peptides[0].second, modified_peptides[0].first.getMonoWeight());
-  TEST_EQUAL(modified_peptides[1].first.toString(), "AAAAM(Oxidation)AAAA");
-  TEST_EQUAL(modified_peptides[1].second, modified_peptides[1].first.getMonoWeight());
+  TEST_EQUAL(modified_peptides[0].sequence.toString(), "AAAAMAAAA");
+  TEST_EQUAL(modified_peptides[0].mass, modified_peptides[0].sequence.getMonoWeight());
+  TEST_EQUAL(modified_peptides[1].sequence.toString(), "AAAAM(Oxidation)AAAA");
+  TEST_EQUAL(modified_peptides[1].mass, modified_peptides[1].sequence.getMonoWeight());
   modified_peptides.clear();
 }
 END_SECTION

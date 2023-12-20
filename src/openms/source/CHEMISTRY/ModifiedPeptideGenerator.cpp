@@ -269,7 +269,7 @@ namespace OpenMS
      const MapToResidueType& var_mods, 
      const AASequence& peptide, 
      Size max_variable_mods_per_peptide,
-     vector<ModifiedPeptideGenerator::AASequenceWMass>& all_modified_peptides,
+     vector<ModifiedPeptideGenerator::SequenceMassPair>& all_modified_peptides,
      bool keep_unmodified)
   {
     double orig_monomass = 0.;
@@ -277,7 +277,7 @@ namespace OpenMS
     {
       orig_monomass = peptide.getMonoWeight();
     } else { // avoid warnings
-      if (keep_unmodified) { all_modified_peptides.push_back({peptide, orig_monomass});}
+      if (keep_unmodified) { all_modified_peptides.emplace_back(peptide, orig_monomass);}
       return;
     }
      
@@ -285,7 +285,7 @@ namespace OpenMS
     if (var_mods.val.empty() || max_variable_mods_per_peptide == 0)
     {
       // if unmodified peptides should be kept return the original list of digested peptides
-      if (keep_unmodified) { all_modified_peptides.push_back({peptide, orig_monomass});}
+      if (keep_unmodified) { all_modified_peptides.emplace_back(peptide, orig_monomass);}
       return;
     }
 
@@ -359,7 +359,7 @@ namespace OpenMS
     Size max_placements = std::min(max_variable_mods_per_peptide, mod_compatibility.size());
 
     // stores all variants with how many modifications they already have
-    vector<pair<size_t, vector<AASequenceWMass>>> mod_peps_w_depth = {{0, {{peptide, orig_monomass}}}};
+    vector<pair<size_t, vector<SequenceMassPair>>> mod_peps_w_depth = {{0, {{peptide, orig_monomass}}}};
     Size num_res = 0;
     for (Size s(0); s <= max_placements; ++s)
     {
@@ -473,7 +473,7 @@ namespace OpenMS
     }
   }
 
-  void ModifiedPeptideGenerator::applyAllModsAtIdxAndExtend_(vector<AASequenceWMass>& original_sequences, int idx_to_modify, const vector<const ResidueModification*>& mods, const ModifiedPeptideGenerator::MapToResidueType& var_mods)
+  void ModifiedPeptideGenerator::applyAllModsAtIdxAndExtend_(vector<SequenceMassPair>& original_sequences, int idx_to_modify, const vector<const ResidueModification*>& mods, const ModifiedPeptideGenerator::MapToResidueType& var_mods)
   {
     Size end = original_sequences.size();
     original_sequences.reserve(end * mods.size());
@@ -485,12 +485,11 @@ namespace OpenMS
     {
       for (Size i(0); i < end; i++)
       {
-        applyModToPep_(original_sequences[cnt * end + i].first, idx_to_modify, mods[cnt], var_mods);
-        original_sequences[cnt * end + i].second += mods[cnt]->getDiffMonoMass();
+        applyModToPep_(original_sequences[cnt * end + i].sequence, idx_to_modify, mods[cnt], var_mods);
+        original_sequences[cnt * end + i].mass += mods[cnt]->getDiffMonoMass();
       }
     }
   }
-
 
   void ModifiedPeptideGenerator::applyModToPep_(AASequence& current_peptide, int current_index, const ResidueModification* m, const ModifiedPeptideGenerator::MapToResidueType& var_mods)
   {
