@@ -1064,6 +1064,7 @@ namespace OpenMS
       {
         continue;
       }
+#pragma omp critical
       selected[i] = true;
     }
 
