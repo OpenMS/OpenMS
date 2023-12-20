@@ -167,17 +167,19 @@ jobs:
 
           # if we are running as the result of a push rather than a PR the ${{ inputs.* }} flat out don't exist, which makes the ops checking code choke.
           # unfortunately it looks like bash evaluates the syntax even if we never reach the code, so we need to make sure the variables exist
-          DO_RELEASE = ${{ inputs.do_release }}
-          KNIME = ${{ inputs.knime }}
-          PACKAGE = ${{ inputs.package }}
-          MARK_AS_LATEST = ${{ inputs.mark_as_latest }}
-          ANNOUNCE_RELEASE = ${{ inputs.announce_release }}
+
           if [[ 'false' == ${{ github.event_name == 'push' }} ]]; then
             DO_RELEASE = 'false'
             KNIME = 'false'
             PACKAGE = 'false'
             MARK_AS_LATEST = 'false'
             ANNOUNCE_RELEASE = 'false'
+          else
+            DO_RELEASE = ${{ inputs.do_release }}
+            KNIME = ${{ inputs.knime }}
+            PACKAGE = ${{ inputs.package }}
+            MARK_AS_LATEST = ${{ inputs.mark_as_latest }}
+            ANNOUNCE_RELEASE = ${{ inputs.announce_release }}
           fi
           # check if we want to be marked as latest, and if we actually should.
           if [[ 'true' == $DO_RELEASE ]]; then
