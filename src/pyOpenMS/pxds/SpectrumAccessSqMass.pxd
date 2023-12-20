@@ -13,8 +13,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>"
 
         SpectrumAccessSqMass() # wrap-pass-constructor
 
-        SpectrumAccessSqMass(SpectrumAccessSqMass &) nogil except +
-        SpectrumAccessSqMass(MzMLSqliteHandler, libcpp_vector[int] indices) nogil except +
+        SpectrumAccessSqMass(SpectrumAccessSqMass &) except + nogil 
+        SpectrumAccessSqMass(MzMLSqliteHandler, libcpp_vector[int] indices) except + nogil 
 
         # void getAllSpectra(libcpp_vector[ OpenSwath::SpectrumPtr ] & spectra, libcpp_vector< OpenSwath::SpectrumMeta > & spectra_meta) const;
         # SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler);

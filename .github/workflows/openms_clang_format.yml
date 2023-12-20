@@ -27,7 +27,12 @@ jobs:
 # Perform linting
     - name: Use clang format linting
       if: steps.changed_files.outputs.any_modified == 'true'
-      uses: DoozyX/clang-format-lint-action@v0.15
+      uses: DoozyX/clang-format-lint-action@v0.16.2
       with:
         source: ${{ steps.changed_files.outputs.all_changed_files }}
-        clangFormatVersion: 13
+        clangFormatVersion: 16
+
+    - name: Set workflow status to warning
+      if: ${{ failure() }}
+      run: echo "Linting issues detected. This is a warning."
+      continue-on-error: true

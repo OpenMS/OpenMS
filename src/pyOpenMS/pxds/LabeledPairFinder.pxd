@@ -12,9 +12,9 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>" namespace "
 
         # wrap-inherits:
         #  BaseGroupFinder
-        LabeledPairFinder() nogil except +
+        LabeledPairFinder() except + nogil 
         # private
-        LabeledPairFinder(LabeledPairFinder &) nogil except + # wrap-ignore
-        void run(libcpp_vector[ ConsensusMap ] & input_maps, ConsensusMap & result_map) nogil except + # wrap-doc:Runs the LabeledPairFinder algorithm
-        # POINTER # BaseGroupFinder * create() nogil except +
-        String getProductName() nogil except + # wrap-doc:Returns the name of this module
+        LabeledPairFinder(LabeledPairFinder &) except + nogil  # wrap-ignore
+        void run(libcpp_vector[ ConsensusMap ] & input_maps, ConsensusMap & result_map) except + nogil  # wrap-doc:Runs the LabeledPairFinder algorithm
+        # POINTER # BaseGroupFinder * create() except + nogil 
+        String getProductName() except + nogil  # wrap-doc:Returns the name of this module

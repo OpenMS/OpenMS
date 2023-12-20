@@ -2,13 +2,13 @@ from Types cimport *
 from MSSpectrum cimport *
 from MSExperiment cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/ANALYSIS/ID/PScore.h>" namespace "OpenMS":
     
     cdef cppclass PScore "OpenMS::PScore":
-        PScore() nogil except + 
-        PScore(PScore &) nogil except + # compiler
+        PScore() except + nogil  
+        PScore(PScore &) except + nogil  # compiler
 
-        libcpp_vector[ size_t ] calculateIntensityRankInMZWindow(libcpp_vector[ double ] & mz, libcpp_vector[ double ] & intensities, double mz_window) nogil except +
+        libcpp_vector[ size_t ] calculateIntensityRankInMZWindow(libcpp_vector[ double ] & mz, libcpp_vector[ double ] & intensities, double mz_window) except + nogil 
             # wrap-doc:
                 #  Calculate local (windowed) peak ranks
                 #  
@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS":
                 #  :param intensities: The intensities of the peaks
                 #  :param mz_window: The window in Thomson centered at each peak 
 
-        libcpp_vector[ libcpp_vector[ size_t ] ] calculateRankMap(MSExperiment & peak_map, double mz_window) nogil except +
+        libcpp_vector[ libcpp_vector[ size_t ] ] calculateRankMap(MSExperiment & peak_map, double mz_window) except + nogil 
             # wrap-doc:
                 #  Precalculated, windowed peak ranks for a whole experiment
                 #  
@@ -30,7 +30,7 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS":
                 #  :param peak_map: Fragment spectra used for rank calculation. Typically a peak map after removal of all MS1 spectra
                 #  :param mz_window: Window in Thomson centered at each peak
 
-        libcpp_map[ size_t, MSSpectrum ] calculatePeakLevelSpectra(MSSpectrum & spec, libcpp_vector[ size_t ] & ranks, Size min_level, Size max_level) nogil except +
+        libcpp_map[ size_t, MSSpectrum ] calculatePeakLevelSpectra(MSSpectrum & spec, libcpp_vector[ size_t ] & ranks, Size min_level, Size max_level) except + nogil 
             # wrap-doc:
                 #  Calculates spectra for peak level between min_level to max_level and stores them in the map
                 #  
@@ -40,7 +40,7 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS":
                              bool fragment_mass_tolerance_unit_ppm,
                              libcpp_map[ size_t, MSSpectrum ] & peak_level_spectra,
                              libcpp_vector[ MSSpectrum ] & theo_spectra,
-                             double mz_window) nogil except +
+                             double mz_window) except + nogil 
             # wrap-doc:
                 #  Computes the PScore for a vector of theoretical spectra
                 #  
@@ -58,7 +58,7 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS":
                              bool fragment_mass_tolerance_unit_ppm,
                              libcpp_map[ size_t, MSSpectrum ] & peak_level_spectra,
                              MSSpectrum & theo_spectrum,
-                             double mz_window) nogil except +
+                             double mz_window) except + nogil 
             # wrap-doc:
                 #  Computes the PScore for a single theoretical spectrum
                 #  
@@ -72,7 +72,7 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS":
 ## wrap static methods
 # cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS::PScore":
 # 
-#    double massCorrectionTerm(double mass) nogil except + #wrap-attach:PScore
-#    double cleavageCorrectionTerm(Size cleavages, bool consecutive_cleavage) nogil except + #wrap-attach:PScore
-#    double modificationCorrectionTerm(Size modifications) nogil except + #wrap-attach:PScore
+#    double massCorrectionTerm(double mass) except + nogil  #wrap-attach:PScore
+#    double cleavageCorrectionTerm(Size cleavages, bool consecutive_cleavage) except + nogil  #wrap-attach:PScore
+#    double modificationCorrectionTerm(Size modifications) except + nogil  #wrap-attach:PScore
 # 

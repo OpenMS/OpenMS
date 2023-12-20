@@ -43,11 +43,12 @@
 # for searching and as first entry in the includes/libraries to avoid
 # mismatches with installed system libraries
 if(NOT OPENMS_CONTRIB_LIBS)
-  message(WARNING "Unless you are certain that you have all contributing libraries in system paths, please specify an explicit path to the built contrib libraries via
+  message("Note: OPENMS_CONTRIB_LIBS not set. Unless you are certain that you have all contributing libraries in system paths, please specify an explicit path to the built contrib libraries via
 -DOPENMS_CONTRIB_LIBS")
 else()
   list(INSERT CMAKE_PREFIX_PATH 0 ${OPENMS_CONTRIB_LIBS})
   list(REMOVE_DUPLICATES CMAKE_PREFIX_PATH)
+  list(REMOVE_ITEM CMAKE_PREFIX_PATH "") # Remove empty entries
 endif()
 
 #------------------------------------------------------------------------------

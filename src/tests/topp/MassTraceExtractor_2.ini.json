@@ -1,17 +1,25 @@
 {
-  "algorithm__common__chrom_fwhm": 5.0,
-  "algorithm__common__chrom_peak_snr": 3.0,
-  "algorithm__common__noise_threshold_int": 10.0,
-  "algorithm__epd__enabled": true,
-  "algorithm__epd__masstrace_snr_filtering": false,
-  "algorithm__epd__max_fwhm": 60.0,
-  "algorithm__epd__min_fwhm": 3.0,
-  "algorithm__epd__width_filtering": "off",
-  "algorithm__mtd__mass_error_ppm": 20.0,
-  "algorithm__mtd__max_trace_length": 12.0,
-  "algorithm__mtd__min_sample_rate": 0.5,
-  "algorithm__mtd__min_trace_length": 6.0,
-  "algorithm__mtd__reestimate_mt_sd": true,
+  "algorithm": {
+    "common": {
+      "chrom_fwhm": 5.0,
+      "chrom_peak_snr": 3.0,
+      "noise_threshold_int": 10.0
+    },
+    "epd": {
+      "enabled": true,
+      "masstrace_snr_filtering": false,
+      "max_fwhm": 60.0,
+      "min_fwhm": 3.0,
+      "width_filtering": "off"
+    },
+    "mtd": {
+      "mass_error_ppm": 20.0,
+      "max_trace_length": 12.0,
+      "min_sample_rate": 0.5,
+      "min_trace_length": 6.0,
+      "reestimate_mt_sd": true
+    }
+  },
   "debug": 0,
   "in": {
     "class": "File",
@@ -19,10 +27,7 @@
   },
   "log": "",
   "no_progress": false,
-  "out": {
-    "class": "File",
-    "path": ""
-  },
+  "out": "",
   "test": false,
   "threads": 1
 }

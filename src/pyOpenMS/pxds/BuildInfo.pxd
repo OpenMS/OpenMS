@@ -6,31 +6,31 @@ cdef extern from "<OpenMS/SYSTEM/BuildInfo.h>" namespace "OpenMS::Internal":
 
     cdef cppclass OpenMSOSInfo:
 
-        OpenMSOSInfo() nogil except +
-        OpenMSOSInfo(OpenMSOSInfo &) nogil except + # compiler
-        String getOSAsString() nogil except +
-        String getArchAsString() nogil except +
-        String getOSVersionAsString() nogil except +
+        OpenMSOSInfo() except + nogil 
+        OpenMSOSInfo(OpenMSOSInfo &) except + nogil  # compiler
+        String getOSAsString() except + nogil 
+        String getArchAsString() except + nogil 
+        String getOSVersionAsString() except + nogil 
 
     cdef cppclass OpenMSBuildInfo:
 
-        OpenMSBuildInfo() nogil except +
-        OpenMSBuildInfo(OpenMSBuildInfo &) nogil except + # compiler
+        OpenMSBuildInfo() except + nogil 
+        OpenMSBuildInfo(OpenMSBuildInfo &) except + nogil  # compiler
 
 
 cdef extern from "<OpenMS/SYSTEM/BuildInfo.h>" namespace "OpenMS::Internal::OpenMSOSInfo":
 
-    OpenMSOSInfo getOSInfo() nogil except + # wrap-attach:OpenMSOSInfo
+    OpenMSOSInfo getOSInfo() except + nogil  # wrap-attach:OpenMSOSInfo
 
-    String getBinaryArchitecture() nogil except + # wrap-attach:OpenMSOSInfo
+    String getBinaryArchitecture() except + nogil  # wrap-attach:OpenMSOSInfo
 
 
 cdef extern from "<OpenMS/SYSTEM/BuildInfo.h>" namespace "OpenMS::Internal::OpenMSBuildInfo":
 
-    bool isOpenMPEnabled() nogil except + # wrap-attach:OpenMSBuildInfo
+    bool isOpenMPEnabled() except + nogil  # wrap-attach:OpenMSBuildInfo
 
-    String getBuildType() nogil except + # wrap-attach:OpenMSBuildInfo
+    String getBuildType() except + nogil  # wrap-attach:OpenMSBuildInfo
 
-    Size getOpenMPMaxNumThreads() nogil except + # wrap-attach:OpenMSBuildInfo
+    Size getOpenMPMaxNumThreads() except + nogil  # wrap-attach:OpenMSBuildInfo
 
-    void setOpenMPNumThreads(Int num_threads) nogil except + # wrap-attach:OpenMSBuildInfo
+    void setOpenMPNumThreads(Int num_threads) except + nogil  # wrap-attach:OpenMSBuildInfo

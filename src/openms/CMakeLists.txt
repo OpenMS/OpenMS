@@ -59,11 +59,11 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 
 
 #------------------------------------------------------------------------------
-# third party libs shipped with OpenMS directly
+# external third-party libs statically linked to OpenMS
 #------------------------------------------------------------------------------
 # The following library is in our public API, so create export targets
 #install(EXPORT EvergreenTarget DESTINATION ${INSTALL_LIB_DIR}/cmake/OpenMS FILE OpenMSTargets.cmake COMPONENT cmake)
-add_subdirectory(thirdparty)
+add_subdirectory(extern)
 
 #------------------------------------------------------------------------------
 # external libs (contrib or system)
@@ -89,18 +89,23 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network)
 
 ## setup the argumentes to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
-set(OPENMS_DEP_PRIVATE_LIBRARIES 
-  GTE Quadtree ${LPTARGET} 
-  Eigen3::Eigen
+set(OPENMS_DEP_PRIVATE_LIBRARIES
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
-  Boost::iostreams
-  Boost::date_time
-  Boost::boost
-  Boost::regex
+  ${LPTARGET}
   BZip2::BZip2
-  ZLIB::ZLIB
+  Boost::boost
+  Boost::date_time
+  Boost::iostreams
+  Boost::regex
+  Eigen3::Eigen
+  GTE
+  Quadtree
+  SIMDe
   SQLiteCpp
-  nlohmann_json::nlohmann_json)
+  ZLIB::ZLIB
+  nlohmann_json::nlohmann_json
+  tdl::tdl
+  )
 
 ## ----------
 ## No need to for this at the moment: no Qt plugins required anymore. Left here for reference.

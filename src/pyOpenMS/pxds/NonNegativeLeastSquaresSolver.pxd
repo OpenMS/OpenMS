@@ -4,9 +4,9 @@ from Matrix cimport *
 cdef extern from "<OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>" namespace "OpenMS":
     
     cdef cppclass NonNegativeLeastSquaresSolver "OpenMS::NonNegativeLeastSquaresSolver":
-        NonNegativeLeastSquaresSolver() nogil except +
-        NonNegativeLeastSquaresSolver(NonNegativeLeastSquaresSolver &) nogil except +
-        Int solve(Matrix[ double ] & A, Matrix[ double ] & b, Matrix[ double ] & x) nogil except +
+        NonNegativeLeastSquaresSolver() except + nogil 
+        NonNegativeLeastSquaresSolver(NonNegativeLeastSquaresSolver &) except + nogil 
+        Int solve(Matrix[ double ] & A, Matrix[ double ] & b, Matrix[ double ] & x) except + nogil 
 
 cdef extern from "<OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>" namespace "OpenMS::NonNegativeLeastSquaresSolver":
     cdef enum RETURN_STATUS "OpenMS::NonNegativeLeastSquaresSolver::RETURN_STATUS":

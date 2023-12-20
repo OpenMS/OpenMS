@@ -6,10 +6,10 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/IsotopeDiffFilter.h>" namespace
     cdef cppclass IsotopeDiffFilter(FilterFunctor) :
         # wrap-inherits:
         #  FilterFunctor
-        IsotopeDiffFilter() nogil except + # wrap-doc:IsotopeDiffFilter returns total intensity of peak pairs that could result from isotope peaks
-        IsotopeDiffFilter(IsotopeDiffFilter &) nogil except +
-        double apply(MSSpectrum & ) nogil except + # TODO
+        IsotopeDiffFilter() except + nogil  # wrap-doc:IsotopeDiffFilter returns total intensity of peak pairs that could result from isotope peaks
+        IsotopeDiffFilter(IsotopeDiffFilter &) except + nogil 
+        double apply(MSSpectrum & ) except + nogil  # TODO
 
-        # POINTER # FilterFunctor * create() nogil except +
-        String getProductName() nogil except + # TODO
+        # POINTER # FilterFunctor * create() except + nogil 
+        String getProductName() except + nogil  # TODO
 

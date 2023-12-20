@@ -13,10 +13,10 @@ cdef extern from "<OpenMS/FILTERING/SMOOTHING/GaussFilter.h>" namespace "OpenMS"
         #   DefaultParamHandler
         #   ProgressLogger
 
-        GaussFilter() nogil except + # wrap-doc:This class represents a Gaussian lowpass-filter which works on uniform as well as on non-uniform profile data
-        GaussFilter(GaussFilter &) nogil except + # compiler
+        GaussFilter() except + nogil  # wrap-doc:This class represents a Gaussian lowpass-filter which works on uniform as well as on non-uniform profile data
+        GaussFilter(GaussFilter &) except + nogil  # compiler
 
-        void filter(MSSpectrum & spectrum) nogil except + # wrap-doc:Smoothes an MSSpectrum containing profile data
-        void filter(MSChromatogram & chromatogram) nogil except +
-        void filterExperiment(MSExperiment & exp) nogil except + # wrap-doc:Smoothes an MSExperiment containing profile data
+        void filter(MSSpectrum & spectrum) except + nogil  # wrap-doc:Smoothes an MSSpectrum containing profile data
+        void filter(MSChromatogram & chromatogram) except + nogil 
+        void filterExperiment(MSExperiment & exp) except + nogil  # wrap-doc:Smoothes an MSExperiment containing profile data
 

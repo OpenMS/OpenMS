@@ -19,7 +19,7 @@ if [ "${PYOPENMS}" = "ON" ]; then
   # Note: ensure that cmake uses the same python!
   pyenv versions
   # select the desired Python version
-  pyenv global 3.6
+  pyenv global 3.10
   which pip
   which python
 
@@ -30,7 +30,7 @@ if [ "${PYOPENMS}" = "ON" ]; then
 
   pip install -U setuptools
   pip install -U pip
-  pip install -U nose
+  pip install -U pytest
   pip install -U numpy
   pip install -U wheel
   pip install -U Cython

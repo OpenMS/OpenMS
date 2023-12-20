@@ -8,8 +8,8 @@ from TransformationModel cimport TM_DataPoint
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" namespace "OpenMS::TransformationDescription":
     
     cdef cppclass TransformationStatistics "OpenMS::TransformationDescription::TransformationStatistics":
-        TransformationStatistics() nogil except +
-        TransformationStatistics(TransformationStatistics &) nogil except +
+        TransformationStatistics() except + nogil 
+        TransformationStatistics(TransformationStatistics &) except + nogil 
         # libcpp_vector[ size_t ] percents # const
         double xmin
         double xmax
@@ -21,23 +21,23 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" nam
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" namespace "OpenMS":
 
     cdef cppclass TransformationDescription:
-        TransformationDescription() nogil except +
-        TransformationDescription(TransformationDescription &) nogil except +
+        TransformationDescription() except + nogil 
+        TransformationDescription(TransformationDescription &) except + nogil 
 
-        libcpp_vector[TM_DataPoint] getDataPoints() nogil except + # wrap-doc:Returns the data points
-        void setDataPoints(libcpp_vector[TM_DataPoint]& data) nogil except + # wrap-doc:Sets the data points. Removes the model that was previously fitted to the data (if any)
-        void setDataPoints(libcpp_vector[libcpp_pair[double,double]]& data) nogil except + # wrap-doc:Sets the data points (backwards-compatible overload). Removes the model that was previously fitted to the data (if any)
-        double apply(double) nogil except + # wrap-doc:Applies the transformation to `value`
+        libcpp_vector[TM_DataPoint] getDataPoints() except + nogil  # wrap-doc:Returns the data points
+        void setDataPoints(libcpp_vector[TM_DataPoint]& data) except + nogil  # wrap-doc:Sets the data points. Removes the model that was previously fitted to the data (if any)
+        void setDataPoints(libcpp_vector[libcpp_pair[double,double]]& data) except + nogil  # wrap-doc:Sets the data points (backwards-compatible overload). Removes the model that was previously fitted to the data (if any)
+        double apply(double) except + nogil  # wrap-doc:Applies the transformation to `value`
 
-        void fitModel(String model_type, Param params)  nogil except + # wrap-doc:Fits a model to the data
-        void fitModel(String model_type)  nogil except + # wrap-doc:Fits a model to the data
+        void fitModel(String model_type, Param params)  except + nogil  # wrap-doc:Fits a model to the data
+        void fitModel(String model_type)  except + nogil  # wrap-doc:Fits a model to the data
 
-        String getModelType()  nogil except + # wrap-doc:Gets the type of the fitted model
-        Param getModelParameters() nogil except + # wrap-doc:Returns the model parameters
+        String getModelType()  except + nogil  # wrap-doc:Gets the type of the fitted model
+        Param getModelParameters() except + nogil  # wrap-doc:Returns the model parameters
 
-        void invert() nogil except + # wrap-doc:Computes an (approximate) inverse of the transformation
+        void invert() except + nogil  # wrap-doc:Computes an (approximate) inverse of the transformation
 
-        void getDeviations(libcpp_vector[double]& diffs, bool do_apply, bool do_sort) nogil except +
+        void getDeviations(libcpp_vector[double]& diffs, bool do_apply, bool do_sort) except + nogil 
         # wrap-doc:
                 #  Get the deviations between the data pairs
                 #  
@@ -45,10 +45,10 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" nam
                 #  :param do_apply: Get deviations after applying the model?
                 #  :param do_sort: Sort `diffs` before returning?
 
-        TransformationStatistics getStatistics() nogil except +
+        TransformationStatistics getStatistics() except + nogil 
 
-        # NAMESPACE # void printSummary(std::ostream & os) nogil except +
+        # NAMESPACE # void printSummary(std::ostream & os) except + nogil 
 
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" namespace "OpenMS::TransformationDescription":
 
-    void getModelTypes(StringList result) nogil except + # wrap-attach:TransformationDescription
+    void getModelTypes(StringList result) except + nogil  # wrap-attach:TransformationDescription

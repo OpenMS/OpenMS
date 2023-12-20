@@ -5,8 +5,8 @@ from libcpp.string cimport string as libcpp_string
 cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" namespace "OpenSwath":
 
     cdef cppclass LightTransition:
-        LightTransition() nogil except +
-        LightTransition(LightTransition &) nogil except +
+        LightTransition() except + nogil 
+        LightTransition(LightTransition &) except + nogil 
         libcpp_string transition_name
         libcpp_string peptide_ref
         double library_intensity
@@ -19,35 +19,35 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
         bool quantifying_transition
         bool identifying_transition
 
-        int getProductChargeState() nogil except +
-        bool isProductChargeStateSet() nogil except +
-        libcpp_string getNativeID() nogil except +
-        libcpp_string getPeptideRef() nogil except +
-        double getLibraryIntensity() nogil except +
-        void setLibraryIntensity(double l) nogil except +
-        double getProductMZ() nogil except +
-        double getPrecursorMZ() nogil except +
+        int getProductChargeState() except + nogil 
+        bool isProductChargeStateSet() except + nogil 
+        libcpp_string getNativeID() except + nogil 
+        libcpp_string getPeptideRef() except + nogil 
+        double getLibraryIntensity() except + nogil 
+        void setLibraryIntensity(double l) except + nogil 
+        double getProductMZ() except + nogil 
+        double getPrecursorMZ() except + nogil 
 
-        libcpp_string getCompoundRef() nogil except +
+        libcpp_string getCompoundRef() except + nogil 
 
         # Detecting / quantifying / identifying transitions
-        void setDetectingTransition (bool d) nogil except +
-        bool isDetectingTransition() nogil except +
-        void setQuantifyingTransition (bool q) nogil except +
-        bool isQuantifyingTransition() nogil except +
-        void setIdentifyingTransition (bool i) nogil except +
-        bool isIdentifyingTransition() nogil except +
+        void setDetectingTransition (bool d) except + nogil 
+        bool isDetectingTransition() except + nogil 
+        void setQuantifyingTransition (bool q) except + nogil 
+        bool isQuantifyingTransition() except + nogil 
+        void setIdentifyingTransition (bool i) except + nogil 
+        bool isIdentifyingTransition() except + nogil 
 
     cdef cppclass LightModification:
-        LightModification() nogil except +
-        LightModification(LightModification &) nogil except +
+        LightModification() except + nogil 
+        LightModification(LightModification &) except + nogil 
 
         int location
         int unimod_id
 
     cdef cppclass LightCompound:
-        LightCompound() nogil except +
-        LightCompound(LightCompound &) nogil except +
+        LightCompound() except + nogil 
+        LightCompound(LightCompound &) except + nogil 
 
         double rt
         double drift_time
@@ -61,32 +61,32 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
 
         libcpp_vector[LightModification] modifications
 
-        void setDriftTime(double d) nogil except +
-        double getDriftTime() nogil except +
+        void setDriftTime(double d) except + nogil 
+        double getDriftTime() except + nogil 
 
-        int getChargeState() nogil except +
-        bool isPeptide() nogil except +
-        void setChargeState(int ch) nogil except +
+        int getChargeState() except + nogil 
+        bool isPeptide() except + nogil 
+        void setChargeState(int ch) except + nogil 
 
     cdef cppclass LightProtein:
-        LightProtein() nogil except +
-        LightProtein(LightProtein &) nogil except +
+        LightProtein() except + nogil 
+        LightProtein(LightProtein &) except + nogil 
         libcpp_string id
         libcpp_string sequence
 
     cdef cppclass LightTargetedExperiment:
 
-        LightTargetedExperiment() nogil except +
-        LightTargetedExperiment(LightTargetedExperiment &) nogil except +
+        LightTargetedExperiment() except + nogil 
+        LightTargetedExperiment(LightTargetedExperiment &) except + nogil 
 
         libcpp_vector[LightTransition] transitions
         libcpp_vector[LightCompound] compounds
         libcpp_vector[LightProtein] proteins
-        libcpp_vector[LightTransition] getTransitions()  nogil except +
+        libcpp_vector[LightTransition] getTransitions()  except + nogil 
 
-        libcpp_vector[LightCompound] getCompounds() nogil except +
-        libcpp_vector[LightProtein] getProteins() nogil except +
+        libcpp_vector[LightCompound] getCompounds() except + nogil 
+        libcpp_vector[LightProtein] getProteins() except + nogil 
 
-        LightCompound getCompoundByRef(libcpp_string & ref) nogil except +
-        LightCompound getPeptideByRef(libcpp_string & ref) nogil except +
+        LightCompound getCompoundByRef(libcpp_string & ref) except + nogil 
+        LightCompound getPeptideByRef(libcpp_string & ref) except + nogil 
 

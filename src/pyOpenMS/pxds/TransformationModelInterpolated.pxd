@@ -10,11 +10,11 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h
         #  TransformationModel
 
         # copy constructor of 'TransformationModelInterpolated' is implicitly deleted because base class 'OpenMS::TransformationModel' has an inaccessible copy constructor public TransformationModel
-        TransformationModelInterpolated(TransformationModelInterpolated &) nogil except + #wrap-ignore
-        TransformationModelInterpolated(libcpp_vector[TM_DataPoint]& data, Param& params) nogil except +
+        TransformationModelInterpolated(TransformationModelInterpolated &) except + nogil  #wrap-ignore
+        TransformationModelInterpolated(libcpp_vector[TM_DataPoint]& data, Param& params) except + nogil 
 
-        void getDefaultParameters(Param &) nogil except + # wrap-doc:Gets the default parameters
-        double evaluate(double value) nogil except +
+        void getDefaultParameters(Param &) except + nogil  # wrap-doc:Gets the default parameters
+        double evaluate(double value) except + nogil 
         # wrap-doc:
                 #  Evaluate the interpolation model at the given value
                 #  

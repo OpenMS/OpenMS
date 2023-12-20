@@ -16,10 +16,10 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>" namespa
                 #  
                 #  Peak widening is achieved by either a Gaussian or Lorentzian shape
 
-        IsotopeModel() nogil except +
-        IsotopeModel(IsotopeModel &) nogil except +
-        UInt getCharge() nogil except +
-        void setOffset(double offset) nogil except +
+        IsotopeModel() except + nogil 
+        IsotopeModel(IsotopeModel &) except + nogil 
+        UInt getCharge() except + nogil 
+        void setOffset(double offset) except + nogil 
             # wrap-doc:
                 #  Set the offset of the model
                 #  
@@ -28,23 +28,23 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>" namespa
                 #  standard deviations) but can get significant otherwise. In that case use setParameters()
                 #  which enforces a recomputation of the model
 
-        double getOffset() nogil except + # wrap-doc:Get the offset of the model
-        EmpiricalFormula getFormula() nogil except + # wrap-doc:Return the Averagine peptide formula (mass calculated from mean mass and charge -- use .setParameters() to set them)
-        void setSamples(EmpiricalFormula &formula) nogil except + # wrap-doc:Set sample/supporting points of interpolation
-        double getCenter() nogil except +
+        double getOffset() except + nogil  # wrap-doc:Get the offset of the model
+        EmpiricalFormula getFormula() except + nogil  # wrap-doc:Return the Averagine peptide formula (mass calculated from mean mass and charge -- use .setParameters() to set them)
+        void setSamples(EmpiricalFormula &formula) except + nogil  # wrap-doc:Set sample/supporting points of interpolation
+        double getCenter() except + nogil 
             # wrap-doc:
                 #  Get the center of the Isotope model
                 #  
                 #  This is a m/z-value not necessarily the monoisotopic mass
 
-        IsotopeDistribution  getIsotopeDistribution() nogil except +
+        IsotopeDistribution  getIsotopeDistribution() except + nogil 
             # wrap-doc:
                 #  Get the Isotope distribution (without widening) from the last setSamples() call
                 #  
                 #  Useful to determine the number of isotopes that the model contains and their position
 
-        # BaseModel[ 1 ] * create() nogil except +
-        String getProductName() nogil except + # wrap-doc:Name of the model (needed by Factory)
+        # BaseModel[ 1 ] * create() except + nogil 
+        String getProductName() except + nogil  # wrap-doc:Name of the model (needed by Factory)
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>" namespace "OpenMS::IsotopeModel":
     cdef enum Averagines "OpenMS::IsotopeModel::Averagines":

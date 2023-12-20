@@ -12,85 +12,85 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>" namespace "Op
 
     cdef cppclass TargetedExperiment:
 
-        TargetedExperiment() nogil except + # TODO
-        TargetedExperiment(TargetedExperiment &) nogil except +
+        TargetedExperiment() except + nogil  # TODO
+        TargetedExperiment(TargetedExperiment &) except + nogil 
 
-        bool operator==(TargetedExperiment) nogil except +
-        bool operator!=(TargetedExperiment) nogil except +
+        bool operator==(TargetedExperiment) except + nogil 
+        bool operator!=(TargetedExperiment) except + nogil 
 
-        TargetedExperiment operator+(TargetedExperiment)    nogil except +
-        TargetedExperiment iadd(TargetedExperiment)   nogil except + # wrap-as:operator+=
+        TargetedExperiment operator+(TargetedExperiment)    except + nogil 
+        TargetedExperiment iadd(TargetedExperiment)   except + nogil  # wrap-as:operator+=
 
-        void clear(bool clear_meta_data)  nogil except +
-        void sortTransitionsByProductMZ()  nogil except +
+        void clear(bool clear_meta_data)  except + nogil 
+        void sortTransitionsByProductMZ()  except + nogil 
 
         # cv list
-        void setCVs(libcpp_vector[CV] cvs) nogil except +
-        libcpp_vector[CV] getCVs() nogil except +
-        void addCV(CV cv) nogil except +
+        void setCVs(libcpp_vector[CV] cvs) except + nogil 
+        libcpp_vector[CV] getCVs() except + nogil 
+        void addCV(CV cv) except + nogil 
 
         # contact list
-        void setContacts(libcpp_vector[Contact] contacts) nogil except +
-        libcpp_vector[Contact] getContacts() nogil except +
-        void addContact(Contact contact) nogil except +
+        void setContacts(libcpp_vector[Contact] contacts) except + nogil 
+        libcpp_vector[Contact] getContacts() except + nogil 
+        void addContact(Contact contact) except + nogil 
 
         # publication list
-        void setPublications(libcpp_vector[Publication] publications) nogil except +
-        libcpp_vector[Publication] getPublications() nogil except +
-        void addPublication(Publication publication) nogil except +
+        void setPublications(libcpp_vector[Publication] publications) except + nogil 
+        libcpp_vector[Publication] getPublications() except + nogil 
+        void addPublication(Publication publication) except + nogil 
 
         # target list
-        void setTargetCVTerms(CVTermList cv_terms) nogil except +
-        CVTermList getTargetCVTerms() nogil except +
-        void addTargetCVTerm(CVTerm cv_term) nogil except +
-        void setTargetMetaValue(String name, DataValue value) nogil except +
+        void setTargetCVTerms(CVTermList cv_terms) except + nogil 
+        CVTermList getTargetCVTerms() except + nogil 
+        void addTargetCVTerm(CVTerm cv_term) except + nogil 
+        void setTargetMetaValue(String name, DataValue value) except + nogil 
 
         # instrument list
-        void setInstruments(libcpp_vector[TargetedExperiment_Instrument] instruments) nogil except +
-        libcpp_vector[TargetedExperiment_Instrument] getInstruments() nogil except +
-        void addInstrument(TargetedExperiment_Instrument instrument) nogil except +
+        void setInstruments(libcpp_vector[TargetedExperiment_Instrument] instruments) except + nogil 
+        libcpp_vector[TargetedExperiment_Instrument] getInstruments() except + nogil 
+        void addInstrument(TargetedExperiment_Instrument instrument) except + nogil 
 
         # software list
-        void setSoftware(libcpp_vector[Software] software) nogil except +
-        libcpp_vector[Software] getSoftware() nogil except +
-        void addSoftware(Software software) nogil except +
+        void setSoftware(libcpp_vector[Software] software) except + nogil 
+        libcpp_vector[Software] getSoftware() except + nogil 
+        void addSoftware(Software software) except + nogil 
 
         # protein list
-        void setProteins(libcpp_vector[Protein] proteins) nogil except +
-        libcpp_vector[Protein] getProteins() nogil except +
-        Protein getProteinByRef(String ref) nogil except +
-        bool hasProtein(String ref) nogil except +
-        void addProtein(Protein protein) nogil except +
+        void setProteins(libcpp_vector[Protein] proteins) except + nogil 
+        libcpp_vector[Protein] getProteins() except + nogil 
+        Protein getProteinByRef(String ref) except + nogil 
+        bool hasProtein(String ref) except + nogil 
+        void addProtein(Protein protein) except + nogil 
 
         # compound list
-        void setCompounds(libcpp_vector[Compound] rhs) nogil except +
-        libcpp_vector[Compound] getCompounds() nogil except +
-        void addCompound(Compound rhs) nogil except +
-        bool hasCompound(String ref) nogil except +
-        Compound getCompoundByRef(String ref) nogil except +
+        void setCompounds(libcpp_vector[Compound] rhs) except + nogil 
+        libcpp_vector[Compound] getCompounds() except + nogil 
+        void addCompound(Compound rhs) except + nogil 
+        bool hasCompound(String ref) except + nogil 
+        Compound getCompoundByRef(String ref) except + nogil 
 
         # peptide list
-        void setPeptides(libcpp_vector[Peptide] rhs) nogil except +
-        libcpp_vector[Peptide] getPeptides() nogil except +
-        bool hasPeptide(String ref) nogil except +
-        Peptide getPeptideByRef(String ref) nogil except +
-        void addPeptide(Peptide rhs) nogil except +
+        void setPeptides(libcpp_vector[Peptide] rhs) except + nogil 
+        libcpp_vector[Peptide] getPeptides() except + nogil 
+        bool hasPeptide(String ref) except + nogil 
+        Peptide getPeptideByRef(String ref) except + nogil 
+        void addPeptide(Peptide rhs) except + nogil 
 
         # set transition list
-        void setTransitions(libcpp_vector[ReactionMonitoringTransition] transitions) nogil except +
-        libcpp_vector[ReactionMonitoringTransition] getTransitions() nogil except +
-        void addTransition(ReactionMonitoringTransition transition) nogil except +
+        void setTransitions(libcpp_vector[ReactionMonitoringTransition] transitions) except + nogil 
+        libcpp_vector[ReactionMonitoringTransition] getTransitions() except + nogil 
+        void addTransition(ReactionMonitoringTransition transition) except + nogil 
 
-        void setIncludeTargets(libcpp_vector[IncludeExcludeTarget] targets) nogil except +
-        libcpp_vector[IncludeExcludeTarget] getIncludeTargets() nogil except +
-        void addIncludeTarget(IncludeExcludeTarget target) nogil except +
-        void setExcludeTargets(libcpp_vector[IncludeExcludeTarget] targets) nogil except +
-        libcpp_vector[IncludeExcludeTarget] getExcludeTargets() nogil except +
-        void addExcludeTarget(IncludeExcludeTarget target) nogil except +
+        void setIncludeTargets(libcpp_vector[IncludeExcludeTarget] targets) except + nogil 
+        libcpp_vector[IncludeExcludeTarget] getIncludeTargets() except + nogil 
+        void addIncludeTarget(IncludeExcludeTarget target) except + nogil 
+        void setExcludeTargets(libcpp_vector[IncludeExcludeTarget] targets) except + nogil 
+        libcpp_vector[IncludeExcludeTarget] getExcludeTargets() except + nogil 
+        void addExcludeTarget(IncludeExcludeTarget target) except + nogil 
 
         # sets the source files
-        void setSourceFiles(libcpp_vector[SourceFile] source_files) nogil except +
-        libcpp_vector[SourceFile] getSourceFiles() nogil except +
-        void addSourceFile(SourceFile source_file) nogil except +
+        void setSourceFiles(libcpp_vector[SourceFile] source_files) except + nogil 
+        libcpp_vector[SourceFile] getSourceFiles() except + nogil 
+        void addSourceFile(SourceFile source_file) except + nogil 
 
-        bool containsInvalidReferences() nogil except +
+        bool containsInvalidReferences() except + nogil 

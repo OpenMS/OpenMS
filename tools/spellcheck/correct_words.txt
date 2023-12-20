@@ -348,7 +348,6 @@ STATSHELPERS
 STREAMTYPE
 SVC
 SVG
-SVMWRAPPER
 SVR
 TARGETEDEXPERIMENT
 TARGETEDEXPERIMENTHELPER
@@ -655,8 +654,6 @@ IsolationWindowLow
 IsolationWindowUp
 IsotopeDisribution
 IsotopeSpecies
-IsotopeWaveletFF
-IsotopeWaveletFeatureFinder
 KDTreeMaps
 LabelType
 LayerData
@@ -1066,7 +1063,6 @@ PercentRSD
 PrimaryRunPaths
 ProtGroups
 ProtID's
-RTPredict
 RTPrediction
 SavitzkyGolay
 ScanNr
@@ -2363,7 +2359,6 @@ OpenSuse
 PYOPENMS
 PageDown
 PageUp
-PeakPickerRapid
 PeakPickers
 PeakPicking
 QMAKE

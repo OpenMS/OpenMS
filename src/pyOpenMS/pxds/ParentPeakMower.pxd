@@ -13,9 +13,9 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/ParentPeakMower.h>" namespace "
         # wrap-doc:
         #  ParentPeakMower gets rid of high peaks that could stem from unfragmented precursor ions
         
-        ParentPeakMower() nogil except +
-        ParentPeakMower(ParentPeakMower &) nogil except + 
+        ParentPeakMower() except + nogil 
+        ParentPeakMower(ParentPeakMower &) except + nogil  
 
-        void filterSpectrum(MSSpectrum & spec) nogil except +
-        void filterPeakSpectrum(MSSpectrum & spec) nogil except +
-        void filterPeakMap(MSExperiment & exp) nogil except +
+        void filterSpectrum(MSSpectrum & spec) except + nogil 
+        void filterPeakSpectrum(MSSpectrum & spec) except + nogil 
+        void filterPeakMap(MSExperiment & exp) except + nogil 

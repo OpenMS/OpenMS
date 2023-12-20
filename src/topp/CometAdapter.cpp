@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -36,9 +10,10 @@
 
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+// TODO remove this once we have handler transform support
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -77,8 +52,7 @@ using namespace std;
     </table>
 </CENTER>
 
-    @em Comet must be installed before this wrapper can be used. This wrapper
-    has been successfully tested with version 2016.01.2, 2016.01.3 and 2017.01.0beta of Comet.
+    @em Comet must be installed/downloaded before this wrapper can be used. OpenMS installers ship with Comet.
     
     @warning We recommend to use Comet 2019.01 rev. 5 or later, due to a serious "empty result" bug in earlier versions (which occurs frequently on Windows; Linux seems not/less affected).
 
@@ -88,9 +62,6 @@ using namespace std;
     Parameter names have been changed to match names found in other search engine adapters, however some are Comet specific.
     For a detailed description of all available parameters check the Comet documentation at http://comet-ms.sourceforge.net/parameters/parameters_201601/
     The default parameters are set for a high resolution instrument.
-
-    To cite Comet use: Eng, Jimmy K. and Jahan, Tahmina A. and Hoopmann, Michael R., Comet: An open-source MS/MS sequence database search tool
-    PROTEOMICS, 13, 1, 2013, 22--24, 10.1002/pmic.201200439
 
     @note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
 
@@ -209,7 +180,7 @@ protected:
     setMaxInt_("max_peptide_length", 63);
 
     //Output
-    registerIntOption_("num_hits", "<num>", 1, "Number of peptide hits in output file", false, false);
+    registerIntOption_("num_hits", "<num>", 1, "Number of peptide hits (PSMs) per spectrum in output file", false, false);
 
     //mzXML/mzML parameters
     registerStringOption_("precursor_charge", "[min]:[max]", "0:0", "Precursor charge range to search (if spectrum is not annotated with a charge or if override_charge!=keep any known): 0:[num] == search all charges, 2:6 == from +2 to +6, 3:3 == +3", false, false);
@@ -672,8 +643,7 @@ protected:
     MSExperiment exp;
     MzMLFile mzml_file{};
     String input_file_with_index = inputfile_name;
-    auto index_offset = IndexedMzMLDecoder().findIndexListOffset(inputfile_name);
-    if (index_offset == (std::streampos)-1)
+    if (!mzml_file.hasIndex(inputfile_name))
     {
       OPENMS_LOG_WARN << "The mzML file provided to CometAdapter is not indexed, but comet requires one. "
                       << "We will add an index by writing a temporary file. If you run this analysis more often, consider indexing your mzML in advance!" << std::endl;
@@ -746,7 +716,7 @@ protected:
     // if "reindex" parameter is set to true will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
-    IdXMLFile().store(out, protein_identifications, peptide_identifications);
+    FileHandler().storeIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDXML});
 
     //-------------------------------------------------------------
     // create (move) optional pin output

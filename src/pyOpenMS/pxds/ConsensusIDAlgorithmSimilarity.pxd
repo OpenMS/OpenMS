@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmSimilarity.h>" namespa
         # no-pxd-import
 
         # protected 
-        ConsensusIDAlgorithmSimilarity() nogil except + # wrap-ignore
+        ConsensusIDAlgorithmSimilarity() except + nogil  # wrap-ignore
         # private
-        ConsensusIDAlgorithmSimilarity(ConsensusIDAlgorithmSimilarity) nogil except + # wrap-ignore
+        ConsensusIDAlgorithmSimilarity(ConsensusIDAlgorithmSimilarity) except + nogil  # wrap-ignore
 

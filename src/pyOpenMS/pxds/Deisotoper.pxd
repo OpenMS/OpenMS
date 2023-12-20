@@ -4,8 +4,8 @@ from MSSpectrum cimport *
 
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>" namespace "OpenMS":
     cdef cppclass Deisotoper:
-        Deisotoper() nogil except + # compiler
-        Deisotoper(Deisotoper &) nogil except + # compiler
+        Deisotoper() except + nogil  # compiler
+        Deisotoper(Deisotoper &) except + nogil  # compiler
 
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>" namespace "OpenMS::Deisotoper":
@@ -22,12 +22,12 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>" namespace "Open
                 bool annotate_iso_peak_count,
                 bool use_decreasing_model,
                 unsigned int start_intensity_check,
-                bool add_up_intensity) nogil except + # wrap-attach:Deisotoper
+                bool add_up_intensity) except + nogil  # wrap-attach:Deisotoper
 
     
         void deisotopeAndSingleCharge(MSSpectrum & spectra,
                 double fragment_tolerance, 
-                bool fragment_unit_ppm) nogil except +  # wrap-attach:Deisotoper wrap-as:deisotopeAndSingleChargeDefault
+                bool fragment_unit_ppm) except + nogil   # wrap-attach:Deisotoper wrap-as:deisotopeAndSingleChargeDefault
 
         void deisotopeWithAveragineModel(MSSpectrum & spectrum,
                 double fragment_tolerance,
@@ -41,5 +41,5 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>" namespace "Open
                 bool make_single_charged,
                 bool annotate_charge,
                 bool annotate_iso_peak_count,
-                bool add_up_intensity) nogil except + # wrap-attach:Deisotoper
+                bool add_up_intensity) except + nogil  # wrap-attach:Deisotoper
 

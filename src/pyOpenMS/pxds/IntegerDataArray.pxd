@@ -17,17 +17,17 @@ cdef extern from "<OpenMS/METADATA/DataArrays.h>" namespace "OpenMS::DataArrays"
         #  The representation of extra integer data attached to a spectrum or chromatogram.
         #  Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
 
-        IntegerDataArray() nogil except +
-        IntegerDataArray(IntegerDataArray &) nogil except +
+        IntegerDataArray() except + nogil 
+        IntegerDataArray(IntegerDataArray &) except + nogil 
 
-        Size size() nogil except +
-        void resize(size_t n) nogil except +
-        void reserve(size_t n) nogil except +
-        Int& operator[](size_t) nogil except + # wrap-ignore
-        void clear() nogil except +
-        void push_back(Int) nogil except +
+        Size size() except + nogil 
+        void resize(size_t n) except + nogil 
+        void reserve(size_t n) except + nogil 
+        Int& operator[](size_t) except + nogil  # wrap-ignore
+        void clear() except + nogil 
+        void push_back(Int) except + nogil 
 
-        libcpp_vector[int].iterator begin() nogil except +  # wrap-ignore
-        libcpp_vector[int].iterator end()   nogil except +  # wrap-ignore
+        libcpp_vector[int].iterator begin() except + nogil   # wrap-ignore
+        libcpp_vector[int].iterator end()   except + nogil   # wrap-ignore
 
 

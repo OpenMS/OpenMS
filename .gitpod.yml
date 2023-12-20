@@ -7,7 +7,7 @@ tasks:
         export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" )
         mkdir -p build && pushd build
         cmake -DCMAKE_BUILD_TYPE=Debug -DHAS_XSERVER=OFF -DENABLE_DOCS=OFF -DWITH_GUI=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../
-        make -j7 OpenMS TOPP UTILS
+        make -j7 OpenMS TOPP
         popd
       command: |
         export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" )
