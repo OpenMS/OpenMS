@@ -173,7 +173,7 @@ jobs:
         fi
 
     - name: check input options
-      if: github.event_name == workflow_run
+      if: github.event_name == 'workflow_dispatch'
       shell: bash
       run: |
           # check if we want to be marked as latest, and if we actually should.
