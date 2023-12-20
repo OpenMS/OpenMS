@@ -67,6 +67,8 @@ jobs:
           - os: ubuntu-22.04
             compiler: clang++
             compiler_ver: 15
+    outputs:
+      version_number: ${{ steps.create_changelog.outputs.version_number }}
 
     runs-on: ${{ matrix.os }}
 
@@ -545,7 +547,7 @@ jobs:
             cat > releaseTextHeader.txt << EOF
             Dear OpenMS-Users,
 
-            we are proud to announce the release of OpenMS ${{ jobs.build_and_test.outputs.version_number }}. Grab it <a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/release/${{ jobs.build_and_test.outputs.version_number }}">here</a>
+            we are proud to announce the release of OpenMS ${{ needs.build_and_test.outputs.version_number }}. Grab it <a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/release/${{ jobs.build_and_test.outputs.version_number }}">here</a>
 
             In the following you find all important changes to the previous version:
 
