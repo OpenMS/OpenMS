@@ -89,7 +89,7 @@ jobs:
           echo "tp_folder=Linux" >> $GITHUB_OUTPUT
           echo "xvfb=xvfb-run -a" >> $GITHUB_OUTPUT
           echo "static_boost=OFF" >> $GITHUB_OUTPUT
-          if [ "$DO_PACKAGE" = true ]; then
+          if [ "$DO_PACKAGE" == true ]; then
             echo "enable_docs=ON" >> $GITHUB_OUTPUT
             echo "pkg_type=deb" >> $GITHUB_OUTPUT
           else
@@ -168,7 +168,7 @@ jobs:
           # if we are running as the result of a push rather than a PR the ${{ inputs.* }} flat out don't exist, which makes the ops checking code choke.
           # unfortunately it looks like bash evaluates the syntax even if we never reach the code, so we need to make sure the variables exist
 
-          if [[ 'false' == ${{ github.event_name == 'push' }} ]]; then
+          if [[ 'true' == ${{ github.event_name == 'push' }} ]]; then
             DO_RELEASE = 'false'
             KNIME = 'false'
             PACKAGE = 'false'
