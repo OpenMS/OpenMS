@@ -92,12 +92,13 @@ namespace OpenMS
       }
       left_count = (int)most_abundant_index_ - left_count;
       right_count = right_count - (int)most_abundant_index_;
-      iso.trimRight(1e-10);
 
+      double intensity_sum = 0;
       for (auto& k : iso)
       {
         float ori_int = k.getIntensity();
         k.setIntensity(ori_int / (float)sqrt(total_pwr));
+        intensity_sum += k.getIntensity();
       }
       left_count = left_count < min_left_right_count ? min_left_right_count : left_count;
       right_count = right_count < min_left_right_count ? min_left_right_count : right_count;
@@ -108,6 +109,7 @@ namespace OpenMS
       average_mono_mass_difference_.push_back(iso.averageMass() - iso[0].getMZ());
       abundant_mono_mass_difference_.push_back(iso.getMostAbundant().getMZ() - iso[0].getMZ());
       isotopes_.push_back(iso);
+      snr_mul_factor_.push_back(intensity_sum * intensity_sum);
     }
   }
 
@@ -141,6 +143,11 @@ namespace OpenMS
   double FLASHDeconvHelperStructs::PrecalculatedAveragine::getMostAbundantMassDelta(const double mass) const
   {
     return abundant_mono_mass_difference_[massToIndex_(mass)];
+  }
+
+  double FLASHDeconvHelperStructs::PrecalculatedAveragine::getSNRMultiplicationFactor(const double mass) const
+  {
+    return snr_mul_factor_[massToIndex_(mass)];
   }
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getRightCountFromApex(const double mass) const

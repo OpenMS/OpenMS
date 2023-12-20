@@ -14,7 +14,7 @@ namespace OpenMS
 {
   void Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra) // per ms level + precursor update as well.
   {
-    uint bin_number = 60;
+    uint bin_number = 200;
     const uint iteration_count = 100;
 
     std::map<uint, std::vector<double>> tscore_map; // per ms level
@@ -83,7 +83,7 @@ namespace OpenMS
       const auto noise_dist = getDistribution(dscore_noise, bin_number);
       const auto iso_dist = getDistribution(dscore_iso, bin_number);
 
-      std::vector<double> weights(4, 1.0 / 4.0);
+      std::vector<double> weights(4, 1.0 / 3.0);
       std::vector<double> true_positive_dist(bin_number);
 
       for (uint iteration = 0; iteration < iteration_count; iteration++)
@@ -101,7 +101,8 @@ namespace OpenMS
           pos.setX(bin_number - i - 1);
           pos.setY(y);
           fit_data.push_back(pos);
-          if (max_Y > y) continue;
+          if (max_Y > y)
+            continue;
           max_Y = y;
           max_X = bin_number - i - 1;
         }
@@ -114,7 +115,6 @@ namespace OpenMS
         auto fit_result = fitter.fit(fit_data);
         for (int i = 0; i < bin_number; i++)
           true_positive_dist[i] = exp(fit_result.log_eval_no_normalize(bin_number - i - 1));
-
 
         double csum = .0;
         for (const auto& r : true_positive_dist)
@@ -278,8 +278,8 @@ namespace OpenMS
     return (uint)round(pow(qscore, 1) * (total_bin_number - 1.0));
   }
 
-std::vector<double> Qvalue::getDistribution(const std::vector<double>& qscores, uint bin_number)
-{
+  std::vector<double> Qvalue::getDistribution(const std::vector<double>& qscores, uint bin_number)
+  {
     std::vector<double> ret(bin_number, .0);
 
     for (double qscore : qscores)

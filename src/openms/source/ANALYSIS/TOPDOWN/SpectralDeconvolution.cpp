@@ -48,7 +48,7 @@ namespace OpenMS
     defaults_.setValue("min_cos", DoubleList {.85, .85},
                        "Cosine similarity thresholds between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_cos 0.3 0.6 to specify 0.3 and 0.6 for MS1 and MS2, respectively)");
     defaults_.addTag("min_cos", "advanced");
-    defaults_.setValue("min_snr", DoubleList {2.0, 2.0}, "SNR thresholds for MS1, 2, ... (e.g., -min_snr 1.0 0.6 to specify 1.0 and 0.6 for MS1 and MS2, respectively)");
+    defaults_.setValue("min_snr", DoubleList {1.0, 1.0}, "SNR thresholds for MS1, 2, ... (e.g., -min_snr 1.0 0.6 to specify 1.0 and 0.6 for MS1 and MS2, respectively)");
     defaults_.addTag("min_snr", "advanced");
     defaults_.setValue("max_qvalue", DoubleList {1.0, 1.0},
                        "Qvalue thresholds for MS1, 2, ... Effective only when FDR estimation is active. (e.g., -max_qvalue 0.1 0.2 to specify 0.1 and 0.2 for MS1 and MS2, respectively)");
@@ -982,105 +982,106 @@ namespace OpenMS
 
   void SpectralDeconvolution::scoreAndFilterPeakGroups_()
   {
-    std::vector<PeakGroup> filtered_peak_groups;
-    filtered_peak_groups.reserve(deconvolved_spectrum_.size() + (target_decoy_type_ == PeakGroup::TargetDecoyType::target ? 0 : target_dspec_for_decoy_calcualtion_->size()));
-
     double tol = tolerance_[ms_level_ - 1];
-#pragma omp parallel default(none) shared(tol, filtered_peak_groups)
+    auto selected = boost::dynamic_bitset<>(deconvolved_spectrum_.size());
+
+#pragma omp parallel for default(none) shared(tol, selected)
+    for (int i = 0; i < (int)deconvolved_spectrum_.size(); i++)
     {
-      std::vector<PeakGroup> filtered_peak_groups_private;
-      filtered_peak_groups_private.reserve(deconvolved_spectrum_.size() / omp_get_num_threads() + 1);
-#pragma omp for nowait schedule(static)
-      for (int i = 0; i < (int)deconvolved_spectrum_.size(); i++)
+      int offset = 0;
+      auto& peak_group = deconvolved_spectrum_[i];
+      peak_group.setTargetDecoyType(target_decoy_type_);
+
+      float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -peak_group.getMinNegativeIsotopeIndex(), -1, allowed_iso_error_,
+                                                           target_decoy_type_);
+      peak_group.setIsotopeCosine(cos);
+      // first filtration to remove false positives before further processing.
+      if (cos < std::min(.5, min_isotope_cosine_[ms_level_ - 1]) - .3)
       {
-        int offset = 0;
-        auto peak_group = deconvolved_spectrum_[i];
-        peak_group.setTargetDecoyType(target_decoy_type_);
+        continue;
+      }
 
-        float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -peak_group.getMinNegativeIsotopeIndex(), -1,
-                                                             allowed_iso_error_, target_decoy_type_);
-        peak_group.setIsotopeCosine(cos);
-        // first filtration to remove false positives before further processing.
-        if (cos < std::min(.5, min_isotope_cosine_[ms_level_ - 1]) - .3)
+      auto prev_mono_mass = peak_group.getMonoMass() + offset * iso_da_distance_;
+
+      int num_iteration = target_decoy_type_ != PeakGroup::TargetDecoyType::isotope_decoy ? 30 : 1;
+      for (int k = 0; k < num_iteration; k++)
+      {
+        auto noisy_peaks = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_);
+        // min cosine is checked in here. mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
+        const auto& [z1, z2] = peak_group.getAbsChargeRange();
+        offset = peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol, (z1 + z2) < 2 * low_charge_, allowed_iso_error_);
+        if (offset == 0)
         {
-          continue;
+          break;
         }
+      }
 
-        auto prev_mono_mass = peak_group.getMonoMass() + offset * iso_da_distance_;
+      if (peak_group.empty() || peak_group.getQscore() <= 0 || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
+      {
+        continue;
+      }
+      if (std::abs(prev_mono_mass - peak_group.getMonoMass()) > 3) // if they are off by more than 3, they are different envelopes.
+      {
+        continue;
+      }
+      auto [z1, z2] = peak_group.getAbsChargeRange();
 
-        int num_iteration = target_decoy_type_ != PeakGroup::TargetDecoyType::isotope_decoy ? 30 : 1;
-        for (int k = 0; k < num_iteration; k++)
+      if (z1 > low_charge_ && (z2 - z1) < min_support_peak_count_)
+      {
+        continue;
+      }
+
+      if (!target_mono_masses_.empty())
+      {
+        double delta = peak_group.getMonoMass() * tolerance_[ms_level_ - 1] * 2;
+        auto upper = std::upper_bound(target_mono_masses_.begin(), target_mono_masses_.end(), peak_group.getMonoMass() + delta);
+
+        while (!peak_group.isTargeted())
         {
-          auto noisy_peaks = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_);
-          // min cosine is checked in here. mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
-          const auto& [z1, z2] = peak_group.getAbsChargeRange();
-          offset = peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], (z1 + z2) < 2 * low_charge_, allowed_iso_error_);
-          if (offset == 0)
+          if (upper != target_mono_masses_.end())
           {
-            break;
-          }
-        }
-
-        if (peak_group.empty() || peak_group.getQscore() <= 0 || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
-        {
-          continue;
-        }
-        if (std::abs(prev_mono_mass - peak_group.getMonoMass()) > 3) // if they are off by more than 3, they are different envelopes.
-        {
-          continue;
-        }
-        auto [z1, z2] = peak_group.getAbsChargeRange();
-
-        if (z1 > low_charge_ && (z2 - z1) < min_support_peak_count_)
-        {
-          continue;
-        }
-
-        if (!target_mono_masses_.empty())
-        {
-          double delta = peak_group.getMonoMass() * tolerance_[ms_level_ - 1] * 2;
-          auto upper = std::upper_bound(target_mono_masses_.begin(), target_mono_masses_.end(), peak_group.getMonoMass() + delta);
-
-          while (!peak_group.isTargeted())
-          {
-            if (upper != target_mono_masses_.end())
+            if (std::abs(*upper - peak_group.getMonoMass()) < delta)
             {
-              if (std::abs(*upper - peak_group.getMonoMass()) < delta)
-              {
-                peak_group.setTargeted();
-              }
-              if (peak_group.getMonoMass() - *upper > delta)
-              {
-                break;
-              }
+              peak_group.setTargeted();
             }
-            if (upper == target_mono_masses_.begin())
+            if (peak_group.getMonoMass() - *upper > delta)
             {
               break;
             }
-            --upper;
           }
+          if (upper == target_mono_masses_.begin())
+          {
+            break;
+          }
+          --upper;
         }
-        double snr_threshold = min_snr_[ms_level_ - 1];
-        double qvalue_threshold = max_qvalue_[ms_level_ - 1];
-        if (!peak_group.isTargeted() && (peak_group.getQvalue() > qvalue_threshold || peak_group.getSNR() < snr_threshold)) // snr check prevents harmonics or noise.
-        {
-          continue;
-        }
-
-        filtered_peak_groups_private.push_back(peak_group);
       }
 
-#ifdef _OPENMP
-  #pragma omp for schedule(static) ordered
-      for (int i = 0; i < omp_get_num_threads(); i++)
+      double snr_threshold = min_snr_[ms_level_ - 1];
+      double qvalue_threshold = max_qvalue_[ms_level_ - 1];
+      if (!peak_group.isTargeted() && (peak_group.getQvalue() > qvalue_threshold || peak_group.getSNR() < snr_threshold ||
+                                       peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold)) // snr check prevents harmonics or noise.
       {
-  #pragma omp ordered
-        filtered_peak_groups.insert(filtered_peak_groups.end(), filtered_peak_groups_private.begin(), filtered_peak_groups_private.end());
+        continue;
       }
-#else
-      filtered_peak_groups = filtered_peak_groups_private;
-#endif
+      selected[i] = true;
+    }
+
+    Size selected_count = selected.count();
+    if (selected_count == 0)
+    {
+      deconvolved_spectrum_.clear();
+      return;
+    }
+
+    std::vector<PeakGroup> filtered_peak_groups;
+    filtered_peak_groups.reserve(selected_count + (target_decoy_type_ == PeakGroup::TargetDecoyType::target ? 0 : target_dspec_for_decoy_calcualtion_->size()));
+
+    Size index = selected.find_first();
+    while (index != selected.npos)
+    {
+      filtered_peak_groups.push_back(deconvolved_spectrum_[index]);
+      index = selected.find_next(index);
     }
 
     if (target_decoy_type_ != PeakGroup::TargetDecoyType::target)
@@ -1341,7 +1342,7 @@ namespace OpenMS
         continue;
       }
 
-      double mul_factor = .5;       // dspec[i].getRepAbsCharge() < low_charge_ ? .5 : .5;
+      double mul_factor = .5;
       if (!dspec[i].isTargeted() && // z1 != z2 &&
           overlap_intensity[i] >=
             dspec[i].getIntensity() * mul_factor) // If the overlapped intensity takes more than mul_factor * total intensity then it is a peakgroup with a charge error. the smaller, the harsher

@@ -36,14 +36,12 @@ namespace OpenMS
     /// get QScore for a peak group of specific abs_charge
     static double getQscore(const PeakGroup* pg, const MSSpectrum& spectrum);
 
-    static void writeAttCsvFromDummy(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f);
+    static void writeAttCsvForQscoreTraining(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f);
 
-    static void writeAttCsvFromDummyHeader(std::fstream& f);
+    static void writeAttCsvForQscoreTrainingHeader(std::fstream& f);
 
   private:
     /// convert a peak group to a feature vector for setQscore calculation
-
-
     static std::vector<double> toFeatureVector_(const PeakGroup* pg);
 
     static std::vector<double> weight_centroid_;

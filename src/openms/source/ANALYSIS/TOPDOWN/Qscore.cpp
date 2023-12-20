@@ -13,50 +13,51 @@
 
 namespace OpenMS
 {
-  // IsotopeCosine                   42.2496 centroid + profile
-  // ChargeCosine                      2.8767
-  // MassSNR1                         -0.1523
-  // ChargeSNR1                        0.4797
-  // Intercept                       -45.5284
-
   //==================================== CV 0
-  // IsotopeCosine                27.6125
-  // ChargeCosine                  3.1915
-  // MassSNR1                      0.1087
-  // ChargeSNR1                   -0.5081
-  // Intercept                   -26.9646
+  // Att0         -2.9763
+  // Att1         -1.5465
+  // Att2         -0.3062
+  // Att3          0.2173
+  // Intercept     4.0676
 
-  std::vector<double> Qscore::weight_CV_0_ {-27.6125, -3.1915, -0.1087, 0.5081, 26.9646};
+  std::vector<double> Qscore::weight_CV_0_ {-2.9763, -1.5465, -0.3062, 0.2173, 4.0676};
 
   //====================================== CV 40
-  // IsotopeCosine                  24.3741
-  // ChargeCosine                    4.2927
-  // MassSNR1                        0.1893
-  // ChargeSNR1                     -0.5764
-  // Intercept                     -25.1341
+  // Att0              15.6788
+  // Att1              -3.4887
+  // Att2              -0.2782
+  // Att3               0.3794
+  // Intercept        -11.3143
 
-  std::vector<double> Qscore::weight_CV_40_ {-24.3741, -4.2927, -0.1893, 0.5764, 25.1341};
+  std::vector<double> Qscore::weight_CV_40_ {-15.6788, 3.4887, 0.2782, -0.3794, 11.3143};
 
   // ====================================== CV 50
-  // IsotopeCosine                  28.0786
-  // ChargeCosine                      3.89
-  // MassSNR1                        0.1007
-  // ChargeSNR1                     -0.5481
-  // Intercept                     -27.8257
+  // Att0                 21.7578
+  // Att1                  -4.259
+  // Att2                 -0.1171
+  // Att3                  0.2773
+  // Intercept           -16.2634
 
-  std::vector<double> Qscore::weight_CV_50_ {-28.0786, -3.89, -0.1007, 0.5481, 27.8257};
+  std::vector<double> Qscore::weight_CV_50_ {-21.7578, 4.259, 0.1171, -0.2773, 16.2634};
 
   //====================================== CV 60
-  // IsotopeCosine                  32.4126
-  // ChargeCosine                     1.463
-  // MassSNR1                        0.0073
-  // ChargeSNR1                     -0.4006
-  // Intercept                     -29.7409
+  // Att0              20.7225
+  // Att1              -2.3573
+  // Att2                -0.29
+  // Att3               0.6051
+  // Intercept        -17.4618
 
-  std::vector<double> Qscore::weight_CV_60_ {-32.4126, -1.463, -0.0073, 0.4006, 29.7409};
+  std::vector<double> Qscore::weight_CV_60_ {-20.7225, 2.3573, 0.29, -0.6051, 17.4618};
 
-  std::vector<double> Qscore::weight_centroid_ {-42.2496, -2.8767, 0.1523, -0.4797, 45.5284};
-  std::vector<double> Qscore::weight_profile_ {-42.2496, -2.8767, 0.1523, -0.4797, 45.5284};
+  //====================================== Normal
+  // Att0               17.7589
+  // Att1               -3.1289
+  // Att2                -0.113
+  // Att3                0.3179
+  // Intercept         -13.7447
+
+  std::vector<double> Qscore::weight_centroid_ {-17.7589, 3.1289, 0.113, -0.3179, 13.7447};
+  std::vector<double> Qscore::weight_profile_ {-17.7589, 3.1289, 0.113, -0.3179, 13.7447};
 
 
   double Qscore::getQscore(const PeakGroup* pg, const MSSpectrum& spectrum)
@@ -140,33 +141,25 @@ namespace OpenMS
     return fvector;
   }
 
-  void Qscore::writeAttCsvFromDummyHeader(std::fstream& f)
+  void Qscore::writeAttCsvForQscoreTrainingHeader(std::fstream& f)
   {
-    f << "MSLevel,Cos,SNR,AvgPPMError,ChargeScore,Class\n";
+    Size att_count = weight_centroid_.size() - 1;
+    for (Size i = 0; i < att_count; i++)
+      f << "Att" << i << ",";
+    f << "Class\n";
   }
 
-  void Qscore::writeAttCsvFromDummy(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
+  void Qscore::writeAttCsvForQscoreTraining(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
   {
-    uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
-    String cns[] = {"T", "D", "D", "D"};
     for (auto& pg : deconvolved_spectrum)
     {
-      if (pg.getChargeSNR(pg.getRepAbsCharge()) < .5) // remove masses with too low SNRs - they act as outliers.
-      {
-        continue;
-      }
-      if (pg.getChargeIsotopeCosine(pg.getRepAbsCharge()) < .85) // remove masses with too low SNRs - they act as outliers.
-      {
-        continue;
-      }
-
       auto fv = toFeatureVector_(&pg);
-      f << ms_level << ",";
+      bool target = pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::target;
       for (auto& item : fv)
       {
         f << item << ",";
       }
-      f << cns[pg.getTargetDecoyType()] << "\n";
+      f << (target? "T" : "F") << "\n";
     }
   }
 } // namespace OpenMS

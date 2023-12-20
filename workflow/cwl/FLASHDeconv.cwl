@@ -51,6 +51,9 @@ inputs:
   write_detail:
     doc: To write peak information per deconvolved mass in detail or not in tsv files for deconvolved spectra. If set to 1, all peak information (m/z, intensity, charge and isotope index) per mass is reported.
     type: boolean?
+  precursor_snr:
+    doc: Precursor SNR threshold for TopFD MS2 msalign tsv files.
+    type: double?
   min_mz:
     doc: If set to positive value, minimum m/z to deconvolve.
     type: double?

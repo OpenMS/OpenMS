@@ -157,7 +157,7 @@ START_SECTION(([FLASHDeconvHelperStructs::PrecalculatedAveragine] IsotopeDistrib
   IsotopeDistribution tmp_iso = p_avg_test.get(60);
   TOLERANCE_ABSOLUTE(2);
   TEST_REAL_SIMILAR(tmp_iso.getMin(), 53.);
-  TEST_REAL_SIMILAR(tmp_iso.getMax(), 55.);
+  TEST_REAL_SIMILAR(tmp_iso.getMax(), 59.);
 }
 END_SECTION
 
