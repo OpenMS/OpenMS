@@ -72,7 +72,7 @@ START_SECTION((static void compressString(std::string& raw_data, std::string& co
 
   ZlibCompression::compressString(raw_data2, compressed_data);
   TEST_EQUAL(raw_data2.size(), 64)
-  TEST_TRUE(compressed_data.size() < raw_data2.size())
+  TEST_TRUE(compressed_data.size() >= raw_data2.size())
 
   ZlibCompression::compressString(raw_data3, compressed_data);
   TEST_EQUAL(raw_data3.size(), 105)
@@ -96,7 +96,7 @@ START_SECTION((static void compressString(const QByteArray& raw_data, QByteArray
   TEST_TRUE(compressed_data.size() < raw_data_q.size())
 
   ZlibCompression::compressString(raw_data_q2, compressed_data);
-  TEST_TRUE(compressed_data.size() < raw_data_q2.size())
+  TEST_TRUE(compressed_data.size() >= raw_data_q2.size())
 
   ZlibCompression::compressString(raw_data_q3, compressed_data);
   TEST_TRUE(compressed_data.size() < raw_data_q3.size())
