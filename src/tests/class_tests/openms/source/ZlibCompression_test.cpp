@@ -121,7 +121,7 @@ START_SECTION((static void uncompressString(const void * compressed_data, size_t
   ZlibCompression::compressString(raw_data2, compressed_data);
   ZlibCompression::uncompressString(&compressed_data[0], compressed_data.size(), uncompressed_data);
   TEST_EQUAL(raw_data2.size(), 64)
-  TEST_TRUE(compressed_data.size() < raw_data2.size())  
+  TEST_TRUE(compressed_data.size() >= raw_data2.size())  //  "ABCD..." string is difficult to compress
   TEST_EQUAL(uncompressed_data.size(), 64)
   TEST_TRUE(uncompressed_data == raw_data2)
 
@@ -161,7 +161,7 @@ START_SECTION((static void uncompressString(const QByteArray& compressed_data, Q
   ZlibCompression::compressString(raw_data_q2, compressed_data);
   ZlibCompression::uncompressString(compressed_data, uncompressed_data);
   TEST_EQUAL(raw_data_q2.size(), 64)
-  TEST_TRUE(compressed_data.size() < raw_data_q2.size())  
+  TEST_TRUE(compressed_data.size() >= raw_data_q2.size())  // difficult to compress...
   TEST_EQUAL(uncompressed_data.size(), 64)
   TEST_TRUE(uncompressed_data == raw_data_q2)
 
