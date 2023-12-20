@@ -165,27 +165,38 @@ jobs:
           echo $END
           awk "NR > $START && NR < $END" OpenMS/CHANGELOG > ${{ github.workspace }}/changelog.txt
 
-          # if we are running as the result of a push rather than a PR the ${{ inputs.* }} flat out don't exist, which makes this code choke.
-          # so skip it when we are doing a push
+          # if we are running as the result of a push rather than a PR the ${{ inputs.* }} flat out don't exist, which makes the ops checking code choke.
+          # unfortunately it looks like bash evaluates the syntax even if we never reach the code, so we need to make sure the variables exist
+          DO_RELEASE = ${{ inputs.do_release }}
+          KNIME = ${{ inputs.knime }}
+          PACKAGE = ${{ inputs.package }}
+          MARK_AS_LATEST = ${{ inputs.mark_as_latest }}
+          ANNOUNCE_RELEASE = ${{ inputs.announce_release }}
           if [[ 'false' == ${{ github.event_name == 'push' }} ]]; then
-            # check if we want to be marked as latest, and if we actually should.
-            if [[ 'true' == ${{ inputs.do_release }} ]]; then
-              if [[ 'false' == ${{ inputs.knime }} || 'false' == ${{ inputs.package }} ]]; then
-                echo "Can't do a release without building the OpenMS package and the KNIME package"
-                exit 1
-              else
-                if [[ 'true' == ${{ inputs.mark_as_latest }} && "$(git tag -l $VERSION_NUMBER)" ]]; then
-                  echo "Can't mark as latest, a tag with the same version already exists"
-                  exit 1
-                fi
-              fi
+            DO_RELEASE = 'false'
+            KNIME = 'false'
+            PACKAGE = 'false'
+            MARK_AS_LATEST = 'false'
+            ANNOUNCE_RELEASE = 'false'
+          fi
+          # check if we want to be marked as latest, and if we actually should.
+          if [[ 'true' == $DO_RELEASE ]]; then
+            if [[ 'false' == $KNIME || 'false' == $PACKAGE ]]; then
+              echo "Can't do a release without building the OpenMS package and the KNIME package"
+              exit 1
             else
-              if [[ 'true' == ${{ inputs.mark_as_latest }} || 'true' == ${{inputs.announce_release}} ]]; then
-                echo "Can't mark as lates or announce release unless we do a release"
+              if [[ 'true' == $MARK_AS_LATEST && "$(git tag -l $VERSION_NUMBER)" ]]; then
+                echo "Can't mark as latest, a tag with the same version already exists"
                 exit 1
               fi
             fi
+          else
+            if [[ 'true' == $MARK_AS_LATEST || 'true' == $ANNOUNCE_RELEASE ]]; then
+              echo "Can't mark as lates or announce release unless we do a release"
+              exit 1
+            fi
           fi
+
 
         else
           echo "Branch name does not match the expected pattern."
