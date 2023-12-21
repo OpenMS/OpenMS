@@ -19,8 +19,6 @@ namespace OpenMS
   class TheoreticalSpectrumGenerator;
   namespace DIAHelpers
   {
-    using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>; ///<a vector of spectrum pointers that DIA scores can operate on, allows for clever integration of only the target region
-
     /**
       @brief Helper functions for the DIA scoring of OpenSWATH
     */
@@ -48,16 +46,16 @@ namespace OpenMS
                                        double& mz, double& im, double& intensity, const RangeMZ& mz_range, const RangeMobility& im_range, bool centroided = false);
 
     /**
-      @brief Integrate intensities in a spectrum in range @p im_range (if defined) for multiple windows.
-      @p windows_center is a vector of the center location of the windows.
-      @p width is the width of the windows across mz
-      @p RangeMobility is the range of the IM dimension (if defined)
+      @brief Integrate intensities in a spectrum in range @param im_range (if defined) for multiple windows.
+      @param windows_center is a vector of the center location of the windows.
+      @param width is the width of the windows across mz
+      @param im_range is the range of the IM dimension (if defined)
+      @param remove_zero is a flag indicating whether to remove zero intensity windows
 
       Returns:
-      integrated_windows_intensity is a vector of the integrated intensity for each window
-      integrated_windows_mz is a vector of the integrated intensity-weighted m/z for each window
-      integrated_windows_im is a vector of the integrated intensity-weighted im for each window
-
+      @param[out] integrated_windows_intensity is a vector of the integrated intensity for each window
+      @param[out] integrated_windows_mz is a vector of the integrated intensity-weighted m/z for each window
+      @param[out] integrated_windows_im is a vector of the integrated intensity-weighted im for each window
     */
     OPENMS_DLLAPI void integrateWindows(const OpenSwath::SpectrumPtr& spectrum, //!< [in] Spectrum
                                         const std::vector<double>& windows_center, //!< [in] center location

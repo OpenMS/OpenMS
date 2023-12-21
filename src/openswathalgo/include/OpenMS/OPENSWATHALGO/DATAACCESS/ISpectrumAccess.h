@@ -17,12 +17,12 @@
 
 namespace OpenMS
 {
-  using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>;  // a vector of spectrum pointers that DIA scores can operate on, allows for clever integration of only the target regions
+  using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>;  ///< a vector of spectrum pointers that DIA scores can operate on, allows for clever integration of only the target regions
 }
 namespace OpenSwath
 {
 
-  using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>;  // a vector of spectrum pointers that DIA scores can operate on, allows for clever integration of only the target regions
+  using SpectrumSequence = OpenMS::SpectrumSequence;
   /**
     @brief The interface of a mass spectrometry experiment.
   */
