@@ -59,11 +59,11 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 
 
 #------------------------------------------------------------------------------
-# third party libs shipped with OpenMS directly
+# external third-party libs statically linked to OpenMS
 #------------------------------------------------------------------------------
 # The following library is in our public API, so create export targets
 #install(EXPORT EvergreenTarget DESTINATION ${INSTALL_LIB_DIR}/cmake/OpenMS FILE OpenMSTargets.cmake COMPONENT cmake)
-add_subdirectory(thirdparty)
+add_subdirectory(extern)
 
 #------------------------------------------------------------------------------
 # external libs (contrib or system)
