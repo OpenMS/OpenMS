@@ -46,7 +46,7 @@ namespace OpenMS
                                        double& mz, double& im, double& intensity, const RangeMZ& mz_range, const RangeMobility& im_range, bool centroided = false);
 
     /**
-      @brief Integrate intensities in a spectrum in range @param im_range (if defined) for multiple windows.
+      @brief Integrate intensities in a spectrum in range @p im_range (if defined) for multiple windows.
       @param windows_center is a vector of the center location of the windows.
       @param width is the width of the windows across mz
       @param im_range is the range of the IM dimension (if defined)
