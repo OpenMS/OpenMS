@@ -752,9 +752,11 @@ protected:
     ChromExtractParams cp_ms1 = cp;
     cp_ms1.mz_extraction_window  = getDoubleOption_("mz_extraction_window_ms1");
     cp_ms1.ppm                   = getStringOption_("mz_extraction_window_ms1_unit") == "ppm";
-    cp_ms1.im_extraction_window  = getDoubleOption_("im_extraction_window_ms1");
+    cp_ms1.im_extraction_window  = (use_ms1_im) ? getDoubleOption_("im_extraction_window_ms1") : -1;
 
     Param feature_finder_param = getParam_().copy("Scoring:", true);
+    feature_finder_param.setValue("use_ms1_ion_mobility", getStringOption_("use_ms1_ion_mobility"));
+
     Param tsv_reader_param = getParam_().copy("Library:", true);
     if (use_emg_score)
     {

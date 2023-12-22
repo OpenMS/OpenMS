@@ -13,6 +13,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 namespace OpenMS
 {
@@ -53,8 +54,9 @@ public:
       and compute manhattan distance and dotprod score between spectrum intensities
       and simulated spectrum.
     */
-    void score(OpenSwath::SpectrumPtr spec,
+    void score(const SpectrumSequence& spec,
                const std::vector<OpenSwath::LightTransition>& lt,
+               const RangeMobility& im_range,
                double& dotprod,
                double& manhattan) const;
 
@@ -63,7 +65,7 @@ public:
       the SpectrumAccessPtr for all transitions groups in the LightTargetedExperiment.
     */
     void operator()(const OpenSwath::SpectrumAccessPtr& swath_ptr,
-                    OpenSwath::LightTargetedExperiment& transition_exp_used,
+                    OpenSwath::LightTargetedExperiment& transition_exp_used, const RangeMobility& range_im,
                     OpenSwath::IDataFrameWriter* ivw) const;
   };
 

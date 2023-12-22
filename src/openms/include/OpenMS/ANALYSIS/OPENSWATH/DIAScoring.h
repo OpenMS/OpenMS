@@ -16,6 +16,8 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
+#include <OpenMS/KERNEL/RangeManager.h>
+
 namespace OpenMS
 {
   class TheoreticalSpectrumGenerator;
@@ -82,15 +84,17 @@ public:
     //@{
     /// Isotope scores, see class description
     void dia_isotope_scores(const std::vector<TransitionType>& transitions,
-                            SpectrumPtrType spectrum,
+                            SpectrumSequence& spectrum,
                             OpenSwath::IMRMFeature* mrmfeature,
+                            const RangeMobility& im_range,
                             double& isotope_corr,
                             double& isotope_overlap) const;
 
     /// Massdiff scores, see class description
     void dia_massdiff_score(const std::vector<TransitionType>& transitions,
-                            const SpectrumPtrType& spectrum,
+                            const SpectrumSequence& spectrum,
                             const std::vector<double>& normalized_library_intensity,
+                            const RangeMobility& im_range,
                             double& ppm_score,
                             double& ppm_score_weighted,
                             std::vector<double>& diff_ppm) const;
@@ -103,23 +107,23 @@ public:
       @param ppm_score Resulting score
       @return False if no signal was found (and no sensible score calculated), true otherwise
     */
-    bool dia_ms1_massdiff_score(double precursor_mz, SpectrumPtrType spectrum,
+    bool dia_ms1_massdiff_score(double precursor_mz, const SpectrumSequence& spectrum, const RangeMobility& im_range,
                                 double& ppm_score) const;
 
     /// Precursor isotope scores for precursors (peptides and metabolites)
-    void dia_ms1_isotope_scores_averagine(double precursor_mz, const SpectrumPtrType& spectrum,
-                                          double& isotope_corr, double& isotope_overlap, int charge_state) const;
-    void dia_ms1_isotope_scores(double precursor_mz, const SpectrumPtrType& spectrum,
+    void dia_ms1_isotope_scores_averagine(double precursor_mz, const SpectrumSequence& spectrum, int charge_state, RangeMobility& im_range,
+                                          double& isotope_corr, double& isotope_overlap) const;
+    void dia_ms1_isotope_scores(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum, RangeMobility& im_range,
                                 double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula) const;
 
-
     /// b/y ion scores
-    void dia_by_ion_score(const SpectrumPtrType& spectrum, AASequence& sequence,
-                          int charge, double& bseries_score, double& yseries_score) const;
+    void dia_by_ion_score(const SpectrumSequence& spectrum, AASequence& sequence,
+                          int charge, const RangeMobility& im_range, double& bseries_score, double& yseries_score) const;
 
     /// Dotproduct / Manhattan score with theoretical spectrum
-    void score_with_isotopes(SpectrumPtrType spectrum,
+    void score_with_isotopes(SpectrumSequence& spectrum,
                              const std::vector<TransitionType>& transitions,
+                             const RangeMobility& im_range,
                              double& dotprod,
                              double& manhattan) const;
     //@}
@@ -137,8 +141,9 @@ private:
 
     /// Subfunction of dia_isotope_scores
     void diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions,
-                              const SpectrumPtrType& spectrum,
+                              const SpectrumSequence& spectrum,
                               std::map<std::string, double>& intensities,
+                              const RangeMobility& im_range,
                               double& isotope_corr,
                               double& isotope_overlap) const;
 
@@ -152,8 +157,8 @@ private:
 private:
 
     /**
-      @brief Determine whether the current m/z value is a monoisotopic peak 
-      
+      @brief Determine whether the current m/z value is a monoisotopic peak
+
       This function will try to determine whether the current peak is a
       monoisotopic peak or not. It will do so by searching for an intense peak
       at a lower m/z that could explain the current peak as part of a isotope
@@ -166,7 +171,7 @@ private:
       @param nr_occurrences Will contain the maximum ratio of a peaks intensity compared to the monoisotopic peak intensity how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
 
     */
-    void largePeaksBeforeFirstIsotope_(const SpectrumPtrType& spectrum, double mono_mz, double mono_int, int& nr_occurrences, double& max_ratio) const;
+    void largePeaksBeforeFirstIsotope_(const SpectrumSequence& spectrum, double mono_mz, double mono_int, int& nr_occurrences, double& max_ratio, const RangeMobility& im_range) const;
 
     /**
       @brief Compare an experimental isotope pattern to a theoretical one
@@ -202,9 +207,8 @@ private:
 
     /// Get the intensities of isotopes around @p precursor_mz in experimental @p spectrum
     /// and fill @p isotopes_int.
-    void getIsotopeIntysFromExpSpec_(double precursor_mz, const SpectrumPtrType& spectrum,
-                                     std::vector<double>& isotopes_int,
-                                     int charge_state) const;
+    void getIsotopeIntysFromExpSpec_(double precursor_mz, const SpectrumSequence& spectrum, int charge_state, const RangeMobility& im_range,
+                                     std::vector<double>& isotopes_int) const;
 
     // Parameters
     double dia_extract_window_;
@@ -219,4 +223,3 @@ private:
     TheoreticalSpectrumGenerator * generator;
   };
 }
-
