@@ -304,8 +304,10 @@ public:
 
     /**
       @brief Download file from given URL into a download folder. Returns when done.
-      Throws FileNotFound exception if download failed. If a file with same filename
-      already exists, continues download and appends '.#number' to basename.
+      
+      If a file with same filename already exists, continues download and appends '.\#number' to basename.
+      
+      @throw FileNotFound exception if download failed. 
     */
     static void download(const std::string& url, const std::string& download_folder);
 

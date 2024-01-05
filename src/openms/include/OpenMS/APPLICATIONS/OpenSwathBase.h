@@ -427,7 +427,3 @@ protected:
 };
 
 }
-
-/// @endcond
-
-
