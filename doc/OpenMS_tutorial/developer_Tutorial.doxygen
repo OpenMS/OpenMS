@@ -9,7 +9,7 @@
 
 // Sections:
 // - to add new pages you have to add them to:
-//    - doc/doxygen/public/developer_Tutorial_html.doxygen (html output)
+//    - doc/doxygen/public/OpenMS_Tutorial_html.doxygen (html output)
 
 // Conventions:
 // - Please write a short introduction for each chapter that explains
@@ -35,13 +35,13 @@ Mass spectrometry (MS) is an essential analytical technique for high-throughput 
 <b>%OpenMS</b>, a software framework for rapid <b>application and method development</b> in mass spectrometry has been designed to be portable, easy-to-use, and robust while offering a rich functionality ranging from basic data structures to sophisticated algorithms for data analysis (https://www.nature.com/nmeth/journal/v13/n9/abs/nmeth.3959.html). <br>
 
 <b>Ease of use:</b>
-%OpenMS follows the <b>object-oriented</b> programming paradigm, which aims at mapping real-world entities to comprehensible data structures and interfaces. %OpenMS enforces a <b>coding style</b> that ensures consistent names of classes, methods and member variables which increases the usability as a software library. Another important feature of a software framework is documentation. We decided to use <b>doxygen</b> (www.doxygen.org/) to generate the class documentation from the <b>source code</b>, which ensures consistency of code and documentation. The documentation is generated in HTML format making it easy to read with a web browser. <br>
+%OpenMS follows the <b>object-oriented</b> programming paradigm, which aims at mapping real-world entities to comprehensible data structures and interfaces. %OpenMS enforces @ref coding_conventions that ensure consistent names of classes, methods and member variables which increases the usability as a software library. Another important feature of a software framework is documentation. We decided to use <a href="http://www.doxygen.org" target="_blank">doxygen</a> to generate the class documentation from the <b>source code</b>, which ensures consistency of code and documentation. The documentation is generated in HTML format making it easy to read with a web browser. <br>
 
 <b>Robustness:</b>
-Robustness of algorithms is essential if a new method will be applied routinely to large scale datasets. Typically, there is a trade-off between performance and robustness. %OpenMS tries to address both issues equally. In general, we try to tolerate recoverable errors, e.g. files that do not entirely fulfill the format specifications. On the other hand, <b>exceptions</b> are used to handle fatal errors. To check for correctness, more than 1000 <b>unit tests</b> are implemented in total, covering public methods of classes. These tests check the behavior for both valid and invalid use. Additionally, <b>preprocessor macros</b> are used to enable additional consistency checks in debug mode, enforce <b>pre- and post-conditions</b>, and are then disabled in productive mode for performance reasons. <br>
+Robustness of algorithms is essential if a new method will be applied routinely to large scale datasets. Typically, there is a trade-off between performance and robustness. %OpenMS tries to address both issues equally. In general, we try to tolerate recoverable errors, e.g. files that do not entirely fulfill the format specifications. On the other hand, <b>exceptions</b> (usually interally derived from BaseException) are used to handle fatal errors. To check for correctness, more than 1000 <b>unit tests</b> (see @ref how_to_write_tests) are implemented in total, covering public methods of classes. These tests check the behavior for both valid and invalid use. Additionally, <b>preprocessor macros</b> are used to enable additional consistency checks in debug mode, enforce <b>pre- and post-conditions</b>, and are then disabled in productive mode for performance reasons. <br>
 
 <b>Extensibility:</b>
-Since %OpenMS is based on several <b>external libraries</b> it is designed for the integration of external code. All classes are encapsulated in the %OpenMS namespace to avoid symbol clashes with other libraries. Through the use of <b>C++ templates</b>, many data structures are adaptable to specific use cases. Also, %OpenMS supports <b>standard formats</b> and is itself open-source software. The use of standard formats ensures that applications developed with %OpenMS can be easily integrated into existing analysis pipelines. %OpenMS source code is released under the permissive <b>BSD 3 license</b> and located on <b>GitHub</b>, a repository for open-source software. This allows users to participate in the project and to contribute to the code base. <br>
+Since %OpenMS is based on several <b>external libraries</b> it is designed for the integration of external code. All classes are encapsulated in the %OpenMS namespace to avoid symbol clashes with other libraries. Through the use of <b>C++ templates</b>, many data structures are adaptable to specific use cases. Also, %OpenMS supports <b>standard formats</b>, such as mzML and mgf, and is itself open-source software. The use of standard formats ensures that applications developed with %OpenMS can be easily integrated into existing analysis pipelines. %OpenMS source code is released under the permissive <b>BSD 3 license</b> and hosted on <a href="https://github.com/OpenMS/OpenMS">https://github.com/OpenMS/OpenMS</b>. This allows users to participate in the project and to contribute to the code base. <br>
 
 <b>Scriptable:</b>
 %OpenMS allows exposing its functionality through python bindings (<b>%pyOpenMS</b>). This eases the rapid development of algorithms in Python that later can be translated to C++. Please see our <a href="https://pyopenms.readthedocs.io">pyOpenMS documentation</a> for a description and walk-through of the pyOpenMS capabilities. <br>
@@ -57,16 +57,16 @@ The following image shows the overall structure of %OpenMS:
 @image html OpenMS_overview.png "Overall design of OpenMS. Kindly provided by Timo Sachsenberg." width=1200px
 @image latex OpenMS_overview.png "Overall design of OpenMS." width=14cm
 
-The structure of the OpenMS framework. <br>
+The structure of the %OpenMS framework. <br>
 
 The %OpenMS software framework consists of three main layers:
 - <b>%OpenMS Library:</b> the object-oriented %OpenMS core library contains over 1,300 classes and is built on modern C++ infrastructure with native compiler support on Windows, Linux and OS X. The classes are representing core concepts in mass spectrometry as well as the corresponding ontologies defined by the Human Proteome Organization Proteomics Standard Initiative (HUPO-PSI). 
 <br>
 - <b>Scripting:</b> a well-defined Python API offers scripting for rapid software prototyping and interactive data exploration by researchers with advanced scripting skills. The pyOpenMS interactive Python interface, providing easy integration of the %OpenMS library with other scientific Python libraries.
 <br>
-- <b>TOPP tools:</b>  a set of pre-built tools covering most core tasks in computational mass spectrometry. These tools are created using the %OpenMS library. These tools form the building blocks that can be chained together to form complex workflows. 
+- <b>TOPP tools:</b> The @ref TOPP_documentation["The %OpenMS PiPeline (TOPP)"] is a set of executables covering most core tasks in computational mass spectrometry and has grown beyond proteomics applications and now includes Metabolomics and others. These tools are created using algorithms from the %OpenMS library. These tools form the building blocks of complex workflows. 
 <br>
-- <b>Workflow:</b> a set of over 185 different tools for common mass spectrometric tasks can be accessed by routine users through the KNIME, and Galaxy workflow systems. 
+- <b>Workflow:</b> a set of over 185 different tools for common mass spectrometric tasks can be accessed by routine users through workflow systems, such as KNIME or Galaxy, the OpenMS-specific @ref TOPPAS_tutorial["TOPPAS"], or even custom bash scripts. 
 <br>
 
 Each level of increasing abstraction provides better usability, but limits the extensibility as the Python and workflow levels only have access to the exposed Python API or the available set of TOPP tools respectively. Increasing abstraction, however, makes it easier to design and execute complex analyses, even across multiple omics types. By following a layered design the different needs of bioinformaticians and life scientists are addressed. <br>
@@ -76,20 +76,21 @@ Each level of increasing abstraction provides better usability, but limits the e
 Before we get started developing with %OpenMS, we would like to point to some information on the development model and conventions we follow to maintain a coherent code base.
 <br>
 <b>Development model</b><br>
-%OpenMS follows the Gitflow development workflow which is excellently describedI <a href="http://nvie.com/posts/a-successful-git-branching-model/">here</a>. Additionally we encourage every developer (even if he is eligible to push directly to %OpenMS) to create his own fork (e.g. username). The GitHub people provide superb documentation on <a href="https://help.github.com/articles/fork-a-repo">forking</a> and how to keep your fork <a href="https://help.github.com/articles/syncing-a-fork">up-to-date</a>. With your own fork you can follow the Gitflow development model directly, but instead of merging into "develop" in your own fork you can open a <a href="https://help.github.com/articles/using-pull-requests">pull request</a>. Before opening the pull request, please check the <a href="https://github.com/OpenMS/OpenMS/wiki/Pull-Request-Checklist">checklist</a>.
+%OpenMS follows the Gitflow development workflow which is excellently described <a href="http://nvie.com/posts/a-successful-git-branching-model/">here</a>. Additionally we encourage every developer (even if he is eligible to push directly to %OpenMS) to create his own fork. The GitHub people provide superb documentation on <a href="https://help.github.com/articles/fork-a-repo">forking</a> and how to keep your fork <a href="https://help.github.com/articles/syncing-a-fork">up-to-date</a>. With your own fork you can follow the Gitflow development model directly, but instead of merging into "develop" in your own fork you can open a <a href="https://help.github.com/articles/using-pull-requests">pull request</a>. Before opening the pull request, please check the <a href="https://github.com/OpenMS/OpenMS/wiki/Pull-Request-Checklist">checklist</a>.
 <br>
 Some more details and tips are collected here.
 <br>
 
 <b>Conventions</b><br>
-See the manual for proper coding style: <a href="https://github.com/OpenMS/OpenMS/wiki/Coding-conventions">Coding conventions</a> also see: <a href="https://github.com/OpenMS/OpenMS/wiki/Cpp-Guide">C++ Guide</a>.
-We automatically test for common coding convention violations using a modified version of cpplint. Style testing can be enabled using CMake options. We also provide a configuration file for Uncrustify for automated style corrections (see "tools/uncrustify.cfg").
+See the manual for proper coding style: @ref coding_conventions, also see: @ref cpp_guide.
 <br>
 
 <b>Commit Messages</b><br>
 In order to ease the creation of a CHANGELOG we use a defined format for our commit messages.
-See the manual for proper commit messages: <a href="https://github.com/OpenMS/OpenMS/wiki/HowTo---Write-Commit-Messages">How to write commit messages</a>.<br>
+See the manual for proper commit messages: @ref howto_commit_messages.<br>
 <br>
+
+
 <b>Automated Unit Tests</b><br>
 Pull requests are automatically tested using our continuous integration platform. In addition we perform nightly test runs covering different platforms. Even if everything compiled well on your machine and all tests passed, please check if you broke another platform on the next day.
 Nightly tests: <a href="http://cdash.openms.de/index.php?project=OpenMS">CDASH</a>
@@ -97,7 +98,7 @@ Nightly tests: <a href="http://cdash.openms.de/index.php?project=OpenMS">CDASH</
 <br>
 <b>Experimental Installers</b><br>
 We automatically build installers for different platforms. These usually contain unstable or partially untested code - so use them at your own risk.
-The nightly (unstable) installers are available <a href="http://ftp.mi.fu-berlin.de/OpenMS/nightly_binaries/">here</a>.
+The nightly (unstable) installers are available <a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/">here</a>.
 <br>
 <br>
 <b>Technical Documentation</b><br>
@@ -109,13 +110,13 @@ See the documentation for the latest <a href="https://abibuilder.cs.uni-tuebinge
 <b>Building %OpenMS</b><br>
 Before you get started coding with %OpenMS you need to build it for your operating system. Please follow the <b>build instructions</b> from the documentation.
 <br>
-<a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_linux.html"><b>Building %OpenMS on GNU/Linux</b></a>
+@ref install_linux
 <br>
-<a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_mac.html"><b>Building %OpenMS on Mac OS X</b></a>
+@ref install_mac
 <br>
-<a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_win.html"><b>Building %OpenMS on Windows</b></a>
+@ref install_win
 <br>
-Note that for development purposes, you might want to set the variable <i>CMAKE_BUILD_TYPE</i> to <i>Debug</i>. Otherwise, the default <i>Release</i> will be applied and disables pre-condition and post-condition checks, and assertions.
+Note that for development purposes, you might want to set the CMake variable <i>CMAKE_BUILD_TYPE</i> to <i>Debug</i> for single configuration generators, such as make or ninja. Otherwise, the default <i>Release</i> will be applied and disables pre-condition and post-condition checks, and assertions.
 <br>
 <br>
 <b>Choice of an IDE</b> <br>
