@@ -27,9 +27,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_MSFraggerAdapter MSFraggerAdapter
+@page TOPP_MSFraggerAdapter MSFraggerAdapter
 
-    @brief Peptide Identification with MSFragger
+@brief Peptide Identification with MSFragger
 
 <CENTER>
     <table>
@@ -45,28 +45,28 @@ using namespace std;
     </table>
 </CENTER>
 
-  @em MSFragger must be installed before this adapter can be used. This adapter is fully compatible with version 3.2 of MSFragger
-  and later versions of MSFragger were tested up to version 3.5.
+@em MSFragger must be installed before this adapter can be used. This adapter is fully compatible with version 3.2 of MSFragger
+and later versions of MSFragger were tested up to version 3.5.
 
-	All MSFragger parameters (as specified in the fragger.params file) have been transcribed to parameters of this OpenMS util.
-	It is not possible to provide an explicit fragger.params file to avoid redundancy with the ini file.
-	This adapter creates an fragger.params file prior to calling MSFragger. If the fragger.params file should be inspected, set the
-	-debug option to 2. MSFraggerAdapter will print the path to the working directory to standard out.
+All MSFragger parameters (as specified in the fragger.params file) have been transcribed to parameters of this OpenMS util.
+It is not possible to provide an explicit fragger.params file to avoid redundancy with the ini file.
+This adapter creates an fragger.params file prior to calling MSFragger. If the fragger.params file should be inspected, set the
+-debug option to 2. MSFraggerAdapter will print the path to the working directory to standard out.
 
-	MSFragger can process multiple input files (mzML, mzXML) one after another. The number of output files specified must match
-	the number of input spectra files. The output file is then matched to the input file by index. The default parameters of the
-	adapter are the same as given by the official MSFragger manual.
+MSFragger can process multiple input files (mzML, mzXML) one after another. The number of output files specified must match
+the number of input spectra files. The output file is then matched to the input file by index. The default parameters of the
+adapter are the same as given by the official MSFragger manual.
 
-  Please cite:
-  Andy T Kong, Felipe V Leprevost, Dmitry M Avtonomov, Dattatreya Mellacheruvu & Alexey I Nesvizhskii
-  MSFragger: ultrafast and comprehensive peptide identification in mass spectrometry–based proteomics
-  Nature Methods volume 14, pages 513–520 (2017) doi:10.1038/nmeth.4256
+Please cite:
+Andy T Kong, Felipe V Leprevost, Dmitry M Avtonomov, Dattatreya Mellacheruvu & Alexey I Nesvizhskii
+MSFragger: ultrafast and comprehensive peptide identification in mass spectrometry–based proteomics
+Nature Methods volume 14, pages 513–520 (2017) doi:10.1038/nmeth.4256
 
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_MSFraggerAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MSFraggerAdapter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MSFraggerAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MSFraggerAdapter.html
  */
 
 // We do not want this class to show up in the docu:

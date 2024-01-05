@@ -26,19 +26,19 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_IDExtractor IDExtractor
+@page TOPP_IDExtractor IDExtractor
 
-    @brief Extracts 'n' peptides randomly or best 'n' from idXML files.
+@brief Extracts 'n' peptides randomly or best 'n' from idXML files.
 
-    Input and output format are 'idXML'. The tools allows you to extract subsets of peptides
-    from idXML files.
+Input and output format are 'idXML'. The tools allows you to extract subsets of peptides
+from idXML files.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_IDExtractor.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_IDExtractor.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_IDExtractor.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_IDExtractor.html
 */
 
 // We do not want this class to show up in the docu:

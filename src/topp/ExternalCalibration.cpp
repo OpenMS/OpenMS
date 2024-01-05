@@ -23,44 +23,44 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_ExternalCalibration ExternalCalibration
+@page TOPP_ExternalCalibration ExternalCalibration
 
-  @brief Performs an mass recalibration on an MS experiment using an external calibration function.
+@brief Performs an mass recalibration on an MS experiment using an external calibration function.
 
-  <CENTER>
-  <table>
-  <tr>
-  <th ALIGN = "center"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=3> &rarr; ExternalCalibration &rarr;</td>
-  <th ALIGN = "center"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool operating on MS peak data @n (in mzML format)</td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided </td>
-  </tr>
-  </table>
-  </CENTER>
+<CENTER>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=3> &rarr; ExternalCalibration &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool operating on MS peak data @n (in mzML format)</td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided </td>
+</tr>
+</table>
+</CENTER>
 
-  Recalibrates an MS experiment globally using a constant, linear or quadratic calibration on the observed ppm error,
-  i.e. using offset=-5, slope=0, power=0 assumes the observed data has -5 ppm decalibration, i.e. the observed m/z is too small and should be increased by 5 ppm! Slope and power
-  are coefficients for the observed m/z, i.e. y = offset + x * slope + x * x * power, where x is the observed m/z and y 
-  is the resulting mass correction in ppm. Usually slope and offset are very small (< 0.01).
-  If you only want a 'rough' recalibration, using offset is usually sufficient.
+Recalibrates an MS experiment globally using a constant, linear or quadratic calibration on the observed ppm error,
+i.e. using offset=-5, slope=0, power=0 assumes the observed data has -5 ppm decalibration, i.e. the observed m/z is too small and should be increased by 5 ppm! Slope and power
+are coefficients for the observed m/z, i.e. y = offset + x * slope + x * x * power, where x is the observed m/z and y 
+is the resulting mass correction in ppm. Usually slope and offset are very small (< 0.01).
+If you only want a 'rough' recalibration, using offset is usually sufficient.
+
+The calibration function is applied to all scans (with the desired level, see below), i.e. time dependent recalibration cannot be modeled.
   
-  The calibration function is applied to all scans (with the desired level, see below), i.e. time dependent recalibration cannot be modeled.
-    
-  The user can select what MS levels are subjected to calibration.
-  Spectra with other MS levels remain unchanged.
-  Calibration must be done once for each mass analyzer.
+The user can select what MS levels are subjected to calibration.
+Spectra with other MS levels remain unchanged.
+Calibration must be done once for each mass analyzer.
 
-  Either raw or centroided data can be used as input.
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_ExternalCalibration.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_ExternalCalibration.html
+Either raw or centroided data can be used as input.
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_ExternalCalibration.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_ExternalCalibration.html
 */
 
 // We do not want this class to show up in the docu:

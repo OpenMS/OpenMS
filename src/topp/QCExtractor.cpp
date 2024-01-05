@@ -31,39 +31,39 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_QCExtractor QCExtractor
+@page TOPP_QCExtractor QCExtractor
 
-    @brief Extracts a table attachment of a given quality parameter from a qcML file as tabular (text) format.
+@brief Extracts a table attachment of a given quality parameter from a qcML file as tabular (text) format.
 
-    <CENTER>
-      <table>
-        <tr>
-        <th ALIGN = "center"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> &rarr; QCExtractor &rarr;</td>
-        <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_QCEmbedder </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCShrinker </td>
-        </tr>
-      </table>
-    </CENTER>
+<CENTER>
+  <table>
+    <tr>
+    <th ALIGN = "center"> pot. predecessor tools </td>
+    <td VALIGN="middle" ROWSPAN=3> &rarr; QCExtractor &rarr;</td>
+    <th ALIGN = "center"> pot. successor tools </td>
+    </tr>
+    <tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_QCEmbedder </td>
+    </tr>
+    <tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCShrinker </td>
+    </tr>
+  </table>
+</CENTER>
 
-    If there is a table attached to a given qp that is needed as a single file, e.g. for easy input to plotting software, this can be extracted to a tabular (text) format.
-    
-    - @p qp defines the qp name to which the table is attached;
-    - @p run the file that defined the run under which the qp for the attachment is aggregated as mzML file. The file is only used to extract the run name from the file name.
-    - @p name if no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given.
-    - @p set/run if the target qp is contained in a set, this has to be set here;
-    
-    Output is in csv format (see parameter @p out_csv) which can be easily parsed by many programs. 
-    
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_QCExtractor.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_QCExtractor.html
+If there is a table attached to a given qp that is needed as a single file, e.g. for easy input to plotting software, this can be extracted to a tabular (text) format.
+
+- @p qp defines the qp name to which the table is attached;
+- @p run the file that defined the run under which the qp for the attachment is aggregated as mzML file. The file is only used to extract the run name from the file name.
+- @p name if no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given.
+- @p set/run if the target qp is contained in a set, this has to be set here;
+
+Output is in csv format (see parameter @p out_csv) which can be easily parsed by many programs. 
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_QCExtractor.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_QCExtractor.html
 
 */
 

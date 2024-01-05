@@ -23,9 +23,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_Digestor Digestor
+@page TOPP_Digestor Digestor
 
-    @brief Digests a protein database in-silico.
+@brief Digests a protein database in-silico.
 <CENTER>
     <table>
         <tr>
@@ -40,17 +40,17 @@ using namespace std;
     </table>
 </CENTER>
 
-    This application is used to digest a protein database to get all
-    peptides given a cleavage enzyme.
+This application is used to digest a protein database to get all
+peptides given a cleavage enzyme.
 
-    The output can be used e.g. as a blacklist filter input to @ref TOPP_IDFilter, to remove certain peptides.
+The output can be used e.g. as a blacklist filter input to @ref TOPP_IDFilter, to remove certain peptides.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_Digestor.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_Digestor.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_Digestor.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_Digestor.html
 */
 
 // We do not want this class to show up in the docu:

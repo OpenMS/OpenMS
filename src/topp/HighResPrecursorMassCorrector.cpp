@@ -27,40 +27,40 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-  @page TOPP_HighResPrecursorMassCorrector HighResPrecursorMassCorrector
+@page TOPP_HighResPrecursorMassCorrector HighResPrecursorMassCorrector
 
-  @brief Corrects the precursor mz of high resolution data.
+@brief Corrects the precursor mz of high resolution data.
 
- <CENTER>
- <table>
-   <tr>
-     <th ALIGN = "center"> pot. predecessor tools </td>
-     <td VALIGN= "middle" ROWSPAN=2> &rarr; HighResPrecursorMassCorrector &rarr;</td>
-     <th ALIGN = "center"> pot. successor tools </td>
-   </tr>
-   <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
-   </tr>
- </table>
- </CENTER>
+<CENTER>
+<table>
+ <tr>
+   <th ALIGN = "center"> pot. predecessor tools </td>
+   <td VALIGN= "middle" ROWSPAN=2> &rarr; HighResPrecursorMassCorrector &rarr;</td>
+   <th ALIGN = "center"> pot. successor tools </td>
+ </tr>
+ <tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+ </tr>
+</table>
+</CENTER>
 
-  This tool performs precursor m/z correction on picked (=centroided) high resolution data.
+This tool performs precursor m/z correction on picked (=centroided) high resolution data.
 
-  Three methods are available: 'nearest_peak', 'highest_intensity_peak' and 'feature'.
-    - nearest_peak: Use nearest centroided MS1 peak for precursor mass correction.
-    - highest_intensity_peak: Use highest intensity centroided MS1 peak in a given mass range for precursor mass correction.
-    - feature: Use features for precursor mass correction, which allows for charge correction.
+Three methods are available: 'nearest_peak', 'highest_intensity_peak' and 'feature'.
+  - nearest_peak: Use nearest centroided MS1 peak for precursor mass correction.
+  - highest_intensity_peak: Use highest intensity centroided MS1 peak in a given mass range for precursor mass correction.
+  - feature: Use features for precursor mass correction, which allows for charge correction.
 
-  The method hightest_intensity_peak searches in a specific m/z-window of the precursor information for the peak with the highest intensity.
-  Suggestioned value 1/maximal expected charge. E.g maximal expected charge 5, m/z-window = +/- 0.2 Da
+The method hightest_intensity_peak searches in a specific m/z-window of the precursor information for the peak with the highest intensity.
+Suggestioned value 1/maximal expected charge. E.g maximal expected charge 5, m/z-window = +/- 0.2 Da
 
-  See the corresponding parameter subsection for details.
+See the corresponding parameter subsection for details.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_HighResPrecursorMassCorrector.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_HighResPrecursorMassCorrector.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_HighResPrecursorMassCorrector.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_HighResPrecursorMassCorrector.html
 */
 
 /// @cond TOPPCLASSES

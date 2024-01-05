@@ -25,9 +25,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page TOPP_Decharger Decharger
+@page TOPP_Decharger Decharger
 
-   @brief Decharges a feature map by clustering charge variants of a peptide to zero-charge entities.
+@brief Decharges a feature map by clustering charge variants of a peptide to zero-charge entities.
 <CENTER>
     <table>
         <tr>
@@ -42,24 +42,24 @@ using namespace std;
     </table>
 </CENTER>
 
-   The Decharger uses an ILP approach to group charge variants of the same peptide, which
-   usually occur in ESI ionization mode. The resulting zero-charge peptides, which are defined by RT and mass,
-   are written to consensusXML. Intensities of charge variants are summed up. The position of the zero charge
-   variant is the average of all clustered peptides in each dimension (m/z and RT).
-   It is also possible to include adducted species to the charge ladders (see 'potential_adducts' parameter).
-   Via this mechanism it is also possible to use this tool to find pairs/triples/quadruples/... in labeled data (by specifing the mass
-   tag weight as an adduct). If mass tags induce an RT shift (e.g. deuterium labeled data) you can also specify this also in the adduct list.
-   This will allow to tighten the RT search window, thus reducing false positive results.
+The Decharger uses an ILP approach to group charge variants of the same peptide, which
+usually occur in ESI ionization mode. The resulting zero-charge peptides, which are defined by RT and mass,
+are written to consensusXML. Intensities of charge variants are summed up. The position of the zero charge
+variant is the average of all clustered peptides in each dimension (m/z and RT).
+It is also possible to include adducted species to the charge ladders (see 'potential_adducts' parameter).
+Via this mechanism it is also possible to use this tool to find pairs/triples/quadruples/... in labeled data (by specifing the mass
+tag weight as an adduct). If mass tags induce an RT shift (e.g. deuterium labeled data) you can also specify this also in the adduct list.
+This will allow to tighten the RT search window, thus reducing false positive results.
 
-  This tool is described in the following publication:
+This tool is described in the following publication:
 
-  Bielow C, Ruzek S, Huber CG, Reinert K. Optimal decharging and clustering of charge ladders generated in ESI-MS. J Proteome Res 2010; 9: 2688.<br>
-  DOI: 10.1021/pr100177k
+Bielow C, Ruzek S, Huber CG, Reinert K. Optimal decharging and clustering of charge ladders generated in ESI-MS. J Proteome Res 2010; 9: 2688.<br>
+DOI: 10.1021/pr100177k
 
-     <B>The command line parameters of this tool are:</B>
-   @verbinclude TOPP_Decharger.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_Decharger.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_Decharger.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_Decharger.html
 */
 
 // We do not want this class to show up in the docu:

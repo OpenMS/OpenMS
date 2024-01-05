@@ -32,9 +32,9 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_MultiplexResolver MultiplexResolver
+@page TOPP_MultiplexResolver MultiplexResolver
 
-  @brief Completes peptide multiplets and resolves conflicts within them.
+@brief Completes peptide multiplets and resolves conflicts within them.
 
 <CENTER>
   <table>
@@ -53,22 +53,22 @@ using namespace OpenMS;
   </table>
 </CENTER>
 
-  Tools such as FeatureFinderMultiplex can detect peptide feature multiplets in labeled experimental data. The multiplets can then be annotated with peptide sequences
-  using the IDMapper tool (*). The MultiplexResolver tool is consolidating these results in two steps. 
-  - Any multiplets with conflicting quantitative and sequence information are filtered out. As example, let us consider a triple SILAC analyis. Let us assume a sequence
-  "LDNLVAIFDINR(Label:13C(6)15N(4))" with a single Arg10 label is mapped to the light feature in a SILAC triplet. Either peptide feature detection or sequence information
-  must be incorrect und the triplet is removed.
-  - In a second step, any incomplete peptide feature groups are completed with dummy features of zero intensity. As example, let us stay with the triple SILAC analysis.
-  But let us now assume the sequence "LDNLVAIFDINR(Label:13C(6)15N(4))" is mapped to the heavy partner of a peptide feature pair. This is no conflict. Medium and heavy
-  peptides have been correctly detected. The MultiplexResolver adds a dummy peptide feature of zero intensity at the light position and thereby completes the triplet.
+Tools such as FeatureFinderMultiplex can detect peptide feature multiplets in labeled experimental data. The multiplets can then be annotated with peptide sequences
+using the IDMapper tool (*). The MultiplexResolver tool is consolidating these results in two steps. 
+- Any multiplets with conflicting quantitative and sequence information are filtered out. As example, let us consider a triple SILAC analyis. Let us assume a sequence
+"LDNLVAIFDINR(Label:13C(6)15N(4))" with a single Arg10 label is mapped to the light feature in a SILAC triplet. Either peptide feature detection or sequence information
+must be incorrect und the triplet is removed.
+- In a second step, any incomplete peptide feature groups are completed with dummy features of zero intensity. As example, let us stay with the triple SILAC analysis.
+But let us now assume the sequence "LDNLVAIFDINR(Label:13C(6)15N(4))" is mapped to the heavy partner of a peptide feature pair. This is no conflict. Medium and heavy
+peptides have been correctly detected. The MultiplexResolver adds a dummy peptide feature of zero intensity at the light position and thereby completes the triplet.
 
-  (*) Note that the MultiplexResolver tool takes only a single (the first) peptide sequence annotation into account. By running IDConflictResolver first, it is assured that
-  each multiplet has only one peptide sequence annotation, the best one. Multiplets without sequence annotation are passed to the optional out_conflicts output.
+(*) Note that the MultiplexResolver tool takes only a single (the first) peptide sequence annotation into account. By running IDConflictResolver first, it is assured that
+each multiplet has only one peptide sequence annotation, the best one. Multiplets without sequence annotation are passed to the optional out_conflicts output.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_MultiplexResolver.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_MultiplexResolver.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MultiplexResolver.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MultiplexResolver.html
 
 */
 

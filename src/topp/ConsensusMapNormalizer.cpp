@@ -23,9 +23,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_ConsensusMapNormalizer ConsensusMapNormalizer
+@page TOPP_ConsensusMapNormalizer ConsensusMapNormalizer
 
-    @brief Normalization of intensities in a set of maps using robust regression.
+@brief Normalization of intensities in a set of maps using robust regression.
 
 <CENTER>
     <table>
@@ -53,9 +53,9 @@ The tool normalizes the intensities of a set of maps (consensusXML file). The fo
 - Quantile normalization: Performs an exact quantile normalization if the number of features is equal across all maps. Otherwise, an approximate quantile normalization using resampling is applied.
 
 <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_ConsensusMapNormalizer.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_ConsensusMapNormalizer.html
+@verbinclude TOPP_ConsensusMapNormalizer.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_ConsensusMapNormalizer.html
 
 */
 

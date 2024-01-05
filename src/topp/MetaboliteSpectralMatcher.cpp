@@ -28,33 +28,33 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-        @page TOPP_MetaboliteSpectralMatcher MetaboliteSpectralMatcher
+@page TOPP_MetaboliteSpectralMatcher MetaboliteSpectralMatcher
 
-        @brief MetaboliteSpectralMatcher identifies small molecules from tandem MS spectra using a spectral library.
+@brief MetaboliteSpectralMatcher identifies small molecules from tandem MS spectra using a spectral library.
 
-        <CENTER>
-        <table>
-        <tr>
-        <th ALIGN = "center"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> &rarr; MetaboliteSpectralMatcher &rarr;</td>
-        <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> processing in R </td>
-        </tr>
-        </table>
-        </CENTER>
+<CENTER>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=3> &rarr; MetaboliteSpectralMatcher &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> processing in R </td>
+</tr>
+</table>
+</CENTER>
 
-        By default, MS2 spectra with similar precursor mass are merged before comparison with database spectra, for example when a mass at the beginning of the peak and on the peak apex is selected twice as precursor.
-        Merging can also have disadvantages, for example, for isobaric or isomeric compounds that have similar/same masses but can have different retention times and MS2 spectra.
+By default, MS2 spectra with similar precursor mass are merged before comparison with database spectra, for example when a mass at the beginning of the peak and on the peak apex is selected twice as precursor.
+Merging can also have disadvantages, for example, for isobaric or isomeric compounds that have similar/same masses but can have different retention times and MS2 spectra.
 
-        <B>The command line parameters of this tool are:</B>
-        @verbinclude TOPP_MetaboliteSpectralMatcher.cli
-        <B>INI file documentation of this tool:</B>
-        @htmlinclude TOPP_MetaboliteSpectralMatcher.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MetaboliteSpectralMatcher.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MetaboliteSpectralMatcher.html
 */
 
 // We do not want this class to show up in the docu:

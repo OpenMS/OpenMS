@@ -22,43 +22,43 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_IDConflictResolver IDConflictResolver
+@page TOPP_IDConflictResolver IDConflictResolver
 
-    @brief Resolves ambiguous annotations of features with peptide identifications.
+@brief Resolves ambiguous annotations of features with peptide identifications.
 
-    <CENTER>
-    <table>
-        <tr>
-            <th ALIGN = "center"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=3> &rarr; IDConflictResolver &rarr;</td>
-            <th ALIGN = "center"> potential successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_TextExporter </td>
-        </tr>
-        <tr>
-          <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_FeatureLinkerUnlabeled @n (or another feature grouping algorithm) </td>
-          <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_ProteinQuantifier </td>
-        </tr>
-    </table>
-    </CENTER>
+<CENTER>
+<table>
+    <tr>
+        <th ALIGN = "center"> potential predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=3> &rarr; IDConflictResolver &rarr;</td>
+        <th ALIGN = "center"> potential successor tools </td>
+    </tr>
+    <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_TextExporter </td>
+    </tr>
+    <tr>
+      <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_FeatureLinkerUnlabeled @n (or another feature grouping algorithm) </td>
+      <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_ProteinQuantifier </td>
+    </tr>
+</table>
+</CENTER>
 
-    The peptide identifications are filtered so that only one identification
-    with a single hit (with the best score) is associated to each feature. (If
-    two IDs have the same best score, either one of them may be selected.)
+The peptide identifications are filtered so that only one identification
+with a single hit (with the best score) is associated to each feature. (If
+two IDs have the same best score, either one of them may be selected.)
 
-    The the filtered identifications are added to the vector of unassigned peptides
-    and also reduced to a single best hit.
+The the filtered identifications are added to the vector of unassigned peptides
+and also reduced to a single best hit.
 
-    This step may be useful before applying @ref TOPP_ProteinQuantifier
-    "ProteinQuantifier", because features with ambiguous annotation are not
-    considered for the quantification.
+This step may be useful before applying @ref TOPP_ProteinQuantifier
+"ProteinQuantifier", because features with ambiguous annotation are not
+considered for the quantification.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_IDConflictResolver.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_IDConflictResolver.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_IDConflictResolver.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_IDConflictResolver.html
 */
 
 // We do not want this class to show up in the docu:

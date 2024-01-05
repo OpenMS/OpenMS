@@ -26,21 +26,21 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_ExecutePipeline ExecutePipeline
+@page TOPP_ExecutePipeline ExecutePipeline
 
-    @brief Executes workflows created by TOPPAS.
+@brief Executes workflows created by TOPPAS.
 
-  This tool is the non-GUI, i.e. command line version for non-interactive execution of TOPPAS pipelines.
-  In order to really use this tool in batch-mode, you can provide a TOPPAS resource file (.trf) which specifies the
-  input files for the input nodes in your pipeline.
+This tool is the non-GUI, i.e. command line version for non-interactive execution of TOPPAS pipelines.
+In order to really use this tool in batch-mode, you can provide a TOPPAS resource file (.trf) which specifies the
+input files for the input nodes in your pipeline.
 
-  <B> *.trf files </B>
+<B> *.trf files </B>
 
- A TOPPAS resource file (<TT>*.trf</TT>) specifies the locations of input files for a pipeline.
- It is an XML file following the normal TOPP INI file schema, i.e. it can be edited using the INIFileEditor or filled using a script (we do NOT provide one - sorry).
- It can be exported from TOPPAS (<TT>File -> Save TOPPAS resource file</TT>). For two input nodes 1 and 2 with files (<TT>dataA.mzML</TT>, <TT>dataB.mzML</TT>) and (<TT>dataC.mzML</TT>) respectively it has the following format.
+A TOPPAS resource file (<TT>*.trf</TT>) specifies the locations of input files for a pipeline.
+It is an XML file following the normal TOPP INI file schema, i.e. it can be edited using the INIFileEditor or filled using a script (we do NOT provide one - sorry).
+It can be exported from TOPPAS (<TT>File -> Save TOPPAS resource file</TT>). For two input nodes 1 and 2 with files (<TT>dataA.mzML</TT>, <TT>dataB.mzML</TT>) and (<TT>dataC.mzML</TT>) respectively it has the following format.
 
-  \code
+\code
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <PARAMETERS version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <NODE name="1" description="">
@@ -55,12 +55,12 @@ using namespace std;
     </ITEMLIST>
   </NODE>
 </PARAMETERS>
-  \endcode
+\endcode
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_ExecutePipeline.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_ExecutePipeline.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_ExecutePipeline.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_ExecutePipeline.html
 */
 
 // We do not want this class to show up in the docu:

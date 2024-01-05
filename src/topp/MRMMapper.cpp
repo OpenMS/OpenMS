@@ -20,57 +20,57 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_MRMMapper MRMMapper
+@page TOPP_MRMMapper MRMMapper
 
-  @brief MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML).
+@brief MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML).
 
-  <CENTER>
-      <table>
-          <tr>
-              <th ALIGN = "center"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=3> &rarr; MRMMapper &rarr;</td>
-              <th ALIGN = "center"> potential successor tools </td>
-          </tr>
-          <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_FileFilter </td>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
-          </tr>
-          <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MRMTransitionGroupPicker </td>
-          </tr>
-      </table>
-  </CENTER>
- 
-  This tool reads an mzML containing chromatograms (presumably measured on an
-  SRM instrument) and a TraML file that contains the data that was used to
-  generate the instrument method to measure said data. It then maps the
-  transitions in the TraML file to the chromatograms found in the mzML file
-  and stores the chromatograms annotated with meta-data from the TraML file.
-  Thus, the  output chromatograms are an annotated copy of the input
-  chromatograms with native id, precursor information and peptide sequence (if
-  available) annotated in the chromatogram files.
+<CENTER>
+  <table>
+      <tr>
+          <th ALIGN = "center"> potential predecessor tools </td>
+          <td VALIGN="middle" ROWSPAN=3> &rarr; MRMMapper &rarr;</td>
+          <th ALIGN = "center"> potential successor tools </td>
+      </tr>
+      <tr>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_FileFilter </td>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
+      </tr>
+      <tr>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MRMTransitionGroupPicker </td>
+      </tr>
+  </table>
+</CENTER>
 
-  The algorithm tries to match a given set of chromatograms and targeted
-  assays. It iterates through all the chromatograms retrieves one or more
-  matching targeted assay for the chromatogram. By default, the algorithm
-  assumes that a 1:1 mapping exists. If a chromatogram cannot be mapped
-  (does not have a corresponding assay) the algorithm issues a warning, the
-  user can specify that the program should abort in such a case (see
-  error_on_unmapped).
-      
-  If multiple mapping is enabled (see map_multiple_assays parameter)
-  then each mapped assay will get its own chromatogram that contains the
-  same raw data but different meta-annotation. This *can* be useful if the
-  same transition is used to monitor multiple analytes but may also
-  indicate a problem with too wide mapping tolerances.
+This tool reads an mzML containing chromatograms (presumably measured on an
+SRM instrument) and a TraML file that contains the data that was used to
+generate the instrument method to measure said data. It then maps the
+transitions in the TraML file to the chromatograms found in the mzML file
+and stores the chromatograms annotated with meta-data from the TraML file.
+Thus, the  output chromatograms are an annotated copy of the input
+chromatograms with native id, precursor information and peptide sequence (if
+available) annotated in the chromatogram files.
 
-  The thus mapped mzML file can then be used in a downstream analysis.
+The algorithm tries to match a given set of chromatograms and targeted
+assays. It iterates through all the chromatograms retrieves one or more
+matching targeted assay for the chromatogram. By default, the algorithm
+assumes that a 1:1 mapping exists. If a chromatogram cannot be mapped
+(does not have a corresponding assay) the algorithm issues a warning, the
+user can specify that the program should abort in such a case (see
+error_on_unmapped).
+  
+If multiple mapping is enabled (see map_multiple_assays parameter)
+then each mapped assay will get its own chromatogram that contains the
+same raw data but different meta-annotation. This *can* be useful if the
+same transition is used to monitor multiple analytes but may also
+indicate a problem with too wide mapping tolerances.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_MRMMapper.cli
+The thus mapped mzML file can then be used in a downstream analysis.
 
-  <B>The algorithm parameters for the Analyzer filter are:</B>
-  @htmlinclude TOPP_MRMMapper.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MRMMapper.cli
+
+<B>The algorithm parameters for the Analyzer filter are:</B>
+@htmlinclude TOPP_MRMMapper.html
 
 */
 

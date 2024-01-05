@@ -23,35 +23,35 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_OpenSwathFeatureXMLToTSV OpenSwathFeatureXMLToTSV
+@page TOPP_OpenSwathFeatureXMLToTSV OpenSwathFeatureXMLToTSV
 
-  @brief Converts a featureXML to a mProphet tsv
+@brief Converts a featureXML to a mProphet tsv
 
-  <CENTER>
-      <table>
-          <tr>
-              <th ALIGN = "center"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=3> &rarr; OpenSwathFeatureXMLToTSV &rarr;</td>
-              <th ALIGN = "center"> potential successor tools </td>
-          </tr>
-          <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> Downstream data analysis </td>
-          </tr>
-          <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathConfidenceScoring </td>
-          </tr>
-      </table>
-  </CENTER>
+<CENTER>
+    <table>
+        <tr>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=3> &rarr; OpenSwathFeatureXMLToTSV &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> Downstream data analysis </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathConfidenceScoring </td>
+        </tr>
+    </table>
+</CENTER>
 
-  Creates a tsv that is compatible as input to mProphet.
-  Furthermore it creates the columns "decoy" and
-  "transition_group_id" which are required by mProphet.
+Creates a tsv that is compatible as input to mProphet.
+Furthermore it creates the columns "decoy" and
+"transition_group_id" which are required by mProphet.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_OpenSwathFeatureXMLToTSV.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_OpenSwathFeatureXMLToTSV.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_OpenSwathFeatureXMLToTSV.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_OpenSwathFeatureXMLToTSV.html
 
 */
 

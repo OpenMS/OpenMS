@@ -22,24 +22,24 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_MzMLSplitter MzMLSplitter
+@page TOPP_MzMLSplitter MzMLSplitter
 
-    @brief Splits an mzML file into multiple parts
+@brief Splits an mzML file into multiple parts
 
-    This utility will split an input mzML file into @e N parts, with an approximately equal number of spectra and chromatograms in each part.
-    @e N is set by the parameter @p parts; optionally only spectra (parameter @p no_chrom) or only chromatograms (parameter @p no_spec) can be transferred to the output.
+This utility will split an input mzML file into @e N parts, with an approximately equal number of spectra and chromatograms in each part.
+@e N is set by the parameter @p parts; optionally only spectra (parameter @p no_chrom) or only chromatograms (parameter @p no_spec) can be transferred to the output.
 
-    Alternatively to setting the number of parts directly, a target maximum file size for the parts can be specified (parameters @p size and @p unit).
-    The number of parts is then calculated by dividing the original file size by the target and rounding up.
-    Note that the resulting parts may actually be bigger than the target size (due to meta data that is included in every part) or
-    that more parts than necessary may be produced (if spectra or chromatograms are removed via @p no_spec/@p no_chrom).
+Alternatively to setting the number of parts directly, a target maximum file size for the parts can be specified (parameters @p size and @p unit).
+The number of parts is then calculated by dividing the original file size by the target and rounding up.
+Note that the resulting parts may actually be bigger than the target size (due to meta data that is included in every part) or
+that more parts than necessary may be produced (if spectra or chromatograms are removed via @p no_spec/@p no_chrom).
 
-    This tool cannot be used as part of a TOPPAS workflow, because the number of output files is variable.
+This tool cannot be used as part of a TOPPAS workflow, because the number of output files is variable.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_MzMLSplitter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MzMLSplitter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MzMLSplitter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MzMLSplitter.html
 */
 
 // We do not want this class to show up in the docu:

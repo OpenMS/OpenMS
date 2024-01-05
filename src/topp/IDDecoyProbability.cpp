@@ -15,9 +15,9 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-    @page TOPP_IDDecoyProbability IDDecoyProbability
+@page TOPP_IDDecoyProbability IDDecoyProbability
 
-    @brief Util to estimate probability of peptide hits
+@brief Util to estimate probability of peptide hits
 
 <CENTER>
     <table>
@@ -36,22 +36,22 @@ using namespace std;
     </table>
 </CENTER>
 
-    @experimental This util is deprecated and might behave not as expected!
+@experimental This util is deprecated and might behave not as expected!
 
-    So far an estimation of the false score distribution with a gamma distribution
-    and the correct score distribution with a gaussian distribution is performed.
-    The probabilities are calculated using Bayes law, similar to PeptideProphet.
-    This implementation is much simpler than that of PeptideProphet.
+So far an estimation of the false score distribution with a gamma distribution
+and the correct score distribution with a gaussian distribution is performed.
+The probabilities are calculated using Bayes law, similar to PeptideProphet.
+This implementation is much simpler than that of PeptideProphet.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_IDDecoyProbability.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_IDDecoyProbability.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_IDDecoyProbability.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_IDDecoyProbability.html
 
-    For the parameters of the algorithm section see the algorithms documentation: @n
-        @ref OpenMS::IDDecoyProbability "decoy_algorithm" @n
+For the parameters of the algorithm section see the algorithms documentation: @n
+@ref OpenMS::IDDecoyProbability "decoy_algorithm" @n
 
 */
 

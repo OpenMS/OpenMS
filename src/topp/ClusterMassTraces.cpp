@@ -16,30 +16,31 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_ClusterMassTraces ClusterMassTraces
 
-  @brief Cluster mass traces occurring in the same map together
+@page TOPP_ClusterMassTraces ClusterMassTraces
 
-  Cluster mass traces together found in a mass spectrometric map (MS1 or MS2).
-  Input is a consensus map containing individual mass traces, the output may be
-  spectra containing all clustered features.
+@brief Cluster mass traces occurring in the same map together
 
-  Mass traces are clustered independent of precursor traces in another map
-  (this is the more simple approach)  and pseudo spectra are created without
-  any precursors assigned. This is useful for 
+Cluster mass traces together found in a mass spectrometric map (MS1 or MS2).
+Input is a consensus map containing individual mass traces, the output may be
+spectra containing all clustered features.
 
-   - clustering of features in an MS1 map (isotope traces, charge states etc)
-   - clustering of features in an SWATH map (fragment ions from the same precursor, isotope traces, charge states etc)
+Mass traces are clustered independent of precursor traces in another map
+(this is the more simple approach)  and pseudo spectra are created without
+any precursors assigned. This is useful for 
 
-  On the clustered fragments in an MS2 map, one can then (optionally) do 
+ - clustering of features in an MS1 map (isotope traces, charge states etc)
+ - clustering of features in an SWATH map (fragment ions from the same precursor, isotope traces, charge states etc)
 
-   - de novo searches 
-   - calculate the most likely precursor(s) and DB-search
+On the clustered fragments in an MS2 map, one can then (optionally) do 
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_ClusterMassTraces.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_ClusterMassTraces.html
+ - de novo searches 
+ - calculate the most likely precursor(s) and DB-search
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_ClusterMassTraces.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_ClusterMassTraces.html
 
 */
 

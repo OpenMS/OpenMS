@@ -32,39 +32,39 @@ using namespace std;
 // Doxygen docu
 //----------------------------------------------------------
 /**
-  @page TOPP_SiriusAdapter SiriusAdapter
+@page TOPP_SiriusAdapter SiriusAdapter
 
-  @brief De novo metabolite identification.
+@brief De novo metabolite identification.
 
-  CSI:FingerID (Compound Structure Identification: FingerID) is a method for searching a tandem mass spectrum of a small molecule (metabolite) in a database of molecular structures.
+CSI:FingerID (Compound Structure Identification: FingerID) is a method for searching a tandem mass spectrum of a small molecule (metabolite) in a database of molecular structures.
 
-  To use this feature, the Sirius command line tool as well as a java installation is needed.
+To use this feature, the Sirius command line tool as well as a java installation is needed.
 
-  Sirius can be found on https://bio.informatik.uni-jena.de/software/sirius/ 
+Sirius can be found on https://bio.informatik.uni-jena.de/software/sirius/ 
 
-  Please use Sirius Version 4.0.1
+Please use Sirius Version 4.0.1
 
-  If you want to use the software with the Gurobi solver or CPLEX instead of GLPK, please follow the instructions in the sirius manual.
+If you want to use the software with the Gurobi solver or CPLEX instead of GLPK, please follow the instructions in the sirius manual.
 
-  Internal procedure in SiriusAdapter \n
-  1. Input mzML (and optional featureXML) \n
-  2. Preprocessing (see below)\n
-  3. Parsed by SiriusMSConverter into (sirius internal) .ms format \n
-  4. Submission of .ms and additional parameters to wrapped SIRIUS CLI \n
-  5. Sirius output saved in internal temporary folder structure \n
-  6. Sirius output is parsed (SiriusMzTabWriter/CsiFingerIDMzTabWriter) \n
-  7. Merge corresponding output in one mzTab (out_sirius/out_fingerid) \n
+Internal procedure in SiriusAdapter \n
+1. Input mzML (and optional featureXML) \n
+2. Preprocessing (see below)\n
+3. Parsed by SiriusMSConverter into (sirius internal) .ms format \n
+4. Submission of .ms and additional parameters to wrapped SIRIUS CLI \n
+5. Sirius output saved in internal temporary folder structure \n
+6. Sirius output is parsed (SiriusMzTabWriter/CsiFingerIDMzTabWriter) \n
+7. Merge corresponding output in one mzTab (out_sirius/out_fingerid) \n
 
-  Preprocessing (featureXML): 
-  By providing a featureXML, the feature information can be used for feature mapping.
-  Sirius will then process the internally merged MS2 spectra allocated to one feature (instead of all available MS2).
-  To reduce the feature space even further a masstrace filter can be set. 
-  Additional adduct information can be provided using a featureXML from the MetaboliteAdductDecharger or AccurateMassSearch.
+Preprocessing (featureXML): 
+By providing a featureXML, the feature information can be used for feature mapping.
+Sirius will then process the internally merged MS2 spectra allocated to one feature (instead of all available MS2).
+To reduce the feature space even further a masstrace filter can be set. 
+Additional adduct information can be provided using a featureXML from the MetaboliteAdductDecharger or AccurateMassSearch.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_SiriusAdapter.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_SiriusAdapter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_SiriusAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_SiriusAdapter.html
  */
 
 /// @cond TOPPCLASSES

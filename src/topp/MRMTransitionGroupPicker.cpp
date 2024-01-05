@@ -39,46 +39,46 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_MRMTransitionGroupPicker MRMTransitionGroupPicker
+@page TOPP_MRMTransitionGroupPicker MRMTransitionGroupPicker
 
-  @brief Picks peaks in SRM/MRM chromatograms that belong to the same precursors.
+@brief Picks peaks in SRM/MRM chromatograms that belong to the same precursors.
 
-    <CENTER>
-        <table>
-            <tr>
-                <th ALIGN = "center"> potential predecessor tools </td>
-                <td VALIGN="middle" ROWSPAN=3> &rarr; MRMTransitionGroupPicker &rarr;</td>
-                <th ALIGN = "center"> potential successor tools </td>
-            </tr>
-            <tr>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathChromatogramExtractor </td>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_OpenSwathFeatureXMLToTSV </td>
-            </tr>
-            <tr>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MRMMapper </td>
-            </tr>
-        </table>
-    </CENTER>
+  <CENTER>
+      <table>
+          <tr>
+              <th ALIGN = "center"> potential predecessor tools </td>
+              <td VALIGN="middle" ROWSPAN=3> &rarr; MRMTransitionGroupPicker &rarr;</td>
+              <th ALIGN = "center"> potential successor tools </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathChromatogramExtractor </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_OpenSwathFeatureXMLToTSV </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MRMMapper </td>
+          </tr>
+      </table>
+  </CENTER>
 
 
-  This tools accepts a set of chromatograms and picks peaks in them, correctly
-  grouping related transitions from the same precursor together. It will
-  perform the following steps:
-  - Step 1: find features (peaks) in individual chromatograms
-  - Step 2: merge these features to consensus features that span multiple chromatograms
+This tools accepts a set of chromatograms and picks peaks in them, correctly
+grouping related transitions from the same precursor together. It will
+perform the following steps:
+- Step 1: find features (peaks) in individual chromatograms
+- Step 2: merge these features to consensus features that span multiple chromatograms
 
-  Step 1 is performed by smoothing the individual chromatogram and applying the
-  PeakPickerHiRes.
+Step 1 is performed by smoothing the individual chromatogram and applying the
+PeakPickerHiRes.
 
-  Step 2 is performed by finding the largest peak overall and use this to
-  create a feature, propagating this through all chromatograms.
+Step 2 is performed by finding the largest peak overall and use this to
+create a feature, propagating this through all chromatograms.
 
-  This tool will not compute any scores for the peaks, in order to do peak picking please use TOPP_OpenSwathAnalyzer
+This tool will not compute any scores for the peaks, in order to do peak picking please use TOPP_OpenSwathAnalyzer
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_MRMTransitionGroupPicker.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_MRMTransitionGroupPicker.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MRMTransitionGroupPicker.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MRMTransitionGroupPicker.html
 
 */
 

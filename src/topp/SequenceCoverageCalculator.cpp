@@ -23,16 +23,16 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_SequenceCoverageCalculator SequenceCoverageCalculator
+@page TOPP_SequenceCoverageCalculator SequenceCoverageCalculator
 
-    @brief Prints information about idXML files.
+@brief Prints information about idXML files.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_SequenceCoverageCalculator.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_SequenceCoverageCalculator.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_SequenceCoverageCalculator.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_SequenceCoverageCalculator.html
 */
 
 // We do not want this class to show up in the docu:

@@ -33,9 +33,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_XTandemAdapter XTandemAdapter
+@page TOPP_XTandemAdapter XTandemAdapter
 
-    @brief Identifies peptides in MS/MS spectra via the search engine X! Tandem.
+@brief Identifies peptides in MS/MS spectra via the search engine X! Tandem.
 
 <CENTER>
     <table>

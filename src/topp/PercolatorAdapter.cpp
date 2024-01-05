@@ -38,28 +38,28 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_PercolatorAdapter PercolatorAdapter
+@page TOPP_PercolatorAdapter PercolatorAdapter
 
-  @brief PercolatorAdapter facilitates the input to, the call of and output integration of Percolator.
-  Percolator (http://percolator.ms/) is a tool to apply semi-supervised learning for peptide
-  identification from shotgun proteomics datasets.
+@brief PercolatorAdapter facilitates the input to, the call of and output integration of Percolator.
+Percolator (http://percolator.ms/) is a tool to apply semi-supervised learning for peptide
+identification from shotgun proteomics datasets.
 
-  @experimental This tool is work in progress and usage and input requirements might change.
+@experimental This tool is work in progress and usage and input requirements might change.
 
-  <center>
-    <table>
-        <tr>
-            <th ALIGN = "center"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> &rarr; PercolatorAdapter &rarr;</td>
-            <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PSMFeatureExtractor </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
-        </tr>
-    </table>
-  </center>
-  <p>Percolator is search engine sensitive, i.e. it's input features vary,
+<center>
+  <table>
+      <tr>
+          <th ALIGN = "center"> pot. predecessor tools </td>
+          <td VALIGN="middle" ROWSPAN=2> &rarr; PercolatorAdapter &rarr;</td>
+          <th ALIGN = "center"> pot. successor tools </td>
+      </tr>
+      <tr>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PSMFeatureExtractor </td>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
+      </tr>
+  </table>
+</center>
+<p>Percolator is search engine sensitive, i.e. it's input features vary,
 depending on the search engine. Must be prepared beforehand. If you do not want
 to use the specific features, use the generic_feature_set flag. Will incorporate
 the score attribute of a PSM, so be sure, the score you want is set as main
@@ -76,12 +76,12 @@ Note: By default, a minimum of 3 threads is used (default of percolator) even if
 is set to e.g. 1 for backwards compatibility reasons. You can still force the usage of less than 3 threads
 by setting the force flag.     
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_PercolatorAdapter.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_PercolatorAdapter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_PercolatorAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_PercolatorAdapter.html
 
-  Percolator is written by Lukas Käll (http://per-colator.com/ Copyright Lukas Käll <lukas.kall@scilifelab.se>)
+Percolator is written by Lukas Käll (http://per-colator.com/ Copyright Lukas Käll <lukas.kall@scilifelab.se>)
 */
 
 // We do not want this class to show up in the docu:

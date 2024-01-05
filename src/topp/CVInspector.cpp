@@ -25,18 +25,18 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_CVInspector CVInspector
+@page TOPP_CVInspector CVInspector
 
-    @brief A tool for visualization and validation of PSI mapping and CV files.
+@brief A tool for visualization and validation of PSI mapping and CV files.
 
-    This tool is used to validate the correct use of mapping files and CV files.
+This tool is used to validate the correct use of mapping files and CV files.
 
-    It can also generate a HTML representation of mapping file and CV.
+It can also generate a HTML representation of mapping file and CV.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_CVInspector.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_CVInspector.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_CVInspector.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_CVInspector.html
 */
 
 // We do not want this class to show up in the docu:

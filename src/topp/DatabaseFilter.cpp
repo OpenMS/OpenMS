@@ -22,20 +22,20 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_DatabaseFilter DatabaseFilter
+@page TOPP_DatabaseFilter DatabaseFilter
 
-    @brief The DatabaseFilter tool filters a protein database in fasta format according to one or multiple filtering criteria.
+@brief The DatabaseFilter tool filters a protein database in fasta format according to one or multiple filtering criteria.
 
-    The resulting database is written as output. Depending on the reporting method (method="whitelist" or "blacklist") only entries are retained that passed all filters ("whitelist) or failed at least one filter ("blacklist").
+The resulting database is written as output. Depending on the reporting method (method="whitelist" or "blacklist") only entries are retained that passed all filters ("whitelist) or failed at least one filter ("blacklist").
 
-    Implemented filter criteria:
+Implemented filter criteria:
 
-        accession: Filter database according to the set of protein accessions contained in an identification file (idXML, mzIdentML)
+    accession: Filter database according to the set of protein accessions contained in an identification file (idXML, mzIdentML)
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_DatabaseFilter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_DatabaseFilter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_DatabaseFilter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_DatabaseFilter.html
 */
 
 // We do not want this class to show up in the docu:
