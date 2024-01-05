@@ -24,46 +24,46 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_IDRipper IDRipper
+@page TOPP_IDRipper IDRipper
 
-  @brief IDRipper splits the protein/peptide identifications of an idXML file into several idXML files according their annotated file origin.
+@brief IDRipper splits the protein/peptide identifications of an idXML file into several idXML files according their annotated file origin.
 
-  <center>
-  <table>
-  <tr>
-  <th ALIGN = "center"> potential predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=3> &rarr; IDRipper&rarr;</td>
-  <th ALIGN = "center"> potential successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN ="center" ROWSPAN=1> @ref TOPP_IDFilter</td>
-  <td VALIGN="middle" ALIGN ="center" ROWSPAN=1> @ref TOPP_IDMapper</td>
-  </tr>
-  </table>
-  </center>
+<center>
+<table>
+<tr>
+<th ALIGN = "center"> potential predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=3> &rarr; IDRipper&rarr;</td>
+<th ALIGN = "center"> potential successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN ="center" ROWSPAN=1> @ref TOPP_IDFilter</td>
+<td VALIGN="middle" ALIGN ="center" ROWSPAN=1> @ref TOPP_IDMapper</td>
+</tr>
+</table>
+</center>
 
-  <B>Example</B>
+<B>Example</B>
 
-  <p>Assuming each peptide identification in a given idXML file is annotated with its file origin (e.g. IDRipper_test.idXML) :</p>
+<p>Assuming each peptide identification in a given idXML file is annotated with its file origin (e.g. IDRipper_test.idXML) :</p>
 
-  @p <tt>&lt;userParam type="string" name="file_origin" value="IDMerger1_test.idXML"/&gt;</tt> or <br />
-  @p <tt>&lt;userParam type="string" name="file_origin" value="IDMerger2_test.idXML"/&gt;</tt>
+@p <tt>&lt;userParam type="string" name="file_origin" value="IDMerger1_test.idXML"/&gt;</tt> or <br />
+@p <tt>&lt;userParam type="string" name="file_origin" value="IDMerger2_test.idXML"/&gt;</tt>
 
-  <p>Obviously the file contains protein/peptide identifications of IDMerger1_test.idXML and IDMerger2_test.idXML.</p>
+<p>Obviously the file contains protein/peptide identifications of IDMerger1_test.idXML and IDMerger2_test.idXML.</p>
 
-  <p>Calling IDRipper with an input file (here: @p -in IDRipper_test.idXML) and an output directory (via @p out) will
-  result in two idXML files stored in the specified directory and named according to their file origin.</p>
+<p>Calling IDRipper with an input file (here: @p -in IDRipper_test.idXML) and an output directory (via @p out) will
+result in two idXML files stored in the specified directory and named according to their file origin.</p>
 
-  <p>In theory, merging files with @p IDMerger and splitting the resulting file with @p IDRipper will result in the original input files.
+<p>In theory, merging files with @p IDMerger and splitting the resulting file with @p IDRipper will result in the original input files.
 
-  <B>NOTE: The meta value "file_origin" is removed by the <tt>IDSplitter</tt>!</B>
+<B>NOTE: The meta value "file_origin" is removed by the <tt>IDSplitter</tt>!</B>
 
-  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_IDRipper.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_IDRipper.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_IDRipper.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_IDRipper.html
 */
 
 // We do not want this class to show up in the docu:

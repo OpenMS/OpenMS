@@ -35,44 +35,44 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_MaRaClusterAdapter MaRaClusterAdapter
+@page TOPP_MaRaClusterAdapter MaRaClusterAdapter
 
-  @brief MaRaClusterAdapter facilitates the input to, the call of and output integration of MaRaCluster.
-  MaRaCluster (https://github.com/statisticalbiotechnology/maracluster) is a tool to apply unsupervised clustering of ms2 spectra from shotgun proteomics datasets.
+@brief MaRaClusterAdapter facilitates the input to, the call of and output integration of MaRaCluster.
+MaRaCluster (https://github.com/statisticalbiotechnology/maracluster) is a tool to apply unsupervised clustering of ms2 spectra from shotgun proteomics datasets.
 
-  @experimental This tool is work in progress and usage and input requirements might change.
+@experimental This tool is work in progress and usage and input requirements might change.
 
-  <center>
-    <table>
-        <tr>
-            <th ALIGN = "center"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> &rarr; MaRaClusterAdapter &rarr;</td>
-            <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>any signal-/preprocessing tool @n (in mzML format) </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MSGFPlusAdapter </td>
-        </tr>
-    </table>
-  </center>
-  <p>MaRaCluster is dependent on the input parameter pcut, which is the logarithm of the pvalue cutoff.
-  The default value is -10, lower values will result in smaller but purer clusters. If specified peptide search results
-  can be provided as idXML files and the MaRaCluster Adapter will annotate cluster ids as attributes to each peptide
-  identification, which will be outputed as a merged idXML. Moreover the merged idXML containing only scan numbers,
-  cluster ids and file origin can be outputed without prior peptide identification searches. The assigned cluster ids in
-  the respective idXML are equal to the scanindex of the produced clustered mzML.
-  </p>
+<center>
+  <table>
+      <tr>
+          <th ALIGN = "center"> pot. predecessor tools </td>
+          <td VALIGN="middle" ROWSPAN=2> &rarr; MaRaClusterAdapter &rarr;</td>
+          <th ALIGN = "center"> pot. successor tools </td>
+      </tr>
+      <tr>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>any signal-/preprocessing tool @n (in mzML format) </td>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MSGFPlusAdapter </td>
+      </tr>
+  </table>
+</center>
+<p>MaRaCluster is dependent on the input parameter pcut, which is the logarithm of the pvalue cutoff.
+The default value is -10, lower values will result in smaller but purer clusters. If specified peptide search results
+can be provided as idXML files and the MaRaCluster Adapter will annotate cluster ids as attributes to each peptide
+identification, which will be outputed as a merged idXML. Moreover the merged idXML containing only scan numbers,
+cluster ids and file origin can be outputed without prior peptide identification searches. The assigned cluster ids in
+the respective idXML are equal to the scanindex of the produced clustered mzML.
+</p>
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_MaRaClusterAdapter.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_MaRaClusterAdapter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MaRaClusterAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MaRaClusterAdapter.html
 
-  MaRaCluster is written by Matthew The (https://github.com/statisticalbiotechnology/maracluster
-  Copyright Matthew The <matthew.the@scilifelab.se>)
-  Cite Publication:
-  MaRaCluster: A Fragment Rarity Metric for Clustering Fragment Spectra in Shotgun Proteomics
-  Journal of proteome research, 2016, 15(3), pp 713-720 DOI: 10.1021/acs.jproteome.5b00749
+MaRaCluster is written by Matthew The (https://github.com/statisticalbiotechnology/maracluster
+Copyright Matthew The <matthew.the@scilifelab.se>)
+Cite Publication:
+MaRaCluster: A Fragment Rarity Metric for Clustering Fragment Spectra in Shotgun Proteomics
+Journal of proteome research, 2016, 15(3), pp 713-720 DOI: 10.1021/acs.jproteome.5b00749
 */
 
 // We do not want this class to show up in the docu:

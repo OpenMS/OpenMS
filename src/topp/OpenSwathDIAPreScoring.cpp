@@ -26,16 +26,16 @@
 
 
 /**
-  @page TOPP_OpenSwathDIAPreScoring OpenSwathDIAPreScoring
+@page TOPP_OpenSwathDIAPreScoring OpenSwathDIAPreScoring
 
-  @brief ...
+@brief ...
 
-  SWATH specific parameters only apply if you have full MS2 spectra maps.
+SWATH specific parameters only apply if you have full MS2 spectra maps.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_OpenSwathDIAPreScoring.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_OpenSwathDIAPreScoring.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_OpenSwathDIAPreScoring.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_OpenSwathDIAPreScoring.html
 
 */
 

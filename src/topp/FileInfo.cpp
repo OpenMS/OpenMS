@@ -52,36 +52,36 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_FileInfo FileInfo
-  @brief Shows basic information about the data in an %OpenMS readable file.
+@page TOPP_FileInfo FileInfo
+@brief Shows basic information about the data in an %OpenMS readable file.
 
-  <CENTER>
-  <table>
-  <tr>
-  <th ALIGN = "center"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> &rarr; FileInfo &rarr;</td>
-  <th ALIGN = "center"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> none ; console or text file</td>
-  </tr>
-  </table>
-  </CENTER>
+<CENTER>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=2> &rarr; FileInfo &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> none ; console or text file</td>
+</tr>
+</table>
+</CENTER>
 
-  This tool can show basic information about the data in different file types, such as raw peak, featureXML and consensusXML files. It can
-  - show information about the data range of a file (m/z, RT, intensity)
-  - show a statistical summary for intensities, qualities, feature widths, precursor charges, activation methods
-  - show an overview of the metadata
-  - validate several XML formats against their XML schema
-  - check for corrupt data in a file (e.g., duplicate spectra)
+This tool can show basic information about the data in different file types, such as raw peak, featureXML and consensusXML files. It can
+- show information about the data range of a file (m/z, RT, intensity)
+- show a statistical summary for intensities, qualities, feature widths, precursor charges, activation methods
+- show an overview of the metadata
+- validate several XML formats against their XML schema
+- check for corrupt data in a file (e.g., duplicate spectra)
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_FileInfo.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_FileInfo.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FileInfo.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FileInfo.html
 
-  In order to enrich the resulting data of your analysis pipeline or to quickly compare different outcomes of your pipeline you can invoke the aforementioned information of your input data and (intermediary) results.
+In order to enrich the resulting data of your analysis pipeline or to quickly compare different outcomes of your pipeline you can invoke the aforementioned information of your input data and (intermediary) results.
 */
 
 // We do not want this class to show up in the docu:

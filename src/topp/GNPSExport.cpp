@@ -22,8 +22,9 @@ using namespace std;
 // Doxygen docu
 //----------------------------------------------------------
 /**
-  @page TOPP_GNPSExport GNPSExport
-  @brief Export MS/MS data in .MGF format for GNPS (http://gnps.ucsd.edu).
+@page TOPP_GNPSExport GNPSExport
+@brief Export MS/MS data in .MGF format for GNPS (http://gnps.ucsd.edu).
+
 GNPS (Global Natural Products Social Molecular Networking, http://gnps.ucsd.edu) is an open-access knowledge base for community-wide organization and sharing of raw, processed or identified tandem mass (MS/MS) spectrometry data. The GNPS web-platform makes it possible to perform spectral library search against public MS/MS spectral libraries, as well as to perform various data analysis such as MS/MS molecular networking, network annotation propagation, and the Dereplicator-based annotation. The GNPS manuscript is available here: https://www.nature.com/articles/nbt.3597
 This tool was developed for the Feature Based Molecular Networking (FBMN) (https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/) and Ion Identity Molecular Networking (IIMN) (https://ccms-ucsd.github.io/GNPSDocumentation/fbmn-iin/) workflows.
 
@@ -171,4 +172,3 @@ int main (int argc, const char** argv)
   TOPPGNPSExport tool;
   return tool.main(argc, argv);
 }
-/// @endcond

@@ -31,26 +31,26 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_OpenSwathMzMLFileCacher OpenSwathMzMLFileCacher
+@page TOPP_OpenSwathMzMLFileCacher OpenSwathMzMLFileCacher
 
-  @brief Serialize a spectra and/or chromatogram mzML file
+@brief Serialize a spectra and/or chromatogram mzML file
 
-  This class will serialize a spectra and/or chromatogram mzML file and store
-  it in a binary format that contains ONLY the spectra and chromatogram data
-  (no metadata).
- 
-  This is implemented using the write_memdump and read_memdump functions.
-  For reading there are 2 options
-  - read the whole file into the OpenMS datastructures
-  - read only an index (read_memdump_idx) of the spectra and chromatograms and then use
-    random-access to retrieve a specific spectra from the disk (read_memdump_spectra)
+This class will serialize a spectra and/or chromatogram mzML file and store
+it in a binary format that contains ONLY the spectra and chromatogram data
+(no metadata).
 
-  @note This tool is experimental!
+This is implemented using the write_memdump and read_memdump functions.
+For reading there are 2 options
+- read the whole file into the OpenMS datastructures
+- read only an index (read_memdump_idx) of the spectra and chromatograms and then use
+  random-access to retrieve a specific spectra from the disk (read_memdump_spectra)
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_OpenSwathMzMLFileCacher.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_OpenSwathMzMLFileCacher.html
+@note This tool is experimental!
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_OpenSwathMzMLFileCacher.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_OpenSwathMzMLFileCacher.html
 */
 
 // We do not want this class to show up in the docu:

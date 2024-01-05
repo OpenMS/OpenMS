@@ -17,9 +17,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_FeatureLinkerLabeled FeatureLinkerLabeled
+@page TOPP_FeatureLinkerLabeled FeatureLinkerLabeled
 
-    @brief Groups corresponding isotope-labeled features in a feature map.
+@brief Groups corresponding isotope-labeled features in a feature map.
 
 <CENTER>
     <table>
@@ -39,16 +39,16 @@ using namespace std;
 </CENTER>
 
 
-    This tool provides an algorithm for grouping corresponding features in isotope-labeled experiments. For more details and algorithm-specific parameters (set in the ini file) see "Detailed Description" in the @ref OpenMS::FeatureGroupingAlgorithmLabeled "algorithm documentation".
+This tool provides an algorithm for grouping corresponding features in isotope-labeled experiments. For more details and algorithm-specific parameters (set in the ini file) see "Detailed Description" in the @ref OpenMS::FeatureGroupingAlgorithmLabeled "algorithm documentation".
 
-    FeatureLinkerLabeled takes one feature map (featureXML file) and stores the corresponding features in a consensus map (consensusXML file). Feature maps can be created from MS experiments (peak data) using one of the FeatureFinder TOPP tools.
+FeatureLinkerLabeled takes one feature map (featureXML file) and stores the corresponding features in a consensus map (consensusXML file). Feature maps can be created from MS experiments (peak data) using one of the FeatureFinder TOPP tools.
 
-    @see @ref TOPP_FeatureLinkerUnlabeled @ref TOPP_FeatureLinkerUnlabeledQT
+@see @ref TOPP_FeatureLinkerUnlabeled @ref TOPP_FeatureLinkerUnlabeledQT
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_FeatureLinkerLabeled.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_FeatureLinkerLabeled.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FeatureLinkerLabeled.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FeatureLinkerLabeled.html
 */
 
 // We do not want this class to show up in the docu:

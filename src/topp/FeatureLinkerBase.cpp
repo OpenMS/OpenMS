@@ -28,9 +28,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_FeatureLinkerBase FeatureLinkerBase
+@page TOPP_FeatureLinkerBase FeatureLinkerBase
 
-    @brief Base class for different FeatureLinker tools.
+@brief Base class for different FeatureLinker tools.
 
 */
 

@@ -18,16 +18,16 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_DeMeanderize DeMeanderize
+@page TOPP_DeMeanderize DeMeanderize
 
-    @brief Repairs MALDI experiments which were spotted line by line.
+@brief Repairs MALDI experiments which were spotted line by line.
 
 
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_DeMeanderize.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_DeMeanderize.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_DeMeanderize.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_DeMeanderize.html
 */
 
 // We do not want this class to show up in the docu:

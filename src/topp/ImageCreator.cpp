@@ -29,18 +29,18 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_ImageCreator ImageCreator
+@page TOPP_ImageCreator ImageCreator
 
-    @brief Transforms an LC-MS map into a png image.
+@brief Transforms an LC-MS map into a png image.
 
-    The input is first resampled into a matrix using bilinear forward resampling.
-    Then the content of the matrix is written to an image file.
-    The output has a uniform spacing in both dimensions regardless of the input.
+The input is first resampled into a matrix using bilinear forward resampling.
+Then the content of the matrix is written to an image file.
+The output has a uniform spacing in both dimensions regardless of the input.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_ImageCreator.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_ImageCreator.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_ImageCreator.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_ImageCreator.html
 */
 
 // We do not want this class to show up in the docu:

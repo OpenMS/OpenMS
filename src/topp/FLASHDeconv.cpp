@@ -32,25 +32,25 @@ using namespace std;
 // Doxygen docu
 //-------------------------------------------------------------
 /**
-  @page TOPP_FLASHDeconv FLASHDeconv
+@page TOPP_FLASHDeconv FLASHDeconv
 
-  @brief FLASHDeconv performs ultrafast deconvolution of top down proteomics MS datasets.
-  FLASHDeconv takes mzML file as input and outputs deconvolved feature list (.tsv) and
-  deconvolved spectra files (.tsv, .mzML, .msalign, .ms1ft).
-  FLASHDeconv uses FLASHDeconvAlgorithm for spectral level deconvolution and MassFeatureTracer to detect mass features.
-  Also for MSn spectra, the precursor masses (not peak m/zs) should be determined and assigned in most cases. This assignment
-  can be done by tracking MSn-1 spectra deconvolution information. Thus FLASHDeconv class keeps MSn-1 spectra deconvolution information
-  for a certain period for precursor mass assignment in DeconvolvedSpectrum class.
-  In case of FLASHIda runs, this precursor mass assignment is done by FLASHIda. Thus FLASHDeconv class simply parses the log file
-  from FLASHIda runs and pass the parsed information to DeconvolvedSpectrum class.
+@brief FLASHDeconv performs ultrafast deconvolution of top down proteomics MS datasets.
+FLASHDeconv takes mzML file as input and outputs deconvolved feature list (.tsv) and
+deconvolved spectra files (.tsv, .mzML, .msalign, .ms1ft).
+FLASHDeconv uses FLASHDeconvAlgorithm for spectral level deconvolution and MassFeatureTracer to detect mass features.
+Also for MSn spectra, the precursor masses (not peak m/zs) should be determined and assigned in most cases. This assignment
+can be done by tracking MSn-1 spectra deconvolution information. Thus FLASHDeconv class keeps MSn-1 spectra deconvolution information
+for a certain period for precursor mass assignment in DeconvolvedSpectrum class.
+In case of FLASHIda runs, this precursor mass assignment is done by FLASHIda. Thus FLASHDeconv class simply parses the log file
+from FLASHIda runs and pass the parsed information to DeconvolvedSpectrum class.
 
-  See https://openms.de/FLASHDeconv for more information.
+See https://openms.de/FLASHDeconv for more information.
 
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_FLASHDeconv.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_FLASHDeconv.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FLASHDeconv.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FLASHDeconv.html
 */
 
 class TOPPFLASHDeconv : public TOPPBase

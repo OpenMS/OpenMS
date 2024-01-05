@@ -23,25 +23,25 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_TargetedFileConverter TargetedFileConverter
+@page TOPP_TargetedFileConverter TargetedFileConverter
 
-  @brief Converts different spectral libraries / transition files for targeted proteomics and metabolomics analysis.
-  
-  Can convert multiple formats to and from TraML (standardized transition format). The following formats are supported:
+@brief Converts different spectral libraries / transition files for targeted proteomics and metabolomics analysis.
 
-        <ul>
-          <li> @ref OpenMS::TraMLFile "TraML" </li>
-          <li> @ref OpenMS::TransitionTSVFile "OpenSWATH TSV transition lists" </li>
-          <li> @ref OpenMS::TransitionPQPFile "OpenSWATH PQP SQLite files" </li>
-          <li> SpectraST MRM transition lists </li>
-          <li> Skyline transition lists </li>
-          <li> Spectronaut transition lists </li>
-        </ul>
+Can convert multiple formats to and from TraML (standardized transition format). The following formats are supported:
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_TargetedFileConverter.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_TargetedFileConverter.html
+      <ul>
+        <li> @ref OpenMS::TraMLFile "TraML" </li>
+        <li> @ref OpenMS::TransitionTSVFile "OpenSWATH TSV transition lists" </li>
+        <li> @ref OpenMS::TransitionPQPFile "OpenSWATH PQP SQLite files" </li>
+        <li> SpectraST MRM transition lists </li>
+        <li> Skyline transition lists </li>
+        <li> Spectronaut transition lists </li>
+      </ul>
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_TargetedFileConverter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_TargetedFileConverter.html
 */
 
 // We do not want this class to show up in the docu:

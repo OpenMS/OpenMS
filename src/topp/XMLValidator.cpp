@@ -30,23 +30,23 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_XMLValidator XMLValidator
+@page TOPP_XMLValidator XMLValidator
 
-    @brief Validates XML files against an XSD schema.
+@brief Validates XML files against an XSD schema.
 
-    When a schema file is given, the input file is simply validated against the schema.
+When a schema file is given, the input file is simply validated against the schema.
 
-    When no schema file is given, the tool tries to determine the file type and
-    validates the file against the latest schema version.
+When no schema file is given, the tool tries to determine the file type and
+validates the file against the latest schema version.
 
-    @note XML schema files for the %OpenMS XML formats and several other XML
-    formats can be found in the folder
-          OpenMS/share/OpenMS/SCHEMAS/
+@note XML schema files for the %OpenMS XML formats and several other XML
+formats can be found in the folder
+      OpenMS/share/OpenMS/SCHEMAS/
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_XMLValidator.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_XMLValidator.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_XMLValidator.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_XMLValidator.html
 */
 
 // We do not want this class to show up in the docu:

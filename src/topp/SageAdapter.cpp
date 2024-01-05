@@ -38,9 +38,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_SageAdapter SageAdapter
+@page TOPP_SageAdapter SageAdapter
 
-    @brief Identifies peptides in MS/MS spectra via sage.
+@brief Identifies peptides in MS/MS spectra via sage.
 
 <CENTER>
     <table>
@@ -56,16 +56,16 @@ using namespace std;
     </table>
 </CENTER>
 
-    @em Sage must be installed before this wrapper can be used.
+@em Sage must be installed before this wrapper can be used.
 
-    Only the closed-search identification mode of Sage is supported by this adapter.
-    Currently, also neither "wide window" (= open or DIA) mode, nor "chimeric" mode is supported,
-    because of limitations in OpenMS' data structures and file formats.
+Only the closed-search identification mode of Sage is supported by this adapter.
+Currently, also neither "wide window" (= open or DIA) mode, nor "chimeric" mode is supported,
+because of limitations in OpenMS' data structures and file formats.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_SageAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_SageAdapter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_SageAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_SageAdapter.html
 */
 
 // We do not want this class to show up in the docu:

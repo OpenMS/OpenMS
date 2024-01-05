@@ -113,10 +113,10 @@ Some information about the supported input types:
 @li @ref OpenMS::PercolatorOutfile "Percolator tab-delimited output"
 
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_IDFileConverter.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_IDFileConverter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_IDFileConverter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_IDFileConverter.html
 
 */
 

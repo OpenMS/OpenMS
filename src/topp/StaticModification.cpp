@@ -25,28 +25,28 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_StaticModification StaticModification
+@page TOPP_StaticModification StaticModification
 
-  @brief Applies a set of modifications to all PeptideIDs in an idXML file.
+@brief Applies a set of modifications to all PeptideIDs in an idXML file.
 
-  Given peptide sequences from an idXML file, this TOPP tool applies a set of static (i.e. unconditional)
-  modifications to all AA's of a peptide sequences which have a matching origin (i.e. amino acid), and to the C/N-term.
-  The modifications supported are the usual ones from UniMod.
+Given peptide sequences from an idXML file, this TOPP tool applies a set of static (i.e. unconditional)
+modifications to all AA's of a peptide sequences which have a matching origin (i.e. amino acid), and to the C/N-term.
+The modifications supported are the usual ones from UniMod.
 
-  The user can provide modification(s) explicitly, e.g. <em>Carbamidomethyl (C)</em>, or use predefined sets.
+The user can provide modification(s) explicitly, e.g. <em>Carbamidomethyl (C)</em>, or use predefined sets.
 
-  Predefined sets:
-    - N15 (a.k.a. 15N) -- assumes all AAs contain heavy nitrogen (20 modifications in total)
+Predefined sets:
+  - N15 (a.k.a. 15N) -- assumes all AAs contain heavy nitrogen (20 modifications in total)
 
-  Explicit modifications and predefined sets can be combined.
-  Modifications already present on an AA/Terminus of the input will not be applied again.
-  If more than one modification is to be applied to an AA/Terminus, annotation using single name is not sufficient anymore and the summed delta-mass
-  has to be used. Modifications are not applied to AAs which already contain an unspecified delta-mass in the input.
+Explicit modifications and predefined sets can be combined.
+Modifications already present on an AA/Terminus of the input will not be applied again.
+If more than one modification is to be applied to an AA/Terminus, annotation using single name is not sufficient anymore and the summed delta-mass
+has to be used. Modifications are not applied to AAs which already contain an unspecified delta-mass in the input.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_StaticModification.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_StaticModification.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_StaticModification.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_StaticModification.html
 
 */
 

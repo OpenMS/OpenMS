@@ -33,19 +33,19 @@ using namespace OpenSwath;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_TICCalculator TICCalculator
+@page TOPP_TICCalculator TICCalculator
 
-  @brief Calculates the TIC of a raw mass spectrometric file. 
-  
-  This class was developed to benchmark multiple methods inside OpenMS for
-  reading raw mass spectrometric data. It can be used for benchmarking these
-  different methods as well as benchmarking external tools. Of course you can
-  also calculate the TIC with this tool.
+@brief Calculates the TIC of a raw mass spectrometric file. 
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_TICCalculator.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_TICCalculator.html
+This class was developed to benchmark multiple methods inside OpenMS for
+reading raw mass spectrometric data. It can be used for benchmarking these
+different methods as well as benchmarking external tools. Of course you can
+also calculate the TIC with this tool.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_TICCalculator.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_TICCalculator.html
 
 */
 

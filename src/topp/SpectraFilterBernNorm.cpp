@@ -20,28 +20,28 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-  @page TOPP_SpectraFilterBernNorm SpectraFilterBernNorm
+@page TOPP_SpectraFilterBernNorm SpectraFilterBernNorm
 
-  @brief Filters the top Peaks in the given spectra according to a given schema/thresholdset
+@brief Filters the top Peaks in the given spectra according to a given schema/thresholdset
 
-  <CENTER>
-  <table>
-  <tr>
-  <th ALIGN = "center"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> &rarr; SpectraFilter &rarr;</td>
-  <th ALIGN = "center"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
-  </tr>
-  </table>
-  </CENTER>
+<CENTER>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=2> &rarr; SpectraFilter &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
+</tr>
+</table>
+</CENTER>
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_SpectraFilterBernNorm.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_SpectraFilterBernNorm.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_SpectraFilterBernNorm.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_SpectraFilterBernNorm.html
 */
 
 

@@ -33,53 +33,53 @@ using namespace OpenMS;
 //Doxygen docu
 //----------------------------------------------------------
 /**
-  @page TOPP_AssayGeneratorMetabo AssayGeneratorMetabo
+@page TOPP_AssayGeneratorMetabo AssayGeneratorMetabo
 
-  @brief Generates an assay library using DDA data (Metabolomics)
+@brief Generates an assay library using DDA data (Metabolomics)
 
-    <CENTER>
-      <table>
-          <tr>
-              <th ALIGN = "center"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=2> &rarr; AssayGeneratorMetabo &rarr;</td>
-              <th ALIGN = "center"> potential successor tools </td>
-          </tr>
-          <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo </td>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> OpenSWATH pipeline </td>
-          </tr>
-          <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_AccurateMassSearch </td>
-          </tr>
-      </table>
-  </CENTER>
+  <CENTER>
+    <table>
+        <tr>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; AssayGeneratorMetabo &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> OpenSWATH pipeline </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_AccurateMassSearch </td>
+        </tr>
+    </table>
+</CENTER>
 
-  Build an assay library from DDA data (MS and MS/MS) (mzML).
-  Please provide a list of features found in the data (featureXML).
+Build an assay library from DDA data (MS and MS/MS) (mzML).
+Please provide a list of features found in the data (featureXML).
 
-  Features can be detected using the FeatureFinderMetabo (FFM) and identifcation information
-  can be added using the AccurateMassSearch feautreXML output.
+Features can be detected using the FeatureFinderMetabo (FFM) and identifcation information
+can be added using the AccurateMassSearch feautreXML output.
 
-  If the FFM featureXML is provided the "use_known_unknowns" flag is used automatically.
+If the FFM featureXML is provided the "use_known_unknowns" flag is used automatically.
 
-  Internal procedure AssayGeneratorMetabo: \n
-  1. Input mzML and featureXML \n
-  2. Reannotate precursor mz and intensity \n
-  3. Filter feature by number of masstraces \n
-  4. Assign precursors to specific feature (FeatureMapping) \n
-  5. Extract feature meta information (if possible) \n
-  6. Find MS2 spectrum with highest intensity precursor for one feature \n
-  7. Dependent on the method fragment annotation via SIRIUS is used for transition
-  extraction. \n
-  If not fragment annotation is performed either the MS2 with the highest intensity precursor or a consensus spectrum
-   can be used for the transition extractuib. \n
-  8. Calculate thresholds (maximum and minimum intensity for transition peak) \n
-  9. Extract and write transitions (tsv, traml) \n
+Internal procedure AssayGeneratorMetabo: \n
+1. Input mzML and featureXML \n
+2. Reannotate precursor mz and intensity \n
+3. Filter feature by number of masstraces \n
+4. Assign precursors to specific feature (FeatureMapping) \n
+5. Extract feature meta information (if possible) \n
+6. Find MS2 spectrum with highest intensity precursor for one feature \n
+7. Dependent on the method fragment annotation via SIRIUS is used for transition
+extraction. \n
+If not fragment annotation is performed either the MS2 with the highest intensity precursor or a consensus spectrum
+ can be used for the transition extractuib. \n
+8. Calculate thresholds (maximum and minimum intensity for transition peak) \n
+9. Extract and write transitions (tsv, traml) \n
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_SiriusAdapter.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_SiriusAdapter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_SiriusAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_SiriusAdapter.html
  */
 
 /// @cond TOPPCLASSES

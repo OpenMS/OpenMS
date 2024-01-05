@@ -26,36 +26,36 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
- @page TOPP_OpenSwathRTNormalizer OpenSwathRTNormalizer
+@page TOPP_OpenSwathRTNormalizer OpenSwathRTNormalizer
 
- @brief The OpenSwathRTNormalizer will find retention time peptides in data.
+@brief The OpenSwathRTNormalizer will find retention time peptides in data.
 
-  <CENTER>
-      <table>
-          <tr>
-              <th ALIGN = "center"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=3> &rarr; OpenSwathRTNormalizer &rarr;</td>
-              <th ALIGN = "center"> potential successor tools </td>
-          </tr>
-          <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=2></td>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
-          </tr>
-          <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathWorkflow </td>
-          </tr>
-      </table>
-  </CENTER>
+<CENTER>
+    <table>
+        <tr>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=3> &rarr; OpenSwathRTNormalizer &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=2></td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathWorkflow </td>
+        </tr>
+    </table>
+</CENTER>
 
- This tool will find retention time normalization peptides in data and use them
- to generate a transformation between the experimental RT space and the
- normalized RT space. The output is a transformation file on how to transform
- the RT space into the normalized space.
+This tool will find retention time normalization peptides in data and use them
+to generate a transformation between the experimental RT space and the
+normalized RT space. The output is a transformation file on how to transform
+the RT space into the normalized space.
 
- <B>The command line parameters of this tool are:</B>
- @verbinclude TOPP_OpenSwathRTNormalizer.cli
- <B>INI file documentation of this tool:</B>
- @htmlinclude TOPP_OpenSwathRTNormalizer.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_OpenSwathRTNormalizer.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_OpenSwathRTNormalizer.html
 */
 
 // We do not want this class to show up in the docu:

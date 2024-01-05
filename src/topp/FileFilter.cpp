@@ -96,7 +96,7 @@ If you want to extract an MS1 region with untouched MS2 spectra included, you wi
 @htmlinclude TOPP_FileFilter.html
 
 For the parameters of the S/N algorithm section see the class documentation there: @n
-    @ref OpenMS::SignalToNoiseEstimatorMedian "peak_options:sn"@n
+@ref OpenMS::SignalToNoiseEstimatorMedian "peak_options:sn"@n
 
 */
 

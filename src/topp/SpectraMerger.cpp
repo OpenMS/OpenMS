@@ -21,34 +21,34 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_SpectraMerger SpectraMerger
+@page TOPP_SpectraMerger SpectraMerger
 
-  @brief Allows to add up several spectra.
- 
-  <center>
-  <table>
-  <tr>
-  <th ALIGN = "center"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> &rarr; SpectraMerger &rarr;</td>
-  <th ALIGN = "center"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
-  </tr>
-  </table>
-  </center>
- 
-  @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
+@brief Allows to add up several spectra.
 
-  This tool can add several consecutive scans, increasing S/N ratio (for MS1 and above) or merge scans which stem from similar precursors (for MS2 and above).
+<center>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=2> &rarr; SpectraMerger &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
+</tr>
+</table>
+</center>
 
-  In any case, the number of scans will be reduced.
+@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_SpectraMerger.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_SpectraMerger.html
+This tool can add several consecutive scans, increasing S/N ratio (for MS1 and above) or merge scans which stem from similar precursors (for MS2 and above).
+
+In any case, the number of scans will be reduced.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_SpectraMerger.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_SpectraMerger.html
 */
 
 // We do not want this class to show up in the docu:

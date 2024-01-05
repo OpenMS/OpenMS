@@ -31,69 +31,69 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page TOPP_FeatureFinderMetaboIdent FeatureFinderMetaboIdent
+@page TOPP_FeatureFinderMetaboIdent FeatureFinderMetaboIdent
 
-   @brief Detects features in MS1 data corresponding to small molecule identifications.
+@brief Detects features in MS1 data corresponding to small molecule identifications.
 
-   <CENTER>
-     <table>
-       <tr>
-         <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-         <td VALIGN="middle" ROWSPAN=2> &rarr; FeatureFinderMetaboIdent &rarr;</td>
-         <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-       </tr>
-       <tr>
-         <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes (optional) </td>
-         <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_TextExporter</td>
-       </tr>
-     </table>
-   </CENTER>
+<CENTER>
+ <table>
+   <tr>
+     <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+     <td VALIGN="middle" ROWSPAN=2> &rarr; FeatureFinderMetaboIdent &rarr;</td>
+     <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+   </tr>
+   <tr>
+     <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes (optional) </td>
+     <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_TextExporter</td>
+   </tr>
+ </table>
+</CENTER>
 
-   This tool detects quantitative features in MS1 data for a list of targets, typically small molecule/metabolite identifications.
-   It uses algorithms for targeted data analysis from the OpenSWATH pipeline.
+This tool detects quantitative features in MS1 data for a list of targets, typically small molecule/metabolite identifications.
+It uses algorithms for targeted data analysis from the OpenSWATH pipeline.
 
-   @note This tool is still experimental!
+@note This tool is still experimental!
 
-   @see @ref TOPP_FeatureFinderIdentification - targeted feature detection based on peptide identifications.
+@see @ref TOPP_FeatureFinderIdentification - targeted feature detection based on peptide identifications.
 
-   <B>Input format</B>
+<B>Input format</B>
 
-   Spectra are expected in centroided or profile mode. Only MS1 level spectra are considered for feature detection.
+Spectra are expected in centroided or profile mode. Only MS1 level spectra are considered for feature detection.
 
-   The targets to quantify have to be specified in a tab-separated text file that is passed via the @p id parameter.
-   This file has to start with the following header line, defining its columns:
-   <pre>
-   <TT>CompoundName    SumFormula    Mass    Charge    RetentionTime    RetentionTimeRange    IsoDistribution</TT>
-   </pre>
+The targets to quantify have to be specified in a tab-separated text file that is passed via the @p id parameter.
+This file has to start with the following header line, defining its columns:
+<pre>
+<TT>CompoundName    SumFormula    Mass    Charge    RetentionTime    RetentionTimeRange    IsoDistribution</TT>
+</pre>
 
-   Every subsequent line defines a target.
-   (Except lines starting with "#", which are considered as comments and skipped.)
-   The following requirements apply:
-   - @p CompoundName: unique name for the target compound
-   - @p SumFormula: chemical sum formula (see @ref OpenMS::EmpiricalFormula), optional
-   - @p Mass: neutral mass; if zero calculated from @p Formula
-   - @p Charge: charge state, or comma-separated list of multiple charges
-   - @p RetentionTime: retention time (RT), or comma-separated list of multiple RTs
-   - @p RetentionTimeRange: RT window around @p RetentionTime for chromatogram extraction, either one value or one per @p RT entry; if zero parameter @p extract:rt_window is used
-   - @p IsoDistribution: comma-separated list of relative abundances of isotopologues (see @ref OpenMS::IsotopeDistribution); if zero calculated from @p Formula
+Every subsequent line defines a target.
+(Except lines starting with "#", which are considered as comments and skipped.)
+The following requirements apply:
+- @p CompoundName: unique name for the target compound
+- @p SumFormula: chemical sum formula (see @ref OpenMS::EmpiricalFormula), optional
+- @p Mass: neutral mass; if zero calculated from @p Formula
+- @p Charge: charge state, or comma-separated list of multiple charges
+- @p RetentionTime: retention time (RT), or comma-separated list of multiple RTs
+- @p RetentionTimeRange: RT window around @p RetentionTime for chromatogram extraction, either one value or one per @p RT entry; if zero parameter @p extract:rt_window is used
+- @p IsoDistribution: comma-separated list of relative abundances of isotopologues (see @ref OpenMS::IsotopeDistribution); if zero calculated from @p Formula
 
-   In the simplest case, only @p CompoundName, @p SumFormula, @p Charge and @p RetentionTime need to be given, all other values may be zero.
-   Every combination of compound (mass), RT and charge defines one target for feature detection.
+In the simplest case, only @p CompoundName, @p SumFormula, @p Charge and @p RetentionTime need to be given, all other values may be zero.
+Every combination of compound (mass), RT and charge defines one target for feature detection.
 
-   <B>Output format</B>
+<B>Output format</B>
 
-   The main output (parameter @p out) is a featureXML file containing the detected features, with annotations in meta data entries.
-   This file can be visualized in TOPPView - perhaps most usefully as a layer on top of the LC-MS data that gave rise to it.
-   Compound annotations of features (@p Name entries from the @p id input) can be shown by clicking the "Show feature annotation" button in the tool bar and selecting "Label meta data".
-   Positions of targets for which no feature was detected can be shown by clicking the "Show unassigned peptide identifications" button and selecting "Show label meta data".
+The main output (parameter @p out) is a featureXML file containing the detected features, with annotations in meta data entries.
+This file can be visualized in TOPPView - perhaps most usefully as a layer on top of the LC-MS data that gave rise to it.
+Compound annotations of features (@p Name entries from the @p id input) can be shown by clicking the "Show feature annotation" button in the tool bar and selecting "Label meta data".
+Positions of targets for which no feature was detected can be shown by clicking the "Show unassigned peptide identifications" button and selecting "Show label meta data".
 
-   To export the data from the featureXML file to a tabular text file (CSV), use @ref TOPP_TextExporter with the options @p no_ids and <TT>feature:add_metavalues 0</TT> (to include all meta data annotations).
-   In the result, the information from the @p CompoundName, @p SumFormula, @p Charge and @p RetentionTime columns from the input will be in the @p label, @p sum_formula, @p charge and @p expected_rt columns, respectively.
+To export the data from the featureXML file to a tabular text file (CSV), use @ref TOPP_TextExporter with the options @p no_ids and <TT>feature:add_metavalues 0</TT> (to include all meta data annotations).
+In the result, the information from the @p CompoundName, @p SumFormula, @p Charge and @p RetentionTime columns from the input will be in the @p label, @p sum_formula, @p charge and @p expected_rt columns, respectively.
 
-   <B>The command line parameters of this tool are:</B>
-   @verbinclude TOPP_FeatureFinderMetaboIdent.cli
-   <B>INI file documentation of this tool:</B>
-   @htmlinclude TOPP_FeatureFinderMetaboIdent.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FeatureFinderMetaboIdent.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FeatureFinderMetaboIdent.html
 
 */
 

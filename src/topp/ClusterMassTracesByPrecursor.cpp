@@ -19,35 +19,35 @@
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_ClusterMassTracesByPrecursor ClusterMassTracesByPrecursor
+@page TOPP_ClusterMassTracesByPrecursor ClusterMassTracesByPrecursor
 
-  @brief Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps.
+@brief Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps.
 
-  This algorithm will try to correlate the masstraces to find co-eluting traces and cluster them.
+This algorithm will try to correlate the masstraces to find co-eluting traces and cluster them.
 
-  This program looks at mass traces in a precursor MS1 map and tries to
-  correlate them with features found in the corresponding MS2 map based on
-  their elution profile. It uses
+This program looks at mass traces in a precursor MS1 map and tries to
+correlate them with features found in the corresponding MS2 map based on
+their elution profile. It uses
 
-   - the mass traces from the MS1 in consensusXML format [note this is an unintended use of the consesusXML format to also store intensities]
-   - the mass traces from the MS2 (SWATH map)
+ - the mass traces from the MS1 in consensusXML format [note this is an unintended use of the consesusXML format to also store intensities]
+ - the mass traces from the MS2 (SWATH map)
+
+ It does a separate correlation analysis on the MS1 and the MS2 map,
+ both produces a set of pseudo spectra.
+ In a second (optional) step, the MS2 pseudo spectra are correlated with
+ the MS1 traces and the most likely precursor is assigned to the pseudo
+ spectrum.
   
-   It does a separate correlation analysis on the MS1 and the MS2 map,
-   both produces a set of pseudo spectra.
-   In a second (optional) step, the MS2 pseudo spectra are correlated with
-   the MS1 traces and the most likely precursor is assigned to the pseudo
-   spectrum.
-    
-  It is based on the following papers:
-  ETISEQ -- an algorithm for automated elution time ion sequencing of concurrently fragmented peptides for mass spectrometry-based proteomics
-    BMC Bioinformatics 2009, 10:244 doi:10.1186/1471-2105-10-244 ; http://www.biomedcentral.com/1471-2105/10/244
-    they use FFT to correlate and then use lag of at least 1 scan and pearson correlation of 0.7 to assign precursors to product ions
-    If one fragment matches to multiple precursors, it is assigned to all of them. If it doesn't match any, it is assigned to all
-  
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_ClusterMassTracesByPrecursor.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_ClusterMassTracesByPrecursor.html
+It is based on the following papers:
+ETISEQ -- an algorithm for automated elution time ion sequencing of concurrently fragmented peptides for mass spectrometry-based proteomics
+  BMC Bioinformatics 2009, 10:244 doi:10.1186/1471-2105-10-244 ; http://www.biomedcentral.com/1471-2105/10/244
+  they use FFT to correlate and then use lag of at least 1 scan and pearson correlation of 0.7 to assign precursors to product ions
+  If one fragment matches to multiple precursors, it is assigned to all of them. If it doesn't match any, it is assigned to all
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_ClusterMassTracesByPrecursor.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_ClusterMassTracesByPrecursor.html
 
 */
 

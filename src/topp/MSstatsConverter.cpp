@@ -28,18 +28,18 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_MSstatsConverter MSstatsConverter
+@page TOPP_MSstatsConverter MSstatsConverter
 
-    @brief Converter to input for MSstats
+@brief Converter to input for MSstats
 
-    This util consumes an ID-mapped consensusXML file and OpenMS experimental design in TSV format to create a CSV file which can subsequently be used as input for the R package MSstats [1].
+This util consumes an ID-mapped consensusXML file and OpenMS experimental design in TSV format to create a CSV file which can subsequently be used as input for the R package MSstats [1].
 
-    [1] M. Choi et al. MSstats: an R package for statistical analysis for quantitative mass spectrometry-based proteomic experiments. Bioinformatics (2014), 30 (17): 2524-2526
+[1] M. Choi et al. MSstats: an R package for statistical analysis for quantitative mass spectrometry-based proteomic experiments. Bioinformatics (2014), 30 (17): 2524-2526
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_MSstatsConverter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MSstatsConverter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MSstatsConverter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MSstatsConverter.html
  */
 
 // We do not want this class to show up in the docu:

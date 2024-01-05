@@ -21,51 +21,51 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_QCCalculator QCCalculator
+@page TOPP_QCCalculator QCCalculator
 
-    @brief Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a mzQC or qcML file.
+@brief Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a mzQC or qcML file.
 
-    <CENTER>
-      <table>
-        <tr>
-        <th ALIGN = "center"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> &rarr; QCCalculator &rarr;</td>
-        <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCMerger </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCExporter </td>
-        </tr>
-      </table>
-    </CENTER>
+<CENTER>
+  <table>
+    <tr>
+    <th ALIGN = "center"> pot. predecessor tools </td>
+    <td VALIGN="middle" ROWSPAN=3> &rarr; QCCalculator &rarr;</td>
+    <th ALIGN = "center"> pot. successor tools </td>
+    </tr>
+    <tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided </td>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCMerger </td>
+    </tr>
+    <tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter </td>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCExporter </td>
+    </tr>
+  </table>
+</CENTER>
 
-    The calculated quality parameters or data compiled as attachments for easy plotting input include file origin, spectra distribution, aquisition details, ion current stability ( & TIC ), id accuracy statistics and feature statistics.
-    The MS experiments base name is used as name to the qcML element that is comprising all quality parameter values for the given run (including the given downstream analysis data).
-    
-    - @p id produces quality parameter values for the identification file; this file should contain either only the final psm to each spectrum (1 PeptideHit per identified spectrum) or have the PeptideHits sorted to 'best' first, where 'best' depends on the use case.
-    - @p feature produces quality parameter values for the feature file; this file can be either mapped or unmapped, the latter reulting in less metrics available.
-    - @p consensus produces quality parameter values for the consensus file;
-    some quality parameter calculation are only available if both feature and ids are given.
-    - @p remove_duplicate_features only needed when you work with a set of merged features. Then considers duplicate features only once.
-    - @p name only for mzQC: name of the person creating the mzQC file
-    - @p address only for mzQC: contact address (mail/e-mail or phone) of the person creating the mzQC file
-    - @p label only for mzQC: RECOMMENDED unique and informative label for the run, so that it can be used as a figure label
-    - @p description only for mzQC: description and comments about the mzQC file contents
-    - @p out_type specifies the output file type, default: determined by output file extension
-    
-    Output is in mzQC with JSON formatting or qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
-    The output file specified by the user determines which output file format will be used.
-    
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+The calculated quality parameters or data compiled as attachments for easy plotting input include file origin, spectra distribution, aquisition details, ion current stability ( & TIC ), id accuracy statistics and feature statistics.
+The MS experiments base name is used as name to the qcML element that is comprising all quality parameter values for the given run (including the given downstream analysis data).
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_QCCalculator.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_QCCalculator.html
+- @p id produces quality parameter values for the identification file; this file should contain either only the final psm to each spectrum (1 PeptideHit per identified spectrum) or have the PeptideHits sorted to 'best' first, where 'best' depends on the use case.
+- @p feature produces quality parameter values for the feature file; this file can be either mapped or unmapped, the latter reulting in less metrics available.
+- @p consensus produces quality parameter values for the consensus file;
+some quality parameter calculation are only available if both feature and ids are given.
+- @p remove_duplicate_features only needed when you work with a set of merged features. Then considers duplicate features only once.
+- @p name only for mzQC: name of the person creating the mzQC file
+- @p address only for mzQC: contact address (mail/e-mail or phone) of the person creating the mzQC file
+- @p label only for mzQC: RECOMMENDED unique and informative label for the run, so that it can be used as a figure label
+- @p description only for mzQC: description and comments about the mzQC file contents
+- @p out_type specifies the output file type, default: determined by output file extension
+
+Output is in mzQC with JSON formatting or qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
+The output file specified by the user determines which output file format will be used.
+
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_QCCalculator.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_QCCalculator.html
 
 */
 
