@@ -212,27 +212,35 @@ namespace OpenMS
 #pragma omp critical
 #endif
       {
+        RangeMobility im_range;
         if (ms1_im_)
         {
-          sp_ms1 = OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, 0, 0);
+          std::vector<OpenSwath::SpectrumPtr> fetchSpectrumArr = OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, im_range);
+          sp_ms1 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : *new(OpenSwath::SpectrumPtr);
         }
         else
         {
-          sp_ms2 = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0);
+          std::vector<OpenSwath::SpectrumPtr> fetchSpectrumArr = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, im_range);
+          sp_ms2 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : *new(OpenSwath::SpectrumPtr);
         }
       }
 
       for (const auto& tr : transition_group->getTransitions())
       {
         if (ms1_im_) {continue;}
-        double intensity(0), im(0), left(tr.product_mz), right(tr.product_mz);
+        double intensity(0), im(0), mz(0);
+        RangeMZ mz_range = DIAHelpers::createMZRangePPM(tr.product_mz, mz_extr_window, ppm);
 
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
         auto pepref = tr.getPeptideRef();
         double drift_target = pep_im_map[pepref];
-        double drift_left(drift_target), drift_right(drift_target);
-        DIAHelpers::adjustExtractionWindow(drift_right, drift_left, im_extraction_win, false);
+        RangeMobility im_range;
+        if (im_extraction_win != -1 ) // im_extraction_win is set
+        {
+          im_range.setMax(drift_target);
+          im_range.minSpanIfSingular(im_extraction_win);
+        }
 
         // Check that the spectrum really has a drift time array
         if (sp_ms2->getDriftTimeArray() == nullptr)
@@ -245,8 +253,7 @@ namespace OpenMS
           continue;
         }
 
-        DIAHelpers::adjustExtractionWindow(right, left, mz_extr_window, ppm);
-        DIAHelpers::integrateDriftSpectrum(sp_ms2, left, right, im, intensity, drift_left, drift_right);
+        DIAHelpers::integrateWindow(sp_ms2, mz, im, intensity, mz_range, im_range);
 
         // skip empty windows
         if (im <= 0)
@@ -274,14 +281,17 @@ namespace OpenMS
       if (!transition_group->getTransitions().empty() && ms1_im_)
       {
         const auto& tr = transition_group->getTransitions()[0];
-        double intensity(0), im(0), left(tr.precursor_mz), right(tr.precursor_mz);
+        double intensity(0), im(0), mz(0);
+        RangeMZ mz_range = DIAHelpers::createMZRangePPM(tr.precursor_mz, mz_extr_window, ppm);
 
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
         auto pepref = tr.getPeptideRef();
         double drift_target = pep_im_map[pepref];
-        double drift_left(drift_target), drift_right(drift_target);
-        DIAHelpers::adjustExtractionWindow(drift_right, drift_left, im_extraction_win, false);
+
+        // do not need to check for IM because we are correcting IM
+        RangeMobility im_range(drift_target);
+        im_range.minSpanIfSingular(im_extraction_win);
 
         // Check that the spectrum really has a drift time array
         if (sp_ms1->getDriftTimeArray() == nullptr)
@@ -294,8 +304,7 @@ namespace OpenMS
           continue;
         }
 
-        DIAHelpers::adjustExtractionWindow(right, left, mz_extr_window, ppm);
-        DIAHelpers::integrateDriftSpectrum(sp_ms1, left, right, im, intensity, drift_left, drift_right);
+        DIAHelpers::integrateWindow(sp_ms1, mz, im, intensity, mz_range, im_range);
 
         // skip empty windows
         if (im <= 0)
@@ -358,6 +367,7 @@ namespace OpenMS
     bool ppm = mz_extraction_window_ppm_;
     double mz_extr_window = mz_extraction_window_;
     std::string corr_type = mz_correction_function_;
+    double im_extraction = im_extraction_window_;
 
     OPENMS_LOG_DEBUG << "SwathMapMassCorrection::correctMZ with type " << corr_type << " and window " << mz_extr_window << " in ppm " << ppm << std::endl;
 
@@ -422,17 +432,26 @@ namespace OpenMS
         continue;
       }
 
+      // if ion mobility extraction window is set than extract with ion mobility
+      RangeMobility im_range;
+      if (im_extraction != -1) // ion mobility extraction is set
+      {
+        im_range.setMax(drift_target);
+        im_range.minSpanIfSingular(im_extraction);
+      }
+
       // Get the spectrum for this RT and extract raw data points for all the
       // calibrating transitions (fragment m/z values) from the spectrum
-      OpenSwath::SpectrumPtr sp = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0);
+      std::vector<OpenSwath::SpectrumPtr> spArr = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, im_range);
+      OpenSwath::SpectrumPtr sp = (!spArr.empty()) ? spArr[0] : *new(OpenSwath::SpectrumPtr);
       for (const auto& tr : transition_group->getTransitions())
       {
-        double mz, intensity, left(tr.product_mz), right(tr.product_mz);
+        double mz, intensity, im;
+        RangeMZ mz_range = DIAHelpers::createMZRangePPM(tr.product_mz, mz_extr_window, ppm);
         bool centroided = false;
 
         // integrate spectrum at the position of the theoretical mass
-        DIAHelpers::adjustExtractionWindow(right, left, mz_extr_window, ppm);
-        DIAHelpers::integrateWindow(sp, left, right, mz, intensity, centroided);
+        DIAHelpers::integrateWindow(sp, mz, im, intensity, mz_range, im_range, centroided); // Correct using the irt_im
 
         // skip empty windows
         if (mz == -1)

@@ -33,6 +33,9 @@ class TestDIAScoring(unittest.TestCase):
           spectrum.setMZArray(mz)
           spectrum.setIntensityArray(intensity)
 
+
+          spectrumList = [ spectrum ]
+
           diascoring = pyopenms.DIAScoring()
           # diascoring.set_dia_parameters(0.05, False, 30, 50, 4, 4) // here we use a large enough window so that none of our peaks falls out
           p_dia = diascoring.getDefaults();
@@ -50,7 +53,8 @@ class TestDIAScoring(unittest.TestCase):
           bseries_score = 0.0
           yseries_score = 0.0
           charge = 1
-          bseries_score, yseries_score = diascoring.dia_by_ion_score(spectrum, a, charge, bseries_score, yseries_score)
+          im_range = pyopenms.RangeMobility()
+          bseries_score, yseries_score = diascoring.dia_by_ion_score([spectrum], a, charge, im_range, bseries_score, yseries_score)
 
           self.assertAlmostEqual(bseries_score, 2.0)
           self.assertAlmostEqual(yseries_score, 2.0)
@@ -59,7 +63,8 @@ class TestDIAScoring(unittest.TestCase):
           a.setModification(1, b"Phospho" ) #; // modify the Y
           bseries_score = 0
           yseries_score = 0
-          bseries_score, yseries_score = diascoring.dia_by_ion_score(spectrum, a, 1, bseries_score, yseries_score) 
+          im_range = pyopenms.RangeMobility()
+          bseries_score, yseries_score = diascoring.dia_by_ion_score([spectrum], a, 1, im_range, bseries_score, yseries_score)
 
           self.assertAlmostEqual (bseries_score, 1.0)
           self.assertAlmostEqual (yseries_score, 3.0)

@@ -263,6 +263,7 @@ private:
     int stop_report_after_feature_;
     bool write_convex_hull_;
     bool strict_;
+    bool use_ms1_ion_mobility_;
     String scoring_model_;
 
     // scoring parameters
