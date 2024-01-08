@@ -75,7 +75,7 @@ namespace OpenMS
 
       // TODO move these to StringUtils?
       /**
-        * @brief splits the @p input string at the nth occurrence of the @separator
+        * @brief splits the @p input string at the nth occurrence of the @p separator
 
           If the separator does not occur in the input string n times, then the first output string will be the entire input string
           and the second one will be empty.
@@ -85,7 +85,7 @@ namespace OpenMS
       static StringList splitByNth(const String& input, const char separator, const Size n);
 
       /**
-        * @brief counts occurrences of the @p separator and splits the @input string into two at the middle
+        * @brief counts occurrences of the @p separator and splits the @p string into two at the middle
 
           If the separator occurs 5 times in the input string, the string will be split at the 3rd occurrence.
           If 7 times, then at the 4th.

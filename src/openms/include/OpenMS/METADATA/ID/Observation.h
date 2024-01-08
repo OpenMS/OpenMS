@@ -26,7 +26,7 @@ namespace OpenMS
     */
     struct Observation: public MetaInfoInterface
     {
-      /// Spectrum or feature ID (from the file referenced by @t input_file)
+      /// Spectrum or feature ID (from the file referenced by @p input_file)
       String data_id;
 
       /// Reference to the input file

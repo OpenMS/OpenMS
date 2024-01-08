@@ -38,7 +38,7 @@ using namespace std;
    <th ALIGN = "center"> pot. successor tools </td>
   </tr>
   <tr>
-   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinkerUnlabeled @n (or another feature grouping tool) </td>
   </tr>
   <tr>
@@ -69,8 +69,8 @@ Specialized tools are available for some experimental techniques: @ref TOPP_Isob
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_FeatureFinderCentroided.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_FeatureFinderCentroided.html
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FeatureFinderCentroided.html
 
 For the parameters of the algorithm section see the algorithms documentation: @n
 @ref OpenMS::FeatureFinderAlgorithmPicked "centroided" @n
