@@ -9,6 +9,7 @@
 #include <boost/foreach.hpp> // must be first, otherwise Q_FOREACH macro will wreak havoc
 
 #include <OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -199,6 +200,65 @@ namespace OpenMS
                 [](const MSSpectrum &spectrum) { return spectrum.getMSLevel() == 2; });
 
         OPENMS_LOG_INFO << "Number of MS2 spectra to be processed: " << count_ms2 << std::endl;
+      }
+    }
+
+    void SiriusExportAlgorithm::run(const StringList& mzML_files,
+                                    const StringList& featureXML_files,
+                                    const String& out_ms,
+                                    const String& out_compoundinfo) const
+    {
+      // loop over all spectra in all files and write data to ofstream
+      ofstream os;
+
+      // create temporary input file (.ms)
+      os.open(out_ms);
+      if (!os)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out_ms);
+      }
+      os.precision(12);
+
+      std::vector<SiriusMSFile::CompoundInfo> v_cmpinfo; // To store compound information for all files
+      for (size_t i = 0; i < mzML_files.size(); ++i) {
+          // load experiment
+          MSExperiment spectra;
+          FileHandler().loadExperiment(mzML_files[i], spectra, {FileTypes::MZML});
+
+          // run masstrace filter and feature mapping
+          FeatureMapping::FeatureMappingInfo fm_info;
+          FeatureMapping::FeatureToMs2Indices feature_mapping;
+
+          // check if 'featureXML_files' is empty and pass an empty string if it is
+          String feature_info_to_pass = featureXML_files.empty() ? "" : featureXML_files[i];
+          SiriusExportAlgorithm::preprocessingSirius(feature_info_to_pass,
+                                        spectra,
+                                        fm_info,
+                                        feature_mapping);
+
+          // returns Log of feature and/or spectra number
+          SiriusExportAlgorithm::logFeatureSpectraNumber(feature_info_to_pass, feature_mapping, spectra);
+
+          // temporary vector to store compound information for the current file
+          std::vector<SiriusMSFile::CompoundInfo> temp_cmpinfo;
+          SiriusMSFile::store(spectra,
+                              os,
+                              feature_mapping,
+                              SiriusExportAlgorithm::isFeatureOnly(),
+                              SiriusExportAlgorithm::getIsotopePatternIterations(),
+                              SiriusExportAlgorithm::isNoMasstraceInfoIsotopePattern(),
+                              temp_cmpinfo,
+                              i);
+
+          // Append the compound information of the current file to the overall vector
+          v_cmpinfo.insert(v_cmpinfo.end(), temp_cmpinfo.begin(), temp_cmpinfo.end());
+      }
+
+      os.close();
+
+      if (!out_compoundinfo.empty()) 
+      {
+        SiriusMSFile::saveCompoundInfoAsTSV(v_cmpinfo, out_compoundinfo, SiriusExportAlgorithm::isFeatureOnly());
       }
     }
 

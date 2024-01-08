@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>
-#include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 #include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/Element.h>
@@ -87,19 +86,21 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in", "<file>", "", "MzML Input file");
+    registerInputFileList_("in", "<file(s)>", StringList(), "MzML Input file(s)");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
-    registerInputFile_("in_featureinfo", "<file>", "", "FeatureXML input with feature and adduct information", false);
+    registerInputFileList_("in_featureinfo", "<file(s)>", StringList(), "FeatureXML input with feature and adduct information", false);
     setValidFormats_("in_featureinfo", ListUtils::create<String>("featureXML"));
 
     registerOutputFile_("out","<file>", "", "Internal SIRIUS .ms format after OpenMS preprocessing");
     setValidFormats_("out", ListUtils::create<String>("ms"));
 
+    registerOutputFile_("out_compoundinfo","<file>", "", "File (.tsv) with information on processed compounds. Required for AssayGeneratorMetaboSirius tool.", false);
+    setValidFormats_("out_compoundinfo", ListUtils::create<String>("tsv"));
+
     addEmptyLine_();
 
     auto defaults = algorithm.getDefaults();
-    defaults.remove("project:processors");
 
     registerFullParam_(defaults);
   }
@@ -109,46 +110,33 @@ protected:
     //-------------------------------------------------------------
     // Parsing parameters
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String featureinfo = getStringOption_("in_featureinfo");
+    StringList mzML_files = getStringList_("in");
+    StringList featureXML_files = getStringList_("in_featureinfo");
     String out_ms = getStringOption_("out");
+    String out_compoundinfo = getStringOption_("out_compoundinfo");
 
     auto params = getParam_();
-    if (debug_level_ > 3)
-    {
-      params.setValue("read_sirius_stdout", "true");
-    }
+
     params.setValue("project:processors", params.getValue("threads"));
     algorithm.updateExistingParameter(params);
 
     writeDebug_("Parameters passed to SiriusExportAlgorithm", algorithm.getParameters(), 3);
 
     //-------------------------------------------------------------
-    // Calculations
+    // Check input
     //-------------------------------------------------------------
-    MSExperiment spectra;
-    FileHandler().loadExperiment(in, spectra, {FileTypes::MZML}, log_type_);
+    if (featureXML_files.size() > 0 && mzML_files.size() != featureXML_files.size())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Number of .mzML do not match to the number of .featureXML files. \n Please check and provide the corresponding files.");
+    }
 
-    // run masstrace filter and feature mapping
-    FeatureMapping::FeatureMappingInfo fm_info;
-    FeatureMapping::FeatureToMs2Indices feature_mapping; // reference to *basefeature in Feature Maps stored in fm_info using a KDTree
-    algorithm.preprocessingSirius(featureinfo,
-                                  spectra,
-                                  fm_info,
-                                  feature_mapping);
+    algorithm.run(mzML_files,
+                  featureXML_files,
+                  out_ms,
+                  out_compoundinfo);
 
-    // returns Log of feature and/or spectra number
-    algorithm.logFeatureSpectraNumber(featureinfo, feature_mapping, spectra);
-
-    // write msfile and store the compound information in CompoundInfo Object
-    vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
-    SiriusMSFile::store(spectra,
-                        out_ms.toQString(),
-                        feature_mapping,
-                        algorithm.isFeatureOnly(),
-                        algorithm.getIsotopePatternIterations(),
-                        algorithm.isNoMasstraceInfoIsotopePattern(),
-                        v_cmpinfo);
+    
 
     return EXECUTION_OK;
   }
