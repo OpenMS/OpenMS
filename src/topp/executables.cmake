@@ -100,6 +100,7 @@ set(TOPP_executables
 ${TOPP_executables}
 AccurateMassSearch
 AssayGeneratorMetabo
+AssayGeneratorMetaboSirius
 ClusterMassTraces
 ClusterMassTracesByPrecursor
 CVInspector

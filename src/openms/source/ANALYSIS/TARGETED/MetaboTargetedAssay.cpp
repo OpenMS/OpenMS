@@ -39,7 +39,7 @@ namespace OpenMS
     {
       adduct_suffix = "1" + adduct_suffix;
     }
-    else
+    else if (adduct_suffix != "1-" && adduct_suffix != "1+")
     {
       OpenMS_Log_warn << "The adduct had the suffix '" << adduct_suffix << "', but only singly positive or singly negative charged adducts are supported." << std::endl;
     }
