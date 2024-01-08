@@ -68,7 +68,7 @@ public:
       *   offset = 0.0
       *   spread should be 0 
       *   Note: in sum scores, intensities from neighboring bins should be considered with half intensity of each flanking bin.
-      *         @TODO: Weighted intensity spread is currently not implemented(but could replace the spread parameter).
+      *         @todo: Weighted intensity spread is currently not implemented(but could replace the spread parameter).
       */ 
  
     // default bin width for low-resolution data (adapted from doi:10.1007/s13361-015-1179-x)

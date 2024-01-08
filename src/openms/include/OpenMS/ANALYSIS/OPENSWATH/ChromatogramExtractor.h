@@ -223,6 +223,7 @@ public:
      *   to 0 (i.e. full RT range). If NaN, exactly two RT entries are expected
      *   - the first is used as @p rt_start and the second as @p rt_end.
      * @param ms1 Whether to extract for MS1 (peptide level) or MS2 (transition level)
+     * @param ms1_isotopes Number of isotopes to include in @p coordinates when in MS1 mode
      *
      * @throw Exception::IllegalArgument if RT values are expected (depending on @p rt_extraction_window) but not provided
     */

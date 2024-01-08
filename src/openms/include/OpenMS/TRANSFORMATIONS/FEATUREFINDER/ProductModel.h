@@ -26,7 +26,7 @@ namespace OpenMS
       @htmlinclude OpenMS_ProductModel.parameters
 
   @todo This class provides new member functions, which makes
-  Factory<BaseModel<2> >::create("ProductModel2D") pretty much useless!  (Clemens)
+  Factory<BaseModel<2>>::create("ProductModel2D") pretty much useless!  (Clemens)
 
       @ingroup FeatureFinder
   */

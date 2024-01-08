@@ -292,7 +292,7 @@ protected:
     String peptide_ref_; ///< Reference to a specific peptide
     String compound_ref_; ///< Reference to a specific compound
 
-    /// Intensity of the product (q3) ion (stored in CV Term 1001226 inside the <Transition> tag)
+    /// Intensity of the product (q3) ion (stored in CV Term 1001226 inside the \<Transition\> tag)
     double library_intensity_;
 
     /// specific properties of a transition (e.g. specific CV terms)
