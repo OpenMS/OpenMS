@@ -21,7 +21,7 @@ namespace OpenMS
   /**
     @brief This class stores a SRM/MRM transition
 
-    This class is capable of representing a <Transition> tag in a TraML
+    This class is capable of representing a \<Transition\> tag in a TraML
     document completely and contains all associated information.
 
     The default values for precursor m/z is 0.0 which indicates that it is

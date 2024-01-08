@@ -14,7 +14,7 @@ Fixes #42
 ```
 
  * The first line starts with an arbitrary number of tags in square brackets, e.g. `[CLASS1]` or `[CLASS1,CLASS2]`.
-   See below for a [#PossibleClasses list of classes].
+   See below for a list of classes.
  * These tags are followed by a short description, try to keep the first line below 120 characters, 80 if possible.
  * You should add a long description after an empty line.
  * When resolving / fixing an issue, please include a last line with the text "Fixes #Bug-nr". This causes github to automatically close the issue

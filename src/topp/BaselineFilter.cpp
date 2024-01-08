@@ -34,7 +34,7 @@ using namespace std;
     </tr>
     <tr>
   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay, @n @ref TOPP_NoiseFilterGaussian </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet, @n @ref TOPP_PeakPickerHiRes @n (or ID engines on MS/MS data) </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes @n (or ID engines on MS/MS data) </td>
     </tr>
 </table>
 </CENTER>
