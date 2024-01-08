@@ -716,7 +716,7 @@ namespace OpenMS
       }
 
       // Write the header line
-      file << "cmp\tpmass\tpint_mono\trt\tfmz\tfid\tformula\tcharge\tionization\tdes\tspecref_format\tsource_file\tsource_format\tnative_ids_id\tm_ids_id\n";
+      file << "cmp\tfile_index\tpmass\tpint_mono\trt\tfmz\tfid\tformula\tcharge\tionization\tdes\tspecref_format\tsource_file\tsource_format\tnative_ids_id\tm_ids_id\n";
 
       // Iterate over the vector and write each object's attributes
       for (const auto& info : v_cmpinfo) {
@@ -726,21 +726,21 @@ namespace OpenMS
             continue;
           }
           file << info.cmp << "\t"
-              << info.file_index << "\t"
-              << info.pmass << "\t"
-              << info.pint_mono << "\t"
-              << info.rt << "\t"
-              << info.fmz << "\t"
-              << info.fid << "\t"
-              << info.formula << "\t"
-              << info.charge << "\t"
-              << info.ionization << "\t"
-              << info.des << "\t"
-              << info.specref_format << "\t"
-              << info.source_file << "\t"
-              << info.source_format << "\t"
-              << info.native_ids_id << "\t"
-              << info.m_ids_id << "\n";
+                << info.file_index << "\t"
+                << info.pmass << "\t"
+                << info.pint_mono << "\t"
+                << info.rt << "\t"
+                << info.fmz << "\t"
+                << info.fid << "\t"
+                << info.formula << "\t"
+                << info.charge << "\t"
+                << info.ionization << "\t"
+                << info.des << "\t"
+                << info.specref_format << "\t"
+                << info.source_file << "\t"
+                << info.source_format << "\t"
+                << info.native_ids_id << "\t"
+                << info.m_ids_id << "\n";
       }
 
       file.close();

@@ -111,7 +111,10 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerStringOption_("in", "<directory>", "", "SIRIUS project directory");
+    registerInputFile_("in", "<directory>", "", "SIRIUS project directory");
+
+    registerInputFile_("in_compoundinfo", "<file>", "", "Compound info table (.tsv file)");
+    setValidFormats_("in_compoundinfo", ListUtils::create<String>("tsv"));
 
     registerOutputFile_("out", "<file>", "", "Assay library output file");
     setValidFormats_("out", ListUtils::create<String>("tsv,traML,pqp"));
@@ -156,6 +159,7 @@ protected:
 
     // param AssayGeneratorMetabo
     String sirius_project_directory = getStringOption_("in");
+    String compoundinfo_file = getStringOption_("in_compoundinfo");
     String out = getStringOption_("out");
     String method = getStringOption_("method");
     double ar_mz_tol = getDoubleOption_("ambiguity_resolution_mz_tolerance");
@@ -217,67 +221,34 @@ protected:
     // sort vector with subdirs by scan index
     SiriusExportAlgorithm::sortSiriusWorkspacePathsByScanIndex(subdirs);
 
-    // collect required compound info from each subdir
+    // collect required compound infos from tsv file
     vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
-    for (const auto& subdir : subdirs)
-    {
-      // parse compound.info file (tab separated)
-      SiriusMSFile::CompoundInfo cmpinfo;
-      CsvFile csv_file(subdir + "/compound.info", '\t');
-      for (Size i = 0; i < csv_file.rowCount(); ++i) {
-        StringList row;
-        csv_file.getRow(i, row);
-        // extract data
-        if (row[0] == "name")
-            cmpinfo.cmp = row[1];
-        else if (row[0] == "ionMass")
-            cmpinfo.pmass = std::stod(row[1]);
-        else if (row[0] == "rt")
-            cmpinfo.rt = std::stod(row[1]);
-        else if (row[0] == "ionType")
-            cmpinfo.ionization = row[1];
-      }
-      // set fixed precursor charge, SIRIUS supports only charge 1
-      cmpinfo.charge = 1;
-      // parse spectrum.ms file
-      std::ifstream spectrum_ms_file(subdir + "/spectrum.ms");
-      // open file and get m_ids_id from MS2 spec
-      if (spectrum_ms_file.is_open())
-      {
-        String line;
-        String m_ids_accumulated = ""; // String to accumulate the m_ids
-        while (std::getline(spectrum_ms_file, line)) {
-            // check if the line starts with "##m_id"
-            if (line.compare(0, 7, "##m_id ") == 0) {
-                // extract line excluding the prefix
-                String m_id = line.substr(7);
-                // append m_id to the accumulated string, separated by "|"
-                if (!m_ids_accumulated.empty()) {
-                    m_ids_accumulated += "|"; // Add separator only if the string is not empty
-                }
-                m_ids_accumulated += m_id;
-            }
-            if (line.compare(0, 6, "##des ") == 0) {
-              cmpinfo.des = line.substr(6);
-            }
-        }
-        spectrum_ms_file.close();
-        // Set the accumulated m_ids to cmpinfo.m_ids_id
-        cmpinfo.m_ids_id = m_ids_accumulated;
-      }
-      else
-      {
-        OPENMS_LOG_WARN << "Error opening spectrum.ms file: " << subdir + "/spectrum.ms" << std::endl;
-      }
-      // skip if compound name is "UNKNOWN" and use_known_unknowns flag is not set
-      if (!use_known_unknowns && cmpinfo.des == "UNKNOWN")
-      {
-        continue;
-      }
-      // add the populated CompoundInfo object to the vector
-      v_cmpinfo.push_back(cmpinfo);
-    }
 
+    CsvFile csv(compoundinfo_file, '\t');
+
+    size_t row_count = csv.rowCount();
+    for (size_t i = 1; i < row_count; ++i) {
+      StringList row_data;
+      csv.getRow(i, row_data);
+
+      SiriusMSFile::CompoundInfo cmp_info;
+
+      // Convert and assign each field from row_data to cmp_info's attributes
+      cmp_info.cmp = row_data[0];
+      cmp_info.file_index = stoi(row_data[1]);
+      cmp_info.pmass = stod(row_data[2]);
+      cmp_info.rt = stod(row_data[4]);
+      cmp_info.fmz = stod(row_data[5]);
+      cmp_info.fid = row_data[6];
+      cmp_info.formula = row_data[7];
+      cmp_info.charge = stoi(row_data[8]);
+      cmp_info.ionization = row_data[9];
+      cmp_info.des = row_data[10];
+      cmp_info.source_file = row_data[12];
+      cmp_info.m_ids_id = row_data[15];
+
+      v_cmpinfo.push_back(cmp_info);
+    }
 
     // get annotated spectra
     vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra =

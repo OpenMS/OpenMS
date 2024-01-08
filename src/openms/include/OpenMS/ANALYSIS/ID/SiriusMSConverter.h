@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Alka $
+// $Maintainer: Oliver Alka, Axel Walter $
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
