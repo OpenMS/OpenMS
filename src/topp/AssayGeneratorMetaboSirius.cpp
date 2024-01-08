@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka, Axel Walter $
-// $Authors: Oliver Alka $
+// $Authors: Oliver Alka, Axel Walter $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>

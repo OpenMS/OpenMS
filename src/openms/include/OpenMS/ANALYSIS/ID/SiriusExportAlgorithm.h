@@ -12,8 +12,6 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
-#include <unordered_map>
-#include <QtCore/QString>
 #include <QtCore/QStringList>
 
 using namespace std;

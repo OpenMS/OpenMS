@@ -2,28 +2,15 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Alka $
-// $Authors: Oliver Alka, Timo Sachsenberg $
+// $Maintainer: Axel Walter, Oliver Alka $
+// $Authors: Axel Walter, Oliver Alka, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>
-#include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CHEMISTRY/Element.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <QDebug>
-#include <QDir>
-#include <QDirIterator>
-#include <QtCore/QProcess>
-#include <fstream>
 
 using namespace OpenMS;
-using namespace std;
 
 //----------------------------------------------------------
 // Doxygen docu
@@ -52,6 +39,7 @@ using namespace std;
   Sirius will then process the internally merged MS2 spectra allocated to one feature (instead of all available MS2).
   To reduce the feature space even further a masstrace filter can be set. 
   Additional adduct information can be provided using a featureXML from the MetaboliteAdductDecharger or AccurateMassSearch.
+  <B>Make sure to input the matching mzML and featureXML files in the correct order.</B>
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_SiriusExport.cli

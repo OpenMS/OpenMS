@@ -2,19 +2,16 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Alka $
+// $Maintainer: Oliver Alka, Axel Walter $
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QtCore/QDir>
-#include <cstdint>
 
 using namespace OpenMS;
 using namespace std;

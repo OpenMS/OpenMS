@@ -65,7 +65,7 @@ public:
 
     @ingroup ID
 
-    Store .ms file.
+    Write content of SIRIUS .ms file to ofstream.
     Comments (see CompoundInfo) are written to SIRIUS .ms file and additionally stores in CompoundInfo struct.
     If adduct information for a spectrum is missing, no adduct information is added. 
     In this case, SIRIUS assumes default adducts for the respective spectrum.
@@ -74,7 +74,7 @@ public:
     @return stores CompoundInfo
     
     @param spectra: Peakmap from input mzml.
-    @param msfile: Writes .ms file from sirius.
+    @param os: Write output for .ms file to ofstream.
     @param feature_mapping: Adducts and features (index).
     @param feature_only: Only use features.
     @param isotope_pattern_iterations: At which depth to stop isotope_pattern extraction (if possible).

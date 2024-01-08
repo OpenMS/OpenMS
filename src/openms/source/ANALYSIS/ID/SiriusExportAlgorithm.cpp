@@ -11,21 +11,7 @@
 #include <OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/SpectrumLookup.h>
-#include <OpenMS/SYSTEM/File.h>
-
-#include <QtCore/QDir>
-#include <QtCore/QDirIterator>
-#include <QtCore/QString>
-#include <QtCore/QProcess>
-#include <sstream>
-#include <boost/regex.hpp>
 
 namespace OpenMS
 {
