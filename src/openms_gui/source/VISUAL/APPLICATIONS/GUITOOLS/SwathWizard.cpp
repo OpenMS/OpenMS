@@ -29,6 +29,9 @@
 
 
   Schematic of the internal data flow (all tools are called by SwathWizard in the background):
+*/
+#ifdef OPENMS_HASDOXYGENDOT
+/*
   @dot
     digraph wizard_workflow
     {
@@ -79,8 +82,9 @@
       sqMass -> topp_tv;
     }
   @enddot
-
-
+*/
+#endif
+/**
   A recommended test data for the Wizard is the
   <a href="https://db.systemsbiology.net/sbeams/cgi/PeptideAtlas/PASS_View?identifier=PASS00779" target="_blank">PASS00779</a>
   dataset.

@@ -32,6 +32,9 @@ using namespace std;
 
 @brief Calculates the suitability of a database which was used a for peptide identification search. Also reports the quality of LC-MS spectra.
 
+*/
+#ifdef OPENMS_HASDOXYGENDOT
+/*
 @dot
 digraph sample_workflow {
   node [ style="solid,filled", color=black, fillcolor=grey90, width=1.5, fixedsize=true, shape=square, fontname=Helvetica, fontsize=10 ];
@@ -65,7 +68,9 @@ digraph sample_workflow {
   db_suit -> tsv;
 }
 @enddot
-
+*/
+#endif
+/**
 The metric this tool uses to determine the suitability of a database is based on a de novo model. Therefore it is crucial that your workflow is set up the right way. Above you can see an example.@n
 Most importantly the peptide identification search needs to be done with a combination of the database in question and a de novo "database".@n
 To generate the de novo "database":
