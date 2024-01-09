@@ -122,7 +122,7 @@ private:
     /**
       @brief Remove host name information from an url, e.g., "http://www.google.de/search" -> "search"
 
-      @param The url that will be manipulated.
+      @param url The url that will be manipulated.
     */
     void removeHostName_(QString& url);
 
