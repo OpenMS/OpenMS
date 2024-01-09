@@ -225,8 +225,9 @@ namespace OpenMS
      * \param area Range to search in. Only dimensions used in the canvas are populated.
      * \return A proxy (e.g. scan + peak index in an MSExperiment) which points to the data
      */
-    virtual PeakIndex findClosestDataPoint(const RangeAllType& /*area*/) const
+    virtual PeakIndex findClosestDataPoint(const RangeAllType& area) const
     {
+      (void*)&area; // allow doxygen to document the param
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
@@ -235,8 +236,9 @@ namespace OpenMS
      * \param area Range to search in. Only dimensions used in the canvas are populated.
      * \return A proxy (e.g. scan + peak index in an MSExperiment) which points to the data
      */
-    virtual PeakIndex findHighestDataPoint(const RangeAllType& /*area*/) const
+    virtual PeakIndex findHighestDataPoint(const RangeAllType& area) const
     {
+      (void*)&area; // allow doxygen to document the param
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
@@ -257,8 +259,9 @@ namespace OpenMS
      * \param peak_index The datapoint
      * \return A string, e.g. "fwhm: 20, im: 3.3", depending on which float/string dataarrays are populated for the given datapoint
      */
-    virtual String getDataArrayDescription(const PeakIndex& /*peak_index*/)
+    virtual String getDataArrayDescription(const PeakIndex& peak_index)
     {
+      (void*)&peak_index; // allow doxygen to document the param
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
