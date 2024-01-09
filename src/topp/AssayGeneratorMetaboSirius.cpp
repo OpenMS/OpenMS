@@ -229,7 +229,6 @@ protected:
       csv.getRow(i, row_data);
 
       SiriusMSFile::CompoundInfo cmp_info;
-
       // Convert and assign each field from row_data to cmp_info's attributes
       cmp_info.cmp = row_data[0];
       cmp_info.file_index = stoi(row_data[1]);
@@ -244,7 +243,10 @@ protected:
       cmp_info.source_file = row_data[12];
       cmp_info.m_ids_id = row_data[15];
 
-      v_cmpinfo.push_back(cmp_info);
+      // add if "use_known_unknown" flag is set or compound name is not "UNKNOWN"
+      if (use_known_unknowns || cmp_info.des != "UNKNOWN") {
+          v_cmpinfo.push_back(cmp_info);
+      }
     }
 
     // get annotated spectra

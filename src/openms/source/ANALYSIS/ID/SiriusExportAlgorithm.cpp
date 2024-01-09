@@ -235,7 +235,6 @@ namespace OpenMS
                               SiriusExportAlgorithm::isNoMasstraceInfoIsotopePattern(),
                               temp_cmpinfo,
                               i);
-
           // Append the compound information of the current file to the overall vector
           v_cmpinfo.insert(v_cmpinfo.end(), temp_cmpinfo.begin(), temp_cmpinfo.end());
       }
@@ -244,7 +243,7 @@ namespace OpenMS
 
       if (!out_compoundinfo.empty()) 
       {
-        SiriusMSFile::saveCompoundInfoAsTSV(v_cmpinfo, out_compoundinfo, SiriusExportAlgorithm::isFeatureOnly());
+        SiriusMSFile::saveFeatureCompoundInfoAsTSV(v_cmpinfo, out_compoundinfo);
       }
     }
 

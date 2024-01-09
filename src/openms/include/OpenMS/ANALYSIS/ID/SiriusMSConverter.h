@@ -95,11 +95,9 @@ public:
 
     @param v_cmpinfo: Vector with CompoundInfo objects
     @param filename: Filename for tsv file
-    @param known_features_only: Don't save CompoundInfo objects with des: "UNKNOWN"
     */
-    static void saveCompoundInfoAsTSV(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
-                                      const std::string& filename,
-                                      const bool known_features_only);
+    static void saveFeatureCompoundInfoAsTSV(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
+                                      const std::string& filename);
 
   protected:
     /**

@@ -114,7 +114,7 @@ namespace OpenMS
     // if multiple identifications present for one MS1 and MS2 use all of them and
     // let SIRIUS sort it out using fragment annotation
     for (unsigned int k = 0; k != v_description.size(); ++k)
-    {
+    { 
       if (v_description.size() > 1) { writecompound = true; } // write the same "entry" for each possible hit (different: description, adduct, sumformula)
       SiriusMSFile::CompoundInfo cmpinfo;
 
@@ -399,7 +399,12 @@ namespace OpenMS
       }
       cmpinfo.native_ids_id = ListUtils::concatenate(cmpinfo.native_ids, "|");
       cmpinfo.m_ids_id = ListUtils::concatenate(cmpinfo.m_ids, "|");
-      v_cmpinfo.push_back(std::move(cmpinfo));
+
+      // add cmpinfo if derived from a feature (feature_id > 0)
+      if (feature_id > 0)
+      {
+        v_cmpinfo.push_back(std::move(cmpinfo));
+      }
     }
   }
 
@@ -705,9 +710,8 @@ namespace OpenMS
 
   }
 
-  void SiriusMSFile::saveCompoundInfoAsTSV(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
-                                           const std::string& filename,
-                                           const bool known_features_only) {
+  void SiriusMSFile::saveFeatureCompoundInfoAsTSV(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
+                                                  const std::string& filename) {
       std::ofstream file(filename);
 
       // Check if the file is open
@@ -720,11 +724,6 @@ namespace OpenMS
 
       // Iterate over the vector and write each object's attributes
       for (const auto& info : v_cmpinfo) {
-          // skip unknown compounds
-          if (known_features_only && info.des == "UNKNOWN")
-          {
-            continue;
-          }
           file << info.cmp << "\t"
                 << info.file_index << "\t"
                 << info.pmass << "\t"

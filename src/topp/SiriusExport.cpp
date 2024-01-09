@@ -83,7 +83,7 @@ protected:
     registerOutputFile_("out","<file>", "", "Internal SIRIUS .ms format after OpenMS preprocessing");
     setValidFormats_("out", ListUtils::create<String>("ms"));
 
-    registerOutputFile_("out_compoundinfo","<file>", "", "File (.tsv) with information on processed compounds. Required for AssayGeneratorMetaboSirius tool.", false);
+    registerOutputFile_("out_compoundinfo","<file>", "", "File (.tsv) with information on processed compounds which are associated with a feature. Required for AssayGeneratorMetaboSirius tool.", false);
     setValidFormats_("out_compoundinfo", ListUtils::create<String>("tsv"));
 
     addEmptyLine_();
@@ -119,12 +119,21 @@ protected:
                                           "Number of .mzML do not match to the number of .featureXML files. \n Please check and provide the corresponding files.");
     }
 
+    if (!out_compoundinfo.empty() && featureXML_files.size() == 0)
+    {
+      OPENMS_LOG_WARN << "A compound info output file was specified but no feature maps provided. The resulting table will be empty." << std::endl;
+    }
+
+    if (algorithm.isFeatureOnly() && featureXML_files.size() == 0)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           "No feature maps provided but preprocessing:feature_only flag set. Please provide featureXML files.");              
+    }
+
     algorithm.run(mzML_files,
                   featureXML_files,
                   out_ms,
                   out_compoundinfo);
-
-    
 
     return EXECUTION_OK;
   }
