@@ -103,7 +103,7 @@ but can be used as a starting point for finding suitable parameters.
 </tr>
 </table>
 
-For the @em centroided algorithm centroided data is needed. In order to create centroided data from profile data use the @ref TOPP_PeakPickerWavelet.
+For the @em centroided algorithm centroided data is needed. In order to create centroided data from profile data use the @ref TOPP_PeakPickerHiRes.
 */
 
 // We do not want this class to show up in the docu:
