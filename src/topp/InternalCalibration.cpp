@@ -259,13 +259,10 @@ protected:
     { // CSV file calibrant masses
       // load CSV
       TextFile ref_file;
-      ref_file.load(cal_lock, true, -1, true);
+      ref_file.load(cal_lock, true, -1, true, "#");
       vector<InternalCalibration::LockMass> ref_masses;
       for (TextFile::ConstIterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
       {
-        if (iter->hasPrefix("#")) continue;
-        // each line has:
-        //   m/z, ms-level, charge
         std::vector<String> vec;
         iter->split(",", vec);
         if (vec.size() != 3)

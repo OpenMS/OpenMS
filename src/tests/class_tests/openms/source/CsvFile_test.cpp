@@ -128,6 +128,12 @@ START_SECTION(void clear())
 	TEST_EXCEPTION(Exception::InvalidIterator, f1.getRow(0, list))
 END_SECTION
 
+START_SECTION(std::vector<String>::size_type CsvFile::rowCount())
+	CsvFile f1(OPENMS_GET_TEST_DATA_PATH("CsvFile_1.csv"), '\t');
+	// file has 5 lines, 2 of them comments
+	TEST_EQUAL(f1.rowCount(),3)
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
