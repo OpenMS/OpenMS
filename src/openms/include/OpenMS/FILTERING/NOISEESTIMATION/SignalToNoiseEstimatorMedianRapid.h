@@ -37,8 +37,6 @@ namespace OpenMS
     Note that it will not give identical results as SignalToNoiseEstimatorMedian
     but for many application the results from this class will be sufficient.
 
-    @htmlinclude OpenMS_SignalToNoiseEstimatorRapid.parameters
-
     @ingroup SignalProcessing
   */
   class OPENMS_DLLAPI SignalToNoiseEstimatorMedianRapid
