@@ -218,9 +218,6 @@ protected:
       throw OpenMS::Exception::Postcondition(__FILE__,__LINE__, OPENMS_PRETTY_FUNCTION, "SIRIUS project directory is empty.");
     }
 
-    // sort vector with subdirs by scan index
-    SiriusExportAlgorithm::sortSiriusWorkspacePathsByScanIndex(subdirs);
-
     // collect required compound infos from tsv file
     vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
 

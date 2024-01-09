@@ -60,9 +60,3 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>" namespace "OpenM
                 #  :param featureinfo: Path to featureXML
                 #  :param feature_mapping: FeatureToMs2Indices with feature mapping
                 #  :param spectra: Input of MSExperiment with spectra information
-
-
-# wrap static method:
-cdef extern from "<OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>" namespace "OpenMS::SiriusExportAlgorithm":
-
-        void  sortSiriusWorkspacePathsByScanIndex(libcpp_vector[ String ]& subdirs) except + nogil  # wrap-attach:SiriusExportAlgorithm

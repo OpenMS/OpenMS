@@ -248,35 +248,6 @@ namespace OpenMS
       }
     }
 
-    struct OPENMS_DLLAPI SiriusWorkspaceIndex
-    {
-      SiriusWorkspaceIndex(int array_index, int scan_index) : array_index {array_index}, scan_index {scan_index} {}
-      int array_index, scan_index;
-    };
-    void  SiriusExportAlgorithm::sortSiriusWorkspacePathsByScanIndex(std::vector<String>& subdirs)
-    {
-      std::vector<String> sorted_subdirs;
-      std::vector<SiriusWorkspaceIndex> indices;
-
-      boost::regex regexp(R"(--(?<SCAN>\d+)--)");
-      for (size_t i = 0; i < subdirs.size(); i++)
-      {
-        indices.emplace_back(i, SpectrumLookup::extractScanNumber(subdirs[i], regexp, false));
-      }
-
-      std::sort(indices.begin(),
-                indices.end(),
-                [](const SiriusWorkspaceIndex& i, const SiriusWorkspaceIndex& j) { return i.scan_index < j.scan_index; } );
-
-      sorted_subdirs.reserve(indices.size());
-      for (const auto& index : indices)
-      {
-        sorted_subdirs.emplace_back(std::move(subdirs[index.array_index]));
-      }
-
-      sorted_subdirs.swap(subdirs);
-    }
-
     // ################
     // Parameter handling
     // ################
