@@ -163,13 +163,13 @@ private:
       @param precursor Iterator pointing to the precursor spectrum of ms2_spec.
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
-    double computePrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PuritySate_& pState) const;
+    double computePrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PuritySate_& precursor) const;
 
     /**
       @brief Computes the purity of the precursor given an iterator pointing to the MS/MS spectrum and a reference to the potential precursor spectrum.
 
       @param ms2_spec Iterator pointing to the MS2 spectrum.
-      @param precursor Iterator pointing to the precursor spectrum of ms2_spec.
+      @param precursor_spec Precursor spectrum of ms2_spec.
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
     double computeSingleScanPrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PeakMap::SpectrumType& precursor_spec) const;

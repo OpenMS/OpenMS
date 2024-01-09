@@ -90,10 +90,10 @@ public:
   /// default constructor
   FeatureFinderAlgorithmMetaboIdent();
 
-  /// @brief perform targeted feature extraction of compounds from @param metaboIdentTable and stores them in @param feature.
+  /// @brief perform targeted feature extraction of compounds from @p metaboIdentTable and stores them in @p features.
   /// If @p spectra_file is provided it will be used as a fall-back to setPrimaryMSRunPath
   /// in the feature map in case a proper primaryMSRunPath is not annotated in the MSExperiment.
-  /// If there are no MS1 scans in the MSData return 'features' unchanged
+  /// If there are no MS1 scans in the MSData return @p features unchanged
   void run(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features, const String& spectra_file = "");
 
   /// @brief Retrieve chromatograms (empty if run was not executed)

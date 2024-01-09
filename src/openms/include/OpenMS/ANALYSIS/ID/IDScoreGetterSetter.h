@@ -60,8 +60,9 @@ namespace OpenMS
      *  I.e. it only takes the better of the two scores for each target-decoy pair (based on the accession after
      *  removal of the @p decoy_prefix.
      * @param  picked_scores Target accessions to pairs of scores and target decoy labels (usually 1.0 for target and 0.0 for decoy) to be filled.
+     * @param  id The hits to iterate over
      * @param  decoy_string The decoy string to remove before comparing accesions for pairs.
-     * @param  prefix If the @p decoy_string is a prefix (true) or suffix.
+     * @param  decoy_prefix If the @p decoy_string is a prefix (true) or suffix.
      */
     static void getPickedProteinScores_(
         std::unordered_map<String, ScoreToTgtDecLabelPair>& picked_scores,
@@ -74,8 +75,9 @@ namespace OpenMS
      *  @todo describe more
      * @param  picked_scores Target accessions to pairs of scores and target decoy labels (usually 1.0 for target and 0.0 for decoy) to be used for lookup.
      * @param  scores_labels Scores and target-decoy value for all groups that had at least one picked protein. Targets preferred.
+     * @param  grps The groups to iterate over
      * @param  decoy_string The decoy string to remove before comparing accesions for pairs.
-     * @param  prefix If the @p decoy_string is a prefix (true) or suffix.
+     * @param  decoy_prefix If the @p decoy_string is a prefix (true) or suffix.
      */
     static void getPickedProteinGroupScores_(
         const std::unordered_map<String, ScoreToTgtDecLabelPair>& picked_scores,
@@ -553,16 +555,17 @@ namespace OpenMS
      * @tparam Args optional additional arguments (charge, run ID)
      * @param scores_to_FDR maps original scores to FDR
      * @param cmap the ConsensusMap
+     * @param include_unassigned_peptides Also modify unassigned peptide IDs in @p cmap?
      * @param score_type FDR or q-Value
      * @param higher_better usually false
      * @param keep_decoy read from Param object
      * @param args optional additional arguments (int charge, string run ID)
     */
     template<class ...Args>
-    static void setPeptideScoresForMap_(const std::map<double, double> &scores_to_FDR,
-                                 ConsensusMap &cmap,
+    static void setPeptideScoresForMap_(const std::map<double, double>& scores_to_FDR,
+                                 ConsensusMap& cmap,
                                  bool include_unassigned_peptides,
-                                 const std::string &score_type,
+                                 const std::string& score_type,
                                  bool higher_better,
                                  bool keep_decoy,
                                  Args&&... args)

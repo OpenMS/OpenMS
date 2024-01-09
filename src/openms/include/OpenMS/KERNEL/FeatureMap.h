@@ -205,9 +205,9 @@ namespace OpenMS
     /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
     void setPrimaryMSRunPath(const StringList& s);
 
-    /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @param e.
-    /// If it doesn't exist, fallback to @param s.
-    void setPrimaryMSRunPath(const StringList& s, MSExperiment & e);
+    /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @p e.
+    /// If it doesn't exist, fallback to @p s.
+    void setPrimaryMSRunPath(const StringList& s, MSExperiment& e);
 
     /// get the file path to the first MS run
     void getPrimaryMSRunPath(StringList& toFill) const;

@@ -17,42 +17,42 @@ namespace OpenMS
 {
 
   class OPENMS_DLLAPI FeatureMapping
-      {
-          public:
+  {
+    public:
 
-          /// Stores information required for preprocessing
-          class FeatureMappingInfo
-          {
-          public:
-            std::vector<FeatureMap> feature_maps; // feature data
-            KDTreeFeatureMaps kd_tree; // KDTree references into feature_maps to provides fast spatial queries
-          };
+    /// Stores information required for preprocessing
+    class FeatureMappingInfo
+    {
+    public:
+      std::vector<FeatureMap> feature_maps; ///< feature data
+      KDTreeFeatureMaps kd_tree; ///< KDTree references into feature_maps to provides fast spatial queries
+    };
 
-          /// Stores preprocessed feature mapping information
-          class FeatureToMs2Indices
-          {
-          public:
-             std::map<const BaseFeature*, std::vector<size_t>> assignedMS2;
-             std::vector<size_t> unassignedMS2;
-          };
+    /// Stores preprocessed feature mapping information
+    class FeatureToMs2Indices
+    {
+    public:
+       std::map<const BaseFeature*, std::vector<size_t>> assignedMS2;
+       std::vector<size_t> unassignedMS2;
+    };
 
-          /**
-            @brief Allocate ms2 spectra to feature within the minimal distance
+    /**
+      @brief Allocate ms2 spectra to feature within the minimal distance
 
-            @return FeatureToMs2Indices
+      @return FeatureToMs2Indices
 
-            @param spectra: Input of PeakMap/MSExperiment with spectra information
-            @param fp_map_kd: KDTree used for query and match spectra with features
-            @param precursor_mz_tolerance: mz_tolerance used for query
-            @param precursor_rt_tolernace: rt tolerance used for query
-            @param ppm: mz tolerance window calculation in ppm or Da
+      @param spectra: Input of PeakMap/MSExperiment with spectra information
+      @param fm_info: KDTree used for query and match spectra with features
+      @param precursor_mz_tolerance: mz_tolerance used for query
+      @param precursor_rt_tolerance: rt tolerance used for query
+      @param ppm: mz tolerance window calculation in ppm or Da
 
-          */
-          static FeatureToMs2Indices assignMS2IndexToFeature(const MSExperiment& spectra,
-                                                             const FeatureMappingInfo& fm_info,
-                                                             const double& precursor_mz_tolerance,
-                                                             const double& precursor_rt_tolerance,
-                                                             bool ppm);
+    */
+    static FeatureToMs2Indices assignMS2IndexToFeature(const MSExperiment& spectra,
+                                                       const FeatureMappingInfo& fm_info,
+                                                       const double& precursor_mz_tolerance,
+                                                       const double& precursor_rt_tolerance,
+                                                       bool ppm);
 
-      };
+  };
 } // namespace OpenMS

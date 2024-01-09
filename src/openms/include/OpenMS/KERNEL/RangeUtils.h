@@ -214,7 +214,7 @@ public:
     /**
       @brief Constructor
 
-      @param mode scan polarity
+      @param polarity scan polarity
       @param reverse if @p reverse is true, operator() returns true if the spectrum has a different
       scan polarity
     */
