@@ -26,10 +26,6 @@ namespace OpenMS
   /**
     @brief A mass recalibration method using linear/quadratic interpolation (robust/weighted) of given reference masses.
 
-    ...
-
-    @htmlinclude OpenMS_InternalCalibration.parameters
-
     @ingroup SignalProcessing
   */
  
