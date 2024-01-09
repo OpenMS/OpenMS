@@ -100,9 +100,9 @@ public:
     //@}
 
      /**
-     @brief create EmpiricalFormular object by parsing an OpenMS string
+     @brief Create EmpiricalFormula object from a String
 
-     @param s Input string
+     @param rhs Input string
 
      @throws Exception::ParseError if the formula cannot be parsed
    */

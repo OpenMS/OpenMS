@@ -45,7 +45,7 @@ class OPENMS_DLLAPI Deisotoper
     appended. Existing DataArrays are kept and shrunken to the peaks which
     remain in the spectrum.
 
-   * @param [spectra] Input spectrum (sorted by m/z)
+   * @param [spectrum] Input spectrum (sorted by m/z)
    * @param [fragment_tolerance] The tolerance used to match isotopic peaks
    * @param [fragment_unit_ppm] Whether ppm or m/z is used as tolerance 
    * @param [number_of_final_peaks] Only the largest @p number_of_final_peaks peaks are kept in any spectrum. If 0, no filtering is performed. For open search, 1000 is recommended, else 5000.

@@ -163,7 +163,7 @@ namespace OpenMS
     using ObservationMatches = IdentificationDataInternal::ObservationMatches;
     using ObservationMatchRef = IdentificationDataInternal::ObservationMatchRef;
 
-    // @TODO: allow multiple sets of groups, like with parent sequences
+    // @todo: allow multiple sets of groups, like with parent sequences
     // ("ParentGroupSets")?
     using ObservationMatchGroup = IdentificationDataInternal::ObservationMatchGroup;
     using ObservationMatchGroups = IdentificationDataInternal::ObservationMatchGroups;

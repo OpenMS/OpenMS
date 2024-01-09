@@ -112,8 +112,8 @@ public:
     /**
       @brief Ripping protein/peptide identification according their file origin
 
-      Iteration over all @p PeptideIdentification. For each annotated file origin create a map entry and store the
-      respective @p PeptideIdentification and @p ProteinIdentification.
+      Iteration over all @p peptides. For each annotated file origin create a map entry and store the
+      respective @p peptides and @p proteins.
 
       @param ripped Contains the protein identification and peptide identification for each file origin annotated in proteins and peptides
       @param proteins Protein identification
@@ -131,10 +131,11 @@ public:
     /**
       @brief Ripping protein/peptide identification according their file origin
 
-      Iteration over all @p PeptideIdentification. For each annotated file origin create a map entry and store the
-      respective @p PeptideIdentification and @p ProteinIdentification.
+      Iteration over all @p peptides. For each annotated file origin create a map entry and store the
+      respective @p peptides and @p proteins.
 
-      @param ripped Contains the protein identification and peptide identification for each file origin annotated in proteins and peptides
+      @param[out] rfis File info relating to @p rfcs
+      @param[out] rfcs Contains the protein identification and peptide identification for each file origin annotated in proteins and peptides
       @param proteins Protein identification
       @param peptides Peptide identification annotated with file origin
       @param numeric_filenames If false, deduce output files using basenames of origin annotations. Throws an exception if they are not unique. If true, assemble output files based on numerical IDs only.
@@ -142,8 +143,8 @@ public:
     */
     // Autowrap compatible wrapper for rip(RipFileMap,...)
     void rip(
-            std::vector<RipFileIdentifier> & rfis,
-            std::vector<RipFileContent> & rfcs,
+            std::vector<RipFileIdentifier>& rfis,
+            std::vector<RipFileContent>& rfcs,
             std::vector<ProteinIdentification>& proteins,
             std::vector<PeptideIdentification>& peptides,
             bool numeric_filenames,

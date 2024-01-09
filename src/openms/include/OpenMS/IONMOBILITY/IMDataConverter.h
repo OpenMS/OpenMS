@@ -80,8 +80,8 @@ namespace OpenMS
   
         If a spectrum does not have drift time (spec.getDriftTime()), it is simply copied to the output and ignored during the collapsing process.
 
-        @param exp The input experiment with multiple spectra per frame
-        @param result The output spectra collapsed to a single spectrum per frame
+        @param in The input experiment with multiple spectra per frame
+        @return result The output spectra collapsed to a single spectrum per frame
 
         @note This requires that spectra from the same frame have the same RT ("scan start time")
 

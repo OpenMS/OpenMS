@@ -57,11 +57,11 @@ namespace OpenMS
       Midani et al, doi:10.1016/j.ab.2016.12.011
      
       @param  normalized_feature Feature with normalized values for each component and unlabeled chemical formula for each component group.
+      @param[out] corrected_feature Feature with corrected values for each component.
       @param  correction_matrix  Square matrix holding correction factors derived either experimentally or theoretically which describe how spectral peaks of
       naturally abundant 13C contribute to spectral peaks that overlap (or convolve) the spectral peaks of the corrected MDV of the derivatization agent.
       @param  correction_matrix_agent name of the derivatization agent, the internally stored correction matrix if the name of the agent is supplied,
       only "TBDMS" is supported for now.
-      @return corrected_feature Feature with corrected values for each component.
     */
     void isotopicCorrection(
       const Feature& normalized_feature, Feature& corrected_feature,
@@ -75,11 +75,11 @@ namespace OpenMS
       Midani et al, doi:10.1016/j.ab.2016.12.011
      
       @param  normalized_featuremap FeatureMap with normalized values for each component and unlabeled chemical formula for each component group.
+      @param[out] corrected_featuremap FeatureMap with corrected values for each component.
       @param  correction_matrix Square matrix holding correction factors derived either experimentally or theoretically which describe how spectral peaks of
       naturally abundant 13C contribute to spectral peaks that overlap (or convolve) the spectral peaks of the corrected MDV of the derivatization agent.
       @param  correction_matrix_agent name of the derivatization agent, the internally stored correction matrix if the name of the agent is supplied,
       only "TBDMS" is supported for now.
-      @return corrected_featuremap FeatureMap with corrected values for each component.
     */
     void isotopicCorrections(
       const FeatureMap& normalized_featureMap, FeatureMap& corrected_featureMap,
@@ -98,7 +98,8 @@ namespace OpenMS
     */
     void calculateIsotopicPurity(
       Feature& normalized_feature,
-      const std::vector<double>& experiment_data, const std::string& isotopic_purity_name);
+      const std::vector<double>& experiment_data, 
+      const std::string& isotopic_purity_name);
     
     /**
       @brief This function calculates the isotopic purity of the MDVs using the following formula:
@@ -113,27 +114,29 @@ namespace OpenMS
     */
     void calculateIsotopicPurities(
       FeatureMap& normalized_featureMap,
-      const std::vector<std::vector<double>>& experiment_data, const std::vector<std::string>& isotopic_purity_name);
+      const std::vector<std::vector<double>>& experiment_data,
+      const std::vector<std::string>& isotopic_purity_name);
 
     /**
       @brief This function calculates the accuracy of the MDV as compared to the theoretical MDV (only for 12C quality control experiments)
       using average deviation to the mean. The result is mapped to the meta value "average_accuracy" in the updated Feature.
    
       @param[in,out]  normalized_feature Feature with normalized values for each component and the chemical formula of the component group. Out is a Feature with the component group accuracy and accuracy for the error for each component.
-      @param[in]      fragment_isotopomer_measured Measured scan values.
+      @param[in]      feature_name Feature name to determine which features are needed to apply calculations on.
       @param[in]      fragment_isotopomer_theoretical_formula Empirical formula from which the theoretical values will be generated.
     */
     void calculateMDVAccuracy(
       Feature& normalized_feature,
-      const std::string& feature_name, const std::string& fragment_isotopomer_theoretical_formula);
+      const std::string& feature_name, 
+      const std::string& fragment_isotopomer_theoretical_formula);
     
     /**
        @brief This function calculates the accuracy of the MDVs as compared to the theoretical MDVs (only for 12C quality control experiments)
        using average deviation to the mean.
     
        @param[in]  normalized_featuremap FeatureMap with normalized values for each component and the chemical formula of the component group. Out is a FeatureMap with the component group accuracy and accuracy for the error for each component.
-       @param[in]  fragment_isotopomer_measured Measured scan values.
-       @param[in]  fragment_isotopomer_theoretical_formula A map of ProteinName/peptideRef to Empirical formula from which the theoretical values will be generated.
+       @param[in]  feature_name Feature name to determine which features are needed to apply calculations on.
+       @param[in]  fragment_isotopomer_theoretical_formulas A map of ProteinName/peptideRef to Empirical formula from which the theoretical values will be generated.
     */
     void calculateMDVAccuracies(
       FeatureMap& normalized_featureMap,
@@ -145,28 +148,32 @@ namespace OpenMS
       either normalized to the highest mass intensity (norm_max) or normalized
       to the sum of all mass intensities (norm_sum)
      
-      @param[in]   mass_intensity_type Mass intensity type (either norm_max or norm_sum).
-      @param[in]   feature_name Feature name to determine which features are needed to apply calculations on.
       @param[in]   measured_feature Feature with measured intensity for each component.
       @param[out]  normalized_feature Feature with normalized values for each component.
+      @param[in]   mass_intensity_type Mass intensity type (either norm_max or norm_sum).
+      @param[in]   feature_name Feature name to determine which features are needed to apply calculations on.
     */
     void calculateMDV(
-      const Feature& measured_feature, Feature& normalized_feature,
-      const MassIntensityType& mass_intensity_type, const std::string& feature_name);
+      const Feature& measured_feature, 
+      Feature& normalized_feature,
+      const MassIntensityType& mass_intensity_type, 
+      const std::string& feature_name);
     
     /**
       @brief This function calculates the mass distribution vector (MDV)
       either normalized to the highest mass intensity (norm_max) or normalized
       to the sum of all mass intensities (norm_sum)
      
-      @param[in]   mass_intensity_type Mass intensity type (either norm_max or norm_sum).
-      @param[in]   feature_name Feature name to determine which features are needed to apply calculations on.
       @param[in]   measured_featuremap FeatureMap with measured intensity for each component.
       @param[out]  normalized_featuremap FeatureMap with normalized values for each component.
+      @param[in]   mass_intensity_type Mass intensity type (either norm_max or norm_sum).
+      @param[in]   feature_name Feature name to determine which features are needed to apply calculations on.
     */
     void calculateMDVs(
-      const FeatureMap& measured_featureMap, FeatureMap& normalized_featureMap,
-      const MassIntensityType& mass_intensity_type, const std::string& feature_name);
+      const FeatureMap& measured_featureMap, 
+      FeatureMap& normalized_featureMap,
+      const MassIntensityType& mass_intensity_type, 
+      const std::string& feature_name);
     
   protected:
     /// Synchronize members with param class

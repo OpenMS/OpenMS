@@ -90,7 +90,6 @@ protected:
    * are of primary interest. For that reason, we determine the ratios from interpolated chromatogram data points directly,
    * and then correct the current ones.
    *
-   * @param intensity_peptide    peptide intensities to be corrected
    */
   void correctPeptideIntensities_(const MultiplexIsotopicPeakPattern& pattern, std::map<size_t, SplinePackage>& spline_chromatograms, const std::vector<double>& rt_peptide, std::vector<double>& intensity_peptide) const;
 

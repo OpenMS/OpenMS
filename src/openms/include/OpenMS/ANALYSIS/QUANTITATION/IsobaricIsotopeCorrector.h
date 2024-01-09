@@ -37,7 +37,7 @@ public:
 
      @param consensus_map_in The map containing the values that should be corrected.
      @param consensus_map_out The map where the corrected values should be stored.
-     @param IsobaricQuantitationMethod (e.g., iTRAQ 4 plex)
+     @param quant_method IsobaricQuantitationMethod (e.g., iTRAQ 4 plex)
 
      @throws Exception::FailedAPICall If the least-squares fit fails.
      @throws Exception::InvalidParameter If the given correction matrix is invalid.
