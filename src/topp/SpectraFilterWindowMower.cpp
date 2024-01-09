@@ -29,7 +29,7 @@ using namespace std;
 <th ALIGN = "center"> pot. successor tools </td>
 </tr>
 <tr>
-<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
 <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
 </tr>
 </table>
