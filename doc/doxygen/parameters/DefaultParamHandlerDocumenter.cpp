@@ -11,7 +11,13 @@
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
+#include <OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
+#include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
+#include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.h>
@@ -22,15 +28,16 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerIterative.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
@@ -74,10 +81,10 @@
 #include <OpenMS/COMPARISON/SPECTRA/SteinScottImproveScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
-#include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
-#include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFilter.h>
+#include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
@@ -171,8 +178,15 @@ void foo()
 //**********************************************************************************
 void writeParameters(const String& class_name, const Param& param, bool table_only = false)
 {
-  ofstream f((String("output/OpenMS_") + class_name + ".parameters").c_str());
+  const String filename = String("output/OpenMS_") + class_name + ".parameters";
+  ofstream f(filename.c_str());
 
+  if (!f)
+  {
+    std::cerr << "Cannot open file '" << filename << "'. Check for invalid characters in filename and permissions.\n";
+    exit(1);
+  }
+    
   if (!table_only)
   {
     f << "<B>Parameters of this class are:</B><BR><BR>\n";
@@ -339,6 +353,7 @@ int main(int argc, char** argv)
   DOCME(BernNorm);
   DOCME(BasicProteinInferenceAlgorithm);
   DOCME(BayesianProteinInferenceAlgorithm);
+  DOCME(TransitionPQPFile);
   DOCME(BiGaussFitter1D);
   DOCME(BiGaussModel);
   DOCME(BinnedSharedPeakCount);
@@ -369,9 +384,10 @@ int main(int argc, char** argv)
   DOCME(FeatureFindingMetabo);
   DOCME(FeatureGroupingAlgorithmLabeled);
   DOCME(FeatureGroupingAlgorithmQT);
-  DOCME(FeatureGroupingAlgorithmKD)
-  DOCME(InternalCalibration)
   DOCME(FeatureGroupingAlgorithmUnlabeled);
+  DOCME(MapAlignmentAlgorithmIdentification);
+  DOCME(MapAlignmentAlgorithmTreeGuided);
+  DOCME(MassTraceDetection);
   DOCME(FIAMSDataProcessor);
   DOCME(GaussFilter);
   DOCME(GaussFitter1D);
@@ -384,8 +400,6 @@ int main(int argc, char** argv)
   DOCME(IsotopeFitter1D);
   DOCME(IsotopeMarker);
   DOCME(IsotopeModel);
-  DOCME(IsobaricChannelExtractor);
-  DOCME(IsobaricQuantifier);
   DOCME(TMTSixPlexQuantitationMethod);
   DOCME(TMTTenPlexQuantitationMethod);
   DOCME(TMTSixteenPlexQuantitationMethod);
@@ -397,10 +411,15 @@ int main(int argc, char** argv)
   DOCME(MSPFile);
   DOCME(MapAlignmentAlgorithmPoseClustering);
   DOCME(MapAlignmentAlgorithmSpectrumAlignment);
+  DOCME(SpectrumAnnotator);
+  DOCME(TheoreticalSpectrumGeneratorXLMS);
   DOCME(MRMDecoy);
+  DOCME(MetaboliteFeatureDeconvolution);
+  DOCME(MRMFeatureFilter);
   DOCME(MRMFeatureFinderScoring);
   DOCME(MRMTransitionGroupPicker);
   DOCME(MultiplexDeltaMassesGenerator);
+  DOCME(NucleicAcidSpectrumGenerator);
   DOCME(NLargest);
   DOCME(NeutralLossDiffFilter);
   DOCME(NeutralLossMarker);
@@ -409,6 +428,7 @@ int main(int argc, char** argv)
   DOCME(PeakAlignment);
   DOCME(PeakIntegrator);
   DOCME(PeakPickerHiRes);
+  DOCME(PeakPickerIterative);
   DOCME(PeakPickerChromatogram);
   DOCME(PeptideIndexing);
   DOCME(PoseClusteringAffineSuperimposer);
@@ -441,7 +461,7 @@ int main(int argc, char** argv)
   DOCME(MascotGenericFile);
   DOCME(Fitter1D);  
   DOCME(PeptideAndProteinQuant);
-  DOCME(Math::PosteriorErrorProbabilityModel);
+  DOCME(SimpleTSGXLMS);
   // workarounds for documenting model parameters in MapAligners:
   writeParameters("MapAlignerIdentificationModel", MapAlignerBase::getModelDefaults("interpolated"), true);
   writeParameters("MapAlignerPoseClusteringModel", MapAlignerBase::getModelDefaults("linear"), true);
@@ -467,6 +487,10 @@ int main(int argc, char** argv)
   DOCME2(EGHTraceFitter, (EGHTraceFitter()));
   DOCME2(TraceFitter, (GaussTraceFitter())); //TraceFitter is an abstract base class, get parameters from subclass GaussTraceFitter
   DOCME2(BinnedSpectrumCompareFunctor, (BinnedSharedPeakCount())); //BaseModel is a base class, get parameters from subclass BinnedSharedPeakCount
+  DOCME2(IsobaricChannelExtractor, (IsobaricChannelExtractor(&ItraqFourPlexQuantitationMethod())))
+  DOCME2(IsobaricQuantifier, (IsobaricQuantifier(&ItraqFourPlexQuantitationMethod())))
+  DOCME2(PosteriorErrorProbabilityModel, Math::PosteriorErrorProbabilityModel());
+  
 
   // handle GUI documentation separately
 #ifdef WITH_GUI
