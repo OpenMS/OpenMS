@@ -14,7 +14,8 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>" namespa
                                                     String& path_to_sirius_workspace,
                                                     Size max_rank,
                                                     bool decoy,
-                                                    bool use_exact_mass) except + nogil
+                                                    bool use_exact_mass,
+                                                    bool decoy_generation) except + nogil
         libcpp_vector[ SiriusFragmentAnnotation_SiriusTargetDecoySpectra ] extractAndResolveSiriusAnnotations(libcpp_vector[ String ]& sirius_workspace_subdirs,
                                                                                                               double score_threshold,
                                                                                                               bool use_exact_mass) except + nogil 

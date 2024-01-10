@@ -18,7 +18,7 @@ using namespace std;
 namespace OpenMS
 {
   std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(
-    const std::vector<String>& sirius_workspace_subdirs, double score_threshold, bool use_exact_mass)
+    const std::vector<String>& sirius_workspace_subdirs, double score_threshold, bool use_exact_mass, bool decoy_generation)
   {
     std::map<String, SiriusFragmentAnnotation::SiriusTargetDecoySpectra> native_ids_annotated_spectra;
     std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra;
@@ -36,8 +36,16 @@ namespace OpenMS
         // max_rank 1 will get the best.
         best_annotated_spectrum = extractAnnotationsFromSiriusFile(subdir, 1, false, use_exact_mass)[0];
       }
-
-      ann_spec_tmp = extractAnnotationsFromSiriusFile(subdir, 1, true, use_exact_mass);
+      
+      // extract decoy spectra only if decoy generation is set, else clear target specs from vector
+      if (decoy_generation)
+      {
+        ann_spec_tmp = extractAnnotationsFromSiriusFile(subdir, 1, true, use_exact_mass);
+      }
+      else
+      {
+        ann_spec_tmp.clear();
+      }
       // if no spectrum can be extracted we add an empty spectrum
       //  to the TD pair for backwards compatibility with AssayGeneratorMetabo
       MSSpectrum annotated_decoy_for_best_tgt = MSSpectrum();

@@ -156,8 +156,6 @@ protected:
     //-------------------------------------------------------------
     // Parsing parameters
     //-------------------------------------------------------------
-
-    // param AssayGeneratorMetabo
     String sirius_project_directory = getStringOption_("in");
     String compoundinfo_file = getStringOption_("in_compoundinfo");
     String out = getStringOption_("out");
@@ -170,7 +168,6 @@ protected:
     bool decoy_generation = getFlag_("decoy_generation");
     bool use_exact_mass = getFlag_("use_exact_mass");
     bool exclude_ms2_precursor = getFlag_("exclude_ms2_precursor");
-
     String decoy_generation_method = getStringOption_("decoy_generation_method");
     bool original = false;
     bool resolve_overlap = false;
@@ -200,11 +197,12 @@ protected:
     int max_transitions = getIntOption_("max_transitions");
     double min_fragment_mz = getDoubleOption_("min_fragment_mz");
     double max_fragment_mz = getDoubleOption_("max_fragment_mz");
-
     double transition_threshold = getDoubleOption_("transition_threshold");
     bool use_known_unknowns = getFlag_("use_known_unknowns");
 
-    // create vector containing all subdirectories within the SIRIUS project directory
+    //-------------------------------------------------------------
+    // Get all subdirectories within the SIRIUS project directory
+    //-------------------------------------------------------------
     std::vector<String> subdirs;
     QDirIterator it(sirius_project_directory.toQString(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
     while (it.hasNext())
@@ -218,19 +216,17 @@ protected:
       throw OpenMS::Exception::Postcondition(__FILE__,__LINE__, OPENMS_PRETTY_FUNCTION, "SIRIUS project directory is empty.");
     }
 
-    // collect required compound infos from tsv file
+    //-------------------------------------------------------------
+    // Get CompoundInfo objects from tsv file
+    //-------------------------------------------------------------
     vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
-
     // get number of files from maximum file_index value
     size_t n_files = 0;
-
     CsvFile csv(compoundinfo_file, '\t');
     size_t row_count = csv.rowCount();
-
     for (size_t i = 1; i < row_count; ++i) {
       StringList row_data;
       csv.getRow(i, row_data);
-
       SiriusMSFile::CompoundInfo cmp_info;
       // Convert and assign each field from row_data to cmp_info's attributes
       cmp_info.cmp = row_data[0];
@@ -245,24 +241,26 @@ protected:
       cmp_info.des = row_data[10];
       cmp_info.source_file = row_data[12];
       cmp_info.m_ids_id = row_data[15];
-
       // add if "use_known_unknown" flag is set or compound name is not "UNKNOWN"
       if (use_known_unknowns || cmp_info.des != "UNKNOWN") {
           v_cmpinfo.push_back(cmp_info);
       }
-
       // update n_files with most recent (highest) file_index
       n_files = cmp_info.file_index + 1;
     }
 
-    // get annotated spectra
+    //--------------------------------------------------------------------------
+    // Get list of MetaboTargetedAssay (compound with all possible transitions)
+    //--------------------------------------------------------------------------
+    //get annotated spectra from SIRIUS project subdirs
     vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra =
-      SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(subdirs, score_threshold, use_exact_mass);
+      SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(subdirs, score_threshold, use_exact_mass, decoy_generation);
 
-    // combine compound information (SiriusMSFile) with annotated spectra (SiriusFragmentAnnotation)
+    // combine compound info with annotated spectra
     vector<MetaboTargetedAssay::CompoundTargetDecoyPair> v_cmp_spec;
     v_cmp_spec = MetaboTargetedAssay::pairCompoundWithAnnotatedTDSpectraPairs(v_cmpinfo, annotated_spectra);
 
+    // pair compound info with potential transitions (filtered by min/max, exclude precursor)
     vector<MetaboTargetedAssay> v_mta;
     v_mta = MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(v_cmp_spec,
                                                                               transition_threshold,
@@ -271,13 +269,18 @@ protected:
                                                                               use_exact_mass,
                                                                               exclude_ms2_precursor);
 
-    // group ambiguous identification based on precursor_mz and feature retention time
+    //--------------------------------------------------------------------------------------------
+    // Combine ambigous identifications (derived from consensus features with similar m/z and RT)
+    //--------------------------------------------------------------------------------------------
+    // build feature maps (matching original raw data files by file_index) and perfom feature linking 
     std::unordered_map< UInt64, vector<MetaboTargetedAssay> > ambiguity_groups = MetaboTargetedAssay::buildAmbiguityGroup(v_mta, ar_mz_tol, ar_rt_tol, ar_mz_tol_unit_res, n_files);
 
     // resolve identification ambiguity based on highest occurrence and highest intensity
     MetaboTargetedAssay::resolveAmbiguityGroup(ambiguity_groups, total_occurrence_filter, n_files);
-
-    // merge possible transitions
+    
+    //--------------------------------------------------------------------------------------------
+    // Merge all transitions in a TargetedExperiment and filter number of transitions
+    //--------------------------------------------------------------------------------------------
     vector<TargetedExperiment::Compound> v_cmp;
     vector<ReactionMonitoringTransition> v_rmt_all;
     for (const auto &it : ambiguity_groups)
@@ -289,42 +292,47 @@ protected:
       }
     }
 
-    // convert possible transitions to TargetedExperiment
     TargetedExperiment t_exp;
     t_exp.setCompounds(v_cmp);
     t_exp.setTransitions(v_rmt_all);
 
     // use MRMAssay methods for filtering
     MRMAssay assay;
-
     // sort by highest intensity - filter:  min/max transitions (targets), filter: max transitions (decoys)
     // e.g. if only one decoy fragment is available it will not be filtered out!
     assay.filterMinMaxTransitionsCompound(t_exp, min_transitions, max_transitions);
 
-    // remove decoys which do not have a respective target after min/max transition filtering
-    // based on the TransitionGroupID (similar for targets "0_Acephate_[M+H]+_0" and decoys "0_Acephate_decoy_[M+H]+_0")
+    //------------------------------------------------------
+    // Decoys
+    //------------------------------------------------------
     if (decoy_generation)
     {
+    // remove decoys which do not have a respective target after min/max transition filtering
+    // based on the TransitionGroupID (similar for targets "0_Acephate_[M+H]+_0" and decoys "0_Acephate_decoy_[M+H]+_0")
       assay.filterUnreferencedDecoysCompound(t_exp);
+      if (!original)
+      {
+        const double chtwo_mass = EmpiricalFormula("CH2").getMonoWeight();
+        vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping> mappings = MetaboTargetedTargetDecoy::constructTargetDecoyMassMapping(t_exp);
+        if (resolve_overlap)
+        {
+          MetaboTargetedTargetDecoy::resolveOverlappingTargetDecoyMassesByIndividualMassShift(t_exp, mappings, chtwo_mass);
+        }
+        if (add_shift)
+        {
+          MetaboTargetedTargetDecoy::generateMissingDecoysByMassShift(t_exp, mappings, chtwo_mass);
+        }
+      }
+    }
+    else // remove decoys from t_exp
+    {
+
     }
 
     // resolve overlapping target and decoy masses
     // after selection of decoy masses based on highest intensity (arbitrary, since passatutto uses
     // the intensities based on the previous fragmentation tree), overlapping masses between targets
     // and decoys of one respective metabolite_adduct combination can be resolved by adding a CH2 mass
-    if (decoy_generation && !original)
-    {
-      const double chtwo_mass = EmpiricalFormula("CH2").getMonoWeight();
-      vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping> mappings = MetaboTargetedTargetDecoy::constructTargetDecoyMassMapping(t_exp);
-      if (resolve_overlap)
-      {
-        MetaboTargetedTargetDecoy::resolveOverlappingTargetDecoyMassesByIndividualMassShift(t_exp, mappings, chtwo_mass);
-      }
-      if (add_shift)
-      {
-        MetaboTargetedTargetDecoy::generateMissingDecoysByMassShift(t_exp, mappings, chtwo_mass);
-      }
-    }
 
     // sort TargetedExperiment by name (TransitionID)
     t_exp.sortTransitionsByName();

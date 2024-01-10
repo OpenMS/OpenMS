@@ -42,9 +42,10 @@ namespace OpenMS
 
           @param sirius_workspace_subdirs Vector of paths to SIRIUS subdirectories.
           @param use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
+          @param decoy_generation Extract decoy spectra from SIRIUS subdirectories. 
           */
           static std::vector<SiriusTargetDecoySpectra> extractAndResolveSiriusAnnotations(const std::vector<String>& sirius_workspace_subdirs, double score_threshold,
-                                                                                          bool use_exact_mass);
+                                                                                          bool use_exact_mass, bool decoy_generation);
 
           /**
           @brief extractSiriusFragmentAnnotationMapping  
