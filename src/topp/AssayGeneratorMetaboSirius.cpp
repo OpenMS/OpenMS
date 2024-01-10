@@ -221,9 +221,12 @@ protected:
     // collect required compound infos from tsv file
     vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
 
-    CsvFile csv(compoundinfo_file, '\t');
+    // get number of files from maximum file_index value
+    size_t n_files = 0;
 
+    CsvFile csv(compoundinfo_file, '\t');
     size_t row_count = csv.rowCount();
+
     for (size_t i = 1; i < row_count; ++i) {
       StringList row_data;
       csv.getRow(i, row_data);
@@ -247,6 +250,9 @@ protected:
       if (use_known_unknowns || cmp_info.des != "UNKNOWN") {
           v_cmpinfo.push_back(cmp_info);
       }
+
+      // update n_files with most recent (highest) file_index
+      n_files = cmp_info.file_index + 1;
     }
 
     // get annotated spectra
@@ -254,20 +260,16 @@ protected:
       SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(subdirs, score_threshold, use_exact_mass);
 
     // combine compound information (SiriusMSFile) with annotated spectra (SiriusFragmentAnnotation)
-    vector< MetaboTargetedAssay::CompoundTargetDecoyPair > v_cmp_spec;
+    vector<MetaboTargetedAssay::CompoundTargetDecoyPair> v_cmp_spec;
     v_cmp_spec = MetaboTargetedAssay::pairCompoundWithAnnotatedTDSpectraPairs(v_cmpinfo, annotated_spectra);
-
-    // no input mzML/featureXML files in AssayGeneratorMetaboSirius --> set n_files to 1
-    size_t n_files = 1;
 
     vector<MetaboTargetedAssay> v_mta;
     v_mta = MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(v_cmp_spec,
-                                                                                  transition_threshold,
-                                                                                  min_fragment_mz,
-                                                                                  max_fragment_mz,
-                                                                                  use_exact_mass,
-                                                                                  exclude_ms2_precursor,
-                                                                                  n_files);
+                                                                              transition_threshold,
+                                                                              min_fragment_mz,
+                                                                              max_fragment_mz,
+                                                                              use_exact_mass,
+                                                                              exclude_ms2_precursor);
 
     // group ambiguous identification based on precursor_mz and feature retention time
     std::unordered_map< UInt64, vector<MetaboTargetedAssay> > ambiguity_groups = MetaboTargetedAssay::buildAmbiguityGroup(v_mta, ar_mz_tol, ar_rt_tol, ar_mz_tol_unit_res, n_files);

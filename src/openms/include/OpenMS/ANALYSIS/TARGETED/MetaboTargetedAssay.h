@@ -129,15 +129,13 @@ namespace OpenMS
     @param max_fragment_mz Maximum m/z a fragment ion has to have to be considered as a transition
     @param use_exact_mass Boolean if exact mass should be used as peak mass for annotated fragments
     @param exclude_ms2_precursor Boolean to exclude MS2 precursor from MetaboTargetedAssay
-    @param file_counter Count if multiple files are used.
     */
     static std::vector<MetaboTargetedAssay> extractMetaboTargetedAssayFragmentAnnotation(const std::vector< CompoundTargetDecoyPair >& v_cmp_spec,
                                                                                          const double& transition_threshold,
                                                                                          const double& min_fragment_mz,
                                                                                          const double& max_fragment_mz,
                                                                                          const bool& use_exact_mass,
-                                                                                         const bool& exclude_ms2_precursor,
-                                                                                         const unsigned int& file_counter);
+                                                                                         const bool& exclude_ms2_precursor);
 
     /**
     @brief Pair compound information (SiriusMSFile) with the annotated target and decoy spectrum from SIRIUS/Passatutto

@@ -424,8 +424,7 @@ namespace OpenMS
                                                                                                       const double& min_fragment_mz,
                                                                                                       const double& max_fragment_mz,
                                                                                                       const bool& use_exact_mass,
-                                                                                                      const bool& exclude_ms2_precursor,
-                                                                                                      const unsigned int& file_counter)
+                                                                                                      const bool& exclude_ms2_precursor)
   {
     int entry_counter = 0; // counts each entry - to ensure the same count for targets, decoys from the same sirius workspace
     vector <MetaboTargetedAssay> v_mta;
@@ -536,14 +535,13 @@ namespace OpenMS
         v_cmp_rt = {cmp_rt};
         cmp.rts = {v_cmp_rt};
         cmp.setChargeState(charge);
-        String identifier_suffix = adduct + "_" + int(feature_rt) + "_" + file_counter;
+        String identifier_suffix = adduct + "_" + int(feature_rt) + "_" + csp.compound_info.file_index;
 
         if (description == "UNKNOWN")
         {
           description = String(description + "_" + entry_counter);
         }
         // compoundID has to be unique over all the files
-        // file_counter unique per file
         // feature_rt if the same ID was detected twice at different retention times in the same file
         if (decoy == 0)
         {
@@ -657,7 +655,7 @@ namespace OpenMS
 
         mta.molecular_formula = sumformula;
         mta.compound_rt = feature_rt;
-        mta.compound_file = file_counter;
+        mta.compound_file = csp.compound_info.file_index;
 
         mta.potential_cmp = cmp;
         mta.potential_rmts = v_rmt;
