@@ -384,8 +384,8 @@ public:
       @brief Search for the peak with highest intensity among the peaks near to a specific m/z given two +/- tolerance windows in Th
 
       @param mz The searched for mass-to-charge ratio searched
-      @param tolerance The non-negative tolerance applied to both sides of mz
-
+      @param tolerance_left The non-negative tolerance applied left of mz
+      @param tolerance_right The non-negative tolerance applied right of mz
       @return Returns the index of the peak or -1 if no peak present in tolerance window or if spectrum is empty
 
       @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.

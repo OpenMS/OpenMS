@@ -129,8 +129,8 @@ Example:
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_GenericWrapper.cli
 <B>INI file documentation of this tool:</B>
-@htmlinclude TOPP_GenericWrapper.html
 */
+// no @htmlinclude TOPP_GenericWrapper.html since it needs a type to create an .INI (which would be only valid for this type)
 
 
 // We do not want this class to show up in the docu:

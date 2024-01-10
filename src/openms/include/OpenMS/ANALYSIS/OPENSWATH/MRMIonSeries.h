@@ -61,7 +61,7 @@ public:
 
       @param ionseries the IonSeries from which to choose
       @param ionid the annotation string of the query fragment ion
-      @value std::pair<String, double> the annotation and product m/z of
+      @return std::pair<String, double> the annotation and product m/z of
       the queried fragment ion
 
     */
@@ -71,13 +71,13 @@ public:
       @brief Selects ion from IonSeries according to product m/z
 
       @param ionseries the IonSeries from which to choose
-      @param ProductMz the product m/z of the queried fragment ion
+      @param product_mz the product m/z of the queried fragment ion
       @param mz_threshold the m/z threshold for annotation of the fragment ion
-      @value std::pair<String, double> the annotation and product m/z of
+      @return std::pair<String, double> the annotation and product m/z of
       the queried fragment ion
 
     */
-    std::pair<String, double> annotateIon(const IonSeries& ionseries, const double ProductMZ, const double mz_threshold);
+    std::pair<String, double> annotateIon(const IonSeries& ionseries, const double product_mz, const double mz_threshold);
 
     /**
       @brief Annotates transition with CV terms
@@ -125,7 +125,7 @@ public:
       @param enable_specific_losses whether specific neutral losses should be considered
       @param enable_unspecific_losses whether unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) should be considered
       @param round_decPow round product m/z values to decimal power (default: -4)
-      @value IonSeries the theoretical fragment ion series
+      @return IonSeries the theoretical fragment ion series
     */
     IonSeries getIonSeries(const AASequence& sequence,
                            size_t precursor_charge,

@@ -95,7 +95,7 @@ namespace OpenMS
     @return Vector of MetaboTargetedAssay
 
     @param spectra Input of MSExperiment with spectra information
-    @param feature_ms2_spectra_map FeatureMapping class with associated MS2 spectra
+    @param feature_ms2_index FeatureMapping class to associated MS2 spectra
     @param precursor_rt_tol Retention time tolerance of the precursor
     @param precursor_mz_distance Max m/z distance of the precursor entries of two spectra to be merged
     @param cosine_sim_threshold Cosine similarity threshold for the usage of SpectraMerger
@@ -172,8 +172,7 @@ namespace OpenMS
     /**
     @brief Resolve ambiguity groups based on occurrence in samples (e.g. at least in 20% of the samples) and if multiple possible identifications are reported within one ambiguity group use the one with the highest occurrence
 
-    @return Map of pair (mz, rt) and vector of ambiguities for this mz,rt combination (MetaboTargetedAssay)
-
+    @param[in,out] map_mta_filter Map of pair (mz, rt) and vector of ambiguities for this mz,rt combination (MetaboTargetedAssay)
     @param total_occurrence_filter Value which has to be reached for the ambiguity group to be reported (e.g. in 20 % of the samples)
     @param in_files_size Number of files which were processed in the vector of MetaboTargetedAssay (e.g. initially 5 different files in the vector<MetaboTargetedAssay>)
     */
@@ -199,8 +198,7 @@ namespace OpenMS
     /**
     @brief Filter one ambiguity group based on occurrence in samples (e.g. at least in 20% of the samples)
 
-    @return Vector of MetaboTargetedAssay
-
+    @param[in,out] mta Either cleared or left untouched
     @param total_occurrence_filter Value which has to be reached for the ambiguity group to be reported (e.g. in 20 % of the samples)
     @param in_files_size Number of files which were processed in the vector of MetaboTargetedAssay (e.g. initially 5 different files in the vector<MetaboTargetedAssay>)
     */
@@ -209,7 +207,7 @@ namespace OpenMS
     /**
     @brief Filter one ambiguity group with multiple possible identifications to use the one with the highest occurrence
 
-    @return Vector of MetaboTargetedAssay
+    @param mta Vector of MetaboTargetedAssay
     */
     static void filterBasedOnMolFormAdductOccurrence_(std::vector<MetaboTargetedAssay>& mta);
 

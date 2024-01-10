@@ -543,7 +543,7 @@ public:
       * @param[in] first_run_inference_only Is all protein inference information (groups and scores) stored in the first run?
       * @param[in] export_empty_pep_ids		Export spectra without PSMs as well?
       * @param[in] export_all_psms		Instead of just the best PSM per spectrum, should other PSMs be exported as well?
-      *
+      * @param[in] title The title for the metadata section
       * @return mzTab object
     */
     static MzTab exportIdentificationsToMzTab(
@@ -567,10 +567,13 @@ public:
 	 *
 	 * @param consensus_map		data structure of the linked peptide features
 	 * @param filename		input consensusXML file name
+   * @param first_run_inference_only Is all protein inference information (groups and scores) stored in the first run?
 	 * @param export_unidentified_features		Should not identified peptide features be exported?
 	 * @param export_unassigned_ids		Should unassigned identifications be exported?
 	 * @param export_subfeatures		The position of the consensus feature will always be exported. Should the individual subfeatures be exported as well?
+   * @param export_empty_pep_ids		Export spectra without PSMs as well?
 	 * @param export_all_psms		Instead of just the best PSM per spectrum, should other PSMs be exported as well?
+   * @param title The title for the metadata section
 	 *
 	 * @return mzTab object
 	 */

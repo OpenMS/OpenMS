@@ -63,7 +63,7 @@ feature region. The intensity of the feature is then given by the sum of the dat
 in its regions.
 
 How to find suitable parameters and details of the different algorithms implemented are described
-in the @ref TOPP_example_featuredetection "TOPP tutorial".
+in the "TOPP tutorial" (on https://openms.readthedocs.io/).
 
 Specialized tools are available for some experimental techniques: @ref TOPP_IsobaricAnalyzer.
 

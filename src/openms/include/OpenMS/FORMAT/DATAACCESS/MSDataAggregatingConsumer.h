@@ -62,9 +62,9 @@ namespace OpenMS
 
       void setExpectedSize(Size, Size) override {}
 
-      void consumeSpectrum(SpectrumType & s) override;
+      void consumeSpectrum(SpectrumType& s) override;
 
-      void consumeChromatogram(ChromatogramType & c) override;
+      void consumeChromatogram(ChromatogramType& c) override;
 
       void setExperimentalSettings(const OpenMS::ExperimentalSettings&) override {}
 

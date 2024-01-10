@@ -114,6 +114,7 @@ public:
       @param filename_in Filename of input mzML file to transform
       @param consumer Consumer class to operate on the input filename (implementing a transformation)
       @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
+      @param skip_first_pass Skip first file parsing pass, which hands only meta-data (number of spectra/chroms and experimental settings) to the consumer
     */
     void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false, bool skip_first_pass = false);
 
@@ -130,6 +131,7 @@ public:
       @param consumer Consumer class to operate on the input filename (implementing a transformation)
       @param map Map to store the resulting spectra and chromatograms
       @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
+      @param skip_first_pass Skip first file parsing pass, which hands only meta-data (number of spectra/chroms and experimental settings) to the consumer
     */
     void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, PeakMap& map, bool skip_full_count = false, bool skip_first_pass = false);
 

@@ -68,7 +68,7 @@ in parallel (which would fail badly) when multiple instances of this Adapter are
 After the database has been indexed, multiple MS-GF+ processes (even without this Adapters locking) can use it in parallel.
 
 This adapter supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified 
-by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
+by 'OpenMS.ini:id_db_dir'.
 
 The adapter works in three steps to generate an idXML file: First MS-GF+ is run on the input MS data and the sequence database, 
 producing an mzIdentML (.mzid) output file containing the search results. This file is then converted to a text file (.tsv) using MS-GF+' "MzIDToTsv" tool.

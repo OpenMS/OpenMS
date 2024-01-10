@@ -50,7 +50,7 @@ computes positions in rt and m/z dimension and a charge estimate
 of each peptide.
 
 How to find suitable parameters and details of the different algorithms implemented are described
-in the @ref TOPP_example_featuredetection "TOPP tutorial".
+in the "TOPP tutorial" (on https://openms.readthedocs.io/).
 
 Specialized tools are available for some experimental techniques: @ref TOPP_IsobaricAnalyzer.
 
