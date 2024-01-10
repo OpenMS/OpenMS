@@ -16,7 +16,6 @@ namespace OpenMS
   {
     uint bin_number = 200;
     const uint iteration_count = 100;
-
     std::map<uint, std::vector<double>> tscore_map; // per ms level
 
     std::map<uint, std::vector<double>> dscore_iso_decoy_map;
@@ -101,6 +100,7 @@ namespace OpenMS
           pos.setX(bin_number - i - 1);
           pos.setY(y);
           fit_data.push_back(pos);
+
           if (max_Y > y)
             continue;
           max_Y = y;
@@ -276,6 +276,12 @@ namespace OpenMS
   uint Qvalue::getBinNumber(double qscore, uint total_bin_number)
   {
     return (uint)round(pow(qscore, 1) * (total_bin_number - 1.0));
+  }
+
+
+  float Qvalue::getBinValue(uint bin_number, uint total_bin_number)
+  {
+    return (float)pow((double)(bin_number) / (total_bin_number - 1.0), 1.0);
   }
 
   std::vector<double> Qvalue::getDistribution(const std::vector<double>& qscores, uint bin_number)
