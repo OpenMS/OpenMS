@@ -92,7 +92,7 @@ public:
       @throw MissingInformation If the spectrum doesn't have a name or Num Peaks info is missing
       @throw ParseError If Num Peaks' value doesn't match with the number of raw peaks parsed
 
-      @param[in/out] spectrum The spectrum to be added
+      @param[in,out] spectrum The spectrum to be added
       @param[out] library The spectrum is added into this `MSExperiment` library
     */
     void addSpectrumToLibrary(

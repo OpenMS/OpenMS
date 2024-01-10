@@ -403,9 +403,10 @@ public:
 
       @note Peak level metadata stored in float_array string_array and int_array of the destination MSChromatogram is not guaranteed to be correct after merging
 
-      MZ of the destination MSChromatogram remains unchanged. If add_meta is true a metavalue "merged_with" is added with the MZ of the source MSChromatogram
+      MZ of the destination MSChromatogram remains unchanged. 
 
-      @param other a reference to the MSChromatogram to take ChromatogramPeaks from
+      @param other A reference to the MSChromatogram to take ChromatogramPeaks from
+      @param add_meta If true, a metavalue "merged_chromatogram_mzs" is added with the m/z of @p other
     */
     void mergePeaks(MSChromatogram& other, bool add_meta=false);
 

@@ -96,8 +96,6 @@ namespace OpenMS
     
     /**
      * @brief returns the list of mass shift patterns
-     * 
-     * @param stream    output stream 
      */
     std::vector<MultiplexDeltaMasses> getDeltaMassesList();
     

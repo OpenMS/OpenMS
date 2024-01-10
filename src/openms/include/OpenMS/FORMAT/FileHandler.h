@@ -329,7 +329,8 @@ public:
       @param filename the file name of the file to write.
       @param map The MSQuantifications to store.
       @param allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
-
+      @param log Progress logging mode
+      
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
     void storeQuantifications(const String& filename, const MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);

@@ -57,7 +57,7 @@ namespace Interfaces
 
         @param s The spectrum to be consumed
       */
-      virtual void consumeSpectrum(SpectrumType & s) = 0;
+      virtual void consumeSpectrum(SpectrumType& s) = 0;
 
       /**
         @brief Consume a chromatogram
@@ -66,9 +66,9 @@ namespace Interfaces
 
         @note The implementation might not allow to consume spectra and chromatograms in any order
 
-        @param s The chromatogram to be consumed
+        @param c The chromatogram to be consumed
       */
-      virtual void consumeChromatogram(ChromatogramType &) = 0;
+      virtual void consumeChromatogram(ChromatogramType& c) = 0;
 
       /**
         @brief Set expected size of spectra and chromatograms to be consumed.

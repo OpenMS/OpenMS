@@ -37,9 +37,9 @@ namespace OpenMS
 
     void setExpectedSize(Size s_size, Size c_size) override;
 
-    void consumeSpectrum(SpectrumType & s) override;
+    void consumeSpectrum(SpectrumType& s) override;
 
-    void consumeChromatogram(ChromatogramType & c) override;
+    void consumeChromatogram(ChromatogramType& c) override;
 
     const PeakMap& getData() const;
 

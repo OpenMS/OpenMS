@@ -50,7 +50,7 @@ public:
       user can specify that the program should abort in such a case (see
       error_on_unmapped).
       
-      @Note If multiple mapping is enabled (see map_multiple_assays parameter)
+      @note If multiple mapping is enabled (see map_multiple_assays parameter)
       then each mapped assay will get its own chromatogram that contains the
       same raw data but different meta-annotation. This *can* be useful if the
       same transition is used to monitor multiple analytes but may also

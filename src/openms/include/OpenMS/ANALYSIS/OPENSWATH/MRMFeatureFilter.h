@@ -112,7 +112,7 @@ public:
       @brief Transfer the lower and upper bound values for the calculated concentrations
         based off of the AbsoluteQuantitationMethod
 
-      @param[in] quantitation_methods The absolute quantitation methods that has been determined for each component
+      @param[in] quantitation_method The absolute quantitation methods that has been determined for each component
       @param[in,out] filter_template A MRMFeatureQC class that will be used as a template to fill in the 
         MRMFeatureQC::ComponentQCs.calculated_concentration bounds based on the LLOQ and ULOQ values given in the quantitation_method.
     */
@@ -247,8 +247,8 @@ public:
     /**
       @brief Count the number of heavy/light labels and quantifying/detecting/identifying transitions
 
-      @param component component_group with subordinates
-      @param transitions transitions from a TargetedExperiment
+      @param component_group Component group with subordinates
+      @param transitions Transitions from a TargetedExperiment
 
       @return Map of labels/transition types and their corresponding number.
     */
@@ -277,7 +277,7 @@ public:
     /**
       @brief Set all members in MRMFeatureQC to zero 
 
-      @param[out] filter_zero A MRMFeatureQC object whose members have been set to 0
+      @param[out] filter_zeros A MRMFeatureQC object whose members have been set to 0
       @param[in] filter_template A MRMFeatureQC object that will be used as a template to fill in values
     */
     void zeroFilterValues(MRMFeatureQC& filter_zeros, const MRMFeatureQC& filter_template) const;

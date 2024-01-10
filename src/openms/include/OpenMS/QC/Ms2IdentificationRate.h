@@ -24,7 +24,7 @@ namespace OpenMS
   /**
    @brief This class is a metric for the QualityControl-ToppTool.
 
-   This class computes the MS2 Identification Rate (as #identified PSMs divided by total number of MS2 scans) given a FeatureMap and an MSExperiment.
+   This class computes the MS2 Identification Rate (as \#identified PSMs divided by total number of MS2 scans) given a FeatureMap and an MSExperiment.
    Only pep-ids with FDR metavalue 'target_decoy' equal to 'target' are counted, unless assume_all_target flag is set (assumes all pep-ids are target peptides)
 
    */

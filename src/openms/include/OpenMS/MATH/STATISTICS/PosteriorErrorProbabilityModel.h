@@ -41,7 +41,7 @@ namespace OpenMS
       @todo allow semi-supervised by using decoy annotations
       @todo allow non-parametric via kernel density estimation
 
-      @htmlinclude OpenMS_Math::PosteriorErrorProbabilityModel.parameters
+      @htmlinclude OpenMS_PosteriorErrorProbabilityModel.parameters
 
       @ingroup Math
     */

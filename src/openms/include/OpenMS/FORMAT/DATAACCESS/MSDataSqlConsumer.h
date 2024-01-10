@@ -45,7 +45,7 @@ namespace OpenMS
 
         Opens the SQLite file and writes the tables.
 
-        @param filename The filename of the SQLite database
+        @param sql_filename The filename of the SQLite database
         @param run_id Unique identifier which links the sqMass and OSW file
         @param buffer_size How large the internal buffer size should be (defaults to 500 spectra / chromatograms)
         @param full_meta Whether to write the full meta-data in the SQLite header

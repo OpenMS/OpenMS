@@ -226,6 +226,7 @@ public:
      * When querying for a chromatogram, make sure to use this key.
      *
      * @param chromatogram Chromatographic traces from the MS1 map to be added
+     * @param key Unique identifier of the chromatogram, e.g. its nativeID
      */
     inline void addPrecursorChromatogram(const ChromatogramType& chromatogram, const String& key)
     {

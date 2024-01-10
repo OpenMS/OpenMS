@@ -108,6 +108,7 @@ public:
      * @brief Performs the main function of this class, the search for cross-linked peptides
 
      @param unprocessed_spectra The input PeakMap of experimental spectra
+     @param cfeatures Consensus features linking light and heavy mass pairs; e.g. created by FeatureFinderMultiplex
      @param fasta_db The protein database containing targets and decoys
      @param protein_ids A result vector containing search settings. Should contain one PeptideIdentification.
      @param peptide_ids A result vector containing cross-link spectrum matches as PeptideIdentifications and PeptideHits. Should be empty.

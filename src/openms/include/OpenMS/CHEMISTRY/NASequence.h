@@ -505,7 +505,7 @@ namespace OpenMS
 
        @param str_it Current position in the string to be parsed
        @param str Full input string
-       @param aas Current AASequence object (will be modified with the correct ribo added)
+       @param nas Current AASequence object (will be modified with the correct ribo added)
 
        @return Position at which to continue parsing
     */

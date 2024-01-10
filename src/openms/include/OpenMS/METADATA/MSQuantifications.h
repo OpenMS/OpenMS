@@ -146,7 +146,7 @@ public:
     /// Equality operator
     bool operator!=(const MSQuantifications & rhs) const;
 
-    /**
+    /*
         @brief Loads data from a text file.
 
         @param filename The input file name.
