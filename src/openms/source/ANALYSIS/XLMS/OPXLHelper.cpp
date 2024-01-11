@@ -1343,13 +1343,10 @@ namespace OpenMS
       Size candidates_size = candidates.size();
       OPXLHelper::filterPrecursorsByTags(candidates, precursor_correction_positions, tags);
 
-#pragma omp critical (LOG_DEBUG_access)
-      {
         OPENMS_LOG_DEBUG << "Number of sequence tags: " << tags.size() << std::endl;
         OPENMS_LOG_DEBUG << "Candidate Peptide Pairs before sequence tag filtering: " << candidates_size << std::endl;
         OPENMS_LOG_DEBUG << "Candidate Peptide Pairs  after sequence tag filtering: " << candidates.size() << std::endl;
       }
-    }
 
     vector< int > precursor_corrections;
     for (Size pc = 0; pc < precursor_correction_positions.size(); ++pc)
