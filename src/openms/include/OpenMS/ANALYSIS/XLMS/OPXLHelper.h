@@ -254,13 +254,14 @@ namespace OpenMS
       static double computePrecursorError(const OPXLDataStructs::CrossLinkSpectrumMatch& csm, double precursor_mz, int precursor_charge);
 
       /**
-       * @brief Computes the mass error of a precursor mass to a hit
-
-       * @param csm The cross-link spectrum match containing the hit
-       * @param precursor_mz The precursor mz of the MS/MS spectrum
-       * @param precursor_charge The charge of the precursor
+       * @brief Computes the mean of alpha, beta, xlinks-alpha and xlinks-beta respectively and store means in @p csm
        */
-      static void isoPeakMeans(OPXLDataStructs::CrossLinkSpectrumMatch& csm, DataArrays::IntegerDataArray& num_iso_peaks_array, std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta);
+      static void isoPeakMeans(OPXLDataStructs::CrossLinkSpectrumMatch& csm, 
+                               const DataArrays::IntegerDataArray& num_iso_peaks_array,
+                               const std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha,
+                               const std::vector< std::pair< Size, Size > >& matched_spec_linear_beta,
+                               const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha,
+                               const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta);
 
       /**
        * @brief Filters the list of candidates for cases that include at least one of the tags in at least one of the two sequences
