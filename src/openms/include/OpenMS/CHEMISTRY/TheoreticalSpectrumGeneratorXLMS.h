@@ -112,7 +112,7 @@ namespace OpenMS
           B-ions are generated from the first linked position up to the end of the peptide,
           y-ions are generated from the beginning of the peptide up to the second linked position.
           This function generates neutral loss ions by considering both linked peptides.
-          Only one of the peptides, decided by @frag_alpha, is fragmented.
+          Only one of the peptides, decided by @p frag_alpha, is fragmented.
           This function is not suitable to generate fragments for mono-links or loop-links.
           This simplifies the function, but it has to be called twice to get all fragments of a peptide pair.
           The generated ion types and other additional settings are determined by the tool parameters.
@@ -199,14 +199,12 @@ namespace OpenMS
        * @param charges A DataArray collecting the charges of the added peaks
        * @param ion_names A DataArray collecting the ion names of the added peaks
        * @param mono_weight monoisotopic mass of the current ion
-       * @param res_type The ion type of the current ion
-       * @param frag_index The index of the ion (fragmentation position)
        * @param intensity
        * @param charge The charge of the ion
        * @param ion_type Another cross-linking specific ion-type
        * @param losses a set of LossMasses with which to modify the current ion
        */
-      virtual void addXLinkIonLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, double mono_weight, double intensity, int charge, String ion_name, LossIndex & losses) const;
+      virtual void addXLinkIonLosses_(PeakSpectrum& spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, double mono_weight, double intensity, int charge, String ion_type, LossIndex & losses) const;
 
       /**
        * @brief Adds one-residue-linked ion peaks, that are specific to XLMS

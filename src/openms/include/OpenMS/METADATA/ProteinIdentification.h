@@ -280,8 +280,8 @@ public:
       /// returns the charge range from the search engine settings as a pair of ints
       std::pair<int,int> getChargeRange() const;
 
-      /// Tests if these search engine settings are mergeable with @param sp
-      /// depending on the given @param experiment_type.
+      /// Tests if these search engine settings are mergeable with @p sp
+      /// depending on the given @p experiment_type.
       /// Modifications are compared as sets. Databases based on filename.
       /// "labeled_MS1" experiments additionally allow different modifications.
       bool mergeable(const ProteinIdentification::SearchParameters& sp, const String& experiment_type) const;
@@ -430,6 +430,7 @@ public:
     /**
        Set the file paths to the primary MS runs (usually the mzML files obtained after data conversion from raw files)
 
+       @param s The file paths
        @param raw Store paths to the raw files (or equivalent) rather than mzMLs
     */
     void setPrimaryMSRunPath(const StringList& s, bool raw = false);
@@ -442,6 +443,7 @@ public:
     /**
        Get the file paths to the primary MS runs
 
+       @param[out] output The file paths
        @param raw Get raw files (or equivalent) instead of mzMLs
     */
     void getPrimaryMSRunPath(StringList& output, bool raw = false) const;
@@ -456,13 +458,13 @@ public:
     /// Checks if the search engine name matches an inference engine known to OpenMS.
     bool hasInferenceEngineAsSearchEngine() const;
 
-    /// Checks if the peptide IDs of this IDRun are mergeable with another @param id_run
-    /// given an @param experiment_type .
+    /// Checks if the peptide IDs of this IDRun are mergeable with another @p id_run
+    /// given an @p experiment_type .
     /// Checks search engine and search engine settings.
     bool peptideIDsMergeable(const ProteinIdentification& id_run, const String& experiment_type) const;
 
-    /// Collects all search engine settings registered for the given search engine @param se.
-    /// If @param se is empty, the main search engine is used, otherwise it will also search the metavalues.
+    /// Collects all search engine settings registered for the given search engine @p se.
+    /// If @p se is empty, the main search engine is used, otherwise it will also search the metavalues.
     std::vector<std::pair<String,String>> getSearchEngineSettingsAsPairs(const String& se = "") const;
 
     //@}

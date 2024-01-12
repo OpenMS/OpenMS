@@ -86,10 +86,12 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
         /**
         * @brief constructor of iterator
         * 
+        * @param packages Spline packages to be accessed
+        * @param pos_max Maximum in m/z (or RT) of the spectrum (or chromatogram)
         * @param scaling    The step width can be scaled by this factor. Often it is advantageous to iterate
         * in slightly smaller steps over the spectrum (or chromatogram).
         */
-        Navigator(const std::vector<SplinePackage> * packages, double posMax, double scaling);
+        Navigator(const std::vector<SplinePackage>* packages, double pos_max, double scaling);
 
         /**
         * @brief constructor (for pyOpenMS)

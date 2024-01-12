@@ -29,7 +29,7 @@ namespace OpenMS
 public:
 
     /** @brief Constructor
-     *
+     * @param sptr The spectrum to work on
      * @param a Regression parameter 0
      * @param b Regression parameter 1
      * @param c Regression parameter 2

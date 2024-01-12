@@ -80,6 +80,7 @@ public:
        @param spectrum_pairs Indices of spectrum pairs in the input map
        @param all_top_csms CrossLinkSpectrumMatches, from which the IDs were generated. Only spectra with matches are written out.
        @param spectra The spectra, that were searched as a PeakMap. The indices in spectrum_pairs correspond to spectra in this map.
+       @param test_mode Skip base64 encoding in test mode
       */
     static void writeXQuestXMLSpec(const String& out_file, const String& base_name,
                                    const OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra,
@@ -93,6 +94,7 @@ public:
        @param base_name The base_name should be the name of the input spectra file without the file ending. Used as part of an identifier string for the spectra.
        @param all_top_csms CrossLinkSpectrumMatches, from which the IDs were generated. Only spectra with matches are written out.
        @param spectra The spectra, that were searched as a PeakMap.
+       @param test_mode Skip base64 encoding in test mode
       */
     static void writeXQuestXMLSpec(const String& out_file, const String& base_name,
                                    const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms,
@@ -106,6 +108,7 @@ private:
       * @brief Transforms a PeakSpectrum into a base64 encoded string, which is the format used in spec.xml for xQuest.
       * @param spec The spectrum
       * @param header A header for the spectrum, build using the base_name parameter for writeXQuestXMLSpec and the index of the spectrum.
+      * @param test_mode Skip base64 encoding in test mode
       */
       static String getxQuestBase64EncodedSpectrum_(const PeakSpectrum& spec, const String& header, const bool& test_mode = false);
 

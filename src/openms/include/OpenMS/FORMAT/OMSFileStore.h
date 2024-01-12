@@ -95,8 +95,8 @@ namespace OpenMS
         @brief Helper function to create a database table
 
         @param name Name of the new table
-        @definition Table definition in SQL
-        @may_exist If true, the table may already exist (otherwise this is an error)
+        @param definition Table definition in SQL
+        @param may_exist If true, the table may already exist (otherwise this is an error)
       */
       void createTable_(const String& name, const String& definition, bool may_exist = false);
 

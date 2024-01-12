@@ -58,8 +58,6 @@ should mainly depend on the resolution of the data.
 As the name implies, the @ref OpenMS::PeakPickerHiRes "high_res"
 algorithm is fit for high resolution (Orbitrap or FTICR) data.
 
-@ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
-
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_PeakPickerHiRes.cli
 <B>INI file documentation of this tool:</B>

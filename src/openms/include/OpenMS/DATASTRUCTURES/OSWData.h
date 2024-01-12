@@ -304,7 +304,7 @@ namespace OpenMS
           return proteins_;
         }
 
-        /// Replace existing protein at position @index
+        /// Replace existing protein at position @p index
         /// Note: this is NOT the protein ID, but the index into the internal protein vector. See getProteins()
         /// 
         /// @param index A valid index into the getProteins() vector

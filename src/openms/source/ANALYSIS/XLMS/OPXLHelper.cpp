@@ -1343,10 +1343,10 @@ namespace OpenMS
       Size candidates_size = candidates.size();
       OPXLHelper::filterPrecursorsByTags(candidates, precursor_correction_positions, tags);
 
-        OPENMS_LOG_DEBUG << "Number of sequence tags: " << tags.size() << std::endl;
-        OPENMS_LOG_DEBUG << "Candidate Peptide Pairs before sequence tag filtering: " << candidates_size << std::endl;
-        OPENMS_LOG_DEBUG << "Candidate Peptide Pairs  after sequence tag filtering: " << candidates.size() << std::endl;
-      }
+      OPENMS_LOG_DEBUG << "Number of sequence tags: " << tags.size() << std::endl;
+      OPENMS_LOG_DEBUG << "Candidate Peptide Pairs before sequence tag filtering: " << candidates_size << std::endl;
+      OPENMS_LOG_DEBUG << "Candidate Peptide Pairs  after sequence tag filtering: " << candidates.size() << std::endl;
+    }
 
     vector< int > precursor_corrections;
     for (Size pc = 0; pc < precursor_correction_positions.size(); ++pc)
@@ -1386,7 +1386,7 @@ namespace OpenMS
     csm.num_iso_peaks_mean = Math::mean(num_iso_peaks_array.begin(), num_iso_peaks_array.end());
 
     auto addUp = [&](const auto& data) -> double
-      {
+    {
       double sum{};
       for (const auto& p : data) sum += num_iso_peaks_array[p.second];
       return sum / data.size();

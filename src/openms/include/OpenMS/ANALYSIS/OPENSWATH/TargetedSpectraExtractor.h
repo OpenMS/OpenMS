@@ -406,7 +406,7 @@ public:
 
       @param[in] spectra The input spectra
       @param[in] cmp The `Comparator` object containing the spectral library
-      @param[in/out] features The `FeatureMap` to be updated with matching info
+      @param[in,out] features The `FeatureMap` to be updated with matching info
     */
     void targetedMatching(
       const std::vector<MSSpectrum>& spectra,

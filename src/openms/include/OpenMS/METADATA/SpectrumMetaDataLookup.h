@@ -175,7 +175,7 @@ namespace OpenMS
     /**
        @brief Read spectra and store their meta data
 
-       @param SpectrumContainer Spectrum container class, must support @p size and @p operator[]
+       @tparam SpectrumContainer Spectrum container class, must support @p size and @p operator[]
        @param spectra Container of spectra
        @param scan_regexp Regular expression for matching scan numbers in spectrum native IDs (must contain the named group "?<SCAN>")
        @param get_precursor_rt Assign precursor retention times? (This relies on all precursor spectra being present and in the right order.)
@@ -245,7 +245,7 @@ namespace OpenMS
        @brief Extract meta data via a spectrum reference
 
        @param spectrum_ref Spectrum reference to parse
-       @param metadata Meta data output
+       @param meta Meta data output
        @param flags What meta data to extract
 
        @throw Exception::ElementNotFound if a spectrum look-up was necessary, but no matching spectrum was found

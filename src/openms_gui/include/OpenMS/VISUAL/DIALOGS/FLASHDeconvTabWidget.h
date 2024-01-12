@@ -77,6 +77,7 @@ namespace OpenMS
 
       /// append text to the log tab
       /// @param text The text to write
+      /// @param color Color for the text
       /// @param new_section Start a new block with a date and time
       void writeLog_(const QString& text, const QColor& color = "#000000", bool new_section = false);
       /// @brief convenient overload for String

@@ -119,6 +119,8 @@ public:
          * @param center_point Pointer to the center point
          * @param num_maps Number of input maps
          * @param max_distance Maximum allowed distance of two points
+         * @param x_coord The x-coordinate in the grid cell
+         * @param y_coord The y-coordinate in the grid cell
          * @param id Unique ID of this cluster
          */
         BulkData(const OpenMS::GridFeature* const center_point, 

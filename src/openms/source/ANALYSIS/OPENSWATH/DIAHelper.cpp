@@ -526,25 +526,4 @@ namespace OpenMS::DIAHelpers
       return rangeMZ;
     }
 
-    //modify masses by charge
-    void modifyMassesByCharge(
-      const std::vector<std::pair<double, double> >& isotopeSpec,
-      std::vector<std::pair<double, double> >& resisotopeSpec, int charge)
-    {
-      charge = std::abs(charge);
-      resisotopeSpec.clear();
-      std::pair<double, double> tmp_;
-      for (std::size_t i = 0; i < isotopeSpec.size(); ++i)
-      {
-        tmp_ = isotopeSpec[i];
-        tmp_.first /= charge;
-        resisotopeSpec.push_back(tmp_);
-      }
-    }
-
-//simulate spectrum from AASequence
-//void simulateSpectrumFromTransitions(AASequence & aa,
-//std::vector<double> & firstIsotopeMasses,
-//std::vector<std::pair<double, double> > & isotopeMasses, uint32_t charge)
-
   }
