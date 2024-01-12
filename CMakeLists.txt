@@ -454,6 +454,11 @@ endif()
 include(cmake/cmake_findExternalLibs.cmake)
 
 #------------------------------------------------------------------------------
+# find the Doxygen (required by /doc and /src/OpenMS)
+find_package(Doxygen) ## defines 'DOXYGEN_HAVE_DOT', 'DOXYGEN_VERSION' etc
+
+
+#------------------------------------------------------------------------------
 # The actual OpenMS code (headers and source files)
 #------------------------------------------------------------------------------
 add_subdirectory(src)

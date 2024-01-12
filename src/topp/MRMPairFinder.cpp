@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -23,16 +23,16 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_MRMPairFinder MRMPairFinder
+@page TOPP_MRMPairFinder MRMPairFinder
 
-    @brief Util which can be used to evaluate pairs of MRM experiments
+@brief Util which can be used to evaluate pairs of MRM experiments
 
-    @experimental This software is experimental and might contain bugs!
+@experimental This software is experimental and might contain bugs!
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_MRMPairFinder.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MRMPairFinder.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MRMPairFinder.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MRMPairFinder.html
 */
 
 // We do not want this class to show up in the docu:

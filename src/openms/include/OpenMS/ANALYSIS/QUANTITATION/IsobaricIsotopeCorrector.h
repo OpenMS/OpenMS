@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -37,7 +37,7 @@ public:
 
      @param consensus_map_in The map containing the values that should be corrected.
      @param consensus_map_out The map where the corrected values should be stored.
-     @param IsobaricQuantitationMethod (e.g., iTRAQ 4 plex)
+     @param quant_method IsobaricQuantitationMethod (e.g., iTRAQ 4 plex)
 
      @throws Exception::FailedAPICall If the least-squares fit fails.
      @throws Exception::InvalidParameter If the given correction matrix is invalid.

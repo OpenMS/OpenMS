@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -20,15 +20,15 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_OpenMSDatabasesInfo OpenMSDatabasesInfo
+@page TOPP_OpenMSDatabasesInfo OpenMSDatabasesInfo
 
-    @brief Information about OpenMS' internal databases
+@brief Information about OpenMS' internal databases
 
-    This util prints the content of OpenMS' enzyme and modification databases to a TSV file.
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_OpenMSDatabasesInfo.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_OpenMSDatabasesInfo.html
+This util prints the content of OpenMS' enzyme and modification databases to a TSV file.
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_OpenMSDatabasesInfo.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_OpenMSDatabasesInfo.html
  */
 
 // We do not want this class to show up in the docu:

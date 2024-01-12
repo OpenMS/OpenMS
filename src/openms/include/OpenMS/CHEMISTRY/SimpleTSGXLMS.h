@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -21,17 +21,17 @@ namespace OpenMS
   class AASequence;
 
   /**
-      @brief Generates theoretical spectra for cross-linked peptides
+  @brief Generates theoretical spectra for cross-linked peptides
 
-      The spectra this class generates are vectors of SimplePeaks.
-      This class generates the same peak types as TheoreticalSpectrumGeneratorXLMS
-      and the interface is very similar, but it is simpler and faster.
-      SimplePeak only contains an mz value and a charge. No intensity values
-      or String annotations or other additional DataArrays are generated.
+  The spectra this class generates are vectors of SimplePeaks.
+  This class generates the same peak types as TheoreticalSpectrumGeneratorXLMS
+  and the interface is very similar, but it is simpler and faster.
+  SimplePeak only contains an mz value and a charge. No intensity values
+  or String annotations or other additional DataArrays are generated.
 
   @htmlinclude OpenMS_SimpleTSGXLMS.parameters
 
-      @ingroup Chemistry
+  @ingroup Chemistry
   */
   class OPENMS_DLLAPI SimpleTSGXLMS :
     public DefaultParamHandler

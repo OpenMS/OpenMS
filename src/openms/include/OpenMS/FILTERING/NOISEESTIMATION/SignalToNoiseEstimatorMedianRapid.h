@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -36,8 +36,6 @@ namespace OpenMS
     gives similar results to SignalToNoiseEstimatorMedian but performs faster.
     Note that it will not give identical results as SignalToNoiseEstimatorMedian
     but for many application the results from this class will be sufficient.
-
-    @htmlinclude OpenMS_SignalToNoiseEstimatorRapid.parameters
 
     @ingroup SignalProcessing
   */

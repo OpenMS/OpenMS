@@ -97,6 +97,8 @@ static constexpr cstr past_last_slash(cstr str)
 
 #cmakedefine OPENMS_BIG_ENDIAN
 
+#define OPENMS_HASDOXYGENDOT @CF_OPENMS_HASDOXYGENDOT@
+
 // Define on 64 bit architectures
 #cmakedefine OPENMS_64BIT_ARCHITECTURE
 
