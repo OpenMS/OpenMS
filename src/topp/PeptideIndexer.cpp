@@ -57,7 +57,7 @@ Runtime: PeptideIndexer is usually very fast (loading and storing the data takes
 Avoid allowing too many (>=4) ambiguous amino acids if your database contains long stretches of 'X' (exponential search space).
 
 PeptideIndexer supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified
-by @p OpenMS.ini:id_db_dir (see @subpage TOPP_advanced). The database is by default derived from the input idXML's metainformation ('auto' setting), but can be specified explicitly.
+by @p OpenMS.ini:id_db_dir. The database is by default derived from the input idXML's metainformation ('auto' setting), but can be specified explicitly.
 
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
