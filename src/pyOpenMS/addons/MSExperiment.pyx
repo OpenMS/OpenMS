@@ -1,5 +1,23 @@
 
 
+    def multiAggregate(MSExperiment self, np.ndarray[float, ndim=2, mode="c"] ranges, int ms_level, str mz_agg):
+        assert(ranges.shape[1] == 4)
+        cdef _MSExperiment * exp_ = self.inst.get()
+        cdef libcpp_vector[libcpp_pair[_RangeMZ, _RangeRT]] input = libcpp_vector[libcpp_pair[_RangeMZ, _RangeRT]](ranges.shape[0])
+        for i in range(ranges.shape[0]):
+            input[i].first.setMinMZ(ranges[i,0])
+            input[i].first.setMaxMZ(ranges[i,1])
+            input[i].second.setMinRT(ranges[i,2])
+            input[i].second.setMaxRT(ranges[i,3])
+        cdef libcpp_vector[libcpp_vector[double]] res_vec = exp_.aggregate(input, ms_level, <libcpp_string> mz_agg)
+        cdef np.ndarray ret = np.empty(res_vec.size(), dtype=object)
+        cdef ArrayWrapperDouble wrap;
+        for i in range(res_vec.size()):
+            wrap = ArrayWrapperDouble()
+            wrap.set_data(res_vec[i])
+            ret[i] = np.frombuffer(wrap)
+        return ret
+
     def aggregate(MSExperiment self, float rt_start, float rt_end, float mz_start, float mz_end, int ms_level, str mz_agg):
         cdef _MSExperiment * exp_ = self.inst.get()
         cdef ArrayWrapperDouble ret = ArrayWrapperDouble()

@@ -1,4 +1,5 @@
 from libcpp.vector cimport vector as libcpp_vector
+from libcpp.pair cimport pair as libcpp_pair
 from MSSpectrum cimport *
 from MSChromatogram cimport *
 from DataValue cimport *
@@ -62,6 +63,9 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         void get2DPeakDataPerSpec(double min_rt, double max_rt, double min_mz, double max_mz, libcpp_vector[float] & rt, libcpp_vector[libcpp_vector[float]] & mz, libcpp_vector[libcpp_vector[float]] & intensity) except + nogil  # wrap-ignore
         void get2DPeakDataIonPerSpec(double min_rt, double max_rt, double min_mz, double max_mz, libcpp_vector[float] & rt, libcpp_vector[libcpp_vector[float]] & mz, libcpp_vector[libcpp_vector[float]] & intensity, libcpp_vector[libcpp_vector[float]] & ion_mobility) except + nogil  # wrap-ignore
         libcpp_vector[double] aggregate(double rt_start, double rt_end, double mz_start, double mz_end, unsigned int ms_level, libcpp_string mz_agg) except + # wrap-ignore
+        libcpp_vector[libcpp_vector[double]] aggregate(libcpp_vector[libcpp_pair[RangeMZ,RangeRT]] mz_rt_ranges, unsigned int ms_level, libcpp_string mz_agg) except + # wrap-ignore
+
+
 
         # COMMENT: Chromatogram functions
         MSChromatogram getChromatogram(Size id_) except + nogil  # wrap-ignore

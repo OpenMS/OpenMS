@@ -207,6 +207,33 @@ public:
     }
 
     /**
+     * @brief Branchless binary search for the lower bound of a value in a sorted range.
+     */
+    template<typename It, typename T, typename Cmp>
+    static It lower_bound(It begin, It end, const T& value, Cmp comp) {
+        size_t n = end - begin;
+        if (n == 0) return begin;
+
+        size_t two_k = size_t(1) << (boost::core::bit_width(n) - 1);
+        size_t b = comp(begin[n / 2], value) ? n - two_k : -1;
+        for (size_t bit = two_k >> 1; bit != 0; bit >>= 1) {
+            if (comp(begin[b + bit], value)) b += bit;
+        }
+        return begin + (b + 1);
+    }
+
+    template<typename It, typename T, typename Cmp>
+    static It upper_bound(It begin, It end, const T& value, Cmp comp) {
+        size_t n = end - begin;
+        size_t b = 0;
+        for (size_t bit = boost::core::bit_floor(n); bit != 0; bit >>= 1) {
+            size_t i = (b | bit) - 1;
+            if (i < n && !comp(value, begin[i])) b |= bit;
+        }
+        return begin + b;
+    }
+
+    /**
       @brief Assignment of a data container with RT and MZ to an MSExperiment
 
       Fill MSExperiment with data.
@@ -329,9 +356,11 @@ public:
     /// Returns a non-mutable invalid area iterator marking the end of an area
     ConstAreaIterator areaEndConst() const;
 
+
+    std::vector<std::pair<size_t,size_t>> getRangesIdcs_(const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges) const;
     std::pair<Size, Size> getSpectraIdxRangeByRetentionTime(double start, double end) const;
     std::vector<Size> getSpectraIdcsByRetentionTime(double start, double end, unsigned int ms_level) const;
-    using AggregatorFunc = std::function<CoordinateType(const std::vector<CoordinateType>&)>;
+    using AggregatorFunc = std::function<CoordinateType(const MSSpectrum& s, size_t start, size_t end)>;
     using ReduceFunc = std::function<CoordinateType(CoordinateType&, CoordinateType)>;
 
     /// Aggregate all spectra in the range given by the begin and end area iterators.
@@ -341,9 +370,21 @@ public:
     MSExperiment::CoordinateType aggregate(ConstAreaIterator begin, ConstAreaIterator end, ReduceFunc rt, AggregatorFunc mz) const;
     MSExperiment::CoordinateType aggregate(ConstAreaIterator begin, ConstAreaIterator end, AggregatorFunc rt, ReduceFunc mz) const;
     MSExperiment::CoordinateType aggregate(ConstAreaIterator begin, ConstAreaIterator end, ReduceFunc rt, ReduceFunc mz) const;
-    std::vector<MSExperiment::CoordinateType> aggregate(double rt_start, double rt_end, double mz_start, double mz_end, unsigned int ms_level, std::string mz_agg) const;
-    std::vector<MSExperiment::CoordinateType> aggregate(double rt_start, double rt_end, double mz_start, double mz_end, unsigned int ms_level, ReduceFunc mz_agg) const;
-    std::vector<MSExperiment::CoordinateType> aggregate(double rt_start, double rt_end, double mz_start, double mz_end, unsigned int ms_level, AggregatorFunc mz_agg) const;
+    std::vector<MSExperiment::CoordinateType> aggregate(double rt_start, double rt_end, double mz_start, double mz_end, unsigned int ms_level, const std::string& mz_agg) const;
+    std::vector<MSExperiment::CoordinateType> aggregate(double rt_start, double rt_end, double mz_start, double mz_end, unsigned int ms_level, ReduceFunc&& mz_agg) const;
+    std::vector<MSExperiment::CoordinateType> aggregate(double rt_start, double rt_end, double mz_start, double mz_end, unsigned int ms_level, AggregatorFunc&& mz_agg) const;
+    std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
+      std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
+      unsigned int ms_level,
+      const std::string& mz_agg) const;
+    std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
+      std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
+      unsigned int ms_level,
+      AggregatorFunc&& mz_agg) const;
+    std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
+      std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
+      unsigned int ms_level,
+      ReduceFunc&& mz_agg) const;
 
     // for fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity]]
     void get2DPeakDataPerSpec(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
@@ -579,16 +620,58 @@ public:
     /**
       @brief Returns the precursor spectrum of the scan pointed to by @p iterator
 
-      If there is no precursor scan the past-the-end iterator is returned.
+      If there is no (matching) precursor scan the past-the-end iterator is returned.
+      This assumes that precursors occur somewhere before the current spectrum
+      but not necessarily the first one from the last MS level (we double-check with
+      the annotated precursorList.
+      If precursor annotations are present, uses the native spectrum ID from the 
+      @em first precursor entry of the current scan
+      for comparisons -> Works for multiple precursor ranges from the same precursor scan
+      but not for multiple precursor ranges from different precursor scans.
+      If none are present, picks the first scan of a lower level.
     */
     ConstIterator getPrecursorSpectrum(ConstIterator iterator) const;
 
     /**
       @brief Returns the index of the precursor spectrum for spectrum at index @p zero_based_index
 
-      If there is no precursor scan -1 is returned.
+      If there is no precursor scan -1 is returned. Wraps @ref getPrecursorSpectrum(ConstIterator).
     */
     int getPrecursorSpectrum(int zero_based_index) const;
+
+    /**
+      @brief Returns the first product spectrum of the scan pointed to by @p iterator
+
+      A product spectrum is a spectrum of the next higher MS level that has the
+      current spectrum as precursor.
+      If there is no product scan, the past-the-end iterator is returned.
+      This assumes that product occurs somewhere after the current spectrum
+      and comes before the next scan that is of a level that is lower than
+      the current one.
+
+      Example:
+      MS1 - ix: 0
+        MS2 - ix: 1, prec: 0
+        MS2 - ix: 2, prec: 0 <-- current scan
+        MS3 - ix: 3, prec: 1
+        MS3 - ix: 4, prec: 2 <-- product scan
+        MS2 - ix: 5, prec: 0
+        MS3 - ix: 6, prec: 5
+      MS1 - ix: 7
+        ...  <-- Not searched anymore. Returns end of experiment iterator if not found until here.
+
+      Uses the native spectrum ID from the @em first precursor entry of the potential product scans
+      for comparisons -> Works for multiple precursor ranges from the same precursor scan
+      but not for multiple precursor ranges from different precursor scans.
+    */
+    ConstIterator getFirstProductSpectrum(ConstIterator iterator) const;
+    
+    /**
+      @brief Returns the index of the first product spectrum for spectrum at index @p zero_based_index
+
+      If there is no precursor scan -1 is returned. Wraps @ref getFirstProductSpectrum(ConstIterator).
+    */
+    int getFirstProductSpectrum(int zero_based_index) const;
 
     /// Swaps the content of this map with the content of @p from
     void swap(MSExperiment& from);
