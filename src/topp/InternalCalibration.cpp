@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -259,13 +259,10 @@ protected:
     { // CSV file calibrant masses
       // load CSV
       TextFile ref_file;
-      ref_file.load(cal_lock, true, -1, true);
+      ref_file.load(cal_lock, true, -1, true, "#");
       vector<InternalCalibration::LockMass> ref_masses;
       for (TextFile::ConstIterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
       {
-        if (iter->hasPrefix("#")) continue;
-        // each line has:
-        //   m/z, ms-level, charge
         std::vector<String> vec;
         iter->split(",", vec);
         if (vec.size() != 3)
