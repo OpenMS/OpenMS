@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -63,7 +63,6 @@ namespace OpenMS
     tools_map["DTAExtractor"] = Internal::ToolDescription("DTAExtractor", cat_file_filter_extract_merge);
     tools_map["EICExtractor"] = Internal::ToolDescription("EICExtractor", cat_quant);
     tools_map["Epifany"] = Internal::ToolDescription("Epifany", cat_ID_proc);
-    tools_map["ERPairFinder"] = Internal::ToolDescription("ERPairFinder", cat_quant);
     tools_map["ExecutePipeline"] = Internal::ToolDescription("ExecutePipeline", cat_misc);
     tools_map["ExternalCalibration"] = Internal::ToolDescription("ExternalCalibration", cat_calibration);
     tools_map["FalseDiscoveryRate"] = Internal::ToolDescription("FalseDiscoveryRate", cat_ID_proc);
@@ -170,7 +169,6 @@ namespace OpenMS
     tools_map["Resampler"] = Internal::ToolDescription("Resampler", cat_signal_proc_misc);
     tools_map["RNADigestor"] = Internal::ToolDescription("RNADigestor", cat_rna);
     tools_map["RNAMassCalculator"] = Internal::ToolDescription("RNAMassCalculator", cat_rna);
-    tools_map["RNPxlSearch"] = Internal::ToolDescription("RNPxlSearch", cat_crosslinking);
     tools_map["RNPxlXICFilter"] = Internal::ToolDescription("RNPxlXICFilter", cat_crosslinking);
     tools_map["SageAdapter"] = Internal::ToolDescription("SageAdapter", cat_ID_search);
     tools_map["SeedListGenerator"] = Internal::ToolDescription("SeedListGenerator", cat_quant);

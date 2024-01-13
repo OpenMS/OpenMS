@@ -83,7 +83,6 @@
   - @subpage TOPP_ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).
   - @subpage TOPP_Decharger - Decharges and merges different feature charge variants of the same chemical entity.
   - @subpage TOPP_EICExtractor - Quantifies signals at given positions in (raw or picked) LC-MS maps.
-  - @subpage TOPP_ERPairFinder - Evaluates pair ratios on enhanced resolution (ER = zoom) scans.
   - @subpage TOPP_FeatureFinderCentroided - Detects two-dimensional features in centroided LC-MS data.
   - @subpage TOPP_FeatureFinderIdentification - Detects two-dimensional features in MS1 data based on peptide identifications.
   - @subpage TOPP_FeatureFinderMetabo - Detects two-dimensional features in centroided LC-MS data of metabolites.
@@ -173,7 +172,6 @@
   <b>Cross-linking</b>
   - @subpage TOPP_OpenPepXL - Search for peptide pairs linked with a labeled cross-linker.
   - @subpage TOPP_OpenPepXLLF - Search for cross-linked peptide pairs in tandem MS spectra.
-  - @subpage TOPP_RNPxlSearch - Annotates RNA-to-peptide cross-links in MS/MS spectra.
   - @subpage TOPP_RNPxlXICFilter - Removes MS2 spectra from treatment based on the fold change between control and treatment for RNA-to-peptide cross-linking experiments.
   - @subpage TOPP_XFDR - Calculates false discovery rate estimates on cross-link identifications.
 
@@ -190,7 +188,6 @@
   - @subpage TOPP_QCImporter - Imports several quality parameters from a tabular (text) format into a qcML file - counterpart to QCExporter.
   - @subpage TOPP_QCMerger - Merges two qcML files together.
   - @subpage TOPP_QCShrinker - Removes extra verbose table attachments from a qcML file that are not needed anymore, e.g. for a final report.
-
 
   <b>Metabolite Identification</b>
   - @subpage TOPP_AccurateMassSearch - Finds potential HMDB IDs within the given mass error window.

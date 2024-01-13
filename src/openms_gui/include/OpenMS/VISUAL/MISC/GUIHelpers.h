@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -49,8 +49,9 @@ namespace OpenMS
                                               const FileTypes::Type fallback_extension);
 
 
-    /// Open TOPPView (e.g. from within TOPPAS)
-    OPENMS_GUI_DLLAPI void startTOPPView(const QStringList& args);
+    /// Open TOPPView (e.g. from within TOPPAS) as a detached process (i.e. will continue running when this process ends)
+    /// @return true if process started successfully
+    OPENMS_GUI_DLLAPI bool startTOPPView(QStringList args);
 
     /// Open a certain URL (in a browser)
     /// Will show a message box on failure

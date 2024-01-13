@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -2098,11 +2098,11 @@ namespace OpenMS
                              + (strange_vertices.size() > 1 ? "s " : " ")
                              + strange_vertices.join(", ")
                              + (strange_vertices.size() > 1 ? " have " : " has ")
-                             + " invalid (non-existing) input files!");
+                             + " invalid (non-existing or duplicate) input files!");
       }
       else
       {
-        std::cerr << "Pipeline contains input file nodes with invalid (non-existing) input files!" << std::endl;
+        std::cerr << "Pipeline contains input file nodes with invalid (non-existing or duplicate) input files!" << std::endl;
       }
       return false;
     }

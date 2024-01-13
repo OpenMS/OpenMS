@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -1511,7 +1511,10 @@ namespace OpenMS
       }
     }
     
-    GUIHelpers::startTOPPView(files);
+    if (!GUIHelpers::startTOPPView(files))
+    {
+      QMessageBox::warning(this, "Could not start TOPPView", "TOPPView failed to start. Please see the commandline for details.");
+    }
 
   }
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -122,7 +122,7 @@ namespace OpenMS
     }
     const Param& sap = sa.getParameters();
     spec.setMetaValue("fragment_mass_tolerance", sap.getValue("tolerance"));
-    spec.setMetaValue("fragment_mass_tolerance_ppm", false);
+    spec.setMetaValue("fragment_mass_tolerance_ppm", sap.getValue("is_relative_tolerance").toBool());
     spec.setStringDataArrays(PeakSpectrum::StringDataArrays(1, type_annotations));
     spec.setFloatDataArrays(PeakSpectrum::FloatDataArrays(1, error_annotations));
   }

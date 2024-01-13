@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -22,20 +22,20 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_DatabaseFilter DatabaseFilter
+@page TOPP_DatabaseFilter DatabaseFilter
 
-    @brief The DatabaseFilter tool filters a protein database in fasta format according to one or multiple filtering criteria.
+@brief The DatabaseFilter tool filters a protein database in fasta format according to one or multiple filtering criteria.
 
-    The resulting database is written as output. Depending on the reporting method (method="whitelist" or "blacklist") only entries are retained that passed all filters ("whitelist) or failed at least one filter ("blacklist").
+The resulting database is written as output. Depending on the reporting method (method="whitelist" or "blacklist") only entries are retained that passed all filters ("whitelist) or failed at least one filter ("blacklist").
 
-    Implemented filter criteria:
+Implemented filter criteria:
 
-        accession: Filter database according to the set of protein accessions contained in an identification file (idXML, mzIdentML)
+    accession: Filter database according to the set of protein accessions contained in an identification file (idXML, mzIdentML)
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_DatabaseFilter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_DatabaseFilter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_DatabaseFilter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_DatabaseFilter.html
 */
 
 // We do not want this class to show up in the docu:
