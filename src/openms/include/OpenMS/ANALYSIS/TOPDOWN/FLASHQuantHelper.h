@@ -87,6 +87,9 @@ namespace FLASHQuantHelper
     std::pair<Size, Size> computeBulkRetentionTimeRange() const;
     double computeBulkPeakArea() const;
 
+    /// calculating and get centroid retention time from mass_trace_
+    double getCentroidRT() const;
+
   private:
     MassTrace mass_trace_;
 
@@ -145,6 +148,7 @@ namespace FLASHQuantHelper
     }
 
     /** default getters **/
+    const std::vector<FeatureSeed>& getSeeds() const;
     double getMonoisotopicMass() const;
     int getMinCharge() const;
     int getMaxCharge() const;
@@ -162,6 +166,7 @@ namespace FLASHQuantHelper
     float getIntensityOfCharge(const int &abs_charge) const;
     float getIsotopeCosineOfCharge(const int &abs_charge) const;
     double getAverageMass() const;
+    std::vector<FeatureSeed> getTheoreticalShapes() const;
 
     /** default setters **/
     void setMonoisotopicMass(const double mass);
@@ -172,6 +177,7 @@ namespace FLASHQuantHelper
     void setPerChargeIntensities(std::vector<float> const &perChargeInt);
     void setPerChargeCosineScore(std::vector<float> const &perChargeCos);
     void setAverageMass(double averageMass);
+    void updateTheoreticalShapes(std::vector<FeatureSeed> const &shapes);
 
     /// update multiple variables in one function
     void updateMembers(); // update after feature_seeds_ is changed
@@ -232,6 +238,9 @@ namespace FLASHQuantHelper
     std::vector<float> per_charge_int_;
     std::vector<float> per_charge_cos_;
     double average_mass_;
+
+    /// store theoretical shapes
+    std::vector<FeatureSeed> theoretical_shapes_;
   };
 
   class OPENMS_DLLAPI CmpFeatureSeedByRT
@@ -297,6 +306,7 @@ namespace FLASHQuantHelper
     std::vector<Size> shared_trace_indices; // index to input shared_m_traces_indices
     std::vector<double> isotope_probabilities; // used as weights to EGHTraceFitter. Index of this vec = same index as unique's
 //    LogMassTrace* most_abundant_mt_in_fg = nullptr;
+    std::vector<FeatureSeed> theoretical_shapes;
 
     int charge;
     Size feature_group_index;
@@ -317,12 +327,28 @@ namespace FLASHQuantHelper
       return total_peaks_size;
     }
 
+    void setTheoreticalShapes(const FeatureSeed& input_trace,
+                              const std::vector<double> &theo_intensities,
+                              const double &calculated_ratio)
+    {
+      FeatureSeed theoretical_seed = input_trace;
+      MassTrace trace = theoretical_seed.getMassTrace();
+      for (Size i = 0; i < theo_intensities.size(); ++i)
+      {
+        trace[i].setIntensity(theo_intensities[i]);
+      }
+      theoretical_seed.setMassTrace(trace);
+      theoretical_seed.setIntensity(calculated_ratio);
+      theoretical_shapes.push_back(theoretical_seed);
+    }
+
     void prepareVectors(const Size n)
     {
       unique_traces.reserve(n);
       shared_traces.reserve(n);
       unique_trace_indices.reserve(n);
       shared_trace_indices.reserve(n);
+      theoretical_shapes.reserve(n);
     }
 
     void shrinkVectors()
@@ -331,6 +357,7 @@ namespace FLASHQuantHelper
       shared_traces.shrink_to_fit();
       unique_trace_indices.shrink_to_fit();
       shared_trace_indices.shrink_to_fit();
+      theoretical_shapes.shrink_to_fit();
     }
   };
 }

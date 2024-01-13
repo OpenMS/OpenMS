@@ -14,6 +14,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -60,6 +61,9 @@ protected:
 
     registerOutputFile_("out_feat", "<file>", "", "FeatureXML output file with quantified feature groups (putative proteoform)", false);
     setValidFormats_("out_feat", ListUtils::create<String>("featureXML"));
+
+    registerOutputFile_("out_cons", "<file>", "", "ConsensusXML output file with mass trace information per feature group", false);
+    setValidFormats_("out_cons", ListUtils::create<String>("ConsensusXML"));
 
     registerOutputFile_("out_detail", "<file>", "", "Tsv output file with mass trace information per feature group", false);
     setValidFormats_("out_detail", ListUtils::create<String>("tsv"));
@@ -282,7 +286,7 @@ protected:
   {
     std::fstream out_stream;
     out_stream.open(outfile_path, std::fstream::out);
-    out_stream << "FeatureGroupID\tMass\tCharge\tIsotopeIndex\tQuantValue\tCentroidMz\tRTs\tMZs\tIntensities\n"; // header
+    out_stream << "FeatureGroupID\tMass\tCharge\tIsotopeIndex\tQuantValue\tCentroidMz\tisTheoretical\tRTs\tMZs\tIntensities\n"; // header
 
     Size fg_index = 0;
     for (const auto &fgroup : fgroups)
@@ -308,12 +312,85 @@ protected:
         out_stream << fg_index << "\t" << std::to_string(fgroup.getMonoisotopicMass()) << "\t"
                    << trace.getCharge() << "\t" << trace.getIsotopeIndex() << "\t"
                    << std::to_string(trace.getIntensity()) << "\t" << std::to_string(trace.getCentroidMz()) << "\t"
-                   << peaks + "\n";
+                   << 0 << peaks + "\n";
       }
+
+      // theoretical
+      for (const auto &shape : fgroup.getTheoreticalShapes())
+      {
+        stringstream rts;
+        stringstream mzs;
+        stringstream intys;
+        for (const auto &peak: shape.getMassTrace())
+        {
+          mzs << std::to_string(peak.getMZ()) << ",";
+          rts << std::to_string(peak.getRT()) << ",";
+          intys << std::to_string(peak.getIntensity()) << ",";
+        }
+        std::string peaks = rts.str();
+        peaks.pop_back();
+        peaks = peaks + "\t" + mzs.str();
+        peaks.pop_back();
+        peaks = peaks + "\t" + intys.str();
+        peaks.pop_back();
+
+        out_stream << fg_index << "\t" << std::to_string(fgroup.getMonoisotopicMass()) << "\t"
+                   << shape.getCharge() << "\t" << shape.getIsotopeIndex() << "\t"
+                   << std::to_string(shape.getIntensity()) << "\t" << std::to_string(shape.getCentroidMz()) << "\t"
+                   << 1 << peaks + "\n";
+      }
+
       ++fg_index;
       out_stream.flush();
     }
     out_stream.close();
+  }
+
+  void storeFeatureGroupInConsensusMap(std::vector<FeatureGroup> &fgroups, ConsensusMap& consensus_map) const
+  {
+    for (Size fg_index = 0; fg_index < fgroups.size(); ++fg_index)
+    {
+      // traces
+      insertTracesInConsensusFeature(fgroups[fg_index].getSeeds(), fg_index, consensus_map);
+
+      // theoretical shape
+      insertTracesInConsensusFeature(fgroups[fg_index].getTheoreticalShapes(), fg_index, consensus_map, true);
+    }
+  }
+
+  void insertTracesInConsensusFeature(vector<FeatureSeed> const& seed_group, Size fg_index, ConsensusMap& out_map, bool isTheoreticalShape = false) const
+  {
+    for (const auto &trace: seed_group)
+    {
+      ConsensusFeature fcons;
+      int k = 0;
+      for (const Peak2D& peak : trace.getMassTrace())
+      {
+        FeatureHandle fhandle;
+        fhandle.setRT(peak.getRT());
+        fhandle.setMZ(peak.getMZ());
+        fhandle.setIntensity(peak.getIntensity());
+        fhandle.setUniqueId(++k);
+        fcons.insert(fhandle);
+      }
+
+      fcons.setMetaValue("FeatureGroupIndex", fg_index);
+      fcons.setMetaValue("Mass", trace.getMass());
+      fcons.setMetaValue("IsotopeIndex", trace.getIsotopeIndex());
+      if (isTheoreticalShape)
+      {
+        fcons.setMetaValue("theoretical_shape", 1);
+      }
+
+      fcons.setCharge(trace.getCharge());
+      fcons.setWidth(trace.getFwhmEnd() - trace.getFwhmStart());
+      fcons.setQuality(1 - (1.0 / trace.getMassTrace().getSize()));
+
+      fcons.setRT(trace.getCentroidRT());
+      fcons.setMZ(trace.getCentroidMz());
+      fcons.setIntensity(trace.getIntensity());
+      out_map.push_back(fcons);
+    }
   }
 
 public:
@@ -325,6 +402,7 @@ public:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     String out_feat = getStringOption_("out_feat");
+    String out_cons = getStringOption_("out_cons");
     String out_detail = getStringOption_("out_detail");
 
     MzMLFile mz_data_file;
@@ -425,6 +503,18 @@ public:
       out_map.setPrimaryMSRunPath({in});
       addDataProcessing_(out_map, getProcessingInfo_(DataProcessing::QUANTITATION));
       FeatureXMLFile().store(out_feat, out_map);
+    }
+    if (!out_cons.empty())
+    {
+      OPENMS_LOG_INFO << "writing output..." << out_cons << endl;
+      ConsensusMap out_consensus_map;
+      out_consensus_map.reserve(m_traces_final.size());
+      out_consensus_map.setPrimaryMSRunPath({in}, ms_peakmap);
+      storeFeatureGroupInConsensusMap(out_fgroups, out_consensus_map);
+
+      out_consensus_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+      addDataProcessing_(out_consensus_map, getProcessingInfo_(DataProcessing::QUANTITATION));
+      ConsensusXMLFile().store(out_cons, out_consensus_map);
     }
     if (!out_detail.empty())
     {

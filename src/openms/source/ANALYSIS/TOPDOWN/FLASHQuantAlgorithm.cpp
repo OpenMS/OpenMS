@@ -1551,6 +1551,9 @@ namespace OpenMS
           // add new FeatureSeed
           input_masstraces.push_back(updated_seed.getMassTrace());
         }
+
+        // add theoretical shape information
+        feature_group.updateTheoreticalShapes(feat.theoretical_shapes);
       }
     }
 
@@ -1705,6 +1708,7 @@ namespace OpenMS
               {
                 std::vector<double> zero_vec = std::vector<double>(lmt_ptr->getMassTrace().getSize(), 0);
                 writeTheoreticalShapeForConflictResolution_(feat.feature_group_index, *lmt_ptr, zero_vec, 0);
+                feat.setTheoreticalShapes(*lmt_ptr, zero_vec, 0);
               }
             }
           }
@@ -1717,6 +1721,7 @@ namespace OpenMS
                                           [org_index_of_this_trace](auto &&x) { return x.getTraceIndex() == org_index_of_this_trace; });
               auto &temp_comp = components[pointer_to_components.getValue(row, i_of_f)];
               writeTheoreticalShapeForConflictResolution_(feat.feature_group_index, *lmt_ptr, temp_comp, 1);
+              feat.setTheoreticalShapes(*lmt_ptr, temp_comp, 1);
             }
           }
         }
@@ -1815,6 +1820,7 @@ namespace OpenMS
       if (this->shared_output_requested_)
       {
         this->writeTheoreticalShapeForConflictResolution_(feat.feature_group_index, *lmt_ptr, theo_matrix.col(col), calculated_ratio[col]);
+        feat.setTheoreticalShapes(*lmt_ptr, theo_matrix.col(col), calculated_ratio[col]);
       }
 
       /// Update MassTrace itself

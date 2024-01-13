@@ -178,6 +178,11 @@ namespace FLASHQuantHelper
     return peak_area;
   }
 
+  double FeatureSeed::getCentroidRT() const
+  {
+    return mass_trace_.getCentroidRT();
+  }
+
   /// comparison operators (using monoisotopic_mass_)
   bool FeatureGroup::operator<(const FeatureGroup &a) const
   {
@@ -271,6 +276,10 @@ namespace FLASHQuantHelper
   }
 
   /// default getter and setters
+  const std::vector<FeatureSeed>& FeatureGroup::getSeeds() const
+  {
+    return feature_seeds_;
+  }
 
   double FeatureGroup::getMonoisotopicMass() const
   {
@@ -352,6 +361,11 @@ namespace FLASHQuantHelper
     return average_mass_;
   }
 
+  std::vector<FeatureSeed> FeatureGroup::getTheoreticalShapes() const
+  {
+    return theoretical_shapes_;
+  }
+
   void FeatureGroup::setMonoisotopicMass(const double mass)
   {
     monoisotopic_mass_ = mass;
@@ -391,6 +405,15 @@ namespace FLASHQuantHelper
   void FeatureGroup::setAverageMass(double averageMass)
   {
     average_mass_ = averageMass;
+  }
+
+  void FeatureGroup::updateTheoreticalShapes(std::vector<FeatureSeed> const &shapes)
+  {
+    if (theoretical_shapes_.empty())
+    {
+      theoretical_shapes_.reserve(this->size());
+    }
+    theoretical_shapes_.insert(theoretical_shapes_.end(), shapes.begin(), shapes.end());
   }
 
   void FeatureGroup::updateMembers()
