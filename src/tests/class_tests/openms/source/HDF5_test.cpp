@@ -167,7 +167,7 @@ START_SECTION((HDF5_BLOSC()))
     hdf5_file->iterateElems("/", NULL,
       // a c-style call-back function that takes takes an (&object_names), and makes it available as op_data.
       // the lambda is called for each step during iteration
-      [](hid_t loc_id, const char* name, void* op_data) -> herr_t
+      [](hid_t /*loc_id*/, const char* name, void* op_data) -> herr_t
       {
         std::vector<std::string>* object_names = static_cast<std::vector<std::string>*>(op_data);
         object_names->push_back(name);
@@ -179,7 +179,7 @@ START_SECTION((HDF5_BLOSC()))
     for (const std::string& name : object_names) 
     {
       H5O_info_t object_info;
-      H5Oget_info_by_name(hdf5_file->getId(), name.c_str(), &object_info, H5P_DEFAULT);
+      H5Oget_info_by_name(hdf5_file->getId(), name.c_str(), &object_info, H5P_DEFAULT, H5O_INFO_ALL);
 
       if (object_info.type == H5O_TYPE_GROUP) 
       {

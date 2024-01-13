@@ -12,7 +12,6 @@ CachedMzML.cpp
 ChromeleonFile.cpp
 CompressedInputSource.cpp
 CVMappingFile.cpp
-Connection_mzMLb.cpp
 ConsensusXMLFile.cpp
 ControlledVocabulary.cpp
 CsvFile.cpp
@@ -103,7 +102,7 @@ ZlibCompression.cpp
 )
 
 if (WITH_HDF5)
-  list(APPEND sources_list HDF5Connector.cpp)  
+  list(APPEND sources_list HDF5Connector.cpp Connection_mzMLb.cpp)  
 endif()
 
 ### add path to the filenames

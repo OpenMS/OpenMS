@@ -28,7 +28,6 @@ CompressedInputSource.h
 CVMappingFile.h
 ConsensusXMLFile.h
 ControlledVocabulary.h
-Connection_mzMLb.h
 CsvFile.h
 DTA2DFile.h
 DTAFile.h
@@ -115,7 +114,7 @@ ZlibCompression.h
 )
 
 if (WITH_HDF5)
-  list(APPEND sources_list_h HDF5Connector.h)  
+  list(APPEND sources_list_h HDF5Connector.h Connection_mzMLb.h)  
 endif()
 
 ### add path to the filenames
