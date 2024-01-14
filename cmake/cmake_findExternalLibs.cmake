@@ -172,6 +172,12 @@ if (WITH_HDF5)
   find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
 endif()
 
+# AWS S3
+if (WITH_S3)
+  # Find the AWS SDK for C++
+  find_package(AWSSDK REQUIRED COMPONENTS s3)
+endif()
+
 #------------------------------------------------------------------------------
 # Done finding contrib libraries
 #------------------------------------------------------------------------------
