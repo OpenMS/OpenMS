@@ -15,6 +15,7 @@
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 
 #include <numeric>
+#include <boost/core/bit.hpp>
 
 namespace OpenMS
 {
@@ -135,6 +136,7 @@ public:
     using ContainerType::insert;
     using ContainerType::erase;
     using ContainerType::swap;
+    using ContainerType::data;
 
     using typename ContainerType::iterator;
     using typename ContainerType::const_iterator;
@@ -337,6 +339,37 @@ public:
     }
 
     //@}
+
+    /*
+    /// @brief Branchless binary search for the lower bound of a value in a sorted range.
+    template<typename It, typename T, typename Cmp>
+    static inline It lower_bound(It begin, It end, const T& value, Cmp comp)
+    {
+        size_t n = end - begin;
+        if (n == 0) return begin;
+
+        size_t two_k = size_t(1) << (boost::core::bit_width(n) - 1);
+        size_t b = __builtin_unpredictable(comp(begin[n / 2], value) ? n - two_k : -1);
+        for (size_t bit = two_k >> 1; bit != 0; bit >>= 1) {
+            if (comp(begin[b + bit], value)) b += bit;
+        }
+        return begin + (b + 1);
+    }
+
+    /// @brief Branchless binary search for the upper bound of a value in a sorted range.
+    template<typename It, typename T, typename Cmp>
+    static inline It upper_bound(It begin, It end, const T& value, Cmp comp)
+    {
+        size_t n = end - begin;
+        size_t b = 0;
+        for (size_t bit = boost::core::bit_floor(n); bit != 0; bit >>= 1) {
+            size_t i = (b | bit) - 1;
+            if (i < n && !comp(value, begin[i])) b |= bit;
+        }
+        return begin + b;
+    }
+    */
+    
 
     ///@name Searching a peak or peak range
     ///@{

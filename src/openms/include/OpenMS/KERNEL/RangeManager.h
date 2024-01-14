@@ -283,6 +283,7 @@ namespace OpenMS
 
     // Rule of 0!
     using RangeBase::RangeBase; // inherit C'tors from base
+    using RangeBase::operator=;
 
     /** @name Accessors for min and max
       
@@ -343,6 +344,7 @@ namespace OpenMS
 
     // Rule of 0!
     using RangeBase::RangeBase; // inherit C'tors from base
+    using RangeBase::operator=;
 
     /** @name Accessors for min and max
       
@@ -381,7 +383,7 @@ namespace OpenMS
       extend(value);
     }
 
-    /// is @p value within [min, max]?
+    /// is @p value within [min, max]? 
     bool containsMZ(const double value) const
     {
       return RangeBase::contains(value);
@@ -401,6 +403,7 @@ namespace OpenMS
 
     // Rule of 0!
     using RangeBase::RangeBase; // inherit C'tors from base
+    using RangeBase::operator=;
 
     /** @name Accessors for min and max
       
