@@ -85,6 +85,11 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
     )
 endif()
 
+if (WITH_S3)
+  ## lol.. disgusting cmake.. how would one link to a subset of the AWS SDK?
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES PRIVATE ${AWSSDK_LINK_LIBRARIES})
+endif()
+
 # Xerces requires linking against CoreFoundation&CoreServices on macOS
 # TODO check if this is still the case
 if(APPLE)

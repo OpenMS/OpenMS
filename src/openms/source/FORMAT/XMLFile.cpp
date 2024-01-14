@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Macros.h>
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/FORMAT/DATAACCESS/S3ChunkedInputSource.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
@@ -18,6 +19,7 @@
 
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
+#include <xercesc/framework/URLInputSource.hpp>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
@@ -113,7 +115,7 @@ private:
 
       StringManager sm;
       //try to open file
-      if (!File::exists(filename))
+      if (!filename.hasPrefix("http:") && !filename.hasPrefix("https:") && !filename.hasPrefix("ftp:") && !filename.hasPrefix("s3:") && !File::readable(filename))
       {
         throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
@@ -129,34 +131,49 @@ private:
             "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
       }
 
-
-      // peak ahead into the file: is it bzip2 or gzip compressed?
-      String bz;
-      {
-        std::ifstream file(filename.c_str());
-        char tmp_bz[3];
-        file.read(tmp_bz, 2);
-        tmp_bz[2] = '\0';
-        bz = String(tmp_bz);
-      }
-
       unique_ptr<xercesc::InputSource> source;
 
-      char g1 = 0x1f;
-      char g2 = 0;
-      g2 |= 1 << 7;
-      g2 |= 1 << 3;
-      g2 |= 1 << 1;
-      g2 |= 1 << 0;
-      //g2 = static_cast<char>(0x8b); // can make troubles if it is casted to 0x7F which is the biggest number signed char can save
-      if ((bz[0] == 'B' && bz[1] == 'Z') || (bz[0] == g1 && bz[1] == g2))
+      if (filename.hasPrefix("http:") || filename.hasPrefix("https:") || filename.hasPrefix("ftp:"))
       {
-        source.reset(new CompressedInputSource(sm.convert(filename).c_str(), bz));
+        // Use URLInputSource for network resources
+        // Note: only works when xerces was compiled with network accessors (I think this is not done in contrib for example)
+        source.reset(new xercesc::URLInputSource(sm.convert(filename).c_str()));
+        // TODO implement CompressedURLInputSource that wraps URLInputSource for decompressing on the fly.
+        // See S3ChunkedInputSource for an example.
+      }
+      else if (filename.hasPrefix("s3:"))
+      {
+        source.reset(new S3ChunkedInputSource(filename));
       }
       else
       {
-        source.reset(new xercesc::LocalFileInputSource(sm.convert(filename).c_str()));
+        // peak ahead into the file: is it bzip2 or gzip compressed?
+        String bz;
+        {
+          std::ifstream file(filename.c_str());
+          char tmp_bz[3];
+          file.read(tmp_bz, 2);
+          tmp_bz[2] = '\0';
+          bz = String(tmp_bz);
+        }
+
+        char g1 = 0x1f;
+        char g2 = 0;
+        g2 |= 1 << 7;
+        g2 |= 1 << 3;
+        g2 |= 1 << 1;
+        g2 |= 1 << 0;
+        //g2 = static_cast<char>(0x8b); // can make troubles if it is casted to 0x7F which is the biggest number signed char can save
+        if ((bz[0] == 'B' && bz[1] == 'Z') || (bz[0] == g1 && bz[1] == g2))
+        {
+          source.reset(new CompressedInputSource(sm.convert(filename).c_str(), bz));
+        }
+        else
+        {
+          source.reset(new xercesc::LocalFileInputSource(sm.convert(filename).c_str()));
+        }
       }
+
       // what if no encoding given http://xerces.apache.org/xerces-c/apiDocs-3/classInputSource.html
       if (!enforced_encoding_.empty())
       {
