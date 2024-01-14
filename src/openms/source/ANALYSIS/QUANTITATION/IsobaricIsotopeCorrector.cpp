@@ -19,11 +19,49 @@
 
 #include <Eigen/Core>
 #include <Eigen/LU>
+#include <memory>
 
 // #define ISOBARIC_QUANT_DEBUG
 
 namespace OpenMS
 {
+
+  void
+  IsobaricIsotopeCorrector::correctIsotopicImpurities(std::vector<double> & intensities,
+                                                     const IsobaricQuantitationMethod* quant_method)
+  {
+    std::vector<double> res(quant_method->getNumberOfChannels());
+    // we need to copy anyway because NNLS will modify the input Matrix
+    MutableEigenMatrixXdPtr m(convertOpenMSMatrix2MutableEigenMatrixXd(quant_method->getIsotopeCorrectionMatrix()));
+    solveNNLS_(m, intensities, res);
+    intensities = res;
+  }
+
+  /* That is the safe version with dozen of copies
+  std::vector<double>
+  IsobaricIsotopeCorrector::correctIsotopicImpurities(std::vector<double> & intensities,
+                                                     const IsobaricQuantitationMethod* quant_method)
+  {
+    Size c = quant_method->getNumberOfChannels();
+    Matrix<double> m(quant_method->getIsotopeCorrectionMatrix());
+    std::vector<double> res(c, 0.);
+
+    // data structures for NNLS
+    Matrix<double> m_b(c, 1.);
+    for (Size i = 0; i < c; ++i)
+    {
+      m_b(i,0) = intensities[i];
+    }
+
+    Matrix<double> m_x(c, 1.);
+    
+    solveNNLS_(m, m_b, m_x);
+    for (Size i = 0; i < c; ++i)
+    {
+      res[i] = m_x(i,0);
+    }
+    return res;
+  }*/
 
   IsobaricQuantifierStatistics
   IsobaricIsotopeCorrector::correctIsotopicImpurities(
@@ -86,10 +124,30 @@ namespace OpenMS
       solveNNLS_(correction_matrix, m_b, m_x);
 
       // update the output consensus map with the corrected intensities
-      float cf_intensity = updateOutpuMap_(consensus_map_in, consensus_map_out, i, m_x);
+      float cf_intensity = updateOutputMap_(consensus_map_in, consensus_map_out, i, m_x);
 
       // check consistency
-      computeStats_(m_x, e_mx, cf_intensity, quant_method, stats);    
+      computeStats_(m_x, e_mx, cf_intensity, quant_method, stats);
+
+      /* Try this when time permits
+      
+      std::vector<double> b = getIntensities_(quant_method, consensus_map_in[i], consensus_map_in);
+
+      //solve
+      const auto& b_eigen = Eigen::Map<Eigen::VectorXd>(b.data(), b.size());
+      Eigen::MatrixXd e_x = ludecomp.solve(b_eigen);
+      if (!((*m) * e_x).isApprox(b_eigen))
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricIsotopeCorrector: Cannot multiply!");
+      }
+      solveNNLS_(m, b, x);
+
+      // update the output consensus map with the corrected intensities
+      float cf_intensity = updateOutputMap_(consensus_map_in, consensus_map_out, i, x);
+
+      // check consistency
+      computeStats_(x, e_x, cf_intensity, quant_method, stats);
+      */
     }
 
     return stats;
@@ -114,6 +172,25 @@ namespace OpenMS
     }
   }
 
+  std::vector<double>
+  IsobaricIsotopeCorrector::getIntensities_(const IsobaricQuantitationMethod* quant_method, const ConsensusFeature& cf, const ConsensusMap& cm)
+  {
+    int first_map_index = cf.getFeatures().begin()->getMapIndex();
+    Int map_index_offset = Int(cm.getColumnHeaders().find(first_map_index)->second.getMetaValue("channel_id")) - first_map_index;
+    std::vector<double> res;
+    res.resize(quant_method->getNumberOfChannels());
+    Int index = 0;
+    for (ConsensusFeature::HandleSetType::const_iterator it_elements = cf.getFeatures().begin();
+         it_elements != cf.getFeatures().end();
+         ++it_elements)
+    {
+      //find channel_id of current element
+      index = Int(it_elements->getMapIndex() - map_index_offset);
+      res[index] = it_elements->getIntensity();
+    }
+    return res;
+  }
+
   void
   IsobaricIsotopeCorrector::solveNNLS_(const Matrix<double>& correction_matrix,
                                        const Matrix<double>& m_b, Matrix<double>& m_x)
@@ -122,6 +199,68 @@ namespace OpenMS
     if (status != NonNegativeLeastSquaresSolver::SOLVED)
     {
       throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricIsotopeCorrector: Failed to find least-squares fit!");
+    }
+  }
+
+  void
+  IsobaricIsotopeCorrector::solveNNLS_(std::shared_ptr<Eigen::MatrixXd> & correction_matrix, std::vector<double> & b, std::vector<double> & x)
+  {
+    Int status = NonNegativeLeastSquaresSolver::solve(correction_matrix, b, x);
+    if (status != NonNegativeLeastSquaresSolver::SOLVED)
+    {
+      throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricIsotopeCorrector: Failed to find least-squares fit!");
+    }
+  }
+
+  void
+  IsobaricIsotopeCorrector::solveNNLS_(std::shared_ptr<const Eigen::MatrixXd> & correction_matrix, std::vector<double> & b, std::vector<double> & x)
+  {
+    Eigen::MatrixXd copy = *correction_matrix;
+    auto copy_ptr = std::make_shared<Eigen::MatrixXd>(copy);
+    Int status = NonNegativeLeastSquaresSolver::solve(copy_ptr, b, x);
+    if (status != NonNegativeLeastSquaresSolver::SOLVED)
+    {
+      throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricIsotopeCorrector: Failed to find least-squares fit!");
+    }
+  }
+
+  void
+  IsobaricIsotopeCorrector::computeStats_(const std::vector<double>& m_x,
+                                          const Eigen::MatrixXd& x, const float cf_intensity,
+                                          const IsobaricQuantitationMethod* quant_method, IsobaricQuantifierStatistics& stats)
+  {
+    Size s_negative(0);
+    Size s_different_count(0); // happens when naive solution is negative in other channels
+    double s_different_intensity(0);
+
+    // ISOTOPE CORRECTION: compare solutions of Matrix inversion vs. NNLS
+    for (Size index = 0; index < quant_method->getNumberOfChannels(); ++index)
+    {
+      if (x(index) < 0.0)
+      {
+        ++s_negative;
+      }
+      else if ((((std::fabs(m_x[index] - x(index)))/m_x[index])*100) > 1)
+      {
+        ++s_different_count;
+        s_different_intensity += std::fabs(m_x[index] - x(index));
+      }
+    }
+
+    if (s_negative == 0 && s_different_count > 0) //some solutions are inconsistent, despite being positive
+    {
+      OPENMS_LOG_WARN << "IsobaricIsotopeCorrector: Isotope correction values of alternative method differ!" << std::endl;
+    }
+
+    // update global stats
+    stats.iso_number_reporter_negative += s_negative;
+    stats.iso_number_reporter_different += s_different_count;
+    stats.iso_solution_different_intensity += s_different_intensity;
+
+    if (s_negative > 0)
+    {
+      ++stats.iso_number_ms2_negative;
+      stats.iso_total_intensity_negative += cf_intensity;
     }
   }
 
@@ -141,10 +280,10 @@ namespace OpenMS
       {
         ++s_negative;
       }
-      else if ((((std::fabs(m_x(index, 0) - x(index)))/m_x(index, 0))*100) > 1)
+      else if ((((std::fabs(m_x(index,0) - x(index)))/m_x(index,0))*100) > 1)
       {
         ++s_different_count;
-        s_different_intensity += std::fabs(m_x(index, 0) - x(index));
+        s_different_intensity += std::fabs(m_x(index,0) - x(index));
       }
     }
 
@@ -166,7 +305,34 @@ namespace OpenMS
   }
 
   float
-  IsobaricIsotopeCorrector::updateOutpuMap_(
+  IsobaricIsotopeCorrector::updateOutputMap_(
+    const ConsensusMap& consensus_map_in, ConsensusMap& consensus_map_out,
+    ConsensusMap::size_type current_cf, const std::vector<double>& m_x)
+  {
+    float cf_intensity(0);
+    for (ConsensusFeature::HandleSetType::const_iterator it_elements = consensus_map_in[current_cf].begin();
+         it_elements != consensus_map_in[current_cf].end();
+         ++it_elements)
+    {
+      FeatureHandle handle = *it_elements;
+      //find channel_id of current element
+      Int index = Int(consensus_map_out.getColumnHeaders()[it_elements->getMapIndex()].getMetaValue("channel_id"));
+      handle.setIntensity(float(m_x[index]));
+
+      consensus_map_out[current_cf].insert(handle);
+      cf_intensity += handle.getIntensity(); // sum up all channels for CF
+
+#ifdef ISOBARIC_QUANT_DEBUG
+      std::cout <<  it_elements->getIntensity() << " -> " << handle.getIntensity() << std::endl;
+#endif
+    }
+    consensus_map_out[current_cf].setIntensity(cf_intensity); // set overall intensity of CF (sum of all channels)
+
+    return cf_intensity;
+  }
+
+    float
+  IsobaricIsotopeCorrector::updateOutputMap_(
     const ConsensusMap& consensus_map_in, ConsensusMap& consensus_map_out,
     ConsensusMap::size_type current_cf, const Matrix<double>& m_x)
   {
@@ -178,7 +344,7 @@ namespace OpenMS
       FeatureHandle handle = *it_elements;
       //find channel_id of current element
       Int index = Int(consensus_map_out.getColumnHeaders()[it_elements->getMapIndex()].getMetaValue("channel_id"));
-      handle.setIntensity(float(m_x(index, 0)));
+      handle.setIntensity(float(m_x(index,0)));
 
       consensus_map_out[current_cf].insert(handle);
       cf_intensity += handle.getIntensity(); // sum up all channels for CF

@@ -102,6 +102,7 @@ namespace OpenMS
     tools_map["INIUpdater"] = Internal::ToolDescription("INIUpdater", cat_misc);
     tools_map["InternalCalibration"] = Internal::ToolDescription("InternalCalibration", cat_calibration);
     tools_map["IsobaricAnalyzer"] = Internal::ToolDescription("IsobaricAnalyzer", cat_quant);
+    tools_map["IsobaricWorkflow"] = Internal::ToolDescription("IsobaricWorkflow", cat_quant);
     tools_map["JSONExporter"] = Internal::ToolDescription("JSONExporter", cat_dev);
     tools_map["LuciphorAdapter"] = Internal::ToolDescription("LuciphorAdapter", cat_ID_search);
     tools_map["MapAlignerIdentification"] = Internal::ToolDescription("MapAlignerIdentification", cat_map_align);

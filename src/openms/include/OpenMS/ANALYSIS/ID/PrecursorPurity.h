@@ -67,6 +67,36 @@ namespace OpenMS
     */
     static PurityScores computePrecursorPurity(const PeakSpectrum& ms1, const Precursor& pre, const double precursor_mass_tolerance, const bool precursor_mass_tolerance_unit_ppm);
 
+    /**
+     * @brief Computes a simple purity score aggregate for all Precursors (and their windows) of spectrum at @p ms2_spec_idx in the precursor spectrum at @p precursor_spec_idx
+     * 
+     * Extracts with fuzzy boundaries around expected isotopes where it only considers 50% of the intensity of the peak as belonging to the target.
+     * Warning: Does neither check if the relationship between those spectra make sense nor that all precursors windows in @p ms2_spec_idx even come from the same spectrum.
+     * 
+     * @param ms2_spec_idx index for the spectrum holding the precursor information
+     * @param precursor_spec_idx index for the precursor spectrum to extract the intensities from
+     * @param exp the MSExperiment holding the spectra to look them up
+     * @param max_precursor_isotope_deviation the maximum allowed deviation for the precursor isotopes in ppm
+     * @return std::vector<double> precursor intensity vs. total intensity for every precursor window in @p ms2_spec_idx
+     */
+    static std::vector<double> computeSingleScanPrecursorPurities(int ms2_spec_idx, int precursor_spec_idx, const MSExperiment & exp, double max_precursor_isotope_deviation);
+    
+    /**
+     * @brief Computes a simple purity score aggregate for all Precursors (and their windows) of spectrum at @p ms2_spec_idx interpolated between
+     *  precursor spectrum at @p precursor_spec_idx and the next parent type spectrum at @p next_ms1_spec_idx
+     * 
+     * Interpolates by RT distances of ms2_spec_idx to the precursor_spec_idx and next_ms1_spec_idx.
+     * Extracts with fuzzy boundaries around expected isotopes where it only considers 50% of the intensity of the peak as belonging to the target.
+     * Warning: Does neither check if the relationship between those spectra make sense nor that all precursors windows in @p ms2_spec_idx even come from the same spectrum.
+     * 
+     * @param ms2_spec_idx index for the spectrum holding the precursor information
+     * @param precursor_spec_idx index for the precursor spectrum to extract the intensities from
+     * @param next_ms1_spec_idx index for the next parent type spectrum to extract the intensities from
+     * @param exp the MSExperiment holding the spectra to look them up
+     * @param max_precursor_isotope_deviation the maximum allowed deviation for the precursor isotopes in ppm
+     * @return std::vector<double> precursor intensity vs. total intensity for every precursor window in @p ms2_spec_idx
+     */
+    static std::vector<double> computeInterpolatedPrecursorPurity(int ms2_spec_idx, int precursor_spec_idx, int next_ms1_spec_idx, const MSExperiment & exp, double max_precursor_isotope_deviation);
 
   private:
     // simple helper to combine the metrics contained in two PurityScores

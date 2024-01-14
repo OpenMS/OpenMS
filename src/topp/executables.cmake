@@ -40,6 +40,7 @@ IDRipper
 IDRTCalibration
 InternalCalibration
 IsobaricAnalyzer
+IsobaricWorkflow
 LuciphorAdapter
 MapAlignerIdentification
 MapAlignerPoseClustering

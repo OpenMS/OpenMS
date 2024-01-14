@@ -12,7 +12,7 @@
 
 #include <Eigen/Core>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace OpenMS
 {
@@ -20,11 +20,25 @@ namespace OpenMS
    *
    */
 
-  typedef boost::shared_ptr< const Eigen::MatrixXd > EigenMatrixXdPtr;
-  typedef boost::shared_ptr< Eigen::MatrixXd > MutableEigenMatrixXdPtr;
+  typedef std::shared_ptr<const Eigen::MatrixXd> EigenMatrixXdPtr;
+  typedef std::shared_ptr<Eigen::MatrixXd> MutableEigenMatrixXdPtr;
 
   inline EigenMatrixXdPtr
-  convertOpenMSMatrix2EigenMatrixXd( const Matrix<double>& m )
+  convertOpenMSMatrix2EigenMatrixXd(const Matrix<double>& m)
+  {
+    MutableEigenMatrixXdPtr em(new Eigen::MatrixXd(m.rows(), m.cols()));
+    for (unsigned i = 0; i < m.rows(); ++i)
+    {
+      for (unsigned j = 0; j < m.cols(); ++j)
+      {
+        (*em)(i, j) = m(i, j);
+      }
+    }
+    return em;
+  }
+
+  inline MutableEigenMatrixXdPtr
+  convertOpenMSMatrix2MutableEigenMatrixXd(const Matrix<double>& m)
   {
     MutableEigenMatrixXdPtr em ( new Eigen::MatrixXd(m.rows(), m.cols()) );
     for (unsigned i=0; i<m.rows(); ++i)
