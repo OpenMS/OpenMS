@@ -131,10 +131,6 @@ protected:
     setMinFloat_("fragment_annotation_score_threshold", 0.0);
     setMaxFloat_("fragment_annotation_score_threshold", 1.0);
 
-    registerFlag_("decoy_generation", "Decoys will be generated using the fragmentation tree re-rooting approach. This option does only work in combination with the fragment annotation via Sirius.", false);
-
-    registerStringOption_("decoy_generation_method", "<choice>", "original", "Uses different methods for decoy generation. Basis for the method is the fragmentation-tree re-rooting approach ('original'). This approach can be extended by using 'resolve_overlap', which will resolve overlapping fragments of the highest intensity fragments chosen, by adding -CH2 mass to the overlapping fragments. 'Add_shift' will add a -CH2 mass shift to the target fragments and use them as additional decoys if fragmentation-tree re-rooting failed. 'Both' combines the extended methods (resolve_overlap, add_shift).",false);
-    setValidStrings_("decoy_generation_method", ListUtils::create<String>("original,resolve_overlap,add_shift,both"));
 
     registerStringOption_("method", "<choice>", "highest_intensity", "Spectrum with the highest precursor intensity or a consensus spectrum is used for assay library construction (if no fragment annotation is used).",false);
     setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
@@ -149,6 +145,14 @@ protected:
     registerDoubleOption_("transition_threshold", "<num>", 5, "Further transitions need at least x% of the maximum intensity (default 5%)", false);
     registerDoubleOption_("min_fragment_mz", "<num>", 0.0, "Minimal m/z of a fragment ion choosen as a transition", false, true);
     registerDoubleOption_("max_fragment_mz", "<num>", 2000.0, "Maximal m/z of a fragment ion choosen as a transition" , false, true);
+    
+    // decoys
+    registerFlag_("decoy_generation", "Decoys will be generated using the fragmentation tree re-rooting approach. This option does only work in combination with the fragment annotation via Sirius.", false);
+    registerStringOption_("decoy_generation_method", "<choice>", "original", "Uses different methods for decoy generation. Basis for the method is the fragmentation-tree re-rooting approach ('original'). This approach can be extended by using 'resolve_overlap', which will resolve overlapping fragments of the highest intensity fragments chosen, by adding -CH2 mass to the overlapping fragments. 'Add_shift' will add a -CH2 mass shift to the target fragments and use them as additional decoys if fragmentation-tree re-rooting failed. 'Both' combines the extended methods (resolve_overlap, add_shift).",false);
+    setValidStrings_("decoy_generation_method", ListUtils::create<String>("original,resolve_overlap,add_shift,both"));
+    registerDoubleOption_("decoy_resolution_mz_tolerance", "<num>", 10.0, "Mz tolerance for the resolution of overlapping m/z values for targets and decoys of one compound.", false);
+    registerStringOption_("decoy_resolution_mz_tolerance_unit", "<choice>", "ppm", "Unit of the decoy_resolution_mz_tolerance", false, true);
+    setValidStrings_("decoy_resolution_mz_tolerance_unit", ListUtils::create<String>("ppm,Da"));
   }
 
   ExitCodes main_(int, const char **) override
@@ -193,6 +197,8 @@ protected:
       resolve_overlap = true;
       add_shift = true;
     }
+    double decoy_mz_tol = getDoubleOption_("decoy_resolution_mz_tolerance");
+    String decoy_mz_tol_unit_res = getStringOption_("decoy_resolution_mz_tolerance_unit");
     int min_transitions = getIntOption_("min_transitions");
     int max_transitions = getIntOption_("max_transitions");
     double min_fragment_mz = getDoubleOption_("min_fragment_mz");
@@ -314,9 +320,10 @@ protected:
       {
         const double chtwo_mass = EmpiricalFormula("CH2").getMonoWeight();
         vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping> mappings = MetaboTargetedTargetDecoy::constructTargetDecoyMassMapping(t_exp);
+
         if (resolve_overlap)
         {
-          MetaboTargetedTargetDecoy::resolveOverlappingTargetDecoyMassesByIndividualMassShift(t_exp, mappings, chtwo_mass);
+          MetaboTargetedTargetDecoy::resolveOverlappingTargetDecoyMassesByIndividualMassShift(t_exp, mappings, chtwo_mass, decoy_mz_tol, decoy_mz_tol_unit_res);
         }
         if (add_shift)
         {
