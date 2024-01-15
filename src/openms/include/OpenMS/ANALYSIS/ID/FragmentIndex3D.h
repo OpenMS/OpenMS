@@ -8,8 +8,8 @@
 
 #pragma once
 
+#include <OpenMS/ANALYSIS/ID/FragmentIndexTagGenerator.h>
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
-#include <OpenMS/ANALYSIS/ID/FragmentIndexTagGeneratorNode.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
@@ -18,7 +18,7 @@
 #include <functional>
 #include <utility>
 #include <vector>
-
+#include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
 
 namespace OpenMS
 {
@@ -57,9 +57,11 @@ namespace OpenMS
      */
     struct SpectrumMatchesTopN
     {
+
       std::vector<SpectrumMatch> hits_;     ///< The preliminary candidates
       uint32_t matched_peaks_{};      ///< The number of matched peaks TODO: statistic needed?
       uint32_t scored_candidates_{};  ///< The number of scored candidates
+      uint32_t number_multi_peaks_{}; /// < The number of multiPeaks that were created for the current spectrum
 
       SpectrumMatchesTopN() = default;
 
@@ -76,6 +78,20 @@ namespace OpenMS
         this->hits_.insert(this->hits_.end(), other.hits_.begin(), other.hits_.end());
         return *this;
       }
+
+      void clear()
+      {
+        hits_.clear();
+        matched_peaks_ = 0;
+        scored_candidates_ = 0;
+      }
+    };
+
+    struct SpectrumQueryResult
+    {
+      SpectrumMatchesTopN spectrumMatches;
+      std::string spectrum_id{};
+      uint64_t num_of_peaks{};
     };
 
 
@@ -119,11 +135,20 @@ namespace OpenMS
     */
     void multiDimSpectrumQuery(const MSSpectrum& spectrum, SpectrumMatchesTopN& SpectrumMatchesTopN);
 
+    /**
+     * Gets the path to an Experiment and queries each spectrum
+     * @param path
+     * @param output[out]
+     */
+    void multiDimExperimentQuery(const std::string path, std::vector<SpectrumQueryResult>& output);
+
     /// DefaultConstructor
     FragmentIndex3D() ;
 
     /// Default destructor
     //FragmentIndex;
+
+    Peptide getPeptide(size_t idx);
 
   protected:
 

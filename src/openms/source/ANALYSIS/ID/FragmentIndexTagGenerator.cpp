@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/FragmentIndexTagGenerator.h>
-#include <OpenMS/ANALYSIS/ID/FragmentIndexTagGeneratorNode.h>
 #include <OpenMS/CHEMISTRY/AAIndex.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
@@ -35,11 +34,19 @@ using namespace std;
 
 namespace OpenMS
 {
+  std::vector<std::string> aminoAcids = {
+    "A", "C", "D", "E", "F", "G", "H", "I", "K", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y"
+  };
+  std::vector<float> monoisotopic_masses = {
+    71.03711, 103.00919, 115.02694, 129.04259, 147.06841, 57.02146, 137.05891, 113.08406, 128.09496, 131.04049, 114.04293, 97.05276, 128.05858, 156.10111, 87.03203, 101.04768, 99.06841, 186.07932, 163.06332
+  };
+
+
   FragmentIndexTagGenerator::FragmentIndexTagGenerator(const OpenMS::MSSpectrum& spectrum)
   {
     spectrum_ = spectrum;
     selected_peaks_.resize(spectrum_.size());
-    n = spectrum_.getPrecursors()[0].getMZ()/ 35;  // TODO: Does this make sense??
+
   }
   FragmentIndexTagGenerator::~FragmentIndexTagGenerator() = default;
 
@@ -52,7 +59,6 @@ namespace OpenMS
       spectrum_ = source.spectrum_;
       selected_peaks_ = source.selected_peaks_;
       n = source.n;
-      dag_ = source.dag_;
     }
     return *this;
   }
@@ -62,7 +68,6 @@ namespace OpenMS
   {
     spectrum_.clear(true);
     selected_peaks_.clear();
-    dag_.clear();
 
     spectrum_ = spectrum;
     selected_peaks_.resize(spectrum_.size());
@@ -78,7 +83,7 @@ namespace OpenMS
       idx_intensity.emplace_back(idx_count, peak.getIntensity());
       idx_count++;
     }
-    //we can use the same heap structure as in the scoring to get the top k hits
+
     std::partial_sort(idx_intensity.begin(), idx_intensity.begin() + n, idx_intensity.end(), [](const IdxAndIntensity a, const IdxAndIntensity b)
                       {
                         if(a.intensity_ == b.intensity_)
@@ -119,52 +124,62 @@ namespace OpenMS
     }
   }
 
-  void FragmentIndexTagGenerator::generateAllNodes(uint32_t max_charge)
+
+  void FragmentIndexTagGenerator::generateAllMultiPeaksFast(std::vector<MultiPeak>& all_multi_peaks,
+                                                            size_t depth,
+                                                            float tolerance,
+                                                            bool tolerance_unit)
   {
-    //should there already be a graph delete it
-    dag_.clear();
-    size_t peak_counter = 0;
-    for(Peak1D peak: spectrum_){
-      for(uint32_t charge = 1; charge <= max_charge; charge++){
-        dag_.push_back(make_shared<FragmentIndexTagGeneratorNode>(peak, charge, selected_peaks_[peak_counter]));
-      }
-      peak_counter++;
+    //first check if spectrum is sorted!!!
+    if (!spectrum_.isSorted())
+    {
+      OPENMS_LOG_WARN << "Spectrum was not sorted. Will be sorted now!" << endl;
+      spectrum_.sortByPosition();
     }
-    sort(dag_.begin(), dag_.end(), [](const shared_ptr<FragmentIndexTagGeneratorNode>& a, const shared_ptr<FragmentIndexTagGeneratorNode>& b){
-      return a->calculateMass() < b->calculateMass();
-    });
+    for (size_t i = 0; i < spectrum_.size(); i++)  //loop over all peaks. and execute the recursion
+    {
+      // initialize the MultiPeak
+      float actual_tol;
+      if(tolerance_unit)
+        actual_tol =  Math::ppmToMass(tolerance, (float) spectrum_[i].getMZ());
+      else
+        actual_tol = tolerance;
+      MultiPeak multi_peak((float) spectrum_[i].getMZ(),(float) spectrum_[i].getIntensity());
+      generateAllMultiPeaksFastRecursion(all_multi_peaks, multi_peak, i, depth, actual_tol);
+
+    }
   }
 
-  void FragmentIndexTagGenerator::generateDirectedAcyclicGraph(float fragment_tolerance)
+  void FragmentIndexTagGenerator::generateAllMultiPeaksFastRecursion(std::vector<MultiPeak>& all_multi_peaks, FragmentIndexTagGenerator::MultiPeak& multi_peak, size_t current_peak_idx,
+                                                                     size_t recursion_step, float tolerance)
   {
-    //first extract the max intensity to later normalize the intensities
-    float max = 0;
-    for(Peak1D p: spectrum_){
-      if(p.getIntensity() > max) max = p.getIntensity();
-    }
-
-    for(size_t i = selected_peaks_.size(); i > 0; i--){
-      if(selected_peaks_[i-1]){
-        shared_ptr<FragmentIndexTagGeneratorNode> newNode = make_shared<FragmentIndexTagGeneratorNode>(spectrum_[i-1]);
-        newNode->calculateConfidence(spectrum_, max);
-        for(auto dag_iter = dag_.end() - 1; dag_iter != dag_.begin()-1 ; dag_iter--){    // loop through the complete loop
-          if(!newNode->generateConnection(*dag_iter, fragment_tolerance))                      // this function returns false if we out of any
-            break;                                                                                  // AA range, in which case we will break the loop
+      if (recursion_step == 0)
+      {
+        all_multi_peaks.push_back(multi_peak);
+        return;
+      }
+      size_t j = current_peak_idx + 1;
+      while (j < spectrum_.size())
+      {
+        auto delta_mz = static_cast<float>(spectrum_[j].getMZ() - spectrum_[current_peak_idx].getMZ());
+        if (delta_mz > 190)
+        {
+          break;
         }
-        dag_.push_back(newNode);
-
+        for (size_t mim = 0; mim < monoisotopic_masses.size(); mim++)
+        {
+          if ((monoisotopic_masses[mim] - tolerance <= delta_mz) &&(delta_mz <= monoisotopic_masses[mim] + tolerance)){
+            FragmentIndexTagGenerator::MultiPeak temp_copy(multi_peak);
+            temp_copy.addFollowUpPeak(delta_mz, aminoAcids[mim]);
+            temp_copy.addScore(spectrum_[j].getIntensity());
+            generateAllMultiPeaksFastRecursion(all_multi_peaks, temp_copy, j, recursion_step - 1, tolerance);
+            break;
+          }
+        }
+        j++;
       }
-    }
   }
 
-  void FragmentIndexTagGenerator::generateAllMultiPeaks(std::vector<FragmentIndexTagGenerator::MultiPeak>& quad_peaks, size_t depth)
-  {
-    for(shared_ptr<FragmentIndexTagGeneratorNode> node: dag_){
-      vector<MultiPeak> quad_peaks_per_node;
-      node->generateAllMultiPeaks(quad_peaks_per_node, depth);  // for every node in the dag start a recursiv chain
-      quad_peaks.insert(quad_peaks.end(), quad_peaks_per_node.begin(), quad_peaks_per_node.end());
-    }
-  }
 
   void FragmentIndexTagGenerator::generateAllMultiFragments(std::vector<FragmentIndexTagGenerator::MultiFragment>& multi_frags,
                                                size_t depth,
@@ -217,7 +232,7 @@ namespace OpenMS
     //follow_up_peaks_AA_ = multiPeak.getFollowUpPeaksAa();
   }
 
-  FragmentIndexTagGenerator::MultiFragment::MultiFragment(const FragmentIndexTagGenerator::MultiFragment& other) = default;
+  FragmentIndexTagGenerator::MultiFragment::MultiFragment(const FragmentIndexTagGenerator::MultiFragment& other)  = default;
 
   FragmentIndexTagGenerator::MultiFragment& FragmentIndexTagGenerator::MultiFragment::operator=(const FragmentIndexTagGenerator::MultiFragment& other)
   {
@@ -255,10 +270,15 @@ namespace OpenMS
   FragmentIndexTagGenerator::MultiPeak::MultiPeak() : peak_(), score_(0), follow_up_peaks({})
   {
   }
-  FragmentIndexTagGenerator::MultiPeak::MultiPeak(OpenMS::Peak1D peak, float score) : peak_(peak), score_(score), follow_up_peaks()
+  FragmentIndexTagGenerator::MultiPeak::MultiPeak(float peak, float score) : peak_(peak), score_(score), follow_up_peaks()
   {
   }
-  FragmentIndexTagGenerator::MultiPeak::MultiPeak(const FragmentIndexTagGenerator::MultiPeak& other) = default;
+  FragmentIndexTagGenerator::MultiPeak::MultiPeak(const FragmentIndexTagGenerator::MultiPeak& other)    :
+      peak_(other.peak_),
+      score_(other.score_),
+      follow_up_peaks_AA(other.follow_up_peaks_AA),
+      follow_up_peaks(other.follow_up_peaks) {
+      };
   FragmentIndexTagGenerator::MultiPeak& FragmentIndexTagGenerator::MultiPeak::operator=(const FragmentIndexTagGenerator::MultiPeak& other)
   {
     if (&other == this)
@@ -274,7 +294,7 @@ namespace OpenMS
     score_ += score;
   }
 
-  const Peak1D& FragmentIndexTagGenerator::MultiPeak::getPeak() const
+  float FragmentIndexTagGenerator::MultiPeak::getPeak() const
   {
     return peak_;
   }

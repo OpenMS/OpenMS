@@ -13,7 +13,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/ANALYSIS/ID/FragmentIndexTagGeneratorNode.h>
+
 
 
 #include <vector>
@@ -28,7 +28,7 @@ namespace OpenMS
     MSSpectrum spectrum_;
     std::vector<bool> selected_peaks_;                   // The peaks we actually want to use
     uint32_t n;                                          // the number of globally selected peaks;
-    std::vector<std::shared_ptr<TagGeneratorNode>> dag_; // directed acyclic graph containing all peaks
+
 
 
 
@@ -39,7 +39,7 @@ namespace OpenMS
     public:
       MultiPeak();
 
-      MultiPeak(Peak1D peak, float score);
+      MultiPeak(float peak, float score);
 
       /// Copy
       MultiPeak(const MultiPeak& other);
@@ -48,7 +48,7 @@ namespace OpenMS
       /// Destructor
       virtual ~MultiPeak() = default;
 
-      [[nodiscard]] const Peak1D& getPeak() const;
+      float getPeak() const;
       float getScore() const;
       const std::string& getFollowUpPeaksAa() const;
       const std::vector<float>& getFollowUpPeaks() const;
@@ -57,9 +57,9 @@ namespace OpenMS
       void addScore(float score);
 
     protected:
-      Peak1D peak_;
+      float peak_;
       float score_;
-      std::string follow_up_peaks_AA;
+      std::string follow_up_peaks_AA;       //TODO:: Only for debugging
       std::vector<float> follow_up_peaks;
     };
 
@@ -99,8 +99,6 @@ namespace OpenMS
     };
 
 
-
-
     /**
      * @brief A struct class containing the intensity and the idx of a peak.
      * Used for simple global and local selection
@@ -114,9 +112,9 @@ namespace OpenMS
         intensity_ = intensity;
       }
     };
-
+  public:
     /// Constructor
-    FragmentIndexTagGenerator(const MSSpectrum& spectrum);
+    explicit FragmentIndexTagGenerator(const MSSpectrum& spectrum);
 
     /// copy constructor
     FragmentIndexTagGenerator(const FragmentIndexTagGenerator& cp);
@@ -145,25 +143,16 @@ namespace OpenMS
 
 
     /**
-     * @brief Gets from the peaks of the spectrum all possible nodes for the dag(directed acyclic graph)
-     * @param max_charge : The maximal charge a peak should have. Runtime scales with max_charge, but is not the bottleneck
+     * @brief Skipes dag generation and creates all MultiPeaks directly from the Spectrum!
+     * Assumes that the spectrum only has charge 1 peaks.
+     * @param[out] all_multi_peaks ouput vector containing all the MultiPeaks
+     * @param depth The depth of the MultiPeak (= # of follow up peaks)
      */
-    void generateAllNodes(uint32_t max_charge);
+    void generateAllMultiPeaksFast(std::vector<MultiPeak>& all_multi_peaks,
+                                   size_t depth,
+                                   float tolerance,
+                                   bool tolerance_unit);
 
-    /**
-     * @brief Generates a directed acyclic graph from all selected peaks. Nodes are connected
-     * if they have a distance equal to the monoisotopic mass of any Amino Acid
-     * @param fragment_tolerance : The allowed tolerance between peak distance and any monoisotopic mass
-     */
-    void generateDirectedAcyclicGraph(float fragment_tolerance);
-
-    /**
-     * @brief Given the dag, generates all possible Multi Peaks and calculates their score.
-     * This method is to be used on EXPERIMENTAL SPECTRA
-     * @param quad_peaks : vector the Multipeaks are stored in
-     * @param depth : The number of follow up peaks one peak should include
-     */
-    void generateAllMultiPeaks(std::vector<MultiPeak>& quad_peaks, size_t depth);
 
     /**
      * @brief Given a THEORETICAL SPECTRA compute all multifragments. The spectra must contain meta data about the iontypes
@@ -174,6 +163,15 @@ namespace OpenMS
      * @param frag_max_mz
      */
     void generateAllMultiFragments(std::vector<MultiFragment>& multi_frags, size_t depth, size_t peptide_idx, float frag_min_mz, float frag_max_mz);
+
+  private:
+    /**
+     * @brief Recursive chain which builds all peaks
+     * @param all_multi_peaks[out] When recursion_step reaches 1 and we found a multi_peak it is placed here
+     * @param multi_peak COPY of the current multi_peak
+     * @param recursion_step
+     */
+    void generateAllMultiPeaksFastRecursion(std::vector<MultiPeak>& all_multi_peaks, FragmentIndexTagGenerator::MultiPeak& multi_peak, size_t current_peak_idx, size_t recursion_step, float tolerance);
 
   };
 }

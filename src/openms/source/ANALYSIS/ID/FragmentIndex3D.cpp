@@ -21,6 +21,9 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/QC/QCBase.h>
 #include <functional>
+#include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+
 
 
 using namespace std;
@@ -51,12 +54,12 @@ namespace OpenMS
     defaults_.setValue("depth", 3, "The number of adjacent peaks that are taken into account");
 
     vector<string> tolerance_units {"DA", "PPM"}; // TODO: check if same string in other OpenMS files
-    defaults_.setValue("fragment_min_mz", 150, "Minimal fragment mz for database");
-    defaults_.setValue("fragment_max_mz", 500000, "Maximal fragment mz for database");
+    defaults_.setValue("fragment_min_mz", 0.0, "Minimal fragment mz for database");
+    defaults_.setValue("fragment_max_mz", 5000000000.0, "Maximal fragment mz for database"); //TODO: Unlimited option
 
 
-    defaults_.setValue("fragment_min_mz", 0, "Minimal fragment mz for database");
-    defaults_.setValue("fragment_max_mz", 5000000, "Maximal fragment mz for database");
+    defaults_.setValue("fragment_min_mz", 0.0, "Minimal fragment mz for database");
+    defaults_.setValue("fragment_max_mz", 500000000.0, "Maximal fragment mz for database"); //TODO: Unlimited option
     defaults_.setValue("precursor_mz_tolerance", 2.0, "Tolerance for precursor-m/z in search");
     defaults_.setValue("fragment_mz_tolerance", 0.05, "Tolerance for fragment-m/z in search");
     defaults_.setValue("precursor_mz_tolerance_unit", "DA", "Unit of tolerance for precursor-m/z");
@@ -65,14 +68,14 @@ namespace OpenMS
     defaults_.setValidStrings("fragment_mz_tolerance_unit", tolerance_units);
     is_build_ = false;
 
-    defaults_.setValue("min_matched_peaks", 5, "Minimal number of matched ions to report a PSM");
+    defaults_.setValue("min_matched_peaks", 2, "Minimal number of matched ions to report a PSM");
     defaults_.setValue("min_precursor_charge", 1, "min precursor charge");
     defaults_.setValue("max_precursor_charge", 4, "max precursor charge");
     defaults_.setValue("max_fragment_charge", 1, "max fragment charge");
     defaults_.setValue("max_processed_hits", 50, "The number of initial hits for which we calculate a score");
     defaults_.setValue("open_precursor_window_lower", -500.0, "lower bound of the open precursor window");
     defaults_.setValue("open_precursor_window_upper", 500.0, "upper bound of the open precursor window");
-    defaults_.setValue("open_fragment_window_lower", -200.0, "lower bound of the open fragment window");
+    defaults_.setValue("open_fragment_window_lower", -500.0, "lower bound of the open fragment window");
     defaults_.setValue("open_fragment_window_upper", 500.0, "upper bound of the open fragment window");
 
     defaultsToParam_();
@@ -109,7 +112,7 @@ namespace OpenMS
     size_t skipped_peptides = 0;
 
 
-#pragma omp parallel
+//#pragma omp parallel
     for (SignedSize i = 0; i < fasta_entries.size(); ++i)
     {
       const FASTAFile::FASTAEntry& protein = fasta_entries[i];
@@ -127,7 +130,7 @@ namespace OpenMS
       float unmodified_mz = unmod_peptide.getMZ(1);
 
 
-#pragma omp critical(FIIndex)
+//#pragma omp critical(FIIndex)
       {
         fi_peptides_.push_back({static_cast<UInt32>(i), unmodified_mz});
       }
@@ -161,7 +164,7 @@ namespace OpenMS
     generate_peptides(fasta_entries);
 
 
-    /// For each Peptides get all theoretical b and y ions // TODO: include other fragmentation methods
+
     // #pragma omp parallel for private(b_y_ions)
     for (size_t peptide_idx = 0; peptide_idx < fi_peptides_.size(); peptide_idx++)
     {
@@ -214,7 +217,11 @@ namespace OpenMS
     follow_up_peaks_buckets_min_mz.emplace_back();
     for (size_t i = 0; i < fi_fragments_.size(); i += (iter_bucketsize[depth_]))
     {
-      follow_up_peaks_buckets_min_mz[follow_up_peaks_buckets_min_mz.size() - 1].emplace_back(fi_fragments_[i].getFollowUpPeaks()[follow_up_peaks_buckets_min_mz.size() - 1]);
+      if (depth_ != 0)
+      {
+        follow_up_peaks_buckets_min_mz[follow_up_peaks_buckets_min_mz.size() - 1].emplace_back(fi_fragments_[i].getFollowUpPeaks()[follow_up_peaks_buckets_min_mz.size() - 1]);
+      }
+
       auto sec_bucket_start = fi_fragments_.begin() + i;
       auto sec_bucket_end = (i + (iter_bucketsize[depth_])) > fi_fragments_.size() ? fi_fragments_.end() : sec_bucket_start + iter_bucketsize[depth_];
 
@@ -276,7 +283,7 @@ namespace OpenMS
 
   void FragmentIndex3D::query(vector<FragmentIndex3D::Hit>& hits, const FragmentIndexTagGenerator::MultiPeak& peak, std::pair<size_t, size_t> peptide_idx_range, std::pair<float, float> window)
   {
-    float frag_tol = fragment_mz_tolerance_unit_ppm_ ? Math::ppmToMass(fragment_mz_tolerance_, (float)peak.getPeak().getMZ()) : fragment_mz_tolerance_; // TODO??? apply ppm to mass * charge or not
+    float frag_tol = fragment_mz_tolerance_unit_ppm_ ? Math::ppmToMass(fragment_mz_tolerance_, (float)peak.getPeak()) : fragment_mz_tolerance_; // TODO??? apply ppm to mass * charge or not
 
     hits.reserve(64);
     recursiveQuery(hits, peak, peptide_idx_range, window, depth_ + 1, 0, frag_tol);
@@ -300,7 +307,7 @@ namespace OpenMS
 
       while (left_it != last_slice_end && left_it->getPeptideIdx() <= peptide_idx_range.second)
       {
-        if (inRange(left_it->getFragmentMz(), peak.getPeak().getMZ(), fragment_tolerance, window) && inRangeFollowUpPeaks(left_it->getFollowUpPeaks(), peak.getFollowUpPeaks(), fragment_tolerance))
+        if (inRange(left_it->getFragmentMz(), peak.getPeak(), fragment_tolerance, window) && inRangeFollowUpPeaks(left_it->getFollowUpPeaks(), peak.getFollowUpPeaks(), fragment_tolerance))
         {
           hits.emplace_back(left_it->getPeptideIdx(), left_it->getFragmentMz());
         }
@@ -311,7 +318,7 @@ namespace OpenMS
     if (recursion_step == 1)
     { // Fragment mz level
       current_level = &bucket_min_mz_;
-      current_query = peak.getPeak().getMZ();
+      current_query = peak.getPeak();
       applied_window = window;
     }
     if (recursion_step > 1)
@@ -361,12 +368,15 @@ namespace OpenMS
 
     // 2.) Generate all MultiPeaks (Tags) (this should introduce all possible fragment charges)
     FragmentIndexTagGenerator tagGenerator(spectrum);
-    tagGenerator.globalSelection();
-    tagGenerator.localSelection();
+
+    //Prior to Tag Generation Noise reduction is key
+
+
+
     cout << "DEBUG: frag mz tol: " << getParameters().getValue("fragment_mz_tolerance") << endl;
-    tagGenerator.generateDirectedAcyclicGraph(getParameters().getValue("fragment_mz_tolerance"));
     vector<FragmentIndexTagGenerator::MultiPeak> mPeaks;
-    tagGenerator.generateAllMultiPeaks(mPeaks, getParameters().getValue("depth"));
+    tagGenerator.generateAllMultiPeaksFast(mPeaks, depth_, fragment_mz_tolerance_, fragment_mz_tolerance_unit_ppm_);
+
 
     // 3.) Loop over all precursor charges
     vector<size_t> charges;
@@ -389,11 +399,11 @@ namespace OpenMS
       FragmentIndex3D::SpectrumMatchesTopN candidates_charge;
       vector<FragmentIndex3D::Hit> hits_charge;
       float mz = precursor[0].getMZ() * static_cast<float>(charge);
-      auto range = getPeptidesInPrecursorRange(mz, {-open_precursor_window_lower_, open_precursor_window_upper_});
+      auto range = getPeptidesInPrecursorRange(mz, {open_precursor_window_lower_, open_precursor_window_upper_});
       candidates_charge.hits_.resize(range.second - range.first + 1);
       for (const FragmentIndexTagGenerator::MultiPeak& mp : mPeaks)
       {
-        query(hits_charge, mp, range, {-open_precursor_window_lower_, open_precursor_window_upper_});
+        query(hits_charge, mp, range, {open_fragment_window_lower_, open_fragment_window_upper_});
         {
           for (FragmentIndex3D::Hit hit : hits_charge)
           {
@@ -403,13 +413,13 @@ namespace OpenMS
             auto source = &candidates_charge.hits_[idx];
             if (source->num_matched_ == 0)
             {
-              candidates_charge.scored_candidates_ += 1;
+              ++candidates_charge.scored_candidates_;
               source->precursor_charge_ = charge;
               source->peptide_idx_ = hit.peptide_idx;
               source->delta_precursor_mass = mz - fi_peptides_[hit.peptide_idx].precursor_mz;
             }
-            source->num_matched_ += 1;
-            candidates_charge.matched_peaks_ += 1;
+            ++source->num_matched_;
+            ++candidates_charge.matched_peaks_ ;
           }
         }
         hits_charge.clear();
@@ -419,14 +429,37 @@ namespace OpenMS
       SpectrumMatchesTopN += candidates_charge;
     }
     trimHits(SpectrumMatchesTopN);
+    SpectrumMatchesTopN.number_multi_peaks_ = mPeaks.size();
   }
 
 
+  void FragmentIndex3D::multiDimExperimentQuery(const std::string path, std::vector<SpectrumQueryResult>& output)
+  {
+    output.clear();
+    IndexedMzMLFileLoader imzml;
+    OnDiscPeakMap map;
+    imzml.load(path, map);
+
+
+    for (size_t i = 0; i < map.size(); i++)
+    {
+      MSSpectrum s = map.getSpectrum(i);
+      SpectrumMatchesTopN smtn;
+      multiDimSpectrumQuery(s, smtn);
+
+      SpectrumQueryResult result{smtn, s.getNativeID(), s.size()};
+      output.push_back(result);
+    }
+  }
+
   void FragmentIndex3D::trimHits(OpenMS::FragmentIndex3D::SpectrumMatchesTopN& init_hits) const
   {
+    auto partial_sort_end = init_hits.hits_.end();
     if (init_hits.hits_.size() > max_processed_hits_)
     {
-      std::partial_sort(init_hits.hits_.begin(), init_hits.hits_.begin() + max_processed_hits_, init_hits.hits_.end(), [](const SpectrumMatch& a, const SpectrumMatch& b) {
+      partial_sort_end = init_hits.hits_.begin() + max_processed_hits_;
+    }
+      std::partial_sort(init_hits.hits_.begin(), partial_sort_end, init_hits.hits_.end(), [](const SpectrumMatch& a, const SpectrumMatch& b) {
         if (a.num_matched_ != b.num_matched_)
         {
           return a.num_matched_ > b.num_matched_;
@@ -436,9 +469,12 @@ namespace OpenMS
           return std::tie(a.delta_precursor_mass, a.precursor_charge_) < std::tie(b.delta_precursor_mass, b.precursor_charge_);
         }
       });
+      if (init_hits.hits_.size() > max_processed_hits_)
+      {
+        init_hits.hits_.resize(max_processed_hits_);
+      }
 
-      init_hits.hits_.resize(max_processed_hits_);
-    }
+
     for (auto hit_iter = init_hits.hits_.rbegin(); hit_iter != init_hits.hits_.rend(); hit_iter++)
     {
       if (hit_iter->num_matched_ >= min_matched_peaks_) // search for the first element that should be included
@@ -451,6 +487,11 @@ namespace OpenMS
         init_hits.hits_.resize(0);
       }
     }
+  }
+
+  FragmentIndex3D::Peptide FragmentIndex3D::getPeptide(size_t idx)
+  {
+    return fi_peptides_[idx];
   }
 
 

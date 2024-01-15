@@ -48,7 +48,6 @@ SimpleSearchEngineAlgorithm.h
 SiriusAdapterAlgorithm.h
 SiriusMSConverter.h
 FragmentIndexTagGenerator.h
-FragmentIndexTagGeneratorNode.h
 )
 
 ### add path to the filenames

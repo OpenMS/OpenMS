@@ -129,7 +129,7 @@ namespace OpenMS
     defaults_.setValue("min_matched_peaks", 5, "Minimal number of matched ions to report a PSM");
     defaults_.setValue("min_isotope_error", -1, "Precursor isotope error");
     defaults_.setValue("max_isotope_error", 1, "precursor isotope error");
-    defaults_.setValue("fragment:max_charge", 4, "max fragment charge");
+    defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
     defaults_.setValue("max_processed_hits", 50, "The number of initial hits for which we calculate a score");
     std::vector<std::string> open_search_option;
     fragment_mass_tolerance_unit_valid_strings.emplace_back("true");

@@ -85,6 +85,13 @@ namespace OpenMS
         this->hits_.insert(this->hits_.end(), other.hits_.begin(), other.hits_.end());
         return *this;
       }
+
+      void clear()
+      {
+        hits_.clear();
+        matched_peaks_ = 0;
+        scored_candidates_ = 0;
+      }
     };
     /// DefaultConstructor
     FragmentIndex();
