@@ -227,7 +227,7 @@ namespace OpenMS
      */
     virtual PeakIndex findClosestDataPoint(const RangeAllType& area) const
     {
-      (void*)&area; // allow doxygen to document the param
+      (void)area; // allow doxygen to document the param
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
@@ -238,7 +238,7 @@ namespace OpenMS
      */
     virtual PeakIndex findHighestDataPoint(const RangeAllType& area) const
     {
-      (void*)&area; // allow doxygen to document the param
+      (void)area; // allow doxygen to document the param
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
@@ -261,7 +261,7 @@ namespace OpenMS
      */
     virtual String getDataArrayDescription(const PeakIndex& peak_index)
     {
-      (void*)&peak_index; // allow doxygen to document the param
+      (void)peak_index; // allow doxygen to document the param
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
