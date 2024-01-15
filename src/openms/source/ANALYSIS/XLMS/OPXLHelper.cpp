@@ -1388,6 +1388,7 @@ namespace OpenMS
     auto addUp = [&](const auto& data) -> double
     {
       double sum{};
+      if (data.empty()) return sum;
       for (const auto& p : data) sum += num_iso_peaks_array[p.second];
       return sum / data.size();
     };
