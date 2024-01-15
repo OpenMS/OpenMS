@@ -74,7 +74,7 @@ namespace OpenMS
     return mappings;
   }
 
-  void MetaboTargetedTargetDecoy::resolveOverlappingTargetDecoyMassesByIndividualMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add, const double& mz_tol, const String& mz_tol_unit)
+  void MetaboTargetedTargetDecoy::resolveOverlappingTargetDecoyMassesByDecoyMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add, const double& mz_tol, const String& mz_tol_unit)
   {
     // Define a map to hold compound references and their corresponding sets of decoy m/z values.
     std::map<String, std::set<double>> match_compound_refs_decoy_mz;

@@ -323,7 +323,7 @@ protected:
 
         if (resolve_overlap)
         {
-          MetaboTargetedTargetDecoy::resolveOverlappingTargetDecoyMassesByIndividualMassShift(t_exp, mappings, chtwo_mass, decoy_mz_tol, decoy_mz_tol_unit_res);
+          MetaboTargetedTargetDecoy::resolveOverlappingTargetDecoyMassesByDecoyMassShift(t_exp, mappings, chtwo_mass, decoy_mz_tol, decoy_mz_tol_unit_res);
         }
         if (add_shift)
         {
