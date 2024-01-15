@@ -65,14 +65,14 @@ public:
 
     @ingroup ID
 
-    Write content of SIRIUS .ms file to ofstream.
-    Comments (see CompoundInfo) are written to SIRIUS .ms file and additionally stores in CompoundInfo struct.
+    Write content of one mzML/featureXML(optional) file pair to SIRIUS .ms file ofstream.
+    Comments (see CompoundInfo) are written to SIRIUS .ms file and additionally stored in CompoundInfo struct.
     If adduct information for a spectrum is missing, no adduct information is added. 
     In this case, SIRIUS assumes default adducts for the respective spectrum.
     
     @return writes .ms file
     @return stores CompoundInfo
-    
+
     @param spectra: Peakmap from input mzml.
     @param os: Write output for .ms file to ofstream.
     @param feature_mapping: Adducts and features (index).
