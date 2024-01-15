@@ -2613,12 +2613,32 @@ set_tests_properties("TOPP_AccurateMassSearch_6_out1" PROPERTIES DEPENDS "TOPP_A
 set_tests_properties("TOPP_AccurateMassSearch_6_out2" PROPERTIES DEPENDS "TOPP_AccurateMassSearch_6")
 
 # SiriusExport
-add_test("TOPP_SiriusExport_1" ${TOPP_BIN_PATH}/SiriusExport -test -in ${DATA_DIR_TOPP}/SiriusExport_1_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/SiriusExport_1_input.featureXML -out SiriusExport_1_output.tmp.ms)
+# without featureinfo
+add_test("TOPP_SiriusExport_1" ${TOPP_BIN_PATH}/SiriusExport -test -in ${DATA_DIR_TOPP}/SiriusExport_1_input.mzML -out SiriusExport_1_output.tmp.ms)
 add_test("TOPP_SiriusExport_1_out" ${DIFF} -in1 SiriusExport_1_output.tmp.ms -in2 ${DATA_DIR_TOPP}/SiriusExport_1_output.ms)
 
-# test internal .ms output negative
-add_test("TOPP_SiriusExport_2" ${TOPP_BIN_PATH}/SiriusExport -test -in ${DATA_DIR_TOPP}/SiriusExport_2_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/SiriusExport_2_input.featureXML -out SiriusExport_2_output.tmp.ms)
-add_test("TOPP_SiriusExport_2_out" ${DIFF} -in1 SiriusExport_2_output.tmp.ms -in2 ${DATA_DIR_TOPP}/SiriusExport_2_output.ms)
+# with featureinfo, feature_only and compound info table (input for AssayGeneratorMetaboSirius tests)
+add_test("TOPP_SiriusExport_2" ${TOPP_BIN_PATH}/SiriusExport -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out SiriusExport_2_output.tmp.ms -out_compoundinfo SiriusExport_2_output_compoundinfo.tmp.tsv -preprocessing:feature_only)
+add_test("TOPP_SiriusExport_2_out1" ${DIFF} -in1 SiriusExport_2_output.tmp.ms -in2 ${DATA_DIR_TOPP}/SiriusExport_2_output.ms)
+add_test("TOPP_SiriusExport_2_out2" ${DIFF} -in1 SiriusExport_2_output_compoundinfo.tmp.tsv -in2 ${DATA_DIR_TOPP}/SiriusExport_2_output_compoundinfo.tsv)
+
+# with multiple files
+add_test("TOPP_SiriusExport_3" ${TOPP_BIN_PATH}/SiriusExport -test -in ${DATA_DIR_TOPP}/SiriusExport_1_input.mzML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/SiriusExport_1_input.featureXML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out SiriusExport_3_output.tmp.ms -out_compoundinfo SiriusExport_3_output_compoundinfo.tmp.tsv)
+add_test("TOPP_SiriusExport_3_out1" ${DIFF} -in1 SiriusExport_3_output.tmp.ms -in2 ${DATA_DIR_TOPP}/SiriusExport_3_output.ms)
+add_test("TOPP_SiriusExport_3_out2" ${DIFF} -in1 SiriusExport_3_output_compoundinfo.tmp.tsv -in2 ${DATA_DIR_TOPP}/SiriusExport_3_output_compoundinfo.tsv)
+
+# AssayGeneratorMetaboSirius
+# SIRIUS project directory generated with SIRIUS 5.8.5 from SiriusExport_2 test .ms file, minimal example with one UNKNOWN 2 two named compounds from which only Myclobutanil will pass filtering
+add_test("TOPP_AssayGeneratorMetaboSirius_1" ${TOPP_BIN_PATH}/AssayGeneratorMetaboSirius -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo-in-SIRIUS-project -in_compoundinfo ${DATA_DIR_TOPP}/SiriusExport_2_output_compoundinfo.tsv -out AssayGeneratorMetaboSirius_output_1.tmp.tsv -exclude_ms2_precursor -max_transitions 3)
+add_test("TOPP_AssayGeneratorMetaboSirius_1_out" ${DIFF} -in1 AssayGeneratorMetaboSirius_output_1.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetaboSirius_output_1.tsv)
+
+# AssayGeneratorMetaboSirius: use_known_unknowns
+add_test("TOPP_AssayGeneratorMetaboSirius_2" ${TOPP_BIN_PATH}/AssayGeneratorMetaboSirius -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo-in-SIRIUS-project -in_compoundinfo ${DATA_DIR_TOPP}/SiriusExport_2_output_compoundinfo.tsv -out AssayGeneratorMetaboSirius_output_2.tmp.tsv -exclude_ms2_precursor -max_transitions 3 -use_known_unknowns)
+add_test("TOPP_AssayGeneratorMetaboSirius_1_out" ${DIFF} -in1 AssayGeneratorMetaboSirius_output_2.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetaboSirius_output_2.tsv)
+
+# AssayGeneratorMetaboSirius: decoys resolving overlaps
+add_test("TOPP_AssayGeneratorMetaboSirius_3" ${TOPP_BIN_PATH}/AssayGeneratorMetaboSirius -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo-in-SIRIUS-project -in_compoundinfo ${DATA_DIR_TOPP}/SiriusExport_2_output_compoundinfo.tsv -out AssayGeneratorMetaboSirius_output_3.tmp.tsv -exclude_ms2_precursor -max_transitions 3 -decoy_generation -decoy_generation_method resolve_overlap)
+add_test("TOPP_AssayGeneratorMetaboSirius_1_out" ${DIFF} -in1 AssayGeneratorMetaboSirius_output_3.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetaboSirius_output_3.tsv)
 
 # AssayGeneratorMetabo
 # use FeatureFinderMetabo data
