@@ -80,6 +80,11 @@ namespace OpenMS
           */
           static std::vector<MSSpectrum> extractAnnotationsFromSiriusFile(const String& path_to_sirius_workspace, Size max_rank = 1, bool decoy = false, bool use_exact_mass = false);
 
+          /**
+          @brief Extract columnname and index based in SIRIUS entries
+          */
+          static std::map< std::string, Size > extract_columnname_to_columnindex(CsvFile& csvfile);
+
       protected:
           /**
           @brief extractConcatNativeIDsFromSiriusMS
@@ -113,10 +118,6 @@ namespace OpenMS
           */
           static OpenMS::String extractFeatureIDFromSiriusMS_(const String& path_to_sirius_workspace);
 
-          /**
-          @brief Extract columnname and index based in SIRIUS entries
-          */
-          static std::map< std::string, Size > extract_columnname_to_columnindex(CsvFile& csvfile);
 
           /**
           @brief extractCompoundRankingAndFilename

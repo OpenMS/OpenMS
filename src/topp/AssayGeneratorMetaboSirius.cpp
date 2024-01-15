@@ -148,8 +148,8 @@ protected:
     
     // decoys
     registerFlag_("decoy_generation", "Decoys will be generated using the fragmentation tree re-rooting approach. This option does only work in combination with the fragment annotation via Sirius.", false);
-    registerStringOption_("decoy_generation_method", "<choice>", "original", "Uses different methods for decoy generation. Basis for the method is the fragmentation-tree re-rooting approach ('original'). This approach can be extended by using 'resolve_overlap', which will resolve overlapping fragments of the highest intensity fragments chosen, by adding -CH2 mass to the overlapping fragments. 'Add_shift' will add a -CH2 mass shift to the target fragments and use them as additional decoys if fragmentation-tree re-rooting failed. 'Both' combines the extended methods (resolve_overlap, add_shift).",false);
-    setValidStrings_("decoy_generation_method", ListUtils::create<String>("original,resolve_overlap,add_shift,both"));
+    registerStringOption_("decoy_generation_method", "<choice>", "original", "Uses different methods for decoy generation. Basis for the method is the fragmentation-tree re-rooting approach ('original'). This approach can be extended by using 'resolve_overlap', which will resolve overlapping target/decoy fragments by adding -CH2 mass to the overlapping decoy fragments. 'generate_missing_decoys' will add a -CH2 mass shift to the target fragments and use them as decoys if fragmentation-tree re-rooting failed. 'Both' combines the extended methods (resolve_overlap, generate_missing_decoys).",false);
+    setValidStrings_("decoy_generation_method", ListUtils::create<String>("original,resolve_overlap,generate_missing_decoys,both"));
     registerDoubleOption_("decoy_resolution_mz_tolerance", "<num>", 10.0, "Mz tolerance for the resolution of overlapping m/z values for targets and decoys of one compound.", false);
     registerStringOption_("decoy_resolution_mz_tolerance_unit", "<choice>", "ppm", "Unit of the decoy_resolution_mz_tolerance", false, true);
     setValidStrings_("decoy_resolution_mz_tolerance_unit", ListUtils::create<String>("ppm,Da"));
@@ -175,7 +175,7 @@ protected:
     String decoy_generation_method = getStringOption_("decoy_generation_method");
     bool original = false;
     bool resolve_overlap = false;
-    bool add_shift = false;
+    bool generate_missing_decoys = false;
     if (decoy_generation_method == "original" && decoy_generation)
     {
       OPENMS_LOG_INFO << "Decoy method: fragmentation tree re-rooting." << std::endl;
@@ -186,16 +186,16 @@ protected:
       OPENMS_LOG_INFO << "Decoy method: fragmentation tree re-rooting and overlap resolution." << std::endl;
       resolve_overlap = true;
     }
-    else if (decoy_generation_method == "add_shift" && decoy_generation)
+    else if (decoy_generation_method == "generate_missing_decoys" && decoy_generation)
     {
-      OPENMS_LOG_INFO << "Decoy method: fragmentation tree re-rooting and addition of -CH2 mass shift where re-rooting was not possible." << std::endl;
-      add_shift = true;
+      OPENMS_LOG_INFO << "Decoy method: fragmentation tree re-rooting and filling missing decoys by addition of -CH2 mass shift where re-rooting was not possible." << std::endl;
+      generate_missing_decoys = true;
     }
     else if (decoy_generation_method == "both" && decoy_generation)
     {
-      OPENMS_LOG_INFO << "Decoy method: fragmentation tree re-rooting with overlap resolution and addition of -CH2 mass shift where re-rooting was not possible." << std::endl;
+      OPENMS_LOG_INFO << "Decoy method: fragmentation tree re-rooting with overlap resolution and addition of -CH2 mass shift to generate missing decoys where re-rooting was not possible." << std::endl;
       resolve_overlap = true;
-      add_shift = true;
+      generate_missing_decoys = true;
     }
     double decoy_mz_tol = getDoubleOption_("decoy_resolution_mz_tolerance");
     String decoy_mz_tol_unit_res = getStringOption_("decoy_resolution_mz_tolerance_unit");
@@ -313,9 +313,13 @@ protected:
     //------------------------------------------------------
     if (decoy_generation)
     {
-    // remove decoys which do not have a respective target after min/max transition filtering
-    // based on the TransitionGroupID (similar for targets "0_Acephate_[M+H]+_0" and decoys "0_Acephate_decoy_[M+H]+_0")
+      // remove decoys which do not have a respective target after min/max transition filtering
+      // based on the TransitionGroupID (similar for targets "0_Acephate_[M+H]+_0" and decoys "0_Acephate_decoy_[M+H]+_0")
       assay.filterUnreferencedDecoysCompound(t_exp);
+      // resolve overlapping target and decoy masses
+      // after selection of decoy masses based on highest intensity (arbitrary, since passatutto uses
+      // the intensities based on the previous fragmentation tree), overlapping masses between targets
+      // and decoys of one respective metabolite_adduct combination can be resolved by adding a CH2 mass
       if (!original)
       {
         const double chtwo_mass = EmpiricalFormula("CH2").getMonoWeight();
@@ -325,21 +329,12 @@ protected:
         {
           MetaboTargetedTargetDecoy::resolveOverlappingTargetDecoyMassesByDecoyMassShift(t_exp, mappings, chtwo_mass, decoy_mz_tol, decoy_mz_tol_unit_res);
         }
-        if (add_shift)
+        if (generate_missing_decoys)
         {
           MetaboTargetedTargetDecoy::generateMissingDecoysByMassShift(t_exp, mappings, chtwo_mass);
         }
       }
     }
-    else // remove decoys from t_exp
-    {
-
-    }
-
-    // resolve overlapping target and decoy masses
-    // after selection of decoy masses based on highest intensity (arbitrary, since passatutto uses
-    // the intensities based on the previous fragmentation tree), overlapping masses between targets
-    // and decoys of one respective metabolite_adduct combination can be resolved by adding a CH2 mass
 
     // sort TargetedExperiment by name (TransitionID)
     t_exp.sortTransitionsByName();

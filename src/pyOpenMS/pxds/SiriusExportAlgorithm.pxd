@@ -25,15 +25,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>" namespace "OpenM
         bool precursorMzToleranceUnitIsPPM() except + nogil 
         bool isNoMasstraceInfoIsotopePattern() except + nogil 
         int getIsotopePatternIterations() except + nogil 
-        int getNumberOfSiriusCandidates() except + nogil 
-
-        String determineSiriusExecutable(String & executable) except + nogil 
-        # wrap-doc:
-                #  Checks if the provided String points to a valid SIRIUS executable, otherwise tries
-                #  to select the executable from the environment
-                #  
-                #  :param executable: Path to the potential executable
-                #  :returns: Path to SIRIUS executable
 
         void preprocessingSirius(const String& featureinfo,
                                  MSExperiment& spectra,
@@ -60,3 +51,18 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>" namespace "OpenM
                 #  :param featureinfo: Path to featureXML
                 #  :param feature_mapping: FeatureToMs2Indices with feature mapping
                 #  :param spectra: Input of MSExperiment with spectra information
+
+        void run(const StringList& mzML_files,
+                 const StringList& featureXML_files,
+                 const String& out_ms,
+                 const String& out_compoundinfo) except + nogil
+
+        # wrap-doc:
+                #  Runs SiriusExport with mzML and featureXML (optional) files as input.
+                #  
+                #  Generates a SIRIUS .ms file and compound info table (optional).
+                #  
+                #  :param mzML_files: List with paths to mzML files
+                #  :param featureXML_files: List with paths to featureXML files
+                #  :param out_ms: Output file name for SIRIUS .ms file
+                #  :param out_compoundinfo: Output file name for tsv file with compound info
