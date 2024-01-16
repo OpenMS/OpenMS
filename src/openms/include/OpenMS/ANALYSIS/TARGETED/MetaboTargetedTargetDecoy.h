@@ -53,7 +53,7 @@ namespace OpenMS
     @param mappings map of identifier to target and decoy masses
     @param mass_to_add (e.g. CH2)
     @param mz_tol m/z tolerarance for target and decoy transition masses to be considered overlapping
-    @param mz_tol_unit m/z tolerance unit
+    @param mz_tol_unit m/z tolerance unit ("ppm" or "Da")
     */
     static void resolveOverlappingTargetDecoyMassesByDecoyMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add, const double& mz_tol, const String& mz_tol_unit);
 
