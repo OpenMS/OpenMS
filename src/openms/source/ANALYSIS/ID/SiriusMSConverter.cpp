@@ -723,7 +723,8 @@ namespace OpenMS
       file << "cmp\tfile_index\tpmass\tpint_mono\trt\tfmz\tfid\tformula\tcharge\tionization\tdes\tspecref_format\tsource_file\tsource_format\tnative_ids_id\tm_ids_id\n";
 
       // Iterate over the vector and write each object's attributes
-      for (const auto& info : v_cmpinfo) {
+      for (const auto& info : v_cmpinfo)
+      {
           file << info.cmp << "\t"
                 << info.file_index << "\t"
                 << info.pmass << "\t"
