@@ -83,7 +83,7 @@ namespace OpenMS
           /**
           @brief Extract columnname and index based in SIRIUS entries
           */
-          static std::map< std::string, Size > extract_columnname_to_columnindex(CsvFile& csvfile);
+          static std::map< std::string, Size > extract_columnname_to_columnindex(const CsvFile& csvfile);
 
       protected:
           /**

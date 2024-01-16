@@ -186,7 +186,7 @@ namespace OpenMS
     return ext_m_id;
   }
 
-  std::map< std::string, Size > SiriusFragmentAnnotation::extract_columnname_to_columnindex(CsvFile& csvfile)
+  std::map< std::string, Size > SiriusFragmentAnnotation::extract_columnname_to_columnindex(const CsvFile& csvfile)
   {
     StringList header_row;
     std::map< std::string, Size > columnname_to_columnindex;
