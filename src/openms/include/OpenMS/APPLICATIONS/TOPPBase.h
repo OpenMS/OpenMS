@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -933,8 +933,16 @@ protected:
 
     //@}
 
-    /// Write common tool description (CTD) file
-    bool writeCTD_();
+    /**
+       @brief Helper function avoiding repeated code between CTD, JSON and CWL.
+       @param writer a parameter writer, designed to be of type ParamCTDFile,
+                     ParamJSONFile or ParamCWLFile
+       @param write_type The type of file that is being written, typically
+                         write_ctd, write_json or write_cwl.
+       @param fileExtension The extension of the requested tool description file.
+    */
+    template <typename Writer>
+    void writeToolDescription_(Writer& writer, std::string write_type, std::string fileExtension);
 
     /**
       @brief Test mode

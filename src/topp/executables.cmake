@@ -15,7 +15,6 @@ ExternalCalibration
 FalseDiscoveryRate
 FeatureFinderCentroided
 FeatureFinderIdentification
-FeatureFinderIsotopeWavelet
 FeatureFinderMetabo
 FeatureFinderMRM
 FeatureFinderMultiplex
@@ -68,11 +67,9 @@ OpenSwathDecoyGenerator
 OpenSwathFeatureXMLToTSV
 OpenSwathRTNormalizer
 PeakPickerHiRes
-PeakPickerWavelet
 PeptideIndexer
 PercolatorAdapter
 PhosphoScoring
-PrecursorMassCorrector
 ProteinInference
 ProteinQuantifier
 ProteinResolver
@@ -90,7 +87,6 @@ SpectraFilterThresholdMower
 SpectraFilterWindowMower
 SpectraMerger
 TextExporter
-TOFCalibration
 XFDR
 XTandemAdapter
 )
@@ -110,7 +106,6 @@ DeMeanderize
 Digestor
 DigestorMotif
 Epifany
-ERPairFinder
 FeatureFinderMetaboIdent
 FuzzyDiff
 IDDecoyProbability
@@ -145,7 +140,6 @@ ProteomicsLFQ
 RNADigestor
 RNAMassCalculator
 RNPxlXICFilter
-RNPxlSearch
 SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine

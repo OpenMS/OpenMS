@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -111,7 +111,8 @@ public:
 
     /**
      * @brief initialises all data structures
-     *
+     * 
+     * @param metric Metric for measuring the distance between points in the 2D plane
      * @param data_x    x-coordinates of points to be clustered
      * @param data_y    y-coordinates of points to be clustered
      * @param properties_A    property A of points (same in each cluster)
@@ -132,6 +133,7 @@ public:
     /**
      * @brief initialises all data structures
      *
+     * @param metric Metric for measuring the distance between points in the 2D plane
      * @param data_x    x-coordinates of points to be clustered
      * @param data_y    y-coordinates of points to be clustered
      * @param grid_spacing_x    grid spacing in x-direction
@@ -570,7 +572,7 @@ private:
      * @param cluster    cluster for which the nearest neighbour should be found
      * @param cluster_index    index of cluster
      *
-     * @param Should the cluster be removed from the cluster list?
+     * @return Should the cluster be removed from the cluster list?
      */
     bool findNearestNeighbour_(const GridBasedCluster& cluster, int cluster_index)
     {

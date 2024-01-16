@@ -445,6 +445,11 @@ endif()
 include(cmake/cmake_findExternalLibs.cmake)
 
 #------------------------------------------------------------------------------
+# find the Doxygen (required by /doc and /src/OpenMS)
+find_package(Doxygen) ## defines 'DOXYGEN_HAVE_DOT', 'DOXYGEN_VERSION' etc
+
+
+#------------------------------------------------------------------------------
 # The actual OpenMS code (headers and source files)
 #------------------------------------------------------------------------------
 add_subdirectory(src)
@@ -465,6 +470,11 @@ set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare 
 if (ENABLE_PREPARE_KNIME_PACKAGE)
 	include(${OPENMS_HOST_DIRECTORY}/cmake/knime_package_support.cmake)
 endif()
+
+#------------------------------------------------------------------------------
+# CWL generation (updates openms/workflow/cwl/*.cwl files for all TOPP tools)
+#------------------------------------------------------------------------------
+include(${OPENMS_HOST_DIRECTORY}/cmake/cwl_generation.cmake)
 
 #------------------------------------------------------------------------------
 # Handle export of targets and install them

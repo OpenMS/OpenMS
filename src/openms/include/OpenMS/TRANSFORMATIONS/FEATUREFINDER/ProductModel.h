@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -26,7 +26,7 @@ namespace OpenMS
       @htmlinclude OpenMS_ProductModel.parameters
 
   @todo This class provides new member functions, which makes
-  Factory<BaseModel<2> >::create("ProductModel2D") pretty much useless!  (Clemens)
+  Factory<BaseModel<2>>::create("ProductModel2D") pretty much useless!  (Clemens)
 
       @ingroup FeatureFinder
   */

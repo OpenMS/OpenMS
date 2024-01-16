@@ -1,2 +1,2 @@
-rank	molecularFormula	adduct	precursorFormula	TreeIsotope_Score	Tree_Score	Isotope_Score	explainedPeaks	explainedIntensity
-1	C10H12N3O3PS2	[M + H]+	C10H12N3O3PS2	52.705458229508025	52.705458229508025	0.0	16	0.9823827156040691
+formulaRank	molecularFormula	adduct	precursorFormula	SiriusScore	TreeScore	IsotopeScore	numExplainedPeaks	explainedIntensity	medianMassErrorFragmentPeaks(ppm)	medianAbsoluteMassErrorFragmentPeaks(ppm)	massErrorPrecursor(ppm)	lipidClass
+1	C15H17ClN4	[M + H]+	C15H17ClN4	39.34241769057247	36.691010794465846	2.6514068961066233	22	0.9685426989556167	-4.462674100188872	4.8724686384496785	4.02875003592188	

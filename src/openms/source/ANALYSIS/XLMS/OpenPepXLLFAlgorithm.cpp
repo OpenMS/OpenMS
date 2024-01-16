@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -765,7 +765,7 @@ using namespace OpenMS;
           csm.precursor_target_intensity = precursor_purities[spectrum.getNativeID()].target_intensity;
           csm.precursor_signal_proportion = precursor_purities[spectrum.getNativeID()].signal_proportion;
           csm.precursor_target_peak_count = precursor_purities[spectrum.getNativeID()].target_peak_count;
-          csm.precursor_residual_peak_count = precursor_purities[spectrum.getNativeID()].residual_peak_count;
+          csm.precursor_residual_peak_count = precursor_purities[spectrum.getNativeID()].interfering_peak_count;
         }
 
         // num_iso_peaks array from deisotoping

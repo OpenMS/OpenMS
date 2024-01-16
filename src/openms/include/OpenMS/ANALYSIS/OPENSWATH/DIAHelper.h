@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,61 +10,74 @@
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 #include <vector>
-
 namespace OpenMS
 {
+  struct RangeMZ;
+  struct RangeMobility;
   class TheoreticalSpectrumGenerator;
   namespace DIAHelpers
   {
-
     /**
       @brief Helper functions for the DIA scoring of OpenSWATH
     */
     ///@{
 
     /**
-      @brief Integrate intensity in a spectrum from start to end
+      @brief Integrate intensity in a spectrum from in @p mz_range (and @p im_range if defined)
+      returning the intensity-weighted m/z and im values as well as the total intensity.
 
-      This function will integrate the intensity in a spectrum between mz_start
-      and mz_end, returning the total intensity and an intensity-weighted m/z
-      value.
-
-      @note If there is no signal, mz will be set to -1 and intensity to 0
+      @note If there is no signal, @p mz and @p im will be set to -1 and intensity to 0
       @return Returns true if a signal was found (and false if no signal was found)
 
     */
-    OPENMS_DLLAPI bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum, double mz_start,
-                                       double mz_end, double& mz, double& intensity, bool centroided = false);
+    OPENMS_DLLAPI bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum,
+                                       double& mz, double& im, double& intensity, const RangeMZ& mz_range, const RangeMobility& im_range, bool centroided = false);
 
     /**
-      @brief Integrate intensities in a spectrum from start to end
+      @brief Integrate intensity in SpectrumSequence in range @p mz_range (and @p im_range if defined)
+      returning the intensity-weighted m/z and im values as well as the total intensity.
+
+      @note If there is no signal, @p mz and @p im will be set to -1 and intensity to 0
+      @return Returns true if a signal was found (and false if no signal was found)
+    */
+    OPENMS_DLLAPI bool integrateWindow(const SpectrumSequence& spectrum,
+                                       double& mz, double& im, double& intensity, const RangeMZ& mz_range, const RangeMobility& im_range, bool centroided = false);
+
+    /**
+      @brief Integrate intensities in a spectrum in range @p im_range (if defined) for multiple windows.
+      @param windows_center is a vector of the center location of the windows.
+      @param width is the width of the windows across mz
+      @param im_range is the range of the IM dimension (if defined)
+      @param remove_zero is a flag indicating whether to remove zero intensity windows
+
+      Returns:
+      @param[out] integrated_windows_intensity is a vector of the integrated intensity for each window
+      @param[out] integrated_windows_mz is a vector of the integrated intensity-weighted m/z for each window
+      @param[out] integrated_windows_im is a vector of the integrated intensity-weighted im for each window
     */
     OPENMS_DLLAPI void integrateWindows(const OpenSwath::SpectrumPtr& spectrum, //!< [in] Spectrum
                                         const std::vector<double>& windows_center, //!< [in] center location
                                         double width,
                                         std::vector<double>& integrated_windows_intensity,
                                         std::vector<double>& integrated_windows_mz,
+					std::vector<double>& integrated_windows_im,
+                                        const RangeMobility& im_range,
                                         bool remove_zero = false);
 
+
     /**
-      @brief Integrate intensity in an ion mobility spectrum from start to end
-
-      This function will integrate the intensity in a spectrum between mz_start
-      and mz_end, returning the total intensity and an intensity-weighted drift
-      time value.
-
-      @note If there is no signal, mz will be set to -1 and intensity to 0
+      @brief Integrate intensities of a SpectrumSequence in range @p im_range for multiple windows.
     */
-    OPENMS_DLLAPI void integrateDriftSpectrum(const OpenSwath::SpectrumPtr& spectrum,
-                                              double mz_start,
-                                              double mz_end,
-                                              double & im,
-                                              double & intensity,
-                                              double drift_start,
-                                              double drift_end);
-
+    OPENMS_DLLAPI void integrateWindows(const SpectrumSequence& spectrum, //!< [in] Spectrum
+                                        const std::vector<double>& windows_center, //!< [in] center location
+                                        double width,
+                                        std::vector<double>& integrated_windows_intensity,
+                                        std::vector<double>& integrated_windows_mz,
+                                        std::vector<double>& integrated_windows_im,
+                                        const RangeMobility& im_range,
+                                        bool remove_zero = false);
     /**
       @brief Adjust left/right window based on window and whether its ppm or not
     */
@@ -136,8 +149,27 @@ namespace OpenMS
     OPENMS_DLLAPI void extractFirst(const std::vector<std::pair<double, double> >& peaks, std::vector<double>& mass);
     /// extract second from vector of pairs
     OPENMS_DLLAPI void extractSecond(const std::vector<std::pair<double, double> >& peaks, std::vector<double>& mass);
-    
+
+    /** @brief optionally convert a DIA extraction window from ppm to m/z
+      @param dia_extraction_window - how wide the extraction window is total (can be in m/z or ppm)
+      @param ppm  - whether the extraction window is in ppm or not
+      @return the extraction window in m/z
+    */
+    OPENMS_DLLAPI RangeMZ createMZRangePPM(double mz_ref, double dia_extraction_window, const bool ppm);
+
+
+    /**
+      @brief Helper function for integrating a spectrum.
+    */
+    OPENMS_DLLAPI void integrateWindow_(const OpenSwath::SpectrumPtr& spectrum,
+                                double & mz,
+                                double & im,
+                                double & intensity,
+                                const RangeMZ & mz_range,
+                                const RangeMobility & im_range,
+                                bool centroided);
+    }
+
     ///}@
-  }
-}
+} //namespace OpenMS
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -24,23 +24,23 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_SemanticValidator SemanticValidator
+@page TOPP_SemanticValidator SemanticValidator
 
-    @brief SemanticValidator for XML files which can be semantically validated.
+@brief SemanticValidator for XML files which can be semantically validated.
 
-    This tool is able to semantically validate an XML file against a CV-mapping
-    file. The CV-mapping file describes the validity of CV-terms for a given
-    tag inside the XML. The CV-mapping file conforms to the CvMapping XML
-    schema (found at /share/OpenMS/SCHEMAS/CvMapping.xsd or
-    http://www.psidev.info/sites/default/files/CvMapping.xsd). 
+This tool is able to semantically validate an XML file against a CV-mapping
+file. The CV-mapping file describes the validity of CV-terms for a given
+tag inside the XML. The CV-mapping file conforms to the CvMapping XML
+schema (found at /share/OpenMS/SCHEMAS/CvMapping.xsd or
+http://www.psidev.info/sites/default/files/CvMapping.xsd). 
 
-    Example files that can be semantically validated using this tool are mzML,
-    TraML, mzIdentML, mzData or any XML file.
-    
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_SemanticValidator.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_SemanticValidator.html
+Example files that can be semantically validated using this tool are mzML,
+TraML, mzIdentML, mzData or any XML file.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_SemanticValidator.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_SemanticValidator.html
 */
 
 // We do not want this class to show up in the docu:
