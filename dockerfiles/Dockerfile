@@ -1,8 +1,7 @@
 # syntax=docker/dockerfile:1.3-labs
 ARG OPENMS_TAG=Release3.0.0
 ARG OPENMS_REPO=https://github.com/OpenMS/OpenMS.git
-ARG OPENMS_CONTRIB_REPO=https://github.com/OpenMS/contrib.git
-ARG CMAKE_VERSION="3.28.1"
+ARG CONTRIB_BASE_IMAGE=ghcr.io/openms/contrib:latest
 ARG CONTRIB_BUILD_DIR="/contrib-build"
 ARG OPENMS_LIBRARY_BUILD_DIR="/openms-build"
 ARG OPENMS_LIBRARY_DIR="/OpenMS"
@@ -10,75 +9,8 @@ ARG NUM_BUILD_CORES=20
 ARG MAKEFLAGS="-j${NUM_BUILD_CORES}"
 
 
-### Installing OpenMS contributing libraries ###
-FROM ubuntu:22.04 as contrib
-ARG OPENMS_TAG
-ARG OPENMS_CONTRIB_REPO
-ARG CMAKE_VERSION
-ARG CONTRIB_BUILD_DIR
-
-RUN apt-get -y update \
-  && apt-get install -y --no-install-recommends --no-install-suggests \
-    g++ \
-    autoconf \
-    automake \
-    patch \
-    libtool \
-    make \
-    git \
-    gpg \
-    wget \
-    ca-certificates \
-    curl \
-    libboost-date-time1.74-dev \
-    libboost-iostreams1.74-dev \
-    libboost-regex1.74-dev \
-    libboost-math1.74-dev \
-    libboost-random1.74-dev \
-    libsvm-dev \
-    libglpk-dev \
-    libzip-dev \
-    zlib1g-dev \
-    libxerces-c-dev \
-    libbz2-dev \
-    libomp-dev \
-    libhdf5-dev\
-    qtbase5-dev \
-    libqt5svg5-dev \
-    libqt5opengl5-dev \
-    libeigen3-dev \
-    coinor-libcoinmp-dev \
-  && update-ca-certificates
-
-# installing cmake
-WORKDIR /tmp
-ADD https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh cmake.sh
-RUN <<-EOF
-    mkdir -p /opt/cmake
-    sh cmake.sh --skip-license --prefix=/opt/cmake
-    ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
-    ln -s /opt/cmake/bin/ctest /usr/local/bin/ctest
-    rm -rf /tmp/*
-EOF
-
-WORKDIR /
-RUN git clone --branch ${OPENMS_TAG} --single-branch ${OPENMS_CONTRIB_REPO} && rm -rf contrib/.git/
-WORKDIR ${CONTRIB_BUILD_DIR}
-
-LABEL base.image="ubuntu:22.04"
-LABEL version="3.0"
-LABEL software="OpenMS (library)"
-LABEL software.version="3.1.0-Ubuntu22.04"
-LABEL description="C++ libraries and tools for MS/MS data analysis"
-LABEL website="http://www.openms.org/"
-LABEL documentation="http://www.openms.org/"
-LABEL license="http://www.openms.org/"
-LABEL tags="Proteomics"
-# to link to repo on github container registry
-LABEL org.opencontainers.image.source https://github.com/OpenMS/OpenMS
-
 ### Buiding the OpenMS library ###
-FROM contrib as library
+FROM ${CONTRIB_BASE_IMAGE} as library
 ARG OPENMS_TAG
 ARG OPENMS_REPO
 ARG CONTRIB_BUILD_DIR
