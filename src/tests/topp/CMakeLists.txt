@@ -2578,11 +2578,11 @@ add_test("TOPP_AssayGeneratorMetaboSirius_1_out" ${DIFF} -in1 AssayGeneratorMeta
 
 # AssayGeneratorMetaboSirius: use_known_unknowns
 add_test("TOPP_AssayGeneratorMetaboSirius_2" ${TOPP_BIN_PATH}/AssayGeneratorMetaboSirius -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo-in-SIRIUS-project -in_compoundinfo ${DATA_DIR_TOPP}/SiriusExport_2_output_compoundinfo.tsv -out AssayGeneratorMetaboSirius_output_2.tmp.tsv -exclude_ms2_precursor -max_transitions 3 -use_known_unknowns)
-add_test("TOPP_AssayGeneratorMetaboSirius_1_out" ${DIFF} -in1 AssayGeneratorMetaboSirius_output_2.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetaboSirius_output_2.tsv)
+add_test("TOPP_AssayGeneratorMetaboSirius_2_out" ${DIFF} -in1 AssayGeneratorMetaboSirius_output_2.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetaboSirius_output_2.tsv)
 
 # AssayGeneratorMetaboSirius: decoys resolving overlaps
 add_test("TOPP_AssayGeneratorMetaboSirius_3" ${TOPP_BIN_PATH}/AssayGeneratorMetaboSirius -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo-in-SIRIUS-project -in_compoundinfo ${DATA_DIR_TOPP}/SiriusExport_2_output_compoundinfo.tsv -out AssayGeneratorMetaboSirius_output_3.tmp.tsv -exclude_ms2_precursor -max_transitions 3 -decoy_generation -decoy_generation_method resolve_overlap)
-add_test("TOPP_AssayGeneratorMetaboSirius_1_out" ${DIFF} -in1 AssayGeneratorMetaboSirius_output_3.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetaboSirius_output_3.tsv)
+add_test("TOPP_AssayGeneratorMetaboSirius_3_out" ${DIFF} -in1 AssayGeneratorMetaboSirius_output_3.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetaboSirius_output_3.tsv)
 
 # AssayGeneratorMetabo
 # use FeatureFinderMetabo data
