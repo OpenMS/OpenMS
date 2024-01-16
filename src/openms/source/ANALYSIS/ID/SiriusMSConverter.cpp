@@ -114,7 +114,7 @@ namespace OpenMS
     // if multiple identifications present for one MS1 and MS2 use all of them and
     // let SIRIUS sort it out using fragment annotation
     for (unsigned int k = 0; k != v_description.size(); ++k)
-    { 
+    {
       if (v_description.size() > 1) { writecompound = true; } // write the same "entry" for each possible hit (different: description, adduct, sumformula)
       SiriusMSFile::CompoundInfo cmpinfo;
 
