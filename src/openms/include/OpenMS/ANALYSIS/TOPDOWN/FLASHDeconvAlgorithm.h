@@ -62,6 +62,8 @@ namespace OpenMS
     /// get calculated averagine. Call after calculateAveragine is called.
     const FLASHDeconvHelperStructs::PrecalculatedAveragine& getAveragine();
 
+    const std::vector<double> getDecoyWeight(uint ms_level);
+
   protected:
     void updateMembers_() override;
 
@@ -106,6 +108,8 @@ namespace OpenMS
     std::map<int, std::vector<std::vector<float>>> precursor_map_for_ida_;
     /// a map from native ID to precursor peak group
     std::map<String, PeakGroup> native_id_precursor_peak_group_map_;
+
+    std::map<uint, std::vector<double>> decoy_weight_map_;
 
     /// read dataset to update ms level information
     void updateMSLevels_(MSExperiment& map);

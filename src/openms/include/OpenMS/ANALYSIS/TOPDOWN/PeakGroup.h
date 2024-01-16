@@ -171,6 +171,9 @@ namespace OpenMS
     /// get isotopic cosine score
     float getIsotopeCosine() const;
 
+    /// get the density of the peaks within charge and isotope range
+    float getPeakOccupancy() const;
+
     /// get representative charge
     int getRepAbsCharge() const;
 
@@ -205,18 +208,14 @@ namespace OpenMS
     void setTargetDecoyType(PeakGroup::TargetDecoyType index);
 
     /**
-     * Get q values for different target_decoy_type. For charge, noise, isotope decoy types, q values corresponding to the type will be returned. For target (default), the final q value is calculated
-     * by summing the q values of all decoy types and returned.
-     * @param  target_decoy_type  This target_decoy_type specifies if a PeakGroup is a target (0), charge decoy (1), noise decoy (2), or isotope decoy (3)
-     * @return Q value of the peakGroup
+     * Get q value
      */
-    float getQvalue(PeakGroup::TargetDecoyType target_decoy_type = PeakGroup::TargetDecoyType::target) const;
+    float getQvalue() const;
 
     /**
-     * set peakGroup q value for different TargetDecoyType. Q values are stored per TargetDecoyType and later used for final q value calculation.
-     * @param  target_decoy_type  This target_decoy_type specifies if a PeakGroup is a target (0), charge decoy (1), noise decoy (2), or isotope decoy (3)
+     * set peakGroup q value
      */
-    void setQvalue(double q, PeakGroup::TargetDecoyType target_decoy_type);
+    void setQvalue(double q);
 
     /// set distance between consecutive isotopes
     void setIsotopeDaDistance(double d);
@@ -370,7 +369,7 @@ namespace OpenMS
     float avg_ppm_error_ = 0;
     float avg_da_error_ = 0;
     float snr_ = 0;
-    /// q values with different decoy types
-    std::map<PeakGroup::TargetDecoyType, float> qvalue_;
+    /// q value
+    float qvalue_ = 1;
   };
 } // namespace OpenMS
