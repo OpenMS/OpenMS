@@ -24,6 +24,7 @@ RUN git clone --branch ${OPENMS_BRANCH} --single-branch ${OPENMS_REPO} ${OPENMS_
 WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
 RUN /bin/bash -c "cmake -DCMAKE_BUILD_TYPE='Release' -DCMAKE_PREFIX_PATH='${CONTRIB_BUILD_DIR}/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ${OPENMS_LIBRARY_DIR}"
 RUN make OpenMS
+LABEL software="OpenMS (library)"
 
 
 ### Building the OpenMS executables ###
@@ -48,6 +49,7 @@ WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
 RUN make TOPP && rm -rf src doc CMakeFiles
 WORKDIR /
 ENV PATH="/${OPENMS_LIBRARY_BUILD_DIR}}/bin/:${PATH}"
+LABEL software="OpenMS (tools)"
 
 
 ### Building pyOpenMS ###
@@ -71,3 +73,4 @@ WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}/pyOpenMS
 RUN pip install dist/*.whl
 WORKDIR /
 ENV PATH="${OPENMS_LIBRARY_BUILD_DIR}/bin/:${PATH}"
+LABEL software="OpenMS (library+tools+pyopenms)"
