@@ -14,56 +14,21 @@
 namespace OpenMS
 {
   //==================================== CV 0
-  // Att0           1.5594
-  // Att1           9.0293
-  // Att2          -0.0391
-  // Att3          -0.6219
-  // Att4           2.7049
-  // Intercept     -3.8496
-
-  std::vector<double> Qscore::weight_CV_0_ {-1.5594, -9.0293, 0.0391, 0.6219, -2.7049, 3.8496};
+  std::vector<double> Qscore::weight_CV_0_ {-9.711, -0.4512, 0.0198, -0.2205, 9.6794};
 
   //====================================== CV 40
-  // Att0              14.4268
-  // Att1              10.6621
-  // Att2               0.1747
-  // Att3              -0.5034
-  // Att4               2.1574
-  // Intercept        -15.5248
-
-  std::vector<double> Qscore::weight_CV_40_ {-14.4268, -10.6621, -0.1747, 0.5034, -2.1574, 15.5248};
+  std::vector<double> Qscore::weight_CV_40_ {-24.5781, 0.1552, 0.0185, -0.8676, 23.4376};
 
   // ====================================== CV 50
-  // Att0              14.8552
-  // Att1              11.0904
-  // Att2               0.2581
-  // Att3              -0.5179
-  // Att4               1.8335
-  // Intercept        -15.7714
-
-  std::vector<double> Qscore::weight_CV_50_ {-14.8552, -11.0904, -0.2581, 0.5179, -1.8335, 15.7714};
+  std::vector<double> Qscore::weight_CV_50_ {-18.192, -1.9466, 0.033, -1.234, 17.5101};
 
   //====================================== CV 60
-  // Att0               16.5106
-  // Att1                6.1827
-  // Att2                0.3472
-  // Att3                -0.814
-  // Att4                1.0387
-  // Intercept         -16.8964
-
-  std::vector<double> Qscore::weight_CV_60_ {-16.5106, -6.1827, -0.3472, 0.814, -1.0387,  16.8964};
+  std::vector<double> Qscore::weight_CV_60_ {-21.7321, -2.0699, -0.028, -1.1091, 20.9148};
 
   //====================================== Normal
-  // Att0             13.5141
-  // Att1              9.2568
-  // Att2              0.2671
-  // Att3             -0.5303
-  // Att4              1.8682
-  // Intercept       -14.6228
-
-  std::vector<double> Qscore::weight_centroid_ {-13.5141, -9.2568, -0.2671, 0.5303, -1.8682, 14.6228};
-  std::vector<double> Qscore::weight_profile_ {-13.5141, -9.2568, -0.2671, 0.5303, -1.8682, 14.6228};
-
+  //std::vector<double> Qscore::weight_centroid_ {-  21.5843, -1.0738, -0.0006, - 1.0439, 19.698}; // all cv merged
+  std::vector<double> Qscore::weight_centroid_ {- 23.9904, 1.214, -0.1337, -0.5765, 23.4142}; // apr23 all
+  std::vector<double> Qscore::weight_profile_ (weight_centroid_);
 
   double Qscore::getQscore(const PeakGroup* pg, const MSSpectrum& spectrum)
   {
@@ -127,46 +92,24 @@ namespace OpenMS
     return qscore;
   }
 
+
   std::vector<double> Qscore::toFeatureVector_(const PeakGroup* pg)
   {
-    std::vector<double> fvector(5, .0); // length of weights vector - 1, excluding the intercept weight.
+    std::vector<double> fvector(4, .0); // length of weights vector - 1, excluding the intercept weight.
     if (pg->empty())
       return fvector;
     int index = 0;
     fvector[index++] = pg->getIsotopeCosine(); // (log2(a + d));
 
-    // a = pg->getChargeIsotopeCosine();
+    // a = pg->getSNR();
     fvector[index++] = pg->getIsotopeCosine() - pg->getChargeIsotopeCosine(pg->getRepAbsCharge()); // (log2(d + a / (d + a)));
 
-    // a = pg->getSNR();
+    // a = pg->getAvgPPMError();
     fvector[index++] = log2(1 + pg->getSNR()); //(log2(d + a / (d + a)));
 
     // a = pg->getChargeScore();
-    fvector[index++] = log2(1 + pg->getSNR()) - log2(1 + pg->getChargeSNR(pg->getRepAbsCharge())); //(log2(a + d));
+    fvector[index++] = log2(1 + pg->getChargeSNR(pg->getRepAbsCharge())) - log2(1 + pg->getSNR()); //(log2(a + d));
 
-    auto [z, Z] = pg->getAbsChargeRange();
-    int min_i = -1, max_i = 0;
-    for (const auto& p : *pg)
-    {
-      int i = p.isotopeIndex;
-      max_i = std::max(max_i, i);
-      if (min_i < 0)
-        min_i = i;
-
-      min_i = std::min(min_i, i);
-    }
-
-    auto used = std::vector<bool>((Z - z + 1) * (max_i - min_i + 1), false);
-    for (const auto& p : *pg)
-    {
-      used[(p.abs_charge - z + 1) * (p.isotopeIndex - min_i + 1) - 1] = true;
-    }
-    int count = 0;
-    for (const auto& b : used)
-      if (b)
-        count++;
-
-    fvector[index++] = (double)count / used.size();
     return fvector;
   }
 
@@ -181,39 +124,21 @@ namespace OpenMS
 
   void Qscore::writeAttCsvForQscoreTraining(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
   {
-    std::map<int, int> per_charge_count;
+    DeconvolvedSpectrum dspec;
+    dspec.reserve(deconvolved_spectrum.size());
     for (auto& pg : deconvolved_spectrum)
     {
-      int z = pg.getRepAbsCharge();
-      if (per_charge_count.find(z) == per_charge_count.end())
-        per_charge_count[z] = 0;
-      per_charge_count[z]++;
+      dspec.push_back(pg);
     }
 
-    std::vector<int> counts;
-    counts.reserve(per_charge_count.size());
-    for (auto& [z, c] : per_charge_count)
-    {
-      counts.push_back(c);
-      c = 0; // initialize
-    }
-
-    std::sort(counts.begin(), counts.end());
-    int median = counts[counts.size() / 2];
-
-    auto dspec = deconvolved_spectrum;
-    std::sort(dspec.begin(), dspec.end(), [](const PeakGroup& p1, const PeakGroup& p2) { return p1.getIsotopeCosine() > p2.getIsotopeCosine(); });
+    if (dspec.empty())
+      return;
 
     for (auto& pg : dspec)
     {
-      int z = pg.getRepAbsCharge();
-      per_charge_count[z]++;
-      if (per_charge_count[z] > median * 2)
-        continue;
-
-      auto fv = toFeatureVector_(&pg);
       bool target = pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::target;
-      // if (target && pg.getQscore2D() < .5) continue;
+      auto fv = toFeatureVector_(&pg);
+
       for (auto& item : fv)
       {
         f << item << ",";

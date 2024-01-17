@@ -242,7 +242,8 @@ namespace OpenMS
     }
 
     auto type_accession = map.getSourceFiles()[0].getNativeIDTypeAccession();
-    if (type_accession.empty()) type_accession = "MS:1000768";
+    if (type_accession.empty())
+      type_accession = "MS:1000768";
 
     int scan_number = SpectrumLookup::extractScanNumber(native_ids.back(), type_accession);
     if (scan_number < 0)
