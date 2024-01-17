@@ -36,7 +36,7 @@ namespace OpenMS
     /// get QScore for a peak group of specific abs_charge
     static double getQscore(const PeakGroup* pg, const MSSpectrum& spectrum);
 
-    static void writeAttCsvForQscoreTraining(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f, const std::vector<double>& weights);
+    static void writeAttCsvForQscoreTraining(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f);
 
     static void writeAttCsvForQscoreTrainingHeader(std::fstream& f);
 

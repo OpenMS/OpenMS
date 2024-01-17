@@ -120,14 +120,16 @@ namespace OpenMS
     /// filter out overlapping masses
     static void removeOverlappingPeakGroups(DeconvolvedSpectrum& dspec, double tol, PeakGroup::TargetDecoyType target_decoy_type = PeakGroup::TargetDecoyType::target);
 
+    /// minimum isotopologue count in a peak group
+    const static int min_iso_size = 2;
+
   protected:
     void updateMembers_() override;
 
   private:
     /// FLASHDeconv parameters
 
-    /// minimum isotopologue count in a peak group
-    const static int min_iso_size_ = 2;
+
 
     /// allowed isotope error in deconvolved mass to calculate qvalue
     int allowed_iso_error_ = 1;

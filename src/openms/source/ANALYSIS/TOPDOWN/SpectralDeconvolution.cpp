@@ -273,6 +273,7 @@ namespace OpenMS
       }
 
       LogMzPeak log_mz_peak(peak, is_positive_);
+
       log_mz_peaks_.push_back(log_mz_peak);
     }
   }
@@ -875,6 +876,7 @@ namespace OpenMS
   void SpectralDeconvolution::setTargetDecoyType(PeakGroup::TargetDecoyType target_decoy_type, const DeconvolvedSpectrum& target_dspec_for_decoy_calcualtion)
   {
     target_decoy_type_ = target_decoy_type;
+    if (target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy) max_abs_charge_ = low_charge_;
     target_dspec_for_decoy_calcualtion_ = &target_dspec_for_decoy_calcualtion;
   }
 
@@ -1022,7 +1024,7 @@ namespace OpenMS
         }
       }
 
-      if (is_isotope_decoy && prev_cos > peak_group.getIsotopeCosine())
+      if (is_isotope_decoy && prev_cos * .995 > peak_group.getIsotopeCosine())
         continue;
 
       if (peak_group.empty() || peak_group.getQscore() <= 0 || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
@@ -1113,7 +1115,7 @@ namespace OpenMS
                                                             int window_width, int allowed_isotope_error, PeakGroup::TargetDecoyType target_decoy_type)
   {
     offset = 0;
-    if ((int)per_isotope_intensities.size() < min_iso_size_ + iso_int_shift)
+    if ((int)per_isotope_intensities.size() < min_iso_size + iso_int_shift)
     {
       return .0;
     }
@@ -1140,7 +1142,7 @@ namespace OpenMS
         min_isotope_index = i;
       }
     }
-    if (max_isotope_index - min_isotope_index < min_iso_size_)
+    if (max_isotope_index - min_isotope_index < min_iso_size)
     {
       return .0;
     }
@@ -1148,11 +1150,11 @@ namespace OpenMS
     std::vector<std::pair<int, float>> offset_cos;
     offset_cos.reserve(right + left + 1);
 
-    int margin = target_decoy_type == PeakGroup::TargetDecoyType::isotope_decoy ? allowed_isotope_error + 2 : 0;
+    int margin = target_decoy_type == PeakGroup::TargetDecoyType::isotope_decoy ? allowed_isotope_error : 0;
 
     for (int tmp_offset = -left - margin; tmp_offset <= right + margin; tmp_offset++)
     {
-      float tmp_cos = getCosine(per_isotope_intensities, min_isotope_index, max_isotope_index, iso, tmp_offset, min_iso_size_, target_decoy_type == PeakGroup::TargetDecoyType::noise_decoy);
+      float tmp_cos = getCosine(per_isotope_intensities, min_isotope_index, max_isotope_index, iso, tmp_offset, min_iso_size, target_decoy_type == PeakGroup::TargetDecoyType::noise_decoy);
       offset_cos.emplace_back(tmp_offset, tmp_cos);
     }
 

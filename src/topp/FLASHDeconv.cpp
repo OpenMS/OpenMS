@@ -453,7 +453,7 @@ protected:
           target_spec_map[deconvolved_spectrum.getScanNumber()] = deconvolved_spectrum;
         FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail, report_decoy);
 #ifdef TRAIN_OUT
-        Qscore::writeAttCsvForQscoreTraining(deconvolved_spectrum, out_train_streams[ms_level - 1], fd.getDecoyWeight(ms_level));
+        Qscore::writeAttCsvForQscoreTraining(deconvolved_spectrum, out_train_streams[ms_level - 1]);
 #endif
       }
 
@@ -468,7 +468,7 @@ protected:
             continue;
           FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail, report_decoy);
 #ifdef TRAIN_OUT
-          Qscore::writeAttCsvForQscoreTraining(deconvolved_spectrum, out_train_streams[ms_level - 1], fd.getDecoyWeight(ms_level));
+          Qscore::writeAttCsvForQscoreTraining(deconvolved_spectrum, out_train_streams[ms_level - 1]);
 #endif
         }
       }

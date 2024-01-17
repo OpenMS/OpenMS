@@ -81,36 +81,40 @@ namespace OpenMS
     auto iso_dist = avg.get(monoisotopic_mass_);
     auto current_per_isotope_intensities = std::vector<float>(getIsotopeIntensities().size() + min_negative_isotope_index_, .0f);
 
-    for (int abs_charge = min_abs_charge_; abs_charge <= max_abs_charge_; abs_charge++)
+    if (min_abs_charge_ == max_abs_charge_) setChargeIsotopeCosine(min_abs_charge_, getIsotopeCosine());
+    else
     {
-      std::fill(current_per_isotope_intensities.begin(), current_per_isotope_intensities.end(), .0f);
-      int min_isotope_index = (int)current_per_isotope_intensities.size();
-      int max_isotope_index = -1; // this is inclusive!!
-
-      for (auto& peak : logMzpeaks_)
+      for (int abs_charge = min_abs_charge_; abs_charge <= max_abs_charge_; abs_charge++)
       {
-        if (peak.abs_charge != abs_charge)
+        std::fill(current_per_isotope_intensities.begin(), current_per_isotope_intensities.end(), .0f);
+        int min_isotope_index = (int)current_per_isotope_intensities.size();
+        int max_isotope_index = -1; // this is inclusive!!
+
+        for (const auto& peak : logMzpeaks_)
         {
-          continue;
+          if (peak.abs_charge != abs_charge)
+          {
+            continue;
+          }
+
+          if (peak.isotopeIndex >= (int)current_per_isotope_intensities.size())
+          {
+            continue;
+          }
+
+          if (peak.isotopeIndex < 0)
+          {
+            continue;
+          }
+          current_per_isotope_intensities[peak.isotopeIndex] += peak.intensity;
+          min_isotope_index = min_isotope_index < peak.isotopeIndex ? min_isotope_index : peak.isotopeIndex;
+          max_isotope_index = max_isotope_index < peak.isotopeIndex ? peak.isotopeIndex : max_isotope_index;
         }
 
-        if (peak.isotopeIndex >= (int)current_per_isotope_intensities.size())
-        {
-          continue;
-        }
-
-        if (peak.isotopeIndex < 0)
-        {
-          continue;
-        }
-        current_per_isotope_intensities[peak.isotopeIndex] += peak.intensity;
-        min_isotope_index = min_isotope_index < peak.isotopeIndex ? min_isotope_index : peak.isotopeIndex;
-        max_isotope_index = max_isotope_index < peak.isotopeIndex ? peak.isotopeIndex : max_isotope_index;
+        float cos_score =
+          SpectralDeconvolution::getCosine(current_per_isotope_intensities, min_isotope_index, max_isotope_index, iso_dist, 0, SpectralDeconvolution::min_iso_size, target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy);
+        setChargeIsotopeCosine(abs_charge, cos_score); //
       }
-
-      float cos_score =
-        SpectralDeconvolution::getCosine(current_per_isotope_intensities, min_isotope_index, max_isotope_index + 1, iso_dist, 0, 0, target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy);
-      setChargeIsotopeCosine(abs_charge, cos_score); //
     }
   }
 

@@ -361,14 +361,6 @@ namespace OpenMS
     return sd_.getAveragine();
   }
 
-  const std::vector<double> FLASHDeconvAlgorithm::getDecoyWeight(uint ms_level)
-  {
-    auto ptr = decoy_weight_map_.find(ms_level);
-    if (ptr == decoy_weight_map_.end())
-      return std::vector<double>();
-    return decoy_weight_map_[ms_level];
-  }
-
   void FLASHDeconvAlgorithm::run(MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<FLASHDeconvHelperStructs::MassFeature>& deconvolved_features)
   {
     // initialize
@@ -407,7 +399,7 @@ namespace OpenMS
     // feature tracing here and update FeatureQScores
     runFeatureFinding_(deconvolved_spectra, deconvolved_features);
 
-    decoy_weight_map_ = Qvalue::updatePeakGroupQvalues(deconvolved_spectra);
+    Qvalue::updatePeakGroupQvalues(deconvolved_spectra);
 
     TopDownIsobaricQuantifier quantifier;
     Param quant_param = param_.copy("iq:", true);
