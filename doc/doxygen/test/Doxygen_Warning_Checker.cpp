@@ -19,8 +19,9 @@ int main(int argc, char** argv)
   }
   
   std::string line;
-  int line_count{0};
-  std::cout << "Opening '" << argv[1] << "' to check for doxygen errors..." << std::endl;
+  int line_count = 0;
+  std::cout << "Opening '" << argv[1] << "' to check for doxygen errors...\n"
+            << "----------- ERRORS/WARNINGS -----------------" << std::endl;
   while (is)
   {
     std::getline(is, line);
@@ -28,7 +29,8 @@ int main(int argc, char** argv)
     std::cerr << line << '\n';
     ++line_count;
   }
-  
+ 
+  std::cout << "---------------------------------------------" << std::endl;
   if (line_count)
   {
     std::cerr << "\n\nFound Doxygen warnings. See above. Please fix them.\n";
