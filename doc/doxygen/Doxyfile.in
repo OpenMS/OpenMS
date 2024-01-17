@@ -808,8 +808,9 @@ WARN_NO_PARAMDOC       = YES
 # If the WARN_AS_ERROR tag is set to YES then doxygen will immediately stop when
 # a warning is encountered.
 # The default value is: NO.
-
-WARN_AS_ERROR          = YES
+## We do not use this to detect error messages, since it stops at the first warning.
+## Rather, we use a dedicated test which runs with CTest and checks the content of ...\openms_build\doc\doxygen\doxygen-error.log
+WARN_AS_ERROR          = FALSE
 
 # The WARN_FORMAT tag determines the format of the warning messages that doxygen
 # can produce. The string should contain the $file, $line, and $text tags, which
