@@ -26,9 +26,10 @@ namespace OpenMS
   std::vector<double> Qscore::weight_CV_60_ {-21.7321, -2.0699, -0.028, -1.1091, 20.9148};
 
   //====================================== Normal
-  //std::vector<double> Qscore::weight_centroid_ {-  21.5843, -1.0738, -0.0006, - 1.0439, 19.698}; // all cv merged
-  std::vector<double> Qscore::weight_centroid_ {- 23.9904, 1.214, -0.1337, -0.5765, 23.4142}; // apr23 all
-  std::vector<double> Qscore::weight_profile_ (weight_centroid_);
+  // std::vector<double> Qscore::weight_centroid_ {-  21.5843, -1.0738, -0.0006, - 1.0439, 19.698}; // all cv merged
+  std::vector<double> Qscore::weight_centroid_ {-23.9904, 1.214, -0.1337, -0.5765, 23.4142}; // apr23 all
+  std::vector<double> Qscore::weight_profile_ {-6.0783, -1.3585, -0.1004, -0.3308, 5.9575}; // in silico profile
+
 
   double Qscore::getQscore(const PeakGroup* pg, const MSSpectrum& spectrum)
   {

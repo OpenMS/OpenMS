@@ -511,7 +511,7 @@ namespace OpenMS
 
   void TopDownTagger::run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm, std::vector<FLASHDeconvHelperStructs::Tag>& tags, const std::function<int(int, int)>& edge_score)
   {
-    const Size max_node_cntr = 600;
+    const Size max_node_cntr = 2000;
     if (max_tag_count_ == 0)
       return;
 
@@ -543,7 +543,8 @@ namespace OpenMS
 
     for (int i = 0; i < mzs.size(); i++)
     {
-      if (scores[i] < threshold) continue;
+      if (scores[i] < threshold)
+        continue;
       _mzs.push_back(mzs[i]);
       _scores.push_back(scores[i]);
     }
@@ -603,8 +604,10 @@ namespace OpenMS
         if (++count == max_tag_count_)
           break;
       }
-      std::sort(tags.begin(), tags.end(), [](const FLASHDeconvHelperStructs::Tag& a, const FLASHDeconvHelperStructs::Tag& b) {return a.getLength() == b.getLength()? a.getScore() > b.getScore() : a.getLength() < b.getLength(); });
-      OPENMS_LOG_INFO << "Tag count with length " << length << ": "<< count << std::endl;
+      std::sort(tags.begin(), tags.end(), [](const FLASHDeconvHelperStructs::Tag& a, const FLASHDeconvHelperStructs::Tag& b) {
+        return a.getLength() == b.getLength() ? a.getScore() > b.getScore() : a.getLength() < b.getLength();
+      });
+      OPENMS_LOG_INFO << "Tag count with length " << length << ": " << count << std::endl;
     }
   }
 
@@ -612,8 +615,10 @@ namespace OpenMS
                                                                                                                        const std::vector<FASTAFile::FASTAEntry>& fasta_entry) const
   {
     std::vector<std::pair<FASTAFile::FASTAEntry, std::vector<FLASHDeconvHelperStructs::Tag>>> pairs;
-    for (auto& fe : fasta_entry)
+#pragma omp parallel for default(none) shared(pairs, fasta_entry, tags)
+    for (int i = 0; i < fasta_entry.size(); i++)
     {
+      auto& fe = fasta_entry[i];
       std::vector<FLASHDeconvHelperStructs::Tag> matched_tags;
       auto seq = fe.sequence;
       for (auto& tag : tags)
@@ -646,8 +651,10 @@ namespace OpenMS
       }
       if (matched_tags.empty())
         continue;
+#pragma omp critical
       pairs.emplace_back(fe, matched_tags);
     }
+
     std::sort(pairs.begin(), pairs.end(),
               [](const std::pair<FASTAFile::FASTAEntry, std::vector<FLASHDeconvHelperStructs::Tag>>& left, const std::pair<FASTAFile::FASTAEntry, std::vector<FLASHDeconvHelperStructs::Tag>>& right) {
                 return left.second.size() > right.second.size();

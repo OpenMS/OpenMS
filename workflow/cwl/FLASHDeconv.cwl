@@ -136,7 +136,7 @@ inputs:
     doc: Qvalue thresholds for MS1, 2, ... Effective only when FDR estimation is active. (e.g., -max_qvalue 0.1 0.2 to specify 0.1 and 0.2 for MS1 and MS2, respectively)
     type: double[]?
   SD__allowed_isotope_error:
-    doc: Allowed isotope index error for decoy and qvalue report. If it is set to 1, for example, +-1 isotope errors are not counted as false. Beta version.
+    doc: Allowed isotope index error for decoy and qvalue report. If it is set to 2, for example, +-2 isotope errors are not counted as false. Beta version.
     type: long?
   ft__mass_error_ppm:
     doc: Feature tracing mass ppm tolerance. When negative, MS1 tolerance for mass deconvolution will be used (e.g., 16 ppm is used when -SD:tol 16).

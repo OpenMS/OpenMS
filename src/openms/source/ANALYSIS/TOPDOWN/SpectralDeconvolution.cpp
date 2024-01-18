@@ -447,7 +447,6 @@ namespace OpenMS
                 }
 
                 const int hdiff = (int)round((double)(next_iso_bin - mz_bin_index)) / hc * (hc / 2);
-
                 const int next_harmonic_iso_bin = mz_bin_index + hdiff; //(int)getBinNumber_(log_mz + hdiff, mz_bin_min_value_, bin_mul_factor);
                 // check if there are harmonic peaks between the current peak and the next isotope peak.
 

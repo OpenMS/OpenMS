@@ -111,7 +111,7 @@ namespace OpenMS
 
       std::vector<double> true_positive_dist(bin_number);
       std::vector<std::vector<double>> comp_dists {};
-      
+
       for (int i = 0; i < mixed_dist.size(); i++)
       {
         mixed_dist[i] -= iso_dist[i] / (dscore_iso.empty() ? .0 : (((double)(qscores.size())) / dscore_iso.size()));
