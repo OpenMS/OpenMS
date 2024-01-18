@@ -487,8 +487,9 @@ int main(int argc, char** argv)
   DOCME2(EGHTraceFitter, (EGHTraceFitter()));
   DOCME2(TraceFitter, (GaussTraceFitter())); //TraceFitter is an abstract base class, get parameters from subclass GaussTraceFitter
   DOCME2(BinnedSpectrumCompareFunctor, (BinnedSharedPeakCount())); //BaseModel is a base class, get parameters from subclass BinnedSharedPeakCount
-  DOCME2(IsobaricChannelExtractor, (IsobaricChannelExtractor(&ItraqFourPlexQuantitationMethod())))
-  DOCME2(IsobaricQuantifier, (IsobaricQuantifier(&ItraqFourPlexQuantitationMethod())))
+  ItraqFourPlexQuantitationMethod IFPQM = ItraqFourPlexQuantitationMethod(); // Need to convert this to an LValue so that we can take the address of it in the next two lines
+  DOCME2(IsobaricChannelExtractor, (IsobaricChannelExtractor(&IFPQM)))
+  DOCME2(IsobaricQuantifier, (IsobaricQuantifier(&IFPQM)))
   DOCME2(PosteriorErrorProbabilityModel, Math::PosteriorErrorProbabilityModel());
   
 
