@@ -810,7 +810,7 @@ WARN_NO_PARAMDOC       = YES
 # The default value is: NO.
 ## We do not use this to detect error messages, since it stops at the first warning.
 ## Rather, we use a dedicated test which runs with CTest and checks the content of ...\openms_build\doc\doxygen\doxygen-error.log
-WARN_AS_ERROR          = FALSE
+WARN_AS_ERROR          = NO
 
 # The WARN_FORMAT tag determines the format of the warning messages that doxygen
 # can produce. The string should contain the $file, $line, and $text tags, which
@@ -841,7 +841,7 @@ WARN_LOGFILE           = "@CF_OPENMS_BIN_PATH@/doxygen/doxygen-error.log"
 INPUT                  = "@CF_OPENMS_SRC_PATH@/doc/OpenMS_tutorial/" \
                          "@CF_OPENMS_SRC_PATH@/doc/doxygen/public/" \
                          "@CF_OPENMS_SRC_PATH@/doc/doxygen/install/" \
-                         "@CF_OPENMS_DOCUMENTATION_DIRECTORIES@"
+                         @CF_OPENMS_DOCUMENTATION_DIRECTORIES@   ## already contains quotes. Do NOT add extra quotes to this variable.
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
