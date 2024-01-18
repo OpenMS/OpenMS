@@ -179,7 +179,8 @@ START_SECTION((HDF5_BLOSC()))
     for (const std::string& name : object_names) 
     {
       H5O_info_t object_info;
-      H5Oget_info_by_name(hdf5_file->getId(), name.c_str(), &object_info, H5P_DEFAULT, H5O_INFO_ALL);
+      // note: called without "H5O_INFO_ALL" because we are currently using the hdf5 compatibility macros for 1.10
+      H5Oget_info_by_name(hdf5_file->getId(), name.c_str(), &object_info, H5P_DEFAULT/*, H5O_INFO_ALL*/); 
 
       if (object_info.type == H5O_TYPE_GROUP) 
       {
