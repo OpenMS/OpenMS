@@ -73,14 +73,6 @@ namespace OpenMS
 
     bool rescoreFeatureGroup_(FeatureGroup& fg) const;
 
-    void setFeatureGroupScore_(FeatureGroup &fg) const;
-
-    double scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const;
-
-    double scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const;
-
-    double computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const;
-
     bool doFWHMbordersOverlap_(const std::pair<double, double>& border1, const std::pair<double, double>& border2) const;
 
     bool doMassTraceIndicesOverlap(const FeatureGroup& fg1, const FeatureGroup& fg2, const double overlap_percentage_threshold = 0.5, const bool charge_specific = true) const;

@@ -122,20 +122,12 @@ namespace OpenMS
       }
 
       clusterFeatureGroups_(features, input_mtraces);
-      OPENMS_LOG_INFO << "#Final feature groups: " << features.size() << endl;
       if (shared_output_requested_)
       {
         shared_out_stream_.close();
       }
     }
-    else
-    {
-      for (auto &f : features)
-      {
-        setFeatureGroupScore_(f);
-      }
-      OPENMS_LOG_INFO << "#Final feature groups: " << features.size() << endl;
-    }
+    OPENMS_LOG_INFO << "#Final feature groups: " << features.size() << endl;
 
     // output
     setFeatureGroupMembersForResultWriting_(features);
@@ -254,103 +246,6 @@ namespace OpenMS
      }
   }
 
-  double FLASHQuantAlgorithm::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const
-  {
-    double diff_mz(std::fabs(tr2.getCentroidMZ() - tr1.getCentroidMZ()));
-
-    double mt_sigma1(tr1.getCentroidSD());
-    double mt_sigma2(tr2.getCentroidSD());
-    double mt_variances(std::exp(2 * std::log(mt_sigma1)) + std::exp(2 * std::log(mt_sigma2)));
-
-    double mz_score(0.0);
-    /// mz scoring by expected mean w/ C13
-    double mu = (Constants::C13C12_MASSDIFF_U * (int)iso_pos) / charge; // using '1.0033548378'
-    double sd = .0;
-    double sigma_mult(3.0);
-
-    //standard deviation including the estimated isotope deviation
-    double score_sigma(std::sqrt(std::exp(2 * std::log(sd)) + mt_variances));
-
-    if ((diff_mz < mu + sigma_mult * score_sigma) && (diff_mz > mu - sigma_mult * score_sigma))
-    {
-      double tmp_exponent((diff_mz - mu) / score_sigma);
-      mz_score = std::exp(-0.5 * tmp_exponent * tmp_exponent);
-    }
-
-    return mz_score;
-  }
-
-  double FLASHQuantAlgorithm::scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const
-  {
-    std::map<double, std::vector<double> > coinciding_rts;
-
-    std::pair<Size, Size> tr1_fwhm_idx(tr1.getFWHMborders());
-    std::pair<Size, Size> tr2_fwhm_idx(tr2.getFWHMborders());
-
-    double tr1_length(tr1.getFWHM());
-    double tr2_length(tr2.getFWHM());
-    double max_length = (tr1_length > tr2_length) ? tr1_length : tr2_length;
-
-    // Extract peak shape between FWHM borders for both peaks
-    for (Size i = tr1_fwhm_idx.first; i <= tr1_fwhm_idx.second; ++i)
-    {
-      coinciding_rts[tr1[i].getRT()].push_back(tr1[i].getIntensity());
-    }
-    for (Size i = tr2_fwhm_idx.first; i <= tr2_fwhm_idx.second; ++i)
-    {
-      coinciding_rts[tr2[i].getRT()].push_back(tr2[i].getIntensity());
-    }
-
-    // Look at peaks at the same RT
-    std::vector<double> x, y, overlap_rts;
-    for (auto m_it = coinciding_rts.begin(); m_it != coinciding_rts.end(); ++m_it)
-    {
-      if (m_it->second.size() == 2)
-      {
-        x.push_back(m_it->second[0]);
-        y.push_back(m_it->second[1]);
-        overlap_rts.push_back(m_it->first);
-      }
-    }
-
-    double overlap(0.0);
-    if (!overlap_rts.empty())
-    {
-      double start_rt(*(overlap_rts.begin())), end_rt(*(overlap_rts.rbegin()));
-      overlap = std::fabs(end_rt - start_rt);
-    }
-
-    double proportion(overlap / max_length);
-    if (proportion < 0.7)
-    {
-      return 0.0;
-    }
-    return computeCosineSim_(x, y);
-  }
-
-  double FLASHQuantAlgorithm::computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const
-  {
-    if (x.size() != y.size())
-    {
-      return 0.0;
-    }
-
-    double mixed_sum(0.0);
-    double x_squared_sum(0.0);
-    double y_squared_sum(0.0);
-
-    for (Size i = 0; i < x.size(); ++i)
-    {
-      mixed_sum += x[i] * y[i];
-      x_squared_sum += x[i] * x[i];
-      y_squared_sum += y[i] * y[i];
-    }
-
-    double denom(std::sqrt(x_squared_sum) * std::sqrt(y_squared_sum));
-    return (denom > 0.0) ? mixed_sum / denom : 0.0;
-  }
-
-
   bool FLASHQuantAlgorithm::doFWHMbordersOverlap_(const std::pair<double, double> &border1,
                                                         const std::pair<double, double> &border2) const
   {
@@ -432,31 +327,23 @@ namespace OpenMS
     {
       return false;
     }
-
     // update private members in FeatureGroup based on the changed FeatureSeeds
     fg.updateMembers();
-    setFeatureGroupScore_(fg);
     return true;
   }
 
   bool FLASHQuantAlgorithm::scoreAndFilterFeatureGroup_(FeatureGroup &fg, double min_iso_score) const
   {
-    /// based on: FLASHDeconvAlgorithm::scoreAndFilterPeakGroups_()
     /// return false when scoring is not done (filtered out)
-    if (min_iso_score == -1)
-    {
-      min_iso_score = min_isotope_cosine_;
-    }
-
     // update monoisotopic mass, isotope_intensities_ and charge vector to use for filtering
     fg.updateMembersForScoring();
 
     /// if this FeatureGroup is within the target, pass any filter
     bool isNotTarget = true;
-    if (with_target_masses_ && isThisMassOneOfTargets_(fg.getMonoisotopicMass(), fg.getRtOfMostAbundantMT()))
-    {
-      isNotTarget = false;
-    }
+//    if (with_target_masses_ && isThisMassOneOfTargets_(fg.getMonoisotopicMass(), fg.getRtOfMostAbundantMT()))
+//    {
+//      isNotTarget = false;
+//    }
 
     /// filter if the number of charges are not enough
     if (isNotTarget && (fg.getChargeSet().size() < min_nr_mtraces_))
@@ -471,12 +358,17 @@ namespace OpenMS
     }
 
     /// isotope cosine calculation
+    /// based on: SpectralDeconvolution::scoreAndFilterPeakGroups_()
+    if (min_iso_score == -1)
+    {
+      min_iso_score = min_isotope_cosine_;
+    }
     int offset = 0;
     float isotope_score = SpectralDeconvolution::getIsotopeCosineAndDetermineIsotopeIndex(fg.getMonoisotopicMass(),
                                                                                           fg.getIsotopeIntensities(),
-                                                                                          offset, iso_model_, -1);
+                                                                                          offset, iso_model_);
     fg.setIsotopeCosine(isotope_score);
-    if ( isNotTarget && isotope_score < min_iso_score )
+    if (isNotTarget && isotope_score < min_iso_score)
     {
       return false;
     }
@@ -484,94 +376,10 @@ namespace OpenMS
     if (offset > 0)
     {
       fg.setMonoisotopicMass(fg.getMonoisotopicMass() + iso_da_distance_ * offset);
-      fg.updateIsotopeIndices(offset);
+      fg.updateIsotopeIndices(offset); // TODO: change?
     }
 
     return true;
-  }
-
-  void FLASHQuantAlgorithm::setFeatureGroupScore_(FeatureGroup &fg) const
-  {
-    /// setting per_isotope_score
-    auto iso_dist = iso_model_.get(fg.getMonoisotopicMass());
-    int iso_size = (int) iso_dist.size();
-
-    // setting for feature group score
-    double feature_score = .0;
-
-    for (auto &abs_charge : fg.getChargeSet())
-    {
-      double max_intensity = .0;
-      vector<FeatureSeed*> traces_in_this_charge;
-      FeatureSeed* apex_trace;
-      // find the apex trace in this charge
-      for (auto &peak: fg)
-      {
-        if (peak.getCharge() != abs_charge)
-        {
-          continue;
-        }
-
-        if (peak.getIsotopeIndex() > iso_size || peak.getIsotopeIndex() < 0)
-        {
-          continue;
-        }
-
-        if (max_intensity < peak.getIntensity())
-        {
-          max_intensity = peak.getIntensity();
-          apex_trace = &peak;
-        }
-        traces_in_this_charge.push_back(&peak);
-      }
-
-      // if no trace is collected
-      if (max_intensity == .0)
-      {
-        continue;
-      }
-
-      auto current_per_isotope_intensities = vector<float>(iso_model_.getMaxIsotopeIndex(), .0);
-
-      int min_isotope_index = iso_model_.getMaxIsotopeIndex();
-      int max_isotope_index = 0;
-      double per_charge_score = .0;
-      // loop over traces with this charge to collect scores
-      for(auto &trace_ptr : traces_in_this_charge)
-      {
-        current_per_isotope_intensities[trace_ptr->getIsotopeIndex()] += trace_ptr->getIntensity();
-        min_isotope_index = min_isotope_index < trace_ptr->getIsotopeIndex() ? min_isotope_index : trace_ptr->getIsotopeIndex();
-        max_isotope_index = max_isotope_index < trace_ptr->getIsotopeIndex() ? trace_ptr->getIsotopeIndex() : max_isotope_index;
-
-        // if apex trace, no further scoring
-        if (trace_ptr == apex_trace)
-        {
-          per_charge_score += apex_trace->getIntensity() / fg.getIntensity();
-          continue;
-        }
-
-        // score per pair between this trace and the apex
-        double mz_score(scoreMZ_(trace_ptr->getMassTrace(), apex_trace->getMassTrace(),
-                                 abs(trace_ptr->getIsotopeIndex()-apex_trace->getIsotopeIndex()), abs_charge));
-        double rt_score(scoreRT_(trace_ptr->getMassTrace(), apex_trace->getMassTrace()));
-        double inty_score(trace_ptr->getIntensity() / fg.getIntensity());
-        double total_pair_score = exp(log(rt_score) + log(mz_score) + log(inty_score));
-
-        per_charge_score += total_pair_score;
-      }
-      feature_score += per_charge_score;
-
-//      // isotope cosine score for only this charge
-//      double cos_score = FLASHDeconvAlgorithm::getCosine(current_per_isotope_intensities,
-//                                                          min_isotope_index,
-//                                                          max_isotope_index,
-//                                                          iso_dist,
-//                                                          iso_size,
-//                                                          0);
-//      fg.setChargeIsotopeCosine(abs_charge, cos_score);
-    }
-
-    fg.setFeatureGroupScore(feature_score);
   }
 
   void FLASHQuantAlgorithm::refineFeatureGroups_(std::vector<FeatureGroup> &in_features)
@@ -580,7 +388,7 @@ namespace OpenMS
     int min_abs_charge = INT_MAX;
     int max_abs_charge = INT_MIN;
 
-    // minimum isotope cosine score for the refining featuregroups
+    // minimum isotope cosine score for the refining FeatureGroups
     double min_iso_score = 0.5;
     if (!resolving_shared_signal_) // if not resolving shared signal, use the final min_isotope_cosine_ (because this is the last step)
     {
@@ -717,7 +525,7 @@ namespace OpenMS
           continue;
         }
 
-        /// re-calculate isotope index (from FLASHDeconvAlgorithm::recruitAllPeaksInSpectrum)
+        /// re-calculate isotope index (from PeakGroup::recruitAllPeaksInSpectrum)
         double cmz = (mono_mass) / new_mt->getCharge() + Constants::PROTON_MASS_U; // mono mz
         const double iso_delta = iso_da_distance_ / (double)new_mt->getCharge();
         int iso_index = (int)round((new_mt->getCentroidMz() - cmz) / iso_delta);
@@ -763,7 +571,7 @@ namespace OpenMS
         }
       }
 
-      // don't merge when it failed to exceed filtering threshold
+      // don't merge when it failed to exceed filtering threshold // TODO: change threshold to the original iso cosine
       if (!scoreAndFilterFeatureGroup_(final_candidate_fg, min_iso_score))
       {
         if (scoreAndFilterFeatureGroup_(*candidate_fg, min_iso_score))

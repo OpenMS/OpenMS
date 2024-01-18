@@ -109,7 +109,6 @@ protected:
         feat.setOverallQuality(fgroup.getIsotopeCosineOfCharge(cs));
         feat.setIntensity(fgroup.getIntensityOfCharge(cs));
         feat.setMetaValue("monoisotopic_mass_of_feature", fgroup.getMonoisotopicMass());
-        feat.setMetaValue("feature_group_score", fgroup.getFeatureGroupScore());
 
         std::vector<ConvexHull2D> tmp_hulls;
         std::vector<std::vector<double>> intensity_of_hulls;
@@ -198,7 +197,7 @@ protected:
     out_stream << "FeatureGroupIndex\tFileName\tMonoisotopicMass\tAverageMass\t"
                   "StartRetentionTime(FWHM)\tEndRetentionTime(FWHM)\tHighestApexRetentionTime\tMedianApexRetentionTime\t" // centroid_rt_of_apices
                   "FeatureGroupQuantity\tAllAreaUnderTheCurve\tSumIntensity\tMinCharge\tMaxCharge\tChargeCount\tMostAbundantFeatureCharge\t"
-                  "IsotopeCosineScore\tFeatureScore\n"; // mass_trace_ids\n";
+                  "IsotopeCosineScore\n"; // mass_trace_ids\n";
 
 //    bool use_smoothed_intensities = FLASHQuantuantAlgorithm().getDefaults().getValue("use_smoothed_intensities").toBool();
     int fg_index = 0;
@@ -275,7 +274,7 @@ protected:
                  << std::to_string(fg.getRtOfMostAbundantMT()) << "\t" << std::to_string(centroid_rt_of_apices) << "\t"
                  << std::to_string(feature_quant) << "\t" << std::to_string(all_area) << "\t" << std::to_string(fg.getIntensity()) << "\t"
                  << fg.getMinCharge() << "\t" << fg.getMaxCharge() << "\t" << fg.getChargeSet().size() << "\t" << most_abundant_cs << "\t"
-                 << std::to_string(fg.getIsotopeCosine()) << "\t" << std::to_string(fg.getFeatureGroupScore())
+                 << std::to_string(fg.getIsotopeCosine())
                  << std::endl;
       out_stream.flush();
     }

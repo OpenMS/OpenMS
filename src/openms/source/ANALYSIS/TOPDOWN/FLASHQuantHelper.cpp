@@ -316,11 +316,6 @@ namespace FLASHQuantHelper
     return isotope_cosine_score_;
   }
 
-  float FeatureGroup::getFeatureGroupScore() const
-  {
-    return total_score_;
-  }
-
   const std::set<int>& FeatureGroup::getChargeSet() const
   {
     return charges_;
@@ -371,12 +366,6 @@ namespace FLASHQuantHelper
     monoisotopic_mass_ = mass;
   }
 
-  void FeatureGroup::setChargeRange(const int min_c, const int max_c)
-  {
-    min_abs_charge_ = min_c;
-    max_abs_charge_ = max_c;
-  }
-
   void FeatureGroup::setMaxIsotopeIndex(const Size index)
   {
     max_isotope_index_ = index;
@@ -385,11 +374,6 @@ namespace FLASHQuantHelper
   void FeatureGroup::setIsotopeCosine(const float cos)
   {
     isotope_cosine_score_ = cos;
-  }
-
-  void FeatureGroup::setFeatureGroupScore(const float score)
-  {
-    total_score_ = score;
   }
 
   void FeatureGroup::setPerChargeIntensities(std::vector<float> const &perChargeInt)
@@ -468,7 +452,7 @@ namespace FLASHQuantHelper
 
   void FeatureGroup::updateMembersForScoring()
   {
-    // based on PeakGroup::updateMonomassAndIsotopeIntensities()
+    // based on PeakGroup::updateMonoMassAndIsotopeIntensities()
     /// update 5 members: monoisotopic_mass_, max_isotope_index_, per_isotope_int_, intensity_, charges_
 
     // calculate max_isotope_index_
@@ -490,12 +474,11 @@ namespace FLASHQuantHelper
       {
         continue;
       }
-      per_isotope_int_[f.getIsotopeIndex()] += f.getIntensity();
+      double fi = f.getIntensity();
+      per_isotope_int_[f.getIsotopeIndex()] += fi;
       charges_.insert(f.getCharge());
-
-      double pi = f.getIntensity() + 1;
-      intensity_ += pi;
-      nominator += pi * (f.getUnchargedMass() - f.getIsotopeIndex() * Constants::ISOTOPE_MASSDIFF_55K_U);
+      intensity_ += fi;
+      nominator += fi * (f.getUnchargedMass() - f.getIsotopeIndex() * Constants::ISOTOPE_MASSDIFF_55K_U);
     }
     // update monoisotopic mass
     monoisotopic_mass_ = nominator / intensity_;

@@ -156,7 +156,6 @@ namespace FLASHQuantHelper
     double getIntensity() const;
     double getRtOfMostAbundantMT() const;
     float getIsotopeCosine() const;
-    float getFeatureGroupScore() const;
 
     const std::set<int> &getChargeSet() const;
     const std::pair<double, double>& getFwhmRange() const;
@@ -170,10 +169,8 @@ namespace FLASHQuantHelper
 
     /** default setters **/
     void setMonoisotopicMass(const double mass);
-    void setChargeRange(const int min_c, const int max_c);
     void setMaxIsotopeIndex(const Size index);
     void setIsotopeCosine(const float cos);
-    void setFeatureGroupScore(const float score);
     void setPerChargeIntensities(std::vector<float> const &perChargeInt);
     void setPerChargeCosineScore(std::vector<float> const &perChargeCos);
     void setAverageMass(double averageMass);
@@ -222,7 +219,6 @@ namespace FLASHQuantHelper
 
     /// scores
     float isotope_cosine_score_;
-    float total_score_;
 
     /// list of charges from feature_seeds
     std::set<int> charges_;
