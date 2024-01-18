@@ -170,6 +170,7 @@ if (WITH_HDF5)
     set(HDF5_USE_STATIC_LIBRARIES ON)
   endif()
   find_package(HDF5 MODULE REQUIRED COMPONENTS CXX)
+  target_compile_definitions(HDF5::HDF5 INTERFACE H5_USE_110_API)
 endif()
 
 #------------------------------------------------------------------------------
