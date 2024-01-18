@@ -14,6 +14,8 @@
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 #include "H5Cpp.h"
 #include "blosc_filter.h"
@@ -51,11 +53,14 @@ START_SECTION((MzMLb()))
   std::cout << xml_size << std::endl; // size of XML part?
   
   // Allocate the buffer (plus one for the null terminator)
-  std::vector<char> xml_buffer(xml_size + 1, '\0');
+  std::string xml_buffer(xml_size, '\0');
 
   // Read the XML blob
-  mzMLb.read(xml_buffer.data(), xml_size);
-  std::cout << xml_buffer.data() << std::endl;
+  mzMLb.read(&xml_buffer[0], xml_size);
+  std::cout << xml_buffer << std::endl;
+  
+  MSExperiment run;
+  MzMLFile().loadBuffer(xml_buffer, run);
 }
 END_SECTION
 
