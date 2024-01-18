@@ -1,3 +1,11 @@
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
+// --------------------------------------------------------------------------
+
 #include <iostream>
 
 #include <string>
@@ -5,9 +13,9 @@
 
 int main(int argc, char** argv)
 {
-  if (argc != 2)
+  if (argc != 3)
   {
-    std::cerr << "Usage:\n   " << argv[0] << " <path to doxygen-error.log>\n";
+    std::cerr << "Usage:\n   " << argv[0] << " <path to doxygen-error.log> <doxygen version to print>\n";
     return 1;
   }
   
@@ -36,6 +44,8 @@ int main(int argc, char** argv)
     std::cerr << "\n\nFound Doxygen warnings. See above. Please fix them.\n";
     return 1;
   }
+  // print doxygen version; useful to know in CI/CD when your local doxygen version differs in output and you don't want to dig into CI logs to find the doxygen version used
+  std::cout << "Doxygen version: " << argv[2] << std::endl;
   
   return 0;  
 }

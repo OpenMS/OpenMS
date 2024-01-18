@@ -253,7 +253,7 @@ if(ENABLE_DOCS)
                       VERBATIM)
     add_executable(Doxygen_Warning_Checker doxygen/test/Doxygen_Warning_Checker.cpp)
     add_dependencies(Doxygen_Warning_Checker doc) ## this is a compile time dependency, but better than none. Currently, there is no way to have a test depend on a target ('doc') before its run.
-    add_test(Doxygen_Warning_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Doxygen_Warning_Checker "${PROJECT_BINARY_DIR}/doxygen/doxygen-error.log")
+    add_test(Doxygen_Warning_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Doxygen_Warning_Checker "${PROJECT_BINARY_DIR}/doxygen/doxygen-error.log" ${DOXYGEN_VERSION})
     
     # doc_html_only to generate only the doxygen documentation (e.g., when writing new documentation)
     add_custom_target(doc_class_only
