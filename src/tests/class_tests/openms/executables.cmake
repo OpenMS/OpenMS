@@ -284,7 +284,7 @@ set(format_executables_list
 )
 
 if(WITH_HDF5)
-  list(APPEND format_executables_list HDF5_test)
+  list(APPEND format_executables_list HDF5_test Connection_mzMLb_test)
 endif()
 
 set(math_executables_list
