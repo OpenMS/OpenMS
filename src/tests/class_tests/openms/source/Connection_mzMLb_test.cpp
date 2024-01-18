@@ -22,7 +22,7 @@ using namespace std;
 
 #include <OpenMS/FORMAT/Connection_mzMLb.h>
 
-using Connection_mzMLb = pwiz::msdata::mzmlb::Connection_mzMLb;
+//using MzMLb = pwiz::msdata::mzmlb::Connection_mzMLb;
 
 #include <string>
 #include <iostream>
@@ -34,15 +34,17 @@ START_TEST(MzMLb, "$Id$")
 
 using namespace OpenMS;
 
+using MzMLb = OpenMS::Connection_mzMLb; // TODO: maybe rename? MzMLbStream?
+
 START_SECTION((MzMLb()))
 {
   // open mzMLb file
-  const std::string filename( OPENMS_GET_TEST_DATA_PATH("test.mzMLb") );
-  auto mzMLb_stream = Connection_mzMLb(filename);
+  const std::string filename( OPENMS_GET_TEST_DATA_PATH("small.mzMLb") );
+  auto mzMLb = MzMLb(filename);
 
   // Read from the stream and print to std::cout
   char* buffer;
-  mzMLb_stream.read(buffer, (std::streamsize)1e3);
+  mzMLb.read(buffer, (std::streamsize)1e3);
   std::cout << buffer << std::endl;
 }
 END_SECTION

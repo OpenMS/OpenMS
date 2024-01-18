@@ -23,22 +23,25 @@
 #ifndef CONNECTION_MZMLB_HPP_
 #define CONNECTION_MZMLB_HPP_
 
-
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/concepts.hpp>  // seekable_device
 #include <fstream>
 #include <vector>
 #include <map>
-#include <hdf5.h>
+#include "hdf5.h"
 
-
+/*
 namespace pwiz {
 namespace msdata {
 namespace mzmlb {
+*/
 
+#include <OpenMS/CONCEPT/Macros.h>
+
+namespace OpenMS {
 using namespace boost::iostreams;
 
-class Connection_mzMLb : public device<seekable> {
+class OPENMS_DLLAPI Connection_mzMLb : public device<seekable> {
 public:   
     Connection_mzMLb(const std::string& filename, int chunk_size, int compression_level); // open for writing
     Connection_mzMLb(const std::string& filename, bool identifyOnly = false); // open for reading or identify()
@@ -95,8 +98,10 @@ private:
     std::map<std::string, Stream> binary_; // stream parameters for binary datasets 
 };
 
+}
+/*
 } // mzmlb
 } // msdata
 } // pwiz
-
+*/
 #endif /* CONNECTION_MZMLB_HPP_ */

@@ -32,10 +32,12 @@ using namespace boost::iostreams;
 
 #define CURRENT_VERSION "mzMLb 1.0"
 
+namespace OpenMS {
+/*
 namespace pwiz {
 namespace msdata {
 namespace mzmlb {
-
+*/
 Connection_mzMLb::Connection_mzMLb(const std::string& id, bool identifyOnly)
 {
     H5Eset_auto(H5E_DEFAULT, NULL, NULL);
@@ -73,11 +75,11 @@ Connection_mzMLb::Connection_mzMLb(const std::string& id, bool identifyOnly)
         nbytes = (nbytes > chunk_size) ? nbytes : chunk_size;
         w0 = 1.0; // since pwiz only writes a spectrum once
         H5Pset_chunk_cache(dapl, nslots, nbytes, w0);
-        mzML_.dataset = H5Dopen(file_, "mzML", dapl);
-        mzML_.space = H5Dget_space(mzML_.dataset);
+        mzML_.dataset = H5Dopen(file_, "mzML", dapl); // open XML part
+        mzML_.space = H5Dget_space(mzML_.dataset); // get handle for dataset retrieval
         hsize_t size, maxdims;
-        H5Sget_simple_extent_dims(mzML_.space, &size, &maxdims);
-        mzML_.size = size;
+        H5Sget_simple_extent_dims(mzML_.space, &size, &maxdims); // retrieve size and number of dimensions (TODO: check if more than one dimension)
+        mzML_.size = size; // size of XML part
 
         // get version number
         hid_t aid = H5Aopen(mzML_.dataset, "version", H5P_DEFAULT);
@@ -611,6 +613,9 @@ stream_offset Connection_mzMLb::seek(const std::string& id, stream_offset off, s
     return stream.pos;
 }
 
+}
+/*
 } // mzmlb
 } // msdata
 } // pwiz
+*/

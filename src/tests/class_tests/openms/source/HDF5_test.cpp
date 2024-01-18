@@ -205,11 +205,65 @@ START_SECTION((HDF5_BLOSC()))
         } 
         else if (datatype_class == H5T_INTEGER) 
         {
-          std::cout << name << " (integer)" << std::endl;
+          // Get dataspace of the dataset
+          hid_t dataspace_id = H5Dget_space(dataset_id);
+          hssize_t num_elements = H5Sget_simple_extent_npoints(dataspace_id);
+
+          // Read and print data based on size
+          if (num_elements == 1) {
+              // Single integer
+              int value;
+              H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &value);
+              std::cout << "(integer) '" << name << "': " << value << std::endl;
+          } else {
+              // Array of integers
+              std::vector<int> data(num_elements);
+              H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data.data());
+              if (name == "mzML")
+              {
+                std::cout << "(XML) '" << name << "': ";
+                for (int val : data) {
+                    std::cout << (char)val;
+                }
+              }
+              else
+              {
+                std::cout << "(integer array) '" << name << "': ";
+                for (int val : data) {
+                    std::cout << val << " ";
+                }
+                std::cout << std::endl;                
+              }
+          }
+
+          // Close the dataspace
+          H5Sclose(dataspace_id);
         } 
         else if (datatype_class == H5T_FLOAT) 
         {
-          std::cout << name << " (float)" << std::endl;
+          // Get dataspace of the dataset
+          hid_t dataspace_id = H5Dget_space(dataset_id);
+          hssize_t num_elements = H5Sget_simple_extent_npoints(dataspace_id);
+
+          // Read and print data based on size
+          if (num_elements == 1) {
+              // Single float
+              float value;
+              H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &value);
+              std::cout << "(float) '" << name << "': " << value << std::endl;
+          } else {
+              // Array of floats
+              std::vector<float> data(num_elements);
+              H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data.data());
+              std::cout << "(float array) '" << name << "': ";
+              for (float val : data) {
+                  std::cout << val << " ";
+              }
+              std::cout << std::endl;
+          }
+
+          // Close the dataspace
+          H5Sclose(dataspace_id);
         } 
         else if (datatype_class == H5T_STRING) 
         {
