@@ -19,7 +19,9 @@ int main(int argc, char** argv)
     return 1;
   }
   
-  std::cout << "Note: Please make sure to run the 'doc' target before running this test, so the 'doxygen-error.log' is up to date." << std::endl;
+  std::cout << "Note: Please make sure to run the 'doc' target before running this test, so the 'doxygen-error.log' is up to date.\n";
+  // print doxygen version; useful to know in CI/CD when your local doxygen version differs in output and you don't want to dig into CI logs to find the doxygen version used
+  std::cout << "Doxygen version: " << argv[2] << std::endl;
   
   std::ifstream is(argv[1]);
   if (!is)
@@ -44,8 +46,6 @@ int main(int argc, char** argv)
     std::cerr << "\n\nFound Doxygen warnings. See above. Please fix them.\n";
     return 1;
   }
-  // print doxygen version; useful to know in CI/CD when your local doxygen version differs in output and you don't want to dig into CI logs to find the doxygen version used
-  std::cout << "Doxygen version: " << argv[2] << std::endl;
   
   return 0;  
 }
