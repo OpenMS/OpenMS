@@ -20,7 +20,6 @@
 // limitations under the License.
 //
 
-
 #include <OpenMS/FORMAT/Connection_mzMLb.h>
 #include <stdexcept>
 #include <iostream>
@@ -100,14 +99,14 @@ Connection_mzMLb::Connection_mzMLb(const std::string& id, bool identifyOnly)
                     char* ver = new char[H5Tget_size(atype)];
                     H5Aread(aid, atype_mem, ver);
                     std::string version = ver;
+                    std::cout << "mzMLb version: " << version << std::endl;
                     if (version != CURRENT_VERSION)
                     {
                         H5Aclose(aid);
                         H5Aclose(atype_mem);
                         close();
                         throw std::runtime_error("[Connection_mzMLb::open()] Cannot read this version of mzMLb: \"" + version + "\" (or version is not fixed-length string); only " CURRENT_VERSION " is supported");
-                    }
-                   
+                    }                   
                 }
                 H5Aclose(atype_mem);
             }
@@ -207,7 +206,6 @@ void Connection_mzMLb::close()
 
     H5Fclose(file_);
 }
-
 
 // read mzMLb "mzML" dataset
 std::streamsize Connection_mzMLb::read(char* s, std::streamsize n)

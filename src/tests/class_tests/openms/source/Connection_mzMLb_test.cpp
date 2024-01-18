@@ -38,14 +38,24 @@ using MzMLb = OpenMS::Connection_mzMLb; // TODO: maybe rename? MzMLbStream?
 
 START_SECTION((MzMLb()))
 {
-  // open mzMLb file
-  const std::string filename( OPENMS_GET_TEST_DATA_PATH("small.mzMLb") );
-  auto mzMLb = MzMLb(filename);
+  // load blosc plugin TODO: maybe move to some other part
+  char *version, *date;
+  auto return_code = register_blosc(&version, &date);
+  TEST_EQUAL(return_code >= 0, true);
+  std::cout << "Blosc version info: " << version << " " << date << std::endl;
 
-  // Read from the stream and print to std::cout
-  char* buffer;
-  mzMLb.read(buffer, (std::streamsize)1e3);
-  std::cout << buffer << std::endl;
+  // open mzMLb file
+  const std::string filename( OPENMS_GET_TEST_DATA_PATH("small.mzMLb") ); // file converted with pwiz
+  auto mzMLb = MzMLb(filename);
+  std::streamsize xml_size = mzMLb.size("mzML");
+  std::cout << xml_size << std::endl; // size of XML part?
+  
+  // Allocate the buffer (plus one for the null terminator)
+  std::vector<char> xml_buffer(xml_size + 1, '\0');
+
+  // Read the XML blob
+  mzMLb.read(xml_buffer.data(), xml_size);
+  std::cout << xml_buffer.data() << std::endl;
 }
 END_SECTION
 
