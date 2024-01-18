@@ -11,6 +11,8 @@ int main(int argc, char** argv)
     return 1;
   }
   
+  std::cout << "Note: Please make sure to run the 'doc' target before running this test, so the 'doxygen-error.log' is up to date." << std::endl;
+  
   std::ifstream is(argv[1]);
   if (!is)
   {
@@ -18,13 +20,11 @@ int main(int argc, char** argv)
     return 1;
   }
   
-  std::string line;
-  int line_count = 0;
   std::cout << "Opening '" << argv[1] << "' to check for doxygen errors...\n"
             << "----------- ERRORS/WARNINGS -----------------" << std::endl;
-  while (is)
+  int line_count = 0;
+  for (std::string line; std::getline(is, line);)
   {
-    std::getline(is, line);
     if (line.empty()) continue;
     std::cerr << line << '\n';
     ++line_count;
