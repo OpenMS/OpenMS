@@ -987,7 +987,7 @@ namespace OpenMS
     double tol = tolerance_[ms_level_ - 1];
     auto selected = boost::dynamic_bitset<>(deconvolved_spectrum_.size());
 
-//#pragma omp parallel for default(none) shared(tol, selected)
+#pragma omp parallel for default(none) shared(tol, selected)
     for (int i = 0; i < (int)deconvolved_spectrum_.size(); i++)
     {
       int offset = 0;
@@ -1076,7 +1076,7 @@ namespace OpenMS
       {
         continue;
       }
-//#pragma omp critical
+#pragma omp critical
       selected[i] = true;
     }
 
