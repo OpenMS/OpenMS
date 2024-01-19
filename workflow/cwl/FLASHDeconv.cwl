@@ -90,6 +90,9 @@ inputs:
   FD__report_FDR:
     doc: Report qvalues (roughly, point-wise FDR) for deconvolved masses. Decoy masses to calculate qvalues and FDR are also reported. Beta version.
     type: boolean?
+  FD__allowed_isotope_error:
+    doc: Allowed isotope index error for decoy and FDR report. If it is set to 2, for example, +-2 isotope errors are not counted as false. Beta version.
+    type: long?
   FD__use_RNA_averagine:
     doc: If set, RNA averagine model is used.
     type: boolean?
@@ -130,14 +133,11 @@ inputs:
     doc: Cosine similarity thresholds between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_cos 0.3 0.6 to specify 0.3 and 0.6 for MS1 and MS2, respectively)
     type: double[]?
   SD__min_snr:
-    doc: SNR thresholds for MS1, 2, ... (e.g., -min_snr 1.0 0.6 to specify 1.0 and 0.6 for MS1 and MS2, respectively)
+    doc: Minimum charge SNR (the SNR of the isotope pattern of a specific charge) thresholds for MS1, 2, ... (e.g., -min_snr 1.0 0.6 to specify 1.0 and 0.6 for MS1 and MS2, respectively)
     type: double[]?
   SD__max_qvalue:
     doc: Qvalue thresholds for MS1, 2, ... Effective only when FDR estimation is active. (e.g., -max_qvalue 0.1 0.2 to specify 0.1 and 0.2 for MS1 and MS2, respectively)
     type: double[]?
-  SD__allowed_isotope_error:
-    doc: Allowed isotope index error for decoy and qvalue report. If it is set to 2, for example, +-2 isotope errors are not counted as false. Beta version.
-    type: long?
   ft__mass_error_ppm:
     doc: Feature tracing mass ppm tolerance. When negative, MS1 tolerance for mass deconvolution will be used (e.g., 16 ppm is used when -SD:tol 16).
     type: double?
@@ -177,14 +177,8 @@ inputs:
   tagger__flanking_mass_tol:
     doc: Flanking mass tolerance in Da.
     type: double?
-  tagger__allowed_isotope_error:
-    doc: Allowed_isotope_error for tag generation. It only applies to amino acids, not mass gaps.
-    type: long?
-  tagger__max_gap_count:
-    doc: Maximum mass gap count per tag.
-    type: long?
-  tagger__max_aa_in_gap:
-    doc: Maximum amino acid count in a mass gap.
+  tagger__max_iso_error_count:
+    doc: Maximum isotope error count per tag.
     type: long?
   tagger__min_matched_aa:
     doc: Minimum number of amino acids in matched proteins, covered by tags.

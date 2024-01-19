@@ -48,7 +48,9 @@ namespace OpenMS
     defaults_.setValue("min_cos", DoubleList {.85, .85},
                        "Cosine similarity thresholds between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_cos 0.3 0.6 to specify 0.3 and 0.6 for MS1 and MS2, respectively)");
     defaults_.addTag("min_cos", "advanced");
-    defaults_.setValue("min_snr", DoubleList {1.0, 1.0}, "SNR thresholds for MS1, 2, ... (e.g., -min_snr 1.0 0.6 to specify 1.0 and 0.6 for MS1 and MS2, respectively)");
+    defaults_.setValue(
+      "min_snr", DoubleList {1.0, 1.0},
+      "Minimum charge SNR (the SNR of the isotope pattern of a specific charge) thresholds for MS1, 2, ... (e.g., -min_snr 1.0 0.6 to specify 1.0 and 0.6 for MS1 and MS2, respectively)");
     defaults_.addTag("min_snr", "advanced");
     defaults_.setValue("max_qvalue", DoubleList {1.0, 1.0},
                        "Qvalue thresholds for MS1, 2, ... Effective only when FDR estimation is active. (e.g., -max_qvalue 0.1 0.2 to specify 0.1 and 0.2 for MS1 and MS2, respectively)");
@@ -56,7 +58,6 @@ namespace OpenMS
     defaults_.setValue("allowed_isotope_error", 1,
                        "Allowed isotope index error for decoy and qvalue report. If it is set to 2, for example, +-2 isotope errors are "
                        "not counted as false. Beta version.");
-    //defaults_.setMinInt("allowed_isotope_error", 1);
     defaults_.addTag("allowed_isotope_error", "advanced");
 
     defaultsToParam_();
@@ -875,7 +876,8 @@ namespace OpenMS
   void SpectralDeconvolution::setTargetDecoyType(PeakGroup::TargetDecoyType target_decoy_type, const DeconvolvedSpectrum& target_dspec_for_decoy_calcualtion)
   {
     target_decoy_type_ = target_decoy_type;
-    if (target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy) max_abs_charge_ = low_charge_;
+    //if (target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy)
+    //  max_abs_charge_ = low_charge_;
     target_dspec_for_decoy_calcualtion_ = &target_dspec_for_decoy_calcualtion;
   }
 
@@ -1070,8 +1072,8 @@ namespace OpenMS
 
       double snr_threshold = min_snr_[ms_level_ - 1];
       double qvalue_threshold = max_qvalue_[ms_level_ - 1];
-      if (!peak_group.isTargeted() && (peak_group.getQvalue() > qvalue_threshold || peak_group.getSNR() < snr_threshold ||
-                                       peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold)) // snr check prevents harmonics or noise.
+      if (!peak_group.isTargeted() && (                                                                         // peak_group.getQvalue() > qvalue_threshold || peak_group.getSNR() < snr_threshold ||
+                                        peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold)) // snr check prevents harmonics or noise.
       {
         continue;
       }
@@ -1406,7 +1408,7 @@ namespace OpenMS
         local_max_SNR = -1.0;
       }
 
-      double snr = dspec[i].getSNR();
+      float snr = dspec[i].getSNR();
 
       if (local_max_SNR < snr)
       {

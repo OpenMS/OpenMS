@@ -194,7 +194,7 @@ protected:
       auto tagger_param = TopDownTagger().getDefaults();
       tagger_param.remove("min_charge");
       tagger_param.remove("max_charge");
-      tagger_param.setValue("min_matched_aa", 6, "Minimum number of amino acids in matched proteins, covered by tags.");
+      tagger_param.setValue("min_matched_aa", 5, "Minimum number of amino acids in matched proteins, covered by tags.");
 
       tagger_param.setValue("fasta", "", "Target protein sequence database against which tags will be matched.");
       tagger_param.addTag("fasta", "input file");
