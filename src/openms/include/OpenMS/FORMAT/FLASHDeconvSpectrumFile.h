@@ -34,7 +34,6 @@ namespace OpenMS
                                              uint ms_level,
                                              bool detail,
                                              bool report_decoy);
-
     /**
           @brief write the deconvolved masses in the output file (spectrum level)
           @param dspec deconvolved spectrum to write

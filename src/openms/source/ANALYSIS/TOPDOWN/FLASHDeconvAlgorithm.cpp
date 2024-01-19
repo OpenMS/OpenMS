@@ -32,6 +32,11 @@ namespace OpenMS
     defaults_.setValue("report_FDR", "false", "Report qvalues (roughly, point-wise FDR) for deconvolved masses. Decoy masses to calculate qvalues and FDR are also reported. Beta version.");
     defaults_.setValidStrings("report_FDR", {"true", "false"});
 
+    defaults_.setValue("allowed_isotope_error", 0,
+                       "Allowed isotope index error for decoy and FDR report. If it is set to 2, for example, +-2 isotope errors are "
+                       "not counted as false. Beta version.");
+    defaults_.addTag("allowed_isotope_error", "advanced");
+
     defaults_.setValue("use_RNA_averagine", "false", "If set, RNA averagine model is used.");
     defaults_.setValidStrings("use_RNA_averagine", {"true", "false"});
     defaults_.addTag("use_RNA_averagine", "advanced");
@@ -63,7 +68,9 @@ namespace OpenMS
     defaults_.setMinInt("merging_method", 0);
     defaults_.setMaxInt("merging_method", 2);
 
-    defaults_.insert("SD:", SpectralDeconvolution().getDefaults());
+    auto sd_defaults = SpectralDeconvolution().getDefaults();
+    sd_defaults.remove("allowed_isotope_error");
+    defaults_.insert("SD:", sd_defaults);
 
     Param mf_defaults = MassFeatureTrace().getDefaults();
     mf_defaults.setValue("min_cos", -1.0, "Cosine similarity threshold between avg. and observed isotope pattern.  When negative, MS1 cosine threshold for mass deconvolution will be used ");
@@ -235,13 +242,22 @@ namespace OpenMS
     auto native_id_str = map[index].getNativeID();
     std::vector<String> native_ids;
     native_id_str.split(",", native_ids);
+
+    if (map.getSourceFiles().empty())
+    {
+      return (int)index + 1;
+    }
+
     auto type_accession = map.getSourceFiles()[0].getNativeIDTypeAccession();
-    if (type_accession.empty()) type_accession = "MS:1000768";
-    int scan_number = map.getSourceFiles().empty() ? -1 : SpectrumLookup::extractScanNumber(native_ids.back(), type_accession);
+    if (type_accession.empty())
+      type_accession = "MS:1000768";
+
+    int scan_number = SpectrumLookup::extractScanNumber(native_ids.back(), type_accession);
     if (scan_number < 0)
     {
       scan_number = (int)index + 1;
     }
+
     return scan_number;
   }
 
@@ -283,7 +299,6 @@ namespace OpenMS
         {
           continue;
         }
-
         String native_id = spec.getNativeID();
 
         PeakGroup precursor_pg; // TODO implement decoy precursor peak group
@@ -291,6 +306,7 @@ namespace OpenMS
           precursor_pg = native_id_precursor_peak_group_map_[native_id];
 
         // now do it
+
         sd_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
 
         auto& deconvolved_spectrum = sd_.getDeconvolvedSpectrum();
@@ -312,19 +328,27 @@ namespace OpenMS
             sd_isotope_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
           }
           DeconvolvedSpectrum decoy_deconvolved_spectrum(scan_number);
+
+          deconvolved_spectrum.sortByQscore();
+          double qscore_threshold_for_decoy = deconvolved_spectrum.back().getQscore2D();
+
           decoy_deconvolved_spectrum.setOriginalSpectrum(spec);
           decoy_deconvolved_spectrum.reserve(sd_isotope_decoy_.getDeconvolvedSpectrum().size() + sd_charge_decoy_.getDeconvolvedSpectrum().size() + sd_noise_decoy_.getDeconvolvedSpectrum().size());
 
           for (auto& pg : sd_charge_decoy_.getDeconvolvedSpectrum())
-            decoy_deconvolved_spectrum.push_back(pg);
+            if (pg.getQscore2D() >= qscore_threshold_for_decoy)
+              decoy_deconvolved_spectrum.push_back(pg);
 
           for (auto& pg : sd_isotope_decoy_.getDeconvolvedSpectrum())
-            decoy_deconvolved_spectrum.push_back(pg);
+            if (pg.getQscore2D() >= qscore_threshold_for_decoy)
+              decoy_deconvolved_spectrum.push_back(pg);
 
           for (auto& pg : sd_noise_decoy_.getDeconvolvedSpectrum())
-            decoy_deconvolved_spectrum.push_back(pg);
+            if (pg.getQscore2D() >= qscore_threshold_for_decoy)
+              decoy_deconvolved_spectrum.push_back(pg);
 
           decoy_deconvolved_spectrum.sort();
+          deconvolved_spectrum.sort();
 
           if (!decoy_deconvolved_spectrum.empty())
             deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
@@ -353,7 +377,7 @@ namespace OpenMS
 
     sd_ = SpectralDeconvolution();
     Param sd_param = param_.copy("SD:", true);
-
+    sd_param.setValue("allowed_isotope_error", param_.getValue("allowed_isotope_error"));
     sd_.setParameters(sd_param);
     sd_.calculateAveragine(use_RNA_averagine_);
     auto avg = sd_.getAveragine();

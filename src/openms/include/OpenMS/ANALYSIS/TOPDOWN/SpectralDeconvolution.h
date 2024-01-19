@@ -101,13 +101,13 @@ namespace OpenMS
         @param avg precalculated averagine
         @param iso_int_shift isotope shift in per_isotope_intensities.
         @param window_width isotope offset value range. If -1, set automatically.
-        @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If target_decoy_type is not PeakGroup::TargetDecoyType::target, the second best cosine and
+        @param allowed_isotope_error allowed isotope error to calculate the second best cos. If target_decoy_type is not PeakGroup::TargetDecoyType::target, the second best cosine and
        its corresponding offset will be output
         @param target_decoy_type  This target_decoy_type specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
-        @return calculated cosine similar score
+        @return calculated cosine similarity score
      */
-    static float getIsotopeCosineAndDetermineIsotopeIndex(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int iso_int_shift = 0,
-                                                          int window_width = -1, int allowed_iso_error_for_second_best_cos = 0,
+    static float getIsotopeCosineAndIsoOffset(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int iso_int_shift = 0,
+                                                          int window_width = -1, int allowed_isotope_error = 0,
                                                           PeakGroup::TargetDecoyType target_decoy_type = PeakGroup::TargetDecoyType::target);
 
     /**
@@ -120,14 +120,16 @@ namespace OpenMS
     /// filter out overlapping masses
     static void removeOverlappingPeakGroups(DeconvolvedSpectrum& dspec, double tol, PeakGroup::TargetDecoyType target_decoy_type = PeakGroup::TargetDecoyType::target);
 
+    /// minimum isotopologue count in a peak group
+    const static int min_iso_size = 2;
+
   protected:
     void updateMembers_() override;
 
   private:
     /// FLASHDeconv parameters
 
-    /// minimum isotopologue count in a peak group
-    const static int min_iso_size_ = 2;
+
 
     /// allowed isotope error in deconvolved mass to calculate qvalue
     int allowed_iso_error_ = 1;

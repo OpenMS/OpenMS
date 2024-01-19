@@ -13,25 +13,74 @@
 
 namespace OpenMS
 {
-  // IsotopeCosine                   42.2496
-  // ChargeCosine                      2.8767
-  // MassSNR1                         -0.1523
-  // ChargeSNR1                        0.4797
-  // Intercept                       -45.5284
+  //==================================== CV 0
+  std::vector<double> Qscore::weight_CV_0_ {-9.2654, 0.558, 0.014, 0.0249, 8.2536};
 
-  std::vector<double> Qscore::weight_centroid_{-42.2496, -2.8767, 0.1523, -0.4797,  45.5284};
-  std::vector<double> Qscore::weight_profile_{-42.2496, -2.8767, 0.1523, -0.4797,  45.5284};
-  std::vector<double> Qscore::weight_CV_{-42.2496, -2.8767, 0.1523, -0.4797,  45.5284};
+  //====================================== CV 40
+  std::vector<double> Qscore::weight_CV_40_ {-22.48, 0.9741, -0.0082, -0.4234, 20.5086};
 
-  double Qscore::getQscore(const PeakGroup* pg, bool is_profile, double cv)
+  // ====================================== CV 50
+  std::vector<double> Qscore::weight_CV_50_ {-18.1896, -0.6636, -0.0075, -0.5833, 16.5708};
+
+  //====================================== CV 60
+  std::vector<double> Qscore::weight_CV_60_ {-22.1279, 0.342, -0.0484, -0.6139, 20.3207};
+
+  //====================================== Normal
+  std::vector<double> Qscore::weight_centroid_ {-22.7763, 0.9107, -0.1328, -0.4266, 22.2197}; // apr23 all
+  std::vector<double> Qscore::weight_profile_(weight_centroid_);                              //{-6.0783, -1.3585, -0.1004, -0.3308, 5.9575}; // in silico profile
+
+
+  double Qscore::getQscore(const PeakGroup* pg, const MSSpectrum& spectrum)
   {
     if (pg->empty())
     { // all zero
       return .0;
     }
 
-    auto weights = cv > 0 ? weight_CV_ : (is_profile? weight_profile_ : weight_centroid_);
-    double score = weights.back();
+    bool is_profile = spectrum.getType(false) != SpectrumSettings::CENTROID;
+    auto filter_str = spectrum.getMetaValue("filter string").toString();
+    Size pos = filter_str.find("cv=");
+    double cv = 1;
+
+    if (pos != String::npos)
+    {
+      Size end = filter_str.find(" ", pos);
+      if (end == String::npos)
+        end = filter_str.length() - 1;
+      cv = std::stod(filter_str.substr(pos + 3, end - pos));
+    }
+    auto weights = (is_profile ? weight_profile_ : weight_centroid_);
+    if (cv <= 0)
+    {
+      const std::vector<double> cvs {.0, -40.0, -50.0, -60.0};
+      double min_val = cvs.back();
+      for (double i : cvs)
+      {
+        double diff = std::abs(cv - i);
+        if (diff > std::abs(cv - min_val))
+          continue;
+        min_val = i;
+      }
+
+      if (min_val == .0)
+      {
+        weights = weight_CV_0_;
+      }
+      else if (min_val == -40.0)
+      {
+        weights = weight_CV_40_;
+      }
+      else if (min_val == -50.0)
+      {
+        weights = weight_CV_50_;
+      }
+      else
+      {
+        weights = weight_CV_60_;
+      }
+    }
+
+    double score = weights.back() + .5;
     auto fv = toFeatureVector_(pg);
 
     for (Size i = 0; i < weights.size() - 1; i++)
@@ -43,52 +92,58 @@ namespace OpenMS
     return qscore;
   }
 
+
   std::vector<double> Qscore::toFeatureVector_(const PeakGroup* pg)
   {
-    std::vector<double> fvector(4); // length of weights vector - 1, excluding the intercept weight.
-
+    std::vector<double> fvector(4, .0); // length of weights vector - 1, excluding the intercept weight.
+    if (pg->empty())
+      return fvector;
     int index = 0;
     fvector[index++] = pg->getIsotopeCosine(); // (log2(a + d));
 
     // a = pg->getSNR();
-    fvector[index++] = pg->getChargeIsotopeCosine(pg->getRepAbsCharge()); // (log2(d + a / (d + a)));
+    fvector[index++] = pg->getIsotopeCosine() - pg->getChargeIsotopeCosine(pg->getRepAbsCharge()); // (log2(d + a / (d + a)));
 
-    // a = pg->getAvgPPMError();
-    fvector[index++] = log2(1 + pg->getSNR()); //(log2(d + a / (d + a)));
+    // a = pg->getChargeSNR();
+    fvector[index++] = log2(1 + pg->getChargeSNR(pg->getRepAbsCharge())); //(log2(d + a / (d + a)));
 
     // a = pg->getChargeScore();
-    fvector[index++] = log2(1 + pg->getChargeSNR(pg->getRepAbsCharge())); //(log2(a + d));
+    fvector[index++] = log2(1 + pg->getChargeSNR(pg->getRepAbsCharge())) - log2(1 + pg->getSNR()); //(log2(a + d));
 
     return fvector;
   }
 
-  void Qscore::writeAttCsvFromDummyHeader(std::fstream& f)
+  void Qscore::writeAttCsvForQscoreTrainingHeader(std::fstream& f)
   {
-    f << "MSLevel,Cos,SNR,AvgPPMError,ChargeScore,Class\n";
+    PeakGroup pg;
+    Size att_count = toFeatureVector_(&pg).size();
+    for (Size i = 0; i < att_count; i++)
+      f << "Att" << i << ",";
+    f << "Class\n";
   }
 
-  void Qscore::writeAttCsvFromDummy(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
+  void Qscore::writeAttCsvForQscoreTraining(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
   {
-    uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
-    String cns[] = {"T", "D", "D", "D"};
+    DeconvolvedSpectrum dspec;
+    dspec.reserve(deconvolved_spectrum.size());
     for (auto& pg : deconvolved_spectrum)
     {
-      if (pg.getChargeSNR(pg.getRepAbsCharge()) < .5) // remove masses with too low SNRs - they act as outliers.
-      {
-        continue;
-      }
-      if (pg.getChargeIsotopeCosine(pg.getRepAbsCharge()) < .85) // remove masses with too low SNRs - they act as outliers.
-      {
-        continue;
-      }
+      dspec.push_back(pg);
+    }
 
+    if (dspec.empty())
+      return;
+
+    for (auto& pg : dspec)
+    {
+      bool target = pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::target;
       auto fv = toFeatureVector_(&pg);
-      f << ms_level << ",";
+
       for (auto& item : fv)
       {
         f << item << ",";
       }
-      f << cns[pg.getTargetDecoyType()] << "\n";
+      f << (target ? "T" : "F") << "\n";
     }
   }
 } // namespace OpenMS

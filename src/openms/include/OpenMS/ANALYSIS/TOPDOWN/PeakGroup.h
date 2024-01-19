@@ -77,14 +77,16 @@ namespace OpenMS
     /**
            @brief Update setQscore. Cosine and SNRs are also updated.
            @param noisy_peaks noisy peaks to calculate setQscore
+           @param spec the original spectrum that generated this peak group.
            @param avg precalculated averagine
            @param min_cos the peak groups with cosine score less than this will have setQscore 0.
+           @param tol ppm tolerance
            @param is_low_charge if set, charge fit score calculation becomes less harshy
-           @param is_profile if input spectrum is a profile spectrum or now
            @param allowed_iso_error this set the allowed isotope error in decoy mass generation.
+           @param is_last if this is set, it means that Qscore calculation is at its last iteration. More detailed noise power calculation is activated and mono mass is not recalibrated.
            @return returns isotope offset after isotope cosine calculation
       */
-    int updateQscore(std::vector<LogMzPeak>& noisy_peaks, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, bool is_low_charge, bool is_profile = false, int allowed_iso_error = 1);
+    int updateQscore(const std::vector<LogMzPeak>& noisy_peaks, const MSSpectrum& spec, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, double tol, bool is_low_charge, int allowed_iso_error = 1, const bool is_last = false);
 
     /**
      * @brief given a monoisotopic mass, recruit raw peaks from the raw input spectrum and add to this peakGroup. This is a bit time-consuming and is done for only a small number of selected
@@ -169,6 +171,9 @@ namespace OpenMS
     /// get isotopic cosine score
     float getIsotopeCosine() const;
 
+    /// get the density of the peaks within charge and isotope range
+    float getPeakOccupancy() const;
+
     /// get representative charge
     int getRepAbsCharge() const;
 
@@ -203,18 +208,14 @@ namespace OpenMS
     void setTargetDecoyType(PeakGroup::TargetDecoyType index);
 
     /**
-     * Get q values for different target_decoy_type. For charge, noise, isotope decoy types, q values corresponding to the type will be returned. For target (default), the final q value is calculated
-     * by summing the q values of all decoy types and returned.
-     * @param  target_decoy_type  This target_decoy_type specifies if a PeakGroup is a target (0), charge decoy (1), noise decoy (2), or isotope decoy (3)
-     * @return Q value of the peakGroup
+     * Get q value
      */
-    float getQvalue(PeakGroup::TargetDecoyType target_decoy_type = PeakGroup::TargetDecoyType::target) const;
+    float getQvalue() const;
 
     /**
-     * set peakGroup q value for different TargetDecoyType. Q values are stored per TargetDecoyType and later used for final q value calculation.
-     * @param  target_decoy_type  This target_decoy_type specifies if a PeakGroup is a target (0), charge decoy (1), noise decoy (2), or isotope decoy (3)
+     * set peakGroup q value
      */
-    void setQvalue(double q, PeakGroup::TargetDecoyType target_decoy_type);
+    void setQvalue(double q);
 
     /// set distance between consecutive isotopes
     void setIsotopeDaDistance(double d);
@@ -301,24 +302,24 @@ namespace OpenMS
     /// get Da error of a logMzPeak from the closest isotope
     float getAbsDaError_(const LogMzPeak& p) const;
     /// using signal and total (signal + noise) power, update SNR value
-    void updateSNR_();
+    void updateSNR_(float mul_factor);
     /// clear peaks
     void clear_();
     /// update per charge intensities, noise power, and squared intensities. used for SNR estimation
-    void updatePerChargeInformation_(const std::vector<LogMzPeak>& noisy_peaks);
+    void updatePerChargeInformation_(const std::vector<LogMzPeak>& noisy_peaks, const double tol, const bool is_last);
     /// update the charge range using the calculated per charge information
-    void updateChargeRange_(std::vector<LogMzPeak>& noisy_peaks);
+    void updateChargeRange_();
     /// update per charge cosine values
     void updatePerChargeCos_(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg);
 
     /**
      * calculate noisy peak power. The goal of this function is to group noisy peaks that are possibly from the same molecule and sum their intensities before calculate power
      * @param noisy_peaks noisy peaks to calculate power
-     * @param signal_peaks signal peaks - they may make a part of noisy isotopes
      * @param z charge
+     * @param tol ppm tolerance
      * @return calculated noise power
      */
-    float getNoisePeakPower_(const std::vector<LogMzPeak>& noisy_peaks, const std::vector<LogMzPeak>& signal_peaks, const int z) const;
+    float getNoisePeakPower_(const std::vector<LogMzPeak>& noisy_peaks, const int z, const double tol) const;
     std::vector<Matrix<float>> dl_matrices_;
 
     /// log Mz peaks
@@ -368,7 +369,7 @@ namespace OpenMS
     float avg_ppm_error_ = 0;
     float avg_da_error_ = 0;
     float snr_ = 0;
-    /// q values with different decoy types
-    std::map<PeakGroup::TargetDecoyType, float> qvalue_;
+    /// q value
+    float qvalue_ = 1;
   };
 } // namespace OpenMS

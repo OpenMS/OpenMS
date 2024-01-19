@@ -27,7 +27,8 @@ namespace OpenMS
    * @reference: FeatureFinderAlgorithmPickedHelperStructs
    */
 
-  struct OPENMS_DLLAPI FLASHDeconvHelperStructs {
+  struct OPENMS_DLLAPI FLASHDeconvHelperStructs
+  {
     /// @brief Averagine patterns pre-calculated for speed up. Other variables are also calculated for fast cosine calculation
     class OPENMS_DLLAPI PrecalculatedAveragine
     {
@@ -40,6 +41,8 @@ namespace OpenMS
       std::vector<double> average_mono_mass_difference_;
       /// mass differences between most abundant mass and monoisotopic mass
       std::vector<double> abundant_mono_mass_difference_;
+
+      std::vector<double> snr_mul_factor_;
       /// Isotope start indices: isotopes of the indices less than them have very low intensities
       std::vector<int> left_count_from_apex_;
       /// Isotope end indices: isotopes of the indices larger than them have very low intensities
@@ -69,7 +72,6 @@ namespace OpenMS
        @param use_RNA_averagine if set, nucleotide-based isotope patters are calculated
     */
       PrecalculatedAveragine(double min_mass, double max_mass, double delta, CoarseIsotopePatternGenerator& generator, bool use_RNA_averagine);
-
 
       /// copy constructor
       PrecalculatedAveragine(const PrecalculatedAveragine&) = default;
@@ -115,10 +117,13 @@ namespace OpenMS
 
       /// get mass difference between most abundant mass and mono masses. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       double getMostAbundantMassDelta(double mass) const;
+
+      double getSNRMultiplicationFactor(double mass) const;
     };
 
     /// Mass feature (Deconvolved masses in spectra are traced by Mass tracing to generate mass features - like LC-MS features).
-    struct OPENMS_DLLAPI MassFeature {
+    struct OPENMS_DLLAPI MassFeature
+    {
     public:
       /// feature index;
       uint index;
