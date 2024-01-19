@@ -377,7 +377,7 @@ namespace OpenMS
       return (1.0 - h) * qs + h * x[hi];
     }
 
-    // portable random shuffle
+    // portable random shuffle and subsample
     class OPENMS_DLLAPI RandomShuffler
     {
     public:
@@ -393,6 +393,8 @@ namespace OpenMS
       ~RandomShuffler() = default;
 
       boost::mt19937_64 rng_;
+
+      // random shuffles the range
       template <class RandomAccessIterator>
       void portable_random_shuffle (RandomAccessIterator first, RandomAccessIterator last)
       {
@@ -401,6 +403,20 @@ namespace OpenMS
           boost::uniform_int<decltype(i)> d(0, i);
           std::swap(first[i], first[d(rng_)]);
         }
+      }
+
+      // performs a sequential subsamling selecting n random elements in order (e.g., 4, 7, 30, ...)
+      template <typename It, typename Out>
+      Out portable_sequential_sample(It f, It l, Out out, size_t n) {
+          size_t size = std::distance(f, l);
+          n = std::min(n, size);
+          for (; n != 0; ++f) {
+              boost::uniform_int<decltype(n)> d(0, --size);
+              if (d(rng_) >= n) continue;
+              *out++ = *f;
+              --n;
+          }
+          return out;
       }
 
       void seed(uint64_t val)

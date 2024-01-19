@@ -11,8 +11,12 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
+
+#include <algorithm>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -432,18 +436,30 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
            << model_failures << " failures" << endl;
 
   if (impute) // impute results for cases where the model fit failed
-  {
+  { 
+    // only take > 0.75 intensity quantiles for model fit
+    vector<double> raw_intensities;
+    raw_intensities.reserve(quant_values.size());
+    for (const auto& qv : quant_values) 
+    {
+      raw_intensities.push_back(qv.first);
+    }
+    std::sort(raw_intensities.begin(), raw_intensities.end());
+    double q75 = Math::quantile(raw_intensities, 0.75);
+    quant_values.erase(std::remove_if(quant_values.begin(), quant_values.end(), 
+      [&q75](const auto& d){ return d.first < q75; }), 
+      quant_values.end());
+
     TransformationModelLinear lm(quant_values, Param());
     double slope, intercept;
     String x_weight, y_weight;
     double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
     lm.getParameters(slope, intercept, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
     OPENMS_LOG_INFO << "Imputing model failures with a linear model based on log(rawIntensities). Slope: " << slope << ", Intercept: " << intercept << endl;
-    for (vector<FeatureMap::Iterator>::iterator it = failed_models.begin();
-         it != failed_models.end(); ++it)
+    for (auto& f : failed_models)
     {
-      double area = exp(lm.evaluate(log((*it)->getIntensity())));
-      (*it)->setIntensity(area);
+      double area = exp(lm.evaluate(log(f->getIntensity())));
+      f->setIntensity(area);
     }
   }
 }
