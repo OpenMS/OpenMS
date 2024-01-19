@@ -151,7 +151,6 @@ namespace OpenMS
                                                                                 -min_negative_isotope_index_, // change if to select cosine calculation and if to get second best hits
                                                                                 window_width, allowed_iso_error, target_decoy_type);
 
-
     if (h_offset != 0)
       return h_offset;
 

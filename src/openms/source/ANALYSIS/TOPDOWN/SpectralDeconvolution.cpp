@@ -1023,11 +1023,11 @@ namespace OpenMS
           break;
         }
       }
-
-      if (is_isotope_decoy && prev_cos * .995 > peak_group.getIsotopeCosine())
-        continue;
-
-      if (is_isotope_decoy) peak_group.setIsotopeCosine(std::min(1.0, peak_group.getIsotopeCosine() / .995));
+      if (is_isotope_decoy)
+      {
+        if(is_isotope_decoy && prev_cos * .996 > peak_group.getIsotopeCosine()) continue;
+        if(is_isotope_decoy && prev_cos / .996 < peak_group.getIsotopeCosine()) continue;
+      }
 
       if (peak_group.empty() || peak_group.getQscore() <= 0 || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
       {
@@ -1099,17 +1099,12 @@ namespace OpenMS
       index = selected.find_next(index);
     }
 
-    if (target_decoy_type_ != PeakGroup::TargetDecoyType::target)
-    {
-      filtered_peak_groups.insert(filtered_peak_groups.end(), target_dspec_for_decoy_calcualtion_->begin(), target_dspec_for_decoy_calcualtion_->end());
-    }
     deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
     deconvolved_spectrum_.sort();
 
-    removeOverlappingPeakGroups(deconvolved_spectrum_, 0, PeakGroup::TargetDecoyType::non_specific);
-    removeChargeErrorPeakGroups_(deconvolved_spectrum_, PeakGroup::TargetDecoyType::non_specific);
+    removeOverlappingPeakGroups(deconvolved_spectrum_, 0, target_decoy_type_);
+    removeChargeErrorPeakGroups_(deconvolved_spectrum_, target_decoy_type_);
     removeOverlappingPeakGroups(deconvolved_spectrum_, tol, target_decoy_type_);
-
     removeExcludedMasses_(deconvolved_spectrum_);
   }
 

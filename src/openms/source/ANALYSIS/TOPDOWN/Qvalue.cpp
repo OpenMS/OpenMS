@@ -99,8 +99,8 @@ namespace OpenMS
       auto& dscore_noise = dscore_noise_decoy_map[ms_level];
       bin_number = min_bin_number; // std::max(min_bin_number, (uint)(qscores.size()/50));
 
-      removeOutliers(dscore_charge, bin_number);
-      removeOutliers(dscore_noise, bin_number);
+      //removeOutliers(dscore_charge, bin_number);
+      //removeOutliers(dscore_noise, bin_number);
 
       auto mixed_dist = getDistribution(qscores, bin_number);
       const auto charge_dist = getDistribution(dscore_charge, bin_number);
