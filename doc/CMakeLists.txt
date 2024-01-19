@@ -111,10 +111,6 @@ if(ENABLE_DOCS)
   make_doxygen_path(CF_STRIP_PATH OPENMS_DOCUMENTATION_DIRECTORIES)
 
   #------------------------------------------------------------------------------
-  # find the necessary packages
-  find_package(Doxygen)
-
-  #------------------------------------------------------------------------------
   # the doc targets
   #------------------------------------------------------------------------------
   # As soon as there is a TeX formula in the html documentation we need LaTeX, dvips and ghostscript.
@@ -124,13 +120,18 @@ if(ENABLE_DOCS)
   
     # check doxygen for bug with generated latex files
     set(DOXYGEN_MIN_REQUIRED "1.8.13")
-    exec_program(${DOXYGEN_EXECUTABLE}
-      ARGS "--version"
-      OUTPUT_VARIABLE DOXYGEN_VERSION)
 
     if (DOXYGEN_VERSION STRLESS DOXYGEN_MIN_REQUIRED )
-      message(STATUS "Warning: Doxygen ( vers. installed < 1.8.13 ) does not correctly process \\includedoc commands in developer's installation instructions. This will make them incomplete. Upgrade to Doxygen>=1.8.13 to fix.")
+      message(STATUS "Warning: Doxygen ( vers. installed < ${DOXYGEN_MIN_REQUIRED}) does not correctly process \\includedoc commands in developer's installation instructions. This will make them incomplete. Upgrade Doxygen to fix.")
     endif()
+    
+    ## if not found, use empty string to avoid `warning: the dot tool could not be found as 'DOXYGEN_DOT_EXECUTABLE-NOTFOUND/dot.exe'` in doxygen-error.log
+    if (DOXYGEN_DOT_EXECUTABLE) 
+      set(CF_DOXYGEN_DOT_EXECUTABLE DOXYGEN_DOT_EXECUTABLE)
+    else()
+      set(CF_DOXYGEN_DOT_EXECUTABLE "")
+    endif()
+      
     
     #------------------------------------------------------------------------------
     # configure doxygen configuration files

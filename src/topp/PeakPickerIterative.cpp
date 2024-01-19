@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -18,9 +18,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-        @page TOPP_PeakPickerIterative PeakPickerIterative
+@page TOPP_PeakPickerIterative PeakPickerIterative
+@brief A tool for peak detection in profile data. Executes the peak picking with @ref OpenMS::PeakPickerIterative "high_res" algorithm.
 
-        @brief A tool for peak detection in profile data. Executes the peak picking with @ref OpenMS::PeakPickerIterative "high_res" algorithm.
 <CENTER>
 	<table>
 		<tr>
@@ -41,17 +41,17 @@ using namespace std;
 	</table>
 </CENTER>
 
-	The conversion of the ''raw'' ion count data acquired
-	by the machine into peak lists for further processing
-	is usually called peak picking. The choice of the algorithm
-	should mainly depend on the resolution of the data.
-  As the name implies, the @ref OpenMS::PeakPickerIterative "high_res"
-  algorithm is fit for high resolution data.
+The conversion of the ''raw'' ion count data acquired
+by the machine into peak lists for further processing
+is usually called peak picking. The choice of the algorithm
+should mainly depend on the resolution of the data.
+As the name implies, the @ref OpenMS::PeakPickerIterative "high_res"
+algorithm is fit for high resolution data.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_PeakPickerIterative.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_PeakPickerIterative.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_PeakPickerIterative.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_PeakPickerIterative.html
 
 */
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -33,37 +33,37 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_QCMerger QCMerger
+@page TOPP_QCMerger QCMerger
 
-    @brief Merges two qcml files together.
+@brief Merges two qcml files together.
 
-    <CENTER>
-      <table>
-        <tr>
-        <th ALIGN = "center"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> &rarr; QCCalculator &rarr;</td>
-        <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_QCCalculator </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCShrinker </td>
-        </tr>
-      </table>
-    </CENTER>
+<CENTER>
+  <table>
+    <tr>
+    <th ALIGN = "center"> pot. predecessor tools </td>
+    <td VALIGN="middle" ROWSPAN=3> &rarr; QCCalculator &rarr;</td>
+    <th ALIGN = "center"> pot. successor tools </td>
+    </tr>
+    <tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_QCCalculator </td>
+    </tr>
+    <tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCShrinker </td>
+    </tr>
+  </table>
+</CENTER>
 
-    The two or more given files (see parameter @p in) are merged. If a run/set exisits in several files, the quality parameters of these are merged as well.
-    Several runs from qcml files can be comprised in a set.
-    
-    - @p setname If the runs of the given input files are to be comprised in a set, this will be the name of the set.
+The two or more given files (see parameter @p in) are merged. If a run/set exisits in several files, the quality parameters of these are merged as well.
+Several runs from qcml files can be comprised in a set.
 
-    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
-    
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_QCMerger.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_QCMerger.html
+- @p setname If the runs of the given input files are to be comprised in a set, this will be the name of the set.
+
+Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_QCMerger.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_QCMerger.html
 
 */
 

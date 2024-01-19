@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -45,7 +45,7 @@ namespace OpenMS
     /**
      * @brief Counts the number of missed cleavages per PeptideIdentification.
      *
-     * The result is a key/value map: #missed_cleavages --> counts
+     * The result is a key/value map: \#missed_cleavages --> counts
      * Additionally the first PeptideHit in each PeptideIdentification of the FeatureMap is annotated with metavalue 'missed_cleavages'.
      * The protease and digestion parameters are taken from the first ProteinIdentication (and SearchParameter therein) within the FeatureMap itself.
      *

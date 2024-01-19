@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -31,7 +31,7 @@ using namespace std;
 // Doxygen docu
 //-------------------------------------------------------------
 /**
-  @page TOPP_FLASHDeconv FLASHDeconv
+@page TOPP_FLASHDeconv FLASHDeconv
 
   @brief FLASHDeconv performs ultrafast deconvolution of top down proteomics MS datasets.
   FLASHDeconv takes mzML file as input and outputs deconvolved feature list (.tsv) and
@@ -43,21 +43,24 @@ using namespace std;
   In case of FLASHIda runs, this precursor mass assignment is done by FLASHIda. Thus FLASHDeconv class simply parses the log file
   from FLASHIda runs and pass the parsed information to DeconvolvedSpectrum class.
 
-  See https://openms.de/FLASHDeconv for more information.
+See https://openms.de/FLASHDeconv for more information.
 
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_FLASHDeconv.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_FLASHDeconv.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FLASHDeconv.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FLASHDeconv.html
 */
 class TOPPFLASHDeconv : public TOPPBase
 {
 public:
-  TOPPFLASHDeconv() :
-      TOPPBase("FLASHDeconv", "Ultra-fast high-quality deconvolution enables online processing of top-down MS data", true,
-               {Citation {"Jeong K, Kim J, Gaikwad M et al.", "FLASHDeconv: Ultrafast, High-Quality Feature Deconvolution for Top-Down Proteomics", "Cell Syst 2020 Feb 26;10(2):213-218.e6",
-                          "10.1016/j.cels.2020.01.003"}})
+  TOPPFLASHDeconv() 
+    : TOPPBase("FLASHDeconv", "Ultra-fast high-quality deconvolution enables online processing of top-down MS data",
+      true,
+      {Citation {"Jeong K, Kim J, Gaikwad M et al.",
+                 "FLASHDeconv: Ultrafast, High-Quality Feature Deconvolution for Top-Down Proteomics",
+                 "Cell Syst 2020 Feb 26;10(2):213-218.e6",
+                 "10.1016/j.cels.2020.01.003"}})
   {
   }
 

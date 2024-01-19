@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -25,10 +25,6 @@ namespace OpenMS
     
   /**
     @brief A mass recalibration method using linear/quadratic interpolation (robust/weighted) of given reference masses.
-
-    ...
-
-    @htmlinclude OpenMS_InternalCalibration.parameters
 
     @ingroup SignalProcessing
   */

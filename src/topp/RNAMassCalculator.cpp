@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -24,34 +24,34 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_RNAMassCalculator RNAMassCalculator
+@page TOPP_RNAMassCalculator RNAMassCalculator
 
-    @brief Calculates masses, mass-to-charge ratios and sum formulas of RNA sequences.
+@brief Calculates masses, mass-to-charge ratios and sum formulas of RNA sequences.
 
-    Given an RNA (oligonucleotide) sequence and a charge state, the charged mass (including H+ adducts or losses), mass-to-charge ratio and molecular sum formula are computed.
-    The sequence can include modifications (for information on valid notation see the @ref OpenMS::NASequence "NASequence" class documentation).
-    Neutral masses can be computed by using "0" as charge state.
+Given an RNA (oligonucleotide) sequence and a charge state, the charged mass (including H+ adducts or losses), mass-to-charge ratio and molecular sum formula are computed.
+The sequence can include modifications (for information on valid notation see the @ref OpenMS::NASequence "NASequence" class documentation).
+Neutral masses can be computed by using "0" as charge state.
 
-    Input can be given directly as values of the parameters: @p in_seq for RNA sequences and @p charge for charge states.
-    Alternatively, it can be read from a file (see parameter @p in) with the following format: An RNA sequence at the beginning of each line, optionally followed by any number of charge states.
-    Whitespace, commas or semicolons can de used to delimit the different items.
-    Parts of the input that cannot be understood will be skipped.
-    If charge states are given in the input file as well as via the @p charge parameter, results are returned for the union of both sets of charge states.
+Input can be given directly as values of the parameters: @p in_seq for RNA sequences and @p charge for charge states.
+Alternatively, it can be read from a file (see parameter @p in) with the following format: An RNA sequence at the beginning of each line, optionally followed by any number of charge states.
+Whitespace, commas or semicolons can de used to delimit the different items.
+Parts of the input that cannot be understood will be skipped.
+If charge states are given in the input file as well as via the @p charge parameter, results are returned for the union of both sets of charge states.
 
-    Output can be written to a file or to the screen (see parameter @p out).
-    Results for different charge states are always ordered from lowest to highest charge.
-    A number of different output formats are available via the parameter @p format:
-    - @p list writes a human-readable list of the form "ACGU: z=-2 m=1221.1951 m/z=610.5976 f=C38H46N15O26P3, z=-1 m=1222.2030 m/z=1222.2030 f=C38H47N15O26P3";
-    - @p table produces a CSV-like table (using parameter @p separator to delimit fields) with the columns "sequence", "charge", "mass", "mass-to-charge" and "formula", and with one row per sequence and charge state;
-    - @p mass_only writes only mass values (one line per sequence, values for different charge states separated by spaces);
-    - @p mz_only writes only mass-to-charge ratios (one line per sequence, values for different charge states separated by spaces);
-    - @p formula_only writes only sum formulas.
+Output can be written to a file or to the screen (see parameter @p out).
+Results for different charge states are always ordered from lowest to highest charge.
+A number of different output formats are available via the parameter @p format:
+  - @p list writes a human-readable list of the form "ACGU: z=-2 m=1221.1951 m/z=610.5976 f=C38H46N15O26P3, z=-1 m=1222.2030 m/z=1222.2030 f=C38H47N15O26P3";
+  - @p table produces a CSV-like table (using parameter @p separator to delimit fields) with the columns "sequence", "charge", "mass", "mass-to-charge" and "formula", and with one row per sequence and charge state;
+  - @p mass_only writes only mass values (one line per sequence, values for different charge states separated by spaces);
+  - @p mz_only writes only mass-to-charge ratios (one line per sequence, values for different charge states separated by spaces);
+  - @p formula_only writes only sum formulas.
 
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_RNAMassCalculator.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_RNAMassCalculator.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_RNAMassCalculator.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_RNAMassCalculator.html
 */
 
 // We do not want this class to show up in the docu:
