@@ -1025,8 +1025,9 @@ namespace OpenMS
       }
       if (is_isotope_decoy)
       {
-        if(is_isotope_decoy && prev_cos * .996 > peak_group.getIsotopeCosine()) continue;
-        if(is_isotope_decoy && prev_cos / .996 < peak_group.getIsotopeCosine()) continue;
+        if(abs(prev_cos - peak_group.getIsotopeCosine()) > .005) continue;
+        //if(prev_cos * .996 > peak_group.getIsotopeCosine()) continue;
+        //if(prev_cos / .996 < peak_group.getIsotopeCosine()) continue;
       }
 
       if (peak_group.empty() || peak_group.getQscore() <= 0 || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
