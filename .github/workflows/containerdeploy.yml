@@ -57,6 +57,8 @@ jobs:
           file: contrib/dockerfiles/Dockerfile
           tags: |
             ghcr.io/openms/contrib:${{ steps.tag_name.outputs.tag }}
+          cache-from: type=gha,scope=ghcr.io/openms/contrib:${{ steps.tag_name.outputs.tag }}
+          cache-to: type=gha,mode=max,scope=ghcr.io/openms/contrib:${{ steps.tag_name.outputs.tag }}
         if: startsWith(steps.extract_branch.outputs.branch, 'release/')
       - name: Build and Push Docker Library Image
         uses: docker/build-push-action@v5
@@ -69,6 +71,8 @@ jobs:
             OPENMS_VERSION=${{ steps.tag_name.outputs.tag }}
           tags: |
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library:${{ steps.tag_name.outputs.tag }}
+          cache-from: type=gha,scope=ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library:${{ steps.tag_name.outputs.tag }}
+          cache-to: type=gha,mode=max,scope=ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library:${{ steps.tag_name.outputs.tag }}
       - name: Build and Push Docker Tools Image
         uses: docker/build-push-action@v5
         with:
@@ -81,6 +85,8 @@ jobs:
           tags: |
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-executables:${{ steps.tag_name.outputs.tag }}
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools:${{ steps.tag_name.outputs.tag }}
+          cache-from: type=gha,scope=ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools:${{ steps.tag_name.outputs.tag }}
+          cache-to: type=gha,mode=max,scope=ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools:${{ steps.tag_name.outputs.tag }}
 
   deploy-singularity:
     runs-on: ubuntu-latest
