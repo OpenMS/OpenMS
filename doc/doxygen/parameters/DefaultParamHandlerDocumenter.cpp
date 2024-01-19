@@ -21,6 +21,7 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
 #include <OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
@@ -453,6 +454,7 @@ int main(int argc, char** argv)
   DOCME(TheoreticalSpectrumGenerator);
   DOCME(ThresholdMower);
   DOCME(TransitionTSVFile);
+  DOCME(IDDecoyProbability);
   DOCME(WindowMower);
   DOCME(ZhangSimilarityScore);
   DOCME(MorphologicalFilter);
