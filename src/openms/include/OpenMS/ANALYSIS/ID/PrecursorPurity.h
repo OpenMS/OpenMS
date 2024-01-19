@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -41,7 +41,8 @@ namespace OpenMS
       double target_intensity = 0.0;
       double signal_proportion = 0.0;
       Size target_peak_count = 0;
-      Size residual_peak_count = 0;
+      Size interfering_peak_count = 0;
+      PeakSpectrum interfering_peaks; // peaks left after precursor (isotopic) peaks have been removed
     };
 
     /** @brief compute precursor purity metrics for each MS2 spectrum in a PeakMap
@@ -52,7 +53,7 @@ namespace OpenMS
      * @param precursor_mass_tolerance The precursor tolerance. Is used for determining the targeted peak and deisotoping.
      * @param precursor_mass_tolerance_unit_ppm The unit of the precursor tolerance
     */
-    static std::map<String, PurityScores> computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm);
+    static std::map<String, PurityScores> computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, bool ignore_missing_precursor_spectra = false);
 
     /** @brief compute precursor purity metrics for one MS2 precursor
 

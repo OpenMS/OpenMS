@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -78,7 +78,10 @@ public:
      * @param symbol Element symbol (one or two letter)
      * @param an Atomic number (number of protons)
      * @param abundance List of abundances for each isotope (e.g. {{12u, 0.9893}, {13u, 0.0107}} for Carbon)
-     * @param abundance List of masses for each isotope (e.g. {{12u, 12.0}, {13u, 13.003355}} for Carbon)
+     * @param mass List of masses for each isotope (e.g. {{12u, 12.0}, {13u, 13.003355}} for Carbon)
+     * @param replace_existing If the element must be replaced (i.e. is not new), either allow that (=true), or throw an exception (=false).
+     *
+     * @throw Exception::IllegalArgument if element already exists in DB, but @p replace_existing is false
      *
      * @note Do not use this function inside parallel code as it modifies a singleton that is shared between threads.
     */

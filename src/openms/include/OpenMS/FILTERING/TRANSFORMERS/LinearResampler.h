@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -53,7 +53,7 @@ public:
     }
 
     /**
-        @brief Applies the resampling algorithm to an MSSpectrum.
+        @brief Applies the resampling algorithm to an MSSpectrum, without alignment between spectra.
     */
     void raster(MSSpectrum& spectrum) const
     {
@@ -115,7 +115,7 @@ public:
     }
 
     /**
-        @brief Resamples the data in an MSExperiment.
+        @brief Resamples the data in an MSExperiment, without alignment between spectra.
     */
     void rasterExperiment(PeakMap& exp)
     {

@@ -70,14 +70,14 @@ namespace OpenMS
     }
   };
 
-  std::vector<Residue> TopDownTagger::getAA_(double l, double r, double tol, int z) const
+  std::vector<Residue> TopDownTagger::getAA_(double l, double r, double tol, int z, int iso_offset) const
   {
     std::vector<Residue> ret;
     if (l == r)
       return ret;
-
-    double diff = std::abs((r - l) * z);
-    double abs_tol = 2 * std::abs(std::max(l, r) * tol / 1e6);
+    double abs_iso_mass = std::abs(iso_offset * Constants::C13C12_MASSDIFF_U);
+    double diff = std::abs(std::abs((r - l)) - abs_iso_mass) / z;
+    double abs_tol = 2 * std::max(l, r) * tol / 1e6;
     auto iter = aa_mass_map_.lower_bound(diff - abs_tol);
 
     while (iter != aa_mass_map_.end())
@@ -97,36 +97,10 @@ namespace OpenMS
     return ret;
   }
 
-  std::vector<std::vector<Residue>> TopDownTagger::getGap_(double l, double r, double tol, int z) const
-  {
-    std::vector<std::vector<Residue>> ret;
-    if (l == r)
-      return ret;
-
-    double diff = std::abs((r - l) * z);
-    double abs_tol = 2 * std::abs(std::max(l, r) * tol / 1e6);
-    auto iter = gap_mass_map_.lower_bound(diff - abs_tol);
-
-    while (iter != gap_mass_map_.end())
-    {
-      if (std::abs(diff - iter->first) < abs_tol)
-      {
-        for (auto& aa : iter->second)
-          ret.push_back(aa);
-      }
-      else if (iter->first - diff > abs_tol)
-      {
-        break;
-      }
-      iter++;
-    }
-    return ret;
-  }
-
   void TopDownTagger::updateEdgeMasses_()
   {
     aa_mass_map_.clear();
-    gap_mass_map_.clear();
+    //gap_mass_map_.clear();
 
     for (const auto& aa : aas_)
     {
@@ -135,84 +109,21 @@ namespace OpenMS
         aa_mass_map_[aa_mass] = std::vector<Residue>();
       aa_mass_map_[aa_mass].push_back(*aa);
     }
-
-    if (max_gap_count_ > 0)
-    {
-      std::map<double, std::vector<std::vector<Residue>>> prev_gap_mass_map_;
-      prev_gap_mass_map_[.0] = std::vector<std::vector<Residue>>(1, std::vector<Residue>());
-      for (int i = 0; i < max_aa_in_gap_; i++)
-      {
-        for (const auto& prev : prev_gap_mass_map_)
-        {
-          for (const auto& current : aa_mass_map_)
-          {
-            if (gap_mass_map_.find(prev.first + current.first) == gap_mass_map_.end())
-              gap_mass_map_[prev.first + current.first] = std::vector<std::vector<Residue>>();
-
-            for (const auto& aa_vec : prev.second)
-            {
-              for (const auto& aa : current.second)
-              {
-                auto new_aa_vec(aa_vec);
-                new_aa_vec.push_back(aa);
-                gap_mass_map_[prev.first + current.first].push_back(new_aa_vec);
-              }
-            }
-          }
-        }
-        prev_gap_mass_map_ = gap_mass_map_;
-      }
-    }
-
-    if (allowed_isotope_error_ > 0)
-    {
-      for (int i = -allowed_isotope_error_; i <= allowed_isotope_error_; i++)
-      {
-        if (i == 0)
-          continue;
-        for (const auto& aa : aas_)
-        {
-          double aa_mass = aa->getMonoWeight(Residue::Internal) + i * Constants::C13C12_MASSDIFF_U;
-          if (aa_mass_map_.find(aa_mass) == aa_mass_map_.end())
-            aa_mass_map_[aa_mass] = std::vector<Residue>();
-          aa_mass_map_[aa_mass].push_back(*aa);
-        }
-      }
-    }
-
-    if (max_gap_count_ > 0)
-    {
-      std::map<double, std::vector<std::vector<Residue>>> tmp_gap_mass_map;
-      for (auto& e : gap_mass_map_)
-      {
-        std::vector<std::vector<Residue>> tmp_e;
-        for (auto& f : e.second)
-        {
-          if (f.size() <= 1)
-            continue;
-          tmp_e.push_back(f);
-        }
-        if (tmp_e.empty())
-          continue;
-        tmp_gap_mass_map[e.first] = tmp_e;
-      }
-      gap_mass_map_ = tmp_gap_mass_map;
-    }
   }
 
-  int TopDownTagger::getVertex_(int index, int path_score, int level, int gap_level) const
+  int TopDownTagger::getVertex_(int index, int path_score, int level, int iso_level) const
   {
-    return ((index * (max_tag_length_ + 1) + level) * (max_gap_count_ + 1) + gap_level) * (max_path_score_ - min_path_score_ + 1) + (path_score - min_path_score_);
+    return ((index * (max_tag_length_ + 1) + level) * (max_iso_in_tag_ + 1) + iso_level) * (max_path_score_ - min_path_score_ + 1) + (path_score - min_path_score_);
   }
 
   int TopDownTagger::getIndex_(int vertex) const
   {
-    return ((vertex / (max_path_score_ - min_path_score_ + 1)) / (max_gap_count_ + 1)) / (max_tag_length_ + 1);
+    return ((vertex / (max_path_score_ - min_path_score_ + 1)) / (max_iso_in_tag_ + 1)) / (max_tag_length_ + 1);
   }
 
   int TopDownTagger::edgeScore_(int vertex_score1, int vertex_score2)
   {
-    return std::max(vertex_score1, vertex_score2);
+    return vertex_score1 + vertex_score2;
   }
 
   bool TopDownTagger::connectEdge_(TopDownTagger::DAC_& dac, int vertex1, int vertex2, boost::dynamic_bitset<>& visited)
@@ -251,7 +162,7 @@ namespace OpenMS
       while (start_index < end_index && r - mzs[start_index] > max_edge_mass_)
         start_index++;
 
-      for (int n = 0; n < 2; n++)
+      for (int n = 0; n < 2; n++) // 0 for all a.a 1 for isotope errors
       {
         for (int current_index = start_index; current_index < end_index; current_index++)
         {
@@ -260,19 +171,11 @@ namespace OpenMS
 
           // make edge from r to l if they make an a.a. mass.
           std::vector<Residue> aas;
-          std::vector<std::vector<Residue>> gaps;
-          if (n == 0)
-          {
-            aas = getAA_(l, r, tol, z);
-            if (aas.empty())
-              continue;
-          }
-          else
-          {
-            gaps = getGap_(l, r, tol, z);
-            if (gaps.empty())
-              continue;
-          }
+
+          aas = getAA_(l, r, tol, z, n);
+          if (aas.empty())
+            continue;
+
 
           // end_index, current_index to amino acid strings.
           if (edge_aa_map_.find(end_index) == edge_aa_map_.end())
@@ -286,25 +189,13 @@ namespace OpenMS
             e[current_index] = std::vector<String>();
           }
 
-          if (n == 0)
+          for (auto& aa : aas)
           {
-            for (auto& aa : aas)
-            {
-              e[current_index].push_back(aa.toString());
-            }
+            auto aaStr = n == 0 ? aa.toString() : aa.toString().toLower();
+            e[current_index].push_back(aaStr);
           }
-          else
-          {
-            for (auto& gap : gaps)
-            {
-              std::stringstream ss;
-              for (auto& aa : gap)
-                ss << aa.toString().toLower();
-              e[current_index].emplace_back(ss.str());
-            }
-          }
-          int gap_diff = n == 0 ? 0 : 1;
-          for (int g = 0; g + gap_diff <= max_gap_count_; g++)
+
+          for (int g = 0; g + n <= max_iso_in_tag_; g++)
           {
             for (int lvl = 0; lvl < length; lvl++)
             {
@@ -315,20 +206,20 @@ namespace OpenMS
                 if (score - edge_score > max_path_score_)
                   break;
 
-                int vertex1 = getVertex_(end_index, score, lvl + 1, g + gap_diff);
+                int vertex1 = getVertex_(end_index, score, lvl + 1, g + n);
                 int vertex2 = getVertex_(current_index, score - edge_score, lvl, g);
                 connectEdge_(dac, vertex1, vertex2, visited);
               }
             }
           }
         }
-        if (max_gap_count_ == 0)
+        if (max_iso_in_tag_ == 0)
           break;
       }
 
       if (end_index < mzs.size() - 1)
       {
-        for (int g = 0; g <= max_gap_count_; g++)
+        for (int g = 0; g <= max_iso_in_tag_; g++)
         {
           for (int score = min_path_score_; score <= max_path_score_; score++)
           {
@@ -388,20 +279,10 @@ namespace OpenMS
     defaults_.setValue("min_charge", 1, "Minimum charge state of the tags (can be negative for negative mode)");
     defaults_.setValue("max_charge", 1, "Maximum charge state of the tags (can be negative for negative mode)");
 
-    defaults_.setValue("allowed_isotope_error", 0, "Allowed_isotope_error for tag generation. It only applies to amino acids, not mass gaps.");
-    defaults_.setMaxInt("allowed_isotope_error", 1);
-    defaults_.setMinInt("allowed_isotope_error", 0);
-    defaults_.addTag("allowed_isotope_error", "advanced");
-
-    defaults_.setValue("max_gap_count", 0, "Maximum mass gap count per tag.");
-    defaults_.setMaxInt("max_gap_count", 2);
-    defaults_.setMinInt("max_gap_count", 0);
-    defaults_.addTag("max_gap_count", "advanced");
-
-    defaults_.setValue("max_aa_in_gap", 2, "Maximum amino acid count in a mass gap.");
-    defaults_.setMaxInt("max_aa_in_gap", 3);
-    defaults_.setMinInt("max_aa_in_gap", 2);
-    defaults_.addTag("max_aa_in_gap", "advanced");
+    defaults_.setValue("max_iso_error_count", 0, "Maximum isotope error count per tag.");
+    defaults_.setMaxInt("max_iso_error_count", 2);
+    defaults_.setMinInt("max_iso_error_count", 0);
+    defaults_.addTag("max_iso_error_count", "advanced");
 
     defaultsToParam_();
   }
@@ -413,12 +294,10 @@ namespace OpenMS
     max_tag_length_ = param_.getValue("max_length");
     min_charge_ = param_.getValue("min_charge");
     max_charge_ = param_.getValue("max_charge");
-    max_aa_in_gap_ = param_.getValue("max_aa_in_gap");
-    max_gap_count_ = param_.getValue("max_gap_count");
-    allowed_isotope_error_ = param_.getValue("allowed_isotope_error");
+    max_iso_in_tag_ = param_.getValue("max_iso_error_count");
 
     updateEdgeMasses_();
-    max_edge_mass_ = gap_mass_map_.empty() ? aa_mass_map_.rbegin()->first : std::max(aa_mass_map_.rbegin()->first, gap_mass_map_.rbegin()->first);
+    max_edge_mass_ = aa_mass_map_.rbegin()->first + max_iso_in_tag_ * Constants::C13C12_MASSDIFF_U;
   }
 
   void TopDownTagger::run(const DeconvolvedSpectrum& dspec, double ppm, std::vector<FLASHDeconvHelperStructs::Tag>& tags)
@@ -511,7 +390,7 @@ namespace OpenMS
 
   void TopDownTagger::run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm, std::vector<FLASHDeconvHelperStructs::Tag>& tags, const std::function<int(int, int)>& edge_score)
   {
-    const Size max_node_cntr = 600;
+    const Size max_node_cntr = 500;
     if (max_tag_count_ == 0)
       return;
 
@@ -543,11 +422,11 @@ namespace OpenMS
 
     for (int i = 0; i < mzs.size(); i++)
     {
-      if (scores[i] < threshold) continue;
+      if (scores[i] < threshold)
+        continue;
       _mzs.push_back(mzs[i]);
       _scores.push_back(scores[i]);
     }
-
     int min_abs_charge = abs(min_charge_);
     int max_abs_charge = abs(max_charge_);
 
@@ -573,13 +452,13 @@ namespace OpenMS
     {
       for (int length = min_tag_length_; length <= max_tag_length_; length++)
       {
-        TopDownTagger::DAC_ dac(_mzs.size() * (1 + max_tag_length_) * (1 + max_gap_count_) * (1 + max_path_score_ - min_path_score_));
+        TopDownTagger::DAC_ dac(_mzs.size() * (1 + max_tag_length_) * (1 + max_iso_in_tag_) * (1 + max_path_score_ - min_path_score_));
         constructDAC_(dac, _mzs, _scores, z, length, ppm);
         std::vector<std::vector<int>> all_paths;
         std::set<FLASHDeconvHelperStructs::Tag> _tagSet;
         for (int score = max_path_score_; score >= min_path_score_ && _tagSet.size() < max_tag_count_; score--)
         {
-          for (int g = 0; g <= max_gap_count_; g++)
+          for (int g = 0; g <= max_iso_in_tag_; g++)
           {
             dac.findAllPaths(getVertex_(_mzs.size() - 1, score, length, g), getVertex_(0, 0, 0, 0), all_paths);
           }
@@ -603,8 +482,10 @@ namespace OpenMS
         if (++count == max_tag_count_)
           break;
       }
-      std::sort(tags.begin(), tags.end(), [](const FLASHDeconvHelperStructs::Tag& a, const FLASHDeconvHelperStructs::Tag& b) {return a.getLength() == b.getLength()? a.getScore() > b.getScore() : a.getLength() < b.getLength(); });
-      OPENMS_LOG_INFO << "Tag count with length " << length << ": "<< count << std::endl;
+      std::sort(tags.begin(), tags.end(), [](const FLASHDeconvHelperStructs::Tag& a, const FLASHDeconvHelperStructs::Tag& b) {
+        return a.getLength() == b.getLength() ? a.getScore() > b.getScore() : a.getLength() < b.getLength();
+      });
+      OPENMS_LOG_INFO << "Tag count with length " << length << ": " << count << std::endl;
     }
   }
 
@@ -612,8 +493,10 @@ namespace OpenMS
                                                                                                                        const std::vector<FASTAFile::FASTAEntry>& fasta_entry) const
   {
     std::vector<std::pair<FASTAFile::FASTAEntry, std::vector<FLASHDeconvHelperStructs::Tag>>> pairs;
-    for (auto& fe : fasta_entry)
+#pragma omp parallel for default(none) shared(pairs, fasta_entry, tags)
+    for (int i = 0; i < fasta_entry.size(); i++)
     {
+      auto& fe = fasta_entry[i];
       std::vector<FLASHDeconvHelperStructs::Tag> matched_tags;
       auto seq = fe.sequence;
       for (auto& tag : tags)
@@ -646,8 +529,10 @@ namespace OpenMS
       }
       if (matched_tags.empty())
         continue;
+#pragma omp critical
       pairs.emplace_back(fe, matched_tags);
     }
+
     std::sort(pairs.begin(), pairs.end(),
               [](const std::pair<FASTAFile::FASTAEntry, std::vector<FLASHDeconvHelperStructs::Tag>>& left, const std::pair<FASTAFile::FASTAEntry, std::vector<FLASHDeconvHelperStructs::Tag>>& right) {
                 return left.second.size() > right.second.size();

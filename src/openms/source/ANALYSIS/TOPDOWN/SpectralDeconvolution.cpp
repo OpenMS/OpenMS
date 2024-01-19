@@ -48,7 +48,9 @@ namespace OpenMS
     defaults_.setValue("min_cos", DoubleList {.85, .85},
                        "Cosine similarity thresholds between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_cos 0.3 0.6 to specify 0.3 and 0.6 for MS1 and MS2, respectively)");
     defaults_.addTag("min_cos", "advanced");
-    defaults_.setValue("min_snr", DoubleList {1.0, 1.0}, "SNR thresholds for MS1, 2, ... (e.g., -min_snr 1.0 0.6 to specify 1.0 and 0.6 for MS1 and MS2, respectively)");
+    defaults_.setValue(
+      "min_snr", DoubleList {1.0, 1.0},
+      "Minimum charge SNR (the SNR of the isotope pattern of a specific charge) thresholds for MS1, 2, ... (e.g., -min_snr 1.0 0.6 to specify 1.0 and 0.6 for MS1 and MS2, respectively)");
     defaults_.addTag("min_snr", "advanced");
     defaults_.setValue("max_qvalue", DoubleList {1.0, 1.0},
                        "Qvalue thresholds for MS1, 2, ... Effective only when FDR estimation is active. (e.g., -max_qvalue 0.1 0.2 to specify 0.1 and 0.2 for MS1 and MS2, respectively)");
@@ -56,7 +58,6 @@ namespace OpenMS
     defaults_.setValue("allowed_isotope_error", 1,
                        "Allowed isotope index error for decoy and qvalue report. If it is set to 2, for example, +-2 isotope errors are "
                        "not counted as false. Beta version.");
-    //defaults_.setMinInt("allowed_isotope_error", 1);
     defaults_.addTag("allowed_isotope_error", "advanced");
 
     defaultsToParam_();
@@ -447,7 +448,6 @@ namespace OpenMS
                 }
 
                 const int hdiff = (int)round((double)(next_iso_bin - mz_bin_index)) / hc * (hc / 2);
-
                 const int next_harmonic_iso_bin = mz_bin_index + hdiff; //(int)getBinNumber_(log_mz + hdiff, mz_bin_min_value_, bin_mul_factor);
                 // check if there are harmonic peaks between the current peak and the next isotope peak.
 
@@ -1023,9 +1023,12 @@ namespace OpenMS
           break;
         }
       }
-
-      if (is_isotope_decoy && prev_cos * .995 > peak_group.getIsotopeCosine())
-        continue;
+      if (is_isotope_decoy)
+      {
+        if(abs(prev_cos - peak_group.getIsotopeCosine()) > .005) continue;
+        //if(prev_cos * .996 > peak_group.getIsotopeCosine()) continue;
+        //if(prev_cos / .996 < peak_group.getIsotopeCosine()) continue;
+      }
 
       if (peak_group.empty() || peak_group.getQscore() <= 0 || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
       {
@@ -1070,9 +1073,9 @@ namespace OpenMS
       }
 
       double snr_threshold = min_snr_[ms_level_ - 1];
-      double qvalue_threshold = max_qvalue_[ms_level_ - 1];
-      if (!peak_group.isTargeted() && (peak_group.getQvalue() > qvalue_threshold || peak_group.getSNR() < snr_threshold ||
-                                       peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold)) // snr check prevents harmonics or noise.
+      //double qvalue_threshold = max_qvalue_[ms_level_ - 1];
+      if (!peak_group.isTargeted() && (                                                                         // peak_group.getQvalue() > qvalue_threshold || peak_group.getSNR() < snr_threshold ||
+                                        peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold)) // snr check prevents harmonics or noise.
       {
         continue;
       }
@@ -1097,17 +1100,12 @@ namespace OpenMS
       index = selected.find_next(index);
     }
 
-    if (target_decoy_type_ != PeakGroup::TargetDecoyType::target)
-    {
-      filtered_peak_groups.insert(filtered_peak_groups.end(), target_dspec_for_decoy_calcualtion_->begin(), target_dspec_for_decoy_calcualtion_->end());
-    }
     deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
     deconvolved_spectrum_.sort();
 
-    removeOverlappingPeakGroups(deconvolved_spectrum_, 0, PeakGroup::TargetDecoyType::non_specific);
-    removeChargeErrorPeakGroups_(deconvolved_spectrum_, PeakGroup::TargetDecoyType::non_specific);
+    removeOverlappingPeakGroups(deconvolved_spectrum_, 0, target_decoy_type_);
+    removeChargeErrorPeakGroups_(deconvolved_spectrum_, target_decoy_type_);
     removeOverlappingPeakGroups(deconvolved_spectrum_, tol, target_decoy_type_);
-
     removeExcludedMasses_(deconvolved_spectrum_);
   }
 
@@ -1407,7 +1405,7 @@ namespace OpenMS
         local_max_SNR = -1.0;
       }
 
-      double snr = dspec[i].getSNR();
+      float snr = dspec[i].getSNR();
 
       if (local_max_SNR < snr)
       {

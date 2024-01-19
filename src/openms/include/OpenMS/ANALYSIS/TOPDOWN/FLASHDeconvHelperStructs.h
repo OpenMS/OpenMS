@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -27,7 +27,8 @@ namespace OpenMS
    * @reference: FeatureFinderAlgorithmPickedHelperStructs
    */
 
-  struct OPENMS_DLLAPI FLASHDeconvHelperStructs {
+  struct OPENMS_DLLAPI FLASHDeconvHelperStructs
+  {
     /// @brief Averagine patterns pre-calculated for speed up. Other variables are also calculated for fast cosine calculation
     class OPENMS_DLLAPI PrecalculatedAveragine
     {
@@ -71,7 +72,6 @@ namespace OpenMS
        @param use_RNA_averagine if set, nucleotide-based isotope patters are calculated
     */
       PrecalculatedAveragine(double min_mass, double max_mass, double delta, CoarseIsotopePatternGenerator& generator, bool use_RNA_averagine);
-
 
       /// copy constructor
       PrecalculatedAveragine(const PrecalculatedAveragine&) = default;
@@ -122,7 +122,8 @@ namespace OpenMS
     };
 
     /// Mass feature (Deconvolved masses in spectra are traced by Mass tracing to generate mass features - like LC-MS features).
-    struct OPENMS_DLLAPI MassFeature {
+    struct OPENMS_DLLAPI MassFeature
+    {
     public:
       /// feature index;
       uint index;
@@ -177,7 +178,7 @@ namespace OpenMS
       double logMz = -1000;
       /// determined mass after deconvolution. NOT monoisotopic but only decharged
       double mass = .0;
-      /// absolute charge (in case negative, is_positive is set to false
+      /// absolute charge (in case negative, is_positive is set to false)
       int abs_charge = 0;
       /// is positive mode
       bool is_positive = true;
@@ -253,7 +254,7 @@ namespace OpenMS
 
     /**
        @brief get charge carrier mass : positive mode mass of (Constants::PROTON_MASS_U) and negative mode mass of (-Constants::PROTON_MASS_U)
-       @param ioniziation_mode Determines the charge carrier mass (true = positive or false = negative)
+       @param positive_ioniziation_mode Determines the charge carrier mass (true = positive or false = negative)
     */
     static float getChargeMass(bool positive_ioniziation_mode);
   };

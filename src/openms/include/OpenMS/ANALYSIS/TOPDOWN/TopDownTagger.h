@@ -58,10 +58,10 @@ namespace OpenMS
     class DAC_;
 
     void constructDAC_(TopDownTagger::DAC_& dac, const std::vector<double>& mzs, const std::vector<int>& scores, int z, int length, double tol);
-    std::vector<Residue> getAA_(double l, double r, double tol, int z) const;
-    std::vector<std::vector<Residue>> getGap_(double l, double r, double tol, int z) const;
+    std::vector<Residue> getAA_(double l, double r, double tol, int z, int iso_offset = 0) const;
+    //std::vector<std::vector<Residue>> getGap_(double l, double r, double tol, int z) const;
     void updateEdgeMasses_();
-    int getVertex_(int index, int path_score, int level, int gap_level) const;
+    int getVertex_(int index, int path_score, int level, int iso_level) const;
     int getIndex_(int vertex) const;
     void updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>& tag_set, const std::vector<int>& path, const std::vector<double>& mzs, int z, int score);
 
@@ -72,16 +72,14 @@ namespace OpenMS
 
     std::set<const Residue*> aas_ = ResidueDB::getInstance()->getResidues("Natural20");
     std::map<double, std::vector<Residue>> aa_mass_map_;
-    std::map<double, std::vector<std::vector<Residue>>> gap_mass_map_;
+    //std::map<double, std::vector<std::vector<Residue>>> gap_mass_map_;
 
     std::map<int, std::map<int, std::vector<String>>> edge_aa_map_;
 
-    int allowed_isotope_error_ = 0;
     int max_tag_count_ = 0;
     int min_tag_length_ = 0;
     int max_tag_length_ = 0;
-    int max_aa_in_gap_ = 0;
-    int max_gap_count_ = 0;
+    int max_iso_in_tag_ = 0;
     int max_path_score_ = 0;
     int min_path_score_ = 0;
 

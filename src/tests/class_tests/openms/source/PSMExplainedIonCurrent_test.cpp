@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -106,7 +106,7 @@ addRandomPeaks(ms_spec_2_himalaya, 7.0); // add 7 to 13 -> correctness should be
 TheoreticalSpectrumGenerator theo_gen_al;
 p = theo_gen_al.getParameters();
 p.setValue("add_c_ions", "true");
-p.setValue("add_z_ions", "true");
+p.setValue("add_zp1_ions", "true");
 p.setValue("add_b_ions", "false");
 p.setValue("add_y_ions", "false");
 PeakSpectrum ms_spec_2_alabama = createMSSpectrum(2, 2, "XTandem::2", AASequence::fromString("ALABAMA"), 2, p, Precursor::ActivationMethod::ECD);

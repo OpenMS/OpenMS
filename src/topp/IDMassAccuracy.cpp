@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -32,26 +32,26 @@ using namespace Math;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_IDMassAccuracy IDMassAccuracy
+@page TOPP_IDMassAccuracy IDMassAccuracy
 
-    @brief Calculates a distribution of the mass error from given mass spectra and IDs.
+@brief Calculates a distribution of the mass error from given mass spectra and IDs.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_IDMassAccuracy.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_IDMassAccuracy.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_IDMassAccuracy.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_IDMassAccuracy.html
 
-    Given a number of peak maps and for each of the maps an idXML file which contains
-    peptide identifications the theoretical masses of the identifications and the peaks
-    of the spectra are compared. This can be done for precursor information stored in
-    the spectra as well as for fragment information.
+Given a number of peak maps and for each of the maps an idXML file which contains
+peptide identifications the theoretical masses of the identifications and the peaks
+of the spectra are compared. This can be done for precursor information stored in
+the spectra as well as for fragment information.
 
-    The result is a distribution of errors of experimental vs. theoretical masses.
-    Having such distributions given
-    the search parameters of the sequence database search can be adjusted to speed-up
-    the identification process and to get a higher performance.
+The result is a distribution of errors of experimental vs. theoretical masses.
+Having such distributions given
+the search parameters of the sequence database search can be adjusted to speed-up
+the identification process and to get a higher performance.
 */
 
 // We do not want this class to show up in the docu:
