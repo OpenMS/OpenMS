@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -17,56 +17,56 @@
 using namespace OpenMS;
 
 /**
-  @page TOPP_PeptideIndexer PeptideIndexer
+@page TOPP_PeptideIndexer PeptideIndexer
 
-  @brief Refreshes the protein references for all peptide hits from an idXML file and adds target/decoy information.
+@brief Refreshes the protein references for all peptide hits from an idXML file and adds target/decoy information.
 
-  <CENTER>
-      <table>
-          <tr>
-              <th ALIGN = "center"> pot. predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=2> &rarr; PeptideIndexer &rarr;</td>
-              <th ALIGN = "center"> pot. successor tools </td>
-          </tr>
-          <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool </td>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FalseDiscoveryRate </td>
-          </tr>
-      </table>
-  </CENTER>
+<CENTER>
+    <table>
+        <tr>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; PeptideIndexer &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FalseDiscoveryRate </td>
+        </tr>
+    </table>
+</CENTER>
 
-  PeptideIndexer refreshes target/decoy information and mapping of peptides to proteins.
-  The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool. (For FDR calculations, peptides hitting both target and decoy proteins are counted as target hits.)
+PeptideIndexer refreshes target/decoy information and mapping of peptides to proteins.
+The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool. (For FDR calculations, peptides hitting both target and decoy proteins are counted as target hits.)
 
-  PeptideIndexer allows for ambiguous amino acids (B|J|Z|X) in the protein database and peptide sequence. 
-  
-  Enzyme cutting rules and partial specificity are derived from input idXML automatically by default or can be specified explicitly by the user.
+PeptideIndexer allows for ambiguous amino acids (B|J|Z|X) in the protein database and peptide sequence. 
 
-  All peptide and protein hits are annotated with target/decoy information, using the meta value 'target_decoy'. 
-  For proteins the possible values are "target" and "decoy", depending on whether the protein accession contains the decoy pattern (parameter @p decoy_string) 
-  as a suffix or prefix, respectively (see parameter @p prefix). 
-  Resulting protein hits appear in the order of the FASTA file, except for orphaned proteins, which will appear first with an empty 'target_decoy' metavalue.
-  Duplicate protein accessions & sequences will not raise a warning, but create multiple hits (PeptideIndexer reads the FASTA file piecewise for efficiency
-  reasons, and thus might not see all accessions & sequences at once).
+Enzyme cutting rules and partial specificity are derived from input idXML automatically by default or can be specified explicitly by the user.
 
-  Peptide hits are annotated with metavalue 'protein_references', and if matched to at least one protein also with metavalue 'target_decoy'.
-  The possible values for 'target_decoy' in peptides are "target", "decoy" and "target+decoy", 
-  depending on whether the peptide sequence is found only in target proteins, only in decoy proteins, or in both. If the peptide is unmatched the metavalue is missing.
-  
-  Runtime: PeptideIndexer is usually very fast (loading and storing the data takes the most time) and search speed can be further improved (linearly) by using more threads. 
-  Avoid allowing too many (>=4) ambiguous amino acids if your database contains long stretches of 'X' (exponential search space).
+All peptide and protein hits are annotated with target/decoy information, using the meta value 'target_decoy'. 
+For proteins the possible values are "target" and "decoy", depending on whether the protein accession contains the decoy pattern (parameter @p decoy_string) 
+as a suffix or prefix, respectively (see parameter @p prefix). 
+Resulting protein hits appear in the order of the FASTA file, except for orphaned proteins, which will appear first with an empty 'target_decoy' metavalue.
+Duplicate protein accessions & sequences will not raise a warning, but create multiple hits (PeptideIndexer reads the FASTA file piecewise for efficiency
+reasons, and thus might not see all accessions & sequences at once).
 
-  PeptideIndexer supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified
-  by @p OpenMS.ini:id_db_dir (see @subpage TOPP_advanced). The database is by default derived from the input idXML's metainformation ('auto' setting), but can be specified explicitly.
+Peptide hits are annotated with metavalue 'protein_references', and if matched to at least one protein also with metavalue 'target_decoy'.
+The possible values for 'target_decoy' in peptides are "target", "decoy" and "target+decoy", 
+depending on whether the peptide sequence is found only in target proteins, only in decoy proteins, or in both. If the peptide is unmatched the metavalue is missing.
 
-  Further details can be found in the underlying @ref OpenMS::PeptideIndexing implementation.
-  
-  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+Runtime: PeptideIndexer is usually very fast (loading and storing the data takes the most time) and search speed can be further improved (linearly) by using more threads. 
+Avoid allowing too many (>=4) ambiguous amino acids if your database contains long stretches of 'X' (exponential search space).
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_PeptideIndexer.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_PeptideIndexer.html
+PeptideIndexer supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified
+by @p OpenMS.ini:id_db_dir (see @subpage TOPP_advanced). The database is by default derived from the input idXML's metainformation ('auto' setting), but can be specified explicitly.
+
+Further details can be found in the underlying @ref OpenMS::PeptideIndexing implementation.
+
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_PeptideIndexer.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_PeptideIndexer.html
 */
 
 

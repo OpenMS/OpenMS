@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -6,6 +6,7 @@
 // $Authors: Andreas Bertsch, Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include "OpenMS/CONCEPT/LogStream.h"
 #include <OpenMS/FORMAT/HANDLERS/TraMLHandler.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -1046,6 +1047,8 @@ namespace OpenMS::Internal
               // means no annotation and no input cvParam - to write out a cvParam, use Residue::NonIdentified
               break;
             // invalid values
+            case Residue::Zp1Ion: OPENMS_LOG_ERROR << "Zp1 ions not supported. Ignoring." << std::endl; break;
+            case Residue::Zp2Ion: OPENMS_LOG_ERROR << "Zp2 ions not supported. Ignoring." << std::endl; break;
             case Residue::Full: break;
             case Residue::Internal: break;
             case Residue::NTerminal: break;

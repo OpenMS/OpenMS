@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -78,36 +78,36 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_NucleicAcidSearchEngine NucleicAcidSearchEngine
+@page TOPP_NucleicAcidSearchEngine NucleicAcidSearchEngine
 
-    @brief Matches tandem mass spectra to nucleic acid sequences.
+@brief Matches tandem mass spectra to nucleic acid sequences.
 
-    Given a FASTA file containing RNA sequences (and optionally decoys) and an mzML file from a nucleic acid mass spec experiment:
-    - Generate a list of digestion fragments from the FASTA file (based on a specified RNase)
-    - Search the mzML input for MS2 spectra with parent masses corresponding to any of these sequence fragments
-    - Match the MS2 spectra to theoretically generated spectra
-    - Score the resulting matches
+Given a FASTA file containing RNA sequences (and optionally decoys) and an mzML file from a nucleic acid mass spec experiment:
+- Generate a list of digestion fragments from the FASTA file (based on a specified RNase)
+- Search the mzML input for MS2 spectra with parent masses corresponding to any of these sequence fragments
+- Match the MS2 spectra to theoretically generated spectra
+- Score the resulting matches
 
-    Output is in the form of an mzTab-like text file containing the search results.
-    Optionally, an idXML file suitable for visualizing search results in TOPPView (parameter @p id_out) and a "target coordinates" file for label-free quantification using FeatureFinderMetaboIdent (parameter @p lfq_out) can be generated.
+Output is in the form of an mzTab-like text file containing the search results.
+Optionally, an idXML file suitable for visualizing search results in TOPPView (parameter @p id_out) and a "target coordinates" file for label-free quantification using FeatureFinderMetaboIdent (parameter @p lfq_out) can be generated.
 
-    Modified ribonucleotides can either be specified in the FASTA input file (as @e fixed modifications), or set as @e variable modifications in the tool options.
-    Information on available modifications is taken from the Modomics database (http://modomics.genesilico.pl/).
-    In addition to these "standard" modifications, OpenMS defines "generic" and "ambiguous" ones:
-    <br>
-    A generic modification represents a group of modifications that cannot be distinguished by tandem mass spectrometry.
-    For example, "mA" stands for any methyladenosine (could be "m1A", "m2A", "m6A" or "m8A"), "mmA" for any dimethyladenosine (with two methyl groups on the base), and "mAm" for any 2'-O-dimethyladenosine (with one methyl group each on base and ribose).
-    There is no technical difference between searching for "mA" or e.g. "m1A", but the generic code better represents that no statement can be made about the position of the methyl group on the base.
-    <br>
-    In contrast, an ambiguous modification represents two isobaric modifications (or modification groups) with a methyl group on either the base or the ribose, that could in principle be distinguished based on a-B ions.
-    For example, "mA?" stands for methyladenosine ("mA", see above) or 2'-O-methyladenosine ("Am").
-    When using ambiguous modifications in a search, NucleicAcidSearchEngine can optionally try to assign the alternative that generates better a-B ion matches in a spectrum (see parameter @p modifications:resolve_ambiguities).
+Modified ribonucleotides can either be specified in the FASTA input file (as @e fixed modifications), or set as @e variable modifications in the tool options.
+Information on available modifications is taken from the Modomics database (http://modomics.genesilico.pl/).
+In addition to these "standard" modifications, OpenMS defines "generic" and "ambiguous" ones:
+<br>
+A generic modification represents a group of modifications that cannot be distinguished by tandem mass spectrometry.
+For example, "mA" stands for any methyladenosine (could be "m1A", "m2A", "m6A" or "m8A"), "mmA" for any dimethyladenosine (with two methyl groups on the base), and "mAm" for any 2'-O-dimethyladenosine (with one methyl group each on base and ribose).
+There is no technical difference between searching for "mA" or e.g. "m1A", but the generic code better represents that no statement can be made about the position of the methyl group on the base.
+<br>
+In contrast, an ambiguous modification represents two isobaric modifications (or modification groups) with a methyl group on either the base or the ribose, that could in principle be distinguished based on a-B ions.
+For example, "mA?" stands for methyladenosine ("mA", see above) or 2'-O-methyladenosine ("Am").
+When using ambiguous modifications in a search, NucleicAcidSearchEngine can optionally try to assign the alternative that generates better a-B ion matches in a spectrum (see parameter @p modifications:resolve_ambiguities).
 
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_NucleicAcidSearchEngine.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_NucleicAcidSearchEngine.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_NucleicAcidSearchEngine.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_NucleicAcidSearchEngine.html
 */
 
 class NucleicAcidSearchEngine :

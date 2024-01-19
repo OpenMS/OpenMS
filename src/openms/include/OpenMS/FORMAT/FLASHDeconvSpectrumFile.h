@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -49,12 +49,12 @@ namespace OpenMS
             SumIntensity, MinCharge, MaxCharge,
             PeakCount, IsotopeCosine, ChargeScore, MassSNR, ChargeSNR, RepresentativeCharge, RepresentativeMzStart, RepresentativeMzEnd, setQscore, PerChargeIntensity, PerIsotopeIntensity
 
-          Default MS2 headers include MS1 headers plus:
-            PrecursorScanNum, PrecursorMz, PrecursorIntensity, PrecursorCharge, PrecursorSNR, PrecursorMonoisotopicMass, PrecursorQscore
+      Default MS2 headers include MS1 headers plus:
+        PrecursorScanNum, PrecursorMz, PrecursorIntensity, PrecursorCharge, PrecursorSNR, PrecursorMonoisotopicMass, PrecursorQscore
 
-          Detailed MS1 and MS2 headers include all corresponding headers above plus:
-            PeakMZs, PeakIntensities, PeakCharges, PeakMasses, PeakIsotopeIndices, PeakPPMErrors
-        */
+      Detailed MS1 and MS2 headers include all corresponding headers above plus:
+        PeakMZs, PeakIntensities, PeakCharges, PeakMasses, PeakIsotopeIndices, PeakPPMErrors
+    */
     static void writeDeconvolvedMasses(DeconvolvedSpectrum& dspec,
                                        std::fstream& fs,
                                        const String& file_name,

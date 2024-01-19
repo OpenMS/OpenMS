@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -21,63 +21,63 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_OpenSwathConfidenceScoring OpenSwathConfidenceScoring
+@page TOPP_OpenSwathConfidenceScoring OpenSwathConfidenceScoring
 
-    @brief Computes confidence scores for OpenSwath results.
+@brief Computes confidence scores for OpenSwath results.
 
-    <CENTER>
-        <table>
-            <tr>
-                <th ALIGN = "center"> potential predecessor tools </td>
-                <td VALIGN="middle" ROWSPAN=2> &rarr; OpenSwathConfidenceScoring &rarr;</td>
-                <th ALIGN = "center"> potential successor tools </td>
-            </tr>
-            <tr>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathFeatureXMLToTSV </td>
-            </tr>
-        </table>
-    </CENTER>
+<CENTER>
+    <table>
+        <tr>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; OpenSwathConfidenceScoring &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathFeatureXMLToTSV </td>
+        </tr>
+    </table>
+</CENTER>
 
-    This is an implementation of the SRM scoring algorithm described in:
+This is an implementation of the SRM scoring algorithm described in:
 
-    Malmstroem, L.; Malmstroem, J.; Selevsek, N.; Rosenberger, G. & Aebersold, R.:\n
-    <a href="https://doi.org/10.1021/pr200844d">Automated workflow for large-scale selected reaction monitoring experiments.</a>\n
-    J. Proteome Res., 2012, 11, 1644-1653
+Malmstroem, L.; Malmstroem, J.; Selevsek, N.; Rosenberger, G. & Aebersold, R.:\n
+<a href="https://doi.org/10.1021/pr200844d">Automated workflow for large-scale selected reaction monitoring experiments.</a>\n
+J. Proteome Res., 2012, 11, 1644-1653
 
-    It has been adapted for the scoring of OpenSwath results.
+It has been adapted for the scoring of OpenSwath results.
 
-    The algorithm compares SRM/MRM features (peak groups) to assays and computes scores for the agreements. Every feature is compared not only to the "true" assay that was used to acquire the corresponding ion chromatograms, but also to a number (parameter @p decoys) of unrelated - but real - assays selected at random from the assay library (parameter @p lib). This serves to establish a background distribution of scores, against which the significance of the "true" score can be evaluated. The final confidence value of a feature is the local false discovery rate (FDR), calculated as the fraction of decoy assays that score higher than the "true" assay against the feature. In the output feature map, every feature is annotated with its local FDR in the meta value "local_FDR" (a "userParam" element in the featureXML), and its overall quality is set to "1 - local_FDR".
+The algorithm compares SRM/MRM features (peak groups) to assays and computes scores for the agreements. Every feature is compared not only to the "true" assay that was used to acquire the corresponding ion chromatograms, but also to a number (parameter @p decoys) of unrelated - but real - assays selected at random from the assay library (parameter @p lib). This serves to establish a background distribution of scores, against which the significance of the "true" score can be evaluated. The final confidence value of a feature is the local false discovery rate (FDR), calculated as the fraction of decoy assays that score higher than the "true" assay against the feature. In the output feature map, every feature is annotated with its local FDR in the meta value "local_FDR" (a "userParam" element in the featureXML), and its overall quality is set to "1 - local_FDR".
 
-    The agreement of a feature and an assay is assessed based on the difference in retention time (RT) and on the deviation of relative transition intensities. The score @e S is computed using a binomial generalized linear model (GLM) of the form:
+The agreement of a feature and an assay is assessed based on the difference in retention time (RT) and on the deviation of relative transition intensities. The score @e S is computed using a binomial generalized linear model (GLM) of the form:
 
-    @f[
-    S = \frac{1}{1 + \exp(-(a + b \cdot \Delta_{RT}^2 + c \cdot d_{int}))}
-    @f]
+@f[
+S = \frac{1}{1 + \exp(-(a + b \cdot \Delta_{RT}^2 + c \cdot d_{int}))}
+@f]
 
-    The meanings of the model terms are as follows:
+The meanings of the model terms are as follows:
 
-    @f$ \Delta_{RT} @f$: Observed retention times are first mapped to the scale of the assays (parameter @p trafo), then all RTs are scaled to the range 0 to 100 (based on the lowest/highest RT in the assay library). @f$ \Delta_{RT} @f$ is the absolute difference of the scaled RTs; note that this is squared in the scoring model.
+@f$ \Delta_{RT} @f$: Observed retention times are first mapped to the scale of the assays (parameter @p trafo), then all RTs are scaled to the range 0 to 100 (based on the lowest/highest RT in the assay library). @f$ \Delta_{RT} @f$ is the absolute difference of the scaled RTs; note that this is squared in the scoring model.
 
-    @f$ d_{int} @f$: To compute the intensity distance, the @e n (advanced
-    parameter @p transitions) most intensive transitions of the feature are
-    selected. For comparing against the "true" assay, the same transitions are
-    considered; otherwise, the same number of most intensive transitions from
-    the decoy assay. Transition intensities are scaled to a total of 1 per
-    feature/assay and are ordered by the product (Q3) m/z value. Then the
-    Manhattan distance of the intensity vectors is calculated (Malmstroem et
-    al. used the RMSD instead, which has been replaced here to be independent
-    of the number of transitions).
+@f$ d_{int} @f$: To compute the intensity distance, the @e n (advanced
+parameter @p transitions) most intensive transitions of the feature are
+selected. For comparing against the "true" assay, the same transitions are
+considered; otherwise, the same number of most intensive transitions from
+the decoy assay. Transition intensities are scaled to a total of 1 per
+feature/assay and are ordered by the product (Q3) m/z value. Then the
+Manhattan distance of the intensity vectors is calculated (Malmstroem et
+al. used the RMSD instead, which has been replaced here to be independent
+of the number of transitions).
 
-    @f$ a, b, c @f$: Model coefficients, stored in the advanced parameters @p GLM:intercept, @p GLM:delta_rt, and @p GLM:dist_int. The default values were estimated based on the training dataset used in the Malmstroem et al. study, reprocessed with the OpenSwath pipeline.
+@f$ a, b, c @f$: Model coefficients, stored in the advanced parameters @p GLM:intercept, @p GLM:delta_rt, and @p GLM:dist_int. The default values were estimated based on the training dataset used in the Malmstroem et al. study, reprocessed with the OpenSwath pipeline.
 
-    In addition to the local FDRs, the scores of features against their "true" assays are recorded in the output - in the meta value "GLM_score" of the respective feature.
+In addition to the local FDRs, the scores of features against their "true" assays are recorded in the output - in the meta value "GLM_score" of the respective feature.
 
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_OpenSwathConfidenceScoring.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_OpenSwathConfidenceScoring.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_OpenSwathConfidenceScoring.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_OpenSwathConfidenceScoring.html
 
 */
 

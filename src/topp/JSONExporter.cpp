@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -17,30 +17,30 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_JSONExporter JSONExporter
+@page TOPP_JSONExporter JSONExporter
 
-  @brief Converts .oms (SQLite) files to JSON
+@brief Converts .oms (SQLite) files to JSON
 
-  <CENTER>
-  <table>
-  <tr>
-  <th ALIGN = "center"> potential predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> &rarr; JSONExporter &rarr;</td>
-  <th ALIGN = "center"> potential successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> external tools</td>
-  </tr>
-  </table>
-  </CENTER>
+<CENTER>
+<table>
+<tr>
+<th ALIGN = "center"> potential predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=2> &rarr; JSONExporter &rarr;</td>
+<th ALIGN = "center"> potential successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> external tools</td>
+</tr>
+</table>
+</CENTER>
 
-  ...
+...
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_JSONExporter.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_JSONExporter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_JSONExporter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_JSONExporter.html
  */
 
 // We do not want this class to show up in the docu:

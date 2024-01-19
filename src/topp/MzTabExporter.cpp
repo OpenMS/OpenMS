@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -33,34 +33,34 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page TOPP_MzTabExporter MzTabExporter
+@page TOPP_MzTabExporter MzTabExporter
 
-   @brief This application converts several %OpenMS XML formats (featureXML, consensusXML, and idXML) to mzTab.
+@brief This application converts several %OpenMS XML formats (featureXML, consensusXML, and idXML) to mzTab.
 
-  <CENTER>
-    <table>
-     <tr>
-      <th ALIGN = "center"> pot. predecessor tools </td>
-         <td VALIGN="middle" ROWSPAN=2> &rarr; MzTabExporter &rarr;</td>
-     <th ALIGN = "center"> potential successor tools </td>
-    </tr>
-    <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> Any tool producing one of the input formats </td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> External tools (MS Excel, OpenOffice, Notepad)</td>
-    </tr>
-   </table>
-  </CENTER>
+<CENTER>
+  <table>
+   <tr>
+    <th ALIGN = "center"> pot. predecessor tools </td>
+       <td VALIGN="middle" ROWSPAN=2> &rarr; MzTabExporter &rarr;</td>
+   <th ALIGN = "center"> potential successor tools </td>
+  </tr>
+  <tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> Any tool producing one of the input formats </td>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> External tools (MS Excel, OpenOffice, Notepad)</td>
+  </tr>
+ </table>
+</CENTER>
 
-  See the mzTab specification for details on the format.
+See the mzTab specification for details on the format.
 
-  @experimental This algorithm and underlying format is work in progress and might change.
+@experimental This algorithm and underlying format is work in progress and might change.
 
-  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_MzTabExporter.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_MzTabExporter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MzTabExporter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MzTabExporter.html
  */
 
 // We do not want this class to show up in the docu:
