@@ -1027,6 +1027,8 @@ namespace OpenMS
       if (is_isotope_decoy && prev_cos * .995 > peak_group.getIsotopeCosine())
         continue;
 
+      if (is_isotope_decoy) peak_group.setIsotopeCosine(std::min(1.0, peak_group.getIsotopeCosine() / .995));
+
       if (peak_group.empty() || peak_group.getQscore() <= 0 || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
       {
         continue;
