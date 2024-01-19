@@ -120,7 +120,7 @@ namespace OpenMS
   }
 
   int PeakGroup::updateQscore(const std::vector<LogMzPeak>& noisy_peaks, const MSSpectrum& spec, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, double tol,
-                              bool is_low_charge, int allowed_iso_error, bool is_last)
+                              bool is_low_charge, bool is_last)
   {
     qscore_ = 0;
 
@@ -149,7 +149,7 @@ namespace OpenMS
 
     isotope_cosine_score_ = SpectralDeconvolution::getIsotopeCosineAndIsoOffset(monoisotopic_mass_, per_isotope_int_, h_offset, avg,
                                                                                 -min_negative_isotope_index_, // change if to select cosine calculation and if to get second best hits
-                                                                                window_width, allowed_iso_error, target_decoy_type);
+                                                                                window_width, 0, target_decoy_type);
 
     if (h_offset != 0)
       return h_offset;

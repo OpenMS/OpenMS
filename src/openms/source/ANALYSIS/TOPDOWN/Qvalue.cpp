@@ -36,8 +36,7 @@ namespace OpenMS
 
   void Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra) // per ms level + precursor update as well.
   {
-    uint bin_number;
-    const uint min_bin_number = 100;
+    const uint bin_number = 100;
 
     std::map<uint, std::vector<double>> weights_map;
     std::map<uint, std::vector<double>> tscore_map; // per ms level
@@ -97,10 +96,10 @@ namespace OpenMS
       auto& dscore_iso = dscore_iso_decoy_map[ms_level];
       auto& dscore_charge = dscore_charge_decoy_map[ms_level];
       auto& dscore_noise = dscore_noise_decoy_map[ms_level];
-      bin_number = min_bin_number; // std::max(min_bin_number, (uint)(qscores.size()/50));
 
-      //removeOutliers(dscore_charge, bin_number);
-      //removeOutliers(dscore_noise, bin_number);
+      removeOutliers(dscore_charge, bin_number);
+      removeOutliers(dscore_noise, bin_number);
+      removeOutliers(dscore_iso, bin_number);
 
       auto mixed_dist = getDistribution(qscores, bin_number);
       const auto charge_dist = getDistribution(dscore_charge, bin_number);
@@ -113,7 +112,7 @@ namespace OpenMS
       for (int i = 0; i < mixed_dist.size(); i++)
       {
         mixed_dist[i] -= iso_dist[i] / (dscore_iso.empty() ? .0 : (((double)(qscores.size())) / dscore_iso.size()));
-        mixed_dist[i] = mixed_dist[i] < .0 ? .0 : mixed_dist[i];
+        //mixed_dist[i] = mixed_dist[i] < .0 ? .0 : mixed_dist[i];
       }
 
       comp_dists.clear();
