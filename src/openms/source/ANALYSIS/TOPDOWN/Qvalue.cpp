@@ -97,9 +97,9 @@ namespace OpenMS
       auto& dscore_charge = dscore_charge_decoy_map[ms_level];
       auto& dscore_noise = dscore_noise_decoy_map[ms_level];
 
-      removeOutliers(dscore_charge, bin_number);
-      removeOutliers(dscore_noise, bin_number);
-      removeOutliers(dscore_iso, bin_number);
+      //removeOutliers(dscore_charge, bin_number);
+      //removeOutliers(dscore_noise, bin_number);
+      //removeOutliers(dscore_iso, bin_number);
 
       auto mixed_dist = getDistribution(qscores, bin_number);
       const auto charge_dist = getDistribution(dscore_charge, bin_number);
@@ -112,10 +112,9 @@ namespace OpenMS
       for (int i = 0; i < mixed_dist.size(); i++)
       {
         mixed_dist[i] -= iso_dist[i] / (dscore_iso.empty() ? .0 : (((double)(qscores.size())) / dscore_iso.size()));
-        //mixed_dist[i] = mixed_dist[i] < .0 ? .0 : mixed_dist[i];
+        mixed_dist[i] = mixed_dist[i] < .0 ? .0 : mixed_dist[i];
       }
 
-      comp_dists.clear();
       comp_dists.push_back(charge_dist);
       comp_dists.push_back(noise_dist);
       auto weights = getDistributionWeights(mixed_dist, comp_dists, bin_number / 3);

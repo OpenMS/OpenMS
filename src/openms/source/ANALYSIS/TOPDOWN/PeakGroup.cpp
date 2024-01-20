@@ -186,7 +186,7 @@ namespace OpenMS
   {
     if (noisy_peaks.empty())
       return 0;
-    const Size max_noisy_peak_number = 1000; // too many noise peaks will slow down the process
+    const Size max_noisy_peak_number = 50; // too many noise peaks will slow down the process
     const Size max_bin_number = 29;          // 24 bin + 5 extra bin
     float threshold = -1;
     std::vector<std::pair<FLASHDeconvHelperStructs::LogMzPeak, bool>> all_peaks; // peak + is signal?

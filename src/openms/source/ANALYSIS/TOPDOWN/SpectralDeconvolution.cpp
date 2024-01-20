@@ -995,13 +995,11 @@ namespace OpenMS
       peak_group.setTargetDecoyType(target_decoy_type_);
       bool is_isotope_decoy = target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy;
       float prev_cos = peak_group.getIsotopeCosine();
-      auto prev_mass = peak_group.getMonoMass();
-      float cos = getIsotopeCosineAndIsoOffset(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -peak_group.getMinNegativeIsotopeIndex(), is_isotope_decoy ? 0 : -1,
+      float cos = getIsotopeCosineAndIsoOffset(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -peak_group.getMinNegativeIsotopeIndex(), -1,
                                                allowed_iso_error_, target_decoy_type_);
       peak_group.setIsotopeCosine(cos);
 
       // first filtration to remove false positives before further processing.
-
       if (cos < std::min(.5, min_isotope_cosine_[ms_level_ - 1]) - .3)
       {
         continue;
@@ -1027,8 +1025,7 @@ namespace OpenMS
       if (offset != 0) continue;
       if (is_isotope_decoy)
       {
-        if (std::abs(prev_mass - peak_group.getMonoMass()) > 3) continue; // if they are off by more than 3, they are different envelopes.
-        if(abs(prev_cos - peak_group.getIsotopeCosine()) > .005) continue; // a magic number to make sure isotope decoys and isotope false positives have the same distribution. Dependent on cosine function definition
+       if(abs(prev_cos - peak_group.getIsotopeCosine()) > .004) continue; // a magic number to make sure isotope decoys and isotope false positives have the same distribution. Dependent on cosine function definition
       }
 
       if (peak_group.empty() || peak_group.getQscore() <= 0 || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
@@ -1070,7 +1067,6 @@ namespace OpenMS
       }
 
       double snr_threshold = min_snr_[ms_level_ - 1];
-      //double qvalue_threshold = max_qvalue_[ms_level_ - 1];
       if (!peak_group.isTargeted() && (                                                                         // peak_group.getQvalue() > qvalue_threshold || peak_group.getSNR() < snr_threshold ||
                                         peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold)) // snr check prevents harmonics or noise.
       {
