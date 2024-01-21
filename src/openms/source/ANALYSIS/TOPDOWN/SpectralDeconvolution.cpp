@@ -1025,7 +1025,7 @@ namespace OpenMS
       if (offset != 0) continue;
       if (is_isotope_decoy)
       {
-       if(abs(prev_cos - peak_group.getIsotopeCosine()) > .004) continue; // a magic number to make sure isotope decoys and isotope false positives have the same distribution. Dependent on cosine function definition
+       if(abs(prev_cos - peak_group.getIsotopeCosine()) > .0045) continue; // a magic number to make sure isotope decoys and isotope false positives have the same distribution. Dependent on cosine function definition
       }
 
       if (peak_group.empty() || peak_group.getQscore() <= 0 || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
@@ -1084,7 +1084,7 @@ namespace OpenMS
     }
 
     std::vector<PeakGroup> filtered_peak_groups;
-    filtered_peak_groups.reserve(selected_count);
+    filtered_peak_groups.reserve(selected_count + (target_decoy_type_ == PeakGroup::TargetDecoyType::target ? 0 : target_dspec_for_decoy_calcualtion_->size()));
 
     Size index = selected.find_first();
     while (index != selected.npos)
@@ -1093,11 +1093,15 @@ namespace OpenMS
       index = selected.find_next(index);
     }
 
+    if (target_decoy_type_ != PeakGroup::TargetDecoyType::target)
+    {
+      filtered_peak_groups.insert(filtered_peak_groups.end(), target_dspec_for_decoy_calcualtion_->begin(), target_dspec_for_decoy_calcualtion_->end());
+    }
     deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
     deconvolved_spectrum_.sort();
 
-    removeOverlappingPeakGroups(deconvolved_spectrum_, 0, target_decoy_type_);
-    removeChargeErrorPeakGroups_(deconvolved_spectrum_, target_decoy_type_);
+    removeOverlappingPeakGroups(deconvolved_spectrum_, 0, PeakGroup::TargetDecoyType::non_specific);
+    removeChargeErrorPeakGroups_(deconvolved_spectrum_, PeakGroup::TargetDecoyType::non_specific);
     removeOverlappingPeakGroups(deconvolved_spectrum_, tol, target_decoy_type_);
     removeExcludedMasses_(deconvolved_spectrum_);
   }

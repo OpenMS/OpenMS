@@ -97,9 +97,9 @@ namespace OpenMS
       auto& dscore_charge = dscore_charge_decoy_map[ms_level];
       auto& dscore_noise = dscore_noise_decoy_map[ms_level];
 
-      //removeOutliers(dscore_charge, bin_number);
-      //removeOutliers(dscore_noise, bin_number);
-      //removeOutliers(dscore_iso, bin_number);
+      // removeOutliers(dscore_charge, bin_number);
+      // removeOutliers(dscore_noise, bin_number);
+      // removeOutliers(dscore_iso, bin_number);
 
       auto mixed_dist = getDistribution(qscores, bin_number);
       const auto charge_dist = getDistribution(dscore_charge, bin_number);
@@ -109,18 +109,36 @@ namespace OpenMS
       std::vector<double> true_positive_dist(bin_number);
       std::vector<std::vector<double>> comp_dists {};
 
+      double sum = 0;
+
       for (int i = 0; i < mixed_dist.size(); i++)
       {
         mixed_dist[i] -= iso_dist[i] / (dscore_iso.empty() ? .0 : (((double)(qscores.size())) / dscore_iso.size()));
-        mixed_dist[i] = mixed_dist[i] < .0 ? .0 : mixed_dist[i];
+        //mixed_dist[i] = mixed_dist[i] < .0 ? .0 : mixed_dist[i];
+        sum += mixed_dist[i];
       }
+      double w = sum;
+      for(double& d : mixed_dist) d /= sum;
 
       comp_dists.push_back(charge_dist);
       comp_dists.push_back(noise_dist);
-      auto weights = getDistributionWeights(mixed_dist, comp_dists, bin_number / 3);
 
-      weights[0] *= dscore_charge.empty() ? .0 : (((double)(qscores.size())) / dscore_charge.size());
-      weights[1] *= dscore_noise.empty() ? .0 : (((double)(qscores.size())) / dscore_noise.size());
+      sum = 0;
+
+      int bin_threshold = iso_dist.size();
+      for (; bin_threshold >= bin_number / 3; bin_threshold--)
+      {
+        sum += iso_dist[bin_threshold];
+        if (sum > .5)
+        {
+          break;
+        }
+      }
+
+      auto weights = getDistributionWeights(mixed_dist, comp_dists, bin_threshold);
+
+      weights[0] *= dscore_charge.empty() ? .0 : w * (((double)(qscores.size())) / dscore_charge.size());
+      weights[1] *= dscore_noise.empty() ? .0 : w * (((double)(qscores.size())) / dscore_noise.size());
       weights_map[ms_level] = weights;
 
       std::sort(qscores.begin(), qscores.end());
@@ -194,7 +212,7 @@ namespace OpenMS
 
   uint Qvalue::getBinNumber(double qscore, uint total_bin_number)
   {
-    return (uint)round(pow(qscore, 1) * (total_bin_number - 1.0));
+    return (uint)round(qscore * (total_bin_number - 1.0));
   }
 
 
@@ -239,10 +257,12 @@ namespace OpenMS
     uint weight_cntr = comp_dists.size();
     std::vector<double> weights(weight_cntr, 1.0 / weight_cntr);
     std::vector<double> c_sums(weight_cntr, .0);
+    double m_sum = 0;
     for (uint k = 0; k < bin_threshold; k++) //
     {
       for (uint i = 0; i < weight_cntr; i++)
         c_sums[i] += comp_dists[i][k];
+      m_sum += mixed_dist[k];
     }
 
     for (uint n = 0; n < num_iterations; n++)
@@ -257,11 +277,11 @@ namespace OpenMS
           double denom = .0;
           for (uint j = 0; j < weight_cntr; j++)
           {
-            denom += weights[j] * comp_dists[j][k];
+            denom += weights[j] * (comp_dists[j][k] / c_sums[i]);
           }
           if (denom > 0)
           {
-            t += comp_dists[i][k] * mixed_dist[k] / denom;
+            t += (comp_dists[i][k] / c_sums[i]) * (mixed_dist[k] / m_sum) / denom;
           }
         }
         tmp_weights[i] *= t;
@@ -273,6 +293,9 @@ namespace OpenMS
       }
       weights = tmp_weights;
     }
+    for (uint i = 0; i < weight_cntr; i++)
+      weights[i] *= m_sum / c_sums[i];
+
     return weights;
   }
 } // namespace OpenMS

@@ -14,19 +14,19 @@
 namespace OpenMS
 {
   //==================================== CV 0
-  std::vector<double> Qscore::weight_CV_0_ {-9.2654, 0.558, 0.014, 0.0249, 8.2536};
+  std::vector<double> Qscore::weight_CV_0_ {-9.2835, -0.1901, -0.0018, -0.0039, 8.3132};
 
   //====================================== CV 40
-  std::vector<double> Qscore::weight_CV_40_ {-22.48, 0.9741, -0.0082, -0.4234, 20.5086};
+  std::vector<double> Qscore::weight_CV_40_ {-20.8357, 1.057, -0.0249, -0.2477, 19.0478};
 
   // ====================================== CV 50
-  std::vector<double> Qscore::weight_CV_50_ {-18.1896, -0.6636, -0.0075, -0.5833, 16.5708};
+  std::vector<double> Qscore::weight_CV_50_ {-15.8323, -0.9187, -0.0233, -0.3161, 14.4637};
 
   //====================================== CV 60
-  std::vector<double> Qscore::weight_CV_60_ {-22.1279, 0.342, -0.0484, -0.6139, 20.3207};
+  std::vector<double> Qscore::weight_CV_60_ {-17.1888, -0.6985, -0.0672, -0.128, 15.8869};
 
   //====================================== Normal
-  std::vector<double> Qscore::weight_centroid_ {-22.7763, 0.9107, -0.1328, -0.4266, 22.2197}; // apr23 all
+  std::vector<double> Qscore::weight_centroid_ {-18.4987, 0.0728, -0.1773, -0.0712, 17.4517}; // apr23 all
   std::vector<double> Qscore::weight_profile_(weight_centroid_);                              //{-6.0783, -1.3585, -0.1004, -0.3308, 5.9575}; // in silico profile
 
 
