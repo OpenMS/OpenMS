@@ -876,7 +876,7 @@ namespace OpenMS
   void SpectralDeconvolution::setTargetDecoyType(PeakGroup::TargetDecoyType target_decoy_type, const DeconvolvedSpectrum& target_dspec_for_decoy_calcualtion)
   {
     target_decoy_type_ = target_decoy_type;
-    if (target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy) max_abs_charge_ = low_charge_;
+    //if (target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy) max_abs_charge_ = low_charge_;
     target_dspec_for_decoy_calcualtion_ = &target_dspec_for_decoy_calcualtion;
   }
 
@@ -1025,7 +1025,7 @@ namespace OpenMS
       if (offset != 0) continue;
       if (is_isotope_decoy)
       {
-       if(abs(prev_cos - peak_group.getIsotopeCosine()) > .0045) continue; // a magic number to make sure isotope decoys and isotope false positives have the same distribution. Dependent on cosine function definition
+       if(prev_cos - peak_group.getIsotopeCosine() > .004) continue; // a magic number to make sure isotope decoys and isotope false positives have the same distribution. Dependent on cosine function definition
       }
 
       if (peak_group.empty() || peak_group.getQscore() <= 0 || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)

@@ -97,10 +97,6 @@ namespace OpenMS
       auto& dscore_charge = dscore_charge_decoy_map[ms_level];
       auto& dscore_noise = dscore_noise_decoy_map[ms_level];
 
-      // removeOutliers(dscore_charge, bin_number);
-      // removeOutliers(dscore_noise, bin_number);
-      // removeOutliers(dscore_iso, bin_number);
-
       auto mixed_dist = getDistribution(qscores, bin_number);
       const auto charge_dist = getDistribution(dscore_charge, bin_number);
       const auto noise_dist = getDistribution(dscore_noise, bin_number);
@@ -109,27 +105,20 @@ namespace OpenMS
       std::vector<double> true_positive_dist(bin_number);
       std::vector<std::vector<double>> comp_dists {};
 
-      double sum = 0;
-
       for (int i = 0; i < mixed_dist.size(); i++)
       {
-        mixed_dist[i] -= iso_dist[i] / (dscore_iso.empty() ? .0 : (((double)(qscores.size())) / dscore_iso.size()));
-        //mixed_dist[i] = mixed_dist[i] < .0 ? .0 : mixed_dist[i];
-        sum += mixed_dist[i];
+        mixed_dist[i] -= iso_dist[i];
       }
-      double w = sum;
-      for(double& d : mixed_dist) d /= sum;
 
       comp_dists.push_back(charge_dist);
       comp_dists.push_back(noise_dist);
 
-      sum = 0;
-
+      double sum = 0;
       int bin_threshold = iso_dist.size();
-      for (; bin_threshold >= bin_number / 3; bin_threshold--)
+      for (; bin_threshold >= bin_number / 2; bin_threshold--)
       {
         sum += iso_dist[bin_threshold];
-        if (sum > .5)
+        if (sum > dscore_iso.size() / 2)
         {
           break;
         }
@@ -137,8 +126,6 @@ namespace OpenMS
 
       auto weights = getDistributionWeights(mixed_dist, comp_dists, bin_threshold);
 
-      weights[0] *= dscore_charge.empty() ? .0 : w * (((double)(qscores.size())) / dscore_charge.size());
-      weights[1] *= dscore_noise.empty() ? .0 : w * (((double)(qscores.size())) / dscore_noise.size());
       weights_map[ms_level] = weights;
 
       std::sort(qscores.begin(), qscores.end());
@@ -235,18 +222,6 @@ namespace OpenMS
       ret[bin]++;
     }
 
-    double csum = 0;
-
-    for (uint i = 0; i < bin_number; i++)
-    {
-      csum += ret[i];
-    }
-
-    if (csum > 0)
-    {
-      for (auto& r : ret)
-        r /= csum;
-    }
     return ret;
   }
 
