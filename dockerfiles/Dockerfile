@@ -5,6 +5,8 @@ ARG OPENMS_LIBRARY_DIR="/OpenMS"
 ARG CONTRIB_TAG=latest
 ARG CONTRIB_BASE_IMAGE=ghcr.io/openms/contrib:${CONTRIB_TAG}
 ARG CONTRIB_BUILD_DIR="/contrib-build"
+ARG THIRDPARTY_BRANCH="master"
+ARG THIRDPARTY_DIR="/thirdparty"
 ARG NUM_BUILD_CORES=8
 ARG MAKEFLAGS="-j${NUM_BUILD_CORES}"
 
@@ -36,11 +38,13 @@ RUN make OpenMS
 LABEL software="OpenMS (library)"
 
 
-### OpenMS tools ###
-FROM library as tools
+### OpenMS tools build ###
+FROM library as tools-build
 ARG OPENMS_LIBRARY_DIR
 ARG OPENMS_LIBRARY_BUILD_DIR
 ARG MAKEFLAGS
+ARG THIRDPARTY_BRANCH
+ARG THIRDPARTY_DIR
 ENV MAKEFLAGS="${MAKEFLAGS}"
 
 RUN apt-get update && apt-get install -y --no-install-recommends --no-install-suggests openjdk-17-jdk
@@ -48,17 +52,98 @@ RUN apt-get update && apt-get install -y --no-install-recommends --no-install-su
 WORKDIR ${OPENMS_LIBRARY_DIR}
 RUN <<-EOF
     mkdir /thirdparty
-    git submodule update --init THIRDPARTY
-    cp -r THIRDPARTY/All/* /thirdparty
-    cp -r THIRDPARTY/Linux/64bit/* /thirdparty
+    # note, we are not using the submodule here because the .git folder
+    # is not copied to this stage. Instead, we clone the repo directly.
+    git clone --branch=${THIRDPARTY_BRANCH} --depth=1 https://github.com/OpenMS/THIRDPARTY.git
+
+    # copying only the relevant binaries and leaving the rest behind
+    cp -r THIRDPARTY/All/* ${THIRDPARTY_DIR}
+    cp -r THIRDPARTY/Linux/64bit/* ${THIRDPARTY_DIR}
+
+    rm -rf THIRDPARTY
 EOF
 
-ENV PATH="/thirdparty/LuciPHOr2:/thirdparty/MSGFPlus:/thirdparty/Sirius:/thirdparty/ThermoRawFileParser:/thirdparty/Comet:/thirdparty/Fido:/thirdparty/MaRaCluster:/thirdparty/Percolator:/thirdparty/SpectraST:/thirdparty/XTandem:/thirdparty/Sage:${PATH}"
+ENV PATH="${THIRDPARTY_DIR}/LuciPHOr2:${THIRDPARTY_DIR}/MSGFPlus:${THIRDPARTY_DIR}/Sirius:${THIRDPARTY_DIR}/ThermoRawFileParser:${THIRDPARTY_DIR}/Comet:${THIRDPARTY_DIR}/Fido:${THIRDPARTY_DIR}/MaRaCluster:${THIRDPARTY_DIR}/Percolator:${THIRDPARTY_DIR}/SpectraST:${THIRDPARTY_DIR}/XTandem:${THIRDPARTY_DIR}/Sage:${PATH}"
 WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
-RUN make TOPP && rm -rf src doc CMakeFiles
+# RUN make TOPP && rm -rf src doc CMakeFiles
+RUN make TOPP
 WORKDIR /
-ENV PATH="/${OPENMS_LIBRARY_BUILD_DIR}}/bin/:${PATH}"
+ENV PATH="${OPENMS_LIBRARY_BUILD_DIR}/bin:${PATH}"
+
+### OpenMS tools runtime ###
+FROM ubuntu:22.04 AS tools
+ARG OPENMS_LIBRARY_DIR
+ARG OPENMS_LIBRARY_BUILD_DIR
+ARG CONTRIB_BUILD_DIR
+ARG OPENMS_LIBRARY_DIR
+ARG THIRDPARTY_DIR
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends --no-install-suggests \
+    libqt5opengl5 \
+    libsvm3 \
+    libzip4 \
+    zlib1g \
+    libbz2-1.0 \
+    libgomp1 \
+    libqt5svg5 \
+    libxerces-c3.2 \
+    libboost-date-time1.74-dev  \
+    libboost-iostreams1.74-dev \
+    libboost-regex1.74-dev \
+    libboost-math1.74-dev \
+    libboost-random1.74-dev \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY --from=tools-build ${CONTRIB_BUILD_DIR}/bin ${CONTRIB_BUILD_DIR}/bin
+COPY --from=tools-build /thirdparty /thirdparty
+COPY --from=tools-build ${OPENMS_LIBRARY_BUILD_DIR}/bin ${OPENMS_LIBRARY_BUILD_DIR}/bin
+COPY --from=tools-build ${OPENMS_LIBRARY_BUILD_DIR}/lib ${OPENMS_LIBRARY_BUILD_DIR}/lib
+COPY --from=tools-build ${OPENMS_LIBRARY_DIR}/share ${OPENMS_LIBRARY_DIR}/share
+
+ENV PATH="${OPENMS_LIBRARY_BUILD_DIR}/bin:${THIRDPARTY_DIR}/LuciPHOr2:${THIRDPARTY_DIR}/MSGFPlus:${THIRDPARTY_DIR}/Sirius:${THIRDPARTY_DIR}/ThermoRawFileParser:${THIRDPARTY_DIR}/Comet:${THIRDPARTY_DIR}/Fido:${THIRDPARTY_DIR}/MaRaCluster:${THIRDPARTY_DIR}/Percolator:${THIRDPARTY_DIR}/SpectraST:${THIRDPARTY_DIR}/XTandem:${THIRDPARTY_DIR}/Sage:${PATH}"
+
 LABEL software="OpenMS (tools)"
+
+
+### OpenMS tools runtime test ###
+FROM tools AS tools-test
+ARG OPENMS_LIBRARY_DIR
+ARG OPENMS_LIBRARY_BUILD_DIR
+
+RUN apt-get update \ 
+    && apt-get install -y --no-install-recommends --no-install-suggests \
+    g++ \
+    autoconf \
+    automake \
+    make \
+    gpg \
+    wget \
+    ca-certificates \
+    xvfb \
+    curl
+
+RUN <<-EOF
+    update-ca-certificates
+    cmake_ubuntu_version=$(lsb_release -cs)
+    if ! wget -q --method=HEAD "https://apt.kitware.com/ubuntu/dists/$cmake_ubuntu_version/Release"; then
+      bash -c "$(wget -O - https://apt.kitware.com/kitware-archive.sh)"
+    else
+      wget -qO - https://apt.kitware.com/kitware-archive.sh | bash -s -- --release $cmake_ubuntu_version
+    fi
+    apt-get -y update
+    apt-get install -y cmake
+EOF
+
+COPY --from=tools-build ${OPENMS_LIBRARY_BUILD_DIR} ${OPENMS_LIBRARY_BUILD_DIR}
+COPY --from=tools-build ${OPENMS_LIBRARY_DIR}/src/tests ${OPENMS_LIBRARY_DIR}/src/tests
+WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
+RUN <<-EOF
+    # we need Xvfb to run a small subset of tests
+    # mostly TOPP_INIUpdater
+    Xvfb :0 &
+    DISPLAY=:0 ctest -R TOPP_
+EOF
 
 
 ### pyOpenMS ###
