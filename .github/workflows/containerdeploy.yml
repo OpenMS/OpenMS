@@ -76,6 +76,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
+          file: dockerfiles/Dockerfile
           target: tools-test
           build-args: |
             NUM_BUILD_CORES: 2
