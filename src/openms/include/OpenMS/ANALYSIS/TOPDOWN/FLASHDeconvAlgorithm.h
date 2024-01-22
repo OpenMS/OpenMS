@@ -38,6 +38,7 @@ namespace OpenMS
     FLASHDeconvAlgorithm();
 
     /// copy constructor
+    FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm&) = default;
 
     /// move constructor
     FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) = default;

@@ -40,6 +40,7 @@ namespace OpenMS
     SpectralDeconvolution();
 
     /// copy constructor
+    SpectralDeconvolution(const SpectralDeconvolution&) = default;
 
     /// move constructor
     SpectralDeconvolution(SpectralDeconvolution&& other) = default;
