@@ -102,8 +102,8 @@ namespace OpenMS
     iso_da_distance_ =
       target_decoy_type_ != PeakGroup::noise_decoy ?
         Constants::ISOTOPE_MASSDIFF_55K_U :
-        Constants::ISOTOPE_MASSDIFF_55K_U * sqrt(13.0) / 5; // sqrt(7.0)/2.0 Da is used instead of C13 - C12 to make sure masses detected with this nonsensical mass difference are not true.
-    previously_deconved_mono_masses_for_decoy_.clear();
+        Constants::ISOTOPE_MASSDIFF_55K_U * sqrt(13.0) / 5; // sqrt(13.0)/5.0 Da is used instead of C13 - C12 to make sure masses detected with this nonsensical mass difference are not true.
+    previously_deconved_peak_masses_for_decoy_.clear();
     previously_deconved_mass_bins_for_decoy_.reset();
 
     if (target_decoy_type_ == PeakGroup::charge_decoy) // charge decoy
@@ -112,7 +112,8 @@ namespace OpenMS
       {
         for (const auto& p : pg)
         {
-          previously_deconved_mono_masses_for_decoy_.push_back(p.getUnchargedMass());
+          for (int i = -allowed_iso_error_ - 1; i<=allowed_iso_error_ + 1;i++)
+            previously_deconved_peak_masses_for_decoy_.push_back(i * iso_da_distance_ + p.getUnchargedMass());
         }
       }
     }
@@ -366,7 +367,7 @@ namespace OpenMS
           break;
         }
 
-        if (!previously_deconved_mono_masses_for_decoy_.empty() && previously_deconved_mass_bins_for_decoy_[mass_bin_index])
+        if (!previously_deconved_peak_masses_for_decoy_.empty() && previously_deconved_mass_bins_for_decoy_[mass_bin_index])
         {
           continue;
         }
@@ -921,13 +922,13 @@ namespace OpenMS
     updateMzBins_(mz_bin_number, mz_bin_intensities);
     mass_bins_ = boost::dynamic_bitset<>(mass_bin_number);
 
-    if (target_decoy_type_ == PeakGroup::charge_decoy && !previously_deconved_mono_masses_for_decoy_.empty())
+    if (!previously_deconved_peak_masses_for_decoy_.empty())
     {
-      std::sort(previously_deconved_mono_masses_for_decoy_.begin(), previously_deconved_mono_masses_for_decoy_.end());
+      std::sort(previously_deconved_peak_masses_for_decoy_.begin(), previously_deconved_peak_masses_for_decoy_.end());
       previously_deconved_mass_bins_for_decoy_ = boost::dynamic_bitset<>(mass_bins_.size());
       // always positive
-      int bin_offset = (int)round(tol_div_factor);
-      for (double m : previously_deconved_mono_masses_for_decoy_)
+      int bin_offset = (int)round(tol_div_factor) + 1;
+      for (double m : previously_deconved_peak_masses_for_decoy_)
       {
         if (m <= 0)
         {

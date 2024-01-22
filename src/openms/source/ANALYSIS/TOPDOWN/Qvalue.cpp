@@ -105,7 +105,6 @@ namespace OpenMS
       for (int i = 0; i < mixed_dist.size(); i++)
       {
         mixed_dist[i] -= iso_dist[i] + charge_dist[i];
-       // mixed_dist[i] = std::max(mixed_dist[i], .0);
       }
 
       double sum = 0;
