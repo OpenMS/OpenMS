@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -47,6 +21,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
@@ -63,9 +38,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_SageAdapter SageAdapter
+@page TOPP_SageAdapter SageAdapter
 
-    @brief Identifies peptides in MS/MS spectra via sage.
+@brief Identifies peptides in MS/MS spectra via sage.
 
 <CENTER>
     <table>
@@ -81,16 +56,16 @@ using namespace std;
     </table>
 </CENTER>
 
-    @em Sage must be installed before this wrapper can be used.
+@em Sage must be installed before this wrapper can be used.
 
-    Only the closed-search identification mode of Sage is supported by this adapter.
-    Currently, also neither "wide window" (= open or DIA) mode, nor "chimeric" mode is supported,
-    because of limitations in OpenMS' data structures and file formats.
+Only the closed-search identification mode of Sage is supported by this adapter.
+Currently, also neither "wide window" (= open or DIA) mode, nor "chimeric" mode is supported,
+because of limitations in OpenMS' data structures and file formats.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_SageAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_SageAdapter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_SageAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_SageAdapter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -108,9 +83,9 @@ public:
     SearchEngineBase("SageAdapter", "Annotates MS/MS spectra using Sage.", true,
              {
                  {"Michael Lazear",
-                 "https://lazear.github.io/sage/",
-                 "",
-                 ""}
+                 "Sage: An Open-Source Tool for Fast Proteomics Searching and Quantification at Scale",
+                 "J. Proteome Res. 2023, 22, 11, 3652–3659",
+                 "https://doi.org/10.1021/acs.jproteome.3c00486"}
              })
   {
   }
@@ -136,6 +111,7 @@ protected:
   static constexpr double fragment_tol_left = -10.0;
   static constexpr double fragment_tol_right = 10.0;
   const std::string isotope_errors = "-1, 3";
+  const std::string charges_if_not_annotated = "2, 5";
   static constexpr size_t min_matched_peaks = 6;
   static constexpr size_t report_psms = 1;
   static constexpr size_t min_peaks = 15;
@@ -179,6 +155,9 @@ protected:
     ##fragment_tol_right##
     ]
   },
+  "precursor_charge": [
+    ##charges_if_not_annotated##
+  ],
   "isotope_errors": [
     ##isotope_errors##
   ],
@@ -260,6 +239,7 @@ protected:
     config_file.substitute("##fragment_tol_left##", String(getDoubleOption_("fragment_tol_left")));
     config_file.substitute("##fragment_tol_right##", String(getDoubleOption_("fragment_tol_right")));
     config_file.substitute("##isotope_errors##", getStringOption_("isotope_error_range"));
+    config_file.substitute("##charges_if_not_annotated##", getStringOption_("charges"));
     config_file.substitute("##min_matched_peaks##", String(getIntOption_("min_matched_peaks")));
     config_file.substitute("##min_peaks##", String(getIntOption_("min_peaks")));
     config_file.substitute("##max_peaks##", String(getIntOption_("max_peaks")));
@@ -279,7 +259,7 @@ protected:
     {
       enzyme_details = 
    R"("cleave_at": "KR",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": true)";
     }
     else if (enzyme == "Chymotrypsin")
@@ -293,7 +273,7 @@ protected:
     {
       enzyme_details = 
    R"("cleave_at": "FWYL",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": true)";
     }
     else if (enzyme == "Arg-C")
@@ -307,7 +287,7 @@ protected:
     {
       enzyme_details = 
    R"("cleave_at": "R",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": true)";
     }
     else if (enzyme == "Lys-C")
@@ -321,14 +301,14 @@ protected:
     {
       enzyme_details = 
    R"("cleave_at": "K",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": true)";
     }    
     else if (enzyme == "Lys-N")
     {
       enzyme_details = 
    R"("cleave_at": "K",
-      "restrict": "",
+      "restrict": null,
       "c_terminal": false)";
     }
     else if (enzyme == "no cleavage")
@@ -423,6 +403,8 @@ protected:
     registerIntOption_("max_variable_mods", "<int>", max_variable_mods, "Maximum number of variable modifications", false, true);  
     registerStringOption_("isotope_error_range", "<start,end>", isotope_errors, "Range of (C13) isotope errors to consider for precursor."
       "Can be negative. E.g. '-1,3' for considering '-1/0/1/2/3'", false, true);
+    registerStringOption_("charges", "<start,end>", charges_if_not_annotated, "Range of precursor charges to consider if not annotated in the file."
+      , false, true);
 
     //Search Enzyme
     vector<String> all_enzymes;
@@ -478,6 +460,15 @@ protected:
     config_stream << config;
     config_stream.close();
 
+    // keep config file if debug mode is set
+    if (getIntOption_("debug") > 1)
+    {
+      String debug_config_file = output_folder + "/" + File::getUniqueName() + ".json";
+      ofstream debug_config_stream(debug_config_file.c_str());
+      debug_config_stream << config;
+      debug_config_stream.close();     
+    }
+
     QStringList arguments;
     arguments << config_file.toQString() 
               << "-f" << fasta_file.toQString() 
@@ -502,9 +493,9 @@ protected:
     // read the sage output
     OPENMS_LOG_INFO << "Reading sage output..." << std::endl;
     StringList filenames;
-    StringList extra_scores = {"ln(delta_next)", "ln(delta_best)", "matched_peaks", 
-       "longest_b", "longest_y", "longest_y_pct",
-       "ln(matched_intensity_pct)", "scored_candidates", "ln(-poisson)"};
+    StringList extra_scores = {"ln(-poisson)", "ln(delta_best)", "ln(delta_next)", 
+      "ln(matched_intensity_pct)", "longest_b", "longest_y", 
+      "longest_y_pct", "matched_peaks", "scored_candidates"};
     vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load(
       output_folder + "/results.sage.pin",
       true,
@@ -513,6 +504,26 @@ protected:
       filenames,
       decoy_prefix);
 
+    // rename SAGE subscores to have prefix "SAGE:"
+    for (auto& id : peptide_identifications)
+    {
+      auto& hits = id.getHits();
+      for (auto& h : hits)
+      {
+        for (const auto& meta : extra_scores)
+        {
+          if (h.metaValueExists(meta))
+          {
+            h.setMetaValue("SAGE:" + meta, h.getMetaValue(meta));
+            h.removeMetaValue(meta);        
+          }          
+        }
+      }
+    }
+
+    // remove hits without charge state assigned or charge outside of default range (fix for downstream bugs). TODO: remove if all charges annotated in sage
+    IDFilter::filterPeptidesByCharge(peptide_identifications, 2, numeric_limits<int>::max());
+    
     if (filenames.empty()) filenames = getStringList_("in");
 
     // TODO: allow optional split and create multiple idXMLs one per input file
@@ -541,13 +552,13 @@ protected:
     
     // add extra scores for percolator rescoring
     vector<String> percolator_features = { "score" };
-    for (auto s : extra_scores) percolator_features.push_back(s);
+    for (auto s : extra_scores) percolator_features.push_back("SAGE:" + s);
     search_parameters.setMetaValue("extra_features",  ListUtils::concatenate(percolator_features, ","));
     auto enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
     search_parameters.digestion_enzyme = enzyme; // needed for indexing
     search_parameters.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
 
-    search_parameters.charges = ":"; // not set
+    search_parameters.charges = "2:5"; // probably hard-coded in sage https://github.com/lazear/sage/blob/master/crates/sage/src/scoring.rs#L301
 
     search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
     search_parameters.fixed_modifications = getStringList_("fixed_modifications");
@@ -564,8 +575,70 @@ protected:
       DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
     }
 
-    // if "reindex" parameter is set to true will perform reindexing
+    // if "reindex" parameter is set to true: will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
+
+    map<String,unordered_map<int,String>> file2specnr2nativeid;
+    for (const auto& mzml : input_files)
+    {
+      // TODO stream mzml?
+      MzMLFile m;
+      MSExperiment exp;
+      auto opts = m.getOptions();
+      opts.setMSLevels({2,3});
+      opts.setFillData(false);
+      //opts.setMetadataOnly(true);
+      m.setOptions(opts);
+      m.load(mzml, exp);
+      String nIDType = "";
+      if (!exp.getSourceFiles().empty())
+      {
+        // TODO we could also guess the regex from the first nativeID if it is not stored here
+        //  but I refuse to link to Boost::regex just for this
+        //  Someone has to rework the API first!
+        nIDType = exp.getSourceFiles()[0].getNativeIDTypeAccession();
+      }
+
+      for (const auto& spec : exp)
+      {
+        const String& nID = spec.getNativeID();
+        int nr = SpectrumLookup::extractScanNumber(nID, nIDType);
+        if (nr >= 0)
+        {
+          auto [it, inserted] = file2specnr2nativeid.emplace(File::basename(mzml), unordered_map<int,String>({{nr,nID}}));
+          if (!inserted)
+          {
+            it->second.emplace(nr,nID);
+          }
+        }
+
+      }
+    }
+
+    map<Size, String> idxToFile;
+    StringList fnInRun;
+    protein_identifications[0].getPrimaryMSRunPath(fnInRun);
+    Size cnt = 0;
+    for (const auto& f : fnInRun)
+    {
+      idxToFile.emplace(cnt, f);
+      ++cnt;
+    }
+
+    for (auto& id : peptide_identifications)
+    {
+      Int64 scanNrAsInt = 0;
+      
+      try
+      { // check if spectrum reference is a string that just contains a number        
+        scanNrAsInt = id.getSpectrumReference().toInt64();
+        // no exception -> conversion to int was successful. Now lookup full native ID in corresponding file for given spectrum number.
+        id.setSpectrumReference( file2specnr2nativeid[idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]].at(scanNrAsInt) );                              
+      }
+      catch (...)
+      {
+      }
+    }
 
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
 

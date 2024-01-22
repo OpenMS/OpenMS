@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
@@ -36,6 +10,7 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+// TODO this is currently needed for attachments
 #include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -60,45 +35,45 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_QCEmbedder QCEmbedder
+@page TOPP_QCEmbedder QCEmbedder
 
-    @brief This application is used to embed tables or plots generated externally as attachments to existing quality parameters in qcML files.
+@brief This application is used to embed tables or plots generated externally as attachments to existing quality parameters in qcML files.
 
-    <CENTER>
-      <table>
-        <tr>
-        <th ALIGN = "center"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> &rarr; QCEmbedder &rarr;</td>
-        <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCExporter </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCMerger </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCShrinker </td>
-        </tr>
-      </table>
-    </CENTER>
+<CENTER>
+  <table>
+    <tr>
+    <th ALIGN = "center"> pot. predecessor tools </td>
+    <td VALIGN="middle" ROWSPAN=3> &rarr; QCEmbedder &rarr;</td>
+    <th ALIGN = "center"> pot. successor tools </td>
+    </tr>
+    <tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCExporter </td>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCMerger </td>
+    </tr>
+    <tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter </td>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCShrinker </td>
+    </tr>
+  </table>
+</CENTER>
 
-    If there is additional data from external tools to a certain quality parameter (qp) in the qcML file at @p in, it can be attached in tabluar (csv) format or as png image file.
-    If no corresponding quality parameter is present an empty value one will be generated with the name of "default set name"/"default mzML file".
+If there is additional data from external tools to a certain quality parameter (qp) in the qcML file at @p in, it can be attached in tabluar (csv) format or as png image file.
+If no corresponding quality parameter is present an empty value one will be generated with the name of "default set name"/"default mzML file".
 
-    - @p qp_att_acc defines the qp cv accession of the qp to which the table/image is attached.
-    - @p cv_acc defines the cv accession of the attachment.
-    - @p run the file that defined the run under which the qp for the attachment is aggregated as mzML file. The file is only used to extract the run name from the file name.
-    - @p name if no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given.
+- @p qp_att_acc defines the qp cv accession of the qp to which the table/image is attached.
+- @p cv_acc defines the cv accession of the attachment.
+- @p run the file that defined the run under which the qp for the attachment is aggregated as mzML file. The file is only used to extract the run name from the file name.
+- @p name if no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given.
 
-    - @p plot if a plot image is to be attached to a qp, this has to be specified here.
-    - @p table if a table is to be attached to a qp, this has to be specified here.
+- @p plot if a plot image is to be attached to a qp, this has to be specified here.
+- @p table if a table is to be attached to a qp, this has to be specified here.
 
-    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
+Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_QCEmbedder.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_QCEmbedder.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_QCEmbedder.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_QCEmbedder.html
 
 */
 

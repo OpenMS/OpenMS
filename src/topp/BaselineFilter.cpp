@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -35,7 +9,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -47,44 +21,43 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_BaselineFilter BaselineFilter
+@page TOPP_BaselineFilter BaselineFilter
 
-    @brief Executes the top-hat filter to remove the baseline of an MS experiment.
+@brief Executes the top-hat filter to remove the baseline of an MS experiment.
 
-    <CENTER>
-    <table>
-        <tr>
-            <th ALIGN = "center"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> &rarr; BaselineFilter &rarr;</td>
-            <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay, @n @ref TOPP_NoiseFilterGaussian </td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet, @n @ref TOPP_PeakPickerHiRes @n (or ID engines on MS/MS data) </td>
-        </tr>
-    </table>
-    </CENTER>
+<CENTER>
+<table>
+    <tr>
+        <th ALIGN = "center"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=2> &rarr; BaselineFilter &rarr;</td>
+        <th ALIGN = "center"> pot. successor tools </td>
+    </tr>
+    <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay, @n @ref TOPP_NoiseFilterGaussian </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes @n (or ID engines on MS/MS data) </td>
+    </tr>
+</table>
+</CENTER>
 
-    This nonlinear filter, known as the top-hat operator in morphological
-    mathematics (see Soille, ''Morphological Image Analysis''), is independent
-    of the underlying baseline shape.  It is able to detect an over brightness
-    even if the environment is not uniform.  The principle is based on the
-    subtraction of a signal from its opening (erosion followed by a dilation).
-    The size the structuring element (here a flat line) being conditioned by the
-    width of the lineament (in our case the maximum width of a mass
-    spectrometric peak) to be detected.
+This nonlinear filter, known as the top-hat operator in morphological
+mathematics (see Soille, ''Morphological Image Analysis''), is independent
+of the underlying baseline shape.  It is able to detect an over brightness
+even if the environment is not uniform.  The principle is based on the
+subtraction of a signal from its opening (erosion followed by a dilation).
+The size the structuring element (here a flat line) being conditioned by the
+width of the lineament (in our case the maximum width of a mass
+spectrometric peak) to be detected.
 
-    @note The top-hat filter works only on roughly uniform data!
-          To generate equally-spaced data you can use the @ref TOPP_Resampler.
+@note The top-hat filter works only on roughly uniform data!
+      To generate equally-spaced data you can use the @ref TOPP_Resampler.
 
-    @note The length (given in Thomson) of the structuring element should be wider than the
-    maximum peak width in the raw data.
+@note The length (given in Thomson) of the structuring element should be wider than the
+maximum peak width in the raw data.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_BaselineFilter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_BaselineFilter.html
-
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_BaselineFilter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_BaselineFilter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -125,10 +98,8 @@ protected:
     // loading input
     //-------------------------------------------------------------
 
-    MzMLFile mz_data_file;
     PeakMap ms_exp;
-    mz_data_file.setLogType(log_type_);
-    mz_data_file.load(in, ms_exp);
+    FileHandler().loadExperiment(in, ms_exp, {FileTypes::MZML}, log_type_);
 
     if (ms_exp.empty())
     {
@@ -173,7 +144,7 @@ protected:
     //annotate output with data processing info
     addDataProcessing_(ms_exp, getProcessingInfo_(DataProcessing::BASELINE_REDUCTION));
 
-    mz_data_file.store(out, ms_exp);
+    FileHandler().storeExperiment(out, ms_exp, {FileTypes::MZML}, log_type_);
 
     return EXECUTION_OK;
   }

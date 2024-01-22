@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -39,10 +13,8 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -57,9 +29,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
- @page TOPP_IDFilter IDFilter
+@page TOPP_IDFilter IDFilter
 
- @brief Filters peptide/protein identification results by different criteria.
+@brief Filters peptide/protein identification results by different criteria.
 <CENTER>
  <table>
   <tr>
@@ -86,37 +58,37 @@ using namespace std;
  </table>
 </CENTER>
 
- This tool is used to filter the identifications found by a peptide/protein identification engine like Mascot.
- Different filters can be applied.
- To enable any of them, just change their default value.
- All active filters are applied in order.
+This tool is used to filter the identifications found by a peptide/protein identification engine like Mascot.
+Different filters can be applied.
+To enable any of them, just change their default value.
+All active filters are applied in order.
 
- Most filtering options should be straight-forward - see the documentation of the different parameters.
- For some filters that warrent further discussion, see below.
+Most filtering options should be straight-forward - see the documentation of the different parameters.
+For some filters that warrent further discussion, see below.
 
- <b>Score filters</b> (@p score:pep, @p score:prot):
+<b>Score filters</b> (@p score:pep, @p score:prot):
 
- Peptide or protein hits with scores at least as good as the given cut-off are retained by the filter; hits with worse scores are removed.
- Whether scores should be higher or lower than the cut-off depends on the type/orientation of the score.
+Peptide or protein hits with scores at least as good as the given cut-off are retained by the filter; hits with worse scores are removed.
+Whether scores should be higher or lower than the cut-off depends on the type/orientation of the score.
 
- The score that was most recently set by a processing step is considered for filtering.
- For example, it could be a Mascot score (if MascotAdapterOnline was applied) or an FDR (if FalseDiscoveryRate was applied), etc.
- @ref UTILS_IDScoreSwitcher is useful to switch to a particular score before filtering.
+The score that was most recently set by a processing step is considered for filtering.
+For example, it could be a Mascot score (if MascotAdapterOnline was applied) or an FDR (if FalseDiscoveryRate was applied), etc.
+@ref TOPP_IDScoreSwitcher is useful to switch to a particular score before filtering.
 
- <b>Protein accession filters</b> (@p whitelist:proteins, @p whitelist:protein_accessions, @p blacklist:proteins, @p blacklist:protein_accessions):
+<b>Protein accession filters</b> (@p whitelist:proteins, @p whitelist:protein_accessions, @p blacklist:proteins, @p blacklist:protein_accessions):
 
- These filters retain only peptide and protein hits that @e do (whitelist) or <em>do not</em> (blacklist) match any of the proteins from a given set.
- This set of proteins can be given through a FASTA file (<tt>...:proteins</tt>) or as a list of accessions (<tt>...:protein_accessions</tt>).
+These filters retain only peptide and protein hits that @e do (whitelist) or <em>do not</em> (blacklist) match any of the proteins from a given set.
+This set of proteins can be given through a FASTA file (<tt>...:proteins</tt>) or as a list of accessions (<tt>...:protein_accessions</tt>).
 
- Note that even in the case of a FASTA file, matching is only done by protein accession, not by sequence.
- If necessary, use @ref TOPP_PeptideIndexer to generate protein references for peptide hits via sequence look-up.
+Note that even in the case of a FASTA file, matching is only done by protein accession, not by sequence.
+If necessary, use @ref TOPP_PeptideIndexer to generate protein references for peptide hits via sequence look-up.
 
- @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
- <B>The command line parameters of this tool are:</B>
- @verbinclude TOPP_IDFilter.cli
- <B>INI file documentation of this tool:</B>
- @htmlinclude TOPP_IDFilter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_IDFilter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_IDFilter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -259,11 +231,11 @@ protected:
     const auto& infiletype = FileHandler::getType(inputfile_name);
     if (infiletype == FileTypes::IDXML)
     {
-      IdXMLFile().load(inputfile_name, proteins, peptides);
+      FileHandler().loadIdentifications(inputfile_name, proteins, peptides, {FileTypes::IDXML});
     }
     else if (infiletype == FileTypes::CONSENSUSXML)
     {
-      ConsensusXMLFile().load(inputfile_name, cmap);
+      FileHandler().loadConsensusFeatures(inputfile_name, cmap, {FileTypes::CONSENSUSXML});
       for (auto& f : cmap)
       {
         UInt64 id = f.getUniqueId();
@@ -389,8 +361,8 @@ protected:
       OPENMS_LOG_INFO << "Filtering by inclusion peptide whitelisting..." << endl;
       vector<PeptideIdentification> inclusion_peptides;
       vector<ProteinIdentification> inclusion_proteins; // ignored
-      IdXMLFile().load(whitelist_peptides, inclusion_proteins,
-                       inclusion_peptides);
+      FileHandler().loadIdentifications(whitelist_peptides, inclusion_proteins,
+                       inclusion_peptides, {FileTypes::IDXML});
       bool ignore_mods = getFlag_("whitelist:ignore_modifications");
       IDFilter::keepPeptidesWithMatchingSequences(peptides, inclusion_peptides,
                                                   ignore_mods);
@@ -439,8 +411,8 @@ protected:
       OPENMS_LOG_INFO << "Filtering by exclusion peptide blacklisting..." << endl;
       vector<PeptideIdentification> exclusion_peptides;
       vector<ProteinIdentification> exclusion_proteins; // ignored
-      IdXMLFile().load(blacklist_peptides, exclusion_proteins,
-                       exclusion_peptides);
+      FileHandler().loadIdentifications(blacklist_peptides, exclusion_proteins,
+                       exclusion_peptides, {FileTypes::IDXML});
       bool ignore_mods = getFlag_("blacklist:ignore_modifications");
       IDFilter::removePeptidesWithMatchingSequences(
         peptides, exclusion_peptides, ignore_mods);
@@ -558,8 +530,6 @@ protected:
         filter.filterPeptideSequences(peptide.getHits());
       }
     }
-
-
 
     if (getFlag_("var_mods"))
     {
@@ -817,7 +787,7 @@ protected:
 
     if (infiletype == FileTypes::IDXML)
     {
-      IdXMLFile().store(outputfile_name, proteins, peptides);
+      FileHandler().storeIdentifications(outputfile_name, proteins, peptides, {FileTypes::IDXML});
     }
     else if (infiletype == FileTypes::CONSENSUSXML)
     {
@@ -839,7 +809,7 @@ protected:
       peptides.clear();
       std::swap(proteins, cmap.getProteinIdentifications());
       proteins.clear();
-      ConsensusXMLFile().store(outputfile_name, cmap);
+      FileHandler().storeConsensusFeatures(outputfile_name, cmap, {FileTypes::CONSENSUSXML});
     }
 
     return EXECUTION_OK;

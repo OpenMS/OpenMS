@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -35,7 +9,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace Math; //PosteriorErrorProbabilityModel
@@ -46,52 +20,52 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_IDPosteriorErrorProbability IDPosteriorErrorProbability
+@page TOPP_IDPosteriorErrorProbability IDPosteriorErrorProbability
 
-    @brief  Tool to estimate the probability of peptide hits to be incorrectly assigned.
+@brief  Tool to estimate the probability of peptide hits to be incorrectly assigned.
 
-    <CENTER>
-    <table>
-        <tr>
-            <th ALIGN = "center"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> &rarr; IDPosteriorErrorProbability &rarr;</td>
-            <th ALIGN = "center"> potential successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
-        </tr>
-    </table>
-    </CENTER>
+<CENTER>
+<table>
+<tr>
+    <th ALIGN = "center"> potential predecessor tools </td>
+    <td VALIGN="middle" ROWSPAN=2> &rarr; IDPosteriorErrorProbability &rarr;</td>
+    <th ALIGN = "center"> potential successor tools </td>
+</tr>
+<tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
+</tr>
+</table>
+</CENTER>
 
-    @experimental This tool has not been tested thoroughly and might behave not as expected!
+@experimental This tool has not been tested thoroughly and might behave not as expected!
 
-    By default an estimation is performed using the (inverse) Gumbel distribution for incorrectly assigned sequences
-    and a Gaussian distribution for correctly assigned sequences. The probabilities are calculated by using Bayes' law, similar to PeptideProphet.
-    Alternatively, a second Gaussian distribution can be used for incorrectly assigned sequences.
-    At the moment, IDPosteriorErrorProbability is able to handle X! Tandem, Mascot, MyriMatch and OMSSA scores.
+By default an estimation is performed using the (inverse) Gumbel distribution for incorrectly assigned sequences
+and a Gaussian distribution for correctly assigned sequences. The probabilities are calculated by using Bayes' law, similar to PeptideProphet.
+Alternatively, a second Gaussian distribution can be used for incorrectly assigned sequences.
+At the moment, IDPosteriorErrorProbability is able to handle X! Tandem, Mascot, MyriMatch and OMSSA scores.
 
-    No target/decoy information needs to be provided, since the model fits are done on the mixed distribution.
+No target/decoy information needs to be provided, since the model fits are done on the mixed distribution.
 
-    In order to validate the computed probabilities an optional plot output can be generated.
-    There are two parameters for the plot:
-    The scores are plotted in the form of bins. Each bin represents a set of scores in a range of '(highest_score - smallest_score) / number_of_bins' (if all scores have positive values).
-    The midpoint of the bin is the mean of the scores it represents.
-    The parameter 'out_plot' should be used to give the plot a unique name. Two files are created. One with the binned scores and one with all steps of the estimation.
-    If parameter @p top_hits_only is set, only the top hits of each peptide identification are used for the estimation process.
-    Additionally, if 'top_hits_only' is set, target/decoy information is available and a @ref TOPP_FalseDiscoveryRate run was performed previously, an additional plot will be generated with target and decoy bins ('out_plot' must not be empty).
-    A peptide hit is assumed to be a target if its q-value is smaller than @p fdr_for_targets_smaller.
-    The plots are saved as a Gnuplot file. An attempt is made to call Gnuplot, which will create a PDF file containing all steps of the estimation. If this fails, the user has to run Gnuplot manually - or adjust the PATH environment such that Gnuplot can be found and retry.
+In order to validate the computed probabilities an optional plot output can be generated.
+There are two parameters for the plot:
+The scores are plotted in the form of bins. Each bin represents a set of scores in a range of '(highest_score - smallest_score) / number_of_bins' (if all scores have positive values).
+The midpoint of the bin is the mean of the scores it represents.
+The parameter 'out_plot' should be used to give the plot a unique name. Two files are created. One with the binned scores and one with all steps of the estimation.
+If parameter @p top_hits_only is set, only the top hits of each peptide identification are used for the estimation process.
+Additionally, if 'top_hits_only' is set, target/decoy information is available and a @ref TOPP_FalseDiscoveryRate run was performed previously, an additional plot will be generated with target and decoy bins ('out_plot' must not be empty).
+A peptide hit is assumed to be a target if its q-value is smaller than @p fdr_for_targets_smaller.
+The plots are saved as a Gnuplot file. An attempt is made to call Gnuplot, which will create a PDF file containing all steps of the estimation. If this fails, the user has to run Gnuplot manually - or adjust the PATH environment such that Gnuplot can be found and retry.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_IDPosteriorErrorProbability.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_IDPosteriorErrorProbability.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_IDPosteriorErrorProbability.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_IDPosteriorErrorProbability.html
 
-    For the parameters of the algorithm section see the algorithms documentation: @n
-        @ref OpenMS::Math::PosteriorErrorProbabilityModel "fit_algorithm" @n
+For the parameters of the algorithm section see the algorithms documentation: @n
+@ref OpenMS::Math::PosteriorErrorProbabilityModel "fit_algorithm" @n
 
 */
 
@@ -164,10 +138,10 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-    IdXMLFile file;
+    FileHandler file;
     vector<ProteinIdentification> protein_ids;
     vector<PeptideIdentification> peptide_ids;
-    file.load(inputfile_name, protein_ids, peptide_ids);
+    file.loadIdentifications(inputfile_name, protein_ids, peptide_ids, {FileTypes::IDXML});
     PosteriorErrorProbabilityModel PEP_model;
     PEP_model.setParameters(fit_algorithm);
     //-------------------------------------------------------------
@@ -295,7 +269,7 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    file.store(outputfile_name, protein_ids, peptide_ids);
+    file.storeIdentifications(outputfile_name, protein_ids, peptide_ids, {FileTypes::IDXML});
     return EXECUTION_OK;
   }
 };

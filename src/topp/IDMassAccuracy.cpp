@@ -1,44 +1,17 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
@@ -59,26 +32,26 @@ using namespace Math;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_IDMassAccuracy IDMassAccuracy
+@page TOPP_IDMassAccuracy IDMassAccuracy
 
-    @brief Calculates a distribution of the mass error from given mass spectra and IDs.
+@brief Calculates a distribution of the mass error from given mass spectra and IDs.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_IDMassAccuracy.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_IDMassAccuracy.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_IDMassAccuracy.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_IDMassAccuracy.html
 
-    Given a number of peak maps and for each of the maps an idXML file which contains
-    peptide identifications the theoretical masses of the identifications and the peaks
-    of the spectra are compared. This can be done for precursor information stored in
-    the spectra as well as for fragment information.
+Given a number of peak maps and for each of the maps an idXML file which contains
+peptide identifications the theoretical masses of the identifications and the peaks
+of the spectra are compared. This can be done for precursor information stored in
+the spectra as well as for fragment information.
 
-    The result is a distribution of errors of experimental vs. theoretical masses.
-    Having such distributions given
-    the search parameters of the sequence database search can be adjusted to speed-up
-    the identification process and to get a higher performance.
+The result is a distribution of errors of experimental vs. theoretical masses.
+Having such distributions given
+the search parameters of the sequence database search can be adjusted to speed-up
+the identification process and to get a higher performance.
 */
 
 // We do not want this class to show up in the docu:
@@ -169,21 +142,20 @@ protected:
     pep_ids.resize(id_in.size());
     prot_ids.resize(id_in.size());
 
-    IdXMLFile idxmlfile;
+    FileHandler idxmlfile;
     for (Size i = 0; i != id_in.size(); ++i)
     {
-      String doc_id;
-      idxmlfile.load(id_in[i], prot_ids[i], pep_ids[i], doc_id);
+      idxmlfile.loadIdentifications(id_in[i], prot_ids[i], pep_ids[i], {FileTypes::IDXML});
     }
 
     // read mzML files
     vector<PeakMap> maps_raw;
     maps_raw.resize(in_raw.size());
 
-    MzMLFile mzml_file;
+    FileHandler mzml_file;
     for (Size i = 0; i != in_raw.size(); ++i)
     {
-      mzml_file.load(in_raw[i], maps_raw[i]);
+      mzml_file.loadExperiment(in_raw[i], maps_raw[i], {FileTypes::MZML});
     }
 
     //-------------------------------------------------------------

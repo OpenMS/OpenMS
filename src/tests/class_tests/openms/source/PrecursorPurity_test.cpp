@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
@@ -68,7 +42,7 @@ START_SECTION(static PurityScores computePrecursorPurity(const PeakSpectrum& ms1
   TEST_REAL_SIMILAR(score.target_intensity, 8923915)
   TEST_REAL_SIMILAR(score.signal_proportion, 0.77211)
   TEST_EQUAL(score.target_peak_count, 1)
-  TEST_EQUAL(score.residual_peak_count, 3)
+  TEST_EQUAL(score.interfering_peak_count, 3)
 
   pre = spectra[3].getPrecursors()[0];
   score = PrecursorPurity::computePrecursorPurity(spectra[0], pre, 0.2, false);
@@ -76,7 +50,7 @@ START_SECTION(static PurityScores computePrecursorPurity(const PeakSpectrum& ms1
   TEST_REAL_SIMILAR(score.target_intensity, 7057944)
   TEST_REAL_SIMILAR(score.signal_proportion, 0.77573)
   TEST_EQUAL(score.target_peak_count, 1)
-  TEST_EQUAL(score.residual_peak_count, 4)
+  TEST_EQUAL(score.interfering_peak_count, 4)
 
 END_SECTION
 
@@ -91,51 +65,51 @@ START_SECTION(static computePrecursorPurities(const PeakMap& spectra, double pre
   TEST_REAL_SIMILAR(purityscores[spectra[0].getNativeID()].target_intensity, 0)
   TEST_REAL_SIMILAR(purityscores[spectra[0].getNativeID()].signal_proportion, 0)
   TEST_EQUAL(purityscores[spectra[0].getNativeID()].target_peak_count, 0)
-  TEST_EQUAL(purityscores[spectra[0].getNativeID()].residual_peak_count, 0)
+  TEST_EQUAL(purityscores[spectra[0].getNativeID()].interfering_peak_count, 0)
 
   // 5 MS2 spectra between two MS1 spectra
   TEST_REAL_SIMILAR(purityscores[spectra[1].getNativeID()].total_intensity, 5517171)
   TEST_REAL_SIMILAR(purityscores[spectra[1].getNativeID()].target_intensity, 5517171)
   TEST_REAL_SIMILAR(purityscores[spectra[1].getNativeID()].signal_proportion, 1)
   TEST_EQUAL(purityscores[spectra[1].getNativeID()].target_peak_count, 1)
-  TEST_EQUAL(purityscores[spectra[1].getNativeID()].residual_peak_count, 0)
+  TEST_EQUAL(purityscores[spectra[1].getNativeID()].interfering_peak_count, 0)
 
   TEST_REAL_SIMILAR(purityscores[spectra[2].getNativeID()].total_intensity, 11287967.625)
   TEST_REAL_SIMILAR(purityscores[spectra[2].getNativeID()].target_intensity, 7390478.5)
   TEST_REAL_SIMILAR(purityscores[spectra[2].getNativeID()].signal_proportion, 0.65472)
   TEST_EQUAL(purityscores[spectra[2].getNativeID()].target_peak_count, 1)
-  TEST_EQUAL(purityscores[spectra[2].getNativeID()].residual_peak_count, 3)
+  TEST_EQUAL(purityscores[spectra[2].getNativeID()].interfering_peak_count, 3)
 
   TEST_REAL_SIMILAR(purityscores[spectra[3].getNativeID()].total_intensity, 9098343.89062)
   TEST_REAL_SIMILAR(purityscores[spectra[3].getNativeID()].target_intensity, 7057944)
   TEST_REAL_SIMILAR(purityscores[spectra[3].getNativeID()].signal_proportion, 0.77573)
   TEST_EQUAL(purityscores[spectra[3].getNativeID()].target_peak_count, 1)
-  TEST_EQUAL(purityscores[spectra[3].getNativeID()].residual_peak_count, 4)
+  TEST_EQUAL(purityscores[spectra[3].getNativeID()].interfering_peak_count, 4)
 
   TEST_REAL_SIMILAR(purityscores[spectra[4].getNativeID()].total_intensity, 9762418.03906)
   TEST_REAL_SIMILAR(purityscores[spectra[4].getNativeID()].target_intensity, 7029896.5)
   TEST_REAL_SIMILAR(purityscores[spectra[4].getNativeID()].signal_proportion, 0.72009)
   TEST_EQUAL(purityscores[spectra[4].getNativeID()].target_peak_count, 1)
-  TEST_EQUAL(purityscores[spectra[4].getNativeID()].residual_peak_count, 5)
+  TEST_EQUAL(purityscores[spectra[4].getNativeID()].interfering_peak_count, 5)
 
   TEST_REAL_SIMILAR(purityscores[spectra[5].getNativeID()].total_intensity, 5465177)
   TEST_REAL_SIMILAR(purityscores[spectra[5].getNativeID()].target_intensity, 5465177)
   TEST_REAL_SIMILAR(purityscores[spectra[5].getNativeID()].signal_proportion, 1)
   TEST_EQUAL(purityscores[spectra[5].getNativeID()].target_peak_count, 1)
-  TEST_EQUAL(purityscores[spectra[5].getNativeID()].residual_peak_count, 0)
+  TEST_EQUAL(purityscores[spectra[5].getNativeID()].interfering_peak_count, 0)
 
   // using the ID of an MS1 spectrum, a new ID for the map, adds a new Score to the map, initialized to 0
   TEST_REAL_SIMILAR(purityscores[spectra[6].getNativeID()].total_intensity, 0)
   TEST_REAL_SIMILAR(purityscores[spectra[6].getNativeID()].target_intensity, 0)
   TEST_REAL_SIMILAR(purityscores[spectra[6].getNativeID()].signal_proportion, 0)
   TEST_EQUAL(purityscores[spectra[6].getNativeID()].target_peak_count, 0)
-  TEST_EQUAL(purityscores[spectra[6].getNativeID()].residual_peak_count, 0)
+  TEST_EQUAL(purityscores[spectra[6].getNativeID()].interfering_peak_count, 0)
 
   TEST_REAL_SIMILAR(purityscores["randomString"].total_intensity, 0)
   TEST_REAL_SIMILAR(purityscores["randomString"].target_intensity, 0)
   TEST_REAL_SIMILAR(purityscores["randomString"].signal_proportion, 0)
   TEST_EQUAL(purityscores["randomString"].target_peak_count, 0)
-  TEST_EQUAL(purityscores["randomString"].residual_peak_count, 0)
+  TEST_EQUAL(purityscores["randomString"].interfering_peak_count, 0)
 
   PeakMap spectra_copy = spectra;
 

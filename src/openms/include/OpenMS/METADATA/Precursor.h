@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
@@ -83,21 +57,23 @@ public:
     /// Method of activation
     enum ActivationMethod
     {
-      CID,                      ///< Collision-induced dissociation
+      CID,                      ///< Collision-induced dissociation (MS:1000133) (also CAD; parent term, but unless otherwise stated often used as synonym for trap-type CID)
       PSD,                      ///< Post-source decay
       PD,                       ///< Plasma desorption
       SID,                      ///< Surface-induced dissociation
       BIRD,                     ///< Blackbody infrared radiative dissociation
-      ECD,                      ///< Electron capture dissociation
+      ECD,                      ///< Electron capture dissociation (MS:1000250)
       IMD,                      ///< Infrared multiphoton dissociation
       SORI,                     ///< Sustained off-resonance irradiation
       HCID,                     ///< High-energy collision-induced dissociation
       LCID,                     ///< Low-energy collision-induced dissociation
       PHD,                      ///< Photodissociation
       ETD,                      ///< Electron transfer dissociation
-      PQD,                      ///< Pulsed q dissociation
+      ETciD,                    ///< Electron transfer and collision-induced dissociation (MS:1003182)
+      EThcD,                    ///< Electron transfer and higher-energy collision dissociation (MS:1002631) 
+      PQD,                      ///< Pulsed q dissociation (MS:1000599)
       TRAP,                     ///< trap-type collision-induced dissociation (MS:1002472)
-      HCD,                     ///< beam-type collision-induced dissociation (MS:1000422) "HCD"
+      HCD,                      ///< beam-type collision-induced dissociation (MS:1000422)
       INSOURCE,                 ///< in-source collision-induced dissociation (MS:1001880)
       LIFT,                     ///< Bruker proprietary method (MS:1002000)
       SIZE_OF_ACTIVATIONMETHOD

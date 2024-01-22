@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -44,10 +18,7 @@
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h>
 
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
@@ -55,16 +26,16 @@
 
 
 /**
-  @page UTILS_OpenSwathDIAPreScoring OpenSwathDIAPreScoring
+@page TOPP_OpenSwathDIAPreScoring OpenSwathDIAPreScoring
 
-  @brief ...
+@brief ...
 
-  SWATH specific parameters only apply if you have full MS2 spectra maps.
+SWATH specific parameters only apply if you have full MS2 spectra maps.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_OpenSwathDIAPreScoring.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_OpenSwathDIAPreScoring.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_OpenSwathDIAPreScoring.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_OpenSwathDIAPreScoring.html
 
 */
 
@@ -130,8 +101,7 @@ protected:
     std::cout << "Loading TraML file" << std::endl;
     {
       OpenMS::TargetedExperiment transition_exp_;
-      TraMLFile t;
-      t.load(tr_file, transition_exp_);
+      FileHandler().loadTransitions(tr_file, transition_exp_, {FileTypes::TRAML});
       OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
       int ltrans = transition_exp.transitions.size();
       std::cout << ltrans << std::endl;
@@ -140,13 +110,11 @@ protected:
 
     for (Size i = 0; i < file_list.size(); ++i)
     {
-      MzMLFile swath_file;
       MapTypePtr swath_map (new MapType);
       FeatureMap featureFile;
       std::cout << "Loading file " << file_list[i] << std::endl;
       String fname = outfile_list[i];
-      swath_file.setLogType(log_type_);
-      swath_file.load(file_list[i], *swath_map);
+      FileHandler().loadExperiment(file_list[i], *swath_map, {FileTypes::MZML}, log_type_);
       if (swath_map->empty() || (*swath_map)[0].getPrecursors().empty())
       {
         std::cerr << "WARNING: File " << swath_map->getLoadedFilePath()
@@ -173,7 +141,8 @@ protected:
         swath_map);
       OpenSwath::IDataFrameWriter* dfw = new OpenSwath::CSVWriter(fname);
       OpenMS::DiaPrescore dp;
-      dp.operator()(spectrumAccess, transition_exp_used, dfw);
+      OpenMS::RangeMobility im_range; // create empty IM range object
+      dp.operator()(spectrumAccess, transition_exp_used, im_range, dfw); //note IM not supported here yet
       delete dfw;
     }         //end of for loop
     return EXECUTION_OK;

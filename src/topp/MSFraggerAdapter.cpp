@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lukas Zimmermann $
@@ -37,7 +11,6 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
@@ -54,9 +27,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_MSFraggerAdapter MSFraggerAdapter
+@page TOPP_MSFraggerAdapter MSFraggerAdapter
 
-    @brief Peptide Identification with MSFragger
+@brief Peptide Identification with MSFragger
 
 <CENTER>
     <table>
@@ -72,28 +45,28 @@ using namespace std;
     </table>
 </CENTER>
 
-  @em MSFragger must be installed before this adapter can be used. This adapter is fully compatible with version 3.2 of MSFragger
-  and later versions of MSFragger were tested up to version 3.5.
+@em MSFragger must be installed before this adapter can be used. This adapter is fully compatible with version 3.2 of MSFragger
+and later versions of MSFragger were tested up to version 3.5.
 
-	All MSFragger parameters (as specified in the fragger.params file) have been transcribed to parameters of this OpenMS util.
-	It is not possible to provide an explicit fragger.params file to avoid redundancy with the ini file.
-	This adapter creates an fragger.params file prior to calling MSFragger. If the fragger.params file should be inspected, set the
-	-debug option to 2. MSFraggerAdapter will print the path to the working directory to standard out.
+All MSFragger parameters (as specified in the fragger.params file) have been transcribed to parameters of this OpenMS util.
+It is not possible to provide an explicit fragger.params file to avoid redundancy with the ini file.
+This adapter creates an fragger.params file prior to calling MSFragger. If the fragger.params file should be inspected, set the
+-debug option to 2. MSFraggerAdapter will print the path to the working directory to standard out.
 
-	MSFragger can process multiple input files (mzML, mzXML) one after another. The number of output files specified must match
-	the number of input spectra files. The output file is then matched to the input file by index. The default parameters of the
-	adapter are the same as given by the official MSFragger manual.
+MSFragger can process multiple input files (mzML, mzXML) one after another. The number of output files specified must match
+the number of input spectra files. The output file is then matched to the input file by index. The default parameters of the
+adapter are the same as given by the official MSFragger manual.
 
-  Please cite:
-  Andy T Kong, Felipe V Leprevost, Dmitry M Avtonomov, Dattatreya Mellacheruvu & Alexey I Nesvizhskii
-  MSFragger: ultrafast and comprehensive peptide identification in mass spectrometry–based proteomics
-  Nature Methods volume 14, pages 513–520 (2017) doi:10.1038/nmeth.4256
+Please cite:
+Andy T Kong, Felipe V Leprevost, Dmitry M Avtonomov, Dattatreya Mellacheruvu & Alexey I Nesvizhskii
+MSFragger: ultrafast and comprehensive peptide identification in mass spectrometry–based proteomics
+Nature Methods volume 14, pages 513–520 (2017) doi:10.1038/nmeth.4256
 
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_MSFraggerAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_MSFraggerAdapter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MSFraggerAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MSFraggerAdapter.html
  */
 
 // We do not want this class to show up in the docu:
@@ -249,7 +222,7 @@ protected:
     registerIntOption_(TOPPMSFraggerAdapter::java_heapmemory, "<num>", 3500, "Maximum Java heap size (in MB)", false);
 
     // Handle executable
-    registerInputFile_(TOPPMSFraggerAdapter::executable, "<path_to_executable>", "MSFragger.jar", "Path to the MSFragger executable to use; may be empty if the executable is globally available.", false, false, {"is_executable"});
+    registerInputFile_(TOPPMSFraggerAdapter::executable, "<path_to_executable>", "MSFragger.jar", "Path to the MSFragger executable to use; may be empty if the executable is globally available.", true, false, {"is_executable"});
 
     // Input file
     registerInputFile_(TOPPMSFraggerAdapter::in, "<file>", "", "Input File with specta for MSFragger");
@@ -443,7 +416,7 @@ protected:
       }
 
       // input, output, database name
-      const String database = this->getStringOption_(TOPPMSFraggerAdapter::database);
+      const String database = File::absolutePath(this->getStringOption_(TOPPMSFraggerAdapter::database)); // the working dir will be a TMP-dir, so we need absolute paths
       input_file = (this->getStringOption_(TOPPMSFraggerAdapter::in)).toQString();
       output_file = this->getStringOption_(TOPPMSFraggerAdapter::out);
       optional_output_file = this->getStringOption_(TOPPMSFraggerAdapter::opt_out);
@@ -916,7 +889,7 @@ protected:
     // if "reindex" parameter is set to true will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
-    IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
+    FileHandler().storeIdentifications(output_file, protein_identifications, peptide_identifications, {FileTypes::IDXML});
 
     // remove the msfragger pepXML output from the user location
 

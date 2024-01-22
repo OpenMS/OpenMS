@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -110,6 +84,7 @@ namespace OpenMS
     defaults_.setMinFloat("im_extra_drift", 0.0);
     defaults_.setValue("strict", "true", "Whether to error (true) or skip (false) if a transition in a transition group does not have a corresponding chromatogram.", {"advanced"});
     defaults_.setValidStrings("strict", {"true","false"});
+    defaults_.setValue("use_ms1_ion_mobility", "true", "Performs ion mobility extraction in MS1. Set to false if MS1 spectra do not contain ion mobility", {"advanced"});
 
     defaults_.insert("TransitionGroupPicker:", MRMTransitionGroupPicker().getDefaults());
 
@@ -194,7 +169,7 @@ namespace OpenMS
   void MRMFeatureFinderScoring::pickExperiment(const OpenSwath::SpectrumAccessPtr& input,
                                                FeatureMap& output,
                                                const OpenSwath::LightTargetedExperiment& transition_exp,
-                                               const TransformationDescription& trafo, 
+                                               const TransformationDescription& trafo,
                                                const std::vector<OpenSwath::SwathMap>& swath_maps,
                                                TransitionGroupMapType& transition_group_map)
   {
@@ -331,22 +306,17 @@ namespace OpenMS
   {
     MRMFeature idmrmfeature = trgr_ident.getFeaturesMuteable()[feature_idx];
     OpenSwath::IMRMFeature* idimrmfeature;
-    idimrmfeature = new MRMFeatureOpenMS(idmrmfeature);  
+    idimrmfeature = new MRMFeatureOpenMS(idmrmfeature);
 
     // get drift time upper/lower offset (this assumes that all chromatograms
     // are derived from the same precursor with the same drift time)
-    double drift_lower(0), drift_upper(0);
-    if (!trgr_ident.getChromatograms().empty())
+    RangeMobility im_range;
+
+    if ( (!trgr_ident.getChromatograms().empty()) || (!trgr_ident.getPrecursorChromatograms().empty()) )
     {
       auto & prec = trgr_ident.getChromatograms()[0].getPrecursor();
-      drift_lower = prec.getDriftTime() - prec.getDriftTimeWindowLowerOffset();
-      drift_upper = prec.getDriftTime() + prec.getDriftTimeWindowUpperOffset();
-    }
-    else if (!trgr_ident.getPrecursorChromatograms().empty())
-    {
-      auto & prec = trgr_ident.getPrecursorChromatograms()[0].getPrecursor();
-      drift_lower = prec.getDriftTime() - prec.getDriftTimeWindowLowerOffset();
-      drift_upper = prec.getDriftTime() + prec.getDriftTimeWindowUpperOffset();
+      im_range.setMin(prec.getDriftTime()); // sets the minimum and maximum
+      im_range.minSpanIfSingular(prec.getDriftTimeWindowLowerOffset());
     }
 
     std::vector<std::string> native_ids_identification;
@@ -357,7 +327,7 @@ namespace OpenMS
       OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram >(
             trgr_ident.getChromatogram(trgr_ident.getTransitions()[i].getNativeID()),
             sn_win_len_, sn_bin_count_, write_log_messages_));
-      if (  (snptr->getValueAtRT(idmrmfeature.getRT()) > uis_threshold_sn_) 
+      if (  (snptr->getValueAtRT(idmrmfeature.getRT()) > uis_threshold_sn_)
             && (idmrmfeature.getFeature(trgr_ident.getTransitions()[i].getNativeID()).getIntensity() > uis_threshold_peak_area_))
       {
         signal_noise_estimators_identification.push_back(snptr);
@@ -369,7 +339,7 @@ namespace OpenMS
     if (!native_ids_identification.empty())
     {
       scorer.calculateChromatographicIdScores(idimrmfeature,
-                                              native_ids_identification, 
+                                              native_ids_identification,
                                               native_ids_detection,
                                               signal_noise_estimators_identification,
                                               idscores);
@@ -456,9 +426,9 @@ namespace OpenMS
       {
         OpenSwath_Scores tmp_scores;
 
-        scorer.calculateDIAIdScores(idimrmfeature, 
+        scorer.calculateDIAIdScores(idimrmfeature,
                                     trgr_ident.getTransition(native_ids_identification[i]),
-                                    swath_maps, diascoring_, tmp_scores, drift_lower, drift_upper);
+                                    swath_maps, im_range, diascoring_, tmp_scores);
 
         ind_isotope_correlation.push_back(tmp_scores.isotope_correlation);
         ind_isotope_overlap.push_back(tmp_scores.isotope_overlap);
@@ -474,9 +444,9 @@ namespace OpenMS
   }
 
   void MRMFeatureFinderScoring::scorePeakgroups(MRMTransitionGroupType& transition_group,
-                                                const TransformationDescription& trafo, 
+                                                const TransformationDescription& trafo,
                                                 const std::vector<OpenSwath::SwathMap>& swath_maps,
-                                                FeatureMap& output, 
+                                                FeatureMap& output,
                                                 bool ms1only) const
   {
     if (PeptideRefMap_.empty())
@@ -502,20 +472,29 @@ namespace OpenMS
 
     // get drift time upper/lower offset (this assumes that all chromatograms
     // are derived from the same precursor with the same drift time)
-    double drift_lower(0), drift_upper(0), drift_target(0);
-    if (!transition_group_detection.getChromatograms().empty())
+    RangeMobility im_range;
+    double drift_target(0);
+
+    auto setDriftTarget = [](auto& prec){
+      double lower_bound = prec.getDriftTime() - prec.getDriftTimeWindowLowerOffset();
+      double upper_bound = prec.getDriftTime() + prec.getDriftTimeWindowUpperOffset();
+      return RangeMobility(lower_bound, upper_bound);
+    };
+
+    if ( !transition_group_detection.getChromatograms().empty() )
     {
       auto & prec = transition_group_detection.getChromatograms()[0].getPrecursor();
-      drift_lower = prec.getDriftTime() - prec.getDriftTimeWindowLowerOffset();
-      drift_upper = prec.getDriftTime() + prec.getDriftTimeWindowUpperOffset();
       drift_target = prec.getDriftTime();
+
+      if (drift_target > 0) im_range = setDriftTarget(prec);
     }
-    else if (!transition_group_detection.getPrecursorChromatograms().empty())
+
+    else if ( !transition_group_detection.getPrecursorChromatograms().empty() )
     {
       auto & prec = transition_group_detection.getPrecursorChromatograms()[0].getPrecursor();
-      drift_lower = prec.getDriftTime() - prec.getDriftTimeWindowLowerOffset();
-      drift_upper = prec.getDriftTime() + prec.getDriftTimeWindowUpperOffset();
       drift_target = prec.getDriftTime();
+
+      if (drift_target > 0) im_range = setDriftTarget(prec);
     }
 
     // currently we cannot do much about the log messages and they mostly occur in decoy transition signals
@@ -550,7 +529,8 @@ namespace OpenMS
                       spacing_for_spectra_resampling_,
                       im_extra_drift_,
                       su_,
-                      spectrum_addition_method_);
+                      spectrum_addition_method_,
+                      use_ms1_ion_mobility_);
 
     ProteaseDigestion pd;
     pd.setEnzyme("Trypsin");
@@ -570,7 +550,7 @@ namespace OpenMS
 
       OPENMS_LOG_DEBUG << "Scoring feature " << (mrmfeature) << " == " << mrmfeature.getMetaValue("PeptideRef") <<
         " [ expected RT " << PeptideRefMap_.at(mrmfeature.getMetaValue("PeptideRef"))->rt << " / " << expected_rt << " ]" <<
-        " with " << transition_group_detection.size()  << " transitions and " << 
+        " with " << transition_group_detection.size()  << " transitions and " <<
         transition_group_detection.getChromatograms().size() << " chromatograms" << std::endl;
 
       int group_size = boost::numeric_cast<int>(transition_group_detection.size());
@@ -578,7 +558,7 @@ namespace OpenMS
       {
         delete imrmfeature; // free resources before continuing
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Error: Transition group " + transition_group_detection.getTransitionGroupID() + 
+                                         "Error: Transition group " + transition_group_detection.getTransitionGroupID() +
                                          " has no chromatograms.");
       }
       bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
@@ -600,15 +580,15 @@ namespace OpenMS
         scores.sn_ratio = mrmscore_.calcSNScore(imrmfeature, ms1_signal_noise_estimators);
         // everything below S/N 1 can be set to zero (and the log safely applied)
         if (scores.sn_ratio < 1)
-        { 
+        {
           scores.log_sn_score = 0;
         }
         else
-        { 
+        {
           scores.log_sn_score = std::log(scores.sn_ratio);
         }
-        if (su_.use_sn_score_) 
-        { 
+        if (su_.use_sn_score_)
+        {
           mrmfeature.addScore("sn_ratio", scores.sn_ratio);
           mrmfeature.addScore("var_log_sn_score", scores.log_sn_score);
           // compute subfeature log-SN values
@@ -640,10 +620,10 @@ namespace OpenMS
           mrmfeature.addScore("var_norm_rt_score", scores.norm_rt_score);
         }
 
-        // full spectra scores 
+        // full spectra scores
         if (ms1_map_ && ms1_map_->getNrSpectra() > 0 && mrmfeature.getMZ() > 0)
         {
-          scorer.calculatePrecursorDIAScores(ms1_map_, diascoring_, precursor_mz, imrmfeature->getRT(), *pep, scores, drift_lower, drift_upper);
+          scorer.calculatePrecursorDIAScores(ms1_map_, diascoring_, precursor_mz, imrmfeature->getRT(), *pep, im_range, scores);
         }
         if (su_.use_ms1_fullscan)
         {
@@ -702,7 +682,7 @@ namespace OpenMS
           scorer.calculateDIAScores(imrmfeature,
                                     transition_group_detection.getTransitions(),
                                     swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm,
-                                    drift_lower, drift_upper, drift_target);
+                                    drift_target, im_range);
           mrmfeature.setMetaValue("masserror_ppm", masserror_ppm);
         }
         if (sonar_present && su_.use_sonar_scores)
@@ -956,7 +936,7 @@ namespace OpenMS
         mrmfeature.setMetaValue("missedCleavages", pd.peptideCount(pep_hit_.getSequence()) - 1);
       }
 
-      // set protein accession numbers 
+      // set protein accession numbers
       for (Size k = 0; k < pep->protein_refs.size(); k++)
       {
         PeptideEvidence pe;
@@ -1045,9 +1025,9 @@ namespace OpenMS
     uis_threshold_peak_area_ = param_.getValue("uis_threshold_peak_area");
     scoring_model_ = param_.getValue("scoring_model").toString();
 
-    sn_win_len_ = (double)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
-    sn_bin_count_ = (unsigned int)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
-    write_log_messages_ = (bool)param_.getValue("TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages").toBool();
+    sn_win_len_ = (double)param_.getValue("TransitionGroupPicker:PeakPickerChromatogram:sn_win_len");
+    sn_bin_count_ = (unsigned int)param_.getValue("TransitionGroupPicker:PeakPickerChromatogram:sn_bin_count");
+    write_log_messages_ = (bool)param_.getValue("TransitionGroupPicker:PeakPickerChromatogram:write_sn_log_messages").toBool();
 
     // set SONAR values
     Param p = sonarscoring_.getDefaults();
@@ -1056,8 +1036,10 @@ namespace OpenMS
     sonarscoring_.setParameters(p);
 
     diascoring_.setParameters(param_.copy("DIAScoring:", true));
+
     emgscoring_.setFitterParam(param_.copy("EMGScoring:", true));
     strict_ = (bool)param_.getValue("strict").toBool();
+    use_ms1_ion_mobility_ = (bool)param_.getValue("use_ms1_ion_mobility").toBool();
 
     su_.use_coelution_score_     = param_.getValue("Scores:use_coelution_score").toBool();
     su_.use_shape_score_         = param_.getValue("Scores:use_shape_score").toBool();

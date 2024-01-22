@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -49,31 +23,31 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_MassCalculator MassCalculator
+@page TOPP_MassCalculator MassCalculator
 
-    @brief Calculates masses and mass-to-charge ratios of peptide sequences.
+@brief Calculates masses and mass-to-charge ratios of peptide sequences.
 
-    Given a peptide sequence and a charge state, the charged mass (including H+ adducts) and the mass-to-charge ratio are computed.
-  The peptide sequence can include modifications (for information on valid notation see the @ref OpenMS::AASequence "AASequence" class documentation).
-  Neutral masses can be computed by using "0" as charge state.
+Given a peptide sequence and a charge state, the charged mass (including H+ adducts) and the mass-to-charge ratio are computed.
+The peptide sequence can include modifications (for information on valid notation see the @ref OpenMS::AASequence "AASequence" class documentation).
+Neutral masses can be computed by using "0" as charge state.
 
-    Input can be given directly as values of the parameters: @p in_seq for peptide sequences and @p charge for charge states.
-  Alternatively, it can be read from a file (see parameter @p in) with the following format: A peptide sequence at the beginning of each line, optionally followed by any number of charge states.
-  Whitespace, commas or semicolons can de used to delimit the different items. Parts of the input that cannot be understood will be skipped.
-  If charge states are given in the input file as well as via the @p charge parameter, results are returned for the union of both sets of charge states.
+Input can be given directly as values of the parameters: @p in_seq for peptide sequences and @p charge for charge states.
+Alternatively, it can be read from a file (see parameter @p in) with the following format: A peptide sequence at the beginning of each line, optionally followed by any number of charge states.
+Whitespace, commas or semicolons can de used to delimit the different items. Parts of the input that cannot be understood will be skipped.
+If charge states are given in the input file as well as via the @p charge parameter, results are returned for the union of both sets of charge states.
 
-    Output can be written to a file or to the screen (see parameter @p out). Results for different charge states are always ordered from lowest to highest charge.
+Output can be written to a file or to the screen (see parameter @p out). Results for different charge states are always ordered from lowest to highest charge.
 A number of different output formats are available via the parameter @p format:
-    - @p list writes a human-readable list of the form "ABCDEF: z=1 m=566.192 m/z=566.192, z=2 m=567.199 m/z=283.599";
-    - @p table produces a CSV-like table (using parameter @p separator to delimit fields) with the columns "peptide", "charge", "mass", and "mass-to-charge", and with one row per peptide and charge state;
-    - @p mass_only writes only mass values (one line per peptide, values for different charge states separated by spaces);
-    - @p mz_only writes only mass-to-charge ratios (one line per peptide, values for different charge states separated by spaces).
+- @p list writes a human-readable list of the form "ABCDEF: z=1 m=566.192 m/z=566.192, z=2 m=567.199 m/z=283.599";
+- @p table produces a CSV-like table (using parameter @p separator to delimit fields) with the columns "peptide", "charge", "mass", and "mass-to-charge", and with one row per peptide and charge state;
+- @p mass_only writes only mass values (one line per peptide, values for different charge states separated by spaces);
+- @p mz_only writes only mass-to-charge ratios (one line per peptide, values for different charge states separated by spaces).
 
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_MassCalculator.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_MassCalculator.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MassCalculator.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MassCalculator.html
 */
 
 // We do not want this class to show up in the docu:

@@ -1,32 +1,5 @@
-
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg, Eugen Netz $
@@ -498,30 +471,34 @@ START_SECTION(static MSSpectrum generateSpectrum(const Precursor::ActivationMeth
 
   // Test ECD/ETD
   spec = TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::ECD, AASequence::fromString("HFYLWCP"), 1);
-  ABORT_IF(spec.size() != 11);
-  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 99.044);
-  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 202.0532);
-  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 302.1611);
-  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 388.1325);
-  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 465.2244);
-  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 501.2166);
-  TEST_REAL_SIMILAR(spec[6].getPosition()[0], 578.3085);
-  TEST_REAL_SIMILAR(spec[7].getPosition()[0], 664.2799);
-  TEST_REAL_SIMILAR(spec[8].getPosition()[0], 764.3878);
-  TEST_REAL_SIMILAR(spec[9].getPosition()[0], 811.3483);
-  TEST_REAL_SIMILAR(spec[10].getPosition()[0], 867.397);
+  TEST_EQUAL(spec.size(), 17);
+
+  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 100.0518816);
+  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 101.0597067);
+  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 203.0610665);
+  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 204.0688916);
+  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 302.1611520);
+  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 389.1403798);
+  TEST_REAL_SIMILAR(spec[6].getPosition()[0], 390.1482049);
+  TEST_REAL_SIMILAR(spec[7].getPosition()[0], 465.2244813);
+  TEST_REAL_SIMILAR(spec[8].getPosition()[0], 502.2244442);
+  TEST_REAL_SIMILAR(spec[9].getPosition()[0], 503.2322692);
+  TEST_REAL_SIMILAR(spec[10].getPosition()[0], 578.3085457);
+  // ...
 
   spec.clear(true);
 
   // Test precursor_charge > 2
   spec = TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::HCID, AASequence::fromString("PEP"), 3);
-  ABORT_IF(spec.size() != 6);
+  TEST_EQUAL(spec.size(), 8);
   TEST_REAL_SIMILAR(spec[0].getPosition()[0], 58.5389);
-  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 114.0549);
-  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 116.0706);
-  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 123.0602);
-  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 227.1026);
-  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 245.1131);
+  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 100.0574);
+  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 114.0549);
+  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 116.0706);
+  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 123.0602);
+  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 199.1077);
+  TEST_REAL_SIMILAR(spec[6].getPosition()[0], 227.1026);
+  TEST_REAL_SIMILAR(spec[7].getPosition()[0], 245.1131);
 
   // Test not supported activation method
   TEST_EXCEPTION(Exception::InvalidParameter, TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::SORI, AASequence::fromString("PEP"), 1));
@@ -738,15 +715,10 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
 	  (156.07675+proton_shift)/2, (213.09821+proton_shift)/2, (325.18569+proton_shift)/2, (327.17753+proton_shift)/2, (352.17278+proton_shift)/2, (369.19932+proton_shift)/2, (481.28680+proton_shift)/2, (483.27864+proton_shift)/2, (508.27389+proton_shift)/2, (525.30044+proton_shift)/2,
 	  (156.07675+proton_shift)/2+(neutron_shift/2), (213.09821+proton_shift)/2+(neutron_shift/2), (325.18569+proton_shift)/2+(neutron_shift/2), (327.17753+proton_shift)/2+(neutron_shift/2), (352.17278+proton_shift)/2+(neutron_shift/2),
 	  (369.19932+proton_shift)/2+(neutron_shift/2), (481.28680+proton_shift)/2+(neutron_shift/2), (483.27864+proton_shift)/2+(neutron_shift/2), (508.27389+proton_shift)/2+(neutron_shift/2), (525.30044+proton_shift)/2+(neutron_shift/2)};
-  for (Size i = 0; i != spec.size(); ++i)
-  {
-    cerr <<  result_losses[i] << endl;
-  }
 
   std::sort(result_losses.begin(), result_losses.end());
   for (Size i = 0; i != spec.size(); ++i)
   {
-    cerr << spec[i].getPosition()[0] << "\t" <<  result_losses[i] << endl;
     TEST_REAL_SIMILAR(spec[i].getPosition()[0], result_losses[i])
   }
   result_losses = { 0.927642, 0.0723581}; // check intensity

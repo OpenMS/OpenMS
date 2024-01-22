@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -92,7 +66,7 @@ namespace OpenMS
       {
         PeakMap exp;
         exp.setChromatograms(irt_chromatograms);
-        MzMLFile().store(irt_mzml_out, exp);
+        FileHandler().storeExperiment(irt_mzml_out, exp, {FileTypes::MZML});
       }
       catch (OpenMS::Exception::UnableToCreateFile& /*e*/)
       {
@@ -160,7 +134,7 @@ namespace OpenMS
     feature_finder_param.setValue("Scores:use_elution_model_score", "false");
     feature_finder_param.setValue("rt_extraction_window", -1.0);
     feature_finder_param.setValue("stop_report_after_feature", 1);
-    feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 1.0); // set to 1.0 in all cases
+    feature_finder_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:signal_to_noise", 1.0); // set to 1.0 in all cases
     feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "false"); // no peak quality -> take all peaks!
     if (estimateBestPeptides)
     {
@@ -256,7 +230,7 @@ namespace OpenMS
         "There are less than 2 iRT normalization peptides, not enough for an RT correction.");
     }
 
-    // 7. Select the "correct" peaks for m/z correction (e.g. remove those not
+    // 7. Select the "correct" peaks for m/z (and IM) correction (e.g. remove those not
     // part of the linear regression)
     std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_final; // store all peaks above cutoff
     for (const auto& it : trgrmap_allpeaks)
@@ -278,9 +252,11 @@ namespace OpenMS
       }
     }
 
-    // 8. Correct m/z deviations using SwathMapMassCorrection
+    // 8. Correct m/z (and IM) deviations using SwathMapMassCorrection
+    // m/z correction is done with the -irt_im_extraction parameters
     SwathMapMassCorrection mc;
     mc.setParameters(calibration_param);
+
     mc.correctMZ(trgrmap_final, targeted_exp, swath_maps, pasef);
     mc.correctIM(trgrmap_final, targeted_exp, swath_maps, pasef, im_trafo);
 
@@ -527,10 +503,6 @@ namespace OpenMS
 
     // (i) Obtain precursor chromatograms (MS1) if precursor extraction is enabled
     ChromExtractParams ms1_cp(cp_ms1);
-    if (!use_ms1_ion_mobility_)
-    {
-      ms1_cp.im_extraction_window = -1;
-    }
 
     if (ms1_only && !use_ms1_traces_)
     {

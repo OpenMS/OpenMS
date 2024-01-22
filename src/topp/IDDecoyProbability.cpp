@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -35,15 +9,15 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
 
 /**
-    @page UTILS_IDDecoyProbability IDDecoyProbability
+@page TOPP_IDDecoyProbability IDDecoyProbability
 
-    @brief Util to estimate probability of peptide hits
+@brief Util to estimate probability of peptide hits
 
 <CENTER>
     <table>
@@ -62,22 +36,22 @@ using namespace std;
     </table>
 </CENTER>
 
-    @experimental This util is deprecated and might behave not as expected!
+@experimental This util is deprecated and might behave not as expected!
 
-    So far an estimation of the false score distribution with a gamma distribution
-    and the correct score distribution with a gaussian distribution is performed.
-    The probabilities are calculated using Bayes law, similar to PeptideProphet.
-    This implementation is much simpler than that of PeptideProphet.
+So far an estimation of the false score distribution with a gamma distribution
+and the correct score distribution with a gaussian distribution is performed.
+The probabilities are calculated using Bayes law, similar to PeptideProphet.
+This implementation is much simpler than that of PeptideProphet.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_IDDecoyProbability.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_IDDecoyProbability.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_IDDecoyProbability.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_IDDecoyProbability.html
 
-    For the parameters of the algorithm section see the algorithms documentation: @n
-        @ref OpenMS::IDDecoyProbability "decoy_algorithm" @n
+For the parameters of the algorithm section see the algorithms documentation: @n
+@ref OpenMS::IDDecoyProbability "decoy_algorithm" @n
 
 */
 
@@ -162,9 +136,8 @@ protected:
     {
       vector<PeptideIdentification> fwd_pep, rev_pep, out_pep;
       vector<ProteinIdentification> fwd_prot, rev_prot;
-      String document_id;
-      IdXMLFile().load(fwd_in, fwd_prot, fwd_pep, document_id);
-      IdXMLFile().load(rev_in, rev_prot, rev_pep, document_id);
+      FileHandler().loadIdentifications(fwd_in, fwd_prot, fwd_pep, {FileTypes::IDXML});
+      FileHandler().loadIdentifications(rev_in, rev_prot, rev_pep, {FileTypes::IDXML});
 
       //-------------------------------------------------------------
       // calculations
@@ -177,17 +150,17 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      IdXMLFile().store(out, fwd_prot, out_pep);
+      FileHandler().storeIdentifications(out, fwd_prot, out_pep, {FileTypes::IDXML});
     }
     else
     {
       vector<ProteinIdentification> prot_ids;
       vector<PeptideIdentification> pep_ids;
       String document_id;
-      IdXMLFile().load(in, prot_ids, pep_ids, document_id);
+      FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
 
       decoy_prob.apply(pep_ids);
-      IdXMLFile().store(out, prot_ids, pep_ids);
+      FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
     }
 
     return EXECUTION_OK;

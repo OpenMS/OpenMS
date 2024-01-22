@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -39,10 +13,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
@@ -60,69 +31,69 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page UTILS_FeatureFinderMetaboIdent FeatureFinderMetaboIdent
+@page TOPP_FeatureFinderMetaboIdent FeatureFinderMetaboIdent
 
-   @brief Detects features in MS1 data corresponding to small molecule identifications.
+@brief Detects features in MS1 data corresponding to small molecule identifications.
 
-   <CENTER>
-     <table>
-       <tr>
-         <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-         <td VALIGN="middle" ROWSPAN=2> &rarr; FeatureFinderMetaboIdent &rarr;</td>
-         <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-       </tr>
-       <tr>
-         <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes (optional) </td>
-         <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_TextExporter</td>
-       </tr>
-     </table>
-   </CENTER>
+<CENTER>
+ <table>
+   <tr>
+     <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+     <td VALIGN="middle" ROWSPAN=2> &rarr; FeatureFinderMetaboIdent &rarr;</td>
+     <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+   </tr>
+   <tr>
+     <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes (optional) </td>
+     <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_TextExporter</td>
+   </tr>
+ </table>
+</CENTER>
 
-   This tool detects quantitative features in MS1 data for a list of targets, typically small molecule/metabolite identifications.
-   It uses algorithms for targeted data analysis from the OpenSWATH pipeline.
+This tool detects quantitative features in MS1 data for a list of targets, typically small molecule/metabolite identifications.
+It uses algorithms for targeted data analysis from the OpenSWATH pipeline.
 
-   @note This tool is still experimental!
+@note This tool is still experimental!
 
-   @see @ref TOPP_FeatureFinderIdentification - targeted feature detection based on peptide identifications.
+@see @ref TOPP_FeatureFinderIdentification - targeted feature detection based on peptide identifications.
 
-   <B>Input format</B>
+<B>Input format</B>
 
-   Spectra are expected in centroided or profile mode. Only MS1 level spectra are considered for feature detection.
+Spectra are expected in centroided or profile mode. Only MS1 level spectra are considered for feature detection.
 
-   The targets to quantify have to be specified in a tab-separated text file that is passed via the @p id parameter.
-   This file has to start with the following header line, defining its columns:
-   <pre>
-   <TT>CompoundName    SumFormula    Mass    Charge    RetentionTime    RetentionTimeRange    IsoDistribution</TT>
-   </pre>
+The targets to quantify have to be specified in a tab-separated text file that is passed via the @p id parameter.
+This file has to start with the following header line, defining its columns:
+<pre>
+<TT>CompoundName    SumFormula    Mass    Charge    RetentionTime    RetentionTimeRange    IsoDistribution</TT>
+</pre>
 
-   Every subsequent line defines a target.
-   (Except lines starting with "#", which are considered as comments and skipped.)
-   The following requirements apply:
-   - @p CompoundName: unique name for the target compound
-   - @p SumFormula: chemical sum formula (see @ref OpenMS::EmpiricalFormula), optional
-   - @p Mass: neutral mass; if zero calculated from @p Formula
-   - @p Charge: charge state, or comma-separated list of multiple charges
-   - @p RetentionTime: retention time (RT), or comma-separated list of multiple RTs
-   - @p RetentionTimeRange: RT window around @p RetentionTime for chromatogram extraction, either one value or one per @p RT entry; if zero parameter @p extract:rt_window is used
-   - @p IsoDistribution: comma-separated list of relative abundances of isotopologues (see @ref OpenMS::IsotopeDistribution); if zero calculated from @p Formula
+Every subsequent line defines a target.
+(Except lines starting with "#", which are considered as comments and skipped.)
+The following requirements apply:
+- @p CompoundName: unique name for the target compound
+- @p SumFormula: chemical sum formula (see @ref OpenMS::EmpiricalFormula), optional
+- @p Mass: neutral mass; if zero calculated from @p Formula
+- @p Charge: charge state, or comma-separated list of multiple charges
+- @p RetentionTime: retention time (RT), or comma-separated list of multiple RTs
+- @p RetentionTimeRange: RT window around @p RetentionTime for chromatogram extraction, either one value or one per @p RT entry; if zero parameter @p extract:rt_window is used
+- @p IsoDistribution: comma-separated list of relative abundances of isotopologues (see @ref OpenMS::IsotopeDistribution); if zero calculated from @p Formula
 
-   In the simplest case, only @p CompoundName, @p SumFormula, @p Charge and @p RetentionTime need to be given, all other values may be zero.
-   Every combination of compound (mass), RT and charge defines one target for feature detection.
+In the simplest case, only @p CompoundName, @p SumFormula, @p Charge and @p RetentionTime need to be given, all other values may be zero.
+Every combination of compound (mass), RT and charge defines one target for feature detection.
 
-   <B>Output format</B>
+<B>Output format</B>
 
-   The main output (parameter @p out) is a featureXML file containing the detected features, with annotations in meta data entries.
-   This file can be visualized in TOPPView - perhaps most usefully as a layer on top of the LC-MS data that gave rise to it.
-   Compound annotations of features (@p Name entries from the @p id input) can be shown by clicking the "Show feature annotation" button in the tool bar and selecting "Label meta data".
-   Positions of targets for which no feature was detected can be shown by clicking the "Show unassigned peptide identifications" button and selecting "Show label meta data".
+The main output (parameter @p out) is a featureXML file containing the detected features, with annotations in meta data entries.
+This file can be visualized in TOPPView - perhaps most usefully as a layer on top of the LC-MS data that gave rise to it.
+Compound annotations of features (@p Name entries from the @p id input) can be shown by clicking the "Show feature annotation" button in the tool bar and selecting "Label meta data".
+Positions of targets for which no feature was detected can be shown by clicking the "Show unassigned peptide identifications" button and selecting "Show label meta data".
 
-   To export the data from the featureXML file to a tabular text file (CSV), use @ref TOPP_TextExporter with the options @p no_ids and <TT>feature:add_metavalues 0</TT> (to include all meta data annotations).
-   In the result, the information from the @p CompoundName, @p SumFormula, @p Charge and @p RetentionTime columns from the input will be in the @p label, @p sum_formula, @p charge and @p expected_rt columns, respectively.
+To export the data from the featureXML file to a tabular text file (CSV), use @ref TOPP_TextExporter with the options @p no_ids and <TT>feature:add_metavalues 0</TT> (to include all meta data annotations).
+In the result, the information from the @p CompoundName, @p SumFormula, @p Charge and @p RetentionTime columns from the input will be in the @p label, @p sum_formula, @p charge and @p expected_rt columns, respectively.
 
-   <B>The command line parameters of this tool are:</B>
-   @verbinclude UTILS_FeatureFinderMetaboIdent.cli
-   <B>INI file documentation of this tool:</B>
-   @htmlinclude UTILS_FeatureFinderMetaboIdent.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FeatureFinderMetaboIdent.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FeatureFinderMetaboIdent.html
 
 */
 
@@ -256,10 +227,9 @@ protected:
     ff_mident.setParameters(tool_parameter);
 
     OPENMS_LOG_INFO << "Loading input LC-MS data..." << endl;
-    MzMLFile mzml;
-    mzml.setLogType(log_type_);
+    FileHandler mzml;
     mzml.getOptions().addMSLevel(1);
-    mzml.load(in, ff_mident.getMSData());
+    mzml.loadExperiment(in, ff_mident.getMSData(), {FileTypes::MZML});
     if (ff_mident.getMSData().empty() && !force)
     {
       OPENMS_LOG_ERROR << "Error: No MS1 scans in '"
@@ -287,7 +257,7 @@ protected:
       PeakMap& chrom_data = ff_mident.getChromatograms();
       addDataProcessing_(chrom_data,
                          getProcessingInfo_(DataProcessing::FILTERING));
-      MzMLFile().store(chrom_out, ff_mident.getChromatograms());
+      FileHandler().storeExperiment(chrom_out, ff_mident.getChromatograms(), {FileTypes::MZML});
     }
     ff_mident.getChromatograms().clear(true);
 
@@ -296,19 +266,19 @@ protected:
     //-------------------------------------------------------------
 
     OPENMS_LOG_INFO << "Writing final results..." << endl;
-    FeatureXMLFile().store(out, features);
+    FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
 
     // write transition library in TraML format
     if (!lib_out.empty())
     {
-      TraMLFile().store(lib_out, ff_mident.getLibrary());
+      FileHandler().storeTransitions(lib_out, ff_mident.getLibrary(), {FileTypes::TRAML});
     }
 
     // write expected vs. observed retention times
     if (!trafo_out.empty())
     {
       const TransformationDescription& trafo = ff_mident.getTransformations();
-      TransformationXMLFile().store(trafo_out, trafo);
+      FileHandler().storeTransformations(trafo_out, trafo, {FileTypes::TRANSFORMATIONXML});
     }
 
     //-------------------------------------------------------------

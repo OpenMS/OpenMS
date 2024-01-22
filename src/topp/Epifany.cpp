@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julianus Pfeuffer $
@@ -34,11 +8,9 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
@@ -59,53 +31,53 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_Epifany Epifany
+@page TOPP_Epifany Epifany
 
-  @brief EPIFANY - Efficient protein inference for any peptide-protein network is a Bayesian
-  protein inference engine. It uses PSM (posterior) probabilities from Percolator, OpenMS' IDPosteriorErrorProbability
-  or similar tools to calculate posterior probabilities for proteins and protein groups.
+@brief EPIFANY - Efficient protein inference for any peptide-protein network is a Bayesian
+protein inference engine. It uses PSM (posterior) probabilities from Percolator, OpenMS' IDPosteriorErrorProbability
+or similar tools to calculate posterior probabilities for proteins and protein groups.
 
-  @experimental This tool is work in progress and usage and input requirements might change.
+@experimental This tool is work in progress and usage and input requirements might change.
 
-  <center>
-    <table>
-        <tr>
-            <th ALIGN = "center"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> &rarr; Epifany &rarr;</td>
-            <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PercolatorAdapter </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDPosteriorErrorProbability </td>
-        </tr>
-    </table>
-  </center>
-  <p>It is a protein inference engine based on a Bayesian network. Currently the same model like
-  Fido is used with the main parameters alpha (pep_emission), beta (pep_spurious_emission) and gamma (prot_prior).
-  If not specified,
-  these parameters are trained based on their classification performance and calibration via a grid search
-  by simply running with several possible combinations and evaluating. Unless you see very extreme output
-  probabilities (e.g. many close to 1.0) or you know good parameters (e.g. from an earlier run),
-  grid search is recommended although slower. The tool will merge multiple idXML files (union of proteins
-  and concatenation of PSMs) when given more than one. It assumes one search engine run per input file but
-  might work on more. Proteins need to be indexed by OpenMS's PeptideIndexer but this is usually done before
-  Percolator/IDPEP since target/decoy associations are needed there already. Make sure that the input PSM
-  probabilities are not too extreme already (garbage in - garbage out). After merging the input probabilities
-  are preprocessed with a low posterior probability cutoff to neglect very unreliable matches. Then
-  the probabilities are aggregated with the maximum per peptide and the graph is built and split into
-  connected components. When compiled with the OpenMP
-  flag (default enabled in the release binaries) the tool is multi-threaded which can
-  be activated at runtime by the threads parameter. Note that peak memory requirements
-  may rise significantly when processing multiple components of the graph at the same time.
-  </p>
+<center>
+  <table>
+      <tr>
+          <th ALIGN = "center"> pot. predecessor tools </td>
+          <td VALIGN="middle" ROWSPAN=2> &rarr; Epifany &rarr;</td>
+          <th ALIGN = "center"> pot. successor tools </td>
+      </tr>
+      <tr>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PercolatorAdapter </td>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
+      </tr>
+      <tr>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDPosteriorErrorProbability </td>
+      </tr>
+  </table>
+</center>
+<p>It is a protein inference engine based on a Bayesian network. Currently the same model like
+Fido is used with the main parameters alpha (pep_emission), beta (pep_spurious_emission) and gamma (prot_prior).
+If not specified,
+these parameters are trained based on their classification performance and calibration via a grid search
+by simply running with several possible combinations and evaluating. Unless you see very extreme output
+probabilities (e.g. many close to 1.0) or you know good parameters (e.g. from an earlier run),
+grid search is recommended although slower. The tool will merge multiple idXML files (union of proteins
+and concatenation of PSMs) when given more than one. It assumes one search engine run per input file but
+might work on more. Proteins need to be indexed by OpenMS's PeptideIndexer but this is usually done before
+Percolator/IDPEP since target/decoy associations are needed there already. Make sure that the input PSM
+probabilities are not too extreme already (garbage in - garbage out). After merging the input probabilities
+are preprocessed with a low posterior probability cutoff to neglect very unreliable matches. Then
+the probabilities are aggregated with the maximum per peptide and the graph is built and split into
+connected components. When compiled with the OpenMP
+flag (default enabled in the release binaries) the tool is multi-threaded which can
+be activated at runtime by the threads parameter. Note that peak memory requirements
+may rise significantly when processing multiple components of the graph at the same time.
+</p>
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_Epifany.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_Epifany.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_Epifany.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_Epifany.html
 
 */
 
@@ -294,8 +266,7 @@ protected:
       }
       ConsensusMapMergerAlgorithm cmerge;
       ConsensusMap cmap;
-      ConsensusXMLFile cxmlf;
-      cxmlf.load(files[0], cmap);
+      FileHandler().loadConsensusFeatures(files[0], cmap, {FileTypes::CONSENSUSXML});
       std::optional<const ExperimentalDesign> edopt = maybeGetExpDesign_(exp_des);
       if (!exp_des.empty())
       {
@@ -362,11 +333,10 @@ protected:
         }
       }
 
-      cxmlf.store(out_file, cmap);
+      FileHandler().storeConsensusFeatures(out_file, cmap, {FileTypes::CONSENSUSXML});
     }
     else // ----------------------------   IdXML   -------------------------------------
     {
-      IdXMLFile idXMLf;
       IDMergerAlgorithm merger{};
       OPENMS_LOG_INFO << "Loading input..." << std::endl;
       vector<ProteinIdentification> mergedprots{1};
@@ -377,7 +347,7 @@ protected:
         {
           vector<ProteinIdentification> prots;
           vector<PeptideIdentification> peps;
-          idXMLf.load(file, prots, peps);
+          FileHandler().loadIdentifications(file, prots, peps, {FileTypes::IDXML});
           //TODO merger does not support groups yet, so clear them here right away.
           // Not so easy to implement at first sight. Merge groups whenever one protein overlaps?
           prots[0].getIndistinguishableProteins().clear();
@@ -388,7 +358,7 @@ protected:
       }
       else
       {
-        idXMLf.load(files[0], mergedprots, mergedpeps);
+        FileHandler().loadIdentifications(files[0], mergedprots, mergedpeps, {FileTypes::IDXML});
         //TODO For now we delete because we want to add new groups here.
         // Think about:
         // 1) keeping the groups and allow them to be used as a prior grouping (e.g. gene based)
@@ -467,7 +437,7 @@ protected:
              const ProteinIdentification::ProteinGroup& g)
           {return f.accessions < g.accessions;});
 
-      idXMLf.store(out_file, mergedprots, mergedpeps);
+      FileHandler().storeIdentifications(out_file, mergedprots, mergedpeps, {FileTypes::IDXML});
     }
     return ExitCodes::EXECUTION_OK;
   }

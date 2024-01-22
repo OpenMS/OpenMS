@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -33,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
@@ -59,9 +32,9 @@ using namespace std;
 
 /**
 
-    @page TOPP_MascotAdapterOnline MascotAdapterOnline
+@page TOPP_MascotAdapterOnline MascotAdapterOnline
 
-    @brief Identifies peptides in MS/MS spectra via Mascot.
+@brief Identifies peptides in MS/MS spectra via Mascot.
 
 <CENTER>
     <table>
@@ -77,43 +50,43 @@ using namespace std;
     </table>
 </CENTER>
 
-    This wrapper application generates peptide identifications for MS/MS
-    spectra using the search engine Mascot. It communicates with the Mascot
-    server over the network (i.e. it does not have to run on the server
-    itself).
+This wrapper application generates peptide identifications for MS/MS
+spectra using the search engine Mascot. It communicates with the Mascot
+server over the network (i.e. it does not have to run on the server
+itself).
 
-    The adapter supports Mascot security features as well as proxy connections.
-    Mascot versions 2.2.x up to 2.4.1 are supported and have been successfully
-    tested (to varying degrees).
+The adapter supports Mascot security features as well as proxy connections.
+Mascot versions 2.2.x up to 2.4.1 are supported and have been successfully
+tested (to varying degrees).
 
-    @bug Running the adapter on Mascot 2.4 (possibly also other versions) produces the following error messages, which should be ignored:\n
-    MascotRemoteQuery: An error occurred (requestId=11): Request aborted (QT Error Code: 7)\n
-    MascotRemoteQuery: An error occurred (requestId=12): Request aborted (QT Error Code: 7)
+@bug Running the adapter on Mascot 2.4 (possibly also other versions) produces the following error messages, which should be ignored:\n
+MascotRemoteQuery: An error occurred (requestId=11): Request aborted (QT Error Code: 7)\n
+MascotRemoteQuery: An error occurred (requestId=12): Request aborted (QT Error Code: 7)
 
-    @note Some Mascot server instances seem to fail without reporting back an
-    error message. In such cases, try to run the search on another Mascot
-    server or change/validate the search parameters (e.g. using modifications
-    that are known to Mascot and can thus be set in the INI file, but which are
-    unknown to Mascot, might pose a problem).
+@note Some Mascot server instances seem to fail without reporting back an
+error message. In such cases, try to run the search on another Mascot
+server or change/validate the search parameters (e.g. using modifications
+that are known to Mascot and can thus be set in the INI file, but which are
+unknown to Mascot, might pose a problem).
 
-    @note Mascot returns incomplete/incorrect protein assignments for most
-    identified peptides (due to protein-level grouping/filtering). Thus,
-    the protein associations are therefore not included in the output of this
-    adapter, only the peptide sequences. @ref TOPP_PeptideIndexer should be run
-    after this tool to get correct assignments.
+@note Mascot returns incomplete/incorrect protein assignments for most
+identified peptides (due to protein-level grouping/filtering). Thus,
+the protein associations are therefore not included in the output of this
+adapter, only the peptide sequences. @ref TOPP_PeptideIndexer should be run
+after this tool to get correct assignments.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an
-    input/output format of this tool. Convert mzid files to/from idXML using
-    @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an
+input/output format of this tool. Convert mzid files to/from idXML using
+@ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_MascotAdapterOnline.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MascotAdapterOnline.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MascotAdapterOnline.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MascotAdapterOnline.html
 
-    For the parameters of the algorithm section see the algorithms documentation: @n
-    @ref OpenMS::MascotRemoteQuery "Mascot_server" @n
-    @ref OpenMS::MascotGenericFile "Mascot_parameters" @n
+For the parameters of the algorithm section see the algorithms documentation: @n
+@ref OpenMS::MascotRemoteQuery "Mascot_server" @n
+@ref OpenMS::MascotGenericFile "Mascot_parameters" @n
 
 */
 
@@ -220,7 +193,7 @@ protected:
     String run_identifier;
     for (const PeptideIdentification& pep : pep_a)
     {
-      const String& native_id = pep.getMetaValue("spectrum_reference");
+      const String& native_id = pep.getSpectrumReference();
       native_id2id_index[native_id] = index;
       ++index;
       if (run_identifier.empty()) run_identifier = pep.getIdentifier();
@@ -228,7 +201,7 @@ protected:
 
     for (auto pep : pep_b) //OMS_CODING_TEST_EXCLUDE
     {
-      auto it = native_id2id_index.find(pep.getMetaValue("spectrum_reference"));
+      auto it = native_id2id_index.find(pep.getSpectrumReference());
       if (it == native_id2id_index.end()) // spectrum not yet identified? add decoy id
       {
         pep.setIdentifier(run_identifier);
@@ -268,7 +241,7 @@ protected:
     // keep only MS2 spectra
     FileHandler fh;
     fh.getOptions().setMSLevels({2});
-    fh.loadExperiment(in, exp, FileTypes::Type::MZML, log_type_, false, false);
+    fh.loadExperiment(in, exp, {FileTypes::Type::MZML}, log_type_, false, false);
     writeLogInfo_("Number of spectra loaded: " + String(exp.size()));
 
 
@@ -383,7 +356,7 @@ protected:
           try
           { 
             Size index = lookup.findByRT(pep.getRT());
-            pep.setMetaValue("spectrum_reference", exp[index].getNativeID());
+            pep.setSpectrumReference( exp[index].getNativeID());
           }
           catch (Exception::ElementNotFound&)
           {
@@ -410,7 +383,7 @@ protected:
             try
             { 
               Size index = lookup.findByRT(pep.getRT());
-              pep.setMetaValue("spectrum_reference", exp[index].getNativeID());
+              pep.setSpectrumReference( exp[index].getNativeID());
             }
             catch (Exception::ElementNotFound&)
             {
@@ -471,7 +444,7 @@ protected:
     // write all (!) parameters as metavalues to the search parameters
     DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), all_prot_ids[0].getSearchParameters(), this->getToolPrefix());
 
-    IdXMLFile().store(out, all_prot_ids, all_pep_ids);
+    FileHandler().storeIdentifications(out, all_prot_ids, all_pep_ids, {FileTypes::IDXML});
     
     return EXECUTION_OK;
   }

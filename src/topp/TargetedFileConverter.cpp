@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -37,7 +11,6 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -50,25 +23,25 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_TargetedFileConverter TargetedFileConverter
+@page TOPP_TargetedFileConverter TargetedFileConverter
 
-  @brief Converts different spectral libraries / transition files for targeted proteomics and metabolomics analysis.
-  
-  Can convert multiple formats to and from TraML (standardized transition format). The following formats are supported:
+@brief Converts different spectral libraries / transition files for targeted proteomics and metabolomics analysis.
 
-        <ul>
-          <li> @ref OpenMS::TraMLFile "TraML" </li>
-          <li> @ref OpenMS::TransitionTSVFile "OpenSWATH TSV transition lists" </li>
-          <li> @ref OpenMS::TransitionPQPFile "OpenSWATH PQP SQLite files" </li>
-          <li> SpectraST MRM transition lists </li>
-          <li> Skyline transition lists </li>
-          <li> Spectronaut transition lists </li>
-        </ul>
+Can convert multiple formats to and from TraML (standardized transition format). The following formats are supported:
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_TargetedFileConverter.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_TargetedFileConverter.html
+      <ul>
+        <li> @ref OpenMS::TraMLFile "TraML" </li>
+        <li> @ref OpenMS::TransitionTSVFile "OpenSWATH TSV transition lists" </li>
+        <li> @ref OpenMS::TransitionPQPFile "OpenSWATH PQP SQLite files" </li>
+        <li> SpectraST MRM transition lists </li>
+        <li> Skyline transition lists </li>
+        <li> Spectronaut transition lists </li>
+      </ul>
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_TargetedFileConverter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_TargetedFileConverter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -88,7 +61,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.\n "
-                                           "See http://www.openms.de/current_doxygen/html/UTILS_TargetedFileConverter.html for format of OpenSWATH transition TSV file or SpectraST MRM file.");
+                                           "See http://www.openms.de/current_doxygen/html/TOPP_TargetedFileConverter.html for format of OpenSWATH transition TSV file or SpectraST MRM file.");
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
     StringList formats{"tsv", "mrm" ,"pqp", "TraML"};
     setValidFormats_("in", formats);
@@ -171,8 +144,7 @@ protected:
     }
     else if (in_type == FileTypes::TRAML)
     {
-      TraMLFile traml;
-      traml.load(in, targeted_exp);
+      FileHandler().loadTransitions(in, targeted_exp, {FileTypes::TRAML});
     }
 
     if (out_type == FileTypes::TSV)
@@ -189,8 +161,7 @@ protected:
     }
     else if (out_type == FileTypes::TRAML)
     {
-      TraMLFile traml;
-      traml.store(out, targeted_exp);
+      FileHandler().storeTransitions(out, targeted_exp, {FileTypes::TRAML});
     }
 
     return EXECUTION_OK;

@@ -343,10 +343,6 @@ PyOpenMSChecker:
         - isSameHandle
     OpenMS::IsotopeMarker:
         - getProductName
-    OpenMS::TwoDOptimization:
-        - getPenalties
-        - setPenalties
-        - optimize
     OpenMS_Matrix:
         - row
         - col
@@ -459,8 +455,6 @@ PyOpenMSChecker:
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Not implemented = errors in OpenMS API
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    OpenMS::PeakPickerSH:
-        - pick
     OpenMS::XTandemInfile:
         - getNoiseSuppression
         - setNoiseSuppression
@@ -539,8 +533,6 @@ PyOpenMSChecker:
         - Type
         - getNextPrecursorsSeq # immutable types by reference
         - getPeptideProteinCounter # not implemented
-    OpenMS::PeakShape:
-        - Type
     OpenMS::LPWrapper:
         - Type
     OpenMS::ControlledVocabulary::CVTerm:
@@ -563,8 +555,6 @@ PyOpenMSChecker:
         - Statistics # constructor
     OpenMS::ims::IMSIsotopeDistribution::Peak:
         - Peak # constructor
-    OpenMS::PeakShape:
-        - Type
 
     # Legacy functions only
     OpenMS::OnDiscMSExperiment:
@@ -639,11 +629,6 @@ PyOpenMSChecker:
         # others (pointer / multimap)
         - mergeFeatures
         - getClosedBoxes
-    OpenMS::PeakShape:
-        - getLeftEndpoint
-        - setLeftEndpoint
-        - getRightEndpoint
-        - setRightEndpoint
     OpenMS::MorphologicalFilter:
         - filterRange # requires iterator
     OpenMS::Param::ParamIterator:
@@ -804,9 +789,6 @@ PyOpenMSChecker:
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     OpenMS::QTClusterFinder:
-        - create
-    OpenMS::FeatureFinderAlgorithmIsotopeWavelet:
-        - createHRData
         - create
     OpenMS::UnimodXMLFile:
         # TODO should now work ...
@@ -1042,12 +1024,10 @@ PyOpenMSChecker:
     ########################################################################
 
     # renamed classes (they exist but under a different name)
-    - OpenMS::PeakShape::Type
     - OpenMS::ResidueModification::Term_Specificity
     - OpenMS::ControlledVocabulary::CVTerm
     - OpenMS::MZTrafoModel::MODELTYPE
     - OpenMS::ControlledVocabulary::CVTerm::XRefType
-    - OpenMS::PeakShape
 
     # rarely used classes
     - OpenMS::WeightWrapper
@@ -1288,7 +1268,6 @@ PyOpenMSChecker:
     # Comperators
     - OpenMS::Peak2D::PositionLess
     - OpenMS::MSChromatogram::MZLess
-    - OpenMS::PeakShape::PositionLess
     - OpenMS::AASequence::Iterator
     - OpenMS::Peak1D::PositionLess
     - OpenMS::Peak2D::IntensityLess

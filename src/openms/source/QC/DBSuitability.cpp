@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Tom Waschischeck $
@@ -40,8 +14,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
@@ -354,8 +327,8 @@ namespace OpenMS
     parameters.setValue(adapter_name + ":1:out", out_path);
 
     // store data in temporary files
-    MzMLFile spectra_file;
-    spectra_file.store(mzml_path, exp);
+    FileHandler spectra_file;
+    spectra_file.storeExperiment(mzml_path, exp,{FileTypes::MZML});
     FASTAFile database;
     database.store(db_path, fasta_data);
 
@@ -383,8 +356,8 @@ namespace OpenMS
     // load result
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
-    IdXMLFile id_file;
-    id_file.load(out_path, prot_ids, pep_ids);
+    FileHandler id_file;
+    id_file.loadIdentifications(out_path, prot_ids, pep_ids, {FileTypes::IDXML});
 
     // annotate target/decoy information
     PeptideIndexing indexer;
@@ -401,7 +374,7 @@ namespace OpenMS
 
     if (keep_files)
     {
-      id_file.store(tmp_dir.getPath() + "indexed_pre_FDR.idXML", prot_ids, pep_ids);
+      id_file.storeIdentifications(tmp_dir.getPath() + "indexed_pre_FDR.idXML", prot_ids, pep_ids, {FileTypes::IDXML});
     }
 
     return pep_ids;

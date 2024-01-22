@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -34,12 +8,11 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
@@ -90,14 +63,14 @@ typedef vector<IsotopePattern> IsotopePatterns;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_MetaProSIP MetaProSIP
+@page TOPP_MetaProSIP MetaProSIP
 
-    @brief Performs proteinSIP on peptide features for elemental flux analysis.
+@brief Performs proteinSIP on peptide features for elemental flux analysis.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_MetaProSIP.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_MetaProSIP.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MetaProSIP.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MetaProSIP.html
  */
 
 // We do not want this class to show up in the docu:
@@ -3013,9 +2986,8 @@ protected:
     }
 
     OPENMS_LOG_INFO << "loading feature map..." << endl;
-    FeatureXMLFile fh;
     FeatureMap feature_map;
-    fh.load(in_features, feature_map);
+    FileHandler().loadFeatures(in_features, feature_map, {FileTypes::FEATUREXML});
 
     // annotate as features found using feature finding (to distinguish them from averagine features oder id based features ... see below)
     for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
@@ -3061,10 +3033,10 @@ protected:
     {
       // load only MS2 spectra with precursor information
       PeakMap peak_map;
-      MzMLFile mh;
+      FileHandler mh;
       std::vector<Int> ms_level(1, 2);
       mh.getOptions().setMSLevels(ms_level);
-      mh.load(in_mzml, peak_map);
+      mh.loadExperiment(in_mzml, peak_map, {FileTypes::MZML});
       peak_map.sortSpectra();
       peak_map.updateRanges();
 
@@ -3148,10 +3120,10 @@ protected:
 
     OPENMS_LOG_INFO << "loading experiment..." << endl;
     PeakMap peak_map;
-    MzMLFile mh;
+    FileHandler mh;
     std::vector<Int> ms_level(1, 1);
     mh.getOptions().setMSLevels(ms_level);
-    mh.load(in_mzml, peak_map);
+    mh.loadExperiment(in_mzml, peak_map, {FileTypes::MZML});
     peak_map.updateRanges();
     ThresholdMower tm;
     Param tm_parameters;

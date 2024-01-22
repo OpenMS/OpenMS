@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Kyowon Jeong, Jihyung Kim $
@@ -42,7 +16,7 @@
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
 #ifdef _OPENMP
@@ -58,23 +32,37 @@ using namespace std;
 // Doxygen docu
 //-------------------------------------------------------------
 /**
-  @page TOPP_FLASHDeconv TOPP_FLASHDeconv
+@page TOPP_FLASHDeconv FLASHDeconv
 
-  @brief FLASHDeconv performs ultrafast deconvolution of top down proteomics MS datasets.
-  FLASHDeconv takes mzML file as input and outputs deconvolved feature list (.tsv) and
-  deconvolved spectra files (.tsv, .mzML, .msalign, .ms1ft).
-  FLASHDeconv uses FLASHDeconvAlgorithm for spectral level deconvolution and MassFeatureTracer to detect mass features.
-  Also for MSn spectra, the precursor masses (not peak m/zs) should be determined and assigned in most cases. This assignment
-  can be done by tracking MSn-1 spectra deconvolution information. Thus FLASHDeconv class keeps MSn-1 spectra deconvolution information
-  for a certain period for precursor mass assignment in DeconvolvedSpectrum class.
-  In case of FLASHIda runs, this precursor mass assignment is done by FLASHIda. Thus FLASHDeconv class simply parses the log file
-  from FLASHIda runs and pass the parsed information to DeconvolvedSpectrum class.
+@brief FLASHDeconv performs ultrafast deconvolution of top down proteomics MS datasets.
+FLASHDeconv takes mzML file as input and outputs deconvolved feature list (.tsv) and
+deconvolved spectra files (.tsv, .mzML, .msalign, .ms1ft).
+FLASHDeconv uses FLASHDeconvAlgorithm for spectral level deconvolution and MassFeatureTracer to detect mass features.
+Also for MSn spectra, the precursor masses (not peak m/zs) should be determined and assigned in most cases. This assignment
+can be done by tracking MSn-1 spectra deconvolution information. Thus FLASHDeconv class keeps MSn-1 spectra deconvolution information
+for a certain period for precursor mass assignment in DeconvolvedSpectrum class.
+In case of FLASHIda runs, this precursor mass assignment is done by FLASHIda. Thus FLASHDeconv class simply parses the log file
+from FLASHIda runs and pass the parsed information to DeconvolvedSpectrum class.
+
+See https://openms.de/FLASHDeconv for more information.
+
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FLASHDeconv.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FLASHDeconv.html
 */
 
 class TOPPFLASHDeconv : public TOPPBase
 {
 public:
-  TOPPFLASHDeconv() : TOPPBase("FLASHDeconv", "Ultra-fast high-quality deconvolution enables online processing of top-down MS data")
+  TOPPFLASHDeconv() 
+    : TOPPBase("FLASHDeconv", "Ultra-fast high-quality deconvolution enables online processing of top-down MS data",
+      true,
+      {Citation {"Jeong K, Kim J, Gaikwad M et al.",
+                 "FLASHDeconv: Ultrafast, High-Quality Feature Deconvolution for Top-Down Proteomics",
+                 "Cell Syst 2020 Feb 26;10(2):213-218.e6",
+                 "10.1016/j.cels.2020.01.003"}})
   {
   }
 
@@ -375,7 +363,7 @@ protected:
     //-------------------------------------------------------------
 
     MSExperiment map;
-    MzMLFile mzml;
+    FileHandler mzml;
 
     double expected_identification_count = .0;
 
@@ -397,9 +385,8 @@ protected:
     {
       opt.setIntensityRange(DRange<1> {min_intensity, 1e200});
     }
-    mzml.setLogType(log_type_);
     mzml.setOptions(opt);
-    mzml.load(in_file, map);
+    mzml.loadExperiment(in_file, map, {FileTypes::MZML}, log_type_);
 
     uint current_max_ms_level = 0;
     uint current_min_ms_level = 1000;
@@ -845,14 +832,14 @@ protected:
 
     if (!out_mzml_file.empty())
     {
-      MzMLFile mzml_file;
-      mzml_file.store(out_mzml_file, exp);
+      FileHandler mzml_file;
+      mzml_file.storeExperiment(out_mzml_file, exp, {FileTypes::MZML});
     }
 
     if (!out_anno_mzml_file.empty())
     {
-      MzMLFile mzml_file;
-      mzml_file.store(out_anno_mzml_file, exp_annotated);
+      FileHandler mzml_file;
+      mzml_file.storeExperiment(out_anno_mzml_file, exp_annotated, {FileTypes::MZML});
     }
 
     for (int j = 0; j < (int)current_max_ms_level; j++)

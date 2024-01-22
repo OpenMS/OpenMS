@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -37,11 +11,7 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/FORMAT/MSPFile.h>
 #include <iostream>
 
 #include <vector>
@@ -54,19 +24,19 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_SpecLibCreator SpecLibCreator
+@page TOPP_SpecLibCreator SpecLibCreator
 
-    @brief creates with given data a .MSP format spectral library.
+@brief creates with given data a .MSP format spectral library.
 
-    Information file should have the following information: peptide, retention time, measured weight, charge state.
-    Extra information is allowed.
+Information file should have the following information: peptide, retention time, measured weight, charge state.
+Extra information is allowed.
 
-    @experimental This Utility is not well tested and some features might not work as expected.
+@experimental This Utility is not well tested and some features might not work as expected.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_SpecLibCreator.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_SpecLibCreator.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_SpecLibCreator.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_SpecLibCreator.html
 */
 
 // We do not want this class to show up in the docu:
@@ -199,15 +169,9 @@ protected:
     {
       writeLogWarn_("Warning: Could not determine input file type!");
     }
-    else if (in_type == FileTypes::MZDATA)
+    else if (in_type == FileTypes::MZDATA || in_type == FileTypes::MZXML)
     {
-      MzDataFile mzData;
-      mzData.load(spec, msexperiment);
-    }
-    else if (in_type == FileTypes::MZXML)
-    {
-      MzXMLFile mzXML;
-      mzXML.load(spec, msexperiment);
+      FileHandler().loadExperiment(spec, msexperiment, {FileTypes::MZDATA, FileTypes::MZXML});
     }
     if (msexperiment.getMinRT() == 0)
     {
@@ -276,22 +240,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
     in_type = fh.getType(out);
-    if (in_type == FileTypes::MZDATA)
-    {
-      MzDataFile f;
-      f.store(out, library);
-    }
-    else if (in_type == FileTypes::MZXML)
-    {
-      MzXMLFile f;
-      f.store(out, library);
-    }
-    else
-    {
-      MSPFile msp;
-      msp.store(out, library);
-    }
-
+    FileHandler().storeExperiment(out, library, {FileTypes::MZDATA, FileTypes::MZXML, FileTypes::MSP});
     return EXECUTION_OK;
   }
 

@@ -1,39 +1,12 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Erhan Kenar $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -55,33 +28,33 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-        @page UTILS_MetaboliteSpectralMatcher MetaboliteSpectralMatcher
+@page TOPP_MetaboliteSpectralMatcher MetaboliteSpectralMatcher
 
-        @brief MetaboliteSpectralMatcher identifies small molecules from tandem MS spectra using a spectral library.
+@brief MetaboliteSpectralMatcher identifies small molecules from tandem MS spectra using a spectral library.
 
-        <CENTER>
-        <table>
-        <tr>
-        <th ALIGN = "center"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> &rarr; MetaboliteSpectralMatcher &rarr;</td>
-        <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> processing in R </td>
-        </tr>
-        </table>
-        </CENTER>
+<CENTER>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=3> &rarr; MetaboliteSpectralMatcher &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> processing in R </td>
+</tr>
+</table>
+</CENTER>
 
-        By default, MS2 spectra with similar precursor mass are merged before comparison with database spectra, for example when a mass at the beginning of the peak and on the peak apex is selected twice as precursor.
-        Merging can also have disadvantages, for example, for isobaric or isomeric compounds that have similar/same masses but can have different retention times and MS2 spectra.
+By default, MS2 spectra with similar precursor mass are merged before comparison with database spectra, for example when a mass at the beginning of the peak and on the peak apex is selected twice as precursor.
+Merging can also have disadvantages, for example, for isobaric or isomeric compounds that have similar/same masses but can have different retention times and MS2 spectra.
 
-        <B>The command line parameters of this tool are:</B>
-        @verbinclude UTILS_MetaboliteSpectralMatcher.cli
-        <B>INI file documentation of this tool:</B>
-        @htmlinclude UTILS_MetaboliteSpectralMatcher.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MetaboliteSpectralMatcher.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MetaboliteSpectralMatcher.html
 */
 
 // We do not want this class to show up in the docu:
@@ -141,13 +114,12 @@ protected:
     // loading input
     //-------------------------------------------------------------
 
-    MzMLFile mz_file;
-    mz_file.setLogType(log_type_);
+    FileHandler mz_file;
     std::vector<Int> ms_level = {2};
     mz_file.getOptions().setMSLevels(ms_level);
 
     PeakMap ms_peakmap;
-    mz_file.load(in, ms_peakmap);
+    mz_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML});
 
     if (ms_peakmap.empty())
     {
@@ -168,21 +140,8 @@ protected:
     //-------------------------------------------------------------
     // load database
     //-------------------------------------------------------------
-    FileTypes::Type database_type = FileHandler::getTypeByFileName(database);
-
     PeakMap spec_db;
-    if (database_type == FileTypes::MSP)
-    {
-      MSPGenericFile().load(spec_db_filename, spec_db);
-    }
-    else if (database_type == FileTypes::MZML)
-    {
-      mz_file.load(spec_db_filename, spec_db);
-    }
-    else if (database_type == FileTypes::MGF)
-    {
-      MascotGenericFile().load(spec_db_filename, spec_db);
-    }
+    FileHandler().loadExperiment(spec_db_filename, spec_db, {FileTypes::MSP, FileTypes::MZML, FileTypes::MGF});
 
     if (spec_db.empty())
     {

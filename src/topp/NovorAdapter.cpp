@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
@@ -42,13 +16,13 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
-
+// TOOD Remove once we've moved transform to handler
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+// TODO remove once we have store spectrum in handler
 #include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
@@ -64,9 +38,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_NovorAdapter NovorAdapter
+@page TOPP_NovorAdapter NovorAdapter
 
-    @brief Novoradapter for de novo sequencing from tandem mass spectrometry data.
+@brief Novoradapter for de novo sequencing from tandem mass spectrometry data.
 
 <CENTER>
     <table>
@@ -83,18 +57,18 @@ using namespace std;
 </CENTER>
 
 
-    This tool can be used for de novo sequencing of peptides from MS/MS data.
+This tool can be used for de novo sequencing of peptides from MS/MS data.
 
-    Novor must be installed before this wrapper can be used. This wrapper was successfully tested with version v1.06.0634 (stable).
-    
-    Novor settings can be either used via command line or directly using a param file (param.txt).
+Novor must be installed before this wrapper can be used. This wrapper was successfully tested with version v1.06.0634 (stable).
 
-    Parameter names have been changed to match names found in other search engine adapters. For further information  check the Novor wiki (http://wiki.rapidnovor.com/wiki/Main_Page) and the official tool website (https://www.rapidnovor.com/). 
+Novor settings can be either used via command line or directly using a param file (param.txt).
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_NovorAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_NovorAdapter.html
+Parameter names have been changed to match names found in other search engine adapters. For further information  check the Novor wiki (http://wiki.rapidnovor.com/wiki/Main_Page) and the official tool website (https://www.rapidnovor.com/). 
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_NovorAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_NovorAdapter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -321,7 +295,7 @@ protected:
       if (sl.empty() || sl[0][0] == '#') { continue; }
         
       PeptideIdentification pi;
-      pi.setMetaValue("spectrum_reference", exp[mapping.findByScanNumber(sl[1].toInt())].getNativeID());
+      pi.setSpectrumReference( exp[mapping.findByScanNumber(sl[1].toInt())].getNativeID());
       pi.setScoreType("novorscore");
       pi.setHigherScoreBetter(true);
       pi.setRT(sl[2].toDouble());
@@ -380,7 +354,7 @@ protected:
      
     OPENMS_LOG_INFO << "NOVOR created " << peptide_ids.size() << " PSMs from " << count_written << " MS2 spectra (" << (peptide_ids.size() * 100 / count_written) << "% annotated)\n";
 
-    IdXMLFile().store(out, protein_ids, peptide_ids);
+    FileHandler().storeIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML});
 
     return EXECUTION_OK;
   }

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
@@ -52,6 +26,7 @@
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
+// TODO: remove header after we get "Valid" support
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
@@ -77,36 +52,36 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_FileInfo FileInfo
-  @brief Shows basic information about the data in an %OpenMS readable file.
+@page TOPP_FileInfo FileInfo
+@brief Shows basic information about the data in an %OpenMS readable file.
 
-  <CENTER>
-  <table>
-  <tr>
-  <th ALIGN = "center"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> &rarr; FileInfo &rarr;</td>
-  <th ALIGN = "center"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> none ; console or text file</td>
-  </tr>
-  </table>
-  </CENTER>
+<CENTER>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=2> &rarr; FileInfo &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> none ; console or text file</td>
+</tr>
+</table>
+</CENTER>
 
-  This tool can show basic information about the data in different file types, such as raw peak, featureXML and consensusXML files. It can
-  - show information about the data range of a file (m/z, RT, intensity)
-  - show a statistical summary for intensities, qualities, feature widths, precursor charges, activation methods
-  - show an overview of the metadata
-  - validate several XML formats against their XML schema
-  - check for corrupt data in a file (e.g., duplicate spectra)
+This tool can show basic information about the data in different file types, such as raw peak, featureXML and consensusXML files. It can
+- show information about the data range of a file (m/z, RT, intensity)
+- show a statistical summary for intensities, qualities, feature widths, precursor charges, activation methods
+- show an overview of the metadata
+- validate several XML formats against their XML schema
+- check for corrupt data in a file (e.g., duplicate spectra)
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_FileInfo.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_FileInfo.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FileInfo.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FileInfo.html
 
-  In order to enrich the resulting data of your analysis pipeline or to quickly compare different outcomes of your pipeline you can invoke the aforementioned information of your input data and (intermediary) results.
+In order to enrich the resulting data of your analysis pipeline or to quickly compare different outcomes of your pipeline you can invoke the aforementioned information of your input data and (intermediary) results.
 */
 
 // We do not want this class to show up in the docu:
@@ -182,7 +157,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Optional output file. If left out, the output is written to the command line.", false);
     setValidFormats_("out", {"txt"});
     registerOutputFile_("out_tsv", "<file>", "", "Second optional output file. Tab separated flat text file.", false, true);
-    setValidFormats_("out_tsv", {"csv"});
+    setValidFormats_("out_tsv", {"tsv"});
     registerFlag_("m", "Show meta information about the whole experiment");
     registerFlag_("p", "Shows data processing information");
     registerFlag_("s", "Computes a five-number statistics of intensities, qualities, and widths");
@@ -527,13 +502,13 @@ protected:
     }
     else if (in_type == FileTypes::FEATUREXML) //features
     {
-      FeatureXMLFile ff;
-      ff.getOptions().setLoadConvexHull(false);   // CH's currently not needed here
-      ff.getOptions().setLoadSubordinates(false); // SO's currently not needed here
+      FileHandler ff;
+      ff.getFeatOptions().setLoadConvexHull(false);   // CH's currently not needed here
+      ff.getFeatOptions().setLoadSubordinates(false); // SO's currently not needed here
 
       SysInfo::MemUsage mu;
       // reading input
-      ff.load(in, feat);
+      ff.loadFeatures(in, feat, {FileTypes::FEATUREXML});
       std::cout << "\n\n" << mu.delta("loading featureXML") << std::endl;
 
       feat.updateRanges();
@@ -584,7 +559,7 @@ protected:
 
       SysInfo::MemUsage mu;
       // reading input
-      ConsensusXMLFile().load(in, cons);
+      FileHandler().loadConsensusFeatures(in, cons, {FileTypes::CONSENSUSXML});
       std::cout << "\n\n" << mu.delta("loading consensusXML") << std::endl;
 
       cons.updateRanges();
@@ -737,7 +712,7 @@ protected:
       SysInfo::MemUsage mu;
       if (in_type == FileTypes::MZIDENTML)
       {
-        MzIdentMLFile().load(in, id_data.proteins, id_data.peptides);
+        FileHandler().loadIdentifications(in, id_data.proteins, id_data.peptides, {FileTypes::MZIDENTML});
       }
       else
       {
@@ -866,7 +841,7 @@ protected:
     else if (in_type == FileTypes::TRANSFORMATIONXML)
     {
       TransformationDescription trafo;
-      TransformationXMLFile().load(in, trafo);
+      FileHandler().loadTransformations(in, trafo, true, {FileTypes::TRANSFORMATIONXML});
       os << "\nTransformation model: " << trafo.getModelType() << '\n';
       trafo.printSummary(os);
     }
@@ -881,12 +856,7 @@ protected:
     else // peaks
     {
       SysInfo::MemUsage mu;
-      if (!fh.loadExperiment(in, exp, in_type, log_type_, false, false))
-      {
-        writeLogError_("Unsupported or corrupt input file. Aborting!");
-        printUsage_();
-        return ILLEGAL_PARAMETERS;
-      }
+      fh.loadExperiment(in, exp, {in_type}, log_type_, false, false);
 
       // update range information and retrieve which MS levels were recorded
       exp.updateRanges();

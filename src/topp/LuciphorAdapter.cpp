@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Petra Gutenbrunner, Oliver Alka $
@@ -40,9 +14,7 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
@@ -58,9 +30,9 @@
 //-------------------------------------------------------------
 
 /**
-   @page TOPP_LuciphorAdapter LuciphorAdapter
+@page TOPP_LuciphorAdapter LuciphorAdapter
 
-   @brief Adapter for the LuciPHOr2: a site localisation tool of generic post-translational modifications from tandem mass spectrometry data.
+@brief Adapter for the LuciPHOr2: a site localisation tool of generic post-translational modifications from tandem mass spectrometry data.
 
 <CENTER>
     <table>
@@ -76,15 +48,15 @@
     </table>
 </CENTER>
 
-    LuciPHOr2 must be installed before this wrapper can be used. Please make sure that Java and LuciPHOr2 are working.@n
-    The following LuciPHOr2 version is required: luciphor2 (JAVA-based version of Luciphor) (1.2014Oct10). At the time of writing, it could be downloaded from http://luciphor2.sourceforge.net.
+LuciPHOr2 must be installed before this wrapper can be used. Please make sure that Java and LuciPHOr2 are working.@n
+The following LuciPHOr2 version is required: luciphor2 (JAVA-based version of Luciphor) (1.2014Oct10). At the time of writing, it could be downloaded from http://luciphor2.sourceforge.net.
 
-    Input spectra for LuciPHOr2 have to be in pepXML file format. The input mzML file must be the same as the one used to create the pepXML input file.
+Input spectra for LuciPHOr2 have to be in pepXML file format. The input mzML file must be the same as the one used to create the pepXML input file.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_LuciphorAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_LuciphorAdapter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_LuciphorAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_LuciphorAdapter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -507,19 +479,17 @@ protected:
     vector<ProteinIdentification> prot_ids;
 
     PeakMap exp;
-    MzMLFile file;
-    file.setLogType(log_type_);
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(2);
 
-    file.load(in, exp);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
     exp.sortSpectra(true);
 
     // convert idXML input to pepXML if necessary
     if (in_type == FileTypes::IDXML)
     {
-      IdXMLFile().load(id, prot_ids, pep_ids);
+      FileHandler().loadIdentifications(id, prot_ids, pep_ids, {FileTypes::IDXML});
       if (!pep_ids.empty())
       {
         IDFilter::keepNBestHits(pep_ids, 1); // LuciPHOR2 only calculates the best hit
@@ -614,7 +584,7 @@ protected:
     for (PeptideIdentification& pep : pep_ids)
     {
       Size scan_idx;
-      const String& ID_native_ids = pep.getMetaValue("spectrum_reference");
+      const String& ID_native_ids = pep.getSpectrumReference();
       try
       {
         scan_idx = lookup.findByNativeID(ID_native_ids);
@@ -676,7 +646,7 @@ protected:
     {
       p.getSearchParameters().setMetaValue(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM, getStringList_("target_modifications"));
     }
-    IdXMLFile().store(out, prot_ids, pep_out);
+    FileHandler().storeIdentifications(out, prot_ids, pep_out, {FileTypes::IDXML});
 
     return EXECUTION_OK;
   }

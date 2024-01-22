@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -41,9 +15,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 
 using namespace std;
@@ -65,73 +37,73 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_OpenSwathChromatogramExtractor OpenSwathChromatogramExtractor
+@page TOPP_OpenSwathChromatogramExtractor OpenSwathChromatogramExtractor
 
-  @brief Extracts chromatograms (XICs) from a file containing spectra.
+@brief Extracts chromatograms (XICs) from a file containing spectra.
 
-  <CENTER>
-      <table>
-          <tr>
-              <th ALIGN = "center"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=3> &rarr; OpenSwathChromatogramExtractor &rarr;</td>
-              <th ALIGN = "center"> potential successor tools </td>
-          </tr>
-          <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileFilter </td>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_OpenSwathAnalyzer </td>
-          </tr>
-          <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathRTNormalizer </td>
-          </tr>
-      </table>
-  </CENTER>
+<CENTER>
+    <table>
+        <tr>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=3> &rarr; OpenSwathChromatogramExtractor &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileFilter </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_OpenSwathAnalyzer </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathRTNormalizer </td>
+        </tr>
+    </table>
+</CENTER>
 
-  This module extracts ion traces (extracted ion chromatograms or XICs) from a
-  file containing spectra.  The masses at which the chromatograms should be
-  extracted are stored in a TraML file and the result is stored in a mzML file
-  holding chromatograms. This tool is designed to extract chromatograms from either
-  SWATH (data independent acquisition) data (see ref[1]) or from MS1 data. For
-  SWATH data it will extract the @a m/z found in the product ion section of the
-  TraML transitions, returning as many chromatograms as input transitions were
-  provided -- while for MS1 data it will extract at the precursor ion @a m/z.
+This module extracts ion traces (extracted ion chromatograms or XICs) from a
+file containing spectra.  The masses at which the chromatograms should be
+extracted are stored in a TraML file and the result is stored in a mzML file
+holding chromatograms. This tool is designed to extract chromatograms from either
+SWATH (data independent acquisition) data (see ref[1]) or from MS1 data. For
+SWATH data it will extract the @a m/z found in the product ion section of the
+TraML transitions, returning as many chromatograms as input transitions were
+provided -- while for MS1 data it will extract at the precursor ion @a m/z.
 
-  The input assay library or transition list is provided via the @p -tr flag
-  and needs to be in TraML format.  More information about the input filetype
-  can be found in @ref OpenMS::TraMLFile "TraML".
+The input assay library or transition list is provided via the @p -tr flag
+and needs to be in TraML format.  More information about the input filetype
+can be found in @ref OpenMS::TraMLFile "TraML".
 
-  The input MS file (MS1 file or DIA / SWATH file) is provided through the @p
-  -in flag. If you are extracting MS1 data, use the @p -extract_MS1 flag,
-  otherwise use the @p -is_swath flag. If you are extracting MS1 XIC only, make
-  sure you do not have any MS2 spectra in your input, filter them out using the
-  @ref TOPP_FileFilter. 
+The input MS file (MS1 file or DIA / SWATH file) is provided through the @p
+-in flag. If you are extracting MS1 data, use the @p -extract_MS1 flag,
+otherwise use the @p -is_swath flag. If you are extracting MS1 XIC only, make
+sure you do not have any MS2 spectra in your input, filter them out using the
+@ref TOPP_FileFilter. 
 
-  For SWATH data, the @p -is_swath flag which will check the precursor
-  isolation window of the first scan and assume all scans in that file were
-  recorded with this precursor window (thus making it necessary to provide one
-  input file per SWATH window). The module will then only extract transitions
-  whose precursors fall into the corresponding isolation window.
+For SWATH data, the @p -is_swath flag which will check the precursor
+isolation window of the first scan and assume all scans in that file were
+recorded with this precursor window (thus making it necessary to provide one
+input file per SWATH window). The module will then only extract transitions
+whose precursors fall into the corresponding isolation window.
 
-  By default, the whole RT range is extracted, however the @p -rt_window
-  parameter allows extraction of a subset of the RT range. In case the assay
-  library RT values are not absolute retention times but normalized ones, an
-  optional transformation function can be provided with @p -rt_norm parameter,
-  mapping the normalized RT space to the experimental RT space. See @ref
-  TOPP_OpenSwathRTNormalizer for further information.
+By default, the whole RT range is extracted, however the @p -rt_window
+parameter allows extraction of a subset of the RT range. In case the assay
+library RT values are not absolute retention times but normalized ones, an
+optional transformation function can be provided with @p -rt_norm parameter,
+mapping the normalized RT space to the experimental RT space. See @ref
+TOPP_OpenSwathRTNormalizer for further information.
 
-  For the extraction method, two convolution functions are available: top-hat
-  and bartlett. While top-hat will just sum up the signal within a quadratic
-  window, bartlett will weigh the signal in the center of the window more than
-  the signal on the edge.
+For the extraction method, two convolution functions are available: top-hat
+and bartlett. While top-hat will just sum up the signal within a quadratic
+window, bartlett will weigh the signal in the center of the window more than
+the signal on the edge.
 
-  [1] Gillet LC, Navarro P, Tate S, Rost H, Selevsek N, Reiter L, Bonner R, Aebersold R. \n
-  <a href="https://doi.org/10.1074/mcp.O111.016717"> Targeted data extraction of the MS/MS spectra generated by data-independent
-  acquisition: a new concept for consistent and accurate proteome analysis. </a> \n
-  Mol Cell Proteomics. 2012 Jun;11(6):O111.016717. 
+[1] Gillet LC, Navarro P, Tate S, Rost H, Selevsek N, Reiter L, Bonner R, Aebersold R. \n
+<a href="https://doi.org/10.1074/mcp.O111.016717"> Targeted data extraction of the MS/MS spectra generated by data-independent
+acquisition: a new concept for consistent and accurate proteome analysis. </a> \n
+Mol Cell Proteomics. 2012 Jun;11(6):O111.016717. 
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_OpenSwathChromatogramExtractor.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_OpenSwathChromatogramExtractor.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_OpenSwathChromatogramExtractor.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_OpenSwathChromatogramExtractor.html
 
 */
 
@@ -222,11 +194,9 @@ protected:
     TransformationDescription trafo;
     if (!trafo_in.empty()) 
     {
-      TransformationXMLFile trafoxml;
-
       String model_type = getStringOption_("model:type");
       Param model_params = getParam_().copy("model:", true);
-      trafoxml.load(trafo_in, trafo);
+      FileHandler().loadTransformations(trafo_in, trafo, true, {FileTypes::TRANSFORMATIONXML});
       trafo.fitModel(model_type, model_params);
     }
     TransformationDescription trafo_inverse = trafo;
@@ -236,11 +206,10 @@ protected:
 
     MapType out_exp;
     std::vector< OpenMS::MSChromatogram > chromatograms;
-    TraMLFile traml;
     OpenMS::TargetedExperiment targeted_exp;
 
     std::cout << "Loading TraML file" << std::endl;
-    traml.load(tr_file, targeted_exp);
+    FileHandler().loadTransitions(tr_file, targeted_exp, {FileTypes::TRAML});
     std::cout << "Loaded TraML file" << std::endl;
 
     // Do parallelization over the different input files
@@ -249,14 +218,10 @@ protected:
     for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
     {
       boost::shared_ptr<PeakMap > exp(new PeakMap);
-      MzMLFile f;
-      // Logging and output to the console
-      // IF_MASTERTHREAD f.setLogType(log_type_); 
-
       // Find the transitions to extract and extract them
       MapType tmp_out;
       OpenMS::TargetedExperiment transition_exp_used;
-      f.load(file_list[i], *exp);
+      FileHandler().loadExperiment(file_list[i], *exp, {FileTypes::MZML});
       if (exp->empty())
       { 
         continue; // if empty, go on
@@ -332,10 +297,8 @@ protected:
     
     // store the output
     out_exp.setChromatograms(chromatograms);
-    MzMLFile mzf;
-    mzf.setLogType(log_type_); 
     addDataProcessing_(out_exp, getProcessingInfo_(DataProcessing::SMOOTHING));
-    mzf.store(out, out_exp);
+    FileHandler().storeExperiment(out, out_exp, {FileTypes::MZML}, log_type_);
 
     return EXECUTION_OK;
   }

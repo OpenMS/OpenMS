@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -35,7 +9,6 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <algorithm>
@@ -48,34 +21,34 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_SpectraMerger SpectraMerger
+@page TOPP_SpectraMerger SpectraMerger
 
-  @brief Allows to add up several spectra.
- 
-  <center>
-  <table>
-  <tr>
-  <th ALIGN = "center"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> &rarr; SpectraMerger &rarr;</td>
-  <th ALIGN = "center"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
-  </tr>
-  </table>
-  </center>
- 
-  @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
+@brief Allows to add up several spectra.
 
-  This tool can add several consecutive scans, increasing S/N ratio (for MS1 and above) or merge scans which stem from similar precursors (for MS2 and above).
+<center>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=2> &rarr; SpectraMerger &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
+</tr>
+</table>
+</center>
 
-  In any case, the number of scans will be reduced.
+@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_SpectraMerger.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_SpectraMerger.html
+This tool can add several consecutive scans, increasing S/N ratio (for MS1 and above) or merge scans which stem from similar precursors (for MS2 and above).
+
+In any case, the number of scans will be reduced.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_SpectraMerger.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_SpectraMerger.html
 */
 
 // We do not want this class to show up in the docu:
@@ -127,8 +100,9 @@ protected:
     FileTypes::Type in_type = fh.getType(in);
 
     PeakMap exp;
-    fh.loadExperiment(in, exp, in_type, log_type_);
+    fh.loadExperiment(in, exp, {in_type}, log_type_);
     exp.sortSpectra();
+    exp.updateRanges();
 
     auto levels = exp.getMSLevels();
     if (levels.empty()) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, levels.size());
@@ -185,7 +159,7 @@ protected:
     //-------------------------------------------------------------
 
 
-    fh.storeExperiment(out, exp, log_type_);
+    fh.storeExperiment(out, exp, {}, log_type_);
 
     return EXECUTION_OK;
   }

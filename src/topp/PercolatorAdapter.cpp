@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
@@ -42,9 +16,7 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -66,32 +38,32 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_PercolatorAdapter PercolatorAdapter
+@page TOPP_PercolatorAdapter PercolatorAdapter
 
-  @brief PercolatorAdapter facilitates the input to, the call of and output integration of Percolator.
-  Percolator (http://percolator.ms/) is a tool to apply semi-supervised learning for peptide
-  identification from shotgun proteomics datasets.
+@brief PercolatorAdapter facilitates the input to, the call of and output integration of Percolator.
+Percolator (http://percolator.ms/) is a tool to apply semi-supervised learning for peptide
+identification from shotgun proteomics datasets.
 
-  @experimental This tool is work in progress and usage and input requirements might change.
+@experimental This tool is work in progress and usage and input requirements might change.
 
-  <center>
-    <table>
-        <tr>
-            <th ALIGN = "center"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> &rarr; PercolatorAdapter &rarr;</td>
-            <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_PSMFeatureExtractor </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
-        </tr>
-    </table>
-  </center>
-  <p>Percolator is search engine sensitive, i.e. it's input features vary,
+<center>
+  <table>
+      <tr>
+          <th ALIGN = "center"> pot. predecessor tools </td>
+          <td VALIGN="middle" ROWSPAN=2> &rarr; PercolatorAdapter &rarr;</td>
+          <th ALIGN = "center"> pot. successor tools </td>
+      </tr>
+      <tr>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PSMFeatureExtractor </td>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
+      </tr>
+  </table>
+</center>
+<p>Percolator is search engine sensitive, i.e. it's input features vary,
 depending on the search engine. Must be prepared beforehand. If you do not want
 to use the specific features, use the generic_feature_set flag. Will incorporate
 the score attribute of a PSM, so be sure, the score you want is set as main
-score with @ref UTILS_IDScoreSwitcher . Be aware, that you might very well
+score with @ref TOPP_IDScoreSwitcher . Be aware, that you might very well
 experience a performance loss compared to the search engine specific features.
 You can also perform protein inference with percolator when you activate the protein fdr parameter.
 Additionally you need to set the enzyme setting.
@@ -104,12 +76,12 @@ Note: By default, a minimum of 3 threads is used (default of percolator) even if
 is set to e.g. 1 for backwards compatibility reasons. You can still force the usage of less than 3 threads
 by setting the force flag.     
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_PercolatorAdapter.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_PercolatorAdapter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_PercolatorAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_PercolatorAdapter.html
 
-  Percolator is written by Lukas Käll (http://per-colator.com/ Copyright Lukas Käll <lukas.kall@scilifelab.se>)
+Percolator is written by Lukas Käll (http://per-colator.com/ Copyright Lukas Käll <lukas.kall@scilifelab.se>)
 */
 
 // We do not want this class to show up in the docu:
@@ -442,12 +414,12 @@ protected:
       OPENMS_LOG_INFO << "Loading input file: " << in << endl;
       if (in_type == FileTypes::IDXML)
       {
-        IdXMLFile().load(in, protein_ids, peptide_ids);
+        FileHandler().loadIdentifications(in, protein_ids, peptide_ids, {FileTypes::IDXML});
       }
       else if (in_type == FileTypes::MZIDENTML)
       {
         OPENMS_LOG_WARN << "Converting from mzid: possible loss of information depending on target format." << endl;
-        MzIdentMLFile().load(in, protein_ids, peptide_ids);
+        FileHandler().loadIdentifications(in, protein_ids, peptide_ids, {FileTypes::IDXML});
       }
       //else catched by TOPPBase:registerInput being mandatory mzid or idxml
       if (protein_ids.empty())
@@ -479,7 +451,7 @@ protected:
         {
           String scan_identifier = PercolatorInfile::getScanIdentifier(pep_id, index);
           scan_identifier = "file=" + file_idx + "," + scan_identifier;
-          pep_id.setMetaValue("spectrum_reference", scan_identifier);
+          pep_id.setSpectrumReference( scan_identifier);
         }
         for (PeptideHit& hit : pep_id.getHits())
         {
@@ -1033,6 +1005,7 @@ protected:
       size_t index = 0;
       for (PeptideIdentification& pep_id : all_peptide_ids)
       {
+        String old_score_type{pep_id.getScoreType()}; // copy because we modify the score type below
         index++;
         pep_id.setIdentifier(run_identifier);
         if (scoreType == "pep")
@@ -1064,6 +1037,7 @@ protected:
           map<String, PercolatorResult>::iterator pr = pep_map.find(psm_identifier);
           if (pr != pep_map.end())
           {
+            hit.setMetaValue(old_score_type, hit.getScore());  // old search engine "main" score as metavalue
             hit.setMetaValue("MS:1001492", pr->second.score);  // svm score
             hit.setMetaValue("MS:1001491", pr->second.qvalue);  // percolator q value
             hit.setMetaValue("MS:1001493", pr->second.posterior_error_prob);  // percolator pep
@@ -1202,16 +1176,8 @@ protected:
         
         prot_id_run.setSearchParameters(search_parameters);
       }
-      
       // Storing the PeptideHits with calculated q-value, pep and svm score
-      if (out_type == FileTypes::MZIDENTML)
-      {
-        MzIdentMLFile().store(out, all_protein_ids, all_peptide_ids);
-      }      
-      if (out_type == FileTypes::IDXML)
-      {
-        IdXMLFile().store(out, all_protein_ids, all_peptide_ids);
-      }
+      FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
     }
     else
     {

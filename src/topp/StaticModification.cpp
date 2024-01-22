@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -37,7 +11,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 
 #include <vector>
@@ -51,28 +25,28 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_StaticModification StaticModification
+@page TOPP_StaticModification StaticModification
 
-  @brief Applies a set of modifications to all PeptideIDs in an idXML file.
+@brief Applies a set of modifications to all PeptideIDs in an idXML file.
 
-  Given peptide sequences from an idXML file, this TOPP tool applies a set of static (i.e. unconditional)
-  modifications to all AA's of a peptide sequences which have a matching origin (i.e. amino acid), and to the C/N-term.
-  The modifications supported are the usual ones from UniMod.
+Given peptide sequences from an idXML file, this TOPP tool applies a set of static (i.e. unconditional)
+modifications to all AA's of a peptide sequences which have a matching origin (i.e. amino acid), and to the C/N-term.
+The modifications supported are the usual ones from UniMod.
 
-  The user can provide modification(s) explicitly, e.g. <em>Carbamidomethyl (C)</em>, or use predefined sets.
+The user can provide modification(s) explicitly, e.g. <em>Carbamidomethyl (C)</em>, or use predefined sets.
 
-  Predefined sets:
-    - N15 (a.k.a. 15N) -- assumes all AAs contain heavy nitrogen (20 modifications in total)
+Predefined sets:
+  - N15 (a.k.a. 15N) -- assumes all AAs contain heavy nitrogen (20 modifications in total)
 
-  Explicit modifications and predefined sets can be combined.
-  Modifications already present on an AA/Terminus of the input will not be applied again.
-  If more than one modification is to be applied to an AA/Terminus, annotation using single name is not sufficient anymore and the summed delta-mass
-  has to be used. Modifications are not applied to AAs which already contain an unspecified delta-mass in the input.
+Explicit modifications and predefined sets can be combined.
+Modifications already present on an AA/Terminus of the input will not be applied again.
+If more than one modification is to be applied to an AA/Terminus, annotation using single name is not sufficient anymore and the summed delta-mass
+has to be used. Modifications are not applied to AAs which already contain an unspecified delta-mass in the input.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_StaticModification.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_StaticModification.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_StaticModification.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_StaticModification.html
 
 */
 
@@ -182,7 +156,7 @@ protected:
     // load data
     std::vector<ProteinIdentification> prot_ids;
     std::vector<PeptideIdentification> pep_ids;
-    IdXMLFile().load(in, prot_ids, pep_ids);
+    FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
     
     // apply mod to all PeptideHits
     for (auto& id : pep_ids)
@@ -223,7 +197,7 @@ protected:
 
 
 
-    IdXMLFile().store(out, prot_ids, pep_ids);
+    FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
 
     return EXECUTION_OK;
   }

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -33,8 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #ifdef TESTING
 #define DEBUG_MASSTRACES
@@ -46,35 +19,35 @@
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_ClusterMassTracesByPrecursor ClusterMassTracesByPrecursor
+@page TOPP_ClusterMassTracesByPrecursor ClusterMassTracesByPrecursor
 
-  @brief Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps.
+@brief Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps.
 
-  This algorithm will try to correlate the masstraces to find co-eluting traces and cluster them.
+This algorithm will try to correlate the masstraces to find co-eluting traces and cluster them.
 
-  This program looks at mass traces in a precursor MS1 map and tries to
-  correlate them with features found in the corresponding MS2 map based on
-  their elution profile. It uses
+This program looks at mass traces in a precursor MS1 map and tries to
+correlate them with features found in the corresponding MS2 map based on
+their elution profile. It uses
 
-   - the mass traces from the MS1 in consensusXML format [note this is an unintended use of the consesusXML format to also store intensities]
-   - the mass traces from the MS2 (SWATH map)
+ - the mass traces from the MS1 in consensusXML format [note this is an unintended use of the consesusXML format to also store intensities]
+ - the mass traces from the MS2 (SWATH map)
+
+ It does a separate correlation analysis on the MS1 and the MS2 map,
+ both produces a set of pseudo spectra.
+ In a second (optional) step, the MS2 pseudo spectra are correlated with
+ the MS1 traces and the most likely precursor is assigned to the pseudo
+ spectrum.
   
-   It does a separate correlation analysis on the MS1 and the MS2 map,
-   both produces a set of pseudo spectra.
-   In a second (optional) step, the MS2 pseudo spectra are correlated with
-   the MS1 traces and the most likely precursor is assigned to the pseudo
-   spectrum.
-    
-  It is based on the following papers:
-  ETISEQ -- an algorithm for automated elution time ion sequencing of concurrently fragmented peptides for mass spectrometry-based proteomics
-    BMC Bioinformatics 2009, 10:244 doi:10.1186/1471-2105-10-244 ; http://www.biomedcentral.com/1471-2105/10/244
-    they use FFT to correlate and then use lag of at least 1 scan and pearson correlation of 0.7 to assign precursors to product ions
-    If one fragment matches to multiple precursors, it is assigned to all of them. If it doesn't match any, it is assigned to all
-  
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_ClusterMassTracesByPrecursor.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_ClusterMassTracesByPrecursor.html
+It is based on the following papers:
+ETISEQ -- an algorithm for automated elution time ion sequencing of concurrently fragmented peptides for mass spectrometry-based proteomics
+  BMC Bioinformatics 2009, 10:244 doi:10.1186/1471-2105-10-244 ; http://www.biomedcentral.com/1471-2105/10/244
+  they use FFT to correlate and then use lag of at least 1 scan and pearson correlation of 0.7 to assign precursors to product ions
+  If one fragment matches to multiple precursors, it is assigned to all of them. If it doesn't match any, it is assigned to all
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_ClusterMassTracesByPrecursor.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_ClusterMassTracesByPrecursor.html
 
 */
 
@@ -142,12 +115,10 @@ class TOPPCorrelateMasstraces
     // Load input:
     // - MS1 feature map containing the MS1 mass traces
     // - MS2 feature map containing the MS2 (SWATH) mass traces
-    ConsensusXMLFile consensus_f;
-    consensus_f.setLogType(log_type_);
     ConsensusMap MS1_feature_map;
     ConsensusMap MS2_feature_map;
-    consensus_f.load(ms1, MS1_feature_map);
-    consensus_f.load(in_swath, MS2_feature_map);
+    FileHandler().loadConsensusFeatures(ms1, MS1_feature_map, {FileTypes::CONSENSUSXML}, log_type_);
+    FileHandler().loadConsensusFeatures(in_swath, MS2_feature_map, {FileTypes::CONSENSUSXML}, log_type_);
     cout << "Loaded consensus maps" << endl;
 
 #ifdef DEBUG_MASSTRACES
@@ -159,11 +130,10 @@ class TOPPCorrelateMasstraces
     }
 #endif
 
-    MzMLFile f;
     MSExperiment pseudo_spectra_ms1centric;
     MS1CentricClustering(MS1_feature_map, MS2_feature_map, 
         swath_lower, swath_upper, pseudo_spectra_ms1centric);
-    f.store(out,pseudo_spectra_ms1centric);
+    FileHandler().storeExperiment(out,pseudo_spectra_ms1centric, {FileTypes::MZML}, log_type_);
 
     return EXECUTION_OK;
   }

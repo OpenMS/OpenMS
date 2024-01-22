@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
@@ -45,9 +19,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -61,53 +33,53 @@ using namespace OpenMS;
 //Doxygen docu
 //----------------------------------------------------------
 /**
-  @page UTILS_AssayGeneratorMetabo AssayGeneratorMetabo
+@page TOPP_AssayGeneratorMetabo AssayGeneratorMetabo
 
-  @brief Generates an assay library using DDA data (Metabolomics)
+@brief Generates an assay library using DDA data (Metabolomics)
 
-    <CENTER>
-      <table>
-          <tr>
-              <th ALIGN = "center"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=2> &rarr; AssayGeneratorMetabo &rarr;</td>
-              <th ALIGN = "center"> potential successor tools </td>
-          </tr>
-          <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo </td>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> OpenSWATH pipeline </td>
-          </tr>
-          <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_AccurateMassSearch </td>
-          </tr>
-      </table>
-  </CENTER>
+  <CENTER>
+    <table>
+        <tr>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; AssayGeneratorMetabo &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> OpenSWATH pipeline </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_AccurateMassSearch </td>
+        </tr>
+    </table>
+</CENTER>
 
-  Build an assay library from DDA data (MS and MS/MS) (mzML).
-  Please provide a list of features found in the data (featureXML).
+Build an assay library from DDA data (MS and MS/MS) (mzML).
+Please provide a list of features found in the data (featureXML).
 
-  Features can be detected using the FeatureFinderMetabo (FFM) and identifcation information
-  can be added using the AccurateMassSearch feautreXML output.
+Features can be detected using the FeatureFinderMetabo (FFM) and identifcation information
+can be added using the AccurateMassSearch feautreXML output.
 
-  If the FFM featureXML is provided the "use_known_unknowns" flag is used automatically.
+If the FFM featureXML is provided the "use_known_unknowns" flag is used automatically.
 
-  Internal procedure AssayGeneratorMetabo: \n
-  1. Input mzML and featureXML \n
-  2. Reannotate precursor mz and intensity \n
-  3. Filter feature by number of masstraces \n
-  4. Assign precursors to specific feature (FeatureMapping) \n
-  5. Extract feature meta information (if possible) \n
-  6. Find MS2 spectrum with highest intensity precursor for one feature \n
-  7. Dependent on the method fragment annotation via SIRIUS is used for transition
-  extraction. \n
-  If not fragment annotation is performed either the MS2 with the highest intensity precursor or a consensus spectrum
-   can be used for the transition extractuib. \n
-  8. Calculate thresholds (maximum and minimum intensity for transition peak) \n
-  9. Extract and write transitions (tsv, traml) \n
+Internal procedure AssayGeneratorMetabo: \n
+1. Input mzML and featureXML \n
+2. Reannotate precursor mz and intensity \n
+3. Filter feature by number of masstraces \n
+4. Assign precursors to specific feature (FeatureMapping) \n
+5. Extract feature meta information (if possible) \n
+6. Find MS2 spectrum with highest intensity precursor for one feature \n
+7. Dependent on the method fragment annotation via SIRIUS is used for transition
+extraction. \n
+If not fragment annotation is performed either the MS2 with the highest intensity precursor or a consensus spectrum
+ can be used for the transition extractuib. \n
+8. Calculate thresholds (maximum and minimum intensity for transition peak) \n
+9. Extract and write transitions (tsv, traml) \n
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_SiriusAdapter.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_SiriusAdapter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_SiriusAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_SiriusAdapter.html
  */
 
 /// @cond TOPPCLASSES
@@ -355,14 +327,12 @@ protected:
     for (unsigned file_counter = 0; file_counter < in.size(); file_counter++)
     {
       // load mzML
-      MzMLFile mzml;
       PeakMap spectra;
-      mzml.load(in[file_counter], spectra);
+      FileHandler().loadExperiment(in[file_counter], spectra, {FileTypes::MZML});
 
       // load featurexml
-      FeatureXMLFile fxml;
       FeatureMap feature_map;
-      fxml.load(id[file_counter], feature_map);
+      FileHandler().loadFeatures(id[file_counter], feature_map, {FileTypes::FEATUREXML});
 
       // check if featureXML corresponds to mzML
       StringList featurexml_primary_path;
@@ -692,8 +662,7 @@ protected:
       // validate
       OpenMS::TransitionTSVFile::validateTargetedExperiment(t_exp);
       // write traML
-      TraMLFile traml_out;
-      traml_out.store(out, t_exp);
+      FileHandler().storeTransitions(out, t_exp, {FileTypes::TRAML});
     }
     else if (extension == "pqp")
     {

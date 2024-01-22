@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -34,7 +8,6 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QFile>
@@ -49,24 +22,24 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_MzMLSplitter MzMLSplitter
+@page TOPP_MzMLSplitter MzMLSplitter
 
-    @brief Splits an mzML file into multiple parts
+@brief Splits an mzML file into multiple parts
 
-    This utility will split an input mzML file into @e N parts, with an approximately equal number of spectra and chromatograms in each part.
-    @e N is set by the parameter @p parts; optionally only spectra (parameter @p no_chrom) or only chromatograms (parameter @p no_spec) can be transferred to the output.
+This utility will split an input mzML file into @e N parts, with an approximately equal number of spectra and chromatograms in each part.
+@e N is set by the parameter @p parts; optionally only spectra (parameter @p no_chrom) or only chromatograms (parameter @p no_spec) can be transferred to the output.
 
-    Alternatively to setting the number of parts directly, a target maximum file size for the parts can be specified (parameters @p size and @p unit).
-    The number of parts is then calculated by dividing the original file size by the target and rounding up.
-    Note that the resulting parts may actually be bigger than the target size (due to meta data that is included in every part) or
-    that more parts than necessary may be produced (if spectra or chromatograms are removed via @p no_spec/@p no_chrom).
+Alternatively to setting the number of parts directly, a target maximum file size for the parts can be specified (parameters @p size and @p unit).
+The number of parts is then calculated by dividing the original file size by the target and rounding up.
+Note that the resulting parts may actually be bigger than the target size (due to meta data that is included in every part) or
+that more parts than necessary may be produced (if spectra or chromatograms are removed via @p no_spec/@p no_chrom).
 
-    This tool cannot be used as part of a TOPPAS workflow, because the number of output files is variable.
+This tool cannot be used as part of a TOPPAS workflow, because the number of output files is variable.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_MzMLSplitter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_MzMLSplitter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MzMLSplitter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MzMLSplitter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -139,7 +112,7 @@ protected:
     writeLogInfo_("Splitting file into " + String(parts) + " parts...");
 
     PeakMap experiment;
-    MzMLFile().load(in, experiment);
+    FileHandler().loadExperiment(in, experiment, {FileTypes::MZML});
 
     vector<MSSpectrum> spectra;
     vector<MSChromatogram> chromatograms;
@@ -198,7 +171,7 @@ protected:
       chrom_start += n_chrom;
 
       writeLogInfo_("Part " + String(counter) + ": " + String(n_spec) + " spectra, " + String(n_chrom) + " chromatograms");
-      MzMLFile().store(out_name.str(), part);
+      FileHandler().storeExperiment(out_name.str(), part, {FileTypes::MZML});
     }
 
     return EXECUTION_OK;

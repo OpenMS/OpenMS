@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
@@ -42,7 +16,7 @@
 #include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QDebug>
@@ -58,39 +32,39 @@ using namespace std;
 // Doxygen docu
 //----------------------------------------------------------
 /**
-  @page UTILS_SiriusAdapter SiriusAdapter
+@page TOPP_SiriusAdapter SiriusAdapter
 
-  @brief De novo metabolite identification.
+@brief De novo metabolite identification.
 
-  CSI:FingerID (Compound Structure Identification: FingerID) is a method for searching a tandem mass spectrum of a small molecule (metabolite) in a database of molecular structures.
+CSI:FingerID (Compound Structure Identification: FingerID) is a method for searching a tandem mass spectrum of a small molecule (metabolite) in a database of molecular structures.
 
-  To use this feature, the Sirius command line tool as well as a java installation is needed.
+To use this feature, the Sirius command line tool as well as a java installation is needed.
 
-  Sirius can be found on https://bio.informatik.uni-jena.de/software/sirius/ 
+Sirius can be found on https://bio.informatik.uni-jena.de/software/sirius/ 
 
-  Please use Sirius Version 4.0.1
+Please use Sirius Version 4.0.1
 
-  If you want to use the software with the Gurobi solver or CPLEX instead of GLPK, please follow the instructions in the sirius manual.
+If you want to use the software with the Gurobi solver or CPLEX instead of GLPK, please follow the instructions in the sirius manual.
 
-  Internal procedure in SiriusAdapter \n
-  1. Input mzML (and optional featureXML) \n
-  2. Preprocessing (see below)\n
-  3. Parsed by SiriusMSConverter into (sirius internal) .ms format \n
-  4. Submission of .ms and additional parameters to wrapped SIRIUS CLI \n
-  5. Sirius output saved in internal temporary folder structure \n
-  6. Sirius output is parsed (SiriusMzTabWriter/CsiFingerIDMzTabWriter) \n
-  7. Merge corresponding output in one mzTab (out_sirius/out_fingerid) \n
+Internal procedure in SiriusAdapter \n
+1. Input mzML (and optional featureXML) \n
+2. Preprocessing (see below)\n
+3. Parsed by SiriusMSConverter into (sirius internal) .ms format \n
+4. Submission of .ms and additional parameters to wrapped SIRIUS CLI \n
+5. Sirius output saved in internal temporary folder structure \n
+6. Sirius output is parsed (SiriusMzTabWriter/CsiFingerIDMzTabWriter) \n
+7. Merge corresponding output in one mzTab (out_sirius/out_fingerid) \n
 
-  Preprocessing (featureXML): 
-  By providing a featureXML, the feature information can be used for feature mapping.
-  Sirius will then process the internally merged MS2 spectra allocated to one feature (instead of all available MS2).
-  To reduce the feature space even further a masstrace filter can be set. 
-  Additional adduct information can be provided using a featureXML from the MetaboliteAdductDecharger or AccurateMassSearch.
+Preprocessing (featureXML): 
+By providing a featureXML, the feature information can be used for feature mapping.
+Sirius will then process the internally merged MS2 spectra allocated to one feature (instead of all available MS2).
+To reduce the feature space even further a masstrace filter can be set. 
+Additional adduct information can be provided using a featureXML from the MetaboliteAdductDecharger or AccurateMassSearch.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_SiriusAdapter.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_SiriusAdapter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_SiriusAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_SiriusAdapter.html
  */
 
 /// @cond TOPPCLASSES
@@ -100,7 +74,7 @@ class TOPPSiriusAdapter :
 {
  public:
   TOPPSiriusAdapter() :
-    TOPPBase("SiriusAdapter", "Tool for metabolite identification using single and tandem mass spectrometry", false,
+    TOPPBase("SiriusAdapter", "Metabolite identification using single and tandem mass spectrometry", false,
       {
         {"Kai Duehrkop and Sebastian Boecker",
          "Fragmentation trees reloaded",
@@ -194,9 +168,7 @@ protected:
     // Calculations
     //-------------------------------------------------------------
     MSExperiment spectra;
-    MzMLFile f;
-    f.setLogType(log_type_);
-    f.load(in, spectra);
+    FileHandler().loadExperiment(in, spectra, {FileTypes::MZML}, log_type_);
 
     // make temporary files
     SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects sirius_tmp(debug_level_);
@@ -269,7 +241,7 @@ protected:
       // use 0.0 to not have a score_threshold
       annotations.setSpectra(SiriusFragmentAnnotation::extractSiriusAnnotationsTgtOnly(subdirs, score_threshold, use_exact_mass, false));
       // TODO check if we have duplicate native IDs without resolution and if this is a problem
-      MzMLFile().store(out_ann_spectra, annotations);
+      FileHandler().storeExperiment(out_ann_spectra, annotations, {FileTypes::MZML}, log_type_);
 
       // TODO remove the following or use it to add more info to the spectra
       // combine compound information (SiriusMSFile) with annotated spectra (SiriusFragmentAnnotation)

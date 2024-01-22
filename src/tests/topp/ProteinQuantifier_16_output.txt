@@ -1,0 +1,5 @@
+# Protein abundances computed from file '460.consensusXML'
+# Parameters (relevant only): method=top, top:N=3, top:aggregate=median, top:include_all=true
+"protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance_1"	"abundance_2"	"abundance_3"	"abundance_4"	"abundance_5"	"abundance_6"	"abundance_7"	"abundance_8"	"abundance_9"	"abundance_10"	"abundance_11"	"abundance_12"
+"sp|PROTEIN1_HUMAN"	1	9.836065573770492e-03	1	2.0	4.0	0.0	0.0	1.0	0.0	3.0	5.0	6.0	0.0	0.0	0.0
+"sp|PROTEIN2_HUMAN"	1	9.836065573770492e-03	1	200.0	400.0	0.0	0.0	100.0	0.0	300.0	500.0	600.0	0.0	0.0	0.0

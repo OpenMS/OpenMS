@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -33,8 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 
@@ -43,30 +16,31 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_ClusterMassTraces ClusterMassTraces
 
-  @brief Cluster mass traces occurring in the same map together
+@page TOPP_ClusterMassTraces ClusterMassTraces
 
-  Cluster mass traces together found in a mass spectrometric map (MS1 or MS2).
-  Input is a consensus map containing individual mass traces, the output may be
-  spectra containing all clustered features.
+@brief Cluster mass traces occurring in the same map together
 
-  Mass traces are clustered independent of precursor traces in another map
-  (this is the more simple approach)  and pseudo spectra are created without
-  any precursors assigned. This is useful for 
+Cluster mass traces together found in a mass spectrometric map (MS1 or MS2).
+Input is a consensus map containing individual mass traces, the output may be
+spectra containing all clustered features.
 
-   - clustering of features in an MS1 map (isotope traces, charge states etc)
-   - clustering of features in an SWATH map (fragment ions from the same precursor, isotope traces, charge states etc)
+Mass traces are clustered independent of precursor traces in another map
+(this is the more simple approach)  and pseudo spectra are created without
+any precursors assigned. This is useful for 
 
-  On the clustered fragments in an MS2 map, one can then (optionally) do 
+ - clustering of features in an MS1 map (isotope traces, charge states etc)
+ - clustering of features in an SWATH map (fragment ions from the same precursor, isotope traces, charge states etc)
 
-   - de novo searches 
-   - calculate the most likely precursor(s) and DB-search
+On the clustered fragments in an MS2 map, one can then (optionally) do 
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_ClusterMassTraces.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_ClusterMassTraces.html
+ - de novo searches 
+ - calculate the most likely precursor(s) and DB-search
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_ClusterMassTraces.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_ClusterMassTraces.html
 
 */
 
@@ -128,10 +102,8 @@ class TOPPClusterMassTraces
     double add_precursor = getDoubleOption_("add_precursor");
     // double max_intensity_cutoff_ = getDoubleOption_("max_intensity_cutoff");
 
-    ConsensusXMLFile consensus_f;
-    consensus_f.setLogType(log_type_);
     ConsensusMap masstrace_map;
-    consensus_f.load(infile, masstrace_map);
+    FileHandler().loadConsensusFeatures(infile, masstrace_map, {FileTypes::CONSENSUSXML}, log_type_);
 
     MSExperiment pseudo_spectra;
 
@@ -166,7 +138,7 @@ class TOPPClusterMassTraces
         pseudo_spectra[i].setPrecursors(preclist);
       }
     }
-    MzMLFile().store(out,pseudo_spectra);
+    FileHandler().storeExperiment(out,pseudo_spectra, {FileTypes::MZML});
 
     return EXECUTION_OK;
   }

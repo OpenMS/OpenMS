@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -65,7 +39,13 @@ namespace OpenMS
   public:
     /// C'tor: initialize with empty range
     RangeBase() = default;
-    
+
+    /// Cutom C'tor which sets the range to a singular point
+    RangeBase(const double single) :
+      min_(single), max_(single)
+    {
+    }
+
     /// Custom C'tor to set min and max
     /// @throws Exception::InvalidRange if min > max
     RangeBase(const double min, const double max) :
@@ -107,7 +87,7 @@ namespace OpenMS
     /// is the range empty (i.e. min > max)?
     bool isEmpty() const
     {
-      return min_ > max_; 
+      return min_ > max_;
     }
 
     /// is @p value within [min, max]?
@@ -123,11 +103,11 @@ namespace OpenMS
     }
 
     /** @name Accessors for min and max
-      
+
         We use accessors, to keep range consistent (i.e. ensure that min <= max)
     */
-    ///@{  
-    
+    ///@{
+
     /// sets the minimum (and the maximum, if uninitialized)
     void setMin(const double min)
     {
@@ -163,7 +143,7 @@ namespace OpenMS
       min_ = std::min(min_, other.min_);
       max_ = std::max(max_, other.max_);
     }
-    
+
     /// extend the range such that it includes the given @p value
     void extend(const double value)
     {
@@ -231,16 +211,14 @@ namespace OpenMS
           shift(sandbox.max_ - max_);
         }
       }
-
     }
-
 
     /**
        @brief Scale the range of the dimension by a @p factor. A factor > 1 increases the range; factor < 1 decreases it.
 
        Let d = max - min; then min = min - d*(factor-1)/2,
        i.e. scale(1.5) extends the range by 25% on each side.
- 
+
        Scaling an empty range will not have any effect.
 
        @param factor The multiplier to increase the range by
@@ -300,7 +278,7 @@ namespace OpenMS
     double min_ = std::numeric_limits<double>::max();
     double max_ = std::numeric_limits<double>::lowest();
   };
-  
+
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& out, const RangeBase& b);
 
   struct OPENMS_DLLAPI RangeRT : public RangeBase {
@@ -311,7 +289,7 @@ namespace OpenMS
     using RangeBase::RangeBase; // inherit C'tors from base
 
     /** @name Accessors for min and max
-      
+
         We use accessors, to keep range consistent (i.e. ensure that min <= max)
     */
     ///@{
@@ -359,7 +337,7 @@ namespace OpenMS
       return RangeBase::contains(inner_range);
     }
   };
-  
+
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& out, const RangeRT& range);
 
   struct OPENMS_DLLAPI RangeMZ : public RangeBase
@@ -371,7 +349,7 @@ namespace OpenMS
     using RangeBase::RangeBase; // inherit C'tors from base
 
     /** @name Accessors for min and max
-      
+
         We use accessors, to keep range consistent (i.e. ensure that min <= max)
     */
     ///@{
@@ -429,7 +407,7 @@ namespace OpenMS
     using RangeBase::RangeBase; // inherit C'tors from base
 
     /** @name Accessors for min and max
-      
+
         We use accessors, to keep range consistent (i.e. ensure that min <= max)
     */
     ///@{
@@ -487,7 +465,7 @@ namespace OpenMS
     using RangeBase::RangeBase; // inherit C'tors from base
 
     /** @name Accessors for min and max
-      
+
         We use accessors, to keep range consistent (i.e. ensure that min <= max)
     */
     ///@{
@@ -537,7 +515,7 @@ namespace OpenMS
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& out, const RangeMobility& range);
-  
+
   /// Enum listing state of dimensions (RangeBases)
   enum class HasRangeType
   {
@@ -616,7 +594,7 @@ namespace OpenMS
         throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION , "No assignment took place (no dimensions in common!);");
       }
       return *this;
-    }                 
+    }
 
     /// extend all dimensions which overlap with @p rhs to contain the range of @p rhs
     /// Dimensions which are not contained in @p rhs are left untouched.
@@ -709,7 +687,7 @@ namespace OpenMS
       }
     }
 
-    
+
     /// Clamp min/max of all overlapping dimensions to min/max of @p rhs
     /// Dimensions which are not contained in @p rhs or where rhs is empty are left untouched.
     /// @param rhs Range to clamp to
@@ -773,7 +751,7 @@ namespace OpenMS
       assert((r_base != nullptr) && "No base class has this MSDim!");
       return *r_base;
     }
-    
+
     /// is any/some/all dimension in this range populated?
     HasRangeType hasRange() const
     {
@@ -890,7 +868,7 @@ namespace OpenMS
     return out;
   }
 
-  /// use this class as a base class for containers, e.g. MSSpectrum. It forces them to implement 'updateRanges()' as a common interface 
+  /// use this class as a base class for containers, e.g. MSSpectrum. It forces them to implement 'updateRanges()' as a common interface
   /// and provides a 'getRange()' member which saves casting to a range type manually
   template <typename ...RangeBases>
   class RangeManagerContainer

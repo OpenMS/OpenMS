@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Sven Nahnsen $
@@ -53,17 +27,17 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_DigestorMotif DigestorMotif
+@page TOPP_DigestorMotif DigestorMotif
 
-    @brief This application is used to digest a protein database to get all peptides given a cleavage enzyme. It will also produce peptide statistics given the mass
-    accuracy of the instrument. You can extract peptides with specific motifs,e.g. onyl cysteine containing peptides for ICAT experiments. At the moment only trypsin is supported.
+@brief This application is used to digest a protein database to get all peptides given a cleavage enzyme. It will also produce peptide statistics given the mass
+accuracy of the instrument. You can extract peptides with specific motifs,e.g. onyl cysteine containing peptides for ICAT experiments. At the moment only trypsin is supported.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_DigestorMotif.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_DigestorMotif.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_DigestorMotif.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_DigestorMotif.html
 
 */
 
@@ -75,7 +49,7 @@ class TOPPDigestorMotif :
 {
 public:
   TOPPDigestorMotif() :
-    TOPPBase("DigestorMotif", "digests a protein database in-silico")
+    TOPPBase("DigestorMotif", "Digests a protein database in-silico")
   {
 
   }

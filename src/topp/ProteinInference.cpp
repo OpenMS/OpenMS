@@ -1,49 +1,21 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julianus Pfeuffer $
 // $Authors: Andreas Bertsch, Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
+#include <algorithm>
+
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/SYSTEM/StopWatch.h>
-
-#include <algorithm>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
 
 
 using namespace OpenMS;
@@ -54,9 +26,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_ProteinInference ProteinInference
+@page TOPP_ProteinInference ProteinInference
 
-    @brief Computes a protein identification score based on an aggregation of scores of identified peptides.
+@brief Computes a protein identification score based on an aggregation of scores of identified peptides.
 
 <CENTER>
     <table>
@@ -78,17 +50,17 @@ using namespace std;
     </table>
 </CENTER>
 
-    This tool counts and aggregates the scores of peptide sequences that match a protein accession. Only the top PSM for a peptide is used.
-    By default it also annotates the number of peptides used for the calculation (metavalue "nr_found_peptides") and
-    can be used for further filtering. 0 probability peptides are counted but ignored in aggregation method "multiplication".
+This tool counts and aggregates the scores of peptide sequences that match a protein accession. Only the top PSM for a peptide is used.
+By default it also annotates the number of peptides used for the calculation (metavalue "nr_found_peptides") and
+can be used for further filtering. 0 probability peptides are counted but ignored in aggregation method "multiplication".
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    @todo possibly integrate parsimony approach from @ref OpenMS::PSProteinInference class
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_ProteinInference.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_ProteinInference.html
+@todo possibly integrate parsimony approach from @ref OpenMS::PSProteinInference class
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_ProteinInference.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_ProteinInference.html
 */
 
 // We do not want this class to show up in the docu:
@@ -195,9 +167,8 @@ protected:
 
       ConsensusMapMergerAlgorithm cmerge;
       ConsensusMap cmap;
-      ConsensusXMLFile cxmlf;
       OPENMS_LOG_INFO << "Loading input..." << std::endl;
-      cxmlf.load(in[0], cmap);
+      FileHandler().loadConsensusFeatures(in[0], cmap, {FileTypes::CONSENSUSXML});
       OPENMS_LOG_INFO << "Loading input took " << sw.toString() << std::endl;
       sw.clear();
 
@@ -235,7 +206,7 @@ protected:
       OPENMS_LOG_INFO << "Storing output..." << std::endl;
       sw.start();
       // write output
-      cxmlf.store(out, cmap);
+      FileHandler().storeConsensusFeatures(out, cmap, {FileTypes::CONSENSUSXML});
       OPENMS_LOG_INFO << "Storing output took " << sw.toString() << std::endl;
       sw.stop();
 
@@ -245,7 +216,7 @@ protected:
       vector<ProteinIdentification> inferred_protein_ids{1};
       vector<PeptideIdentification> inferred_peptide_ids;
 
-      IdXMLFile f;
+      FileHandler f;
       if (merge_runs)
       {
         //TODO allow keep_best_pepmatch_only option during merging (Peptide-level datastructure would help a lot,
@@ -259,14 +230,14 @@ protected:
         {
           vector<ProteinIdentification> protein_ids;
           vector<PeptideIdentification> peptide_ids;
-          f.load(idfile, protein_ids, peptide_ids);
+          f.loadIdentifications(idfile, protein_ids, peptide_ids, {FileTypes::IDXML});
           merger.insertRuns(std::move(protein_ids), std::move(peptide_ids));
         }
         merger.returnResultsAndClear(inferred_protein_ids[0], inferred_peptide_ids);
       }
       else
       {
-        f.load(in[0], inferred_protein_ids, inferred_peptide_ids);
+        f.loadIdentifications(in[0], inferred_protein_ids, inferred_peptide_ids, {FileTypes::IDXML});
       }
       OPENMS_LOG_INFO << "Loading input took " << sw.toString() << std::endl;
       sw.reset();
@@ -303,7 +274,7 @@ protected:
       OPENMS_LOG_INFO << "Storing output..." << std::endl;
       sw.start();
       // write output
-      IdXMLFile().store(out, inferred_protein_ids, inferred_peptide_ids);
+      FileHandler().storeIdentifications(out, inferred_protein_ids, inferred_peptide_ids, {FileTypes::IDXML});
       OPENMS_LOG_INFO << "Storing output took " << sw.toString() << std::endl;
       sw.stop();
     }

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Veit $
@@ -88,6 +62,7 @@
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QMessageBox>
+#include <QtWidgets/QPushButton>
 #include <QtWidgets/QSplashScreen>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QTextEdit>
@@ -193,7 +168,7 @@ namespace OpenMS
     QAction* action = help->addAction("OpenMS website", this, SLOT(showURL()));
     action->setData("http://www.OpenMS.de");
     action = help->addAction("TOPPAS tutorial", this, SLOT(showURL()), Qt::Key_F1);
-    action->setData("https://openms.readthedocs.io/en/latest/docs/tutorials/TOPPAS/TOPPAS-tutorial.html");
+    action->setData(String("html/TOPPAS_tutorial.html").toQString());
 
     help->addSeparator();
     help->addAction("&About", this, SLOT(showAboutDialog()));
@@ -227,9 +202,23 @@ namespace OpenMS
     QDockWidget* topp_tools_bar = new QDockWidget("TOPP", this);
     topp_tools_bar->setObjectName("TOPP_tools_bar");
     addDockWidget(Qt::LeftDockWidgetArea, topp_tools_bar);
-    tools_tree_view_ = createTOPPToolsTreeWidget(topp_tools_bar);
-    topp_tools_bar->setWidget(tools_tree_view_);
-    connect(tools_tree_view_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
+    QWidget* frame = new QWidget(topp_tools_bar);
+    auto frame_layout = new QVBoxLayout(frame);
+    //frame->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Maximum);
+    tools_tree_view_ = createTOPPToolsTreeWidget();
+    tools_filter_ = new QLineEdit();
+    tools_expand_all_ = new QPushButton("expand all");
+    tools_collapse_all_ = new QPushButton("collapse all");
+    frame_layout->addWidget(new QLabel("Filter: "));
+    frame_layout->addWidget(tools_filter_);
+    frame_layout->addWidget(tools_expand_all_);
+    frame_layout->addWidget(tools_collapse_all_);
+    frame_layout->addWidget(tools_tree_view_);
+    topp_tools_bar->setWidget(frame);
+    connect(tools_expand_all_, &QPushButton::clicked, tools_tree_view_, &TOPPASTreeView::expandAll);
+    connect(tools_collapse_all_, &QPushButton::clicked, tools_tree_view_, &TOPPASTreeView::collapseAll);
+    connect(tools_tree_view_, &QTreeWidget::itemDoubleClicked, this, &TOPPASBase::insertNewVertexInCenter_);
+    connect(tools_filter_, &QLineEdit::textChanged, this, &TOPPASBase::filterToolTree_);
     windows->addAction(topp_tools_bar->toggleViewAction());
 
     //log window
@@ -285,6 +274,10 @@ namespace OpenMS
     restoreState(settings.value("windowState").toByteArray());
   }
 
+  void TOPPASBase::filterToolTree_()
+  {
+    tools_tree_view_->filter(tools_filter_->text());
+  }
 
   TOPPASBase::~TOPPASBase()
   {
@@ -1518,7 +1511,10 @@ namespace OpenMS
       }
     }
     
-    GUIHelpers::startTOPPView(files);
+    if (!GUIHelpers::startTOPPView(files))
+    {
+      QMessageBox::warning(this, "Could not start TOPPView", "TOPPView failed to start. Please see the commandline for details.");
+    }
 
   }
 

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -213,20 +187,11 @@ namespace OpenMS
         OpenSwath::SpectrumPtr spectrum_ = swath_map->getSpectrumById(closest_idx);
 
         // integrate intensity within that scan
-        double left = transitions[k].getProductMZ();
-        double right = transitions[k].getProductMZ();
-        if (dia_extraction_ppm_)
-        {
-          left -= left * dia_extract_window_ / 2e6;
-          right += right * dia_extract_window_ / 2e6;
-        }
-        else
-        {
-          left -= dia_extract_window_ / 2.0;
-          right += dia_extract_window_ / 2.0;
-        }
-        double mz, intensity;
-        DIAHelpers::integrateWindow(spectrum_, left, right, mz, intensity, dia_centroided_);
+        RangeMZ mz_range = DIAHelpers::createMZRangePPM(transitions[k].getProductMZ(), dia_extract_window_, dia_extraction_ppm_);
+
+        double mz, intensity, im; // create im even though not used
+        RangeMobility im_range;
+        DIAHelpers::integrateWindow(spectrum_, mz, im, intensity, mz_range, im_range, dia_centroided_);
 
         sonar_profile.push_back(intensity);
         sonar_mz_profile.push_back(mz);

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -42,9 +16,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
 // files
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
@@ -67,46 +39,46 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_MRMTransitionGroupPicker MRMTransitionGroupPicker
+@page TOPP_MRMTransitionGroupPicker MRMTransitionGroupPicker
 
-  @brief Picks peaks in SRM/MRM chromatograms that belong to the same precursors.
+@brief Picks peaks in SRM/MRM chromatograms that belong to the same precursors.
 
-    <CENTER>
-        <table>
-            <tr>
-                <th ALIGN = "center"> potential predecessor tools </td>
-                <td VALIGN="middle" ROWSPAN=3> &rarr; MRMTransitionGroupPicker &rarr;</td>
-                <th ALIGN = "center"> potential successor tools </td>
-            </tr>
-            <tr>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathChromatogramExtractor </td>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_OpenSwathFeatureXMLToTSV </td>
-            </tr>
-            <tr>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MRMMapper </td>
-            </tr>
-        </table>
-    </CENTER>
+  <CENTER>
+      <table>
+          <tr>
+              <th ALIGN = "center"> potential predecessor tools </td>
+              <td VALIGN="middle" ROWSPAN=3> &rarr; MRMTransitionGroupPicker &rarr;</td>
+              <th ALIGN = "center"> potential successor tools </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathChromatogramExtractor </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_OpenSwathFeatureXMLToTSV </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MRMMapper </td>
+          </tr>
+      </table>
+  </CENTER>
 
 
-  This tools accepts a set of chromatograms and picks peaks in them, correctly
-  grouping related transitions from the same precursor together. It will
-  perform the following steps:
-  - Step 1: find features (peaks) in individual chromatograms
-  - Step 2: merge these features to consensus features that span multiple chromatograms
+This tools accepts a set of chromatograms and picks peaks in them, correctly
+grouping related transitions from the same precursor together. It will
+perform the following steps:
+- Step 1: find features (peaks) in individual chromatograms
+- Step 2: merge these features to consensus features that span multiple chromatograms
 
-  Step 1 is performed by smoothing the individual chromatogram and applying the
-  PeakPickerHiRes.
+Step 1 is performed by smoothing the individual chromatogram and applying the
+PeakPickerHiRes.
 
-  Step 2 is performed by finding the largest peak overall and use this to
-  create a feature, propagating this through all chromatograms.
+Step 2 is performed by finding the largest peak overall and use this to
+create a feature, propagating this through all chromatograms.
 
-  This tool will not compute any scores for the peaks, in order to do peak picking please use TOPP_OpenSwathAnalyzer
+This tool will not compute any scores for the peaks, in order to do peak picking please use TOPP_OpenSwathAnalyzer
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_MRMTransitionGroupPicker.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_MRMTransitionGroupPicker.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MRMTransitionGroupPicker.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MRMTransitionGroupPicker.html
 
 */
 
@@ -278,12 +250,10 @@ protected:
     bool force = getFlag_("force");
 
     boost::shared_ptr<PeakMap > exp ( new PeakMap );
-    MzMLFile mzmlfile;
-    mzmlfile.setLogType(log_type_);
-    mzmlfile.load(in, *exp);
+    FileHandler().loadExperiment(in, *exp, {FileTypes::MZML}, log_type_);
 
     TargetedExpType transition_exp;
-    TraMLFile().load(tr_file, transition_exp);
+    FileHandler().loadTransitions(tr_file, transition_exp, {FileTypes::TRAML});
 
     FeatureMap output;
     OpenSwath::SpectrumAccessPtr input = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
@@ -300,7 +270,7 @@ protected:
     {
       output.setPrimaryMSRunPath({in}, *exp);
     }      
-    FeatureXMLFile().store(out, output);
+    FileHandler().storeFeatures(out, output, {FileTypes::FEATUREXML});
 
     return EXECUTION_OK;
   }

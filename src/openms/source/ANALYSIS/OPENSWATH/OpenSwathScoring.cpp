@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -50,50 +24,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 
 #include <utility>
-
-namespace OpenMS
-{
-
-  void sortSpectrumByMZ(OpenSwath::Spectrum& spec)
-  {
-    //sort index list
-    std::vector<std::pair<double, Size> > sorted_indices;
-    sorted_indices.reserve(spec.getMZArray()->data.size());
-    auto mz_it = spec.getMZArray()->data.begin();
-    for (Size i = 0; i < spec.getMZArray()->data.size(); ++i)
-    {
-      sorted_indices.emplace_back(*mz_it, i);
-      ++mz_it;
-    }
-    std::stable_sort(sorted_indices.begin(), sorted_indices.end());                
-
-    // extract list of indices
-    std::vector<Size> select_indices;
-    select_indices.reserve(sorted_indices.size());
-    for (const auto& sidx : sorted_indices)
-    {
-      select_indices.push_back(sidx.second);
-    }
-
-    for (auto& da : spec.getDataArrays() )
-    {
-      if (da->data.empty()) continue;
-      OpenSwath::BinaryDataArrayPtr tmp(new OpenSwath::BinaryDataArray);
-      tmp->description = da->description;
-      tmp->data.reserve(select_indices.size());
-      for (Size i = 0; i < select_indices.size(); ++i)
-      {
-        tmp->data.push_back( da->data[ select_indices[i] ] );
-      }
-      da = tmp;
-    }
-
-    OPENMS_POSTCONDITION( std::adjacent_find(spec.getMZArray()->data.begin(),
-           spec.getMZArray()->data.end(), std::greater<double>()) == spec.getMZArray()->data.end(),
-           "Postcondition violated: m/z vector needs to be sorted!" )
-  }
-}
-
 namespace OpenMS
 {
 
@@ -102,7 +32,7 @@ namespace OpenMS
     rt_normalization_factor_(1.0),
     spacing_for_spectra_resampling_(0.005),
     add_up_spectra_(1),
-    spectra_addition_method_("simple"),
+    spectra_addition_method_(SpectrumAdditionMethod::ADDITION),
     im_drift_extra_pcnt_(0.0)
   {
   }
@@ -115,14 +45,28 @@ namespace OpenMS
                                     double spacing_for_spectra_resampling,
                                     const double drift_extra,
                                     const OpenSwath_Scores_Usage & su,
-                                    const std::string& spectrum_addition_method)
+                                    const std::string& spectrum_addition_method,
+                                    bool use_ms1_ion_mobility)
   {
     this->rt_normalization_factor_ = rt_normalization_factor;
     this->add_up_spectra_ = add_up_spectra;
-    this->spectra_addition_method_ = spectrum_addition_method;
+    if (spectrum_addition_method == "simple")
+    {
+      this->spectra_addition_method_ = SpectrumAdditionMethod::ADDITION;
+    }
+    else if (spectrum_addition_method == "resample")
+    {
+      this->spectra_addition_method_ = SpectrumAdditionMethod::RESAMPLE;
+    }
+    else
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "spectrum_addition_method must be simple or resample", spectrum_addition_method);
+    }
+
     this->im_drift_extra_pcnt_ = drift_extra;
     this->spacing_for_spectra_resampling_ = spacing_for_spectra_resampling;
     this->su_ = su;
+    this->use_ms1_ion_mobility_ = use_ms1_ion_mobility;
   }
 
   void OpenSwathScoring::calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
@@ -133,9 +77,8 @@ namespace OpenMS
                                             const CompoundType& compound,
                                             OpenSwath_Scores& scores,
                                             std::vector<double>& masserror_ppm,
-                                            const double drift_lower,
-                                            const double drift_upper,
-                                            const double drift_target)
+                                            const double drift_target,// TODO is this needed
+                                            const RangeMobility& im_range)
   {
     OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
@@ -164,33 +107,31 @@ namespace OpenMS
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
     // find spectrum that is closest to the apex of the peak using binary search
-    OpenSwath::SpectrumPtr spectrum = fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_, drift_lower, drift_upper);
+    std::vector<OpenSwath::SpectrumPtr> spectra = fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_, im_range);
 
-    // calculate drift extraction width for current spectrum (with some extra for cross-correlation)
-    double drift_width = fabs(drift_upper - drift_lower);
-    double drift_lower_used = drift_lower - drift_width * im_drift_extra_pcnt_;
-    double drift_upper_used = drift_upper + drift_width * im_drift_extra_pcnt_;
+    // set the DIA parameters
+    // TODO Cache these parameters
+    double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
+    bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
 
     // score drift time dimension
-    if (drift_upper > 0 && su_.use_im_scores)
+    if ( su_.use_im_scores)
     {
-      double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
-      bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
-      auto drift_spectrum = fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_, drift_lower_used, drift_upper_used);
-      IonMobilityScoring::driftScoring(drift_spectrum, transitions, scores,
-                                       drift_lower, drift_upper, drift_target,
+      IonMobilityScoring::driftScoring(spectra, transitions, scores,
+                                       drift_target, im_range,
                                        dia_extract_window_, dia_extraction_ppm_,
                                        false, im_drift_extra_pcnt_);
     }
 
+
     // Mass deviation score
-    diascoring.dia_massdiff_score(transitions, spectrum, normalized_library_intensity, scores.massdev_score, scores.weighted_massdev_score, masserror_ppm);
+    diascoring.dia_massdiff_score(transitions, spectra, normalized_library_intensity, im_range, scores.massdev_score, scores.weighted_massdev_score, masserror_ppm);
 
     //TODO this score and the next, both rely on the CoarseIsotope of the PeptideAveragine. Maybe we could
     // DIA dotproduct and manhattan score based on library intensity and sum formula if present
     if (su_.use_ms2_isotope_scores)
     {
-      diascoring.score_with_isotopes(spectrum, transitions, scores.dotprod_score_dia, scores.manhatt_score_dia);
+      diascoring.score_with_isotopes(spectra, transitions, im_range, scores.dotprod_score_dia, scores.manhatt_score_dia);
 
       // Isotope correlation / overlap score: Is this peak part of an
       // isotopic pattern or is it the monoisotopic peak in an isotopic
@@ -199,7 +140,7 @@ namespace OpenMS
       // not optimal for metabolites - but better than nothing, given that for
       // most fragments we don't really know their composition
       diascoring
-          .dia_isotope_scores(transitions, spectrum, imrmfeature, scores.isotope_correlation, scores.isotope_overlap);
+          .dia_isotope_scores(transitions, spectra, imrmfeature, im_range, scores.isotope_correlation, scores.isotope_overlap);
     }
 
     // Peptide-specific scores (only useful, when product transitions are REAL fragments, e.g. not in FFID)
@@ -210,51 +151,69 @@ namespace OpenMS
       OpenMS::AASequence aas;
       int by_charge_state = 1; // for which charge states should we check b/y series
       OpenSwathDataAccessHelper::convertPeptideToAASequence(compound, aas);
-      diascoring.dia_by_ion_score(spectrum, aas, by_charge_state, scores.bseries_score, scores.yseries_score);
+      diascoring.dia_by_ion_score(spectra, aas, by_charge_state, im_range, scores.bseries_score, scores.yseries_score);
     }
 
-    if (ms1_map && ms1_map->getNrSpectra() > 0) 
+
+    RangeMobility im_range_ms1;
+    if (use_ms1_ion_mobility_)
+    {
+      im_range_ms1 = im_range;
+    }
+    else // do not extract across IM in MS1
+    {
+      im_range_ms1 = RangeMobility();
+    }
+
+    if (ms1_map && ms1_map->getNrSpectra() > 0)
     {
       double precursor_mz = transitions[0].precursor_mz;
       double rt = imrmfeature->getRT();
 
-      calculatePrecursorDIAScores(ms1_map, diascoring, precursor_mz, rt, compound, scores, drift_lower, drift_upper);
-
-      if (drift_upper > 0 && su_.use_im_scores)
-      {
-        double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
-        bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
-        IonMobilityScoring::driftScoringMS1( fetchSpectrumSwath(ms1_map, imrmfeature->getRT(), add_up_spectra_, drift_lower_used, drift_upper_used),
-            transitions, scores, drift_lower, drift_upper, drift_target, dia_extract_window_, dia_extraction_ppm_, false, im_drift_extra_pcnt_);
-
-        IonMobilityScoring::driftScoringMS1Contrast(
-            fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_, drift_lower_used, drift_upper_used),
-            fetchSpectrumSwath(ms1_map, imrmfeature->getRT(), add_up_spectra_, drift_lower, drift_upper),
-            transitions, scores, drift_lower, drift_upper, dia_extract_window_, dia_extraction_ppm_, im_drift_extra_pcnt_);
-      }
+      calculatePrecursorDIAScores(ms1_map, diascoring, precursor_mz, rt, compound, im_range_ms1, scores);
     }
 
+
+    if ( (ms1_map && ms1_map->getNrSpectra() > 0) && ( su_.use_im_scores) )  // IM MS1 scores
+    {
+        double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
+        bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
+        double rt = imrmfeature->getRT();
+
+        std::vector<OpenSwath::SpectrumPtr> ms1_spectrum = fetchSpectrumSwath(ms1_map, rt, add_up_spectra_, im_range_ms1);
+        IonMobilityScoring::driftScoringMS1(ms1_spectrum,
+            transitions, scores, drift_target, im_range_ms1, dia_extract_window_, dia_extraction_ppm_, false, im_drift_extra_pcnt_);
+
+        IonMobilityScoring::driftScoringMS1Contrast(spectra, ms1_spectrum,
+            transitions, scores, im_range_ms1, dia_extract_window_, dia_extraction_ppm_, im_drift_extra_pcnt_);
+    }
   }
 
-  void OpenSwathScoring::calculatePrecursorDIAScores(const OpenSwath::SpectrumAccessPtr& ms1_map, 
+  void OpenSwathScoring::calculatePrecursorDIAScores(const OpenSwath::SpectrumAccessPtr& ms1_map,
                                    const OpenMS::DIAScoring & diascoring,
-                                   double precursor_mz, 
-                                   double rt, 
-                                   const CompoundType& compound, 
-                                   OpenSwath_Scores & scores,
-                                   double drift_lower, double drift_upper)
+                                   double precursor_mz,
+                                   double rt,
+                                   const CompoundType& compound,
+                                   RangeMobility im_range,
+                                   OpenSwath_Scores & scores)
   {
+    // change im_range based on ms1 settings
+    if (!use_ms1_ion_mobility_)
+    {
+      im_range.clear();
+    }
+
     // Compute precursor-level scores:
     // - compute mass difference in ppm
     // - compute isotopic pattern score
     if (ms1_map && ms1_map->getNrSpectra() > 0)
     {
-      OpenSwath::SpectrumPtr ms1_spectrum = fetchSpectrumSwath(ms1_map, rt, add_up_spectra_, drift_lower, drift_upper);
-      diascoring.dia_ms1_massdiff_score(precursor_mz, ms1_spectrum, scores.ms1_ppm_score);
+      std::vector<OpenSwath::SpectrumPtr> ms1_spectrum = fetchSpectrumSwath(ms1_map, rt, add_up_spectra_, im_range);
+      diascoring.dia_ms1_massdiff_score(precursor_mz, ms1_spectrum, im_range, scores.ms1_ppm_score);
 
       // derive precursor charge state (get from data if possible)
       int precursor_charge = 1;
-      if (compound.getChargeState() != 0) 
+      if (compound.getChargeState() != 0)
       {
         precursor_charge = compound.getChargeState();
       }
@@ -263,15 +222,15 @@ namespace OpenMS
       {
         if (!compound.sequence.empty())
         {
-          diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum, scores.ms1_isotope_correlation,
+          diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum, im_range, scores.ms1_isotope_correlation,
                                             scores.ms1_isotope_overlap,
                                             AASequence::fromString(compound.sequence).getFormula(Residue::Full, precursor_charge));
         }
         else
         {
-          diascoring.dia_ms1_isotope_scores_averagine(precursor_mz, ms1_spectrum,
+          diascoring.dia_ms1_isotope_scores_averagine(precursor_mz, ms1_spectrum, precursor_charge, im_range,
                                                       scores.ms1_isotope_correlation,
-                                                      scores.ms1_isotope_overlap, precursor_charge);
+                                                      scores.ms1_isotope_overlap);
         }
       }
       else
@@ -284,15 +243,15 @@ namespace OpenMS
           // it is shadowed by the exact precursor_mz.
           //TODO check if charges are the same (in case the charge was actually present in the sum_formula?)
           empf.setCharge(precursor_charge);
-          diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum, scores.ms1_isotope_correlation,
+          diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum, im_range, scores.ms1_isotope_correlation,
                                             scores.ms1_isotope_overlap,
                                             empf);
         }
         else
         {
-          diascoring.dia_ms1_isotope_scores_averagine(precursor_mz, ms1_spectrum,
+          diascoring.dia_ms1_isotope_scores_averagine(precursor_mz, ms1_spectrum, precursor_charge, im_range,
                                                       scores.ms1_isotope_correlation,
-                                                      scores.ms1_isotope_overlap, precursor_charge);
+                                                      scores.ms1_isotope_overlap);
         }
       }
     }
@@ -301,12 +260,17 @@ namespace OpenMS
   void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
                                               const TransitionType & transition,
                                               const std::vector<OpenSwath::SwathMap>& swath_maps,
+                                              RangeMobility& im_range,
                                               const OpenMS::DIAScoring & diascoring,
-                                              OpenSwath_Scores & scores,
-                                              double drift_lower, double drift_upper)
+                                              OpenSwath_Scores & scores)
   {
     OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
+
+    if (!use_ms1_ion_mobility_)
+    {
+      im_range.clear();
+    }
 
     // Identify corresponding SONAR maps (if more than one map is used)
     std::vector<OpenSwath::SwathMap> used_swath_maps;
@@ -328,7 +292,7 @@ namespace OpenMS
     }
 
     // find spectrum that is closest to the apex of the peak using binary search
-    OpenSwath::SpectrumPtr spectrum = fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_, drift_lower, drift_upper);
+    std::vector<OpenSwath::SpectrumPtr> spectrum = fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_, im_range);
 
     // If no charge is given, we assume it to be 1
     int putative_product_charge = 1;
@@ -342,11 +306,12 @@ namespace OpenMS
     // pattern?
     diascoring.dia_ms1_isotope_scores_averagine(transition.getProductMZ(),
                                                 spectrum,
+                                                putative_product_charge,
+                                                im_range,
                                                 scores.isotope_correlation,
-                                                scores.isotope_overlap,
-                                                putative_product_charge);
+                                                scores.isotope_overlap);
     // Mass deviation score
-    diascoring.dia_ms1_massdiff_score(transition.getProductMZ(), spectrum, scores.massdev_score);
+    diascoring.dia_ms1_massdiff_score(transition.getProductMZ(), spectrum, im_range, scores.massdev_score);
   }
 
   void OpenSwathScoring::calculateChromatographicScores(
@@ -409,7 +374,7 @@ namespace OpenMS
       scores.sn_ratio = mrmscore_.calcSNScore(imrmfeature, signal_noise_estimators);
       // everything below S/N 1 can be set to zero (and the log safely applied)
       if (scores.sn_ratio < 1)
-      { 
+      {
         scores.log_sn_score = 0;
       }
       else
@@ -532,172 +497,81 @@ namespace OpenMS
     OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
   }
 
-  OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map,
-                                                              double RT, int nr_spectra_to_add, const double drift_lower, const double drift_upper)
+  SpectrumSequence OpenSwathScoring::fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swathmap, double RT, int nr_spectra_to_add, const RangeMobility& im_range)
   {
-    return getAddedSpectra_(std::move(swath_map), RT, nr_spectra_to_add, drift_lower, drift_upper);
+
+    SpectrumSequence all_spectra = swathmap->getMultipleSpectra(RT, nr_spectra_to_add);
+    if (spectra_addition_method_ == SpectrumAdditionMethod::ADDITION)
+    {
+      return all_spectra; // return vector, addition is done later
+    }
+    else // (spectra_addition_method_ == SpectrumAdditionMethod::RESAMPLE)
+    {
+      std::vector<OpenSwath::SpectrumPtr> spectrum_out;
+      //added_spec = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
+      spectrum_out.push_back(SpectrumAddition::addUpSpectra(all_spectra, im_range, spacing_for_spectra_resampling_, true));
+      return spectrum_out;
+    }
   }
 
-  OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps,
-                                                              double RT, int nr_spectra_to_add, const double drift_lower, const double drift_upper)
+  SpectrumSequence OpenSwathScoring::fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps, double RT, int nr_spectra_to_add, const RangeMobility& im_range)
   {
+    OPENMS_PRECONDITION(nr_spectra_to_add >= 1, "nr_spectra_to_add must be at least 1.")
+    OPENMS_PRECONDITION(!swath_maps.empty(), "swath_maps vector cannot be empty")
+
+    // This is not SONAR data
     if (swath_maps.size() == 1)
     {
-      return getAddedSpectra_(swath_maps[0].sptr, RT, nr_spectra_to_add, drift_lower, drift_upper);
+      return fetchSpectrumSwath(swath_maps[0].sptr, RT, nr_spectra_to_add, im_range);
     }
     else
     {
-      // multiple SWATH maps for a single precursor -> this is SONAR data
-      std::vector<OpenSwath::SpectrumPtr> all_spectra;
-      for (size_t i = 0; i < swath_maps.size(); ++i)
+      // data is not IM enhanced
+      if (!im_range.isEmpty())
       {
-        OpenSwath::SpectrumPtr spec = getAddedSpectra_(swath_maps[i].sptr, RT, nr_spectra_to_add, drift_lower, drift_upper);
-        all_spectra.push_back(spec);
-      }
-      OpenSwath::SpectrumPtr spectrum_ = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
-      return spectrum_;
-    }
-  }
+        // multiple SWATH maps for a single precursor -> this is SONAR data, in all cases only return a single spectrum
+        SpectrumSequence all_spectra;
 
-  OpenSwath::SpectrumPtr filterByDrift(const OpenSwath::SpectrumPtr& input, const double drift_lower, const double drift_upper)
-  {
-    OPENMS_PRECONDITION(drift_upper > 0, "Cannot filter by drift time if upper value is less or equal to zero");
-    //OPENMS_PRECONDITION(input->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
-
-    if (input->getDriftTimeArray() == nullptr)
-    {
-      std::cerr << "Warning: Cannot filter by drift time if no drift time is available.\n";
-      return input;
-    }
-      
-    OpenSwath::SpectrumPtr output(new OpenSwath::Spectrum);
-
-    OpenSwath::BinaryDataArrayPtr mz_arr = input->getMZArray();
-    OpenSwath::BinaryDataArrayPtr int_arr = input->getIntensityArray();
-    OpenSwath::BinaryDataArrayPtr im_arr = input->getDriftTimeArray();
-
-    std::vector<double>::const_iterator mz_it = mz_arr->data.begin();
-    std::vector<double>::const_iterator int_it = int_arr->data.begin();
-    std::vector<double>::const_iterator im_it = im_arr->data.begin();
-    std::vector<double>::const_iterator mz_end = mz_arr->data.end();
-
-    OpenSwath::BinaryDataArrayPtr mz_arr_out(new OpenSwath::BinaryDataArray);
-    OpenSwath::BinaryDataArrayPtr intens_arr_out(new OpenSwath::BinaryDataArray);
-    OpenSwath::BinaryDataArrayPtr im_arr_out(new OpenSwath::BinaryDataArray);
-    im_arr_out->description = im_arr->description;
-
-    size_t n = mz_arr->data.size();
-    im_arr_out->data.reserve(n);
-    while (mz_it != mz_end)
-    {
-      if (*im_it > drift_lower && *im_it < drift_upper)
-      {
-        mz_arr_out->data.push_back( *mz_it );
-        intens_arr_out->data.push_back( *int_it );
-        im_arr_out->data.push_back( *im_it );
-      }
-      ++mz_it;
-      ++int_it;
-      ++im_it;
-    }
-    output->setMZArray(mz_arr_out);
-    output->setIntensityArray(intens_arr_out);
-    output->getDataArrays().push_back(im_arr_out);
-    return output;
-  }
-
-
-  OpenSwath::SpectrumPtr OpenSwathScoring::getAddedSpectra_(const OpenSwath::SpectrumAccessPtr& swath_map,
-                                                            double RT, int nr_spectra_to_add, const double drift_lower, const double drift_upper)
-  {
-    std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);
-    OpenSwath::SpectrumPtr added_spec(new OpenSwath::Spectrum);
-    added_spec->getDataArrays().push_back( OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray) );
-    added_spec->getDataArrays().back()->description = "Ion Mobility";
-
-    if (indices.empty() )
-    {
-      return added_spec;
-    }
-    int closest_idx = boost::numeric_cast<int>(indices[0]);
-    if (indices[0] != 0 &&
-        std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0]) - 1).RT - RT) <
-        std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0])).RT - RT))
-    {
-      closest_idx--;
-    }
-
-    if (nr_spectra_to_add == 1)
-    {
-      added_spec = swath_map->getSpectrumById(closest_idx);
-      if (drift_upper > 0) 
-      {
-        added_spec = filterByDrift(added_spec, drift_lower, drift_upper);
-      }
-    }
-    else
-    {
-      std::vector<OpenSwath::SpectrumPtr> all_spectra;
-      // always add the spectrum 0, then add those right and left
-      all_spectra.push_back(swath_map->getSpectrumById(closest_idx));
-      for (int i = 1; i <= nr_spectra_to_add / 2; i++) // cast to int is intended!
-      {
-        if (closest_idx - i >= 0)
+        if (spectra_addition_method_ == SpectrumAdditionMethod::ADDITION)
         {
-          all_spectra.push_back(swath_map->getSpectrumById(closest_idx - i));
-        }
-        if (closest_idx + i < (int)swath_map->getNrSpectra())
-        {
-          all_spectra.push_back(swath_map->getSpectrumById(closest_idx + i));
-        }
-      }
-
-      // Filter all spectra by drift time before further processing
-      if (drift_upper > 0) 
-      {
-        for (auto& s: all_spectra) s = filterByDrift(s, drift_lower, drift_upper);
-      }
-
-      // add up all spectra
-      if (spectra_addition_method_ == "simple")
-      {
-        // Ensure that we have the same number of data arrays as in the input spectrum
-        if (!all_spectra.empty() && all_spectra[0]->getDataArrays().size() > 2)
-        {
-          for (Size k = 2; k < all_spectra[0]->getDataArrays().size(); k++)
+          for (size_t i = 0; i < swath_maps.size(); ++i)
           {
-            OpenSwath::BinaryDataArrayPtr tmp (new OpenSwath::BinaryDataArray());
-            tmp->description = all_spectra[0]->getDataArrays()[k]->description;
-            added_spec->getDataArrays().push_back(tmp);
+            SpectrumSequence spectrumSequence = swath_maps[i].sptr->getMultipleSpectra(RT, nr_spectra_to_add, im_range.getMin(), im_range.getMax());
           }
         }
-
-        // Simply add up data and sort in the end
-        for (const auto& s : all_spectra)
+        else // (spectra_addition_method_ == SpectrumAdditionMethod::RESAMPLE)
         {
-          for (Size k = 0; k < s->getDataArrays().size(); k++)
+          for (size_t i = 0; i < swath_maps.size(); ++i)
           {
-            auto& v1 = added_spec->getDataArrays()[k]->data;
-            auto& v2 = s->getDataArrays()[k]->data;
-
-            v1.reserve( v1.size() + v2.size() ); 
-            v1.insert( v1.end(), v2.begin(), v2.end() );
+            SpectrumSequence spectrumSequence = swath_maps[i].sptr->getMultipleSpectra(RT, nr_spectra_to_add, im_range.getMin(), im_range.getMax());
+            all_spectra.push_back(SpectrumAddition::addUpSpectra(spectrumSequence, spacing_for_spectra_resampling_, true));
           }
         }
-        sortSpectrumByMZ(*added_spec);
+        return { SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true) };
       }
-      else
+      else // im_range.isEmpty()
       {
-        added_spec = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
+        // multiple SWATH maps for a single precursor -> this is SONAR data, in all cases only return a single spectrum
+        SpectrumSequence all_spectra;
+
+        if (spectra_addition_method_ == SpectrumAdditionMethod::ADDITION)
+        {
+          for (size_t i = 0; i < swath_maps.size(); ++i)
+          {
+            SpectrumSequence spectrumSequence = swath_maps[i].sptr->getMultipleSpectra(RT, nr_spectra_to_add);
+            all_spectra.push_back(SpectrumAddition::concatenateSpectra(spectrumSequence));
+          }
+        }
+        else // (spectra_addition_method_ == SpectrumAdditionMethod::RESAMPLE)
+        {
+          for (size_t i = 0; i < swath_maps.size(); ++i)
+          {
+            SpectrumSequence spectrumSequence = swath_maps[i].sptr->getMultipleSpectra(RT, nr_spectra_to_add);
+            all_spectra.push_back(SpectrumAddition::addUpSpectra(spectrumSequence, spacing_for_spectra_resampling_, true));
+          }
+        }
+        return { SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true) };
       }
     }
-
-    OPENMS_POSTCONDITION( std::adjacent_find(added_spec->getMZArray()->data.begin(),
-           added_spec->getMZArray()->data.end(), std::greater<double>()) == added_spec->getMZArray()->data.end(),
-           "Postcondition violated: m/z vector needs to be sorted!" )
-
-    return added_spec;
   }
-
 }
-

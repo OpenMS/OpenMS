@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julianus Pfeuffer $
@@ -86,8 +60,9 @@ namespace OpenMS
      *  I.e. it only takes the better of the two scores for each target-decoy pair (based on the accession after
      *  removal of the @p decoy_prefix.
      * @param  picked_scores Target accessions to pairs of scores and target decoy labels (usually 1.0 for target and 0.0 for decoy) to be filled.
+     * @param  id The hits to iterate over
      * @param  decoy_string The decoy string to remove before comparing accesions for pairs.
-     * @param  prefix If the @p decoy_string is a prefix (true) or suffix.
+     * @param  decoy_prefix If the @p decoy_string is a prefix (true) or suffix.
      */
     static void getPickedProteinScores_(
         std::unordered_map<String, ScoreToTgtDecLabelPair>& picked_scores,
@@ -100,8 +75,9 @@ namespace OpenMS
      *  @todo describe more
      * @param  picked_scores Target accessions to pairs of scores and target decoy labels (usually 1.0 for target and 0.0 for decoy) to be used for lookup.
      * @param  scores_labels Scores and target-decoy value for all groups that had at least one picked protein. Targets preferred.
+     * @param  grps The groups to iterate over
      * @param  decoy_string The decoy string to remove before comparing accesions for pairs.
-     * @param  prefix If the @p decoy_string is a prefix (true) or suffix.
+     * @param  decoy_prefix If the @p decoy_string is a prefix (true) or suffix.
      */
     static void getPickedProteinGroupScores_(
         const std::unordered_map<String, ScoreToTgtDecLabelPair>& picked_scores,
@@ -579,16 +555,17 @@ namespace OpenMS
      * @tparam Args optional additional arguments (charge, run ID)
      * @param scores_to_FDR maps original scores to FDR
      * @param cmap the ConsensusMap
+     * @param include_unassigned_peptides Also modify unassigned peptide IDs in @p cmap?
      * @param score_type FDR or q-Value
      * @param higher_better usually false
      * @param keep_decoy read from Param object
      * @param args optional additional arguments (int charge, string run ID)
     */
     template<class ...Args>
-    static void setPeptideScoresForMap_(const std::map<double, double> &scores_to_FDR,
-                                 ConsensusMap &cmap,
+    static void setPeptideScoresForMap_(const std::map<double, double>& scores_to_FDR,
+                                 ConsensusMap& cmap,
                                  bool include_unassigned_peptides,
-                                 const std::string &score_type,
+                                 const std::string& score_type,
                                  bool higher_better,
                                  bool keep_decoy,
                                  Args&&... args)
