@@ -67,8 +67,7 @@ namespace OpenMS
     struct SpectrumMatchesTopN
     {
       std::vector<SpectrumMatch> hits_;     ///< The preliminary candidates
-      uint32_t matched_peaks_{};      ///< The number of matched peaks TODO: statistic needed?
-      uint32_t scored_candidates_{};  ///< The number of scored candidates
+
 
       SpectrumMatchesTopN() = default;
 
@@ -80,8 +79,7 @@ namespace OpenMS
        */
       SpectrumMatchesTopN& operator+=(const SpectrumMatchesTopN& other)
       {
-        this->matched_peaks_ += other.matched_peaks_;
-        this->scored_candidates_ += other.scored_candidates_;
+
         this->hits_.insert(this->hits_.end(), other.hits_.begin(), other.hits_.end());
         return *this;
       }
@@ -89,8 +87,7 @@ namespace OpenMS
       void clear()
       {
         hits_.clear();
-        matched_peaks_ = 0;
-        scored_candidates_ = 0;
+
       }
     };
     /// DefaultConstructor
@@ -217,13 +214,13 @@ private:
      * @param isotope_error The applied isotope_error
      * @param precursor_charge The applied precursor charge
      */
-    void queryPeak(SpectrumMatchesTopN& candidates,
-                   const Peak1D& peak,
+    void queryPeaks(SpectrumMatchesTopN& candidates,
+                   const MSSpectrum& spectrum,
                    const std::pair<size_t, size_t>& candidates_range,
                    const int16_t isotope_error,
                    const uint16_t precursor_charge);
     /**
-     * @brief If closed search loops over all isotope errors. For each iteration loop over all peaks with queryPeak.
+     * @brief If closed search loops over all isotope errors. For each iteration loop over all peaks with queryPeaks.
      * @brief If open search applies a precursor-mass window
      * @param spectrum experimental query-spectrum
      * @param precursor_mass The mass of the precursor (mz * charge)

@@ -73,8 +73,9 @@ class PeptideSearchEngine :
   protected:
     void registerOptionsAndFlags_() override
     {
+
       registerInputFile_("in", "<file>", "", "input file ");
-      setValidFormats_("in", ListUtils::create<String>("mzML"));
+      //setValidFormats_("in", ListUtils::create<String>("mzML"));
 
       registerInputFile_("database", "<file>", "", "input file ");
       setValidFormats_("database", ListUtils::create<String>("fasta"));

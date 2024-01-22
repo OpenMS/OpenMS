@@ -283,6 +283,7 @@ namespace OpenMS
       vector<FragmentIndex::Hit> hits;
       hits.reserve(peptide_idx_range.second - peptide_idx_range.first);
 
+
       for (UInt32 j = in_range_buckets.first; j < in_range_buckets.second; j++)
       {
         auto slice_begin = fi_fragments_.begin() + (j*bucketsize_);
@@ -296,6 +297,7 @@ namespace OpenMS
 
           if ((adjusted_mass >= left_iter->fragment_mz_ - frag_tol ) && adjusted_mass <= (left_iter->fragment_mz_+ frag_tol))
           {
+
             hits.emplace_back(left_iter->peptide_idx_, left_iter->fragment_mz_);
             #ifdef DEBUG_FRAGMENT_INDEX
             if (left_iter->peptide_idx_ < peptide_idx_range.first || left_iter->peptide_idx_ > peptide_idx_range.second)
@@ -309,32 +311,36 @@ namespace OpenMS
       return hits;
   }
 
-  void FragmentIndex::queryPeak(OpenMS::FragmentIndex::SpectrumMatchesTopN& candidates,
-                                const OpenMS::Peak1D& peak,
+  void FragmentIndex::queryPeaks(SpectrumMatchesTopN& candidates, const MSSpectrum& spectrum,
                                 const std::pair<size_t, size_t>& candidates_range,
                                 const int16_t isotope_error,
                                 const uint16_t precursor_charge)
   {
-      vector<Hit> query_hits;
-      uint16_t actual_max = std::min(precursor_charge, max_fragment_charge_);
-      for (uint16_t fragment_charge = 1; fragment_charge <= actual_max; fragment_charge++)
+
+
+      for (const Peak1D& peak : spectrum)
       {
-        query_hits = query(peak, candidates_range, fragment_charge);
-
-        for (const auto& hit : query_hits)
+        vector<Hit> query_hits;
+        uint16_t actual_max = std::min(precursor_charge, max_fragment_charge_);
+        for (uint16_t fragment_charge = 1; fragment_charge <= actual_max; fragment_charge++)
         {
-          size_t idx = hit.peptide_idx - candidates_range.first;
+          query_hits = query(peak, candidates_range, fragment_charge);
 
-          auto& source = candidates.hits_[idx];
-          if (source.num_matched_ == 0)
+          for (const auto& hit : query_hits)
           {
-            ++candidates.scored_candidates_;
-            source.precursor_charge_ = precursor_charge;
-            source.peptide_idx_ = hit.peptide_idx;
-            source.isotope_error_ = isotope_error;
+            {
+              size_t idx = hit.peptide_idx - candidates_range.first;
+
+              auto& source = candidates.hits_[idx];
+              if (source.num_matched_ == 0)
+              {
+                source.precursor_charge_ = precursor_charge;
+                source.peptide_idx_ = hit.peptide_idx;
+                source.isotope_error_ = isotope_error;
+              }
+              ++source.num_matched_;
+            }
           }
-          ++source.num_matched_;
-          ++candidates.matched_peaks_;
         }
       }
   }
@@ -356,18 +362,45 @@ namespace OpenMS
 
         init_hits.hits_.resize(max_processed_hits_);
       }
-      for (auto hit_iter = init_hits.hits_.rbegin(); hit_iter != init_hits.hits_.rend(); hit_iter++)
+      else
+      {
+        std::sort(init_hits.hits_.begin(), init_hits.hits_.end(), [](const SpectrumMatch& a, const SpectrumMatch& b) {
+          if (a.num_matched_ != b.num_matched_)
+          {
+            return a.num_matched_ > b.num_matched_;
+          }
+          else
+          {
+            return std::tie(a.isotope_error_, a.precursor_charge_) < std::tie(b.isotope_error_, b.precursor_charge_);
+          }
+        });
+      }
+      if (init_hits.hits_.size() > 0  )
+      {
+        if (init_hits.hits_[0].num_matched_ < min_matched_peaks_)
+          init_hits.hits_.resize(0);
+      }
+
+
+      for (auto hit_iter = init_hits.hits_.rbegin(); hit_iter != init_hits.hits_.rend(); ++hit_iter)
       {
         if (hit_iter->num_matched_ >= min_matched_peaks_)           // search for the first element that should be included
         {
           init_hits.hits_.resize(init_hits.hits_.size() - (distance(init_hits.hits_.rbegin(), hit_iter)));
           break;
         }
-        if (hit_iter == init_hits.hits_.rend() -1) // we reached the last element without activating the previous if statement -> no hits at all
-        {
-          init_hits.hits_.resize(0);
-        }
       }
+      /* alternative code
+       * auto it_zero = std::lower_bound(init_hits.hits_.begin(), init_hits.hits_.end(), min_matched_peaks_ , [](const SpectrumMatch& sm, uint32_t b){
+return sm.num_matched_ > b;
+});
+
+if (it_zero != init_hits.hits_.end() && it_zero->num_matched_ == 0)
+{
+init_hits.hits_.erase(it_zero, init_hits.hits_.end());
+}
+       * */
+
   }
 
   void FragmentIndex::searchDifferentPrecursorRanges(const MSSpectrum& spectrum,
@@ -393,6 +426,7 @@ namespace OpenMS
         precursor_window_upper_applied = 0;
         precursor_window_lower_applied = 0;
       }
+
       for (int16_t isotope_error = min_isotope_error_applied; isotope_error <= max_isotope_error_applied; isotope_error++)
       {
         SpectrumMatchesTopN candidates_iso_error;
@@ -400,15 +434,14 @@ namespace OpenMS
         auto candidates_range = getPeptidesInPrecursorRange(precursor_mass_isotope_error, {precursor_window_lower_applied, precursor_window_upper_applied}); // for the simple search we do not apply any modification window!!
         candidates_iso_error.hits_.resize(candidates_range.second - candidates_range.first + 1);
 
-        for (const Peak1D& peak : spectrum)
-        {
-          queryPeak(candidates_iso_error, peak, candidates_range, isotope_error, charge);
-        }
+        queryPeaks(candidates_iso_error, spectrum, candidates_range, isotope_error, charge);
+
         // take only top 50 hits
-        trimHits(candidates_iso_error);
+        //trimHits(candidates_iso_error);
+
         sms += candidates_iso_error;
       }
-      trimHits(sms);
+      //trimHits(sms);
   }
 
   void FragmentIndex::querySpectrum(const OpenMS::MSSpectrum& spectrum,
@@ -449,12 +482,15 @@ namespace OpenMS
       }
       // loop over all PRECURSOR-charges
 
+
+
       for (uint16_t charge : charges)
       {
         SpectrumMatchesTopN candidates_charge;
         float mz;
         mz = (float)precursor[0].getMZ() * charge - ((charge-1) * Constants::PROTON_MASS_U);
         searchDifferentPrecursorRanges(spectrum, mz, candidates_charge, charge);
+
         sms += candidates_charge;
       }
       trimHits(sms);
@@ -534,7 +570,7 @@ namespace OpenMS
     defaults_.setValue("min_isotope_error", -1, "Precursor isotope error");
     defaults_.setValue("max_isotope_error", 1, "precursor isotope error");
 
-    defaults_.setValue("fragment:max_charge", 4, "max fragment charge");
+    defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
     defaults_.setValue("max_processed_hits", 50, "The number of initial hits for which we calculate a score");
     defaults_.setValue("open_search", "false", "Open or standard search");
     defaults_.setValue("open_precursor_window_lower_", -100.0, "lower bound of the open precursor window");
