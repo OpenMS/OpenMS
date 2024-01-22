@@ -128,6 +128,7 @@ namespace OpenMS
     }
   }
 
+  // TODO mzMLb provide handler from outside to optionally support mzMLb
   void MzMLFile::loadBuffer(const std::string& buffer, PeakMap& map)
   {
     map.reset();

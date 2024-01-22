@@ -294,6 +294,7 @@ namespace OpenMS::Internal
       }
     }
 
+    // decodes binary data arrays into MSSpectrum
     void MzMLHandler::populateSpectraWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
                                                Size& default_arr_length,
                                                const PeakFileOptions& peak_file_options,
@@ -301,8 +302,20 @@ namespace OpenMS::Internal
     {
       typedef SpectrumType::PeakType PeakType;
 
-      // decode all base64 arrays
-      MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
+      // TODO mzMLb: here we need a customization point to either 
+      // - decode the spectra from Base64 (mzML)
+      // - or load them from the HDF5 dataset encoded in the binary data object (mzMLb)
+      if (!mzMLb_binary_bata_array_loader_)
+      {
+        // decode all base64 arrays
+        MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
+      }
+      else // mzMLb mode
+      {
+        // TODO: loads and fill binary data arrays from HDF5 using the 
+        // dataset, offset and length stored in the BinaryData object 
+        mzMLb_binary_bata_array_loader_->fill(input_data);
+      }
 
       //look up the precision and the index of the intensity and m/z array
       bool mz_precision_64 = true;
@@ -1239,6 +1252,7 @@ namespace OpenMS::Internal
           // append current spectral data to buffer
           spectrum_data_.push_back(std::move(tmp));
 
+          // buffer full? then decode data!
           if (spectrum_data_.size() >= options_.getMaxDataPoolSize())
           {
             populateSpectraWithData_();
@@ -1375,7 +1389,7 @@ namespace OpenMS::Internal
         }
 
         if (!MzMLHandlerHelper::handleBinaryDataArrayCVParam(bin_data_, accession, value, name, unit_accession))
-        {
+        {          
           if (!cv_.isChildOf(accession, "MS:1000513")) //other array names as string
           {
             warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
@@ -5319,7 +5333,6 @@ namespace OpenMS::Internal
         }
         writeBinaryDataArray_(os, pf_options_, data_to_encode, true, array_type);
       }
-
     }
 
     template <typename DataType>

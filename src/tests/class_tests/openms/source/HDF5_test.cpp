@@ -148,7 +148,7 @@ START_SECTION((HDF5_BLOSC()))
   
   // try to load a BLOSC compressed HDF5 file (mzMLB) in read/write mode
   unsigned int openFlag = H5F_ACC_RDONLY;
-  const H5std_string  filename( OPENMS_GET_TEST_DATA_PATH("test.mzMLb") );
+  const H5std_string  filename( OPENMS_GET_TEST_DATA_PATH("small.mzMLb") );
 
   // thread-safe way to release file handle and free pointer
   std::unique_ptr<H5File, void(*)(H5::H5File*)> hdf5_file(new H5File(filename, openFlag /*, fcparm, faparm*/), 
@@ -174,6 +174,8 @@ START_SECTION((HDF5_BLOSC()))
         return 0;
       }, 
       &object_names);
+
+    const size_t MAX_PRINT = 20; // how many entries per array to print
 
     // print the object names and types
     for (const std::string& name : object_names) 
@@ -204,34 +206,43 @@ START_SECTION((HDF5_BLOSC()))
           }
         } 
         else if (datatype_class == H5T_INTEGER) 
-        {
+        {          
           // Get dataspace of the dataset
           hid_t dataspace_id = H5Dget_space(dataset_id);
           hssize_t num_elements = H5Sget_simple_extent_npoints(dataspace_id);
 
           // Read and print data based on size
-          if (num_elements == 1) {
+          if (num_elements == 1) 
+          {
               // Single integer
               int value;
               H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &value);
               std::cout << "(integer) '" << name << "': " << value << std::endl;
-          } else {
+          } 
+          else 
+          {
               // Array of integers
               std::vector<int> data(num_elements);
               H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data.data());
               if (name == "mzML")
               {
                 std::cout << "(XML) '" << name << "': ";
-                for (int val : data) {
-                    std::cout << (char)val;
+                for (float val : data) 
+                {
+                  std::cout << (char)val;
                 }
               }
               else
               {
                 std::cout << "(integer array) '" << name << "': ";
-                for (int val : data) {
+                size_t count{};
+                for (float val : data) 
+                {
                     std::cout << val << " ";
+                    ++count;
+                    if (count >= MAX_PRINT) break;
                 }
+                if (count >= MAX_PRINT) std::cout << "  ...  ";
                 std::cout << std::endl;                
               }
           }
@@ -246,19 +257,26 @@ START_SECTION((HDF5_BLOSC()))
           hssize_t num_elements = H5Sget_simple_extent_npoints(dataspace_id);
 
           // Read and print data based on size
-          if (num_elements == 1) {
+          if (num_elements == 1) 
+          {
               // Single float
               float value;
               H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &value);
               std::cout << "(float) '" << name << "': " << value << std::endl;
-          } else {
+          } else 
+          {
               // Array of floats
               std::vector<float> data(num_elements);
               H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data.data());
               std::cout << "(float array) '" << name << "': ";
-              for (float val : data) {
+              size_t count{};
+              for (float val : data) 
+              {
                   std::cout << val << " ";
+                  ++count;
+                  if (count >= MAX_PRINT) break;
               }
+              if (count >= MAX_PRINT) std::cout << "  ...  ";
               std::cout << std::endl;
           }
 

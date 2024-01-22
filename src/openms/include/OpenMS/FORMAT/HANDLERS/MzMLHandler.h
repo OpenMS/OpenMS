@@ -168,7 +168,7 @@ public:
 
       /// handler which support partial loading, implement this method
       void setLoadDetail(const LOADDETAIL d) override;
-
+      
 protected:
 
       /// delegated constructor for the two public versions
@@ -486,6 +486,9 @@ protected:
       const ControlledVocabulary& cv_;
       CVMappings mapping_;
 
+      // if set, will use the mzMLb loader to retrieve binary data arrays from HDF5
+      // instead of decoding the base64 part in the XML.
+      std::optional<MzMLbBinaryDataArrayLoader} mzMLb_binary_bata_array_loader_;
     };
 
     //--------------------------------------------------------------------------------

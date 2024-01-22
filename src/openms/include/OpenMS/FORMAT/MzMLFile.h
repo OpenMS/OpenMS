@@ -197,7 +197,6 @@ protected:
     void safeParse_(const String & filename, Internal::XMLHandler * handler);
 
 private:
-
     /// Options for loading / storing
     PeakFileOptions options_;
 
