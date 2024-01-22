@@ -16,7 +16,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
                         double spacing_for_spectra_resampling,
                         double drift_extra,
                         OpenSwath_Scores_Usage su,
-                        libcpp_string spectrum_addition_method) except + nogil 
+                        libcpp_string spectrum_addition_method,
+                        bool use_ms1_ion_mobility) except + nogil
             # wrap-doc:
                 #  Initialize the scoring object\n
                 #  Sets the parameters for the scoring

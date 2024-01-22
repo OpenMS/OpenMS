@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -41,7 +41,7 @@ namespace OpenMS
       @todo allow semi-supervised by using decoy annotations
       @todo allow non-parametric via kernel density estimation
 
-      @htmlinclude OpenMS_Math::PosteriorErrorProbabilityModel.parameters
+      @htmlinclude OpenMS_PosteriorErrorProbabilityModel.parameters
 
       @ingroup Math
     */

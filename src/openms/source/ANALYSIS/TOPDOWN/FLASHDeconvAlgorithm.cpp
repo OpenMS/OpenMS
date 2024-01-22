@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -32,6 +32,11 @@ namespace OpenMS
     defaults_.setValue("report_FDR", "false", "Report qvalues (roughly, point-wise FDR) for deconvolved masses. Decoy masses to calculate qvalues and FDR are also reported. Beta version.");
     defaults_.setValidStrings("report_FDR", {"true", "false"});
 
+    defaults_.setValue("allowed_isotope_error", 0,
+                       "Allowed isotope index error for decoy and FDR report. If it is set to 2, for example, +-2 isotope errors are "
+                       "not counted as false. Beta version.");
+    defaults_.addTag("allowed_isotope_error", "advanced");
+
     defaults_.setValue("use_RNA_averagine", "false", "If set, RNA averagine model is used.");
     defaults_.setValidStrings("use_RNA_averagine", {"true", "false"});
     defaults_.addTag("use_RNA_averagine", "advanced");
@@ -63,7 +68,9 @@ namespace OpenMS
     defaults_.setMinInt("merging_method", 0);
     defaults_.setMaxInt("merging_method", 2);
 
-    defaults_.insert("SD:", SpectralDeconvolution().getDefaults());
+    auto sd_defaults = SpectralDeconvolution().getDefaults();
+    sd_defaults.remove("allowed_isotope_error");
+    defaults_.insert("SD:", sd_defaults);
 
     Param mf_defaults = MassFeatureTrace().getDefaults();
     mf_defaults.setValue("min_cos", -1.0, "Cosine similarity threshold between avg. and observed isotope pattern.  When negative, MS1 cosine threshold for mass deconvolution will be used ");
@@ -242,7 +249,8 @@ namespace OpenMS
     }
 
     auto type_accession = map.getSourceFiles()[0].getNativeIDTypeAccession();
-    if (type_accession.empty()) type_accession = "MS:1000768";
+    if (type_accession.empty())
+      type_accession = "MS:1000768";
 
     int scan_number = SpectrumLookup::extractScanNumber(native_ids.back(), type_accession);
     if (scan_number < 0)
@@ -369,7 +377,7 @@ namespace OpenMS
 
     sd_ = SpectralDeconvolution();
     Param sd_param = param_.copy("SD:", true);
-
+    sd_param.setValue("allowed_isotope_error", param_.getValue("allowed_isotope_error"));
     sd_.setParameters(sd_param);
     sd_.calculateAveragine(use_RNA_averagine_);
     auto avg = sd_.getAveragine();

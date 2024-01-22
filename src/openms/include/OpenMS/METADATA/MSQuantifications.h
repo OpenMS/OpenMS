@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -146,7 +146,7 @@ public:
     /// Equality operator
     bool operator!=(const MSQuantifications & rhs) const;
 
-    /**
+    /*
         @brief Loads data from a text file.
 
         @param filename The input file name.

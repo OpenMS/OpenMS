@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -87,8 +87,7 @@ namespace OpenMS
           @param sirius_output_paths: Path to output directories of Sirius
           @param original_input_mzml: Path to original input mzml of SiriusAdapter
           @param top_n_hits: Top n  entries for each compound written to the result file
-          
-          @return Result written to mzTab
+          @param result Result written to mzTab
           */
           static void read(const std::vector<String>& sirius_output_paths,
                            const String& original_input_mzml,

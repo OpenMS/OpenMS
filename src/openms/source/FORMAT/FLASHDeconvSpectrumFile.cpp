@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -155,7 +155,7 @@ namespace OpenMS
         {
           fs << "nan\tnan\tnan\tnan\t";
           if (report_decoy)
-            fs << "nan\tnan\tnan\tnan\t";
+            fs << "nan\t";
         }
         else
         {
@@ -163,8 +163,7 @@ namespace OpenMS
              << std::to_string(dspec.getPrecursorPeakGroup().getQscore()) << "\t" << dspec.getPrecursorPeakGroup().getQscore2D() << "\t";
           if (report_decoy)
           {
-            fs << dspec.getPrecursorPeakGroup().getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::TargetDecoyType::isotope_decoy) << "\t"
-               << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::TargetDecoyType::noise_decoy) << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::TargetDecoyType::charge_decoy) << "\t";
+            fs << dspec.getPrecursorPeakGroup().getQvalue() << "\t";
           }
         }
       }
@@ -178,8 +177,7 @@ namespace OpenMS
 
       if (report_decoy)
       {
-        fs << "\t" << pg.getQvalue() << "\t" << pg.getQvalue(PeakGroup::TargetDecoyType::isotope_decoy) << "\t" << pg.getQvalue(PeakGroup::TargetDecoyType::noise_decoy) << "\t"
-           << pg.getQvalue(PeakGroup::TargetDecoyType::charge_decoy);
+        fs << "\t" << pg.getQvalue();
       }
 
       if (write_detail)
@@ -229,7 +227,7 @@ namespace OpenMS
               "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQscore\tQscore2D\t";
         if (report_decoy)
         {
-          fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\t";
+          fs << "Qvalue\t";
         }
         fs << "PerChargeIntensity\tPerIsotopeIntensity\n";
       }
@@ -247,12 +245,12 @@ namespace OpenMS
               "PrecursorScanNum\tPrecursorFeatureIndex\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQscore\tPrecursorQscore2D\t";
         if (report_decoy)
         {
-          fs << "PrecursorQvalue\tPrecursorQvalueWithIsotopeDecoyOnly\tPrecursorQvalueWithNoiseDecoyOnly\tPrecursorQvalueWithChargeDecoyOnly\t";
+          fs << "PrecursorQvalue\t";
         }
         fs << "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQscore\tQscore2D\t";
         if (report_decoy)
         {
-          fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\t";
+          fs << "Qvalue\t";
         }
         fs << "PerChargeIntensity\tPerIsotopeIntensity\n";
       }
@@ -272,7 +270,7 @@ namespace OpenMS
               "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQscore\tQscore2D\t";
         if (report_decoy)
         {
-          fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly";
+          fs << "Qvalue";
         }
         fs << "\n";
       }
@@ -289,12 +287,12 @@ namespace OpenMS
               "PrecursorScanNum\tPrecursorFeatureIndex\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQscore\tPrecursorQscore2D\t";
         if (report_decoy)
         {
-          fs << "PrecursorQvalue\tPrecursorQvalueWithIsotopeDecoyOnly\tPrecursorQvalueWithNoiseDecoyOnly\tPrecursorQvalueWithChargeDecoyOnly\t";
+          fs << "PrecursorQvalue\t";
         }
         fs << "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQscore\tQscore2D\t";
         if (report_decoy)
         {
-          fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly";
+          fs << "Qvalue\t";
         }
         fs << "\n";
       }

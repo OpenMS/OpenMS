@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -215,7 +215,7 @@ protected:
    * calibrants) perform RT and m/z correction in SWATH-MS data. Currently
    * supports (non-)linear correction of RT against library RT as well
    * as (non-)linear correction of m/z error as a function of m/z.
-   * 
+   *
    * @note The relevant algorithms are implemented in MRMRTNormalizer for RT
    * calibration and SwathMapMassCorrection for m/z calibration.
    *
@@ -356,10 +356,10 @@ protected:
   /**
    * @brief Execute all steps in an \ref TOPP_OpenSwathWorkflow "OpenSwath" analysis
    *
-   * The workflow will perform a complete OpenSWATH analysis. Optionally, 
-   * a calibration of m/z and retention time (mapping peptides to normalized 
-   * space and correcting m/z error) can be performed beforehand using the 
-   * OpenSwathCalibrationWorkflow class. 
+   * The workflow will perform a complete OpenSWATH analysis. Optionally,
+   * a calibration of m/z and retention time (mapping peptides to normalized
+   * space and correcting m/z error) can be performed beforehand using the
+   * OpenSwathCalibrationWorkflow class.
    *
    * For diaPASEF workflows where ion mobility windows are overlapping, precursors may be found in multiple SWATHs.
    * In this case, precursors are only extracted from the SWATH in which they are most centered across ion mobility

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -309,7 +309,7 @@ public:
 
       If you want some verbose output, provide a stream.
 
-      @hint: alternative to this method we could check the features while they are added to the map directly, but
+      @note Alternative to this method we could check the features while they are added to the map directly, but
               - currently we can't because the interface is not designed for this (derived from std::vector, no encapsulation)
               - we should restrict the user to first fill the list of maps, before any datapoints can be inserted
 

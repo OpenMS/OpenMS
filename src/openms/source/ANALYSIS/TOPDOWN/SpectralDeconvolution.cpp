@@ -48,13 +48,15 @@ namespace OpenMS
     defaults_.setValue("min_cos", DoubleList {.85, .85},
                        "Cosine similarity thresholds between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_cos 0.3 0.6 to specify 0.3 and 0.6 for MS1 and MS2, respectively)");
     defaults_.addTag("min_cos", "advanced");
-    defaults_.setValue("min_snr", DoubleList {1.0, 1.0}, "SNR thresholds for MS1, 2, ... (e.g., -min_snr 1.0 0.6 to specify 1.0 and 0.6 for MS1 and MS2, respectively)");
+    defaults_.setValue(
+      "min_snr", DoubleList {1.0, 1.0},
+      "Minimum charge SNR (the SNR of the isotope pattern of a specific charge) thresholds for MS1, 2, ... (e.g., -min_snr 1.0 0.6 to specify 1.0 and 0.6 for MS1 and MS2, respectively)");
     defaults_.addTag("min_snr", "advanced");
     defaults_.setValue("max_qvalue", DoubleList {1.0, 1.0},
                        "Qvalue thresholds for MS1, 2, ... Effective only when FDR estimation is active. (e.g., -max_qvalue 0.1 0.2 to specify 0.1 and 0.2 for MS1 and MS2, respectively)");
     defaults_.addTag("max_qvalue", "advanced");
-    defaults_.setValue("allowed_isotope_error", 0,
-                       "Allowed isotope index error for decoy and qvalue report. If it is set to 1, for example, +-1 isotope errors are "
+    defaults_.setValue("allowed_isotope_error", 1,
+                       "Allowed isotope index error for decoy and qvalue report. If it is set to 2, for example, +-2 isotope errors are "
                        "not counted as false. Beta version.");
     defaults_.addTag("allowed_isotope_error", "advanced");
 
@@ -99,7 +101,7 @@ namespace OpenMS
     iso_da_distance_ =
       target_decoy_type_ != PeakGroup::noise_decoy ?
         Constants::ISOTOPE_MASSDIFF_55K_U :
-        Constants::ISOTOPE_MASSDIFF_55K_U * sqrt(13.0) / 3.0; // sqrt(7.0)/2.0 Da is used instead of C13 - C12 to make sure masses detected with this nonsensical mass difference are not true.
+        Constants::ISOTOPE_MASSDIFF_55K_U * sqrt(13.0) / 5; // sqrt(7.0)/2.0 Da is used instead of C13 - C12 to make sure masses detected with this nonsensical mass difference are not true.
     previously_deconved_mono_masses_for_decoy_.clear();
     previously_deconved_mass_bins_for_decoy_.reset();
 
@@ -264,7 +266,6 @@ namespace OpenMS
     log_mz_peaks_.clear();
     log_mz_peaks_.reserve(deconvolved_spectrum_.getOriginalSpectrum().size());
 
-    // threshold = threshold < min_intensity * 2 ? min_intensity * 2 : threshold;
     for (const auto& peak : deconvolved_spectrum_.getOriginalSpectrum())
     {
       if (peak.getIntensity() <= 0) //
@@ -273,6 +274,7 @@ namespace OpenMS
       }
 
       LogMzPeak log_mz_peak(peak, is_positive_);
+
       log_mz_peaks_.push_back(log_mz_peak);
     }
   }
@@ -446,7 +448,6 @@ namespace OpenMS
                 }
 
                 const int hdiff = (int)round((double)(next_iso_bin - mz_bin_index)) / hc * (hc / 2);
-
                 const int next_harmonic_iso_bin = mz_bin_index + hdiff; //(int)getBinNumber_(log_mz + hdiff, mz_bin_min_value_, bin_mul_factor);
                 // check if there are harmonic peaks between the current peak and the next isotope peak.
 
@@ -875,6 +876,7 @@ namespace OpenMS
   void SpectralDeconvolution::setTargetDecoyType(PeakGroup::TargetDecoyType target_decoy_type, const DeconvolvedSpectrum& target_dspec_for_decoy_calcualtion)
   {
     target_decoy_type_ = target_decoy_type;
+    //if (target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy) max_abs_charge_ = low_charge_;
     target_dspec_for_decoy_calcualtion_ = &target_dspec_for_decoy_calcualtion;
   }
 
@@ -991,41 +993,46 @@ namespace OpenMS
       int offset = 0;
       auto& peak_group = deconvolved_spectrum_[i];
       peak_group.setTargetDecoyType(target_decoy_type_);
-
-      float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -peak_group.getMinNegativeIsotopeIndex(), -1, allowed_iso_error_,
-                                                           target_decoy_type_);
+      bool is_isotope_decoy = target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy;
+      float prev_cos = peak_group.getIsotopeCosine();
+      float cos = getIsotopeCosineAndIsoOffset(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -peak_group.getMinNegativeIsotopeIndex(), -1,
+                                               allowed_iso_error_, target_decoy_type_);
       peak_group.setIsotopeCosine(cos);
+
       // first filtration to remove false positives before further processing.
       if (cos < std::min(.5, min_isotope_cosine_[ms_level_ - 1]) - .3)
       {
         continue;
       }
 
-      auto prev_mono_mass = peak_group.getMonoMass() + offset * iso_da_distance_;
-
-      int num_iteration = target_decoy_type_ != PeakGroup::TargetDecoyType::isotope_decoy ? 30 : 1;
+      int num_iteration = is_isotope_decoy ? 1 : 30;
       for (int k = 0; k < num_iteration; k++)
       {
         auto noisy_peaks = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_);
         // min cosine is checked in here. mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
         const auto& [z1, z2] = peak_group.getAbsChargeRange();
-        offset = peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol, (z1 + z2) < 2 * low_charge_, allowed_iso_error_, false);
-
-        if (offset == 0)
+        if (!is_isotope_decoy)
         {
-          peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol, (z1 + z2) < 2 * low_charge_, allowed_iso_error_, true);
+          offset =
+            peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol, (z1 + z2) < 2 * low_charge_, false);
+        }
+        if (is_isotope_decoy || offset == 0)
+        {
+          offset = peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol, (z1 + z2) < 2 * low_charge_, true);
           break;
         }
+      }
+      if (offset != 0) continue;
+      if (is_isotope_decoy)
+      {
+       if(prev_cos - peak_group.getIsotopeCosine() > .004) continue; // a magic number to make sure isotope decoys and isotope false positives have the same distribution. Dependent on cosine function definition
       }
 
       if (peak_group.empty() || peak_group.getQscore() <= 0 || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
       {
         continue;
       }
-      if (std::abs(prev_mono_mass - peak_group.getMonoMass()) > 3) // if they are off by more than 3, they are different envelopes.
-      {
-        continue;
-      }
+
       auto [z1, z2] = peak_group.getAbsChargeRange();
 
       if (z1 > low_charge_ && (z2 - z1) < min_support_peak_count_)
@@ -1060,9 +1067,8 @@ namespace OpenMS
       }
 
       double snr_threshold = min_snr_[ms_level_ - 1];
-      double qvalue_threshold = max_qvalue_[ms_level_ - 1];
-      if (!peak_group.isTargeted() && (peak_group.getQvalue() > qvalue_threshold || peak_group.getSNR() < snr_threshold ||
-                                       peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold)) // snr check prevents harmonics or noise.
+      if (!peak_group.isTargeted() && (                                                                         // peak_group.getQvalue() > qvalue_threshold || peak_group.getSNR() < snr_threshold ||
+                                        peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold)) // snr check prevents harmonics or noise.
       {
         continue;
       }
@@ -1100,11 +1106,11 @@ namespace OpenMS
     removeExcludedMasses_(deconvolved_spectrum_);
   }
 
-  float SpectralDeconvolution::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg,
-                                                                        int iso_int_shift, int window_width, int allowed_iso_error_for_second_best_cos, PeakGroup::TargetDecoyType target_decoy_type)
+  float SpectralDeconvolution::getIsotopeCosineAndIsoOffset(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int iso_int_shift,
+                                                            int window_width, int allowed_isotope_error, PeakGroup::TargetDecoyType target_decoy_type)
   {
     offset = 0;
-    if ((int)per_isotope_intensities.size() < min_iso_size_ + iso_int_shift)
+    if ((int)per_isotope_intensities.size() < min_iso_size + iso_int_shift)
     {
       return .0;
     }
@@ -1112,21 +1118,13 @@ namespace OpenMS
 
     int right = (int)avg.getApexIndex(mono_mass) / 4 + 1;
     int left = right;
+    if (target_decoy_type == PeakGroup::TargetDecoyType::isotope_decoy && right <= allowed_isotope_error) return 0;
 
-    if (window_width >= 0)
-    {
-      right = std::min(right, window_width);
-      left = std::min(left, window_width);
-    }
-
+    right += iso_int_shift;
+    left -= iso_int_shift;
     float max_cos = -1000;
-    float second_max_cos = -1000;
-    int second_max_offset = -1000;
     int max_isotope_index = (int)per_isotope_intensities.size(); // exclusive
     int min_isotope_index = -1;                                  // inclusive
-
-    left -= iso_int_shift;
-    right += iso_int_shift;
 
     for (int i = 0; i < max_isotope_index; i++)
     {
@@ -1140,47 +1138,56 @@ namespace OpenMS
         min_isotope_index = i;
       }
     }
-    if (max_isotope_index - min_isotope_index < min_iso_size_)
+    if (max_isotope_index - min_isotope_index < min_iso_size)
     {
       return .0;
     }
 
+    std::vector<std::pair<int, float>> offset_cos;
+    offset_cos.reserve(right + left + 1);
+
     for (int tmp_offset = -left; tmp_offset <= right; tmp_offset++)
     {
-      float tmp_cos = getCosine(per_isotope_intensities, min_isotope_index, max_isotope_index, iso, tmp_offset, min_iso_size_, target_decoy_type == PeakGroup::TargetDecoyType::noise_decoy);
+      if (target_decoy_type != PeakGroup::TargetDecoyType::isotope_decoy && window_width >= 0 && abs(tmp_offset - iso_int_shift) > window_width) continue;
+      float tmp_cos = getCosine(per_isotope_intensities, min_isotope_index, max_isotope_index, iso, tmp_offset, min_iso_size, target_decoy_type == PeakGroup::TargetDecoyType::noise_decoy);
+      offset_cos.emplace_back(tmp_offset, tmp_cos);
+    }
 
-      if (max_cos < tmp_cos)
-      {
-        max_cos = tmp_cos;
-        offset = tmp_offset;
-      }
+    std::sort(offset_cos.begin(), offset_cos.end(), [](const std::pair<int, float>& p1, const std::pair<int, float>& p2) { return p1.second > p2.second; });
+
+    for (const auto& [o, c] : offset_cos)
+    {
+      if (o > right || o < -left)
+        continue;
+      if (window_width >= 0 && abs(o - iso_int_shift) > window_width) //
+        continue;
+      offset = o;
+      max_cos = c;
+      break;
     }
 
     if (target_decoy_type == PeakGroup::TargetDecoyType::isotope_decoy)
     {
-      for (int tmp_offset = offset - 3; tmp_offset <= offset + 3; tmp_offset++)
-      {
-        if (abs(offset - tmp_offset) <= allowed_iso_error_for_second_best_cos) //
-        {
-          continue;
-        }
-        if (tmp_offset < -left || tmp_offset > right)
-        {
-          continue;
-        }
-        float tmp_cos = getCosine(per_isotope_intensities, min_isotope_index, max_isotope_index, iso, tmp_offset, min_iso_size_, target_decoy_type == PeakGroup::TargetDecoyType::noise_decoy);
+      int original_offset = offset;
+      max_cos = -1000;
 
-        if (second_max_cos < tmp_cos && tmp_cos < max_cos)
+      for (const auto& [o, c] : offset_cos)
+      {
+        if (abs(original_offset - o) <= allowed_isotope_error) //
+          continue;
+
+        if (max_cos < 0)
         {
-          second_max_cos = tmp_cos;
-          second_max_offset = tmp_offset;
+          offset = o;
+          max_cos = c;
+          break;
         }
       }
-      max_cos = second_max_cos;
-      offset = second_max_offset;
     }
 
+    max_cos = std::max(max_cos, .0f);
     offset -= iso_int_shift;
+
     return max_cos;
   }
 
@@ -1202,11 +1209,10 @@ namespace OpenMS
     {
       for (int i = 0; i < b.size(); i++)
       {
-        float f = i % 2 == 0 ? 1.0f / 3 : 3;
-        b_norm += b[i].getIntensity() * b[i].getIntensity() * f * f;
+        int ni = (i % 2 == 0 ? i + 1 : i - 1) % (int)b.size();
+        b_norm += b[ni].getIntensity() * b[ni].getIntensity();
       }
     }
-
 
     for (int j = a_start; j < a_end; j++)
     {
@@ -1229,8 +1235,13 @@ namespace OpenMS
       }
       else
       {
-        float f = decoy ? (i % 2 == 0 ? 1.0f / 3 : 3) : 1;
-        n += a[j] * b[i].getIntensity() * f; //
+        if (decoy)
+        {
+          int ni = (i % 2 == 0 ? i + 1 : i - 1) % (int)b.size();
+          n += a[j] * b[ni].getIntensity(); //
+        }
+        else
+          n += a[j] * b[i].getIntensity();
       }
     }
 
@@ -1387,9 +1398,11 @@ namespace OpenMS
         local_max_SNR = -1.0;
       }
 
-      if (local_max_SNR < dspec[i].getSNR())
+      float snr = dspec[i].getSNR();
+
+      if (local_max_SNR < snr)
       {
-        local_max_SNR = dspec[i].getSNR();
+        local_max_SNR = snr;
         local_max_index = i;
       }
       if (dspec[i].isTargeted())

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -34,45 +34,49 @@ public:
   /** @brief Resolves ambiguous annotations of features with peptide identifications.
     The the filtered identifications are added to the vector of unassigned peptides
     and also reduced to a single best hit.
+
+    @param features Features to work on
     @param keep_matching Keeps all IDs that match the modified sequence of the best
     hit in the feature (e.g. keeps all IDs in a ConsensusMap if id'd same across multiple runs)
   **/
-  static void resolve(FeatureMap & features, bool keep_matching = false);
+  static void resolve(FeatureMap& features, bool keep_matching = false);
 
   /** @brief Resolves ambiguous annotations of consensus features with peptide identifications.
     The the filtered identifications are added to the vector of unassigned peptides
     and also reduced to a single best hit.
+    
+    @param features Features to work on
     @param keep_matching Keeps all IDs that match the modified sequence of the best
     hit in the feature (e.g. keeps all IDs in a ConsensusMap if id'd same across multiple runs)
   **/
-  static void resolve(ConsensusMap & features, bool keep_matching = false);
+  static void resolve(ConsensusMap& features, bool keep_matching = false);
 
   /** @brief In a single (feature/consensus) map, features with the same (possibly modified) sequence and charge state may appear.
    This filter removes the peptide sequence annotations from features, if a higher-intensity feature with the same (charge, sequence)
    combination exists in the map. The total number of features remains unchanged. In the final output, each (charge, sequence) combination
    appears only once, i.e. no multiplicities.
    **/
-  static void resolveBetweenFeatures(FeatureMap & features);
+  static void resolveBetweenFeatures(FeatureMap& features);
   
   /** @brief In a single (feature/consensus) map, features with the same (possibly modified) sequence and charge state may appear.
    This filter removes the peptide sequence annotations from features, if a higher-intensity feature with the same (charge, sequence)
    combination exists in the map. The total number of features remains unchanged. In the final output, each (charge, sequence) combination
    appears only once, i.e. no multiplicities.
    **/
-  static void resolveBetweenFeatures(ConsensusMap & features);
+  static void resolveBetweenFeatures(ConsensusMap& features);
   
 protected:
 
   template<class T>
-  static void resolveConflict_(T & map, bool keep_matching)
+  static void resolveConflict_(T& map, bool keep_matching)
   {
     // annotate as not part of the resolution
-    for (PeptideIdentification & p : map.getUnassignedPeptideIdentifications())
+    for (PeptideIdentification& p : map.getUnassignedPeptideIdentifications())
     {
       p.setMetaValue("feature_id", "not mapped"); // not mapped to a feature
     }
 
-    for (auto & c : map)
+    for (auto& c : map)
     {
       c.setMetaValue("feature_id", String(c.getUniqueId()));
       if (!keep_matching)
