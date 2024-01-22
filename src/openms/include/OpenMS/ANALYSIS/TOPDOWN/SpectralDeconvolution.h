@@ -278,7 +278,7 @@ namespace OpenMS
     void removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec, const PeakGroup::TargetDecoyType& target_decoy_type) const;
 
     /// filter out excluded masses
-    void removeExcludedMasses_(DeconvolvedSpectrum& dspec) const;
+    void removeExcludedMasses_(DeconvolvedSpectrum& dspec, std::vector<double> excluded_masses) const;
 
     void setTargetPrecursorCharge_();
 

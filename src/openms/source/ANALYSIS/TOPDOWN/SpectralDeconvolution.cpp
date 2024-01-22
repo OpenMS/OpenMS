@@ -100,13 +100,13 @@ namespace OpenMS
   {
     // First prepare for decoy runs.
     iso_da_distance_ =
-      target_decoy_type_ != PeakGroup::noise_decoy ?
-        Constants::ISOTOPE_MASSDIFF_55K_U :
-        Constants::ISOTOPE_MASSDIFF_55K_U * sqrt(13.0) / 5; // sqrt(13.0)/5.0 Da is used instead of C13 - C12 to make sure masses detected with this nonsensical mass difference are not true.
+      target_decoy_type_ == PeakGroup::noise_decoy ?
+        Constants::ISOTOPE_MASSDIFF_55K_U * sqrt(13.0) / 5
+      : Constants::ISOTOPE_MASSDIFF_55K_U; // sqrt(13.0)/5.0 Da is used instead of C13 - C12 to make sure masses detected with this nonsensical mass difference are not true.
     previously_deconved_peak_masses_for_decoy_.clear();
     previously_deconved_mass_bins_for_decoy_.reset();
 
-    if (target_decoy_type_ == PeakGroup::charge_decoy) // charge decoy
+    if (target_decoy_type_ == PeakGroup::charge_decoy || target_decoy_type_ == PeakGroup::noise_decoy) // charge decoy
     {
       for (const auto& pg : *target_dspec_for_decoy_calcualtion_)
       {
@@ -268,6 +268,17 @@ namespace OpenMS
     log_mz_peaks_.clear();
     log_mz_peaks_.reserve(deconvolved_spectrum_.getOriginalSpectrum().size());
 
+    std::set<double> excluded_mzs;
+    if (target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy)
+    {
+      for (const auto& pg : *target_dspec_for_decoy_calcualtion_)
+      {
+        for (const auto& p : pg)
+        {
+          excluded_mzs.insert(p.mz);
+        }
+      }
+    }
     for (const auto& peak : deconvolved_spectrum_.getOriginalSpectrum())
     {
       if (peak.getIntensity() <= 0) //
@@ -275,6 +286,27 @@ namespace OpenMS
         continue;
       }
 
+      if (!excluded_mzs.empty())
+      {
+        double delta = peak.getMZ() * tolerance_[ms_level_ - 1] * 2;
+        auto upper = excluded_mzs.upper_bound(peak.getMZ() + delta);
+        bool exclude = false;
+        while(!exclude)
+        {
+          if (upper != excluded_mzs.end())
+          {
+            if (std::abs(*upper - peak.getMZ()) < delta)
+            {
+              exclude = true;
+            }
+            if (peak.getMZ() - *upper > delta) break;
+          }
+          if (upper == excluded_mzs.begin()) break;
+          --upper;
+        }
+
+        if (exclude) continue;
+      }
       LogMzPeak log_mz_peak(peak, is_positive_);
 
       log_mz_peaks_.push_back(log_mz_peak);
@@ -1113,7 +1145,9 @@ namespace OpenMS
     removeOverlappingPeakGroups(deconvolved_spectrum_, 0, PeakGroup::TargetDecoyType::non_specific);
     removeChargeErrorPeakGroups_(deconvolved_spectrum_, PeakGroup::TargetDecoyType::non_specific);
     removeOverlappingPeakGroups(deconvolved_spectrum_, tol, target_decoy_type_);
-    removeExcludedMasses_(deconvolved_spectrum_);
+
+    removeExcludedMasses_(deconvolved_spectrum_, previously_deconved_peak_masses_for_decoy_);
+    removeExcludedMasses_(deconvolved_spectrum_, excluded_masses_);
   }
 
   float SpectralDeconvolution::getIsotopeCosineAndIsoOffset(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int iso_int_shift,
@@ -1437,9 +1471,9 @@ namespace OpenMS
     std::vector<PeakGroup>().swap(filtered_pg_vec);
   }
 
-  void SpectralDeconvolution::removeExcludedMasses_(DeconvolvedSpectrum& dspec) const
+  void SpectralDeconvolution::removeExcludedMasses_(DeconvolvedSpectrum& dspec, std::vector<double> excluded_masses) const
   {
-    if (excluded_masses_.empty())
+    if (excluded_masses.empty())
       return;
     std::vector<PeakGroup> filtered_pg_vec; //
     filtered_pg_vec.reserve(dspec.size());
@@ -1449,11 +1483,11 @@ namespace OpenMS
       if (peak_group.getTargetDecoyType() != target_decoy_type_)
         continue;
       double delta = peak_group.getMonoMass() * tolerance_[ms_level_ - 1] * 2;
-      auto upper = std::upper_bound(excluded_masses_.begin(), excluded_masses_.end(), peak_group.getMonoMass() + delta);
+      auto upper = std::upper_bound(excluded_masses.begin(), excluded_masses.end(), peak_group.getMonoMass() + delta);
       bool exclude = false;
       while (!exclude)
       {
-        if (upper != excluded_masses_.end())
+        if (upper != excluded_masses.end())
         {
           if (std::abs(*upper - peak_group.getMonoMass()) < delta)
           {
@@ -1464,7 +1498,7 @@ namespace OpenMS
             break;
           }
         }
-        if (upper == excluded_masses_.begin())
+        if (upper == excluded_masses.begin())
         {
           break;
         }
