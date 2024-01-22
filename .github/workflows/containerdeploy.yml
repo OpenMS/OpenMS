@@ -41,6 +41,8 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Checkout contrib submodule repository
         run: git submodule update --init contrib
         # we only need the contrib submodule if we're on a release branch
