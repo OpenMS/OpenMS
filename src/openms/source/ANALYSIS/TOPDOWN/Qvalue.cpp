@@ -38,7 +38,7 @@ namespace OpenMS
   {
     const uint bin_number = 100;
 
-    std::map<uint, std::vector<double>> weights_map;
+    // std::map<uint, std::vector<double>> weights_map;
     std::map<uint, std::vector<double>> tscore_map; // per ms level
 
     std::map<uint, std::vector<double>> dscore_iso_decoy_map;
@@ -102,31 +102,29 @@ namespace OpenMS
       const auto noise_dist = getDistribution(dscore_noise, bin_number);
       const auto iso_dist = getDistribution(dscore_iso, bin_number);
 
-      std::vector<double> true_positive_dist(bin_number);
-      std::vector<std::vector<double>> comp_dists {};
-
       for (int i = 0; i < mixed_dist.size(); i++)
       {
-        mixed_dist[i] -= iso_dist[i];
+        mixed_dist[i] -= iso_dist[i] + charge_dist[i];
+       // mixed_dist[i] = std::max(mixed_dist[i], .0);
       }
-
-      comp_dists.push_back(charge_dist);
-      comp_dists.push_back(noise_dist);
 
       double sum = 0;
       int bin_threshold = iso_dist.size();
       for (; bin_threshold >= bin_number / 2; bin_threshold--)
       {
         sum += iso_dist[bin_threshold];
-        if (sum > dscore_iso.size() / 2)
+        if (sum > dscore_iso.size() * 3 / 4)
         {
           break;
         }
       }
 
-      auto weights = getDistributionWeights(mixed_dist, comp_dists, bin_threshold);
-
-      weights_map[ms_level] = weights;
+      double a = 0, b = 0;
+      for (int i = 0; i < bin_threshold; i++)
+      {
+        a += noise_dist[i];
+        b += mixed_dist[i];
+      }
 
       std::sort(qscores.begin(), qscores.end());
       std::sort(dscore_iso.begin(), dscore_iso.end());
@@ -134,8 +132,6 @@ namespace OpenMS
       std::sort(dscore_charge.begin(), dscore_charge.end());
 
       auto& map_qvalue = qscore_qvalue_map[ms_level];
-
-      // calculate q values using targets and decoys
       for (size_t i = 0; i < qscores.size(); i++)
       {
         double ts = qscores[i];
@@ -145,9 +141,9 @@ namespace OpenMS
         size_t tindex = qscores.size() - i;
         double nom = 0;
         size_t dindex = dscore_charge.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_charge.begin(), dscore_charge.end(), ts), dscore_charge.end()); // very inefficient... fix later.
-        nom += weights[0] * (double)dindex;
+        nom += (double)dindex;
         dindex = dscore_noise.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_noise.begin(), dscore_noise.end(), ts), dscore_noise.end());
-        nom += weights[1] * (double)dindex;
+        nom += b / a * (double)dindex;
         dindex = dscore_iso.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_iso.begin(), dscore_iso.end(), ts), dscore_iso.end());
         nom += (double)dindex;
 
