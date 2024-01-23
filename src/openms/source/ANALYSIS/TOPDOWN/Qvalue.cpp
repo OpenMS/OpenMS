@@ -83,7 +83,7 @@ namespace OpenMS
       for (int i = dscore_iso.size() - 1; i >= 0; i--)
       {
         sum += dscore_iso[i];
-        if (sum > iso_sum * 2 / 3 || dscore_iso[i] < .5)
+        if (sum > iso_sum * 4 / 5 || dscore_iso[i] < .5)
         {
           score_threshold = dscore_iso[i];
           break;
@@ -93,21 +93,23 @@ namespace OpenMS
       double a = 0, b = 0;
       for (double i : qscores)
       {
-        b++;
         if (i > score_threshold)
           break;
+        b++;
       }
 
       for (double i : dscore_charge)
       {
-        b--;
         if (i > score_threshold)
           break;
+        b--;
       }
 
       Size j_t = 0;
       for (size_t i = 0; i < dscore_iso.size(); i++)
       {
+        if (dscore_iso[i] > score_threshold)
+          break;
         double is = dscore_iso[i];
         while (j_t < qscores.size() && qscores[j_t] < is)
         {
@@ -115,15 +117,13 @@ namespace OpenMS
         }
         double r = j_t < qscores.size() ? double(dscore_iso.size() - i) / double(1 + qscores.size() - j_t) : .0;
         b -= 1.0 / (1 + r);
-        if (dscore_iso[i] > score_threshold)
-          break;
       }
 
       for (double i : dscore_noise)
       {
-        a++;
         if (i > score_threshold)
           break;
+        a++;
       }
 
       std::sort(qscores.rbegin(), qscores.rend());
