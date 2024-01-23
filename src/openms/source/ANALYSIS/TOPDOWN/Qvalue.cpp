@@ -77,15 +77,28 @@ namespace OpenMS
       std::sort(dscore_charge.begin(), dscore_charge.end());
 
       double sum = 0;
-      double score_threshold = 1;
+      double max_score_for_weight_calculation = 1;
+      double min_score_for_weight_calculation = 1;
       double iso_sum = std::accumulate(dscore_iso.begin(), dscore_iso.end(), .0);
+      double noise_sum = std::accumulate(dscore_noise.begin(), dscore_noise.end(), .0);
 
       for (int i = dscore_iso.size() - 1; i >= 0; i--)
       {
         sum += dscore_iso[i];
-        if (sum > iso_sum * 4 / 5 || dscore_iso[i] < .5)
+        if (sum > iso_sum * .8 || dscore_iso[i] < .5)
         {
-          score_threshold = dscore_iso[i];
+          max_score_for_weight_calculation = dscore_iso[i];
+          break;
+        }
+      }
+
+      sum = 0;
+      for (double i : dscore_noise)
+      {
+        sum += i;
+        if (sum > noise_sum * .2 || i > .25)
+        {
+          min_score_for_weight_calculation = i;
           break;
         }
       }
@@ -93,14 +106,18 @@ namespace OpenMS
       double a = 0, b = 0;
       for (double i : qscores)
       {
-        if (i > score_threshold)
+        if (i < min_score_for_weight_calculation)
+          continue;
+        if (i > max_score_for_weight_calculation)
           break;
         b++;
       }
 
       for (double i : dscore_charge)
       {
-        if (i > score_threshold)
+        if (i < min_score_for_weight_calculation)
+          continue;
+        if (i > max_score_for_weight_calculation)
           break;
         b--;
       }
@@ -108,7 +125,9 @@ namespace OpenMS
       Size j_t = 0;
       for (size_t i = 0; i < dscore_iso.size(); i++)
       {
-        if (dscore_iso[i] > score_threshold)
+        if (dscore_iso[i] < min_score_for_weight_calculation)
+          continue;
+        if (dscore_iso[i] > max_score_for_weight_calculation)
           break;
         double is = dscore_iso[i];
         while (j_t < qscores.size() && qscores[j_t] < is)
@@ -121,7 +140,9 @@ namespace OpenMS
 
       for (double i : dscore_noise)
       {
-        if (i > score_threshold)
+        if (i < min_score_for_weight_calculation)
+          continue;
+        if (i > max_score_for_weight_calculation)
           break;
         a++;
       }
