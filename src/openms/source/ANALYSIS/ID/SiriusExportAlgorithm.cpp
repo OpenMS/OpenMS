@@ -19,7 +19,8 @@ namespace OpenMS
     DefaultParamHandler("SiriusExportAlgorithm")
   {
     defaults_.setValue("filter_by_num_masstraces", 1, "Number of mass traces each feature has to have to be included. To use this parameter, setting the feature_only flag is necessary");
-    
+    defaults_.setMinInt("filter_by_num_masstraces", 1);
+
     defaults_.setValue("precursor_mz_tolerance", 10.0, "Tolerance window for precursor selection (Feature selection in regard to the precursor)");
     
     defaults_.setValue("precursor_mz_tolerance_unit", "ppm", "Unit of the preprocessing_precursor_mz_tolerance");
