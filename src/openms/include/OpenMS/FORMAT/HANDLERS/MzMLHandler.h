@@ -24,7 +24,7 @@
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 
 #include <map>
-
+#include <optional>
 
 //MISSING:
 // - more than one selected ion per precursor (warning if more than one)
@@ -59,6 +59,76 @@ namespace OpenMS
 	  typedef PeakMap MapType;
 	  typedef MSSpectrum SpectrumType;
 	  typedef MSChromatogram ChromatogramType;
+
+  // custom binary data array loader for HDF5 data (as opposed to the base64 extraction from XML)
+  class OPENMS_DLLAPI MzMLbBinaryDataArrayLoader
+  {
+    public:
+      explicit MzMLbBinaryDataArrayLoader(const std::string filename) : filename_(filename) {}
+      // input_data BinaryData objects contain the HDF5 dataset, the offset and the array length
+      // as well as precision etc.
+      // use this information to extract the actual binary data from the HDF5
+      void fill(std::vector<OpenMS::Internal::MzMLHandlerHelper::BinaryData>& input_data)
+      {
+        input_data.size(); 
+      }
+    private:
+      std::string filename_;
+
+/*
+// read HDF5 dataset referenced in XML part (with external_offset) into target. Target could be the m/z or intensity dimension of a spectrum, 
+// int. or rt dim. of a chromatogram, or an openms data array.
+// The offset is needed to find the actual data in the HDF5 dataset item. mzMLb allows to store blocks of data for better compression.
+void readMzMLbBinaryDataArray(mzMLbInputStream& is, const std::string& external_dataset, const size_t external_array_length, const size_t external_offset, MzMLHandlerHelper::BinaryData& target)
+{
+    string external_array_length;
+
+    if (external_array_length != 0)
+    {
+      length = external_array_length;
+    }
+      
+      
+    // primary array types so set the default array length
+    if (binaryDataArray->hasCVParam(MS_m_z_array) ||
+        binaryDataArray->hasCVParam(MS_time_array) ||
+        binaryDataArray->hasCVParam(MS_intensity_array) ||
+        binaryDataArray->hasCVParam(MS_wavelength_array))
+    {
+        if (defaultArrayLength)
+            *defaultArrayLength = arrayLength_;
+    }
+
+    if (!external_dataset_.empty())
+    {
+      // jump to start of data we want to extract
+      is->seek(external_dataset, external_offset, std::ios_base::beg);
+
+    // MSNumpress? then we extract raw bytes and decode them
+    if (config.numpress != BinaryDataEncoder::Numpress_None)
+    {
+        vector<char> buf(encodedLength_);
+        (*mzMLb_is)->read_opaque(external_dataset_, &buf[0], encodedLength_);
+        config.format = BinaryDataEncoder::Format_MzMLb;
+        BinaryDataEncoder encoder(config);
+        encoder.decode(&buf[0], buf.size(), binaryDataArray->data);
+    }
+    else
+    {
+      // load the binary data at the given offset into the target
+      if (external_array_length > 0)
+      {
+        target.resize(external_array_length);
+        is->read(external_dataset, &target.data()[0], external_array_length);
+      }
+    }
+      predict();
+    }
+}
+*/ }; 
+
+
+
 
     /**@brief Handler for mzML file format
      *
@@ -168,7 +238,10 @@ public:
 
       /// handler which support partial loading, implement this method
       void setLoadDetail(const LOADDETAIL d) override;
-      
+
+      /// set a custom binary data loader for mzMLb
+      void setBinaryDataArrayLoader(const MzMLbBinaryDataArrayLoader& bdl);
+
 protected:
 
       /// delegated constructor for the two public versions
@@ -488,7 +561,7 @@ protected:
 
       // if set, will use the mzMLb loader to retrieve binary data arrays from HDF5
       // instead of decoding the base64 part in the XML.
-      std::optional<MzMLbBinaryDataArrayLoader} mzMLb_binary_bata_array_loader_;
+      std::optional<MzMLbBinaryDataArrayLoader> mzMLb_binary_data_array_loader_;
     };
 
     //--------------------------------------------------------------------------------

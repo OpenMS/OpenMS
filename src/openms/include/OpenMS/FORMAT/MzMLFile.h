@@ -63,10 +63,12 @@ public:
 
       @param[in] buffer The buffer with the data (i.e. string with content of an mzML file)
       @param[out] map Is an MSExperiment
+      @param mzmlb_filename If set, will assume the buffer was extracted from the XML blob in an mzMLb 
+                            and use that mzMLb file to retrieve binaryDataArrays (e.g., spectra, chromatograms)
 
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void loadBuffer(const std::string& buffer, PeakMap& map);
+    void loadBuffer(const std::string& buffer, PeakMap& map, const std::string& mzmlb_filename = std::string());
 
     /**
       @brief Only count the number of spectra and chromatograms from a file

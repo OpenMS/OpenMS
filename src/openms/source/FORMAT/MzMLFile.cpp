@@ -128,13 +128,19 @@ namespace OpenMS
     }
   }
 
-  // TODO mzMLb provide handler from outside to optionally support mzMLb
-  void MzMLFile::loadBuffer(const std::string& buffer, PeakMap& map)
+  void MzMLFile::loadBuffer(const std::string& buffer, PeakMap& map, const std::string& mzmlb_filename)
   {
     map.reset();
 
     Internal::MzMLHandler handler(map, "memory", getVersion(), *this);
     handler.setOptions(options_);
+
+    // mzMLb file? then we need to set a custom loader for the binary data as it is not stored in the XML.
+    if (!mzmlb_filename.empty()) 
+    {
+      handler.setBinaryDataArrayLoader(Internal::MzMLbBinaryDataArrayLoader(mzmlb_filename));
+    }
+
     parseBuffer_(buffer, &handler);
   }
 

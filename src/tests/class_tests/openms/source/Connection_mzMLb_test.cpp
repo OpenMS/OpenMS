@@ -91,58 +91,6 @@ enum class PredictionType
 */
 
 
-/*
-  // read HDF5 dataset referenced in XML part (with external_offset) into target. Target could be the m/z or intensity dimension of a spectrum, 
-  // int. or rt dim. of a chromatogram, or an openms data array.
-  // The offset is needed to find the actual data in the HDF5 dataset item. mzMLb allows to store blocks of data for better compression.
-  template <typename BinaryDataArrayType>
-  void readMzMLbBinaryDataArray(mzMLbInputStream& is, const std::string& external_dataset, const size_t external_array_length, const size_t external_offset, BinaryDataArrayType& target)
-  {
-      string external_array_length;
-
-      if (external_array_length != 0)
-      {
-        length = external_array_length;
-      }
-        
-        
-      // primary array types so set the default array length
-      if (binaryDataArray->hasCVParam(MS_m_z_array) ||
-          binaryDataArray->hasCVParam(MS_time_array) ||
-          binaryDataArray->hasCVParam(MS_intensity_array) ||
-          binaryDataArray->hasCVParam(MS_wavelength_array))
-      {
-          if (defaultArrayLength)
-              *defaultArrayLength = arrayLength_;
-      }
-
-      if (!external_dataset_.empty())
-      {
-        // jump to start of data we want to extract
-        is->seek(external_dataset, external_offset, std::ios_base::beg);
-
-      // MSNumpress? then we extract raw bytes and decode them
-      if (config.numpress != BinaryDataEncoder::Numpress_None)
-      {
-          vector<char> buf(encodedLength_);
-          (*mzMLb_is)->read_opaque(external_dataset_, &buf[0], encodedLength_);
-          config.format = BinaryDataEncoder::Format_MzMLb;
-          BinaryDataEncoder encoder(config);
-          encoder.decode(&buf[0], buf.size(), binaryDataArray->data);
-      }
-      else
-      {
-        // load the binary data at the given offset into the target
-        if (external_array_length > 0)
-        {
-          target.resize(external_array_length);
-          is->read(external_dataset, &target.data()[0], external_array_length);
-        }
-      }
-        predict();
-      }
-  }
-*/
 
 /*
   // fill the empty spectrum with HDF5 dataset data
@@ -221,35 +169,49 @@ enum class PredictionType
   }
 */
 
+class MzMLbFile
+{
+  public:
+    MzMLbFile()
+    {
+      // load blosc plugin (could be part of a HDF5 singleton if we use it somewhere else)
+      char *version, *date;
+      auto return_code = register_blosc(&version, &date);
+      TEST_EQUAL(return_code >= 0, true);
+      std::cout << "Blosc version info: " << version << " " << date << std::endl;
+    }
+
+    MSExperiment load(const std::string& file_name)
+    {
+      // open mzMLb file
+      auto mzMLb = MzMLb(file_name);
+      std::streamsize xml_size = mzMLb.size("mzML");
+      std::cout << xml_size << std::endl; // size of XML part?
+      
+      // Allocate the buffer (plus one for the null terminator)
+      std::string xml_buffer(xml_size, '\0');
+
+      // Read the XML blob
+      mzMLb.read(&xml_buffer[0], xml_size);
+      std::cout << xml_buffer << std::endl;
+  
+      // Create MSExperiment with all meta data but no peak or chromatogram and binary array data
+      MzMLFile mzfile;
+
+      // create experiment from XML buffer. 
+      // setting the filename will use the MzMLbBinaryDataArrayLoader to fill spectra and chromatograms from the HDF5
+      MSExperiment exp;
+      mzfile.loadBuffer(xml_buffer, exp, file_name); //TODO: check if this also works if root element is "indexedMzML" (default: "mzML")
+      std::cout << "chromatograms: " << exp.getNrChromatograms() << "\tspectra: " << exp.getNrSpectra() << std::endl;
+      return exp;
+    }
+};
+
 START_SECTION((MzMLb()))
 {
-  // load blosc plugin TODO: maybe move to some other part
-  char *version, *date;
-  auto return_code = register_blosc(&version, &date);
-  TEST_EQUAL(return_code >= 0, true);
-  std::cout << "Blosc version info: " << version << " " << date << std::endl;
-
-  // open mzMLb file
   const std::string filename( OPENMS_GET_TEST_DATA_PATH("msconvert.0.24017-6a003b2.mzMLb") ); // file converted with pwiz
-
-  auto mzMLb = MzMLb(filename);
-  std::streamsize xml_size = mzMLb.size("mzML");
-  std::cout << xml_size << std::endl; // size of XML part?
-  
-  // Allocate the buffer (plus one for the null terminator)
-  std::string xml_buffer(xml_size, '\0');
-
-  // Read the XML blob
-  mzMLb.read(&xml_buffer[0], xml_size);
-  std::cout << xml_buffer << std::endl;
-  
-  // Create MSExperiment with all meta data but no peak or chromatogram and binary array data
-  MzMLFile mzfile;
-  mzfile.getOptions().setFillData(false);
-//  mzfile.getOptions().setFillMzMLbMappings(true); // TODO: add. this will fill the mapping structure with dataset, offset, etc.
-  MSExperiment exp;
-  mzfile.loadBuffer(xml_buffer, exp); //TODO: check if this also works if root element is "indexedMzML" (default: "mzML")
-  std::cout << "chromatograms: " << exp.getNrChromatograms() << "\tspectra: " << exp.getNrSpectra() << std::endl;
+  auto mzmlb = MzMLbFile();
+  MSExperiment exp = mzmlb.load(filename);
 
 /*
   for (Size i = 0; i != exp.getNrSpectra(); ++i)

@@ -305,16 +305,16 @@ namespace OpenMS::Internal
       // TODO mzMLb: here we need a customization point to either 
       // - decode the spectra from Base64 (mzML)
       // - or load them from the HDF5 dataset encoded in the binary data object (mzMLb)
-      if (!mzMLb_binary_bata_array_loader_)
+      if (!mzMLb_binary_data_array_loader_)
       {
         // decode all base64 arrays
         MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
       }
       else // mzMLb mode
       {
-        // TODO: loads and fill binary data arrays from HDF5 using the 
+        // loads and fill binary data arrays from HDF5 using the 
         // dataset, offset and length stored in the BinaryData object 
-        mzMLb_binary_bata_array_loader_->fill(input_data);
+        mzMLb_binary_data_array_loader_->fill(input_data);
       }
 
       //look up the precision and the index of the intensity and m/z array
@@ -5285,6 +5285,12 @@ namespace OpenMS::Internal
       }
 
       os << "\t\t\t</spectrum>\n";
+    }
+
+
+    void MzMLHandler::setBinaryDataArrayLoader(const MzMLbBinaryDataArrayLoader& bdl) 
+    { 
+      mzMLb_binary_data_array_loader_ = std::make_optional(bdl); 
     }
 
     template <typename ContainerT>
