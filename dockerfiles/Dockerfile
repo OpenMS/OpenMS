@@ -65,7 +65,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --no-install-su
 
 WORKDIR ${OPENMS_LIBRARY_DIR}
 RUN <<-EOF
-    mkdir /thirdparty
+    mkdir ${THIRDPARTY_DIR}
     # note, we are not using the submodule here because the .git folder
     # is not copied to this stage. Instead, we clone the repo directly.
     git clone --branch=${THIRDPARTY_BRANCH} --depth=1 https://github.com/OpenMS/THIRDPARTY.git
@@ -109,7 +109,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=tools-build ${CONTRIB_BUILD_DIR}/bin ${CONTRIB_BUILD_DIR}/bin
-COPY --from=tools-build /thirdparty /thirdparty
+COPY --from=tools-build ${THIRDPARTY_DIR} ${THIRDPARTY_DIR}
 COPY --from=tools-build ${OPENMS_LIBRARY_BUILD_DIR}/bin ${OPENMS_LIBRARY_BUILD_DIR}/bin
 COPY --from=tools-build ${OPENMS_LIBRARY_BUILD_DIR}/lib ${OPENMS_LIBRARY_BUILD_DIR}/lib
 COPY --from=tools-build ${OPENMS_LIBRARY_DIR}/share ${OPENMS_LIBRARY_DIR}/share
