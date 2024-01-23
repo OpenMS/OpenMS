@@ -134,10 +134,10 @@ RUN apt-get update \
     wget \
     ca-certificates \
     xvfb \
-    curl
+    curl \
+  && update-ca-certificates
 
 RUN <<-EOF
-    update-ca-certificates
     cmake_ubuntu_version=$(lsb_release -cs)
     if ! wget -q --method=HEAD "https://apt.kitware.com/ubuntu/dists/$cmake_ubuntu_version/Release"; then
       bash -c "$(wget -O - https://apt.kitware.com/kitware-archive.sh)"
