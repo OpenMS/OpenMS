@@ -9,6 +9,8 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
+#ifdef WITH_HDF5
+
 ///////////////////////////
 
 ///////////////////////////
@@ -17,14 +19,18 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
+#include <OpenMS/FORMAT/MzMLbSeekableDevice.h>
+#include <OpenMS/FORMAT/HANDLERS/MzMLBinaryDataArrayLoader.h>
+
 #include "H5Cpp.h"
 #include "blosc_filter.h"
 
 using namespace std;
 
-#include <OpenMS/FORMAT/Connection_mzMLb.h>
 
-//using MzMLb = pwiz::msdata::mzmlb::Connection_mzMLb;
+
+
+//using MzMLb = pwiz::msdata::mzmlb::MzMLbSeekableDevice;
 
 #include <string>
 #include <iostream>
@@ -36,59 +42,11 @@ START_TEST(MzMLb, "$Id$")
 
 using namespace OpenMS;
 
-using MzMLb = OpenMS::Connection_mzMLb; // TODO: maybe rename? MzMLbStream? just MzMLb
+using MzMLb = OpenMS::MzMLbSeekableDevice; // TODO: maybe rename? MzMLbStream? just MzMLb
 
 using mzMLbInputStream = boost::iostreams::stream<MzMLb>;
 
-// see https://github.com/ProteoWizard/pwiz/blob/072abd4c764157e922e1c6cb0cecf94166993d30/pwiz/data/msdata/IO.cpp#L2277-L2278
-enum class PredictionType
-{
-  Prediction_None,
-  Prediction_Delta,
-  Prediction_Linear
-};
 
-
-/* TODO add
-  // the pwiz code works on single data arrays (e.g., mz dimension) while we have peak structs. TODO: needs adaptation
-  void predict(PredictionType pred, PrecisionType prec)
-  {
-      using OpenMS::Internal::MzMLHandlerHelper;
-      
-      switch (pred)
-      {
-          case PredictionType::Prediction_Delta:
-              switch (p)
-              {
-                  case BinaryData::PRE_32:
-                      for (size_t i = 2; i < binaryDataArray->data.size(); i++) 
-                        binaryDataArray->data[i] = (float)binaryDataArray->data[i] + (float)binaryDataArray->data[i - 1] - (float)binaryDataArray->data[0];
-                      break;
-                  case BinaryData::PRE_64:
-                      for (size_t i = 2; i < binaryDataArray->data.size(); i++)
-                        binaryDataArray->data[i] = binaryDataArray->data[i] + binaryDataArray->data[i - 1] - binaryDataArray->data[0];
-                      break;
-              }
-              break;
-          case PredictionType::Prediction_Linear:
-              switch (prec)
-              {
-                  case BinaryData::PRE_32:
-                      for (size_t i = 2; i < binaryDataArray->data.size(); i++)
-                        binaryDataArray->data[i] = (float)binaryDataArray->data[i] + 2.0f * (float)binaryDataArray->data[i - 1] - (float)binaryDataArray->data[i - 2] - (float)binaryDataArray->data[1];
-                      break;
-                  case BinaryData::PRE_64:
-                      for (size_t i = 2; i < binaryDataArray->data.size(); i++)
-                        binaryDataArray->data[i] = binaryDataArray->data[i] + 2.0 * binaryDataArray->data[i - 1] - binaryDataArray->data[i - 2] - binaryDataArray->data[1];
-                      break;
-              }
-              break;
-          case PredictionType::Prediction_None:
-              break;
-      }
-  }
-
-*/
 
 
 
@@ -237,3 +195,5 @@ START_SECTION((MzMLb()))
 END_SECTION
 
 END_TEST
+
+#endif

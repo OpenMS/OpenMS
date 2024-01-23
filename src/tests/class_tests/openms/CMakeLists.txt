@@ -94,7 +94,7 @@ target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
 
 if (WITH_HDF5)
   target_link_libraries(HDF5_test HDF5::HDF5 blosc_filter_static)
-  target_link_libraries(Connection_mzMLb_test HDF5::HDF5 blosc_filter_static)
+  target_link_libraries(MzMLb_test HDF5::HDF5 blosc_filter_static)
 endif()
 
 #------------------------------------------------------------------------------

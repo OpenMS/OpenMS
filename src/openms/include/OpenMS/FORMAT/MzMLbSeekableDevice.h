@@ -1,5 +1,5 @@
 //
-// $Id: Connection_mzMLb.hpp
+// $Id: MzMLbSeekableDevice.hpp
 //
 //
 // Original authors: Andrew Dowsey <andrew.dowsey@bristol.ac.uk>
@@ -20,31 +20,27 @@
 // limitations under the License.
 //
 
-#ifndef CONNECTION_MZMLB_HPP_
-#define CONNECTION_MZMLB_HPP_
+#pragma once
 
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/concepts.hpp>  // seekable_device
 #include <fstream>
 #include <vector>
 #include <map>
-#include "hdf5.h"
 
-/*
-namespace pwiz {
-namespace msdata {
-namespace mzmlb {
-*/
+#include "hdf5.h"
+//#include "H5Cpp.h"
 
 #include <OpenMS/CONCEPT/Macros.h>
 
 namespace OpenMS {
-using namespace boost::iostreams;
+    namespace HDF5 {
+using namespace boost::iostreams; // TODO: get rid of
 
-class OPENMS_DLLAPI Connection_mzMLb : public device<seekable> {
+class OPENMS_DLLAPI MzMLbSeekableDevice : public device<seekable> {
 public:   
-    Connection_mzMLb(const std::string& filename, int chunk_size, int compression_level); // open for writing
-    Connection_mzMLb(const std::string& filename, bool identifyOnly = false); // open for reading or identify()
+    MzMLbSeekableDevice(const std::string& filename, int chunk_size, int compression_level); // open for writing
+    MzMLbSeekableDevice(const std::string& filename, bool identifyOnly = false); // open for reading or identify()
     void close(); // close (called by boost stream on final destruction)
 
     // boost device<seekable> methods for reading/writing text to "mzML" dataset
@@ -99,9 +95,4 @@ private:
 };
 
 }
-/*
-} // mzmlb
-} // msdata
-} // pwiz
-*/
-#endif /* CONNECTION_MZMLB_HPP_ */
+}

@@ -161,4 +161,6 @@ static constexpr cstr past_last_slash(cstr str)
 //       but currently we need this information for the ToolHandler.
 #cmakedefine WITH_GUI 1
 
+#cmakedefine WITH_HDF5
+
 #endif // OPENMS_CONFIG_H

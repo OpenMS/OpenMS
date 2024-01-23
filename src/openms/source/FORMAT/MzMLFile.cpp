@@ -21,6 +21,10 @@
 
 #include <sstream>
 
+#ifdef WITH_HDF5
+#include <OpenMS/FORMAT/HANDLERS/MzMLbBinaryDataArrayLoader.h>
+#endif
+
 namespace OpenMS
 {
 
@@ -135,11 +139,13 @@ namespace OpenMS
     Internal::MzMLHandler handler(map, "memory", getVersion(), *this);
     handler.setOptions(options_);
 
+#ifdef WITH_HDF5    
     // mzMLb file? then we need to set a custom loader for the binary data as it is not stored in the XML.
     if (!mzmlb_filename.empty()) 
     {
-      handler.setBinaryDataArrayLoader(Internal::MzMLbBinaryDataArrayLoader(mzmlb_filename));
+      handler.setBinaryDataArrayLoader(std::make_unique<OpenMS::HDF5::MzMLbBinaryDataArrayLoader>(mzmlb_filename));
     }
+ #endif
 
     parseBuffer_(buffer, &handler);
   }

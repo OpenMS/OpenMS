@@ -1,5 +1,5 @@
 //
-// $Id: Connection_mzMLb.cpp
+// $Id: MzMLbSeekableDevice.cpp
 //
 //
 // Original authors: Andrew Dowsey <andrew.dowsey@bristol.ac.uk>
@@ -20,7 +20,7 @@
 // limitations under the License.
 //
 
-#include <OpenMS/FORMAT/Connection_mzMLb.h>
+#include <OpenMS/FORMAT/MzMLbSeekableDevice.h>
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
@@ -37,14 +37,14 @@ namespace pwiz {
 namespace msdata {
 namespace mzmlb {
 */
-Connection_mzMLb::Connection_mzMLb(const std::string& id, bool identifyOnly)
+MzMLbSeekableDevice::MzMLbSeekableDevice(const std::string& id, bool identifyOnly)
 {
     H5Eset_auto(H5E_DEFAULT, NULL, NULL);
 
     // open HDF5 file for reading
     file_ = H5Fopen(id.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
     if (file_ < 0)
-        throw std::runtime_error("[Connection_mzMLb::open()] Could not open mzMLb file for reading.");
+        throw std::runtime_error("[MzMLbSeekableDevice::open()] Could not open mzMLb file for reading.");
 
     // open dataset with stored mzML XML to find chunk size
     hsize_t chunk_size;
@@ -53,7 +53,7 @@ Connection_mzMLb::Connection_mzMLb(const std::string& id, bool identifyOnly)
         if (dataset < 0)
         {
             H5Fclose(file_);
-            throw std::runtime_error("[Connection_mzMLb::open()] Could not open mzML dataset for reading.");
+            throw std::runtime_error("[MzMLbSeekableDevice::open()] Could not open mzML dataset for reading.");
         }
         
         hid_t dcpl = H5Dget_create_plist(dataset);
@@ -87,7 +87,7 @@ Connection_mzMLb::Connection_mzMLb(const std::string& id, bool identifyOnly)
             {
                 H5Aclose(aid);
                 close();
-                throw std::runtime_error("[Connection_mzMLb::open()] This does not look like an mzMLb file.");
+                throw std::runtime_error("[MzMLbSeekableDevice::open()] This does not look like an mzMLb file.");
             }
             
             hid_t atype = H5Aget_type(aid);
@@ -105,7 +105,7 @@ Connection_mzMLb::Connection_mzMLb(const std::string& id, bool identifyOnly)
                         H5Aclose(aid);
                         H5Aclose(atype_mem);
                         close();
-                        throw std::runtime_error("[Connection_mzMLb::open()] Cannot read this version of mzMLb: \"" + version + "\" (or version is not fixed-length string); only " CURRENT_VERSION " is supported");
+                        throw std::runtime_error("[MzMLbSeekableDevice::open()] Cannot read this version of mzMLb: \"" + version + "\" (or version is not fixed-length string); only " CURRENT_VERSION " is supported");
                     }                   
                 }
                 H5Aclose(atype_mem);
@@ -126,7 +126,7 @@ Connection_mzMLb::Connection_mzMLb(const std::string& id, bool identifyOnly)
  }
 
 
-Connection_mzMLb::Connection_mzMLb(const std::string& id, int chunk_size, int compression_level) :
+MzMLbSeekableDevice::MzMLbSeekableDevice(const std::string& id, int chunk_size, int compression_level) :
     chunk_size_(chunk_size),
     compression_level_(compression_level)
 {    
@@ -147,7 +147,7 @@ Connection_mzMLb::Connection_mzMLb(const std::string& id, int chunk_size, int co
         if (file_ < 0)
         {
             H5Pclose(fapl);
-            throw std::runtime_error("[Connection_mzMLb::Connection_mzMLb()] Could not open or create mzMLb file for writing.");
+            throw std::runtime_error("[MzMLbSeekableDevice::MzMLbSeekableDevice()] Could not open or create mzMLb file for writing.");
         }
 
         // create dataset to store mzML XML
@@ -191,7 +191,7 @@ Connection_mzMLb::Connection_mzMLb(const std::string& id, int chunk_size, int co
 }
 
 
-void Connection_mzMLb::close()
+void MzMLbSeekableDevice::close()
 {
     H5Tclose(opaque_id_);
 
@@ -208,7 +208,7 @@ void Connection_mzMLb::close()
 }
 
 // read mzMLb "mzML" dataset
-std::streamsize Connection_mzMLb::read(char* s, std::streamsize n)
+std::streamsize MzMLbSeekableDevice::read(char* s, std::streamsize n)
 {
     // don't read past end of dataset
     if (mzML_.pos + n > mzML_.size)
@@ -239,7 +239,7 @@ std::streamsize Connection_mzMLb::read(char* s, std::streamsize n)
 
 
 // write mzMLb "mzML" dataset
-std::streamsize Connection_mzMLb::write(const char* s, std::streamsize n)
+std::streamsize MzMLbSeekableDevice::write(const char* s, std::streamsize n)
 {
     // extend dataset size if needed
     if (mzML_.pos + n > mzML_.size)
@@ -266,7 +266,7 @@ std::streamsize Connection_mzMLb::write(const char* s, std::streamsize n)
 
 
 // seek mzMLb "mzML" dataset
-stream_offset Connection_mzMLb::seek(stream_offset off, std::ios_base::seekdir way)
+stream_offset MzMLbSeekableDevice::seek(stream_offset off, std::ios_base::seekdir way)
 {   
     switch (way)
     {
@@ -288,7 +288,7 @@ stream_offset Connection_mzMLb::seek(stream_offset off, std::ios_base::seekdir w
 
 
 // read mzMLb mzML index
-/*void Connection_mzMLb::readIndex(const std::string& id, std::vector<stream_offset>& positions)
+/*void MzMLbSeekableDevice::readIndex(const std::string& id, std::vector<stream_offset>& positions)
 {
     // open dataset to find chunk size
     hsize_t chunk_size;
@@ -296,7 +296,7 @@ stream_offset Connection_mzMLb::seek(stream_offset off, std::ios_base::seekdir w
     {
         if (dataset < 0)
         {
-            throw std::runtime_error("[Connection_mzMLb::read()] Could not open dataset " + id + " for reading.");
+            throw std::runtime_error("[MzMLbSeekableDevice::read()] Could not open dataset " + id + " for reading.");
         }
         hid_t dcpl = H5Dget_create_plist(dataset);
         {
@@ -341,7 +341,7 @@ stream_offset Connection_mzMLb::seek(stream_offset off, std::ios_base::seekdir w
 
 
 // write mzMLb mzML index
-void Connection_mzMLb::writeIndex(const std::string& id, const std::vector<stream_offset>& positions)
+void MzMLbSeekableDevice::writeIndex(const std::string& id, const std::vector<stream_offset>& positions)
 {
     // create dataset
     hid_t dcpl = H5Pcreate(H5P_DATASET_CREATE);
@@ -377,18 +377,18 @@ void Connection_mzMLb::writeIndex(const std::string& id, const std::vector<strea
  }*/
 
 
-bool Connection_mzMLb::exists(const std::string& id)
+bool MzMLbSeekableDevice::exists(const std::string& id)
 {
     return H5Lexists(file_, id.c_str(), H5P_DEFAULT) > 0;
 }
 
 
-std::streamsize Connection_mzMLb::size(const std::string& id)
+std::streamsize MzMLbSeekableDevice::size(const std::string& id)
 {
     hid_t dataset = H5Dopen(file_, id.c_str(), H5P_DEFAULT);
 
     if (dataset < 0)
-        throw std::runtime_error("[Connection_mzMLb::read()] Could not open dataset " + id + ".");
+        throw std::runtime_error("[MzMLbSeekableDevice::read()] Could not open dataset " + id + ".");
     
     hid_t space = H5Dget_space(dataset);
     
@@ -402,37 +402,37 @@ std::streamsize Connection_mzMLb::size(const std::string& id)
 }
 
 
-std::streamsize Connection_mzMLb::read_opaque(const std::string& id, void* buf, std::streamsize n)
+std::streamsize MzMLbSeekableDevice::read_opaque(const std::string& id, void* buf, std::streamsize n)
 {
     return read(id, buf, n, opaque_id_);
 }
 
 
-std::streamsize Connection_mzMLb::read(const std::string& id, char* buf, std::streamsize n)
+std::streamsize MzMLbSeekableDevice::read(const std::string& id, char* buf, std::streamsize n)
 {
     return read(id, buf, n, H5T_NATIVE_CHAR);
 }
 
 
-std::streamsize Connection_mzMLb::read(const std::string& id, double* buf, std::streamsize n)
+std::streamsize MzMLbSeekableDevice::read(const std::string& id, double* buf, std::streamsize n)
 {
     return read(id, buf, n, H5T_NATIVE_DOUBLE);
 }
 
 
-std::streamsize Connection_mzMLb::read(const std::string& id,long* buf, std::streamsize n)
+std::streamsize MzMLbSeekableDevice::read(const std::string& id,long* buf, std::streamsize n)
 {
     return read(id, buf, n, H5T_NATIVE_LONG);
 }
 
 
-std::streamsize Connection_mzMLb::read(const std::string& id, long long* buf, std::streamsize n)
+std::streamsize MzMLbSeekableDevice::read(const std::string& id, long long* buf, std::streamsize n)
 {
     return read(id, buf, n, H5T_NATIVE_LLONG);
 }
 
 
-std::streamsize Connection_mzMLb::read(const std::string& id, void* buf, std::streamsize n, hid_t native_format)
+std::streamsize MzMLbSeekableDevice::read(const std::string& id, void* buf, std::streamsize n, hid_t native_format)
 {
     Stream& s_ = binary_[id];
     if (!s_.dataset)
@@ -443,7 +443,7 @@ std::streamsize Connection_mzMLb::read(const std::string& id, void* buf, std::st
         {
             if (dataset < 0)
             {
-                throw std::runtime_error("[Connection_mzMLb::read()] Could not open dataset " + id + " for reading.");
+                throw std::runtime_error("[MzMLbSeekableDevice::read()] Could not open dataset " + id + " for reading.");
             }
             hid_t dcpl = H5Dget_create_plist(dataset);
             {
@@ -500,43 +500,43 @@ std::streamsize Connection_mzMLb::read(const std::string& id, void* buf, std::st
 }
 
 
-std::streamsize Connection_mzMLb::write_opaque(const std::string& id, const void* buf, std::streamsize n)
+std::streamsize MzMLbSeekableDevice::write_opaque(const std::string& id, const void* buf, std::streamsize n)
 {
     return write(id, buf, n, opaque_id_, opaque_id_, 1);
 }
 
 
-std::streamsize Connection_mzMLb::write(const std::string& id, const char* buf, std::streamsize n)
+std::streamsize MzMLbSeekableDevice::write(const std::string& id, const char* buf, std::streamsize n)
 {
     return write(id, buf, n, H5T_NATIVE_CHAR, H5T_NATIVE_CHAR, sizeof(char));
 }
 
 
-std::streamsize Connection_mzMLb::write(const std::string& id, const float* buf, std::streamsize n)
+std::streamsize MzMLbSeekableDevice::write(const std::string& id, const float* buf, std::streamsize n)
 {
     return write(id, buf, n, H5T_NATIVE_FLOAT, H5T_NATIVE_FLOAT, sizeof(float));
 }
 
 
-std::streamsize Connection_mzMLb::write(const std::string& id, const double* buf, std::streamsize n)
+std::streamsize MzMLbSeekableDevice::write(const std::string& id, const double* buf, std::streamsize n)
 {
     return write(id, buf, n, H5T_NATIVE_DOUBLE, H5T_NATIVE_DOUBLE, sizeof(double));
 }
 
 
-std::streamsize Connection_mzMLb::write(const std::string& id, const long* buf, std::streamsize n)
+std::streamsize MzMLbSeekableDevice::write(const std::string& id, const long* buf, std::streamsize n)
 {
     return write(id, buf, n, H5T_NATIVE_LONG, H5T_NATIVE_LONG, sizeof(long));
 }
 
 
-std::streamsize Connection_mzMLb::write(const std::string& id, const long long* buf, std::streamsize n)
+std::streamsize MzMLbSeekableDevice::write(const std::string& id, const long long* buf, std::streamsize n)
 {
     return write(id, buf, n, H5T_NATIVE_LLONG, H5T_NATIVE_LLONG, sizeof(long long));
 }
 
 
-std::streamsize Connection_mzMLb::write(const std::string& id, const void* buf, std::streamsize n, hid_t native_format, hid_t format, size_t bytes)
+std::streamsize MzMLbSeekableDevice::write(const std::string& id, const void* buf, std::streamsize n, hid_t native_format, hid_t format, size_t bytes)
 {
     Stream& stream = binary_[id];
     if (!stream.dataset)
@@ -590,7 +590,7 @@ std::streamsize Connection_mzMLb::write(const std::string& id, const void* buf, 
 }
 
 
-stream_offset Connection_mzMLb::seek(const std::string& id, stream_offset off, std::ios_base::seekdir way)
+stream_offset MzMLbSeekableDevice::seek(const std::string& id, stream_offset off, std::ios_base::seekdir way)
 {
     Stream& stream = binary_[id];
 

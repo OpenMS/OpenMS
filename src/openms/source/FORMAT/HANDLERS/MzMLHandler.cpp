@@ -302,19 +302,23 @@ namespace OpenMS::Internal
     {
       typedef SpectrumType::PeakType PeakType;
 
-      // TODO mzMLb: here we need a customization point to either 
+      // mzMLb: here we need a customization point to either 
       // - decode the spectra from Base64 (mzML)
       // - or load them from the HDF5 dataset encoded in the binary data object (mzMLb)
+#ifdef WITH_HDF5       
       if (!mzMLb_binary_data_array_loader_)
+#endif      
       {
         // decode all base64 arrays
         MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
       }
       else // mzMLb mode
       {
+#ifdef WITH_HDF5        
         // loads and fill binary data arrays from HDF5 using the 
         // dataset, offset and length stored in the BinaryData object 
         mzMLb_binary_data_array_loader_->fill(input_data);
+#endif        
       }
 
       //look up the precision and the index of the intensity and m/z array
@@ -5285,12 +5289,6 @@ namespace OpenMS::Internal
       }
 
       os << "\t\t\t</spectrum>\n";
-    }
-
-
-    void MzMLHandler::setBinaryDataArrayLoader(const MzMLbBinaryDataArrayLoader& bdl) 
-    { 
-      mzMLb_binary_data_array_loader_ = std::make_optional(bdl); 
     }
 
     template <typename ContainerT>
