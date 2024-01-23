@@ -45,7 +45,7 @@ RUN git clone --depth=1 --branch=${OPENMS_BRANCH} ${OPENMS_REPO} ${OPENMS_LIBRAR
 WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
 RUN cmake \
     -DCMAKE_BUILD_TYPE='Release' \
-    -DCMAKE_PREFIX_PATH='${CONTRIB_BUILD_DIR}/;/usr/;/usr/local' \
+    -DCMAKE_PREFIX_PATH="${CONTRIB_BUILD_DIR}/;/usr/;/usr/local" \
     -DBOOST_USE_STATIC=OFF \
     ${OPENMS_LIBRARY_DIR}
 RUN make OpenMS
