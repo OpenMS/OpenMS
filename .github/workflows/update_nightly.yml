@@ -1,3 +1,4 @@
+name: Update nightly from develop
 on:
   schedule:
   - cron: '7 1 * * *'
@@ -8,9 +9,11 @@ jobs:
 
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: merge_to_nightly
-      uses: robotology/gh-action-nightly-merge@1.4.0
+      uses: robotology/gh-action-nightly-merge@v1.4.0
       with:
         stable_branch: 'develop'
         development_branch: 'nightly'
