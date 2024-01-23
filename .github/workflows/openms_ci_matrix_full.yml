@@ -82,7 +82,7 @@ jobs:
           if [ "$DO_PACKAGE" = true ]; then
             echo "pkg_type=deb" >> $GITHUB_OUTPUT
           else
-            echo "enable_docs=OFF" >> $GITHUB_OUTPUT
+            echo "pkg_type=none" >> $GITHUB_OUTPUT
           fi
           echo "cxx_compiler=${{ matrix.compiler }}-${{ matrix.compiler_ver }}" >> $GITHUB_OUTPUT
         fi
