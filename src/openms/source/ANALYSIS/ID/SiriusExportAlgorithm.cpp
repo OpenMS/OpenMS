@@ -15,260 +15,165 @@
 
 namespace OpenMS
 {
-  // ###################
-  // Set subtool parameters
-  // ###################
+  SiriusExportAlgorithm::SiriusExportAlgorithm() :
+    DefaultParamHandler("SiriusExportAlgorithm")
+  {
+    defaults_.setValue("filter_by_num_masstraces", 1, "Number of mass traces each feature has to have to be included. To use this parameter, setting the feature_only flag is necessary");
+    
+    defaults_.setValue("precursor_mz_tolerance", 10.0, "Tolerance window for precursor selection (Feature selection in regard to the precursor)");
+    
+    defaults_.setValue("precursor_mz_tolerance_unit", "ppm", "Unit of the preprocessing_precursor_mz_tolerance");
+    defaults_.setValidStrings("precursor_mz_tolerance_unit", {"ppm","Da"});
+    
+    defaults_.setValue("precursor_rt_tolerance", 5.0, "Tolerance window (left and right) for precursor selection [seconds]");
 
-    using OpenMSName = String;
-    using DefaultValue = ParamValue;
-    using Description = String;
+    defaults_.setValue("isotope_pattern_iterations", 3, "Number of iterations that should be performed to extract the C13 isotope pattern. If no peak is found (C13 distance) the function will abort. Be careful with noisy data - since this can lead to wrong isotope patterns");
 
-    SiriusExportAlgorithm::SiriusExportAlgorithm() :
-      DefaultParamHandler("SiriusExportAlgorithm"),
-      preprocessing(Preprocessing(this))
+    defaults_.setValue("feature_only", "false", "Uses the feature information from in_featureinfo to reduce the search space to MS2 associated with a feature");
+    defaults_.setValidStrings("feature_only", {"false","true"});
 
+    defaults_.setValue("no_masstrace_info_isotope_pattern", "false", "Set to true if the masstrace information from a feature should be discarded and the isotope_pattern_iterations should be used instead");
+    defaults_.setValidStrings("no_masstrace_info_isotope_pattern", {"false","true"});
+    defaultsToParam_();
+  }
+
+  // ################
+  // Algorithm
+  // ################
+  void SiriusExportAlgorithm::preprocessing(const String& featureinfo,
+                                            const MSExperiment& spectra,
+                                            FeatureMapping::FeatureMappingInfo& fm_info,
+                                            FeatureMapping::FeatureToMs2Indices& feature_mapping) const
+{
+    // if fileparameter is given and should be not empty
+    if (!featureinfo.empty())
     {
-      // Defines the Parameters for preprocessing and SIRIUS subtools
-      preprocessing.parameters();
-
-      defaultsToParam_();
-    }
-
-    void SiriusExportAlgorithm::Preprocessing::parameters()
-    {
-      parameter(
-                  OpenMSName("filter_by_num_masstraces"),
-                  DefaultValue(1),
-                  Description("Number of mass traces each feature has to have to be included. "
-                              "To use this parameter, setting the feature_only flag is necessary")
-                ).withMinInt(1);
-
-      parameter(
-                  OpenMSName("precursor_mz_tolerance"),
-                  DefaultValue(10.0),
-                  Description("Tolerance window for precursor selection (Feature selection in regard to the precursor)")
-                );
-
-      parameter(
-                  OpenMSName("precursor_mz_tolerance_unit"),
-                  DefaultValue("ppm"),
-                  Description("Unit of the precursor_mz_tolerance")
-               ).withValidStrings({"Da", "ppm"});
-
-      parameter(
-                  OpenMSName("precursor_rt_tolerance"),
-                  DefaultValue(5.0),
-                  Description("Tolerance window (left and right) for precursor selection [seconds]")
-               );
-
-      parameter(
-                  OpenMSName("isotope_pattern_iterations"),
-                  DefaultValue(3),
-                  Description("Number of iterations that should be performed to extract the C13 isotope pattern. "
-                              "If no peak is found (C13 distance) the function will abort. "
-                              "Be careful with noisy data - since this can lead to wrong isotope patterns")
-                );
-
-      flag(
-            OpenMSName("feature_only"),
-            Description("Uses the feature information from in_featureinfo to reduce the search space to MS2 "
-                        "associated with a feature")
-          );
-
-      flag(
-            OpenMSName("no_masstrace_info_isotope_pattern"),
-            Description("Use this flag if the masstrace information from a feature should be discarded "
-                       "and the isotope_pattern_iterations should be used instead")
-          );
-    }
-
-
-    void SiriusExportAlgorithm::updateExistingParameter(const OpenMS::Param &param)
-    {
-      for (auto it = param.begin(); it != param.end(); ++it)
+      Size preprocessing_filter_by_num_masstraces = getFilterByNumMassTraces();
+      if (File::exists(featureinfo) && !File::empty(featureinfo))
       {
-        const std::string name = it.getName();
-        if (hasFullNameParameter(name))
+        // read featureXML          
+        FeatureMap feature_map;
+        FileHandler().loadFeatures(featureinfo, feature_map);
+
+        if (preprocessing_filter_by_num_masstraces != 1 && !isFeatureOnly())
         {
-          vector<std::string> tags(it->tags.begin(), it->tags.end());
-          param_.setValue(name, it->value, it->description, tags);
+          preprocessing_filter_by_num_masstraces = 1;
+          OPENMS_LOG_WARN << "Parameter: preprocessing_filter_by_num_masstraces, was set to 1 to retain the adduct information for all MS2 spectra, if available. Masstrace filtering only makes sense in combination with feature_only." << std::endl;
         }
+
+        // filter feature by number of masstraces
+        auto map_it = remove_if(feature_map.begin(), feature_map.end(),
+                                [&preprocessing_filter_by_num_masstraces](const Feature &feat) -> bool
+                                {
+                                  unsigned int n_masstraces = feat.getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES);
+                                  return n_masstraces < preprocessing_filter_by_num_masstraces;
+                                });
+        feature_map.erase(map_it, feature_map.end());
+
+        fm_info.feature_maps.push_back(feature_map);
+        fm_info.kd_tree.addMaps(fm_info.feature_maps); // KDTree references into feature_map
+
+        // mapping of MS2 spectra to features
+        feature_mapping = FeatureMapping::assignMS2IndexToFeature(spectra,
+                                                                  fm_info,
+                                                                  getPrecursorMzTolerance(),
+                                                                  getPrecursorRtTolerance(),
+                                                                  precursorMzToleranceUnitIsPPM());
       }
-    }
-
-    bool SiriusExportAlgorithm::hasFullNameParameter(const OpenMS::String &name) const
-    {
-      //alternative: return std::any_of(param_.begin(), param_.end(), [&](const auto& it) { return it.name == name; });
-      for (auto it = param_.begin(); it != param_.end(); ++it)
-      {
-        if (it.getName() == name)
-        {
-          return true;
-        }
-      }
-      return false;
-    }
-
-
-    // ################
-    // Algorithm
-    // ################
-    void SiriusExportAlgorithm::preprocessingSirius(const String& featureinfo,
-                                                     const MSExperiment& spectra,
-                                                     FeatureMapping::FeatureMappingInfo& fm_info,
-                                                     FeatureMapping::FeatureToMs2Indices& feature_mapping) const
-    {
-      // if fileparameter is given and should be not empty
-      if (!featureinfo.empty())
-      {
-        if (File::exists(featureinfo) && !File::empty(featureinfo))
-        {
-          // read featureXML          
-          FeatureMap feature_map;
-          FileHandler().loadFeatures(featureinfo, feature_map);
-
-          UInt num_masstrace_filter = getFilterByNumMassTraces();
-          double precursor_mz_tol = getPrecursorMzTolerance();
-          double precursor_rt_tol = getPrecursorRtTolerance();
-
-          if (num_masstrace_filter != 1 && !isFeatureOnly())
-          {
-            num_masstrace_filter = 1;
-            OPENMS_LOG_WARN << "Parameter: filter_by_num_masstraces, was set to 1 to retain the adduct information for all MS2 spectra, if available. Masstrace filtering only makes sense in combination with feature_only." << std::endl;
-          }
-
-          // filter feature by number of masstraces
-          auto map_it = remove_if(feature_map.begin(), feature_map.end(),
-                                  [&num_masstrace_filter](const Feature &feat) -> bool
-                                  {
-                                    unsigned int n_masstraces = feat.getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES);
-                                    return n_masstraces < num_masstrace_filter;
-                                  });
-          feature_map.erase(map_it, feature_map.end());
-  
-          fm_info.feature_maps.push_back(feature_map);
-          fm_info.kd_tree.addMaps(fm_info.feature_maps); // KDTree references into feature_map
-  
-          // mapping of MS2 spectra to features
-          feature_mapping = FeatureMapping::assignMS2IndexToFeature(spectra,
-                                                                    fm_info,
-                                                                    precursor_mz_tol,
-                                                                    precursor_rt_tol,
-                                                                    precursorMzToleranceUnitIsPPM());
-        }
-        else
-        {
-          throw OpenMS::Exception::FileEmpty(__FILE__,
-                                             __LINE__,
-                                             __FUNCTION__,
-                                             "Error: FeatureXML was empty, please provide a valid file.");
-        }
-      }
-    }   
-
-    void SiriusExportAlgorithm::logFeatureSpectraNumber(const String& featureinfo,
-                                                         const FeatureMapping::FeatureToMs2Indices& feature_mapping,
-                                                         const MSExperiment& spectra) const
-    {
-      // number of features to be processed
-      if (isFeatureOnly() && !featureinfo.empty())
-      {
-        OPENMS_LOG_INFO << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
-      }
-      else if (!featureinfo.empty())
-      {
-        OPENMS_LOG_INFO << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
-        OPENMS_LOG_INFO << "Number of additional MS2 spectra to be processed: " << feature_mapping.unassignedMS2.size() << std::endl;
-      } 
       else
       {
-        long count_ms2 = count_if(spectra.begin(), spectra.end(),
-                [](const MSSpectrum &spectrum) { return spectrum.getMSLevel() == 2; });
-
-        OPENMS_LOG_INFO << "Number of MS2 spectra to be processed: " << count_ms2 << std::endl;
+        throw OpenMS::Exception::FileEmpty(__FILE__,
+                                            __LINE__,
+                                            __FUNCTION__,
+                                            "Error: FeatureXML was empty, please provide a valid file.");
       }
     }
+  }
 
-    void SiriusExportAlgorithm::run(const StringList& mzML_files,
-                                    const StringList& featureXML_files,
-                                    const String& out_ms,
-                                    const String& out_compoundinfo) const
+
+  void SiriusExportAlgorithm::logFeatureSpectraNumber(const String& featureinfo,
+                                                        const FeatureMapping::FeatureToMs2Indices& feature_mapping,
+                                                        const MSExperiment& spectra) const
+  {
+    // number of features to be processed
+    if (isFeatureOnly() && !featureinfo.empty())
     {
-      // loop over all spectra in all files and write data to ofstream
-      ofstream os;
-
-      // create temporary input file (.ms)
-      os.open(out_ms);
-      if (!os)
-      {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out_ms);
-      }
-      os.precision(12);
-
-      std::vector<SiriusMSFile::CompoundInfo> v_cmpinfo; // To store compound information for all files
-      for (size_t i = 0; i < mzML_files.size(); ++i) 
-      {
-        // load experiment
-        MSExperiment spectra;
-        FileHandler().loadExperiment(mzML_files[i], spectra, {FileTypes::MZML});
-
-        // run masstrace filter and feature mapping
-        FeatureMapping::FeatureMappingInfo fm_info;
-        FeatureMapping::FeatureToMs2Indices feature_mapping;
-
-        // check if 'featureXML_files' is empty and pass an empty string if it is
-        String feature_info_to_pass = featureXML_files.empty() ? "" : featureXML_files[i];
-        SiriusExportAlgorithm::preprocessingSirius(feature_info_to_pass,
-                                      spectra,
-                                      fm_info,
-                                      feature_mapping);
-
-        // returns Log of feature and/or spectra number
-        SiriusExportAlgorithm::logFeatureSpectraNumber(feature_info_to_pass, feature_mapping, spectra);
-
-        // temporary vector to store compound information for the current file
-        std::vector<SiriusMSFile::CompoundInfo> temp_cmpinfo;
-        SiriusMSFile::store(spectra,
-                            os,
-                            feature_mapping,
-                            SiriusExportAlgorithm::isFeatureOnly(),
-                            SiriusExportAlgorithm::getIsotopePatternIterations(),
-                            SiriusExportAlgorithm::isNoMasstraceInfoIsotopePattern(),
-                            temp_cmpinfo,
-                            i);
-        // Append the compound information of the current file to the overall vector
-        v_cmpinfo.insert(v_cmpinfo.end(), temp_cmpinfo.begin(), temp_cmpinfo.end());
-      }
-
-      os.close();
-
-      if (!out_compoundinfo.empty()) 
-      {
-        SiriusMSFile::saveFeatureCompoundInfoAsTSV(v_cmpinfo, out_compoundinfo);
-      }
+      OPENMS_LOG_INFO << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
     }
-
-    // ####################
-    // Parameter handling
-    // ####################
-    SiriusExportAlgorithm::ParameterModifier SiriusExportAlgorithm::ParameterSection::parameter(
-            const String &parameter_name,
-            const ParamValue &default_value,
-            const String &parameter_description)
+    else if (!featureinfo.empty())
     {
-      const String full_parameter = toFullParameter(parameter_name);
-      openms_to_sirius[full_parameter] = parameter_name;
-      enclose->defaults_.setValue(full_parameter, default_value, parameter_description);
-      return ParameterModifier(full_parameter, enclose);
+      OPENMS_LOG_INFO << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
+      OPENMS_LOG_INFO << "Number of additional MS2 spectra to be processed: " << feature_mapping.unassignedMS2.size() << std::endl;
+    } 
+    else
+    {
+      long count_ms2 = count_if(spectra.begin(), spectra.end(),
+              [](const MSSpectrum &spectrum) { return spectrum.getMSLevel() == 2; });
+
+      OPENMS_LOG_INFO << "Number of MS2 spectra to be processed: " << count_ms2 << std::endl;
+    }
+  }
+
+  void SiriusExportAlgorithm::run(const StringList& mzML_files,
+                                  const StringList& featureXML_files,
+                                  const String& out_ms,
+                                  const String& out_compoundinfo) const
+  {
+    // loop over all spectra in all files and write data to ofstream
+    ofstream os;
+
+    // create temporary input file (.ms)
+    os.open(out_ms);
+    if (!os)
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out_ms);
+    }
+    os.precision(12);
+
+    std::vector<SiriusMSFile::CompoundInfo> v_cmpinfo; // To store compound information for all files
+    for (size_t i = 0; i < mzML_files.size(); ++i) 
+    {
+      // load experiment
+      MSExperiment spectra;
+      FileHandler().loadExperiment(mzML_files[i], spectra, {FileTypes::MZML});
+
+      // run masstrace filter and feature mapping
+      FeatureMapping::FeatureMappingInfo fm_info;
+      FeatureMapping::FeatureToMs2Indices feature_mapping;
+
+      // check if 'featureXML_files' is empty and pass an empty string if it is
+      String feature_info_to_pass = featureXML_files.empty() ? "" : featureXML_files[i];
+      SiriusExportAlgorithm::preprocessing(feature_info_to_pass,
+                                    spectra,
+                                    fm_info,
+                                    feature_mapping);
+
+      // returns Log of feature and/or spectra number
+      SiriusExportAlgorithm::logFeatureSpectraNumber(feature_info_to_pass, feature_mapping, spectra);
+
+      // bool no_masstrace_info_isotope_pattern = (no_masstrace_info_isotope_pattern_ == "true");
+
+      // temporary vector to store compound information for the current file
+      std::vector<SiriusMSFile::CompoundInfo> temp_cmpinfo;
+      SiriusMSFile::store(spectra,
+                          os,
+                          feature_mapping,
+                          isFeatureOnly(),
+                          getIsotopePatternIterations(),
+                          isNoMasstraceInfoIsotopePattern(),
+                          temp_cmpinfo,
+                          i);
+      // Append the compound information of the current file to the overall vector
+      v_cmpinfo.insert(v_cmpinfo.end(), temp_cmpinfo.begin(), temp_cmpinfo.end());
     }
 
-  void SiriusExportAlgorithm::ParameterSection::flag(
-            const OpenMS::String &parameter_name,
-            const OpenMS::String &parameter_description)
+    os.close();
+
+    if (!out_compoundinfo.empty()) 
     {
-      parameter(parameter_name, DefaultValue("false"), parameter_description)
-        .withValidStrings({"true", "false"});
+      SiriusMSFile::saveFeatureCompoundInfoAsTSV(v_cmpinfo, out_compoundinfo);
     }
+  }
 } // namespace OpenMS
 
 /// @endcond

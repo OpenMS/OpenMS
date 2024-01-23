@@ -2563,7 +2563,7 @@ add_test("TOPP_SiriusExport_1_out" ${DIFF} -in1 SiriusExport_1_output.tmp.ms -in
 set_tests_properties("TOPP_SiriusExport_1_out" PROPERTIES DEPENDS "TOPP_SiriusExport_1")
 
 # with featureinfo, feature_only and compound info table (input for AssayGeneratorMetaboSirius tests)
-add_test("TOPP_SiriusExport_2" ${TOPP_BIN_PATH}/SiriusExport -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out SiriusExport_2_output.tmp.ms -out_compoundinfo SiriusExport_2_output_compoundinfo.tmp.tsv -preprocessing:feature_only)
+add_test("TOPP_SiriusExport_2" ${TOPP_BIN_PATH}/SiriusExport -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out SiriusExport_2_output.tmp.ms -out_compoundinfo SiriusExport_2_output_compoundinfo.tmp.tsv -feature_only true)
 add_test("TOPP_SiriusExport_2_out1" ${DIFF} -in1 SiriusExport_2_output.tmp.ms -in2 ${DATA_DIR_TOPP}/SiriusExport_2_output.ms)
 add_test("TOPP_SiriusExport_2_out2" ${DIFF} -in1 SiriusExport_2_output_compoundinfo.tmp.tsv -in2 ${DATA_DIR_TOPP}/SiriusExport_2_output_compoundinfo.tsv)
 set_tests_properties("TOPP_SiriusExport_2_out1" PROPERTIES DEPENDS "TOPP_SiriusExport_2")
@@ -2594,27 +2594,27 @@ set_tests_properties("TOPP_AssayGeneratorMetaboSirius_3_out" PROPERTIES DEPENDS 
 
 # AssayGeneratorMetabo
 # use FeatureFinderMetabo data
-add_test("TOPP_AssayGeneratorMetabo_1" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_input.featureXML -out AssayGeneratorMetabo_ffm_output.tmp.tsv -min_transitions 1 -max_transitions 3)
+add_test("TOPP_AssayGeneratorMetabo_1" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_input.featureXML -out AssayGeneratorMetabo_ffm_output.tmp.tsv -min_transitions 1 -max_transitions 3)
 add_test("TOPP_AssayGeneratorMetabo_1_out1" ${DIFF} -in1 AssayGeneratorMetabo_ffm_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_output.tsv)
 set_tests_properties("TOPP_AssayGeneratorMetabo_1_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_1")
 
 # use AccurateMassSearch data
-add_test("TOPP_AssayGeneratorMetabo_2" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_output.tmp.tsv -min_transitions 1 -max_transitions 3)
+add_test("TOPP_AssayGeneratorMetabo_2" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_output.tmp.tsv -min_transitions 1 -max_transitions 3)
 add_test("TOPP_AssayGeneratorMetabo_2_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_output.tsv)
 set_tests_properties("TOPP_AssayGeneratorMetabo_2_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_2")
 
 # use FeatureFinderMetabo data with method consenesus_spectrum
-add_test("TOPP_AssayGeneratorMetabo_3" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_input.featureXML -out AssayGeneratorMetabo_ffm_output_consensus.tmp.tsv -method consensus_spectrum -min_transitions 1 -max_transitions 3)
+add_test("TOPP_AssayGeneratorMetabo_3" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_input.featureXML -out AssayGeneratorMetabo_ffm_output_consensus.tmp.tsv -method consensus_spectrum -min_transitions 1 -max_transitions 3)
 add_test("TOPP_AssayGeneratorMetabo_3_out1" ${DIFF} -in1 AssayGeneratorMetabo_ffm_output_consensus.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_output_consensus.tsv)
 set_tests_properties("TOPP_AssayGeneratorMetabo_3_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_3")
 
 # use AccurateMassSearch data with method consensus_spectrum
-add_test("TOPP_AssayGeneratorMetabo_4" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_output_consensus.tmp.tsv -method consensus_spectrum -min_transitions 1 -max_transitions 3)
+add_test("TOPP_AssayGeneratorMetabo_4" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_output_consensus.tmp.tsv -method consensus_spectrum -min_transitions 1 -max_transitions 3)
 add_test("TOPP_AssayGeneratorMetabo_4_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_output_consensus.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_output_consensus.tsv)
 set_tests_properties("TOPP_AssayGeneratorMetabo_4_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_4")
 
 # use AccurateMassSearch data with method consensus_spectrum and use_known_unkowns
-add_test("TOPP_AssayGeneratorMetabo_5" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_uku_output_consensus.tmp.tsv -method consensus_spectrum -use_known_unknowns -min_transitions 1 -max_transitions 3)
+add_test("TOPP_AssayGeneratorMetabo_5" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_uku_output_consensus.tmp.tsv -method consensus_spectrum -use_known_unknowns -min_transitions 1 -max_transitions 3)
 add_test("TOPP_AssayGeneratorMetabo_5_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_uku_output_consensus.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_uku_output_consensus.tsv)
 set_tests_properties("TOPP_AssayGeneratorMetabo_5_out1" PROPERTIES DEPENDS "TOPP_AssayGeneratorMetabo_5")
 

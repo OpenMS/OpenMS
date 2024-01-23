@@ -90,8 +90,8 @@ protected:
     registerInputFileList_("in", "<file(s)>", StringList(), "MzML input file(s) used for assay library generation");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
-    registerInputFileList_("in_id", "<file(s)>", StringList(), "FeatureXML input file(s) containing identification information (e.g. AccurateMassSearch)");
-    setValidFormats_("in_id", ListUtils::create<String>("featureXML"));
+    registerInputFileList_("in_featureinfo", "<file(s)>", StringList(), "FeatureXML input file(s) containing identification information (e.g. AccurateMassSearch)");
+    setValidFormats_("in_featureinfo", ListUtils::create<String>("featureXML"));
 
     registerOutputFile_("out", "<file>", "", "Assay library output file");
     setValidFormats_("out", ListUtils::create<String>("tsv,traML,pqp"));
@@ -118,33 +118,37 @@ protected:
     registerDoubleOption_("min_fragment_mz", "<num>", 0.0, "Minimal m/z of a fragment ion choosen as a transition", false, true);
     registerDoubleOption_("max_fragment_mz", "<num>", 2000.0, "Maximal m/z of a fragment ion choosen as a transition" , false, true);
     
+
     // precursor
-    registerTOPPSubsection_("precursor", "precursor");
-    registerDoubleOption_("precursor:mz_distance", "<num>", 0.0001, "Max m/z distance of the precursor entries of two spectra to be merged in [Da].", false);
-    registerDoubleOption_("precursor:recalibration_window", "<num>", 0.01, "Tolerance window for precursor selection (Annotation of precursor mz and intensity)", false, true);
-    registerStringOption_("precursor:recalibration_window_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance_annotation", false, true);
-    setValidStrings_("precursor:recalibration_window_unit", ListUtils::create<String>("Da,ppm"));
-    registerDoubleOption_("precursor:consensus_spectrum_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection [seconds], for consensus spectrum generation (only available without fragment annotation)", false);
-    
-    // preprocessing (by SiriusExport)
-    registerFullParam_(sirius_export_algorithm.getDefaults());
+    addEmptyLine_();
+    registerDoubleOption_("precursor_mz_distance", "<num>", 0.0001, "Max m/z distance of the precursor entries of two spectra to be merged in [Da].", false);
+    registerDoubleOption_("precursor_recalibration_window", "<num>", 0.01, "Tolerance window for precursor selection (Annotation of precursor mz and intensity)", false, true);
+    registerStringOption_("precursor_recalibration_window_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance_annotation", false, true);
+    setValidStrings_("precursor_recalibration_window_unit", ListUtils::create<String>("Da,ppm"));
+    registerDoubleOption_("precursor_consensus_spectrum_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection [seconds], for consensus spectrum generation (only available without fragment annotation)", false);
 
-    registerTOPPSubsection_("deisotoping", "deisotoping");
-    registerFlag_("deisotoping:use_deisotoper", "Use Deisotoper (if no fragment annotation is used)", false);
-    registerDoubleOption_("deisotoping:fragment_tolerance", "<num>", 1, "Tolerance used to match isotopic peaks", false);
-    registerStringOption_("deisotoping:fragment_unit", "<choice>", "ppm", "Unit of the fragment tolerance", false);
-    setValidStrings_("deisotoping:fragment_unit", ListUtils::create<String>("ppm,Da"));
-    registerIntOption_("deisotoping:min_charge", "<num>", 1, "The minimum charge considered", false);
-    setMinInt_("deisotoping:min_charge", 1);
-    registerIntOption_("deisotoping:max_charge", "<num>", 1, "The maximum charge considered", false);
-    setMinInt_("deisotoping:max_charge", 1);
-    registerIntOption_("deisotoping:min_isopeaks", "<num>", 2, "The minimum number of isotopic peaks (at least 2) required for an isotopic cluster", false);
-    setMinInt_("deisotoping:min_isopeaks", 2);
-    registerIntOption_("deisotoping:max_isopeaks", "<num>", 3, "The maximum number of isotopic peaks (at least 2) considered for an isotopic cluster", false);
-    setMinInt_("deisotoping:max_isopeaks", 3);
-    registerFlag_("deisotoping:keep_only_deisotoped", "Only monoisotopic peaks of fragments with isotopic pattern are retained", false);
-    registerFlag_("deisotoping:annotate_charge", "Annotate the charge to the peaks", false);
+    addEmptyLine_();
+    registerFlag_("deisotoping_use_deisotoper", "Use Deisotoper (if no fragment annotation is used)", false);
+    registerDoubleOption_("deisotoping_fragment_tolerance", "<num>", 1, "Tolerance used to match isotopic peaks", false);
+    registerStringOption_("deisotoping_fragment_unit", "<choice>", "ppm", "Unit of the fragment tolerance", false);
+    setValidStrings_("deisotoping_fragment_unit", ListUtils::create<String>("ppm,Da"));
+    registerIntOption_("deisotoping_min_charge", "<num>", 1, "The minimum charge considered", false);
+    setMinInt_("deisotoping_min_charge", 1);
+    registerIntOption_("deisotoping_max_charge", "<num>", 1, "The maximum charge considered", false);
+    setMinInt_("deisotoping_max_charge", 1);
+    registerIntOption_("deisotoping_min_isopeaks", "<num>", 2, "The minimum number of isotopic peaks (at least 2) required for an isotopic cluster", false);
+    setMinInt_("deisotoping_min_isopeaks", 2);
+    registerIntOption_("deisotoping_max_isopeaks", "<num>", 3, "The maximum number of isotopic peaks (at least 2) considered for an isotopic cluster", false);
+    setMinInt_("deisotoping_max_isopeaks", 3);
+    registerFlag_("deisotoping_keep_only_deisotoped", "Only monoisotopic peaks of fragments with isotopic pattern are retained", false);
+    registerFlag_("deisotoping_annotate_charge", "Annotate the charge to the peaks", false);
 
+    addEmptyLine_();
+    auto defaults = sirius_export_algorithm.getDefaults();
+    defaults.remove("isotope_pattern_iterations"); 
+    defaults.remove("no_masstrace_info_isotope_pattern"); 
+
+    registerFullParam_(defaults);
   }
 
   ExitCodes main_(int, const char **) override
@@ -155,7 +159,7 @@ protected:
 
     // param AssayGeneratorMetabo
     StringList in = getStringList_("in");
-    StringList id = getStringList_("in_id");
+    StringList id = getStringList_("in_featureinfo");
     String out = getStringOption_("out");
     String method = getStringOption_("method");
     double ar_mz_tol = getDoubleOption_("ambiguity_resolution_mz_tolerance");
@@ -168,28 +172,26 @@ protected:
     int max_transitions = getIntOption_("max_transitions");
     double min_fragment_mz = getDoubleOption_("min_fragment_mz");
     double max_fragment_mz = getDoubleOption_("max_fragment_mz");
-    double consensus_spectrum_precursor_rt_tolerance = getDoubleOption_("precursor:consensus_spectrum_rt_tolerance");
-    double pre_recal_win = getDoubleOption_("precursor:recalibration_window");
-    String pre_recal_win_unit = getStringOption_("precursor:recalibration_window_unit");
+    double consensus_spectrum_precursor_rt_tolerance = getDoubleOption_("precursor_consensus_spectrum_rt_tolerance");
+    double pre_recal_win = getDoubleOption_("precursor_recalibration_window");
+    String pre_recal_win_unit = getStringOption_("precursor_recalibration_window_unit");
     bool ppm_recal = pre_recal_win_unit == "ppm" ? true : false;
-    double precursor_mz_distance = getDoubleOption_("precursor:mz_distance");
+    double precursor_mz_distance = getDoubleOption_("precursor_mz_distance");
     double cosine_sim_threshold = getDoubleOption_("cosine_similarity_threshold");
     double transition_threshold = getDoubleOption_("transition_threshold");
     bool use_known_unknowns = getFlag_("use_known_unknowns");
 
     // param deisotoper
-    bool use_deisotoper = getFlag_("deisotoping:use_deisotoper");
-    double fragment_tolerance = getDoubleOption_("deisotoping:fragment_tolerance");
-    String fragment_unit = getStringOption_("deisotoping:fragment_unit");
+    bool use_deisotoper = getFlag_("deisotoping_use_deisotoper");
+    double fragment_tolerance = getDoubleOption_("deisotoping_fragment_tolerance");
+    String fragment_unit = getStringOption_("deisotoping_fragment_unit");
     bool fragment_unit_ppm = fragment_unit == "ppm" ? true : false;
-    int min_charge = getIntOption_("deisotoping:min_charge");
-    int max_charge = getIntOption_("deisotoping:max_charge");
-    unsigned int min_isopeaks = getIntOption_("deisotoping:min_isopeaks");
-    unsigned int max_isopeaks = getIntOption_("deisotoping:max_isopeaks");
-    bool keep_only_deisotoped = getFlag_("deisotoping:keep_only_deisotoped");
-    bool annotate_charge = getFlag_("deisotoping:annotate_charge");
-
-    sirius_export_algorithm.updateExistingParameter(getParam_());
+    int min_charge = getIntOption_("deisotoping_min_charge");
+    int max_charge = getIntOption_("deisotoping_max_charge");
+    unsigned int min_isopeaks = getIntOption_("deisotoping_min_isopeaks");
+    unsigned int max_isopeaks = getIntOption_("deisotoping_max_isopeaks");
+    bool keep_only_deisotoped = getFlag_("deisotoping_keep_only_deisotoped");
+    bool annotate_charge = getFlag_("deisotoping_annotate_charge");
 
     writeDebug_("Parameters passed to SiriusExportAlgorithm", sirius_export_algorithm.getParameters(), 3);
 
@@ -286,7 +288,7 @@ protected:
       // run masstrace filter and feature mapping
       FeatureMapping::FeatureMappingInfo fm_info;
       FeatureMapping::FeatureToMs2Indices feature_mapping; // reference to *basefeature in vector<FeatureMap>
-      sirius_export_algorithm.preprocessingSirius(id[file_counter],
+      sirius_export_algorithm.preprocessing(id[file_counter],
                                                   spectra,
                                                   fm_info,
                                                   feature_mapping);

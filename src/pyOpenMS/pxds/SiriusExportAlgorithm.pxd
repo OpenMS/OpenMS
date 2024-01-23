@@ -26,7 +26,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>" namespace "OpenM
         bool isNoMasstraceInfoIsotopePattern() except + nogil 
         int getIsotopePatternIterations() except + nogil 
 
-        void preprocessingSirius(const String& featureinfo,
+        void preprocessing(const String& featureinfo,
                                  MSExperiment& spectra,
                                  FeatureMapping_FeatureMappingInfo& fm_info,
                                  FeatureMapping_FeatureToMs2Indices& feature_mapping) except + nogil 

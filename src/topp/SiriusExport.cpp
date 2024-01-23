@@ -67,9 +67,6 @@ class TOPPSiriusExport :
       })
     {}
 
-private:
-  SiriusExportAlgorithm algorithm;
-
 protected:
 
   void registerOptionsAndFlags_() override
@@ -88,9 +85,7 @@ protected:
 
     addEmptyLine_();
 
-    auto defaults = algorithm.getDefaults();
-
-    registerFullParam_(defaults);
+    registerFullParam_(SiriusExportAlgorithm().getDefaults());
   }
 
   ExitCodes main_(int, const char **) override
@@ -103,12 +98,8 @@ protected:
     String out_ms = getStringOption_("out");
     String out_compoundinfo = getStringOption_("out_compoundinfo");
 
-    auto params = getParam_();
-
-    params.setValue("project:processors", params.getValue("threads"));
-    algorithm.updateExistingParameter(params);
-
-    writeDebug_("Parameters passed to SiriusExportAlgorithm", algorithm.getParameters(), 3);
+    SiriusExportAlgorithm algorithm;     
+    algorithm.setParameters(getParam_().copySubset(SiriusExportAlgorithm().getDefaults()));
 
     //-------------------------------------------------------------
     // Check input
