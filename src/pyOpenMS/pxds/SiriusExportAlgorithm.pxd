@@ -26,30 +26,30 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>" namespace "OpenM
         bool isNoMasstraceInfoIsotopePattern() except + nogil 
         int getIsotopePatternIterations() except + nogil 
 
-        void preprocessing(const String& featureinfo,
+        void preprocessing(const String& featureXML_path,
                                  MSExperiment& spectra,
-                                 FeatureMapping_FeatureMappingInfo& fm_info,
-                                 FeatureMapping_FeatureToMs2Indices& feature_mapping) except + nogil 
+                                 FeatureMapping_FeatureMappingInfo& feature_mapping_info,
+                                 FeatureMapping_FeatureToMs2Indices& feature_ms2_indices) except + nogil 
         # wrap-doc:
                 #  Preprocessing needed for SIRIUS
                 #  
                 #  Filter number of masstraces and perform feature mapping
                 #  
-                #  :param featureinfo: Path to featureXML
+                #  :param featureXML_path: Path to featureXML
                 #  :param spectra: Input of MSExperiment with spectra information
-                #  :param fm_info: Emtpy - stores FeatureMaps and KDTreeMaps internally 
-                #  :param feature_mapping: Empty FeatureToMs2Indices
+                #  :param feature_mapping_info: Emtpy - stores FeatureMaps and KDTreeMaps internally 
+                #  :param feature_ms2_indices: Empty FeatureToMs2Indices
 
-        void logFeatureSpectraNumber(const String& featureinfo,
-                                     FeatureMapping_FeatureToMs2Indices& feature_mapping,
+        void logFeatureSpectraNumber(const String& featureXML_path,
+                                     FeatureMapping_FeatureToMs2Indices& feature_ms2_indices,
                                      MSExperiment& spectra) except + nogil 
         # wrap-doc:
                 #  Logs number of features and spectra used
                 #  
                 #  Prints the number of features and spectra used (OPENMS_LOG_INFO)
                 #  
-                #  :param featureinfo: Path to featureXML
-                #  :param feature_mapping: FeatureToMs2Indices with feature mapping
+                #  :param featureXML_path: Path to featureXML
+                #  :param feature_ms2_indices: FeatureToMs2Indices with feature mapping
                 #  :param spectra: Input of MSExperiment with spectra information
 
         void run(const StringList& mzML_files,

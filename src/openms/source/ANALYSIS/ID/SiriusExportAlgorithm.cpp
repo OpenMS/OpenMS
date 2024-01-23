@@ -40,20 +40,20 @@ namespace OpenMS
   // ################
   // Algorithm
   // ################
-  void SiriusExportAlgorithm::preprocessing(const String& featureinfo,
+  void SiriusExportAlgorithm::preprocessing(const String& featureXML_path,
                                             const MSExperiment& spectra,
-                                            FeatureMapping::FeatureMappingInfo& fm_info,
-                                            FeatureMapping::FeatureToMs2Indices& feature_mapping) const
+                                            FeatureMapping::FeatureMappingInfo& feature_mapping_info,
+                                            FeatureMapping::FeatureToMs2Indices& feature_ms2_indices) const
 {
     // if fileparameter is given and should be not empty
-    if (!featureinfo.empty())
+    if (!featureXML_path.empty())
     {
       Size preprocessing_filter_by_num_masstraces = getFilterByNumMassTraces();
-      if (File::exists(featureinfo) && !File::empty(featureinfo))
+      if (File::exists(featureXML_path) && !File::empty(featureXML_path))
       {
         // read featureXML          
         FeatureMap feature_map;
-        FileHandler().loadFeatures(featureinfo, feature_map);
+        FileHandler().loadFeatures(featureXML_path, feature_map);
 
         if (preprocessing_filter_by_num_masstraces != 1 && !isFeatureOnly())
         {
@@ -70,12 +70,12 @@ namespace OpenMS
                                 });
         feature_map.erase(map_it, feature_map.end());
 
-        fm_info.feature_maps.push_back(feature_map);
-        fm_info.kd_tree.addMaps(fm_info.feature_maps); // KDTree references into feature_map
+        feature_mapping_info.feature_maps.push_back(feature_map);
+        feature_mapping_info.kd_tree.addMaps(feature_mapping_info.feature_maps); // KDTree references into feature_map
 
         // mapping of MS2 spectra to features
-        feature_mapping = FeatureMapping::assignMS2IndexToFeature(spectra,
-                                                                  fm_info,
+        feature_ms2_indices = FeatureMapping::assignMS2IndexToFeature(spectra,
+                                                                  feature_mapping_info,
                                                                   getPrecursorMzTolerance(),
                                                                   getPrecursorRtTolerance(),
                                                                   precursorMzToleranceUnitIsPPM());
@@ -91,19 +91,19 @@ namespace OpenMS
   }
 
 
-  void SiriusExportAlgorithm::logFeatureSpectraNumber(const String& featureinfo,
-                                                        const FeatureMapping::FeatureToMs2Indices& feature_mapping,
+  void SiriusExportAlgorithm::logFeatureSpectraNumber(const String& featureXML_path,
+                                                        const FeatureMapping::FeatureToMs2Indices& feature_ms2_indices,
                                                         const MSExperiment& spectra) const
   {
     // number of features to be processed
-    if (isFeatureOnly() && !featureinfo.empty())
+    if (isFeatureOnly() && !featureXML_path.empty())
     {
-      OPENMS_LOG_INFO << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
+      OPENMS_LOG_INFO << "Number of features to be processed: " << feature_ms2_indices.assignedMS2.size() << std::endl;
     }
-    else if (!featureinfo.empty())
+    else if (!featureXML_path.empty())
     {
-      OPENMS_LOG_INFO << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
-      OPENMS_LOG_INFO << "Number of additional MS2 spectra to be processed: " << feature_mapping.unassignedMS2.size() << std::endl;
+      OPENMS_LOG_INFO << "Number of features to be processed: " << feature_ms2_indices.assignedMS2.size() << std::endl;
+      OPENMS_LOG_INFO << "Number of additional MS2 spectra to be processed: " << feature_ms2_indices.unassignedMS2.size() << std::endl;
     } 
     else
     {
@@ -138,18 +138,18 @@ namespace OpenMS
       FileHandler().loadExperiment(mzML_files[i], spectra, {FileTypes::MZML});
 
       // run masstrace filter and feature mapping
-      FeatureMapping::FeatureMappingInfo fm_info;
-      FeatureMapping::FeatureToMs2Indices feature_mapping;
+      FeatureMapping::FeatureMappingInfo feature_mapping_info;
+      FeatureMapping::FeatureToMs2Indices feature_ms2_indices;
 
       // check if 'featureXML_files' is empty and pass an empty string if it is
       String feature_info_to_pass = featureXML_files.empty() ? "" : featureXML_files[i];
       SiriusExportAlgorithm::preprocessing(feature_info_to_pass,
                                     spectra,
-                                    fm_info,
-                                    feature_mapping);
+                                    feature_mapping_info,
+                                    feature_ms2_indices);
 
       // returns Log of feature and/or spectra number
-      SiriusExportAlgorithm::logFeatureSpectraNumber(feature_info_to_pass, feature_mapping, spectra);
+      SiriusExportAlgorithm::logFeatureSpectraNumber(feature_info_to_pass, feature_ms2_indices, spectra);
 
       // bool no_masstrace_info_isotope_pattern = (no_masstrace_info_isotope_pattern_ == "true");
 
@@ -157,7 +157,7 @@ namespace OpenMS
       std::vector<SiriusMSFile::CompoundInfo> temp_cmpinfo;
       SiriusMSFile::store(spectra,
                           os,
-                          feature_mapping,
+                          feature_ms2_indices,
                           isFeatureOnly(),
                           getIsotopePatternIterations(),
                           isNoMasstraceInfoIsotopePattern(),

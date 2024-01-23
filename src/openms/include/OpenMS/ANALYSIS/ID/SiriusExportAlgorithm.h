@@ -42,13 +42,13 @@ namespace OpenMS
 
       @param featureinfo Path to featureXML
       @param spectra Input of MSExperiment with spectra information
-      @param fm_info Emtpy - stores FeatureMaps and KDTreeMaps internally 
-      @param feature_mapping Empty FeatureToMs2Indices
+      @param feature_mapping_info Emtpy - stores FeatureMaps and KDTreeMaps internally 
+      @param feature_ms2_indices Empty FeatureToMs2Indices
       */
       void preprocessing(const String& featureinfo,
                                const MSExperiment& spectra,
-                               FeatureMapping::FeatureMappingInfo& fm_info,
-                               FeatureMapping::FeatureToMs2Indices& feature_mapping) const;
+                               FeatureMapping::FeatureMappingInfo& feature_mapping_info,
+                               FeatureMapping::FeatureToMs2Indices& feature_ms2_indices) const;
 
       /**
       @brief logs number of features and spectra used
@@ -56,11 +56,11 @@ namespace OpenMS
       Prints the number of features and spectra used (OPENMS_LOG_INFO)
 
       @param featureinfo Path to featureXML
-      @param feature_mapping FeatureToMs2Indices with feature mapping
+      @param feature_ms2_indices FeatureToMs2Indices with feature mapping
       @param spectra Input of MSExperiment with spectra information
       */
       void logFeatureSpectraNumber(const String& featureinfo,
-                                   const FeatureMapping::FeatureToMs2Indices& feature_mapping,
+                                   const FeatureMapping::FeatureToMs2Indices& feature_ms2_indices,
                                    const MSExperiment& spectra) const;
 
       /**
