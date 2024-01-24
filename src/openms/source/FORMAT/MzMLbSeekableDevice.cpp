@@ -31,7 +31,7 @@ using namespace boost::iostreams;
 
 #define CURRENT_VERSION "mzMLb 1.0"
 
-namespace OpenMS {
+namespace OpenMS::HDF5 {
 /*
 namespace pwiz {
 namespace msdata {

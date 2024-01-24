@@ -28,11 +28,6 @@
 #include <map>
 #include <optional>
 
-#ifdef WITH_HDF5
-#include <OpenMS/FORMAT/HANDLERS/MzMLbBinaryDataArrayLoader.h>
-#include <OpenMS/FORMAT/MzMLbSeekableDevice.h>
-#endif
-
 //MISSING:
 // - more than one selected ion per precursor (warning if more than one)
 // - scanWindowList for each acquisition separately (currently for the whole spectrum only)
@@ -58,6 +53,12 @@ namespace OpenMS
   {
     class IMSDataConsumer;
   }
+
+#ifdef WITH_HDF5
+  namespace HDF5 {
+    class MzMLbBinaryDataArrayLoader;
+  }
+#endif
 
   namespace Internal
   {
@@ -177,8 +178,9 @@ public:
       void setLoadDetail(const LOADDETAIL d) override;
 
 #ifdef WITH_HDF5
+      using MzMLbBDAL = OpenMS::HDF5::MzMLbBinaryDataArrayLoader;
       /// set a custom binary data loader for mzMLb
-      void setBinaryDataArrayLoader(std::unique_ptr<OpenMS::HDF5::MzMLbBinaryDataArrayLoader>&& bdl);
+      void setBinaryDataArrayLoader(std::unique_ptr<MzMLbBDAL>&& bdl);
 #endif
 
 protected:

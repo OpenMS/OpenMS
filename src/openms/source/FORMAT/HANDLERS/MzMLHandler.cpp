@@ -20,6 +20,10 @@
 
 #include <map>
 
+#ifdef WITH_HDF5
+#include <OpenMS/FORMAT/HANDLERS/MzMLbBinaryDataArrayLoader.h>
+#endif  
+
 namespace OpenMS::Internal
 {
 
@@ -54,10 +58,6 @@ namespace OpenMS::Internal
       }
       pg_outer = logger; // inherit the logtype etc
     }
-
-
-    /// Destructor
-    MzMLHandler::~MzMLHandler() = default;
 
     /// Set the peak file options
     void MzMLHandler::setOptions(const PeakFileOptions& opt)
@@ -5506,6 +5506,19 @@ namespace OpenMS::Internal
       os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
       os << "\t\t\t\t\t</binaryDataArray>\n";
     }
+
+#ifdef WITH_HDF5
+      /// set a custom binary data loader for mzMLb
+      void MzMLHandler::setBinaryDataArrayLoader(std::unique_ptr<OpenMS::HDF5::MzMLbBinaryDataArrayLoader>&& bdl)
+      {
+        mzMLb_binary_data_array_loader_ = std::move(bdl);
+      }
+#endif
+
+    /// Destructor (Note: needs to be defaulted in the implementation file *after* the unique_ptr above is introduced). 
+    /// Otherwise, the compiler only knows the partial type and can't generate the destructor code.
+    /// For additional information search for "pImpl and std::unique_ptr"
+    MzMLHandler::~MzMLHandler() = default;
 
     // We only ever need 2 instances for the following functions: one for Spectra / Chromatograms and one for floats / doubles
     template void MzMLHandler::writeContainerData_<SpectrumType>(std::ostream& os,

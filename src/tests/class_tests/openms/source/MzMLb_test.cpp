@@ -20,7 +20,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <OpenMS/FORMAT/MzMLbSeekableDevice.h>
-#include <OpenMS/FORMAT/HANDLERS/MzMLBinaryDataArrayLoader.h>
+#include <OpenMS/FORMAT/HANDLERS/MzMLbBinaryDataArrayLoader.h>
 
 #include "H5Cpp.h"
 #include "blosc_filter.h"
@@ -42,12 +42,8 @@ START_TEST(MzMLb, "$Id$")
 
 using namespace OpenMS;
 
-using MzMLb = OpenMS::MzMLbSeekableDevice; // TODO: maybe rename? MzMLbStream? just MzMLb
-
-using mzMLbInputStream = boost::iostreams::stream<MzMLb>;
-
-
-
+using MzMLb = OpenMS::HDF5::MzMLbSeekableDevice;
+//using mzMLbInputStream = boost::iostreams::stream<MzMLb>;
 
 
 /*

@@ -28,10 +28,13 @@
 #include <vector>
 #include <map>
 
-#include "hdf5.h"
-//#include "H5Cpp.h"
+#include "/usr/include/hdf5/serial/hdf5.h"
 
 #include <OpenMS/CONCEPT/Macros.h>
+
+  // we avoid including hdf5.h here, but we need a definition for something that'll
+  //  be compatible with HDF5's hsize_t
+  typedef unsigned long long hdf5_size_t;
 
 namespace OpenMS {
     namespace HDF5 {
