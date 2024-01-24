@@ -155,7 +155,7 @@ namespace OpenMS
         {
           fs << "nan\tnan\tnan\tnan\t";
           if (report_decoy)
-            fs << "nan\tnan\tnan\tnan\t";
+            fs << "nan\t";
         }
         else
         {

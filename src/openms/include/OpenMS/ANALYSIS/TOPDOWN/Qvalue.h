@@ -31,17 +31,5 @@ namespace OpenMS
     static void updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra);
 
   private:
-    /// get a bin number given qvalue. qvalue is calculated per bin (bin from 0 to 1).
-    static uint getBinNumber(double qscore, uint total_bin_number);
-
-    static  float getBinValue(uint bin_number, uint total_bin_number);
-    /// get the setQscore distribution
-    static std::vector<double> getDistribution(const std::vector<double>& qscores, uint bin_number);
-
-    /// get the weights of different dummy types.
-    static std::vector<double> getDistributionWeights(const std::vector<double>& mixed_dist, const std::vector<std::vector<double>>& comp_dists, int bin_threshold, uint num_iterations = 100);
-
-    /// remove outlier qscores
-    static void removeOutliers(std::vector<double> qscores, uint bin_number);
   };
 } // namespace OpenMS
