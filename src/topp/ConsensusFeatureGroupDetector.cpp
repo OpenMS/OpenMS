@@ -10,6 +10,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -44,6 +45,9 @@ private:
   int RT_TOL_;
   Size REP_COUNT_;
   bool MAX_ABUNDANCE_WHEN_DUPLICATE;
+  String INDEX_COL_NAME_;
+  String MASS_COL_NAME_;
+  String RT_COL_NAME_;
 
 protected:
   void registerOptionsAndFlags_() override
@@ -61,10 +65,18 @@ protected:
     setMinInt_("rt_tol", 0);
     registerStringOption_("quant_method", "<choice>", "FeatureGroupQuantity", "Quantity value to use from FLASHQuant result", false);
     setValidStrings_("quant_method", {"FeatureGroupQuantity", "AllAreaUnderTheCurve", "SumIntensity"});
-    registerStringOption_("consensus_as_input", "<choice>", "false", "Set it true when input files are consensus files", false);
+
+    // advanced parameters
+    registerStringOption_("consensus_as_input", "<choice>", "false", "Set it true when input files are consensus files", false, true);
     setValidStrings_("consensus_as_input", {"false", "true"});
     registerStringOption_("when_duplicate", "<choice>", "max_abundance", "Method to pick a mass when multiple candidates were found in the same replicate", false, true);
     setValidStrings_("when_duplicate", {"max_abundance", "nearest_mass"});
+    registerStringOption_("index_column_name", "<value>", "FeatureGroupIndex", "The column name for feature group index in the input file", false, true);
+    registerStringOption_("mass_column_name", "<value>", "MonoisotopicMass", "The column name for monoisotopic mass in the input file", false, true);
+    registerStringOption_("rt_column_name", "<value>", "MedianApexRetentionTime", "The column name for apex retention time in the input file", false, true);
+    registerStringOption_("intensity_column_name", "<value>", "FeatureGroupQuantity", "The column name for intensity value in the input file. "
+                                                                                      "If this parameter is given, quant_method parameter value will be overwritten by this ", false, true);
+
   }
 
   struct FeatureGroup
@@ -152,6 +164,13 @@ protected:
       header_dict[tmp] = i++;
     }
 
+    // check if header_dict has column names
+    if (!header_dict.count(INDEX_COL_NAME_) || !header_dict.count(MASS_COL_NAME_) || !header_dict.count(RT_COL_NAME_) || !header_dict.count(QUANT_METHOD_))
+    {
+      // error message parameter
+      throw OpenMS::Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Given column name(s) is not found in the input file!");
+    }
+
     // read data
     while(TextFile::getLine(data, line)) // iterate over lines
     {
@@ -163,9 +182,9 @@ protected:
       }
       FeatureGroup fg;
       fg.rep_index = rep_index;
-      fg.fgroup_index = (Size) tmp_line[header_dict.at("FeatureGroupIndex")].toInt();
-      fg.mass = tmp_line[header_dict.at("MonoisotopicMass")].toDouble();
-      fg.apex_rt = tmp_line[header_dict.at("MedianApexRetentionTime")].toDouble();
+      fg.fgroup_index = (Size) tmp_line[header_dict.at(INDEX_COL_NAME_)].toInt();
+      fg.mass = tmp_line[header_dict.at(MASS_COL_NAME_)].toDouble();
+      fg.apex_rt = tmp_line[header_dict.at(RT_COL_NAME_)].toDouble();
       fg.abundance = tmp_line[header_dict.at(QUANT_METHOD_)].toDouble();
       fgroups.push_back(fg);
     }
@@ -414,6 +433,15 @@ protected:
     if (MASS_TOL_UNIT_ == "ppm")
     {
       MASS_TOL_ *= 1e-6;
+    }
+
+    INDEX_COL_NAME_ = getStringOption_("index_column_name");
+    MASS_COL_NAME_ = getStringOption_("mass_column_name");
+    RT_COL_NAME_ = getStringOption_("rt_column_name");
+    String intensity_column = getStringOption_("intensity_column_name");
+    if (intensity_column != "FeatureGroupQuantity")
+    {
+      QUANT_METHOD_ = intensity_column;
     }
 
     //-------------------------------------------------------------
