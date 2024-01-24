@@ -114,8 +114,7 @@ namespace OpenMS
 
       @brief Sort function using the extracted scan_index from the sirius workspace file path
 
-      @return Vector of sorted sirius workspace paths based on the scan_index
-
+      @param[in,out] subdirs Vector of sirius workspace paths which is sorted based on the scan_index
       */
       static void sortSiriusWorkspacePathsByScanIndex(std::vector<String>& subdirs);
 
@@ -123,14 +122,12 @@ namespace OpenMS
       /**
       @brief Preprocessing needed for SIRIUS
 
-      @return FeatureToMS2Indices
-            
       Filter number of masstraces and perform feature mapping.
 
       @param featureinfo Path to featureXML
       @param spectra Input of MSExperiment with spectra information
       @param fm_info Emtpy - stores FeatureMaps and KDTreeMaps internally 
-      @param feature_mapping Empty FeatureToMs2Indices
+      @param feature_mapping Mapping of MS2 spectra to features
       */
       void preprocessingSirius(const String& featureinfo,
                                const MSExperiment& spectra,
@@ -153,6 +150,7 @@ namespace OpenMS
       /**
       @brief Log in to Sirius with personal user account (required in Sirius >= 5).
 
+      @param executable ...
       @param email User account E-Mail.
       @param password User account password.
       */
@@ -165,6 +163,7 @@ namespace OpenMS
       @param tmp_out_dir path to temporary output folder
       @param executable path to executable
       @param out_csifingerid path to CSI:FingerID output (can be empty).
+      @param decoy_generation Add 'passatutto' to command line call
 
       @return Vector with paths to a compound
       */

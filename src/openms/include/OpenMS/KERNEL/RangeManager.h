@@ -528,13 +528,13 @@ namespace OpenMS
     @brief Handles the management of a multidimensional range, e.g. RangeMZ and RangeIntensity for spectra.
 
     Instantiate it with the dimensions which are supported/required, e.g.
-    <tt>RangeManager<RangeRT, RangeMZ> range_spec</tt> for a spectrum and use the strongly typed features, such as
-    range_spec.getMaxRT()/setMaxRT(500.0) or range_spec.extend(RangeMZ{100, 1500});
+    `RangeManager<RangeRT, RangeMZ> range_spec` for a spectrum and use the strongly typed features, such as
+    `range_spec.getMaxRT()/setMaxRT(500.0)` or `range_spec.extend(RangeMZ{100, 1500})`.
 
     Use RangeManagerContainer as a base class for all peak and feature containers like MSSpectrum, MSExperiment and FeatureMap.
 
     The implementation uses non-virtual multiple inheritance using variadic templates. Each dimension, e.g. RangeRT, is inherited from, thus
-    all members of the base class become accessible in the RangeManager, e.g. ::getMaxRT().
+    all members of the base class become accessible in the RangeManager, e.g. getMaxRT().
     Operations (e.g. assignment, or extension of ranges) across RangeManagers with a different, yet overlapping set of base classes
     is enabled using fold expressions and constexpr evaluations, which are resolved at compile time (see for_each_base_ member function).
 
@@ -652,10 +652,10 @@ namespace OpenMS
     }
 
 
-    /// Move range of *this to min/max of @p sandbox, without changing the span, if possible.
-    /// This does tighten the range unless @p sandbox's ranges are smaller than *this.
-    /// Dimensions which are not contained in @p sandbox or are empty are left untouched.
-    /// @param sandbox Range to translate/move the current range into
+    /// Move range of *this to min/max of @p rhs, without changing the span, if possible.
+    /// This does tighten the range unless @p rhs's ranges are smaller than *this.
+    /// Dimensions which are not contained in @p rhs or are empty are left untouched.
+    /// @param rhs Range to translate/move the current range into
     /// @return true if dimensions overlapped, false otherwise
     template<typename... RangeBasesOther>
     bool pushIntoUnsafe(const RangeManager<RangeBasesOther...>& rhs)

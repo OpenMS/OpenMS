@@ -77,11 +77,11 @@ jobs:
           echo "tp_folder=Linux" >> $GITHUB_OUTPUT
           echo "xvfb=xvfb-run -a" >> $GITHUB_OUTPUT
           echo "static_boost=OFF" >> $GITHUB_OUTPUT
+          # always run doxygen on Ubuntu (because its fast), to detect Doxygen errors
+          echo "enable_docs=ON" >> $GITHUB_OUTPUT  
           if [ "$DO_PACKAGE" = true ]; then
-            echo "enable_docs=ON" >> $GITHUB_OUTPUT
             echo "pkg_type=deb" >> $GITHUB_OUTPUT
           else
-            echo "enable_docs=OFF" >> $GITHUB_OUTPUT
             echo "pkg_type=none" >> $GITHUB_OUTPUT
           fi
           echo "cxx_compiler=${{ matrix.compiler }}-${{ matrix.compiler_ver }}" >> $GITHUB_OUTPUT
@@ -160,12 +160,10 @@ jobs:
            libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
           echo "cmake_prefix=" >> $GITHUB_OUTPUT
-          
-          if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            sudo apt-get -qq install -y doxygen ghostscript graphviz
-            echo "Testing doxygen"
-            doxygen --version
-          fi
+          ## always run doxygen on Ubuntu to detect Doxygen errors
+          sudo apt-get -qq install -y doxygen ghostscript graphviz
+          echo "Testing doxygen"
+          doxygen --version
         fi
         
         if [[ "${{ matrix.os }}" == windows-* ]]; then
@@ -310,6 +308,7 @@ jobs:
           WITH_GUI: "ON"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
+          PACKAGE_TYPE: ${{ steps.set-vars.outputs.pkg_type }}
           OPENMP: "ON"
           BOOST_USE_STATIC: ${{ steps.set-vars.outputs.static_boost }}
           #  BUILD_FLAGS: "-p:CL_MPCount=2" # For VS Generator and MSBuild

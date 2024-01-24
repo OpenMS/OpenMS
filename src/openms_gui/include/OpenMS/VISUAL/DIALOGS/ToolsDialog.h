@@ -27,18 +27,18 @@ namespace OpenMS
   class TVToolDiscovery;
 
   /**
-      @brief TOPP tool selection dialog
+  @brief TOPP tool selection dialog
 
-      In the dialog, the user can
+  In the dialog, the user can
     - select a TOPP tool
     - select the options used for the input and output file
-      - and set the parameters for the tool
+    - and set the parameters for the tool
 
-      This information can then be used to execute the tool.
+  This information can then be used to execute the tool.
 
-      The offered tools depend on the data type set in the constructor.
+  The offered tools depend on the data type set in the constructor.
 
-      @ingroup Dialogs
+  @ingroup Dialogs
   */
   class OPENMS_GUI_DLLAPI ToolsDialog :
     public QDialog
@@ -47,14 +47,15 @@ namespace OpenMS
 
 public:
     /**
-        @brief Constructor
+      @brief Constructor
 
-        @param parent Qt parent widget
-        @param params Containing all TOPP tool/util params
-        @param ini_file The file name of the temporary INI file created by this dialog
-        @param default_dir The default directory for loading and storing INI files
-        @param layer_type The type of data (determines the applicable tools)
-        @param layer_name The name of the selected layer
+      @param parent Qt parent widget
+      @param params Containing all TOPP tool/util params
+      @param ini_file The file name of the temporary INI file created by this dialog
+      @param default_dir The default directory for loading and storing INI files
+      @param layer_type The type of data (determines the applicable tools)
+      @param layer_name The name of the selected layer
+      @param tool_scanner Pointer to the tool scanner for access to the plugins and to rerun the plugins detection
     */
     ToolsDialog(QWidget * parent, const Param& params, String ini_file, String default_dir, LayerDataBase::DataType layer_type, const String& layer_name, TVToolDiscovery* tool_scanner);
     ///Destructor
