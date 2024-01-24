@@ -169,7 +169,8 @@ namespace OpenMS
     // for noise decoy, preclude the m/z peaks used for original deconvolution
     if (target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy)
     {
-      MSSpectrum spec;
+      MSSpectrum spec(deconvolved_spectrum_.getOriginalSpectrum());
+      spec.clear(false);
       std::set<double> excluded_mzs;
       if (target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy)
       {
