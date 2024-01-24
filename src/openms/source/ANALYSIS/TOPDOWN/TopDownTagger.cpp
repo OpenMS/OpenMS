@@ -75,19 +75,20 @@ namespace OpenMS
     std::vector<Residue> ret;
     if (l == r)
       return ret;
-    double abs_iso_mass = std::abs(iso_offset * Constants::C13C12_MASSDIFF_U);
-    double diff = std::abs(std::abs((r - l)) - abs_iso_mass) / z;
+    double iso_mass = std::abs(iso_offset * Constants::C13C12_MASSDIFF_U);
+    double diff1 = std::abs(std::abs(r - l) - iso_mass) / z;
+    double diff2 = std::abs(std::abs(r - l) + iso_mass) / z;
     double abs_tol = 2 * std::max(l, r) * tol / 1e6;
-    auto iter = aa_mass_map_.lower_bound(diff - abs_tol);
+    auto iter = aa_mass_map_.lower_bound(diff1 - abs_tol);
 
     while (iter != aa_mass_map_.end())
     {
-      if (std::abs(diff - iter->first) < abs_tol)
+      if (std::abs(diff1 - iter->first) < abs_tol || std::abs(diff2 - iter->first) < abs_tol)
       {
         for (auto& aa : iter->second)
           ret.push_back(aa);
       }
-      else if (iter->first - diff > abs_tol)
+      else if (iter->first - diff2 > abs_tol)
       {
         break;
       }
@@ -162,7 +163,7 @@ namespace OpenMS
       while (start_index < end_index && r - mzs[start_index] > max_edge_mass_)
         start_index++;
 
-      for (int n = 0; n < 2; n++) // 0 for all a.a 1 for isotope errors
+      for (int n = 0; n < 2; n++) // 0 for all a.a 1 for isotope errors. Allow only one isotope errors.
       {
         for (int current_index = start_index; current_index < end_index; current_index++)
         {
