@@ -89,8 +89,8 @@ protected:
     combined.setSectionDescription("epd", "Elution Profile Detection (to separate isobaric Mass Traces by elution time).");
 
     Param p_ffi = FLASHQuantAlgorithm().getDefaults();
-    combined.insert("fdq:", p_ffi);
-    combined.setSectionDescription("fdq", "FLASHQuant parameters (assembling mass traces to charged features)");
+    combined.insert("fq:", p_ffi);
+    combined.setSectionDescription("fq", "FLASHQuant parameters (assembling mass traces to charged features)");
 
     return combined;
   }
@@ -443,8 +443,8 @@ public:
     Param epd_param = getParam_().copy("algorithm:epd:", true);
     writeDebug_("Parameters passed to ElutionPeakDetection", epd_param, 3);
 
-    Param fdq_param = getParam_().copy("algorithm:fdq:", true);
-    writeDebug_("Parameters passed to FLASHQuant", fdq_param, 3);
+    Param fq_param = getParam_().copy("algorithm:fq:", true);
+    writeDebug_("Parameters passed to FLASHQuant", fq_param, 3);
 
     //-------------------------------------------------------------
     // Mass traces detection
@@ -479,12 +479,12 @@ public:
     //-------------------------------------------------------------
     // Feature finding
     //-------------------------------------------------------------
-    FLASHQuantAlgorithm fdq;
-    fdq.setParameters(fdq_param);
+    FLASHQuantAlgorithm fq_algo;
+    fq_algo.setParameters(fq_param);
     std::vector<FeatureGroup> out_fgroups;
 
-    fdq.output_file_path_ = out;
-    fdq.run(m_traces_final, out_fgroups);
+    fq_algo.output_file_path_ = out;
+    fq_algo.run(m_traces_final, out_fgroups);
 
     //-------------------------------------------------------------
     // writing featureXML output

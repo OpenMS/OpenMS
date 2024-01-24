@@ -364,9 +364,9 @@ namespace OpenMS
       min_iso_score = min_isotope_cosine_;
     }
     int offset = 0;
-    float isotope_score = SpectralDeconvolution::getIsotopeCosineAndDetermineIsotopeIndex(fg.getMonoisotopicMass(),
-                                                                                          fg.getIsotopeIntensities(),
-                                                                                          offset, iso_model_);
+    float isotope_score = SpectralDeconvolution::getIsotopeCosineAndIsoOffset(fg.getMonoisotopicMass(),
+                                                                              fg.getIsotopeIntensities(),
+                                                                              offset, iso_model_, 1);
     fg.setIsotopeCosine(isotope_score);
     if (isNotTarget && isotope_score < min_iso_score)
     {
@@ -652,7 +652,7 @@ namespace OpenMS
 
     while (rt_s_iter != end_of_iter && end_of_current_rt_window < last_rt)
     {
-      this->setProgress(counter);
+      this->setProgress(counter);  // TODO; why finish at 2n%?
 
       // initial rt binning is 1 sec (for generating spectrum)
       end_of_current_rt_window += rt_binning_size;
@@ -1556,7 +1556,7 @@ namespace OpenMS
     {
       obs_total_intensity += peak.getIntensity();
     }
-    Matrix<double> obs;
+    Matrix<double> obs; // TODO: smooth intensity?
     obs.resize(mt_size, 1);
     for (Size i = 0; i < mt_size; ++i)
     {
@@ -1618,9 +1618,6 @@ namespace OpenMS
       auto &feat = conflicting_features[i_of_f];
       auto lmt_ptr = std::find_if(feat.shared_traces.begin(), feat.shared_traces.end(),
                                   [org_index_of_obs_mt](auto &&x) { return x.getTraceIndex() == org_index_of_obs_mt; });
-
-//      auto temp_component = components[pointer_to_components.getValue(row, i_of_f)];
-//      double theo_intensity = std::accumulate(temp_component.begin(), temp_component.end(), 0.0);
 
       // Kyowon's advice! ratio should be applied to real intensity, not theoretical one
       lmt_ptr->setIntensity(calculated_ratio[col] * obs_total_intensity);
