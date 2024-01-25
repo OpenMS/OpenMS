@@ -61,8 +61,6 @@ ARG THIRDPARTY_DIR
 ARG MAKEFLAGS
 ENV MAKEFLAGS="${MAKEFLAGS}"
 
-RUN apt-get update && apt-get install -y --no-install-recommends --no-install-suggests openjdk-17-jdk
-
 WORKDIR ${OPENMS_LIBRARY_DIR}
 RUN <<-EOF
     mkdir ${THIRDPARTY_DIR}
@@ -107,6 +105,9 @@ RUN apt-get update \
     libboost-regex1.74-dev \
     libboost-math1.74-dev \
     libboost-random1.74-dev \
+    ## thirdparty dependencies
+    # LuciPHOr2 and MSGFPlus:
+    openjdk-17-jre-headless \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=tools-build ${CONTRIB_BUILD_DIR}/bin ${CONTRIB_BUILD_DIR}/bin
