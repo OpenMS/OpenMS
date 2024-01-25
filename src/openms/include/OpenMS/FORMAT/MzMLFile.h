@@ -11,7 +11,6 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
-#include <OpenMS/FORMAT/HANDLERS/MzMLbBinaryDataArrayLoader.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
@@ -19,9 +18,16 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
 #include <map>
+#include <memory>
 
 namespace OpenMS
 {
+  #ifdef WITH_HDF5
+    namespace HDF5 {
+      class MzMLbBinaryDataArrayLoader;
+    }
+  #endif
+
   /**
     @brief File adapter for MzML files
 
