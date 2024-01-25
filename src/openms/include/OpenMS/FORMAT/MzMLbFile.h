@@ -40,26 +40,29 @@ class MzMLbFile
     MSExperiment load(const std::string& file_name)
     {
       // open mzMLb file
-      auto mzMLb = OpenMS::HDF5::MzMLbSeekableDevice(file_name);
-      std::streamsize xml_size = mzMLb.size("mzML");
+      auto mzMLb_device = OpenMS::HDF5::MzMLbSeekableDevice(file_name);
+      std::streamsize xml_size = mzMLb_device.size("mzML");
       std::cout << xml_size << std::endl; // size of XML part?
       
       // Allocate the buffer (plus one for the null terminator)
       std::string xml_buffer(xml_size, '\0');
 
       // Read the XML blob
-      mzMLb.read(&xml_buffer[0], xml_size);
+      mzMLb_device.read(&xml_buffer[0], xml_size);
       std::cout << xml_buffer << std::endl;
   
       // Create MSExperiment with all meta data but no peak or chromatogram and binary array data
       MzMLFile mzfile;
 
       // create experiment from XML buffer. 
-      // setting the filename will use the MzMLbBinaryDataArrayLoader to fill spectra and chromatograms from the HDF5
+      // setting the MzMLbBinaryDataArrayLoader will fill spectra and chromatograms from the mzMLb_device (HDF5)
       MSExperiment exp;
-      mzfile.loadBuffer(xml_buffer, exp, file_name); //TODO: check if this also works if root element is "indexedMzML" (default: "mzML")
+      mzfile.loadBuffer(
+        xml_buffer, 
+        exp, 
+        std::move(std::make_unique<OpenMS::HDF5::MzMLbBinaryDataArrayLoader>(mzMLb_device))); //TODO: check if this also works if root element is "indexedMzML" (default: "mzML")
       std::cout << "chromatograms: " << exp.getNrChromatograms() << "\tspectra: " << exp.getNrSpectra() << std::endl;
-      return exp; // RVOP
+      return exp; // RVO
     }
 };
 }

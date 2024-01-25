@@ -28,7 +28,8 @@
 #include <vector>
 #include <map>
 
-#include "hdf5.h"
+#include "/usr/include/hdf5/serial/hdf5.h"
+//#include "hdf5.h"
 
 #include <OpenMS/CONCEPT/Macros.h>
 

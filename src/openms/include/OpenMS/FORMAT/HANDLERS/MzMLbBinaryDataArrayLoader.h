@@ -22,11 +22,13 @@ namespace OpenMS
     class OPENMS_DLLAPI MzMLbBinaryDataArrayLoader
   {
       using MzMLbInputStream = boost::iostreams::stream<MzMLbSeekableDevice>;
-      std::string filename_; //< path of the HDF5 file
-      MzMLbInputStream is_;
+      MzMLbInputStream is_; // input stream from seekable device
 
     public:
-      explicit MzMLbBinaryDataArrayLoader(const std::string filename) : filename_(filename) {}
+      explicit MzMLbBinaryDataArrayLoader(const MzMLbSeekableDevice& device) : 
+        is_(device)
+        {          
+        }
       MzMLbBinaryDataArrayLoader() = default;
       MzMLbBinaryDataArrayLoader(MzMLbBinaryDataArrayLoader&& other) = default;
       MzMLbBinaryDataArrayLoader(const MzMLbBinaryDataArrayLoader& other) = default;

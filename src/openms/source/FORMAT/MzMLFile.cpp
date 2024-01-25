@@ -132,7 +132,19 @@ namespace OpenMS
     }
   }
 
-  void MzMLFile::loadBuffer(const std::string& buffer, PeakMap& map, const std::string& mzmlb_filename)
+  void MzMLFile::loadBuffer(const std::string& buffer, 
+    PeakMap& map)
+  {
+    map.reset();
+
+    Internal::MzMLHandler handler(map, "memory", getVersion(), *this);
+    handler.setOptions(options_);
+    parseBuffer_(buffer, &handler);
+  }
+
+  void MzMLFile::loadBuffer(const std::string& buffer, 
+    PeakMap& map, 
+    std::unique_ptr<OpenMS::HDF5::MzMLbBinaryDataArrayLoader>&& bdal)
   {
     map.reset();
 
@@ -141,9 +153,10 @@ namespace OpenMS
 
 #ifdef WITH_HDF5    
     // mzMLb file? then we need to set a custom loader for the binary data as it is not stored in the XML.
-    if (!mzmlb_filename.empty()) 
+    if (bdal) 
     {
-      handler.setBinaryDataArrayLoader(std::make_unique<OpenMS::HDF5::MzMLbBinaryDataArrayLoader>(mzmlb_filename));
+      OPENMS_LOG_INFO << "Loading mzMLb from buffer..." << std::endl;
+      handler.setBinaryDataArrayLoader(std::move(bdal));
     }
  #endif
 

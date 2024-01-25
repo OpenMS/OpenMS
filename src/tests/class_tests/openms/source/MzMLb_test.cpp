@@ -118,27 +118,6 @@ START_SECTION((MzMLb()))
   const std::string filename( OPENMS_GET_TEST_DATA_PATH("msconvert.0.24017-6a003b2.mzMLb") ); // file converted with pwiz
   auto mzmlb = MzMLbFile();
   MSExperiment exp = mzmlb.load(filename);
-
-/*
-  for (Size i = 0; i != exp.getNrSpectra(); ++i)
-  {
-    // retrieve datasets, offsets, for data extraction
-    auto mzs_in_hdf5 = mzfile.getMzMLbMapping(MSSpectrum, MZ_DIMENSION, i); // TODO:
-    auto ints_in_hdf5 = mzfile.getMzMLbMapping(MSSpectrum, INT_DIMENSION, i);
-    // TODO: other data arrays
-    fillSpectrum(is, i, mzs_in_hdf5, ints_in_hdf5);
-  }
-
-  for (Size i = 0; i != exp.getChromatograms(); ++i)
-  {
-    // retrieve datasets, offsets, for data extraction
-    auto rts_in_hdf5 = mzfile.getMzMLbMapping(MSCHROMATOGRAM, RT_DIMENSION, i);
-    auto ints_in_hdf5 = mzfile.getMzMLbMapping(MSCHROMATOGRAM, INT_DIMENSION, i);
-    // TODO: other data arrays
-    fillChromatogram(is, i, rts_in_hdf5, ints_in_hdf5);
-  }
-*/
-
 }
 END_SECTION
 

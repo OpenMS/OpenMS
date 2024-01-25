@@ -11,6 +11,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
+#include <OpenMS/FORMAT/HANDLERS/MzMLbBinaryDataArrayLoader.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
@@ -68,7 +69,8 @@ public:
 
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void loadBuffer(const std::string& buffer, PeakMap& map, const std::string& mzmlb_filename = std::string());
+    void loadBuffer(const std::string& buffer, PeakMap& map, std::unique_ptr<OpenMS::HDF5::MzMLbBinaryDataArrayLoader>&& bdal);
+    void loadBuffer(const std::string& buffer, PeakMap& map);
 
     /**
       @brief Only count the number of spectra and chromatograms from a file
