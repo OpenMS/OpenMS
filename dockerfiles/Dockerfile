@@ -9,13 +9,13 @@ ARG OPENMS_VERSION=latest
 # when this image is built from releases it will be "Release3.1.0" or similar
 # NOTE: this is passed to git clone, so tags also work
 ARG OPENMS_BRANCH=master
-ARG OPENMS_LIBRARY_BUILD_DIR="/openms-build"
-ARG OPENMS_LIBRARY_DIR="/OpenMS"
+ARG OPENMS_LIBRARY_BUILD_DIR="/opt/OpenMS"
+ARG OPENMS_LIBRARY_DIR="/opt/OpenMS/lib/OpenMS"
 ARG CONTRIB_IMAGE_TAG=latest
 ARG CONTRIB_BASE_IMAGE=ghcr.io/openms/contrib:${CONTRIB_IMAGE_TAG}
 ARG CONTRIB_BUILD_DIR="/contrib-build"
 ARG THIRDPARTY_BRANCH="master"
-ARG THIRDPARTY_DIR="/thirdparty"
+ARG THIRDPARTY_DIR="/opt/OpenMS/thirdparty"
 ARG NUM_BUILD_CORES=8
 ARG MAKEFLAGS="-j${NUM_BUILD_CORES}"
 
@@ -83,6 +83,7 @@ WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
 RUN make TOPP
 WORKDIR /
 ENV PATH="${OPENMS_LIBRARY_BUILD_DIR}/bin:${PATH}"
+
 
 ### OpenMS tools runtime ###
 FROM ubuntu:22.04 AS tools
