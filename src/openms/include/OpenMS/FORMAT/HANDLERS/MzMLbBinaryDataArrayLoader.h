@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #pragma once
-
+#include <OpenMS/config.h>
 #include <OpenMS/FORMAT/MzMLbSeekableDevice.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h>
 
@@ -21,17 +21,18 @@ namespace OpenMS
     // custom binary data array loader for HDF5 data (as opposed to the base64 extraction from XML)
     class OPENMS_DLLAPI MzMLbBinaryDataArrayLoader
   {
-    using MzMLbInputStream = boost::iostreams::stream<MzMLbSeekableDevice>;
+      using MzMLbInputStream = boost::iostreams::stream<MzMLbSeekableDevice>;
+      std::string filename_; //< path of the HDF5 file
+      MzMLbInputStream is_;
+
     public:
       explicit MzMLbBinaryDataArrayLoader(const std::string filename) : filename_(filename) {}
       MzMLbBinaryDataArrayLoader() = default;
       MzMLbBinaryDataArrayLoader(MzMLbBinaryDataArrayLoader&& other) = default;
       MzMLbBinaryDataArrayLoader(const MzMLbBinaryDataArrayLoader& other) = default;
       ~MzMLbBinaryDataArrayLoader() = default;
-    private:
-      std::string filename_; //< path of the HDF5 file
-      MzMLbInputStream is_;
 
+    private:
       // see https://github.com/ProteoWizard/pwiz/blob/072abd4c764157e922e1c6cb0cecf94166993d30/pwiz/data/msdata/IO.cpp#L2277-L2278
       enum class PredictionType
       {

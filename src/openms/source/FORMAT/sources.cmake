@@ -102,7 +102,7 @@ ZlibCompression.cpp
 )
 
 if (WITH_HDF5)
-  list(APPEND sources_list MzMLbSeekableDevice.cpp)  
+  list(APPEND sources_list MzMLbSeekableDevice.cpp MzMLbFile.cpp)  
 endif()
 
 ### add path to the filenames

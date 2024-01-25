@@ -165,11 +165,14 @@ endif()
 #------------------------------------------------------------------------------
 # HDF5
 if (WITH_HDF5)
+  # Enable HDF5 find debug mode
+  set(HDF5_FIND_DEBUG TRUE)
+  
   # For MSVC use static linking to the HDF5 libraries
   if(MSVC)
     set(HDF5_USE_STATIC_LIBRARIES ON)
   endif()
-  find_package(HDF5 MODULE REQUIRED COMPONENTS CXX)
+  find_package(HDF5 MODULE REQUIRED COMPONENTS CXX C)
   target_compile_definitions(HDF5::HDF5 INTERFACE H5_USE_110_API)
 endif()
 

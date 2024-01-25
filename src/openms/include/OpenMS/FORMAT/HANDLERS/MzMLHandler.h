@@ -26,7 +26,6 @@
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 
 #include <map>
-#include <optional>
 
 //MISSING:
 // - more than one selected ion per precursor (warning if more than one)

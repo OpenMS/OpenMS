@@ -114,7 +114,7 @@ ZlibCompression.h
 )
 
 if (WITH_HDF5)
-  list(APPEND sources_list_h MzMLbSeekableDevice.h)  
+  list(APPEND sources_list_h MzMLbFile.h MzMLbSeekableDevice.h)  
 endif()
 
 ### add path to the filenames
