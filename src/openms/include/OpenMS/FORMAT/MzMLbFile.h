@@ -33,14 +33,14 @@ class MzMLbFile
       // load blosc plugin (could be part of a HDF5 singleton if we use it somewhere else)
       char *version, *date;
       auto return_code = register_blosc(&version, &date);
-      TEST_EQUAL(return_code >= 0, true);
+      //if (return_code < 0) throw ; // TODO
       std::cout << "Blosc version info: " << version << " " << date << std::endl;
     }
 
     MSExperiment load(const std::string& file_name)
     {
       // open mzMLb file
-      auto mzMLb = MzMLb(file_name);
+      auto mzMLb = OpenMS::HDF5::MzMLbSeekableDevice(file_name);
       std::streamsize xml_size = mzMLb.size("mzML");
       std::cout << xml_size << std::endl; // size of XML part?
       
@@ -59,7 +59,7 @@ class MzMLbFile
       MSExperiment exp;
       mzfile.loadBuffer(xml_buffer, exp, file_name); //TODO: check if this also works if root element is "indexedMzML" (default: "mzML")
       std::cout << "chromatograms: " << exp.getNrChromatograms() << "\tspectra: " << exp.getNrSpectra() << std::endl;
-      return exp;
+      return exp; // RVOP
     }
 };
 }

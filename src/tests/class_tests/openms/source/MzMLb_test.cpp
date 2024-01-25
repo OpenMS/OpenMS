@@ -15,6 +15,7 @@
 
 ///////////////////////////
 
+#include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLbFile.h>
@@ -31,8 +32,7 @@ START_TEST(MzMLb, "$Id$")
 
 using namespace OpenMS;
 
-using MzMLb = OpenMS::HDF5::MzMLbSeekableDevice;
-//using mzMLbInputStream = boost::iostreams::stream<MzMLb>;
+//using mzMLbInputStream = boost::iostreams::stream<OpenMS::HDF5::MzMLbSeekableDevice>;
 
 
 /*
