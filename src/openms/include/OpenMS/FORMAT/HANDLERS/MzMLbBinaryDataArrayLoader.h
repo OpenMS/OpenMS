@@ -133,7 +133,7 @@ namespace OpenMS
       std::string data_type_string = dataTypeToString(target.data_type);
       std::string precision_string = precisionToString(target.precision);
       
-
+      
       std::cout << "Reading dataset/offset/length/type/precision: " 
         << external_dataset << " " 
         << external_offset << " " 
@@ -174,10 +174,34 @@ namespace OpenMS
           // load the binary data at the given offset into the target
           if (external_array_length > 0)
           {
-            target.floats_64.resize(external_array_length);
-            // TODO: basically implement   void MzMLHandlerHelper::decodeBase64Arrays(std::vector<BinaryData>& data, const bool skipXMLCheck) without the base64 part
+            // TODO: basically implement all conrner cases  void MzMLHandlerHelper::decodeBase64Arrays(std::vector<BinaryData>& data, const bool skipXMLCheck) without the base64 part
             // TODO: this is currently not thread safe. works with export OMP_NUM_THREADS=1. maybe just put a critical section here but this would prevent parallel parsing of different files
-            is->read(external_dataset, &target.floats_64[0], external_array_length); //TODO: pwiz used data() here... what type is it?
+
+            if (target.precision == BD::PRE_64 && target.data_type == BD::DT_FLOAT)
+            {
+              target.floats_64.resize(external_array_length);
+              is->read(external_dataset, &target.floats_64[0], external_array_length);
+            }
+            /* probably not supported because of MSNumpress always being 64 bit
+            else if (target.precision == BD::PRE_32 && target.data_type == BD::DT_FLOAT)
+            {
+              target.floats_32.resize(external_array_length);
+              is->read(external_dataset, &target.floats_32[0], external_array_length);
+            }
+            */
+            else if (target.precision == BD::PRE_64 && target.data_type == BD::DT_INT)
+            {
+              target.ints_64.resize(external_array_length);
+              is->read(external_dataset, &target.ints_64[0], external_array_length);
+            }
+            /*
+            else if (target.precision == BD::PRE_32 && target.data_type == BD::DT_INT)
+            {
+              target.ints_32.resize(external_array_length);
+              is->read(external_dataset, &target.ints_32[0], external_array_length);
+            }
+            */
+// TODO: DT_STRING?
           }
         }
         PredictionType pt;
@@ -195,7 +219,7 @@ namespace OpenMS
       {
         for (auto& bda : input_data)
         {
-          readMzMLbBinaryDataArray_(is_, bda);
+          readMzMLbBinaryDataArray_(is_, bda);          
         }        
       }
 

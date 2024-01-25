@@ -28,14 +28,14 @@
 #include <vector>
 #include <map>
 
-//#include "/usr/include/hdf5/serial/hdf5.h"
-#include "hdf5.h"
+#include "hdf5.h" // TODO: rewrite for cpp version so we can change back language requirements
 
 #include <OpenMS/CONCEPT/Macros.h>
 
 namespace OpenMS {
     namespace HDF5 {
-using namespace boost::iostreams; // TODO: get rid of
+
+    using namespace boost::iostreams; // TODO: get rid of
 
 class OPENMS_DLLAPI MzMLbSeekableDevice : public device<seekable> {
 public:   

@@ -118,6 +118,10 @@ START_SECTION((MzMLb()))
   const std::string filename( OPENMS_GET_TEST_DATA_PATH("msconvert.0.24017-6a003b2.mzMLb") ); // file converted with pwiz
   auto mzmlb = MzMLbFile();
   MSExperiment exp = mzmlb.load(filename);
+  for (auto s : exp.getSpectrum(0))
+  {
+    std::cout << "mz: " << s.getMZ() << " int: " << s.getIntensity() << std::endl;
+  }
 }
 END_SECTION
 
