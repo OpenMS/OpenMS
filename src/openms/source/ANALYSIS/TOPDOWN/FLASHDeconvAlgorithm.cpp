@@ -23,7 +23,7 @@
 namespace OpenMS
 {
   inline const Size max_peak_count_for_centroid_ = 3e4;
-  inline const Size max_peak_count_for_profile_ = 2e5;
+  inline const Size max_peak_count_for_profile_ = 1e5;
 
   FLASHDeconvAlgorithm::FLASHDeconvAlgorithm() : DefaultParamHandler("FLASHDeconvAlgorithm"), ProgressLogger()
   {
@@ -139,6 +139,7 @@ namespace OpenMS
 
   void FLASHDeconvAlgorithm::filterLowPeaks_(MSExperiment& map)
   {
+    OPENMS_LOG_INFO << "Filtering low peaks in spectra ... " << std::endl;
     ThresholdMower threshold_mower_filter;                         // threshold
     Param t_filter_param = threshold_mower_filter.getParameters(); //"threshold", .00001
     t_filter_param.setValue("threshold", 1e-6);

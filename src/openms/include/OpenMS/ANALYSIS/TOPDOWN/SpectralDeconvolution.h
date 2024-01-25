@@ -177,7 +177,7 @@ namespace OpenMS
 
     /// mass bins that are previsouly deconvolved and excluded for dummy mass generation
     boost::dynamic_bitset<> previously_deconved_mass_bins_for_decoy_;
-    std::vector<double> previously_deconved_mono_masses_for_decoy_;
+    std::vector<double> previously_deconved_peak_masses_for_decoy_;
 
     /// Stores log mz peaks
     std::vector<LogMzPeak> log_mz_peaks_;
@@ -279,7 +279,7 @@ namespace OpenMS
     void removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec, const PeakGroup::TargetDecoyType& target_decoy_type) const;
 
     /// filter out excluded masses
-    void removeExcludedMasses_(DeconvolvedSpectrum& dspec) const;
+    void removeExcludedMasses_(DeconvolvedSpectrum& dspec, std::vector<double> excluded_masses) const;
 
     void setTargetPrecursorCharge_();
 
