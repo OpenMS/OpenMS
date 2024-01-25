@@ -93,14 +93,55 @@ namespace OpenMS
     // read HDF5 dataset referenced in XML part (with external_offset) into target. Target could be the m/z or intensity dimension of a spectrum, 
     // int. or rt dim. of a chromatogram, or an openms data array.
     // The offset is needed to find the actual data in the HDF5 dataset item. mzMLb allows to store blocks of data for better compression.
-    static void readMzMLbBinaryDataArray_(MzMLbInputStream& /*is*/, OpenMS::Internal::MzMLHandlerHelper::BinaryData& /*target*/)
+    static void readMzMLbBinaryDataArray_(MzMLbInputStream& is, OpenMS::Internal::MzMLHandlerHelper::BinaryData& target)
     {
-      //const std::string& external_dataset = target.mzMLb_dataset;
-      //const size_t external_offset = target.mzMLb_offset;
-      //const size_t external_array_length = target.mzMLb_array_length;
-      //size_t length = external_array_length != 0 ? external_array_length : 0;
+      const std::string& external_dataset = target.mzMLb_dataset;
+      const size_t external_offset = target.mzMLb_offset;
+      const size_t external_array_length = target.mzMLb_array_length;
+      size_t array_length = external_array_length != 0 ? external_array_length : 0;
 
+      using BD = OpenMS::Internal::MzMLHandlerHelper::BinaryData;
+      auto precisionToString = [](auto dt) -> std::string {
+          switch (dt) {
+              case BD::PRE_NONE:
+                  return "PRE_NONE";
+              case BD::PRE_32:
+                  return "PRE_32";
+              case BD::PRE_64:
+                  return "PRE_64";
+              default:
+                  return "Unknown DataType";
+          }
+      };
 
+      //PredictionType pred;
+      auto dataTypeToString = [](auto dt) -> std::string {
+          switch (dt) {
+              case BD::DT_NONE:
+                  return "DT_NONE";
+              case BD::DT_FLOAT:
+                  return "DT_FLOAT";
+              case BD::DT_INT:
+                  return "DT_INT";
+              case BD::DT_STRING:
+                  return "DT_STRING";
+              default:
+                  return "Unknown DataType";
+          }
+      };
+
+      std::string data_type_string = dataTypeToString(target.data_type);
+      std::string precision_string = precisionToString(target.precision);
+      
+
+      std::cout << "Reading dataset/offset/length/type/precision: " 
+        << external_dataset << " " 
+        << external_offset << " " 
+        << array_length  << " "
+        << data_type_string << " "        
+        << precision_string << " "
+        << std::endl;
+      
 /*
  TODO: what is this?                   
       // primary array types so set the default array length
@@ -111,13 +152,14 @@ namespace OpenMS
       {
           if (defaultArrayLength)
               *defaultArrayLength = arrayLength_;
-      }
+      } */
+
       if (!external_dataset.empty())
       {
         // jump to start of data we want to extract
         is->seek(external_dataset, external_offset, std::ios_base::beg);
 
-
+/*
         // MSNumpress? then we extract raw bytes and decode them
         if (target.numpress != BinaryDataEncoder::Numpress_None)
         {
@@ -127,19 +169,20 @@ namespace OpenMS
             BinaryDataEncoder encoder(config);
             encoder.decode(&buf[0], buf.size(), binaryDataArray->data);
         }
-        else        
+        else */       
         {
           // load the binary data at the given offset into the target
           if (external_array_length > 0)
           {
-            target.resize(external_array_length);
-            is->read(external_dataset, &target.data()[0], external_array_length);
+            target.floats_64.resize(external_array_length);
+            // TODO: this is currently not thread safe. works with export OMP_NUM_THREADS=1. maybe just put a critical section here
+            is->read(external_dataset, &target.floats_64[0], external_array_length); //TODO: pwiz used data() here... what type is it?
           }
         }
-        predict_();
+        PredictionType pt;
+        predict_(target, pt);
       }
-    }
-    */
+    
   } 
 
 
