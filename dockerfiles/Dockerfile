@@ -69,6 +69,7 @@ ENV MAKEFLAGS="${MAKEFLAGS}"
 WORKDIR ${OPENMS_SOURCE_DIR}
 RUN mkdir -p ${THIRDPARTY_DIR}
 RUN <<-EOF
+    set -euxo pipefail
     git submodule update --depth=1 --init THIRDPARTY
 
     # copying only the binaries that are relevant to Linux
@@ -159,6 +160,7 @@ ARG CMAKE_VERSION
 WORKDIR /tmp
 ADD https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh cmake.sh
 RUN <<-EOF
+    set -euxo pipefail
     mkdir -p /opt/cmake
     sh cmake.sh --skip-license --prefix=/opt/cmake
     ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
@@ -176,6 +178,7 @@ COPY --from=test-build ${OPENMS_SOURCE_DIR} ${OPENMS_SOURCE_DIR}
 COPY --from=test-build ${OPENMS_LIBRARY_BUILD_DIR} ${OPENMS_LIBRARY_BUILD_DIR}
 WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
 RUN <<-EOF
+    set -euxo pipefail
     Xvfb :0 &
     DISPLAY=:0 ctest
 EOF
