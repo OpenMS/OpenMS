@@ -25,7 +25,7 @@ namespace OpenMS
     defaults_.setValue("max_mass", 70000, "Maximum mass (Da)");
     defaults_.setValue("mz_tol", 10, "Ppm tolerance for m/z values in deconvolution");
     defaults_.setValue("mass_tol", 3, "Mass tolerance in Dalton for integrating similar feature groups into a single one");
-    defaults_.setValue("min_isotope_cosine", 0.85, "Cosine threshold between averagine and observed isotope pattern. Note that 0.8 is used for deconvolution", {"advanced"});
+    defaults_.setValue("min_isotope_cosine", 0.85, "Cosine threshold between averagine and observed isotope pattern. Note that 0.7 is used for deconvolution", {"advanced"});
 
     defaults_.setValue("use_smoothed_intensities",
                        "true",
@@ -66,7 +66,7 @@ namespace OpenMS
     fd_defaults.setValue("max_charge", (int) charge_upper_bound_);
     fd_defaults.setValue("min_mass", min_mass_);
     fd_defaults.setValue("max_mass", max_mass_);
-    fd_defaults.setValue("min_cos", DoubleList{.8, .8});
+    fd_defaults.setValue("min_cos", DoubleList{.7, .7});
     fd_defaults.setValue("tol", DoubleList{mz_tolerance_, 10.0});
     return fd_defaults;
   }
@@ -82,18 +82,24 @@ namespace OpenMS
     std::vector<MassTrace> updated_masstraces;
     updated_masstraces.reserve(input_mtraces.size());
     Size index = 0;
+    double trace_min_length = 100.0;
     for (auto iter = input_mtraces.begin(); iter != input_mtraces.end(); ++iter) {
       if (iter->getSize() < min_nr_peaks_in_mtraces_)
       {
         continue;
       }
-      FeatureSeed tmp_seed(*iter);
+      if (iter->getTraceLength() < trace_min_length)
+      {
+        trace_min_length = iter->getTraceLength();
+      }
+      FeatureSeed tmp_seed(*iter, use_smoothed_intensities_);
       tmp_seed.setTraceIndex(index);
       input_seeds.push_back(tmp_seed);
       updated_masstraces.push_back(*iter);
       ++index;
     }
     input_mtraces.swap(updated_masstraces);
+    OPENMS_LOG_INFO << "# final input mass traces : " << input_mtraces.size()  << " (min length " << trace_min_length << " s)" << endl;
     updated_masstraces.clear();
 
     // sort input mass traces in RT
@@ -328,7 +334,7 @@ namespace OpenMS
       return false;
     }
     // update private members in FeatureGroup based on the changed FeatureSeeds
-    fg.updateMembers();
+    fg.updateMembers(use_smoothed_intensities_);
     return true;
   }
 
@@ -346,7 +352,7 @@ namespace OpenMS
 //    }
 
     /// filter if the number of charges are not enough
-    if (isNotTarget && (fg.getChargeSet().size() < min_nr_mtraces_))
+    if (isNotTarget && (fg.getChargeSet().size() < min_nr_charges_))
     {
       return false;
     }
@@ -446,7 +452,7 @@ namespace OpenMS
         // save it to out_features
         if (scoreAndFilterFeatureGroup_(*candidate_fg, min_iso_score)) // rescoring is needed to set scores in FeatureGroup
         {
-          candidate_fg->updateMembers();
+          candidate_fg->updateMembers(use_smoothed_intensities_);
           out_feature.push_back(*candidate_fg);
         }
 
@@ -571,18 +577,18 @@ namespace OpenMS
         }
       }
 
-      // don't merge when it failed to exceed filtering threshold // TODO: change threshold to the original iso cosine
+      // don't merge when it failed to exceed filtering threshold
       if (!scoreAndFilterFeatureGroup_(final_candidate_fg, min_iso_score))
       {
         if (scoreAndFilterFeatureGroup_(*candidate_fg, min_iso_score))
         {
-          candidate_fg->updateMembers();
+          candidate_fg->updateMembers(use_smoothed_intensities_);
           out_feature.push_back(*candidate_fg);
         }
       }
       else // if to be merged, save the updated one to out_feature
       {
-        final_candidate_fg.updateMembers();
+        final_candidate_fg.updateMembers(use_smoothed_intensities_);
         out_feature.push_back(final_candidate_fg);
       }
 
@@ -652,7 +658,7 @@ namespace OpenMS
 
     while (rt_s_iter != end_of_iter && end_of_current_rt_window < last_rt)
     {
-      this->setProgress(counter);  // TODO; why finish at 2n%?
+      this->setProgress(counter);
 
       // initial rt binning is 1 sec (for generating spectrum)
       end_of_current_rt_window += rt_binning_size;
@@ -699,7 +705,7 @@ namespace OpenMS
         sort(tmp_fg.begin(), tmp_fg.end());
 
         tmp_fg.updateMembersForScoring();
-        tmp_fg.updateMembers();
+        tmp_fg.updateMembers(use_smoothed_intensities_);
       }
 
       features.insert(features.end(), local_fgroup.begin(), local_fgroup.end());
@@ -823,7 +829,7 @@ namespace OpenMS
     String out_path = output_file_path_.substr(0, output_file_path_.find_last_of(".")) + "_shared.tsv";
     shared_out_stream_.open(out_path, std::fstream::out);
     shared_out_stream_ << "FeatureGroupID\tTraceType\tMass\tCharge\tIsotopeIndex\tQuantValue\tCentroidMz\tRTs\tMZs\tIntensities\n"; // header
-    // shared = 0 (false), 1 (true, before resolution), 2(true, after resolution), 3(theoretical shape)
+    // TraceType = 0 (not shared), 1 (true, before resolution), 2(true, after resolution), 3(theoretical shape)
   }
 
   void FLASHQuantAlgorithm::writeMassTracesOfFeatureGroup_(const FeatureGroup &fgroup,

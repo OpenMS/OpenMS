@@ -115,11 +115,8 @@ namespace FLASHQuantHelper
   }
 
   /// referenced: MassTrace::estimateFWHM
-  std::pair<Size, Size> FeatureSeed::computeBulkRetentionTimeRange() const
+  std::pair<Size, Size> FeatureSeed::computeBulkRetentionTimeRange(bool use_smoothed_ints) const
   {
-    /// TODO: add smoothed version
-    bool use_smoothed_ints = false;
-
     /// calculating retention time of 10% of maximum (Apex)
     Size max_idx(mass_trace_.findMaxByIntPeak(use_smoothed_ints));
 
@@ -129,7 +126,7 @@ namespace FLASHQuantHelper
       tmp_ints.push_back(mass_trace_[vec_idx].getIntensity());
     }
 
-    double inty_threshold(tmp_ints[max_idx] * 0.2); // 10 % of maximum
+    double inty_threshold(tmp_ints[max_idx] * 0.1); // 10 % of maximum
 
     // mass trace is empty OR no points left of apex in mass trace OR no points right of apex in mass trace
     if (tmp_ints.empty() || max_idx == 0 || max_idx == tmp_ints.size() - 1)
@@ -153,26 +150,47 @@ namespace FLASHQuantHelper
   }
 
   /// referenced: MassTrace::computeFwhmArea()
-  double FeatureSeed::computeBulkPeakArea() const
+  double FeatureSeed::computeBulkPeakArea(bool use_smoothed_ints) const
   {
+    if (mass_trace_.getSize()==0) // if empty
+    {
+      return 0.0;
+    }
+
     /// calculating retention time of 10% of maximum (Apex)
-    std::pair<double, double> rt_index_pair = computeBulkRetentionTimeRange();
+    std::pair<double, double> rt_index_pair = computeBulkRetentionTimeRange(use_smoothed_ints);
 
     /// area-under-the-curve until 10% of maximum
     double peak_area(0.0);
 
-    if (mass_trace_.getSize()==0) // if empty
+    if (use_smoothed_ints)
     {
-      return peak_area;
+      auto smoothed_intensities = mass_trace_.getSmoothedIntensities();
+      if (smoothed_intensities.size()==0) // if empty
+      {
+        return peak_area;
+      }
+      double int_before = smoothed_intensities[rt_index_pair.first];
+      double rt_before = mass_trace_[rt_index_pair.first].getRT();
+      // note: '<=' operator, since rt_index_pair are all inclusive!
+      for (Size i = rt_index_pair.first + 1; i <= rt_index_pair.second; ++i)
+      {
+        peak_area += (int_before + smoothed_intensities[i])/2 * (mass_trace_[i].getRT() - rt_before);
+        int_before = smoothed_intensities[i];
+        rt_before = mass_trace_[i].getRT();
+      }
     }
-    double int_before = mass_trace_[rt_index_pair.first].getIntensity();
-    double rt_before = mass_trace_[rt_index_pair.first].getRT();
-    // note: '<=' operator, since rt_index_pair are all inclusive!
-    for (Size i = rt_index_pair.first + 1; i <= rt_index_pair.second; ++i)
+    else
     {
-      peak_area += (int_before + mass_trace_[i].getIntensity())/2 * (mass_trace_[i].getRT() - rt_before);
-      int_before = mass_trace_[i].getIntensity();
-      rt_before = mass_trace_[i].getRT();
+      double int_before = mass_trace_[rt_index_pair.first].getIntensity();
+      double rt_before = mass_trace_[rt_index_pair.first].getRT();
+      // note: '<=' operator, since rt_index_pair are all inclusive!
+      for (Size i = rt_index_pair.first + 1; i <= rt_index_pair.second; ++i)
+      {
+        peak_area += (int_before + mass_trace_[i].getIntensity())/2 * (mass_trace_[i].getRT() - rt_before);
+        int_before = mass_trace_[i].getIntensity();
+        rt_before = mass_trace_[i].getRT();
+      }
     }
 
     return peak_area;
@@ -400,7 +418,7 @@ namespace FLASHQuantHelper
     theoretical_shapes_.insert(theoretical_shapes_.end(), shapes.begin(), shapes.end());
   }
 
-  void FeatureGroup::updateMembers()
+  void FeatureGroup::updateMembers(bool use_smoothed_ints)
   {
     /// --- Excluded members for updates ----
     // monoisotopic_mass_ & intensity_ & per_isotope_int_ & max_isotope_index_ & charges_ : used for scoring & filtering, thus should be treated separately
@@ -440,7 +458,7 @@ namespace FLASHQuantHelper
     }
 
     // find the most abundant peak
-    Size max_peak_idx = most_abundant_seed->getMassTrace().findMaxByIntPeak(false);
+    Size max_peak_idx = most_abundant_seed->getMassTrace().findMaxByIntPeak(use_smoothed_ints);  // smoothed intensity
     auto tmp_max_peak = most_abundant_seed->getMassTrace()[max_peak_idx];
     centroid_rt_of_most_abundant_mt_ = tmp_max_peak.getRT();
 

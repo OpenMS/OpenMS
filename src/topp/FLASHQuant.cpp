@@ -77,8 +77,8 @@ protected:
     Param combined;
 
     Param p_mtd = MassTraceDetection().getDefaults();
-    p_mtd.setValue("noise_threshold_int", 0.0);
-    p_mtd.setValue("chrom_peak_snr", 0.0);
+//    p_mtd.setValue("noise_threshold_int", 0.0);
+    p_mtd.setValue("chrom_peak_snr", 3.0);
     p_mtd.setValue("mass_error_ppm", 5.0);
     combined.insert("mtd:", p_mtd);
     combined.setSectionDescription("mtd", "Mass Trace Detection parameters");
@@ -188,7 +188,7 @@ protected:
     out_featmap.sortByRT();
   }
 
-  void writeFeatureGroupsInTsvFile(std::vector<FeatureGroup> &fgroups, String infile_path, String outfile_path) const
+  void writeFeatureGroupsInTsvFile(std::vector<FeatureGroup> &fgroups, String infile_path, String outfile_path, bool use_smoothed_intensity) const
   {
     std::fstream out_stream;
     out_stream.open(outfile_path, std::fstream::out);
@@ -197,9 +197,8 @@ protected:
     out_stream << "FeatureGroupIndex\tFileName\tMonoisotopicMass\tAverageMass\t"
                   "StartRetentionTime(FWHM)\tEndRetentionTime(FWHM)\tHighestApexRetentionTime\tMedianApexRetentionTime\t" // centroid_rt_of_apices
                   "FeatureGroupQuantity\tAllAreaUnderTheCurve\tSumIntensity\tMinCharge\tMaxCharge\tChargeCount\tMostAbundantFeatureCharge\t"
-                  "IsotopeCosineScore\n"; // mass_trace_ids\n";
+                  "IsotopeCosineScore\n";
 
-//    bool use_smoothed_intensities = FLASHQuantuantAlgorithm().getDefaults().getValue("use_smoothed_intensities").toBool();
     int fg_index = 0;
     for (auto &fg : fgroups)
     {
@@ -211,10 +210,6 @@ protected:
       std::vector<double> apex_rts;
       apex_rts.reserve(fg.size());
 
-      // mass trace labels (ids)
-      std::vector<String> mass_trace_labels;
-      mass_trace_labels.reserve(fg.size());
-
       // getting information while looping through mass traces in FeatureGroup
       for (auto &lmt: fg)
       {
@@ -223,31 +218,37 @@ protected:
           continue;
         }
         auto &lmt_ptr = lmt.getMassTrace();
-        mass_trace_labels.push_back(lmt_ptr.getLabel());
 
         // find apex
-        Size max_idx = lmt_ptr.findMaxByIntPeak(false);
+        Size max_idx = lmt_ptr.findMaxByIntPeak(use_smoothed_intensity);
         apex_rts.push_back(lmt_ptr[max_idx].getRT());
 
-//        if (use_smoothed_intensities)
-//        {
-//          feature_quant += lmt_ptr.computeFwhmAreaSmooth();
-//        }
-//        else
-//        {
-//          feature_quant += lmt.computeBulkPeakArea();
-//        }
         // calculate bulk area
-        feature_quant += lmt.computeBulkPeakArea();
+        feature_quant += lmt.computeBulkPeakArea(use_smoothed_intensity);
 
         // to calculate area
-        double previous_peak_inty = lmt_ptr[0].getIntensity();
-        double previous_peak_rt = lmt_ptr[0].getRT();
-        for (auto &peaks: lmt_ptr)
+        if (use_smoothed_intensity)
         {
-          all_area += (previous_peak_inty + peaks.getIntensity()) / 2 * (peaks.getRT() - previous_peak_rt);
-          previous_peak_inty = peaks.getIntensity();
-          previous_peak_rt = peaks.getRT();
+          auto smoothed_inty = lmt_ptr.getSmoothedIntensities();
+          double previous_peak_inty = smoothed_inty[0];
+          double previous_peak_rt = lmt_ptr[0].getRT();
+          for (Size i = 0; i < lmt_ptr.getSize(); ++i)
+          {
+            all_area += (previous_peak_inty + smoothed_inty[i]) / 2 * (lmt_ptr[i].getRT() - previous_peak_rt);
+            previous_peak_inty = smoothed_inty[i];
+            previous_peak_rt = lmt_ptr[i].getRT();
+          }
+        }
+        else
+        {
+          double previous_peak_inty = lmt_ptr[0].getIntensity();
+          double previous_peak_rt = lmt_ptr[0].getRT();
+          for (auto &peaks: lmt_ptr)
+          {
+            all_area += (previous_peak_inty + peaks.getIntensity()) / 2 * (peaks.getRT() - previous_peak_rt);
+            previous_peak_inty = peaks.getIntensity();
+            previous_peak_rt = peaks.getRT();
+          }
         }
       }
 
@@ -311,7 +312,7 @@ protected:
         out_stream << fg_index << "\t" << std::to_string(fgroup.getMonoisotopicMass()) << "\t"
                    << trace.getCharge() << "\t" << trace.getIsotopeIndex() << "\t"
                    << std::to_string(trace.getIntensity()) << "\t" << std::to_string(trace.getCentroidMz()) << "\t"
-                   << 0 << peaks + "\n";
+                   << 0 << "\t" << peaks + "\n";
       }
 
       // theoretical
@@ -336,7 +337,7 @@ protected:
         out_stream << fg_index << "\t" << std::to_string(fgroup.getMonoisotopicMass()) << "\t"
                    << shape.getCharge() << "\t" << shape.getIsotopeIndex() << "\t"
                    << std::to_string(shape.getIntensity()) << "\t" << std::to_string(shape.getCentroidMz()) << "\t"
-                   << 1 << peaks + "\n";
+                   << 1 << "\t" << peaks + "\n";
       }
 
       ++fg_index;
@@ -449,14 +450,7 @@ public:
     //-------------------------------------------------------------
     // Mass traces detection
     //-------------------------------------------------------------
-//    Param p_mtd = MassTraceDetection().getDefaults();
-//    p_mtd.setValue("noise_threshold_int" , 0.0);
-//    p_mtd.setValue("chrom_peak_snr" , 0.0);
-//    p_mtd.setValue("mass_error_ppm", 5.0);
-//    p_mtd.setValue("trace_termination_criterion", "sample_rate");
-//    p_mtd.setValue("min_sample_rate", 0.2);
-
-    vector<MassTrace> m_traces;
+    std::vector<MassTrace> m_traces;
     MassTraceDetection mtdet;
     mtdet.setParameters(mtd_param);
     mtdet.run(ms_peakmap, m_traces);
@@ -465,16 +459,11 @@ public:
     //-------------------------------------------------------------
     // Elution peak detection
     //-------------------------------------------------------------
-//    Param p_epd = ElutionPeakDetection().getDefaults();
-//    p_epd.setValue("width_filtering", "off");
-
     std::vector<MassTrace> m_traces_final;
     ElutionPeakDetection epdet;
     epdet.setParameters(epd_param);
     // fill mass traces with smoothed data as well .. bad design..
     epdet.detectPeaks(m_traces, m_traces_final);
-
-    OPENMS_LOG_INFO << "# final input mass traces : " << m_traces_final.size() << endl;
 
     //-------------------------------------------------------------
     // Feature finding
@@ -487,11 +476,11 @@ public:
     fq_algo.run(m_traces_final, out_fgroups);
 
     //-------------------------------------------------------------
-    // writing featureXML output
+    // writing output
     //-------------------------------------------------------------
-
+    bool use_smoothed_intensity = getParam_().getValue("algorithm:fq:use_smoothed_intensities").toBool();
     OPENMS_LOG_INFO << "writing output..." << out << endl;
-    writeFeatureGroupsInTsvFile(out_fgroups, in, out);
+    writeFeatureGroupsInTsvFile(out_fgroups, in, out, use_smoothed_intensity);
     if (!out_feat.empty())
     {
       OPENMS_LOG_INFO << "writing output..." << out_feat << endl;

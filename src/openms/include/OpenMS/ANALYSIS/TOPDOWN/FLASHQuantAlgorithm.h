@@ -143,7 +143,8 @@ namespace OpenMS
     double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;
 
     // advanced parameter?
-    Size min_nr_mtraces_ = 3; // minimum number of consecutive bridges among mass traces to support feature
+    Size min_nr_mtraces_ = 3; //  minimum number of mass traces to support feature group
+    Size min_nr_charges_ = 2; //  minimum number of consecutive bridges to support feature group
     Size min_nr_peaks_in_mtraces_ = 4; // at least 4 is needed for EGHTraceFitter
     bool use_smoothed_intensities_;
 

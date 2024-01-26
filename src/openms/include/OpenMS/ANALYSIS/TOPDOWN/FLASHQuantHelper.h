@@ -44,11 +44,11 @@ namespace FLASHQuantHelper
     FeatureSeed &operator=(const FeatureSeed &seed) = default;
 
     /// constructor from MassTrace
-    FeatureSeed(const MassTrace &mt) :
+    FeatureSeed(const MassTrace &mt, bool use_smoothed_ints) :
         mass_trace_(mt),
         centroid_mz_(mt.getCentroidMZ()),
         charge_(-1),
-        intensity_(mt.computePeakArea()),
+        intensity_(use_smoothed_ints? mt.computeSmoothedPeakArea() : mt.computePeakArea()),
         isotope_index_(-1),
         trace_index_(0), // index of current trace (out of all input mass traces), thus not set here but after this construction
         mass_(0) // determined mass after deconvolution. NOT monoisotopic but only decharged
@@ -84,8 +84,8 @@ namespace FLASHQuantHelper
     double getUnchargedMass();
 
     /// calculating retention time of 10% maximum (Apex) and area-under-the-curve until that point  (for FeatureGroupQuantity)
-    std::pair<Size, Size> computeBulkRetentionTimeRange() const;
-    double computeBulkPeakArea() const;
+    std::pair<Size, Size> computeBulkRetentionTimeRange(bool use_smoothed_ints) const;
+    double computeBulkPeakArea(bool use_smoothed_ints) const;
 
     /// calculating and get centroid retention time from mass_trace_
     double getCentroidRT() const;
@@ -177,7 +177,7 @@ namespace FLASHQuantHelper
     void updateTheoreticalShapes(std::vector<FeatureSeed> const &shapes);
 
     /// update multiple variables in one function
-    void updateMembers(); // update after feature_seeds_ is changed
+    void updateMembers(bool use_smoothed_ints); // update after feature_seeds_ is changed
     void updateMembersForScoring(); // update primitively for scoring
     void updateIsotopeIndices(const int offset);
 
