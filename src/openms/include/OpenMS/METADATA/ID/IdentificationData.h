@@ -614,7 +614,7 @@ namespace OpenMS
     // @TODO: add overloads for other data types derived from MetaInfoInterface
 
     /// Remove a meta value (if it exists) from a stored observation match (e.g. PSM)
-    /// @TODO: return whether value existed? (requires changes in MetaInfo[Interface])
+    /// @todo: return whether value existed? (requires changes in MetaInfo[Interface])
     void removeMetaValue(const ObservationMatchRef ref, const String& key);
 
   protected:

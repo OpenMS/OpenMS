@@ -24,7 +24,7 @@ namespace OpenMS
   /**
     @brief Tabular visualization / selection of identified spectra.
 
-    @htmlinclude OpenMS_DigestSimulation.parameters
+    @htmlinclude OpenMS_SpectraIDViewTab.parameters
   */
   class OPENMS_GUI_DLLAPI SpectraIDViewTab :
     public QWidget,
