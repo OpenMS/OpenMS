@@ -67,8 +67,9 @@ ARG MAKEFLAGS
 ENV MAKEFLAGS="${MAKEFLAGS}"
 
 WORKDIR ${OPENMS_SOURCE_DIR}
+RUN mkdir -p ${THIRDPARTY_DIR}
 RUN <<-EOF
-    git submodule update --init THIRDPARTY --depth=1
+    git submodule update --depth=1 --init THIRDPARTY
 
     # copying only the binaries that are relevant to Linux
     cp -r THIRDPARTY/All/* ${THIRDPARTY_DIR}
@@ -127,6 +128,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=tools-build ${OPENMS_LIBRARY_BUILD_DIR}/bin ${OPENMS_LIBRARY_BUILD_DIR}/bin
+COPY --from=tools-build ${THIRDPARTY_DIR} ${THIRDPARTY_DIR}
 
 ENV PATH="${OPENMS_LIBRARY_BUILD_DIR}/bin:${THIRDPARTY_DIR}/LuciPHOr2:${THIRDPARTY_DIR}/MSGFPlus:${THIRDPARTY_DIR}/ThermoRawFileParser:${THIRDPARTY_DIR}/Comet:${THIRDPARTY_DIR}/Fido:${THIRDPARTY_DIR}/MaRaCluster:${THIRDPARTY_DIR}/Percolator:${THIRDPARTY_DIR}/SpectraST:${THIRDPARTY_DIR}/XTandem:${THIRDPARTY_DIR}/Sage:${PATH}"
 WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
