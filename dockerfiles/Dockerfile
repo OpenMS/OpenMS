@@ -9,8 +9,13 @@ ARG OPENMS_VERSION=latest
 # when this image is built from releases it will be "Release3.1.0" or similar
 # NOTE: this is passed to git clone, so tags also work
 ARG OPENMS_BRANCH=master
+
+# this is the directory where OPENMS_REPO gets cloned tp
+ARG OPENMS_SOURCE_DIR="/tmp/OpenMS"
+
+# this is the directory where the OpenMS library and tools are built
 ARG OPENMS_LIBRARY_BUILD_DIR="/opt/OpenMS"
-ARG OPENMS_LIBRARY_DIR="/opt/OpenMS/lib/OpenMS"
+ARG OPENMS_LIBRARY_DIR="/opt/OpenMS/lib"
 ARG CONTRIB_IMAGE_TAG=latest
 ARG CONTRIB_BASE_IMAGE=ghcr.io/openms/contrib:${CONTRIB_IMAGE_TAG}
 ARG CONTRIB_BUILD_DIR="/contrib-build"
@@ -18,6 +23,7 @@ ARG THIRDPARTY_BRANCH="master"
 ARG THIRDPARTY_DIR="/opt/OpenMS/thirdparty"
 ARG NUM_BUILD_CORES=8
 ARG MAKEFLAGS="-j${NUM_BUILD_CORES}"
+ARG CMAKE_VERSION="3.28.1"
 
 
 ### OpenMS base ###
@@ -31,64 +37,56 @@ LABEL software.version="${OPENMS_VERSION}-Ubuntu22.04"
 LABEL org.opencontainers.image.source https://github.com/OpenMS/OpenMS
 
 
-### OpenMS library ###
-FROM base as library
+### OpenMS library build ###
+FROM base as library-build
 ARG OPENMS_REPO
+ARG OPENMS_SOURCE_DIR
 ARG OPENMS_BRANCH
-ARG OPENMS_LIBRARY_DIR
 ARG OPENMS_LIBRARY_BUILD_DIR
 ARG CONTRIB_BUILD_DIR
 ARG MAKEFLAGS
 ENV MAKEFLAGS="${MAKEFLAGS}"
 
-RUN git clone --depth=1 --branch=${OPENMS_BRANCH} ${OPENMS_REPO} ${OPENMS_LIBRARY_DIR}
-WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
+RUN git clone --depth=1 --branch=${OPENMS_BRANCH} ${OPENMS_REPO} ${OPENMS_SOURCE_DIR}
 RUN cmake \
     -DCMAKE_BUILD_TYPE='Release' \
     -DCMAKE_PREFIX_PATH="${CONTRIB_BUILD_DIR}/;/usr/;/usr/local" \
     -DBOOST_USE_STATIC=OFF \
-    ${OPENMS_LIBRARY_DIR}
+    -S ${OPENMS_SOURCE_DIR} \
+    -B ${OPENMS_LIBRARY_BUILD_DIR}
+WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
 RUN make OpenMS
-LABEL software="OpenMS (library)"
 
 
 ### OpenMS tools build ###
-FROM library as tools-build
-ARG OPENMS_LIBRARY_DIR
+FROM library-build as tools-build
+ARG OPENMS_SOURCE_DIR
 ARG OPENMS_LIBRARY_BUILD_DIR
-ARG THIRDPARTY_BRANCH
 ARG THIRDPARTY_DIR
 ARG MAKEFLAGS
 ENV MAKEFLAGS="${MAKEFLAGS}"
 
-WORKDIR ${OPENMS_LIBRARY_DIR}
+WORKDIR ${OPENMS_SOURCE_DIR}
 RUN <<-EOF
-    mkdir ${THIRDPARTY_DIR}
-    # note, we are not using the submodule here because the .git folder
-    # is not copied to this stage. Instead, we clone the repo directly.
-    git clone --branch=${THIRDPARTY_BRANCH} --depth=1 https://github.com/OpenMS/THIRDPARTY.git
+    git submodule update --init THIRDPARTY --depth=1
 
-    # copying only the relevant binaries and leaving the rest behind
+    # copying only the binaries that are relevant to Linux
     cp -r THIRDPARTY/All/* ${THIRDPARTY_DIR}
     cp -r THIRDPARTY/Linux/64bit/* ${THIRDPARTY_DIR}
 
     rm -rf THIRDPARTY
 EOF
 
-ENV PATH="${THIRDPARTY_DIR}/LuciPHOr2:${THIRDPARTY_DIR}/MSGFPlus:${THIRDPARTY_DIR}/ThermoRawFileParser:${THIRDPARTY_DIR}/Comet:${THIRDPARTY_DIR}/Fido:${THIRDPARTY_DIR}/MaRaCluster:${THIRDPARTY_DIR}/Percolator:${THIRDPARTY_DIR}/SpectraST:${THIRDPARTY_DIR}/XTandem:${THIRDPARTY_DIR}/Sage:${PATH}"
 WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
-# RUN make TOPP && rm -rf src doc CMakeFiles
 RUN make TOPP
-WORKDIR /
-ENV PATH="${OPENMS_LIBRARY_BUILD_DIR}/bin:${PATH}"
 
 
-### OpenMS tools runtime ###
-FROM ubuntu:22.04 AS tools
+### OpenMS library ###
+FROM ubuntu:22.04 AS library
+ARG OPENMS_SOURCE_DIR
 ARG OPENMS_LIBRARY_DIR
 ARG OPENMS_LIBRARY_BUILD_DIR
 ARG CONTRIB_BUILD_DIR
-ARG THIRDPARTY_DIR
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends --no-install-suggests \
@@ -105,57 +103,68 @@ RUN apt-get update \
     libboost-regex1.74-dev \
     libboost-math1.74-dev \
     libboost-random1.74-dev \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY --from=library-build ${CONTRIB_BUILD_DIR}/bin ${CONTRIB_BUILD_DIR}/bin
+COPY --from=library-build ${OPENMS_LIBRARY_DIR} ${OPENMS_LIBRARY_DIR}
+COPY --from=library-build ${OPENMS_SOURCE_DIR}/share ${OPENMS_LIBRARY_BUILD_DIR}/share
+
+LABEL software="OpenMS (library)"
+
+
+### OpenMS tools runtime ###
+FROM library AS tools
+ARG OPENMS_LIBRARY_DIR
+ARG OPENMS_LIBRARY_BUILD_DIR
+ARG CONTRIB_BUILD_DIR
+ARG THIRDPARTY_DIR
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends --no-install-suggests \
     ## thirdparty dependencies
     # LuciPHOr2 and MSGFPlus:
     openjdk-17-jre-headless \
   && rm -rf /var/lib/apt/lists/*
 
-COPY --from=tools-build ${CONTRIB_BUILD_DIR}/bin ${CONTRIB_BUILD_DIR}/bin
-COPY --from=tools-build ${THIRDPARTY_DIR} ${THIRDPARTY_DIR}
 COPY --from=tools-build ${OPENMS_LIBRARY_BUILD_DIR}/bin ${OPENMS_LIBRARY_BUILD_DIR}/bin
-COPY --from=tools-build ${OPENMS_LIBRARY_BUILD_DIR}/lib ${OPENMS_LIBRARY_BUILD_DIR}/lib
-COPY --from=tools-build ${OPENMS_LIBRARY_DIR}/share ${OPENMS_LIBRARY_DIR}/share
 
 ENV PATH="${OPENMS_LIBRARY_BUILD_DIR}/bin:${THIRDPARTY_DIR}/LuciPHOr2:${THIRDPARTY_DIR}/MSGFPlus:${THIRDPARTY_DIR}/ThermoRawFileParser:${THIRDPARTY_DIR}/Comet:${THIRDPARTY_DIR}/Fido:${THIRDPARTY_DIR}/MaRaCluster:${THIRDPARTY_DIR}/Percolator:${THIRDPARTY_DIR}/SpectraST:${THIRDPARTY_DIR}/XTandem:${THIRDPARTY_DIR}/Sage:${PATH}"
+WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
 
 LABEL software="OpenMS (tools)"
 
 
-### OpenMS tools runtime test ###
+### OpenMS runtime test ###
+# this stage is based on the runtime stage, so it's a test to ensure
+# that the runtime dependencies satisfy the requirements of the tools
+# binaries
 FROM tools AS tools-test
+ARG OPENMS_SOURCE_DIR
 ARG OPENMS_LIBRARY_DIR
 ARG OPENMS_LIBRARY_BUILD_DIR
+ARG CMAKE_VERSION
+
+# installing cmake
+WORKDIR /tmp
+ADD https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh cmake.sh
+RUN <<-EOF
+    mkdir -p /opt/cmake
+    sh cmake.sh --skip-license --prefix=/opt/cmake
+    ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
+    ln -s /opt/cmake/bin/ctest /usr/local/bin/ctest
+    rm -rf /tmp/*
+EOF
 
 RUN apt-get update \ 
     && apt-get install -y --no-install-recommends --no-install-suggests \
-    g++ \
-    autoconf \
-    automake \
-    make \
-    gpg \
-    wget \
-    ca-certificates \
+    # we need Xvfb to run a small subset of tests (eg. TOPP_INIUpdater)
     xvfb \
-    curl \
-  && update-ca-certificates
+  && rm -rf /var/lib/apt/lists/*
 
-RUN <<-EOF
-    cmake_ubuntu_version=$(lsb_release -cs)
-    if ! wget -q --method=HEAD "https://apt.kitware.com/ubuntu/dists/$cmake_ubuntu_version/Release"; then
-      bash -c "$(wget -O - https://apt.kitware.com/kitware-archive.sh)"
-    else
-      wget -qO - https://apt.kitware.com/kitware-archive.sh | bash -s -- --release $cmake_ubuntu_version
-    fi
-    apt-get -y update
-    apt-get install -y cmake
-EOF
-
+COPY --from=tools-build ${OPENMS_SOURCE_DIR} ${OPENMS_SOURCE_DIR}
 COPY --from=tools-build ${OPENMS_LIBRARY_BUILD_DIR} ${OPENMS_LIBRARY_BUILD_DIR}
-COPY --from=tools-build ${OPENMS_LIBRARY_DIR}/src/tests ${OPENMS_LIBRARY_DIR}/src/tests
 WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
 RUN <<-EOF
-    # we need Xvfb to run a small subset of tests
-    # mostly TOPP_INIUpdater
     Xvfb :0 &
     DISPLAY=:0 ctest -R TOPP_
 EOF
