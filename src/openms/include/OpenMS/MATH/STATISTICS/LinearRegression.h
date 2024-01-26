@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -77,7 +77,6 @@ public:
           @param x_end End iterator of x values
           @param y_begin Begin iterator of y values (same length as x)
           @param compute_goodness Compute meta stats about the fit. If this is not done, none of the members (except slope and intercept) are meaningful.
-          @return If an error occurred during the fit.
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */
@@ -105,7 +104,6 @@ public:
           @param y_begin Begin iterator of y values (same length as x)
           @param w_begin Begin iterator of weight values (same length as x)
           @param compute_goodness Compute meta stats about the fit. If this is not done, none of the members (except slope and intercept) are meaningful.
-          @return If an error occurred during the fit.
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */

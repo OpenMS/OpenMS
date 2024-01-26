@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -28,42 +28,42 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_FileMerger FileMerger
+@page TOPP_FileMerger FileMerger
 
-  @brief Merges several files. Multiple output formats supported, depending on the input format.
+@brief Merges several files. Multiple output formats supported, depending on the input format.
 
-  <center>
-  <table>
-  <tr>
-  <th ALIGN = "center"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> &rarr; FileMerger &rarr;</td>
-  <th ALIGN = "center"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool/instrument producing mergeable files </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating merged files (e.g. @ref TOPP_XTandemAdapter for mzML, @ref TOPP_ProteinQuantifier for consensusXML) </td>
-  </tr>
-  </table>
-  </center>
+<center>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=2> &rarr; FileMerger &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool/instrument producing mergeable files </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating merged files (e.g. @ref TOPP_XTandemAdapter for mzML, @ref TOPP_ProteinQuantifier for consensusXML) </td>
+</tr>
+</table>
+</center>
 
-  Special attention should be given to the append_method for consensusXMLs. One column corresponds to one channel/label + raw file. Rows are quantified and linked features.
-  More details on the use cases can be found at the parameter description.
-  
-  For non-consensusXML or consensusXML merging with append_rows, the meta information that is valid for the whole experiment (e.g. MS instrument and sample)
-  is taken from the first file only.
+Special attention should be given to the append_method for consensusXMLs. One column corresponds to one channel/label + raw file. Rows are quantified and linked features.
+More details on the use cases can be found at the parameter description.
 
-  For spectrum-containing formats (no feature/consensusXML), the retention times for the individual scans are taken from either:
-  <ul>
-  <li>the input file meta data (e.g. mzML)
-  <li>from the input file names (name must contain 'rt' directly followed by a number, e.g. 'myscan_rt3892.98_MS2.dta')
-  <li>as a list (one RT for each file)
-  <li>or are auto-generated (starting at 1 with 1 second increment).
-  </ul>
+For non-consensusXML or consensusXML merging with append_rows, the meta information that is valid for the whole experiment (e.g. MS instrument and sample)
+is taken from the first file only.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_FileMerger.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_FileMerger.html
+For spectrum-containing formats (no feature/consensusXML), the retention times for the individual scans are taken from either:
+<ul>
+<li>the input file meta data (e.g. mzML)
+<li>from the input file names (name must contain 'rt' directly followed by a number, e.g. 'myscan_rt3892.98_MS2.dta')
+<li>as a list (one RT for each file)
+<li>or are auto-generated (starting at 1 with 1 second increment).
+</ul>
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FileMerger.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FileMerger.html
  */
 
 // We do not want this class to show up in the docu:

@@ -256,10 +256,7 @@
 		The file @p peakpicker_tutorial.toppas contains a simple pipeline representing a
 		common use case: starting with profile data, the noise is eliminated and the baseline
 		is subtracted. Then, PeakPickerHiRes is used to find all peaks in the noise-filtered
-		and baseline-reduced profile data. This workflow is also described in the section
-		@ref TOPP_example_signalprocessing. The individual steps are explained in more
-		detail in the TOPPView tutorial: @ref TOPPView_smoothing, @ref TOPPView_baseline_reduction,
-		and @ref TOPPView_peakpicking.
+		and baseline-reduced profile data. 
 		
 		@image html TOPPAS_example_profile_data_processing.png
 		@image latex TOPPAS_example_profile_data_processing.png "" width=14cm

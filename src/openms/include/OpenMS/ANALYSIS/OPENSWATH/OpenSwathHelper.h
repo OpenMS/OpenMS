@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -103,7 +103,7 @@ public:
      @brief Match transitions with their "best" window across m/z and ion mobility, save results in a vector.
 
      @param[in] transition_exp Transition list for selection
-     @param[out] selected SWATH to extract transition from
+     @param[out] tr_win_map Mapping from transition (index) to the best matching entry in @p swath_maps
      @param[in] min_upper_edge_dist Distance in Th to the upper edge
      @param[in] swath_maps vector of SwathMap objects defining mz and im bounds
     */
@@ -122,10 +122,11 @@ public:
          extracting an XIC from them makes no sense)
 
       @param[in] swath_map Input SWATH map to check
-      @param[in] lower Lower edge of SWATH window (in Th)
-      @param[in] upper Upper edge of SWATH window (in Th)
+      @param[out] lower Lower edge of SWATH window (in Th)
+      @param[out] upper Upper edge of SWATH window (in Th)
+      @param[out] center Center of SWATH window (in Th)
 
-      @throw throws IllegalArgument exception if the sanity checks fail.
+      @throw IllegalArgument exception if the sanity checks fail.
     */
     static void checkSwathMap(const OpenMS::PeakMap& swath_map,
                               double& lower, double& upper, double& center);

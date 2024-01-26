@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -24,67 +24,65 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_PeakPickerHiRes PeakPickerHiRes
+@page TOPP_PeakPickerHiRes PeakPickerHiRes
 
-  @brief A tool for peak detection in profile data. Executes the peak picking with @ref OpenMS::PeakPickerHiRes "high_res" algorithm.
+@brief A tool for peak detection in profile data. Executes the peak picking with @ref OpenMS::PeakPickerHiRes "high_res" algorithm.
 
-  <center>
-  <table>
-  <tr>
-  <th ALIGN = "center"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=4> &rarr; PeakPickerHiRes &rarr;</td>
-  <th ALIGN = "center"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=3> any tool operating on MS peak data @n (in mzML format)</td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterGaussian </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay </td>
-  </tr>
-  </table>
-  </center>
+<center>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=4> &rarr; PeakPickerHiRes &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=3> any tool operating on MS peak data @n (in mzML format)</td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterGaussian </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay </td>
+</tr>
+</table>
+</center>
 
-  Reference:\n
-  Weisser <em>et al.</em>: <a href="https://doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
+Reference:\n
+Weisser <em>et al.</em>: <a href="https://doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
 
-  The conversion of the "raw" ion count data acquired
-  by the machine into peak lists for further processing
-  is usually called peak picking or centroiding. The choice of the algorithm
-  should mainly depend on the resolution of the data.
-  As the name implies, the @ref OpenMS::PeakPickerHiRes "high_res"
-  algorithm is fit for high resolution (Orbitrap or FTICR) data.
+The conversion of the "raw" ion count data acquired
+by the machine into peak lists for further processing
+is usually called peak picking or centroiding. The choice of the algorithm
+should mainly depend on the resolution of the data.
+As the name implies, the @ref OpenMS::PeakPickerHiRes "high_res"
+algorithm is fit for high resolution (Orbitrap or FTICR) data.
 
-  @ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_PeakPickerHiRes.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_PeakPickerHiRes.html
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_PeakPickerHiRes.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_PeakPickerHiRes.html
+For the parameters of the algorithm section see the algorithm documentation: @ref OpenMS::PeakPickerHiRes "PeakPickerHiRes"
 
-  For the parameters of the algorithm section see the algorithm documentation: @ref OpenMS::PeakPickerHiRes "PeakPickerHiRes"
+Be aware that applying the algorithm to already picked data results in an error message and program exit or corrupted output data.
+Advanced users may skip the check for already centroided data using the flag "-force" (useful e.g. if spectrum annotations in the data files are wrong).
 
-  Be aware that applying the algorithm to already picked data results in an error message and program exit or corrupted output data.
-  Advanced users may skip the check for already centroided data using the flag "-force" (useful e.g. if spectrum annotations in the data files are wrong).
-
-  In the following table you, can find example values of the most important algorithm parameters for
-  different instrument types. @n These parameters are not valid for all instruments of that type,
-  but can be used as a starting point for finding suitable parameters.
-  <table>
-  <tr BGCOLOR="#EBEBEB">
-  <td>&nbsp;</td>
-  <td><b>Q-TOF</b></td>
-  <td><b>LTQ Orbitrap</b></td>
-  </tr>
-  <tr>
-  <td BGCOLOR="#EBEBEB"><b>signal_to_noise</b></td>
-  <td>2</td>
-  <td>0</td>
-  </tr>
-  </table>
+In the following table you, can find example values of the most important algorithm parameters for
+different instrument types. @n These parameters are not valid for all instruments of that type,
+but can be used as a starting point for finding suitable parameters.
+<table>
+<tr BGCOLOR="#EBEBEB">
+<td>&nbsp;</td>
+<td><b>Q-TOF</b></td>
+<td><b>LTQ Orbitrap</b></td>
+</tr>
+<tr>
+<td BGCOLOR="#EBEBEB"><b>signal_to_noise</b></td>
+<td>2</td>
+<td>0</td>
+</tr>
+</table>
 */
 
 // We do not want this class to show up in the docu:

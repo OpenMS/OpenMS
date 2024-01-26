@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -33,9 +33,9 @@
 //-------------------------------------------------------------
 
 /**
-   @page TOPP_MSGFPlusAdapter MSGFPlusAdapter
+@page TOPP_MSGFPlusAdapter MSGFPlusAdapter
 
-   @brief Adapter for the MS-GF+ protein identification (database search) engine.
+@brief Adapter for the MS-GF+ protein identification (database search) engine.
 
 <CENTER>
     <table>
@@ -51,43 +51,43 @@
     </table>
 </CENTER>
 
-    MS-GF+ must be installed before this wrapper can be used. Please make sure that Java and MS-GF+ are working.@n
-    At the time of writing, MS-GF+ can be downloaded from https://github.com/MSGFPlus/msgfplus/releases.
+MS-GF+ must be installed before this wrapper can be used. Please make sure that Java and MS-GF+ are working.@n
+At the time of writing, MS-GF+ can be downloaded from https://github.com/MSGFPlus/msgfplus/releases.
 
-    The following MS-GF+ version is required: <b>MS-GF+ 2019/07/03</b>. Older versions will not work properly, giving
-    an error: <em>[Error] Invalid parameter: -maxMissedCleavages.</em>
-    
-    Input spectra for MS-GF+ have to be centroided; profile spectra will raise an error in the adapter.
+The following MS-GF+ version is required: <b>MS-GF+ 2019/07/03</b>. Older versions will not work properly, giving
+an error: <em>[Error] Invalid parameter: -maxMissedCleavages.</em>
 
-    The first time MS-GF+ is applied to a database (FASTA file), it will index the file contents and
-    generate a number of auxiliary files in the same directory as the database (e.g. for "db.fasta": "db.canno", "db.cnlap", "db.csarr" and "db.cseq" will be generated).
-    It is advisable to keep these files for future MS-GF+ searches, to save the indexing step.@n
+Input spectra for MS-GF+ have to be centroided; profile spectra will raise an error in the adapter.
 
-    @note This Adapter uses an internal locking mechanism (a file lock), to ensure that MSGF+ does not attempt to create the database index
-    in parallel (which would fail badly) when multiple instances of this Adapter are run concurrently on the same FASTA database.
-    After the database has been indexed, multiple MS-GF+ processes (even without this Adapters locking) can use it in parallel.
+The first time MS-GF+ is applied to a database (FASTA file), it will index the file contents and
+generate a number of auxiliary files in the same directory as the database (e.g. for "db.fasta": "db.canno", "db.cnlap", "db.csarr" and "db.cseq" will be generated).
+It is advisable to keep these files for future MS-GF+ searches, to save the indexing step.@n
 
-    This adapter supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified 
-    by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
+@note This Adapter uses an internal locking mechanism (a file lock), to ensure that MSGF+ does not attempt to create the database index
+in parallel (which would fail badly) when multiple instances of this Adapter are run concurrently on the same FASTA database.
+After the database has been indexed, multiple MS-GF+ processes (even without this Adapters locking) can use it in parallel.
 
-    The adapter works in three steps to generate an idXML file: First MS-GF+ is run on the input MS data and the sequence database, 
-    producing an mzIdentML (.mzid) output file containing the search results. This file is then converted to a text file (.tsv) using MS-GF+' "MzIDToTsv" tool.
-    Finally, the .tsv file is parsed and a result in idXML format is generated.
+This adapter supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified 
+by 'OpenMS.ini:id_db_dir'.
 
-    An optional MSGF+ configuration file can be added via '-conf' parameter.
-    See https://github.com/MSGFPlus/msgfplus/blob/master/docs/examples/MSGFPlus_Params.txt for 
-    an example and consult the MSGF+ documentation for further details.
-    Parameters specified in the configuration file are ignored by MS-GF+ if they are also specified on the command line.
-    This adapter passes all flags which you can set on the command line, so use the configuration file <b>only</b> for parameters which
-    are not available here (this includes fixed/variable modifications, which are passed on the commandline via <code>-mod &lt;file&gt;</code>).
-    Thus, be very careful that your settings in '-conf' actually take effect (try running again without '-conf' file and test if the results change).
+The adapter works in three steps to generate an idXML file: First MS-GF+ is run on the input MS data and the sequence database, 
+producing an mzIdentML (.mzid) output file containing the search results. This file is then converted to a text file (.tsv) using MS-GF+' "MzIDToTsv" tool.
+Finally, the .tsv file is parsed and a result in idXML format is generated.
 
-    @note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
+An optional MSGF+ configuration file can be added via '-conf' parameter.
+See https://github.com/MSGFPlus/msgfplus/blob/master/docs/examples/MSGFPlus_Params.txt for 
+an example and consult the MSGF+ documentation for further details.
+Parameters specified in the configuration file are ignored by MS-GF+ if they are also specified on the command line.
+This adapter passes all flags which you can set on the command line, so use the configuration file <b>only</b> for parameters which
+are not available here (this includes fixed/variable modifications, which are passed on the commandline via <code>-mod &lt;file&gt;</code>).
+Thus, be very careful that your settings in '-conf' actually take effect (try running again without '-conf' file and test if the results change).
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_MSGFPlusAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MSGFPlusAdapter.html
+@note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MSGFPlusAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MSGFPlusAdapter.html
 */
 
 // We do not want this class to show up in the docu:

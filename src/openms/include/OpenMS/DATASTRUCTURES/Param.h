@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -458,14 +458,14 @@ protected:
     /**
       @brief Rescue parameter <b>values</b> from @p p_outdated to current param
 
-      Calls ::update(p_outdated, true, add_unknown, false, false, OPENMS_LOG_WARN) and returns its value.
+      Calls update(p_outdated, true, add_unknown, false, false, OPENMS_LOG_WARN) and returns its value.
     */
     bool update(const Param& p_outdated, const bool add_unknown = false);
 
     /**
       @brief Rescue parameter <b>values</b> from @p p_outdated to current param
 
-      Calls ::update(p_outdated, true, add_unknown, false, false, stream) and returns its value.
+      Calls update(p_outdated, true, add_unknown, false, false, stream) and returns its value.
     */
     bool update(const Param& p_outdated, const bool add_unknown, Logger::LogStream& stream);
    
@@ -484,7 +484,7 @@ protected:
 
       @param p_outdated Old/outdated param object, whose values (as long as they are still valid) are used to update this object 
       @param verbose Print information about expected value updates
-      @param add_unknown Add unknown parameters from @p_outdated to this param object.
+      @param add_unknown Add unknown parameters from @p p_outdated to this param object.
       @param fail_on_invalid_values Return false if outdated parameters hold invalid values
       @param fail_on_unknown_parameters Return false if outdated parameters contain unknown parameters (takes precedence over @p add_unknown)
       @param stream The stream where all the logging output is send to.

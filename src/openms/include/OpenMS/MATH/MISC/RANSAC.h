@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -117,7 +117,6 @@ public:
          _second_ dimension (dim2).
         @param d The number of close data values (according to 't') required to assert that a model fits well to data
         @param relative_d Should 'd' be interpreted as percentages (0-100) of data input size
-        @param rng Custom RNG function (useful for testing with fixed seeds)
 
         @return A vector of pairs fitting the model well; data will be unsorted
       */

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -57,9 +57,10 @@ public:
 
       @tparam T_In Input container (e.g. std::vector or alike), containing objects which implement the MetaInfoInterface (i.e. support 'getKeys()')
       @tparam T_Out Output container of type T<String> (e.g. std::set<String>)
-      @param start Iterator pointing to the initial position to search. (note: this does not need to correspond to the beginning of the container)
-      @param end Iterator pointing to the end final position to search.
+      @param it_start Iterator pointing to the initial position to search. (note: this does not need to correspond to the beginning of the container)
+      @param it_end Iterator pointing to the end final position to search.
       @param min_frequency Minimum required frequency (in percent). Must be between 0-100. Other values are corrected to the closest value allowed.
+      @param getter Helper class, which has a getKeys() member, which can extract the keys for a given MetaInfoInterface-object; see MetaKeyGetter
       @return Returns a vector/list/set of keys passing the frequency criterion.
     */
     template<typename T_In, typename T_Out>

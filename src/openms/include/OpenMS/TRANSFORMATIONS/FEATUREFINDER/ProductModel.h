@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -19,16 +19,13 @@ namespace OpenMS
 {
 
   /**
-      @brief Class for product models i.e. models with D independent dimensions
+  @brief Class for product models i.e. models with D independent dimensions
 
-      The predicted intensity is simply the product of the intensities in each dimension
+  The predicted intensity is simply the product of the intensities in each dimension
 
-      @htmlinclude OpenMS_ProductModel.parameters
+  @htmlinclude OpenMS_ProductModel.parameters
 
-  @todo This class provides new member functions, which makes
-  Factory<BaseModel<2> >::create("ProductModel2D") pretty much useless!  (Clemens)
-
-      @ingroup FeatureFinder
+  @ingroup FeatureFinder
   */
   template <UInt D>
   class ProductModel;
