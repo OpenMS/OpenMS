@@ -83,7 +83,7 @@ EOF
 # note that in this image, we're not building any thirdparty dependencies
 # as they are all installed from apt. However, we still need to create the
 # directory as images that are based on this assume it is there.
-RUN mkdir -p ${CONTRIB_BUILD_DIR}
+RUN mkdir -p ${CONTRIB_BUILD_DIR}/bin
 WORKDIR /
 
 LABEL base.image="ubuntu:22.04"
