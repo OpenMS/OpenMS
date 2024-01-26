@@ -10,7 +10,7 @@ ARG OPENMS_VERSION=latest
 # NOTE: this is passed to git clone, so tags also work
 ARG OPENMS_BRANCH=master
 
-# this is the directory where OPENMS_REPO gets cloned tp
+# this is the directory where OPENMS_REPO gets cloned to
 ARG OPENMS_SOURCE_DIR="/tmp/OpenMS"
 
 # this is the directory where the OpenMS library and tools are built
@@ -134,11 +134,20 @@ WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
 LABEL software="OpenMS (tools)"
 
 
+### OpenMS test build ###
+FROM tools-build as test-build
+ARG OPENMS_LIBRARY_BUILD_DIR
+
+WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
+# TODO: determine if we need to make all or if we can get away with less
+RUN make all
+
+
 ### OpenMS runtime test ###
 # this stage is based on the runtime stage, so it's a test to ensure
 # that the runtime dependencies satisfy the requirements of the tools
-# binaries
-FROM tools AS tools-test
+# binaries and the OpenMS library
+FROM tools AS test
 ARG OPENMS_SOURCE_DIR
 ARG OPENMS_LIBRARY_DIR
 ARG OPENMS_LIBRARY_BUILD_DIR
@@ -161,12 +170,12 @@ RUN apt-get update \
     xvfb \
   && rm -rf /var/lib/apt/lists/*
 
-COPY --from=tools-build ${OPENMS_SOURCE_DIR} ${OPENMS_SOURCE_DIR}
-COPY --from=tools-build ${OPENMS_LIBRARY_BUILD_DIR} ${OPENMS_LIBRARY_BUILD_DIR}
+COPY --from=test-build ${OPENMS_SOURCE_DIR} ${OPENMS_SOURCE_DIR}
+COPY --from=test-build ${OPENMS_LIBRARY_BUILD_DIR} ${OPENMS_LIBRARY_BUILD_DIR}
 WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
 RUN <<-EOF
     Xvfb :0 &
-    DISPLAY=:0 ctest -R TOPP_
+    DISPLAY=:0 ctest
 EOF
 
 

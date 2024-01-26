@@ -78,15 +78,15 @@ jobs:
         with:
           push: true
           file: dockerfiles/Dockerfile
-          target: tools-test
+          target: test
           build-args: |
             NUM_BUILD_CORES=4
             OPENMS_VERSION=${{ steps.tag_name.outputs.tag }}
             OPENMS_BRANCH=${{ steps.extract_branch.outputs.branch }}
           tags: |
-            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools-test:${{ steps.tag_name.outputs.tag }}
-          cache-from: type=gha,scope=ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools-test:${{ steps.tag_name.outputs.tag }}
-          cache-to: type=gha,mode=max,scope=ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools-test:${{ steps.tag_name.outputs.tag }}
+            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-test:${{ steps.tag_name.outputs.tag }}
+          cache-from: type=gha,scope=ghcr.io/${{ steps.downcase_repo.outputs.repo }}-test:${{ steps.tag_name.outputs.tag }}
+          cache-to: type=gha,mode=max,scope=ghcr.io/${{ steps.downcase_repo.outputs.repo }}-test:${{ steps.tag_name.outputs.tag }}
       - name: Build and Push Docker Tools Image
         uses: docker/build-push-action@v5
         with:
