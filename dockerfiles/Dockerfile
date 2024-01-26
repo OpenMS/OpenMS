@@ -193,11 +193,19 @@ ARG OPENMS_LIBRARY_BUILD_DIR
 ARG CONTRIB_BUILD_DIR
 ARG THIRDPARTY_DIR
 
-RUN apt-get update \
+RUN DEBIAN_FRONTEND=non-interactive apt-get update \
   && apt-get install -y --no-install-recommends --no-install-suggests \
     ## thirdparty dependencies
     # LuciPHOr2 and MSGFPlus:
     openjdk-17-jre-headless \
+    # ThermoRawFileParser:
+    mono-runtime \
+    # NOTE: we need mono-devel because ThermoRawFileParser needs
+    #       netstandard.dll, which is not included in mono-runtime.
+    #       See: https://github.com/mono/mono/issues/14902,
+    #            https://github.com/mono/mono/issues/17148
+    #       It's possible that we could re-build it to avoid mono altogther.
+    mono-devel \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=tools-build ${OPENMS_LIBRARY_BUILD_DIR}/bin ${OPENMS_LIBRARY_BUILD_DIR}/bin
