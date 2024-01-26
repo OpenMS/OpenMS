@@ -193,7 +193,7 @@ ARG OPENMS_LIBRARY_BUILD_DIR
 ARG CONTRIB_BUILD_DIR
 ARG THIRDPARTY_DIR
 
-RUN DEBIAN_FRONTEND=non-interactive apt-get update \
+RUN DEBIAN_FRONTEND=noninteractive apt-get update \
   && apt-get install -y --no-install-recommends --no-install-suggests \
     ## thirdparty dependencies
     # LuciPHOr2 and MSGFPlus:
