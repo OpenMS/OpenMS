@@ -966,7 +966,7 @@ namespace OpenMS
     updateMzBins_(mz_bin_number, mz_bin_intensities);
     mass_bins_ = boost::dynamic_bitset<>(mass_bin_number);
 
-    if (target_decoy_type_ == PeakGroup::charge_decoy && !previously_deconved_peak_masses_for_decoy_.empty())
+    if (!previously_deconved_peak_masses_for_decoy_.empty())
     {
       std::sort(previously_deconved_peak_masses_for_decoy_.begin(), previously_deconved_peak_masses_for_decoy_.end());
       previously_deconved_mass_bins_for_decoy_ = boost::dynamic_bitset<>(mass_bins_.size());
