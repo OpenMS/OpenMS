@@ -16,8 +16,12 @@ ARG OPENMS_SOURCE_DIR="/tmp/OpenMS"
 # this is the directory where the OpenMS library and tools are built
 ARG OPENMS_LIBRARY_BUILD_DIR="/opt/OpenMS"
 ARG OPENMS_LIBRARY_DIR="/opt/OpenMS/lib"
+
+# the contrib image is the collection of dependencies needed to build OpenMS
 ARG CONTRIB_IMAGE_TAG=latest
 ARG CONTRIB_BASE_IMAGE=ghcr.io/openms/contrib:${CONTRIB_IMAGE_TAG}
+
+# this directory is where any dependencies that are built from source go
 ARG CONTRIB_BUILD_DIR="/contrib-build"
 ARG THIRDPARTY_BRANCH="master"
 ARG THIRDPARTY_DIR="/opt/OpenMS/thirdparty"
@@ -31,7 +35,7 @@ FROM ${CONTRIB_BASE_IMAGE} as base
 ARG OPENMS_VERSION
 
 # the main reason we're pulling this in is to make sure that the metadata
-# below is consistently formatted for releases
+# below is consistently formatted for releases irrespective of the base image
 LABEL version="${OPENMS_VERSION}"
 LABEL software.version="${OPENMS_VERSION}-Ubuntu22.04"
 LABEL org.opencontainers.image.source https://github.com/OpenMS/OpenMS
@@ -69,7 +73,7 @@ ENV MAKEFLAGS="${MAKEFLAGS}"
 WORKDIR ${OPENMS_SOURCE_DIR}
 RUN mkdir -p ${THIRDPARTY_DIR}
 RUN <<-EOF
-    set -euxo pipefail
+    set -eux
     git submodule update --depth=1 --init THIRDPARTY
 
     # copying only the binaries that are relevant to Linux
@@ -160,7 +164,7 @@ ARG CMAKE_VERSION
 WORKDIR /tmp
 ADD https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh cmake.sh
 RUN <<-EOF
-    set -euxo pipefail
+    set -eux
     mkdir -p /opt/cmake
     sh cmake.sh --skip-license --prefix=/opt/cmake
     ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
@@ -178,7 +182,7 @@ COPY --from=test-build ${OPENMS_SOURCE_DIR} ${OPENMS_SOURCE_DIR}
 COPY --from=test-build ${OPENMS_LIBRARY_BUILD_DIR} ${OPENMS_LIBRARY_BUILD_DIR}
 WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
 RUN <<-EOF
-    set -euxo pipefail
+    set -eux
     Xvfb :0 &
     DISPLAY=:0 ctest
 EOF
