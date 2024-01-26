@@ -104,7 +104,7 @@ namespace OpenMS
     previously_deconved_peak_masses_for_decoy_.clear();
     previously_deconved_mass_bins_for_decoy_.reset();
 
-    if (target_decoy_type_ == PeakGroup::charge_decoy) // charge decoy
+    if (target_decoy_type_ == PeakGroup::charge_decoy || target_decoy_type_ == PeakGroup::noise_decoy) // charge decoy
     {
       for (const auto& pg : *target_dspec_for_decoy_calcualtion_)
       {
@@ -167,12 +167,12 @@ namespace OpenMS
     // LogMzPeaks are generated from raw peaks
 
     // for noise decoy, preclude the m/z peaks used for original deconvolution
-    if (target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy)
-    {
-      MSSpectrum spec;
-      std::set<double> excluded_mzs;
-      if (target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy)
+    /*  if (false && target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy)
       {
+        MSSpectrum spec(deconvolved_spectrum_.getOriginalSpectrum());
+        spec.clear(false);
+        std::set<double> excluded_mzs;
+
         for (const auto& pg : *target_dspec_for_decoy_calcualtion_)
         {
           for (const auto& p : pg)
@@ -180,39 +180,39 @@ namespace OpenMS
             excluded_mzs.insert(p.mz);
           }
         }
-      }
 
-      for (auto& peak : deconvolved_spectrum_.getOriginalSpectrum())
-      {
-        if (!excluded_mzs.empty())
+
+        for (auto& peak : deconvolved_spectrum_.getOriginalSpectrum())
         {
-          double delta = peak.getMZ() * tolerance_[ms_level_ - 1] * 2;
-          auto upper = excluded_mzs.upper_bound(peak.getMZ() + delta);
-          bool exclude = false;
-          while (!exclude)
+          if (!excluded_mzs.empty())
           {
-            if (upper != excluded_mzs.end())
+            double delta = peak.getMZ() * tolerance_[ms_level_ - 1] * 2;
+            auto upper = excluded_mzs.upper_bound(peak.getMZ() + delta);
+            bool exclude = false;
+            while (!exclude)
             {
-              if (std::abs(*upper - peak.getMZ()) < delta)
+              if (upper != excluded_mzs.end())
               {
-                exclude = true;
+                if (std::abs(*upper - peak.getMZ()) < delta)
+                {
+                  exclude = true;
+                }
+                if (peak.getMZ() - *upper > delta)
+                  break;
               }
-              if (peak.getMZ() - *upper > delta)
+              if (upper == excluded_mzs.begin())
                 break;
+              --upper;
             }
-            if (upper == excluded_mzs.begin())
-              break;
-            --upper;
+
+            if (exclude)
+              continue;
           }
-
-          if (exclude)
-            continue;
+          spec.push_back(peak);
         }
-        spec.push_back(peak);
+        deconvolved_spectrum_.setOriginalSpectrum(spec);
       }
-      deconvolved_spectrum_.setOriginalSpectrum(spec);
-    }
-
+  */
     updateLogMzPeaks_();
     if (log_mz_peaks_.empty())
     {
@@ -412,7 +412,7 @@ namespace OpenMS
           break;
         }
 
-        if (!previously_deconved_peak_masses_for_decoy_.empty() && previously_deconved_mass_bins_for_decoy_[mass_bin_index])
+        if (!previously_deconved_mass_bins_for_decoy_.empty() && previously_deconved_mass_bins_for_decoy_[mass_bin_index])
         {
           continue;
         }
@@ -923,7 +923,6 @@ namespace OpenMS
   void SpectralDeconvolution::setTargetDecoyType(PeakGroup::TargetDecoyType target_decoy_type, const DeconvolvedSpectrum& target_dspec_for_decoy_calcualtion)
   {
     target_decoy_type_ = target_decoy_type;
-    // if (target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy) max_abs_charge_ = low_charge_;
     target_dspec_for_decoy_calcualtion_ = &target_dspec_for_decoy_calcualtion;
   }
 
@@ -1072,12 +1071,6 @@ namespace OpenMS
       if (offset != 0)
         continue;
 
-      if (is_isotope_decoy)
-      {
-        if ((prev_peak_group.getIsotopeCosine() - peak_group.getIsotopeCosine()) > .005)
-          peak_group.setTargetDecoyType(PeakGroup::TargetDecoyType::target);
-      }
-
       if (peak_group.empty() || peak_group.getQscore() <= 0 || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
       {
         continue;
@@ -1121,6 +1114,14 @@ namespace OpenMS
       {
         continue;
       }
+
+      if (is_isotope_decoy)
+      {
+        if ((prev_peak_group.getIsotopeCosine() - peak_group.getIsotopeCosine()) > .005)
+          peak_group.setTargetDecoyType(PeakGroup::TargetDecoyType::target);
+      }
+
+
 #pragma omp critical
       selected[i] = true;
     }

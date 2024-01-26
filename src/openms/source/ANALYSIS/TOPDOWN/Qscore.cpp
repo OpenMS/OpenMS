@@ -27,7 +27,7 @@ namespace OpenMS
 
   //====================================== Normal
   std::vector<double> Qscore::weight_centroid_ {-22.3725, 0.9744, -0.1092, -0.3888, 20.7859}; // apr23 all
-  std::vector<double> Qscore::weight_profile_ (weight_centroid_);//{-7.6036, 1.5772, 0.1032, -0.0198, 6.5593};
+  std::vector<double> Qscore::weight_profile_ {-8.7134, 0.4861, -0.0234, 0.2416, 7.8392};
 
   double Qscore::getQscore(const PeakGroup* pg, const MSSpectrum& spectrum)
   {
@@ -36,7 +36,7 @@ namespace OpenMS
       return .0;
     }
 
-    bool is_profile = spectrum.getType(false) != SpectrumSettings::CENTROID;
+    bool is_profile = spectrum.getType(false) == SpectrumSettings::PROFILE;
     auto filter_str = spectrum.getMetaValue("filter string").toString();
     Size pos = filter_str.find("cv=");
     double cv = 1;
