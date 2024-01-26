@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -89,9 +89,9 @@ private:
      *
      * @param pattern    m/z pattern to search for
      * @param peak    peak to be filtered
-     * @param satellites    spline-interpolated satellites of the peak. If they pass, they will be added to the peak.
+     * @param satellites_profile    spline-interpolated satellites of the peak. If they pass, they will be added to the peak.
      *
-     * @return boolean if this filter was passed i.e. the correlation coefficient is greater than <averagine_similarity_>
+     * @return if this filter was passed i.e. the correlation coefficient is greater than averagine_similarity_
      */
     bool filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak, const std::multimap<size_t, MultiplexSatelliteProfile >& satellites_profile) const;
 
@@ -99,9 +99,9 @@ private:
      * @brief peptide correlation filter for profile mode
      *
      * @param pattern    m/z pattern to search for
-     * @param satellites    spline-interpolated satellites of the peak. If they pass, they will be added to the peak.
+     * @param satellites_profile    spline-interpolated satellites of the peak. If they pass, they will be added to the peak.
      *
-     * @return boolean if this filter was passed i.e. the correlation coefficient is greater than <averagine_similarity_>
+     * @return if this filter was passed i.e. the correlation coefficient is greater than averagine_similarity_
      */
     bool filterPeptideCorrelation_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteProfile >& satellites_profile) const;
     

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -304,7 +304,7 @@ namespace OpenMS
           return proteins_;
         }
 
-        /// Replace existing protein at position @index
+        /// Replace existing protein at position @p index
         /// Note: this is NOT the protein ID, but the index into the internal protein vector. See getProteins()
         /// 
         /// @param index A valid index into the getProteins() vector

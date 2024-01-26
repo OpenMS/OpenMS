@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -39,7 +39,13 @@ namespace OpenMS
   public:
     /// C'tor: initialize with empty range
     RangeBase() = default;
-    
+
+    /// Cutom C'tor which sets the range to a singular point
+    RangeBase(const double single) :
+      min_(single), max_(single)
+    {
+    }
+
     /// Custom C'tor to set min and max
     /// @throws Exception::InvalidRange if min > max
     RangeBase(const double min, const double max) :
@@ -81,7 +87,7 @@ namespace OpenMS
     /// is the range empty (i.e. min > max)?
     bool isEmpty() const
     {
-      return min_ > max_; 
+      return min_ > max_;
     }
 
     /// is @p value within [min, max]?
@@ -97,11 +103,11 @@ namespace OpenMS
     }
 
     /** @name Accessors for min and max
-      
+
         We use accessors, to keep range consistent (i.e. ensure that min <= max)
     */
-    ///@{  
-    
+    ///@{
+
     /// sets the minimum (and the maximum, if uninitialized)
     void setMin(const double min)
     {
@@ -137,7 +143,7 @@ namespace OpenMS
       min_ = std::min(min_, other.min_);
       max_ = std::max(max_, other.max_);
     }
-    
+
     /// extend the range such that it includes the given @p value
     void extend(const double value)
     {
@@ -205,16 +211,14 @@ namespace OpenMS
           shift(sandbox.max_ - max_);
         }
       }
-
     }
-
 
     /**
        @brief Scale the range of the dimension by a @p factor. A factor > 1 increases the range; factor < 1 decreases it.
 
        Let d = max - min; then min = min - d*(factor-1)/2,
        i.e. scale(1.5) extends the range by 25% on each side.
- 
+
        Scaling an empty range will not have any effect.
 
        @param factor The multiplier to increase the range by
@@ -274,7 +278,7 @@ namespace OpenMS
     double min_ = std::numeric_limits<double>::max();
     double max_ = std::numeric_limits<double>::lowest();
   };
-  
+
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& out, const RangeBase& b);
 
   struct OPENMS_DLLAPI RangeRT : public RangeBase {
@@ -286,7 +290,7 @@ namespace OpenMS
     using RangeBase::operator=;
 
     /** @name Accessors for min and max
-      
+
         We use accessors, to keep range consistent (i.e. ensure that min <= max)
     */
     ///@{
@@ -334,7 +338,7 @@ namespace OpenMS
       return RangeBase::contains(inner_range);
     }
   };
-  
+
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& out, const RangeRT& range);
 
   struct OPENMS_DLLAPI RangeMZ : public RangeBase
@@ -347,7 +351,7 @@ namespace OpenMS
     using RangeBase::operator=;
 
     /** @name Accessors for min and max
-      
+
         We use accessors, to keep range consistent (i.e. ensure that min <= max)
     */
     ///@{
@@ -406,7 +410,7 @@ namespace OpenMS
     using RangeBase::operator=;
 
     /** @name Accessors for min and max
-      
+
         We use accessors, to keep range consistent (i.e. ensure that min <= max)
     */
     ///@{
@@ -464,7 +468,7 @@ namespace OpenMS
     using RangeBase::RangeBase; // inherit C'tors from base
 
     /** @name Accessors for min and max
-      
+
         We use accessors, to keep range consistent (i.e. ensure that min <= max)
     */
     ///@{
@@ -514,7 +518,7 @@ namespace OpenMS
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& out, const RangeMobility& range);
-  
+
   /// Enum listing state of dimensions (RangeBases)
   enum class HasRangeType
   {
@@ -527,13 +531,13 @@ namespace OpenMS
     @brief Handles the management of a multidimensional range, e.g. RangeMZ and RangeIntensity for spectra.
 
     Instantiate it with the dimensions which are supported/required, e.g.
-    <tt>RangeManager<RangeRT, RangeMZ> range_spec</tt> for a spectrum and use the strongly typed features, such as
-    range_spec.getMaxRT()/setMaxRT(500.0) or range_spec.extend(RangeMZ{100, 1500});
+    `RangeManager<RangeRT, RangeMZ> range_spec` for a spectrum and use the strongly typed features, such as
+    `range_spec.getMaxRT()/setMaxRT(500.0)` or `range_spec.extend(RangeMZ{100, 1500})`.
 
     Use RangeManagerContainer as a base class for all peak and feature containers like MSSpectrum, MSExperiment and FeatureMap.
 
     The implementation uses non-virtual multiple inheritance using variadic templates. Each dimension, e.g. RangeRT, is inherited from, thus
-    all members of the base class become accessible in the RangeManager, e.g. ::getMaxRT().
+    all members of the base class become accessible in the RangeManager, e.g. getMaxRT().
     Operations (e.g. assignment, or extension of ranges) across RangeManagers with a different, yet overlapping set of base classes
     is enabled using fold expressions and constexpr evaluations, which are resolved at compile time (see for_each_base_ member function).
 
@@ -593,7 +597,7 @@ namespace OpenMS
         throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION , "No assignment took place (no dimensions in common!);");
       }
       return *this;
-    }                 
+    }
 
     /// extend all dimensions which overlap with @p rhs to contain the range of @p rhs
     /// Dimensions which are not contained in @p rhs are left untouched.
@@ -651,10 +655,10 @@ namespace OpenMS
     }
 
 
-    /// Move range of *this to min/max of @p sandbox, without changing the span, if possible.
-    /// This does tighten the range unless @p sandbox's ranges are smaller than *this.
-    /// Dimensions which are not contained in @p sandbox or are empty are left untouched.
-    /// @param sandbox Range to translate/move the current range into
+    /// Move range of *this to min/max of @p rhs, without changing the span, if possible.
+    /// This does tighten the range unless @p rhs's ranges are smaller than *this.
+    /// Dimensions which are not contained in @p rhs or are empty are left untouched.
+    /// @param rhs Range to translate/move the current range into
     /// @return true if dimensions overlapped, false otherwise
     template<typename... RangeBasesOther>
     bool pushIntoUnsafe(const RangeManager<RangeBasesOther...>& rhs)
@@ -686,7 +690,7 @@ namespace OpenMS
       }
     }
 
-    
+
     /// Clamp min/max of all overlapping dimensions to min/max of @p rhs
     /// Dimensions which are not contained in @p rhs or where rhs is empty are left untouched.
     /// @param rhs Range to clamp to
@@ -750,7 +754,7 @@ namespace OpenMS
       assert((r_base != nullptr) && "No base class has this MSDim!");
       return *r_base;
     }
-    
+
     /// is any/some/all dimension in this range populated?
     HasRangeType hasRange() const
     {
@@ -867,7 +871,7 @@ namespace OpenMS
     return out;
   }
 
-  /// use this class as a base class for containers, e.g. MSSpectrum. It forces them to implement 'updateRanges()' as a common interface 
+  /// use this class as a base class for containers, e.g. MSSpectrum. It forces them to implement 'updateRanges()' as a common interface
   /// and provides a 'getRange()' member which saves casting to a range type manually
   template <typename ...RangeBases>
   class RangeManagerContainer

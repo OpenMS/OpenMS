@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -24,22 +24,22 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-    @page TOPP_OpenMSInfo OpenMSInfo
+@page TOPP_OpenMSInfo OpenMSInfo
 
-    @brief Prints configurations details of %OpenMS (Version, Git hash, SIMD extensions, Multithreading), along with directories where auxilliary data like 
-           modifications (UniMOD), Enzymes etc are taken from.
+@brief Prints configurations details of %OpenMS (Version, Git hash, SIMD extensions, Multithreading), along with directories where auxilliary data like 
+       modifications (UniMOD), Enzymes etc are taken from.
 
-    Some path's can be manipulated by the user by setting environment variables. If not set, the values are taken from the system defaults.
-    
-    <ul>
-      <li> <b>Data path:</b> controlled by the environment variable 'OPENMS_DATA_PATH'; the value should point to a %OpenMS share directory, e.g. 'c:/program files/OpenMS3.1/share/OpenMS'
-      <li> <b>Temp path:</b> controlled by the environment variable 'OPENMS_TMPDIR'; the value should point to where you want %OpenMS to store temporary data.
-      <li> <b>Userdata path:</b> controlled by the environment variable 'OPENMS_HOME_PATH'; the value should point to where you want %OpenMS to store user-realted data, e.g. the .OpenMS.ini.
-    </ul>
+Some path's can be manipulated by the user by setting environment variables. If not set, the values are taken from the system defaults.
 
-    <B>This tool does not need/use any command line parameters.</B>
+<ul>
+  <li> <b>Data path:</b> controlled by the environment variable 'OPENMS_DATA_PATH'; the value should point to a %OpenMS share directory, e.g. 'c:/program files/OpenMS3.1/share/OpenMS'
+  <li> <b>Temp path:</b> controlled by the environment variable 'OPENMS_TMPDIR'; the value should point to where you want %OpenMS to store temporary data.
+  <li> <b>Userdata path:</b> controlled by the environment variable 'OPENMS_HOME_PATH'; the value should point to where you want %OpenMS to store user-realted data, e.g. the .OpenMS.ini.
+</ul>
 
-    Example output:
+<B>This tool does not need/use any command line parameters.</B>
+
+Example output:
 @code
 OpenMS Version:
 ==================
@@ -75,6 +75,9 @@ Architecture: 64 bit
 */
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
+
+/// this needs to be done before TOPPBase is initialized, since it will set OMP's max_threads to 1
+const auto max_threads = Internal::OpenMSBuildInfo::getOpenMPMaxNumThreads();
 
 class TOPPOpenMSInfo : public TOPPBase
 {
@@ -123,7 +126,7 @@ protected:
     cout << "LP-Solver    : GLPK\n";
 #endif
     #ifdef _OPENMP
-    cout << "OpenMP       : " << "enabled (maxThreads = " << Internal::OpenMSBuildInfo::getOpenMPMaxNumThreads() << ")" << "\n";
+    cout << "OpenMP       : " << "enabled (maxThreads = " << max_threads << ")" << "\n";
     #else
     cout << "OpenMP       : " << "disabled" << "\n";
     #endif

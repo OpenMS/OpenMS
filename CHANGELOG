@@ -23,11 +23,13 @@ Library:
 - better documentation for all SpectraFilter... tools (#7183)
 
 Fixes:
+- TOPPView: fix crash when viewing certain Chromatograms (#7220)
 - more robust parsing of mzIdentML (#7153)
 - more robust FileConverter (#7176)
 - MSFragger: allow relative path to database (#7155)
+- MSGFPlusAdapter: allow concurrent creation of indexed database (#7272)
 - ParamEditor: fixed error for the subsection parameter (ParamNode) to go through store function (#7180)
-
+- TOPPAS: open files in TOPPView (#7213)
 
 Misc:
 - OpenMSInfo reports the ILP solver (CoinOr or glpk) (#7156)
@@ -48,6 +50,7 @@ Cleanup/Removal:
   - PrecursorMassCorrector
   - TOFCalibration
   - ERPairFinder
+  - RNPxlSearch
 
 - removed tutorials:
   - Tutorial_PeakPickerCWT

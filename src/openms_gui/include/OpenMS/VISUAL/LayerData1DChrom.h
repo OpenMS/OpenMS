@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -36,6 +36,13 @@ namespace OpenMS
 
     RangeAllType getRangeForArea(const RangeAllType partial_range) const override
     {
+      // update ranges based on given RT range
+      if (partial_range.RangeRT::isEmpty())
+      { // .. unless RT is empty, then we use the whole RT range
+        auto r = RangeAllType(partial_range);
+        r.extend(getCurrentChrom().getRange());
+        return r;
+      }
       const auto& chrom = getCurrentChrom();
       auto chrom_filtered = MSExperiment::ChromatogramType();
       chrom_filtered.insert(chrom_filtered.begin(), chrom.RTBegin(partial_range.getMinRT()), chrom.RTEnd(partial_range.getMaxRT()));

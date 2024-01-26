@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -32,8 +32,8 @@ namespace OpenMS
       algorithm, store the residues of the smallest decomposable numbers
       for every modulo of the smallest alphabet mass.
 
-      @param ValueType Type of values to be decomposed.
-      @param DecompositionValueType Type of decomposition elements.
+      @tparam ValueType Type of values to be decomposed.
+      @tparam DecompositionValueType Type of decomposition elements.
 
       @author Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE>
       @author Marcel Martin <Marcel.Martin@CeBiTec.Uni-Bielefeld.DE>
@@ -513,12 +513,11 @@ private:
     }
 
     /**
-      Gets number of all possible decompositions for a given @c mass.
+      Gets number of all possible decompositions for a given @p mass.
       Since using getAllDecomposition() the usage of this function could
       be @b consuming.
 
-      @param mass Mass to be decomposed
-      @return number of decompositions for given mass.
+      Needs the @p mass to be decomposed and returns the number of decompositions for that mass.
     */
     template <typename ValueType, typename DecompositionValueType>
     typename IntegerMassDecomposer<ValueType, DecompositionValueType>::decomposition_value_type IntegerMassDecomposer<ValueType,

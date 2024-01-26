@@ -10,7 +10,7 @@ on:
     inputs:
       package:
         type: boolean
-        description: Build and upload packages/installer?
+        description: Build and upload packages/installer/documentation?
         default: false
       knime:
         type: boolean
@@ -77,6 +77,8 @@ jobs:
           echo "tp_folder=Linux" >> $GITHUB_OUTPUT
           echo "xvfb=xvfb-run -a" >> $GITHUB_OUTPUT
           echo "static_boost=OFF" >> $GITHUB_OUTPUT
+          # always run doxygen on Ubuntu (because its fast), to detect Doxygen errors
+          echo "enable_docs=ON" >> $GITHUB_OUTPUT  
           if [ "$DO_PACKAGE" = true ]; then
             echo "pkg_type=deb" >> $GITHUB_OUTPUT
           else
@@ -94,8 +96,10 @@ jobs:
           echo "static_boost=ON" >> $GITHUB_OUTPUT
           if [ "$DO_PACKAGE" = true ]; then
             echo "pkg_type=nsis" >> $GITHUB_OUTPUT
+            echo "enable_docs=ON" >> $GITHUB_OUTPUT
           else
-            echo "pkg_type=none" >> $GITHUB_OUTPUT
+            echo "pkg_type=none" >> $GITHUB_OUTPUT           
+            echo "enable_docs=OFF" >> $GITHUB_OUTPUT
           fi
           echo "cxx_compiler=${{ matrix.compiler }}" >> $GITHUB_OUTPUT
         fi
@@ -109,8 +113,11 @@ jobs:
           echo "static_boost=ON" >> $GITHUB_OUTPUT
           if [ "$DO_PACKAGE" = true ]; then
             echo "pkg_type=pkg" >> $GITHUB_OUTPUT
+            echo "enable_docs=ON" >> $GITHUB_OUTPUT
           else
             echo "pkg_type=none" >> $GITHUB_OUTPUT
+            echo "enable_docs=OFF" >> $GITHUB_OUTPUT
+
           fi
           if [[ "${{ matrix.compiler }}" == "xcode" ]]; then
             sudo xcode-select -s '/Applications/Xcode_${{ matrix.compiler_ver }}.app/Contents/Developer'
@@ -153,10 +160,10 @@ jobs:
            libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
           echo "cmake_prefix=" >> $GITHUB_OUTPUT
-          
-          if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            sudo apt-get -qq install -y doxygen ghostscript graphviz
-          fi
+          ## always run doxygen on Ubuntu to detect Doxygen errors
+          sudo apt-get -qq install -y doxygen ghostscript graphviz
+          echo "Testing doxygen"
+          doxygen --version
         fi
         
         if [[ "${{ matrix.os }}" == windows-* ]]; then
@@ -182,6 +189,7 @@ jobs:
           brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
+            brew install python@3.12 --force --overwrite
             brew install --quiet doxygen ghostscript graphviz
           fi
         fi
@@ -294,12 +302,13 @@ jobs:
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
-          ENABLE_TUTORIALS: "OFF"
+          ENABLE_DOCS: ${{ steps.set-vars.outputs.enable_docs }}
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
+          PACKAGE_TYPE: ${{ steps.set-vars.outputs.pkg_type }}
           OPENMP: "ON"
           BOOST_USE_STATIC: ${{ steps.set-vars.outputs.static_boost }}
           #  BUILD_FLAGS: "-p:CL_MPCount=2" # For VS Generator and MSBuild
@@ -361,6 +370,26 @@ jobs:
           ${{ github.workspace }}/OpenMS/bld/*.exe
           ${{ github.workspace }}/OpenMS/bld/*.deb
           ${{ github.workspace }}/OpenMS/bld/*.pkg
+
+    #Zip the documentation first, since there are :: which make the upload action choke.
+    - if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
+      name: Zip Documentation
+      uses: thedoctor0/zip-release@0.7.6
+      with:
+        type: 'zip'
+        directory: ${{ github.workspace }}/OpenMS/bld/doc
+        exclusions: '/CMakeFiles/* /doxygen/* /code_examples/*'
+        filename: 'documentation.zip'
+
+    - if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
+    # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
+      name: Upload Documentation as artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: documentation
+        path: |
+          ${{ github.workspace }}/OpenMS/bld/doc/documentation.zip
+
         
     - if: steps.set-vars.outputs.pkg_type != 'none' || inputs.knime
       name: Generate KNIME descriptors and payloads
@@ -371,7 +400,6 @@ jobs:
         cmake -DSEARCH_ENGINES_DIRECTORY="$GITHUB_WORKSPACE/_thirdparty" -DENABLE_PREPARE_KNIME_PACKAGE=ON .
         cmake --build . --target prepare_knime_package
         
-
     - if: steps.set-vars.outputs.pkg_type != 'none' || inputs.knime
       name: Upload KNIME payload and descriptors as artifacts
       uses: actions/upload-artifact@v3
@@ -413,7 +441,38 @@ jobs:
         run: |
           echo "Upload"
           if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
-            folder=nightly
+            folder=nightlyGHA                                                    # TODO: Change back when we deactivate Jenkins
+          elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
+            tmpfolder=${{ env.RUN_NAME }}
+            folder=${tmpfolder/release/RC_GHA}                                   # TODO: change back to RC after proper release
+          else
+            folder=experimental/${{ env.RUN_NAME }}
+          fi
+          echo "Uploading installers to: " $folder
+
+          mkdir -p ~/.ssh/
+          echo "$PASS" > ~/.ssh/private.key
+          sudo chmod 600 ~/.ssh/private.key
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
+
+      - name: Download Documentation
+        uses: actions/download-artifact@v3
+        with:
+          name: documentation
+          path: docs
+
+      - name: Upload Documentation
+        shell: bash
+        env:
+          PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+          HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+        run: |
+          unzip $GITHUB_WORKSPACE/docs/documentation.zip -d $GITHUB_WORKSPACE/docs
+          rm $GITHUB_WORKSPACE/docs/documentation.zip
+          echo "Upload"
+          if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
+            folder=nightlyGHA                                                    # TODO: Change back when we deactivate Jenkins
           elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
             tmpfolder=${{ env.RUN_NAME }}
             folder=${tmpfolder/release/RC_GHA}                                   # TODO: change back to RC after proper release
@@ -425,8 +484,9 @@ jobs:
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
-#          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
 
+          # Upload documentation FIXME
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/docs/ "$USER@$HOST:/Documentation/${folder}"
         # TODO create softlinks to latest nightly
         # TODO create and upload file hashes, at least for release candidate
 
@@ -595,14 +655,14 @@ jobs:
         run: |
           echo "Upload"
           if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
-            folder=nightly
+            folder=nightlyGHA
           elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
             tmpfolder=${{ env.RUN_NAME }}
-            folder=${tmpfolder/release/RC}
+            folder=${tmpfolder/release/RC}GHA
           else
             folder=experimental/${{ env.RUN_NAME }}
           fi
-          echo $folder
+          echo "Uploading KNIME site to:" $folder
 
           # correct permissions of files to upload
           chmod -R o+r $GITHUB_WORKSPACE/de.openms.update/target/repository/*
@@ -613,4 +673,4 @@ jobs:
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
-#          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"

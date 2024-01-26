@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -24,16 +24,14 @@ namespace OpenMS
   //-------------------------------------------------------------
 
   /**
-      @brief Calculates false discovery rate estimates on crosslink identifications.
+    @brief Calculates false discovery rate estimates on crosslink identifications.
 
-      This tool calculates and FDR estimate for crosslink identifications, which are produced by OpenPepXL.
-      The method employed currently is identical to the target-decoy approach used by xProphet (Walzthoeni et al., 2012).
-      Consequently, this tool can also consume xquest.xml files (produced either by OpenPepXL or xQuest). The tool supports
-      output in the idXML and mzIdentML formats.
+    This tool calculates and FDR estimate for crosslink identifications, which are produced by OpenPepXL.
+    The method employed currently is identical to the target-decoy approach used by xProphet (Walzthoeni et al., 2012).
+    Consequently, this tool can also consume xquest.xml files (produced either by OpenPepXL or xQuest). The tool supports
+    output in the idXML and mzIdentML formats.
 
-      @experimental This tool is work in progress and usage and input requirements might change.
-
-
+    @experimental This tool is work in progress and usage and input requirements might change.
   */
 
   class OPENMS_DLLAPI XFDRAlgorithm :
@@ -57,9 +55,10 @@ namespace OpenMS
     ~XFDRAlgorithm() override;
 
     /**
-     * @brief Performs the main function of this class, the FDR estimation for cross-linked peptide experiments
+     @brief Performs the main function of this class, the FDR estimation for cross-linked peptide experiments
 
-     * @param peptide_ids The PeptideIdentifications from an XL-MS experiment
+     @param peptide_ids The PeptideIdentifications from an XL-MS experiment
+     @param protein_id The ProteinIdentification from an XL-MS experiment
 
      */
     ExitCodes run(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id);
@@ -92,9 +91,15 @@ private:
     static void assignTypes_(PeptideHit& pep_id, StringList& types);
 
     /** Target counting as performed by the xProphet software package
-     *
-     * @brief xprophet  method for target hits counting as implemented in xProphet
-     * @param cum_histograms Cumulative score distributions
+     
+      @brief xprophet  method for target hits counting as implemented in xProphet
+      @param cum_histograms Cumulative score distributions
+      @param targetclass Name of key for targets in @p cum_histograms
+      @param decoyclass Name of key for decoys in @p cum_histograms
+      @param fulldecoyclass Name of key for full decoys in @p cum_histograms
+      @param[out] fdr Output FDR values
+      @param mono
+      
      */
     void fdr_xprophet_(std::map< String, Math::Histogram<> >& cum_histograms,
                       const String& targetclass, const String& decoyclass, const String& fulldecoyclass,
