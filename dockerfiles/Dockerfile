@@ -227,6 +227,12 @@ ARG OPENMS_LIBRARY_DIR
 ARG OPENMS_LIBRARY_BUILD_DIR
 ARG CMAKE_VERSION
 
+RUN apt-get update \ 
+    && apt-get install -y --no-install-recommends --no-install-suggests \
+    # we need Xvfb to run a small subset of tests (eg. TOPP_INIUpdater)
+    xvfb \
+  && rm -rf /var/lib/apt/lists/*
+
 # installing cmake
 WORKDIR /tmp
 ADD https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh cmake.sh
@@ -238,12 +244,6 @@ RUN <<-EOF
     ln -s /opt/cmake/bin/ctest /usr/local/bin/ctest
     rm -rf /tmp/*
 EOF
-
-RUN apt-get update \ 
-    && apt-get install -y --no-install-recommends --no-install-suggests \
-    # we need Xvfb to run a small subset of tests (eg. TOPP_INIUpdater)
-    xvfb \
-  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=test-build ${OPENMS_SOURCE_DIR} ${OPENMS_SOURCE_DIR}
 COPY --from=test-build ${OPENMS_LIBRARY_BUILD_DIR} ${OPENMS_LIBRARY_BUILD_DIR}
