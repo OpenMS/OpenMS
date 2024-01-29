@@ -574,38 +574,6 @@ START_SECTION([EXTRA] getAveragineIsotopeDistribution_test)
 }
 END_SECTION
 
-START_SECTION([EXTRA] simulateSpectrumFromAASequence_test)
-{
-  TheoreticalSpectrumGenerator generator;
-  Param p;
-  p.setValue("add_metainfo", "false",
-             "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-  p.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-  generator.setParameters(p);
-
-  String sequence = "SYVAWDR";
-  OpenMS::AASequence a = OpenMS::AASequence::fromString(sequence);
-  std::vector<double> masses1;
-  std::vector<std::pair<double, double> > tmp, out;
-  OpenMS::DIAHelpers::simulateSpectrumFromAASequence(a, masses1, tmp, &generator);
-  std::copy(masses1.begin(), masses1.end(),
-      std::ostream_iterator<double>(std::cout, " "));
-  std::cout << std::endl;
-  for (unsigned int i = 0; i < tmp.size(); ++i) {
-    std::cout << "mass :" << tmp[i].first << "intensity :" << tmp[i].second
-        << std::endl;
-  }
-  OpenMS::DIAHelpers::modifyMassesByCharge(tmp, out, 2.);
-  OpenMS::DIAHelpers::addPreisotopeWeights(masses1, tmp);
-  std::cout << "preisotope weights added" << std::endl;
-
-  for (unsigned int i = 0; i < tmp.size(); ++i) {
-    std::cout << "mass :" << tmp[i].first << "intensity :" << tmp[i].second
-        << std::endl;
-  }
-
-}
-END_SECTION
 
 START_SECTION([EXTRA] addIsotopesToSpec_test)
 {

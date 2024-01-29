@@ -78,6 +78,7 @@ public:
     @param feature_mapping: Adducts and features (index).
     @param feature_only: Only use features.
     @param isotope_pattern_iterations: At which depth to stop isotope_pattern extraction (if possible).
+    @param no_masstrace_info_isotope_pattern: bool if isotope pattern should be extracted (if not in feature)
     @param v_cmpinfo: Vector of CompoundInfo.
     @param file_index: file index (to differentiate entries derived from different mzML files and resolve ambiguities)
     */
@@ -87,7 +88,7 @@ public:
                       const FeatureMapping::FeatureToMs2Indices& feature_mapping,
                       const bool& feature_only,
                       const int& isotope_pattern_iterations,
-                      const bool no_mt_info,
+                      const bool no_masstrace_info_isotope_pattern,
                       std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
                       const size_t& file_index);
     /**

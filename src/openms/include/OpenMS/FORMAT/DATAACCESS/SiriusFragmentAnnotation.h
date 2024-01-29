@@ -41,6 +41,7 @@ namespace OpenMS
           the identification with the higher SIRIUS score is chosen (currently based on the explained peak intensities).
 
           @param sirius_workspace_subdirs Vector of paths to SIRIUS subdirectories.
+          @param score_threshold Only use spectra over a certain score threshold (0-1)
           @param use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
           @param decoy_generation Extract decoy spectra from SIRIUS subdirectories. 
           */

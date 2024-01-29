@@ -65,7 +65,7 @@ namespace OpenMS
      * Same as above, but with PeptideIdentification + SearchParameter input instead of FeatureMap
      *
      * @param pep_ids Input peptide identifications for annotation and data for theoretical spectra
-     * @param search_params Input search parameters from ID-search that generated the peptide identifications from @pep_ids
+     * @param search_params Input search parameters from ID-search that generated the peptide identifications from @p pep_ids
      * @param exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
      * @param map_to_spectrum Map to find index of spectrum given by meta value at PepID
      * @param tolerance Search window for matching peaks; distance has to be lower than tolerance value

@@ -69,8 +69,6 @@ using namespace std;
 </table>
 </CENTER>
 
-See @ref TOPP_example_qualitycontrol for details.
-
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_QualityControl.cli
 <B>INI file documentation of this tool:</B>
