@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -65,7 +65,9 @@ namespace OpenMS
     /**
       @brief Performs scoring of the ion mobility dimension in MS2
 
-      @param spectrum sequence of segments of the DIA MS2 spectrum found at (and around) the peak apex
+      Populates additional scores in the @p scores object
+
+      @param spectra Sequence of segments of the DIA MS2 spectrum found at (and around) the peak apex
       @param transitions The transitions used for scoring
       @param scores The output scores
       @param drift_target Ion Mobility extraction target
@@ -74,9 +76,6 @@ namespace OpenMS
       @param dia_extraction_ppm_ Whether m/z extraction width is in ppm
       @param use_spline Whether to use spline for fitting
       @param drift_extra Extend the extraction window to gain a larger field of view beyond drift_upper - drift_lower (in percent)
-
-      @return Populates additional scores in the @p scores object
-
     */
     static void driftScoring(const SpectrumSequence& spectra,
                              const std::vector<TransitionType> & transitions,
@@ -91,6 +90,8 @@ namespace OpenMS
     /**
       @brief Performs scoring of the ion mobility dimension in MS1
 
+      Populates additional scores in the @p scores object
+
       @param spectra vector containing the DIA MS1 spectra found at (or around) the peak apex
       @param transitions The transitions used for scoring
       @param scores The output scores
@@ -100,16 +101,13 @@ namespace OpenMS
       @param dia_extraction_ppm_ Whether m/z extraction width is in ppm
       @param use_spline Whether to use spline for fitting
       @param drift_extra Extra extraction to use for drift time (in percent)
-
-      @return Populates additional scores in the @p scores object
-
     */
     static void driftScoringMS1(const SpectrumSequence& spectra,
                                 const std::vector<TransitionType> & transitions,
                                 OpenSwath_Scores & scores,
                                 const double drift_target,
                                 RangeMobility im_range,
-                                const double dia_extract_window_,
+                                const double dia_extraction_window_,
                                 const bool dia_extraction_ppm_,
                                 const bool use_spline,
                                 const double drift_extra);
@@ -117,25 +115,22 @@ namespace OpenMS
     /**
       @brief Performs scoring of the ion mobility dimension in MS1 and MS2 (contrast)
 
+      Populates additional scores in the @p scores object
+
       @param spectra Vector of the DIA MS2 spectrum found in SpectrumSequence object (can contain 1 or multiple spectra centered around peak apex)
       @param ms1spectrum The DIA MS1 spectrum found in SpectrumSequence object (can contain 1 or multiple spectra centered around peak apex)
       @param transitions The transitions used for scoring
       @param scores The output scores
-      @param drift_target Ion Mobility extraction target
       @param im_range the ion mobility range
       @param dia_extraction_window_ m/z extraction width
       @param dia_extraction_ppm_ Whether m/z extraction width is in ppm
-      @param use_spline Whether to use spline for fitting
       @param drift_extra Extra extraction to use for drift time (in percent)
-
-      @return Populates additional scores in the @p scores object
-
     */
     static void driftScoringMS1Contrast(const SpectrumSequence& spectra, const SpectrumSequence& ms1spectrum,
                                         const std::vector<TransitionType> & transitions,
                                         OpenSwath_Scores & scores,
                                         RangeMobility im_range,
-                                        const double dia_extract_window_,
+                                        const double dia_extraction_window_,
                                         const bool dia_extraction_ppm_,
                                         const double drift_extra);
 
@@ -143,7 +138,7 @@ namespace OpenMS
      * @brief computes ion mobilogram to be used in scoring based on mz_range and im_range.
      * Also integrates intensity in the resulting ion mobility mobilogram in mz_range and im_range across all the entire SpectrumSequence.
      * @note If there is no signal, mz will be set to -1 and intensity to 0
-     * @param[in] SpectrumSequence raw data in a spectrumSequence object (can contain 1 or multiple spectra centered around peak apex)
+     * @param[in] spectra Raw data in a spectrumSequence object (can contain 1 or multiple spectra centered around peak apex)
      * @param[in] mz_range the range across mz to extract
      * @param[in] im_range the range across im to extract
      * @param[out] im computed weighted average ion mobility

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -31,10 +31,10 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_ProteinResolver ProteinResolver
+@page TOPP_ProteinResolver ProteinResolver
 
 
-  @brief A peptide-centric algorithm for protein inference.
+@brief A peptide-centric algorithm for protein inference.
 <CENTER>
   <table>
     <tr>
@@ -49,134 +49,134 @@ using namespace OpenMS;
   </table>
 </CENTER>
 
-  @experimental This tool has not been tested thoroughly and might NOT behave as expected!
+@experimental This tool has not been tested thoroughly and might NOT behave as expected!
 
-  This tool is an imlementation of
-  <p>
-  Meyer-Arendt K, Old WM, et al. (2011)<br>
-  IsoformResolver: A peptide-centric algorithm for protein inference<br>
-  Journal of Proteome Research 10 (7): 3060-75,  DOI: 10.1021/pr200039p
-  </p>
+This tool is an imlementation of
+<p>
+Meyer-Arendt K, Old WM, et al. (2011)<br>
+IsoformResolver: A peptide-centric algorithm for protein inference<br>
+Journal of Proteome Research 10 (7): 3060-75,  DOI: 10.1021/pr200039p
+</p>
 
-  The algorithm tries to assign to each protein its experimentally validated peptide (meaning you should supply peptides with
-  have undergone FDR filtering or alike).
-  Proteins are grouped into ISD groups (in-silico derived) and MSD groups (MS/MS derived)
-  if they have in-silico derived or MS/MS derived peptides in common. Proteins and peptides span a bipartite graph.
-  There is an edge between a protein node and a peptide node if and only if the protein contains the peptide.
-  ISD groups are connected graphs in the forementionend bipartite graph. MSD groups are subgraphs of ISD groups.
-  For further information see above paper.
+The algorithm tries to assign to each protein its experimentally validated peptide (meaning you should supply peptides with
+have undergone FDR filtering or alike).
+Proteins are grouped into ISD groups (in-silico derived) and MSD groups (MS/MS derived)
+if they have in-silico derived or MS/MS derived peptides in common. Proteins and peptides span a bipartite graph.
+There is an edge between a protein node and a peptide node if and only if the protein contains the peptide.
+ISD groups are connected graphs in the forementionend bipartite graph. MSD groups are subgraphs of ISD groups.
+For further information see above paper.
 
-  <p><b>Remark:</b>
-  If parameter @p in is given, @p in_path is ignored. Parameter @p in_path is considered only if @p in is empty.
-  </p>
+<p><b>Remark:</b>
+If parameter @p in is given, @p in_path is ignored. Parameter @p in_path is considered only if @p in is empty.
+</p>
 
-  <B>Input</B>
+<B>Input</B>
 
-  Since the ProteinResolver offers two different input parameters, there are some possibilites how to use this TOPP tool.
-  <dl>
-      <dt>One single input file (@p in)</dt>
-      <dd>The ProteinResolver simply performs the protein inference based on the above mentioned algortihm of Meyer-Arendt et al. (2011) for that specific file.</dd>
+Since the ProteinResolver offers two different input parameters, there are some possibilites how to use this TOPP tool.
+<dl>
+  <dt>One single input file (@p in)</dt>
+  <dd>The ProteinResolver simply performs the protein inference based on the above mentioned algortihm of Meyer-Arendt et al. (2011) for that specific file.</dd>
 
-      <dt>Multiple files (@p in or @p in_path)</dt>
-      <dd>
-        <ol>
-          <li>If no experimental design file is given, all files are treated as in batch processing.</li>
-          <li>If an experimental design file is provided, all files that can be mapped to the same experimental design are treated as
-              one single input file (simply by merging them before the computation).</li>
-         </ol>
-      </dd>
-  </dl>
-
-
-  <B>Output</B>
-
-  <p>Four possible outputs are available:
-
-    <dl>
-         <dt>Protein groups</dt>
-         <dd>For each MSD group, the ISD group, the protein indices, the peptide indices, the number of peptides in MSD group, the number
-              of proteins in ISD and the number of proteins in ISD are written to the output file</dd>
-        <dt>Protein table</dt>
-        <dd>The resulting text file contains one protein per line</dd>
-        <dt>Peptide table</dt>
-        <dd>The output file will contain one peptide per line and all proteins which contain that specific peptide</dd>
-        <dt>Statistics:</dt>
-        <dd>Number of ISD groups, number of MSD groups, number of target peptides, number of decoy peptides,
-            number of target and decoy peptides, number of peptides in MSD groups and estimated FDR for protein list.</dd>
-    </dl>
-
-    The results for different input files are appended and written into the same output file. In other words, no matter how many input files you have,
-    you will end up with one single output file.
-  </p>
+  <dt>Multiple files (@p in or @p in_path)</dt>
+  <dd>
+    <ol>
+      <li>If no experimental design file is given, all files are treated as in batch processing.</li>
+      <li>If an experimental design file is provided, all files that can be mapped to the same experimental design are treated as
+          one single input file (simply by merging them before the computation).</li>
+     </ol>
+  </dd>
+</dl>
 
 
-  <B>Text file format of the quantitative experimental design:</B>
+<B>Output</B>
 
-  <p>
-    The text file has to be column-based and must contain only one additional line as header.
-    The header must specify two specific columns that represents the file name and an identifier for the experimental setup.
-    These two header identifiers can be defined as parameter and must be unique (default: "File" and "ExperimentalSetting").
-    There are four options how the columns can be separated: tabulator, comma, semi-colon and whitespace.
+<p>Four possible outputs are available:
 
-    <i>Example for text file format:</i>
+<dl>
+ <dt>Protein groups</dt>
+ <dd>For each MSD group, the ISD group, the protein indices, the peptide indices, the number of peptides in MSD group, the number
+      of proteins in ISD and the number of proteins in ISD are written to the output file</dd>
+<dt>Protein table</dt>
+<dd>The resulting text file contains one protein per line</dd>
+<dt>Peptide table</dt>
+<dd>The output file will contain one peptide per line and all proteins which contain that specific peptide</dd>
+<dt>Statistics:</dt>
+<dd>Number of ISD groups, number of MSD groups, number of target peptides, number of decoy peptides,
+    number of target and decoy peptides, number of peptides in MSD groups and estimated FDR for protein list.</dd>
+</dl>
 
-      <CENTER>
-        <table>
-          <tr>
-            <td ALIGN="center" BGCOLOR="#EBEBEB">Slice</td>
-            <td ALIGN="center" BGCOLOR="#EBEBEB">File</td>
-            <td ALIGN="center" BGCOLOR="#EBEBEB">ExperimentalSetting</td>
-          </tr>
-          <tr>
-            <td ALIGN="center">1</td>
-            <td ALIGN="center">SILAC_2_1</td>
-            <td ALIGN="center">S1224</td>
-          </tr>
-          <tr>
-            <td ALIGN="center">4</td>
-            <td ALIGN="center">SILAC_3_4</td>
-            <td ALIGN="center">D1224</td>
-          </tr>
-          <tr>
-            <td ALIGN="center">2</td>
-            <td ALIGN="center">SILAC_10_2</td>
-            <td ALIGN="center">S1224</td>
-          </tr>
-          <tr>
-            <td ALIGN="center">7</td>
-            <td ALIGN="center">SILAC_8_7</td>
-            <td ALIGN="center">S1224</td>
-          </tr>
-        </table>
-      </CENTER>
+The results for different input files are appended and written into the same output file. In other words, no matter how many input files you have,
+you will end up with one single output file.
+</p>
 
-      In this case the values of the parameters "experiment" and "file" which are by default set to "ExperimentalSetting" and "File", respectively, are ok.
-      If you use other column headers you need to change these parameters.
 
-      The separator should be changed if the file is not tab separated.
-      Every other column (here: first column) is just ignored. Not every file mentioned in the design file has to be given as input file;
-      and every input file that has no match in the design file is ignored for the computation.<br />
-      <br />
-      <i>Consider the following scenario:</i><br />
-      <br />
-      <b>Input files:</b> SILAC_2_1.consensusXML, SILAC_3_4.consensusXML, SILAC_10_2.consensusXML and SILAC_8_7_.consensusXML<br />
-      <br />
-      <b>First step:</b>  Data from SILAC_2_1.consensusXML and SILAC_10_2.consensusXML is merged, because both files can be mapped to the same setting S1224.
-      SILAC_8_7_.consensusXML is ignored, since SILAC_8_7_ is no match to SILAC_8_7.<br />
-      <br />
-      <b>Second step:</b> ProteinResolver computes results for the merged data, and the data from the file SILAC_3_4.<br />
-      <br />
-      <b>Third step:</b> ProteinResolver writes the results for experimental setting S1224 and D1224 to the same output file.<br />
-      <br />
+<B>Text file format of the quantitative experimental design:</B>
 
-  </p>
+<p>
+The text file has to be column-based and must contain only one additional line as header.
+The header must specify two specific columns that represents the file name and an identifier for the experimental setup.
+These two header identifiers can be defined as parameter and must be unique (default: "File" and "ExperimentalSetting").
+There are four options how the columns can be separated: tabulator, comma, semi-colon and whitespace.
 
-  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+<i>Example for text file format:</i>
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_ProteinResolver.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_ProteinResolver.html
+<CENTER>
+  <table>
+    <tr>
+      <td ALIGN="center" BGCOLOR="#EBEBEB">Slice</td>
+      <td ALIGN="center" BGCOLOR="#EBEBEB">File</td>
+      <td ALIGN="center" BGCOLOR="#EBEBEB">ExperimentalSetting</td>
+    </tr>
+    <tr>
+      <td ALIGN="center">1</td>
+      <td ALIGN="center">SILAC_2_1</td>
+      <td ALIGN="center">S1224</td>
+    </tr>
+    <tr>
+      <td ALIGN="center">4</td>
+      <td ALIGN="center">SILAC_3_4</td>
+      <td ALIGN="center">D1224</td>
+    </tr>
+    <tr>
+      <td ALIGN="center">2</td>
+      <td ALIGN="center">SILAC_10_2</td>
+      <td ALIGN="center">S1224</td>
+    </tr>
+    <tr>
+      <td ALIGN="center">7</td>
+      <td ALIGN="center">SILAC_8_7</td>
+      <td ALIGN="center">S1224</td>
+    </tr>
+  </table>
+</CENTER>
+
+In this case the values of the parameters "experiment" and "file" which are by default set to "ExperimentalSetting" and "File", respectively, are ok.
+If you use other column headers you need to change these parameters.
+
+The separator should be changed if the file is not tab separated.
+Every other column (here: first column) is just ignored. Not every file mentioned in the design file has to be given as input file;
+and every input file that has no match in the design file is ignored for the computation.<br />
+<br />
+<i>Consider the following scenario:</i><br />
+<br />
+<b>Input files:</b> SILAC_2_1.consensusXML, SILAC_3_4.consensusXML, SILAC_10_2.consensusXML and SILAC_8_7_.consensusXML<br />
+<br />
+<b>First step:</b>  Data from SILAC_2_1.consensusXML and SILAC_10_2.consensusXML is merged, because both files can be mapped to the same setting S1224.
+SILAC_8_7_.consensusXML is ignored, since SILAC_8_7_ is no match to SILAC_8_7.<br />
+<br />
+<b>Second step:</b> ProteinResolver computes results for the merged data, and the data from the file SILAC_3_4.<br />
+<br />
+<b>Third step:</b> ProteinResolver writes the results for experimental setting S1224 and D1224 to the same output file.<br />
+<br />
+
+</p>
+
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_ProteinResolver.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_ProteinResolver.html
 */
 
 // We do not want this class to show up in the docu:

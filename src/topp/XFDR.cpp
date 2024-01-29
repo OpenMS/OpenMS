@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -23,34 +23,34 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_XFDR XFDR
+@page TOPP_XFDR XFDR
 
-    @brief Calculates false discovery rate estimates on crosslink identifications.
+@brief Calculates false discovery rate estimates on crosslink identifications.
 
-    This tool calculates and FDR estimate for crosslink identifications, which are produced by OpenPepXL.
-    The method employed currently is identical to the target-decoy approach used by xProphet (Walzthoeni et al., 2012).
-    Consequently, this tool can also consume xquest.xml files (produced either by OpenPepXL or xQuest). The tool supports
-    output in the idXML and mzIdentML formats.
+This tool calculates and FDR estimate for crosslink identifications, which are produced by OpenPepXL.
+The method employed currently is identical to the target-decoy approach used by xProphet (Walzthoeni et al., 2012).
+Consequently, this tool can also consume xquest.xml files (produced either by OpenPepXL or xQuest). The tool supports
+output in the idXML and mzIdentML formats.
 
-    <center>
-        <table>
-            <tr>
-                <th ALIGN = "center"> pot. predecessor tools </td>
-                <td VALIGN="middle" ROWSPAN=3> &rarr; XFDR &rarr;</td>
-                <th ALIGN = "center"> pot. successor tools </td>
-            </tr>
-            <tr>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenPepXL </td>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenPepXLLF </td>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
-            </tr>
-        </table>
-    </center>
+<center>
+    <table>
+        <tr>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=3> &rarr; XFDR &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenPepXL </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenPepXLLF </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
+        </tr>
+    </table>
+</center>
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_XFDR.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_XFDR.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_XFDR.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_XFDR.html
 */
 
 // We do not want this class to show up in the docu:

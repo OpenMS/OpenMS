@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -153,8 +153,8 @@ namespace OpenMS
      * @returns A string to be written using writeLines
      *
      */
-    String prepareLine(const OpenSwath::LightCompound& /* pep */,
-        const OpenSwath::LightTransition* /* transition */,
+    String prepareLine(const OpenSwath::LightCompound& pep,
+        const OpenSwath::LightTransition* transition,
         const FeatureMap& output, const String& id) const;
 
     /**

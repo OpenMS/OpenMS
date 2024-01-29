@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -30,9 +30,9 @@
 //-------------------------------------------------------------
 
 /**
-   @page TOPP_LuciphorAdapter LuciphorAdapter
+@page TOPP_LuciphorAdapter LuciphorAdapter
 
-   @brief Adapter for the LuciPHOr2: a site localisation tool of generic post-translational modifications from tandem mass spectrometry data.
+@brief Adapter for the LuciPHOr2: a site localisation tool of generic post-translational modifications from tandem mass spectrometry data.
 
 <CENTER>
     <table>
@@ -48,15 +48,15 @@
     </table>
 </CENTER>
 
-    LuciPHOr2 must be installed before this wrapper can be used. Please make sure that Java and LuciPHOr2 are working.@n
-    The following LuciPHOr2 version is required: luciphor2 (JAVA-based version of Luciphor) (1.2014Oct10). At the time of writing, it could be downloaded from http://luciphor2.sourceforge.net.
+LuciPHOr2 must be installed before this wrapper can be used. Please make sure that Java and LuciPHOr2 are working.@n
+The following LuciPHOr2 version is required: luciphor2 (JAVA-based version of Luciphor) (1.2014Oct10). At the time of writing, it could be downloaded from http://luciphor2.sourceforge.net.
 
-    Input spectra for LuciPHOr2 have to be in pepXML file format. The input mzML file must be the same as the one used to create the pepXML input file.
+Input spectra for LuciPHOr2 have to be in pepXML file format. The input mzML file must be the same as the one used to create the pepXML input file.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_LuciphorAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_LuciphorAdapter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_LuciphorAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_LuciphorAdapter.html
 */
 
 // We do not want this class to show up in the docu:

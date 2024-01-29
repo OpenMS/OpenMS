@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -53,7 +53,7 @@ namespace OpenMS
     SpectrumAdditionMethod spectra_addition_method_;
     double im_drift_extra_pcnt_;
     OpenSwath_Scores_Usage su_;
-    bool use_ms1_ion_mobility_; // whether to use MS1 ion mobility extraction in DIA scores
+    bool use_ms1_ion_mobility_; ///< whether to use MS1 ion mobility extraction in DIA scores
     const std::string ION_MOBILITY_DESCRIPTION = "Ion Mobility";
 
   public:
@@ -71,8 +71,10 @@ namespace OpenMS
      * @param rt_normalization_factor Specifies the range of the normalized retention time space
      * @param add_up_spectra How many spectra to add up (default 1)
      * @param spacing_for_spectra_resampling Spacing factor for spectra addition
+     * @param drift_extra Extend the extraction window to gain a larger field of view beyond drift_upper - drift_lower (in percent)
      * @param su Which scores to actually compute
      * @param spectrum_addition_method Method to use for spectrum addition (valid: "simple", "resample")
+     * @param use_ms1_ion_mobility Use MS1 ion mobility extraction in DIA scores
      *
     */
     void initialize(double rt_normalization_factor,
@@ -142,7 +144,7 @@ namespace OpenMS
      *
      * @param imrmfeature The feature to be scored
      * @param transitions The library transition to score the feature against
-     * @param pep The peptide corresponding to the library transitions
+     * @param compound The compound corresponding to the library transitions
      * @param normalized_feature_rt The retention time of the feature in normalized space
      * @param scores The object to store the result
      *
@@ -162,7 +164,7 @@ namespace OpenMS
      * @param swath_maps The SWATH-MS (DIA) maps from which to retrieve full MS/MS spectra at the chromatographic peak apices
      * @param ms1_map The corresponding MS1 (precursor ion map) from which the precursor spectra can be retrieved (optional, may be NULL)
      * @param diascoring DIA Scoring object to use for scoring
-     * @param pep The peptide corresponding to the library transitions
+     * @param compound The compound corresponding to the library transitions
      * @param scores The object to store the result
      * @param mzerror_ppm m/z and mass error (in ppm) for all transitions
      * @param[in] drift_target target drift value
@@ -206,7 +208,7 @@ namespace OpenMS
      * The scores are returned in the OpenSwath_Scores object.
      *
      * @param imrmfeature The feature to be scored
-     * @param transitions The library transition to score the feature against
+     * @param transition The library transition to score the feature against
      * @param swath_maps The SWATH-MS (DIA) maps from which to retrieve full MS/MS spectra at the chromatographic peak apices
      * @param range_im drift time lower and upper bounds
      * @param diascoring DIA Scoring object to use for scoring
@@ -236,21 +238,21 @@ namespace OpenMS
      * This function will fetch a vector of spectrum pointers to be used in DIA analysis.
      * If nr_spectra_to_add == 1, then a vector of length 1 will be returned
      *
-     * Case #1: Non SONAR data and "simple" addition selected - Array of length "nr_spectra_to_add" returned corresponding with "nr_spectra_to_add" spectra
-     * Case #2: Non SONAR data and "resampling addition selected - Array of length 1 of the resampled spectrum returned
-     * Case #3: SONAR data - Array of length 1 containing the added/resampled spectrum returned
+     *   - Case \#1: Non SONAR data and "simple" addition selected - Array of length "nr_spectra_to_add" returned corresponding with "nr_spectra_to_add" spectra
+     *   - Case \#2: Non SONAR data and "resampling addition selected - Array of length 1 of the resampled spectrum returned
+     *   - Case \#3: SONAR data - Array of length 1 containing the added/resampled spectrum returned
      *
-     * For case #2 and #3 result is
+     * For case \#2 and \#3 result is
      * all spectra summed up (add) with the intensities of multiple spectra a single
      * swath map (assuming these are regular SWATH / DIA maps) around the given
      * retention time and return an "averaged" spectrum which may contain less noise.
      *
-     * For case #1 this processing is done downstream in DIA scores to speed up computation time
+     * For case \#1 this processing is done downstream in DIA scores to speed up computation time
      *
-     * @param[in] swath_map The map containing the spectra
+     * @param[in] swath_maps The map containing the spectra
      * @param[in] RT The target retention time
      * @param[in] nr_spectra_to_add How many spectra to add up
-     * @param[in] range_im drift time lower and upper bounds
+     * @param[in] im_range Drift time lower and upper bounds
      * @return Vector of spectra to be used
      *
     */

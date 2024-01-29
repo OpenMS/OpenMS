@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -63,14 +63,14 @@ typedef vector<IsotopePattern> IsotopePatterns;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_MetaProSIP MetaProSIP
+@page TOPP_MetaProSIP MetaProSIP
 
-    @brief Performs proteinSIP on peptide features for elemental flux analysis.
+@brief Performs proteinSIP on peptide features for elemental flux analysis.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_MetaProSIP.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MetaProSIP.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MetaProSIP.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MetaProSIP.html
  */
 
 // We do not want this class to show up in the docu:

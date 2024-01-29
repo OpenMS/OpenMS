@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -104,6 +104,7 @@ public:
 
       @param precursor_mz Exact m/z of the precursor to be evaluated
       @param spectrum MS1 spectrum to be evaluated
+      @param im_range Ion mobility range to keep (filter data); can be empty
       @param ppm_score Resulting score
       @return False if no signal was found (and no sensible score calculated), true otherwise
     */
@@ -168,8 +169,8 @@ private:
       @param mono_mz The m/z value where a monoisotopic is expected
       @param mono_int The intensity of the monoisotopic peak (peak at mono_mz)
       @param nr_occurrences Will contain the count of how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
-      @param nr_occurrences Will contain the maximum ratio of a peaks intensity compared to the monoisotopic peak intensity how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
-
+      @param max_ratio Will contain the maximum ratio of a peaks intensity compared to the monoisotopic peak intensity how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
+      @param im_range Ion mobility subrange to consider (used as filter); can be empty (i.e. no IM filtering)
     */
     void largePeaksBeforeFirstIsotope_(const SpectrumSequence& spectrum, double mono_mz, double mono_int, int& nr_occurrences, double& max_ratio, const RangeMobility& im_range) const;
 
