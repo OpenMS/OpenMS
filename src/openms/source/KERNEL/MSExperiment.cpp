@@ -92,7 +92,12 @@ namespace OpenMS
   ///@name Iterating ranges and areas
   //@{
   /// Returns an area iterator for @p area
-  MSExperiment::AreaIterator MSExperiment::areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level)
+  MSExperiment::AreaIterator MSExperiment::areaBegin(
+    CoordinateType min_rt, 
+    CoordinateType max_rt, 
+    CoordinateType min_mz, 
+    CoordinateType max_mz, 
+    UInt ms_level)
   {
     OPENMS_PRECONDITION(min_rt <= max_rt, "Swapped RT range boundaries!")
     OPENMS_PRECONDITION(min_mz <= max_mz, "Swapped MZ range boundaries!")
@@ -261,11 +266,13 @@ namespace OpenMS
     return res;
   }
 
-  std::vector<std::pair<size_t,size_t>> MSExperiment::getRangesIdcs_(const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges) const {
+  std::vector<std::pair<size_t,size_t>> MSExperiment::getRangesIdcs_(const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges) const 
+  {
     const auto zero = spectra_.begin();
     std::vector<std::pair<size_t,size_t>> res;
     res.reserve(mz_rt_ranges.size());
-    for (const auto & mz_rt : mz_rt_ranges) {
+    for (const auto & mz_rt : mz_rt_ranges) 
+    {
       res.emplace_back(RTBegin(mz_rt.second.getMin()) - zero, RTEnd(mz_rt.second.getMax()) - zero);
     }
     return res;
@@ -325,7 +332,7 @@ namespace OpenMS
     std::vector<std::vector<MSExperiment::CoordinateType>> res;
     res.resize(mz_rt_ranges.size());
     
-    const std::vector<std::pair<size_t, size_t>> rt_ranges_idcs = getRangesIdcs_(mz_rt_ranges/*, ms_level*/);
+    const std::vector<std::pair<size_t, size_t>> rt_ranges_idcs = getRangesIdcs_(mz_rt_ranges/*ms_level*/); //TODO ms_level
 
     // TODO this can be wasteful if we do not have small or repeating rt_ranges and we 
     //  only extract mz ranges from a few spectra.
@@ -418,7 +425,7 @@ namespace OpenMS
     {
       const auto& spec = spectra_[i];
       auto spec_zero = spec.begin();
-      // TODO implement "parallelized" binary search for multiple values
+      // TODO think about implementing "parallelized" binary search for multiple values
       // Options:
       //  - interleaving/unrolling such that processor can continue its work while waiting for memory (https://lemire.me/blog/2019/09/14/speeding-up-independent-binary-searches-by-interleaving-them/)
       //  - https://github.com/fabiocannizzo/FastBinarySearch/tree/master (but out AoS layout must go). AoS should go anyway. Also prevents us from SIMD summing/maxing
@@ -517,11 +524,12 @@ namespace OpenMS
 
   //@}
 
-  std::pair<Size, Size> MSExperiment::getSpectraIdxRangeByRetentionTime(double start, double end) const {
+  std::pair<Size, Size> MSExperiment::getSpectraIdxRangeByRetentionTime(double start, double end) const 
+  {
     Size startIndex = this->RTBegin(start) - spectra_.begin();
     Size endIndex = this->RTEnd(end) - spectra_.begin();
 
-    return {startIndex, endIndex};
+    return { startIndex, endIndex };
   }
 
   std::vector<Size> MSExperiment::getSpectraIdcsByRetentionTime(double start, double end, unsigned int ms_level) const {

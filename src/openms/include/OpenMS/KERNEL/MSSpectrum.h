@@ -15,7 +15,6 @@
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 
 #include <numeric>
-#include <boost/core/bit.hpp>
 
 namespace OpenMS
 {
