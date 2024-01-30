@@ -75,6 +75,8 @@ MassTraceExtractor
 MetaProSIP
 MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
+MRMMapper
+MRMPairFinder
 MSGFPlusAdapter
 MSFraggerAdapter
 MSstatsConverter
