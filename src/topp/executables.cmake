@@ -54,6 +54,8 @@ IDMerger
 IDPosteriorErrorProbability
 IDRipper
 IDRTCalibration
+IDScoreSwitcher
+IDSplitter
 InternalCalibration
 IsobaricAnalyzer
 JSONExporter
@@ -73,8 +75,7 @@ MassTraceExtractor
 MetaProSIP
 MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
-MRMPairFinder
-MRMMapper
+MSGFPlusAdapter
 MSFraggerAdapter
 MSstatsConverter
 MultiplexResolver
@@ -97,6 +98,7 @@ OpenSwathDecoyGenerator
 OpenSwathFeatureXMLToTSV
 OpenSwathRTNormalizer
 PeakPickerHiRes
+PeakPickerIterative
 PeptideIndexer
 PercolatorAdapter
 PhosphoScoring
@@ -104,14 +106,18 @@ ProteinInference
 ProteinQuantifier
 ProteinResolver
 ProteomicsLFQ
-QCExporter
+PSMFeatureExtractor
+QCCalculator
 QCEmbedder
+QCExporter
 QCExtractor
 QCImporter
 QCMerger
 QCShrinker
-QCCalculator
 QualityControl
+RNADigestor
+RNAMassCalculator
+RNPxlXICFilter
 SageAdapter
 SeedListGenerator
 SemanticValidator
@@ -132,6 +138,11 @@ SpectraMerger
 TextExporter
 XFDR
 XTandemAdapter
+SpectraSTSearchAdapter
+StaticModification
+TICCalculator
+TriqlerConverter
+XMLValidator
 )
 
 if(NOT DISABLE_OPENSWATH)
