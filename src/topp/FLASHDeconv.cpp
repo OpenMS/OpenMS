@@ -513,7 +513,7 @@ protected:
       {
         if (out_topfd_file[i].empty() || (!keep_empty_out && per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()))
           continue;
-        OPENMS_LOG_INFO << "writing topfd *.tsv for MS level " << (i + 1) << " ..." << endl;
+        OPENMS_LOG_INFO << "writing topfd *.msalign for MS level " << (i + 1) << " ..." << endl;
 
         out_topfd_streams[i].open(out_topfd_file[i], fstream::out);
         FLASHDeconvSpectrumFile::writeTopFDHeader(out_topfd_streams[i], getParam_().copy("SD:", true));
