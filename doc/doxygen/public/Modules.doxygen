@@ -11,7 +11,7 @@
 /**
 	@defgroup Concept Concept
 
-	@brief OpenMS concepts (types, macros, ...)
+	@brief %OpenMS concepts (types, macros, ...)
 */
 
 // ----------------------------- System -------------------------------
@@ -29,6 +29,8 @@
 
 	@brief Auxiliary datastructures.
 */
+
+
 
 // ----------------------------- Math -------------------------------
 
@@ -167,6 +169,24 @@
 	@brief High-level analysis like PeakPicking, Quantitation, Identification, MapAlignment
 */
 
+
+/**
+	@defgroup Topdown Topdown
+
+	@brief Topdown-related classes 
+
+	@ingroup Analysis
+*/
+
+/**
+	@defgroup Quantitation Quantitation
+
+	@brief Quantitation-related classes 
+
+	@ingroup Analysis
+*/
+
+
 /**
 	@defgroup SignalProcessing SignalProcessing
 
@@ -216,6 +236,15 @@
 
 	@ingroup Analysis
 */
+
+/**
+	@defgroup Analysis_DeNovo DeNovo
+
+	@brief DeNovo identification classes.
+
+	@ingroup Analysis
+*/
+
 
 /**
 	@defgroup SpectraClustering Clustering

@@ -62,7 +62,7 @@ public:
     @brief Internal structure used in @ref TOPP_SiriusAdapter that is used
     for the conversion of a MzMlFile to an internal format.
 
-    @ingroup ID
+    @ingroup Analysis_ID
 
     Store .ms file.
     Comments (see CompoundInfo) are written to SIRIUS .ms file and additionally stores in CompoundInfo struct.
