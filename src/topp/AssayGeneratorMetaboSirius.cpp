@@ -34,15 +34,15 @@ using namespace OpenMS;
 //Doxygen docu
 //----------------------------------------------------------
 /**
-  @page TOPP_AssayGeneratorMetabo AssayGeneratorMetabo
+  @page TOPP_AssayGeneratorMetaboSirius AssayGeneratorMetaboSirius
 
-  @brief Generates an assay library using DDA data (Metabolomics)
+  @brief Generates an assay library from SIRIUS fragmentation trees (Metabolomics)
 
     <CENTER>
       <table>
           <tr>
               <th ALIGN = "center"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=2> &rarr; AssayGeneratorMetabo &rarr;</td>
+              <td VALIGN="middle" ROWSPAN=2> &rarr; AssayGeneratorMetaboSirius &rarr;</td>
               <th ALIGN = "center"> potential successor tools </td>
           </tr>
           <tr>
@@ -58,52 +58,32 @@ using namespace OpenMS;
       </table>
   </CENTER>
 
-  Build an assay library from DDA data (MS and MS/MS) (mzML).
-  Please provide a list of features found in the data (featureXML).
+  Build an assay library from a SIRIUS project directory using fragmentation trees.
 
-  Features can be detected using the FeatureFinderMetabo (FFM) and identifcation information
-  can be added using the AccurateMassSearch featureXML output.
-
-  If the FeatureFinderMetabo featureXML does not contain any identifications the "use_known_unknowns" flag is used automatically.
-
-  Use SIRIUS fragmentation trees for fragment annotation (optional):
   - Use the SiriusExport TOPP tool with each samples mzML and featureXML files to generate a SIRIUS input ms file.
   @code
     SiriusExport -in sample.mzML -in_featureinfo sample.featureXML -out_ms sample.ms
+  @endcode
   - Run SIRIUS externally with "--no-compression" flag and the formula, passatutto (optional, for decoy generation) and write-summaries tools.
   @code
     sirius --input sample.ms --project sirius-project --maxmz 300 --no-compression formula passatutto write-summaries
-  - Provide the path to SIRIUS project for the "sirius_project_directory" parameter.
-
-  
-  Internal procedure AssayGeneratorMetabo: \n
-  1. Input mzML and featureXML \n
-  2. Reannotate precursor mz and intensity \n
-  3. Filter feature by number of masstraces \n
-  4. Assign precursors to specific feature (FeatureMapping) \n
-  5. Extract feature meta information (if possible) \n
-  6. Find MS2 spectrum with highest intensity precursor for one feature \n
-  7. If a SIRIUS workspace directory with results from a SIRIUS run is provided fragment annotation via SIRIUS is used for transition
-  extraction. \n
-  If not fragment annotation is performed either the MS2 with the highest intensity precursor or a consensus spectrum
-   can be used for the transition extraction. \n
-  8. Calculate thresholds (maximum and minimum intensity for transition peak) \n
-  9. Extract and write transitions (tsv, traml) \n
+  @endcode
+  - Provide the path to SIRIUS project as input parameter for this tool.
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_AssayGeneratorMetabo.cli
+  @verbinclude TOPP_AssayGeneratorMetaboSirius.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_AssayGeneratorMetabo.html
- */
+  @htmlinclude TOPP_AssayGeneratorMetaboSirius.html
+*/
 
 /// @cond TOPPCLASSES
 
-class TOPPAssayGeneratorMetabo :
+class TOPPAssayGeneratorMetaboSirius :
   public TOPPBase,
   private TransitionTSVFile
 {
 public:
-  TOPPAssayGeneratorMetabo() :
+  TOPPAssayGeneratorMetaboSirius() :
     TOPPBase("AssayGeneratorMetaboSirius", "Assay library generation from a SIRIUS project directory (Metabolomics)")
     {}
 
@@ -371,7 +351,7 @@ protected:
 
 int main(int argc, const char ** argv)
 {
-  TOPPAssayGeneratorMetabo tool;
+  TOPPAssayGeneratorMetaboSirius tool;
   return tool.main(argc, argv);
 }
 /// @endcond

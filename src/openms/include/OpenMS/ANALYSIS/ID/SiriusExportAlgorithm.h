@@ -34,10 +34,8 @@ namespace OpenMS
       int getIsotopePatternIterations() const { return  param_.getValue("isotope_pattern_iterations"); }
 
       /**
-      @brief Preprocessing needed for SIRIUS
+      @brief Preprocessing needed for SIRIUS and AssayGeneratorMetabo
 
-      @return FeatureToMS2Indices
-            
       Filter number of masstraces and perform feature mapping.
 
       @param featureinfo Path to featureXML

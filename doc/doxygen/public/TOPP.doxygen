@@ -152,6 +152,7 @@
 
   <b>Targeted Experiments and OpenSWATH</b>
   - @subpage TOPP_AssayGeneratorMetabo - Generates an assay library using DDA data (Metabolomics).
+  - @subpage TOPP_AssayGeneratorMetaboSirius - Generates an assay library using SIRIUS project directory (Metabolomics).
   - @subpage TOPP_ClusterMassTracesByPrecursor - Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps.
   - @subpage TOPP_MRMMapper - MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML).
   - @subpage TOPP_MRMPairFinder - Evaluates labeled pair ratios on MRM features.
