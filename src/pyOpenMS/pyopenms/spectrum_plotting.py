@@ -1,10 +1,11 @@
 """Convert MSSpectrum to spectrum_utils MsmsSpectrum.
 
-Specified in:
+Converting an OpenMS MSSpectrum to a spectrum_utils MsmsSpectrum requires installing the spectrum_utils package by
+following the instructions at: https://spectrum-utils.readthedocs.io/en/latest/install.html
+
 Wout Bittremieux. “spectrum_utils: A Python package for mass spectrometry data processing and visualization.”
 """
 
-# Code adopted from:
 # Wout Bittremieux. “spectrum_utils: A Python package for mass spectrometry data processing and visualization.”
 # Analytical Chemistry 92 (1) 659-661 (2020) doi:10.1021/acs.analchem.9b04884.
 

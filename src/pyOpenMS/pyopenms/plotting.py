@@ -1,6 +1,6 @@
 """Plot MSSpectrum & MSChromatogram data
 
-The MSSpectrum plotting function are adapted from:
+The MSSpectrum plotting functions are adapted from:
 Wout Bittremieux. “spectrum_utils: A Python package for mass spectrometry data processing and visualization.”
 Plot a single spectrum with plot_spectrum or two with mirror_plot_spectrum, using matplotlib.
 """
