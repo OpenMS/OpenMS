@@ -222,9 +222,7 @@ namespace OpenMS
     std::vector<CoordinateType> res;
     res.resize(idcs.size());
     
-    #ifdef _OPENMP
     #pragma omp parallel for
-    #endif
     for (Size i = 0; i < idcs.size(); ++i)
     {
       CoordinateType acc = 0.0;
@@ -247,9 +245,7 @@ namespace OpenMS
     std::vector<CoordinateType> res;
     res.resize(idcs.size());
     
-    #ifdef _OPENMP
     #pragma omp parallel for
-    #endif
     for (Size i = 0; i < idcs.size(); ++i)
     {
       const auto& spec = spectra_[idcs[i]];
