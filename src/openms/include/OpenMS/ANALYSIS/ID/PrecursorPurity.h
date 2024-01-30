@@ -28,7 +28,7 @@ namespace OpenMS
       These metrics are combined over the previous and the next MS1 spectrum.
       @note: If an MS1 spectrum does not contain the target peak within the given tolerance, all values are returned as 0.
 
-      @ingroup ID
+      @ingroup Analysis_ID
   */
   class OPENMS_DLLAPI PrecursorPurity
   {
