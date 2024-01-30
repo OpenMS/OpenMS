@@ -780,13 +780,14 @@ struct ImmoniumIonsInPeptide
 
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_OpenNuXL.cli
+    @verbinclude TOPP_OpenNuXL.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_OpenNuXL.html
+    @htmlinclude TOPP_OpenNuXL.html
  */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
+
 class OpenNuXL :
   public TOPPBase
 {
@@ -6886,3 +6887,4 @@ int main(int argc, const char** argv)
   return tool.main(argc, argv);
 }
 
+/// @endcond
