@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -26,40 +26,40 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_NoiseFilterGaussian NoiseFilterGaussian
+@page TOPP_NoiseFilterGaussian NoiseFilterGaussian
 
-  @brief  Executes a Gaussian filter to reduce the noise in an MS experiment.
- 
-  <center>
-  <table>
-  <tr>
-  <th ALIGN = "center"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=4> &rarr; NoiseFilterGaussian &rarr;</td>
-  <th ALIGN = "center"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet</td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_Resampler </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes</td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter</td>
-  </tr>
-  </table>
-  </center>
- 
-  The Gaussian filter is a peak area preserving low-pass filter and is characterized by narrow bandwidths,
-  sharp cutoffs, and low passband ripple.
+@brief  Executes a Gaussian filter to reduce the noise in an MS experiment.
 
-  @note The Gaussian filter works for uniform as well as for non-uniform data.
+<center>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=4> &rarr; NoiseFilterGaussian &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes</td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_Resampler </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes</td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter</td>
+</tr>
+</table>
+</center>
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_NoiseFilterGaussian.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_NoiseFilterGaussian.html
+The Gaussian filter is a peak area preserving low-pass filter and is characterized by narrow bandwidths,
+sharp cutoffs, and low passband ripple.
+
+@note The Gaussian filter works for uniform as well as for non-uniform data.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_NoiseFilterGaussian.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_NoiseFilterGaussian.html
 */
 
 // We do not want this class to show up in the docu:

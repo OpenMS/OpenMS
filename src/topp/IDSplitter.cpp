@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -21,18 +21,18 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_IDSplitter IDSplitter
+@page TOPP_IDSplitter IDSplitter
 
-    @brief Splits protein/peptide identifications off of annotated data files.
+@brief Splits protein/peptide identifications off of annotated data files.
 
-    This performs the reverse operation as IDMapper.
+This performs the reverse operation as IDMapper.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_IDSplitter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_IDSplitter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_IDSplitter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_IDSplitter.html
 */
 
 // We do not want this class to show up in the docu:

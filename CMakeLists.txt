@@ -325,6 +325,7 @@ set(VALID_PACKAGE_TYPES "none" # the classical build type make/make install
                         "nsis") # an NSIS installer for Windows
 
 set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
+message(STATUS "Package type is '${PACKAGE_TYPE}'")
 is_valid_package(${PACKAGE_TYPE})
 
 ## Warn here because you need the signing identity before the app bundles are defined in the
@@ -452,6 +453,11 @@ endif()
 # do not have to re-search for the core components
 
 include(cmake/cmake_findExternalLibs.cmake)
+
+#------------------------------------------------------------------------------
+# find the Doxygen (required by /doc and /src/OpenMS)
+find_package(Doxygen) ## defines 'DOXYGEN_HAVE_DOT', 'DOXYGEN_VERSION' etc
+
 
 #------------------------------------------------------------------------------
 # The actual OpenMS code (headers and source files)

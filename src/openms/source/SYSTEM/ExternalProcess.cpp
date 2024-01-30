@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -118,7 +118,7 @@ namespace OpenMS
     }
     else if (qp_->exitCode() != 0)
     {
-      error_msg = "Process '" + exe + "' did not finish successfully (exit code: " + int(qp_->exitCode()) + "). Please check the log.";
+      error_msg = "Process '" + exe + "' did not finish successfully (exit code: " + String(int(qp_->exitCode())).toQString() + "). Please check the log.";
       if (verbose)
       {
         callbackStdErr_(error_msg + '\n');

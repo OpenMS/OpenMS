@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -40,6 +40,7 @@ namespace OpenMS
           the identification with the higher SIRIUS score is chosen (currently based on the explained peak intensities).
 
           @param sirius_workspace_subdirs Vector of paths to SIRIUS subdirectories.
+          @param score_threshold Only use spectra over a certain score threshold (0-1)
           @param use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
           */
           static std::vector<SiriusTargetDecoySpectra> extractAndResolveSiriusAnnotations(const std::vector<String>& sirius_workspace_subdirs, double score_threshold,

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -37,9 +37,9 @@ namespace OpenMS
 
     void setExpectedSize(Size s_size, Size c_size) override;
 
-    void consumeSpectrum(SpectrumType & s) override;
+    void consumeSpectrum(SpectrumType& s) override;
 
-    void consumeChromatogram(ChromatogramType & c) override;
+    void consumeChromatogram(ChromatogramType& c) override;
 
     const PeakMap& getData() const;
 

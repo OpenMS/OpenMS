@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -406,7 +406,7 @@ public:
 
       @param[in] spectra The input spectra
       @param[in] cmp The `Comparator` object containing the spectral library
-      @param[in/out] features The `FeatureMap` to be updated with matching info
+      @param[in,out] features The `FeatureMap` to be updated with matching info
     */
     void targetedMatching(
       const std::vector<MSSpectrum>& spectra,

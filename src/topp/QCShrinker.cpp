@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -30,38 +30,38 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_QCShrinker QCShrinker
+@page TOPP_QCShrinker QCShrinker
 
-    @brief This application is used to remove extra verbose table attachments from a qcML file that are not needed anymore, e.g. for a final report.
+@brief This application is used to remove extra verbose table attachments from a qcML file that are not needed anymore, e.g. for a final report.
 
-    <CENTER>
-      <table>
-        <tr>
-        <th ALIGN = "center"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> &rarr; QCShrinker &rarr;</td>
-        <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_QCMerger </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> ... </td>
-        </tr>
-      </table>
-    </CENTER>
+<CENTER>
+  <table>
+    <tr>
+    <th ALIGN = "center"> pot. predecessor tools </td>
+    <td VALIGN="middle" ROWSPAN=3> &rarr; QCShrinker &rarr;</td>
+    <th ALIGN = "center"> pot. successor tools </td>
+    </tr>
+    <tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_QCMerger </td>
+    </tr>
+    <tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> ... </td>
+    </tr>
+  </table>
+</CENTER>
 
-    If there is a lot of verbose or deprecated information in the given qcml file at @p in that can be purged.
-    
-    - @p qp_accessions A list of cv accessions that should be removed. If empty, the usual suspects will be removed.
-    - @p run the file that defined the run under which the qp for the attachment is aggregated as MZML file. The file is only used to extract the run name from the file name;
-    - @p name if no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given;
-    
-    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
-    
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_QCShrinker.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_QCShrinker.html
+If there is a lot of verbose or deprecated information in the given qcml file at @p in that can be purged.
+
+- @p qp_accessions A list of cv accessions that should be removed. If empty, the usual suspects will be removed.
+- @p run the file that defined the run under which the qp for the attachment is aggregated as MZML file. The file is only used to extract the run name from the file name;
+- @p name if no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given;
+
+Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_QCShrinker.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_QCShrinker.html
 
 */
 

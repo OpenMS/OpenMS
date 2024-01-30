@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -34,9 +34,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_CometAdapter CometAdapter
+@page TOPP_CometAdapter CometAdapter
 
-    @brief Identifies peptides in MS/MS spectra via Comet.
+@brief Identifies peptides in MS/MS spectra via Comet.
 
 <CENTER>
     <table>
@@ -52,23 +52,23 @@ using namespace std;
     </table>
 </CENTER>
 
-    @em Comet must be installed/downloaded before this wrapper can be used. OpenMS installers ship with Comet.
-    
-    @warning We recommend to use Comet 2019.01 rev. 5 or later, due to a serious "empty result" bug in earlier versions (which occurs frequently on Windows; Linux seems not/less affected).
+@em Comet must be installed/downloaded before this wrapper can be used. OpenMS installers ship with Comet.
 
-    Comet settings not exposed by this adapter can be directly adjusted using a param file, which can be generated using comet -p.
-    By default, All (!) parameters available explicitly via this param file will take precedence over the wrapper parameters.
+@warning We recommend to use Comet 2019.01 rev. 5 or later, due to a serious "empty result" bug in earlier versions (which occurs frequently on Windows; Linux seems not/less affected).
 
-    Parameter names have been changed to match names found in other search engine adapters, however some are Comet specific.
-    For a detailed description of all available parameters check the Comet documentation at http://comet-ms.sourceforge.net/parameters/parameters_201601/
-    The default parameters are set for a high resolution instrument.
+Comet settings not exposed by this adapter can be directly adjusted using a param file, which can be generated using comet -p.
+By default, All (!) parameters available explicitly via this param file will take precedence over the wrapper parameters.
 
-    @note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
+Parameter names have been changed to match names found in other search engine adapters, however some are Comet specific.
+For a detailed description of all available parameters check the Comet documentation at http://comet-ms.sourceforge.net/parameters/parameters_201601/
+The default parameters are set for a high resolution instrument.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_CometAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_CometAdapter.html
+@note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_CometAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_CometAdapter.html
 */
 
 // We do not want this class to show up in the docu:

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -263,6 +263,7 @@ private:
     int stop_report_after_feature_;
     bool write_convex_hull_;
     bool strict_;
+    bool use_ms1_ion_mobility_;
     String scoring_model_;
 
     // scoring parameters

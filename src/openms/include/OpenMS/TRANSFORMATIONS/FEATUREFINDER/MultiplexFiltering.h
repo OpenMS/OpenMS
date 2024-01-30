@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -74,7 +74,8 @@ public:
      * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
      * @param peptide_similarity    similarity score for two peptides in the same multiplet
      * @param averagine_similarity    similarity score for peptide isotope pattern and averagine model
-     * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p). 
+     * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p).
+     * @param averagine_type Averagine model to use: 'peptide', 'RNA', 'DNA'
      */
     MultiplexFiltering(const MSExperiment& exp_centroided, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min,
                        int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit,
@@ -117,7 +118,7 @@ protected:
      * Checks if there are peaks at m/z positions corresponding to the pattern
      * and that the primary peak position is not blacklisted.
      *
-     * @param it_mz    m/z iterator of the primary peak
+     * @param mz    m/z of the primary peak
      * @param it_rt_begin    RT iterator of the very first spectrum of the experiment (needed to determine indices)
      * @param it_rt_band_begin    RT iterator of the first spectrum in the RT band
      * @param it_rt_band_end    RT iterator of the spectrum after the last spectrum in the RT band

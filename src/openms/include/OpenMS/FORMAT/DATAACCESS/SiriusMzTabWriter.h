@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -119,11 +119,11 @@ namespace OpenMS
     @brief Conversion of sirius output to mzTab
     
     Output of Sirius is one directory per spectrum/compound
+    
     @param sirius_output_paths: Path to output directories of Sirius
     @param original_input_mzml: Path to mzml input of SiriusAdapter
-    @param top_n_hits: Top n  entries for each compound written to the result file     
-    
-    @return: Result written to mzTab
+    @param top_n_hits: Top n entries for each compound written to the result file     
+    @param result mzTab result
     */
     static void read(const std::vector<String>& sirius_output_paths,
                      const String& original_input_mzml,
