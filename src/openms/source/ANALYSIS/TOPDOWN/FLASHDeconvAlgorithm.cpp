@@ -426,8 +426,11 @@ namespace OpenMS
 
     while (iter != precursor_map_for_ida_.begin() && native_id_precursor_peak_group_map_.find(map[index].getNativeID()) == native_id_precursor_peak_group_map_.end())
     {
-      --iter;
-      if (iter->first < scan_number - preceding_MS1_count_ - 10) // for FLASHIda, give 10 more buffer scans
+      if (iter->first > scan_number || iter == precursor_map_for_ida_.end()){
+        iter--;
+        continue;
+      }
+      if (iter->first < scan_number - preceding_MS1_count_ - 500) // for FLASHIda, give more buffer scans
       {
         return;
       }
@@ -463,6 +466,7 @@ namespace OpenMS
           }
         }
       }
+      --iter;
     }
   }
 

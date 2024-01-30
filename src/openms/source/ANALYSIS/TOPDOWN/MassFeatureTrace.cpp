@@ -88,6 +88,7 @@ namespace OpenMS
 
     MassTraceDetection mtdet;
     Param mtd_param = getParameters().copy("");
+    double cos_threshold = mtd_param.getValue("min_cos");
     mtd_param.remove("min_cos");
     mtdet.setParameters(mtd_param);
     std::vector<MassTrace> m_traces;
@@ -169,7 +170,7 @@ namespace OpenMS
       int offset = 0;
       float isotope_score = SpectralDeconvolution::getIsotopeCosineAndIsoOffset(mass, per_isotope_intensity, offset, averagine, 0, 0);
 
-      if (isotope_score < .5)
+      if (isotope_score < cos_threshold)
       {
         continue;
       }

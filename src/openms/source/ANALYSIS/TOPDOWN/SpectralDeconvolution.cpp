@@ -429,7 +429,7 @@ namespace OpenMS
         const float factor = abs_charge <= low_charge_ ? highest_factor : (highest_factor / 2 + highest_factor / 2 * low_charge_ / (float)abs_charge);
         // intensity ratio between consecutive charges for possible harmonic should be within this factor
 
-        const float hfactor = factor / 2.0f;
+        const float hfactor = factor / 2.0;
         // intensity of previous charge
         // intensity ratio between current and previous charges
         float intensity_ratio = prev_intensity <= 0 ? (factor + 1) : (intensity / prev_intensity);
@@ -553,7 +553,8 @@ namespace OpenMS
               if (ms_level_ > 1 && harmonic_charges_[k] * abs_charge > current_max_charge_)
                 break;
               float harmonic_intensity = 0;
-              for (int t = -1; t < 2; t++)
+              int min_dis = tol_div_factor + 1;
+              for (int t = - tol_div_factor; t <= tol_div_factor; t++)
               {
                 long hmz_bin_index = mass_bin_index - harmonic_bin_offset_matrix_.getValue(k, j) + t;
                 if (hmz_bin_index > 0 && hmz_bin_index != (long)mz_bin_index && hmz_bin_index < (int)mz_bins_.size() && mz_bins_[hmz_bin_index])
@@ -561,8 +562,12 @@ namespace OpenMS
                   float h_intensity = mz_intensities[hmz_bin_index];
                   if (h_intensity > low_threshold && h_intensity < high_threshold)
                   {
-                    harmonic_intensity = std::max(harmonic_intensity, h_intensity);
                     is_harmonic = true;
+                    if (abs(t) < min_dis)
+                    {
+                      harmonic_intensity = h_intensity;
+                      min_dis = abs(t);
+                    }
                   }
                 }
               }

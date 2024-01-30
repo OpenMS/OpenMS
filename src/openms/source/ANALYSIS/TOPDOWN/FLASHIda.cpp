@@ -889,8 +889,10 @@ namespace OpenMS
       std::cout << in_log_file << " not found\n";
     }
     int mass_cntr = 0;
-    for (const auto& v : precursor_map_for_real_time_acquisition)
+    for (auto& v : precursor_map_for_real_time_acquisition)
     {
+      std::sort(v.second.begin(), v.second.end(),[](const std::vector<float>& left, const std::vector<float>& right) {
+          return left[0] < right[0];});
       mass_cntr += v.second.size();
     }
 
