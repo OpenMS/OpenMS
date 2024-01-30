@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -24,14 +24,14 @@ namespace OpenMS
   CsvFile::CsvFile(const String& filename, char is, bool ie, Int first_n) :
     TextFile(), itemseperator_(is), itemenclosed_(ie)
   {
-    TextFile::load(filename, false, first_n);
+    TextFile::load(filename, false, first_n, false, "#");
   }
 
   void CsvFile::load(const String& filename, char is, bool ie, Int first_n)
   {
     itemseperator_ = is;
     itemenclosed_ = ie;
-    TextFile::load(filename, true, first_n);
+    TextFile::load(filename, true, first_n, false, "#");
   }
 
   void CsvFile::store(const String& filename)
@@ -66,6 +66,7 @@ namespace OpenMS
     {
       throw Exception::InvalidIterator(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
+
     bool splitted = buffer_[row].split(itemseperator_, list);
     if (!splitted)
     {

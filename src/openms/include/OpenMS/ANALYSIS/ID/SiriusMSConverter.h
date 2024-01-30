@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -68,16 +68,14 @@ public:
     Comments (see CompoundInfo) are written to SIRIUS .ms file and additionally stores in CompoundInfo struct.
     If adduct information for a spectrum is missing, no adduct information is added. 
     In this case, SIRIUS assumes default adducts for the respective spectrum.
-    
-    @return writes .ms file
-    @return stores CompoundInfo
-    
+        
     @param spectra: Peakmap from input mzml.
     @param msfile: Writes .ms file from sirius.
     @param feature_mapping: Adducts and features (index).
     @param feature_only: Only use features.
     @param isotope_pattern_iterations: At which depth to stop isotope_pattern extraction (if possible).
-    @param v_cmpinfo: Vector of CompoundInfo.
+    @param no_mt_info Should isotope pattern be extracted (if not in feature)?
+    @param[out] v_cmpinfo: Vector of CompoundInfo.
     */
 
     static void store(const MSExperiment& spectra,

@@ -142,6 +142,7 @@ namespace MSNumpress {
 	 *
 	 * @param data		vector of doubles to be encoded
 	 * @param result		vector of resulting bytes (will be resized to the number of bytes)
+   * @param fixedPoint	the scaling factor used for getting the fixed point repr. This is stored in the binary and automatically extracted on decoding.
 	 */
 	void encodeLinear(
 		const std::vector<double> &data, 
@@ -149,7 +150,7 @@ namespace MSNumpress {
 		double fixedPoint);
 
 	/**
-     * Decodes data encoded by encodeLinear. 
+   * Decodes data encoded by encodeLinear. 
 	 *
 	 * result vector guaranteed to be shorter or equal to (|data| - 8) * 2
 	 *
@@ -160,7 +161,7 @@ namespace MSNumpress {
 	 * @param data		pointer to array of bytes to be decoded (need memorycont. repr.)
 	 * @param dataSize	number of bytes from *data to decode
 	 * @param result		pointer to were resulting doubles should be stored
-	 * @param return		the number of decoded doubles, or -1 if dataSize < 4 or 4 < dataSize < 8
+	 * @return		the number of decoded doubles, or -1 if dataSize < 4 or 4 < dataSize < 8
 	 */
 	size_t decodeLinear(
 		const unsigned char *data,
@@ -276,7 +277,7 @@ namespace MSNumpress {
 	 * int need to use either the last halfbyte, or the second last followed by a 0x0 halfbyte. 
 	 *
 	 * @param data		vector of bytes to be decoded
-	 * @result		vector of resulting double (will be resized to the number of doubles)
+	 * @param result		vector of resulting double (will be resized to the number of doubles)
 	 */
 	void decodePic(
 		const std::vector<unsigned char> &data,
@@ -300,6 +301,7 @@ namespace MSNumpress {
 	 * @param data		pointer to array of double to be encoded (need memorycont. repr.)
 	 * @param dataSize	number of doubles from *data to encode
 	 * @param result		pointer to were resulting bytes should be stored
+   * @param fixedPoint	the scaling factor used for getting the fixed point repr. This is stored in the binary and automatically extracted on decoding.
 	 * @return		the number of encoded bytes
 	 */
 	size_t encodeSlof(
@@ -312,7 +314,8 @@ namespace MSNumpress {
 	 * Calls lower level encodeSlof while handling vector sizes appropriately
 	 *
 	 * @param data		vector of doubles to be encoded
-	 * @result		vector of resulting bytes (will be resized to the number of bytes)
+	 * @param result		vector of resulting bytes (will be resized to the number of bytes)
+   * @param fixedPoint	the scaling factor used for getting the fixed point repr. This is stored in the binary and automatically extracted on decoding.
 	 */
 	void encodeSlof(
 		const std::vector<double> &data,

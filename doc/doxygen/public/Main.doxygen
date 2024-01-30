@@ -27,7 +27,11 @@
       <TD valign="top">
 
         <BR>
-        Documentation:
+
+        All aspects of using %OpenMS (installation, workflows, user tutorials etc), can be found on
+        our <em><a href="https://openms.readthedocs.io/en/latest/index.html">ReadTheDocs website</a></em>
+        
+        Only documentation for individual TOPP tools and TOPPAS remains here (since this is build directly from the %OpenMS source code using Doxygen):
         <UL>
           <LI> @subpage TOPP_documentation
           <LI> @subpage TOPPAS_tutorial

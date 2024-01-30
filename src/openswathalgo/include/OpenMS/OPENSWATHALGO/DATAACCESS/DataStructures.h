@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -229,6 +229,12 @@ public:
     void setIntensityArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[1] = data;
+    }
+
+    void setDriftTimeArray(BinaryDataArrayPtr data)
+    {
+      data->description = "Ion Mobility";
+      binaryDataArrayPtrs.push_back(data);
     }
 
     /// get drift time array (may be null)
