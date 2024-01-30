@@ -33,7 +33,7 @@ namespace OpenMS
   /**
     @brief Utilities operating on containers inheriting from MetaInfoInterface
 
-    @ingroup MetaData
+    @ingroup Metadata
   */
   class /*OPENMS_DLLAPI -- disabled since it's template code only */ MetaInfoInterfaceUtils
   {

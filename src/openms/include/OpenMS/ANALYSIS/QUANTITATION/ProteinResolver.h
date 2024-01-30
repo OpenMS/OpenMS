@@ -22,7 +22,7 @@ namespace OpenMS
 
     This class is used by @ref TOPP_ProteinResolver . See there for further documentation.
 
-    @ingroup Analysis_QUANTITATION
+    @ingroup Analysis_ID
 
   */
   class OPENMS_DLLAPI ProteinResolver :

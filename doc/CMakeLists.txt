@@ -127,7 +127,7 @@ if(ENABLE_DOCS)
     
     ## if not found, use empty string to avoid `warning: the dot tool could not be found as 'DOXYGEN_DOT_EXECUTABLE-NOTFOUND/dot.exe'` in doxygen-error.log
     if (DOXYGEN_DOT_EXECUTABLE) 
-      set(CF_DOXYGEN_DOT_EXECUTABLE DOXYGEN_DOT_EXECUTABLE)
+      set(CF_DOXYGEN_DOT_EXECUTABLE "${DOXYGEN_DOT_EXECUTABLE}")
     else()
       set(CF_DOXYGEN_DOT_EXECUTABLE "")
     endif()
