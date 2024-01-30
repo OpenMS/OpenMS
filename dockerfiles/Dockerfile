@@ -188,9 +188,17 @@ LABEL software="OpenMS (library)"
 
 ### OpenMS tools runtime ###
 FROM library AS tools
-ARG OPENMS_LIBRARY_DIR
 ARG OPENMS_LIBRARY_BUILD_DIR
-ARG CONTRIB_BUILD_DIR
+
+COPY --from=tools-build ${OPENMS_LIBRARY_BUILD_DIR}/bin ${OPENMS_LIBRARY_BUILD_DIR}/bin
+ENV PATH="${OPENMS_LIBRARY_BUILD_DIR}/bin:${PATH}"
+WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
+
+LABEL software="OpenMS (tools)"
+
+
+### OpenMS tools runtime ###
+FROM tools AS tools-thirdparty
 ARG THIRDPARTY_DIR
 
 RUN apt-get update \
@@ -208,13 +216,11 @@ RUN apt-get update \
     mono-devel \
   && rm -rf /var/lib/apt/lists/*
 
-COPY --from=tools-build ${OPENMS_LIBRARY_BUILD_DIR}/bin ${OPENMS_LIBRARY_BUILD_DIR}/bin
 COPY --from=tools-build ${THIRDPARTY_DIR} ${THIRDPARTY_DIR}
 
-ENV PATH="${OPENMS_LIBRARY_BUILD_DIR}/bin:${THIRDPARTY_DIR}/LuciPHOr2:${THIRDPARTY_DIR}/MSGFPlus:${THIRDPARTY_DIR}/ThermoRawFileParser:${THIRDPARTY_DIR}/Comet:${THIRDPARTY_DIR}/Fido:${THIRDPARTY_DIR}/MaRaCluster:${THIRDPARTY_DIR}/Percolator:${THIRDPARTY_DIR}/SpectraST:${THIRDPARTY_DIR}/XTandem:${THIRDPARTY_DIR}/Sage:${PATH}"
-WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
+ENV PATH="${THIRDPARTY_DIR}/LuciPHOr2:${THIRDPARTY_DIR}/MSGFPlus:${THIRDPARTY_DIR}/ThermoRawFileParser:${THIRDPARTY_DIR}/Comet:${THIRDPARTY_DIR}/Fido:${THIRDPARTY_DIR}/MaRaCluster:${THIRDPARTY_DIR}/Percolator:${THIRDPARTY_DIR}/SpectraST:${THIRDPARTY_DIR}/XTandem:${THIRDPARTY_DIR}/Sage:${PATH}"
 
-LABEL software="OpenMS (tools)"
+LABEL software="OpenMS (tools + thirdparty)"
 
 
 ### OpenMS test build ###

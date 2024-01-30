@@ -102,7 +102,20 @@ jobs:
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools:${{ steps.tag_name.outputs.tag }}
           cache-from: type=gha,scope=ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools:${{ steps.tag_name.outputs.tag }}
           cache-to: type=gha,mode=max,scope=ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools:${{ steps.tag_name.outputs.tag }}
-
+      - name: Build and Push Docker Tools + Thirdparty Image
+        uses: docker/build-push-action@v5
+        with:
+          push: true # Will only build if this is not here
+          file: dockerfiles/Dockerfile
+          target: thirdparty
+          build-args: |
+            NUM_BUILD_CORES=4
+            OPENMS_VERSION=${{ steps.tag_name.outputs.tag }}
+            OPENMS_BRANCH=${{ steps.extract_branch.outputs.branch }}
+          tags: |
+            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools-thirdparty:${{ steps.tag_name.outputs.tag }}
+          cache-from: type=gha,scope=ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools-thirdparty:${{ steps.tag_name.outputs.tag }}
+          cache-to: type=gha,mode=max,scope=ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools-thirdparty:${{ steps.tag_name.outputs.tag }}
   deploy-singularity:
     runs-on: ubuntu-latest
     needs: deploy-docker
@@ -125,10 +138,14 @@ jobs:
         shell: bash
         run: |
             sudo singularity build executables.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-executables:${{ needs.deploy-docker.outputs.tag_name }}
+      - name: Build Singularity tools + thirdparty image
+        shell: bash
+        run: |
+            sudo singularity build executables-thirdparty.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-tools-thirdparty:${{ needs.deploy-docker.outputs.tag_name }}
       - name: Upload Singularity images to ghcr.io
         shell: bash
         run: |
             echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u jpfeuffer --password-stdin oras://ghcr.io
             singularity push library.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-library-sif:${{ needs.deploy-docker.outputs.tag_name }}
-            echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u jpfeuffer --password-stdin oras://ghcr.io
             singularity push executables.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-executables-sif:${{ needs.deploy-docker.outputs.tag_name }}
+            singularity push executables-thirdparty.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-tools-thirdparty-sif:${{ needs.deploy-docker.outputs.tag_name }}
