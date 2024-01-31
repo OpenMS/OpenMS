@@ -171,38 +171,92 @@ namespace OpenMS
       }
     };
 
-    /// Does a meta value of this hit have at least the given value?
-    template<class HitType>
-    struct HasMinMetaValue {
-      typedef HitType argument_type; // for use as a predicate
+    /**
+         * @brief Predicate to check if a HitType object has a minimum meta value.
+         * 
+         * This struct is used as a predicate in filtering operations to check if a HitType object
+         * has a meta value with a value greater than or equal to a specified threshold.
+         * Can be used with any HitType object that has a meta value with a double value.
+         */
+        template<class HitType>
+        struct HasMinMetaValue 
+        {
+          typedef HitType argument_type; // for use as a predicate
 
-      String key;
-      double value;
+          String key;
+          double value;
 
-      HasMinMetaValue(const String& key_, const double& value_) : key(key_), value(value_)
-      {
-      }
+          /**
+           * @brief Constructor for HasMinMetaValue.
+           * 
+           * @param key The key of the meta value to check.
+           * @param value The minimum value threshold.
+           */
+          HasMinMetaValue(const String& key_, const double& value_) : 
+            key(key_), 
+            value(value_)
+          {
+          }
 
-      bool operator()(const HitType& hit) const
-      {
-        DataValue found = hit.getMetaValue(key);
-        if (found.isEmpty())
-          return false; // meta value "key" not set
-        return double(found) >= value;
-      }
-    };
+          /**
+           * @brief Operator() function to check if a HitType object has a minimum meta value.
+           * 
+           * @param hit The HitType object to check.
+           * @return True if the HitType object has a meta value with a value greater than or equal to the threshold, false otherwise.
+           */
+          bool operator()(const HitType& hit) const
+          {
+            DataValue found = hit.getMetaValue(key);
+            if (found.isEmpty())
+            {
+              return false; // meta value "key" not set
+            }          
+            return static_cast<double>(found) >= value;
+          }
+        };
 
     /// Is this a decoy hit?
+    /**
+     * @brief A predicate to check if a HitType has decoy annotation.
+     * 
+     * This struct is used as a predicate to check if a HitType object has decoy annotation.
+     * It checks for the presence of "target_decoy" or "isDecoy" meta values in the HitType object.
+     * 
+     * Example usage:
+     * @code
+     *   PeptideHit hit;
+     *   HasDecoyAnnotation<PeptideHit> hasDecoy;
+     *   bool hasDecoyAnnotation = hasDecoy(hit);
+     * @endcode
+     * 
+     * @tparam HitType The type of the Hit object to be checked.
+     */
     template<class HitType>
-    struct HasDecoyAnnotation {
+    struct HasDecoyAnnotation 
+    {
       typedef HitType argument_type; // for use as a predicate
 
       struct HasMetaValue<HitType> target_decoy, is_decoy;
 
-      HasDecoyAnnotation() : target_decoy("target_decoy", "decoy"), is_decoy("isDecoy", "true")
+      /**
+       * @brief Default constructor.
+       * 
+       * Initializes the "target_decoy" and "is_decoy" meta value objects.
+       */
+      HasDecoyAnnotation() : 
+        target_decoy("target_decoy", "decoy"),
+        is_decoy("isDecoy", "true")
       {
       }
 
+      /**
+       * @brief Operator to check if a HitType object has decoy annotation.
+       * 
+       * This operator checks if the given HitType object has either "target_decoy" or "isDecoy" meta values.
+       * 
+       * @param hit The HitType object to be checked.
+       * @return True if the HitType object has decoy annotation, false otherwise.
+       */
       bool operator()(const HitType& hit) const
       {
         // @TODO: this could be done slightly more efficiently by returning
@@ -223,7 +277,8 @@ namespace OpenMS
 
       const std::unordered_set<String>& accessions;
 
-      HasMatchingAccessionUnordered(const std::unordered_set<String>& accessions_) : accessions(accessions_)
+      HasMatchingAccessionUnordered(const std::unordered_set<String>& accessions_) : 
+        accessions(accessions_)
       {
       }
 
@@ -785,11 +840,18 @@ namespace OpenMS
     }
 
     /**
-      @brief Filters peptide or protein identifications according to the score of the hits. Allows for secondary scores.
-
-      Only peptide/protein hits with a score at least as good as @p threshold_score are kept. Score orientation (are higher scores better?) is taken into account.
-      This will look for a given @p score_type as the main score or in the secondary scores. Removes a hit if the @p score_type is not found at all.
-    */
+     * @brief Filters peptide or protein identifications according to the score of the hits. 
+     * 
+     * Only peptide/protein hits with a score at least as good as @p threshold_score are kept. Score orientation is taken into account.
+     * This will look for a given @p score_type as the main score or in the secondary scores. 
+     * 
+     * Note: Removes a hit if the @p score_type is not found at all.
+     * 
+     * @tparam IdentificationType The type of identification.
+     * @param ids The vector of identifications to filter.
+     * @param threshold_score The threshold score to filter the hits.
+     * @param score_type The score type to consider for filtering.
+     */
     template<class IdentificationType>
     static void filterHitsByScore(std::vector<IdentificationType>& ids, double threshold_score, IDScoreSwitcherAlgorithm::ScoreType score_type)
     {

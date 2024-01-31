@@ -96,6 +96,11 @@ protected:
     setValidStrings_("protein", ListUtils::create<String>("true,false"));
     registerStringOption_("protein_group", "<FDR level>", "true", "Perform FDR calculation on (indist.) protein group level, too. Currently, this will enable protein FDR automatically (since internals need to be in-sync) but will affect the level at which it filters (if enabled).", false);
     setValidStrings_("protein_group", ListUtils::create<String>("true,false"));
+
+    registerStringOption_("protein_score", "<type>", "", "The protein score used to calculate the protein FDR. If empty, the main score is used.", false, true);
+    auto ids = IDScoreSwitcherAlgorithm();
+    setValidStrings_("protein_score", ids.getScoreTypeNames()); // lists all scores (including PSM only scores)
+
     registerStringOption_("protein_base_score", "<score name or type>", "", "Set if you want to choose a different score than the last calculated main score for protein (group) level.", false);
     registerStringOption_("protein_base_score_orientation", "<higher/lower>", "", "Set if you want to choose a different score than the last calculated main score for protein (group) level.", false, true);
     setValidStrings_("protein_base_score_orientation", ListUtils::create<String>("higher_better, lower_better"));
@@ -166,7 +171,8 @@ protected:
         String protein_score = getStringOption_("protein_score");
         if (!protein_score.empty())
         {
-          try {
+          try 
+          {
             IDScoreSwitcherAlgorithm::ScoreType score_type = IDScoreSwitcherAlgorithm::getScoreType(protein_score);
             IDScoreSwitcherAlgorithm switcher;
             Size c = 0;

@@ -129,7 +129,15 @@ protected:
 
     registerTOPPSubsection_("score", "Filtering by peptide/protein score.");
     registerDoubleOption_("score:pep", "<score>", 0, "The score which should be reached by a peptide hit to be kept.", false);
+    registerStringOption_("score:type_pep", "<type>", "", "Score used for filtering. If empty, the main score is used.", false, true);
+    
+    auto ids = IDScoreSwitcherAlgorithm();
+    setValidStrings_("score:type_pep", ids.getScoreTypeNames());
+
     registerDoubleOption_("score:prot", "<score>", 0, "The score which should be reached by a protein hit to be kept. All proteins are filtered based on their singleton scores irrespective of grouping. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false);
+    registerStringOption_("score:type_prot", "<type>", "", "The type of the score which should be reached by a protein hit to be kept. If empty, the most recently set score is used.", false, true);
+    setValidStrings_("score:type_prot", ids.getScoreTypeNames());
+
     registerDoubleOption_("score:protgroup", "<score>", 0, "The score which should be reached by a protein group to be kept. Performs group level score filtering (including groups of single proteins). Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false);
     registerTOPPSubsection_("whitelist", "Filtering by whitelisting (only peptides/proteins from a given set can pass)");
     registerInputFile_("whitelist:proteins", "<file>", "", "Filename of a FASTA file containing protein sequences.\n"

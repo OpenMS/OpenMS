@@ -52,19 +52,19 @@ namespace OpenMS
       return possible_types.find(chopped) != possible_types.end();
     }
 
-    /// Gets a ScoreType enum from a String
+    /// Gets a @p ScoreType enum from a given score name @p score_name
     static ScoreType getScoreType(String score_type)
     {
       if (score_type.hasSuffix("_score"))
       {
         score_type = score_type.chop(6);
       }
-      score_type.toLower();
-      score_type.erase(std::remove(score_type.begin(), score_type.end(), '-'), score_type.end());
-      score_type.erase(std::remove(score_type.begin(), score_type.end(), '_'), score_type.end());
-      score_type.erase(std::remove(score_type.begin(), score_type.end(), ' '), score_type.end());
+      score_type.toLower();     
+      score_type.erase(std::remove_if(score_type.begin(), score_type.end(), 
+                [](unsigned char c) { return c == '-' || c == '_' || c == ' '; }), 
+                score_type.end());
 
-      std::map<String, ScoreType> s_to_type =
+      const std::map<String, ScoreType> s_to_type =
       {
         {"raw", ScoreType::RAW},
         {"rawevalue", ScoreType::RAW_EVAL},
@@ -77,7 +77,7 @@ namespace OpenMS
         {"pp", ScoreType::PP}
       };
 
-      if(auto it = s_to_type.find(score_type); it != s_to_type.end())
+      if (auto it = s_to_type.find(score_type); it != s_to_type.end())
       {
         return it->second;
       }
@@ -88,16 +88,44 @@ namespace OpenMS
       }
     }
 
+    /**
+     * @brief Determines whether a higher score type is better given a ScoreType enum.
+     * 
+     * @param score_type The score type to check.
+     * @return True if a higher score type is better, false otherwise.
+     */
     bool isScoreTypeHigherBetter(ScoreType score_type)
     {
       return type_to_better_[score_type];
     }
 
-    /// Switches all main scores in all hits in @p id according to
-    /// the settings in the param object of the switcher class
-    /// if the old score type and new score type have the same name (e.g., "q-value") we
-    /// create a meta value entry with appended "~" to the old score type (to not overwrite the
-    /// meta value of the new one).
+    /*
+      * @brief Gets a vector of all score names that are used in OpenMS.
+      *
+      * @return A vector of all score names that are used in OpenMS (e.g., "q-value", "ln(hyperscore)").
+    */
+    std::vector<String> getScoreTypeNames();
+
+    /**
+     * @brief Switches the main scores of all hits in an identification object based on the new scoring settings.
+     *
+     * This method iterates through all hits in the provided identification object and updates their main scores
+     * according to the new scoring settings defined in the switcher class's parameter object. If the old and new
+     * score types share the same name (e.g., "q-value"), the method safeguards the original scores by storing them
+     * as meta values with a "~" appended to the old score type. This prevents overwriting the meta value of the new score.
+     *
+     * @tparam IDType The type of the identification object, which must support getHits(), getScoreType(),
+     *                setScoreType(), and setHigherScoreBetter() methods, along with the ability to handle meta values.
+     * @param[in,out] id An identification object containing hits whose scores are to be switched. The object will
+     *                   be modified in place, with updated scores and score type.
+     * @param[in,out] counter A reference to a Size variable that counts the number of hits processed.
+     *
+     * @throws Exception::MissingInformation If a required meta value (specified as the new score) is not found
+     *                                       in any of the hits, indicating incomplete or incorrect score setup.
+     *
+     * @note The method assumes that the identification object's hits are properly initialized with all necessary
+     *       meta values. It also relies on the tolerance_ value to determine significant differences between scores.     
+     */ 
     template <typename IDType>
     void switchScores(IDType& id, Size& counter)
     {
@@ -119,7 +147,7 @@ namespace OpenMS
         {
           // TODO: find a better way to check if old score type is something different (even if it has same name)
           // This currently, is a workaround for e.g., having Percolator_qvalue as meta value and same q-value as main score (getScore()).
-          //Note by jpfeuffer: The problem with this is, that this may add the old score to some of the hits if different, but not
+          // Note by jpfeuffer: The problem with this is, that this may add the old score to some of the hits if different, but not
           // all, in case one is by chance the same. I would be fine with this, if it was done in the beginning and checked
           // for every score.
           if (fabs((double(dv) - hit_it->getScore()) * 2.0 /
@@ -138,9 +166,32 @@ namespace OpenMS
       id.setHigherScoreBetter(higher_better_);
     }
 
-    /// Looks at the first Hit of the given @p id and according to the given @p type ,
-    /// deduces a fitting score and score direction to be switched to.
-    /// Then tries to switch all hits.
+    /**
+     * @brief Switches the scoring type of identification objects to a general score type.
+     *
+     * This method iterates over a vector of identification objects and changes their scoring type
+     * to a specified general score type. It first checks the score type of the first identification
+     * object in the vector to determine the necessary conversion. If the first ID does not have the
+     * requested score type, an exception is thrown. The method also adjusts the score direction
+     * (higher_better_) based on the specified score type if it's different from the raw score.
+     *
+     * @tparam IDType The type of the identification objects contained in the vector. Must have
+     *                getScoreType() and other relevant methods for score manipulation.
+     * @param[in,out] id A vector of identification objects whose score types are to be switched.
+     * @param[in] type The desired general score type to switch to. This could be an enum or similar
+     *                 representing different scoring systems (e.g., RAW, LOG, etc.).
+     * @param[in,out] counter A reference to a Size variable that may be used to count certain
+     *                        operations or changes made by this method. The exact usage depends on
+     *                        the implementation details and needs.
+     *
+     * @throws Exception::MissingInformation If the first identification object in the vector does not
+     *                                       have the requested score type, indicating that the
+     *                                       operation cannot proceed.
+     *
+     * @note The method assumes that if the first identification object has the correct score type,
+     *       all subsequent objects in the vector also have the correct score type. This assumption
+     *       might need validation depending on the use case.
+     */    
     template<class IDType>
     void switchToGeneralScoreType(std::vector<IDType>& id, ScoreType type, Size& counter)
     {
@@ -230,8 +281,31 @@ namespace OpenMS
       cmap.applyFunctionOnPeptideIDs(switchScoresSingle, unassigned_peptides_too);
     }
 
-
-    /// finds a certain score type in an ID and its metavalues if present, otherwise returns empty string
+    
+    /**
+     * @brief Searches for a specified score type within an identification object and its meta values.
+     *
+     * This method attempts to find a given score type in the main score type of an identification object (`id`)
+     * or within its hits' meta values. It first checks if the current main score type of `id` matches any of
+     * the possible score types for the specified `type`. If not found, it iterates through the meta values of
+     * the first hit in `id` looking for a match. If the score type or a related meta value is found, it is
+     * returned as a `String`. Otherwise, an empty `String` is returned, indicating the score type is not present.
+     *
+     * @tparam IDType The type of the identification object, which must support getScoreType(), getHits(), and
+     *                meta value operations.
+     * @param[in] id The identification object to search for the score type. It is expected to have a main score
+     *               type and possibly additional scores stored as meta values in its hits.
+     * @param[in] type The `ScoreType` to search for, defined in `IDScoreSwitcherAlgorithm`. This type specifies
+     *                 the score of interest.
+     *
+     * @return A String representing the found score type. If the score type is not found,
+     *         an empty String is returned.
+     *
+     * @note This method logs an informational message if the requested score type is already set as the main score,
+     *       a warning if the identification entry is empty, and another warning if the score type is not found in
+     *       the UserParams of the checked ID object. 
+     *       It only checks the first hit of the `id` for meta values.
+     */    
     template <typename IDType>
     String findScoreType(IDType& id, IDScoreSwitcherAlgorithm::ScoreType type)
     {
@@ -252,8 +326,14 @@ namespace OpenMS
         const auto& hit = id.getHits()[0];
         for (const auto& poss_str : possible_types)
         {
-          if (hit.metaValueExists(poss_str)) return poss_str;
-          else if (hit.metaValueExists(poss_str + "_score")) return poss_str + "_score";
+          if (hit.metaValueExists(poss_str)) 
+          {
+            return poss_str;
+          }
+          else if (hit.metaValueExists(poss_str + "_score")) 
+          {
+            return poss_str + "_score";
+          }
         }
         OPENMS_LOG_WARN << "Score of requested type not found in the UserParams of the checked ID object.\n";
         return "";
@@ -298,6 +378,6 @@ namespace OpenMS
             {ScoreType::PEP, false},
             {ScoreType::FDR, false},
             {ScoreType::QVAL, false}
-        };
+        };        
   };
 } // namespace OpenMS
