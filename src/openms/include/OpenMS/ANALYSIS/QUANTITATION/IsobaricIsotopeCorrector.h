@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
+#include <memory>
 
 // forward decl
 namespace Eigen
@@ -78,6 +79,7 @@ private:
      */
     static void solveNNLS_(const Matrix<double>& correction_matrix,
                            const Matrix<double>& m_b, Matrix<double>& m_x);
+    // @jpfeuffer why shared_ptr needed here?                           
     static void solveNNLS_(std::shared_ptr<Eigen::MatrixXd> & correction_matrix, std::vector<double> & b, std::vector<double> & x);
     static void solveNNLS_(std::shared_ptr<const Eigen::MatrixXd> & correction_matrix, std::vector<double> & b, std::vector<double> & x);
 
