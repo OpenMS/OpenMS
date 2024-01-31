@@ -189,8 +189,8 @@ namespace OpenMS
           /**
            * @brief Constructor for HasMinMetaValue.
            * 
-           * @param key The key of the meta value to check.
-           * @param value The minimum value threshold.
+           * @param key_ The key of the meta value to check.
+           * @param value_ The minimum value threshold.
            */
           HasMinMetaValue(const String& key_, const double& value_) : 
             key(key_), 
