@@ -40,7 +40,6 @@ namespace OpenMS
            CsiAdapterRun:
            identifications (vector<CSIAdapterIdentification>)
 
-           @ingroup DATAACCESS
           */
 
           class CsiAdapterHit

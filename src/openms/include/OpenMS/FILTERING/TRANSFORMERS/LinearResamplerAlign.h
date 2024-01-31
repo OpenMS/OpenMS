@@ -211,8 +211,8 @@ public:
         ConstPeakTypeIterator mz_resample_it, ConstPeakTypeIterator mz_resample_end,
         PeakTypeIterator int_resample_it, PeakTypeIterator int_resample_end)
     {
-      (void*)&int_raw_end;      // avoid 'unused parameter' compile error
-      (void*)&int_resample_end; // avoid 'unused parameter' compile error
+      (void)int_raw_end;      // avoid 'unused parameter' compile error
+      (void)int_resample_end; // avoid 'unused parameter' compile error
       OPENMS_PRECONDITION(mz_resample_it != mz_resample_end, "Output iterators cannot be identical") // as we use +1
       OPENMS_PRECONDITION(std::distance(mz_resample_it, mz_resample_end) == std::distance(int_resample_it, int_resample_end),
           "Resample m/z and intensity iterators need to cover the same distance")
