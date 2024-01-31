@@ -11,7 +11,6 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 //Standard library
@@ -48,8 +47,7 @@ namespace OpenMS
     const DerivatizationAgent& correction_matrix_agent)
   {
     // MDV_corrected = correction_matrix_inversed * MDV_observed (normalized_features)
-    
-    if (matrixIsIdentityMatrix(correction_matrix) && !correction_matrix.empty())
+    if (correction_matrix.getEigenMatrix().isIdentity(1e-10) && !(correction_matrix.empty()))
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "IsotopeLabelingMDVs: The given isotope correction matrix is an identity matrix leading to no correction."

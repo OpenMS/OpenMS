@@ -215,7 +215,7 @@ namespace OpenMS
       {
         double a = i > 0 ? exp(-filter_[i - 1]) : 0;
         double b = exp(-filter_[i]);
-        harmonic_filter_matrix_.setValue(k, i, -log(b - (b - a) * n / hc));
+        harmonic_filter_matrix_(k, i) = -log(b - (b - a) * n / hc);
       }
     }
   }
@@ -477,7 +477,7 @@ namespace OpenMS
             {
               for (int t = -1; t < 2; t++)
               {
-                long hmz_bin_index = mass_bin_index - harmonic_bin_offset_matrix_.getValue(k, j) + t;
+                long hmz_bin_index = mass_bin_index - harmonic_bin_offset_matrix_(k, j) + t;
 
                 if (hmz_bin_index > 0 && hmz_bin_index != (long)mz_bin_index && hmz_bin_index < (int)mz_bins_.size() && mz_bins_[hmz_bin_index])
                 {
@@ -531,7 +531,7 @@ namespace OpenMS
     Matrix<int> abs_charge_ranges(2, mass_bins_.size(), INT_MAX);
     for (Size i = 0; i < mass_bins_.size(); i++)
     {
-      abs_charge_ranges.setValue(1, (int)i, INT_MIN);
+      abs_charge_ranges(1, (int)i) = INT_MIN;
     }
     Size mz_bin_index = mz_bins_.find_first();
     long bin_size = (long)mass_bins_.size();
@@ -621,8 +621,8 @@ namespace OpenMS
         int max_intensity_abs_charge_range = max_intensity_abs_charge_ranges[i];
         if (max_index >= 0 && max_index < bin_size)
         {
-          abs_charge_ranges.setValue(0, max_index, std::min(abs_charge_ranges.getValue(0, max_index), max_intensity_abs_charge_range));
-          abs_charge_ranges.setValue(1, max_index, std::max(abs_charge_ranges.getValue(1, max_index), max_intensity_abs_charge_range));
+          abs_charge_ranges(0, max_index) = std::min(abs_charge_ranges(0, max_index), max_intensity_abs_charge_range);
+          abs_charge_ranges(1, max_index) = std::max(abs_charge_ranges(1, max_index), max_intensity_abs_charge_range);
           mass_bins_[max_index] = true;
         }
       }
@@ -672,7 +672,7 @@ namespace OpenMS
       double log_m = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_mul_factor);
       double mass = exp(log_m);
 
-      PeakGroup pg(1, per_mass_abs_charge_ranges.getValue(1, mass_bin_index) + 1, // make an empty peakGroup (mass)
+      PeakGroup pg(1, per_mass_abs_charge_ranges(1, mass_bin_index) + 1, // make an empty peakGroup (mass)
                    is_positive_);
 
       pg.reserve(charge_range * 12);
@@ -685,7 +685,7 @@ namespace OpenMS
       std::fill(total_harmonic_intensity.begin(), total_harmonic_intensity.end(), .0);
 
       // scan through charge - from mass to m/z
-      for (size_t j = per_mass_abs_charge_ranges.getValue(0, mass_bin_index); j <= (size_t)per_mass_abs_charge_ranges.getValue(1, mass_bin_index); j++)
+      for (size_t j = per_mass_abs_charge_ranges(0, mass_bin_index); j <= (size_t)per_mass_abs_charge_ranges(1, mass_bin_index); j++)
       {
         int max_peak_index = -1;
         size_t abs_charge = j + 1;
@@ -998,7 +998,7 @@ namespace OpenMS
     {
       for (int i = 0; i < current_charge_range; i++)
       {
-        harmonic_bin_offset_matrix_.setValue(k, i, (int)round((mz_bin_min_value_ - harmonic_filter_matrix_.getValue(k, i) - mass_bin_min_value_) * bin_mul_factor));
+        harmonic_bin_offset_matrix_(k, i) = (int)round((mz_bin_min_value_ - harmonic_filter_matrix_(k, i) - mass_bin_min_value_) * bin_mul_factor);
       }
     }
 

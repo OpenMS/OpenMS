@@ -43,25 +43,6 @@ START_TEST( BilinearInterpolation, "$Id$" )
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-START_SECTION([EXTRA] typedefs )
-{
-	typedef BilinearInterpolation < float, double > BIFD;
-	BIFD::ValueType     * value;
-	BIFD::KeyType       * key;
-	BIFD::ContainerType * container;
-	BIFD::ContainerType::value_type * containerValue;
-	value = nullptr;
-	key = nullptr;
-	container = nullptr;
-	containerValue = nullptr;
-  // shut off warnings
-  (void)value;
-  (void)key;
-  (void)container;
-  (void)containerValue;
-	NOT_TESTABLE;
-}
-END_SECTION
 
 typedef BilinearInterpolation < float, double > BIFD;
 
@@ -488,7 +469,8 @@ START_SECTION((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType ar
 			bifd_small.setMapping_0( 0, 0, 5, 5 );
 			bifd_small.setMapping_1( 0, 0, 5, 5 );
 			bifd_small.addValue( p, q, 100 );
-			for ( BIFD::ContainerType::iterator iter = bifd_small.getData().begin();
+			
+			for ( auto iter = bifd_small.getData().begin();
 						iter != bifd_small.getData().end();
 						++iter
 						) *iter = Math::round(*iter);
@@ -499,7 +481,7 @@ START_SECTION((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType ar
 			bifd_big.setMapping_0( 5, 0, 10, 5 );
 			bifd_big.setMapping_1( 5, 0, 10, 5 );
 			bifd_big.addValue( p, q, 100 );
-			for ( BIFD::ContainerType::iterator iter = bifd_big.getData().begin();
+			for ( auto iter = bifd_big.getData().begin();
 						iter != bifd_big.getData().end();
 						++iter
 						) *iter = Math::round(*iter);

@@ -36,9 +36,9 @@ START_SECTION((Matrix()))
   TEST_NOT_EQUAL(ptr, nullPointer);
 
   Matrix<int> mi1;
-	TEST_EQUAL(mi1.size(),0);
-	TEST_EQUAL(mi1.cols(),0);
-	TEST_EQUAL(mi1.rows(),0);
+	TEST_EQUAL(mi1.size(), 0);
+	TEST_EQUAL(mi1.cols(), 0);
+	TEST_EQUAL(mi1.rows(), 0);
 	TEST_EQUAL(mi1.empty(),true);
   STATUS("mi1:\n"<< mi1);
 }
@@ -54,32 +54,16 @@ Matrix<int> mi;
 
 START_SECTION((void resize(size_type i, size_type j, value_type value = value_type())))
 {
-	mi.resize(2,2,3);
+  mi.resize(2,2,3);
   STATUS("mi1:\n"<< mi);
-	mi.resize(2,3,7);
+  mi.resize(2,3,7);
   STATUS("mi1:\n"<< mi);
-	TEST_EQUAL(mi(0,0),3);
-	TEST_EQUAL(mi(0,1),3);
-	TEST_EQUAL(mi(0,2),3);
-	TEST_EQUAL(mi(1,0),3);
-	TEST_EQUAL(mi(1,1),7);
-	TEST_EQUAL(mi(1,2),7);
-}
-END_SECTION
-
-START_SECTION((void resize(std::pair<Size, Size> const & size_pair, value_type value = value_type())))
-{
-	std::pair<Size, Size> const sizepair(2,2);
-	mi.resize(sizepair,3);
-  STATUS("mi1:\n"<< mi);
-	mi.resize(2,3,7);
-  STATUS("mi1:\n"<< mi);
-	TEST_EQUAL(mi(0,0),3);
-	TEST_EQUAL(mi(0,1),3);
-	TEST_EQUAL(mi(0,2),3);
-	TEST_EQUAL(mi(1,0),3);
-	TEST_EQUAL(mi(1,1),7);
-	TEST_EQUAL(mi(1,2),7);
+  TEST_EQUAL(mi(0,0),7);
+  TEST_EQUAL(mi(0,1),7);
+  TEST_EQUAL(mi(0,2),7);
+  TEST_EQUAL(mi(1,0),7);
+  TEST_EQUAL(mi(1,1),7);
+  TEST_EQUAL(mi(1,2),7);
 }
 END_SECTION
 
@@ -87,14 +71,14 @@ START_SECTION((Matrix(const Matrix & source)))
 {
   Matrix<int> mi2(mi);
   STATUS("mi2:\n"<< mi2);
-	TEST_EQUAL(mi2.cols(),3);
-	TEST_EQUAL(mi2.rows(),2);
-	TEST_EQUAL(mi2(0,0),3);
-	TEST_EQUAL(mi2(0,1),3);
-	TEST_EQUAL(mi2(0,2),3);
-	TEST_EQUAL(mi2(1,0),3);
-	TEST_EQUAL(mi2(1,1),7);
-	TEST_EQUAL(mi2(1,2),7);
+  TEST_EQUAL(mi2.cols(),3);
+  TEST_EQUAL(mi2.rows(),2);
+  TEST_EQUAL(mi2(0,0),7);
+  TEST_EQUAL(mi2(0,1),7);
+  TEST_EQUAL(mi2(0,2),7);
+  TEST_EQUAL(mi2(1,0),7);
+  TEST_EQUAL(mi2(1,1),7);
+  TEST_EQUAL(mi2(1,2),7);
 }
 END_SECTION
 
@@ -106,10 +90,10 @@ START_SECTION((Matrix& operator = (const Matrix & rhs)))
   STATUS("mi3:\n"<<mi3);
 	TEST_EQUAL(mi3.cols(),3);
 	TEST_EQUAL(mi3.rows(),2);
-	TEST_EQUAL(mi3(0,0),3);
-	TEST_EQUAL(mi3(0,1),3);
-	TEST_EQUAL(mi3(0,2),3);
-	TEST_EQUAL(mi3(1,0),3);
+	TEST_EQUAL(mi3(0,0),7);
+	TEST_EQUAL(mi3(0,1),7);
+	TEST_EQUAL(mi3(0,2),7);
+	TEST_EQUAL(mi3(1,0),7);
 	TEST_EQUAL(mi3(1,1),7);
 	TEST_EQUAL(mi3(1,2),7);
 }
@@ -117,88 +101,49 @@ END_SECTION
 
 mi(1,1)=17;
 
-START_SECTION((const_reference getValue(size_type const i, size_type const j) const))
+START_SECTION((const_reference operator()(size_type const i, size_type const j) const))
 {
-	Matrix<int> const & micr = mi;
+  Matrix<int> const & micr = mi;
   STATUS("micr:\n"<<micr);
-	TEST_EQUAL(micr.getValue(1,1),17);
+  TEST_EQUAL(micr(1,1),17);
 }
 END_SECTION
 
-START_SECTION((const_reference operator() (size_type const i, size_type const j) const))
+START_SECTION((reference operator()(size_type const i, size_type const j)))
 {
+	STATUS(mi(1,2));
+	mi(1,2)=33;
+	STATUS(mi(1,2));
 	Matrix<int> const & micr = mi;
-  STATUS("micr:\n"<<micr);
-	TEST_EQUAL(micr(1,1),17);
-}
-END_SECTION
-
-START_SECTION((reference getValue(size_type const i, size_type const j)))
-{
-	STATUS(mi.getValue(1,2));
-	mi.getValue(1,2)=33;
-	STATUS(mi.getValue(1,2));
-	Matrix<int> const & micr = mi;
-	TEST_EQUAL(micr.getValue(1,2),33);
+	TEST_EQUAL(micr(1,2), 33);
 }
 END_SECTION
 
 START_SECTION((reference operator() (size_type const i, size_type const j)))
 {
-	STATUS(mi.getValue(1,0));
-	mi.getValue(1,0) = 44;
-	STATUS(mi.getValue(1,0));
+	STATUS(mi(1,0));
+	mi(1,0) = 44;
+	STATUS(mi(1,0));
 	Matrix<int> const & micr = mi;
-	TEST_EQUAL(micr.getValue(1,0), 44);
-}
-END_SECTION
-
-START_SECTION(container_type row(size_type const i) const)
-{
-	Matrix<int>::container_type row = mi.row(0);
-	TEST_EQUAL(row.size(), 3)
-	TEST_EQUAL(row[0], 3)
-	TEST_EQUAL(row[1], 3)
-	TEST_EQUAL(row[2], 3)
-	row = mi.row(1);
-	TEST_EQUAL(row[0], 44)
-	TEST_EQUAL(row[1], 17)
-	TEST_EQUAL(row[2], 33)
-}
-END_SECTION
-
-START_SECTION(container_type col(size_type const i) const)
-{
-	Matrix<int>::container_type col = mi.col(0);
-	TEST_EQUAL(col.size(), 2)
-	TEST_EQUAL(col[0], 3)
-	TEST_EQUAL(col[1], 44)
-	col = mi.col(1);
-	TEST_EQUAL(col.size(), 2)
-	TEST_EQUAL(col[0], 3)
-	TEST_EQUAL(col[1], 17)
-	col = mi.col(2);
-	TEST_EQUAL(col.size(), 2)
-	TEST_EQUAL(col[0], 3)
-	TEST_EQUAL(col[1], 33)
+	TEST_EQUAL(micr(1,0), 44);
 }
 END_SECTION
 
 START_SECTION((void clear()))
 {
-	Matrix<int> mi4(mi);
+  Matrix<int> mi4(mi);
   STATUS("mi4:\n"<<mi4);
-	mi4.clear();
+  mi4.clear();
   STATUS("mi4:\n"<<mi4);
   TEST_EQUAL(mi4.empty(),true);
 }
 END_SECTION
 
-START_SECTION((void setValue(size_type const i, size_type const j, value_type value)))
+START_SECTION((void operator()(size_type const i, size_type const j) = value_type value))
 {
-	mi.setValue(1,1,18);
-	STATUS("mi:\n"<<mi);
-	TEST_EQUAL(mi(1,1),18);
+  mi(1,1) = 18;
+  STATUS("mi:\n" << mi);
+  TEST_EQUAL(mi(1,1),18);
 }
 END_SECTION;
 
@@ -207,57 +152,23 @@ Matrix<int> mi5(4,5,6);
 START_SECTION((Matrix(const SizeType rows, const SizeType cols, ValueType value = ValueType())))
 {
   STATUS("mi5:\n"<<mi5);
-	TEST_EQUAL(mi5.size(),20);
+  TEST_EQUAL(mi5.size(),20);
 }
 END_SECTION;
 
 START_SECTION((SizeType cols() const))
 {
-	TEST_EQUAL(mi5.rows(),4);
+  TEST_EQUAL(mi5.rows(),4);
 }
 END_SECTION;
 
 START_SECTION((SizeType rows() const))
 {
-	TEST_EQUAL(mi5.cols(),5);
+  TEST_EQUAL(mi5.cols(),5);
 }
 END_SECTION;
 
 Matrix<float> mf(6,7,8);
-
-START_SECTION((SizeType colIndex(SizeType index) const))
-{
-	TEST_EQUAL(mf.colIndex(30),2);
-}
-END_SECTION;
-
-START_SECTION((SizeType const index(SizeType row, SizeType col) const))
-{
-	TEST_EQUAL(mf.index(5,5),40);
-}
-END_SECTION;
-
-START_SECTION((SizeType rowIndex(SizeType index) const))
-{
-  TEST_EQUAL(mf.rowIndex(30),4);
-}
-END_SECTION;
-
-START_SECTION((std::pair<Size,Size> const indexPair(Size index) const))
-{
-	std::pair<Size,Size> result = mf.indexPair(30);
-  TEST_EQUAL(result.first,4);
-	TEST_EQUAL(result.second,2);
-}
-END_SECTION
-
-START_SECTION((std::pair<Size,Size> sizePair() const))
-{
-	Matrix<float> const mf(6,7,8);
-	TEST_EQUAL(mf.sizePair().first,6);
-	TEST_EQUAL(mf.sizePair().second,7);
-}
-END_SECTION
 
 START_SECTION((bool operator==(Matrix const &rhs) const))
 {
@@ -308,10 +219,10 @@ START_SECTION((template <int ROWS, int COLS> void setMatrix(const ValueType matr
 	};
 
 	Matrix<double> myMatrix;
-	myMatrix.setMatrix<4,4>(test_matrix);
-	for (size_t i=0;i<4;++i)
+	myMatrix.setMatrix<double, 4 , 4>(test_matrix);
+	for (size_t i=0; i<4; ++i)
 	{
-		for (size_t j=0;j<4;++j)
+		for (size_t j=0; j<4; ++j)
 		{
 			TEST_EQUAL( myMatrix(i,j), test_matrix[i][j] )
 		}
