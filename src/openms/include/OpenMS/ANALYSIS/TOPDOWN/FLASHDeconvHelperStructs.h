@@ -160,7 +160,7 @@ namespace OpenMS
         @brief constructor from Peak1D.
         
         @param peak Input peak (using its m/z and intensity)
-        @param positive determines the charge carrier mass. Can be obtained by getChargeMass(true) for positive mode (Constants::PROTON_MASS_U) and getChargeMass(false) for negative mode (-Constants::PROTON_MASS_U)
+        @param positive determines the charge carrier mass. Can be obtained by getChargeMass(true) for positive mode (Constants\::PROTON_MASS_U) and getChargeMass(false) for negative mode (-Constants\::PROTON_MASS_U)
       */
       explicit LogMzPeak(const Peak1D& peak, bool positive);
 
@@ -187,7 +187,7 @@ namespace OpenMS
     static double getLogMz(double mz, bool positive);
 
     /**
-       @brief get charge carrier mass : positive mode mass of (Constants::PROTON_MASS_U) and negative mode mass of (-Constants::PROTON_MASS_U)
+       @brief get charge carrier mass : positive mode mass of (Constants\::PROTON_MASS_U) and negative mode mass of (-Constants\::PROTON_MASS_U)
        @param positive_ioniziation_mode Determines the charge carrier mass (true = positive or false = negative)
     */
     static float getChargeMass(bool positive_ioniziation_mode);

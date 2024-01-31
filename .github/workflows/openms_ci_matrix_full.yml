@@ -77,11 +77,11 @@ jobs:
           echo "tp_folder=Linux" >> $GITHUB_OUTPUT
           echo "xvfb=xvfb-run -a" >> $GITHUB_OUTPUT
           echo "static_boost=OFF" >> $GITHUB_OUTPUT
+          # always run doxygen on Ubuntu (because its fast), to detect Doxygen errors
+          echo "enable_docs=ON" >> $GITHUB_OUTPUT  
           if [ "$DO_PACKAGE" = true ]; then
-            echo "enable_docs=ON" >> $GITHUB_OUTPUT
             echo "pkg_type=deb" >> $GITHUB_OUTPUT
           else
-            echo "enable_docs=OFF" >> $GITHUB_OUTPUT
             echo "pkg_type=none" >> $GITHUB_OUTPUT
           fi
           echo "cxx_compiler=${{ matrix.compiler }}-${{ matrix.compiler_ver }}" >> $GITHUB_OUTPUT
@@ -160,12 +160,10 @@ jobs:
            libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
           echo "cmake_prefix=" >> $GITHUB_OUTPUT
-          
-          if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            sudo apt-get -qq install -y doxygen ghostscript graphviz
-            echo "Testing doxygen"
-            doxygen --version
-          fi
+          ## always run doxygen on Ubuntu to detect Doxygen errors
+          sudo apt-get -qq install -y doxygen ghostscript graphviz
+          echo "Testing doxygen"
+          doxygen --version
         fi
         
         if [[ "${{ matrix.os }}" == windows-* ]]; then
@@ -201,7 +199,7 @@ jobs:
     - if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
       name: Cache contrib (Windows and macOS)
       id: cache-contrib
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ github.workspace }}/OpenMS/contrib
         key: ${{ runner.os }}-contrib3
@@ -242,7 +240,7 @@ jobs:
           popd
 
     - name: Setup ccache cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: .ccache
         key: ${{ runner.os }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ github.run_number }}
@@ -310,6 +308,7 @@ jobs:
           WITH_GUI: "ON"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
+          PACKAGE_TYPE: ${{ steps.set-vars.outputs.pkg_type }}
           OPENMP: "ON"
           BOOST_USE_STATIC: ${{ steps.set-vars.outputs.static_boost }}
           #  BUILD_FLAGS: "-p:CL_MPCount=2" # For VS Generator and MSBuild
@@ -364,7 +363,7 @@ jobs:
     # WARNING: Here you have to make sure that only one matrix configuration per OS produces packages. See set-vars steps.
     - if: steps.set-vars.outputs.pkg_type != 'none'
       name: Upload packages as artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: installer-${{ steps.set-vars.outputs.tp_folder }}
         path: |
@@ -385,7 +384,7 @@ jobs:
     - if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
     # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
       name: Upload Documentation as artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: documentation
         path: |
@@ -403,7 +402,7 @@ jobs:
         
     - if: steps.set-vars.outputs.pkg_type != 'none' || inputs.knime
       name: Upload KNIME payload and descriptors as artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: knime-${{ steps.set-vars.outputs.tp_folder }}
         path: ${{ github.workspace }}/OpenMS/bld/knime/**/*
@@ -421,15 +420,15 @@ jobs:
       # WOW, you cannot download with wildcard. INCREDIBLY ANNOYING https://github.com/actions/download-artifact/issues/6
       # Maybe in the next 3 years......
       - name: Download macos installer artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: installer-MacOS
       - name: Download win installer artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: installer-Windows
       - name: Download lnx installer artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: installer-Linux
           
@@ -457,7 +456,7 @@ jobs:
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
 
       - name: Download Documentation
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: documentation
           path: docs
@@ -509,17 +508,17 @@ jobs:
       # WOW, you cannot download with wildcard. INCREDIBLY ANNOYING https://github.com/actions/download-artifact/issues/6
       # Maybe in the next 3 years......
       - name: Download macos installer artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: knime-MacOS
           path: ${{ env.PLUGIN_SOURCE }}
       - name: Download win installer artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: knime-Windows
           path: ${{ env.PLUGIN_SOURCE }}
       - name: Download lnx installer artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: knime-Linux
           path: ${{ env.PLUGIN_SOURCE }}

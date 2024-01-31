@@ -104,10 +104,11 @@ public:
     /**
       @brief fast access to a spectrum (a direct copy of the data into the provided arrays)
 
-      @param data1 First data array (m/z)
-      @param data2 Second data array (Intensity)
-      @param ms_level Output parameter to store the MS level of the spectrum (1, 2, 3 ...)
-      @param rt Output parameter to store the retention time of the spectrum
+      @param[out] data1 First data array (m/z)
+      @param[out] data2 Second data array (Intensity)
+      @param ifs Input file stream (moved to the correct position)
+      @param[out] ms_level Output parameter to store the MS level of the spectrum (1, 2, 3 ...)
+      @param[out] rt Output parameter to store the retention time of the spectrum
 
       @throws Exception::ParseError is thrown if the spectrum cannot be read
     */
@@ -138,6 +139,7 @@ public:
 
       @param data1 First data array (RT)
       @param data2 Second data array (Intensity)
+      @param ifs Input file stream (moved to the correct position)
 
       @throws Exception::ParseError is thrown if the chromatogram size cannot be read
     */

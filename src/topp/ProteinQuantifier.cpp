@@ -80,7 +80,7 @@ The notes above regarding quantification on the protein level and the treatment 
 
 By default only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification. However, this limitation can be overcome: Protein inference results for the whole sample set can be supplied with the @p protein_groups option (or included in a featureXML input). In that case, the peptide-to-protein references from that file are used (rather than those from @p in), and groups of indistinguishable proteins will be quantified. Each reported protein quantity then refers to the total for the respective group.
 
-In order for everything to work correctly, it is important that the protein inference results come from the same identifications that were used to annotate the quantitative data. We suggest to use the OpenMS tool ProteinInference @TOPP_ProteinInference. 
+In order for everything to work correctly, it is important that the protein inference results come from the same identifications that were used to annotate the quantitative data. We suggest to use the OpenMS tool ProteinInference @ref TOPP_ProteinInference. 
 
 More information below the parameter specification.
 

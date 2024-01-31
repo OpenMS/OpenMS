@@ -44,7 +44,7 @@ namespace OpenMS
 
     /**
      @brief Generates the MzTabM Small Molecule Header
-     @param map MzTabMMetaData
+     @param meta MzTabMMetaData
      @param optional_columns Add optional columns
      @param n_columns Stores the number of columns in the header
      @return StringList with SMH entries
@@ -62,7 +62,7 @@ namespace OpenMS
 
     /**
      @brief Generates the MzTabM Small Molecule Header
-     @param map MzTabMMetaData
+     @param meta MzTabMMetaData
      @param optional_columns Add optional columns
      @param n_columns Stores the number of columns in the header
      @return StringList with SFH entries
@@ -80,7 +80,7 @@ namespace OpenMS
 
     /**
      @brief Generates the MzTabM Small Molecule Header
-     @param map MzTabMMetaData
+     @param meta MzTabMMetaData
      @param optional_columns Add optional columns
      @param n_columns Stores the number of columns in the header
      @return StringList with SEH entries

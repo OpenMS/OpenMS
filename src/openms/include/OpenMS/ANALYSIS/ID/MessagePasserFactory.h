@@ -49,20 +49,25 @@ namespace OpenMS
     evergreen::TableDependency<Label> createProteinFactor(Label id, double prior, int nrMissingPeps = 0);
 
     /// Peptide Factor initialized with:
+    /// @param id ID for the LabeledPMF
     /// @param prob peptide evidence probability
     evergreen::TableDependency<Label> createPeptideEvidenceFactor(Label id, double prob);
 
     /// Conditional probability table of peptide given number of parent proteins, based on model params.
     /// Additionally regularizes on the amount of parent proteins.
-    /// @param nrParents (maximum) number of parent proteins
-    evergreen::TableDependency<Label> createRegularizingSumEvidenceFactor(size_t nrParents, Label nId, Label pepId);
+    /// @param nr_parents (maximum) number of parent proteins
+    /// @param id ID for the LabeledPMF    
+    /// @param pep_id ID for the LabeledPMF    
+    evergreen::TableDependency<Label> createRegularizingSumEvidenceFactor(size_t nr_parents, Label id, Label pep_id);
 
     /// Conditional probability table of peptide given number of parent proteins, based on model params.
-    /// @param nrParents (maximum) number of parent proteins
-    evergreen::TableDependency<Label> createSumEvidenceFactor(size_t nrParents, Label nId, Label pepId);
+    /// @param nr_parents (maximum) number of parent proteins
+    /// @param id ID for the LabeledPMF    
+    /// @param pep_id ID for the LabeledPMF    
+    evergreen::TableDependency<Label> createSumEvidenceFactor(size_t nr_parents, Label id, Label pep_id);
 
     //For extended model. @todo currently unused
-    evergreen::TableDependency<Label> createSumFactor(size_t nrParents, Label nId);
+    evergreen::TableDependency<Label> createSumFactor(size_t nr_parents, Label nId);
     evergreen::TableDependency<Label> createReplicateFactor(Label seqId, Label repId);
     evergreen::TableDependency<Label> createChargeFactor(Label repId, Label chargeId, int chg);
 
