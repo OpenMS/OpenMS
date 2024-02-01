@@ -32,18 +32,31 @@ int main(int argc, char** argv)
   
   std::cout << "Opening '" << argv[1] << "' to check for doxygen errors...\n"
             << "----------- ERRORS/WARNINGS -----------------" << std::endl;
-  int line_count = 0;
+  int line_count = 0, error_count = 0;
   for (std::string line; std::getline(is, line);)
   {
     if (line.empty()) continue;
-    std::cerr << line << '\n';
     ++line_count;
+    
+    // Skip over warnings which are not critical:
+    //
+    // 1) Dot graph: we do not want huge graphs, since they are unreadable.
+    //    So we ignore this: ""warning: Included by graph for 'PeptideIdentification.h' not generated, too many nodes (68), threshold is 50. Consider increasing DOT_GRAPH_MAX_NODES.""
+    if (line.find("Consider increasing DOT_GRAPH_MAX_NODES") != std::string::npos) continue;
+  
+    // 2) ...
+    //    ...
+    
+    // line is a warning. Display it (in CI/CD)
+    std::cerr << line << '\n';
+    ++error_count;
   }
  
   std::cout << "---------------------------------------------" << std::endl;
-  if (line_count)
+  std::cout << "Skipped over " << line_count - error_count << " lines with unavoidable warnings";
+  if (error_count)
   {
-    std::cerr << "\n\nFound Doxygen warnings. See above. Please fix them.\n";
+    std::cerr << "\n\nFound " << error_count << " Doxygen warnings. See above. Please fix them.\n";
     return 1;
   }
   

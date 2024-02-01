@@ -63,7 +63,7 @@ public:
     @brief Internal structure used in @ref TOPP_SiriusExport that is used
     for the conversion of a MzMlFile to an internal format.
 
-    @ingroup ID
+    @ingroup Analysis_ID
 
     Write content of one mzML/featureXML(optional) file pair to SIRIUS .ms file ofstream.
     Comments (see CompoundInfo) are written to SIRIUS .ms file and additionally stored in CompoundInfo struct.
