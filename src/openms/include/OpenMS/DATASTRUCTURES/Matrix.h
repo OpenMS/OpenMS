@@ -26,12 +26,22 @@ namespace OpenMS
 {
   template <typename Value>
   class Matrix
+  /**
+   * @class Matrix
+   * @brief A class representing a matrix using Eigen library.
+   * 
+   * The Matrix class provides functionality for creating, manipulating, and accessing matrices.
+   * It is implemented using the Eigen library and supports various operations such as resizing, clearing,
+   * accessing elements, setting values, and comparing matrices.
+   */
   {
   public:
     typedef Eigen::Matrix<Value, Eigen::Dynamic, Eigen::Dynamic> EigenMatrixType;
 
     // Constructors
-    Matrix() : data_(0, 0) {}
+    Matrix() : data_(0, 0) 
+    {      
+    }
 
     Matrix(Size rows, Size cols, Value value = Value()) : data_(rows, cols)
     {
@@ -62,7 +72,13 @@ namespace OpenMS
       return data_(i, j);
     }
 
-    // Resize
+    /**
+     * @brief Resizes the matrix to the specified number of rows and columns.
+     * 
+     * @param rows The number of rows in the resized matrix.
+     * @param cols The number of columns in the resized matrix.
+     * @param value The value to fill the resized matrix with (default: Value()).
+     */
     void resize(size_t rows, size_t cols, Value value = Value())
     {
       EigenMatrixType newData(rows, cols);
@@ -70,27 +86,36 @@ namespace OpenMS
       data_.swap(newData);
     }
 
-    // Clear
+    /**
+     * @brief Clears the matrix by resizing it to 0x0.
+     */
     void clear()
     {
       data_.resize(0, 0);
     }
 
     // Rows and Columns
-    size_t rows() const { return data_.rows(); }
-    size_t cols() const { return data_.cols(); }
-
-    // Row and Column Access
-    std::vector<Value> row(size_t i) const
-    {
-      return std::vector<Value>(data_.row(i).data(), data_.row(i).data() + data_.cols());
+    size_t rows() const 
+    { 
+      return data_.rows(); 
+    }
+    size_t cols() const 
+    { 
+      return data_.cols(); 
     }
 
-    std::vector<Value> col(size_t j) const
-    {
-      return std::vector<Value>(data_.col(j).data(), data_.col(j).data() + data_.rows());
-    }
-
+    /**
+     * @brief Sets the matrix values using a 2D array.
+     * 
+     * This function resizes the matrix to the specified number of rows and columns,
+     * and then assigns the values from the 2D array to the corresponding elements
+     * in the matrix.
+     * 
+     * @tparam T The type of the matrix elements.
+     * @tparam ROWS The number of rows in the matrix.
+     * @tparam COLS The number of columns in the matrix.
+     * @param array The 2D array containing the values to be assigned to the matrix.
+     */
     template <typename T, int ROWS, int COLS>
     void setMatrix(T const (&array)[ROWS][COLS]) 
     {
@@ -110,19 +135,6 @@ namespace OpenMS
       return data_ == rhs.data_;
     }
 
-    bool operator<(const Matrix& rhs) const
-    {
-      for (int i = 0; i < rows(); ++i)
-      {
-        for (int j = 0; j < cols(); ++j)
-        {
-          if ((*this)(i, j) < rhs(i, j)) return true;
-          if ((*this)(i, j) > rhs(i, j)) return false;
-        }
-      }
-      return false;
-    }
-
     size_t size() const
     {
       return data_.size();
@@ -133,7 +145,11 @@ namespace OpenMS
       return data_.size() == 0;
     }
 
-    // Iterator access
+    /**
+     * Iterator to the beginning of the data array.
+     * Warning: Order depends on the storage order of the Eigen matrix. Use with care.
+     * @return Iterator to the beginning of the data array.
+     */
     Value* begin()
     {
       return data_.data();

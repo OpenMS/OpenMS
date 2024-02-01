@@ -188,27 +188,6 @@ START_SECTION((bool operator==(Matrix const &rhs) const))
 }
 END_SECTION
 
-START_SECTION((bool operator<(Matrix const &rhs) const))
-{
-	Matrix<int> mi1(4,5,6);
-	TEST_EQUAL(mi1<mi1,false);
-	mi1(2,3)=17;
-	TEST_EQUAL(mi1<mi1,false);
-	Matrix<int> mi2(4,5,6);
-	TEST_EQUAL(mi1<mi2,false);
-	TEST_EQUAL(mi2<mi1,true);
-	mi2(2,3)=18;
-	TEST_EQUAL(mi1<mi2,true);
-
-	Matrix<int> mi3(5,4,6);
-	Matrix<int> mi4(4,4,6);
-	Matrix<int> mi5(5,5,6);
-	TEST_PRECONDITION_VIOLATED(bool comparison = (mi1==mi3);(void) comparison);
-	TEST_PRECONDITION_VIOLATED(bool comparison = (mi1==mi4);(void) comparison);
-	TEST_PRECONDITION_VIOLATED(bool comparison = (mi1==mi5);(void) comparison);
-}
-END_SECTION
-
 START_SECTION((template <int ROWS, int COLS> void setMatrix(const ValueType matrix[ROWS][COLS])))
 {
 	double test_matrix[4][4] = {
