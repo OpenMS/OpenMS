@@ -8,6 +8,11 @@
 
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 
+#include <aws/core/Aws.h>
+#include <aws/s3/S3Client.h>
+#include <aws/s3/model/GetObjectRequest.h>
+#include <aws/s3/model/HeadObjectRequest.h>
+
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -65,6 +70,36 @@ namespace OpenMS
 
   int IndexedMzMLDecoder::parseOffsets(const String& filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
   {
+    /*if (filename.hasPrefix("s3://"))
+    {
+      // Initialize S3 SDK
+      Aws::SDKOptions options;
+      Aws::InitAPI(options);
+      Aws::Client::ClientConfiguration clientConfig;
+      Aws::S3::S3Client s3Client(clientConfig);
+
+      Aws::S3::Model::HeadObjectRequest request;
+      std::string s3Uri = filename.substr(5);
+
+        // Find the first occurrence of '/' character
+        size_t slashPos = s3Uri.find('/');
+        if (slashPos == std::string::npos) {
+            // Invalid S3 URI format
+            // Handle error
+            return;
+        }
+
+      std::string bucketName = s3Uri.substr(0, slashPos);
+      std::string objectKey = s3Uri.substr(slashPos + 1);
+      request.WithBucket(bucketName).WithKey(objectKey);
+      auto getObjectOutcome = new Aws::S3::Model::GetObjectOutcome(s3Client.GetObject(request));
+      if (getObjectOutcome->IsSuccess()) {
+        auto& remoteStream = getObjectOutcome->GetResultWithOwnership().GetBody();
+        
+
+      }
+    }*/
+    
     //-------------------------------------------------------------
     // Open file, jump to end and read last indexoffset bytes into buffer.
     //-------------------------------------------------------------

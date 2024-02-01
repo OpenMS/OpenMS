@@ -142,8 +142,14 @@ namespace OpenMS
     map.reset();
 
     //set DocumentIdentifier
-    map.setLoadedFileType(filename);
-    map.setLoadedFilePath(filename);
+    if (filename.hasPrefix("http:") || filename.hasPrefix("https:") || filename.hasPrefix("ftp:") || filename.hasPrefix("s3:"))
+    {
+      map.setLoadedFileType(FileTypes::MZML);
+      map.setLoadedNetFilePath(filename);
+    } else {
+      map.setLoadedFileType(filename);
+      map.setLoadedFilePath(filename);
+    }
 
     Internal::MzMLHandler handler(map, filename, getVersion(), *this);
     handler.setOptions(options_);

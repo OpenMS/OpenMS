@@ -107,6 +107,11 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   tdl::tdl
   )
 
+if (WITH_S3)
+  ## lol.. disgusting cmake.. how would one link to a subset of the AWS SDK?
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES PRIVATE ${AWSSDK_LINK_LIBRARIES})
+endif()
+
 ## ----------
 ## No need to for this at the moment: no Qt plugins required anymore. Left here for reference.
 ## ----------
