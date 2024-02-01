@@ -3,6 +3,7 @@ set(directory source/APPLICATIONS/TOPP)
 
 ### list all filenames of the directory here
 set(TOPP_executables
+AccurateMassSearch
 AssayGeneratorMetabo
 BaselineFilter
 ClusterMassTraces
