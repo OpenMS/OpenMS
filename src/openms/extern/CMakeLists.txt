@@ -57,6 +57,10 @@ add_subdirectory(GTE)
 add_subdirectory(Quadtree)
 add_subdirectory(tool_description_lib)
 
+if (WITH_HDF5)
+  add_subdirectory(hdf5-blosc-1.0.0)
+endif()
+
 ##
 ## external packages (with fallback option to local version)
 ##

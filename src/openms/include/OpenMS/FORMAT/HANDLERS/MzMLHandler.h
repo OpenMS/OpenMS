@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <OpenMS/config.h>
+
 #include <OpenMS/CONCEPT/Helpers.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
@@ -24,7 +26,6 @@
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 
 #include <map>
-
 
 //MISSING:
 // - more than one selected ion per precursor (warning if more than one)
@@ -52,6 +53,12 @@ namespace OpenMS
     class IMSDataConsumer;
   }
 
+#ifdef WITH_HDF5
+  namespace HDF5 {
+    class MzMLbBinaryDataArrayLoader;
+  }
+#endif
+
   namespace Internal
   {
     class MzMLValidator;
@@ -59,7 +66,7 @@ namespace OpenMS
 	  typedef PeakMap MapType;
 	  typedef MSSpectrum SpectrumType;
 	  typedef MSChromatogram ChromatogramType;
-
+  
     /**@brief Handler for mzML file format
      *
      * This class handles parsing and writing of the mzML file format. It
@@ -168,6 +175,12 @@ public:
 
       /// handler which support partial loading, implement this method
       void setLoadDetail(const LOADDETAIL d) override;
+
+#ifdef WITH_HDF5
+      using MzMLbBDAL = OpenMS::HDF5::MzMLbBinaryDataArrayLoader;
+      /// set a custom binary data loader for mzMLb
+      void setBinaryDataArrayLoader(std::unique_ptr<MzMLbBDAL>&& bdl);
+#endif
 
 protected:
 
@@ -486,6 +499,11 @@ protected:
       const ControlledVocabulary& cv_;
       CVMappings mapping_;
 
+#ifdef WITH_HDF5
+      // if set, will use the mzMLb loader to retrieve binary data arrays from HDF5
+      // instead of decoding the base64 part in the XML.
+      std::unique_ptr<OpenMS::HDF5::MzMLbBinaryDataArrayLoader> mzMLb_binary_data_array_loader_;
+#endif      
     };
 
     //--------------------------------------------------------------------------------

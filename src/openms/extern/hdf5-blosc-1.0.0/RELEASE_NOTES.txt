@@ -1,0 +1,18 @@
+==============================
+ Release notes for HDF5-Blosc
+==============================
+
+:Author: Francesc Alted
+:Contact: francesc@blosc.org
+:URL: http://www.blosc.org
+
+
+Changes from 0.0.1 to 1.0.0
+===========================
+
+- Dropped support for HDF5 1.6.x
+
+- Dropped support for C-Blosc < 1.8.0
+
+- CMake has been configured to build the HDF5 plugin by default.
+  Thanks to Håkon Strandenes. Closes #3.
