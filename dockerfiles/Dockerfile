@@ -73,10 +73,6 @@ RUN <<-EOF
     rm -rf /tmp/*
 EOF
 
-# note that in this image, we're not building any thirdparty dependencies
-# as they are all installed from apt. However, we still need to create the
-# directory as images that are based on this assume it is there.
-RUN mkdir -p ${CONTRIB_BUILD_DIR}/bin
 WORKDIR /
 
 LABEL base.image="ubuntu:22.04"
@@ -93,6 +89,13 @@ LABEL tags="Proteomics"
 ### OpenMS base ###
 FROM ${CONTRIB_BASE_IMAGE} as base
 ARG OPENMS_VERSION
+ARG CONTRIB_BUILD_DIR
+
+# if the contrib image builds anything from source it will place the binaries
+# in the CONTRIB_BUILD_DIR. If it doesn't (ie. because they are installed from
+# the package manager) then we need to create the directory anyway since other
+# stages attempt to copy from it
+RUN mkdir -p ${CONTRIB_BUILD_DIR}/bin
 
 # the main reason we're pulling this in is to make sure that the metadata
 # below is consistently formatted for releases irrespective of the base image
