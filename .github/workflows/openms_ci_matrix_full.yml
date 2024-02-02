@@ -390,8 +390,8 @@ jobs:
         path: |
           ${{ github.workspace }}/OpenMS/bld/doc/documentation.zip
 
-        
-    - if: (steps.set-vars.outputs.pkg_type != 'none' || inputs.knime)  && !startsWith(matrix.compiler, 'clang++') 
+    # We never want to build the KNIME update site on our second Ubuntu + Clang matrix entry even if inputs.knime is true, so we check for that specific os + compiler combo
+    - if: steps.set-vars.outputs.pkg_type != 'none' || ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && startsWith(matrix.compiler, 'clang++') ) )
       name: Generate KNIME descriptors and payloads
       shell: bash
       run: |
@@ -399,8 +399,10 @@ jobs:
         # TODO use CTest or script to upload to CDash?
         cmake -DSEARCH_ENGINES_DIRECTORY="$GITHUB_WORKSPACE/_thirdparty" -DENABLE_PREPARE_KNIME_PACKAGE=ON .
         cmake --build . --target prepare_knime_package
+
         
-    - if: (steps.set-vars.outputs.pkg_type != 'none' || inputs.knime) && !startsWith(matrix.compiler, 'clang++') 
+    # We never want to build the KNIME update site on our second Ubuntu + Clang matrix entry even if inputs.knime is true, so we check for that specific os + compiler combo
+    - if: steps.set-vars.outputs.pkg_type != 'none' ||  ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && startsWith(matrix.compiler, 'clang++') ) )
       name: Upload KNIME payload and descriptors as artifacts
       uses: actions/upload-artifact@v4
       with:
