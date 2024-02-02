@@ -1,6 +1,6 @@
 /**
 
-  @page coding_conventions Coding Conventions
+  @page developer_coding_conventions Coding Conventions
 
   Use the following code conventions when contributing to %OpenMS.
 
@@ -505,7 +505,7 @@
 
   @section testing Testing
 
-  View the @subpage how_to_write_tests guidelines to learn how to write tests.
+  View the @subpage developer_how_to_write_tests guidelines to learn how to write tests.
 
   @section revision_control Revision control
   %OpenMS uses <a href="https://git-scm.com/">git</a> to manage different versions of the source files. For easier identification of the responsible person each %OpenMS file contains the <code>$Maintainer:$</code> string in the preamble.

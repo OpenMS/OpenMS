@@ -25,7 +25,10 @@
 
 /**
 
-@page tutorial OpenMS Developer Quickstart Guide
+@page developer_tutorial OpenMS Developer Guide
+
+@tableofcontents
+
 
 @section tutorial_introduction Introduction
 @subsection tutorial_gf General Information
@@ -35,10 +38,10 @@ Mass spectrometry (MS) is an essential analytical technique for high-throughput 
 <b>%OpenMS</b>, a software framework for rapid <b>application and method development</b> in mass spectrometry has been designed to be portable, easy-to-use, and robust while offering a rich functionality ranging from basic data structures to sophisticated algorithms for data analysis (https://www.nature.com/nmeth/journal/v13/n9/abs/nmeth.3959.html). <br>
 
 <b>Ease of use:</b>
-%OpenMS follows the <b>object-oriented</b> programming paradigm, which aims at mapping real-world entities to comprehensible data structures and interfaces. %OpenMS enforces @ref coding_conventions that ensure consistent names of classes, methods and member variables which increases the usability as a software library. Another important feature of a software framework is documentation. We decided to use <a href="http://www.doxygen.org" target="_blank">doxygen</a> to generate the class documentation from the <b>source code</b>, which ensures consistency of code and documentation. The documentation is generated in HTML format making it easy to read with a web browser. <br>
+%OpenMS follows the <b>object-oriented</b> programming paradigm, which aims at mapping real-world entities to comprehensible data structures and interfaces. %OpenMS enforces @ref developer_coding_conventions that ensure consistent names of classes, methods and member variables which increases the usability as a software library. Another important feature of a software framework is documentation. We decided to use <a href="http://www.doxygen.org" target="_blank">doxygen</a> to generate the class documentation from the <b>source code</b>, which ensures consistency of code and documentation. The documentation is generated in HTML format making it easy to read with a web browser. <br>
 
 <b>Robustness:</b>
-Robustness of algorithms is essential if a new method will be applied routinely to large scale datasets. Typically, there is a trade-off between performance and robustness. %OpenMS tries to address both issues equally. In general, we try to tolerate recoverable errors, e.g. files that do not entirely fulfill the format specifications. On the other hand, <b>exceptions</b> (usually interally derived from BaseException) are used to handle fatal errors. To check for correctness, more than 1000 <b>unit tests</b> (see @ref how_to_write_tests) are implemented in total, covering public methods of classes. These tests check the behavior for both valid and invalid use. Additionally, <b>preprocessor macros</b> are used to enable additional consistency checks in debug mode, enforce <b>pre- and post-conditions</b>, and are then disabled in productive mode for performance reasons. <br>
+Robustness of algorithms is essential if a new method will be applied routinely to large scale datasets. Typically, there is a trade-off between performance and robustness. %OpenMS tries to address both issues equally. In general, we try to tolerate recoverable errors, e.g. files that do not entirely fulfill the format specifications. On the other hand, <b>exceptions</b> (usually interally derived from BaseException) are used to handle fatal errors. To check for correctness, more than 1000 <b>unit tests</b> (see @ref developer_how_to_write_tests) are implemented in total, covering public methods of classes. These tests check the behavior for both valid and invalid use. Additionally, <b>preprocessor macros</b> are used to enable additional consistency checks in debug mode, enforce <b>pre- and post-conditions</b>, and are then disabled in productive mode for performance reasons. <br>
 
 <b>Extensibility:</b>
 Since %OpenMS is based on several <b>external libraries</b> it is designed for the integration of external code. All classes are encapsulated in the %OpenMS namespace to avoid symbol clashes with other libraries. Through the use of <b>C++ templates</b>, many data structures are adaptable to specific use cases. Also, %OpenMS supports <b>standard formats</b>, such as mzML and mgf, and is itself open-source software. The use of standard formats ensures that applications developed with %OpenMS can be easily integrated into existing analysis pipelines. %OpenMS source code is released under the permissive <b>BSD 3 license</b> and hosted on <a href="https://github.com/OpenMS/OpenMS">https://github.com/OpenMS/OpenMS</a>. This allows users to participate in the project and to contribute to the code base. <br>
@@ -47,7 +50,7 @@ Since %OpenMS is based on several <b>external libraries</b> it is designed for t
 %OpenMS allows exposing its functionality through python bindings (<b>%pyOpenMS</b>). This eases the rapid development of algorithms in Python that later can be translated to C++. Please see our <a href="https://pyopenms.readthedocs.io">pyOpenMS documentation</a> for a description and walk-through of the pyOpenMS capabilities. <br>
 
 <b>Portability:</b>
-%OpenMS supports <b>Windows</b>, <b>Linux</b>, and <b>OS X</b> platforms. <br>
+%OpenMS supports <b>Windows</b>, <b>Linux</b>, and <b>MacOS X</b> platforms. <br>
 
 @subsection tutorial_structure The structure of the OpenMS Framework
 
@@ -82,7 +85,7 @@ Some more details and tips are collected here.
 <br>
 
 <b>Conventions</b><br>
-See the manual for proper coding style: @ref coding_conventions, also see: @ref cpp_guide.
+See the manual for proper coding style: @ref developer_coding_conventions, also see: @ref developer_cpp_guide.
 <br>
 
 <b>Commit Messages</b><br>
