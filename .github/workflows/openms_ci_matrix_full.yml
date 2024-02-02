@@ -497,7 +497,7 @@ jobs:
       JAVA_VER: 17
       PLUGIN_BUILD: ${{ github.workspace }}/plugin-build
       PLUGIN_SOURCE: ${{ github.workspace }}/plugin-source
-    if: github.ref == 'refs/heads/nightly' || contains(github.ref, 'release/') || inputs.knime
+    if: (github.ref == 'refs/heads/nightly' || contains(github.ref, 'release/') || inputs.knime) && !startsWith(steps.set-vars.outputs.cxx_compiler, 'clang++') 
     runs-on: ubuntu-latest
     needs: build-and-test
     steps:
