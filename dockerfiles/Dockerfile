@@ -238,6 +238,8 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends --no-install-suggests \
     # we need Xvfb to run a small subset of tests (eg. TOPP_INIUpdater)
     xvfb \
+    # needed for TSGDialog_test and TOPPView_test
+    libqt5test5 \
   && rm -rf /var/lib/apt/lists/*
 
 # installing cmake
