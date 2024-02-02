@@ -400,7 +400,7 @@ jobs:
         cmake -DSEARCH_ENGINES_DIRECTORY="$GITHUB_WORKSPACE/_thirdparty" -DENABLE_PREPARE_KNIME_PACKAGE=ON .
         cmake --build . --target prepare_knime_package
         
-    - if: steps.set-vars.outputs.pkg_type != 'none' || inputs.knime
+    - if: (steps.set-vars.outputs.pkg_type != 'none' || inputs.knime) && !startsWith(steps.set-vars.outputs.cxx_compiler, 'clang++') 
       name: Upload KNIME payload and descriptors as artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -497,7 +497,7 @@ jobs:
       JAVA_VER: 17
       PLUGIN_BUILD: ${{ github.workspace }}/plugin-build
       PLUGIN_SOURCE: ${{ github.workspace }}/plugin-source
-    if: (github.ref == 'refs/heads/nightly' || contains(github.ref, 'release/') || inputs.knime) && !startsWith(steps.set-vars.outputs.cxx_compiler, 'clang++') 
+    if: github.ref == 'refs/heads/nightly' || contains(github.ref, 'release/') || inputs.knime
     runs-on: ubuntu-latest
     needs: build-and-test
     steps:
