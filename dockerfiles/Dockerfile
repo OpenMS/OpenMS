@@ -1,16 +1,9 @@
 # syntax=docker/dockerfile:1.3-labs
-ARG OPENMS_REPO=https://github.com/OpenMS/OpenMS.git
-
 # default OpenMS version is "latest" for the current tip of master
 # when this image is built from releases it will be "3.1.0" or similar
 ARG OPENMS_VERSION=latest
 
-# default OpenMS branch is "master" for the current tip of master
-# when this image is built from releases it will be "Release3.1.0" or similar
-# NOTE: this is passed to git clone, so tags also work
-ARG OPENMS_BRANCH=master
-
-# this is the directory where OPENMS_REPO gets cloned to
+# this is the directory where the OpenMS git repository gets copied to
 ARG OPENMS_SOURCE_DIR="/tmp/OpenMS"
 
 # this is the directory where the OpenMS library and tools are built
@@ -110,15 +103,14 @@ LABEL org.opencontainers.image.source https://github.com/OpenMS/OpenMS
 
 ### OpenMS library build ###
 FROM base as library-build
-ARG OPENMS_REPO
 ARG OPENMS_SOURCE_DIR
-ARG OPENMS_BRANCH
 ARG OPENMS_LIBRARY_BUILD_DIR
 ARG CONTRIB_BUILD_DIR
 ARG MAKEFLAGS
 ENV MAKEFLAGS="${MAKEFLAGS}"
 
-RUN git clone --depth=1 --branch=${OPENMS_BRANCH} ${OPENMS_REPO} ${OPENMS_SOURCE_DIR}
+COPY . ${OPENMS_SOURCE_DIR}
+
 RUN cmake \
     -DCMAKE_BUILD_TYPE='Release' \
     -DCMAKE_PREFIX_PATH="${CONTRIB_BUILD_DIR}/;/usr/;/usr/local" \
