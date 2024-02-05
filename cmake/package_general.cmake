@@ -69,7 +69,7 @@ set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}
 # On Windows we need to tell CMake where to look for.
 # We also do not need API sets. So exclude them.
 if(WIN32)
-  set(EXCLUDE "api-ms" "ext-ms" "hvsi" "pdmutilities" "wpaxholder")
+  set(EXCLUDE "api-ms" "ext-ms" "hvsi" "pdmutilities" "wpaxholder" "dxgi" "uxtheme" "d3d11" "winnmm" "wldp")
   set(POST_EXCLUDE ".*WINDOWS.system32.*")
 elseif(APPLE)
   set(EXCLUDE "/usr/lib" "/System/")
