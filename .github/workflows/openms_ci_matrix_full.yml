@@ -534,7 +534,7 @@ jobs:
           sudo chmod 600 ~/.ssh/private.key
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
 
-          if [[ 'true' == ${{ inputs.mark_as_latest }} ]]; then
+          if [[ ${{ github.event_name }} == 'workflow_dispatch' && 'true' == ${{ inputs.mark_as_latest }} ]]; then
             ln -s ./$tmpfolder latest  #create link to the release folder
             rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/OpenMSInstaller/release/RC_GHA" # FIXME REVERT
           fi
@@ -628,7 +628,7 @@ jobs:
           # Upload documentation FIXME
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/docs/ "$USER@$HOST:/Documentation/${folder}"
 
-          if [[ 'true' == ${{ inputs.mark_as_latest }} ]]; then
+          if [[  ${{ github.event_name }} == 'workflow_dispatch' && 'true' == ${{ inputs.mark_as_latest }} ]]; then
             ln -s ./$tmpfolder latest  #we can use the same link from above.
             rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/Documentation/release/RC_GHA" # FIXME REVERT
           fi
@@ -823,7 +823,7 @@ jobs:
           sudo chmod 600 ~/.ssh/private.key
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"
 
-          if [[ 'true' == ${{ inputs.mark_as_latest }} ]]; then
+          if [[ ${{ github.event_name }} == 'workflow_dispatch' && 'true' == ${{ inputs.mark_as_latest }} ]]; then
             ln -s ./$tmpfolder latest  #create link to the release folder
             rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/knime-plugin/updateSite/release/RC_GHA" # FIXME REVERT
           fi
