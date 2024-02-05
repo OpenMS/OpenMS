@@ -10,11 +10,7 @@
 
 #include <OpenMS/CONCEPT/Macros.h>
 
-  /**
-    @brief A two-dimensional matrix based on Eigen matrices.
 
-    @ingroup Datastructures
-  */
 
 #include <Eigen/Dense>
 
@@ -24,31 +20,48 @@
 
 namespace OpenMS
 {
-  template <typename Value>
-  class Matrix
-  /**
-   * @class Matrix
+    /**
    * @brief A class representing a matrix using Eigen library.
    * 
    * The Matrix class provides functionality for creating, manipulating, and accessing matrices.
    * It is implemented using the Eigen library and supports various operations such as resizing, clearing,
    * accessing elements, setting values, and comparing matrices.
+   * 
+   * @ingroup Datastructures
    */
+  template <typename Value>
+  class Matrix
   {
   public:
+    /**
+     * @brief Eigen matrix type.
+     */
     typedef Eigen::Matrix<Value, Eigen::Dynamic, Eigen::Dynamic> EigenMatrixType;
 
-    // Constructors
+    /**
+     * @brief Default constructor. Creates an empty matrix.
+     */
     Matrix() : data_(0, 0) 
     {      
     }
 
+    /**
+     * @brief Constructor to create a matrix with specified dimensions and fill value.
+     * 
+     * @param rows Number of rows in the matrix.
+     * @param cols Number of columns in the matrix.
+     * @param value Initial value to fill the matrix.
+     */
     Matrix(Size rows, Size cols, Value value = Value()) : data_(rows, cols)
     {
       data_.fill(value);
     }
     
-    // Copy constructor
+    /**
+     * @brief Copy constructor.
+     * 
+     * @param source The matrix to be copied.
+     */
     Matrix(const Matrix& source) : data_(source.data_) {}
 
     // Assignment operator
@@ -61,12 +74,25 @@ namespace OpenMS
       return *this;
     }
 
-    // Accessors
-    Value operator()(int i, int j) const
+    /**
+     * @brief Accessor to get the value at the specified position in the matrix.
+     * 
+     * @param i Row index.
+     * @param j Column index.
+     * @return reference to the value at the specified position.
+     */
+    const Value& operator()(int i, int j) const
     {
       return data_(i, j);
     }
 
+    /**
+     * @brief Accessor to get the value at the specified position in the matrix.
+     * 
+     * @param i Row index.
+     * @param j Column index.
+     * @return const reference to the value at the specified position.
+     */
     Value& operator()(int i, int j)
     {
       return data_(i, j);
@@ -121,11 +147,17 @@ namespace OpenMS
       data_.resize(0, 0);
     }
 
-    // Rows and Columns
+    /**
+     * @brief Number of rows
+     */
     size_t rows() const 
     { 
       return data_.rows(); 
     }
+
+    /**
+     * @brief Number of columns
+     */
     size_t cols() const 
     { 
       return data_.cols(); 
@@ -156,17 +188,32 @@ namespace OpenMS
       }
     }
  
-    // Equality and Comparison
+    /**
+     * @brief Equality operator. Compares two matrices for equality.
+     * 
+     * @param rhs The matrix to be compared.
+     * @return True if matrices are equal, false otherwise.
+     */
     bool operator==(const Matrix& rhs) const
     {
       return data_ == rhs.data_;
     }
 
+    /**
+     * @brief Get the total number of elements in the matrix.
+     * 
+     * @return The total number of elements.
+     */
     size_t size() const
     {
       return data_.size();
     }
 
+    /**
+     * @brief Check if the matrix is empty (has zero elements).
+     * 
+     * @return True if the matrix is empty, false otherwise.
+     */
     bool empty() const
     {
       return data_.size() == 0;
@@ -196,8 +243,13 @@ namespace OpenMS
     {
       return data_.data() + data_.size();
     }
-
-    // Print
+    /**
+     * @brief Friend function to output the matrix to an output stream.
+     * 
+     * @param os Output stream.
+     * @param matrix Matrix to be output.
+     * @return Reference to the output stream.
+     */
     friend std::ostream& operator<<(std::ostream& os, const Matrix<Value>& matrix)
     {
       for (size_t i = 0; i < matrix.rows(); ++i)
@@ -211,11 +263,17 @@ namespace OpenMS
       return os;
     }
 
+    /**
+     * @brief Get a const reference to the underlying Eigen matrix.
+     * 
+     * @return Const reference to the Eigen matrix.
+     */
     const EigenMatrixType& getEigenMatrix() const
     {
       return data_;
     }
+    
   private:
-    EigenMatrixType data_;
+    EigenMatrixType data_; ///< Eigen matrix storing the actual data.
   };
 } // namespace OpenMS
