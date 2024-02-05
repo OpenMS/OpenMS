@@ -880,7 +880,7 @@ jobs:
         name: create tags for other repos
         shell: bash
         env: 
-          GH_TOKEN: ${{ github.event.issue.number }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           function createGitTag() {
             REPO=$1
