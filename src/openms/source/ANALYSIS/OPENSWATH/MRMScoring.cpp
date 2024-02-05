@@ -920,7 +920,7 @@ namespace OpenSwath
       const auto& em = mi_precursor_contrast_matrix_.getEigenMatrix();
       size_t n_entries = em.size();
 
-      for (size_t i = 0; i != n_entries; ++i)
+      for (size_t i = 0; i < n_entries; ++i)
       {
         auto e = *(em.data() + i);
         mi_scores += e;
