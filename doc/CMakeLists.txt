@@ -127,7 +127,7 @@ if(ENABLE_DOCS)
     
     ## if not found, use empty string to avoid `warning: the dot tool could not be found as 'DOXYGEN_DOT_EXECUTABLE-NOTFOUND/dot.exe'` in doxygen-error.log
     if (DOXYGEN_DOT_EXECUTABLE) 
-      set(CF_DOXYGEN_DOT_EXECUTABLE DOXYGEN_DOT_EXECUTABLE)
+      set(CF_DOXYGEN_DOT_EXECUTABLE "${DOXYGEN_DOT_EXECUTABLE}")
     else()
       set(CF_DOXYGEN_DOT_EXECUTABLE "")
     endif()
@@ -251,7 +251,14 @@ if(ENABLE_DOCS)
                       ${_DOC_HTML_CODE}
                       DEPENDS doc_param_internal
                       VERBATIM)
-
+                      
+    ## A test which inspects the doxygen-error.log and fails if Doxygen reports errors; also forwards the logfile content to CDash for inspection
+    add_executable(Doxygen_Warning_Checker doxygen/test/Doxygen_Warning_Checker.cpp)
+    ## this is a compile time dependency, but better than none. Currently, there is no way to have a test depend on a target ('doc') before its run.
+    #add_dependencies(Doxygen_Warning_Checker doc) ## disable, since CI seems to re-configure CMake after 'doc' and chokes on it
+    add_test(Doxygen_Warning_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Doxygen_Warning_Checker "${PROJECT_BINARY_DIR}/doxygen/doxygen-error.log" ${DOXYGEN_VERSION})
+    set_tests_properties(Doxygen_Warning_test PROPERTIES ATTACHED_FILES_ON_FAIL "${PROJECT_BINARY_DIR}/doxygen/doxygen-error.log")
+    
     # doc_html_only to generate only the doxygen documentation (e.g., when writing new documentation)
     add_custom_target(doc_class_only
                       ${_DOC_HTML_CODE}

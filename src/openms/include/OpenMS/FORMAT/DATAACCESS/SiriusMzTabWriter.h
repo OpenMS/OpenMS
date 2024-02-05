@@ -20,7 +20,7 @@ namespace OpenMS
     /**
     @brief Internal structure used in @ref TOPP_SiriusAdapter that is used
     for the conversion of the sirius output to an mzTab.
-    @ingroup ID
+    @ingroup Analysis_ID
 
     SiriusAdapterHit:
     formula (String) - Sumformula
@@ -119,11 +119,11 @@ namespace OpenMS
     @brief Conversion of sirius output to mzTab
     
     Output of Sirius is one directory per spectrum/compound
+    
     @param sirius_output_paths: Path to output directories of Sirius
     @param original_input_mzml: Path to mzml input of SiriusAdapter
-    @param top_n_hits: Top n  entries for each compound written to the result file     
-    
-    @return: Result written to mzTab
+    @param top_n_hits: Top n entries for each compound written to the result file     
+    @param result mzTab result
     */
     static void read(const std::vector<String>& sirius_output_paths,
                      const String& original_input_mzml,

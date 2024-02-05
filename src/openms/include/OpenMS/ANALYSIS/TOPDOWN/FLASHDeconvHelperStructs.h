@@ -253,7 +253,7 @@ namespace OpenMS
     static double getLogMz(double mz, bool positive);
 
     /**
-       @brief get charge carrier mass : positive mode mass of (Constants::PROTON_MASS_U) and negative mode mass of (-Constants::PROTON_MASS_U)
+       @brief get charge carrier mass : positive mode mass of (Constants\::PROTON_MASS_U) and negative mode mass of (-Constants\::PROTON_MASS_U)
        @param positive_ioniziation_mode Determines the charge carrier mass (true = positive or false = negative)
     */
     static float getChargeMass(bool positive_ioniziation_mode);

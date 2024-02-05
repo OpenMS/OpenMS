@@ -35,7 +35,7 @@ using namespace OpenMS;
 </tr>
 <tr>
   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_RNPxlSearch </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> NuXL </td>
 </tr>
 </table>
 </CENTER>
