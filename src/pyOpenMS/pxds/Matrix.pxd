@@ -12,12 +12,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Matrix.h>" namespace "OpenMS":
         Matrix() except + nogil 
         Matrix(Matrix[ValueT]) except + nogil 
         Matrix(size_t rows, size_t cols, ValueT value) except + nogil 
-        # const_reference operator()(size_t i, size_t j) except + nogil 
-        # reference operator()(size_t i, size_t j) except + nogil 
-        # const_reference getValue(size_t i, size_t j) except + nogil 
         ValueT getValue(size_t i, size_t j) nogil
         void setValue(size_t i, size_t j, ValueT value) nogil
-        libcpp_vector[ValueT] asVector() except + nogil  # wrap-ignore
         void clear() except + nogil 
         void resize(size_t i, size_t j, ValueT value) except + nogil 
         size_t rows() nogil

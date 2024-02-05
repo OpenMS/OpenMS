@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -70,6 +70,33 @@ namespace OpenMS
     Value& operator()(int i, int j)
     {
       return data_(i, j);
+    }
+
+    /*
+      @brief get matrix entry
+      Note: pyOpenMS can't easily wrap operator() so we provide additional getter / setter.
+    */
+    const Value& getValue(size_t const i, size_t const j) const
+    {
+      return data_(i, j);
+    }
+
+    /*
+      @brief get matrix entry
+      Note: pyOpenMS can't easily wrap operator() so we provide additional getter / setter.
+    */
+    Value& getValue(size_t const i, size_t const j)
+    {
+      return data_(i, j);
+    }    
+
+    /*
+      @brief set matrix entry
+      Note: pyOpenMS can't easily wrap operator() so we provide additional getter / setter.
+    */
+    void setValue(size_t const i, size_t const j, const Value& value)
+    {
+      data_(i, j) = value;
     }
 
     /**
