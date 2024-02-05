@@ -258,10 +258,9 @@ jobs:
           fi
         fi
 
-    - id: cache-contrib
-      if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
-      name: Cache contrib (Windows and macOS)
+    - name: Cache contrib (Windows and macOS)
       id: cache-contrib
+      if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
       uses: actions/cache@v4
       with:
         path: ${{ github.workspace }}/OpenMS/contrib
