@@ -565,6 +565,8 @@ namespace OpenMS
             double lmz = center_mz, rmz = center_mz;
             double sig_int = pg.getChargeIntensity(charge);
             double noise_int = sqrt(sig_int * sig_int / (.01 + pg.getChargeSNR(charge)));
+            double noise_left = .0;
+            double noise_right = .0;
 
             bool goleft = tindexl > 0 && (center_mz - lmz <= rmz - center_mz);
             bool goright = tindexr < ospec.size() - 1 && (center_mz - lmz >= rmz - center_mz);
@@ -578,7 +580,7 @@ namespace OpenMS
                 double intensity = ospec[tindexl].getIntensity();
                 if (lmz < mz1)
                 {
-                  noise_int += intensity;
+                  noise_left+= intensity;
                 }
               }
               if (goright)
@@ -588,25 +590,25 @@ namespace OpenMS
                 double intensity = ospec[tindexr].getIntensity();
                 if (rmz > mz2)
                 {
-                  noise_int += intensity;
+                  noise_right += intensity;
                 }
               }
 
-              goleft = tindexl > 0 && (center_mz - lmz <= rmz - center_mz);
-              goright = tindexr < ospec.size() - 1 && (center_mz - lmz >= rmz - center_mz);
+              goleft = tindexl > 0 && ((noise_left <= noise_right) || (rmz - mz2 > 0.4)) && (mz1 - lmz < 0.4);
+              goright = tindexr < ospec.size() - 1 && ((noise_left >= noise_right) || (mz1 - lmz > 0.4)) && (rmz - mz2 < 0.4);
 
               if (lmz > mz1 || rmz < mz2 || rmz - lmz < min_isolation_window_half_ * 2)
               {
                 continue;
               }
 
-              if (sig_int / noise_int < sqrt(snr_threshold))
+              if (sig_int / (noise_int+noise_left+noise_right) < sqrt(snr_threshold))
               {
                 break;
               }
             }
-            mz1 = std::max(center_mz - max_isolation_window_half_, lmz);
-            mz2 = std::min(center_mz + max_isolation_window_half_, rmz);
+            mz1 = std::max(std::max(center_mz - max_isolation_window_half_, lmz), mz1 - 0.4);
+            mz2 = std::min(std::min(center_mz + max_isolation_window_half_, rmz), mz2 + 0.4);
           }
 
 
