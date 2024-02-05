@@ -258,8 +258,8 @@ jobs:
           fi
         fi
 
-    - name: Cache contrib (Windows and macOS)
-      id: cache-contrib
+    - id: cache-contrib
+      name: Cache contrib (Windows and macOS)
       if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
       uses: actions/cache@v4
       with:
