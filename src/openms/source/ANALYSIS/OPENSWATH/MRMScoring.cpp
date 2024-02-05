@@ -916,15 +916,9 @@ namespace OpenSwath
     {
       OPENSWATH_PRECONDITION(mi_precursor_contrast_matrix_.rows() > 0 && mi_precursor_contrast_matrix_.cols() > 1, "Expect mutual information matrix of at least 1x2");
 
-      double mi_scores{0};
       const auto& em = mi_precursor_contrast_matrix_.getEigenMatrix();
       size_t n_entries = em.size();
-
-      for (size_t i = 0; i < n_entries; ++i)
-      {
-        auto e = *(em.data() + i);
-        mi_scores += e;
-      }
+      double mi_scores = em.sum();
 
       return mi_scores / (double)n_entries;
     }
@@ -933,15 +927,11 @@ namespace OpenSwath
     {
       OPENSWATH_PRECONDITION(mi_precursor_combined_matrix_.rows() > 1, "Expect mutual information matrix of at least 2x2");
 
-      double mi_scores{0};
       const auto& em = mi_precursor_combined_matrix_.getEigenMatrix();
       size_t n_entries = em.size();
 
-      for (size_t i = 0; i != n_entries; ++i)
-      {
-        auto e = *(em.data() + i);
-        mi_scores += e;
-      }
+      double mi_scores = em.sum();
+
       return mi_scores / (double)n_entries;
     }
 
