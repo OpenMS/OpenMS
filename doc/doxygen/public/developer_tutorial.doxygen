@@ -405,6 +405,7 @@ The following examples creates a FeatureMap containing two Feature instances. Th
 
 \snippet Tutorial_FeatureMap.cpp FeatureMap
 
+
 @subsection tutorial_fileformat File Formats
 
 <table>
@@ -422,30 +423,6 @@ The following examples creates a FeatureMap containing two Feature instances. Th
 For further information of the HUPO Proteomics Standards Initiative please visit:
 http://www.psidev.info/
 
-@subsection tutorial_logging Logging
-To make direct output to std::out and std::err more consistent, %OpenMS provides several low-level macros:
-<br>
-OPENMS_LOG_FATAL_ERROR, 
-<br>
-OPENMS_LOG_ERROR
-<br>
-OPENMS_LOG_WARN,
-<br>
-OPENMS_LOG_INFO and
-<br>
-OPENMS_LOG_DEBUG
-<br>
-which should be used instead of the less descriptive std::out and std::err streams. 
-
-If you are writing an %OpenMS tool, you can also use the ProgressLogger to indicate how many percent of the processing has already been performed:
-<br><br>
-<b>Example: Tutorial_Logger.cpp</b>
-<br>
-Logging the Tool Progress
-
-\snippet Tutorial_Logger.cpp Logger
-
-Depending on how the user configures the tool, this output is written to the command line or a log file.
 
 @subsection tutorial_identifications Identifications 
 Identifications of proteins, peptides, and the mapping between peptides and proteins (or groups of proteins) are stored in dedicated data structures. These data structures are typically stored to disc as idXML or mzIdentML file.

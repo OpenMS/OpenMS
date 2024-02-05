@@ -53,8 +53,8 @@
 
   @code{.cpp}
   if (isValid(a))
-    error = 0;
-    return 0;
+    has_error = false;
+    return 0;     // bug: will always return
   @endcode
 
   Thus, use braces around a block even for a single line. 
@@ -501,7 +501,7 @@
 
   @subsection examples Examples
 
-  Instructive programming examples are provided in the <code>doc/code_examples</code> directory
+  Instructive programming examples are provided in the <code>doc/code_examples</code> directory. See @ref developer_tutorial.
 
   @section testing Testing
 
