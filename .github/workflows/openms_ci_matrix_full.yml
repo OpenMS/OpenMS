@@ -261,7 +261,8 @@ jobs:
     - id: cache-contrib
       if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
       name: Cache contrib (Windows and macOS)
-      uses: actions/cache@v3
+      id: cache-contrib
+      uses: actions/cache@v4
       with:
         path: ${{ github.workspace }}/OpenMS/contrib
         key: ${{ runner.os }}-contrib3
@@ -302,7 +303,7 @@ jobs:
           popd
 
     - name: Setup ccache cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: .ccache
         key: ${{ runner.os }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ github.run_number }}
@@ -433,7 +434,7 @@ jobs:
     # WARNING: Here you have to make sure that only one matrix configuration per OS produces packages. See set-vars steps.
     - name: Upload packages as artifacts
       if: steps.set-vars.outputs.pkg_type != 'none'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: installer-${{ steps.set-vars.outputs.tp_folder }}
         path: |
@@ -452,16 +453,18 @@ jobs:
         filename: 'documentation.zip'
 
     # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
+
     - name: Upload Documentation as artifacts
       if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: documentation
         path: |
           ${{ github.workspace }}/OpenMS/bld/doc/documentation.zip
-   
+
     - name: Generate KNIME descriptors and payloads
-      if: steps.set-vars.outputs.pkg_type != 'none' || inputs.knime
+    # We never want to build the KNIME update site on our second Ubuntu + Clang matrix entry even if inputs.knime is true, so we check for that specific os + compiler combo
+    - if: steps.set-vars.outputs.pkg_type != 'none' || ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && startsWith(matrix.compiler, 'clang++') ) )
       shell: bash
       run: |
         cd $GITHUB_WORKSPACE/OpenMS/bld/
@@ -470,12 +473,12 @@ jobs:
         cmake --build . --target prepare_knime_package
         
     - name: Upload KNIME payload and descriptors as artifacts
-      if: steps.set-vars.outputs.pkg_type != 'none' || inputs.knime
-      uses: actions/upload-artifact@v3
+    # We never want to build the KNIME update site on our second Ubuntu + Clang matrix entry even if inputs.knime is true, so we check for that specific os + compiler combo
+    - if: steps.set-vars.outputs.pkg_type != 'none' ||  ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && startsWith(matrix.compiler, 'clang++') ) )
+      uses: actions/upload-artifact@v4
       with:
         name: knime-${{ steps.set-vars.outputs.tp_folder }}
         path: ${{ github.workspace }}/OpenMS/bld/knime/**/*
-
 
   deploy-installer:
     if: github.ref == 'refs/heads/nightly' || contains(github.ref, 'release/') || inputs.package
@@ -490,17 +493,17 @@ jobs:
       # WOW, you cannot download with wildcard. INCREDIBLY ANNOYING https://github.com/actions/download-artifact/issues/6
       # Maybe in the next 3 years......
       - name: Download macos installer artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: installer-MacOS
 
       - name: Download win installer artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: installer-Windows
           
       - name: Download lnx installer artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: installer-Linux
 
@@ -594,7 +597,7 @@ jobs:
         run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
     
       - name: Download Documentation
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: documentation
           path: docs
@@ -652,19 +655,19 @@ jobs:
       # WOW, you cannot download with wildcard. INCREDIBLY ANNOYING https://github.com/actions/download-artifact/issues/6
       # Maybe in the next 3 years......
       - name: Download macos installer artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: knime-MacOS
           path: ${{ env.PLUGIN_SOURCE }}
 
       - name: Download win installer artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: knime-Windows
           path: ${{ env.PLUGIN_SOURCE }}
 
       - name: Download lnx installer artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: knime-Linux
           path: ${{ env.PLUGIN_SOURCE }}

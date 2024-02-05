@@ -20,7 +20,7 @@ namespace OpenMS
     /**
     @brief Internal structure used in @ref TOPP_SiriusAdapter that is used
     for the conversion of the sirius output to an mzTab.
-    @ingroup ID
+    @ingroup Analysis_ID
 
     SiriusAdapterHit:
     formula (String) - Sumformula
