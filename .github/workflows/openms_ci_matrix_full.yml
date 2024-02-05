@@ -463,7 +463,7 @@ jobs:
 
     - name: Generate KNIME descriptors and payloads
     # We never want to build the KNIME update site on our second Ubuntu + Clang matrix entry even if inputs.knime is true, so we check for that specific os + compiler combo
-    - if: steps.set-vars.outputs.pkg_type != 'none' || ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && startsWith(matrix.compiler, 'clang++') ) )
+      if: steps.set-vars.outputs.pkg_type != 'none' || ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && startsWith(matrix.compiler, 'clang++') ) )
       shell: bash
       run: |
         cd $GITHUB_WORKSPACE/OpenMS/bld/
@@ -473,7 +473,7 @@ jobs:
         
     - name: Upload KNIME payload and descriptors as artifacts
     # We never want to build the KNIME update site on our second Ubuntu + Clang matrix entry even if inputs.knime is true, so we check for that specific os + compiler combo
-    - if: steps.set-vars.outputs.pkg_type != 'none' ||  ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && startsWith(matrix.compiler, 'clang++') ) )
+      if: steps.set-vars.outputs.pkg_type != 'none' ||  ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && startsWith(matrix.compiler, 'clang++') ) )
       uses: actions/upload-artifact@v4
       with:
         name: knime-${{ steps.set-vars.outputs.tp_folder }}
