@@ -43,10 +43,9 @@
 
 namespace OpenMS
 {
-  /// minimum isolation window width divided by two
-  inline const double min_isolation_window_half_ = .6;
-  /// maximum isolation window width divided by two
-  inline const double max_isolation_window_half_ = 2.5;
+  /// optimal window margin
+  inline const double optimal_window_margin_ = .4;
+  //inline const double max_isolation_window_half_ = 2.5;
   /// constructor
   FLASHIda::FLASHIda(char* arg)
   {
@@ -434,7 +433,11 @@ namespace OpenMS
           double qscore = pg.getQscore();
           double mass = pg.getMonoMass();
           auto [mz1, mz2] = pg.getRepMzRange();
+
           double center_mz = (mz1 + mz2) / 2.0;
+
+          mz1 -= optimal_window_margin_;
+          mz2 += optimal_window_margin_;
 
           int nominal_mass = SpectralDeconvolution::getNominalMass(mass);
           bool target_matched = false;
@@ -554,8 +557,7 @@ namespace OpenMS
             }
           }
 
-
-          // here crawling isolation windows max_isolation_window_half_
+          /*
           auto ospec = deconvolved_spectrum_.getOriginalSpectrum();
           if (ospec.size() > 2)
           {
@@ -597,7 +599,7 @@ namespace OpenMS
               goleft = tindexl > 0 && ((noise_left <= noise_right) || (rmz - mz2 > 0.4)) && (mz1 - lmz < 0.4);
               goright = tindexr < ospec.size() - 1 && ((noise_left >= noise_right) || (mz1 - lmz > 0.4)) && (rmz - mz2 < 0.4);
 
-              if (lmz > mz1 || rmz < mz2 || rmz - lmz < min_isolation_window_half_ * 2)
+              if (lmz > mz1 || rmz < mz2 || rmz - lmz < optimal_window_margin_ * 2)
               {
                 continue;
               }
@@ -612,12 +614,12 @@ namespace OpenMS
           }
 
 
-          if (mz1 < ospec[0].getMZ() - max_isolation_window_half_ || mz2 > ospec.back().getMZ() + max_isolation_window_half_ || mz1 + 2 * min_isolation_window_half_ - .01 > mz2 ||
+          if (mz1 < ospec[0].getMZ() - max_isolation_window_half_ || mz2 > ospec.back().getMZ() + max_isolation_window_half_ || mz1 + 2 * optimal_window_margin_ - .01 > mz2 ||
               mz2 - mz1 > 2 * max_isolation_window_half_ + .01)
           {
             continue;
           }
-
+          */
           all_mass_rt_map_[nominal_mass] = rt;
           auto inter = mass_qscore_map_.find(nominal_mass);
           if (inter == mass_qscore_map_.end())
@@ -714,8 +716,8 @@ namespace OpenMS
       min_charges[i] = std::get<0>(cr);
       max_charges[i] = std::get<1>(cr);
 
-      wstart[i] = trigger_left_isolation_mzs_[i]; // std::get<0>(mz_range) - min_isolation_window_half_;
-      wend[i] = trigger_right_isolation_mzs_[i];  // std::get<1>(mz_range) + min_isolation_window_half_;
+      wstart[i] = trigger_left_isolation_mzs_[i]; // std::get<0>(mz_range) - optimal_window_margin_;
+      wend[i] = trigger_right_isolation_mzs_[i];  // std::get<1>(mz_range) + optimal_window_margin_;
 
       qscores[i] = Qscore::getQscore(&peakgroup, deconvolved_spectrum_.getOriginalSpectrum());
       mono_masses[i] = peakgroup.getMonoMass();
