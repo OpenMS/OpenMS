@@ -20,7 +20,7 @@ using namespace OpenMS;
 
   @brief De novo metabolite identification.
 
-  Export input file SIRIUS, a tool for metabolomics data analysis with several subtools, each serving specific purposes:
+  Exports an input file for SIRIUS, a tool for metabolomics data analysis with several subtools, each serving specific purposes:
 
   - SIRIUS: Identify molecular formula for each compound individually using fragmentation trees and isotope patterns. Output from this tool can be used to generate an OpenSwathAssay library with the AssayGeneratorMetabo TOPP tool.
   - CSI:FingerID: This subtool is dedicated to predicting molecular structures based on tandem mass spectrometry (MS/MS) data. It utilizes a fragmentation tree approach for the annotation of fragment spectra.
