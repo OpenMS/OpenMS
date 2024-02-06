@@ -113,8 +113,6 @@ namespace OpenMS
     sd_defaults.setValue("max_mass", inputs["max_mass"][0]);
     sd_defaults.setValue("tol", inputs["tol"]);
     tol_ = std::vector<double>(inputs["tol"]);
-    // fd_defaults.setValue("rt_window", rt_window_);
-    // fd_defaults.setValue("min_peaks", IntList{3, 3});//
 
     auto mass_count_double = inputs["max_mass_count"];
 
@@ -430,7 +428,7 @@ namespace OpenMS
           }
 
           int charge = pg.getRepAbsCharge();
-          double qscore = pg.getQscore();
+          double qscore = std::min(.9, pg.getQscore());
           double mass = pg.getMonoMass();
           auto [mz1, mz2] = pg.getRepMzRange();
 
