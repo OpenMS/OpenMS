@@ -56,10 +56,12 @@ namespace OpenMS
       @brief Reading a tab delimited file specifying the SWATH windows
      
       The file must of be tab delimited and of the following format:
-         window_lower window_upper
-         400 425
-         425 450
-         ...
+\verbatim
+window_lower window_upper
+400 425
+425 450
+...
+\endverbatim
      
       Note that the first line is a header and will be skipped.
      

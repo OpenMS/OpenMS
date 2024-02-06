@@ -377,7 +377,7 @@ public:
 
       /** @brief Specifies the mapping from "outside" to "inside" coordinates by the following data:
        - <code>scale</code>: the difference in outside coordinates between consecutive values in the data vector.
-      - <code>inside</code> and <code>outside</code>: these x-axis positions are mapped onto each other.
+       - <code>inside</code> and <code>outside</code>: these x-axis positions are mapped onto each other.
 
       For example, when you have a complicated probability distribution
       which is in fact centered around zero (but you cannot have negative

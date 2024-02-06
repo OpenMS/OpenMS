@@ -1,0 +1,23 @@
+name: Update nightly from develop
+on:
+  schedule:
+  - cron: '7 1 * * *'
+jobs:
+  make_nightly:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: merge_to_nightly
+      uses: robotology/gh-action-nightly-merge@v1.4.0
+      with:
+        stable_branch: 'develop'
+        development_branch: 'nightly'
+        allow_ff: true
+        ff_only: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.OPENMS_GITHUB_APP_PRIVATE_KEY }}

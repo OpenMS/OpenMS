@@ -1,7 +1,7 @@
 /**
 
 @page howto_commit_messages How to write Commit messages
-### Format
+# Format
 
 On every commit to our revision control system please provide a commit message of the following form:
 
@@ -19,7 +19,7 @@ Fixes #42
  * You should add a long description after an empty line.
  * When resolving / fixing an issue, please include a last line with the text "Fixes #Bug-nr". This causes github to automatically close the issue
 
-### Possible Classes
+# Possible Classes
 
  * **NOP**
    * Only whitespace changes. E.g., removed trailing whitespace, replaced tabs by spaces, changed indentation
@@ -56,9 +56,9 @@ Fixes #42
  * **BUILD**
    * Changes to the build system.
 
-### Examples
+# Examples
 
-#### Example: API Changes
+## Example: API Changes
 
 API change with tests and detailed description of changes.
 
@@ -70,7 +70,7 @@ This is a large patch that mostly updates the feature module:
  * a detailed list of all changes
 ```
 
-#### Example: Bug Fixes
+## Example: Bug Fixes
 
 A fix that solves two tickets:
 
@@ -98,7 +98,7 @@ A fix that corrects a previous commit (using the SHA1 to reference the previous 
 A short description of the problem introduced in the commit.
 ```
 
-#### Example: Internal Changes
+## Example: Internal Changes
 
 An internal change, reordering of code without changing the public API.
 
@@ -115,7 +115,7 @@ Restructured the whole internal structure of the classes, adding a large number 
 and improving the source-level documentation.  
 ```
 
-#### Example: Changes To Params and Logging
+## Example: Changes To Params and Logging
 
 Changes to the command parameters exposed by an algorithm or tool:
 

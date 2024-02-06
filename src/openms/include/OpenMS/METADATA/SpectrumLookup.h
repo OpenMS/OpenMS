@@ -193,7 +193,7 @@ namespace OpenMS
        
        @param native_id RegEx string
    */
-    static std::string getRegExFromNativeID(const String& id);
+    static std::string getRegExFromNativeID(const String& native_id);
 
     /**
        @brief Simple prefix check if a spectrum identifier @p id is a nativeID from a vendor file.

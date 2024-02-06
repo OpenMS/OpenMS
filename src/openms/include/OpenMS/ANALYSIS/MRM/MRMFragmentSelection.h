@@ -27,7 +27,6 @@ namespace OpenMS
       written from TheoreticalSpectrumGenerator, PILISModel...). The second one is simply using
       the most abundant peaks in a specified m/z range.
 
-      @ingroup Analysis_MRM
   */
   class OPENMS_DLLAPI MRMFragmentSelection :
     public DefaultParamHandler
