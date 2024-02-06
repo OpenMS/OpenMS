@@ -2,21 +2,14 @@
 # default OpenMS version is "latest" for the current tip of master
 # when this image is built from releases it will be "3.1.0" or similar
 ARG OPENMS_VERSION=latest
-
-# this is the directory where the OpenMS git repository gets copied to
-ARG OPENMS_SOURCE_DIR="/tmp/OpenMS"
-
-# this is the directory where the OpenMS library and tools are built
-ARG OPENMS_LIBRARY_BUILD_DIR="/opt/OpenMS"
-ARG OPENMS_LIBRARY_DIR="/opt/OpenMS/lib"
-
+ARG SOURCE_DIR="/tmp/OpenMS"
+ARG BUILD_DIR="${SOURCE_DIR}/bld"
+ARG INSTALL_DIR="/opt/OpenMS"
 # the contrib image is the collection of dependencies needed to build OpenMS
 ARG CONTRIB_IMAGE_TAG=latest
 ARG CONTRIB_BASE_IMAGE=ghcr.io/openms/contrib:${CONTRIB_IMAGE_TAG}
-
 # this directory is where any dependencies that are built from source go
 ARG CONTRIB_BUILD_DIR="/contrib-build"
-ARG THIRDPARTY_BRANCH="master"
 ARG THIRDPARTY_DIR="/opt/OpenMS/thirdparty"
 ARG NUM_BUILD_CORES=8
 ARG MAKEFLAGS="-j${NUM_BUILD_CORES}"
@@ -104,35 +97,19 @@ LABEL software.version="${OPENMS_VERSION}-Ubuntu22.04"
 LABEL org.opencontainers.image.source https://github.com/OpenMS/OpenMS
 
 
-### OpenMS library build ###
-FROM base as library-build
-ARG OPENMS_SOURCE_DIR
-ARG OPENMS_LIBRARY_BUILD_DIR
+### OpenMS build ###
+FROM base as build
+ARG SOURCE_DIR
+ARG BUILD_DIR
+ARG INSTALL_DIR
 ARG CONTRIB_BUILD_DIR
-ARG MAKEFLAGS
-ENV MAKEFLAGS="${MAKEFLAGS}"
-
-COPY . ${OPENMS_SOURCE_DIR}
-
-RUN cmake \
-    -DCMAKE_BUILD_TYPE='Release' \
-    -DCMAKE_PREFIX_PATH="${CONTRIB_BUILD_DIR}/;/usr/;/usr/local" \
-    -DBOOST_USE_STATIC=OFF \
-    -S ${OPENMS_SOURCE_DIR} \
-    -B ${OPENMS_LIBRARY_BUILD_DIR}
-WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
-RUN make OpenMS
-
-
-### OpenMS tools build ###
-FROM library-build as tools-build
-ARG OPENMS_SOURCE_DIR
-ARG OPENMS_LIBRARY_BUILD_DIR
 ARG THIRDPARTY_DIR
 ARG MAKEFLAGS
 ENV MAKEFLAGS="${MAKEFLAGS}"
 
-WORKDIR ${OPENMS_SOURCE_DIR}
+COPY . ${SOURCE_DIR}
+
+WORKDIR ${SOURCE_DIR}
 RUN mkdir -p ${THIRDPARTY_DIR}
 RUN <<-EOF
     set -eux
@@ -145,15 +122,24 @@ RUN <<-EOF
     rm -rf THIRDPARTY
 EOF
 
-WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
-RUN make TOPP
+# adding thirdparty binaries to the PATH so they will be picked up by the build system
+ENV PATH="${THIRDPARTY_DIR}/LuciPHOr2:${THIRDPARTY_DIR}/MSGFPlus:${THIRDPARTY_DIR}/ThermoRawFileParser:${THIRDPARTY_DIR}/Comet:${THIRDPARTY_DIR}/Fido:${THIRDPARTY_DIR}/MaRaCluster:${THIRDPARTY_DIR}/Percolator:${THIRDPARTY_DIR}/SpectraST:${THIRDPARTY_DIR}/XTandem:${THIRDPARTY_DIR}/Sage:${PATH}"
+RUN cmake \
+    -DCMAKE_BUILD_TYPE='Release' \
+    -DCMAKE_PREFIX_PATH="${CONTRIB_BUILD_DIR}/;/usr/;/usr/local" \
+    -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
+    -DBOOST_USE_STATIC=OFF \
+    -S ${SOURCE_DIR} \
+    -B ${BUILD_DIR}
+
+WORKDIR ${BUILD_DIR}
+RUN make all
+RUN make install/strip
 
 
 ### OpenMS library ###
 FROM ubuntu:22.04 AS library
-ARG OPENMS_SOURCE_DIR
-ARG OPENMS_LIBRARY_DIR
-ARG OPENMS_LIBRARY_BUILD_DIR
+ARG INSTALL_DIR
 ARG CONTRIB_BUILD_DIR
 
 RUN apt-get update \
@@ -174,20 +160,20 @@ RUN apt-get update \
     libboost-random1.74-dev \
   && rm -rf /var/lib/apt/lists/*
 
-COPY --from=library-build ${CONTRIB_BUILD_DIR}/bin ${CONTRIB_BUILD_DIR}/bin
-COPY --from=library-build ${OPENMS_LIBRARY_DIR} ${OPENMS_LIBRARY_DIR}
-COPY --from=library-build ${OPENMS_SOURCE_DIR}/share ${OPENMS_LIBRARY_BUILD_DIR}/share
+COPY --from=build ${CONTRIB_BUILD_DIR}/bin ${CONTRIB_BUILD_DIR}/bin
+COPY --from=build ${INSTALL_DIR}/lib ${INSTALL_DIR}/lib
+COPY --from=build ${INSTALL_DIR}/include ${INSTALL_DIR}/include
+COPY --from=build ${INSTALL_DIR}/share ${INSTALL_DIR}/share
 
 LABEL software="OpenMS (library)"
 
 
 ### OpenMS tools runtime ###
 FROM library AS tools
-ARG OPENMS_LIBRARY_BUILD_DIR
+ARG INSTALL_DIR
 
-COPY --from=tools-build ${OPENMS_LIBRARY_BUILD_DIR}/bin ${OPENMS_LIBRARY_BUILD_DIR}/bin
-ENV PATH="${OPENMS_LIBRARY_BUILD_DIR}/bin:${PATH}"
-WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
+COPY --from=build ${INSTALL_DIR}/bin ${INSTALL_DIR}/bin
+ENV PATH="${INSTALL_DIR}/bin:${PATH}"
 
 LABEL software="OpenMS (tools)"
 
@@ -211,31 +197,23 @@ RUN apt-get update \
     mono-devel \
   && rm -rf /var/lib/apt/lists/*
 
-COPY --from=tools-build ${THIRDPARTY_DIR} ${THIRDPARTY_DIR}
+COPY --from=build ${THIRDPARTY_DIR} ${THIRDPARTY_DIR}
 
 ENV PATH="${THIRDPARTY_DIR}/LuciPHOr2:${THIRDPARTY_DIR}/MSGFPlus:${THIRDPARTY_DIR}/ThermoRawFileParser:${THIRDPARTY_DIR}/Comet:${THIRDPARTY_DIR}/Fido:${THIRDPARTY_DIR}/MaRaCluster:${THIRDPARTY_DIR}/Percolator:${THIRDPARTY_DIR}/SpectraST:${THIRDPARTY_DIR}/XTandem:${THIRDPARTY_DIR}/Sage:${PATH}"
 
 LABEL software="OpenMS (tools + thirdparty)"
 
 
-### OpenMS test build ###
-FROM tools-build as test-build
-ARG OPENMS_LIBRARY_BUILD_DIR
-
-WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
-# TODO: determine if we need to make all or if we can get away with less
-RUN make all
-
-
 ### OpenMS runtime test ###
 # this stage is based on the runtime stage, so it's a test to ensure
-# that the runtime dependencies satisfy the requirements of the tools
+# that the runtime dependencies satisfy the requirements of the tools,
 # binaries and the OpenMS library
-FROM tools AS test
-ARG OPENMS_SOURCE_DIR
-ARG OPENMS_LIBRARY_DIR
-ARG OPENMS_LIBRARY_BUILD_DIR
+FROM tools-thirdparty AS test
+ARG SOURCE_DIR
+ARG BUILD_DIR
+ARG INSTALL_DIR
 ARG CMAKE_VERSION
+ARG NUM_BUILD_CORES
 
 RUN apt-get update \ 
     && apt-get install -y --no-install-recommends --no-install-suggests \
@@ -257,14 +235,11 @@ RUN <<-EOF
     rm -rf /tmp/*
 EOF
 
-COPY --from=test-build ${OPENMS_SOURCE_DIR} ${OPENMS_SOURCE_DIR}
-COPY --from=test-build ${OPENMS_LIBRARY_BUILD_DIR} ${OPENMS_LIBRARY_BUILD_DIR}
-WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
-RUN <<-EOF
-    set -eux
-    Xvfb :0 &
-    DISPLAY=:0 ctest
-EOF
+COPY --from=build ${SOURCE_DIR} ${SOURCE_DIR}
+COPY --from=build ${BUILD_DIR} ${BUILD_DIR}
+
+WORKDIR ${BUILD_DIR}
+RUN xvfb-run -a ctest --output-on-failure -j${NUM_BUILD_CORES}
 
 
 ### pyOpenMS ###
