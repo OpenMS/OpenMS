@@ -195,7 +195,7 @@ namespace OpenMS
         {
           os << std::setprecision(6) << std::setw(6) << matrix(i, j) << ' ';
         }
-        os << std::endl;
+        os << '\n';
       }
       return os;
     }
