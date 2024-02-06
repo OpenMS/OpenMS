@@ -152,8 +152,6 @@ namespace OpenMS
       // returns Log of feature and/or spectra number
       SiriusExportAlgorithm::logFeatureSpectraNumber(feature_info_to_pass, feature_ms2_indices, spectra);
 
-      // bool no_masstrace_info_isotope_pattern = (no_masstrace_info_isotope_pattern_ == "true");
-
       // temporary vector to store compound information for the current file
       std::vector<SiriusMSFile::CompoundInfo> temp_cmpinfo;
       SiriusMSFile::store(spectra,

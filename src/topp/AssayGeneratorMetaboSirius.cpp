@@ -65,6 +65,7 @@ using namespace OpenMS;
     SiriusExport -in sample.mzML -in_featureinfo sample.featureXML -out_ms sample.ms
   @endcode
   - Run SIRIUS externally with "--no-compression" flag and the formula, passatutto (optional, for decoy generation) and write-summaries tools.
+  - This tool was tested with the SIRIUS project directory generated with SIRIUS versions >= 5.5.1 and <= 5.8.6.
   @code
     sirius --input sample.ms --project sirius-project --maxmz 300 --no-compression formula passatutto write-summaries
   @endcode

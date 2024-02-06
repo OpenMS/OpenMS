@@ -94,8 +94,9 @@ namespace OpenMS
                     std::abs(decoy_mz - target_mz) / target_mz * 1e6 :
                     std::abs(decoy_mz - target_mz);
 
-                // If the difference is within the specified tolerance, add the decoy m/z to the matched set.
+                // If the difference is small than mz_tol, the masses are too similar.
                 if (difference <= mz_tol) {
+                    // Add the decoy m/z to the matched set.
                     matched.insert(decoy_mz);
                     break; // Move to the next decoy m/z value after finding a match.
                 }
