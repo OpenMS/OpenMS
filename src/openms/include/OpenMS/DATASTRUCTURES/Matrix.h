@@ -180,65 +180,6 @@ namespace OpenMS
       return data_.size();
     }
 
-    // Iterator class
-    class Iterator {
-    public:
-        Iterator(typename EigenMatrixType::Scalar* ptr) : ptr(ptr) {}
-
-        Iterator operator++() {
-            ++ptr;
-            return *this;
-        }
-
-        bool operator!=(const Iterator& other) const {
-            return ptr != other.ptr;
-        }
-
-        const typename EigenMatrixType::Scalar& operator*() const {
-            return *ptr;
-        }
-
-    private:
-        typename EigenMatrixType::Scalar* ptr;
-    };
-
-    class ConstIterator {
-    public:
-        ConstIterator(const typename EigenMatrixType::Scalar* ptr) : ptr(ptr) {}
-
-        ConstIterator operator++() {
-            ++ptr;
-            return *this;
-        }
-
-        bool operator!=(const ConstIterator& other) const {
-            return ptr != other.ptr;
-        }
-
-        const typename EigenMatrixType::Scalar& operator*() const {
-            return *ptr;
-        }
-
-    private:
-        const typename EigenMatrixType::Scalar* ptr;
-    };
-
-    Iterator begin() {
-        return Iterator(data_.data());
-    }
-
-    Iterator end() {
-        return Iterator(data_.data() + data_.size());
-    }
-
-    ConstIterator begin() const {
-        return ConstIterator(data_.data());
-    }
-
-    ConstIterator end() const {
-        return ConstIterator(data_.data() + data_.size());
-    }
-
     /**
      * @brief Friend function to output the matrix to an output stream.
      * 

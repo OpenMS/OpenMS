@@ -40,12 +40,12 @@ START_SECTION((Matrix()))
   TEST_EQUAL(mi1.cols(), 0);
   TEST_EQUAL(mi1.rows(), 0);
 
-  for (auto & i : mi1)
+  for (auto & i : mi1.getEigenMatrix().reshaped())
   {
 	TEST_EQUAL(i, i - 1); // this should not be executed on empty matrix
   }
 
-  for (const auto & i : mi1)
+  for (const auto & i : mi1.getEigenMatrix().reshaped())
   {
 	TEST_EQUAL(i, i - 1); // this should not be executed on empty matrix
   }  
@@ -92,7 +92,7 @@ START_SECTION((Matrix(const Matrix & source)))
 
   // test iterators and confirm column first order
   size_t row{}, col{};
-  for (auto & i : mi2)
+  for (auto & i : mi2.getEigenMatrix().reshaped())
   {
 	TEST_EQUAL(i, mi.getValue(row, col));
 	++col;
@@ -100,7 +100,7 @@ START_SECTION((Matrix(const Matrix & source)))
   }
 
   row = 0; col = 0;
-  for (const auto & i : mi2)
+  for (const auto & i : mi2.getEigenMatrix().reshaped())
   {
 	TEST_EQUAL(i, mi.getValue(row, col));
 	++col;
