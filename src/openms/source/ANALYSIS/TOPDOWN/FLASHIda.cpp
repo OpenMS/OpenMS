@@ -536,7 +536,6 @@ namespace OpenMS
             continue;
           }
 
-
           if (current_selected_mzs.find(center_mz) != current_selected_mzs.end()) // mz has been triggered
           {
             if (selection_phase < selection_phase_end)
@@ -557,69 +556,6 @@ namespace OpenMS
             }
           }
 
-          /*
-          auto ospec = deconvolved_spectrum_.getOriginalSpectrum();
-          if (ospec.size() > 2)
-          {
-            Size index = ospec.findNearest(center_mz);
-            Size tindexl = index == 0 ? index : index - 1;
-            Size tindexr = index == 0 ? index + 1 : index;
-            double lmz = center_mz, rmz = center_mz;
-            double sig_int = pg.getChargeIntensity(charge);
-            double noise_int = sqrt(sig_int * sig_int / (.01 + pg.getChargeSNR(charge)));
-            double noise_left = .0;
-            double noise_right = .0;
-
-            bool goleft = tindexl > 0 && (center_mz - lmz <= rmz - center_mz);
-            bool goright = tindexr < ospec.size() - 1 && (center_mz - lmz >= rmz - center_mz);
-
-            while (goleft || goright)
-            {
-              if (goleft)
-              {
-                tindexl--;
-                lmz = ospec[tindexl].getMZ();
-                double intensity = ospec[tindexl].getIntensity();
-                if (lmz < mz1)
-                {
-                  noise_left+= intensity;
-                }
-              }
-              if (goright)
-              {
-                tindexr++;
-                rmz = ospec[tindexr].getMZ();
-                double intensity = ospec[tindexr].getIntensity();
-                if (rmz > mz2)
-                {
-                  noise_right += intensity;
-                }
-              }
-
-              goleft = tindexl > 0 && ((noise_left <= noise_right) || (rmz - mz2 > 0.4)) && (mz1 - lmz < 0.4);
-              goright = tindexr < ospec.size() - 1 && ((noise_left >= noise_right) || (mz1 - lmz > 0.4)) && (rmz - mz2 < 0.4);
-
-              if (lmz > mz1 || rmz < mz2 || rmz - lmz < optimal_window_margin_ * 2)
-              {
-                continue;
-              }
-
-              if (sig_int / (noise_int+noise_left+noise_right) < sqrt(snr_threshold))
-              {
-                break;
-              }
-            }
-            mz1 = std::max(std::max(center_mz - max_isolation_window_half_, lmz), mz1 - 0.4);
-            mz2 = std::min(std::min(center_mz + max_isolation_window_half_, rmz), mz2 + 0.4);
-          }
-
-
-          if (mz1 < ospec[0].getMZ() - max_isolation_window_half_ || mz2 > ospec.back().getMZ() + max_isolation_window_half_ || mz1 + 2 * optimal_window_margin_ - .01 > mz2 ||
-              mz2 - mz1 > 2 * max_isolation_window_half_ + .01)
-          {
-            continue;
-          }
-          */
           all_mass_rt_map_[nominal_mass] = rt;
           auto inter = mass_qscore_map_.find(nominal_mass);
           if (inter == mass_qscore_map_.end())

@@ -190,8 +190,9 @@ namespace OpenMS
     const Size max_bin_number = 29;          // 24 bin + 5 extra bin
     float threshold = -1;
     std::vector<std::pair<FLASHDeconvHelperStructs::LogMzPeak, bool>> all_peaks; // peak + is signal?
+    all_peaks.reserve(max_noisy_peak_number + logMzpeaks_.size());
 
-    int noise_peak_count = 0, signal_peak_count = 0;
+    int noise_peak_count = 0;
     for (const auto& noisy_peak : noisy_peaks)
     {
       if (z > 0 && noisy_peak.abs_charge != z)
@@ -218,28 +219,7 @@ namespace OpenMS
 
       std::sort(intensities.rbegin(), intensities.rend());
       threshold = intensities[max_noisy_peak_number];
-      noise_peak_count = 0;
-
-      for (const auto& noisy_peak : noisy_peaks)
-      {
-        if ((z > 0 && noisy_peak.abs_charge != z) || noisy_peak.intensity < threshold)
-          continue;
-        if (noisy_peak.abs_charge < min_abs_charge_ || noisy_peak.abs_charge > max_abs_charge_)
-          continue;
-        noise_peak_count++;
-      }
     }
-
-    for (const auto& peak : logMzpeaks_)
-    {
-      if ((z > 0 && peak.abs_charge != z) || peak.intensity < threshold)
-        continue;
-      if (peak.abs_charge < min_abs_charge_ || peak.abs_charge > max_abs_charge_)
-        continue;
-      signal_peak_count++;
-    }
-
-    all_peaks.reserve(noise_peak_count + signal_peak_count);
 
     // filter peaks and check which mzs are signal and which are noise.
     for (const auto& noisy_peak : noisy_peaks)
@@ -254,13 +234,13 @@ namespace OpenMS
     if (all_peaks.empty())
       return 0;
 
-    for (const auto& signal_peak : logMzpeaks_)
+    for (const auto& peak : logMzpeaks_)
     {
-      if ((z > 0 && signal_peak.abs_charge != z) || signal_peak.intensity < threshold)
+      if ((z > 0 && peak.abs_charge != z) || peak.intensity < threshold)
         continue;
-      if (signal_peak.abs_charge < min_abs_charge_ || signal_peak.abs_charge > max_abs_charge_)
+      if (peak.abs_charge < min_abs_charge_ || peak.abs_charge > max_abs_charge_)
         continue;
-      all_peaks.emplace_back(signal_peak, true);
+      all_peaks.emplace_back(peak, true);
     }
 
     std::sort(all_peaks.begin(), all_peaks.end(),
@@ -281,12 +261,12 @@ namespace OpenMS
     for (Size i = 0; i < all_peaks.size(); i++)
     {
       const auto& [p1, p1_signal] = all_peaks[i];
-
+      const auto p1_mass = p1.getUnchargedMass();
       double prev_error = 0;
       for (Size j = i + 1; j < all_peaks.size(); j++)
       {
         const auto& [p2, p2_signal] = all_peaks[j];
-        double normalized_dist = (p2.getUnchargedMass() - p1.getUnchargedMass()) / iso_da_distance_;
+        double normalized_dist = (p2.getUnchargedMass() - p1_mass) / iso_da_distance_;
 
         if (p1_signal && p2_signal && normalized_dist >= .75) // if both are signals, and they are different from each other by more than .75 isotope distance, do not connect. Otherwise connect as
                                                               // they may a part of consecutive other noisy peaks.
@@ -497,10 +477,11 @@ namespace OpenMS
       {
         for (const auto& p : noisy_peaks)
         {
-          per_charge_noise_pwr_[0] += p.intensity * p.intensity;
+          float pwr = p.intensity * p.intensity;
+          per_charge_noise_pwr_[0] += pwr;
           if (p.abs_charge != z)
             continue;
-          per_charge_noise_pwr_[z] += p.intensity * p.intensity;
+          per_charge_noise_pwr_[z] += pwr;
         }
       }
     }

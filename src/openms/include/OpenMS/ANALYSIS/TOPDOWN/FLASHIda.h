@@ -46,8 +46,7 @@ namespace OpenMS
    * This class contains functions to perform deconvolution (by SpectralDeconvolution) for the spectrum received from Thermo iAPI.
    * Also precursor selection is done in this class.
    * The functions in this class are invoked in C# Thermo iAPI side through the functions in FLASHIdaBridgeFunctions class
-   * @see FLASHIdaBridgeFunctions
-   * @reference: https://stackoverflow.com/questions/31417688/passing-a-vector-array-from-unmanaged-c-to-c-sharp
+   * @see FLASHIdaBridgeFunction, https://stackoverflow.com/questions/31417688/passing-a-vector-array-from-unmanaged-c-to-c-sharp
    */
   class OPENMS_DLLAPI FLASHIda
   {
@@ -78,6 +77,7 @@ namespace OpenMS
            @param rt Retention time in seconds
            @param ms_level ms level
            @param name spectrum name
+           @param cv CV values when FAIMS is used
            @return number of acquired peak groups
       */
     int getPeakGroups(const double *mzs,
@@ -106,6 +106,7 @@ namespace OpenMS
            @param ppm_errors average PPM errors
            @param precursor_intensities precursor peak intensities
            @param peakgroup_intensities precursor mass intensities
+           @param ids precursor IDs
       */
     void getIsolationWindows(double *window_start,
                              double *window_end,
@@ -204,7 +205,7 @@ namespace OpenMS
     SpectralDeconvolution fd_;
 
     /// total QScore threshold
-    double tqscore_threshold = .8;
+    double tqscore_threshold = .99;
 
     /// q score threshold - determined from C# side
     double qscore_threshold_;

@@ -548,13 +548,13 @@ namespace OpenMS
             bool is_harmonic = false;
 
             // check if harmonic peaks are present with different harmonic multiple factors (2, 3, 5, 7, 11  defined in harmonic_charges_).
+            int min_dis = tol_div_factor + 1;
             for (size_t k = 0; k < h_charge_size; k++)
             {
               if (ms_level_ > 1 && harmonic_charges_[k] * abs_charge > current_max_charge_)
                 break;
               float harmonic_intensity = 0;
-              int min_dis = tol_div_factor + 1;
-              for (int t = - tol_div_factor; t <= tol_div_factor; t++)
+              for (int t = -tol_div_factor; t <= tol_div_factor; t++)
               {
                 long hmz_bin_index = mass_bin_index - harmonic_bin_offset_matrix_.getValue(k, j) + t;
                 if (hmz_bin_index > 0 && hmz_bin_index != (long)mz_bin_index && hmz_bin_index < (int)mz_bins_.size() && mz_bins_[hmz_bin_index])

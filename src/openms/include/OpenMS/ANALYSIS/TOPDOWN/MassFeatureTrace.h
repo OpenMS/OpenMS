@@ -54,6 +54,7 @@ namespace OpenMS
     /**
        @brief Find mass features.
        @param averagine precalculated averagine for cosine calculation
+       @param deconvolved_spectra the spectra on which features are found
        @param ms_level ms level to process
        @param is_decoy if set, only process decoy spectra. otherwise only target spectra
        */
