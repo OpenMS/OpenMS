@@ -216,6 +216,7 @@ function(openms_add_library)
   #------------------------------------------------------------------------------
   # Generate export header if requested
   if(NOT ${openms_add_library_DLL_EXPORT_PATH} STREQUAL "")
+    ## this snipped creates 'OpenMSConfig.h' in the build tree
     set(_CONFIG_H "include/${openms_add_library_DLL_EXPORT_PATH}${openms_add_library_TARGET_NAME}Config.h")
     string(TOUPPER ${openms_add_library_TARGET_NAME} _TARGET_UPPER_CASE)
     include(GenerateExportHeader)
