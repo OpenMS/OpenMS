@@ -186,6 +186,7 @@ jobs:
         if [[ "${{ matrix.os }}" == macos-* ]]; then
           # Qt5_DIR set by Install Qt5 step
           echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
+          brew unlink /usr/local/bin/2to3
           brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
