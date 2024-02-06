@@ -468,11 +468,10 @@ START_SECTION((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType ar
 			bifd_small.setMapping_0( 0, 0, 5, 5 );
 			bifd_small.setMapping_1( 0, 0, 5, 5 );
 			bifd_small.addValue( p, q, 100 );
-			
-			for ( auto iter = bifd_small.getData().begin();
-						iter != bifd_small.getData().end();
-						++iter
-						) *iter = Math::round(*iter);
+			bifd_small.getData().getEigenMatrix() = 
+				bifd_small.getData().getEigenMatrix().unaryExpr([](double val) {
+					return Math::round(val);
+				});
 			verbose(STATUS("          " << bifd_small.getData()));
 
 			BIFD bifd_big;
@@ -481,10 +480,11 @@ START_SECTION((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType ar
 			bifd_big.setMapping_0( 5, 0, 10, 5 );
 			bifd_big.setMapping_1( 5, 0, 10, 5 );
 			bifd_big.addValue( p, q, 100 );
-			for ( auto iter = bifd_big.getData().begin();
-						iter != bifd_big.getData().end();
-						++iter
-						) *iter = Math::round(*iter);
+			// Round the entries of the matrix in place
+			bifd_big.getData().getEigenMatrix() = 
+				bifd_big.getData().getEigenMatrix().unaryExpr([](double val) {
+					return Math::round(val);
+				});
 			verbose(STATUS(bifd_big.getData()));
 
 			BIFD::ContainerType big_submatrix;

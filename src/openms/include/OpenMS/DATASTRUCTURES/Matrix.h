@@ -180,30 +180,65 @@ namespace OpenMS
       return data_.size();
     }
 
-    /**
-     * Iterator to the beginning of the data array.
-     * Warning: Order depends on the storage order of the Eigen matrix. Use with care.
-     * @return Iterator to the beginning of the data array.
-     */
-    Value* begin()
-    {
-      return data_.data();
+    // Iterator class
+    class Iterator {
+    public:
+        Iterator(typename EigenMatrixType::Scalar* ptr) : ptr(ptr) {}
+
+        Iterator operator++() {
+            ++ptr;
+            return *this;
+        }
+
+        bool operator!=(const Iterator& other) const {
+            return ptr != other.ptr;
+        }
+
+        const typename EigenMatrixType::Scalar& operator*() const {
+            return *ptr;
+        }
+
+    private:
+        typename EigenMatrixType::Scalar* ptr;
+    };
+
+    class ConstIterator {
+    public:
+        ConstIterator(const typename EigenMatrixType::Scalar* ptr) : ptr(ptr) {}
+
+        ConstIterator operator++() {
+            ++ptr;
+            return *this;
+        }
+
+        bool operator!=(const ConstIterator& other) const {
+            return ptr != other.ptr;
+        }
+
+        const typename EigenMatrixType::Scalar& operator*() const {
+            return *ptr;
+        }
+
+    private:
+        const typename EigenMatrixType::Scalar* ptr;
+    };
+
+    Iterator begin() {
+        return Iterator(data_.data());
     }
 
-    Value* end()
-    {
-      return data_.data() + data_.size();
+    Iterator end() {
+        return Iterator(data_.data() + data_.size());
     }
 
-    const Value* begin() const
-    {
-      return data_.data();
+    ConstIterator begin() const {
+        return ConstIterator(data_.data());
     }
 
-    const Value* end() const
-    {
-      return data_.data() + data_.size();
+    ConstIterator end() const {
+        return ConstIterator(data_.data() + data_.size());
     }
+
     /**
      * @brief Friend function to output the matrix to an output stream.
      * 

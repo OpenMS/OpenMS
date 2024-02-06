@@ -32,13 +32,23 @@ Matrix<int>* ptr = nullptr;
 Matrix<int>* nullPointer = nullptr;
 START_SECTION((Matrix()))
 {
-	ptr = new Matrix<int>;
+  ptr = new Matrix<int>;
   TEST_NOT_EQUAL(ptr, nullPointer);
 
   Matrix<int> mi1;
-	TEST_EQUAL(mi1.size(), 0);
-	TEST_EQUAL(mi1.cols(), 0);
-	TEST_EQUAL(mi1.rows(), 0);
+  TEST_EQUAL(mi1.size(), 0);
+  TEST_EQUAL(mi1.cols(), 0);
+  TEST_EQUAL(mi1.rows(), 0);
+
+  for (auto & i : mi1)
+  {
+	TEST_EQUAL(i, i - 1); // this should not be executed on empty matrix
+  }
+
+  for (const auto & i : mi1)
+  {
+	TEST_EQUAL(i, i - 1); // this should not be executed on empty matrix
+  }  
   STATUS("mi1:\n"<< mi1);
 }
 END_SECTION;
@@ -79,6 +89,23 @@ START_SECTION((Matrix(const Matrix & source)))
   TEST_EQUAL(mi2(1,0),7);
   TEST_EQUAL(mi2(1,1),7);
   TEST_EQUAL(mi2(1,2),7);
+
+  // test iterators and confirm column first order
+  size_t row{}, col{};
+  for (auto & i : mi2)
+  {
+	TEST_EQUAL(i, mi.getValue(row, col));
+	++col;
+	if (col == mi2.cols()) { col = 0; ++row;}
+  }
+
+  row = 0; col = 0;
+  for (const auto & i : mi2)
+  {
+	TEST_EQUAL(i, mi.getValue(row, col));
+	++col;
+	if (col == mi2.cols()) { col = 0; ++row;}
+  }  
 }
 END_SECTION
 

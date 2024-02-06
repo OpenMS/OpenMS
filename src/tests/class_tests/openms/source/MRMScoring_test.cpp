@@ -734,11 +734,7 @@ mean(m4)
 
           TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix().rows(), 3)
           TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix().cols(), 2)
-          double sum{0};
-          for(auto e : mrmscore.getMIPrecursorContrastMatrix())
-          {
-            sum += e;
-          }
+          double sum = mrmscore.getMIPrecursorContrastMatrix().getEigenMatrix().sum();
           TEST_REAL_SIMILAR(sum, 12.01954465)
         }
     END_SECTION
