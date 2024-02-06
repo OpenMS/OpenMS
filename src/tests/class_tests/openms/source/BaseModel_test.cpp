@@ -58,7 +58,7 @@ class TestModel : public BaseModel
 
 	IntensityType getIntensity(const PositionType& pos) const override
 	{
-		return pos[0] + pos[1];
+		return pos[0];
 	}
 
 	bool isContained(const PositionType& pos) const override
