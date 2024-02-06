@@ -80,7 +80,7 @@ LABEL tags="Proteomics"
 
 
 ### OpenMS base ###
-FROM ${CONTRIB_BASE_IMAGE} as base
+FROM ${CONTRIB_BASE_IMAGE} AS base
 ARG OPENMS_VERSION_TAG
 ARG CONTRIB_BUILD_DIR
 
@@ -98,7 +98,7 @@ LABEL org.opencontainers.image.source https://github.com/OpenMS/OpenMS
 
 
 ### OpenMS build ###
-FROM base as build
+FROM base AS build
 ARG SOURCE_DIR
 ARG BUILD_DIR
 ARG INSTALL_DIR
