@@ -41,7 +41,7 @@ public:
     EmgModel & operator=(const EmgModel & source);
 
     /// create new EmgModel object (needed by Factory)
-    static BaseModel<1> * create()
+    static BaseModel * create()
     {
       return new EmgModel();
     }

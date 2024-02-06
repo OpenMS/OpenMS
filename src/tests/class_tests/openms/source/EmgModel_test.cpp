@@ -46,8 +46,8 @@ START_SECTION((static const String getProductName()))
 	TEST_EQUAL(EmgModel().getName(),"EmgModel")
 END_SECTION
 
-START_SECTION((static BaseModel<1>* create()))
-	BaseModel<1>* ptr = EmgModel::create();
+START_SECTION((static BaseModel* create()))
+	BaseModel* ptr = EmgModel::create();
 	TEST_EQUAL(ptr->getName(), "EmgModel")
 	TEST_NOT_EQUAL(ptr, nullPointer)
 	delete ptr;

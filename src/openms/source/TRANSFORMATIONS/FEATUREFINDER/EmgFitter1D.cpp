@@ -181,7 +181,7 @@ namespace OpenMS
     retention_ = x_init[3];
 
     // build model
-    model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("EmgModel")));
+    model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel>::create("EmgModel")));
     model->setInterpolationStep(interpolation_step_);
 
     Param tmp;

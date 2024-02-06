@@ -42,8 +42,8 @@ START_SECTION((virtual ~IsotopeModel()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(static BaseModel<1>* create())
-	BaseModel<1>* ptr = IsotopeModel::create();
+START_SECTION(static BaseModel* create())
+	BaseModel* ptr = IsotopeModel::create();
 	TEST_EQUAL(ptr->getName(), "IsotopeModel")
 	TEST_NOT_EQUAL(ptr, nullPointer)
 	delete ptr;

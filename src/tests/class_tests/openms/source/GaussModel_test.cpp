@@ -43,8 +43,8 @@ START_SECTION((static const String getProductName()))
 	TEST_EQUAL(GaussModel().getProductName(),"GaussModel")
 END_SECTION
 
-START_SECTION(static BaseModel<1>* create())
-	BaseModel<1>* ptr = GaussModel::create();
+START_SECTION(static BaseModel* create())
+	BaseModel* ptr = GaussModel::create();
 	TEST_EQUAL(ptr->getName(), "GaussModel")
 	TEST_NOT_EQUAL(ptr, nullPointer)
 	delete ptr;

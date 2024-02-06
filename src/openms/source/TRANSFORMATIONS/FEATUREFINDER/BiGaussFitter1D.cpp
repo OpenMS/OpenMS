@@ -69,7 +69,7 @@ namespace OpenMS
 
 
     // build model
-    model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("BiGaussModel")));
+    model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel>::create("BiGaussModel")));
     model->setInterpolationStep(interpolation_step_);
     Param tmp;
     tmp.setValue("bounding_box:min", min_bb);
