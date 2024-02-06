@@ -495,16 +495,8 @@ namespace OpenSwath
     double MRMScoring::calcXcorrContrastShapeScore()
     {
       OPENSWATH_PRECONDITION(xcorr_contrast_matrix_max_peak_sec_.rows() > 0 && xcorr_contrast_matrix_max_peak_sec_.cols() > 1, "Expect cross-correlation matrix of at least 1x2");
-
-      double intensities{0};
       const auto& em = xcorr_contrast_matrix_max_peak_sec_.getEigenMatrix();
-      for (size_t i = 0, size = em.size(); i < size; i++)
-      {
-        auto e = *(em.data() + i);
-        intensities += e;
-      }
-
-      return intensities;
+      return em.sum();
     }
 
     std::vector<double> MRMScoring::calcSeparateXcorrContrastShapeScore()
@@ -832,16 +824,8 @@ namespace OpenSwath
     double MRMScoring::calcMIScore()
     {
       OPENSWATH_PRECONDITION(mi_matrix_.rows() > 1, "Expect mutual information matrix of at least 2x2");
-
       const auto& em = mi_matrix_.getEigenMatrix();
-      size_t n_entries = em.size();
-      double mi_scores{0};
-
-      for (size_t i = 0; i < n_entries; i++)
-      {
-        auto e = *(em.data() + i);
-        mi_scores += e;
-      }
+      double mi_scores = em.sum();
       //mi_matrix_ is a triangular matrix
       size_t element_number = mi_matrix_.rows() * mi_matrix_.rows() / 2 + (mi_matrix_.rows() + 1) / 2;
       return mi_scores / element_number;
@@ -881,15 +865,7 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(mi_precursor_matrix_.rows() > 1, "Expect mutual information matrix of at least 2x2");
 
       const auto& em = mi_precursor_matrix_.getEigenMatrix();
-      size_t n_entries = em.size();
-      double mi_scores{0};
-
-      for (size_t i = 0; i < n_entries; i++)
-      {
-        auto e = *(em.data() + i);
-        mi_scores += e;
-      }
-
+      double mi_scores = em.sum();
       //mi_precursor_matrix_ is a triangular matrix
       size_t element_number = mi_precursor_matrix_.rows()*mi_precursor_matrix_.rows()/2 + (mi_precursor_matrix_.rows()+1)/2;
       return mi_scores / (double)element_number;
