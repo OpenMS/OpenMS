@@ -67,7 +67,7 @@ namespace OpenMS
 
 
     // build model
-    model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("GaussModel")));
+    model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel>::create("GaussModel")));
     model->setInterpolationStep(interpolation_step_);
 
     Param tmp;

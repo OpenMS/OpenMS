@@ -54,7 +54,7 @@ public:
     UInt getCharge() const;
 
     /// create new IsotopeModel object (needed by Factory)
-    static BaseModel<1> * create()
+    static BaseModel * create()
     {
       return new IsotopeModel();
     }

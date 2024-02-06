@@ -44,8 +44,8 @@ START_SECTION((static const String getProductName()))
 	TEST_EQUAL(BiGaussModel().getName(),"BiGaussModel")
 END_SECTION
 
-START_SECTION( static BaseModel<1>* create() )
-	BaseModel<1>* ptr = BiGaussModel::create();
+START_SECTION( static BaseModel* create() )
+	BaseModel* ptr = BiGaussModel::create();
 	TEST_EQUAL(ptr->getName(), "BiGaussModel")
 	TEST_NOT_EQUAL(ptr, nullPointer)
 	delete ptr;

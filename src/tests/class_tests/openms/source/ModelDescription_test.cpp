@@ -92,12 +92,12 @@ START_SECTION((ModelDescription(const ModelDescription &source)))
 	TEST_EQUAL(tm1==tm2,true)
 END_SECTION
 
-START_SECTION( ModelDescription(const BaseModel< D > *model) )
-	const BaseModel<1> * bm = new IsotopeModel();
+START_SECTION( ModelDescription(const BaseModel *model) )
+	const BaseModel * bm = new IsotopeModel();
 
   ModelDescription<1> md(bm);
 	
-	BaseModel<1>* ptr = md.createModel();
+	BaseModel* ptr = md.createModel();
 	TEST_EQUAL( *ptr == *bm, true)
 	delete bm;
 	delete ptr;

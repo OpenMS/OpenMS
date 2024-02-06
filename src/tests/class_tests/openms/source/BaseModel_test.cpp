@@ -22,34 +22,30 @@ using std::stringstream;
 
 START_TEST(BaseModel, "$Id$")
 
-class TestModel : public BaseModel<1>
+class TestModel : public BaseModel
 {
   public:
 	TestModel()
-		: BaseModel<1>()
+		: BaseModel()
 	{
 		setName(getProductName());
-
 		check_defaults_ = false;
-
 		defaultsToParam_();
 	}
 
 	TestModel(const TestModel& source)
-		: BaseModel<1>(source)
+		: BaseModel(source)
 	{
 		updateMembers_();
 	}
 
-	~TestModel() override
-	{
-	}
+	~TestModel() override	{}
 
 	virtual TestModel& operator = (const TestModel& source)
 	{
 		if (&source == this) return *this;
 
-		BaseModel<1>::operator = (source);
+		BaseModel::operator = (source);
 		updateMembers_();
 
 		return *this;
@@ -57,12 +53,12 @@ class TestModel : public BaseModel<1>
 
 	void updateMembers_() override
 	{
-		BaseModel<1>::updateMembers_();
+		BaseModel::updateMembers_();
 	}
 
 	IntensityType getIntensity(const PositionType& pos) const override
 	{
-		return pos[0]+pos[1];
+		return pos[0] + pos[1];
 	}
 
 	bool isContained(const PositionType& pos) const override

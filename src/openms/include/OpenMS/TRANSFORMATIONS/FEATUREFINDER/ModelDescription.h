@@ -43,7 +43,7 @@ public:
     }
 
     /// constructor provided for convenience
-    ModelDescription(const BaseModel<D> * model) :
+    ModelDescription(const BaseModel * model) :
       name_(model->getName()),
       parameters_(model->getParameters())
     {
@@ -67,11 +67,11 @@ public:
 
     /// creates model from the parameters defined in this class
     /// returns 0 if no description is set.
-    BaseModel<D> * createModel()
+    BaseModel * createModel()
     {
       if (name_.empty()) return nullptr;
 
-      BaseModel<D> * model = Factory<BaseModel<D> >::create(name_);
+      BaseModel * model = Factory<BaseModel >::create(name_);
       model->setParameters(parameters_);
       return model;
     }

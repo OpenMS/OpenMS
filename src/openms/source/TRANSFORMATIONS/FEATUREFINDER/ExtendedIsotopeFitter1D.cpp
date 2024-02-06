@@ -76,7 +76,7 @@ namespace OpenMS
       max_bb += stdev;
 
 
-      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("GaussModel")));
+      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel>::create("GaussModel")));
       model->setInterpolationStep(interpolation_step_);
 
       Param tmp;
@@ -88,7 +88,7 @@ namespace OpenMS
     }
     else
     {
-      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("ExtendedIsotopeModel")));
+      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel>::create("ExtendedIsotopeModel")));
 
       Param iso_param = this->param_.copy("isotope_model:", true);
       iso_param.removeAll("stdev");

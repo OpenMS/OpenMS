@@ -41,7 +41,7 @@ public:
     virtual GaussModel & operator=(const GaussModel & source);
 
     /// create new GaussModel object (needed by Factory)
-    static BaseModel<1> * create()
+    static BaseModel * create()
     {
       return new GaussModel();
     }

@@ -41,7 +41,7 @@ public:
     virtual BiGaussModel & operator=(const BiGaussModel & source);
 
     /// create new BiGaussModel object (function needed by Factory)
-    static BaseModel<1> * create()
+    static BaseModel * create()
     {
       return new BiGaussModel();
     }
