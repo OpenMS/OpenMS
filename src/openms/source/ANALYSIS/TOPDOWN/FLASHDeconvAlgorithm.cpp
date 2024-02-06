@@ -197,14 +197,15 @@ namespace OpenMS
   void FLASHDeconvAlgorithm::setFilters_()
   {
     filter_.clear();
-    harmonic_filter_matrix_.clear();
+
     int charge_range = current_max_charge_;
     for (int i = 0; i < charge_range; i++)
     {
       filter_.push_back(-log(i + 1)); //+
     }
 
-    harmonic_filter_matrix_.resize(harmonic_charges_.size(), charge_range);
+    harmonic_filter_matrix_.getEigenMatrix().resize(harmonic_charges_.size(), charge_range);
+    harmonic_filter_matrix_.getEigenMatrix().setZero();
 
     for (Size k = 0; k < harmonic_charges_.size(); k++)
     {
@@ -986,14 +987,15 @@ namespace OpenMS
     double mz_bin_max_value = log_mz_peaks_[log_mz_peaks_.size() - 1].logMz;
     Size mass_bin_number = getBinNumber_(mass_bin_max_value, mass_bin_min_value_, bin_mul_factor) + 1;
     bin_offsets_.clear();
-    harmonic_bin_offset_matrix_.clear();
 
     for (int i = 0; i < current_charge_range; i++)
     {
       bin_offsets_.push_back((int)round((mz_bin_min_value_ - filter_[i] - mass_bin_min_value_) * bin_mul_factor));
     }
 
-    harmonic_bin_offset_matrix_.resize(harmonic_charges_.size(), current_charge_range);
+    harmonic_bin_offset_matrix_.getEigenMatrix().resize(harmonic_charges_.size(), current_charge_range);
+    harmonic_bin_offset_matrix_.getEigenMatrix().setZero();
+    
     for (Size k = 0; k < harmonic_charges_.size(); k++)
     {
       for (int i = 0; i < current_charge_range; i++)

@@ -278,7 +278,8 @@ protected:
     //----------------------------------------------------------------
     //Do the actual resampling
     BilinearInterpolation<double, double> bilip;
-    bilip.getData().resize(rows, cols);
+    bilip.getData().getEigenMatrix().resize(rows, cols);
+    bilip.getData().getEigenMatrix().setZero();
 
     if (!getFlag_("transpose"))
     {

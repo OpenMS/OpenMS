@@ -39,7 +39,6 @@ START_SECTION((Matrix()))
 	TEST_EQUAL(mi1.size(), 0);
 	TEST_EQUAL(mi1.cols(), 0);
 	TEST_EQUAL(mi1.rows(), 0);
-	TEST_EQUAL(mi1.empty(),true);
   STATUS("mi1:\n"<< mi1);
 }
 END_SECTION;
@@ -52,11 +51,12 @@ END_SECTION;
 
 Matrix<int> mi;
 
-START_SECTION((void resize(size_type i, size_type j, value_type value = value_type())))
+START_SECTION((void getEigenMatrix().resize(size_type i, size_type j)))
 {
-  mi.resize(2,2,3);
-  STATUS("mi1:\n"<< mi);
-  mi.resize(2,3,7);
+  mi.getEigenMatrix().resize(2,2);
+  mi.getEigenMatrix().fill(3);
+  mi.getEigenMatrix().resize(2,3);
+  mi.getEigenMatrix().fill(7);
   STATUS("mi1:\n"<< mi);
   TEST_EQUAL(mi(0,0),7);
   TEST_EQUAL(mi(0,1),7);
@@ -126,16 +126,6 @@ START_SECTION((reference operator() (size_type const i, size_type const j)))
 	STATUS(mi(1,0));
 	Matrix<int> const & micr = mi;
 	TEST_EQUAL(micr(1,0), 44);
-}
-END_SECTION
-
-START_SECTION((void clear()))
-{
-  Matrix<int> mi4(mi);
-  STATUS("mi4:\n"<<mi4);
-  mi4.clear();
-  STATUS("mi4:\n"<<mi4);
-  TEST_EQUAL(mi4.empty(),true);
 }
 END_SECTION
 

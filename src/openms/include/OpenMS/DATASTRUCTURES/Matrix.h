@@ -10,8 +10,6 @@
 
 #include <OpenMS/CONCEPT/Macros.h>
 
-
-
 #include <Eigen/Dense>
 
 #include <algorithm>
@@ -36,14 +34,25 @@ namespace OpenMS
     /**
      * @brief Eigen matrix type.
      */
-    typedef Eigen::Matrix<Value, Eigen::Dynamic, Eigen::Dynamic> EigenMatrixType;
+    using EigenMatrixType = Eigen::Matrix<Value, Eigen::Dynamic, Eigen::Dynamic>;
 
-    /**
-     * @brief Default constructor. Creates an empty matrix.
-     */
-    Matrix() : data_(0, 0) 
-    {      
-    }
+    // Default constructor. Creates the "null" matrix.
+    Matrix() = default;
+
+    // Destructor
+    ~Matrix() = default;
+
+    // Copy constructor
+    Matrix(const Matrix& other) = default;
+
+    // Copy assignment operator
+    Matrix& operator=(const Matrix& other) = default;
+
+    // Move constructor
+    Matrix(Matrix&& other) noexcept = default;
+
+    // Move assignment operator
+    Matrix& operator=(Matrix&& other) noexcept = default;
 
     /**
      * @brief Constructor to create a matrix with specified dimensions and fill value.
@@ -57,23 +66,6 @@ namespace OpenMS
       data_.fill(value);
     }
     
-    /**
-     * @brief Copy constructor.
-     * 
-     * @param source The matrix to be copied.
-     */
-    Matrix(const Matrix& source) : data_(source.data_) {}
-
-    // Assignment operator
-    Matrix& operator=(const Matrix& rhs)
-    {
-      if (this != &rhs)
-      {
-        data_ = rhs.data_;
-      }
-      return *this;
-    }
-
     /**
      * @brief Accessor to get the value at the specified position in the matrix.
      * 
@@ -126,28 +118,6 @@ namespace OpenMS
     }
 
     /**
-     * @brief Resizes the matrix to the specified number of rows and columns.
-     * 
-     * @param rows The number of rows in the resized matrix.
-     * @param cols The number of columns in the resized matrix.
-     * @param value The value to fill the resized matrix with (default: Value()).
-     */
-    void resize(size_t rows, size_t cols, Value value = Value())
-    {
-      EigenMatrixType newData(rows, cols);
-      newData.fill(value);
-      data_.swap(newData);
-    }
-
-    /**
-     * @brief Clears the matrix by resizing it to 0x0.
-     */
-    void clear()
-    {
-      data_.resize(0, 0);
-    }
-
-    /**
      * @brief Number of rows
      */
     size_t rows() const 
@@ -178,7 +148,7 @@ namespace OpenMS
     template <typename T, int ROWS, int COLS>
     void setMatrix(T const (&array)[ROWS][COLS]) 
     {
-      resize(ROWS, COLS);
+      data_.resize(ROWS, COLS);
       for (int i = 0; i < ROWS; ++i) 
       {
         for (int j = 0; j < COLS; ++j) 
@@ -200,23 +170,14 @@ namespace OpenMS
     }
 
     /**
-     * @brief Get the total number of elements in the matrix.
+     * @brief Get the total number of elements in the matrix. Useful for checking if the matrix is empty
+     * or iterating over raw data.
      * 
      * @return The total number of elements.
      */
     size_t size() const
     {
       return data_.size();
-    }
-
-    /**
-     * @brief Check if the matrix is empty (has zero elements).
-     * 
-     * @return True if the matrix is empty, false otherwise.
-     */
-    bool empty() const
-    {
-      return data_.size() == 0;
     }
 
     /**
@@ -272,7 +233,16 @@ namespace OpenMS
     {
       return data_;
     }
-    
+
+    /**
+     * @brief Get a reference to the underlying Eigen matrix.
+     * 
+     * @return reference to the Eigen matrix.
+     */
+    EigenMatrixType& getEigenMatrix()
+    {
+      return data_;
+    }
   private:
     EigenMatrixType data_; ///< Eigen matrix storing the actual data.
   };

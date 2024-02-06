@@ -120,10 +120,6 @@ namespace OpenSwath
         */
         double calcXcorrCoelutionWeightedScore(const std::vector<double>& normalized_library_intensity);
 
-/*
-        /// calculate the cross-correlation contrast score
-        double calcXcorrContrastCoelutionScore();
-*/
         /// calculate the separate cross-correlation contrast score
         std::vector<double> calcSeparateXcorrContrastCoelutionScore();
 

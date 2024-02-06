@@ -47,7 +47,8 @@ namespace OpenMS
     const DerivatizationAgent& correction_matrix_agent)
   {
     // MDV_corrected = correction_matrix_inversed * MDV_observed (normalized_features)
-    if (correction_matrix.getEigenMatrix().isIdentity(0.0) && !(correction_matrix.empty()))
+    auto& em = correction_matrix.getEigenMatrix();
+    if (em.isIdentity() && !(em.size() == 0))
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "IsotopeLabelingMDVs: The given isotope correction matrix is an identity matrix leading to no correction."

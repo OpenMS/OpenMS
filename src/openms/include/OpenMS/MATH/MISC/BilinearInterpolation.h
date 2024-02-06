@@ -506,7 +506,7 @@ public:
       /// Returns \c true if getData() is empty.
       bool empty() const
       {
-        return data_.empty();
+        return data_.getEigenMatrix().size() == 0;
       }
 
       //@}
