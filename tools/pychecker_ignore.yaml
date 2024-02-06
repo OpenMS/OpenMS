@@ -1148,7 +1148,6 @@ PyOpenMSChecker:
     - OpenMS::LmaGaussModel
     - OpenMS::FeatureFinderAlgorithm
     - OpenMS::FeatureFinderDefs::NoSuccessor
-    - OpenMS::ProductModel< 2 >
     - OpenMS::LmaGaussFitter1D
     - OpenMS::MaxLikeliFitter1D
     - OpenMS::LmaIsotopeFitter1D

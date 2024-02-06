@@ -12,6 +12,7 @@
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel_impl.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 ///////////////////////////
@@ -19,11 +20,13 @@
 using namespace OpenMS;
 using std::stringstream;
 
-class TestModel : public BaseModel<2>
+START_TEST(BaseModel, "$Id$")
+
+class TestModel : public BaseModel<1>
 {
   public:
 	TestModel()
-		: BaseModel<2>()
+		: BaseModel<1>()
 	{
 		setName(getProductName());
 
@@ -33,7 +36,7 @@ class TestModel : public BaseModel<2>
 	}
 
 	TestModel(const TestModel& source)
-		: BaseModel<2>(source)
+		: BaseModel<1>(source)
 	{
 		updateMembers_();
 	}
@@ -46,7 +49,7 @@ class TestModel : public BaseModel<2>
 	{
 		if (&source == this) return *this;
 
-		BaseModel<2>::operator = (source);
+		BaseModel<1>::operator = (source);
 		updateMembers_();
 
 		return *this;
@@ -54,7 +57,7 @@ class TestModel : public BaseModel<2>
 
 	void updateMembers_() override
 	{
-		BaseModel<2>::updateMembers_();
+		BaseModel<1>::updateMembers_();
 	}
 
 	IntensityType getIntensity(const PositionType& pos) const override
@@ -78,7 +81,6 @@ class TestModel : public BaseModel<2>
 
 };
 
-START_TEST(BaseModel, "$Id$")
 
 // default ctor
 TestModel* ptr = nullptr;

@@ -37,12 +37,6 @@ START_SECTION((virtual ~ModelDescription()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(BaseModel<D>* createModel())
-	BaseModel<2>* ptr = ModelDescription<2>().createModel();
-  BaseModel<2>* baseModel_nullPointer = nullptr;
-  TEST_EQUAL(ptr, baseModel_nullPointer)	// no name is set, should be zero pointer
-END_SECTION
-
 START_SECTION( virtual bool operator==(const ModelDescription &rhs) const )
 	ModelDescription<2> fp1,fp2;	
 	TEST_EQUAL(fp1==fp2,true)
