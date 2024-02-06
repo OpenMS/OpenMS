@@ -6,7 +6,6 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-
 #pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
