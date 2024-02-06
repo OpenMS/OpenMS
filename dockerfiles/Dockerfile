@@ -240,27 +240,3 @@ COPY --from=build ${BUILD_DIR} ${BUILD_DIR}
 
 WORKDIR ${BUILD_DIR}
 RUN xvfb-run -a ctest --output-on-failure -j${NUM_BUILD_CORES}
-
-
-### pyOpenMS ###
-FROM library AS pyopenms
-ARG OPENMS_LIBRARY_BUILD_DIR
-ARG OPENMS_LIBRARY_DIR
-ARG MAKEFLAGS
-ENV MAKEFLAGS="${MAKEFLAGS}"
-
-WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}
-
-RUN apt-get update -y && apt-get install -y python-pip python-dev python-numpy
-RUN pip install -U pytest setuptools Cython autowrap pandas
-RUN cmake -DCMAKE_PREFIX_PATH="/contrib-build/;/usr/;/usr/local" -DBOOST_USE_STATIC=OFF -DHAS_XSERVER=Off -DPYOPENMS=On ${OPENMS_LIBRARY_DIR}
-
-# make OpenMS library
-RUN make pyopenms
-
-# install
-WORKDIR ${OPENMS_LIBRARY_BUILD_DIR}/pyOpenMS
-RUN pip install dist/*.whl
-WORKDIR /
-ENV PATH="${OPENMS_LIBRARY_BUILD_DIR}/bin/:${PATH}"
-LABEL software="OpenMS (library+tools+pyopenms)"
