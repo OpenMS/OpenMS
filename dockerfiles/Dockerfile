@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.3-labs
 # default OpenMS version is "latest" for the current tip of master
 # when this image is built from releases it will be "3.1.0" or similar
-ARG OPENMS_VERSION=latest
+ARG OPENMS_VERSION_TAG=latest
 ARG SOURCE_DIR="/tmp/OpenMS"
 ARG BUILD_DIR="${SOURCE_DIR}/bld"
 ARG INSTALL_DIR="/opt/OpenMS"
@@ -20,7 +20,7 @@ ARG CMAKE_VERSION="3.28.1"
 # this is an alternative to the contrib image built in the
 # OpenMS/contrib repository. Useful mostly for testing.
 FROM ubuntu:22.04 AS contrib
-ARG OPENMS_VERSION
+ARG OPENMS_VERSION_TAG
 ARG CONTRIB_BUILD_DIR
 ARG CMAKE_VERSION
 
@@ -69,9 +69,9 @@ EOF
 WORKDIR /
 
 LABEL base.image="ubuntu:22.04"
-LABEL version="${OPENMS_VERSION}"
+LABEL version="${OPENMS_VERSION_TAG}"
 LABEL software="OpenMS (dependencies)"
-LABEL software.version="${OPENMS_VERSION}-Ubuntu22.04"
+LABEL software.version="${OPENMS_VERSION_TAG}-Ubuntu22.04"
 LABEL description="Base image to build OpenMS: C++ libraries and tools for MS/MS data analysis"
 LABEL website="http://www.openms.org/"
 LABEL documentation="http://www.openms.org/"
@@ -81,7 +81,7 @@ LABEL tags="Proteomics"
 
 ### OpenMS base ###
 FROM ${CONTRIB_BASE_IMAGE} as base
-ARG OPENMS_VERSION
+ARG OPENMS_VERSION_TAG
 ARG CONTRIB_BUILD_DIR
 
 # if the contrib image builds anything from source it will place the binaries
@@ -92,8 +92,8 @@ RUN mkdir -p ${CONTRIB_BUILD_DIR}/bin
 
 # the main reason we're pulling this in is to make sure that the metadata
 # below is consistently formatted for releases irrespective of the base image
-LABEL version="${OPENMS_VERSION}"
-LABEL software.version="${OPENMS_VERSION}-Ubuntu22.04"
+LABEL version="${OPENMS_VERSION_TAG}"
+LABEL software.version="${OPENMS_VERSION_TAG}-Ubuntu22.04"
 LABEL org.opencontainers.image.source https://github.com/OpenMS/OpenMS
 
 

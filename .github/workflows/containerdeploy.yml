@@ -70,7 +70,7 @@ jobs:
           build-args: |
             NUM_BUILD_CORES=4
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
-            OPENMS_VERSION=${{ steps.tag_name.outputs.tag }}
+            OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
           tags: |
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library:${{ steps.tag_name.outputs.tag }}
           cache-from: type=gha
@@ -84,7 +84,7 @@ jobs:
           build-args: |
             NUM_BUILD_CORES=4
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
-            OPENMS_VERSION=${{ steps.tag_name.outputs.tag }}
+            OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
           tags: |
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-test:${{ steps.tag_name.outputs.tag }}
           cache-from: type=gha
@@ -98,7 +98,7 @@ jobs:
           build-args: |
             NUM_BUILD_CORES=4
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
-            OPENMS_VERSION=${{ steps.tag_name.outputs.tag }}
+            OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
           tags: |
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-executables:${{ steps.tag_name.outputs.tag }}
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools:${{ steps.tag_name.outputs.tag }}
@@ -113,7 +113,7 @@ jobs:
           build-args: |
             NUM_BUILD_CORES=4
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
-            OPENMS_VERSION=${{ steps.tag_name.outputs.tag }}
+            OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
           tags: |
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools-thirdparty:${{ steps.tag_name.outputs.tag }}
           cache-from: type=gha
