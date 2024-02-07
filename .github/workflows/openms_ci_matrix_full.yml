@@ -252,7 +252,7 @@ jobs:
           echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
           brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
           # For reasons unclear to me, the image has issues with an excess 2to3 executable when installing new python versions if it's there we remove it.
-          if [[-f '/usr/local/bin/2to3' ]]; then
+          if [[ -f '/usr/local/bin/2to3' ]]; then
             rm '/usr/local/bin/2to3'
           fi
 
