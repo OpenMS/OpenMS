@@ -211,7 +211,6 @@ LABEL software="OpenMS (tools + thirdparty)"
 FROM tools-thirdparty AS test
 ARG SOURCE_DIR
 ARG BUILD_DIR
-ARG INSTALL_DIR
 ARG CMAKE_VERSION
 ARG NUM_BUILD_CORES
 
