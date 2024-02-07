@@ -582,11 +582,11 @@ jobs:
             RELEASE_TEXT=$(cat releaseTextHeader.txt $GITHUB_WORKSPACE/changelog.txt releaseTextFooter.txt)
             RELEASE_TEXT_ESCAPED_QUOTES="${RELEASE_TEXT//\"/\\\"}"
             cat releaseTextHeader.txt $GITHUB_WORKSPACE/changelog.txt releaseTextFooter.txt > RELEASE_TEXT_GH.md
-            # cat RELEASE_TEXT_GH.md | jq -R -s '.' > RELEASE_TEXT_GH.json
+            echo release_text_contents=`cat RELEASE_TEXT_GH.md` >> $GITHUB_OUTPUT
       
       - name: run GHA release action.
         if: inputs.do_release
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@v1.14.0
         with: 
           bodyFile: RELEASE_TEXT_GH.md
           tag: ${{ env.RUN_NAME }}
@@ -596,7 +596,7 @@ jobs:
           artifacts:
             ${{ github.workspace }}/*.exe, ${{ github.workspace }}/*.deb, ${{ github.workspace }}/*.pkg
             # TODO add src
-            # FIXME Export upload_url
+
 
   deploy-docs:
     if: github.ref == 'refs/heads/nightly' || contains(github.ref, 'release/') || inputs.package
@@ -951,15 +951,18 @@ jobs:
               labels: ['feature', 'automated pr']
             });
 
+      - name: checkout website
+        uses: actions/checkout@v4
+        with:
+          path: OpenMS-website
+
       - name: create text for website and update it.
         if: inputs.announce_release
         shell: bash
         run:  |
-            curl -u $gitusr -X POST -d @data.json https://api.github.com/repos/OpenMS/OpenMS/releases > release_result.json
-            OPENMS_RELEASE_URL=$(cat release_result.json | jq -r ".upload_url")
-            git clone https://$gitusr@github.com/OpenMS/OpenMS-website
+            OPENMS_RELEASE_URL= ${{ needs.deploy-installer.outputs.upload_url }}
             cp release${{ needs.build_and_test.outputs.version_number }}.md OpenMS-website/content/en/news/
-            cat RELEASE_TEXT_WEBSITE.md >> OpenMS-website/content/en/news/release${{ needs.build_and_test.outputs.version_number }}.md
+            echo ${{ needs.deploy-installer.outputs.release_text_contents }} >> OpenMS-website/content/en/news/release${{ needs.build_and_test.outputs.version_number }}.md
             pushd OpenMS-website
               git checkout -b "releaseannouncement${{ needs.build_and_test.outputs.version_number }}"
               git add content/en/news/release${{ needs.build_and_test.outputs.version_number }}.md
