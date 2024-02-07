@@ -35,6 +35,7 @@ Misc:
 - OpenMSInfo reports the ILP solver (CoinOr or glpk) (#7156)
 - Add export for Common Workflow Language (CWL) (#6156)
 - Add tool description lib (TDL) dependency (#6156)
+- Docker containers have been optimized (#7303)
 
 Note: The goal of our library is to provide useful, reusable code in a way that’s easy to understand and use.
 To make OpenMS simpler, more focused and more accessible we gradually remove potentially outdated tools and algorithms.
