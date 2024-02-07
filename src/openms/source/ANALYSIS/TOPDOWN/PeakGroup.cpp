@@ -258,15 +258,16 @@ namespace OpenMS
     }
 
     // first collect all possible edges. An edge means mass difference between two peaks.
+    const std::vector<double> div_factors{1.0, 2.0, 3.0}; // allow two skips for each bin
     for (Size i = 0; i < all_peaks.size(); i++)
     {
       const auto& [p1, p1_signal] = all_peaks[i];
       const auto p1_mass = p1.getUnchargedMass();
-      double prev_error = 0;
+      std::vector<double> per_bin_error(max_bin_number, -1.0);
       for (Size j = i + 1; j < all_peaks.size(); j++)
       {
         const auto& [p2, p2_signal] = all_peaks[j];
-        double normalized_dist = (p2.getUnchargedMass() - p1_mass) / iso_da_distance_;
+        const double normalized_dist = (p2.getUnchargedMass() - p1_mass) / iso_da_distance_;
 
         if (p1_signal && p2_signal && normalized_dist >= .75) // if both are signals, and they are different from each other by more than .75 isotope distance, do not connect. Otherwise connect as
                                                               // they may a part of consecutive other noisy peaks.
@@ -274,10 +275,10 @@ namespace OpenMS
           continue;
         }
 
-        std::vector<double> div_factors{1.0, 2.0, 3.0}; // allow two skips for each bin
         for (double d : div_factors)
         {
-          Size bin = (Size)round(normalized_dist / d * (max_bin_number - 5));
+          double distance = normalized_dist / d * (max_bin_number - 5);
+          Size bin = (Size)round(distance);
           if (bin == 0)
           {
             continue;
@@ -288,14 +289,13 @@ namespace OpenMS
           }
 
           per_bin_start_index[bin] = -1;
-          double current_error = std::abs((double)bin - normalized_dist * (max_bin_number - 5));
-          if (per_bin_edges[bin][i] != 0)
+          double current_error = d * max_bin_number + std::abs((double)bin - distance); // larger when d gets larger. For the same d, comparable.
+          if (per_bin_error[bin] >= 0 && per_bin_error[bin] < current_error)
           {
-            if (prev_error < current_error)
-              continue;
+            continue;
           }
           per_bin_edges[bin][i] = j;
-          prev_error = current_error;
+          per_bin_error[bin] = current_error;
         }
       }
     }
