@@ -27,6 +27,10 @@ jobs:
           fi
         else
           echo "There are changes to Nightly that are not in develop, we can't automatically update"
+          echo "To forcibly reset Nightly please have an admin run:"
+          echo "git checkout nightly"
+          echo "git reset develop --hard"
+          echo "git push -f"
           exit 1
 
     - name: Fast-forward nightly branch if behind develop
