@@ -3,18 +3,13 @@ set(directory include/OpenMS/ANALYSIS/TARGETED)
 
 ### list all header files of the directory here
 set(sources_list_h
+IncludeExcludeTarget.h
+MRMMapping.h
 MetaboTargetedAssay.h
 MetaboTargetedTargetDecoy.h
-MRMMapping.h
-PrecursorIonSelectionPreprocessing.h
-PrecursorIonSelection.h
-OfflinePrecursorIonSelection.h
-PSLPFormulation.h
 PSProteinInference.h
-IncludeExcludeTarget.h
 TargetedExperiment.h
 TargetedExperimentHelper.h
-InclusionExclusionList.h
 )
 
 ### add path to the filenames

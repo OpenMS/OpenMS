@@ -1,0 +1,70 @@
+name: 'Test KNIME workflows'
+on:
+  workflow_dispatch:
+
+jobs:
+  test-knime:
+    env:
+      GH_TOKEN: ${{ github.token }}
+      KNIME_MAJOR_VERSION: 4
+      KNIME_MINOR_VERSION: 7
+      INSTALLATION_DIR: ${{ github.workspace }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set more env
+        run: |
+          echo "KNIME_VERSION=${KNIME_MAJOR_VERSION}.${KNIME_MINOR_VERSION}" >> $GITHUB_ENV
+          echo "KNIME_DIR=${INSTALLATION_DIR}/knime" >> $GITHUB_ENV
+          echo "DOWNLOAD_URL=https://download.knime.org/analytics-platform/linux/knime-latest${KNIME_MAJOR_VERSION}${KNIME_MINOR_VERSION}-linux.gtk.x86_64.tar.gz" >> $GITHUB_ENV
+      
+      - name: Install deps
+        run: |
+          apt-get install -y software-properties-common curl tzdata libgtk2.0-0 libxtst6 \
+            && apt-get install -y libwebkitgtk-3.0-0 python python-dev python-pip curl \
+            && apt-get install -y r-base r-recommended
+          pip install pandas protobuf
+          
+      - name: Install KNIME
+        run: |
+          curl -L "$DOWNLOAD_URL" | tar vxz -C $INSTALLATION_DIR \
+            && mv $INSTALLATION_DIR/knime_* $INSTALLATION_DIR/knime
+            
+      - name: Install and start Rserve
+        run: |
+          mkdir -p ~/local/R_libs
+          R -e 'install.packages(c("Rserve"), repos="http://cran.rstudio.com/", lib="~/local/R_libs/")'
+        
+      - name: Install OpenMS plugin
+        run: |
+          "$KNIME_DIR/knime" -application org.eclipse.equinox.p2.director \
+            -r "http://update.knime.com/analytics-platform/${KNIME_VERSION},https://abibuilder.cs.uni-tuebingen.de/archive/openms/knime-plugin/updateSite/nightly/" \
+            -p2.arch x86_64 \
+            -profileProperties org.eclipse.update.install.features=true \
+            -i "de.openms.feature.feature.group,com.genericworkflownodes.knime.feature.feature.group,de.openms.thirdparty.feature.feature.group" \
+            -p KNIMEProfile \
+            -nosplash
+            
+      - name: Install other plugins
+        run: |
+          "$KNIME_DIR/knime" -application org.eclipse.equinox.p2.director \
+            -r "http://update.knime.com/analytics-platform/${KNIME_VERSION},http://update.knime.com/community-contributions/trunk" \
+            -p2.arch x86_64 \
+            -profileProperties org.eclipse.update.install.features=true \
+            -i "org.knime.features.r.feature.group,org.knime.features.chem.types.feature.group,org.rdkit.knime.feature.feature.group,org.knime.features.ext.svg.feature.group" \
+            -p KNIMEProfile \
+            -nosplash
+            
+      - name: Create Workspace and fill with input data
+        run: |
+          wget -c https://abibuilder.cs.uni-tuebingen.de/archive/openms/Tutorials/Example_Data.tar.gz -O - | tar -xz
+            
+      - name:  Clone Tutorials
+        run: |
+          gh repo clone OpenMS/Tutorials
+          pushd Tutorials/Workflows
+            ./executeBatch.sh "$KNIME_DIR/knime" ${INSTALLATION_DIR}
+            cat log*.txt
+          popd
+            
+
+

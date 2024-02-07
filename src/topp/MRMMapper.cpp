@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -33,8 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
@@ -47,57 +20,57 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_MRMMapper MRMMapper
+@page TOPP_MRMMapper MRMMapper
 
-  @brief MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML).
+@brief MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML).
 
-  <CENTER>
-      <table>
-          <tr>
-              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ MRMMapper \f$ \longrightarrow \f$</td>
-              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
-          </tr>
-          <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_FileFilter </td>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
-          </tr>
-          <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_MRMTransitionGroupPicker </td>
-          </tr>
-      </table>
-  </CENTER>
- 
-  This tool reads an mzML containing chromatograms (presumably measured on an
-  SRM instrument) and a TraML file that contains the data that was used to
-  generate the instrument method to measure said data. It then maps the
-  transitions in the TraML file to the chromatograms found in the mzML file
-  and stores the chromatograms annotated with meta-data from the TraML file.
-  Thus, the  output chromatograms are an annotated copy of the input
-  chromatograms with native id, precursor information and peptide sequence (if
-  available) annotated in the chromatogram files.
+<CENTER>
+  <table>
+      <tr>
+          <th ALIGN = "center"> potential predecessor tools </td>
+          <td VALIGN="middle" ROWSPAN=3> &rarr; MRMMapper &rarr;</td>
+          <th ALIGN = "center"> potential successor tools </td>
+      </tr>
+      <tr>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_FileFilter </td>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
+      </tr>
+      <tr>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MRMTransitionGroupPicker </td>
+      </tr>
+  </table>
+</CENTER>
 
-  The algorithm tries to match a given set of chromatograms and targeted
-  assays. It iterates through all the chromatograms retrieves one or more
-  matching targeted assay for the chromatogram. By default, the algorithm
-  assumes that a 1:1 mapping exists. If a chromatogram cannot be mapped
-  (does not have a corresponding assay) the algorithm issues a warning, the
-  user can specify that the program should abort in such a case (see
-  error_on_unmapped).
-      
-  If multiple mapping is enabled (see map_multiple_assays parameter)
-  then each mapped assay will get its own chromatogram that contains the
-  same raw data but different meta-annotation. This *can* be useful if the
-  same transition is used to monitor multiple analytes but may also
-  indicate a problem with too wide mapping tolerances.
+This tool reads an mzML containing chromatograms (presumably measured on an
+SRM instrument) and a TraML file that contains the data that was used to
+generate the instrument method to measure said data. It then maps the
+transitions in the TraML file to the chromatograms found in the mzML file
+and stores the chromatograms annotated with meta-data from the TraML file.
+Thus, the  output chromatograms are an annotated copy of the input
+chromatograms with native id, precursor information and peptide sequence (if
+available) annotated in the chromatogram files.
 
-  The thus mapped mzML file can then be used in a downstream analysis.
+The algorithm tries to match a given set of chromatograms and targeted
+assays. It iterates through all the chromatograms retrieves one or more
+matching targeted assay for the chromatogram. By default, the algorithm
+assumes that a 1:1 mapping exists. If a chromatogram cannot be mapped
+(does not have a corresponding assay) the algorithm issues a warning, the
+user can specify that the program should abort in such a case (see
+error_on_unmapped).
+  
+If multiple mapping is enabled (see map_multiple_assays parameter)
+then each mapped assay will get its own chromatogram that contains the
+same raw data but different meta-annotation. This *can* be useful if the
+same transition is used to monitor multiple analytes but may also
+indicate a problem with too wide mapping tolerances.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_MRMMapper.cli
+The thus mapped mzML file can then be used in a downstream analysis.
 
-  <B>The algorithm parameters for the Analyzer filter are:</B>
-  @htmlinclude TOPP_MRMMapper.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MRMMapper.cli
+
+<B>The algorithm parameters for the Analyzer filter are:</B>
+@htmlinclude TOPP_MRMMapper.html
 
 */
 
@@ -154,8 +127,8 @@ protected:
     OpenMS::PeakMap chromatogram_map;
     OpenMS::PeakMap output;
 
-    TraMLFile().load(tr_file, targeted_exp);
-    MzMLFile().load(in, chromatogram_map);
+    FileHandler().loadTransitions(tr_file, targeted_exp, {FileTypes::TRAML});
+    FileHandler().loadExperiment(in, chromatogram_map, {FileTypes::MZML});
 
     Param param = getParam_().copy("algorithm:", true);
 
@@ -173,7 +146,7 @@ protected:
     }
     output.setChromatograms(chromatograms);
 
-    MzMLFile().store(out, output);
+    FileHandler().storeExperiment(out, output, {FileTypes::MZML});
     return EXECUTION_OK;
   }
 

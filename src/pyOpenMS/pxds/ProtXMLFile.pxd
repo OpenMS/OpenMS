@@ -28,11 +28,11 @@ cdef extern from "<OpenMS/FORMAT/ProtXMLFile.h>" namespace "OpenMS":
             #  probability and coverage) receives these attributes. All indistinguishable
             #  proteins of the same group only have an accession and score of -1
 
-        ProtXMLFile() nogil except +
+        ProtXMLFile() except + nogil 
         # copy constructor of 'ProtXMLFile' is implicitly deleted because base class 'Internal::XMLHandler' has a deleted copy constructor protected Internal::XMLHandler
-        ProtXMLFile(ProtXMLFile &) nogil except + # wrap-ignore
+        ProtXMLFile(ProtXMLFile &) except + nogil  # wrap-ignore
 
-        void load(String filename, ProteinIdentification & protein_ids, PeptideIdentification & peptide_ids) nogil except +
+        void load(String filename, ProteinIdentification & protein_ids, PeptideIdentification & peptide_ids) except + nogil 
             # wrap-doc:
             #  Loads the identifications of an ProtXML file without identifier
             #  
@@ -45,5 +45,5 @@ cdef extern from "<OpenMS/FORMAT/ProtXMLFile.h>" namespace "OpenMS":
             #    Exception: ParseError is thrown if an error occurs during parsing
 
         # Not implemented
-        void store(String filename, ProteinIdentification & protein_ids, PeptideIdentification & peptide_ids, String document_id) nogil except +
+        void store(String filename, ProteinIdentification & protein_ids, PeptideIdentification & peptide_ids, String document_id) except + nogil 
 

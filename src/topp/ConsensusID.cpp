@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -43,9 +17,6 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
@@ -59,71 +30,71 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_ConsensusID ConsensusID
+@page TOPP_ConsensusID ConsensusID
 
-    @brief Computes a consensus from results of multiple peptide identification engines.
+@brief Computes a consensus from results of multiple peptide identification engines.
 
-    <CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ ConsensusID \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDPosteriorErrorProbability </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=3> @ref TOPP_PeptideIndexer </td>
-        </tr>
-        <tr>
-          <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_IDFilter </td>
-        </tr>
-        <tr>
-          <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_IDMapper </td>
-        </tr>
-    </table>
-    </CENTER>
+<CENTER>
+<table>
+    <tr>
+        <th ALIGN = "center"> potential predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=4> &rarr; ConsensusID &rarr;</td>
+        <th ALIGN = "center"> potential successor tools </td>
+    </tr>
+    <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDPosteriorErrorProbability </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=3> @ref TOPP_PeptideIndexer </td>
+    </tr>
+    <tr>
+      <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_IDFilter </td>
+    </tr>
+    <tr>
+      <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_IDMapper </td>
+    </tr>
+</table>
+</CENTER>
 
-    <B>Reference:</B>
+<B>Reference:</B>
 
-    Nahnsen <em>et al.</em>: <a href="https://doi.org/10.1021/pr2002879">Probabilistic consensus scoring improves tandem mass spectrometry peptide identification</a> (J. Proteome Res., 2011, PMID: 21644507).
+Nahnsen <em>et al.</em>: <a href="https://doi.org/10.1021/pr2002879">Probabilistic consensus scoring improves tandem mass spectrometry peptide identification</a> (J. Proteome Res., 2011, PMID: 21644507).
 
-    <B>Algorithms:</B>
+<B>Algorithms:</B>
 
-    ConsensusID offers several algorithms that can aggregate results from multiple peptide identification engines ("search engines") into consensus identifications - typically one per MS2 spectrum. This works especially well for search engines that provide more than one peptide hit per spectrum, i.e. that report not just the best hit, but also a list of runner-up candidates with corresponding scores.
+ConsensusID offers several algorithms that can aggregate results from multiple peptide identification engines ("search engines") into consensus identifications - typically one per MS2 spectrum. This works especially well for search engines that provide more than one peptide hit per spectrum, i.e. that report not just the best hit, but also a list of runner-up candidates with corresponding scores.
 
-    The available algorithms are (see also @ref OpenMS::ConsensusIDAlgorithm and its subclasses):
-    @li @p PEPMatrix: Scoring based on posterior error probabilities (PEPs) and peptide sequence similarities. This algorithm uses a substitution matrix to score the similarity of sequences not listed by all search engines. It requires PEPs as the scores for all peptide hits.
-    @li @p PEPIons: Scoring based on posterior error probabilities (PEPs) and fragment ion similarities ("shared peak count"). This algorithm, too, requires PEPs as scores.
-    @li @p best: For each peptide ID, this uses the best score of any search engine as the consensus score. All peptide IDs must have the same score type.
-    @li @p worst: For each peptide ID, this uses the worst score of any search engine as the consensus score. All peptide IDs must have the same score type.
-    @li @p average: For each peptide ID, this uses the average score of all search engines as the consensus score. Again, all peptide IDs must have the same score type.
-    @li @p ranks: Calculates a consensus score based on the ranks of peptide IDs in the results of different search engines. The final score is in the range (0, 1], with 1 being the best score. The input peptide IDs do not need to have the same score type.
+The available algorithms are (see also @ref OpenMS::ConsensusIDAlgorithm and its subclasses):
+@li @p PEPMatrix: Scoring based on posterior error probabilities (PEPs) and peptide sequence similarities. This algorithm uses a substitution matrix to score the similarity of sequences not listed by all search engines. It requires PEPs as the scores for all peptide hits.
+@li @p PEPIons: Scoring based on posterior error probabilities (PEPs) and fragment ion similarities ("shared peak count"). This algorithm, too, requires PEPs as scores.
+@li @p best: For each peptide ID, this uses the best score of any search engine as the consensus score. All peptide IDs must have the same score type.
+@li @p worst: For each peptide ID, this uses the worst score of any search engine as the consensus score. All peptide IDs must have the same score type.
+@li @p average: For each peptide ID, this uses the average score of all search engines as the consensus score. Again, all peptide IDs must have the same score type.
+@li @p ranks: Calculates a consensus score based on the ranks of peptide IDs in the results of different search engines. The final score is in the range (0, 1], with 1 being the best score. The input peptide IDs do not need to have the same score type.
 
-    PEPs for search results can be calculated using the @ref TOPP_IDPosteriorErrorProbability tool, which supports a variety of search engines.
+PEPs for search results can be calculated using the @ref TOPP_IDPosteriorErrorProbability tool, which supports a variety of search engines.
 
-    @note Important: All protein-level identification results will be lost by applying ConsensusID. (It is unclear how potentially conflicting protein-level results from different search engines should be combined.) If necessary, run the @ref TOPP_PeptideIndexer tool to add protein references for peptides again.
+@note Important: All protein-level identification results will be lost by applying ConsensusID. (It is unclear how potentially conflicting protein-level results from different search engines should be combined.) If necessary, run the @ref TOPP_PeptideIndexer tool to add protein references for peptides again.
 
-    @note Peptides with different post-translational modifications (PTMs), or with different site localizations of the same PTMs, are treated as different peptides by all algorithms. However, a qualification applies for the @p PEPMatrix algorithm: The similarity scoring method used there can only take unmodified peptide sequences into account, so PTMs are ignored during that step. However, the PTMs are not removed from the peptides, and there will be separate results for differently-modified peptides.
+@note Peptides with different post-translational modifications (PTMs), or with different site localizations of the same PTMs, are treated as different peptides by all algorithms. However, a qualification applies for the @p PEPMatrix algorithm: The similarity scoring method used there can only take unmodified peptide sequences into account, so PTMs are ignored during that step. However, the PTMs are not removed from the peptides, and there will be separate results for differently-modified peptides.
 
-    <B>File types:</B>
+<B>File types:</B>
 
-    Different input files types are supported:
-    @li idXML: A file containing multiple identification runs, typically from different search engines. Use @ref TOPP_IDMerger to merge individual idXML files from different search runs into one. During the ConsensusID analysis, the identification results will be grouped according to their originating MS2 spectra, based on retention time and precursor m/z information (see parameters @p rt_delta and @p mz_delta). One consensus identification will be generated for each group. With the per_spectrum flag you can also input multiple idXML files. A consensus will be made per combination of originating mzml file and spectrum_ref.
-    @li featureXML or consensusXML: Given (consensus) features annotated with peptide identifications from multiple search runs, one consensus identification is created for every annotated feature. Peptide identifications not assigned to features are not considered and will be removed. See @ref TOPP_IDMapper for the task of mapping peptide identifications to feature maps or consensus maps.
+Different input files types are supported:
+@li idXML: A file containing multiple identification runs, typically from different search engines. Use @ref TOPP_IDMerger to merge individual idXML files from different search runs into one. During the ConsensusID analysis, the identification results will be grouped according to their originating MS2 spectra, based on retention time and precursor m/z information (see parameters @p rt_delta and @p mz_delta). One consensus identification will be generated for each group. With the per_spectrum flag you can also input multiple idXML files. A consensus will be made per combination of originating mzml file and spectrum_ref.
+@li featureXML or consensusXML: Given (consensus) features annotated with peptide identifications from multiple search runs, one consensus identification is created for every annotated feature. Peptide identifications not assigned to features are not considered and will be removed. See @ref TOPP_IDMapper for the task of mapping peptide identifications to feature maps or consensus maps.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>Filtering:</B>
+<B>Filtering:</B>
 
-    Generally, search results can be filtered according to various criteria using @ref TOPP_IDFilter before (or after) applying this tool. ConsensusID itself offers only a limited number of filtering options that are especially useful in its context (see the @p filter parameter section):
-    @li @p considered_hits: Limits the number of alternative peptide hits considered per spectrum/feature for each identification run. This helps to reduce runtime, especially for the @p PEPMatrix and @p PEPIons algorithms, which involve costly "all vs. all" comparisons of peptide hits.
-    @li @p min_support: This allows filtering of peptide hits based on agreement between search engines. Every peptide sequence in the analysis has been identified by at least one search run. This parameter defines which fraction (between 0 and 1) of the remaining search runs must "support" a peptide identification that should be kept. The meaning of "support" differs slightly between algorithms: For @p best, @p worst, @p average and @p rank, each search run supports peptides that it has also identified among its top @p considered_hits candidates. So @p min_support simply gives the fraction of additional search engines that must have identified a peptide. (For example, if there are three search runs, and only peptides identified by at least two of them should be kept, set @p min_support to 0.5.) For the similarity-based algorithms @p PEPMatrix and @p PEPIons, the "support" for a peptide is the average similarity of the most-similar peptide from each (other) search run. (In the context of the JPR publication, this is the average of the similarity scores used in the consensus score calculation for a peptide.)
-    @li @p count_empty: Typically not all search engines will provide results for all searched MS2 spectra. This parameter determines whether search runs that provided no results should be counted in the "support" calculation; by default, they are ignored.
+Generally, search results can be filtered according to various criteria using @ref TOPP_IDFilter before (or after) applying this tool. ConsensusID itself offers only a limited number of filtering options that are especially useful in its context (see the @p filter parameter section):
+@li @p considered_hits: Limits the number of alternative peptide hits considered per spectrum/feature for each identification run. This helps to reduce runtime, especially for the @p PEPMatrix and @p PEPIons algorithms, which involve costly "all vs. all" comparisons of peptide hits.
+@li @p min_support: This allows filtering of peptide hits based on agreement between search engines. Every peptide sequence in the analysis has been identified by at least one search run. This parameter defines which fraction (between 0 and 1) of the remaining search runs must "support" a peptide identification that should be kept. The meaning of "support" differs slightly between algorithms: For @p best, @p worst, @p average and @p rank, each search run supports peptides that it has also identified among its top @p considered_hits candidates. So @p min_support simply gives the fraction of additional search engines that must have identified a peptide. (For example, if there are three search runs, and only peptides identified by at least two of them should be kept, set @p min_support to 0.5.) For the similarity-based algorithms @p PEPMatrix and @p PEPIons, the "support" for a peptide is the average similarity of the most-similar peptide from each (other) search run. (In the context of the JPR publication, this is the average of the similarity scores used in the consensus score calculation for a peptide.)
+@li @p count_empty: Typically not all search engines will provide results for all searched MS2 spectra. This parameter determines whether search runs that provided no results should be counted in the "support" calculation; by default, they are ignored.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_ConsensusID.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_ConsensusID.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_ConsensusID.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_ConsensusID.html
 
 */
 
@@ -679,7 +650,6 @@ protected:
     {
       vector<ProteinIdentification> prot_ids;
       vector<PeptideIdentification> pep_ids;
-      String document_id;
       if (getFlag_("per_spectrum"))
       {
         map<String, unordered_map<String, vector<PeptideIdentification>>> grouping_per_file;
@@ -695,7 +665,7 @@ protected:
         {
           vector<ProteinIdentification> tmp_prot_ids;
           vector<PeptideIdentification> tmp_pep_ids;
-          IdXMLFile().load(infile, tmp_prot_ids, tmp_pep_ids, document_id);
+          FileHandler().loadIdentifications(infile, tmp_prot_ids, tmp_pep_ids, {FileTypes::IDXML});
           Size idx(0);
           for (const auto& prot : tmp_prot_ids)
           {
@@ -782,7 +752,7 @@ protected:
             auto iter_inserted = grouping_per_file.emplace(original_file, unordered_map<String,vector<PeptideIdentification>>{});
             if (pep_id.metaValueExists("spectrum_reference"))
             {
-              String nativeID = pep_id.getMetaValue("spectrum_reference");
+              String nativeID = pep_id.getSpectrumReference();
               auto nativeid_iter_inserted = iter_inserted.first->second.emplace(nativeID, vector<PeptideIdentification>{});
               nativeid_iter_inserted.first->second.emplace_back(std::move(pep_id));
             }
@@ -806,14 +776,14 @@ protected:
             double mz = peps[0].getMZ();
             double rt = peps[0].getRT();
             // has to have a ref, save it, since apply might modify everything
-            String ref = peps[0].getMetaValue("spectrum_reference");
+            String ref = peps[0].getSpectrumReference();
             consensus->apply(peps, runid_to_old_se, mzml_to_sesettings[new_run_id].size());
             for (auto& p : peps)
             {
               p.setIdentifier(to_put.getIdentifier());
               p.setMZ(mz);
               p.setRT(rt);
-              p.setMetaValue("spectrum_reference", ref);
+              p.setSpectrumReference( ref);
               //TODO copy other meta values from the originals? They need to be collected
               // in the algorithm subclasses though first
               pep_ids.emplace_back(std::move(p));
@@ -829,7 +799,7 @@ protected:
           "Please merge the files with IDMerger using its default settings." << std::endl;
         }
         // note: this requires a single merged idXML file.
-        IdXMLFile().load(in[0], prot_ids, pep_ids, document_id);
+        FileHandler().loadIdentifications(in[0], prot_ids, pep_ids, {FileTypes::IDXML});
 
         if (prot_ids.size() == 1)
         {
@@ -913,7 +883,7 @@ protected:
         }
       }
       // store consensus
-      IdXMLFile().store(out, prot_ids, pep_ids);
+      FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
     }
 
     //----------------------------------------------------------------
@@ -922,11 +892,11 @@ protected:
     if (in_type == FileTypes::FEATUREXML)
     {
       FeatureMap map;
-      FeatureXMLFile().load(in[0], map);
+      FileHandler().loadFeatures(in[0], map, {FileTypes::FEATUREXML});
 
       processFeatureOrConsensusMap_(map, consensus);
 
-      FeatureXMLFile().store(out, map);
+      FileHandler().storeFeatures(out, map, {FileTypes::FEATUREXML});
     }
 
     //----------------------------------------------------------------
@@ -935,11 +905,11 @@ protected:
     if (in_type == FileTypes::CONSENSUSXML)
     {
       ConsensusMap map;
-      ConsensusXMLFile().load(in[0], map);
+      FileHandler().loadConsensusFeatures(in[0], map, {FileTypes::CONSENSUSXML});
 
       processFeatureOrConsensusMap_(map, consensus);
 
-      ConsensusXMLFile().store(out, map);
+      FileHandler().storeConsensusFeatures(out, map, {FileTypes::CONSENSUSXML});
     }
 
     delete consensus;

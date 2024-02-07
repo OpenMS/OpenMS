@@ -1,32 +1,6 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
@@ -47,6 +21,118 @@ START_TEST(SpectrumAddition, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+START_SECTION((void sortSpectrumByMZ(OpenSwath::Spectrum& spec)) - No IM)
+{
+  OpenSwath::SpectrumPtr spec(new OpenSwath::Spectrum());
+  OpenSwath::BinaryDataArrayPtr mass(new OpenSwath::BinaryDataArray);
+  OpenSwath::BinaryDataArrayPtr intensity(new OpenSwath::BinaryDataArray);
+
+  // Intensity Sorted
+  std::vector<double> intensSorted = {
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+  };
+
+  // Mass Sorted
+  std::vector<double> massSorted = {
+    100, 101.5, 101.9, 102.0, 102.1, 102.11, 102.2, 102.25, 102.3, 102.4, 102.45
+  };
+
+  // Intensity Not Sorted
+  std::vector<double> intensNotSorted = {
+    11, 4, 3, 5, 6, 7, 8, 9, 1, 2, 10
+  };
+
+  // Mass Not Sorted
+  std::vector<double> massNotSorted = {
+    102.45, 102.0, 101.9, 102.1, 102.11, 102.2, 102.25, 102.3, 100, 101.5, 102.4
+  };
+
+  // IM Not Sorted
+  std::vector<double> imNotSorted = {
+    11, 4, 3, 5, 6, 7, 8, 9, 1, 2, 10
+  };
+
+  mass->data=massNotSorted;
+  intensity->data=intensNotSorted;
+
+  spec->setMZArray(mass);
+  spec->setIntensityArray(intensity);
+  SpectrumAddition::sortSpectrumByMZ(*spec);
+
+  TEST_EQUAL(spec->getMZArray()->data.size(), massSorted.size());
+  TEST_EQUAL(spec->getIntensityArray()->data.size(), intensSorted.size());
+
+  for (size_t i=0; i<massSorted.size(); i++)
+  {
+    TEST_REAL_SIMILAR(massSorted[i], spec->getMZArray()->data[i]);
+    TEST_REAL_SIMILAR(intensSorted[i], spec->getIntensityArray()->data[i]);
+    }
+}
+END_SECTION
+
+START_SECTION((void sortSpectrumByMZ(OpenSwath::Spectrum& spec)) - With IM)
+{
+  OpenSwath::SpectrumPtr specIM(new OpenSwath::Spectrum());
+  OpenSwath::BinaryDataArrayPtr mass(new OpenSwath::BinaryDataArray);
+  OpenSwath::BinaryDataArrayPtr intensity(new OpenSwath::BinaryDataArray);
+  OpenSwath::BinaryDataArrayPtr im(new OpenSwath::BinaryDataArray);
+
+  // Intensity Sorted
+  std::vector<double> intensSorted = {
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+  };
+
+  // Mass Sorted
+  std::vector<double> massSorted = {
+    100, 101.5, 101.9, 102.0, 102.1, 102.11, 102.2, 102.25, 102.3, 102.4, 102.45
+  };
+
+  // IM Sorted
+  std::vector<double> imSorted = {
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+  };
+
+  // Intensity Not Sorted
+  std::vector<double> intensNotSorted = {
+    11, 4, 3, 5, 6, 7, 8, 9, 1, 2, 10
+  };
+
+  // Mass Not Sorted
+  std::vector<double> massNotSorted = {
+    102.45, 102.0, 101.9, 102.1, 102.11, 102.2, 102.25, 102.3, 100, 101.5, 102.4
+  };
+
+  // IM Not Sorted
+  std::vector<double> imNotSorted = {
+    11, 4, 3, 5, 6, 7, 8, 9, 1, 2, 10
+  };
+
+  // Create non sorted IM spectrum
+  mass->data=massNotSorted;
+  intensity->data=intensNotSorted;
+  im->data=imNotSorted;
+
+  specIM->setMZArray(mass);
+  specIM->setIntensityArray(intensity);
+  specIM->setDriftTimeArray(im);
+
+  mass->data=massNotSorted;
+  intensity->data=intensNotSorted;
+  im->data=imNotSorted;
+
+  SpectrumAddition::sortSpectrumByMZ(*specIM);
+  TEST_EQUAL(specIM->getMZArray()->data.size(), massSorted.size());
+  TEST_EQUAL(specIM->getIntensityArray()->data.size(), intensSorted.size());
+  TEST_EQUAL(specIM->getDriftTimeArray()->data.size(), imSorted.size());
+  for (size_t i=0; i<massSorted.size(); i++)
+  {
+    TEST_REAL_SIMILAR(massSorted[i], specIM->getMZArray()->data[i]);
+    TEST_REAL_SIMILAR(intensSorted[i], specIM->getIntensityArray()->data[i]);
+    TEST_REAL_SIMILAR(imSorted[i], specIM->getDriftTimeArray()->data[i]);
+  }
+}
+END_SECTION
 
 START_SECTION((static OpenSwath::SpectrumPtr addUpSpectra(std::vector< OpenSwath::SpectrumPtr > all_spectra, double sampling_rate, double filter_zeros)) )
 {

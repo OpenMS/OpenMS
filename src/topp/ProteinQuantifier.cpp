@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -37,13 +11,12 @@
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
+
+#include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
@@ -60,16 +33,16 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_ProteinQuantifier ProteinQuantifier
+@page TOPP_ProteinQuantifier ProteinQuantifier
 
-    @brief Compute peptide and protein abundances from annotated feature/consensus maps or from identification results.
+@brief Compute peptide and protein abundances from annotated feature/consensus maps or from identification results.
 
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ ProteinQuantifier \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=3> &rarr; ProteinQuantifier &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper </td>
@@ -81,67 +54,66 @@ using namespace std;
     </table>
 </CENTER>
 
-    Reference:\n
-    Weisser <em>et al.</em>: <a href="https://doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
+Reference:\n
+Weisser <em>et al.</em>: <a href="https://doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
 
-    <B>Input: featureXML or consensusXML</B>
+<B>Input: featureXML or consensusXML</B>
 
-    Quantification is based on the intensity values of the features in the input files. Feature intensities are first accumulated to peptide abundances, according to the peptide identifications annotated to the features/feature groups. Then, abundances of the peptides of a protein are aggregated to compute the protein abundance.
+Quantification is based on the intensity values of the features in the input files. Feature intensities are first accumulated to peptide abundances, according to the peptide identifications annotated to the features/feature groups. Then, abundances of the peptides of a protein are aggregated to compute the protein abundance.
 
-    The peptide-to-protein step uses the (e.g. 3) most abundant proteotypic peptides per protein to compute the protein abundances. This is a general version of the "top 3 approach" (but only for relative quantification) described in:\n
-    Silva <em>et al.</em>: Absolute quantification of proteins by LCMS<sup>E</sup>: a virtue of parallel MS acquisition (Mol. Cell. Proteomics, 2006, PMID: 16219938).
+The peptide-to-protein step uses the (e.g. 3) most abundant proteotypic peptides per protein to compute the protein abundances. This is a general version of the "top 3 approach" (but only for relative quantification) described in:\n
+Silva <em>et al.</em>: Absolute quantification of proteins by LCMS<sup>E</sup>: a virtue of parallel MS acquisition (Mol. Cell. Proteomics, 2006, PMID: 16219938).
 
-    Only features/feature groups with unambiguous peptide annotation are used for peptide quantification. It is possible to resolve ambiguities before applying ProteinQuantifier using one of several equivalent mechanisms in OpenMS: @ref TOPP_IDConflictResolver, @ref TOPP_ConsensusID (algorithm @p best), or @ref TOPP_FileFilter (option @p id:keep_best_score_id).
+Only features/feature groups with unambiguous peptide annotation are used for peptide quantification. It is possible to resolve ambiguities before applying ProteinQuantifier using one of several equivalent mechanisms in OpenMS: @ref TOPP_IDConflictResolver, @ref TOPP_ConsensusID (algorithm @p best), or @ref TOPP_FileFilter (option @p id:keep_best_score_id).
 
-    Similarly, only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification <em>by default</em>. Peptide/protein IDs from multiple identification runs can be handled, but will not be differentiated (i.e. protein accessions for a peptide will be accumulated over all identification runs). See section "Optional input: Protein inference/grouping results" below for exceptions to this.
+Similarly, only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification <em>by default</em>. Peptide/protein IDs from multiple identification runs can be handled, but will not be differentiated (i.e. protein accessions for a peptide will be accumulated over all identification runs). See section "Optional input: Protein inference/grouping results" below for exceptions to this.
 
-    Peptides with the same sequence, but with different modifications are quantified separately on the peptide level, but treated as one peptide for the protein quantification (i.e. the contributions of differently-modified variants of the same peptide are accumulated).
+Peptides with the same sequence, but with different modifications are quantified separately on the peptide level, but treated as one peptide for the protein quantification (i.e. the contributions of differently-modified variants of the same peptide are accumulated).
 
-    <B>Input: idXML</B>
+<B>Input: idXML</B>
 
-    Quantification based on identification results uses spectral counting, i.e. the abundance of each peptide is the number of times that peptide was identified from an MS2 spectrum (considering only the best hit per spectrum). Different identification runs in the input are treated as different samples; this makes it possible to quantify several related samples at once by merging the corresponding idXML files with @ref TOPP_IDMerger. Depending on the presence of multiple runs, output format and applicable parameters are the same as for featureXML and consensusXML, respectively.
+Quantification based on identification results uses spectral counting, i.e. the abundance of each peptide is the number of times that peptide was identified from an MS2 spectrum (considering only the best hit per spectrum). Different identification runs in the input are treated as different samples; this makes it possible to quantify several related samples at once by merging the corresponding idXML files with @ref TOPP_IDMerger. Depending on the presence of multiple runs, output format and applicable parameters are the same as for featureXML and consensusXML, respectively.
 
-    The notes above regarding quantification on the protein level and the treatment of modifications also apply to idXML input. In particular, this means that the settings @p top 0 and @p aggregate @p sum should be used to get the "classical" spectral counting quantification on the protein level (where all identifications of all peptides of a protein are summed up).
+The notes above regarding quantification on the protein level and the treatment of modifications also apply to idXML input. In particular, this means that the settings @p top 0 and @p aggregate @p sum should be used to get the "classical" spectral counting quantification on the protein level (where all identifications of all peptides of a protein are summed up).
 
-    <B>Optional input: Protein inference/grouping results</B>
+<B>Optional input: Protein inference/grouping results</B>
 
-    By default only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification. However, this limitation can be overcome: Protein inference results for the whole sample set can be supplied with the @p protein_groups option (or included in a featureXML input). In that case, the peptide-to-protein references from that file are used (rather than those from @p in), and groups of indistinguishable proteins will be quantified. Each reported protein quantity then refers to the total for the respective group.
+By default only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification. However, this limitation can be overcome: Protein inference results for the whole sample set can be supplied with the @p protein_groups option (or included in a featureXML input). In that case, the peptide-to-protein references from that file are used (rather than those from @p in), and groups of indistinguishable proteins will be quantified. Each reported protein quantity then refers to the total for the respective group.
 
-    In order for everything to work correctly, it is important that the protein inference results come from the same identifications that were used to annotate the quantitative data. To use inference results from ProteinProphet, convert the protXML to idXML using @ref TOPP_IDFileConverter. To use results from Fido, simply run @ref TOPP_FidoAdapter.
+In order for everything to work correctly, it is important that the protein inference results come from the same identifications that were used to annotate the quantitative data. We suggest to use the OpenMS tool ProteinInference @ref TOPP_ProteinInference. 
 
+More information below the parameter specification.
 
-    More information below the parameter specification.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_ProteinQuantifier.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_ProteinQuantifier.html
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_ProteinQuantifier.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_ProteinQuantifier.html
+<B>Output format</B>
 
-    <B>Output format</B>
+The output files produced by this tool have a table format, with columns as described below:
 
-    The output files produced by this tool have a table format, with columns as described below:
+<b>Protein output</b> (one protein/set of indistinguishable proteins per line):
+- @b protein: Protein accession(s) (as in the annotations in the input file; separated by "/" if more than one).
+- @b n_proteins: Number of indistinguishable proteins quantified (usually "1").
+- @b protein_score: Protein score, e.g. ProteinProphet probability (if available).
+- @b n_peptides: Number of proteotypic peptides observed for this protein (or group of indistinguishable proteins) across all samples. Note that not necessarily all of these peptides contribute to the protein abundance (depending on parameter @p top).
+- @b abundance: Computed protein abundance. For consensusXML input, there will be one column  per sample ("abundance_1", "abundance_2", etc.).
 
-    <b>Protein output</b> (one protein/set of indistinguishable proteins per line):
-    - @b protein: Protein accession(s) (as in the annotations in the input file; separated by "/" if more than one).
-    - @b n_proteins: Number of indistinguishable proteins quantified (usually "1").
-    - @b protein_score: Protein score, e.g. ProteinProphet probability (if available).
-    - @b n_peptides: Number of proteotypic peptides observed for this protein (or group of indistinguishable proteins) across all samples. Note that not necessarily all of these peptides contribute to the protein abundance (depending on parameter @p top).
-    - @b abundance: Computed protein abundance. For consensusXML input, there will be one column  per sample ("abundance_1", "abundance_2", etc.).
+<b>Peptide output</b> (one peptide or - if @p best_charge_and_fraction is set - one charge state and fraction of a peptide per line):
+- @b peptide: Peptide sequence. Only peptides that occur in unambiguous annotations of features are reported.
+- @b protein: Protein accession(s) for the peptide (separated by "/" if more than one).
+- @b n_proteins: Number of proteins this peptide maps to. (Same as the number of accessions in the previous column.)
+- @b charge: Charge state quantified in this line. "0" (for "all charges") unless @p best_charge_and_fraction was set.
+- @b abundance: Computed abundance for this peptide. If the charge in the preceding column is 0, this is the total abundance of the peptide over all charge states; otherwise, it is only the abundance observed for the indicated charge (in this case, there may be more than one line for the peptide sequence). Again, for consensusXML input, there will be one column  per sample ("abundance_1", "abundance_2", etc.). Also for consensusXML, the reported values are already normalized if @p consensus:normalize was set.
 
-    <b>Peptide output</b> (one peptide or - if @p best_charge_and_fraction is set - one charge state and fraction of a peptide per line):
-    - @b peptide: Peptide sequence. Only peptides that occur in unambiguous annotations of features are reported.
-    - @b protein: Protein accession(s) for the peptide (separated by "/" if more than one).
-    - @b n_proteins: Number of proteins this peptide maps to. (Same as the number of accessions in the previous column.)
-    - @b charge: Charge state quantified in this line. "0" (for "all charges") unless @p best_charge_and_fraction was set.
-    - @b abundance: Computed abundance for this peptide. If the charge in the preceding column is 0, this is the total abundance of the peptide over all charge states; otherwise, it is only the abundance observed for the indicated charge (in this case, there may be more than one line for the peptide sequence). Again, for consensusXML input, there will be one column  per sample ("abundance_1", "abundance_2", etc.). Also for consensusXML, the reported values are already normalized if @p consensus:normalize was set.
+<B>Protein quantification examples</B>
 
-    <B>Protein quantification examples</B>
+While quantification on the peptide level is fairly straight-forward, a number of options influence quantification on the protein level - especially for consensusXML input. The three parameters @p top:N, @p top:include_all and @p consensus:fix_peptides determine which peptides are used to quantify proteins in different samples.
 
-    While quantification on the peptide level is fairly straight-forward, a number of options influence quantification on the protein level - especially for consensusXML input. The three parameters @p top:N, @p top:include_all and @p consensus:fix_peptides determine which peptides are used to quantify proteins in different samples.
-
-    As an example, consider a protein with four proteotypic peptides. Each peptide is detected in a subset of three samples, as indicated in the table below. The peptides are ranked by abundance (1: highest, 4: lowest; assuming for simplicity that the order is the same in all samples).
+As an example, consider a protein with four proteotypic peptides. Each peptide is detected in a subset of three samples, as indicated in the table below. The peptides are ranked by abundance (1: highest, 4: lowest; assuming for simplicity that the order is the same in all samples).
 
 <CENTER>
     <table>
@@ -178,7 +150,7 @@ using namespace std;
     </table>
 </CENTER>
 
-  Different parameter combinations lead to different quantification scenarios, as shown here:
+Different parameter combinations lead to different quantification scenarios, as shown here:
 
 <CENTER>
     <table>
@@ -315,11 +287,11 @@ using namespace std;
     </table>
 </CENTER>
 
-    <B>Further considerations for parameter selection</B>
+<B>Further considerations for parameter selection</B>
 
-    With @p best_charge_and_fractions and @p aggregate, there is a trade-off between comparability of protein abundances within a sample and of abundances for the same protein across different samples.\n
-    Setting @p best_charge_and_fraction may increase reproducibility between samples, but will distort the proportions of protein abundances within a sample. The reason is that ionization properties vary between peptides, but should remain constant across samples. Filtering by charge state can help to reduce the impact of feature detection differences between samples.\n
-    For @p aggregate, there is a qualitative difference between @p (intensity weighted) mean/median and @p sum in the effect that missing peptide abundances have (only if @p include_all is set or @p top is 0): @p (intensity weighted) mean and @p median ignore missing cases, averaging only present values. If low-abundant peptides are not detected in some samples, the computed protein abundances for those samples may thus be too optimistic. @p sum implicitly treats missing values as zero, so this problem does not occur and comparability across samples is ensured. However, with @p sum the total number of peptides ("summands") available for a protein may affect the abundances computed for it (depending on @p top), so results within a sample may become unproportional.
+With @p best_charge_and_fractions and @p aggregate, there is a trade-off between comparability of protein abundances within a sample and of abundances for the same protein across different samples.\n
+Setting @p best_charge_and_fraction may increase reproducibility between samples, but will distort the proportions of protein abundances within a sample. The reason is that ionization properties vary between peptides, but should remain constant across samples. Filtering by charge state can help to reduce the impact of feature detection differences between samples.\n
+For @p aggregate, there is a qualitative difference between @p (intensity weighted) mean/median and @p sum in the effect that missing peptide abundances have (only if @p include_all is set or @p top is 0): @p (intensity weighted) mean and @p median ignore missing cases, averaging only present values. If low-abundant peptides are not detected in some samples, the computed protein abundances for those samples may thus be too optimistic. @p sum implicitly treats missing values as zero, so this problem does not occur and comparability across samples is ensured. However, with @p sum the total number of peptides ("summands") available for a protein may affect the abundances computed for it (depending on @p top), so results within a sample may become unproportional.
 
 */
 
@@ -355,7 +327,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML"));
-    registerInputFile_("protein_groups", "<file>", "", "Protein inference results for the identification runs that were used to annotate the input (e.g. from ProteinProphet via IDFileConverter or Fido via FidoAdapter).\nInformation about indistinguishable proteins will be used for protein quantification.", false);
+    registerInputFile_("protein_groups", "<file>", "", "Protein inference results for the identification runs that were used to annotate the input (e.g. via the ProteinInference tool).\nInformation about indistinguishable proteins will be used for protein quantification.", false);
     setValidFormats_("protein_groups", ListUtils::create<String>("idXML"));
 
     registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
@@ -641,23 +613,28 @@ protected:
     }
     out << "# Parameters (relevant only): " + params << endl;
 
-    if (ed.getNumberOfSamples() > 1)
+    if (ed.getNumberOfSamples() > 1 && ed.getNumberOfLabels() == 1)
     {
       String desc = "# Files/samples associated with abundance values below: ";
-      Size counter = 0;
-      for (ConsensusMap::ColumnHeaders::iterator it = columns_headers_.begin();
-           it != columns_headers_.end(); ++it, ++counter)
+
+      const auto& ms_section = ed.getMSFileSection();
+
+      map<String, String> sample_id_to_filename;
+      for (const auto& e : ms_section)
       {
-        if (counter > 0)
+        String ed_filename = File::basename(e.path);
+        String ed_label = e.label;
+        String ed_sample = e.sample;
+        sample_id_to_filename[e.sample] = ed_filename; // should be 0,...,n_samples-1
+      }
+
+      for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
+      {
+        if (i > 0)
         {
           desc += ", ";
         }
-        desc += String(counter+1) + ": '" + it->second.filename + "'";
-        String label = it->second.label;
-        if (!label.empty())
-        {
-          desc += " ('" + label + "')";
-        }
+        desc += String(i + 1) + ": '" + sample_id_to_filename[String(i)] + "'";
       }
       out << desc << endl;
     }
@@ -750,6 +727,7 @@ protected:
     }
     else  // no design file provided
     {
+      OPENMS_LOG_INFO << "No design file given. Trying to infer from consensus map." << std::endl;
       return ExperimentalDesign::fromConsensusMap(cm);
     }
   }
@@ -774,7 +752,7 @@ protected:
     if (!protein_groups.empty()) // read protein inference data
     {
       vector<ProteinIdentification> proteins;
-      IdXMLFile().load(protein_groups, proteins, peptides_);
+      FileHandler().loadIdentifications(protein_groups, proteins, peptides_, {FileTypes::IDXML});
       if (proteins.empty() || 
           proteins[0].getIndistinguishableProteins().empty())
       {
@@ -823,7 +801,7 @@ protected:
     if (in_type == FileTypes::FEATUREXML)
     {
       FeatureMap features;
-      FeatureXMLFile().load(in, features);
+      FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML});
       columns_headers_[0].filename = in;
 
       ed = getExperimentalDesignFeatureMap_(design_file, features);
@@ -844,7 +822,7 @@ protected:
       spectral_counting_ = true;
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
-      IdXMLFile().load(in, proteins, peptides);
+      FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML});
       for (Size i = 0; i < proteins.size(); ++i)
       {
         columns_headers_[i].filename = proteins[i].getSearchEngine() + "_" + proteins[i].getDateTime().toString();
@@ -865,7 +843,7 @@ protected:
     else // consensusXML
     {
       ConsensusMap consensus;
-      ConsensusXMLFile().load(in, consensus);
+      FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
       columns_headers_ = consensus.getColumnHeaders();
 
       ed = getExperimentalDesignConsensusMap_(design_file, consensus);

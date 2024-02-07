@@ -13,12 +13,12 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerIterative.h>" names
         #   DefaultParamHandler
         #   ProgressLogger
 
-        PeakPickerIterative() nogil except +
-        PeakPickerIterative(PeakPickerIterative &) nogil except + # compiler
+        PeakPickerIterative() except + nogil 
+        PeakPickerIterative(PeakPickerIterative &) except + nogil  # compiler
 
         void pick(MSSpectrum & input,
                   MSSpectrum & output
-                 ) nogil except +
+                 ) except + nogil 
             # wrap-doc:
                 #  This will pick one single spectrum. The PeakPickerHiRes is used to
                 #  generate seeds, these seeds are then used to re-center the mass and
@@ -31,15 +31,15 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerIterative.h>" names
 
         void pickExperiment(MSExperiment & input,
                             MSExperiment & output
-                           ) nogil except +
+                           ) except + nogil 
 
 
 
 # cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerIterative.h>" namespace "OpenMS":
 # 
 #    cdef cppclass PeakCandidate:
-#        PeakCandidate() nogil except +
-#        PeakCandidate(PeakCandidate) nogil except + # wrap-ignore
+#        PeakCandidate() except + nogil 
+#        PeakCandidate(PeakCandidate) except + nogil  # wrap-ignore
 #        int index
 #        double peak_apex_intensity
 # 

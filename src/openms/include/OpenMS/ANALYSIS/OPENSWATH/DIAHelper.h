@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -36,61 +10,83 @@
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 #include <vector>
-
 namespace OpenMS
 {
+  struct RangeMZ;
+  struct RangeMobility;
   class TheoreticalSpectrumGenerator;
   namespace DIAHelpers
   {
-
     /**
       @brief Helper functions for the DIA scoring of OpenSWATH
     */
     ///@{
 
     /**
-      @brief Integrate intensity in a spectrum from start to end
+      @brief Integrate intensity in a spectrum from in @p mz_range (and @p im_range if defined)
+      returning the intensity-weighted m/z and im values as well as the total intensity.
 
-      This function will integrate the intensity in a spectrum between mz_start
-      and mz_end, returning the total intensity and an intensity-weighted m/z
-      value.
-
-      @note If there is no signal, mz will be set to -1 and intensity to 0
+      @note If there is no signal, @p mz and @p im will be set to -1 and intensity to 0
       @return Returns true if a signal was found (and false if no signal was found)
 
     */
-    OPENMS_DLLAPI bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum, double mz_start,
-                                       double mz_end, double& mz, double& intensity, bool centroided = false);
+    OPENMS_DLLAPI bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum,
+                                       double& mz, double& im, double& intensity, const RangeMZ& mz_range, const RangeMobility& im_range, bool centroided = false);
 
     /**
-      @brief Integrate intensities in a spectrum from start to end
+      @brief Integrate intensity in SpectrumSequence in range @p mz_range (and @p im_range if defined)
+      returning the intensity-weighted m/z and im values as well as the total intensity.
+
+      @note If there is no signal, @p mz and @p im will be set to -1 and intensity to 0
+      @return Returns true if a signal was found (and false if no signal was found)
     */
-    OPENMS_DLLAPI void integrateWindows(const OpenSwath::SpectrumPtr& spectrum, //!< [in] Spectrum
-                                        const std::vector<double>& windows_center, //!< [in] center location
+    OPENMS_DLLAPI bool integrateWindow(const SpectrumSequence& spectrum,
+                                       double& mz, double& im, double& intensity, const RangeMZ& mz_range, const RangeMobility& im_range, bool centroided = false);
+
+    /**
+      @brief Integrate intensities in a spectrum in range @p im_range (if defined) for multiple windows.
+
+      @param spectrum Input spectrum
+      @param windows_center Center locations of the windows.
+      @param width Width of the windows across m/z
+      @param[out] integrated_windows_intensity Integrated intensity for each window
+      @param[out] integrated_windows_mz Integrated intensity-weighted m/z for each window
+      @param[out] integrated_windows_im Integrated intensity-weighted im for each window
+      @param im_range is the range of the IM dimension (if defined)
+      @param remove_zero Remove zero intensity windows?
+    */
+    OPENMS_DLLAPI void integrateWindows(const OpenSwath::SpectrumPtr& spectrum, 
+                                        const std::vector<double>& windows_center,
                                         double width,
                                         std::vector<double>& integrated_windows_intensity,
                                         std::vector<double>& integrated_windows_mz,
+                                        std::vector<double>& integrated_windows_im,
+                                        const RangeMobility& im_range,
                                         bool remove_zero = false);
 
+
     /**
-      @brief Integrate intensity in an ion mobility spectrum from start to end
-
-      This function will integrate the intensity in a spectrum between mz_start
-      and mz_end, returning the total intensity and an intensity-weighted drift
-      time value.
-
-      @note If there is no signal, mz will be set to -1 and intensity to 0
+      @brief Integrate intensities of a SpectrumSequence in range @p im_range (if defined) for multiple windows.
+      
+      @param spectrum Input spectrum
+      @param windows_center Center locations of the windows.
+      @param width Width of the windows across m/z
+      @param[out] integrated_windows_intensity Integrated intensity for each window
+      @param[out] integrated_windows_mz Integrated intensity-weighted m/z for each window
+      @param[out] integrated_windows_im Integrated intensity-weighted im for each window
+      @param im_range is the range of the IM dimension (if defined)
+      @param remove_zero Remove zero intensity windows?    
     */
-    OPENMS_DLLAPI void integrateDriftSpectrum(const OpenSwath::SpectrumPtr& spectrum,
-                                              double mz_start,
-                                              double mz_end,
-                                              double & im,
-                                              double & intensity,
-                                              double drift_start,
-                                              double drift_end);
-
+    OPENMS_DLLAPI void integrateWindows(const SpectrumSequence& spectrum,
+                                        const std::vector<double>& windows_center,
+                                        double width,
+                                        std::vector<double>& integrated_windows_intensity,
+                                        std::vector<double>& integrated_windows_mz,
+                                        std::vector<double>& integrated_windows_im,
+                                        const RangeMobility& im_range,
+                                        bool remove_zero = false);
     /**
       @brief Adjust left/right window based on window and whether its ppm or not
     */
@@ -122,11 +118,6 @@ namespace OpenMS
                                         std::vector<std::pair<double, double> >& isotope_masses, //[out]
                                         TheoreticalSpectrumGenerator const * g,
                                         int charge = 1);
-
-    /// modify masses by charge
-    OPENMS_DLLAPI void modifyMassesByCharge(const std::vector<std::pair<double, double> >& masses, //![in]
-                              std::vector<std::pair<double, double> >& modmass, //!< [out]
-                              int charge = 1);
 
     /// add (potentially negative) pre-isotope weights to spectrum
     OPENMS_DLLAPI void addPreisotopeWeights(const std::vector<double>& first_isotope_masses,
@@ -162,8 +153,28 @@ namespace OpenMS
     OPENMS_DLLAPI void extractFirst(const std::vector<std::pair<double, double> >& peaks, std::vector<double>& mass);
     /// extract second from vector of pairs
     OPENMS_DLLAPI void extractSecond(const std::vector<std::pair<double, double> >& peaks, std::vector<double>& mass);
-    
+
+    /** @brief optionally convert a DIA extraction window from ppm to m/z
+      @param mz_ref Extraction window center
+      @param dia_extraction_window How wide the extraction window is total (can be in m/z or ppm)
+      @param ppm  Is extraction window is in ppm?
+      @return The extraction window in m/z
+    */
+    OPENMS_DLLAPI RangeMZ createMZRangePPM(double mz_ref, double dia_extraction_window, const bool ppm);
+
+
+    /**
+      @brief Helper function for integrating a spectrum.
+    */
+    OPENMS_DLLAPI void integrateWindow_(const OpenSwath::SpectrumPtr& spectrum,
+                                double & mz,
+                                double & im,
+                                double & intensity,
+                                const RangeMZ & mz_range,
+                                const RangeMobility & im_range,
+                                bool centroided);
+    }
+
     ///}@
-  }
-}
+} //namespace OpenMS
 

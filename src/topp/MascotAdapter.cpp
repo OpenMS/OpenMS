@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -34,7 +8,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MascotInfile.h>
 #include <OpenMS/FORMAT/PepXMLFileMascot.h>
@@ -60,16 +34,16 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_MascotAdapter MascotAdapter
+@page TOPP_MascotAdapter MascotAdapter
 
-    @brief Identifies peptides in MS/MS spectra via Mascot.
+@brief Identifies peptides in MS/MS spectra via Mascot.
 
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MascotAdapter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; MascotAdapter &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
@@ -78,141 +52,141 @@ using namespace std;
     </table>
 </CENTER>
 
-    This wrapper application serves for getting peptide identifications
-    for MS/MS spectra. It uses a local installation of the Mascot
-    server to generate the identifications. A second wrapper (MascotAdapterOnline) is
-    available which is able to perform identifications by
-    communicating with a Mascot server over the network. So, it is not
-    necessary to execute MascotAdapterOnline on the same machine
-    as Mascot.
+This wrapper application serves for getting peptide identifications
+for MS/MS spectra. It uses a local installation of the Mascot
+server to generate the identifications. A second wrapper (MascotAdapterOnline) is
+available which is able to perform identifications by
+communicating with a Mascot server over the network. So, it is not
+necessary to execute MascotAdapterOnline on the same machine
+as Mascot.
 
-    The minimal version of Mascot supported with this server is 2.1.
+The minimal version of Mascot supported with this server is 2.1.
 
-    This wrapper can be executed in three different
-    modes:
-    <ol>
-                <li>
-                The whole process of ProteinIdentification via Mascot is executed.
-                Inputfile is a mzData file containing the MS/MS spectra
-                for which the identifications are to be found. The results
-                are written as a idXML output file. This mode is selected
-                by default.
-                </li>
+This wrapper can be executed in three different
+modes:
+<ol>
+            <li>
+            The whole process of ProteinIdentification via Mascot is executed.
+            Inputfile is a mzData file containing the MS/MS spectra
+            for which the identifications are to be found. The results
+            are written as a idXML output file. This mode is selected
+            by default.
+            </li>
 
-                <li>
-                Only the first part of the ProteinIdentification process is performed.
-                This means that the MS/MS data is transformed into Mascot
-                Generic Format (mgf) which can be used directly with Mascot.
-                Being in the cgi directory of the Mascot directory calling a Mascot
-                process should look like the following:
+            <li>
+            Only the first part of the ProteinIdentification process is performed.
+            This means that the MS/MS data is transformed into Mascot
+            Generic Format (mgf) which can be used directly with Mascot.
+            Being in the cgi directory of the Mascot directory calling a Mascot
+            process should look like the following:
 
-                @code ./nph-mascot.exe 1 -commandline -f outputfilename < inputfilename @endcode
+            @code ./nph-mascot.exe 1 -commandline -f outputfilename < inputfilename @endcode
 
-                Consult your Mascot reference manual for further details.
+            Consult your Mascot reference manual for further details.
 
-                This mode is selected by the <b>-mascot_in</b> option in the command line.
-                </li>
+            This mode is selected by the <b>-mascot_in</b> option in the command line.
+            </li>
 
-                <li>
-                Only the second part of the ProteinIdentification process is performed.
-                This means that the outputfile of the Mascot server is
-                translated into idXML.
+            <li>
+            Only the second part of the ProteinIdentification process is performed.
+            This means that the outputfile of the Mascot server is
+            translated into idXML.
 
-                This mode is selected by the <b>-mascot_out</b> option in the command line.
-                </li>
-    </ol>
+            This mode is selected by the <b>-mascot_out</b> option in the command line.
+            </li>
+</ol>
 
-    <br>
-    If your Mascot server is installed on the same computer as the
-    TOPP applications the MascotAdapter can be executed in mode 1.
-    Otherwise the Mascot engine has to be executed manually assisted
-    by mode 2 and mode 3. The ProteinIdentification steps then look like:
+<br>
+If your Mascot server is installed on the same computer as the
+TOPP applications the MascotAdapter can be executed in mode 1.
+Otherwise the Mascot engine has to be executed manually assisted
+by mode 2 and mode 3. The ProteinIdentification steps then look like:
 
+<ul>
+    <li>
+        execute MascotAdapter in mode 2
+        @code ./MascotAdapter -in mzDataFile -out mascotGenericFormatFile -mascot_in @endcode
+    </li>
+    <li>
+        copy mascotGenericFormatFile to your Mascot server
+    </li>
+    <li>
+        call your Mascot server process:
+        @code ./nph-mascot.exe 1 -commandline -f mascotOutFile < mascotGenericFormatFile @endcode
+    </li>
+    <li>
+        call the script to export your outfile in mascot xml
+        @code ./export_dat.pl do_export=1 export_format=XML file=mascotOutFile _sigthreshold=0
+        _showsubset=1 show_same_sets=1 show_unassigned=0 prot_score=0 pep_exp_z=0 pep_score=0
+        pep_homol=0 pep_ident=0 pep_seq=1 show_header=1 show_queries=1 pep_rank=0 > mascotXMLFile @endcode
+    </li>
+    <li>
+        copy mascotXMLFile to the server on which the TOPP applications are installed
+    </li>
+    <li>
+        execute MascotAdapter in mode 3
+        @code ./MascotAdapter -in mascotXMLFile -out IdXMLFile -mascot_out @endcode
+    </li>
+</ul>
+
+<p>
+For mode 1 you have to specify the directory in which the Mascot
+server is installed. This is done by setting the option <b>mascot_dir</b>
+in the ini file. Furthermore you have to specify a folder in which
+the user has write permissions. This is done by setting the option
+<b>temp_data_directory</b> in the ini file.
+Two temporary files will be created in this directory during execution
+but deleted at the end of execution.
+<br>
+
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MascotAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MascotAdapter.html
+
+You can specify the Mascot parameters <b>precursor_mass_tolerance</b>
+(the peptide mass tolerance), <b>peak_mass_tolerance</b> (the MS/MS tolerance),
+<b>taxonomy</b> (restriction to a certain subset of the database), <b>modifications</b>,
+<b>variable_modifications</b>, <b>charges</b> (the possible charge variants),
+<b>db</b> (database where the peptides are searched in), <b>hits</b> (number of hits),
+<b>cleavage</b> (the cleavage enzyme), <b>missed_cleavages</b> (number of missed cleavages)
+and <b>mass_type</b> (Monoisotopic or Average) via the ini file.
+
+<br>
+Known problems with Mascot server execution:
+<ul>
+    <li>
+    getting error message:
+    "FATAL_ERROR: M00327
+     The ms-monitor daemon/service is not running, please start it."
+    </li>
+
+    <li>
+    Possible explanations:
+    </li>
     <ul>
         <li>
-            execute MascotAdapter in mode 2
-            @code ./MascotAdapter -in mzDataFile -out mascotGenericFormatFile -mascot_in @endcode
+        Your ms-monitor is really not running => consult your Mascot
+                                                                                         reference manual for
+                                                                                         details about starting
+                                                                                         the Mascot server.
         </li>
         <li>
-            copy mascotGenericFormatFile to your Mascot server
-        </li>
-        <li>
-            call your Mascot server process:
-            @code ./nph-mascot.exe 1 -commandline -f mascotOutFile < mascotGenericFormatFile @endcode
-        </li>
-        <li>
-            call the script to export your outfile in mascot xml
-            @code ./export_dat.pl do_export=1 export_format=XML file=mascotOutFile _sigthreshold=0
-            _showsubset=1 show_same_sets=1 show_unassigned=0 prot_score=0 pep_exp_z=0 pep_score=0
-            pep_homol=0 pep_ident=0 pep_seq=1 show_header=1 show_queries=1 pep_rank=0 > mascotXMLFile @endcode
-        </li>
-        <li>
-            copy mascotXMLFile to the server on which the TOPP applications are installed
-        </li>
-        <li>
-            execute MascotAdapter in mode 3
-            @code ./MascotAdapter -in mascotXMLFile -out IdXMLFile -mascot_out @endcode
+        (Suppose you have Mascot installed in directory mascot.)
+        mascot/data/mascot.control is not writable for the current user.
+        This has to be changed. Otherwise you will not be able to
+        use the Mascot server via the shell and receive the above error
+        message.<br>
+        => Change write permissions of the file mascot/data/mascot.control
+             such that the current user has write permissions to it.
         </li>
     </ul>
-
-    <p>
-    For mode 1 you have to specify the directory in which the Mascot
-    server is installed. This is done by setting the option <b>mascot_dir</b>
-    in the ini file. Furthermore you have to specify a folder in which
-    the user has write permissions. This is done by setting the option
-    <b>temp_data_directory</b> in the ini file.
-    Two temporary files will be created in this directory during execution
-    but deleted at the end of execution.
-    <br>
-
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
-
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_MascotAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MascotAdapter.html
-
-    You can specify the Mascot parameters <b>precursor_mass_tolerance</b>
-    (the peptide mass tolerance), <b>peak_mass_tolerance</b> (the MS/MS tolerance),
-    <b>taxonomy</b> (restriction to a certain subset of the database), <b>modifications</b>,
-    <b>variable_modifications</b>, <b>charges</b> (the possible charge variants),
-    <b>db</b> (database where the peptides are searched in), <b>hits</b> (number of hits),
-    <b>cleavage</b> (the cleavage enzyme), <b>missed_cleavages</b> (number of missed cleavages)
-    and <b>mass_type</b> (Monoisotopic or Average) via the ini file.
-
-    <br>
-    Known problems with Mascot server execution:
-    <ul>
-        <li>
-        getting error message:
-        "FATAL_ERROR: M00327
-         The ms-monitor daemon/service is not running, please start it."
-        </li>
-
-        <li>
-        Possible explanations:
-        </li>
-        <ul>
-            <li>
-            Your ms-monitor is really not running => consult your Mascot
-                                                                                             reference manual for
-                                                                                             details about starting
-                                                                                             the Mascot server.
-            </li>
-            <li>
-            (Suppose you have Mascot installed in directory mascot.)
-            mascot/data/mascot.control is not writable for the current user.
-            This has to be changed. Otherwise you will not be able to
-            use the Mascot server via the shell and receive the above error
-            message.<br>
-            => Change write permissions of the file mascot/data/mascot.control
-                 such that the current user has write permissions to it.
-            </li>
-        </ul>
-    </ul>
+</ul>
 
 
-  @todo This adapter is using antiquated internal methods and needs to be updated! E.g. use MascotGenericFile.h instead of MascotInfile.h....
+@todo This adapter is using antiquated internal methods and needs to be updated! E.g. use MascotGenericFile.h instead of MascotInfile.h....
 */
 
 // We do not want this class to show up in the docu:
@@ -615,9 +589,10 @@ protected:
       // write all (!) parameters as metavalues to the search parameters
       DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
 
-      IdXMLFile().store(outputfile_name,
+      FileHandler().storeIdentifications(outputfile_name,
                         protein_identifications,
-                        identifications);
+                        identifications,
+                        {FileTypes::IDXML});
 
       // Deletion of temporary Mascot files
       if (!mascot_out)

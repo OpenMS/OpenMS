@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Veit $
@@ -52,21 +26,21 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_ExecutePipeline ExecutePipeline
+@page TOPP_ExecutePipeline ExecutePipeline
 
-    @brief Executes workflows created by TOPPAS.
+@brief Executes workflows created by TOPPAS.
 
-  This tool is the non-GUI, i.e. command line version for non-interactive execution of TOPPAS pipelines.
-  In order to really use this tool in batch-mode, you can provide a TOPPAS resource file (.trf) which specifies the
-  input files for the input nodes in your pipeline.
+This tool is the non-GUI, i.e. command line version for non-interactive execution of TOPPAS pipelines.
+In order to really use this tool in batch-mode, you can provide a TOPPAS resource file (.trf) which specifies the
+input files for the input nodes in your pipeline.
 
-  <B> *.trf files </B>
+<B> *.trf files </B>
 
- A TOPPAS resource file (<TT>*.trf</TT>) specifies the locations of input files for a pipeline.
- It is an XML file following the normal TOPP INI file schema, i.e. it can be edited using the INIFileEditor or filled using a script (we do NOT provide one - sorry).
- It can be exported from TOPPAS (<TT>File -> Save TOPPAS resource file</TT>). For two input nodes 1 and 2 with files (<TT>dataA.mzML</TT>, <TT>dataB.mzML</TT>) and (<TT>dataC.mzML</TT>) respectively it has the following format.
+A TOPPAS resource file (<TT>*.trf</TT>) specifies the locations of input files for a pipeline.
+It is an XML file following the normal TOPP INI file schema, i.e. it can be edited using the INIFileEditor or filled using a script (we do NOT provide one - sorry).
+It can be exported from TOPPAS (<TT>File -> Save TOPPAS resource file</TT>). For two input nodes 1 and 2 with files (<TT>dataA.mzML</TT>, <TT>dataB.mzML</TT>) and (<TT>dataC.mzML</TT>) respectively it has the following format.
 
-  \code
+\code
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <PARAMETERS version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <NODE name="1" description="">
@@ -81,12 +55,12 @@ using namespace std;
     </ITEMLIST>
   </NODE>
 </PARAMETERS>
-  \endcode
+\endcode
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_ExecutePipeline.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_ExecutePipeline.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_ExecutePipeline.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_ExecutePipeline.html
 */
 
 // We do not want this class to show up in the docu:

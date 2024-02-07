@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julianus Pfeuffer $
@@ -49,6 +23,8 @@
 #include <queue>
 
 #include <boost/function.hpp>
+#include <boost/blank.hpp>
+#include <boost/serialization/strong_typedef.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/filtered_graph.hpp>
@@ -87,7 +63,7 @@ namespace OpenMS
     #pragma clang diagnostic ignored "-Wextra-semi"
 
     /// placeholder for peptides with the same parent proteins or protein groups
-    BOOST_STRONG_TYPEDEF(boost::blank, PeptideCluster)
+    BOOST_STRONG_TYPEDEF(boost::blank, PeptideCluster);
 
     /// indistinguishable protein groups (size, nr targets, score)
     struct ProteinGroup
@@ -98,13 +74,13 @@ namespace OpenMS
     };
 
     /// an (currently unmodified) peptide sequence
-    BOOST_STRONG_TYPEDEF(String, Peptide)
+    BOOST_STRONG_TYPEDEF(String, Peptide);
 
     /// in which run a PSM was observed
-    BOOST_STRONG_TYPEDEF(Size, RunIndex)
+    BOOST_STRONG_TYPEDEF(Size, RunIndex);
 
     /// in which charge state a PSM was observed
-    BOOST_STRONG_TYPEDEF(int, Charge)
+    BOOST_STRONG_TYPEDEF(int, Charge);
 
     #pragma clang diagnostic pop
 
@@ -543,7 +519,7 @@ namespace OpenMS
 
     /// Initialize and store the graph
     /// IMPORTANT: Once the graph is built, editing members like (protein/peptide)_hits_ will invalidate it!
-    /// @param protein ProteinIdentification object storing IDs and groups
+    /// @param proteins ProteinIdentification object storing IDs and groups
     /// @param idedSpectra vector of ProteinIdentifications with links to the proteins and PSMs in its PeptideHits
     /// @param use_top_psms Nr of top PSMs used per spectrum (<= 0 means all)
     /// @param best_psms_annotated Are the PSMs annotated with the "best_per_peptide" meta value. Otherwise all are
@@ -580,7 +556,8 @@ namespace OpenMS
     /// Initialize and store the graph. Also stores run information to later group
     /// peptides more efficiently.
     /// IMPORTANT: Once the graph is built, editing members like (protein/peptide)_hits_ will invalidate it!
-    /// @param use_top_psms Nr of top PSMs used per spectrum (<= 0 means all)
+    /// 
+    /// @p use_top_psms is the number of top PSMs used per spectrum (<= 0 means all)
     /// @todo we could include building the graph in important "main" functions like inferPosteriors
     /// to make the methods safer, but it is also nice to be able to reuse the graph
     void buildGraphWithRunInfo_(ProteinIdentification& proteins,

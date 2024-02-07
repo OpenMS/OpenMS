@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,6 @@
 project("OpenMS")
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
-set(CMAKE_AUTOMOC ON) # some OpenMS classes make use of Signal/Slot, e.g. SYSTEM/FileWatcher.cpp
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 #------------------------------------------------------------------------------
@@ -60,11 +59,11 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 
 
 #------------------------------------------------------------------------------
-# third party libs shipped with OpenMS directly
+# external third-party libs statically linked to OpenMS
 #------------------------------------------------------------------------------
 # The following library is in our public API, so create export targets
 #install(EXPORT EvergreenTarget DESTINATION ${INSTALL_LIB_DIR}/cmake/OpenMS FILE OpenMSTargets.cmake COMPONENT cmake)
-add_subdirectory(thirdparty)
+add_subdirectory(extern)
 
 #------------------------------------------------------------------------------
 # external libs (contrib or system)
@@ -89,7 +88,24 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 # all the dependency libraries are linked into libOpenMS.so
 set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network)
 
-set(OPENMS_DEP_PRIVATE_LIBRARIES GTE ${LPTARGET} Eigen3::Eigen HDF5::HDF5 Boost::iostreams Boost::date_time Boost::boost Boost::regex BZip2::BZip2 ZLIB::ZLIB SQLiteCpp)
+## setup the argumentes to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
+set(OPENMS_DEP_PRIVATE_LIBRARIES
+  $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
+  ${LPTARGET}
+  BZip2::BZip2
+  Boost::boost
+  Boost::date_time
+  Boost::iostreams
+  Boost::regex
+  Eigen3::Eigen
+  GTE
+  Quadtree
+  SIMDe
+  SQLiteCpp
+  ZLIB::ZLIB
+  nlohmann_json::nlohmann_json
+  tdl::tdl
+  )
 
 ## ----------
 ## No need to for this at the moment: no Qt plugins required anymore. Left here for reference.
@@ -97,7 +113,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES GTE ${LPTARGET} Eigen3::Eigen HDF5::HDF5 Boost:
 #------------------------------------------------------------------------------
 # Install the QSQLite driver if we are not on linux so we can use oms files
 #if(WIN32 OR APPLE)
-#  install_qt5_plugin("Qt5::QSQLiteDriverPlugin" QT_SQLITE_PLUGIN "${INSTALL_PLUGIN_DIR}/plugins" QT5SQLitePlugin)
+#  install_qt5_plugin_builddir("Qt5::QSQLiteDriverPlugin" QT_SQLITE_PLUGIN "${INSTALL_PLUGIN_DIR}" Dependencies)
 #endif()
 
 # Xerces requires linking against CoreFoundation&CoreServices on macOS
@@ -126,7 +142,6 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
                    PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
                                     ${ISOSPEC_INCLUDE_DIRECTORY}
-                                    ${JSON_INCLUDE_DIRECTORY}
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}
@@ -134,10 +149,9 @@ openms_add_library(TARGET_NAME  OpenMS
                    DLL_EXPORT_PATH "OpenMS/")
 
 if (MSVC)
-  ## treat warning of unused function parameter as error
+  ## treat warning of unused function parameter as error, similar to -Werror=unused-variable on GCC
   target_compile_options(OpenMS PRIVATE "/we4100")
-
-  ## treat warning of unused local variable as error
+  ## treat warning of unused local variable as error, similar to -Werror=unused-variable on GCC
   target_compile_options(OpenMS PRIVATE "/we4189")
 endif()
 
@@ -160,7 +174,7 @@ install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
   REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
   REGEX "OpenMS/examples" EXCLUDE
 )
-install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR}/examples examples)
+install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR} examples)
 
 # Devs also need our custom find modules
 install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_LIB_DIR}/cmake/OpenMS/Modules cmake)

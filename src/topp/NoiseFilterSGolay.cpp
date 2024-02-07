@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -37,6 +11,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+// TODO remove needed here for transform
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -49,43 +25,43 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_NoiseFilterSGolay NoiseFilterSGolay
+@page TOPP_NoiseFilterSGolay NoiseFilterSGolay
 
-  @brief  Executes a Savitzky Golay filter to reduce the noise in an MS experiment.
- 
-  <center>
-  <table>
-  <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ NoiseFilterSGolay \f$ \longrightarrow \f$</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet</td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_Resampler </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes</td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter</td>
-  </tr>
-  </table>
-  </center>
- 
-  The idea of the Savitzky Golay filter is to find filter-coefficients
-  that preserve higher moments, which means to approximate the underlying
-  function within the moving window by a polynomial of higher order
-  (typically quadratic or quartic) (see A. Savitzky and M. J. E. Golay,
-  ''Smoothing and Differentiation of Data by Simplified Least Squares Procedures'').
+@brief  Executes a Savitzky Golay filter to reduce the noise in an MS experiment.
 
-  @note The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the @ref TOPP_Resampler tool).
+<center>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=4> &rarr; NoiseFilterSGolay &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes</td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_Resampler </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes</td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter</td>
+</tr>
+</table>
+</center>
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_NoiseFilterSGolay.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_NoiseFilterSGolay.html
+The idea of the Savitzky Golay filter is to find filter-coefficients
+that preserve higher moments, which means to approximate the underlying
+function within the moving window by a polynomial of higher order
+(typically quadratic or quartic) (see A. Savitzky and M. J. E. Golay,
+''Smoothing and Differentiation of Data by Simplified Least Squares Procedures'').
+
+@note The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the @ref TOPP_Resampler tool).
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_NoiseFilterSGolay.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_NoiseFilterSGolay.html
 */
 
 // We do not want this class to show up in the docu:
@@ -97,7 +73,7 @@ class TOPPNoiseFilterSGolay :
 {
 public:
   TOPPNoiseFilterSGolay() :
-    TOPPBase("NoiseFilterSGolay", "Removes noise from profile spectra by using a Savitzky Golay filter. Requires uniform (equidistant) data.")
+    TOPPBase("NoiseFilterSGolay", "Removes noise from profile spectra by using a Savitzky Golay filter (on uniform (equidistant) data).")
   {
   }
 
@@ -190,10 +166,9 @@ public:
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    MzMLFile mz_data_file;
-    mz_data_file.setLogType(log_type_);
+    FileHandler mz_data_file;
     PeakMap exp;
-    mz_data_file.load(in, exp);
+    mz_data_file.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
     if (exp.empty() && exp.getChromatograms().empty())
     {
@@ -239,7 +214,7 @@ public:
     //annotate output with data processing info
     addDataProcessing_(exp, getProcessingInfo_(DataProcessing::SMOOTHING));
 
-    mz_data_file.store(out, exp);
+    mz_data_file.storeExperiment(out, exp, {FileTypes::MZML}, log_type_);
 
     return EXECUTION_OK;
   }

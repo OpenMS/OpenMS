@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -120,8 +94,7 @@ public:
     */
     class OPENMS_DLLAPI ConstIterator
     {
-public:
-
+    public:
       // TODO Iterator constructor for ConstIterator
 
       typedef const Residue& const_reference;
@@ -133,26 +106,20 @@ public:
       typedef std::random_access_iterator_tag iterator_category;
 
       /** @name Constructors and destructors
-      */
+       */
       //@{
       /// default constructor
-      ConstIterator()
-      {
-      }
+      ConstIterator() = default;
 
       /// detailed constructor with pointer to the vector and offset position
       ConstIterator(const std::vector<const Residue*>* vec_ptr, difference_type position)
+        : vector_{vec_ptr},
+          position_{position}
       {
-        vector_ = vec_ptr;
-        position_ = position;
       }
 
       /// copy constructor
-      ConstIterator(const ConstIterator& rhs) :
-        vector_(rhs.vector_),
-        position_(rhs.position_)
-      {
-      }
+      ConstIterator(const ConstIterator& rhs) = default;
 
       /// copy constructor from Iterator
       ConstIterator(const AASequence::Iterator& rhs) :
@@ -162,22 +129,12 @@ public:
       }
 
       /// destructor
-      virtual ~ConstIterator()
-      {
-      }
+      virtual ~ConstIterator() = default;
 
       //@}
 
       /// assignment operator
-      ConstIterator& operator=(const ConstIterator& rhs)
-      {
-        if (this != &rhs)
-        {
-          position_ = rhs.position_;
-          vector_ = rhs.vector_;
-        }
-        return *this;
-      }
+      ConstIterator& operator=(const ConstIterator& rhs) = default;
 
       /** @name Operators
       */
@@ -242,10 +199,10 @@ public:
 protected:
 
       // pointer to the AASequence vector
-      const std::vector<const Residue*>* vector_;
+      const std::vector<const Residue*>* vector_ {};
 
       // position in the AASequence vector
-      difference_type position_;
+      difference_type position_ {};
     };
 
 
@@ -269,28 +226,20 @@ public:
       */
       //@{
       /// default constructor
-      Iterator()
-      {
-      }
+      Iterator() = default;
 
       /// detailed constructor with pointer to the vector and offset position
       Iterator(std::vector<const Residue*>* vec_ptr, difference_type position)
+        : vector_ {vec_ptr},
+          position_{position}
       {
-        vector_ = vec_ptr;
-        position_ = position;
       }
 
       /// copy constructor
-      Iterator(const Iterator& rhs) :
-        vector_(rhs.vector_),
-        position_(rhs.position_)
-      {
-      }
+      Iterator(const Iterator& rhs) = default;
 
       /// destructor
-      virtual ~Iterator()
-      {
-      }
+      virtual ~Iterator() = default;
 
       //@}
 
@@ -374,10 +323,10 @@ public:
 protected:
 
       // pointer to the AASequence vector
-      std::vector<const Residue*>* vector_;
+      std::vector<const Residue*>* vector_ {};
 
       // position in the AASequence vector
-      difference_type position_;
+      difference_type position_ {};
     };
 
     /** @name Constructors and Destructors
@@ -465,17 +414,17 @@ protected:
     /// sets the modification of AA at @p index by providing an already, potentially modified residue
     void setModification(Size index, const Residue* modification);
 
-    /// sets the modification of AA at @p index by providing a pointer to a @class ResidueModification object found in the @class ModificationsDB
+    /// sets the modification of AA at @p index by providing a pointer to a ResidueModification object found in the ModificationsDB
     void setModification(Size index, const ResidueModification* modification);
 
-    /// sets the modification of AA at @p index by providing a @class ResidueModification object
+    /// sets the modification of AA at @p index by providing a ResidueModification object
     /// stricter than just looking for the name and adds the Modification to the DB if not present
     void setModification(Size index, const ResidueModification& modification);
 
-    /// modifies the residue at @p index in the sequence and potentially in the @class ResidueDB
+    /// modifies the residue at @p index in the sequence and potentially in the ResidueDB
     void setModificationByDiffMonoMass(Size index, double diffMonoMass);
 
-    /// sets the N-terminal modification (by lookup in the mod names of the @class ModificationsDB)
+    /// sets the N-terminal modification (by lookup in the mod names of the ModificationsDB)
     /// throws if nothing is found (since the name is not enough information to create a new mod)
     void setNTerminalModification(const String& modification);
 
@@ -494,7 +443,7 @@ protected:
     /// returns a pointer to the N-terminal modification, or zero if none is set
     const ResidueModification* getNTerminalModification() const;
 
-    /// sets the C-terminal modification (by lookup in the mod names of the @class ModificationsDB)
+    /// sets the C-terminal modification (by lookup in the mod names of the ModificationsDB)
     /// throws if nothing is found (since the name is not enough information to create a new mod)
     void setCTerminalModification(const String& modification);
 

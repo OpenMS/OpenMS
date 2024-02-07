@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
@@ -39,8 +13,8 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <unordered_map>
-#include <QString>
-#include <QStringList>
+#include <QtCore/QString>
+#include <QtCore/QStringList>
 
 using namespace std;
 
@@ -140,8 +114,7 @@ namespace OpenMS
 
       @brief Sort function using the extracted scan_index from the sirius workspace file path
 
-      @return Vector of sorted sirius workspace paths based on the scan_index
-
+      @param[in,out] subdirs Vector of sirius workspace paths which is sorted based on the scan_index
       */
       static void sortSiriusWorkspacePathsByScanIndex(std::vector<String>& subdirs);
 
@@ -149,14 +122,12 @@ namespace OpenMS
       /**
       @brief Preprocessing needed for SIRIUS
 
-      @return FeatureToMS2Indices
-            
       Filter number of masstraces and perform feature mapping.
 
       @param featureinfo Path to featureXML
       @param spectra Input of MSExperiment with spectra information
       @param fm_info Emtpy - stores FeatureMaps and KDTreeMaps internally 
-      @param feature_mapping Empty FeatureToMs2Indices
+      @param feature_mapping Mapping of MS2 spectra to features
       */
       void preprocessingSirius(const String& featureinfo,
                                const MSExperiment& spectra,
@@ -179,6 +150,7 @@ namespace OpenMS
       /**
       @brief Log in to Sirius with personal user account (required in Sirius >= 5).
 
+      @param executable ...
       @param email User account E-Mail.
       @param password User account password.
       */
@@ -191,6 +163,7 @@ namespace OpenMS
       @param tmp_out_dir path to temporary output folder
       @param executable path to executable
       @param out_csifingerid path to CSI:FingerID output (can be empty).
+      @param decoy_generation Add 'passatutto' to command line call
 
       @return Vector with paths to a compound
       */

@@ -3,17 +3,17 @@ from libcpp cimport bool
 from MSSpectrum cimport *
 from Peak1D cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/RNPXL/HyperScore.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/ANALYSIS/ID/HyperScore.h>" namespace "OpenMS":
     
     cdef cppclass HyperScore "OpenMS::HyperScore":
 
         # compiler
-        HyperScore() nogil except + # wrap-doc:An implementation of the X!Tandem HyperScore PSM scoring function
-        HyperScore(HyperScore &) nogil except + # compiler
+        HyperScore() except + nogil  # wrap-doc:An implementation of the X!Tandem HyperScore PSM scoring function
+        HyperScore(HyperScore &) except + nogil  # compiler
 
         double compute(double fragment_mass_tolerance, 
                        bool fragment_mass_tolerance_unit_ppm,
-                       MSSpectrum & exp_spectrum, MSSpectrum & theo_spectrum) nogil except +
+                       MSSpectrum & exp_spectrum, MSSpectrum & theo_spectrum) except + nogil 
             # wrap-doc:
             #  Compute the (ln transformed) X!Tandem HyperScore\n
             #  

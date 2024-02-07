@@ -9,14 +9,14 @@ from TargetedExperiment cimport *
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>" namespace "OpenMS":
     
     cdef cppclass MRMIonSeries "OpenMS::MRMIonSeries":
-        MRMIonSeries() nogil except +
-        MRMIonSeries(MRMIonSeries &) nogil except + # compiler
+        MRMIonSeries() except + nogil 
+        MRMIonSeries(MRMIonSeries &) except + nogil  # compiler
 
         ## Typedef boost::unordered_map
-        ## libcpp_pair[ String, double ] getIon(IonSeries ionseries, String ionid) nogil except +
-        ## libcpp_pair[ String, double ] annotateIon(IonSeries ionseries, double ProductMZ, double mz_threshold) nogil except +
+        ## libcpp_pair[ String, double ] getIon(IonSeries ionseries, String ionid) except + nogil 
+        ## libcpp_pair[ String, double ] annotateIon(IonSeries ionseries, double ProductMZ, double mz_threshold) except + nogil 
 
-        void annotateTransitionCV(ReactionMonitoringTransition & tr, String annotation) nogil except +
+        void annotateTransitionCV(ReactionMonitoringTransition & tr, String annotation) except + nogil 
             # wrap-doc:
                 #  Annotates transition with CV terms
                 #  
@@ -31,7 +31,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>" namespace "OpenMS"
                                 libcpp_vector[ String ] fragment_types,
                                 libcpp_vector[ size_t ] fragment_charges, 
                                 bool enable_specific_losses, 
-                                bool enable_unspecific_losses, int round_decPow) nogil except +
+                                bool enable_unspecific_losses, int round_decPow) except + nogil 
             # wrap-doc:
                 #  Annotates transition
                 #  
@@ -51,5 +51,5 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>" namespace "OpenMS"
         ##                        libcpp_vector[ String ] fragment_types,
         ##                        libcpp_vector[ size_t ] fragment_charges, 
         ##                        bool enable_specific_losses,
-        ##                        bool enable_unspecific_losses, int round_decPow) nogil except +
+        ##                        bool enable_unspecific_losses, int round_decPow) except + nogil 
 

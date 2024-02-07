@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -29,10 +29,36 @@
 #
 # --------------------------------------------------------------------------
 # $Maintainer: Julianus Pfeuffer $
-# $Authors: Julianus Pfeuffer $
+# $Authors: Julianus Pfeuffer, Chris Bielow $
 # --------------------------------------------------------------------------
 
 ## Windows installer
+
+find_program(MAKENSIS_EXE makensis)
+
+if (NOT MAKENSIS_EXE)
+  MESSAGE(FATAL_ERROR "Could not find 'makensis.exe'. Please make sure it's in $PATH!")
+endif()
+
+## check for correct NSIS version
+execute_process(COMMAND ${MAKENSIS_EXE} /HDRINFO
+                OUTPUT_VARIABLE NSIS_INFO 
+                COMMAND_ERROR_IS_FATAL ANY)                
+STRING(FIND ${NSIS_INFO} "Size of each section is 16408 bytes" NSIS_IS_8K) ## the 1k version gives "2072 bytes"
+
+if (NSIS_IS_8K EQUAL -1)
+  MESSAGE(FATAL_ERROR "NSIS (makensis.exe) needs to be the 'special build', which allows for 8k-length strings. This seems to be the 1k version. Please update NSIS. See https://github.com/OpenMS/NSIS")
+else()
+  MESSAGE(STATUS "Found 8k version of NSIS. Great!")
+endif()
+                
+
+## check if we are packaging at least Qt 5.15 (5.14 may also work but is untested), which is "-relocatable", i.e. can find ./bin/plugins/platforms/qwindows.dll without a qt.conf (which we do not ship anymore)
+message(STATUS "Packaging: Checking Qt version ... found: ${Qt5Core_VERSION}")
+if (Qt5Core_VERSION VERSION_LESS 5.15.0)
+  message(FATAL_ERROR "Minimum supported Qt5 version is 5.15!")
+endif()
+
 
 ## With VS2019 the architecture HAS TO BE specified with the "–A" option or CMAKE_GENERATOR_PLATFORM var.
 ## Therefore the legacy way of adding a suffix to the Generator is not valid anymore.
@@ -44,66 +70,15 @@ else()
   set(PLATFORM "64")
   set(ARCH "x64")
 endif()
-if (NOT VC_REDIST_EXE)
-  set(VC_REDIST_EXE "vcredist_${ARCH}.exe")
-endif()
 
-## Find redistributable to be installed by NSIS
-if (NOT VC_REDIST_PATH)
-  string(REGEX REPLACE ".*Visual Studio ([1-9][1-9]).*" "\\1" OPENMS_MSVC_VERSION_STRING "${CMAKE_GENERATOR}")
-  if("${OPENMS_MSVC_VERSION_STRING}" GREATER "15")
-    if (DEFINED ENV{VCINSTALLDIR})
-      ## according to https://docs.microsoft.com/de-de/cpp/windows/redistributing-visual-cpp-files?view=msvc-160
-      get_filename_component(VC_ROOT_PATH "$ENV{VCINSTALLDIR}Redist/MSVC/v142" ABSOLUTE)
-      file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/${VC_REDIST_EXE}")
-      message(STATUS "VS Redist locations (1st try): ${VC_REDIST_ABS_PATH}")
-    endif()
-    if (NOT VC_REDIST_ABS_PATH AND DEFINED ENV{VCToolsRedistDir}) ## if still not found, try to use older methods
-      ## An alternative solution to find redists
-      #execute_process(COMMAND "$ENV{PROGRAMFILES}/Microsoft Visual Studio/Installer/vswhere" -latest -version "${OPENMS_MSVC_VERSION_STRING}" -property installationPath
-      #                OUTPUT_VARIABLE VC_ROOT_PATH
-      #				  ERROR_VARIABLE VSWHERE_ERROR
-      #				  RESULT_VARIABLE VSWHERE_RESULT)
-      #if ("${VSWHERE_RESULT}" NOTEQUAL "0")
-      #  message(FATAL_ERROR "Executing vswhere to find vsredist executable for win packaging failed. Either specify VC_REDIST_PATH or make sure vswhere works.")
-      #endif()
 
-      ## We have to glob recurse in the parent folder because there is a version number in the end.
-      ## Unfortunately in my case the default version (latest) does not include the redist?!
-      ## TODO Not sure if this environment variable always exists. In the VS command line it should! Fallback vswhere or VCINSTALLDIR/Redist/MSVC?
-      get_filename_component(VC_ROOT_PATH "$ENV{VCToolsRedistDir}.." ABSOLUTE)
-      file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/${VC_REDIST_EXE}")
-      message(STATUS "VS Redist locations (2nd try): ${VC_REDIST_ABS_PATH}")
-    endif()
-    if (VC_REDIST_ABS_PATH)
-      ## arbitrarily pick first of the found redists
-      list(GET VC_REDIST_ABS_PATH 0 VC_REDIST_ABS_PATH)
-      get_filename_component(VC_REDIST_PATH "${VC_REDIST_ABS_PATH}" DIRECTORY)
-      message(STATUS "   ... picked first directory: ${VC_REDIST_PATH}")
-    endif()
-  endif()
-  if (NOT VC_REDIST_PATH) ## if still not found
-    message(FATAL_ERROR "Variable VC_REDIST_PATH missing. Are you on a proper VS 2019+ command line?")
-  endif()
-endif()
 
-if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
-  file(GLOB PWIZ_VCREDIST "${SEARCH_ENGINES_DIRECTORY}/*.exe")
-  install(FILES ${PWIZ_VCREDIST}
-          DESTINATION ${INSTALL_SHARE_DIR}/THIRDPARTY
-		  PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-		              GROUP_READ GROUP_EXECUTE
-					  WORLD_READ WORLD_EXECUTE
-		)
-endif()
+#### Install System runtime libraries into /bin, so NSIS picks them up; this saves us from shipping a VC-Redist.exe with the installer
+set(CMAKE_INSTALL_OPENMP_LIBRARIES TRUE)
+set (CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ${INSTALL_LIB_DIR})
+message(STATUS "\nInstalling system libs to '${INSTALL_LIB_DIR}'\n")
+include(InstallRequiredSystemLibraries)
 
-##TODO try following instead once CMake generates NSIS commands for us. Installs dll instead of redist though. Thirdparties?
-# ########################################################### System runtime libraries
-# set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
-# include(InstallRequiredSystemLibraries)
-# install(PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
-#         DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/${PACKAGE_LIB_DIR}/
-#         COMPONENT library)
 
 ## Careful: the configured file needs to lie exactly in the Build directory so that it is found by the NSIS_template
 configure_file(${PROJECT_SOURCE_DIR}/cmake/Windows/Cfg_Settings.nsh.in ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh.in.conf @ONLY)

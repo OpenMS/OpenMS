@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -34,12 +8,14 @@
 
 #pragma once
 
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/DataArrays.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <set>
 
@@ -88,6 +64,7 @@ public:
       {
         create(prot_ids);
       }
+
       void create(const std::vector<ProteinIdentification>& prot_ids)
       {
         identifier_to_msrunpath.clear();
@@ -110,6 +87,14 @@ public:
           }
           runpath_to_identifier[filenames] = prot_id.getIdentifier();
         }
+      }
+
+      String getPrimaryMSRunPath(const PeptideIdentification& pepid) const
+      { 
+        // if a merge index n is annotated, we use the filename annotated at index n in the protein identification, otherwise the one at index 0        
+        size_t merge_index = pepid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX, 0);
+        const auto& filenames = identifier_to_msrunpath.at(pepid.getIdentifier());        
+        return (merge_index < filenames.size()) ?  filenames[merge_index] : ""; // return filename or empty string if missing
       }
     };
 
@@ -295,8 +280,8 @@ public:
       /// returns the charge range from the search engine settings as a pair of ints
       std::pair<int,int> getChargeRange() const;
 
-      /// Tests if these search engine settings are mergeable with @param sp
-      /// depending on the given @param experiment_type.
+      /// Tests if these search engine settings are mergeable with @p sp
+      /// depending on the given @p experiment_type.
       /// Modifications are compared as sets. Databases based on filename.
       /// "labeled_MS1" experiments additionally allow different modifications.
       bool mergeable(const ProteinIdentification::SearchParameters& sp, const String& experiment_type) const;
@@ -445,6 +430,7 @@ public:
     /**
        Set the file paths to the primary MS runs (usually the mzML files obtained after data conversion from raw files)
 
+       @param s The file paths
        @param raw Store paths to the raw files (or equivalent) rather than mzMLs
     */
     void setPrimaryMSRunPath(const StringList& s, bool raw = false);
@@ -457,6 +443,7 @@ public:
     /**
        Get the file paths to the primary MS runs
 
+       @param[out] output The file paths
        @param raw Get raw files (or equivalent) instead of mzMLs
     */
     void getPrimaryMSRunPath(StringList& output, bool raw = false) const;
@@ -471,17 +458,19 @@ public:
     /// Checks if the search engine name matches an inference engine known to OpenMS.
     bool hasInferenceEngineAsSearchEngine() const;
 
-    /// Checks if the peptide IDs of this IDRun are mergeable with another @param id_run
-    /// given an @param experiment_type .
+    /// Checks if the peptide IDs of this IDRun are mergeable with another @p id_run
+    /// given an @p experiment_type .
     /// Checks search engine and search engine settings.
     bool peptideIDsMergeable(const ProteinIdentification& id_run, const String& experiment_type) const;
 
-    /// Collects all search engine settings registered for the given search engine @param se.
-    /// If @param se is empty, the main search engine is used, otherwise it will also search the metavalues.
+    /// Collects all search engine settings registered for the given search engine @p se.
+    /// If @p se is empty, the main search engine is used, otherwise it will also search the metavalues.
     std::vector<std::pair<String,String>> getSearchEngineSettingsAsPairs(const String& se = "") const;
 
     //@}
 
+    /// Copies only metadata (no protein hits or protein groups)
+    void copyMetaDataOnly(const ProteinIdentification&);
 protected:
     ///@name General information (search engine, parameters and database)
     //@{
@@ -511,5 +500,6 @@ protected:
     void fillModMapping_(const std::vector<PeptideIdentification>& pep_ids, const StringList& skip_modifications,
                          std::unordered_map<String, std::set<std::pair<Size, ResidueModification>>>& prot2mod) const;
   };
+
 
 } //namespace OpenMS

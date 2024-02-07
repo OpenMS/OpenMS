@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -143,9 +117,9 @@ public:
     }
 
     /**
-        @brief Applies the resampling algorithm.
+        @brief Resample points (e.g. Peak1D) from an input range onto a prepopulated output range with given m/z, modifying the output intensities.
 
-        This will use the raster provided by the output container to resample
+        This will use the raster provided by the output container, i.e. with alignment, to resample
         the data provided in the input container. The intensities will be added
         to the intensities in the output container (which in most cases will be
         zero).
@@ -159,40 +133,40 @@ public:
 
         @param raw_it Start of the input container to be resampled (containing the data)
         @param raw_end End of the input container to be resampled (containing the data)
-        @param resample_it Iterator pointing to start of the output spectrum range (m/z need to be populated, intensities should be zero)
-        @param resample_it Iterator pointing to end of the output spectrum range (m/z need to be populated, intensities should be zero)
+        @param resampled_begin Iterator pointing to start of the output spectrum range (m/z need to be populated, intensities should be zero)
+        @param resampled_end Iterator pointing to end of the output spectrum range (m/z need to be populated, intensities should be zero)
 
     */
     template <typename PeakTypeIterator, typename ConstPeakTypeIterator>
-    void raster(ConstPeakTypeIterator raw_it, ConstPeakTypeIterator raw_end, PeakTypeIterator resample_it, PeakTypeIterator resample_end)
+    void raster(ConstPeakTypeIterator raw_it, ConstPeakTypeIterator raw_end, PeakTypeIterator resampled_begin, PeakTypeIterator resampled_end)
     {
-      OPENMS_PRECONDITION(resample_it != resample_end, "Output iterators cannot be identical") // as we use +1
+      OPENMS_PRECONDITION(resampled_begin != resampled_end, "Output iterators cannot be identical") // as we use +1
       // OPENMS_PRECONDITION(raw_it != raw_end, "Input iterators cannot be identical")
 
-      PeakTypeIterator resample_start = resample_it;
+      PeakTypeIterator resample_start = resampled_begin;
 
       // need to get the raw iterator between two resampled iterators of the raw data
-      while (raw_it != raw_end && raw_it->getMZ() < resample_it->getMZ())
+      while (raw_it != raw_end && raw_it->getMZ() < resampled_begin->getMZ())
       {
-        resample_it->setIntensity(resample_it->getIntensity() + raw_it->getIntensity());
+        resampled_begin->setIntensity(resampled_begin->getIntensity() + raw_it->getIntensity());
         raw_it++;
       }
 
       while (raw_it != raw_end)
       {
         //advance the resample iterator until our raw point is between two resampled iterators
-        while (resample_it != resample_end && resample_it->getMZ() < raw_it->getMZ()) {resample_it++;}
-        if (resample_it != resample_start) {resample_it--;}
+        while (resampled_begin != resampled_end && resampled_begin->getMZ() < raw_it->getMZ()) {resampled_begin++;}
+        if (resampled_begin != resample_start) {resampled_begin--;}
 
         // if we have the last datapoint we break
-        if ((resample_it + 1) == resample_end) {break;}
+        if ((resampled_begin + 1) == resampled_end) {break;}
 
-        double dist_left =  fabs(raw_it->getMZ() - resample_it->getMZ());
-        double dist_right = fabs(raw_it->getMZ() - (resample_it + 1)->getMZ());
+        double dist_left =  fabs(raw_it->getMZ() - resampled_begin->getMZ());
+        double dist_right = fabs(raw_it->getMZ() - (resampled_begin + 1)->getMZ());
 
         // distribute the intensity of the raw point according to the distance to resample_it and resample_it+1
-        resample_it->setIntensity(resample_it->getIntensity() + raw_it->getIntensity() * dist_right / (dist_left + dist_right));
-        (resample_it + 1)->setIntensity((resample_it + 1)->getIntensity() + raw_it->getIntensity() * dist_left / (dist_left + dist_right));
+        resampled_begin->setIntensity(resampled_begin->getIntensity() + raw_it->getIntensity() * dist_right / (dist_left + dist_right));
+        (resampled_begin + 1)->setIntensity((resampled_begin + 1)->getIntensity() + raw_it->getIntensity() * dist_left / (dist_left + dist_right));
 
         raw_it++;
       }
@@ -200,16 +174,17 @@ public:
       // add the final intensity to the right
       while (raw_it != raw_end)
       {
-        resample_it->setIntensity(resample_it->getIntensity() + raw_it->getIntensity());
+        resampled_begin->setIntensity(resampled_begin->getIntensity() + raw_it->getIntensity());
         raw_it++;
       }
     }
 
     /**
-        @brief Applies the resampling algorithm.
+        @brief Resample points (with m/z and intensity in separate containers, but of same length) from an input range
+               onto a prepopulated output m/z & intensity range (each in separate containers, but of same length).
 
-        This will use the raster provided by the output container to resample
-        the data provided in the input container. The intensities will be added
+        This will use the raster provided by the output container, i.e. with alignment,
+        to resample the data provided in the input container. The intensities will be added
         to the intensities in the output container (which in most cases will be
         zero).
 
@@ -225,24 +200,19 @@ public:
         @param int_raw_it Start of the input container to be resampled (containing the intensity data)
         @param int_raw_end End of the input container to be resampled (containing the intensity data)
         @param mz_resample_it Iterator pointing to start of the output spectrum range (m/z which need to be populated)
-        @param mz_resample_it Iterator pointing to end of the output spectrum range (m/z which need to be populated)
+        @param mz_resample_end Iterator pointing to end of the output spectrum range (m/z which need to be populated)
         @param int_resample_it Iterator pointing to start of the output spectrum range (intensities)
-        @param int_resample_it Iterator pointing to end of the output spectrum range (intensities)
+        @param int_resample_end Iterator pointing to end of the output spectrum range (intensities)
 
     */
     template <typename PeakTypeIterator, typename ConstPeakTypeIterator>
-#ifdef OPENMS_ASSERTIONS
     void raster(ConstPeakTypeIterator mz_raw_it, ConstPeakTypeIterator mz_raw_end,
         ConstPeakTypeIterator int_raw_it, ConstPeakTypeIterator int_raw_end,
-        PeakTypeIterator mz_resample_it, PeakTypeIterator mz_resample_end,
+        ConstPeakTypeIterator mz_resample_it, ConstPeakTypeIterator mz_resample_end,
         PeakTypeIterator int_resample_it, PeakTypeIterator int_resample_end)
-#else
-    void raster(ConstPeakTypeIterator mz_raw_it, ConstPeakTypeIterator mz_raw_end,
-        ConstPeakTypeIterator int_raw_it, ConstPeakTypeIterator /* int_raw_end */,
-        PeakTypeIterator mz_resample_it, PeakTypeIterator mz_resample_end,
-        PeakTypeIterator int_resample_it, PeakTypeIterator /* int_resample_end */)
-#endif
     {
+      (void)int_raw_end;      // avoid 'unused parameter' compile error
+      (void)int_resample_end; // avoid 'unused parameter' compile error
       OPENMS_PRECONDITION(mz_resample_it != mz_resample_end, "Output iterators cannot be identical") // as we use +1
       OPENMS_PRECONDITION(std::distance(mz_resample_it, mz_resample_end) == std::distance(int_resample_it, int_resample_end),
           "Resample m/z and intensity iterators need to cover the same distance")
@@ -308,24 +278,24 @@ public:
 
         @param raw_it Start of the input (raw) spectrum to be resampled
         @param raw_end End of the input (raw) spectrum to be resampled
-        @param resample_it Iterator pointing to start of the output spectrum range (m/z need to be populated, intensities should be zero)
-        @param resample_it Iterator pointing to end of the output spectrum range (m/z need to be populated, intensities should be zero)
+        @param resampled_start Iterator pointing to start of the output spectrum range (m/z need to be populated, intensities should be zero)
+        @param resampled_end Iterator pointing to end of the output spectrum range (m/z need to be populated, intensities should be zero)
     */
     template <typename PeakTypeIterator>
-    void raster_interpolate(PeakTypeIterator raw_it, PeakTypeIterator raw_end, PeakTypeIterator resample_it, PeakTypeIterator resampled_end)
+    void raster_interpolate(PeakTypeIterator raw_it, PeakTypeIterator raw_end, PeakTypeIterator resampled_start, PeakTypeIterator resampled_end)
     {
-      // OPENMS_PRECONDITION(resample_it != resampled_end, "Output iterators cannot be identical")
+      // OPENMS_PRECONDITION(resampled_start != resampled_end, "Output iterators cannot be identical")
       OPENMS_PRECONDITION(raw_it != raw_end, "Input iterators cannot be identical") // as we use +1
 
       PeakTypeIterator raw_start = raw_it;
 
       // need to get the resampled iterator between two iterators of the raw data
-      while (resample_it != resampled_end && resample_it->getMZ() < raw_it->getMZ()) {resample_it++;}
+      while (resampled_start != resampled_end && resampled_start->getMZ() < raw_it->getMZ()) {resampled_start++;}
 
-      while (resample_it != resampled_end)
+      while (resampled_start != resampled_end)
       {
         //advance the raw_iterator until our current point we want to interpolate is between them
-        while (raw_it != raw_end && raw_it->getMZ() < resample_it->getMZ()) {raw_it++;}
+        while (raw_it != raw_end && raw_it->getMZ() < resampled_start->getMZ()) {raw_it++;}
         if (raw_it != raw_start) {raw_it--;}
 
         // if we have the last datapoint we break
@@ -333,8 +303,8 @@ public:
 
         // use a linear interpolation between raw_it and raw_it+1
         double m = ((raw_it + 1)->getIntensity() - raw_it->getIntensity()) / ((raw_it + 1)->getMZ() - raw_it->getMZ());
-        resample_it->setIntensity(raw_it->getIntensity() + (resample_it->getMZ() - raw_it->getMZ()) * m);
-        resample_it++;
+        resampled_start->setIntensity(raw_it->getIntensity() + (resampled_start->getMZ() - raw_it->getMZ()) * m);
+        resampled_start++;
       }
 
     }

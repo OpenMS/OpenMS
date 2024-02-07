@@ -14,7 +14,6 @@ ContactPerson.h
 DataArrays.h
 DataProcessing.h
 Digestion.h
-DocumentIDTagger.h
 DocumentIdentifier.h
 ExperimentalDesign.h
 ExperimentalSettings.h

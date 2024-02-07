@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//           OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//  notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//  notice, this list of conditions and the following disclaimer in the
-//  documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//  may be used to endorse or promote products derived from this software
-//  without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Tom Waschischeck $
@@ -36,11 +10,10 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/QC/PSMExplainedIonCurrent.h>
-
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/QC/PSMExplainedIonCurrent.h>
 #include <cmath>
 #include <random>
 //////////////////////////
@@ -55,7 +28,7 @@ void addRandomPeaks(MSSpectrum& spec, double total_intensity = 1.0, Int number_o
 {
   double peak_intensity = total_intensity / number_of_peaks;
   spec.sortByPosition();
-  std::uniform_real_distribution<> distr((*spec.begin()).getMZ(), (*(spec.end()-1)).getMZ());
+  std::uniform_real_distribution<> distr((*spec.begin()).getMZ(), (*(spec.end() - 1)).getMZ());
   for (Int i = 0; i < number_of_peaks; ++i)
   {
     spec.emplace_back(distr(gen), peak_intensity);
@@ -80,7 +53,8 @@ const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, Pr
 }
 
 // create a MSSpectrum with Precursor, MSLevel, RT and fill it with Peaks
-const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, const AASequence& seq, Int charge, const Param& theo_gen_params, Precursor::ActivationMethod precursor_method = Precursor::ActivationMethod::CID)
+const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, const AASequence& seq, Int charge, const Param& theo_gen_params,
+                                  Precursor::ActivationMethod precursor_method = Precursor::ActivationMethod::CID)
 {
   MSSpectrum ms_spec;
   ms_spec.setRT(rt);
@@ -88,7 +62,8 @@ const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, co
   ms_spec.setNativeID(id);
 
   TheoreticalSpectrumGenerator t;
-  if (!theo_gen_params.empty()) t.setParameters(theo_gen_params);
+  if (!theo_gen_params.empty())
+    t.setParameters(theo_gen_params);
 
   t.getSpectrum(ms_spec, seq, 1, charge <= 2 ? 1 : 2);
   std::set<Precursor::ActivationMethod> am;
@@ -107,7 +82,7 @@ const PeptideIdentification createPeptideIdentification(const String& id, const 
   peptide_hit.setCharge(charge);
 
   PeptideIdentification peptide_id;
-  peptide_id.setMetaValue("spectrum_reference", id);
+  peptide_id.setSpectrumReference( id);
   peptide_id.setMZ(mz);
   peptide_id.setHits({peptide_hit});
 
@@ -131,7 +106,7 @@ addRandomPeaks(ms_spec_2_himalaya, 7.0); // add 7 to 13 -> correctness should be
 TheoreticalSpectrumGenerator theo_gen_al;
 p = theo_gen_al.getParameters();
 p.setValue("add_c_ions", "true");
-p.setValue("add_z_ions", "true");
+p.setValue("add_zp1_ions", "true");
 p.setValue("add_b_ions", "false");
 p.setValue("add_y_ions", "false");
 PeakSpectrum ms_spec_2_alabama = createMSSpectrum(2, 2, "XTandem::2", AASequence::fromString("ALABAMA"), 2, p, Precursor::ActivationMethod::ECD);
@@ -140,7 +115,7 @@ addRandomPeaks(ms_spec_2_alabama, 5.0); // add 5 to 10 -> correctness should be 
 MSSpectrum empty_spec;
 
 MSExperiment exp;
-exp.setSpectra({ empty_spec, ms_spec_2_alabama, ms_spec_2_himalaya });
+exp.setSpectra({empty_spec, ms_spec_2_alabama, ms_spec_2_himalaya});
 
 // MSExperiment with no given fragmentation method (falls back to CID)
 MSExperiment exp_no_pc(exp);
@@ -216,7 +191,7 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBa
   psm_corr.compute(fmap, exp, spectra_map);
   std::vector<PSMExplainedIonCurrent::Statistics> result = psm_corr.getResults();
 
-  TEST_REAL_SIMILAR(result[0].average_correctness, (13./20 + 10./15) / 2.)
+  TEST_REAL_SIMILAR(result[0].average_correctness, (13. / 20 + 10. / 15) / 2.)
   TEST_REAL_SIMILAR(result[0].variance_correctness, 0.000138)
 
   //--------------------------------------------------------------------
@@ -300,7 +275,8 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBa
 }
 END_SECTION
 
-START_SECTION(compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20))
+START_SECTION(compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum,
+                      ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20))
 {
   spectra_map.calculateMap(exp);
   //--------------------------------------------------------------------
@@ -400,14 +376,13 @@ START_SECTION(const std::vector<Statistics>& getResults() const)
 }
 END_SECTION
 
-START_SECTION(QCBase::Status requires() const override)
+START_SECTION(QCBase::Status requirements() const override)
 {
   QCBase::Status stat = QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
-  TEST_EQUAL(psm_corr.requires() == stat, true)
+  TEST_EQUAL(psm_corr.requirements() == stat, true)
 }
 END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-

@@ -77,7 +77,7 @@
             <ITEM name="mz_tolerance" value="1.1" type="double" description="Allowed m/z deviation of seeds from the user-specified seed position." required="false" advanced="false" restrictions="0.0:" />
             <ITEM name="min_score" value="0.5" type="double" description="Overwrites &apos;seed:min_score&apos; for user-specified seeds. The cutoff is typically a bit lower in this case." required="false" advanced="false" restrictions="0.0:1.0" />
           </NODE>
-          <NODE name="debug" description="">
+          <NODE name="advanced" description="">
             <ITEM name="pseudo_rt_shift" value="500.0" type="double" description="Pseudo RT shift used when ." required="false" advanced="true" restrictions="1.0:" />
           </NODE>
         </NODE>

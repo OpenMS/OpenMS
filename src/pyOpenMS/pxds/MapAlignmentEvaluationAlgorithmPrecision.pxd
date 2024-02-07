@@ -7,11 +7,11 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmPr
     cdef cppclass MapAlignmentEvaluationAlgorithmPrecision(MapAlignmentEvaluationAlgorithm) :
         # wrap-inherits:
         #  MapAlignmentEvaluationAlgorithm
-        MapAlignmentEvaluationAlgorithmPrecision() nogil except +
+        MapAlignmentEvaluationAlgorithmPrecision() except + nogil 
         # private
-        MapAlignmentEvaluationAlgorithmPrecision(MapAlignmentEvaluationAlgorithmPrecision) nogil except + #wrap-ignore
+        MapAlignmentEvaluationAlgorithmPrecision(MapAlignmentEvaluationAlgorithmPrecision) except + nogil  #wrap-ignore
 
-        # NAMESPACE # void evaluate(ConsensusMap & consensus_map_in, ConsensusMap & consensus_map_gt, double & rt_dev, double & mz_dev, Peak2D::IntensityType & int_dev, bool use_charge, double & out) nogil except +
-        # POINTER # MapAlignmentEvaluationAlgorithm * create() nogil except +
-        String getProductName() nogil except + # wrap-doc:Returns the product name (for the Factory)
+        # NAMESPACE # void evaluate(ConsensusMap & consensus_map_in, ConsensusMap & consensus_map_gt, double & rt_dev, double & mz_dev, Peak2D::IntensityType & int_dev, bool use_charge, double & out) except + nogil 
+        # POINTER # MapAlignmentEvaluationAlgorithm * create() except + nogil 
+        String getProductName() except + nogil  # wrap-doc:Returns the product name (for the Factory)
 

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -45,6 +19,7 @@ using namespace std;
 
 namespace OpenMS
 {
+
   Residue::Residue() :
     name_("unknown"),
     average_weight_(0.0f),
@@ -360,6 +335,12 @@ namespace OpenMS
     case ZIon:
       return internal_formula_ + getInternalToZIon();
 
+    case Zp1Ion:
+      return internal_formula_ + getInternalToZp1Ion();
+
+    case Zp2Ion:
+      return internal_formula_ + getInternalToZp2Ion();
+
     default:
       cerr << "Residue::getFormula: unknown ResidueType" << endl;
       return formula_;
@@ -430,28 +411,34 @@ namespace OpenMS
       return mono_weight_ - internal_to_full_monoweight_;
 
     case NTerminal:
-      return mono_weight_ + internal_to_nterm_monoweight_;
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_nterm_monoweight_;
 
     case CTerminal:
-      return mono_weight_ + internal_to_cterm_monoweight_;
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_cterm_monoweight_;
 
     case BIon:
-      return mono_weight_ + internal_to_b_monoweight_;
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_b_monoweight_;
 
     case AIon:
-      return mono_weight_ + internal_to_a_monoweight_;
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_a_monoweight_;
 
     case CIon:
-      return mono_weight_ + internal_to_c_monoweight_;
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_c_monoweight_;
 
     case XIon:
-      return mono_weight_ + internal_to_x_monoweight_;
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_x_monoweight_;
 
     case YIon:
-      return mono_weight_ + internal_to_y_monoweight_;
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_y_monoweight_;
 
     case ZIon:
-      return mono_weight_ + internal_to_z_monoweight_;
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_z_monoweight_;
+
+    case Zp1Ion:
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_zp1_monoweight_;
+
+    case Zp2Ion:
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_zp2_monoweight_;
 
     default:
       cerr << "Residue::getMonoWeight: unknown ResidueType" << endl;
@@ -670,20 +657,22 @@ namespace OpenMS
     return residue_sets_.find(residue_set) != residue_sets_.end();
   }
 
-  char Residue::residueTypeToIonLetter(const Residue::ResidueType& res_type)
+  std::string Residue::residueTypeToIonLetter(const Residue::ResidueType& res_type)
   {
     switch (res_type)
     {
-      case Residue::AIon: return 'a';
-      case Residue::BIon: return 'b';
-      case Residue::CIon: return 'c';
-      case Residue::XIon: return 'x';
-      case Residue::YIon: return 'y';
-      case Residue::ZIon: return 'z';
+      case Residue::AIon: return "a";
+      case Residue::BIon: return "b";
+      case Residue::CIon: return "c";
+      case Residue::XIon: return "x";
+      case Residue::YIon: return "y";
+      case Residue::ZIon: return "z";
+      case Residue::Zp1Ion: return "z.";
+      case Residue::Zp2Ion: return "z'";
       default:
-       cerr << "Unknown residue type encountered. Can't map to ion letter." << endl;
+       OPENMS_LOG_ERROR << "Unknown residue type encountered. Can't map to ion letter." << endl;
     }
-    return ' ';
+    return "";
   }
 
   String Residue::toString() const
@@ -711,4 +700,18 @@ namespace OpenMS
     return os;
   }
 
+  // static members
+  // TODO They could actually be constexpr but EmpiricalFormula of a string literal is not constexpr yet
+  //  not sure if possible with current C++ standard
+  const double Residue::internal_to_full_monoweight_ = Residue::getInternalToFull().getMonoWeight();
+  const double Residue::internal_to_nterm_monoweight_ = Residue::getInternalToNTerm().getMonoWeight();
+  const double Residue::internal_to_cterm_monoweight_ = Residue::getInternalToCTerm().getMonoWeight();
+  const double Residue::internal_to_a_monoweight_ = Residue::getInternalToAIon().getMonoWeight();
+  const double Residue::internal_to_b_monoweight_ = Residue::getInternalToBIon().getMonoWeight();
+  const double Residue::internal_to_c_monoweight_ = Residue::getInternalToCIon().getMonoWeight();
+  const double Residue::internal_to_x_monoweight_ = Residue::getInternalToXIon().getMonoWeight();
+  const double Residue::internal_to_y_monoweight_ = Residue::getInternalToYIon().getMonoWeight();
+  const double Residue::internal_to_z_monoweight_ = Residue::getInternalToZIon().getMonoWeight();
+  const double Residue::internal_to_zp1_monoweight_ = Residue::getInternalToZp1Ion().getMonoWeight();
+  const double Residue::internal_to_zp2_monoweight_ = Residue::getInternalToZp2Ion().getMonoWeight();
 }

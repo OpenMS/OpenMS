@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -92,7 +66,7 @@ namespace OpenMS
       {
         PeakMap exp;
         exp.setChromatograms(irt_chromatograms);
-        MzMLFile().store(irt_mzml_out, exp);
+        FileHandler().storeExperiment(irt_mzml_out, exp, {FileTypes::MZML});
       }
       catch (OpenMS::Exception::UnableToCreateFile& /*e*/)
       {
@@ -160,7 +134,7 @@ namespace OpenMS
     feature_finder_param.setValue("Scores:use_elution_model_score", "false");
     feature_finder_param.setValue("rt_extraction_window", -1.0);
     feature_finder_param.setValue("stop_report_after_feature", 1);
-    feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 1.0); // set to 1.0 in all cases
+    feature_finder_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:signal_to_noise", 1.0); // set to 1.0 in all cases
     feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "false"); // no peak quality -> take all peaks!
     if (estimateBestPeptides)
     {
@@ -256,7 +230,7 @@ namespace OpenMS
         "There are less than 2 iRT normalization peptides, not enough for an RT correction.");
     }
 
-    // 7. Select the "correct" peaks for m/z correction (e.g. remove those not
+    // 7. Select the "correct" peaks for m/z (and IM) correction (e.g. remove those not
     // part of the linear regression)
     std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_final; // store all peaks above cutoff
     for (const auto& it : trgrmap_allpeaks)
@@ -278,9 +252,11 @@ namespace OpenMS
       }
     }
 
-    // 8. Correct m/z deviations using SwathMapMassCorrection
+    // 8. Correct m/z (and IM) deviations using SwathMapMassCorrection
+    // m/z correction is done with the -irt_im_extraction parameters
     SwathMapMassCorrection mc;
     mc.setParameters(calibration_param);
+
     mc.correctMZ(trgrmap_final, targeted_exp, swath_maps, pasef);
     mc.correctIM(trgrmap_final, targeted_exp, swath_maps, pasef, im_trafo);
 
@@ -322,6 +298,15 @@ namespace OpenMS
     std::vector<int> tr_win_map; // maps transition k to dia map i from which it should be extracted, only used if pasef flag is on
     if (pasef)
     {
+      // Before calling this function, check to ensure that precursors actually have IM data
+      for (Size k = 0; k < irt_transitions.transitions.size(); k++)
+      {
+        const OpenSwath::LightTransition& tr = irt_transitions.transitions[k];
+        if (tr.getPrecursorIM() == -1)
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Transition " + tr.getNativeID() +  " does not have a valid IM value, this must be set to use the -pasef flag");
+        }
+      }
       OpenSwathHelper::selectSwathTransitionsPasef(irt_transitions, tr_win_map, cp.min_upper_edge_dist, swath_maps);
     }
 
@@ -348,7 +333,7 @@ namespace OpenMS
                const OpenSwath::LightTransition& tr = irt_transitions.transitions[k];
                transition_exp_used.transitions.push_back(tr);
                matching_compounds.insert(tr.getPeptideRef());
-               OPENMS_LOG_DEBUG << "Adding Precursor with m/z " << tr.getPrecursorMZ() << " and IM of " << tr.getPrecursorIM() <<  " to swath with mz upper of " << swath_maps[map_idx].upper << " im lower of " << swath_maps[map_idx].imLower << " and im upper of " << swath_maps[map_idx].imUpper << std::endl;
+               OPENMS_LOG_DEBUG << "Adding Precursor with m/z " << tr.getPrecursorMZ() << " and IM of " << tr.getPrecursorIM() <<  " to swath with mz lower of " << swath_maps[map_idx].lower << " m/z upper of " << swath_maps[map_idx].upper << " im lower of " << swath_maps[map_idx].imLower << " and im upper of " << swath_maps[map_idx].imUpper << std::endl;
             }
           }
 
@@ -518,10 +503,6 @@ namespace OpenMS
 
     // (i) Obtain precursor chromatograms (MS1) if precursor extraction is enabled
     ChromExtractParams ms1_cp(cp_ms1);
-    if (!use_ms1_ion_mobility_)
-    {
-      ms1_cp.im_extraction_window = -1;
-    }
 
     if (ms1_only && !use_ms1_traces_)
     {
@@ -535,7 +516,7 @@ namespace OpenMS
     if (ms1_only)
     {
       std::vector< MSChromatogram > ms1_chromatograms;
-      MS1Extraction_(ms1_map_, swath_maps, ms1_chromatograms, chromConsumer, ms1_cp,
+      MS1Extraction_(ms1_map_, swath_maps, ms1_chromatograms, ms1_cp,
                      transition_exp, trafo_inverse, ms1_only, ms1_isotopes);
 
       FeatureMap featureFile;
@@ -548,7 +529,7 @@ namespace OpenMS
 
       // write features to output if so desired
       std::vector< OpenMS::MSChromatogram > chromatograms;
-      writeOutFeaturesAndChroms_(chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
+      writeOutFeaturesAndChroms_(chromatograms, ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
     }
 
     // (iii) map transitions to individual DIA windows for cases where this is
@@ -782,7 +763,7 @@ namespace OpenMS
             if (ms1_map_ != nullptr)
             {
               OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
-              MS1Extraction_(threadsafe_ms1, swath_maps, ms1_chromatograms, chromConsumer, ms1_cp,
+              MS1Extraction_(threadsafe_ms1, swath_maps, ms1_chromatograms, ms1_cp,
                   transition_exp_used, trafo_inverse, ms1_only, ms1_isotopes);
             }
 
@@ -815,7 +796,7 @@ namespace OpenMS
             // output file and one output map).
             #pragma omp critical (osw_write_out)
             {
-              writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), featureFile, out_featureFile, store_features, chromConsumer);
+              writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
             }
           }
 
@@ -840,11 +821,21 @@ namespace OpenMS
 
   void OpenSwathWorkflow::writeOutFeaturesAndChroms_(
     std::vector< OpenMS::MSChromatogram > & chromatograms,
+    std::vector< MSChromatogram >& ms1_chromatograms,
     const FeatureMap & featureFile,
     FeatureMap& out_featureFile,
     bool store_features,
     Interfaces::IMSDataConsumer * chromConsumer)
   {
+    // write out MS1 chromatograms to output if so desired
+    for (Size j = 0; j < ms1_chromatograms.size(); j++)
+    {
+      if (ms1_chromatograms[j].empty()) continue; // skip empty chromatograms
+      // write MS1 chromatograms to disk
+      chromConsumer->consumeChromatogram( ms1_chromatograms[j] );
+    }
+
+
     // write chromatograms to output if so desired
     for (Size chrom_idx = 0; chrom_idx < chromatograms.size(); ++chrom_idx)
     {
@@ -875,7 +866,6 @@ namespace OpenMS
   void OpenSwathWorkflowBase::MS1Extraction_(const OpenSwath::SpectrumAccessPtr& ms1_map,
                                              const std::vector< OpenSwath::SwathMap > & /* swath_maps */,
                                              std::vector< MSChromatogram >& ms1_chromatograms,
-                                             Interfaces::IMSDataConsumer* chromConsumer,
                                              const ChromExtractParams& cp,
                                              const OpenSwath::LightTargetedExperiment& transition_exp,
                                              const TransformationDescription& trafo_inverse,
@@ -893,20 +883,6 @@ namespace OpenMS
         cp.ppm, cp.im_extraction_window, cp.extraction_function);
     extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,
         SpectrumSettings(), ms1_chromatograms, true, cp.im_extraction_window);
-
-    for (Size j = 0; j < coordinates.size(); j++)
-    {
-      if (ms1_chromatograms[j].empty()) continue; // skip empty chromatograms
-
-#ifdef _OPENMP
-#pragma omp critical (osw_write_out)
-#endif
-      {
-        // write MS1 chromatograms to disk
-        chromConsumer->consumeChromatogram( ms1_chromatograms[j] );
-      }
-    } // end of for coordinates
-
   }
 
   void OpenSwathWorkflow::scoreAllChromatograms_(
@@ -1209,7 +1185,7 @@ namespace OpenMS
       std::vector< MSChromatogram > ms1_chromatograms;
       if (ms1_map_ != nullptr)
       {
-        MS1Extraction_(ms1_map_, swath_maps, ms1_chromatograms, chromConsumer, cp_ms1,
+        MS1Extraction_(ms1_map_, swath_maps, ms1_chromatograms, cp_ms1,
             transition_exp, trafo_inverse);
       }
 
@@ -1344,7 +1320,7 @@ namespace OpenMS
 #pragma omp critical (osw_write_out)
 #endif
             {
-              writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), featureFile, out_featureFile, store_features, chromConsumer);
+              writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
             }
           }
         }

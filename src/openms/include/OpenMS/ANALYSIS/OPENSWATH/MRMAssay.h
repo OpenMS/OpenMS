@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: George Rosenberger $
@@ -84,7 +58,7 @@ public:
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > CompoundTransitionMapType;
 
-    typedef boost::unordered_map<String, std::set<std::string> > ModifiedSequenceMap; ///< Maps an unmodified sequence to all its modified sequences
+    typedef std::map<String, std::set<std::string> > ModifiedSequenceMap; ///< Maps an unmodified sequence to all its modified sequences
     typedef boost::unordered_map<size_t, ModifiedSequenceMap> SequenceMapT; ///< Stores the ModifiedSequenceMap for all SWATH windows
 
     typedef std::vector<std::pair<double, std::string> > FragmentSeqMap; ///< Describes a fragment sequence map of : "fragment m/z" -> "modified sequence"
@@ -93,7 +67,7 @@ public:
     typedef std::vector<std::pair<std::string, double> > IonSeries; ///< Describes an ion series: "ion_type" -> "fragment m/z"
     typedef std::map<String, IonSeries > PeptideMapT; ///< Maps a peptide sequence to an ion series: "ion_type" -> "fragment m/z"
 
-    typedef boost::unordered_map<String, TargetedExperiment::Peptide> TargetDecoyMapT; ///< Maps the peptide id (same for target and decoy) to the decoy peptide object
+    typedef std::map<String, TargetedExperiment::Peptide> TargetDecoyMapT; ///< Maps the peptide id (same for target and decoy) to the decoy peptide object
 
     /**
       @brief Annotates and filters transitions in a TargetedExperiment
@@ -349,7 +323,7 @@ protected:
 
     */
     void generateDecoySequences_(const SequenceMapT& TargetSequenceMap,
-                                 boost::unordered_map<String, String>& DecoySequenceMap,
+                                 std::map<String, String>& DecoySequenceMap,
                                  int shuffle_seed);
 
     /**
@@ -373,7 +347,7 @@ protected:
                                    int round_decPow,
                                    TargetDecoyMapT& TargetDecoyMap,
                                    PeptideMapT& TargetPeptideMap,
-                                   boost::unordered_map<String, String>& DecoySequenceMap,
+                                   std::map<String, String>& DecoySequenceMap,
                                    IonMapT& DecoyIonMap,
                                    PeptideMapT& DecoyPeptideMap);
 

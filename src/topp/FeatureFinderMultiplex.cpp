@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
@@ -41,8 +15,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
@@ -50,10 +23,6 @@
 #include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
-
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/MzQuantMLFile.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
@@ -91,14 +60,14 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_FeatureFinderMultiplex FeatureFinderMultiplex
-  @brief Detects peptide pairs in LC-MS data and determines their relative abundance.
+@page TOPP_FeatureFinderMultiplex FeatureFinderMultiplex
+@brief Detects peptide pairs in LC-MS data and determines their relative abundance.
 <CENTER>
   <table>
     <tr>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-      <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderMultiplex \f$ \longrightarrow \f$</td>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+      <th ALIGN = "center"> pot. predecessor tools </td>
+      <td VALIGN="middle" ROWSPAN=3> &rarr; FeatureFinderMultiplex &rarr;</td>
+      <th ALIGN = "center"> pot. successor tools </td>
     </tr>
     <tr>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
@@ -109,19 +78,19 @@ using namespace OpenMS;
     </tr>
   </table>
 </CENTER>
-  FeatureFinderMultiplex is a tool for the fully automated analysis of quantitative proteomics data. It detects pairs of isotopic envelopes with fixed m/z separation. It requires no prior sequence identification of the peptides. In what follows we outline the algorithm.
-  <b>Algorithm</b>
-  The algorithm is divided into three parts: filtering, clustering and linear fitting, see Fig. (d), (e) and (f). In the following discussion let us consider a particular mass spectrum at retention time 1350 s, see Fig. (a). It contains a peptide of mass 1492 Da and its 6 Da heavier labelled counterpart. Both are doubly charged in this instance. Their isotopic envelopes therefore appear at 746 and 749 in the spectrum. The isotopic peaks within each envelope are separated by 0.5. The spectrum was recorded at finite intervals. In order to read accurate intensities at arbitrary m/z we spline-fit over the data, see Fig. (b).
-  We would like to search for such peptide pairs in our LC-MS data set. As a warm-up let us consider a standard intensity cut-off filter, see Fig. (c). Scanning through the entire m/z range (red dot) only data points with intensities above a certain threshold pass the filter. Unlike such a local filter, the filter used in our algorithm takes intensities at a range of m/z positions into account, see Fig. (d). A data point (red dot) passes if
-  - all six intensities at m/z, m/z+0.5, m/z+1, m/z+3, m/z+3.5 and m/z+4 lie above a certain threshold,
-  - the intensity profiles in neighbourhoods around all six m/z positions show a good correlation and
-  - the relative intensity ratios within a peptide agree up to a factor with the ratios of a theoretic averagine model.
-  Let us now filter not only a single spectrum but all spectra in our data set. Data points that pass the filter form clusters in the t-m/z plane, see Fig. (e). Each cluster corresponds to the mono-isotopic mass trace of the lightest peptide of a SILAC pattern. We now use hierarchical clustering methods to assign each data point to a specific cluster. The optimum number of clusters is determined by maximizing the silhouette width of the partitioning. Each data point in a cluster corresponds to three pairs of intensities (at [m/z, m/z+3], [m/z+0.5, m/z+3.5] and [m/z+1, m/z+4]). A plot of all intensity pairs in a cluster shows a clear linear correlation, see Fig. (f). Using linear regression we can determine the relative amounts of labelled and unlabelled peptides in the sample.
-  @image html SILACAnalyzer_algorithm.png
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_FeatureFinderMultiplex.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_FeatureFinderMultiplex.html
+FeatureFinderMultiplex is a tool for the fully automated analysis of quantitative proteomics data. It detects pairs of isotopic envelopes with fixed m/z separation. It requires no prior sequence identification of the peptides. In what follows we outline the algorithm.
+<b>Algorithm</b>
+The algorithm is divided into three parts: filtering, clustering and linear fitting, see Fig. (d), (e) and (f). In the following discussion let us consider a particular mass spectrum at retention time 1350 s, see Fig. (a). It contains a peptide of mass 1492 Da and its 6 Da heavier labelled counterpart. Both are doubly charged in this instance. Their isotopic envelopes therefore appear at 746 and 749 in the spectrum. The isotopic peaks within each envelope are separated by 0.5. The spectrum was recorded at finite intervals. In order to read accurate intensities at arbitrary m/z we spline-fit over the data, see Fig. (b).
+We would like to search for such peptide pairs in our LC-MS data set. As a warm-up let us consider a standard intensity cut-off filter, see Fig. (c). Scanning through the entire m/z range (red dot) only data points with intensities above a certain threshold pass the filter. Unlike such a local filter, the filter used in our algorithm takes intensities at a range of m/z positions into account, see Fig. (d). A data point (red dot) passes if
+- all six intensities at m/z, m/z+0.5, m/z+1, m/z+3, m/z+3.5 and m/z+4 lie above a certain threshold,
+- the intensity profiles in neighbourhoods around all six m/z positions show a good correlation and
+- the relative intensity ratios within a peptide agree up to a factor with the ratios of a theoretic averagine model.
+Let us now filter not only a single spectrum but all spectra in our data set. Data points that pass the filter form clusters in the t-m/z plane, see Fig. (e). Each cluster corresponds to the mono-isotopic mass trace of the lightest peptide of a SILAC pattern. We now use hierarchical clustering methods to assign each data point to a specific cluster. The optimum number of clusters is determined by maximizing the silhouette width of the partitioning. Each data point in a cluster corresponds to three pairs of intensities (at [m/z, m/z+3], [m/z+0.5, m/z+3.5] and [m/z+1, m/z+4]). A plot of all intensity pairs in a cluster shows a clear linear correlation, see Fig. (f). Using linear regression we can determine the relative amounts of labelled and unlabelled peptides in the sample.
+@image html SILACAnalyzer_algorithm.png
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FeatureFinderMultiplex.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FeatureFinderMultiplex.html
 */
 
 // We do not want this class to show up in the docu:
@@ -140,7 +109,7 @@ private:
 
 public:
   TOPPFeatureFinderMultiplex() :
-    TOPPBase("FeatureFinderMultiplex", "Determination of peak ratios in LC-MS data", true)
+    TOPPBase("FeatureFinderMultiplex", "Determination of peak ratios in LC-MS data")
   {
   }
 
@@ -177,8 +146,7 @@ public:
    */
   void writeFeatureMap_(const String& filename, FeatureMap& map) const
   {
-    FeatureXMLFile file;
-    file.store(filename, map);
+    FileHandler().storeFeatures(filename, map, {FileTypes::FEATUREXML});
   }
 
   /**
@@ -189,12 +157,11 @@ public:
    */
   void writeConsensusMap_(const String& filename, ConsensusMap& map) const
   {
-    ConsensusXMLFile file;
     for (auto & ch : map.getColumnHeaders())
     {
       ch.second.filename = getStringOption_("in");
     }
-    file.store(filename, map);
+    FileHandler().storeConsensusFeatures(filename, map, {FileTypes::CONSENSUSXML});
   }
 
   /**
@@ -205,8 +172,7 @@ public:
    */
   void writeBlacklist_(const String& filename, const MSExperiment& blacklist) const
   {
-    MzMLFile file;
-    file.store(filename, blacklist);
+    FileHandler().storeExperiment(filename, blacklist, {FileTypes::MZML});
   }
 
   /**
@@ -247,7 +213,7 @@ public:
     /**
      * load input
      */
-    MzMLFile file;
+    FileHandler file;
     MSExperiment exp;
 
     // only read MS1 spectra
@@ -256,8 +222,7 @@ public:
     file.getOptions().setMSLevels(levels);
 
     OPENMS_LOG_DEBUG << "Loading input..." << endl;
-    file.setLogType(log_type_);
-    file.load(in_, exp);
+    file.loadExperiment(in_, exp, {FileTypes::MZML}, log_type_);
 
     FeatureFinderMultiplexAlgorithm algorithm;
     // pass only relevant parameters to the algorithm and set the log type

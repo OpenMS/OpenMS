@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -114,24 +88,24 @@ namespace OpenMS
   ///@name Iterating ranges and areas
   //@{
   /// Returns an area iterator for @p area
-  MSExperiment::AreaIterator MSExperiment::areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz)
+  MSExperiment::AreaIterator MSExperiment::areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level)
   {
     OPENMS_PRECONDITION(min_rt <= max_rt, "Swapped RT range boundaries!")
     OPENMS_PRECONDITION(min_mz <= max_mz, "Swapped MZ range boundaries!")
     OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using AreaIterator will give invalid results!")
     auto [min_im, max_im] = RangeMobility{}.getNonEmptyRange(); // a full range
-    auto area = AreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt));
+    auto area = AreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt), ms_level);
     area.lowMZ(min_mz).highMZ(max_mz).lowIM(min_im).highIM(max_im);
     return AreaIterator(area);
   }
 
-  MSExperiment::AreaIterator MSExperiment::areaBegin(const RangeManagerType& range)
+  MSExperiment::AreaIterator MSExperiment::areaBegin(const RangeManagerType& range, UInt ms_level)
   {
     OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using ConstAreaIterator will give invalid results!")
     auto [min_rt, max_rt] = range.RangeRT::getNonEmptyRange();
     auto [min_mz, max_mz] = range.RangeMZ::getNonEmptyRange();
     auto [min_im, max_im] = range.RangeMobility::getNonEmptyRange();
-    auto area = AreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt));
+    auto area = AreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt), ms_level);
     area.lowMZ(min_mz).highMZ(max_mz).lowIM(min_im).highIM(max_im);
     return AreaIterator(area);
   }
@@ -143,24 +117,24 @@ namespace OpenMS
   }
 
   /// Returns a non-mutable area iterator for @p area
-  MSExperiment::ConstAreaIterator MSExperiment::areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const
+  MSExperiment::ConstAreaIterator MSExperiment::areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level) const
   {
     OPENMS_PRECONDITION(min_rt <= max_rt, "Swapped RT range boundaries!")
     OPENMS_PRECONDITION(min_mz <= max_mz, "Swapped MZ range boundaries!")
     OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using ConstAreaIterator will give invalid results!")
     auto [min_im, max_im] = RangeMobility{}.getNonEmptyRange(); // a full range
-    auto area = ConstAreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt));
+    auto area = ConstAreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt), ms_level);
     area.lowMZ(min_mz).highMZ(max_mz).lowIM(min_im).highIM(max_im);
     return ConstAreaIterator(area);
   }
 
-  MSExperiment::ConstAreaIterator MSExperiment::areaBeginConst(const RangeManagerType& range) const
+  MSExperiment::ConstAreaIterator MSExperiment::areaBeginConst(const RangeManagerType& range, UInt ms_level) const
   {
     OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using ConstAreaIterator will give invalid results!")
     auto [min_rt, max_rt] = range.RangeRT::getNonEmptyRange();
     auto [min_mz, max_mz] = range.RangeMZ::getNonEmptyRange();
     auto [min_im, max_im] = range.RangeMobility::getNonEmptyRange();
-    auto area = ConstAreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt));
+    auto area = ConstAreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt), ms_level);
     area.lowMZ(min_mz).highMZ(max_mz).lowIM(min_im).highIM(max_im);
     return ConstAreaIterator(area);
   }
@@ -313,8 +287,10 @@ namespace OpenMS
     // update intensity, m/z and RT according to chromatograms as well:
     for (ChromatogramType& cp : chromatograms_)
     {
+      // update range of EACH chrom, if we need them individually later
+      cp.updateRanges();
 
-      // ignore TICs and ECs (as these are usually positioned at 0 and therefor lead to a large white margin in plots if included)
+      // ignore TICs and ECs for the whole experiments range (as these are usually positioned at 0 and therefor lead to a large white margin in plots if included)
       if (cp.getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM ||
         cp.getChromatogramType() == ChromatogramSettings::EMISSION_CHROMATOGRAM)
       {
@@ -325,7 +301,6 @@ namespace OpenMS
 
       // ranges
       this->extendMZ(cp.getMZ());// MZ
-      cp.updateRanges();
       this->extend(cp);// RT and intensity from chroms's range
     }
   }

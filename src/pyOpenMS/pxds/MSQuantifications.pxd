@@ -20,38 +20,38 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
     cdef cppclass MSQuantifications(ExperimentalSettings):
         # wrap-inherits:
         #  ExperimentalSettings
-        MSQuantifications() nogil except +
-        MSQuantifications(MSQuantifications &) nogil except +
+        MSQuantifications() except + nogil 
+        MSQuantifications(MSQuantifications &) except + nogil 
 
         # Detailed constructor from a FeatureMap
         MSQuantifications(FeatureMap fm,
                           ExperimentalSettings& es,
-                          libcpp_vector[DataProcessing]& dps) nogil except +
+                          libcpp_vector[DataProcessing]& dps) except + nogil 
         # std::vector<std::vector<std::pair<String, double> > > labels = (std::vector<std::vector<std::pair<String, double> > >()));
         
-        bool operator==(MSQuantifications &) nogil except +
-        bool operator!=(MSQuantifications &) nogil except +
+        bool operator==(MSQuantifications &) except + nogil 
+        bool operator!=(MSQuantifications &) except + nogil 
 
         # TODO - not implemented in OpenMS, remove from API
-        # void load(String filename, bool trim_lines, Int first_n) nogil except +
+        # void load(String filename, bool trim_lines, Int first_n) except + nogil 
 
-        libcpp_vector[DataProcessing] getDataProcessingList() nogil except +
-        libcpp_vector[Assay] getAssays() nogil except +
+        libcpp_vector[DataProcessing] getDataProcessingList() except + nogil 
+        libcpp_vector[Assay] getAssays() except + nogil 
 
         # TODO - not implemented in OpenMS, remove from API
-        # libcpp_map[String, Ratio] getRatios() nogil except + # wrap-ignore
+        # libcpp_map[String, Ratio] getRatios() except + nogil  # wrap-ignore
 
-        libcpp_vector[ConsensusMap] getConsensusMaps() nogil except +
-        void setConsensusMaps(libcpp_vector[ConsensusMap]) nogil except +
-        libcpp_vector[FeatureMap ] getFeatureMaps() nogil except +
-        AnalysisSummary getAnalysisSummary() nogil except +
-        void setDataProcessingList(libcpp_vector[DataProcessing] dpl) nogil except +
-        void setAnalysisSummaryQuantType(QUANT_TYPES r) nogil except +
-        void addConsensusMap(ConsensusMap m) nogil except +
-        void assignUIDs() nogil except +
+        libcpp_vector[ConsensusMap] getConsensusMaps() except + nogil 
+        void setConsensusMaps(libcpp_vector[ConsensusMap]) except + nogil 
+        libcpp_vector[FeatureMap ] getFeatureMaps() except + nogil 
+        AnalysisSummary getAnalysisSummary() except + nogil 
+        void setDataProcessingList(libcpp_vector[DataProcessing] dpl) except + nogil 
+        void setAnalysisSummaryQuantType(QUANT_TYPES r) except + nogil 
+        void addConsensusMap(ConsensusMap m) except + nogil 
+        void assignUIDs() except + nogil 
         void registerExperiment(MSExperiment exp, 
                                 libcpp_vector[ libcpp_vector[ libcpp_pair[
-                                  String, double] ] ] labels) nogil except + # wrap-ignore
+                                  String, double] ] ] labels) except + nogil  # wrap-ignore
 
 cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS::MSQuantifications":
     # derived from processing applied
@@ -64,16 +64,16 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS::MSQu
         SIZE_OF_QUANT_TYPES
 
     cdef cppclass AnalysisSummary:
-        AnalysisSummary()  nogil except +
-        AnalysisSummary(AnalysisSummary &) nogil except +
+        AnalysisSummary()  except + nogil 
+        AnalysisSummary(AnalysisSummary &) except + nogil 
 
         MetaInfo user_params_
         CVTermList cv_params_
         QUANT_TYPES quant_type_
 
     cdef cppclass Assay:
-        Assay() nogil except +
-        Assay(Assay &) nogil except +
+        Assay() except + nogil 
+        Assay(Assay &) except + nogil 
 
         String uid_ 
         libcpp_vector[libcpp_pair[String, double] ] mods_ # wrap-ignore

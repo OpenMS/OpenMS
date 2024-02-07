@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -39,11 +13,7 @@
 
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 
@@ -57,98 +27,98 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_InternalCalibration InternalCalibration
+@page TOPP_InternalCalibration InternalCalibration
 
-  @brief Performs an internal mass recalibration on an MS experiment.
+@brief Performs an internal mass recalibration on an MS experiment.
 
-  <CENTER>
-  <table>
-  <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ InternalCalibration \f$ \longrightarrow \f$</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool operating on MS peak data @n (in mzML format)</td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided </td>
-  </tr>
-  </table>
-  </CENTER>
+<CENTER>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=3> &rarr; InternalCalibration &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool operating on MS peak data @n (in mzML format)</td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided </td>
+</tr>
+</table>
+</CENTER>
 
-  Given reference masses (as either peptide identifications or as list of fixed masses) an MS experiment
-  can be recalibrated using a linear or quadratic regression fitted to the observed vs. the theoretical masses.
+Given reference masses (as either peptide identifications or as list of fixed masses) an MS experiment
+can be recalibrated using a linear or quadratic regression fitted to the observed vs. the theoretical masses.
 
-  Chose one of two optional input files:
-   1) peptide identifications (from featureXML or idXML) using 'id_in'
-   2) lock masses using 'lock_in'
-  
-  The user can choose whether the calibration function shall be
-  calculated for each spectrum separately or once for the whole map.
-  If this is done scan-wise, a user-defined range of neighboring spectra
-  is searched for lock masses/peptide IDs. They are used to build a model, which is applied to
-  the spectrum at hand.
-  The RT range ('RT_chunking') should be small enough to resolve time-dependent change of decalibration, but wide enough
-  to have enough calibrant masses for a stable model. A linear model requires at least two calibrants, a quadradic at least three.
-  Usually, the RT range should provide about 3x more calibrants than required, i.e. 6(=3x2) for linear, and 9(=3x3) for quadratic models.
-  If the calibrant data is too sparse for a certain scan, the closest neighboring model will be used automatically.
-  If no model can be calculated anywhere, the tool will fail.
-  
-  Optional quality control output files allow to judge the success of calibration. It is strongly advised to inspect them.
-  If PNG images are requested, 'R' (statistical programming language) needs to be installed and available on the system path!
+Chose one of two optional input files:
+1) peptide identifications (from featureXML or idXML) using 'id_in'
+2) lock masses using 'lock_in'
 
-  Outlier detection is supported using the RANSAC algorithm. However, usually it's better to provide high-confidence calibrants instead of
-  relying on automatic removal of outliers.
+The user can choose whether the calibration function shall be
+calculated for each spectrum separately or once for the whole map.
+If this is done scan-wise, a user-defined range of neighboring spectra
+is searched for lock masses/peptide IDs. They are used to build a model, which is applied to
+the spectrum at hand.
+The RT range ('RT_chunking') should be small enough to resolve time-dependent change of decalibration, but wide enough
+to have enough calibrant masses for a stable model. A linear model requires at least two calibrants, a quadradic at least three.
+Usually, the RT range should provide about 3x more calibrants than required, i.e. 6(=3x2) for linear, and 9(=3x3) for quadratic models.
+If the calibrant data is too sparse for a certain scan, the closest neighboring model will be used automatically.
+If no model can be calculated anywhere, the tool will fail.
 
-  Post calibration statistics (median ppm and median-absolute-deviation) are automatically computed.
-  The calibration is deemed successful if the statistics are within certain bounds ('goodness:XXX').
+Optional quality control output files allow to judge the success of calibration. It is strongly advised to inspect them.
+If PNG images are requested, 'R' (statistical programming language) needs to be installed and available on the system path!
 
+Outlier detection is supported using the RANSAC algorithm. However, usually it's better to provide high-confidence calibrants instead of
+relying on automatic removal of outliers.
 
-  Detailed description for each calibration method:
-  1) [id_in] The peptide identifications should be derived from the very same mzML file using a wide precursor window (e.g. 25 ppm), which captures
-     the possible decalibration. Subsequently, the IDs should be filtered for high confidence (e.g. low FDR, ideally FDR=0.0) and given as input to this tool.
-     Remaining outliers can be removed by using RANSAC.
-     The data might benefit from a precursor mass correction (e.g. using @ref TOPP_HighResPrecursorMassCorrector), before an MS/MS search is done.
-     The list of calibrants is derived solely from the idXML/featureXML and only the resulting model is applied to the mzML.
-  
-  2) [lock_in] Calibration can be performed using specific lock masses which occur in most spectra. The structure of the cal:lock_in CSV file is as follows:
-    Each line represents one lock mass in the format: \<m/z\>, \<ms-level\>, \<charge\>
-    Lines starting with # are treated as comments and ignored. The ms-level is usually '1', but you can also use '2' if there are fragment ions commonly occurring.
-
-    Example:
-    @code
-      # lock mass at 574 m/z at MS1 with charge 2
-      574.345, 1, 2
-    @endcode
-
-    Additional filters ('cal:lock_require_mono', 'cal:lock_require_iso') allow to exclude spurious false-positive calibrant peaks.
-    These filters require knowledge of the charge state, thus charge needs to be specified in the input CSV.
-    Detailed information on which lock masses passed these filters are available when -debug is used (any level).
-
-    The calibration function will use all lock masses (i.e. from all ms-levels) within the defined RT range to calibrate a spectrum. Thus, care should be taken that
-    spectra from ms-levels specified here, are recorded using the same mass analyzer (MA). This is no issue for a Q-Exactive (which only has one MA),
-    but depends on the acquisition scheme for instruments with two/three MAs (e.g. for Orbitrap Velos, MS/MS spectra are commonly acquired in the ion trap and should not be used during calibration of MS1).
-
-  General remarks:
-  The user can select what MS levels are subjected to calibration. Calibration must be done once for each mass analyzer.
-  Usually, peptide ID's provide calibration points for MS1 precursors, i.e. are suitable for MS1. They are applicable for MS2 only if
-  the same mass analyzer was used (e.g. Q-Exactive). In other words, MS/MS spectra acquired using the ion trap analyzer of a Velos cannot be calibrated using
-  peptide ID's.
-  Precursor m/z associated to higher-level MS spectra are corrected if their precursor spectra are subject to calibration, 
-  e.g. precursor information within MS2 spectra is calibrated if target ms-level is set to 1.
-  Lock masses ('cal:lock_in') can be specified freely for MS1 and/or MS2.
+Post calibration statistics (median ppm and median-absolute-deviation) are automatically computed.
+The calibration is deemed successful if the statistics are within certain bounds ('goodness:XXX').
 
 
-  @note The tool assumes the input data is already picked/centroided.
+Detailed description for each calibration method:
+1) [id_in] The peptide identifications should be derived from the very same mzML file using a wide precursor window (e.g. 25 ppm), which captures
+ the possible decalibration. Subsequently, the IDs should be filtered for high confidence (e.g. low FDR, ideally FDR=0.0) and given as input to this tool.
+ Remaining outliers can be removed by using RANSAC.
+ The data might benefit from a precursor mass correction (e.g. using @ref TOPP_HighResPrecursorMassCorrector), before an MS/MS search is done.
+ The list of calibrants is derived solely from the idXML/featureXML and only the resulting model is applied to the mzML.
 
-  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+2) [lock_in] Calibration can be performed using specific lock masses which occur in most spectra. The structure of the cal:lock_in CSV file is as follows:
+Each line represents one lock mass in the format: \<m/z\>, \<ms-level\>, \<charge\>
+Lines starting with # are treated as comments and ignored. The ms-level is usually '1', but you can also use '2' if there are fragment ions commonly occurring.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_InternalCalibration.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_InternalCalibration.html
+Example:
+@code
+  # lock mass at 574 m/z at MS1 with charge 2
+  574.345, 1, 2
+@endcode
+
+Additional filters ('cal:lock_require_mono', 'cal:lock_require_iso') allow to exclude spurious false-positive calibrant peaks.
+These filters require knowledge of the charge state, thus charge needs to be specified in the input CSV.
+Detailed information on which lock masses passed these filters are available when -debug is used (any level).
+
+The calibration function will use all lock masses (i.e. from all ms-levels) within the defined RT range to calibrate a spectrum. Thus, care should be taken that
+spectra from ms-levels specified here, are recorded using the same mass analyzer (MA). This is no issue for a Q-Exactive (which only has one MA),
+but depends on the acquisition scheme for instruments with two/three MAs (e.g. for Orbitrap Velos, MS/MS spectra are commonly acquired in the ion trap and should not be used during calibration of MS1).
+
+General remarks:
+The user can select what MS levels are subjected to calibration. Calibration must be done once for each mass analyzer.
+Usually, peptide ID's provide calibration points for MS1 precursors, i.e. are suitable for MS1. They are applicable for MS2 only if
+the same mass analyzer was used (e.g. Q-Exactive). In other words, MS/MS spectra acquired using the ion trap analyzer of a Velos cannot be calibrated using
+peptide ID's.
+Precursor m/z associated to higher-level MS spectra are corrected if their precursor spectra are subject to calibration, 
+e.g. precursor information within MS2 spectra is calibrated if target ms-level is set to 1.
+Lock masses ('cal:lock_in') can be specified freely for MS1 and/or MS2.
+
+
+@note The tool assumes the input data is already picked/centroided.
+
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_InternalCalibration.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_InternalCalibration.html
 */
 
 // We do not want this class to show up in the docu:
@@ -259,9 +229,8 @@ protected:
 
     // Raw data
     PeakMap exp;
-    MzMLFile mz_file;
-    mz_file.setLogType(log_type_);
-    mz_file.load(in, exp);
+    FileHandler mz_file;
+    mz_file.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
     InternalCalibration ic;
     ic.setLogType(log_type_);
@@ -275,14 +244,14 @@ protected:
       if (ftype == FileTypes::FEATUREXML)
       {
         FeatureMap feature_map;
-        FeatureXMLFile().load(cal_id, feature_map);
+        FileHandler().loadFeatures(cal_id, feature_map, {FileTypes::FEATUREXML});
         ic.fillCalibrants(feature_map, tol_ppm);
       }
       else if (ftype == FileTypes::IDXML)
       {
         std::vector<ProteinIdentification> prot_ids;
         std::vector<PeptideIdentification> pep_ids; 
-        IdXMLFile().load(cal_id, prot_ids, pep_ids);
+        FileHandler().loadIdentifications(cal_id, prot_ids, pep_ids, {FileTypes::IDXML});
         ic.fillCalibrants(pep_ids, tol_ppm);
       }
     }
@@ -290,13 +259,10 @@ protected:
     { // CSV file calibrant masses
       // load CSV
       TextFile ref_file;
-      ref_file.load(cal_lock, true, -1, true);
+      ref_file.load(cal_lock, true, -1, true, "#");
       vector<InternalCalibration::LockMass> ref_masses;
       for (TextFile::ConstIterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
       {
-        if (iter->hasPrefix("#")) continue;
-        // each line has:
-        //   m/z, ms-level, charge
         std::vector<String> vec;
         iter->split(",", vec);
         if (vec.size() != 3)
@@ -319,14 +285,14 @@ protected:
         OPENMS_LOG_INFO << "\nWriting matched lock masses to mzML file '" << file_cal_lock_out << "'." << std::endl;
         PeakMap exp_out;
         exp_out.set2DData(ic.getCalibrationPoints(), CalibrationData::getMetaValues());
-        mz_file.store(file_cal_lock_out, exp_out);
+        mz_file.storeExperiment(file_cal_lock_out, exp_out, {FileTypes::MZML}, log_type_);
       }
       if (!file_cal_lock_fail_out.empty())
       {
         OPENMS_LOG_INFO << "\nWriting unmatched lock masses to mzML file '" << file_cal_lock_fail_out << "'." << std::endl;
         PeakMap exp_out;
         exp_out.set2DData(failed_points, CalibrationData::getMetaValues());
-        mz_file.store(file_cal_lock_fail_out, exp_out);
+        mz_file.storeExperiment(file_cal_lock_fail_out, exp_out, {FileTypes::MZML}, log_type_);
       }
     }
     
@@ -343,7 +309,7 @@ protected:
       OPENMS_LOG_ERROR << "The 'force' flag was set to true. Storing uncalibrated data to '-out'." << std::endl;
       // do not calibrate
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CALIBRATION));
-      mz_file.store(out, exp);
+      mz_file.storeExperiment(out, exp, {FileTypes::MZML}, log_type_);
       return EXECUTION_OK;
     }
       
@@ -390,7 +356,7 @@ protected:
     //annotate output with data processing info
     addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CALIBRATION));
 
-    mz_file.store(out, exp);
+    mz_file.storeExperiment(out, exp, {FileTypes::MZML}, log_type_);
 
     return EXECUTION_OK;
   }

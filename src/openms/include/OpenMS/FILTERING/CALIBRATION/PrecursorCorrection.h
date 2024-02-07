@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -68,11 +42,10 @@ class OPENMS_DLLAPI PrecursorCorrection
 
      /**
      @brief Extract precursors and associated information (precursor retention time and precursor scan index).
-     @param exp: constant MSExperiment.
-     @param precursors: vector of Precursor.
-     @param precursors_rt: vector double of precursors retention time.
-     @param precursor_scan_index: vector size of precursor scan index.
-     @return vectors of Precursor, precursor retention time and precursor scan index.
+     @param exp: Spectra with precursors
+     @param[out] precursors: vector of all precursors in @p exp (can be more than one per MSn spectrum)
+     @param[out] precursors_rt: vector double of precursors retention time (same length as @p precursors)
+     @param[out] precursor_scan_index: Indices into @p exp, which have a precursor
      */
      static void getPrecursors(const MSExperiment & exp,
                               std::vector<Precursor> & precursors,
@@ -82,17 +55,19 @@ class OPENMS_DLLAPI PrecursorCorrection
 
      /**
      @brief Writer can be used in association with correctToNearestMS1Peak or correctToHighestIntensityMS1Peak.
-     @param out_csv: constant String for csv output.
-     @param delta_mzs: constant vector double  delta mass to charge.
-     @param mzs: constant vector double mass to charge.
-     @param rts: constant vector double retention time.
-     @return A csv file with additional information (RT, uncorrectedMZ, correctedMZ, deltaMZ).
+     A csv file with additional information (RT, uncorrectedMZ, correctedMZ, deltaMZ).
 
      Format:
      RT	    uncorrectedMZ	correctedMZ	deltaMZ
      100.1	509.9999	    510	         0.0001
      180.9	610.0001	    610	        -0.0001
      183.92	611.0035	    611.0033	  -0.0002
+     
+     @param out_csv: constant String for csv output.
+     @param delta_mzs: delta m/z column values.
+     @param mzs: m/z column vector (uncorrectedMZ)
+     @param rts: retention time column vector 
+     
      */
      static void writeHist(const String& out_csv,
                            const std::vector<double> & delta_mzs,

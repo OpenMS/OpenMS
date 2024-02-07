@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
@@ -138,7 +112,7 @@ namespace OpenMS
           B-ions are generated from the first linked position up to the end of the peptide,
           y-ions are generated from the beginning of the peptide up to the second linked position.
           This function generates neutral loss ions by considering both linked peptides.
-          Only one of the peptides, decided by @frag_alpha, is fragmented.
+          Only one of the peptides, decided by @p frag_alpha, is fragmented.
           This function is not suitable to generate fragments for mono-links or loop-links.
           This simplifies the function, but it has to be called twice to get all fragments of a peptide pair.
           The generated ion types and other additional settings are determined by the tool parameters.
@@ -225,14 +199,12 @@ namespace OpenMS
        * @param charges A DataArray collecting the charges of the added peaks
        * @param ion_names A DataArray collecting the ion names of the added peaks
        * @param mono_weight monoisotopic mass of the current ion
-       * @param res_type The ion type of the current ion
-       * @param frag_index The index of the ion (fragmentation position)
        * @param intensity
        * @param charge The charge of the ion
        * @param ion_type Another cross-linking specific ion-type
        * @param losses a set of LossMasses with which to modify the current ion
        */
-      virtual void addXLinkIonLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, double mono_weight, double intensity, int charge, String ion_name, LossIndex & losses) const;
+      virtual void addXLinkIonLosses_(PeakSpectrum& spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, double mono_weight, double intensity, int charge, String ion_type, LossIndex & losses) const;
 
       /**
        * @brief Adds one-residue-linked ion peaks, that are specific to XLMS

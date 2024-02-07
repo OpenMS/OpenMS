@@ -50,35 +50,35 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution
                 #  
                 #  Folding with itself is done using Russian Multiplication Scheme
                 
-        IMSIsotopeDistribution() nogil except +
-        IMSIsotopeDistribution(IMSIsotopeDistribution &) nogil except +
+        IMSIsotopeDistribution() except + nogil 
+        IMSIsotopeDistribution(IMSIsotopeDistribution &) except + nogil 
 
         abundance_type ABUNDANCES_SUM_ERROR
         size_type SIZE
-        IMSIsotopeDistribution(nominal_mass_type nominalMass) nogil except +
-        IMSIsotopeDistribution(mass_type mass) nogil except +
-        IMSIsotopeDistribution(libcpp_vector[IMSIsotopeDistribution_Peak] & peaks, nominal_mass_type nominalMass) nogil except +
-        size_type size() nogil except +
-        bool operator==(IMSIsotopeDistribution & distribution) nogil except +
-        bool operator!=(IMSIsotopeDistribution & distribution) nogil except +
-        # IMSIsotopeDistribution operator*=(IMSIsotopeDistribution & distribution) nogil except +
-        # IMSIsotopeDistribution operator*=(unsigned int pow_) nogil except +
-        mass_type getMass(size_type i) nogil except +
-        abundance_type getAbundance(size_type i) nogil except +
-        mass_type getAverageMass() nogil except +
-        nominal_mass_type getNominalMass() nogil except +
-        void setNominalMass(nominal_mass_type nominalMass) nogil except +
-        masses_container getMasses() nogil except + # wrap-doc:Gets a mass of isotope 'i'
-        libcpp_vector[abundance_type] getAbundances() nogil except + # wrap-doc:Gets an abundance of isotope 'i'
-        void normalize() nogil except + # wrap-doc:Normalizes distribution, i.e. scaling abundances to be summed up to 1 with an error
-        bool empty() nogil except + # wrap-doc:Returns true if the distribution has no peaks, false - otherwise
+        IMSIsotopeDistribution(nominal_mass_type nominalMass) except + nogil 
+        IMSIsotopeDistribution(mass_type mass) except + nogil 
+        IMSIsotopeDistribution(libcpp_vector[IMSIsotopeDistribution_Peak] & peaks, nominal_mass_type nominalMass) except + nogil 
+        size_type size() except + nogil 
+        bool operator==(IMSIsotopeDistribution & distribution) except + nogil 
+        bool operator!=(IMSIsotopeDistribution & distribution) except + nogil 
+        # IMSIsotopeDistribution operator*=(IMSIsotopeDistribution & distribution) except + nogil 
+        # IMSIsotopeDistribution operator*=(unsigned int pow_) except + nogil 
+        mass_type getMass(size_type i) except + nogil 
+        abundance_type getAbundance(size_type i) except + nogil 
+        mass_type getAverageMass() except + nogil 
+        nominal_mass_type getNominalMass() except + nogil 
+        void setNominalMass(nominal_mass_type nominalMass) except + nogil 
+        masses_container getMasses() except + nogil  # wrap-doc:Gets a mass of isotope 'i'
+        libcpp_vector[abundance_type] getAbundances() except + nogil  # wrap-doc:Gets an abundance of isotope 'i'
+        void normalize() except + nogil  # wrap-doc:Normalizes distribution, i.e. scaling abundances to be summed up to 1 with an error
+        bool empty() except + nogil  # wrap-doc:Returns true if the distribution has no peaks, false - otherwise
 
 cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h>" namespace "OpenMS::ims::IMSIsotopeDistribution":
     
     cdef cppclass IMSIsotopeDistribution_Peak "OpenMS::ims::IMSIsotopeDistribution::Peak":
-        IMSIsotopeDistribution_Peak(IMSIsotopeDistribution_Peak) nogil except + #wrap-ignore
+        IMSIsotopeDistribution_Peak(IMSIsotopeDistribution_Peak) except + nogil  #wrap-ignore
         mass_type mass
         abundance_type abundance
-        IMSIsotopeDistribution_Peak(mass_type mass, abundance_type abundance) nogil except +
-        bool operator==(IMSIsotopeDistribution_Peak & peak) nogil except +
+        IMSIsotopeDistribution_Peak(mass_type mass, abundance_type abundance) except + nogil 
+        bool operator==(IMSIsotopeDistribution_Peak & peak) except + nogil 
 

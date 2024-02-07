@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -35,7 +9,7 @@
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
+#include <OpenMS/ANALYSIS/ID/HyperScore.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
@@ -53,7 +27,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
@@ -294,7 +268,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         const MSSpectrum& spec = exp[scan_index];
         // create empty PeptideIdentification object and fill meta data
         PeptideIdentification pi{};
-        pi.setMetaValue("spectrum_reference", spec.getNativeID());
+        pi.setSpectrumReference( spec.getNativeID());
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
         pi.setScoreType("hyperscore");
         pi.setHigherScoreBetter(true);
@@ -435,14 +409,14 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
     // load MS2 map
     PeakMap spectra;
-    MzMLFile f;
+    FileHandler f;
     //f.setLogType(log_type_);
 
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.load(in_mzML, spectra);
+    f.loadExperiment(in_mzML, spectra, {FileTypes::MZML});
     spectra.sortSpectra(true);
 
     startProgress(0, 1, "Filtering spectra...");
@@ -505,32 +479,31 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     vector<FASTAFile::FASTAEntry> fasta_db;
     FASTAFile().load(in_db, fasta_db);
 
-    ProteaseDigestion digestor;
-    digestor.setEnzyme(enzyme_);
     // generate decoy protein sequences by reversing them
     if (decoys_)
     {
-      digestor.setMissedCleavages(0);
       startProgress(0, 1, "Generate decoys...");
-
       DecoyGenerator decoy_generator;
 
       // append decoy proteins
       const size_t old_size = fasta_db.size();
+      fasta_db.reserve(fasta_db.size() * 2);
       for (size_t i = 0; i != old_size; ++i)
       {
         FASTAFile::FASTAEntry e = fasta_db[i];
         e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
         e.identifier = "DECOY_" + e.identifier;
-        fasta_db.push_back(e);
+        fasta_db.push_back(std::move(e));
       }
       // randomize order of targets and decoys to introduce no global bias in the case that
       // many targets have the same score as their decoy. (As we always take the first best scoring one)
       Math::RandomShuffler shuffler;
       shuffler.portable_random_shuffle(fasta_db.begin(), fasta_db.end());
       endProgress();
-      digestor.setMissedCleavages(peptide_missed_cleavages_);
     }
+    ProteaseDigestion digestor;
+    digestor.setEnzyme(enzyme_);
+    digestor.setMissedCleavages(peptide_missed_cleavages_);
     startProgress(0, fasta_db.size(), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
@@ -651,7 +624,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             ah.score = score;
             ah.prefix_fraction = (double)detail.matched_b_ions/(double)c.size();
             ah.suffix_fraction = (double)detail.matched_y_ions/(double)c.size();
-            ah.mean_error = detail.mean_error;            
+            ah.mean_error = detail.mean_error;
 
 #ifdef _OPENMP
             omp_set_lock(&(annotated_hits_lock[scan_index]));

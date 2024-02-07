@@ -26,18 +26,18 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
         #  signal in LC-MS. Currently, non-peptide compounds are also represented as
         #  features
 
-        Feature() nogil except +
-        Feature(Feature &) nogil except +
+        Feature() except + nogil 
+        Feature(Feature &) except + nogil 
 
-        float getQuality(Size index) nogil except + # wrap-doc:Returns the quality in dimension c
-        void setQuality(Size index, float q) nogil except + # wrap-doc:Sets the quality in dimension c
-        float getOverallQuality() nogil except + # wrap-doc:Model and quality methods
-        void setOverallQuality(float q) nogil except + # wrap-doc:Sets the overall quality
+        float getQuality(Size index) except + nogil  # wrap-doc:Returns the quality in dimension c
+        void setQuality(Size index, float q) except + nogil  # wrap-doc:Sets the quality in dimension c
+        float getOverallQuality() except + nogil  # wrap-doc:Model and quality methods
+        void setOverallQuality(float q) except + nogil  # wrap-doc:Sets the overall quality
 
-        libcpp_vector[Feature] getSubordinates() nogil except + # wrap-doc:Returns the subordinate features
-        void setSubordinates(libcpp_vector[Feature]) nogil except + # wrap-doc:Returns the subordinate features
+        libcpp_vector[Feature] getSubordinates() except + nogil  # wrap-doc:Returns the subordinate features
+        void setSubordinates(libcpp_vector[Feature]) except + nogil  # wrap-doc:Returns the subordinate features
 
-        bool encloses(double rt, double mz) nogil except + 
+        bool encloses(double rt, double mz) except + nogil  
             # wrap-doc:
             #  Returns if the mass trace convex hulls of the feature enclose the position specified by `rt` and `mz`
             #  
@@ -45,27 +45,27 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
             #  :param rt: Sequence to digest
             #  :param mz: Digestion products
             
-        ConvexHull2D getConvexHull() nogil except +
-        libcpp_vector[ConvexHull2D] getConvexHulls() nogil except +
-        void setConvexHulls(libcpp_vector[ConvexHull2D]) nogil except +
+        ConvexHull2D getConvexHull() except + nogil 
+        libcpp_vector[ConvexHull2D] getConvexHulls() except + nogil 
+        void setConvexHulls(libcpp_vector[ConvexHull2D]) except + nogil 
 
-        bool operator==(Feature) nogil except +
-        bool operator!=(Feature) nogil except +
+        bool operator==(Feature) except + nogil 
+        bool operator!=(Feature) except + nogil 
 
         # from BaseFeature
 
-        # float getQuality()  nogil except +
-        # void setQuality(float q) nogil except +
+        # float getQuality()  except + nogil 
+        # void setQuality(float q) except + nogil 
 
-        float getWidth() nogil except +
-        void setWidth(float q) nogil except +
+        float getWidth() except + nogil 
+        void setWidth(float q) except + nogil 
 
-        Int getCharge() nogil except +
-        void setCharge(Int q) nogil except +
-        AnnotationState getAnnotationState() nogil except +
+        Int getCharge() except + nogil 
+        void setCharge(Int q) except + nogil 
+        AnnotationState getAnnotationState() except + nogil 
 
    
-        libcpp_vector[PeptideIdentification] getPeptideIdentifications() nogil except + # wrap-doc:Returns a reference to the PeptideIdentification vector
+        libcpp_vector[PeptideIdentification] getPeptideIdentifications() except + nogil  # wrap-doc:Returns a reference to the PeptideIdentification vector
         
-        void setPeptideIdentifications(libcpp_vector[PeptideIdentification] & peptides) nogil except + # wrap-doc:Sets the PeptideIdentification vector
+        void setPeptideIdentifications(libcpp_vector[PeptideIdentification] & peptides) except + nogil  # wrap-doc:Sets the PeptideIdentification vector
 

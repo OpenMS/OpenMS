@@ -40,7 +40,7 @@ Features
 --------
 - Core C++ library under three-clause BSD licence using modern C++17
 - Python bindings to the C++ API through pyOpenMS
-- Major community file formats supported (mzML, mzXML, mzIdentXML, pepXML etc)
+- Major community file formats supported (mzML, mzXML, mzIdentXML, pepXML, mzTab, etc.)
 - Over 150+ individual analysis tools (TOPP Tools), covering most MS and LC-MS data processing and mining tasks
 - Powerful 1D, 2D and 3D visualization tools (TOPPView)
 - Support for most MS identification and quantification workflows (targeted, DIA, label-free, isobaric and stable isotope)

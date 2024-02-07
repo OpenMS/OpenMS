@@ -1,32 +1,5 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+# Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche, Chris Bielow $
 # $Authors: Andreas Bertsch, Chris Bielow, Stephan Aiche $
@@ -38,11 +11,37 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 # --------------------------------------------------------------------------
 # OpenMS' TOPP tools
 
-# add all the tools
+# add all the tools. We support two modes
+# 1. either as single MyToolName.cpp file
+# 2. via a subfolder MyToolName/ with MyToolName/MyToolName.cpp and (optionally) additional header/source files
 include(executables.cmake)
-foreach(i ${TOPP_executables})
-  add_executable(${i} ${i}.cpp)
-  target_link_libraries(${i} OpenMS)
+foreach(i ${TOPP_executables})  
+  if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${i})
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${i})
+#[[
+# CMakeLists.txt in the subdirectory for MyToolName could look like this:
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+project(NameOfTheTool)
+
+# allow building separately from OpenMS
+if(NOT TARGET OpenMS)
+  find_package(OpenMS)
+endif()
+
+set(tool_sources
+  additional_file1.cpp
+  additional_file2.cpp
+  additional_header1.h
+  additional_header2.h
+)
+add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources}) # Add the main cpp file and additional files
+target_link_libraries(${PROJECT_NAME} OpenMS) # Link the executable with OpenMS
+#]] 
+  else()
+    add_executable(${i} ${i}.cpp)
+    target_link_libraries(${i} OpenMS)
+  endif()  
+  
   # we also want to install each topp tool
   install_tool(${i})
   if (OPENMP_FOUND AND NOT MSVC)
@@ -64,6 +63,8 @@ endif()
 
 # special requirements of some tools
 target_link_libraries(FileMerger Boost::regex)
+target_link_libraries(DecoyDatabase Boost::regex)
+target_link_libraries(NucleicAcidSearchEngine Boost::regex)
 
 # collection target
 add_custom_target(TOPP)

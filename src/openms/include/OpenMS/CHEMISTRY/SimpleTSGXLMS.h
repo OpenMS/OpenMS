@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
@@ -47,17 +21,17 @@ namespace OpenMS
   class AASequence;
 
   /**
-      @brief Generates theoretical spectra for cross-linked peptides
+  @brief Generates theoretical spectra for cross-linked peptides
 
-      The spectra this class generates are vectors of SimplePeaks.
-      This class generates the same peak types as TheoreticalSpectrumGeneratorXLMS
-      and the interface is very similar, but it is simpler and faster.
-      SimplePeak only contains an mz value and a charge. No intensity values
-      or String annotations or other additional DataArrays are generated.
+  The spectra this class generates are vectors of SimplePeaks.
+  This class generates the same peak types as TheoreticalSpectrumGeneratorXLMS
+  and the interface is very similar, but it is simpler and faster.
+  SimplePeak only contains an mz value and a charge. No intensity values
+  or String annotations or other additional DataArrays are generated.
 
   @htmlinclude OpenMS_SimpleTSGXLMS.parameters
 
-      @ingroup Chemistry
+  @ingroup Chemistry
   */
   class OPENMS_DLLAPI SimpleTSGXLMS :
     public DefaultParamHandler
@@ -149,11 +123,11 @@ namespace OpenMS
         @param peptide The peptide to fragment
         @param link_pos The position of the cross-linker on the given peptide
         @param precursor_mass The mass of the whole cross-link candidate or the precursor mass of the experimental MS2 spectrum.
-        @param mincharge The minimal charge of the ions
-        @param maxcharge The maximal charge of the ions, it should be the precursor charge and is used to generate precursor ion peaks
+        @param min_charge The minimal charge of the ions
+        @param max_charge The maximal charge of the ions, it should be the precursor charge and is used to generate precursor ion peaks
         @param link_pos_2 A second position for the linker, in case it is a loop link
        */
-      virtual void getXLinkIonSpectrum(std::vector< SimplePeak >& spectrum, AASequence& peptide, Size link_pos, double precursor_mass, int mincharge, int maxcharge, Size link_pos_2 = 0) const;
+      virtual void getXLinkIonSpectrum(std::vector< SimplePeak >& spectrum, AASequence& peptide, Size link_pos, double precursor_mass, int min_charge, int max_charge, Size link_pos_2 = 0) const;
 
       /**
        * @brief Generates fragment ions containing the cross-linker for a pair of peptides.
@@ -161,20 +135,18 @@ namespace OpenMS
           B-ions are generated from the first linked position up to the end of the peptide,
           y-ions are generated from the beginning of the peptide up to the second linked position.
           This function generates neutral loss ions by considering both linked peptides.
-          Only one of the peptides, decided by @frag_alpha, is fragmented.
+          Only one of the peptides, decided by @p frag_alpha, is fragmented.
           This simplifies the function, but it has to be called twice to get all fragments of a peptide pair.
           The generated ion types and other additional settings are determined by the tool parameters.
           This function is not suitable to generate fragments for mono-links or loop-links.
 
         @param spectrum The spectrum to which the new peaks are added. Does not have to be empty, the generated peaks will be pushed onto it.
         @param crosslink ProteinProteinCrossLink to be fragmented
-        @param link_pos The position of the cross-linker on the given peptide
-        @param precursor_mass The mass of the whole cross-link candidate or the precursor mass of the experimental MS2 spectrum.
         @param frag_alpha True, if the fragmented peptide is the Alpha peptide.
-        @param mincharge The minimal charge of the ions
-        @param maxcharge The maximal charge of the ions, it should be the precursor charge and is used to generate precursor ion peaks
+        @param min_charge The minimal charge of the ions
+        @param max_charge The maximal charge of the ions, it should be the precursor charge and is used to generate precursor ion peaks
        */
-      virtual void getXLinkIonSpectrum(std::vector< SimplePeak >& spectrum, OPXLDataStructs::ProteinProteinCrossLink& crosslink, bool frag_alpha, int mincharge, int maxcharge) const;
+      virtual void getXLinkIonSpectrum(std::vector< SimplePeak >& spectrum, OPXLDataStructs::ProteinProteinCrossLink& crosslink, bool frag_alpha, int min_charge, int max_charge) const;
 
       /// overwrite
       void updateMembers_() override;
@@ -243,7 +215,7 @@ namespace OpenMS
        * @param charge The charge of the added peaks
        * @param link_pos_2 A second position for the linker, in case it is a loop link
        */
-      virtual void addXLinkIonPeaks_(std::vector< SimplePeak >& spectrum, AASequence & peptide, Size link_pos, double precursor_mass, Residue::ResidueType res_type, std::vector< LossIndex > & forward_losses, std::vector< LossIndex > & backward_losses, int charge, Size link_pos_2 = 0) const;
+      virtual void addXLinkIonPeaks_(std::vector<SimplePeak>& spectrum, AASequence& peptide, Size link_pos, double precursor_mass, Residue::ResidueType res_type, std::vector< LossIndex > & forward_losses, std::vector< LossIndex > & backward_losses, int charge, Size link_pos_2 = 0) const;
 
       /**
        * @brief Adds cross-linked ions of a specific ion type and charge to a spectrum
@@ -252,8 +224,6 @@ namespace OpenMS
 
        * @param spectrum The spectrum to which the new peaks are added. Does not have to be empty, the generated peaks will be pushed onto it.
        * @param crosslink The ProteinProteinCrossLink to be fragmented
-       * @param link_pos The position of the cross-linker on the given peptide
-       * @param precursor_mass The mass of the whole cross-link candidate or the precursor mass of the experimental MS2 spectrum.
        * @param frag_alpha True, if the fragmented peptide is the Alpha peptide. Used for ion-name annotation.
        * @param res_type The ion type of the added peaks
        * @param forward_losses  vector of LossIndex generated by getForwardLosses_ for the fragmented peptide

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -48,7 +22,7 @@ namespace OpenMS
 
     This class is used by @ref TOPP_ProteinResolver . See there for further documentation.
 
-    @ingroup Analysis_QUANTITATION
+    @ingroup Analysis_ID
 
   */
   class OPENMS_DLLAPI ProteinResolver :
@@ -161,52 +135,6 @@ public:
       @param peptide_identifications Vector of PeptideIdentification in case idXML is given as input
     */
     void resolveID(std::vector<PeptideIdentification> & peptide_identifications);
-
-    // /**
-      // @brief NOT IMPLEMENTED YET
-
-      // @param protein_nodes
-      // @param peptide_nodes
-      // @param reindexed_proteins
-      // @param reindexed_peptides
-      // @param peptide_identifications
-      // @param output
-    // */
-    // void writeProteinsAndPeptidesmzTab(std::vector<ProteinEntry>& protein_nodes, std::vector<PeptideEntry>& peptide_nodes, std::vector<Size>& reindexed_proteins, std::vector<Size>& reindexed_peptides, std::vector<PeptideIdentification>& peptide_identifications, String& output  );
-    // /**
-      // @brief Writing peptide table into text file
-
-      // @param peptides
-      // @param reindexed_peptides
-      // @param identifications
-      // @param output_file
-    // */
-    // void writePeptideTable(std::vector<PeptideEntry> & peptides, std::vector<Size> & reindexed_peptides, std::vector<PeptideIdentification> & identifications, String & output_file); // not implemented
-    // /**
-      // @brief Writing peptide table into text file
-
-      // @param peptides
-      // @param reindexed_peptides
-      // @param consensus
-      // @param output
-    // */
-    // void writePeptideTable(std::vector<PeptideEntry> & peptides, std::vector<Size> & reindexed_peptides, ConsensusMap & consensus, String & output_file); // not implemented
-    // /**
-      // @brief Writing protein table into text file
-
-      // @param proteins
-      // @param reindexed_proteins
-      // @param output_file
-    // */
-    // void writeProteinTable(std::vector<ProteinEntry> & proteins, std::vector<Size> & reindexed_proteins, String & output_file); // not implemented
-    // /**
-      // @brief Writing protein groups into text file
-
-      // @param isd_groups ISD groups
-      // @param msd_groups MSD groups
-      // @param output_file Path of output file
-    // */
-    // void writeProteinGroups(std::vector<ISDGroup> & isd_groups, std::vector<MSDGroup> & msd_groups, String & output_file); // not implemented
 
     /**
       @brief brief

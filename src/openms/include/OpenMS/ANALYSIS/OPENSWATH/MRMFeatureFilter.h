@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
@@ -138,7 +112,7 @@ public:
       @brief Transfer the lower and upper bound values for the calculated concentrations
         based off of the AbsoluteQuantitationMethod
 
-      @param[in] quantitation_methods The absolute quantitation methods that has been determined for each component
+      @param[in] quantitation_method The absolute quantitation methods that has been determined for each component
       @param[in,out] filter_template A MRMFeatureQC class that will be used as a template to fill in the 
         MRMFeatureQC::ComponentQCs.calculated_concentration bounds based on the LLOQ and ULOQ values given in the quantitation_method.
     */
@@ -273,8 +247,8 @@ public:
     /**
       @brief Count the number of heavy/light labels and quantifying/detecting/identifying transitions
 
-      @param component component_group with subordinates
-      @param transitions transitions from a TargetedExperiment
+      @param component_group Component group with subordinates
+      @param transitions Transitions from a TargetedExperiment
 
       @return Map of labels/transition types and their corresponding number.
     */
@@ -303,7 +277,7 @@ public:
     /**
       @brief Set all members in MRMFeatureQC to zero 
 
-      @param[out] filter_zero A MRMFeatureQC object whose members have been set to 0
+      @param[out] filter_zeros A MRMFeatureQC object whose members have been set to 0
       @param[in] filter_template A MRMFeatureQC object that will be used as a template to fill in values
     */
     void zeroFilterValues(MRMFeatureQC& filter_zeros, const MRMFeatureQC& filter_template) const;

@@ -3,7 +3,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -46,7 +46,7 @@ then
     exit 1
 fi
 
-# directories containing TOPP/UTILS binaries
+# directories containing TOPP binaries
 BIN_DIR=$1
 
 # tmp filesV

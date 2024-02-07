@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -42,8 +16,8 @@
 namespace OpenMS
 {
   /**
-  @brief The SpectrumAddition is used to add up individual spectra 
-  
+  @brief The SpectrumAddition is used to add up individual spectra
+
   It uses the given sampling rate to resample the spectra in m/z domain and
   then add them up. This may lead to a certain inaccuracy, especially if a
   inappropriate resampling rate is chosen.
@@ -55,15 +29,28 @@ namespace OpenMS
 public:
 
     /// adds up a list of Spectra by resampling them and then addition of intensities
-    static OpenSwath::SpectrumPtr addUpSpectra(const std::vector<OpenSwath::SpectrumPtr>& all_spectra,
+    static OpenSwath::SpectrumPtr addUpSpectra(const SpectrumSequence& all_spectra,
                                                double sampling_rate,
                                                bool filter_zeros);
 
+
+    /// adds up a list of ion mobility enhacned Spectra by resampling them and then addition of intensities. Currently this involves filtering to the desired IM extracion window and then performing addition across m/z and intensity.
+    static OpenSwath::SpectrumPtr addUpSpectra(const SpectrumSequence& all_spectra,
+                                               const RangeMobility& im_range,
+                                               double sampling_rate,
+                                               bool filter_zeros);
+
+    /// Concatenates a spectrum sequence into a single spectrum. Values are sorted by m/z
+    static OpenSwath::SpectrumPtr concatenateSpectra(const SpectrumSequence& all_spectra);
+
+
     /// adds up a list of Spectra by resampling them and then addition of intensities
-    static OpenMS::MSSpectrum addUpSpectra(const std::vector< OpenMS::MSSpectrum>& all_spectra,
+    static OpenMS::MSSpectrum addUpSpectra(const std::vector<MSSpectrum>& all_spectra,
                                            double sampling_rate,
                                            bool filter_zeros);
 
+    // sorts a spectrumPtr object by mz
+    static void sortSpectrumByMZ(OpenSwath::Spectrum&);
   };
 }
 

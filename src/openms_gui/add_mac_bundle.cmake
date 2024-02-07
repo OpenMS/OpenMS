@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -45,12 +45,16 @@ macro(add_mac_app_bundle _name)
 	set(INFO_PLIST_TEMPLATE "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${_name}-resources/${_name}.plist.in")
 	get_filename_component(ICON_FILE_NAME "${ICON_FILE_PATH}" NAME)
 
+	## TODO do we need a different RPATH for apps? Doesnt CMAKE do that automatically
 	# we also need the icns in the app
 	add_executable(
 		${_name}
 		MACOSX_BUNDLE
 		${GUI_DIR}/${_name}.cpp
 		${ICON_FILE_PATH})
+	
+	set_target_properties(${_name}
+												PROPERTIES INSTALL_RPATH "@executable_path/../Frameworks;@executable_path/../../../lib")
 
 	string(TIMESTAMP MY_YEAR "%Y")
 
@@ -69,73 +73,111 @@ macro(add_mac_app_bundle _name)
 
 	set_source_files_properties(${ICON_FILE_PATH} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
-	## If you are packaging: Fix up the bundle. -> Copies all non-system dylibs into the bundles
-	## Results in duplicate libraries in the different bundles.. but well.. that's how it is
+	## If you are packaging: Create ".app" bundles.
 	## If you are not packaging, libraries are linked via hardcoded paths specific to your machine.
-	if("${PACKAGE_TYPE}" STREQUAL "dmg")
-        set (APP_FOLDER "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_name}.app")
-
-        set (PLUGIN_VAR_NAME QT_PLUGINS_APPS_${_name})
-        ## Install qt5 plugins needed on mac and save them in a var for fixing their dependencies later
-        install_qt5_plugin("Qt5::QCocoaIntegrationPlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" AAApplications)
-        install_qt5_plugin("Qt5::QMacStylePlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" AAApplications)
-
-        set (QT_PLUGINS_TO_FIX ${${PLUGIN_VAR_NAME}})
-
-        ## Find Qt library folder
-        get_target_property(QT_LIBRARY_DIR Qt5::Core LOCATION)
-        get_filename_component(QT_LIBRARY_DIR ${QT_LIBRARY_DIR} PATH)
-        get_filename_component(QT_LIBRARY_DIR "${QT_LIBRARY_DIR}/.." ABSOLUTE)
-
-        ## Write a qt.conf file with a ref to the plugin dir in app bundles = PlugIns
-        file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-        "[Paths]\nPlugins = PlugIns\n")
-        install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-                DESTINATION "${APP_FOLDER}/Contents/Resources"
-                COMPONENT AAApplications)
-
-        ## Fix up the dependencies in the bundle and make them rel. to their location in the bundle
-        ## Give additional plugins to fix and extra dirs where dependencies should be searched
-		install(CODE "
-			set(BU_CHMOD_BUNDLE_ITEMS On)
-			include(BundleUtilities)
-			fixup_bundle(${APP_FOLDER} \"${QT_PLUGINS_TO_FIX}\" \"${QT_LIBRARY_DIR}\")
-			"
-			COMPONENT AApplications)
-
-		## Copy bundle to the target install destination
+	if("${PACKAGE_TYPE}" STREQUAL "dmg" OR "${PACKAGE_TYPE}" STREQUAL "pkg")
+		
+		# For dmg we need to fixup BEFORE installing (inside the build dir), because installing with CMake
+		# (to the temp folder used for packaging) will remove
+		# absolute load paths, required for finding dependencies by fixup_bundle. Maybe it can be done with the
+		# correct CMake RPATH settings (see root CMakeLists.txt) but it is very tricky.
+		
+		# TODO Use CMake's RUNTIME_DEPENDENCY_SET option in install commands (see PKG if-cases) to collect required
+		#  libs, install them into the bundle and only fix their loading
+		if("${PACKAGE_TYPE}" STREQUAL "dmg")
+			set (APP_FOLDER "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_name}.app")
+			## Install qt5 plugins needed on mac and save them in a var for fixing their dependencies later
+			set (PLUGIN_VAR_NAME QT_PLUGINS_APPS_${_name})
+			install_qt5_plugin_builddir("Qt5::QCocoaIntegrationPlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" Applications)
+			install_qt5_plugin_builddir("Qt5::QMacStylePlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" Applications)
+			
+			set (QT_PLUGINS_TO_FIX ${${PLUGIN_VAR_NAME}})
+			## Find Qt library folder
+			get_target_property(QT_LIBRARY_DIR Qt5::Core LOCATION)
+			get_filename_component(QT_LIBRARY_DIR ${QT_LIBRARY_DIR} PATH)
+			get_filename_component(QT_LIBRARY_DIR "${QT_LIBRARY_DIR}/.." ABSOLUTE)
+			## Fix up the dependencies in the bundle and make them rel. to their location in the bundle
+			## Give additional plugins to fix and extra dirs where dependencies should be searched
+			install(CODE "
+					set(BU_CHMOD_BUNDLE_ITEMS On)
+					include(BundleUtilities)
+					fixup_bundle(${APP_FOLDER} \"${QT_PLUGINS_TO_FIX}\" \"${QT_LIBRARY_DIR}\")
+					"
+					COMPONENT Applications)
+		endif()
+		
+		
+		## Copy bundle to the target install destination. Not to bin folder but root of package/dmg.
 		install(TARGETS ${_name} BUNDLE
-			DESTINATION .
-			COMPONENT Applications)
+						DESTINATION .
+						COMPONENT Applications)
+		
+		if("${PACKAGE_TYPE}" STREQUAL "pkg")
+			## Write a qt.conf file with a ref to the plugin dir outside of the bundle (to share)
+			file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/macappqt.conf"
+					 "[Paths]\nPlugins = ../../${INSTALL_PLUGIN_DIR}\n")
+			install(FILES "${CMAKE_CURRENT_BINARY_DIR}/macappqt.conf"
+							DESTINATION "${_name}.app/Contents/Resources/"
+							RENAME "qt.conf"
+							COMPONENT Applications)
+      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::QCocoaIntegrationPlugin"
+              DESTINATION "${INSTALL_PLUGIN_DIR}/platforms"
+              RUNTIME_DEPENDENCY_SET OPENMS_DEPS
+              COMPONENT Dependencies)
+			install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::QMacStylePlugin"
+							DESTINATION "${INSTALL_PLUGIN_DIR}/styles"
+							RUNTIME_DEPENDENCY_SET OPENMS_DEPS
+							COMPONENT Dependencies)
+			# Instead of softlinking, it is recommended by Apple to use RPATHs
+      #install(CODE "execute_process(COMMAND ln -fs ../../${INSTALL_LIB_DIR} \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/Frameworks)"
+			#				COMPONENT Applications)
+      #install(CODE "execute_process(COMMAND ln -fs ../../${INSTALL_PLUGIN_DIR} \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/PlugIns)"
+		  # 			COMPONENT Applications)
+			install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/MacOS/ -e @rpath/ -n -c)"
+							COMPONENT Applications)
+    else() # dmg
+    		## Write a qt.conf file with a ref to the plugin dir in app bundles = PlugIns
+				file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/macappqt.conf"
+						 "[Paths]\nPlugins = PlugIns\n")
+				install(FILES "${CMAKE_CURRENT_BINARY_DIR}/macappqt.conf"
+								DESTINATION "${_name}.app/Contents/Resources/"
+								RENAME "qt.conf"
+								COMPONENT Applications)
+		endif()
+
 		
 		## Notarization is only possible with Xcode/Appleclang 10, otherwise we just skip
-		if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10)
+		if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10 AND ("${PACKAGE_TYPE}" STREQUAL "dmg" OR "${PACKAGE_TYPE}" STREQUAL "pkg"))
 			## We also need an identity to sign with
 			if(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
-			## TODO try to find codesign to make sure the right exec is used (currently needs to be in path)
-			## TODO allow choosing keychain
-			## Note: Signing identity has to be unique, and present in any of the keychains in search list
-			## which needs to be unlocked. Play around with keychain argument otherwise.
-                   install(CODE "
-execute_process(COMMAND codesign --deep --force --options runtime --sign ${CPACK_BUNDLE_APPLE_CERT_APP} -i de.openms.${_name} \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_out ERROR_VARIABLE sign_out)
-message('\${sign_out}')" COMPONENT BApplications)
+				## TODO try to find codesign to make sure the right exec is used (currently needs to be in path)
+				## TODO allow choosing keychain
+				## Note: Signing identity has to be unique, and present in any of the keychains in search list
+				## which needs to be unlocked. Play around with keychain argument otherwise.
+				 install(CODE "
+execute_process(COMMAND codesign --deep --force --options runtime --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" -i de.openms.${_name} \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_out ERROR_VARIABLE sign_out)
+message('\${sign_out}')" COMPONENT Applications)
 
-                   install(CODE "
+				 install(CODE "
 execute_process(COMMAND codesign -dv \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_check_out ERROR_VARIABLE sign_check_out)
-message('\${sign_check_out}')" COMPONENT BApplications)
+message('\${sign_check_out}')" COMPONENT Applications)
 
-                   install(CODE "
+				if("${PACKAGE_TYPE}" STREQUAL "dmg")
+				 install(CODE "
 execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize_app.sh \${CMAKE_INSTALL_PREFIX}/${_name}.app de.openms.${_name} ${SIGNING_EMAIL} CODESIGNPW ${OPENMS_HOST_BINARY_DIRECTORY} OUTPUT_VARIABLE notarize_out ERROR_VARIABLE notarize_out)
-message('\${notarize_out}')" COMPONENT BApplications)
+message('\${notarize_out}')" COMPONENT Applications)
 
-                   install(CODE "
+				 install(CODE "
 execute_process(COMMAND spctl -a -v \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE verify_out ERROR_VARIABLE verify_out)
-message('\${verify_out}')" COMPONENT BApplications)
-                   
+message('\${verify_out}')" COMPONENT Applications)
+   			endif()
 			endif(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
 		endif()
 	else()
 	  ## Just install to the usual bin dir without fixing it up
-	  install_tool(${_name})
+		install(TARGETS ${_name} RUNTIME_DEPENDENCY_SET ${_name}_DEPS
+						RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT Applications
+						BUNDLE DESTINATION ${INSTALL_BIN_DIR} COMPONENT Applications
+						)
 	endif()
 endmacro()

@@ -17,6 +17,26 @@
         inty_wrap.set_data(inty)
 
         return (np.asarray(rt_wrap), np.asarray(mz_wrap), np.asarray(inty_wrap))
+    
+    def get2DPeakDataLongIon(self, min_rt, max_rt, min_mz, max_mz):
+        """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty, np.array[float] ion_mobility] get2DPeakDataLongIon(float min_rt, float max_rt, float min_mz, float max_mz)"""
+        cdef _MSExperiment * exp_ = self.inst.get()
+        cdef libcpp_vector[float] rt
+        cdef libcpp_vector[float] mz
+        cdef libcpp_vector[float] inty
+        cdef libcpp_vector[float] ion_mobility
+        exp_.get2DPeakDataIon(min_rt, max_rt, min_mz, max_mz, rt, mz, inty, ion_mobility)
+       
+        cdef ArrayWrapperFloat rt_wrap = ArrayWrapperFloat()
+        cdef ArrayWrapperFloat mz_wrap = ArrayWrapperFloat()
+        cdef ArrayWrapperFloat inty_wrap = ArrayWrapperFloat()
+        cdef ArrayWrapperFloat ion_mobility_wrap = ArrayWrapperFloat()
+        rt_wrap.set_data(rt)
+        mz_wrap.set_data(mz)
+        inty_wrap.set_data(inty)
+        ion_mobility_wrap.set_data(ion_mobility)
+
+        return (np.asarray(rt_wrap), np.asarray(mz_wrap), np.asarray(inty_wrap), np.asarray(ion_mobility_wrap))
 
     def getMSLevels(self):
         """Cython signature: list[int] getMSLevels()"""
