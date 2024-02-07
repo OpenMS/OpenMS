@@ -340,7 +340,7 @@ jobs:
    # Upload the changelog to the same artifact that we will add the installers to.
     - name: Upload changelog as artifact
       if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu')
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: changelog.txt
         path: |
@@ -509,7 +509,7 @@ jobs:
           name: installer-Linux
 
       - name: Download changelog as artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: changelog.txt
       
