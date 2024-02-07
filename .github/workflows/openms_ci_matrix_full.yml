@@ -254,7 +254,7 @@ jobs:
           # For reasons unclear to me, the image has issues with an excess 2to3 executable when installing new python versions if it's there we remove it.
           if [[-f '/usr/local/bin/2to3' ]]; then
             rm '/usr/local/bin/2to3'
-          endif
+          fi
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             brew install python@3.12 --force --overwrite
