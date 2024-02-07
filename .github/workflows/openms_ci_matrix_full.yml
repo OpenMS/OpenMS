@@ -150,6 +150,9 @@ jobs:
     - name: Setup build tools (and system contrib on Linux)
       id: tools-prefix
       shell: bash
+      env: 
+        # We need to add this, otherwise brew "helpfully" updates all of the GitHub preinstalled packages, which can cause issues
+        HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
       run: |
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
           sudo add-apt-repository universe
@@ -189,7 +192,7 @@ jobs:
           brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            brew install python@3.12 --force --overwrite
+            brew install python3 --force --overwrite
             brew install --quiet doxygen ghostscript graphviz
           fi
         fi

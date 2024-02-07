@@ -1,10 +1,12 @@
 /**
 
-  @page coding_conventions Coding Conventions
+  @page developer_coding_conventions Coding Conventions
 
   Use the following code conventions when contributing to %OpenMS.
 
-  %OpenMS uses coding conventions that are automatically checked using <code>cpplint</code> (<code>/src/tests/coding/cpplint.py</code>). You can find a configuration file for the <code>CLion IDE</code> here. You can import it by selecting <B>Preferences</B> > <B>Code Style</B> > <B>Manage</B>.
+  %OpenMS uses coding conventions that are automatically checked using <code>cpplint</code> (<code>/src/tests/coding/cpplint.py</code>), when `ENABLE_STYLE_TESTING` flag is 'ON' during CMake.
+  
+  When developing in an IDE which support [Clang format](https://clang.llvm.org/docs/ClangFormat.html) you can use the our style preset from the source tree `OpenMS/.clang-format`. For Clion, you can import it by selecting **Preferences** > **Code Style** > **Manage**.  [VS2017 and later also support Clang format](https://devblogs.microsoft.com/cppblog/clangformat-support-in-visual-studio-2017-15-7-preview-1/) natively.
 
   @tableofcontents
 
@@ -53,8 +55,8 @@
 
   @code{.cpp}
   if (isValid(a))
-    error = 0;
-    return 0;
+    has_error = false;
+    return 0;     // bug: will always return
   @endcode
 
   Thus, use braces around a block even for a single line. 
@@ -501,11 +503,11 @@
 
   @subsection examples Examples
 
-  Instructive programming examples are provided in the <code>doc/code_examples</code> directory
+  Instructive programming examples are provided in the <code>doc/code_examples</code> directory. See @ref developer_tutorial.
 
   @section testing Testing
 
-  View the @subpage how_to_write_tests guidelines to learn how to write tests.
+  View the @subpage developer_how_to_write_tests guidelines to learn how to write tests.
 
   @section revision_control Revision control
   %OpenMS uses <a href="https://git-scm.com/">git</a> to manage different versions of the source files. For easier identification of the responsible person each %OpenMS file contains the <code>$Maintainer:$</code> string in the preamble.
