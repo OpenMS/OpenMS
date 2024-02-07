@@ -10,14 +10,34 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
       with:
+        ref: develop
         fetch-depth: 0
 
-    - name: merge_to_nightly
-      uses: robotology/gh-action-nightly-merge@v1.4.0
-      with:
-        stable_branch: 'develop'
-        development_branch: 'nightly'
-        allow_ff: true
-        ff_only: true
+    - name: Fetch all branches
+      run: git fetch --all
+      
+    - name: Determine if develop is ahead of nightly
+      id: compare_branches
+      run: |
+        if git rev-list --left-right --count develop...nightly | grep -q "0$"; then
+          if git rev-list --left-right --count develop...nightly | grep -q "^0"; then
+            echo "behind=true" >> $GITHUB_OUTPUT
+          else
+            echo "behind=false" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "There are changes to Nightly that are not in develop, we can't automatically update"
+          echo "To forcibly reset Nightly please have an admin run:"
+          echo "git checkout nightly"
+          echo "git reset develop --hard"
+          echo "git push -f"
+          exit 1
+
+    - name: Fast-forward nightly branch if behind develop
+      if: steps.compare_branches.outputs.behind == 'true'
+      run: |
+        git checkout nightly
+        git merge develop --ff-only
+        git push origin nightly
       env:
         GITHUB_TOKEN: ${{ secrets.OPENMS_GITHUB_APP_PRIVATE_KEY }}
