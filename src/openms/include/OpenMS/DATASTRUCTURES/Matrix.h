@@ -19,7 +19,7 @@
 namespace OpenMS
 {
     /**
-   * @brief A class representing a matrix using Eigen library.
+   * @brief A class representing a thin wrapper around an Eigen matrix.
    * 
    * The Matrix class provides functionality for creating, manipulating, and accessing matrices.
    * It is implemented using the Eigen library and supports various operations such as resizing, clearing,
