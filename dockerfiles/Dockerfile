@@ -40,7 +40,7 @@ RUN apt-get -y update \
     libxerces-c-dev \
     libbz2-dev \
     libomp-dev \
-    libhdf5-dev\
+    libhdf5-dev \
     libboost-date-time1.74-dev \
     libboost-iostreams1.74-dev \
     libboost-regex1.74-dev \
