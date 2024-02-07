@@ -911,8 +911,8 @@ jobs:
               -F force=true
           }
           DEOPENMS_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/de.openms.knime/git/ref/heads/develop |jq -r '.object.sha')
-          GKN_SHA=$(curl -s -X GET https://api.github.com/repos/genericworkflownodes/GenericKnimeNodes/git/ref/heads/develop |jq '.object.sha')
-          JSViewer_SHA=$(curl -s -X GET https://api.github.com/repos/genericworkflownodes/de.openms.knime.dynamicJSViewers/git/ref/heads/master |jq '.object.sha')
+          GKN_SHA=$(curl -s -X GET https://api.github.com/repos/genericworkflownodes/GenericKnimeNodes/git/ref/heads/develop |jq -r '.object.sha')
+          JSViewer_SHA=$(curl -s -X GET https://api.github.com/repos/genericworkflownodes/de.openms.knime.dynamicJSViewers/git/ref/heads/master |jq -r '.object.sha')
           CONTRIB_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/OpenMS/contents/contrib\?ref\=${{ github.sha }} | jq -r ".sha")
           THIRDPARTY_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/OpenMS/contents/THIRDPARTY\?ref\=${{ github.sha }} | jq -r ".sha")
           PYDOCS_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/OpenMS/contents/src/pyOpenMS/pyopenms-docs\?ref\=${{ github.sha }} | jq -r ".sha")
