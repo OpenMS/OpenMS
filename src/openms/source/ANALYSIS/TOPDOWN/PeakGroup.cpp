@@ -274,25 +274,29 @@ namespace OpenMS
           continue;
         }
 
-        Size bin = (Size)round(normalized_dist * (max_bin_number - 5));
-        if (bin == 0)
+        std::vector<double> div_factors{1.0, 2.0, 3.0}; // allow two skips for each bin
+        for (double d : div_factors)
         {
-          continue;
-        }
-        if (bin >= max_bin_number)
-        {
-          break;
-        }
-
-        per_bin_start_index[bin] = -1;
-        double current_error = std::abs((double)bin - normalized_dist * (max_bin_number - 5));
-        if (per_bin_edges[bin][i] != 0)
-        {
-          if (prev_error < current_error)
+          Size bin = (Size)round(normalized_dist / d * (max_bin_number - 5));
+          if (bin == 0)
+          {
             continue;
+          }
+          if (bin >= max_bin_number)
+          {
+            break;
+          }
+
+          per_bin_start_index[bin] = -1;
+          double current_error = std::abs((double)bin - normalized_dist * (max_bin_number - 5));
+          if (per_bin_edges[bin][i] != 0)
+          {
+            if (prev_error < current_error)
+              continue;
+          }
+          per_bin_edges[bin][i] = j;
+          prev_error = current_error;
         }
-        per_bin_edges[bin][i] = j;
-        prev_error = current_error;
       }
     }
 
