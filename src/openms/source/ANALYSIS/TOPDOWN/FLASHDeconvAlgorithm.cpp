@@ -994,7 +994,7 @@ namespace OpenMS
     }
 
     harmonic_bin_offset_matrix_.getEigenMatrix().resize(harmonic_charges_.size(), current_charge_range);
-    harmonic_bin_offset_matrix_.getEigenMatrix().setZero();
+    
     
     for (Size k = 0; k < harmonic_charges_.size(); k++)
     {
