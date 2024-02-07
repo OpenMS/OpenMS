@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-//! [Element]
+//! [doxygen_snippet_Element]
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/Element.h>
@@ -28,4 +28,4 @@ Int main()
   return 0;
 } //end of main
 
-//! [Element]
+//! [doxygen_snippet_Element]

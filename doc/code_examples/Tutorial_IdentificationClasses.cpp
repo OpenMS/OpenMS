@@ -6,7 +6,7 @@
 // $Authors: Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
-//! [Identification]
+//! [doxygen_snippet_Identification]
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -127,4 +127,4 @@ int main()
 }
 
 
-//! [Identification]
+//! [doxygen_snippet_Identification]

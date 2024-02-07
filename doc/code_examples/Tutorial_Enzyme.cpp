@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-//! [Enzyme]
+//! [doxygen_snippet_Enzyme]
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
@@ -52,4 +52,4 @@ int main()
   return 0;
 }
 
-//! [Enzyme]
+//! [doxygen_snippet_Enzyme]

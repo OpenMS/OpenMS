@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-//! [EmpiricalFormula]
+//! [doxygen_snippet_EmpiricalFormula]
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
@@ -38,4 +38,4 @@ Int main()
   return 0;
 } //end of main
 
-//! [EmpiricalFormula]
+//! [doxygen_snippet_EmpiricalFormula]

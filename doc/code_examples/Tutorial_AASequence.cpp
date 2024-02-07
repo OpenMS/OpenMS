@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-//! [AASequence]
+//! [doxygen_snippet_AASequence]
 
 // This script calculates the mass-to-charge ratio of a 2+ charged b-ion and full peptide from a hardcoded sequence.
 
@@ -53,4 +53,4 @@ int main()
   return 0;
 }
 
-//! [AASequence]
+//! [doxygen_snippet_AASequence]

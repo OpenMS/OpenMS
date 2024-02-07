@@ -79,7 +79,7 @@ If you are writing an %OpenMS tool, you can also use the ProgressLogger to indic
 <br>
 Logging the Tool Progress
 
-\snippet Tutorial_Logger.cpp Logger
+\snippet Tutorial_Logger.cpp doxygen_snippet_Logger
 
 Depending on how the user configures the ProgressLogger, this output is written to the command line or a log file.
 

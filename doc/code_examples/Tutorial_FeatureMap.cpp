@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-//! [FeatureMap]
+//! [doxygen_snippet_FeatureMap]
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <iostream>
@@ -39,4 +39,4 @@ int main()
   return 0;
 } //end of main
 
-//! [FeatureMap]
+//! [doxygen_snippet_FeatureMap]
