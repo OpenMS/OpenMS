@@ -33,7 +33,7 @@ public:
     ///@{
 
     /// Intensity type
-    typedef float IntensityType;
+    typedef double IntensityType;
     /// Coordinate type (of the position)
     typedef double CoordinateType;
     /// Position type

@@ -251,7 +251,7 @@ namespace OpenMS
         fputs(" ", fp);
         //intensity
         ss.str("");
-        ss << precisionWrapper(it->getIntensity());
+        ss << precisionWrapper((float)it->getIntensity());        
         fputs(ss.str().c_str(), fp);
         fputs("\n", fp);
       }
@@ -342,7 +342,7 @@ namespace OpenMS
             fputs(" ", fp);
             //intensity
             ss.str("");
-            ss << precisionWrapper(it->getIntensity());
+            ss << precisionWrapper((float)it->getIntensity());
             fputs(ss.str().c_str(), fp);
             fputs("\n", fp);
           }

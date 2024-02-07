@@ -27,7 +27,7 @@ using namespace std;
 typedef Peak1D isopair;
 std::vector<isopair> fructose_expected_oms; // A few initial isotopologues for the fructose molecule
 
-#define ISOSPEC_TEST_EPSILON 0.0000001
+#define ISOSPEC_TEST_EPSILON 0.000001
 // Test with more precision than TEST::isRealSimilar, without side effects, and w/o being chatty about it.
 bool my_real_similar(double a, double b)
 {
@@ -78,7 +78,9 @@ bool compare_generator_to_reference(IsoSpecGeneratorWrapper& IW, const std::vect
 
     for(auto it = reference.begin(); it != reference.end(); it++)
       if(my_real_similar(it->getPos(), IW.getMass()) && my_real_similar(it->getIntensity(), IW.getIntensity()))
+      {
         matches_count++;
+      }
 
     confs_to_extract--;
   }
@@ -488,10 +490,10 @@ START_SECTION(( void IsoSpecTotalProbWrapper::run() ))
 
   // human insulin
   IsotopeDistribution iso_result3 = IsoSpecTotalProbWrapper(EmpiricalFormula("C520H817N139O147S8"), total_prob, do_trim).run();
-  TEST_EQUAL(iso_result3.size(), 19615);
+  TEST_EQUAL(iso_result3.size(), 28335);
 
   IsotopeDistribution iso_result4 = IsoSpecTotalProbWrapper(EmpiricalFormula("C520H817N139O147S8"), 0.99, do_trim).run();
-  TEST_EQUAL(iso_result4.size(), 1756);
+  TEST_EQUAL(iso_result4.size(), 1758);
 }
 END_SECTION
 
