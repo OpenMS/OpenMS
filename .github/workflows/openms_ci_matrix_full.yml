@@ -596,6 +596,7 @@ jobs:
           artifacts:
             ${{ github.workspace }}/*.exe, ${{ github.workspace }}/*.deb, ${{ github.workspace }}/*.pkg
             # TODO add src
+            # FIXME Export upload_url
 
   deploy-docs:
     if: github.ref == 'refs/heads/nightly' || contains(github.ref, 'release/') || inputs.package
@@ -864,7 +865,6 @@ jobs:
     permissions: write-all
     steps:
     
-# get token
       - name: get a token so that we can update the tags
         uses: actions/create-github-app-token@v1
         id: app-token
@@ -927,8 +927,6 @@ jobs:
           createGitTag genericworkflownodes/de.openms.knime.dynamicJSViewers $JSViewer_SHA || updateGitTag genericworkflownodes/de.openms.knime.dynamicJSViewers $GKN_SHA 
           createGitTag genericworkflownodes/GenericKnimeNodes $GKN_SHA  || updateGitTag genericworkflownodes/GenericKnimeNodes $GKN_SHA 
 
-
-      #- name: merge branch back into develop
       - name: Merge to Develop
         if: inputs.mark_as_latest
         uses: actions/github-script@v7
@@ -953,7 +951,20 @@ jobs:
               labels: ['feature', 'automated pr']
             });
 
-      #- name: create text for website and update it.
-      #  if: inputs.announce_release
-      #  run: #FIXME
+      - name: create text for website and update it.
+        if: inputs.announce_release
+        shell: bash
+        run:  |
+            curl -u $gitusr -X POST -d @data.json https://api.github.com/repos/OpenMS/OpenMS/releases > release_result.json
+            OPENMS_RELEASE_URL=$(cat release_result.json | jq -r ".upload_url")
+            git clone https://$gitusr@github.com/OpenMS/OpenMS-website
+            cp release${{ needs.build_and_test.outputs.version_number }}.md OpenMS-website/content/en/news/
+            cat RELEASE_TEXT_WEBSITE.md >> OpenMS-website/content/en/news/release${{ needs.build_and_test.outputs.version_number }}.md
+            pushd OpenMS-website
+              git checkout -b "releaseannouncement${{ needs.build_and_test.outputs.version_number }}"
+              git add content/en/news/release${{ needs.build_and_test.outputs.version_number }}.md
+            	git commit -am "Announce release ${{ needs.build_and_test.outputs.version_number }}"
+              git push --set-upstream origin releaseannouncement${{ needs.build_and_test.outputs.version_number }}
+              gh pr create --title "Release announcement for ${{ needs.build_and_test.outputs.version_number }}" --body "announces ${{ needs.build_and_test.outputs.version_number }}"
+            popd
 
