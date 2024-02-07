@@ -139,7 +139,6 @@ RUN make install/strip
 
 ### OpenMS library ###
 FROM ubuntu:22.04 AS library
-ARG SOURCE_DIR
 ARG INSTALL_DIR
 ARG CONTRIB_BUILD_DIR
 
@@ -164,7 +163,7 @@ RUN apt-get update \
 COPY --from=build ${CONTRIB_BUILD_DIR}/bin ${CONTRIB_BUILD_DIR}/bin
 COPY --from=build ${INSTALL_DIR}/lib ${INSTALL_DIR}/lib
 COPY --from=build ${INSTALL_DIR}/include ${INSTALL_DIR}/include
-COPY --from=build ${SOURCE_DIR}/share ${INSTALL_DIR}/share
+COPY --from=build ${INSTALL_DIR}/share ${INSTALL_DIR}/share
 
 LABEL software="OpenMS (library)"
 
