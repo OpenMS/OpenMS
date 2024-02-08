@@ -925,8 +925,9 @@ jobs:
           createGitTag OpenMS/OpenMS-docs $DOCS_SHA  || updateGitTag OpenMS/OpenMS-docs $DOCS_SHA 
           createGitTag OpenMS/de.openms.knime $DEOPENMS_SHA  || updateGitTag OpenMS/de.openms.knime $DEOPENMS_SHA 
           
-          createGitTag genericworkflownodes/de.openms.knime.dynamicJSViewers $JSViewer_SHA || updateGitTag genericworkflownodes/de.openms.knime.dynamicJSViewers $GKN_SHA 
-          createGitTag genericworkflownodes/GenericKnimeNodes $GKN_SHA  || updateGitTag genericworkflownodes/GenericKnimeNodes $GKN_SHA 
+          #FIXME reenable these after we get the correct access permissions
+          #createGitTag genericworkflownodes/de.openms.knime.dynamicJSViewers $JSViewer_SHA || updateGitTag genericworkflownodes/de.openms.knime.dynamicJSViewers $GKN_SHA 
+          #createGitTag genericworkflownodes/GenericKnimeNodes $GKN_SHA  || updateGitTag genericworkflownodes/GenericKnimeNodes $GKN_SHA 
 
       - name: Merge to Develop
         if: inputs.mark_as_latest
