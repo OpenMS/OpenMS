@@ -199,16 +199,16 @@ jobs:
 
 
 
-    - if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
-      name: Cache contrib (Windows and macOS)
+    - if: startsWith(matrix.os, 'windows')
+      name: Cache contrib (Windows)
       id: cache-contrib
       uses: actions/cache@v4
       with:
         path: ${{ github.workspace }}/OpenMS/contrib
         key: ${{ runner.os }}-contrib3
 
-    - if: (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && steps.cache-contrib.outputs.cache-hit != 'true'
-      name: Download contrib build from archive (Windows and macOS)
+    - if: startsWith(matrix.os, 'windows') && steps.cache-contrib.outputs.cache-hit != 'true'
+      name: Download contrib build from archive (Windows)
       shell: bash
       run: |
           cd OpenMS/contrib
