@@ -147,7 +147,7 @@ jobs:
         aqtversion: '==3.1.*'
         archives: 'qtsvg qtimageformats qtbase'
 
-    - name: Setup build tools (and system contrib on Linux)
+    - name: Setup build tools (and system contrib on Linux and Mac)
       id: tools-prefix
       shell: bash
       env: 
@@ -190,7 +190,7 @@ jobs:
           # Qt5_DIR set by Install Qt5 step
           echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
           brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
-
+          brew install libsvm xerces-c boost glpk eigen sqlite coinutils cbc cgl clp
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             brew install python3 --force --overwrite
             brew install --quiet doxygen ghostscript graphviz
