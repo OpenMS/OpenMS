@@ -146,8 +146,8 @@ jobs:
         # NOTE: x64 is hardcoded. No support for 32bit
         arch: x64
 
-    - if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
-      name: Install Qt (Windows and macOS)
+    - if: startsWith(matrix.os, 'windows')
+      name: Install Qt (Windows)
       uses: jurplel/install-qt-action@v3
       with:
         version: '5.15.2' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715, > 5.15.2 is not available on official archives (https://github.com/miurahr/aqtinstall/issues/636)
@@ -198,7 +198,7 @@ jobs:
           # Qt5_DIR set by Install Qt5 step
           echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
           brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
-          brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp
+          brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@5
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             brew install python3 --force --overwrite
             brew install --quiet doxygen ghostscript graphviz
