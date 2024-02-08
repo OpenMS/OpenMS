@@ -198,7 +198,6 @@ jobs:
           
           brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
           brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@5
-          brew link qt@5
           echo "cmake_prefix=$(brew --prefix qt@5)/lib/cmake;$(brew --prefix qt@5)" >> $GITHUB_OUTPUT
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             brew install python3 --force --overwrite
