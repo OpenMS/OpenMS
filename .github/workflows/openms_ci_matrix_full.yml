@@ -52,7 +52,7 @@ jobs:
             # TODO currently unused but XCode/appleclang is the default
             compiler: xcode
             # TODO implement support for other versions
-            compiler_ver: 14.2
+            compiler_ver: 15.0.1
 
           # Make sure the compilers are available in that version on the GH runners
           # We are not installing anything.
