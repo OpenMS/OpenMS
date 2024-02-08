@@ -76,8 +76,7 @@ jobs:
       - name: Test docker build in runtime base
         uses: docker/build-push-action@v5
         with:
-          # we want to push it, otherwise I don't think the cache will be populated
-          push: true
+          load: true # so other build steps can make use of cache layers from this build
           file: dockerfiles/Dockerfile
           target: test
           build-args: |
@@ -85,8 +84,6 @@ jobs:
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
             OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
             CONTRIB_IMAGE_TAG=${{ steps.contrib_tag.outputs.contrib_tag }}
-          tags: |
-            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-test:${{ steps.tag_name.outputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Build and push library image
