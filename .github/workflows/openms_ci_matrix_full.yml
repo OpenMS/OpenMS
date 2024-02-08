@@ -215,6 +215,7 @@ jobs:
       name: Setup build tools (and system contrib on Linux)
       shell: bash
       env: 
+        # We need to add this, otherwise brew "helpfully" updates all of the GitHub preinstalled packages, which can cause issues
         HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
       run: |
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then

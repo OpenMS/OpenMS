@@ -1,5 +1,5 @@
 /**
-  @page how_to_write_tests How To Write Tests
+  @page developer_how_to_write_tests How To Write Tests
 
   Testing is crucial to verify the correctness of the library - especially when using C++. But it is complicated. One of the biggest problems when building large class frameworks is portability. There is not a single C++ compiler that accepts the same code as any other compiler. Since one of the main concerns of OpenMS is portability, we have to ensure that every single line of code compiles on all platforms. Due to the long compilation times and the (hopefully in future) large number of different platforms, tests to verify the correct behaviour of all classes have to be carried out automatically. This implies a well defined interface for all tests, which is the reason for all these strange macros. This fixed format also enforces the writing of complete class tests.
 
