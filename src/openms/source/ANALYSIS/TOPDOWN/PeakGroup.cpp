@@ -189,7 +189,7 @@ namespace OpenMS
     const Size max_noisy_peak_number = 40; // too many noise peaks will slow down the process
     const Size max_bin_number = 29;        // 24 bin + 5 extra bin
     float threshold = -1;
-    std::vector<std::pair<FLASHDeconvHelperStructs::LogMzPeak, bool>> all_peaks; // peak + is signal?
+    std::vector<std::pair<Peak1D, bool>> all_peaks; // peak + is signal?
     all_peaks.reserve(max_noisy_peak_number + logMzpeaks_.size());
 
     int noise_peak_count = 0;
@@ -228,7 +228,7 @@ namespace OpenMS
         continue;
       if (noisy_peak.abs_charge < min_abs_charge_ || noisy_peak.abs_charge > max_abs_charge_)
         continue;
-      all_peaks.emplace_back(noisy_peak, false);
+      all_peaks.emplace_back(Peak1D(noisy_peak.getUnchargedMass(), noisy_peak.intensity), false);
     }
 
     if (all_peaks.empty())
@@ -240,11 +240,11 @@ namespace OpenMS
         continue;
       if (peak.abs_charge < min_abs_charge_ || peak.abs_charge > max_abs_charge_)
         continue;
-      all_peaks.emplace_back(peak, true);
+      all_peaks.emplace_back(Peak1D(peak.getUnchargedMass(), peak.intensity), true);
     }
 
     std::sort(all_peaks.begin(), all_peaks.end(),
-              [](std::pair<LogMzPeak, bool>& left, std::pair<LogMzPeak, bool>& right) { return left.first.getUnchargedMass() < right.first.getUnchargedMass(); }); //
+              [](std::pair<Peak1D, bool>& left, std::pair<Peak1D, bool>& right) { return left.first.getMZ() < right.first.getMZ(); }); //
 
     float charge_noise_pwr = 0;
 
@@ -261,12 +261,12 @@ namespace OpenMS
     for (Size i = 0; i < all_peaks.size(); i++)
     {
       const auto& [p1, p1_signal] = all_peaks[i];
-      const auto p1_mass = p1.getUnchargedMass();
+      const auto p1_mass = p1.getMZ();
       std::vector<double> per_bin_error(max_bin_number, -1.0);
       for (Size j = i + 1; j < all_peaks.size(); j++)
       {
         const auto& [p2, p2_signal] = all_peaks[j];
-        const double normalized_dist = (p2.getUnchargedMass() - p1_mass) / iso_da_distance_;
+        const double normalized_dist = (p2.getMZ() - p1_mass) / iso_da_distance_;
 
         if (p1_signal && p2_signal && normalized_dist >= .75) // if both are signals, and they are different from each other by more than .75 isotope distance, do not connect. Otherwise connect as
                                                               // they may a part of consecutive other noisy peaks.
@@ -312,18 +312,19 @@ namespace OpenMS
       {
         if (edges[i] == 0)
         {
-          continue;
+          break;
         }
         const auto& [p1, p1_signal] = all_peaks[i];
         float intensity = // p1_signal ? 0 :
-          p1.intensity;
+          p1.getIntensity();
         float sum_intensity = intensity;
+
         Size j = edges[i];
 
         while (j < edges.size())
         {
           const auto& [p2, p2_signal] = all_peaks[j];
-          intensity = p2.intensity;
+          intensity = p2.getIntensity();
           sum_intensity += intensity;
 
           j = edges[j];
@@ -355,17 +356,17 @@ namespace OpenMS
       }
 
       const auto& edges = per_bin_edges[bin];
-      const double ori_mass = all_peaks[index].first.getUnchargedMass();
+      const double ori_mass = all_peaks[index].first.getMZ();
       const int ori_index = index;
       float sum_intensity = .0;
 
       while (index < all_peaks.size())
       {
         const auto& [p, p_signal] = all_peaks[index];
-        if (p.getUnchargedMass() - ori_mass > tol / 2.0 * p.getUnchargedMass())
+        if (p.getMZ() - ori_mass > tol / 2.0 * p.getMZ())
           break;
         float intensity = // p_signal ? 0 :
-          p.intensity;
+          p.getIntensity();
 
         Size j = edges[index];
         if (j == 0)
@@ -387,7 +388,7 @@ namespace OpenMS
         {
           const auto& [p2, p2_signal] = all_peaks[j];
           // if (!p2_signal)
-          intensity = p2.intensity;
+          intensity = p2.getIntensity();
 
           if (unused[j])
           {
@@ -411,10 +412,10 @@ namespace OpenMS
       while (index >= 0)
       {
         const auto& [p, p_signal] = all_peaks[index];
-        if (ori_mass - p.getUnchargedMass() > tol / 2.0 * ori_mass)
+        if (ori_mass - p.getMZ() > tol / 2.0 * ori_mass)
           break;
         float intensity = // p_signal ? 0 :
-          p.intensity;
+          p.getIntensity();
 
         Size j = edges[index];
         if (j == 0)
@@ -436,7 +437,7 @@ namespace OpenMS
         {
           const auto& [p2, p2_signal] = all_peaks[j];
           // if (!p2_signal)
-          intensity = p2.intensity;
+          intensity = p2.getIntensity();
 
           if (unused[j])
           {
@@ -467,13 +468,13 @@ namespace OpenMS
       const auto& [p, p_signal] = all_peaks[index];
       if (!p_signal)
       {
-        if (p.getUnchargedMass() - prev_mass > p.getUnchargedMass() * tol)
+        if (p.getMZ() - prev_mass > p.getMZ() * tol)
         {
           charge_noise_pwr += tmp_int_sum * tmp_int_sum;
-          prev_mass = p.getUnchargedMass();
+          prev_mass = p.getMZ();
           tmp_int_sum = 0;
         }
-        tmp_int_sum += p.intensity;
+        tmp_int_sum += p.getIntensity();
       }
       index = unused.find_next(index);
     }
@@ -523,16 +524,13 @@ namespace OpenMS
     }
     else
     {
-      for (int z = min_abs_charge_; z <= max_abs_charge_; z++)
+      for (const auto& p : noisy_peaks)
       {
-        for (const auto& p : noisy_peaks)
-        {
-          float pwr = p.intensity * p.intensity;
-          per_charge_noise_pwr_[0] += pwr;
-          if (p.abs_charge != z)
-            continue;
-          per_charge_noise_pwr_[z] += pwr;
-        }
+        float pwr = p.intensity * p.intensity;
+        per_charge_noise_pwr_[0] += pwr;
+        if (p.abs_charge < min_abs_charge_ || p.abs_charge > max_abs_charge_)
+          continue;
+        per_charge_noise_pwr_[p.abs_charge] += pwr;
       }
     }
   }

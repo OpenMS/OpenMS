@@ -49,7 +49,7 @@ namespace OpenMS
                        "Cosine similarity thresholds between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_cos 0.3 0.6 to specify 0.3 and 0.6 for MS1 and MS2, respectively)");
     defaults_.addTag("min_cos", "advanced");
     defaults_.setValue(
-      "min_snr", DoubleList {1.0, 0.5},
+      "min_snr", DoubleList {1.0, 1.0},
       "Minimum charge SNR (the SNR of the isotope pattern of a specific charge) thresholds for MS1, 2, ... (e.g., -min_snr 1.0 0.6 to specify 1.0 and 0.6 for MS1 and MS2, respectively)");
     defaults_.addTag("min_snr", "advanced");
     defaults_.setValue("max_qvalue", DoubleList {1.0, 1.0},
@@ -1057,7 +1057,7 @@ namespace OpenMS
         continue;
       }
 
-      int num_iteration = is_isotope_decoy ? 1 : 30;
+      int num_iteration = is_isotope_decoy ? 1 : 10;
       for (int k = 0; k < num_iteration; k++)
       {
         auto noisy_peaks = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_);

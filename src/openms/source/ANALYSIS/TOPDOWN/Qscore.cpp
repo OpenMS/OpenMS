@@ -27,7 +27,7 @@ namespace OpenMS
 
   //====================================== Normal
   std::vector<double> Qscore::weight_centroid_ {-38.4865, -2.4179, -0.0134, -0.6423, 35.6535}; // apr23 all
-  std::vector<double> Qscore::weight_profile_ {-8.7134, 0.4861, -0.0234, 0.2416, 7.8392}; // yeast
+  std::vector<double> Qscore::weight_profile_ {-10.2716, 1.0179, 0.0646, 0.4721, 9.2305}; // yeast
 
   double Qscore::getQscore(const PeakGroup* pg, const MSSpectrum& spectrum)
   {
