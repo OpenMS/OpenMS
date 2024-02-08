@@ -110,7 +110,7 @@ jobs:
           echo "contrib_os_ver=10.15.5/" >> $GITHUB_OUTPUT
           echo "contrib_compiler=appleclang-11.0.0/" >> $GITHUB_OUTPUT
           echo "xvfb=" >> $GITHUB_OUTPUT
-          echo "static_boost=ON" >> $GITHUB_OUTPUT
+          echo "static_boost=OFF" >> $GITHUB_OUTPUT
           if [ "$DO_PACKAGE" = true ]; then
             echo "pkg_type=pkg" >> $GITHUB_OUTPUT
             echo "enable_docs=ON" >> $GITHUB_OUTPUT
@@ -216,31 +216,6 @@ jobs:
           7z x -so contribbld.tar.gz | 7z x -si -ttar
           rm contribbld.tar.gz
           ls -la
-
-    - if: startsWith(matrix.os, 'macos')
-      name: Fix contrib install names (macOS)
-      shell: bash
-      run: |
-          shopt -s nullglob # ensure that for loop is only executed if there is at least one .dylib file
-          for lib in $GITHUB_WORKSPACE/OpenMS/contrib/lib/*.dylib
-          do
-            install_name_tool -id $lib $lib
-          done
-
-          # create symlinks like brew https://github.com/Homebrew/homebrew-core/blob/master/Formula/qt.rb#L61
-          # Warning: Qt5_DIR will change meaning in the new jurplel/install-qt-action. Use QT_ROOT_DIR instead
-          # https://github.com/jurplel/install-qt-action/blob/master/README_upgrade_guide.md
-          pushd $Qt5_DIR/include
-            for f in $Qt5_DIR/lib/*.framework/Headers
-            do
-              lnknm=$(basename "${f%/*}" ".framework")
-              ln -s $f $lnknm
-            done
-            for f in $Qt5_DIR/lib/*.framework/Versions/5/Qt*
-            do
-              install_name_tool -id $f $f
-            done
-          popd
 
     - name: Setup ccache cache
       uses: actions/cache@v4
