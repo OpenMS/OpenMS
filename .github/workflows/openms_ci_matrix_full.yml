@@ -110,7 +110,7 @@ jobs:
           echo "contrib_os_ver=10.15.5/" >> $GITHUB_OUTPUT
           echo "contrib_compiler=appleclang-11.0.0/" >> $GITHUB_OUTPUT
           echo "xvfb=" >> $GITHUB_OUTPUT
-          echo "static_boost=ON" >> $GITHUB_OUTPUT
+          echo "static_boost=OFF" >> $GITHUB_OUTPUT
           if [ "$DO_PACKAGE" = true ]; then
             echo "pkg_type=pkg" >> $GITHUB_OUTPUT
             echo "enable_docs=ON" >> $GITHUB_OUTPUT
@@ -147,7 +147,7 @@ jobs:
         aqtversion: '==3.1.*'
         archives: 'qtsvg qtimageformats qtbase'
 
-    - name: Setup build tools (and system contrib on Linux)
+    - name: Setup build tools (and system contrib on Linux and Mac)
       id: tools-prefix
       shell: bash
       env: 
@@ -190,7 +190,7 @@ jobs:
           # Qt5_DIR set by Install Qt5 step
           echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
           brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
-
+          brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             brew install python3 --force --overwrite
             brew install --quiet doxygen ghostscript graphviz
@@ -199,16 +199,16 @@ jobs:
 
 
 
-    - if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
-      name: Cache contrib (Windows and macOS)
+    - if: startsWith(matrix.os, 'windows')
+      name: Cache contrib (Windows)
       id: cache-contrib
       uses: actions/cache@v4
       with:
         path: ${{ github.workspace }}/OpenMS/contrib
         key: ${{ runner.os }}-contrib3
 
-    - if: (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && steps.cache-contrib.outputs.cache-hit != 'true'
-      name: Download contrib build from archive (Windows and macOS)
+    - if: startsWith(matrix.os, 'windows') && steps.cache-contrib.outputs.cache-hit != 'true'
+      name: Download contrib build from archive (Windows)
       shell: bash
       run: |
           cd OpenMS/contrib
@@ -216,31 +216,6 @@ jobs:
           7z x -so contribbld.tar.gz | 7z x -si -ttar
           rm contribbld.tar.gz
           ls -la
-
-    - if: startsWith(matrix.os, 'macos')
-      name: Fix contrib install names (macOS)
-      shell: bash
-      run: |
-          shopt -s nullglob # ensure that for loop is only executed if there is at least one .dylib file
-          for lib in $GITHUB_WORKSPACE/OpenMS/contrib/lib/*.dylib
-          do
-            install_name_tool -id $lib $lib
-          done
-
-          # create symlinks like brew https://github.com/Homebrew/homebrew-core/blob/master/Formula/qt.rb#L61
-          # Warning: Qt5_DIR will change meaning in the new jurplel/install-qt-action. Use QT_ROOT_DIR instead
-          # https://github.com/jurplel/install-qt-action/blob/master/README_upgrade_guide.md
-          pushd $Qt5_DIR/include
-            for f in $Qt5_DIR/lib/*.framework/Headers
-            do
-              lnknm=$(basename "${f%/*}" ".framework")
-              ln -s $f $lnknm
-            done
-            for f in $Qt5_DIR/lib/*.framework/Versions/5/Qt*
-            do
-              install_name_tool -id $f $f
-            done
-          popd
 
     - name: Setup ccache cache
       uses: actions/cache@v4
