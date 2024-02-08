@@ -186,8 +186,8 @@ namespace OpenMS
   {
     if (noisy_peaks.empty())
       return 0;
-    const Size max_noisy_peak_number = 50; // too many noise peaks will slow down the process
-    const Size max_bin_number = 29;          // 24 bin + 5 extra bin
+    const Size max_noisy_peak_number = 40; // too many noise peaks will slow down the process
+    const Size max_bin_number = 29;        // 24 bin + 5 extra bin
     float threshold = -1;
     std::vector<std::pair<FLASHDeconvHelperStructs::LogMzPeak, bool>> all_peaks; // peak + is signal?
     all_peaks.reserve(max_noisy_peak_number + logMzpeaks_.size());
@@ -256,9 +256,8 @@ namespace OpenMS
     {
       per_bin_edges[k] = std::vector<Size>(all_peaks.size(), 0);
     }
-
     // first collect all possible edges. An edge means mass difference between two peaks.
-    const std::vector<double> div_factors{1.0, 2.0, 3.0}; // allow two skips for each bin
+    const std::vector<double> div_factors {1.0, 2.0, 3.0}; // allow two skips for each bin
     for (Size i = 0; i < all_peaks.size(); i++)
     {
       const auto& [p1, p1_signal] = all_peaks[i];
@@ -321,28 +320,26 @@ namespace OpenMS
         float sum_intensity = intensity;
         Size j = edges[i];
 
-        int cntr = 0; // how many edges?
         while (j < edges.size())
         {
-          cntr++;
+          const auto& [p2, p2_signal] = all_peaks[j];
+          intensity = p2.intensity;
+          sum_intensity += intensity;
+
           j = edges[j];
           if (j == 0)
           {
             break;
           }
-          sum_intensity += intensity;
-          const auto& [p2, p2_signal] = all_peaks[j];
-          // if (!p2_signal)
-          intensity = p2.intensity;
         }
 
-        if (cntr >= 2 && max_sum_intensity < sum_intensity) // at least two edges should be there.
+        if (max_sum_intensity < sum_intensity) // at least two edges should be there.
         {
           max_sum_intensity = sum_intensity;
-          per_bin_start_index[k] = (int)i;
+          per_bin_start_index[k] = (int)i; //
         }
       }
-      max_intensity_sum_to_bin[max_sum_intensity] = k;
+      max_intensity_sum_to_bin[max_sum_intensity] = k; // how to deal with profile peaks?
     }
 
     auto unused = boost::dynamic_bitset<>(all_peaks.size());
@@ -352,79 +349,128 @@ namespace OpenMS
     {
       Size bin = it->second;
       int index = per_bin_start_index[bin];
-
       if (index < 0)
       {
         continue;
       }
 
       const auto& edges = per_bin_edges[bin];
-      const auto& [p, p_signal] = all_peaks[index];
-      float intensity = // p_signal ? 0 :
-        p.intensity;
-      float sum_intensity = .0, sum_squared_intensity = .0;
-      int skiped_peak_cntr = 0;
+      const double ori_mass = all_peaks[index].first.getUnchargedMass();
+      const int ori_index = index;
+      float sum_intensity = .0;
 
-      if (unused[index])
+      while (index < all_peaks.size())
       {
-        sum_intensity += intensity;
-        sum_squared_intensity += intensity * intensity;
-        unused[index] = false;
-      }
-      else
-      {
-        skiped_peak_cntr++;
-      }
+        const auto& [p, p_signal] = all_peaks[index];
+        if (p.getUnchargedMass() - ori_mass > tol / 2.0 * p.getUnchargedMass())
+          break;
+        float intensity = // p_signal ? 0 :
+          p.intensity;
 
-      Size j = edges[index];
-
-      while (j < edges.size())
-      {
-        j = edges[j];
+        Size j = edges[index];
         if (j == 0)
         {
           break;
         }
 
-        if (unused[j])
+        if (unused[index])
         {
           sum_intensity += intensity;
-          sum_squared_intensity += intensity * intensity;
-          unused[j] = false;
+          unused[index] = false;
         }
         else
         {
-          skiped_peak_cntr++;
+          break;
         }
 
-        const auto& [p2, p2_signal] = all_peaks[j];
-        // if (!p2_signal)
-        intensity = p2.intensity;
+        while (j < edges.size())
+        {
+          const auto& [p2, p2_signal] = all_peaks[j];
+          // if (!p2_signal)
+          intensity = p2.intensity;
+
+          if (unused[j])
+          {
+            sum_intensity += intensity;
+            unused[j] = false;
+          }
+          else
+          {
+            break;
+          }
+          j = edges[j];
+          if (j == 0)
+          {
+            break;
+          }
+        }
+        index++;
       }
 
-      if (skiped_peak_cntr < 2)
+      index = ori_index - 1;
+      while (index >= 0)
       {
-        charge_noise_pwr += sum_intensity * sum_intensity;
+        const auto& [p, p_signal] = all_peaks[index];
+        if (ori_mass - p.getUnchargedMass() > tol / 2.0 * ori_mass)
+          break;
+        float intensity = // p_signal ? 0 :
+          p.intensity;
+
+        Size j = edges[index];
+        if (j == 0)
+        {
+          break;
+        }
+
+        if (unused[index])
+        {
+          sum_intensity += intensity;
+          unused[index] = false;
+        }
+        else
+        {
+          break;
+        }
+
+        while (j < edges.size())
+        {
+          const auto& [p2, p2_signal] = all_peaks[j];
+          // if (!p2_signal)
+          intensity = p2.intensity;
+
+          if (unused[j])
+          {
+            sum_intensity += intensity;
+            unused[j] = false;
+          }
+          else
+          {
+            break;
+          }
+          j = edges[j];
+          if (j == 0)
+          {
+            break;
+          }
+        }
+        index--;
       }
-      else
-      {
-        charge_noise_pwr += sum_squared_intensity;
-      }
+      charge_noise_pwr += sum_intensity * sum_intensity;
     }
 
     // if still peaks are remaining, add their individual power.
     Size index = unused.find_first();
-    double prev_mz = .0;
+    double prev_mass = .0;
     float tmp_int_sum = 0;
     while (index != unused.npos)
     {
       const auto& [p, p_signal] = all_peaks[index];
       if (!p_signal)
       {
-        if (p.mz - prev_mz > p.mz * tol)
+        if (p.getUnchargedMass() - prev_mass > p.getUnchargedMass() * tol)
         {
           charge_noise_pwr += tmp_int_sum * tmp_int_sum;
-          prev_mz = p.mz;
+          prev_mass = p.getUnchargedMass();
           tmp_int_sum = 0;
         }
         tmp_int_sum += p.intensity;
@@ -465,7 +511,7 @@ namespace OpenMS
     }
 
     // for each charge calculate signal and noise power
-    per_charge_noise_pwr_ = std::vector<float>(1 + max_abs_charge_, .0);
+    per_charge_noise_pwr_ = std::vector<float>(1 + max_abs_charge_, .0f);
 
     if (is_last)
     {
@@ -1333,3 +1379,5 @@ namespace OpenMS
     return dl_matrices_[index];
   }
 } // namespace OpenMS
+
+

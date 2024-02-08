@@ -49,7 +49,7 @@ namespace OpenMS
                        "Cosine similarity thresholds between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_cos 0.3 0.6 to specify 0.3 and 0.6 for MS1 and MS2, respectively)");
     defaults_.addTag("min_cos", "advanced");
     defaults_.setValue(
-      "min_snr", DoubleList {1.0, 1.0},
+      "min_snr", DoubleList {1.0, 0.5},
       "Minimum charge SNR (the SNR of the isotope pattern of a specific charge) thresholds for MS1, 2, ... (e.g., -min_snr 1.0 0.6 to specify 1.0 and 0.6 for MS1 and MS2, respectively)");
     defaults_.addTag("min_snr", "advanced");
     defaults_.setValue("max_qvalue", DoubleList {1.0, 1.0},
@@ -66,7 +66,7 @@ namespace OpenMS
   // Calculate the nominal (integer) mass from double mass. Multiplying 0.999497 to the original mass and then rounding reduce the error between the original and nominal masses.
   int SpectralDeconvolution::getNominalMass(const double mass)
   {
-    return (int)(mass * 0.999497 + .5);
+    return (int)round(mass * 0.999497);
   }
 
   void SpectralDeconvolution::setTargetPrecursorCharge_()
@@ -339,7 +339,7 @@ namespace OpenMS
     {
       return 0;
     }
-    return (Size)((value - min_value) * bin_mul_factor + .5);
+    return (Size)round((value - min_value) * bin_mul_factor);
   }
 
   // From log mz to mz bins.
@@ -425,11 +425,11 @@ namespace OpenMS
         bool pass_first_check = false;
 
         // intensity ratio between consecutive charges should not exceed the factor.
-        const float highest_factor = 10.0;
+        const float highest_factor = 10.0f;
         const float factor = abs_charge <= low_charge_ ? highest_factor : (highest_factor / 2 + highest_factor / 2 * low_charge_ / (float)abs_charge);
         // intensity ratio between consecutive charges for possible harmonic should be within this factor
 
-        const float hfactor = factor / 2.0;
+        const float hfactor = factor / 2.0f;
         // intensity of previous charge
         // intensity ratio between current and previous charges
         float intensity_ratio = prev_intensity <= 0 ? (factor + 1) : (intensity / prev_intensity);
@@ -462,7 +462,7 @@ namespace OpenMS
             const int nib = (int)getBinNumber_(log_mz + d * iso_div_by_mz / abs_charge, mz_bin_min_value_, bin_mul_factor);
             const int nibr = abs_charge > 1 ? (int)getBinNumber_(log_mz + (d * iso_div_by_mz / (abs_charge - 1)), mz_bin_min_value_, bin_mul_factor) : 0;
             const int nibl = (int)getBinNumber_(log_mz + (d * iso_div_by_mz / (abs_charge + 1)), mz_bin_min_value_, bin_mul_factor);
-            if (abs(nib - nibr) < tol_div_factor || abs(nib - nibl) < tol_div_factor) // if different charges are not distinguishable, we ignore. Not informative and the source of the errors..
+            if (abs(nib - nibr) < tol_div_factor || abs(nib - nibl) < tol_div_factor) // if different charges are not distinguishable, we ignore. Not informative and the source of the errors.
               break;
 
             for (int t = -1; t < 2; t++)
@@ -495,7 +495,7 @@ namespace OpenMS
                 }
 
                 const int hdiff = (int)round((double)(next_iso_bin - mz_bin_index)) / hc * (hc / 2);
-                const int next_harmonic_iso_bin = mz_bin_index + hdiff; //(int)getBinNumber_(log_mz + hdiff, mz_bin_min_value_, bin_mul_factor);
+                const int next_harmonic_iso_bin = (int)mz_bin_index + hdiff; //(int)getBinNumber_(log_mz + hdiff, mz_bin_min_value_, bin_mul_factor);
                 // check if there are harmonic peaks between the current peak and the next isotope peak.
 
                 // no perfect filtration. Just obvious ones are filtered out by checking if a peak is in the harmonic position and the intensity ratio is within two folds from the current peak
@@ -1250,13 +1250,13 @@ namespace OpenMS
     return max_cos;
   }
 
-  float SpectralDeconvolution::getCosine(const std::vector<float>& a, int a_start, int a_end, const IsotopeDistribution& b, int offset, int min_iso_size, bool decoy)
+  float SpectralDeconvolution::getCosine(const std::vector<float>& a, int a_start, int a_end, const IsotopeDistribution& b, int offset, int min_iso_len, bool decoy)
   {
     float n = .0, a_norm = .0, b_norm = decoy ? .0 : 1.0f;
     a_start = std::max(0, a_start);
     a_end = std::min((int)a.size(), a_end);
 
-    if (a_end - a_start < min_iso_size)
+    if (a_end - a_start < min_iso_len)
     {
       return 0;
     }
@@ -1305,7 +1305,7 @@ namespace OpenMS
     }
 
     // two consecutive isotopes around the max intensity isotope
-    if (min_iso_size > 0)
+    if (min_iso_len > 0)
     {
       if (max_intensity_index == a_end - 1)
       {

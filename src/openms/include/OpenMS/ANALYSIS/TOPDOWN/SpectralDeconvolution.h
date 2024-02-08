@@ -91,10 +91,10 @@ namespace OpenMS
      * @param a_end non zero end index of a (exclusive)
      * @param b vector b
      * @param offset element index offset between a and b
-     * @param min_iso_size minimum isotope size. If isotope size is less than this, return 0
+     * @param min_iso_len minimum isotope size. If isotope size is less than this, return 0
      * @param decoy if set, distorted isotope pattern is used
      */
-    static float getCosine(const std::vector<float>& a, int a_start, int a_end, const IsotopeDistribution& b, int offset, int min_iso_size, bool decoy = false);
+    static float getCosine(const std::vector<float>& a, int a_start, int a_end, const IsotopeDistribution& b, int offset, int min_iso_len, bool decoy = false);
 
 
     /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
