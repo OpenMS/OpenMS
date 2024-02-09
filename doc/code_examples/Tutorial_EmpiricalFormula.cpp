@@ -16,26 +16,26 @@ Int main()
 {
   EmpiricalFormula methanol("CH3OH"), water("H2O");
 
-  // sum up empirical formula
+  // sum up empirical formulae
   EmpiricalFormula sum = methanol + water;
 
   // get element from ElementDB
   const Element * carbon = ElementDB::getInstance()->getElement("Carbon");
 
   // output number of carbon atoms and average weight 
-  cout << sum << " "
-       << sum.getNumberOf(carbon) << " "
-       << sum.getAverageWeight() << endl;
+  cout << "Formula: " << sum 
+       << "\n  average weight: " << sum.getAverageWeight() 
+       << "\n  # of Carbons: " << sum.getNumberOf(carbon);
 
   // extract the isotope distribution
   IsotopeDistribution iso_dist = sum.getIsotopeDistribution(CoarseIsotopePatternGenerator(3));
 
+  std::cout << "\n\nCoarse isotope distribution of " << sum << ": \n";
   for (const auto& it : iso_dist)
   {
-    cout << it.getMZ() << " " << it.getIntensity() << endl;
+    cout << "m/z: " << it.getMZ() << " abundance: " << it.getIntensity() << endl;
   }
 
-  return 0;
 } //end of main
 
 //! [doxygen_snippet_EmpiricalFormula]
