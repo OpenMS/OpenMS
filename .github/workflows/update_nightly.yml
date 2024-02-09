@@ -19,13 +19,14 @@ jobs:
     - name: Determine if develop is ahead of nightly
       id: compare_branches
       run: |
-        if git rev-list --left-right --count origin/develop...origin/nightly | grep  "0$"; then
-          if git rev-list --left-right --count origin/develop...origin/nightly | grep  "^0"; then
+        if git rev-list --left-right --count origin/develop...origin/nightly | grep -q "0$"; then
+          if git rev-list --left-right --count origin/develop...origin/nightly | grep -q "^0"; then
             echo "behind=true" >> $GITHUB_OUTPUT
           else
             echo "behind=false" >> $GITHUB_OUTPUT
           fi
         else
+          echo `git rev-list --left-right --count origin/develop...origin/nightly`
           echo "There are changes to Nightly that are not in develop, we can't automatically update"
           echo "To forcibly reset Nightly please have an admin run:"
           echo "git checkout nightly"
