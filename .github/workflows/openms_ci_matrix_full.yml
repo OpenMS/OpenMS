@@ -46,7 +46,7 @@ jobs:
             # TODO implement support for other versions
             compiler_ver: 14.2
 
-          - os: macos-14-arm64
+          - os: macos-14
             # Since the appleclang version is dependent on the XCode versions that are installed
             #  on the GH runners, use this as the choice for a specific version
             # TODO currently unused but XCode/appleclang is the default
