@@ -23,7 +23,7 @@ jobs:
       run: git fetch --all
       
     - name: Determine if develop is ahead of nightly
-      if: inputs.force == 'false'
+      if: inputs.force != 'true'
       id: compare_branches
       run: |
         if git rev-list --left-right --count origin/develop...origin/nightly | grep -q "0$"; then
