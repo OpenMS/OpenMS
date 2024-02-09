@@ -624,7 +624,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   String test1;
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
-#if defined(__APPLE__)
+#if !defined(__APPLE__) // currently fails on macOS likely due to different boost version and different random number generator
   TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 #endif
   std::vector<String> fragment_types2;
@@ -650,7 +650,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test2);
   traml.store(test2, targeted_exp2);
 
-#if defined(__APPLE__)
+#if !defined(__APPLE__) // currently fails on macOS likely due to different boost version and different random number generator
  TEST_FILE_SIMILAR(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
 #endif
 }
@@ -721,7 +721,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 	   
-#if defined(__APPLE__)
+#if !defined(__APPLE__) // currently fails on macOS likely due to different boost version and different random number generator
  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1)) 
 #endif
 	
@@ -749,7 +749,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test2);
   traml.store(test2, targeted_exp2);
 
-#if defined(__APPLE__)
+#if !defined(__APPLE__) // currently fails on macOS likely due to different boost version and different random number generator
  TEST_FILE_SIMILAR(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2)) 
 #endif
 	
@@ -777,7 +777,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test3);
   traml.store(test3, targeted_exp3);
 
-#if defined(__APPLE__)
+#if !defined(__APPLE__) // currently fails on macOS likely due to different boost version and different random number generator
  TEST_FILE_SIMILAR(test3.c_str(), OPENMS_GET_TEST_DATA_PATH(out3)) 
 #endif	
 }
