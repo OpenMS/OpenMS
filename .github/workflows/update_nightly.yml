@@ -21,7 +21,7 @@ jobs:
       id: compare_branches
       run: |
         if git rev-list --left-right --count origin/develop...origin/nightly | grep -q "0$"; then
-          if git rev-list --left-right --count origin/develop...origin/nightly | grep -q "^0"; then
+          if git rev-list --left-right --count origin/develop...origin/nightly | grep -qv "^0"; then
             git rev-list --left-right --count origin/develop...origin/nightly
             echo "behind=true" >> $GITHUB_OUTPUT
           else
