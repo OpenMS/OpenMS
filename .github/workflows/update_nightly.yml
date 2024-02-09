@@ -19,8 +19,8 @@ jobs:
     - name: Determine if develop is ahead of nightly
       id: compare_branches
       run: |
-        if git rev-list --left-right --count develop@{upstream}...nightly@{upstream} | grep -q "0$"; then
-          if git rev-list --left-right --count develop@{upstream}...nightly@{upstream} | grep -q "^0"; then
+        if git rev-list --left-right --count origin/develop...origin/nightly | grep -q "0$"; then
+          if git rev-list --left-right --count origin/develop...origin/nightly | grep -q "^0"; then
             echo "behind=true" >> $GITHUB_OUTPUT
           else
             echo "behind=false" >> $GITHUB_OUTPUT
