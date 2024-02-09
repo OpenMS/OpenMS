@@ -6,7 +6,7 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 #define USE_TAGGER
-//#define TRAIN_OUT
+#define TRAIN_OUT
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
@@ -157,6 +157,8 @@ protected:
     registerDoubleOption_("min_rt", "<RT value>", -1.0, "If set to positive value, minimum RT (in second) to deconvolve.", false, true);
     registerDoubleOption_("max_rt", "<RT value>", -1.0, "If set to positive value, maximum RT (in second) to deconvolve.", false, true);
 
+    registerIntOption_("max_ms_level", "<MS level>", -1.0, "If set to positive value, maximum MS level (inclusive) to deconvolve.", false, true);
+
     registerSubsection_("FD", "FLASHDeconv algorithm parameters");
     registerSubsection_("SD", "Spectral deconvolution parameters");
     registerSubsection_("ft", "Feature tracing parameters");
@@ -240,6 +242,8 @@ protected:
     double max_mz = getDoubleOption_("max_mz");
     double min_rt = getDoubleOption_("min_rt");
     double max_rt = getDoubleOption_("max_rt");
+    int max_ms_level = getIntOption_("max_ms_level");
+
     std::map<uint, int> per_ms_level_spec_count;
     std::map<uint, int> per_ms_level_deconv_spec_count;
     std::map<uint, int> per_ms_level_mass_count;
@@ -277,6 +281,12 @@ protected:
     if (min_mz > 0 || max_mz > 0)
     {
       opt.setMZRange(DRange<1> {min_mz, max_mz});
+    }
+    if (max_ms_level > 0)
+    {
+      IntList ms_levels;
+      for (int msl = 1; msl<=max_ms_level; msl++) ms_levels.push_back(msl);
+      opt.setMSLevels(ms_levels);
     }
 
     mzml.setLogType(log_type_);
