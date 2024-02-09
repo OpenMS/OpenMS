@@ -22,8 +22,10 @@ jobs:
       run: |
         if git rev-list --left-right --count origin/develop...origin/nightly | grep -q "0$"; then
           if git rev-list --left-right --count origin/develop...origin/nightly | grep -q "^0"; then
+            git rev-list --left-right --count origin/develop...origin/nightly
             echo "behind=true" >> $GITHUB_OUTPUT
           else
+            git rev-list --left-right --count origin/develop...origin/nightly
             echo "behind=false" >> $GITHUB_OUTPUT
           fi
         else
