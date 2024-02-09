@@ -186,7 +186,7 @@ jobs:
           # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
           echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
 
-          mamba install conda-forge::eigen conda-forge::boost conda-forge::xerces-c conda-forge::zlib conda-forge::libsvm conda-forge::bz2 conda-forge::coinmp conda-forge::hdf5
+          mamba install conda-forge::eigen conda-forge::boost conda-forge::xerces-c conda-forge::zlib conda-forge::libsvm conda-forge::bz2file conda-forge::coinmp conda-forge::hdf5
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             choco install doxygen.portable ghostscript graphviz -y --no-progress
