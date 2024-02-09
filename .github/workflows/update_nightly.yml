@@ -2,7 +2,12 @@ name: Update nightly from develop
 on:
   schedule:
   - cron: '7 1 * * *'
-  workflow_dispatch: #FIXME remove once we've got this working
+  workflow_dispatch:
+    inputs:
+      force:
+        type: boolean
+        description: Forcibly reset Nightly to Develop?
+        default: false
 jobs:
   make_nightly:
     runs-on: ubuntu-latest
@@ -18,23 +23,18 @@ jobs:
       run: git fetch --all
       
     - name: Determine if develop is ahead of nightly
+      if: ! inputs.force
       id: compare_branches
       run: |
         if git rev-list --left-right --count origin/develop...origin/nightly | grep -q "0$"; then
           if git rev-list --left-right --count origin/develop...origin/nightly | grep -qv "^0"; then
-            git rev-list --left-right --count origin/develop...origin/nightly
             echo "behind=true" >> $GITHUB_OUTPUT
           else
-            git rev-list --left-right --count origin/develop...origin/nightly
             echo "behind=false" >> $GITHUB_OUTPUT
           fi
         else
-          echo `git rev-list --left-right --count origin/develop...origin/nightly`
           echo "There are changes to Nightly that are not in develop, we can't automatically update"
-          echo "To forcibly reset Nightly please have an admin run:"
-          echo "git checkout nightly"
-          echo "git reset develop --hard"
-          echo "git push -f"
+          echo "To forcibly reset Nightly please have an admin run this action with 'force' enabled"
           exit 1
         fi
 
@@ -44,5 +44,14 @@ jobs:
         git checkout nightly
         git merge develop --ff-only
         git push origin nightly
+      env:
+        GITHUB_TOKEN: ${{ secrets.OPENMS_GITHUB_APP_PRIVATE_KEY }}
+
+    - name: Forcibly reset nightly 
+      if: inputs.force
+      run: |
+        git checkout nightly
+        git reset develop --hard
+        git push origin nightly -f
       env:
         GITHUB_TOKEN: ${{ secrets.OPENMS_GITHUB_APP_PRIVATE_KEY }}
