@@ -78,16 +78,9 @@ jobs:
       run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_OUTPUT
       id: extract_branch
 
-    - id: cpus
-      name: Get the number of CPUs that the current process has access to
-      run: |
-        from os import environ, sched_getaffinity
-  
-        num_cpus = len(sched_getaffinity(0))
-        output_file = environ["GITHUB_OUTPUT"]
-        with open(output_file, "a", encoding="utf-8") as output_stream:
-            output_stream.write(f"count={num_cpus}\n")
-      shell: python
+    - name: Get number of CPU cores
+      uses: SimenB/github-actions-cpu-cores@v1
+      id: cpu-cores
 
     - id: set-vars
       name: Set extra variables
@@ -309,7 +302,7 @@ jobs:
           OPENMP: "ON"
           BOOST_USE_STATIC: ${{ steps.set-vars.outputs.static_boost }}
           #  BUILD_FLAGS: "-p:CL_MPCount=2" # For VS Generator and MSBuild
-          BUILD_FLAGS: "-j${{ steps.cpus.outputs.count }}" # Ninja will otherwise use all cores (doesn't go well in GHA). TODO make dependent on runner
+          BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}" # Ninja will otherwise use all cores (doesn't go well in GHA). TODO make dependent on runner
           CMAKE_CCACHE_EXE: "ccache"
           CCACHE_BASEDIR: ${{ github.workspace }}
           CCACHE_DIR: ${{ github.workspace }}/.ccache
