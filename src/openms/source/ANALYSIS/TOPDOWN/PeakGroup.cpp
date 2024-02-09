@@ -128,7 +128,6 @@ namespace OpenMS
     {
       return 0;
     }
-
     updatePerChargeInformation_(noisy_peaks, tol, is_last);
     updateChargeRange_();
     updateChargeFitScoreAndChargeIntensities_(is_low_charge);
@@ -136,13 +135,11 @@ namespace OpenMS
     {
       return 0;
     }
-
     updateMonoMassAndIsotopeIntensities(); //
     if (per_isotope_int_.empty() || max_abs_charge_ < min_abs_charge_)
     {
       return 0;
     }
-
     int h_offset;
     int window_width = (is_last || target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy) ? 0 : -1;
     auto target_decoy_type = target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy ? PeakGroup::TargetDecoyType::target : target_decoy_type_;
@@ -150,7 +147,6 @@ namespace OpenMS
     isotope_cosine_score_ = SpectralDeconvolution::getIsotopeCosineAndIsoOffset(monoisotopic_mass_, per_isotope_int_, h_offset, avg,
                                                                                 -min_negative_isotope_index_, // change if to select cosine calculation and if to get second best hits
                                                                                 window_width, 0, target_decoy_type);
-
     if (h_offset != 0)
       return h_offset;
 

@@ -501,7 +501,8 @@ namespace OpenMS
                 // no perfect filtration. Just obvious ones are filtered out by checking if a peak is in the harmonic position and the intensity ratio is within two folds from the current peak
                 // (specified by mz_bin_index)
                 if (std::abs(next_harmonic_iso_bin - (int)mz_bin_index) >= tol_div_factor && next_harmonic_iso_bin >= 0 && next_harmonic_iso_bin < (int)mz_bins_.size() &&
-                    mz_bins_[next_harmonic_iso_bin] && mz_intensities[next_harmonic_iso_bin] > h_threshold / 2 && mz_intensities[next_harmonic_iso_bin] < h_threshold * 2)
+                    mz_bins_[next_harmonic_iso_bin] && mz_intensities[next_harmonic_iso_bin] > h_threshold / 2 && mz_intensities[next_harmonic_iso_bin] < h_threshold * 2
+                    )
                 {
                   harmonic_cntr++;
                   sub_max_h_intensity[k] += mz_intensities[next_harmonic_iso_bin];
@@ -516,7 +517,6 @@ namespace OpenMS
             }
             if (pass_first_check)
             {
-              // spc++; //
               support_peak_intensity += mz_intensities[next_iso_bin];
               // support_peak_intensity = std::max(support_peak_intensity, mz_intensities[next_iso_bin]);
             }
@@ -628,7 +628,7 @@ namespace OpenMS
     auto to_skip = mass_bins_.flip();
     mass_bins_.reset();
 
-    const int select_top_N = 2; // select top N charges per peak. We allow up to 2 just to consider frequent coelution
+    const int select_top_N = 2; // select top N charges per peak. We allow up to 2 just to consider frequent coelution.
     std::vector<long> max_indices(select_top_N, -1);
     std::vector<int> max_intensity_abs_charge_ranges(select_top_N, -1);
 
@@ -1161,7 +1161,47 @@ namespace OpenMS
     removeExcludedMasses_(deconvolved_spectrum_, previously_deconved_peak_masses_for_decoy_);
     removeExcludedMasses_(deconvolved_spectrum_, excluded_masses_);
 
+    // final harmonics removal
+    selected = boost::dynamic_bitset<>(deconvolved_spectrum_.size());
+    filtered_peak_groups = std::vector<PeakGroup>();
 
+#pragma omp parallel for default(none) shared(filtered_peak_groups, tol, selected, harmonic_charges_)
+    for (int i=0;i < deconvolved_spectrum_.size(); i++)
+    {
+      auto peak_group = deconvolved_spectrum_[i];
+      bool pass = true;
+      const auto& [z1, z2] = peak_group.getAbsChargeRange();
+
+      for (auto hz : harmonic_charges_)
+      {
+        PeakGroup pg(std::min(current_max_charge_, z1 * hz), std::min(current_max_charge_, z2 * hz), is_positive_);
+        pg.setTargetDecoyType(peak_group.getTargetDecoyType());
+        pg.setMonoisotopicMass(peak_group.getMonoMass() * hz);
+        auto nps = pg.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, pg.getMonoMass());
+        pg.updateQscore(nps, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol, (z1 + z2) * hz < 2 * low_charge_, true);
+        if (pg.getQscore() > 0)
+        {
+          pass = false;
+          break;
+        }
+      }
+      if (!pass)
+        continue;
+
+#pragma omp critical
+      selected[i] = true;
+    }
+
+    filtered_peak_groups.reserve(selected.count());
+    index = selected.find_first();
+
+    while (index != selected.npos)
+    {
+      filtered_peak_groups.push_back(deconvolved_spectrum_[index]);
+      index = selected.find_next(index);
+    }
+
+    deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
   }
 
   float SpectralDeconvolution::getIsotopeCosineAndIsoOffset(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int iso_int_shift,

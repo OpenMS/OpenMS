@@ -14,19 +14,19 @@
 namespace OpenMS
 {
   //==================================== CV 0
-  std::vector<double> Qscore::weight_CV_0_ {-5.4446, 0.2118, 0.0438, 0.1629, 4.748};
+  std::vector<double> Qscore::weight_CV_0_ {-7.5268, -0.6359, -0.0839, -0.1052, 6.8901};
 
   //====================================== CV 40
-  std::vector<double> Qscore::weight_CV_40_ {-25.0901, -0.6544, 0.0668, -0.1577, 22.6472};
+  std::vector<double> Qscore::weight_CV_40_ {-27.8536, -1.146, 0.0414, -0.4203, 25.3097};
 
   // ====================================== CV 50
-  std::vector<double> Qscore::weight_CV_50_ {-21.9597, -3.1226, -0.0463, -0.3345, 20.0507};
+  std::vector<double> Qscore::weight_CV_50_ {-24.2814, -4.524, -0.0832, -0.6005, 22.3697};
 
   //====================================== CV 60
-  std::vector<double> Qscore::weight_CV_60_ {-26.8682, -1.5518, -0.1017, -0.4065, 24.7359};
+  std::vector<double> Qscore::weight_CV_60_ {-29.2079, -2.9727, -0.1002, -0.6172, 26.9367};
 
   //====================================== Normal
-  std::vector<double> Qscore::weight_centroid_ {-34.3622, -0.6327, -0.0296, -0.217, 31.6714}; // apr23 all
+  std::vector<double> Qscore::weight_centroid_ {-34.4963, -0.557, -0.0291, -0.1915, 31.7954}; // apr23 all
   std::vector<double> Qscore::weight_profile_ {-10.2716, 1.0179, 0.0646, 0.4721, 9.2305}; // yeast
 
   double Qscore::getQscore(const PeakGroup* pg, const MSSpectrum& spectrum)
