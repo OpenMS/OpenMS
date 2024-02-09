@@ -51,7 +51,7 @@ jobs:
       if: inputs.force
       run: |
         git checkout nightly
-        git reset develop --hard
+        git reset --hard develop
         git push origin nightly -f
       env:
         GITHUB_TOKEN: ${{ secrets.OPENMS_GITHUB_APP_PRIVATE_KEY }}
