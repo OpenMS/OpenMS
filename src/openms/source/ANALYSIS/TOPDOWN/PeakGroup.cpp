@@ -187,7 +187,8 @@ namespace OpenMS
     if (noisy_peaks.empty())
       return 0;
     const Size max_noisy_peak_number = 40; // too many noise peaks will slow down the process
-    const Size max_bin_number = 29;        // 24 bin + 5 extra bin
+    const Size bin_number_margin = 8;
+    const Size max_bin_number = bin_number_margin + 12;        // 12 bin + 8 extra bin
     float threshold = -1;
     std::vector<std::pair<Peak1D, bool>> all_peaks; // peak + is signal?
     all_peaks.reserve(max_noisy_peak_number + logMzpeaks_.size());
@@ -276,7 +277,7 @@ namespace OpenMS
 
         for (double d : div_factors)
         {
-          double distance = normalized_dist / d * (max_bin_number - 5);
+          double distance = normalized_dist / d * (max_bin_number - bin_number_margin);
           Size bin = (Size)round(distance);
           if (bin == 0)
           {
@@ -306,7 +307,7 @@ namespace OpenMS
       {
         continue;
       }
-      auto edges = per_bin_edges[k];
+      const auto& edges = per_bin_edges[k];
       float max_sum_intensity = 0;
       for (Size i = 0; i < edges.size(); i++)
       {

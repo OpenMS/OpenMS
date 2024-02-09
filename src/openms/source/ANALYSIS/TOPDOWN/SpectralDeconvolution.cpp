@@ -1126,7 +1126,6 @@ namespace OpenMS
           peak_group.setTargetDecoyType(PeakGroup::TargetDecoyType::target);
       }
 
-
 #pragma omp critical
       selected[i] = true;
     }
@@ -1161,6 +1160,8 @@ namespace OpenMS
 
     removeExcludedMasses_(deconvolved_spectrum_, previously_deconved_peak_masses_for_decoy_);
     removeExcludedMasses_(deconvolved_spectrum_, excluded_masses_);
+
+
   }
 
   float SpectralDeconvolution::getIsotopeCosineAndIsoOffset(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int iso_int_shift,
