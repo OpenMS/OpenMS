@@ -141,12 +141,12 @@ namespace OpenMS
       return 0;
     }
     int h_offset;
-    int window_width = (is_last || target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy) ? 0 : -1;
-    auto target_decoy_type = target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy ? PeakGroup::TargetDecoyType::target : target_decoy_type_;
+    int window_width = is_last ? 0 : -1;
+    //auto target_decoy_type = target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy ? PeakGroup::TargetDecoyType::target : target_decoy_type_;
 
     isotope_cosine_score_ = SpectralDeconvolution::getIsotopeCosineAndIsoOffset(monoisotopic_mass_, per_isotope_int_, h_offset, avg,
                                                                                 -min_negative_isotope_index_, // change if to select cosine calculation and if to get second best hits
-                                                                                window_width, 0, target_decoy_type);
+                                                                                window_width, 0, target_decoy_type_);
     if (h_offset != 0)
       return h_offset;
 

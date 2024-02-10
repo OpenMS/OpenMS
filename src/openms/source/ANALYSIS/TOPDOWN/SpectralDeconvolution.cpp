@@ -1044,31 +1044,31 @@ namespace OpenMS
       auto& peak_group = deconvolved_spectrum_[i];
       auto prev_peak_group(peak_group);
       peak_group.setTargetDecoyType(target_decoy_type_);
-      bool is_isotope_decoy = target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy;
 
-      float cos =
-        getIsotopeCosineAndIsoOffset(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -peak_group.getMinNegativeIsotopeIndex(), -1, allowed_iso_error_, target_decoy_type_);
-      peak_group.setIsotopeCosine(cos);
-
-      // first filtration to remove false positives before further processing.
-      if (cos <= 0.5)
+      if (target_decoy_type_ != PeakGroup::TargetDecoyType::isotope_decoy)
       {
-        continue;
+        float cos = getIsotopeCosineAndIsoOffset(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -peak_group.getMinNegativeIsotopeIndex(), -1, allowed_iso_error_,
+                                                 target_decoy_type_);
+        peak_group.setIsotopeCosine(cos);
+
+        // first filtration to remove false positives before further processing.
+        if (cos <= 0.5)
+        {
+          continue;
+        }
       }
 
-      int num_iteration = is_isotope_decoy ? 1 : 10;
+      int num_iteration = 10;
       for (int k = 0; k < num_iteration; k++)
       {
         auto noisy_peaks = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_);
         // min cosine is checked in here. mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
         const auto& [z1, z2] = peak_group.getAbsChargeRange();
-        if (!is_isotope_decoy)
+        offset = peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol, (z1 + z2) < 2 * low_charge_, false);
+
+        if (offset == 0)
         {
-          offset = peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol, (z1 + z2) < 2 * low_charge_, false);
-        }
-        if (is_isotope_decoy || offset == 0)
-        {
-          offset = peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol, (z1 + z2) < 2 * low_charge_, true);
+          peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol, (z1 + z2) < 2 * low_charge_, true);
           break;
         }
       }
@@ -1119,10 +1119,10 @@ namespace OpenMS
         continue;
       }
 
-      if (is_isotope_decoy)
+      if (target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy)
       {
-        if ((prev_peak_group.getIsotopeCosine() - peak_group.getIsotopeCosine()) > .005)
-          peak_group.setTargetDecoyType(PeakGroup::TargetDecoyType::target);
+        if (prev_peak_group.getIsotopeCosine() - peak_group.getIsotopeCosine() > .004)
+          continue;//peak_group.setTargetDecoyType(PeakGroup::TargetDecoyType::target);
       }
 
 #pragma omp critical
@@ -1278,7 +1278,7 @@ namespace OpenMS
 
         if (max_cos < 0)
         {
-          offset = o;
+          //offset = o;
           max_cos = c;
           break;
         }
