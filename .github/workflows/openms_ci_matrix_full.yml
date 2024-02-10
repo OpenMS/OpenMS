@@ -515,6 +515,11 @@ jobs:
         with:
           name: installer-Linux
 
+      - name: Download source archive as artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: source.tar.gz
+
       - name: Download changelog as artifact
         uses: actions/download-artifact@v4
         with:
@@ -603,8 +608,7 @@ jobs:
           artifactErrorsFailBuild: true
           makeLatest: ${{ inputs.mark_as_latest }}
           artifacts:
-            ${{ github.workspace }}/*.exe, ${{ github.workspace }}/*.deb, ${{ github.workspace }}/*.pkg
-            # TODO add src
+            ${{ github.workspace }}/*.exe, ${{ github.workspace }}/*.deb, ${{ github.workspace }}/*.pkg, ${{ github.workspace }}/*.tar.gz
 
 
   deploy-docs:
@@ -972,7 +976,6 @@ jobs:
         if: inputs.announce_release
         shell: bash
         run:  |
-            cp release${{ needs.build-and-test.outputs.version_number }}.md OpenMS-website/content/en/news/
             echo ${{ needs.deploy-installer.outputs.release_text_contents }} >> OpenMS-website/content/en/news/release${{ needs.build-and-test.outputs.version_number }}.md
             pushd OpenMS-website
               git checkout -b "releaseannouncement${{ needs.build-and-test.outputs.version_number }}"
