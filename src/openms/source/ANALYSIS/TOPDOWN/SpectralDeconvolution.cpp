@@ -501,8 +501,7 @@ namespace OpenMS
                 // no perfect filtration. Just obvious ones are filtered out by checking if a peak is in the harmonic position and the intensity ratio is within two folds from the current peak
                 // (specified by mz_bin_index)
                 if (std::abs(next_harmonic_iso_bin - (int)mz_bin_index) >= tol_div_factor && next_harmonic_iso_bin >= 0 && next_harmonic_iso_bin < (int)mz_bins_.size() &&
-                    mz_bins_[next_harmonic_iso_bin] && mz_intensities[next_harmonic_iso_bin] > h_threshold / 2 && mz_intensities[next_harmonic_iso_bin] < h_threshold * 2
-                    )
+                    mz_bins_[next_harmonic_iso_bin] && mz_intensities[next_harmonic_iso_bin] > h_threshold / 2 && mz_intensities[next_harmonic_iso_bin] < h_threshold * 2)
                 {
                   harmonic_cntr++;
                   sub_max_h_intensity[k] += mz_intensities[next_harmonic_iso_bin];
@@ -1166,7 +1165,7 @@ namespace OpenMS
     filtered_peak_groups = std::vector<PeakGroup>();
 
 #pragma omp parallel for default(none) shared(filtered_peak_groups, tol, selected, harmonic_charges_)
-    for (int i=0;i < deconvolved_spectrum_.size(); i++)
+    for (int i = 0; i < deconvolved_spectrum_.size(); i++)
     {
       auto peak_group = deconvolved_spectrum_[i];
       bool pass = true;
