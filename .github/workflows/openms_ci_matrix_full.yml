@@ -984,6 +984,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: OpenMS-website
+          repository: OpenMS/OpenMS-website
 
       - name: create text for website and update it.
         if: inputs.announce_release
