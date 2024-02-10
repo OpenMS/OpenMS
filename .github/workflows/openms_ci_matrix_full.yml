@@ -448,7 +448,8 @@ jobs:
       uses: thedoctor0/zip-release@0.7.6
       with:
         type: 'tar'
-        directory: ${{ github.workspace }}/OpenMS
+        directory: ${{ github.workspace }}
+        path: OpenMS
         exclusions: './bld/* ./source.tar.gz'
         filename: 'source.tar.gz'
 
