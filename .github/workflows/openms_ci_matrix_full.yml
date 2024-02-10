@@ -989,7 +989,7 @@ jobs:
         if: inputs.announce_release
         shell: bash
         run:  |
-            echo ${{ needs.deploy-installer.outputs.release_text_contents }} >> OpenMS-website/content/en/news/release${{ needs.build-and-test.outputs.version_number }}.md
+            echo '${{ needs.deploy-installer.outputs.release_text_contents }}' >> OpenMS-website/content/en/news/release${{ needs.build-and-test.outputs.version_number }}.md
             pushd OpenMS-website
               git checkout -b "releaseannouncement${{ needs.build-and-test.outputs.version_number }}"
               git add content/en/news/release${{ needs.build-and-test.outputs.version_number }}.md
