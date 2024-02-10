@@ -58,6 +58,14 @@ jobs:
             # TODO implement support for other versions
             compiler_ver: 14.2
 
+          - os: macos-14
+            # Since the appleclang version is dependent on the XCode versions that are installed
+            #  on the GH runners, use this as the choice for a specific version
+            # TODO currently unused but XCode/appleclang is the default
+            compiler: xcode
+            # TODO implement support for other versions
+            compiler_ver: 15.0.1
+
           # Make sure the compilers are available in that version on the GH runners
           # We are not installing anything.
           - os: ubuntu-22.04
@@ -71,6 +79,8 @@ jobs:
       version_number: ${{ steps.create_changelog.outputs.version_number }}
 
     runs-on: ${{ matrix.os }}
+    env: 
+      TERM: xterm-256color
 
     steps:
     - uses: actions/checkout@v4
@@ -81,7 +91,11 @@ jobs:
       name: Extract branch/PR infos
       shell: bash
       run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_OUTPUT
-      
+
+    - name: Get number of CPU cores
+      uses: SimenB/github-actions-cpu-cores@v1
+      id: cpu-cores
+
     - id: set-vars
       name: Set extra variables
       run: |
@@ -124,7 +138,7 @@ jobs:
           echo "contrib_os_ver=10.15.5/" >> $GITHUB_OUTPUT
           echo "contrib_compiler=appleclang-11.0.0/" >> $GITHUB_OUTPUT
           echo "xvfb=" >> $GITHUB_OUTPUT
-          echo "static_boost=ON" >> $GITHUB_OUTPUT
+          echo "static_boost=OFF" >> $GITHUB_OUTPUT
           if [ "$DO_PACKAGE" = true ]; then
             echo "pkg_type=pkg" >> $GITHUB_OUTPUT
             echo "enable_docs=ON" >> $GITHUB_OUTPUT
@@ -202,8 +216,8 @@ jobs:
         # NOTE: x64 is hardcoded. No support for 32bit
         arch: x64
 
-    - name: Install Qt (Windows and macOS)
-      if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
+    - if: startsWith(matrix.os, 'windows')
+      name: Install Qt (Windows)
       uses: jurplel/install-qt-action@v3
       with:
         version: '5.15.2' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715, > 5.15.2 is not available on official archives (https://github.com/miurahr/aqtinstall/issues/636)
@@ -211,8 +225,8 @@ jobs:
         aqtversion: '==3.1.*'
         archives: 'qtsvg qtimageformats qtbase'
 
-    - id: tools-prefix
-      name: Setup build tools (and system contrib on Linux)
+    - name: Setup build tools (and system contrib on Linux and Mac)
+      id: tools-prefix
       shell: bash
       env: 
         # We need to add this, otherwise brew "helpfully" updates all of the GitHub preinstalled packages, which can cause issues
@@ -251,26 +265,26 @@ jobs:
         fi
 
         if [[ "${{ matrix.os }}" == macos-* ]]; then
-          # Qt5_DIR set by Install Qt5 step
-          echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
           brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
-
+          brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@5
+          echo "cmake_prefix=$(brew --prefix qt@5)/lib/cmake;$(brew --prefix qt@5)" >> $GITHUB_OUTPUT
+          echo "Qt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5" >> $GITHUB_ENV
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             brew install python3 --force --overwrite
             brew install --quiet doxygen ghostscript graphviz
           fi
         fi
 
-    - id: cache-contrib
-      if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
-      name: Cache contrib (Windows and macOS)
+    - if: startsWith(matrix.os, 'windows')
+      name: Cache contrib (Windows)
+      id: cache-contrib
       uses: actions/cache@v4
       with:
         path: ${{ github.workspace }}/OpenMS/contrib
         key: ${{ runner.os }}-contrib3
 
-    - name: Download contrib build from archive (Windows and macOS)
-      if: (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && steps.cache-contrib.outputs.cache-hit != 'true'
+    - if: startsWith(matrix.os, 'windows') && steps.cache-contrib.outputs.cache-hit != 'true'
+      name: Download contrib build from archive (Windows)
       shell: bash
       run: |
           cd OpenMS/contrib
@@ -279,41 +293,16 @@ jobs:
           rm contribbld.tar.gz
           ls -la
 
-    - name: Fix contrib install names (macOS)
-      if: startsWith(matrix.os, 'macos')
-      shell: bash
-      run: |
-          shopt -s nullglob # ensure that for loop is only executed if there is at least one .dylib file
-          for lib in $GITHUB_WORKSPACE/OpenMS/contrib/lib/*.dylib
-          do
-            install_name_tool -id $lib $lib
-          done
-
-          # create symlinks like brew https://github.com/Homebrew/homebrew-core/blob/master/Formula/qt.rb#L61
-          # Warning: Qt5_DIR will change meaning in the new jurplel/install-qt-action. Use QT_ROOT_DIR instead
-          # https://github.com/jurplel/install-qt-action/blob/master/README_upgrade_guide.md
-          pushd $Qt5_DIR/include
-            for f in $Qt5_DIR/lib/*.framework/Headers
-            do
-              lnknm=$(basename "${f%/*}" ".framework")
-              ln -s $f $lnknm
-            done
-            for f in $Qt5_DIR/lib/*.framework/Versions/5/Qt*
-            do
-              install_name_tool -id $f $f
-            done
-          popd
-
     - name: Setup ccache cache
       uses: actions/cache@v4
       with:
         path: .ccache
-        key: ${{ runner.os }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ github.run_number }}
+        key: ${{ runner.os }}-${{ runner.arch }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ github.run_number }}
         # Restoring: From current branch/PR, otherwise from nightly, otherwise from any branch.
         restore-keys: |
-          ${{ runner.os }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}
-          ${{ runner.os }}-ccache-nightly
-          ${{ runner.os }}-ccache-
+          ${{ runner.os }}-${{ runner.arch }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}
+          ${{ runner.os }}-${{ runner.arch }}-ccache-nightly
+          ${{ runner.os }}-${{ runner.arch }}-ccache-
 
     - name: Add THIRDPARTY
       shell: bash
@@ -372,7 +361,7 @@ jobs:
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Ninja"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
-          BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ matrix.compiler }}-class-topp-${{ github.run_number }}"
+          BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
@@ -386,7 +375,7 @@ jobs:
           OPENMP: "ON"
           BOOST_USE_STATIC: ${{ steps.set-vars.outputs.static_boost }}
           #  BUILD_FLAGS: "-p:CL_MPCount=2" # For VS Generator and MSBuild
-          BUILD_FLAGS: "-j2" # Ninja will otherwise use all cores (doesn't go well in GHA). TODO make dependent on runner
+          BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}" # Ninja will otherwise use all cores (doesn't go well in GHA). TODO make dependent on runner
           CMAKE_CCACHE_EXE: "ccache"
           CCACHE_BASEDIR: ${{ github.workspace }}
           CCACHE_DIR: ${{ github.workspace }}/.ccache
@@ -405,7 +394,7 @@ jobs:
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CI_PROVIDER: "GitHub-Actions"
-          BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ matrix.compiler }}-class-topp-${{ github.run_number }}"
+          BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
           # The rest of the vars should be saved in the CMakeCache
 
     - name: Package
@@ -431,14 +420,14 @@ jobs:
           PACKAGE_TYPE: ${{ steps.set-vars.outputs.pkg_type }}
           SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/_thirdparty"
           CI_PROVIDER: "GitHub-Actions"
-          BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ matrix.compiler }}-class-topp-${{ github.run_number }}"
+          BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
 
     # WARNING: Here you have to make sure that only one matrix configuration per OS produces packages. See set-vars steps.
     - name: Upload packages as artifacts
       if: steps.set-vars.outputs.pkg_type != 'none'
       uses: actions/upload-artifact@v4
       with:
-        name: installer-${{ steps.set-vars.outputs.tp_folder }}
+        name: format('installer-{0}{1}', steps.set-vars.outputs.tp_folder, runner.arch == 'arm64' && '-arm64' || '')
         path: |
           ${{ github.workspace }}/OpenMS/bld/*.exe
           ${{ github.workspace }}/OpenMS/bld/*.deb
@@ -479,7 +468,7 @@ jobs:
       if: steps.set-vars.outputs.pkg_type != 'none' ||  ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && startsWith(matrix.compiler, 'clang++') ) )
       uses: actions/upload-artifact@v4
       with:
-        name: knime-${{ steps.set-vars.outputs.tp_folder }}
+        name: ${{ format('knime-{0}{1}', steps.set-vars.outputs.tp_folder, runner.arch == 'arm64' && '-arm64' || '') }}
         path: ${{ github.workspace }}/OpenMS/bld/knime/**/*
 
   deploy-installer:
@@ -497,11 +486,14 @@ jobs:
       
       # WOW, you cannot download with wildcard. INCREDIBLY ANNOYING https://github.com/actions/download-artifact/issues/6
       # Maybe in the next 3 years......
-      - name: Download macos installer artifacts
+      - name: Download macOS installer artifacts
         uses: actions/download-artifact@v4
         with:
           name: installer-MacOS
-
+      - name: Download macOS Silicon installer artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: installer-MacOS-arm64
       - name: Download win installer artifacts
         uses: actions/download-artifact@v4
         with:
@@ -526,10 +518,10 @@ jobs:
         run: |
           echo "Upload"
           if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
-            folder=nightlyGHA                                                    # TODO: Change back when we deactivate Jenkins
-          elif [[ "${{ env.RUN_NAME }}" =~ release/([0-9]+\.[0-9]+\.[0-9]+) ]]; then
-            tmpfolder=${BASH_REMATCH[1]}
-            folder=release/RC_GHA/$tmpfolder                                   # TODO: change back to RC after proper release
+            folder=nightlyGHA                       # TODO: Change back when we deactivate Jenkins
+          elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
+            tmpfolder=${{ env.RUN_NAME }}
+            folder=${tmpfolder/release/RC_GHA}      # TODO: change back to RC after proper release
           else
             folder=experimental/${{ env.RUN_NAME }}
           fi
@@ -630,14 +622,13 @@ jobs:
           rm $GITHUB_WORKSPACE/docs/documentation.zip
           echo "Upload"
           if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
-            folder=nightlyGHA                                                    # TODO: Change back when we deactivate Jenkins
-          elif [[ "${{ env.RUN_NAME }}" =~ release/([0-9]+\.[0-9]+\.[0-9]+) ]]; then
-            tmpfolder=${BASH_REMATCH[1]}
-            folder=release/RC_GHA/$tmpfolder                                   # TODO: change back to RC after proper release
+            folder=nightlyGHA                      # TODO: Change back when we deactivate Jenkins
+          elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
+            tmpfolder=${{ env.RUN_NAME }}
+            folder=${tmpfolder/release/RC_GHA}     # TODO: change back to RC after proper release
           else
             folder=experimental/${{ env.RUN_NAME }}
           fi
-          echo $folder
 
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
@@ -680,12 +671,16 @@ jobs:
 
       # WOW, you cannot download with wildcard. INCREDIBLY ANNOYING https://github.com/actions/download-artifact/issues/6
       # Maybe in the next 3 years......
-      - name: Download macos installer artifacts
+      - name: Download macOS installer artifacts
         uses: actions/download-artifact@v4
         with:
           name: knime-MacOS
           path: ${{ env.PLUGIN_SOURCE }}
-
+      - name: Download macOS Silicon installer artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: knime-MacOS-arm64
+          path: ${{ env.PLUGIN_SOURCE }}
       - name: Download win installer artifacts
         uses: actions/download-artifact@v4
         with:
