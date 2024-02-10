@@ -426,7 +426,7 @@ jobs:
       if: steps.set-vars.outputs.pkg_type != 'none'
       uses: actions/upload-artifact@v4
       with:
-        name: format('installer-{0}{1}', steps.set-vars.outputs.tp_folder, runner.arch == 'arm64' && '-arm64' || '')
+        name: ${{ format('installer-{0}{1}', steps.set-vars.outputs.tp_folder, runner.arch == 'arm64' && '-arm64' || '') }}
         path: |
           ${{ github.workspace }}/OpenMS/bld/*.exe
           ${{ github.workspace }}/OpenMS/bld/*.deb
