@@ -450,7 +450,7 @@ jobs:
         type: 'tar'
         directory: ${{ github.workspace }}
         path: OpenMS
-        exclusions: '${{ github.workspace }}/bld/* ./source.tar.gz ${{ github.workspace }}/THIRDPARTY/* ${{ github.workspace }}/.git/*'
+        exclusions: '/bld/* ./source.tar.gz /THIRDPARTY/* /.git/*'
         filename: 'source.tar.gz'
 
         
