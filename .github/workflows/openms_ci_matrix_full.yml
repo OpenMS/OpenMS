@@ -449,7 +449,7 @@ jobs:
       with:
         type: 'tar'
         directory: ${{ github.workspace }}/OpenMS
-        exclusions: '/bld/*'
+        exclusions: './bld/* .'
         filename: 'source.tar.gz'
 
     # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
