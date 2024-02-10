@@ -154,12 +154,6 @@ namespace OpenMS
     {
       return 0;
     }
-
-    if (max_abs_charge_ - min_abs_charge_ < max_abs_charge_ / 20) // if charge range is too small ...
-    {
-      return 0;
-    }
-
     updatePerChargeCos_(avg);
     updateAvgPPMError_();
     updateAvgDaError_();
@@ -611,7 +605,14 @@ namespace OpenMS
   {
     const double mul_tol = .8; // not all peaks within tolerance are considered as signal peaks.
     std::vector<LogMzPeak> noisy_peaks;
+    clear_(); // clear logMzPeaks
+
     if (mono_mass < 0)
+    {
+      return noisy_peaks;
+    }
+
+    if (max_abs_charge_ - min_abs_charge_ < max_abs_charge_ / 20) // if charge range is too small ...
     {
       return noisy_peaks;
     }
@@ -624,7 +625,6 @@ namespace OpenMS
     int max_signal_isotope = 0;
     min_isotope = std::max(min_negative_isotope_index_, min_isotope);
 
-    clear_(); // clear logMzPeaks
     negative_iso_peaks_.clear();
 
     reserve((max_isotope) * (max_abs_charge_ - min_abs_charge_ + 1) * 2);

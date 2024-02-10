@@ -1179,7 +1179,8 @@ namespace OpenMS
         pg.setMonoisotopicMass(peak_group.getMonoMass() * hz);
         auto nps = pg.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, pg.getMonoMass());
         pg.updateQscore(nps, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol, (z1 + z2) * hz < 2 * low_charge_, true);
-        if (pg.getQscore() > 0)
+
+        if (pg.getQscore() > 0 && pg.getSNR() > peak_group.getSNR())
         {
           pass = false;
           break;
