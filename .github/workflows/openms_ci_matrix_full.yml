@@ -487,7 +487,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-test
     outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
       release_text_contents: ${{ steps.mk_release_txt.outputs.release_text_contents }}
 
 
@@ -968,7 +967,6 @@ jobs:
         if: inputs.announce_release
         shell: bash
         run:  |
-            OPENMS_RELEASE_URL= ${{ needs.deploy-installer.outputs.upload_url }}
             cp release${{ needs.build-and-test.outputs.version_number }}.md OpenMS-website/content/en/news/
             echo ${{ needs.deploy-installer.outputs.release_text_contents }} >> OpenMS-website/content/en/news/release${{ needs.build-and-test.outputs.version_number }}.md
             pushd OpenMS-website
