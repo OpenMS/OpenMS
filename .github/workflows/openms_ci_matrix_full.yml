@@ -441,6 +441,16 @@ jobs:
         directory: ${{ github.workspace }}/OpenMS/bld/doc
         exclusions: '/CMakeFiles/* /doxygen/* /code_examples/*'
         filename: 'documentation.zip'
+    
+    #Zip the source
+    - name: Zip source
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
+      uses: thedoctor0/zip-release@0.7.6
+      with:
+        type: 'tar'
+        directory: ${{ github.workspace }}/OpenMS
+        exclusions: '/bld/*'
+        filename: 'source.tar.gz'
 
     # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
 
@@ -489,10 +499,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: installer-MacOS
+
       - name: Download macOS Silicon installer artifacts
         uses: actions/download-artifact@v4
         with:
           name: installer-MacOS-arm64
+
       - name: Download win installer artifacts
         uses: actions/download-artifact@v4
         with:
