@@ -208,7 +208,6 @@ jobs:
             fi
           fi
 
-      
     - name: Emulate a Visual Studio shell (Windows)
       if: startsWith(matrix.os, 'windows')
       uses: egor-tensin/vs-shell@v2
@@ -216,8 +215,8 @@ jobs:
         # NOTE: x64 is hardcoded. No support for 32bit
         arch: x64
 
-    - if: startsWith(matrix.os, 'windows')
-      name: Install Qt (Windows)
+    - name: Install Qt (Windows)
+      if: startsWith(matrix.os, 'windows')
       uses: jurplel/install-qt-action@v3
       with:
         version: '5.15.2' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715, > 5.15.2 is not available on official archives (https://github.com/miurahr/aqtinstall/issues/636)
@@ -275,16 +274,16 @@ jobs:
           fi
         fi
 
-    - if: startsWith(matrix.os, 'windows')
-      name: Cache contrib (Windows)
+    - name: Cache contrib (Windows)
+      if: startsWith(matrix.os, 'windows')
       id: cache-contrib
       uses: actions/cache@v4
       with:
         path: ${{ github.workspace }}/OpenMS/contrib
         key: ${{ runner.os }}-contrib3
 
-    - if: startsWith(matrix.os, 'windows') && steps.cache-contrib.outputs.cache-hit != 'true'
-      name: Download contrib build from archive (Windows)
+    - name: Download contrib build from archive (Windows)
+      if: startsWith(matrix.os, 'windows') && steps.cache-contrib.outputs.cache-hit != 'true'
       shell: bash
       run: |
           cd OpenMS/contrib
@@ -375,7 +374,7 @@ jobs:
           OPENMP: "ON"
           BOOST_USE_STATIC: ${{ steps.set-vars.outputs.static_boost }}
           #  BUILD_FLAGS: "-p:CL_MPCount=2" # For VS Generator and MSBuild
-          BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}" # Ninja will otherwise use all cores (doesn't go well in GHA). TODO make dependent on runner
+          BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}" # Ninja will otherwise use all cores (doesn't go well in GHA).
           CMAKE_CCACHE_EXE: "ccache"
           CCACHE_BASEDIR: ${{ github.workspace }}
           CCACHE_DIR: ${{ github.workspace }}/.ccache
@@ -588,7 +587,7 @@ jobs:
         with: 
           bodyFile: RELEASE_TEXT_GH.md
           tag: ${{ env.RUN_NAME }}
-          draft: true #FIXME revert
+          draft: true
           artifactErrorsFailBuild: true
           makeLatest: ${{ inputs.mark_as_latest }}
           artifacts:
@@ -634,7 +633,7 @@ jobs:
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
 
-          # Upload documentation FIXME
+          # Upload documentation
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/docs/ "$USER@$HOST:/Documentation/${folder}"
 
       - name: Make documentation latest
@@ -927,7 +926,6 @@ jobs:
           
           #FIXME reenable these after we get the correct access permissions
           #createGitTag genericworkflownodes/de.openms.knime.dynamicJSViewers $JSViewer_SHA || updateGitTag genericworkflownodes/de.openms.knime.dynamicJSViewers $GKN_SHA 
-          #createGitTag genericworkflownodes/GenericKnimeNodes $GKN_SHA  || updateGitTag genericworkflownodes/GenericKnimeNodes $GKN_SHA 
 
       - name: Merge to Develop
         if: inputs.mark_as_latest
