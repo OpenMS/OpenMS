@@ -980,6 +980,13 @@ jobs:
               labels: ['feature', 'automated pr']
             });
 
+  create-website-update:
+    if: inputs.announce_release
+    runs-on: ubuntu-latest
+    needs: [deploy-installer, build-and-test]
+    permissions: write-all
+    steps:
+
       - name: checkout website
         uses: actions/checkout@v4
         with:
@@ -987,7 +994,6 @@ jobs:
           repository: OpenMS/OpenMS-website
 
       - name: create text for website and update it.
-        if: inputs.announce_release
         shell: bash
         run:  |
             echo '${{ needs.deploy-installer.outputs.release_text_contents }}' >> OpenMS-website/content/en/news/release${{ needs.build-and-test.outputs.version_number }}.md
@@ -1000,4 +1006,3 @@ jobs:
               git push --set-upstream origin releaseannouncement${{ needs.build-and-test.outputs.version_number }}
               gh pr create --title "Release announcement for ${{ needs.build-and-test.outputs.version_number }}" --body "announces ${{ needs.build-and-test.outputs.version_number }}"
             popd
-
