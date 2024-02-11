@@ -992,6 +992,8 @@ jobs:
         run:  |
             echo '${{ needs.deploy-installer.outputs.release_text_contents }}' >> OpenMS-website/content/en/news/release${{ needs.build-and-test.outputs.version_number }}.md
             pushd OpenMS-website
+              git config --local user.email "action@github.com"
+              git config --local user.name "GitHub Action"
               git checkout -b "releaseannouncement${{ needs.build-and-test.outputs.version_number }}"
               git add content/en/news/release${{ needs.build-and-test.outputs.version_number }}.md
             	git commit -am "Announce release ${{ needs.build-and-test.outputs.version_number }}"
