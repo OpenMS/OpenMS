@@ -987,12 +987,6 @@ jobs:
     permissions: write-all
     steps:
 
-      - name: checkout website
-        uses: actions/checkout@v4
-        with:
-          path: OpenMS-website
-          repository: OpenMS/OpenMS-website
-
       - name: get a token so that we can update the website
         uses: actions/create-github-app-token@v1
         id: app-token
@@ -1000,7 +994,13 @@ jobs:
           app-id: ${{ vars.OPENMS_GITHUB_APP_ID }}
           private-key: ${{ secrets.OPENMS_GITHUB_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
-  
+
+      - name: checkout website
+        uses: actions/checkout@v4
+        with:
+          path: OpenMS-website
+          repository: OpenMS/OpenMS-website
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: create text for website and update it.
         shell: bash
