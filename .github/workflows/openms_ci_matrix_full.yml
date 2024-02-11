@@ -993,8 +993,19 @@ jobs:
           path: OpenMS-website
           repository: OpenMS/OpenMS-website
 
+      - name: get a token so that we can update the website
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.OPENMS_GITHUB_APP_ID }}
+          private-key: ${{ secrets.OPENMS_GITHUB_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+  
+
       - name: create text for website and update it.
         shell: bash
+        env: 
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run:  |
             echo '${{ needs.deploy-installer.outputs.release_text_contents }}' >> OpenMS-website/content/en/news/release${{ needs.build-and-test.outputs.version_number }}.md
             pushd OpenMS-website
