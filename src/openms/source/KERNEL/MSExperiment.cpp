@@ -18,6 +18,10 @@
 #include <algorithm>
 #include <limits>
 
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
+
 namespace OpenMS
 {
   /// Constructor
@@ -88,7 +92,12 @@ namespace OpenMS
   ///@name Iterating ranges and areas
   //@{
   /// Returns an area iterator for @p area
-  MSExperiment::AreaIterator MSExperiment::areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level)
+  MSExperiment::AreaIterator MSExperiment::areaBegin(
+    CoordinateType min_rt, 
+    CoordinateType max_rt, 
+    CoordinateType min_mz, 
+    CoordinateType max_mz, 
+    UInt ms_level)
   {
     OPENMS_PRECONDITION(min_rt <= max_rt, "Swapped RT range boundaries!")
     OPENMS_PRECONDITION(min_mz <= max_mz, "Swapped MZ range boundaries!")
@@ -143,6 +152,304 @@ namespace OpenMS
   MSExperiment::ConstAreaIterator MSExperiment::areaEndConst() const
   {
     return ConstAreaIterator();
+  }
+
+  MSExperiment::CoordinateType MSExperiment::aggregate(ConstAreaIterator begin, ConstAreaIterator end, AggregatorFunc rt_agg, AggregatorFunc mz_agg) const
+  {
+    /*std::vector<MSExperiment::CoordinateType> ity;
+    std::vector<MSExperiment::CoordinateType> tmp;
+    float rt = -1.0f;
+    for (auto it = begin; it != end; ++it)
+    {
+      if (it.getRT() != rt) 
+      {
+        rt = (float)it.getRT();
+        
+        ity.push_back(mz_agg(tmp));
+      }
+      else
+      {
+        tmp.push_back(it->getMZ());
+      }
+    }
+    // TODO we could allow SOA instead of AOS here
+    return rt_agg(rt, mz);*/
+    return 0;
+  }
+
+  std::vector<MSExperiment::CoordinateType> MSExperiment::aggregate(double rt_start, double rt_end, double mz_start, double mz_end, unsigned int ms_level, const std::string& mz_agg) const
+  {
+    if (mz_agg == "sum")
+    {
+      //return aggregate(rt_start, rt_end, mz_start, mz_end, ms_level, [](auto a, auto b) { return a + b; });
+      return aggregate(rt_start, rt_end, mz_start, mz_end, ms_level, [](const MSSpectrum& s, size_t start, size_t end) {
+        double acc = 0.0;
+        for (; start < end; ++start)
+        {
+          acc += s[start].getIntensity();
+        }
+        return acc;
+      });
+    }
+    else if (mz_agg == "max")
+    {
+      return aggregate(rt_start, rt_end, mz_start, mz_end, ms_level, [](auto a, auto b) { return std::max(a, b); });
+    }
+    else if (mz_agg == "min")
+    {
+      return aggregate(rt_start, rt_end, mz_start, mz_end, ms_level, [](auto a, auto b) { return std::min(a, b); });
+    }
+    else if (mz_agg == "mean")
+    {
+      return aggregate(rt_start, rt_end, mz_start, mz_end, ms_level, [](const MSSpectrum& s, size_t start, size_t end) {
+        double acc = 0.0;
+        for (size_t i = start; i < end; ++i)
+        {
+          acc += s[i].getIntensity();
+        }
+        return acc / (end - start);
+       });
+    }
+    else
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid aggregation function", mz_agg);
+    }
+  }
+
+  std::vector<MSExperiment::CoordinateType> MSExperiment::aggregate(double rt_start, double rt_end, double mz_start, double mz_end, unsigned int ms_level, ReduceFunc&& mz_agg) const
+  {
+    auto idcs = this->getSpectraIdcsByRetentionTime(rt_start, rt_end, ms_level);
+    std::vector<CoordinateType> res;
+    res.resize(idcs.size());
+    
+    #pragma omp parallel for
+    for (Size i = 0; i < idcs.size(); ++i)
+    {
+      CoordinateType acc = 0.0;
+      const auto& spec = spectra_[idcs[i]];
+      auto it_start = spec.PosBegin(mz_start);
+      auto it_end = spec.PosEnd(mz_end);
+      for (auto it = it_start; it != it_end; ++it)
+      {
+        acc = mz_agg(acc, it->getIntensity());
+      }
+      res[i] = acc;
+    }
+
+    return res;
+  }
+
+  std::vector<MSExperiment::CoordinateType> MSExperiment::aggregate(double rt_start, double rt_end, double mz_start, double mz_end, unsigned int ms_level, AggregatorFunc&& mz_agg) const
+  {
+    auto idcs = this->getSpectraIdcsByRetentionTime(rt_start, rt_end, ms_level);
+    std::vector<CoordinateType> res;
+    res.resize(idcs.size());
+    
+    #pragma omp parallel for
+    for (Size i = 0; i < idcs.size(); ++i)
+    {
+      const auto& spec = spectra_[idcs[i]];
+      auto spec_zero = spec.begin();
+      size_t start = spec.PosBegin(mz_start) - spec_zero;
+      size_t end = spec.PosEnd(mz_end) - spec_zero;
+      // the following segfaults but would be cool if it worked. Probably because of the different types for position and intensity?
+      /*const double* bPtr = (spec[0].getPosition().begin()); // pointer to the first position value
+      auto peaks = Eigen::Map<const Eigen::MatrixX2d, Eigen::Unaligned, Eigen::InnerStride<sizeof(Peak1D)>>(bPtr, spec.size()/2, 2);
+      res[i] = peaks(Eigen::seq(start, end), 1).sum();*/
+      res[i] = mz_agg(spec, start, end);
+    }
+
+    return res;
+  }
+
+  std::vector<std::pair<size_t,size_t>> MSExperiment::getRangesIdcs_(const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges) const 
+  {
+    const auto zero = spectra_.begin();
+    std::vector<std::pair<size_t,size_t>> res;
+    res.reserve(mz_rt_ranges.size());
+    for (const auto & mz_rt : mz_rt_ranges) 
+    {
+      res.emplace_back(RTBegin(mz_rt.second.getMin()) - zero, RTEnd(mz_rt.second.getMax()) - zero);
+    }
+    return res;
+  }
+
+
+  std::vector<std::vector<MSExperiment::CoordinateType>> MSExperiment::aggregate(
+      std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
+      unsigned int ms_level,
+      const std::string& mz_agg) const
+  {
+    if (mz_agg == "sum")
+    {
+      /*return aggregate(mz_rt_ranges, ms_level, [](const MSSpectrum& s, size_t start, size_t end) {
+        double acc = 0.0;
+        for (; start < end; ++start)
+        {
+          acc += s[start].getIntensity();
+        }
+        return acc;
+      });*/
+      return aggregate(mz_rt_ranges, ms_level, [](auto a, auto b) { return a + b; });
+    }
+    else if (mz_agg == "mean")
+    {
+      return aggregate(mz_rt_ranges, ms_level, [](const MSSpectrum& s, size_t start, size_t end) {
+        double acc = 0.0;
+        for (size_t i = start; i < end; ++i)
+        {
+          acc += s[i].getIntensity();
+        }
+        return acc / (end - start);
+       });
+    }
+    else
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid aggregation function", mz_agg);
+    }
+  }
+
+  std::vector<std::vector<MSExperiment::CoordinateType>> MSExperiment::aggregate(
+      std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
+      unsigned int ms_level,
+      ReduceFunc&& mz_agg) const
+  {
+    // sort mz_ranges ascending by first and descending by second value
+    std::sort(mz_rt_ranges.begin(), mz_rt_ranges.end(), [](auto& a, auto& b) {
+      // Sort by first value in ascending order
+      if (a.first.getMinMZ() < b.first.getMinMZ())
+        return true;
+      if (a.first.getMinMZ() > b.first.getMinMZ())
+        return false;
+      // If first values are equal, sort by second value in descending order
+      return a.first.getMaxMZ() > b.first.getMaxMZ();
+    });
+
+    std::vector<std::vector<MSExperiment::CoordinateType>> res;
+    res.resize(mz_rt_ranges.size());
+    
+    const std::vector<std::pair<size_t, size_t>> rt_ranges_idcs = getRangesIdcs_(mz_rt_ranges/*ms_level*/); //TODO ms_level
+
+    // TODO this can be wasteful if we do not have small or repeating rt_ranges and we 
+    //  only extract mz ranges from a few spectra.
+    std::vector<std::vector<size_t>> spec_idx2mz_range_idx(spectra_.size());
+    for (size_t i = 0; i < rt_ranges_idcs.size(); ++i)
+    {
+      // TODO think about reserve and later emplace to avoid double init. In theory it should never
+      //  grow 
+      res[i].resize(rt_ranges_idcs[i].second - rt_ranges_idcs[i].first);
+      for (size_t j = rt_ranges_idcs[i].first; j < rt_ranges_idcs[i].second; ++j)
+      {
+        spec_idx2mz_range_idx[j].push_back(i);
+      }
+    }
+
+    std::vector<std::pair<size_t,std::vector<size_t>>> spec_idx2mz_range_idx_non_empty;
+    for (size_t i = 0; i < spec_idx2mz_range_idx.size(); ++i)
+    {
+      if (!spec_idx2mz_range_idx[i].empty())
+      {
+        spec_idx2mz_range_idx_non_empty.emplace_back(i, spec_idx2mz_range_idx[i]);
+      }
+    }
+    spec_idx2mz_range_idx.clear();
+
+    #pragma omp parallel for
+    for (Size i = 0; i < spec_idx2mz_range_idx_non_empty.size(); ++i)
+    {
+      const auto& spec = spectra_[spec_idx2mz_range_idx_non_empty[i].first];
+      auto spec_zero = spec.begin();
+      // TODO implement "parallelized" binary search for multiple values
+      // Options:
+      //  - interleaving/unrolling such that processor can continue its work while waiting for memory (https://lemire.me/blog/2019/09/14/speeding-up-independent-binary-searches-by-interleaving-them/)
+      //  - SIMD https://github.com/fabiocannizzo/FastBinarySearch/tree/master (but out AoS layout must go). AoS should go anyway. Also prevents us from SIMD summing/maxing
+      //  - SIMD for multiple keys https://dare.uva.nl/document/142770
+      //  - Use the sortedness of the our mz ranges to restrict binsearch ranges between following ranges (https://github.com/juliusmilan/multi_value_binary_search)
+      //  - OpenMP on different parts of the vector (but we have an outer OpenMP loop already.)
+      auto start_it = spec_zero;
+      double acc;
+      for (const auto& range_to_extract : spec_idx2mz_range_idx_non_empty[i].second)
+      {
+        acc = 0.;
+        start_it = spec.PosBegin(start_it, mz_rt_ranges[range_to_extract].first.getMinMZ(), spec.end());
+        auto it = start_it;
+        while(it->getPosition() < mz_rt_ranges[range_to_extract].first.getMaxMZ() && it != spec.end())
+        {
+          acc = mz_agg(acc, it->getIntensity());
+          ++it;
+        }
+        res[range_to_extract][i-rt_ranges_idcs[range_to_extract].first] = acc;
+      }
+    }
+    return res;
+  }
+
+  std::vector<std::vector<MSExperiment::CoordinateType>> MSExperiment::aggregate(
+      std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
+      unsigned int ms_level,
+      AggregatorFunc&& mz_agg) const
+  {
+    // sort mz_ranges ascending by first and descending by second value
+    // Define a custom comparator for sorting rt_ranges
+    std::sort(mz_rt_ranges.begin(), mz_rt_ranges.end(), [](auto& a, auto& b) {
+      // Sort by first value in ascending order
+      if (a.first.getMinMZ() < b.first.getMinMZ())
+        return true;
+      if (a.first.getMinMZ() > b.first.getMinMZ())
+        return false;
+      // If first values are equal, sort by second value in descending order
+      return a.first.getMaxMZ() > b.first.getMaxMZ();
+    });
+
+    std::vector<std::vector<MSExperiment::CoordinateType>> res;
+    res.resize(mz_rt_ranges.size());
+    
+    const std::vector<std::pair<size_t, size_t>> rt_ranges_idcs = getRangesIdcs_(mz_rt_ranges/*, ms_level*/);
+    std::vector<std::vector<size_t>> spec_idx2mz_range_idx(spectra_.size());
+    for (size_t i = 0; i < rt_ranges_idcs.size(); ++i)
+    {
+      // TODO think about reserve and later emplace to avoid double init.
+      res[i].resize(rt_ranges_idcs[i].second - rt_ranges_idcs[i].first);
+      for (size_t j = rt_ranges_idcs[i].first; j < rt_ranges_idcs[i].second; ++j)
+      {
+        spec_idx2mz_range_idx[j].push_back(i);
+      }
+    }
+
+    #pragma omp parallel for
+    for (Size i = 0; i < spec_idx2mz_range_idx.size(); ++i)
+    {
+      const auto& spec = spectra_[i];
+      auto spec_zero = spec.begin();
+      // TODO think about implementing "parallelized" binary search for multiple values
+      // Options:
+      //  - interleaving/unrolling such that processor can continue its work while waiting for memory (https://lemire.me/blog/2019/09/14/speeding-up-independent-binary-searches-by-interleaving-them/)
+      //  - https://github.com/fabiocannizzo/FastBinarySearch/tree/master (but out AoS layout must go). AoS should go anyway. Also prevents us from SIMD summing/maxing
+      //  - https://github.com/juliusmilan/multi_value_binary_search (but mz_ranges are not necessarily sorted)
+      //  - OpenMP on different parts of the vector (but we have an outer OpenMP loop already.)
+      auto start_it = spec_zero;
+      auto end_it = spec.end();
+      size_t start = 0;
+      size_t end = 0;
+      for (size_t j = 0; j < spec_idx2mz_range_idx[i].size(); ++j)
+      {
+        start_it = spec.PosBegin(start_it, mz_rt_ranges[spec_idx2mz_range_idx[i][j]].first.getMinMZ(), end_it);
+        start = start_it - spec_zero;
+        // TODO evaluate if we should have two versions for large and small ranges. For ranges < 1 Da I have
+        //  seen a 10% speedup with linear search from start. I mean, if I see this correctly, we could
+        //  combine this with aggregation (if we only allow accumulating functions). During aggregation
+        //  we have to compare the current index with the end index anyway.
+        auto it = start_it;
+        while(it->getPosition() < mz_rt_ranges[spec_idx2mz_range_idx[i][j]].first.getMaxMZ() && it != end_it)
+        {
+          ++it;
+        }
+        end = it - spec_zero;
+        //end = spec.PosEnd(mz_rt_ranges[spec_idx2mz_range_idx[i][j]].first.getMaxMZ()) - spec_zero;
+        res[spec_idx2mz_range_idx[i][j]][i-rt_ranges_idcs[spec_idx2mz_range_idx[i][j]].first] = mz_agg(spec, start, end);
+      }
+    }
+    return res;
   }
 
   /**
@@ -212,6 +519,29 @@ namespace OpenMS
   }
 
   //@}
+
+  std::pair<Size, Size> MSExperiment::getSpectraIdxRangeByRetentionTime(double start, double end) const 
+  {
+    Size startIndex = this->RTBegin(start) - spectra_.begin();
+    Size endIndex = this->RTEnd(end) - spectra_.begin();
+
+    return { startIndex, endIndex };
+  }
+
+  std::vector<Size> MSExperiment::getSpectraIdcsByRetentionTime(double start, double end, unsigned int ms_level) const {
+    Size startIndex = this->RTBegin(start) - spectra_.begin();
+    Size endIndex = this->RTEnd(end) - spectra_.begin();
+
+    std::vector<Size> indices;
+    for (Size i = startIndex; i < endIndex; ++i)
+    {
+      if(spectra_[i].getMSLevel() == ms_level)
+      {
+        indices.push_back(i);
+      }
+    }
+    return indices;
+  }
 
   /**
   @name Range methods
@@ -504,14 +834,8 @@ namespace OpenMS
     }
   }
 
-  /**
-  @brief Returns the precursor spectrum of the scan pointed to by @p iterator
 
-  If there is no precursor scan the past-the-end iterator is returned.
-  This assumes that precursors occur somewhere before the current spectrum
-  but not necessarily the first one from the last MS level (we double-check with
-  the annotated precursorList.
-  */
+  // TODO allow choosing which precursor (i.e. by passing index to lookup in precursor list and defaulting to 0)
   MSExperiment::ConstIterator MSExperiment::getPrecursorSpectrum(ConstIterator iterator) const
   {
     // if we are after the end or at the beginning where we can't go "up"
@@ -548,7 +872,7 @@ namespace OpenMS
     }
 
     // if no precursor annotation was found or it did not have a spectrum reference,
-    // just
+    // just get the first scan with a lower level
     do
     {
       --iterator;
@@ -568,7 +892,55 @@ namespace OpenMS
     spec += zero_based_index;
     auto pc_spec = getPrecursorSpectrum(spec);
     if (pc_spec == spectra_.cend()) return -1;
-    return pc_spec - spectra_.cbegin(); 
+    return pc_spec - spectra_.cbegin();
+  }
+
+
+  MSExperiment::ConstIterator MSExperiment::getFirstProductSpectrum(ConstIterator iterator) const
+  {
+    // if we are after the end we can't go "down"
+    if (iterator == spectra_.end())
+    {
+      return spectra_.end();
+    }
+    UInt ms_level = iterator->getMSLevel();
+
+    auto tmp_spec_iter = iterator; // such that we can reiterate later
+    do
+    {
+      ++tmp_spec_iter;
+      if ((tmp_spec_iter->getMSLevel() - ms_level) == 1)
+      {
+        if (!tmp_spec_iter->getPrecursors().empty())
+        {
+          //TODO warn about taking first with the blocking LOG_WARN in such a central class?
+          //if (iterator->getPrecursors().size() > 1) ...
+
+          const auto precursor = tmp_spec_iter->getPrecursors()[0];
+          String ref = precursor.getMetaValue("spectrum_ref", "");  
+          if (!ref.empty() && ref == iterator->getNativeID())
+          {
+            return tmp_spec_iter;
+          }
+        }
+      }
+      else if (tmp_spec_iter->getMSLevel() < ms_level)
+      {
+        return spectra_.end();
+      }
+    } while (tmp_spec_iter != spectra_.end());
+    
+    return spectra_.end();
+  }
+
+  // same as above but easier to wrap in python
+  int MSExperiment::getFirstProductSpectrum(int zero_based_index) const
+  {
+    auto spec = spectra_.cbegin();
+    spec += zero_based_index;
+    auto pc_spec = getFirstProductSpectrum(spec);
+    if (pc_spec == spectra_.cend()) return -1;
+    return pc_spec - spectra_.cbegin();
   }
 
   /// Swaps the content of this map with the content of @p from

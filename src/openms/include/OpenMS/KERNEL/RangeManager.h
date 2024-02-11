@@ -287,6 +287,7 @@ namespace OpenMS
 
     // Rule of 0!
     using RangeBase::RangeBase; // inherit C'tors from base
+    using RangeBase::operator=;
 
     /** @name Accessors for min and max
 
@@ -347,6 +348,7 @@ namespace OpenMS
 
     // Rule of 0!
     using RangeBase::RangeBase; // inherit C'tors from base
+    using RangeBase::operator=;
 
     /** @name Accessors for min and max
 
@@ -385,7 +387,7 @@ namespace OpenMS
       extend(value);
     }
 
-    /// is @p value within [min, max]?
+    /// is @p value within [min, max]? 
     bool containsMZ(const double value) const
     {
       return RangeBase::contains(value);
@@ -405,6 +407,7 @@ namespace OpenMS
 
     // Rule of 0!
     using RangeBase::RangeBase; // inherit C'tors from base
+    using RangeBase::operator=;
 
     /** @name Accessors for min and max
 
@@ -803,7 +806,7 @@ namespace OpenMS
       });
     }
 
-    /// Resets the dimension of the given @p range. Any type of ion mobility in @p range will clear the RTMobility dimension.
+    /// Resets the dimension of the given @p range. Any type of ion mobility in @p range will clear the Mobility dimension.
     /// If the @p range is not contained in this class, then nothing happens.
     ThisRangeType& clear(const DIM_UNIT range)
     {

@@ -274,6 +274,84 @@ START_SECTION((template<class Container> void get2DData(Container& cont) const))
 }
 END_SECTION
 
+START_SECTION((aggregate))
+{
+  PeakMap exp;
+  PeakMap::SpectrumType spec;
+  PeakMap::PeakType peak;
+
+  // first spectrum (MS)
+  spec.setRT(11.1);
+  spec.setMSLevel(1);
+  peak.getPosition()[0] = 5;
+  peak.setIntensity(47.11f);
+  spec.push_back(peak);
+  peak.getPosition()[0] = 10;
+  peak.setIntensity(48.11f);
+  spec.push_back(peak);
+  peak.getPosition()[0] = 15;
+  spec.push_back(peak);
+  exp.addSpectrum(spec);
+
+  // second spectrum (MS)
+  spec.clear(true);
+  spec.setRT(11.5);
+  spec.setMSLevel(1);
+  peak.getPosition()[0] = 6;
+  peak.setIntensity(1.0f);
+  spec.push_back(peak);
+  peak.getPosition()[0] = 11;
+  peak.setIntensity(2.0f);
+  spec.push_back(peak);
+  exp.addSpectrum(spec);
+
+  // third spectrum (MS)
+  spec.clear(true);
+  spec.setRT(12.2);
+  spec.setMSLevel(1);
+  peak.getPosition()[0] = 20;
+  peak.setIntensity(3.0f);
+  spec.push_back(peak);
+  peak.getPosition()[0] = 25;
+  peak.setIntensity(4.0f);
+  spec.push_back(peak);
+  exp.addSpectrum(spec);
+
+  // fourth spectrum (MS)
+  spec.clear(true);
+  spec.setRT(12.5);
+  spec.setMSLevel(1);
+  peak.getPosition()[0] = 21;
+  peak.setIntensity(5.1f);
+  spec.push_back(peak);
+  peak.getPosition()[0] = 26;
+  peak.setIntensity(600000000.0f);
+  spec.push_back(peak);
+  peak.getPosition()[0] = 26.01;
+  peak.setIntensity(600000000.0f);
+  spec.push_back(peak);
+  peak.getPosition()[0] = 26.1;
+  peak.setIntensity(600000000.0f);
+  spec.push_back(peak);
+  peak.getPosition()[0] = 26.2;
+  peak.setIntensity(600000000.0f);
+  spec.push_back(peak);
+  peak.getPosition()[0] = 31;
+  peak.setIntensity(7.0f);
+  spec.push_back(peak);
+  exp.addSpectrum(spec);
+  exp.updateRanges();
+
+  //Convert
+  std::vector<double> ret = exp.aggregate(11.4, 12.6, 19, 27, 1, "sum");
+  std::cout << ret.size() << std::endl;
+  for (Size i = 0; i < ret.size(); ++i)
+  {
+    std::cout << ret[i] << "," << std::endl;
+  }
+}
+END_SECTION
+
 START_SECTION((template <class Container> void set2DData(const Container& cont, const StringList& store_metadata_names = StringList())))
 {
   NOT_TESTABLE // tested below

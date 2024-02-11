@@ -400,10 +400,8 @@ namespace OpenMS
   void ProteinResolver::primaryProteins_(vector<PeptideEntry> & peptide_nodes, vector<Size> & reindexed_peptides)
   {
     //primary proteins
-    Size pc = 0;
     for (vector<Size>::iterator pep = reindexed_peptides.begin(); pep != reindexed_peptides.end(); ++pep)
     {
-      ++pc;
       if (peptide_nodes[*pep].proteins.size() == 1)
       {
         peptide_nodes[*pep].proteins.front()->protein_type = ProteinEntry::primary;
@@ -466,10 +464,8 @@ namespace OpenMS
     }
     // ISDGraph construction (find connected components)
     Size isd_group_counter = 0;
-    Size i = 0;
     for (vector<ProteinEntry>::iterator prot_node = protein_nodes.begin(); prot_node != protein_nodes.end(); ++prot_node)
     {
-      ++i;
       std::vector<ProteinEntry*> q_prot;
       std::vector<PeptideEntry*> q_pep;
       // initial node

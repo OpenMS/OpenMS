@@ -41,7 +41,8 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI MSExperiment final : public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility>,
+  class OPENMS_DLLAPI MSExperiment final : 
+    public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility>,
     public ExperimentalSettings
   {
 
@@ -313,9 +314,9 @@ public:
     ///@name Iterating ranges and areas
     //@{
     /// Returns an area iterator for @p area
-    AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt  ms_level = 1);
+    AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level = 1);
 
-    /// Returns a area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
+    /// Returns an area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
     AreaIterator areaBegin(const RangeManagerType& range, UInt ms_level = 1);
 
     /// Returns an invalid area iterator marking the end of an area
@@ -327,17 +328,130 @@ public:
     /// Returns a non-mutable area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
     ConstAreaIterator areaBeginConst(const RangeManagerType& range, UInt ms_level = 1) const;
 
-    /// Returns an non-mutable invalid area iterator marking the end of an area
+    /// Returns a non-mutable invalid area iterator marking the end of an area
     ConstAreaIterator areaEndConst() const;
 
-    // for fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity]]
-    void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
+
+    /**
+     * @brief Retrieves the indices of the ranges in the MSExperiment object that correspond to the given mz-rt ranges.
+     *
+     * This function takes a vector of mz-rt ranges and returns a vector of pairs of size_t values representing the indices of the ranges in the MSExperiment object that fall within the given mz-rt ranges.
+     *
+     * @param mz_rt_ranges A vector of pairs of RangeMZ and RangeRT objects representing the mz-rt ranges.
+     * @return A vector of pairs of size_t values representing the indices of the ranges in the MSExperiment object.
+     */
+    std::vector<std::pair<size_t,size_t>> getRangesIdcs_(const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges) const;
+    
+    /**
+     * @brief returns start end end index of spectra that fall within the given rt range
+     */
+    std::pair<Size, Size> getSpectraIdxRangeByRetentionTime_(double start_rt, double end_rt) const;
+
+    /**
+     * @brief Retrieves the indices of spectra based on retention time.
+     *
+     * This function returns a vector of indices corresponding to spectra that fall within the specified retention time range and have the specified MS level.
+     *
+     * @param start The start of the retention time range.
+     * @param end The end of the retention time range.
+     * @param ms_level The MS level of the spectra to consider.
+     * @return A vector of indices of spectra that meet the specified criteria.
+     */
+    std::vector<Size> getSpectraIdcsByRetentionTime(double start, double end, unsigned int ms_level) const;
+
+    /**
+     * @brief Type alias for a function that aggregates data from a range of MSSpectrum objects.
+     *
+     * This function type is used as a parameter in various algorithms that operate on MSExperiment objects.
+     * The function takes a reference to an MSSpectrum object, as well as the start and end indices of a range of spectra,
+     * and returns a CoordinateType value that represents the aggregated result.
+     *
+     * @param s The MSSpectrum object to aggregate data from.
+     * @param start The peark start index.
+     * @param end The peak end index.
+     * @return The aggregated result as a CoordinateType value.
+     */
+    using AggregatorFunc = std::function<CoordinateType(const MSSpectrum& s, size_t start, size_t end)>;
+    
+    /**
+     * @brief Type alias for a reduce function.
+     *
+     * The reduce function is typically used to combine multiple values into a single value, such as in aggregation operations.
+     *
+     * @param arg1 The first argument of the reduce function.
+     * @param arg2 The second argument of the reduce function.
+     * @return The result of the reduce function.
+     */
+    using ReduceFunc = std::function<CoordinateType(CoordinateType&, CoordinateType)>;
+
+    /** @brief Aggregate all peaks in the range given by the begin and end area iterators.
+     *  The aggregation is performed in the order of the dimensions of the peaks.
+     *  Note: This allows to e.g., calculate total ion current.
+    **/ 
+    MSExperiment::CoordinateType aggregate(ConstAreaIterator begin, ConstAreaIterator end, AggregatorFunc rt, AggregatorFunc mz) const;
+    MSExperiment::CoordinateType aggregate(ConstAreaIterator begin, ConstAreaIterator end, ReduceFunc rt, AggregatorFunc mz) const;
+    MSExperiment::CoordinateType aggregate(ConstAreaIterator begin, ConstAreaIterator end, AggregatorFunc rt, ReduceFunc mz) const;
+    MSExperiment::CoordinateType aggregate(ConstAreaIterator begin, ConstAreaIterator end, ReduceFunc rt, ReduceFunc mz) const;
+
+    /** @brief Aggregate all peaks in the range given by the coordinates.
+     *  @param rt_start The start of the retention time range.
+     *  @param rt_end The end of the retention time range.
+     *  @param mz_start The start of the m/z range.
+     *  @param mz_end The end of the m/z range.
+     *  @param ms_level The MS level of the spectra to consider.
+     *  @param mz_agg The aggregation function to use for m/z.
+     *  The aggregation is performed in the order of the dimensions of the peaks.
+     *  Note: This allows to e.g., calculate total ion current for an area or XIC extraction functions.
+    **/ 
+    std::vector<MSExperiment::CoordinateType> aggregate(double rt_start, double rt_end, double mz_start, double mz_end, unsigned int ms_level, const std::string& mz_agg) const;
+    std::vector<MSExperiment::CoordinateType> aggregate(double rt_start, double rt_end, double mz_start, double mz_end, unsigned int ms_level, ReduceFunc&& mz_agg) const;
+    std::vector<MSExperiment::CoordinateType> aggregate(double rt_start, double rt_end, double mz_start, double mz_end, unsigned int ms_level, AggregatorFunc&& mz_agg) const;
+
+    /** @brief Aggregate all peaks in the range given by the coordinates.
+     *  @param mz_rt_ranges A vector of pairs of RangeMZ and RangeRT objects representing the mz-rt ranges.
+     *  @param ms_level The MS level of the spectra to consider.
+     *  @param mz_agg The aggregation function to use for m/z.
+     *  The aggregation is performed in the order of the dimensions of the peaks.
+     *  Note: This allows to e.g., calculate total ion current for an area or XIC extraction functions.
+     **/
+    std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
+      std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
+      unsigned int ms_level,
+      const std::string& mz_agg) const;
+    std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
+      std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
+      unsigned int ms_level,
+      AggregatorFunc&& mz_agg) const;
+    std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
+      std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
+      unsigned int ms_level,
+      ReduceFunc&& mz_agg) const;
+    
+    /* @brief Retrieves the peak data in the given mz-rt range and store data spectrum-wise in separate arrays.
+     * 
+     * For fast pyOpenMS access to peak data in format: [rt, [mz, intensity]]
+     * 
+     * @param min_rt The minimum retention time.
+     * @param max_rt The maximum retention time.
+     * @param min_mz The minimum m/z value.
+     * @param max_mz The maximum m/z value.
+     * @param ms_level The MS level of the spectra to consider.
+     * @param rt The vector to store the retention times in.
+     * @param mz The vector to store the m/z values in.
+     * @param intensity The vector to store the intensities in.
+     */
+    void get2DPeakDataPerSpectrum(
+      CoordinateType min_rt, 
+      CoordinateType max_rt, 
+      CoordinateType min_mz, 
+      CoordinateType max_mz,
+      Size ms_level,
       std::vector<float>& rt, 
       std::vector<std::vector<float>>& mz, 
       std::vector<std::vector<float>>& intensity) const
     {
       float t = -1.0;
-      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
       {
         if (it.getRT() != t) 
         {
@@ -349,41 +463,61 @@ public:
       }
     }
 
-    // for fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity, ion mobility]]
-    void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
+    /* @brief Retrieves the peak data in the given mz-rt range and store data spectrum-wise in separate arrays.
+     * 
+     * For fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity, ion mobility]]
+     * 
+     * @param min_rt The minimum retention time.
+     * @param max_rt The maximum retention time.
+     * @param min_mz The minimum m/z value.
+     * @param max_mz The maximum m/z value.
+     * @param ms_level The MS level of the spectra to consider.
+     * @param rt The vector to store the retention times in.
+     * @param mz The vector to store the m/z values in.
+     * @param intensity The vector to store the intensities in.
+    */
+    void get2DPeakDataIMPerSpectrum(
+      CoordinateType min_rt, 
+      CoordinateType max_rt, 
+      CoordinateType min_mz, 
+      CoordinateType max_mz,      
       std::vector<float>& rt, 
+      Size ms_level,
       std::vector<std::vector<float>>& mz,
       std::vector<std::vector<float>>& intensity, 
       std::vector<std::vector<float>>& ion_mobility) const
     {
+      DriftTimeUnit unit;
+      std::vector<float> im;
       float t = -1.0;
-      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
       {
         if (it.getRT() != t)
         {
           t = (float)it.getRT();
           rt.push_back(t);
+          std::tie(unit, im) = it.getSpectrum().maybeGetIMData();
         }
-        
-        const MSSpectrum& spectrum = it.getSpectrum();
-        bool has_IM = spectrum.containsIMData();
-        float peak_IM{-1.0f};
-        if (has_IM)
-        {
-          const auto& im_data = spectrum.getIMData();
-          const Size peak_index = it.getPeakIndex().peak;
-          if (spectrum.getFloatDataArrays()[im_data.first].size() == spectrum.size())
-          {
-            peak_IM = spectrum.getFloatDataArrays()[im_data.first][peak_index];
-          }          
-        }
-        ion_mobility.back().push_back(peak_IM);
+        const Size peak_index = it.getPeakIndex().peak;
+        ion_mobility.back().push_back(im[peak_index]);
         mz.back().push_back((float)it->getMZ());
         intensity.back().push_back(it->getIntensity());
       }
     }
 
-    // for fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity]
+    /* @brief Retrieves the peak data in the given mz-rt range and store in separate arrays.
+     * 
+     * For fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity]
+     * 
+     * @param min_rt The minimum retention time.
+     * @param max_rt The maximum retention time.
+     * @param min_mz The minimum m/z value.
+     * @param max_mz The maximum m/z value.
+     * @param ms_level The MS level of the spectra to consider.
+     * @param rt The vector to store the retention times in.
+     * @param mz The vector to store the m/z values in.
+     * @param intensity The vector to store the intensities in.
+    */    
     void get2DPeakData(
       CoordinateType min_rt,
       CoordinateType max_rt,
@@ -401,36 +535,45 @@ public:
       }
     }
 
-    // for fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity, ion mobility]
-    void get2DPeakDataIon(
+    /* @brief Retrieves the peak data in the given mz-rt range and store in separate arrays.
+     * 
+     * For fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity, ion mobility]
+     * 
+     * @param min_rt The minimum retention time.
+     * @param max_rt The maximum retention time.
+     * @param min_mz The minimum m/z value.
+     * @param max_mz The maximum m/z value.
+     * @param ms_level The MS level of the spectra to consider.
+     * @param rt The vector to store the retention times in.
+     * @param mz The vector to store the m/z values in.
+     * @param intensity The vector to store the intensities in.
+    */
+    void get2DPeakDataIM(
       CoordinateType min_rt,
       CoordinateType max_rt,
       CoordinateType min_mz,
       CoordinateType max_mz,
+      Size ms_level,
       std::vector<float>& rt,
       std::vector<float>& mz,
       std::vector<float>& intensity,
       std::vector<float>& ion_mobility) const
     {
-      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
       {
+        DriftTimeUnit unit;
+        std::vector<float> im;
+        float t = -1.0;
+        if (it.getRT() != t)
+        {
+          t = (float)it.getRT();
+          std::tie(unit, im) = it.getSpectrum().maybeGetIMData();
+        }
         rt.push_back((float)it.getRT());
         mz.push_back((float)it->getMZ());
         intensity.push_back(it->getIntensity());
-
-        const MSSpectrum& spectrum = it.getSpectrum();
-        bool has_IM = spectrum.containsIMData();
-        float peak_IM = -1.0;
-        if (has_IM)
-        {
-          const auto& im_data = spectrum.getIMData();
-          const Size& peak_index = it.getPeakIndex().peak;
-          if (spectrum.getFloatDataArrays()[im_data.first].size() == spectrum.size())
-          {
-            peak_IM = spectrum.getFloatDataArrays()[im_data.first][peak_index];
-          }          
-        }        
-        ion_mobility.push_back(peak_IM);
+        const Size peak_index = it.getPeakIndex().peak;
+        ion_mobility.push_back(im[peak_index]);
       }
     }
 
@@ -576,16 +719,58 @@ public:
     /**
       @brief Returns the precursor spectrum of the scan pointed to by @p iterator
 
-      If there is no precursor scan the past-the-end iterator is returned.
+      If there is no (matching) precursor scan the past-the-end iterator is returned.
+      This assumes that precursors occur somewhere before the current spectrum
+      but not necessarily the first one from the last MS level (we double-check with
+      the annotated precursorList.
+      If precursor annotations are present, uses the native spectrum ID from the 
+      @em first precursor entry of the current scan
+      for comparisons -> Works for multiple precursor ranges from the same precursor scan
+      but not for multiple precursor ranges from different precursor scans.
+      If none are present, picks the first scan of a lower level.
     */
     ConstIterator getPrecursorSpectrum(ConstIterator iterator) const;
 
     /**
       @brief Returns the index of the precursor spectrum for spectrum at index @p zero_based_index
 
-      If there is no precursor scan -1 is returned.
+      If there is no precursor scan -1 is returned. Wraps @ref getPrecursorSpectrum(ConstIterator).
     */
     int getPrecursorSpectrum(int zero_based_index) const;
+
+    /**
+      @brief Returns the first product spectrum of the scan pointed to by @p iterator
+
+      A product spectrum is a spectrum of the next higher MS level that has the
+      current spectrum as precursor.
+      If there is no product scan, the past-the-end iterator is returned.
+      This assumes that product occurs somewhere after the current spectrum
+      and comes before the next scan that is of a level that is lower than
+      the current one.
+\verbatim
+      Example:
+      MS1 - ix: 0
+        MS2 - ix: 1, prec: 0
+        MS2 - ix: 2, prec: 0 <-- current scan
+        MS3 - ix: 3, prec: 1
+        MS3 - ix: 4, prec: 2 <-- product scan
+        MS2 - ix: 5, prec: 0
+        MS3 - ix: 6, prec: 5
+      MS1 - ix: 7
+        ...  <-- Not searched anymore. Returns end of experiment iterator if not found until here.
+\endverbatim
+      Uses the native spectrum ID from the @em first precursor entry of the potential product scans
+      for comparisons -> Works for multiple precursor ranges from the same precursor scan
+      but not for multiple precursor ranges from different precursor scans.
+    */
+    ConstIterator getFirstProductSpectrum(ConstIterator iterator) const;
+    
+    /**
+      @brief Returns the index of the first product spectrum for spectrum at index @p zero_based_index
+
+      If there is no precursor scan -1 is returned. Wraps @ref getFirstProductSpectrum(ConstIterator).
+    */
+    int getFirstProductSpectrum(int zero_based_index) const;
 
     /// Swaps the content of this map with the content of @p from
     void swap(MSExperiment& from);
