@@ -448,9 +448,22 @@ jobs:
       uses: thedoctor0/zip-release@0.7.6
       with:
         type: 'tar'
-        directory: ${{ github.workspace }}/OpenMS
-        exclusions: '/bld/*'
+        directory: ${{ github.workspace }}
+        path: OpenMS
+        exclusions: 'bld/* ./source.tar.gz THIRDPARTY/* .git/*'
         filename: 'source.tar.gz'
+
+        
+
+   # Upload the source tar
+    - name: Upload source tar as artifact
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
+      uses: actions/upload-artifact@v4
+      with:
+        name: source.tar.gz
+        path: |
+          ${{ github.workspace }}/source.tar.gz
+
 
     # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
 
@@ -971,12 +984,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: OpenMS-website
+          repository: OpenMS/OpenMS-website
 
       - name: create text for website and update it.
         if: inputs.announce_release
         shell: bash
         run:  |
-            echo ${{ needs.deploy-installer.outputs.release_text_contents }} >> OpenMS-website/content/en/news/release${{ needs.build-and-test.outputs.version_number }}.md
+            echo '${{ needs.deploy-installer.outputs.release_text_contents }}' >> OpenMS-website/content/en/news/release${{ needs.build-and-test.outputs.version_number }}.md
             pushd OpenMS-website
               git checkout -b "releaseannouncement${{ needs.build-and-test.outputs.version_number }}"
               git add content/en/news/release${{ needs.build-and-test.outputs.version_number }}.md
