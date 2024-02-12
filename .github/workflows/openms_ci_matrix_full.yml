@@ -549,8 +549,7 @@ jobs:
           if [[ "${{ github.ref_name }}" == "nightly" ]]; then
             folder=nightlyGHA                       # TODO: Change back when we deactivate Jenkins
           elif [[ "${{ github.ref_name }}" == release/* ]]; then
-            tmpfolder=${{ github.ref_name }}
-            folder=${tmpfolder/release/RC_GHA}      # TODO: change back to RC after proper release
+            folder=RC_GHA/${{ github.ref_name }}      # TODO: change back to RC after proper release
           else
             folder=experimental/${{ github.ref_name }}
           fi
@@ -569,11 +568,19 @@ jobs:
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
         run: |
+          if [[ "${{ github.ref_name }}" == "nightly" ]]; then
+            folder=nightlyGHA                       # TODO: Change back when we deactivate Jenkins
+          elif [[ "${{ github.ref_name }}" == release/* ]]; then
+            folder=RC_GHA/${{ github.ref_name }}      # TODO: change back to RC after proper release
+          else
+            folder=experimental/${{ github.ref_name }}
+          fi
+
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
-          ln -s ./$tmpfolder latest  #create link to the release folder
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/OpenMSInstaller/release/RC_GHA" # FIXME REVERT
+          ln -s ./$folder latest  #create link to the release folder
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/OpenMSInstaller/RC_GHA" # FIXME REVERT
 
       - name: create RELEASE_TEXT
         id: mk_release_txt
@@ -652,8 +659,7 @@ jobs:
           if [[ "${{ github.ref_name }}" == "nightly" ]]; then
             folder=nightlyGHA                      # TODO: Change back when we deactivate Jenkins
           elif [[ "${{ github.ref_name }}" == release/* ]]; then
-            tmpfolder=${{ github.ref_name }}
-            folder=${tmpfolder/release/RC_GHA}     # TODO: change back to RC after proper release
+            folder=RC_GHA/${{ github.ref_name }}     # TODO: change back to RC after proper release
           else
             folder=experimental/${{ github.ref_name }}
           fi
@@ -673,11 +679,19 @@ jobs:
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
         run: |
+          if [[ "${{ github.ref_name }}" == "nightly" ]]; then
+            folder=nightlyGHA                      # TODO: Change back when we deactivate Jenkins
+          elif [[ "${{ github.ref_name }}" == release/* ]]; then
+            folder=RC_GHA/${{ github.ref_name }}     # TODO: change back to RC after proper release
+          else
+            folder=experimental/${{ github.ref_name }}
+          fi
+
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
-          ln -s ./$tmpfolder latest  #we can use the same link from above.
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/Documentation/release/RC_GHA" # FIXME REVERT
+          ln -s ./$folder latest  #we can use the same link from above.
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/Documentation/RC_GHA" # FIXME REVERT
       
         # TODO create softlinks to latest nightly
         # TODO create and upload file hashes, at least for release candidate
@@ -854,9 +868,9 @@ jobs:
           echo "Upload"
           if [[ "${{ github.ref_name }}" == "nightly" ]]; then
             folder=nightlyGHA
-          elif [[ "${{ github.ref_name }}" =~ release/([0-9]+\.[0-9]+\.[0-9]+) ]]; then
-            tmpfolder=${BASH_REMATCH[1]}
-            folder=release/RC_GHA/$tmpfolder                                   # TODO: change back to RC after proper release
+          elif [[ "${{ github.ref_name }}" == release/* ]]; then
+            tmpfolder=${{ github.ref_name }}
+            folder=RC_GHA/$tmpfolder                                   # TODO: change back to RC after proper release
           else
             folder=experimental/${{ github.ref_name }}
           fi
@@ -881,11 +895,21 @@ jobs:
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
         run: |
+          echo "Upload"
+          if [[ "${{ github.ref_name }}" == "nightly" ]]; then
+            folder=nightlyGHA
+          elif [[ "${{ github.ref_name }}" == release/* ]]; then
+            tmpfolder=${{ github.ref_name }}
+            folder=RC_GHA/$tmpfolder                                   # TODO: change back to RC after proper release
+          else
+            folder=experimental/${{ github.ref_name }}
+          fi
+
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
-          ln -s ./$tmpfolder latest  #create link to the release folder
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/knime-plugin/updateSite/release/RC_GHA" # FIXME REVERT
+          ln -s ./$folder latest  #create link to the release folder
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/knime-plugin/updateSite/RC_GHA" # FIXME REVERT
 
   do-release:
     if: inputs.do_release
