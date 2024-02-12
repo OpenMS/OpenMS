@@ -608,7 +608,7 @@ jobs:
             RELEASE_TEXT=$(cat releaseTextHeader.txt $GITHUB_WORKSPACE/changelog.txt releaseTextFooter.txt)
             RELEASE_TEXT_ESCAPED_QUOTES="${RELEASE_TEXT//\"/\\\"}"
             cat releaseTextHeader.txt $GITHUB_WORKSPACE/changelog.txt releaseTextFooter.txt > RELEASE_TEXT_GH.md
-            echo release_text_contents=`base64 RELEASE_TEXT_GH.md` >> $GITHUB_OUTPUT
+            echo release_text_contents=`base64 -w0 RELEASE_TEXT_GH.md` >> $GITHUB_OUTPUT
       
       - name: run GHA release action.
         id: create_release
@@ -1007,7 +1007,7 @@ jobs:
         env: 
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run:  |
-            base64 '${{ needs.deploy-installer.outputs.release_text_contents }}' >> OpenMS-website/content/en/news/release${{ needs.build-and-test.outputs.version_number }}.md
+            echo '${{ needs.deploy-installer.outputs.release_text_contents }}' | base64 -d >> OpenMS-website/content/en/news/release${{ needs.build-and-test.outputs.version_number }}.md
             pushd OpenMS-website
               git config --local user.email "action@github.com"
               git config --local user.name "GitHub Action"
