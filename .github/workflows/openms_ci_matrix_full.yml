@@ -203,7 +203,7 @@ jobs:
             fi
           else
             if [[ 'true' == ${{ inputs.mark_as_latest }} || 'true' == ${{inputs.announce_release}} ]]; then
-              echo "Can't mark as lates or announce release unless we do a release"
+              echo "Can't mark as latest or announce release unless we do a release"
               exit 1
             fi
           fi
@@ -568,12 +568,11 @@ jobs:
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
         run: |
-          if [[ "${{ github.ref_name }}" == "nightly" ]]; then
-            folder=nightlyGHA                       # TODO: Change back when we deactivate Jenkins
-          elif [[ "${{ github.ref_name }}" == release/* ]]; then
-            folder=RC_GHA/${{ github.ref_name }}      # TODO: change back to RC after proper release
+          if [[ "${{ github.ref_name }}" == release/* ]]; then
+            folder=${{ github.ref_name }}      # TODO: change back to RC after proper release
           else
-            folder=experimental/${{ github.ref_name }}
+            echo refusing to mark non-release branch as latest
+            exit 1
           fi
 
           mkdir -p ~/.ssh/
@@ -679,12 +678,11 @@ jobs:
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
         run: |
-          if [[ "${{ github.ref_name }}" == "nightly" ]]; then
-            folder=nightlyGHA                      # TODO: Change back when we deactivate Jenkins
-          elif [[ "${{ github.ref_name }}" == release/* ]]; then
-            folder=RC_GHA/${{ github.ref_name }}     # TODO: change back to RC after proper release
+          if [[ "${{ github.ref_name }}" == release/* ]]; then
+            folder=${{ github.ref_name }}     # TODO: change back to RC after proper release
           else
-            folder=experimental/${{ github.ref_name }}
+            echo refusing to mark non-release branch as latest
+            exit 1
           fi
 
           mkdir -p ~/.ssh/
@@ -869,8 +867,7 @@ jobs:
           if [[ "${{ github.ref_name }}" == "nightly" ]]; then
             folder=nightlyGHA
           elif [[ "${{ github.ref_name }}" == release/* ]]; then
-            tmpfolder=${{ github.ref_name }}
-            folder=RC_GHA/$tmpfolder                                   # TODO: change back to RC after proper release
+            folder=RC_GHA/${{ github.ref_name }}                                # TODO: change back to RC after proper release
           else
             folder=experimental/${{ github.ref_name }}
           fi
@@ -896,13 +893,11 @@ jobs:
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
         run: |
           echo "Upload"
-          if [[ "${{ github.ref_name }}" == "nightly" ]]; then
-            folder=nightlyGHA
-          elif [[ "${{ github.ref_name }}" == release/* ]]; then
-            tmpfolder=${{ github.ref_name }}
-            folder=RC_GHA/$tmpfolder                                   # TODO: change back to RC after proper release
+          if [[ "${{ github.ref_name }}" == release/* ]]; then
+            folder=${{ github.ref_name }}                                  # TODO: change back to RC after proper release
           else
-            folder=experimental/${{ github.ref_name }}
+            echo refusing to mark non-release branch as latest
+            exit 1
           fi
 
           mkdir -p ~/.ssh/
