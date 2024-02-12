@@ -546,13 +546,13 @@ jobs:
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
         run: |
           echo "Upload"
-          if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
+          if [[ "${{ github.ref_name }}" == "nightly" ]]; then
             folder=nightlyGHA                       # TODO: Change back when we deactivate Jenkins
-          elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
-            tmpfolder=${{ env.RUN_NAME }}
+          elif [[ "${{ github.ref_name }}" == "release/*" ]]; then
+            tmpfolder=${{ github.ref_name }}
             folder=${tmpfolder/release/RC_GHA}      # TODO: change back to RC after proper release
           else
-            folder=experimental/${{ env.RUN_NAME }}
+            folder=experimental/${{ github.ref_name }}
           fi
           echo "Uploading installers to: " $folder
 
@@ -616,7 +616,7 @@ jobs:
         uses: ncipollo/release-action@v1.14.0
         with: 
           bodyFile: RELEASE_TEXT_GH.md
-          tag: ${{ env.RUN_NAME }}
+          tag: ${{ github.ref_name }}
           draft: true
           artifactErrorsFailBuild: true
           makeLatest: ${{ inputs.mark_as_latest }}
@@ -649,13 +649,13 @@ jobs:
           unzip $GITHUB_WORKSPACE/docs/documentation.zip -d $GITHUB_WORKSPACE/docs
           rm $GITHUB_WORKSPACE/docs/documentation.zip
           echo "Upload"
-          if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
+          if [[ "${{ github.ref_name }}" == "nightly" ]]; then
             folder=nightlyGHA                      # TODO: Change back when we deactivate Jenkins
-          elif [[ "${{ env.RUN_NAME }}" == "release/*" ]]; then
-            tmpfolder=${{ env.RUN_NAME }}
+          elif [[ "${{ github.ref_name }}" == "release/*" ]]; then
+            tmpfolder=${{ github.ref_name }}
             folder=${tmpfolder/release/RC_GHA}     # TODO: change back to RC after proper release
           else
-            folder=experimental/${{ env.RUN_NAME }}
+            folder=experimental/${{ github.ref_name }}
           fi
 
           mkdir -p ~/.ssh/
@@ -852,13 +852,13 @@ jobs:
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
         run: |
           echo "Upload"
-          if [[ "${{ env.RUN_NAME }}" == "nightly" ]]; then
+          if [[ "${{ github.ref_name }}" == "nightly" ]]; then
             folder=nightlyGHA
-          elif [[ "${{ env.RUN_NAME }}" =~ release/([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+          elif [[ "${{ github.ref_name }}" =~ release/([0-9]+\.[0-9]+\.[0-9]+) ]]; then
             tmpfolder=${BASH_REMATCH[1]}
             folder=release/RC_GHA/$tmpfolder                                   # TODO: change back to RC after proper release
           else
-            folder=experimental/${{ env.RUN_NAME }}
+            folder=experimental/${{ github.ref_name }}
           fi
           echo "Uploading KNIME site to:" $folder
 
