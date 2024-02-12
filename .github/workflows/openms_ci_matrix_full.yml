@@ -548,7 +548,7 @@ jobs:
           echo "Upload"
           if [[ "${{ github.ref_name }}" == "nightly" ]]; then
             folder=nightlyGHA                       # TODO: Change back when we deactivate Jenkins
-          elif [[ "${{ github.ref_name }}" == "release/*" ]]; then
+          elif [[ "${{ github.ref_name }}" == release/* ]]; then
             tmpfolder=${{ github.ref_name }}
             folder=${tmpfolder/release/RC_GHA}      # TODO: change back to RC after proper release
           else
@@ -651,7 +651,7 @@ jobs:
           echo "Upload"
           if [[ "${{ github.ref_name }}" == "nightly" ]]; then
             folder=nightlyGHA                      # TODO: Change back when we deactivate Jenkins
-          elif [[ "${{ github.ref_name }}" == "release/*" ]]; then
+          elif [[ "${{ github.ref_name }}" == release/* ]]; then
             tmpfolder=${{ github.ref_name }}
             folder=${tmpfolder/release/RC_GHA}     # TODO: change back to RC after proper release
           else
