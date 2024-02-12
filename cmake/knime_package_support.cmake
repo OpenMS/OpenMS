@@ -202,7 +202,6 @@ set(THIRDPARTY_ADAPTERS
     "CometAdapter"
     "PercolatorAdapter"
     "MSFraggerAdapter"
-    "SiriusAdapter"
     "NovorAdapter"
   )
 

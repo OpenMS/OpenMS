@@ -59,7 +59,7 @@ namespace OpenMS
     buffer_.clear();
   }
 
-  bool CsvFile::getRow(Size row, StringList& list)
+  bool CsvFile::getRow(Size row, StringList& list) const
   {
     // it is assumed that the value to be cast won't be so large to overflow an ulong int
     if (static_cast<int>(row) > static_cast<int>(TextFile::buffer_.size()) - 1)

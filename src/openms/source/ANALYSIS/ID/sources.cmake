@@ -42,7 +42,7 @@ PrecursorPurity.cpp
 ProtonDistributionModel.cpp
 PScore.cpp
 SimpleSearchEngineAlgorithm.cpp
-SiriusAdapterAlgorithm.cpp
+SiriusExportAlgorithm.cpp
 SiriusMSConverter.cpp
 )
 
