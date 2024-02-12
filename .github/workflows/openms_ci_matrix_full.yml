@@ -165,10 +165,9 @@ jobs:
       shell: bash
       name: Create changelog for release on Ubuntu + GCC
       run: |
-        if [[ ${{ steps.extract_branch.outputs.RUN_NAME }} =~ ^release\/([0-9]+\.[0-9]+\.[0-9]+) ]]; then #FIXME readd trailing $ for regex to ONLY match actual releases.
+        if [[ ${{ steps.extract_branch.outputs.RUN_NAME }} =~ ^release\/([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
           VERSION_NUMBER=${BASH_REMATCH[1]}
           echo "Version number: $VERSION_NUMBER"
-          VERSION_NUMBER="3.0.0" #FIXME remove this override, we apparently didn't actually put anything in the changelog for 2.9.1...
           if [ "${VERSION_NUMBER##*.}" -eq "0" ] # Handle trailing 0 in major releases (eg 3.0.0)
           then
             VERSION_NUMBER=${VERSION_NUMBER%.*}
@@ -547,9 +546,9 @@ jobs:
         run: |
           echo "Upload"
           if [[ "${{ github.ref_name }}" == "nightly" ]]; then
-            folder=nightlyGHA                       # TODO: Change back when we deactivate Jenkins
+            folder=nightly
           elif [[ "${{ github.ref_name }}" == release/* ]]; then
-            folder=RC_GHA/${{ github.ref_name }}      # TODO: change back to RC after proper release
+            folder=${{ github.ref_name }}
           else
             folder=experimental/${{ github.ref_name }}
           fi
@@ -569,7 +568,7 @@ jobs:
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
         run: |
           if [[ "${{ github.ref_name }}" == release/* ]]; then
-            folder=${{ github.ref_name }}      # TODO: change back to RC after proper release
+            folder=${{ github.ref_name }}
           else
             echo refusing to mark non-release branch as latest
             exit 1
@@ -579,7 +578,7 @@ jobs:
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
           ln -s ./$folder latest  #create link to the release folder
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/OpenMSInstaller/RC_GHA" # FIXME REVERT
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/OpenMSInstaller/release"
 
       - name: create RELEASE_TEXT
         id: mk_release_txt
@@ -656,9 +655,9 @@ jobs:
           rm $GITHUB_WORKSPACE/docs/documentation.zip
           echo "Upload"
           if [[ "${{ github.ref_name }}" == "nightly" ]]; then
-            folder=nightlyGHA                      # TODO: Change back when we deactivate Jenkins
+            folder=nightly
           elif [[ "${{ github.ref_name }}" == release/* ]]; then
-            folder=RC_GHA/${{ github.ref_name }}     # TODO: change back to RC after proper release
+            folder=release/${{ github.ref_name }}
           else
             folder=experimental/${{ github.ref_name }}
           fi
@@ -679,7 +678,7 @@ jobs:
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
         run: |
           if [[ "${{ github.ref_name }}" == release/* ]]; then
-            folder=${{ github.ref_name }}     # TODO: change back to RC after proper release
+            folder=${{ github.ref_name }}
           else
             echo refusing to mark non-release branch as latest
             exit 1
@@ -689,7 +688,7 @@ jobs:
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
           ln -s ./$folder latest  #we can use the same link from above.
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/Documentation/RC_GHA" # FIXME REVERT
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/Documentation/release
       
         # TODO create softlinks to latest nightly
         # TODO create and upload file hashes, at least for release candidate
@@ -865,9 +864,9 @@ jobs:
         run: |
           echo "Upload"
           if [[ "${{ github.ref_name }}" == "nightly" ]]; then
-            folder=nightlyGHA
+            folder=nightly
           elif [[ "${{ github.ref_name }}" == release/* ]]; then
-            folder=RC_GHA/${{ github.ref_name }}                                # TODO: change back to RC after proper release
+            folder=release/${{ github.ref_name }}
           else
             folder=experimental/${{ github.ref_name }}
           fi
@@ -894,7 +893,7 @@ jobs:
         run: |
           echo "Upload"
           if [[ "${{ github.ref_name }}" == release/* ]]; then
-            folder=${{ github.ref_name }}                                  # TODO: change back to RC after proper release
+            folder=${{ github.ref_name }}
           else
             echo refusing to mark non-release branch as latest
             exit 1
@@ -904,7 +903,7 @@ jobs:
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
           ln -s ./$folder latest  #create link to the release folder
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/knime-plugin/updateSite/RC_GHA" # FIXME REVERT
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/knime-plugin/updateSite/release
 
   do-release:
     if: inputs.do_release
