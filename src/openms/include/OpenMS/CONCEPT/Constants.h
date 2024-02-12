@@ -422,8 +422,7 @@ namespace OpenMS
       */
       inline const std::string   OPENPEPXL_BETA_PEPEV_END = "BetaPepEv:end";
 
-      /** @name User parameters in/from Sirius annotated mzMLs
-        *  E.g., when running SiriusAdapter with annotation output
+      /** @name User parameters in spectra which have been annotated from subdirectories in SIRIUS workspace
        */
       ///@{
 
@@ -515,7 +514,7 @@ namespace OpenMS
       */
       inline const std::string   DC_CHARGE_ADDUCTS = "dc_charge_adducts";
 
-      /** User parameter name for the number of mass traces in a feature. (Required for SiriusAdapter)
+      /** User parameter name for the number of mass traces in a feature. (Required for SiriusExport)
               String
       */
       inline const std::string   NUM_OF_MASSTRACES = "num_of_masstraces";
