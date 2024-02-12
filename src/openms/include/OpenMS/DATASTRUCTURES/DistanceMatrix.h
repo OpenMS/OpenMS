@@ -444,7 +444,7 @@ private:
 template<typename Value>
 std::ostream& operator<<(std::ostream& os, const DistanceMatrix<Value>& matrix)
 {
-  using SizeType = DistanceMatrix<Value>::SizeType;
+  using SizeType = typename DistanceMatrix<Value>::SizeType;
 
   // we need to print a square matrix. So we set the width
   //std::ios_base::fmtflags flag_backup = os.setf(std::ios::scientific); // 'scientific' messes with the width; don't do it
