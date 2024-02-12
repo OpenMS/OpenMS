@@ -19,7 +19,7 @@ int main(int argc, const char** argv)
     return 1;
   }
   String tutorial_data_path(argv[1]);
-  auto file_mzXML = tutorial_data_path + "/data/Tutorial_FileIO_indexed.mzXML";
+  auto file_mzXML = tutorial_data_path + "/data/Tutorial_FileIO_indexed.mzML";
 
   if (! File::exists(file_mzXML)) { std::cerr << "The file " << file_mzXML << " was not found. Did you provide the correct path?\n"; }
   
