@@ -696,7 +696,7 @@ jobs:
         
   build-deploy-knime-updatesite:
     env:
-      KNIME: 5.1
+      KNIME: 5.2
       JAVA_VER: 17
       PLUGIN_BUILD: ${{ github.workspace }}/plugin-build
       PLUGIN_SOURCE: ${{ github.workspace }}/plugin-source
@@ -830,7 +830,7 @@ jobs:
       - name: Build KNIME update site
         shell: bash
         env:
-          KNIME: 5.1
+          KNIME: 5.2
 
         run: |
           # fix folder structure
