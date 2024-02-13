@@ -4,6 +4,7 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <iostream>
 
 using namespace OpenMS;
@@ -11,21 +12,31 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
-  if (argc < 2) return 1;
-  // the path to the data should be given on the command line
+  // path to the data should be given on the command line
+  if (argc != 2)
+  {
+    std::cerr << "usage: " << argv[0] << " <path to tutorial .cpp's, e.g. c:/dev/OpenMS/doc/code_examples/>\n\n";
+    return 1;
+  }
   String tutorial_data_path(argv[1]);
+  auto file_mzXML = tutorial_data_path + "/data/Tutorial_FileIO.mzXML";
+
+  if (!File::exists(file_mzXML))
+  {
+    std::cerr << "The file " << file_mzXML << " was not found. Did you provide the correct path?\n";
+  }
 
   // temporary data storage
   PeakMap map;
 
   // convert MzXML to MzML. Internally we use FileHandler to do the actual work.
-  // Here we limit the input type to be MZXML only
-  FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_FileIO.mzXML", map, {FileTypes::MZXML});
+  // Here we limit the input type to be MzXML only
+  FileHandler().loadExperiment(file_mzXML, map, {FileTypes::MZXML});
   FileHandler().storeExperiment("Tutorial_FileIO.mzML", map, {FileTypes::MZML});
 
   // The FileHandler object can also hold options for how to load the file
-  FileHandler f = FileHandler();
-  PeakFileOptions opts = PeakFileOptions();
+  FileHandler f;
+  PeakFileOptions opts;
   // Here we set the MZ range to load to 100-200
   opts.setMZRange( {100, 200} );
   f.setOptions(opts);
@@ -48,5 +59,4 @@ int main(int argc, const char** argv)
   // If we try to load something from a file that can't store that info (for example trying to get an experiment from an idXML file)
   // An error gets thrown at run time. Check out @p FileHandler class for more info
 
-  return 0;
 } //end of main

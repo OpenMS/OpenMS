@@ -349,7 +349,7 @@ The most important container for raw/profile data and centroided peaks is MSSpec
 <br>
 In this example, we create MS1 spectrum at 1 minute and insert peaks with descending mass-to-charge ratios (for educational reasons). We sort the peaks according to ascending mass-to-charge ratio. Finally we print the peak positions of those peaks between 800 and 1000 Thomson. For printing all the peaks in the spectrum, we simply would have used the STL-conform methods begin() and end(). In addition to the iterator access, we can also directly access the peaks via vector indices (e.g. spectrum[0] is the first Peak1D object of the MSSpectrum). 
 
-\snippet Tutorial_MSSpectrum.cpp MSSpectrum
+\snippet Tutorial_MSSpectrum.cpp doxygen_snippet_MSSpectrum
 
 @subsection tutorial_library_kernelclasses_chrom  Chromatograms
 The most important container for targeted analysis / XIC data is MSChromatogram. The elements of a MSChromatogram are chromatogram peaks (Peak1D). MSChromatogram is derived from ChromatogramSettings, a container for the metadata of a chromatogram (e.g. containing precursor and product information), similarly to SpectrumSettings. In the following example (Tutorial_MSChromatogram.cpp) program, a MSChromatogram is filled with chromatographic peaks, sorted according to retention time and a selection of peak positions is displayed. 
@@ -357,7 +357,7 @@ The most important container for targeted analysis / XIC data is MSChromatogram.
 <b>Example: Tutorial_MSChromatogram</b>
 <br>
 Fill MSChromatogram with chromatographic peaks, sorted according to retention time
-\snippet Tutorial_MSChromatogram.cpp MSChromatogram
+\snippet Tutorial_MSChromatogram.cpp doxygen_snippet_MSChromatogram
 
 Since much of the functionality is shared between MSChromatogram and MSSpectrum, further examples can be gathered from the MSSpectrum subsection.
 
@@ -368,7 +368,7 @@ The precursor data stored along with MS/MS spectra contains invaluable informati
 <br>
 Retrieve precursor information
 
-\snippet Tutorial_Precursor.cpp Precursor
+\snippet Tutorial_Precursor.cpp doxygen_snippet_Precursor
 
 @subsection tutorial_library_kernelclasses_mrm MRMTransitionGroup
 The targeted analysis of SRM or DIA (SWATH-MS) type of data requires a set of targeted assays as well as raw data chromatograms. The MRMTransitionGroup class allows users to map these two types of information and store them together with identified features conveniently in a single object. 
@@ -377,7 +377,7 @@ The targeted analysis of SRM or DIA (SWATH-MS) type of data requires a set of ta
 <br>
 Create an empty MRMTransitionGroup with two dummy transitions
 
-\snippet Tutorial_MRMTransitionGroup.cpp MRMTransitionGroup
+\snippet Tutorial_MRMTransitionGroup.cpp doxygen_snippet_MRMTransitionGroup
 
 Note how the identifiers of the chromatograms and the assay information (ReactionMonitoringTransition) are matched so that downstream algorithms can utilize the meta-information stored in the assays for data analysis.
 
@@ -394,7 +394,7 @@ MSExperiment contains ExperimentalSettings (metadata of the MS run) and a vector
 <br>
 The following example creates a MSExperiment containing four MSSpectrum instances. We then iterate over RT range (2,3) and m/z range (603,802) and print the peak positions using an AreaIterator. Then we show how we iterate over all spectra and peaks. In the commented out part, we show how to load/store all spectra and associated metadata from/to an mzML file.
 
-\snippet Tutorial_MSExperiment.cpp MSExperiment
+\snippet Tutorial_MSExperiment.cpp doxygen_snippet_MSExperiment
 
 @subsection tutorial_library_kernelclasses_fmap FeatureMap
 FeatureMap, the container for features, is simply a vector<Feature>. Additionally, it is derived from ExperimentalSettings, to store the meta information. All peak and feature containers (MSSpectrum, MSExperiment, FeatureMap) are also derived from RangeManager. This class facilitates the handling of MS data ranges. It allows to calculate and store both the position range and the intensity range of the container.
@@ -403,7 +403,7 @@ FeatureMap, the container for features, is simply a vector<Feature>. Additionall
 <br>
 The following examples creates a FeatureMap containing two Feature instances. Then we iterate over all features and output the retention time and m/z. We then show, how to use the underlying range manager to retrieve FeatureMap boundaries in rt, m/z, and intensity.
 
-\snippet Tutorial_FeatureMap.cpp FeatureMap
+\snippet Tutorial_FeatureMap.cpp doxygen_snippet_FeatureMap
 
 
 @subsection tutorial_fileformat File Formats
@@ -433,7 +433,7 @@ Each ProteinHit contains the actual protein accession, an associated score, and 
 <br>
 Create all identification data needed to store an idXML file
 
-\snippet Tutorial_IdentificationClasses.cpp Identification
+\snippet Tutorial_IdentificationClasses.cpp doxygen_snippet_Identification
 
 @subsection tutorial_chemistry Chemistry
 @subsection tutorial_element Element, ElementDB, EmpiricalFormula 
@@ -442,13 +442,13 @@ An Element object is the representation of an element. It can store the name, sy
 <b>Example: Tutorial_Element.cpp</b>
 <br>
 Work with Element object
-\snippet Tutorial_Element.cpp Element
+\snippet Tutorial_Element.cpp doxygen_snippet_Element
 <br><br>
 <b>Example: Tutorial_EmpiricalFormula.cpp</b>
 <br>
 Extract isotope distribution and monoisotopic weight of an EmpiricalFormula object
 
-\snippet Tutorial_EmpiricalFormula.cpp EmpiricalFormula
+\snippet Tutorial_EmpiricalFormula.cpp doxygen_snippet_EmpiricalFormula
 
 @subsection tutorial_aaseq AASequence - Representing a Peptide (amino acid sequence)
 An AASequence object stores a (potentially chemically modified) peptide.
@@ -459,7 +459,7 @@ Once constructed, many convenient functions are available to calculate peptide o
 <br>
 Compute and output basic AASequence properties
 
-\snippet Tutorial_AASequence.cpp AASequence
+\snippet Tutorial_AASequence.cpp doxygen_snippet_AASequence
 
 Internally, an AASequence object is composed of Residues.
 
@@ -470,7 +470,7 @@ Residues are the building blocks of AASequence objects. They store physico-chemi
 <br>
 Compute and output basic Residue properties
 
-\snippet Tutorial_Residue.cpp Residue
+\snippet Tutorial_Residue.cpp doxygen_snippet_Residue
 
 @subsection tutorial_residuemod ResidueModification, ModificationsDB
 If a residue is modified (e.g. phosphorylation of an amino acid) it can be stored in the ResidueModification class.
@@ -482,7 +482,7 @@ The class ModificationsDB is a database of ResidueModifications. These are mostl
 <br>
 Set a ResidueModification on a Residue
 
-\snippet Tutorial_ResidueModification.cpp ResidueModification
+\snippet Tutorial_ResidueModification.cpp doxygen_snippet_ResidueModification
 
 @subsection tutorial_tsg TheoreticalSpectrumGenerator
 The TheoreticalSpectrumGenerator generates ion ladders from AASequences.
@@ -491,7 +491,7 @@ The TheoreticalSpectrumGenerator generates ion ladders from AASequences.
 <br>
 Generate theoretical spectra
 
-\snippet Tutorial_TheoreticalSpectrumGenerator.cpp TSG
+\snippet Tutorial_TheoreticalSpectrumGenerator.cpp doxygen_snippet_TSG
 
 @subsection tutorial_dep DigestionEnzymeProtein, ProteaseDB and ProteaseDigestion
 %OpenMS provides the most common digestion enzymes (DigestionEnzymeProtein) used in MS. They are stored in the ProteaseDB singleton and loaded from “/share/CHEMISTRY/Enzymes.xml”. 
@@ -500,7 +500,7 @@ Generate theoretical spectra
 <br>
 Digest amino acid sequence
 
-\snippet Tutorial_Enzyme.cpp Enzyme
+\snippet Tutorial_Enzyme.cpp doxygen_snippet_Enzyme
 
 @section tutorial_tooldev Tool development
 @subsection tutorial_topp TOPP-Tool
@@ -521,7 +521,7 @@ The DatabaseFilter tool should provide functionality to reduce a fasta database 
 <br>
 Template for %OpenMS tool development
 
-\snippet Tutorial_Template.cpp Template
+\snippet Tutorial_Template.cpp doxygen_snippet_Template
 
 - Now add a line with %DatabaseFilter.cpp to src/utils/executables.cmake. This registers the novel tool in the %OpenMS build system. 
 - Then add the tool to getUtilList() in src/openms/source/APPLICATIONS/ToolHandler.cpp 
@@ -536,7 +536,7 @@ Define tool parameters Each TOPP tool defines a set of parameters that will be a
 <br>
 Registration of tool parameters
 
-\snippet Tutorial_Final.cpp  Register
+\snippet Tutorial_Final.cpp doxygen_snippet_Register
 
 Functions, classes and references can be checked in the %OpenMS / TOPP documentation (ftp://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/index.html)
 
@@ -546,7 +546,7 @@ After a tool is executed, the registered parameters are available in the main_ f
 <b>Example: Tutorial_Final.cpp</b>
 <br>
 
-\snippet Tutorial_Final.cpp InputParam
+\snippet Tutorial_Final.cpp doxygen_snippet_InputParam
 
 @subsection tutorial_read Read Input Files
 First the different file formats and data structures for peptide identifications have to be included at the top of the file.
@@ -555,12 +555,12 @@ First the different file formats and data structures for peptide identifications
 <br>
 Add essential includes
 
-\snippet Tutorial_Final.cpp Includes
+\snippet Tutorial_Final.cpp doxygen_snippet_Includes
 
 <b> Read the input files </b>
 <br>
 
-\snippet Tutorial_Final.cpp InputRead
+\snippet Tutorial_Final.cpp doxygen_snippet_InputRead
 
 Note: both peptide_identifications and protein_identifications contain protein accessions. The difference between them is that protein_identifications only contain the inferred set of protein accessions while peptide_identifications contains all protein accessions the peptides map to. We consider only the larger set of protein accessions stored in the peptide identifications. In principle, it would be easy to add another parameter that adds a filter for the inferred accessions stored in protein_identifications.
 
@@ -573,21 +573,21 @@ To store all proteins accessions in the set id_accessions, we write:
 <br>
 Store protein accessions
 
-\snippet Tutorial_Final.cpp Functionality_1
+\snippet Tutorial_Final.cpp doxygen_snippet_Functionality_1
 
 Now that we assembled the set of all protein accessions we are ready to compare them to the fasta_accessions. If they are similar and the method whitelist or they are different and the method blacklist was chosen, the fasta entries are copied to the new fasta database.
 <br><br>
 <b>Example: Tutorial_Final.cpp</b>
 <br>
 Add method functionality
-\snippet Tutorial_Final.cpp Functionality_2
+\snippet Tutorial_Final.cpp doxygen_snippet_Functionality_2
 
 @subsection tutorial_write Write Output Files 
 <b>Example: Tutorial_Final.cpp</b>
 <br>
 Write the output
 
-\snippet Tutorial_Final.cpp output
+\snippet Tutorial_Final.cpp doxygen_snippet_output
 
 @subsection tutorial_test Adding TOPP tests
 Testing your tools is essential and required to promote your experimental util to an official TOPP tool. It is not mandatory to provide a test for a util but appreciated.
@@ -597,7 +597,7 @@ For this test a .fasta and a compatible .idXML file have to be added to /src/tes
 <br>
 Add tests
 
-\snippet Tutorial_Test.cpp Test
+\snippet Tutorial_Test.cpp doxygen_snippet_Test
 
 These tests run the program with the given parameters and then call a diff tool to compare the generated output to the expected output.
 
@@ -614,7 +614,7 @@ Since different filter criteria may be introduced in the future, the structure w
 <br>
 Polish your code - add additional functionality
 
-\snippet Tutorial_Final.cpp final 
+\snippet Tutorial_Final.cpp doxygen_snippet_final 
 
 @subsection tutorial_pull Open a pull request 
 Afterwards you can commit your changes to a new branch “feature/DatabaseFilter” of your %OpenMS clone on github and submit a pull request on your github page. After a short review process by the %OpenMS Team, the tool will be added the %OpenMS Library.
