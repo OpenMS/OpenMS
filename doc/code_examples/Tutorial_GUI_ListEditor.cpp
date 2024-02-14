@@ -10,8 +10,8 @@ using namespace OpenMS;
 int main(int argc, char ** argv)
 {
   QApplication app(argc, argv);
-  ListEditor * listeditor = new ListEditor;
-  listeditor->show();
+  ListEditor listeditor;
+  listeditor.show();
   return app.exec();
 }
 
