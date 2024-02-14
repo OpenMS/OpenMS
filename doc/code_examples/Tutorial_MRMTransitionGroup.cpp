@@ -1,4 +1,4 @@
-//! [MRMTransitionGroup]
+//! [doxygen_snippet_MRMTransitionGroup]
 
 typedef MRMTransitionGroup<MSChromatogram, ReactionMonitoringTransition> TrGroup;
   TrGroup createTransitionGroup()
@@ -12,4 +12,4 @@ typedef MRMTransitionGroup<MSChromatogram, ReactionMonitoringTransition> TrGroup
     return tr_group;
   }
 
-//! [MRMTransitionGroup]
+//! [doxygen_snippet_MRMTransitionGroup]

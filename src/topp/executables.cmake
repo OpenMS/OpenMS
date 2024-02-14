@@ -5,6 +5,7 @@ set(directory source/APPLICATIONS/TOPP)
 set(TOPP_executables
 AccurateMassSearch
 AssayGeneratorMetabo
+AssayGeneratorMetaboSirius
 BaselineFilter
 ClusterMassTraces
 ClusterMassTracesByPrecursor
@@ -124,7 +125,7 @@ SeedListGenerator
 SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
-SiriusAdapter
+SiriusExport
 SpecLibCreator
 SpecLibSearcher
 SpectraFilterBernNorm

@@ -1,7 +1,8 @@
 # Please see the documentation for all configuration options:
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
-# checks if submodules (contrib and thirdparty) were updated
+# checks if submodules (contrib and thirdparty) were updated.
+# Ignored vcpkg because of the large number of updates.
 version: 2
 updates:
   - package-ecosystem: "gitsubmodule"
