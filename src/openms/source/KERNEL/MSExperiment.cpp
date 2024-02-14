@@ -305,30 +305,6 @@ namespace OpenMS
     }
   }
 
-  /// returns the minimal m/z value
-  MSExperiment::CoordinateType MSExperiment::getMinMZ() const
-  {
-    return RangeManagerType::getMinMZ();
-  }
-
-  /// returns the maximal m/z value
-  MSExperiment::CoordinateType MSExperiment::getMaxMZ() const
-  {
-    return RangeManagerType::getMaxMZ();
-  }
-
-  /// returns the minimal retention time value
-  MSExperiment::CoordinateType MSExperiment::getMinRT() const
-  {
-    return RangeManagerType::getMinRT();
-  }
-
-  /// returns the maximal retention time value
-  MSExperiment::CoordinateType MSExperiment::getMaxRT() const
-  {
-    return RangeManagerType::getMaxRT();
-  }
-
   /// returns the total number of peaks
   UInt64 MSExperiment::getSize() const
   {

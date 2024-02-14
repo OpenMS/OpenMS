@@ -502,18 +502,6 @@ public:
     */
     void updateRanges(Int ms_level);
 
-    /// returns the minimal m/z value
-    CoordinateType getMinMZ() const;
-
-    /// returns the maximal m/z value
-    CoordinateType getMaxMZ() const;
-
-    /// returns the minimal retention time value
-    CoordinateType getMinRT() const;
-
-    /// returns the maximal retention time value
-    CoordinateType getMaxRT() const;
-
     /// returns the total number of peaks
     UInt64 getSize() const;
 
