@@ -82,10 +82,11 @@ namespace OpenMS
            @param min_cos the peak groups with cosine score less than this will have setQscore 0.
            @param tol ppm tolerance
            @param is_low_charge if set, charge fit score calculation becomes less stroct
+           @param allowed_iso_error allowed isotope error for decoy generation
            @param is_last if this is set, it means that Qscore calculation is at its last iteration. More detailed noise power calculation is activated and mono mass is not recalibrated.
            @return returns isotope offset after isotope cosine calculation
       */
-    int updateQscore(const std::vector<LogMzPeak>& noisy_peaks, const MSSpectrum& spec, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, double tol, bool is_low_charge, const bool is_last = false);
+    int updateQscore(const std::vector<LogMzPeak>& noisy_peaks, const MSSpectrum& spec, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, double tol, bool is_low_charge, int allowed_iso_error, const bool is_last = false);
 
     /**
      * @brief given a monoisotopic mass, recruit raw peaks from the raw input spectrum and add to this peakGroup. This is a bit time-consuming and is done for only a small number of selected
@@ -288,7 +289,6 @@ namespace OpenMS
     bool empty() const;
     void swap(std::vector<FLASHDeconvHelperStructs::LogMzPeak>& x);
     void sort();
-
   private:
     /// update chargefit score and also update per charge intensities here.
     void updateChargeFitScoreAndChargeIntensities_(bool is_low_charge);

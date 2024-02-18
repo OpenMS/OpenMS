@@ -162,7 +162,7 @@ namespace OpenMS
     /// Q value threshold for each MS level
     DoubleList max_qvalue_;
     /// the peak group vector from normal run. This is used when dummy masses are generated.
-    const DeconvolvedSpectrum* target_dspec_for_decoy_calcualtion_;
+    const DeconvolvedSpectrum* target_dspec_for_decoy_calculation_;
 
     /// PeakGroup::TargetDecoyType values
     PeakGroup::TargetDecoyType target_decoy_type_ = PeakGroup::TargetDecoyType::target;

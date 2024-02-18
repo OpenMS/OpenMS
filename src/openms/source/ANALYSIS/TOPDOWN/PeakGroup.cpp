@@ -120,7 +120,7 @@ namespace OpenMS
   }
 
   int PeakGroup::updateQscore(const std::vector<LogMzPeak>& noisy_peaks, const MSSpectrum& spec, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, double tol,
-                              bool is_low_charge, bool is_last)
+                              bool is_low_charge, int allowed_iso_error, bool is_last)
   {
     qscore_ = 0;
 
@@ -142,11 +142,11 @@ namespace OpenMS
     }
     int h_offset;
     int window_width = is_last ? 0 : -1;
-    //auto target_decoy_type = target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy ? PeakGroup::TargetDecoyType::target : target_decoy_type_;
+    // auto target_decoy_type = target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy ? PeakGroup::TargetDecoyType::target : target_decoy_type_;
 
     isotope_cosine_score_ = SpectralDeconvolution::getIsotopeCosineAndIsoOffset(monoisotopic_mass_, per_isotope_int_, h_offset, avg,
                                                                                 -min_negative_isotope_index_, // change if to select cosine calculation and if to get second best hits
-                                                                                window_width, 0, target_decoy_type_);
+                                                                                window_width, allowed_iso_error, target_decoy_type_);
     if (h_offset != 0)
       return h_offset;
 
@@ -178,7 +178,7 @@ namespace OpenMS
       return 0;
     const Size max_noisy_peak_number = 40; // too many noise peaks will slow down the process
     const Size bin_number_margin = 8;
-    const Size max_bin_number = bin_number_margin + 12;        // 12 bin + 8 extra bin
+    const Size max_bin_number = bin_number_margin + 12; // 12 bin + 8 extra bin
     float threshold = -1;
     std::vector<std::pair<Peak1D, bool>> all_peaks; // peak + is signal?
     all_peaks.reserve(max_noisy_peak_number + logMzpeaks_.size());
@@ -234,8 +234,7 @@ namespace OpenMS
       all_peaks.emplace_back(Peak1D(peak.getUnchargedMass(), peak.intensity), true);
     }
 
-    std::sort(all_peaks.begin(), all_peaks.end(),
-              [](std::pair<Peak1D, bool>& left, std::pair<Peak1D, bool>& right) { return left.first.getMZ() < right.first.getMZ(); }); //
+    std::sort(all_peaks.begin(), all_peaks.end(), [](std::pair<Peak1D, bool>& left, std::pair<Peak1D, bool>& right) { return left.first.getMZ() < right.first.getMZ(); }); //
 
     float charge_noise_pwr = 0;
 
@@ -1374,5 +1373,3 @@ namespace OpenMS
     return dl_matrices_[index];
   }
 } // namespace OpenMS
-
-

@@ -18,7 +18,6 @@ namespace OpenMS
     std::map<uint, std::vector<double>> dscore_iso_decoy_map;
     std::map<uint, std::vector<double>> dscore_noise_decoy_map;
     std::map<uint, std::vector<double>> dscore_charge_decoy_map;
-
     std::map<uint, std::map<double, double>> qscore_qvalue_map; //
 
     // to calculate qvalues per ms level, store Qscores per ms level
@@ -122,20 +121,13 @@ namespace OpenMS
         b--;
       }
 
-      Size j_t = 0;
-      for (size_t i = 0; i < dscore_iso.size(); i++)
+      for (double i : dscore_iso)
       {
-        if (dscore_iso[i] < min_score_for_weight_calculation)
+        if (i < min_score_for_weight_calculation)
           continue;
-        if (dscore_iso[i] > max_score_for_weight_calculation)
+        if (i > max_score_for_weight_calculation)
           break;
-        double is = dscore_iso[i];
-        while (j_t < qscores.size() && qscores[j_t] < is)
-        {
-          j_t++;
-        }
-        double r = j_t < qscores.size() ? double(dscore_iso.size() - i) / double(1 + qscores.size() - j_t) : .0;
-        b -= 1.0 / (1 + r);
+        b--;
       }
 
       for (double i : dscore_noise)
@@ -156,29 +148,35 @@ namespace OpenMS
       auto& map_qvalue = qscore_qvalue_map[ms_level];
       double nom_i = 0, nom_c = 0, nom_n = 0;
       Size j_i = 0, j_c = 0, j_n = 0;
-
       for (Size i = 0; i < qscores.size(); i++)
       {
         double ts = qscores[i];
-        while (j_i < dscore_iso.size() && dscore_iso[j_i] >= ts)
+        double di = 0, dc = 0, dn = 0;
+        while (i < qscores.size() - 1 && qscores[i + 1] == ts)
         {
-          double r = i > 0 ? (double)(1 + j_i) / double(1 + i) : 0;
-          nom_i += 1.0 / (1 + r);
-          ++j_i;
-        }
-
-        while (j_c < dscore_charge.size() && dscore_charge[j_c] >= ts)
-        {
-          nom_c++;
-          ++j_c;
+          i++;
         }
 
         while (j_n < dscore_noise.size() && dscore_noise[j_n] >= ts)
         {
-          nom_n += noise_weight;
+          dn += noise_weight;
           ++j_n;
         }
-
+        while (j_i < dscore_iso.size() && dscore_iso[j_i] >= ts)
+        {
+          di++;
+          ++j_i;
+        }
+        while (j_c < dscore_charge.size() && dscore_charge[j_c] >= ts)
+        {
+          dc++;
+          ++j_c;
+        }
+        nom_n += dn;
+        // nom_i += di / (all + di) * std::max(.0, (all - (dn + dc)));
+        // nom_i += di / (qscores.size() + dscore_iso.size()) * std::max(.0, (qscores.size() - (dscore_noise.size() * noise_weight + dscore_charge.size())));
+        nom_i += di; // / (all + di + dc) * std::max(.0, (all - dn));
+        nom_c += dc; // / (all + di + dc) * std::max(.0, (all - dn));
         double tmp_q = (nom_i + nom_c + nom_n) / double(1 + i);
         map_qvalue[ts] = std::min(1.0, tmp_q);
       }
