@@ -173,10 +173,8 @@ namespace OpenMS
           ++j_c;
         }
         nom_n += dn;
-        // nom_i += di / (all + di) * std::max(.0, (all - (dn + dc)));
-        // nom_i += di / (qscores.size() + dscore_iso.size()) * std::max(.0, (qscores.size() - (dscore_noise.size() * noise_weight + dscore_charge.size())));
-        nom_i += di; // / (all + di + dc) * std::max(.0, (all - dn));
-        nom_c += dc; // / (all + di + dc) * std::max(.0, (all - dn));
+        nom_i += di;
+        nom_c += dc;
         double tmp_q = (nom_i + nom_c + nom_n) / double(1 + i);
         map_qvalue[ts] = std::min(1.0, tmp_q);
       }
