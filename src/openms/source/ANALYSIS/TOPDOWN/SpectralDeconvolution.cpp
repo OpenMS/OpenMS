@@ -1040,43 +1040,41 @@ namespace OpenMS
 
       if (is_isotope_decoy)
       {
-        if (prev_peak_group.getIsotopeCosine() - peak_group.getIsotopeCosine() > .0025 * (allowed_iso_error_ + 1))
+        if (prev_peak_group.getIsotopeCosine() - peak_group.getIsotopeCosine() > .0028 * (allowed_iso_error_ + 1)) // a magic number to generate isotope decoy masses.
           continue;
         peak_group.setQscore(prev_peak_group.getQscore());
       }
-      else
-      {
-        if (!target_mono_masses_.empty())
-        {
-          double delta = peak_group.getMonoMass() * tolerance_[ms_level_ - 1] * 2;
-          auto upper = std::upper_bound(target_mono_masses_.begin(), target_mono_masses_.end(), peak_group.getMonoMass() + delta);
 
-          while (!peak_group.isTargeted())
+      if (!target_mono_masses_.empty())
+      {
+        double delta = peak_group.getMonoMass() * tolerance_[ms_level_ - 1] * 2;
+        auto upper = std::upper_bound(target_mono_masses_.begin(), target_mono_masses_.end(), peak_group.getMonoMass() + delta);
+
+        while (!peak_group.isTargeted())
+        {
+          if (upper != target_mono_masses_.end())
           {
-            if (upper != target_mono_masses_.end())
+            if (std::abs(*upper - peak_group.getMonoMass()) < delta)
             {
-              if (std::abs(*upper - peak_group.getMonoMass()) < delta)
-              {
-                peak_group.setTargeted();
-              }
-              if (peak_group.getMonoMass() - *upper > delta)
-              {
-                break;
-              }
+              peak_group.setTargeted();
             }
-            if (upper == target_mono_masses_.begin())
+            if (peak_group.getMonoMass() - *upper > delta)
             {
               break;
             }
-            --upper;
           }
+          if (upper == target_mono_masses_.begin())
+          {
+            break;
+          }
+          --upper;
         }
+      }
 
-        double snr_threshold = min_snr_[ms_level_ - 1];
-        if (!peak_group.isTargeted() && (peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold)) // snr check prevents harmonics or noise.
-        {
-          continue;
-        }
+      double snr_threshold = min_snr_[ms_level_ - 1];
+      if (!peak_group.isTargeted() && (peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold)) // snr check prevents harmonics or noise.
+      {
+        continue;
       }
 
 #pragma omp critical

@@ -11,10 +11,10 @@
 
 namespace OpenMS
 {
-  void Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra) // per ms level + precursor update as well.
+  double Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra) // per ms level + precursor update as well.
   {
+    double noise_weight = 1;
     std::map<uint, std::vector<double>> tscore_map; // per ms level
-
     std::map<uint, std::vector<double>> dscore_iso_decoy_map;
     std::map<uint, std::vector<double>> dscore_noise_decoy_map;
     std::map<uint, std::vector<double>> dscore_charge_decoy_map;
@@ -77,7 +77,7 @@ namespace OpenMS
 
       double sum = 0;
       double max_score_for_weight_calculation = 1;
-      double min_score_for_weight_calculation = 1;
+      double min_score_for_weight_calculation = 0;
       double iso_sum = std::accumulate(dscore_iso.begin(), dscore_iso.end(), .0);
       double noise_sum = std::accumulate(dscore_noise.begin(), dscore_noise.end(), .0);
 
@@ -95,7 +95,7 @@ namespace OpenMS
       for (double i : dscore_noise)
       {
         sum += i;
-        if (sum > noise_sum * .2 || i > .25)
+        if (sum > noise_sum * .1 || i > .2)
         {
           min_score_for_weight_calculation = i;
           break;
@@ -144,7 +144,7 @@ namespace OpenMS
       std::sort(dscore_noise.rbegin(), dscore_noise.rend());
       std::sort(dscore_charge.rbegin(), dscore_charge.rend());
 
-      const double noise_weight = b / a;
+      noise_weight = b / a;
       auto& map_qvalue = qscore_qvalue_map[ms_level];
       double nom_i = 0, nom_c = 0, nom_n = 0;
       Size j_i = 0, j_c = 0, j_n = 0;
@@ -219,5 +219,6 @@ namespace OpenMS
         }
       }
     }
+    return noise_weight;
   }
 } // namespace OpenMS
