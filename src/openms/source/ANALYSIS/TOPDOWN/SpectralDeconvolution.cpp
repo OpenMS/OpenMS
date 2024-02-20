@@ -110,7 +110,7 @@ namespace OpenMS
       {
         for (const auto& p : pg)
         {
-          for (int i = -allowed_iso_error_ - 5; i <= allowed_iso_error_ + 5; i++)
+          for (int i = -allowed_iso_error_ - 6; i <= allowed_iso_error_ + 6; i++)
             previously_deconved_peak_masses_for_decoy_.push_back(i * iso_da_distance_ + p.getUnchargedMass());
         }
       }
@@ -1016,11 +1016,10 @@ namespace OpenMS
         auto noisy_peaks = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_);
         // min cosine is checked in here. mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
         const auto& [z1, z2] = peak_group.getAbsChargeRange();
-        if (!is_isotope_decoy)
-        {
-          offset =
-            peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol, (z1 + z2) < 2 * low_charge_, allowed_iso_error_, false);
-        }
+
+        offset =
+          peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol, (z1 + z2) < 2 * low_charge_, allowed_iso_error_, false);
+
         if (offset == 0 || is_isotope_decoy)
         {
           peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol, (z1 + z2) < 2 * low_charge_, allowed_iso_error_, true);
@@ -1040,7 +1039,7 @@ namespace OpenMS
 
       if (is_isotope_decoy)
       {
-        if (prev_peak_group.getIsotopeCosine() - peak_group.getIsotopeCosine() > .0028 * (allowed_iso_error_ + 1)) // a magic number to generate isotope decoy masses.
+        if (prev_peak_group.getIsotopeCosine() * (1 - .0026) * (allowed_iso_error_ + 1) > peak_group.getIsotopeCosine()) // a magic number to generate isotope decoy masses.
           continue;
         peak_group.setQscore(prev_peak_group.getQscore());
       }
@@ -1089,19 +1088,24 @@ namespace OpenMS
     }
 
     std::vector<PeakGroup> filtered_peak_groups;
-    filtered_peak_groups.reserve(selected_count);
-
+    filtered_peak_groups.reserve(selected_count + (target_decoy_type_ != PeakGroup::TargetDecoyType::charge_decoy ? 0 : target_dspec_for_decoy_calculation_->size()));
+    // filtered_peak_groups.reserve(selected_count);
     Size index = selected.find_first();
     while (index != selected.npos)
     {
       filtered_peak_groups.push_back(deconvolved_spectrum_[index]);
       index = selected.find_next(index);
     }
+
+    if (target_decoy_type_ == PeakGroup::TargetDecoyType::charge_decoy)
+    {
+      filtered_peak_groups.insert(filtered_peak_groups.end(), target_dspec_for_decoy_calculation_->begin(), target_dspec_for_decoy_calculation_->end());
+    }
     deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
     deconvolved_spectrum_.sort();
 
     removeOverlappingPeakGroups(deconvolved_spectrum_, 0, PeakGroup::TargetDecoyType::non_specific);
-    removeChargeErrorPeakGroups_(deconvolved_spectrum_, PeakGroup::TargetDecoyType::non_specific);
+    removeChargeErrorPeakGroups_(deconvolved_spectrum_, target_decoy_type_);
     removeOverlappingPeakGroups(deconvolved_spectrum_, tol, target_decoy_type_);
 
     removeExcludedMasses_(deconvolved_spectrum_, previously_deconved_peak_masses_for_decoy_);
