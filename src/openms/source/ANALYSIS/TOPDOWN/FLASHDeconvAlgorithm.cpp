@@ -407,7 +407,7 @@ namespace OpenMS
     // feature tracing here and update FeatureQScores
     runFeatureFinding_(deconvolved_spectra, deconvolved_features);
 
-    Qvalue::updatePeakGroupQvalues(deconvolved_spectra);
+    noise_decoy_weight_ = Qvalue::updatePeakGroupQvalues(deconvolved_spectra);
 
     TopDownIsobaricQuantifier quantifier;
     Param quant_param = param_.copy("iq:", true);

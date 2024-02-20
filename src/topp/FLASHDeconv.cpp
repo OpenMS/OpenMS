@@ -464,7 +464,7 @@ protected:
           continue;
         if (report_decoy)
           target_spec_map[deconvolved_spectrum.getScanNumber()] = deconvolved_spectrum;
-        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail, report_decoy);
+        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail, report_decoy, 1.0);
 #ifdef TRAIN_OUT
         Qscore::writeAttCsvForQscoreTraining(deconvolved_spectrum, out_train_streams[ms_level - 1]);
 #endif
@@ -472,6 +472,7 @@ protected:
 
       if (report_decoy)
       {
+        double noise_decoy_weight = fd.getNoiseDecoyWeight();
         for (auto& deconvolved_spectrum : deconvolved_spectra)
         {
           uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
@@ -479,7 +480,7 @@ protected:
             continue;
           if (!deconvolved_spectrum.isDecoy())
             continue;
-          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail, report_decoy);
+          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail, report_decoy, noise_decoy_weight);
 #ifdef TRAIN_OUT
           Qscore::writeAttCsvForQscoreTraining(deconvolved_spectrum, out_train_streams[ms_level - 1]);
 #endif
