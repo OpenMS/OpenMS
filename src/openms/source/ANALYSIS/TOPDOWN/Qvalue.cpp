@@ -76,8 +76,8 @@ namespace OpenMS
       std::sort(dscore_charge.begin(), dscore_charge.end());
 
       double sum = 0;
-      double max_score_for_weight_calculation = 1;
-      double min_score_for_weight_calculation = 0;
+      double max_score_for_weight_calculation = .5;
+      double min_score_for_weight_calculation = .2;
       double iso_sum = std::accumulate(dscore_iso.begin(), dscore_iso.end(), .0);
       double noise_sum = std::accumulate(dscore_noise.begin(), dscore_noise.end(), .0);
 

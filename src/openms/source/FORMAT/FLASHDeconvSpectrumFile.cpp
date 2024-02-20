@@ -26,7 +26,6 @@ namespace OpenMS
                                                        const bool write_detail, const bool report_decoy, const double noise_decoy_weight)
   {
     static std::vector<uint> indices {};
-    static int noise_decoy_count = 0;
 
     if (dspec.empty())
     {
@@ -45,22 +44,14 @@ namespace OpenMS
 
       if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::noise_decoy)
       {
-        noise_decoy_count++;
-
         double number = distribution_(generator_);
-        if (noise_decoy_weight < 1.0)
+        if (number > noise_decoy_weight)
         {
-          if (number > noise_decoy_weight)
-          {
-            continue;
-          }
+          continue;
         }
-        else
+        if (number * noise_decoy_weight > 1.0)
         {
-          if (number < noise_decoy_weight - 1.0)
-          {
-            i --;
-          }
+          i --;
         }
       }
 
