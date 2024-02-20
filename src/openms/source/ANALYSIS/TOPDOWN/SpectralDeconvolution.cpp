@@ -1039,7 +1039,7 @@ namespace OpenMS
 
       if (is_isotope_decoy)
       {
-        if (prev_peak_group.getIsotopeCosine() * (1 - .0026 * (allowed_iso_error_ + 1))  > peak_group.getIsotopeCosine()) // a magic number to generate isotope decoy masses.
+        if (prev_peak_group.getIsotopeCosine() * (1 - .0026)  > peak_group.getIsotopeCosine()) // a magic number to generate isotope decoy masses.
           continue;
         peak_group.setQscore(prev_peak_group.getQscore());
       }
