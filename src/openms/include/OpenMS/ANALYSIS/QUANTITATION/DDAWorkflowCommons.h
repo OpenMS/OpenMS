@@ -40,7 +40,7 @@ namespace OpenMS
          * 2. If spectra and id files share common base names (without extension) 
          *    but appear in different order, throw an error.
         */
-        OPENMS_DLLAPI static std::map<String, String> mapMzML2Ids(StringList & in, StringList & in_ids)
+        static std::map<String, String> mapMzML2Ids(StringList & in, StringList & in_ids)
         {
             // Detect the common case that ID files have same names as spectra files
             if (!File::validateMatchingFileNames(in, in_ids, true, true, false)) // only basenames, without extension, only order
@@ -67,7 +67,7 @@ namespace OpenMS
              * Basically just reverses the mapMzML2Ids function. 
              * Potential improvement: Could be combined into a single functionexposed to the user.
           */
-          OPENMS_DLLAPI static std::map<String, String> mapId2MzMLs(const std::map<String, String>& m2i)
+          static std::map<String, String> mapId2MzMLs(const std::map<String, String>& m2i)
           {
             std::map<String, String> idfile2mzfile;
             for (const auto& m : m2i)
@@ -83,7 +83,7 @@ namespace OpenMS
            * @param ms_centroided The centroided MSExperiment for which to estimate the FWHM.
            * @return The estimated median chromatographic FWHM based on the top 1000 intensity mass traces.
            */
-            OPENMS_DLLAPI static double estimateMedianChromatographicFWHM(MSExperiment & ms_centroided)
+            static double estimateMedianChromatographicFWHM(MSExperiment & ms_centroided)
             {
               MassTraceDetection mt_ext;
               Param mtd_param = mt_ext.getParameters();
@@ -118,7 +118,7 @@ namespace OpenMS
              * @param peptide_ids The vector of PeptideIdentification objects containing the peptide identifications.
              * @param id_file_abs_path The absolute path of the identification file.
              */
-            OPENMS_DLLAPI static void recalibrateMS1(MSExperiment & ms_centroided,
+            static void recalibrateMS1(MSExperiment & ms_centroided,
               std::vector<PeptideIdentification>& peptide_ids,
               const String & id_file_abs_path = "")
             {
@@ -184,7 +184,7 @@ namespace OpenMS
              *       algorithm, which may need to be derived from the data or provided as function arguments in future
              *       implementations.
              */
-              OPENMS_DLLAPI static void calculateSeeds(
+              static void calculateSeeds(
                 const MSExperiment & ms_centroided, 
                 const double intensity_threshold,
                 FeatureMap & seeds, 
