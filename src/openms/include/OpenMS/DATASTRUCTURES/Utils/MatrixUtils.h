@@ -10,7 +10,7 @@
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
-#include <eigen3/Eigen/Core>
+#include <Eigen/Core>
 
 #include <boost/shared_ptr.hpp>
 
