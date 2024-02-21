@@ -587,6 +587,40 @@ public:
     */
     int getPrecursorSpectrum(int zero_based_index) const;
 
+    /**
+      @brief Returns the first product spectrum of the scan pointed to by @p iterator
+      A product spectrum is a spectrum of the next higher MS level that has the
+      current spectrum as precursor.
+      If there is no product scan, the past-the-end iterator is returned.
+      This assumes that product occurs somewhere after the current spectrum
+      and comes before the next scan that is of a level that is lower than
+      the current one.
+\verbatim
+\verbatim
+      Example:
+      MS1 - ix: 0
+        MS2 - ix: 1, prec: 0
+        MS2 - ix: 2, prec: 0 <-- current scan
+        MS3 - ix: 3, prec: 1
+        MS3 - ix: 4, prec: 2 <-- product scan
+        MS2 - ix: 5, prec: 0
+        MS3 - ix: 6, prec: 5
+      MS1 - ix: 7
+        ...  <-- Not searched anymore. Returns end of experiment iterator if not found until here.
+\endverbatim
+\endverbatim
+      Uses the native spectrum ID from the @em first precursor entry of the potential product scans
+      for comparisons -> Works for multiple precursor ranges from the same precursor scan
+      but not for multiple precursor ranges from different precursor scans.
+    */
+    ConstIterator getFirstProductSpectrum(ConstIterator iterator) const;
+
+    /**
+      @brief Returns the index of the first product spectrum for spectrum at index @p zero_based_index
+      If there is no precursor scan -1 is returned. Wraps @ref getFirstProductSpectrum(ConstIterator).
+    */
+    int getFirstProductSpectrum(int zero_based_index) const;
+
     /// Swaps the content of this map with the content of @p from
     void swap(MSExperiment& from);
 

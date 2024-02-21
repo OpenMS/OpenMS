@@ -891,7 +891,7 @@ protected:
       //////////////////////////////////////////
       // Chromatographic parameter estimation
       //////////////////////////////////////////
-      median_fwhm = DDAWorfklowCommons::estimateMedianChromatographicFWHM(ms_centroided);
+      median_fwhm = DDAWorkflowCommons::estimateMedianChromatographicFWHM(ms_centroided);
       OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << std::endl;
 
       //-------------------------------------------------------------
