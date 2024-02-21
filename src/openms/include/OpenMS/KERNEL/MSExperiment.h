@@ -748,6 +748,7 @@ public:
       and comes before the next scan that is of a level that is lower than
       the current one.
 \verbatim
+\verbatim
       Example:
       MS1 - ix: 0
         MS2 - ix: 1, prec: 0
@@ -758,6 +759,7 @@ public:
         MS3 - ix: 6, prec: 5
       MS1 - ix: 7
         ...  <-- Not searched anymore. Returns end of experiment iterator if not found until here.
+\endverbatim
 \endverbatim
       Uses the native spectrum ID from the @em first precursor entry of the potential product scans
       for comparisons -> Works for multiple precursor ranges from the same precursor scan
