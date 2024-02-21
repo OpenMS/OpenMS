@@ -1,4 +1,4 @@
-//! [ResidueModification]
+//! [doxygen_snippet_ResidueModification]
 // Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 
@@ -42,4 +42,4 @@ int main()
   return 0;
 } //end of main
 
-//! [ResidueModification]
+//! [doxygen_snippet_ResidueModification]

@@ -3,7 +3,9 @@ set(directory source/APPLICATIONS/TOPP)
 
 ### list all filenames of the directory here
 set(TOPP_executables
+AccurateMassSearch
 AssayGeneratorMetabo
+AssayGeneratorMetaboSirius
 BaselineFilter
 ClusterMassTraces
 ClusterMassTracesByPrecursor
@@ -124,7 +126,7 @@ SeedListGenerator
 SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
-SiriusAdapter
+SiriusExport
 SpecLibCreator
 SpecLibSearcher
 SpectraFilterBernNorm

@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Alka $
+// $Maintainer: Oliver Alka, Axel Walter $
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
-#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <fstream>
@@ -18,73 +17,8 @@ using namespace std;
 
 namespace OpenMS
 {
-
-  std::vector<MSSpectrum> SiriusFragmentAnnotation::extractSiriusAnnotationsTgtOnly
-    (const std::vector<String>& sirius_workspace_subdirs, double score_threshold, bool use_exact_mass, bool resolve = true)
-  {
-    Size max_rank = 10000; // this should be enough for any search
-    if (resolve) max_rank = 1;
-    std::unordered_map<String, MSSpectrum> native_ids_annotated_spectra;
-    std::vector<MSSpectrum> annotated_spectra;
-    double score = 0.0;
-    // There is one subdir for every candidate that we pass to Sirius
-    // Currently it is not possible to run Sirius with multiple candidates, see https://github.com/OpenMS/OpenMS/issues/5882
-    for (const auto& subdir : sirius_workspace_subdirs)
-    {
-      std::vector<MSSpectrum> best_annotated_spectra = extractAnnotationsFromSiriusFile(subdir, max_rank, false, use_exact_mass);
-
-      if (!resolve) annotated_spectra.reserve(sirius_workspace_subdirs.size());
-
-      for (auto& spectrum : best_annotated_spectra)
-      {
-        score = double(spectrum.getMetaValue(Constants::UserParam::SIRIUS_SCORE));
-        // only use spectra over a certain score threshold (0-1)
-        if (score >= score_threshold)
-        {
-          if (resolve)
-          {
-            // resolve multiple use of the same concatenated native ids based on the sirius score (used for multiple features/identifications)
-            unordered_map<String, MSSpectrum>::iterator it;
-            it = native_ids_annotated_spectra.find(spectrum.getNativeID());
-            if (it != native_ids_annotated_spectra.end())
-            {
-              if (score >= double(it->second.getMetaValue(Constants::UserParam::SIRIUS_SCORE)))
-              {
-                it->second = spectrum;
-              }
-            }
-            else
-            {
-              native_ids_annotated_spectra.insert(make_pair(spectrum.getNativeID(), spectrum));
-            }
-          }
-          else
-          {
-            annotated_spectra.push_back(std::move(spectrum));
-          }
-        }
-      }
-    }
-
-    if (resolve)
-    {
-      // convert temporary map to vector
-      annotated_spectra.reserve(native_ids_annotated_spectra.size());
-      for (auto& id_spec : native_ids_annotated_spectra)
-      {
-        annotated_spectra.emplace_back(std::move(id_spec.second));
-      }
-    }
-    else
-    {
-      annotated_spectra.shrink_to_fit();
-    }
-
-    return annotated_spectra;
-  }
-
   std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(
-    const std::vector<String>& sirius_workspace_subdirs, double score_threshold, bool use_exact_mass)
+    const std::vector<String>& sirius_workspace_subdirs, double score_threshold, bool use_exact_mass, bool decoy_generation)
   {
     std::map<String, SiriusFragmentAnnotation::SiriusTargetDecoySpectra> native_ids_annotated_spectra;
     std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra;
@@ -102,8 +36,16 @@ namespace OpenMS
         // max_rank 1 will get the best.
         best_annotated_spectrum = extractAnnotationsFromSiriusFile(subdir, 1, false, use_exact_mass)[0];
       }
-
-      ann_spec_tmp = extractAnnotationsFromSiriusFile(subdir, 1, true, use_exact_mass);
+      
+      // extract decoy spectra only if decoy generation is set, else clear target specs from vector
+      if (decoy_generation)
+      {
+        ann_spec_tmp = extractAnnotationsFromSiriusFile(subdir, 1, true, use_exact_mass);
+      }
+      else
+      {
+        ann_spec_tmp.clear();
+      }
       // if no spectrum can be extracted we add an empty spectrum
       //  to the TD pair for backwards compatibility with AssayGeneratorMetabo
       MSSpectrum annotated_decoy_for_best_tgt = MSSpectrum();
@@ -234,7 +176,7 @@ namespace OpenMS
         }
         else if (spectrum_ms_file.eof())
         {
-          OPENMS_LOG_WARN << "No SiriusAdapter m_id was found - please check your input mzML. " << std::endl;
+          OPENMS_LOG_WARN << "No SiriusExport m_id was found - please check your input mzML. " << std::endl;
           break;
         }
       }
@@ -243,6 +185,20 @@ namespace OpenMS
     ext_m_id = ListUtils::concatenate(ext_m_ids, "|");
     return ext_m_id;
   }
+
+  std::map< std::string, Size > SiriusFragmentAnnotation::extract_columnname_to_columnindex(const CsvFile& csvfile)
+  {
+    StringList header_row;
+    std::map< std::string, Size > columnname_to_columnindex;
+    csvfile.getRow(0, header_row);
+
+    for (size_t i = 0; i < header_row.size(); i++)
+    {
+      columnname_to_columnindex.insert(make_pair(header_row[i], i));
+    }
+
+    return columnname_to_columnindex;
+  };
 
   // provides a mapping of rank and the file it belongs to since this is not encoded in the directory structure/filename
   std::map< Size, String > SiriusFragmentAnnotation::extractCompoundRankingAndFilename_(const String& path_to_sirius_workspace)
@@ -257,7 +213,7 @@ namespace OpenMS
       CsvFile candidates(sirius_formula_candidates, '\t');
       const UInt rowcount = candidates.rowCount();
 
-      std::map< std::string, Size > columnname_to_columnindex = SiriusMzTabWriter::extract_columnname_to_columnindex(candidates);
+      std::map< std::string, Size > columnname_to_columnindex = SiriusFragmentAnnotation::extract_columnname_to_columnindex(candidates);
 
       // i starts at 1, due to header
       for (size_t i = 1; i < rowcount; i++)
@@ -266,7 +222,7 @@ namespace OpenMS
         candidates.getRow(i, sl);
         String adduct = sl[columnname_to_columnindex.at("adduct")];
         adduct.erase(std::remove_if(adduct.begin(), adduct.end(), ::isspace), adduct.end());
-        rank_filename.emplace(std::make_pair(sl[columnname_to_columnindex.at("rank")].toInt(),
+        rank_filename.emplace(std::make_pair(sl[columnname_to_columnindex.at("formulaRank")].toInt(),
                               String(sl[columnname_to_columnindex.at("molecularFormula")] + "_" + adduct + ".tsv")));
       }
     }
@@ -290,14 +246,14 @@ namespace OpenMS
       CsvFile candidates(sirius_formula_candidates, '\t');
       const UInt rowcount = candidates.rowCount();
 
-      std::map< std::string, Size > columnname_to_columnindex = SiriusMzTabWriter::extract_columnname_to_columnindex(candidates);
+      std::map< std::string, Size > columnname_to_columnindex = SiriusFragmentAnnotation::extract_columnname_to_columnindex(candidates);
 
       // i starts at 1, due to header
       for (size_t i = 1; i < rowcount; i++)
       {
         StringList sl;
         candidates.getRow(i, sl);
-        rank_score.emplace(std::make_pair(sl[columnname_to_columnindex.at("rank")].toInt(),
+        rank_score.emplace(std::make_pair(sl[columnname_to_columnindex.at("formulaRank")].toInt(),
                                              sl[columnname_to_columnindex.at("explainedIntensity")].toDouble()));
       }
     }

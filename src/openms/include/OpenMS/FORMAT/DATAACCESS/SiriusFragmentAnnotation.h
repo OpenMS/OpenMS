@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS
@@ -42,11 +43,10 @@ namespace OpenMS
           @param sirius_workspace_subdirs Vector of paths to SIRIUS subdirectories.
           @param score_threshold Only use spectra over a certain score threshold (0-1)
           @param use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
+          @param decoy_generation Extract decoy spectra from SIRIUS subdirectories. 
           */
           static std::vector<SiriusTargetDecoySpectra> extractAndResolveSiriusAnnotations(const std::vector<String>& sirius_workspace_subdirs, double score_threshold,
-                                                                                          bool use_exact_mass);
-          static std::vector<MSSpectrum> extractSiriusAnnotationsTgtOnly(const std::vector<String>& sirius_workspace_subdirs, double score_threshold, bool use_exact_mass, bool resolve);
-
+                                                                                          bool use_exact_mass, bool decoy_generation);
 
           /**
           @brief extractSiriusFragmentAnnotationMapping  
@@ -81,6 +81,11 @@ namespace OpenMS
           */
           static std::vector<MSSpectrum> extractAnnotationsFromSiriusFile(const String& path_to_sirius_workspace, Size max_rank = 1, bool decoy = false, bool use_exact_mass = false);
 
+          /**
+          @brief Extract columnname and index based in SIRIUS entries
+          */
+          static std::map< std::string, Size > extract_columnname_to_columnindex(const CsvFile& csvfile);
+
       protected:
           /**
           @brief extractConcatNativeIDsFromSiriusMS
@@ -113,6 +118,7 @@ namespace OpenMS
           @param path_to_sirius_workspace Path to SIRIUS workspace.
           */
           static OpenMS::String extractFeatureIDFromSiriusMS_(const String& path_to_sirius_workspace);
+
 
           /**
           @brief extractCompoundRankingAndFilename
