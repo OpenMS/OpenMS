@@ -281,6 +281,13 @@ jobs:
         path: ${{ github.workspace }}/OpenMS/contrib
         key: ${{ runner.os }}-contrib3
 
+    - name: Install Chocolatey and packages (if possible on windows)
+      if: startsWith(matrix.os, 'windows')
+      run: |
+        Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+    - name: Install Eigen
+      run: choco install eigen
+    
     - name: Download contrib build from archive (Windows)
       if: startsWith(matrix.os, 'windows') && steps.cache-contrib.outputs.cache-hit != 'true'
       shell: bash
