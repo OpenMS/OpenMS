@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/TopDownTagger.h>
+#include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <utility>
 
 namespace OpenMS
@@ -33,17 +34,19 @@ namespace OpenMS
       adj_list_[src].push_back(dest); //
     }
 
-    void findAllPaths(int source, int sink, std::vector<std::vector<int>>& all_paths)
+    void findAllPaths(int source, int sink, std::vector<std::vector<int>>& all_paths, int max_count)
     {
       boost::dynamic_bitset<> visited(vertex_count_);
       std::vector<int> path;
 
-      findAllPaths_(source, sink, visited, path, all_paths); // reverse traveling
+      findAllPaths_(source, sink, visited, path, all_paths, max_count); // reverse traveling
     }
 
   private:
-    void findAllPaths_(int current, int destination, boost::dynamic_bitset<>& visited, std::vector<int>& path, std::vector<std::vector<int>>& all_paths)
+    void findAllPaths_(int current, int destination, boost::dynamic_bitset<>& visited, std::vector<int>& path, std::vector<std::vector<int>>& all_paths, int max_count)
     {
+      if (all_paths.size() >= max_count)
+        return;
       visited[current] = true;
       path.push_back(current);
 
@@ -59,7 +62,7 @@ namespace OpenMS
         {
           if (!visited[neighbor])
           {
-            findAllPaths_(neighbor, destination, visited, path, all_paths);
+            findAllPaths_(neighbor, destination, visited, path, all_paths, max_count);
           }
         }
       }
@@ -70,15 +73,15 @@ namespace OpenMS
     }
   };
 
-  std::vector<Residue> TopDownTagger::getAA_(double l, double r, double tol, int z, int iso_offset) const
+  std::vector<Residue> TopDownTagger::getAA_(double l, double r, double tol, int iso_offset) const
   {
     std::vector<Residue> ret;
     if (l == r)
       return ret;
     double iso_mass = std::abs(iso_offset * Constants::C13C12_MASSDIFF_U);
-    double diff1 = std::abs(std::abs(r - l) - iso_mass) / z;
-    double diff2 = std::abs(std::abs(r - l) + iso_mass) / z;
-    double abs_tol = 2 * std::max(l, r) * tol / 1e6;
+    double diff1 = std::abs(std::abs(r - l) - iso_mass);
+    double diff2 = std::abs(std::abs(r - l) + iso_mass);
+    double abs_tol = std::max(l, r) * tol / 1e6;
     auto iter = aa_mass_map_.lower_bound(diff1 - abs_tol);
 
     while (iter != aa_mass_map_.end())
@@ -101,7 +104,7 @@ namespace OpenMS
   void TopDownTagger::updateEdgeMasses_()
   {
     aa_mass_map_.clear();
-    //gap_mass_map_.clear();
+    // gap_mass_map_.clear();
 
     for (const auto& aa : aas_)
     {
@@ -139,7 +142,7 @@ namespace OpenMS
   }
 
 
-  void TopDownTagger::constructDAC_(TopDownTagger::DAC_& dac, const std::vector<double>& mzs, const std::vector<int>& scores, int z, int length, double tol)
+  void TopDownTagger::constructDAC_(TopDownTagger::DAC_& dac, const std::vector<double>& mzs, const std::vector<int>& scores, int length, double tol)
   {
     // from source to sink, connect but the edge direction is from sink to source.
     edge_aa_map_.clear();
@@ -173,7 +176,7 @@ namespace OpenMS
           // make edge from r to l if they make an a.a. mass.
           std::vector<Residue> aas;
 
-          aas = getAA_(l, r, tol, z, n);
+          aas = getAA_(l, r, tol, n);
           if (aas.empty())
             continue;
 
@@ -236,7 +239,6 @@ namespace OpenMS
           }
         }
       }
-
       end_index++;
     }
   }
@@ -276,14 +278,18 @@ namespace OpenMS
     defaults_.setMinInt("max_length", 3);
 
     defaults_.setValue("flanking_mass_tol", 200.0, "Flanking mass tolerance in Da.");
-
-    defaults_.setValue("min_charge", 1, "Minimum charge state of the tags (can be negative for negative mode)");
-    defaults_.setValue("max_charge", 1, "Maximum charge state of the tags (can be negative for negative mode)");
-
     defaults_.setValue("max_iso_error_count", 0, "Maximum isotope error count per tag.");
     defaults_.setMaxInt("max_iso_error_count", 2);
     defaults_.setMinInt("max_iso_error_count", 0);
     defaults_.addTag("max_iso_error_count", "advanced");
+    defaults_.setValue("min_matched_aa", 5, "Minimum number of amino acids in matched proteins, covered by tags.");
+
+    defaults_.setValue("fdr", 1.0, "Protein FDR threshold. If set to a value less than 1.0, shuffled decoy database is generated internally to calculate protein level FDR.");
+    defaults_.setMaxFloat("fdr", 1.0);
+    defaults_.setMinFloat("fdr", 0.01);
+    defaults_.setValue("keep_decoy", "false", "Keep decoy proteins.");
+    defaults_.addTag("keep_decoy", "advanced");
+    defaults_.setValidStrings("keep_decoy", {"true", "false"});
 
     defaultsToParam_();
   }
@@ -293,15 +299,15 @@ namespace OpenMS
     max_tag_count_ = param_.getValue("max_tag_count");
     min_tag_length_ = param_.getValue("min_length");
     max_tag_length_ = param_.getValue("max_length");
-    min_charge_ = param_.getValue("min_charge");
-    max_charge_ = param_.getValue("max_charge");
     max_iso_in_tag_ = param_.getValue("max_iso_error_count");
-
+    min_cov_aa_ = (int)param_.getValue("min_matched_aa");
+    fdr_ = param_.getValue("fdr");
+    keep_decoy_ = param_.getValue("keep_decoy").toString() == "true";
     updateEdgeMasses_();
     max_edge_mass_ = aa_mass_map_.rbegin()->first + max_iso_in_tag_ * Constants::C13C12_MASSDIFF_U;
   }
 
-  void TopDownTagger::run(const DeconvolvedSpectrum& dspec, double ppm, std::vector<FLASHDeconvHelperStructs::Tag>& tags)
+  void TopDownTagger::run(const DeconvolvedSpectrum& dspec, double ppm)
   {
     std::vector<double> mzs;
     std::vector<int> scores;
@@ -311,25 +317,26 @@ namespace OpenMS
     for (auto& pg : dspec)
     {
       mzs.push_back(pg.getMonoMass());
-      int score = (int)round(100 * log10(1e-6 + pg.getQscore2D()));
+      int score = (int)round(10 * log10(1e-6 + pg.getQscore2D() / .5));
       scores.push_back(score); //
     }
-    run(mzs, scores, ppm, tags);
+    run(mzs, scores, ppm);
   }
 
-  void TopDownTagger::run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm, std::vector<FLASHDeconvHelperStructs::Tag>& tags)
+  void TopDownTagger::run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm)
   {
-    run(mzs, scores, ppm, tags, edgeScore_);
+    run(mzs, scores, ppm, edgeScore_);
   }
 
-  void TopDownTagger::updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>& tag_set, const std::vector<int>& path, const std::vector<double>& mzs, int z, int score)
+  void TopDownTagger::updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>& tag_set, std::map<String, std::vector<FLASHDeconvHelperStructs::Tag>>& seq_tag, const std::vector<int>& path, const std::vector<double>& mzs, const std::vector<int>& scores, double ppm)
   {
-    double nmass = -1, cmass = -1;
-    bool is_positive = min_charge_ > 0;
+    double flanking_mass = -1;
 
     std::vector<String> seqs {""};
     std::vector<double> tag_mzs;
+    std::vector<int> tag_scores;
     tag_mzs.reserve(path.size() - 1);
+    tag_scores.reserve(path.size() - 1);
 
     for (int j = 1; j < path.size(); j++)
     {
@@ -349,11 +356,13 @@ namespace OpenMS
         }
         seqs = tmp_seqs;
         tag_mzs.push_back(mzs[i1]);
+        tag_scores.push_back(scores[i1]);
       }
       else if (i2 == 0) // nterm
       {
         tag_mzs.push_back(mzs[i1]);
-        nmass = mzs[i1] / z;
+        tag_scores.push_back(scores[i1]);
+        flanking_mass = mzs[i1];
       }
     }
 
@@ -362,34 +371,48 @@ namespace OpenMS
 
     for (const auto& seq : seqs)
     {
-      auto direct_tag = FLASHDeconvHelperStructs::Tag(seq, nmass, cmass, is_positive ? z : -z, std::pow(10.0, score / 100.0), tag_mzs);
-      auto reverse_tag = FLASHDeconvHelperStructs::Tag(String(seq).reverse(), cmass, nmass, is_positive ? z : -z, std::pow(10.0, score / 100.0), rev_tag_mzs);
-
-      auto iter = tag_set.find(direct_tag);
-      if (iter == tag_set.end())
+      auto iter = seq_tag.find(seq);
+      bool pass = true;
+      if (iter != seq_tag.end())  // remove overlapping tags.
       {
+        for (const auto& pt : iter->second)
+        {
+          if (pt.getNtermMass() < 0) continue;
+          if (abs(pt.getNtermMass() - flanking_mass) / std::max(pt.getNtermMass(),flanking_mass) * 1e6 > ppm) continue;
+          pass = false;
+          break;
+        }
+      }
+      if (pass)
+      {
+        auto direct_tag = FLASHDeconvHelperStructs::Tag(seq, flanking_mass, -1, tag_scores, tag_mzs);
         tag_set.insert(direct_tag);
-      }
-      else if (iter->getScore() < direct_tag.getScore())
-      {
-        tag_set.erase(iter);
-        tag_set.insert(direct_tag);
+        seq_tag[seq].push_back(direct_tag);
       }
 
-      iter = tag_set.find(reverse_tag);
-      if (iter == tag_set.end())
+      pass = true;
+      String rev_seq = String(seq).reverse();
+      iter = seq_tag.find(rev_seq);
+      if (iter != seq_tag.end())  // remove overlapping tags.
       {
-        tag_set.insert(reverse_tag);
+        for (const auto& pt : iter->second)
+        {
+          if (pt.getCtermMass() < 0) continue;
+          if (abs(pt.getCtermMass() - flanking_mass) / std::max(pt.getCtermMass(),flanking_mass) * 1e6 > ppm) continue;
+          pass = false;
+          break;
+        }
       }
-      else if (iter->getScore() < reverse_tag.getScore())
+      if (pass)
       {
-        tag_set.erase(iter);
+        auto reverse_tag = FLASHDeconvHelperStructs::Tag(rev_seq, -1, flanking_mass, tag_scores, rev_tag_mzs);
         tag_set.insert(reverse_tag);
+        seq_tag[rev_seq].push_back(reverse_tag);
       }
     }
   }
 
-  void TopDownTagger::run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm, std::vector<FLASHDeconvHelperStructs::Tag>& tags, const std::function<int(int, int)>& edge_score)
+  void TopDownTagger::run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm, const std::function<int(int, int)>& edge_score)
   {
     const Size max_node_cntr = 500;
     if (max_tag_count_ == 0)
@@ -428,15 +451,6 @@ namespace OpenMS
       _mzs.push_back(mzs[i]);
       _scores.push_back(scores[i]);
     }
-    int min_abs_charge = abs(min_charge_);
-    int max_abs_charge = abs(max_charge_);
-
-    if (min_abs_charge > max_abs_charge)
-    {
-      int tmp = min_abs_charge;
-      min_abs_charge = max_abs_charge;
-      max_abs_charge = tmp;
-    }
 
     int max_vertex_score = *std::max_element(_scores.begin(), _scores.end());
     int min_vertex_score = *std::min_element(_scores.begin(), _scores.end());
@@ -448,29 +462,30 @@ namespace OpenMS
     min_path_score_ = std::min(min_path_score_, edge_score_(min_vertex_score, min_vertex_score) * (min_tag_length_ - 2));
 
     std::set<FLASHDeconvHelperStructs::Tag> tagSet;
+    std::map<String, std::vector<FLASHDeconvHelperStructs::Tag>> seq_tag;
 
-    for (int z = min_abs_charge; z <= max_abs_charge; z++)
+    for (int length = min_tag_length_; length <= max_tag_length_; length++)
     {
-      for (int length = min_tag_length_; length <= max_tag_length_; length++)
+      TopDownTagger::DAC_ dac(_mzs.size() * (1 + max_tag_length_) * (1 + max_iso_in_tag_) * (1 + max_path_score_ - min_path_score_));
+      constructDAC_(dac, _mzs, _scores, length, ppm);
+
+      std::set<FLASHDeconvHelperStructs::Tag> _tagSet;
+      for (int score = max_path_score_; score >= min_path_score_ && _tagSet.size() < max_tag_count_; score--)
       {
-        TopDownTagger::DAC_ dac(_mzs.size() * (1 + max_tag_length_) * (1 + max_iso_in_tag_) * (1 + max_path_score_ - min_path_score_));
-        constructDAC_(dac, _mzs, _scores, z, length, ppm);
         std::vector<std::vector<int>> all_paths;
-        std::set<FLASHDeconvHelperStructs::Tag> _tagSet;
-        for (int score = max_path_score_; score >= min_path_score_ && _tagSet.size() < max_tag_count_; score--)
+        all_paths.reserve(max_tag_count_);
+        for (int g = 0; g <= max_iso_in_tag_; g++)
         {
-          for (int g = 0; g <= max_iso_in_tag_; g++)
-          {
-            dac.findAllPaths(getVertex_(_mzs.size() - 1, score, length, g), getVertex_(0, 0, 0, 0), all_paths);
-          }
-          for (const auto& path : all_paths)
-          {
-            updateTagSet_(_tagSet, path, _mzs, z, score);
-          }
+          dac.findAllPaths(getVertex_(_mzs.size() - 1, score, length, g), getVertex_(0, 0, 0, 0), all_paths, max_tag_count_);
         }
-        tagSet.insert(_tagSet.begin(), _tagSet.end());
+        for (const auto& path : all_paths)
+        {
+          updateTagSet_(_tagSet, seq_tag, path, _mzs, _scores, ppm);
+        }
       }
+      tagSet.insert(_tagSet.begin(), _tagSet.end());
     }
+
 
     for (int length = min_tag_length_; length <= max_tag_length_; length++)
     {
@@ -479,65 +494,249 @@ namespace OpenMS
       {
         if (tag.getLength() != length)
           continue;
-        tags.push_back(tag);
+        tags_.push_back(tag);
         if (++count == max_tag_count_)
           break;
       }
-      std::sort(tags.begin(), tags.end(), [](const FLASHDeconvHelperStructs::Tag& a, const FLASHDeconvHelperStructs::Tag& b) {
-        return a.getLength() == b.getLength() ? a.getScore() > b.getScore() : a.getLength() < b.getLength();
-      });
       OPENMS_LOG_INFO << "Tag count with length " << length << ": " << count << std::endl;
     }
+
+    std::sort(tags_.begin(), tags_.end(), [](const FLASHDeconvHelperStructs::Tag& a, const FLASHDeconvHelperStructs::Tag& b) {
+      return a.getScore() > b.getScore();
+    });
   }
 
-  std::vector<std::pair<FASTAFile::FASTAEntry, std::vector<FLASHDeconvHelperStructs::Tag>>> TopDownTagger::runMatching(const std::vector<FLASHDeconvHelperStructs::Tag>& tags,
-                                                                                                                       const std::vector<FASTAFile::FASTAEntry>& fasta_entry) const
+  Size TopDownTagger::find_with_X_(const String& A, const String& B) // allow a single X
   {
-    std::vector<std::pair<FASTAFile::FASTAEntry, std::vector<FLASHDeconvHelperStructs::Tag>>> pairs;
-#pragma omp parallel for default(none) shared(pairs, fasta_entry, tags)
-    for (int i = 0; i < fasta_entry.size(); i++)
+    for (size_t i = 0; i <= A.length() - B.length(); ++i)
     {
-      auto& fe = fasta_entry[i];
-      std::vector<FLASHDeconvHelperStructs::Tag> matched_tags;
-      auto seq = fe.sequence;
-      for (auto& tag : tags)
+      bool match = true;
+      int x_cntr = 0;
+      for (size_t j = 0; j < B.length(); ++j)
       {
-        bool matched = !seq.empty() && seq.hasSubstring(tag.getSequence().toUpper());
-
-        if (matched)
+        if (A[i + j] == 'X')
+          x_cntr++;
+        if ((A[i + j] != B[j] && A[i + j] != 'X') || x_cntr > 1)
         {
-          auto pos = seq.find(tag.getSequence().toUpper());
+          match = false;
+          break;
+        }
+      }
+      if (match)
+      {
+        return i;
+      }
+    }
+    return String::npos;
+  }
+
+  // Make output struct containing all information about matched entries and tags, coverage, score etc.
+  void TopDownTagger::runMatching(const String& fasta_file)
+  {
+    const double decoy_mul = fdr_ >= 1.0 ? 0 : round(1.0 / fdr_);
+    std::vector<FASTAFile::FASTAEntry> fasta_entry;
+    FASTAFile ffile;
+    ffile.load(fasta_file, fasta_entry);
+
+    std::vector<std::pair<ProteinHit, std::vector<int>>> pairs;
+    std::vector<int> start_loc(tags_.size(), 0);
+    std::vector<int> end_loc(tags_.size(), 0);
+
+    // for each tag, find the possible start and end locations in the protein sequence. If C term, they are negative values to specify values are from the end of the protein
+#pragma omp parallel for default(none) shared(end_loc, start_loc)
+    for (int i = 0; i < tags_.size(); i++)
+    {
+      const auto& tag = tags_[i];
+      if (tag.getNtermMass() > 0)
+      {
+        start_loc[i] = std::max(0, int(floor(tag.getNtermMass() - flanking_mass_tol_) / aa_mass_map_.rbegin()->first));
+        end_loc[i] = int(ceil(tag.getNtermMass() + flanking_mass_tol_) / aa_mass_map_.begin()->first) + (int)tag.getLength() + 1;
+      }
+      if (tag.getCtermMass() > 0)
+      {
+        end_loc[i] = std::min(0, -int(floor(tag.getCtermMass() - flanking_mass_tol_) / aa_mass_map_.rbegin()->first));
+        start_loc[i] = -int(ceil(tag.getCtermMass() + flanking_mass_tol_) / aa_mass_map_.begin()->first) - (int)tag.getLength() - 1;
+      }
+    }
+
+    int min_hit_tag_score = max_path_score_;
+    for (int k = 0; k < decoy_mul + 1; k++) // remove later. Make decoy DB. decoy_mul is learned from the DB. Put the minimum FDR when decoy is small.
+    {
+#pragma omp parallel for default(none) shared(pairs, fasta_entry, start_loc, end_loc, decoy_mul, k, min_hit_tag_score)
+      for (int i = 0; i < fasta_entry.size(); i++)
+      {
+        const auto& fe = fasta_entry[i];
+        String identifier = k == 0 ? fe.identifier : String("Decoy_") + fe.identifier;
+        String description = k == 0 ? fe.description : String("Decoy_") + fe.description;
+        DecoyGenerator dgen;
+        dgen.setSeed(k);
+        std::vector<int> matched_tag_indices;
+        const auto& seq = k == 0 ? fe.sequence : dgen.shufflePeptides(AASequence::fromString(fe.sequence), "no cleavage").toString();
+        auto x_pos = seq.find('X');
+        std::map<Size, int> matched_pos_score;
+        // find range, match allowing X.
+        for (int j = 0; j < tags_.size(); j++)
+        {
+          auto& tag = tags_[j];
+          if (k > 0 && tag.getScore() < min_hit_tag_score) break;
+          bool isNterm = tag.getNtermMass() > 0;
+
+          int s, n;
+          if (isNterm)
+          {
+            s = start_loc[j];
+            n = end_loc[j] - start_loc[j];
+          }
+          else
+          {
+            s = seq.length() - 1 + start_loc[j];
+            n = end_loc[j] - start_loc[j];
+          }
+          const auto sub_seq = std::string_view(seq.data() + s, n);
+
+          if (sub_seq.length() < tag.getLength())
+            continue;
+
+          auto pos = sub_seq.find(tag.getSequence().toUpper());
+          if (pos == String::npos)
+          {
+            if (x_pos >= s && x_pos <= s + n)
+            {
+              pos = find_with_X_(sub_seq, tag.getSequence().toUpper());
+              if (pos == String::npos)
+                continue;
+            }
+            else
+              continue;
+          }
+          pos += s;
+
           if (tag.getNtermMass() > 0)
           {
             auto nterm = seq.substr(0, pos);
+            if (x_pos != String::npos)
+              nterm.erase(remove(nterm.begin(), nterm.end(), 'X'), nterm.end());
+
             double aamass = nterm.empty() ? 0 : AASequence::fromString(nterm).getMonoWeight();
             if (std::abs(tag.getNtermMass() - aamass) > flanking_mass_tol_)
-              matched = false;
+              continue;
           }
-          if (matched && tag.getCtermMass() > 0)
+          if (tag.getCtermMass() > 0)
           {
             auto cterm = seq.substr(pos + tag.getSequence().length());
+            if (x_pos != String::npos)
+              cterm.erase(remove(cterm.begin(), cterm.end(), 'X'), cterm.end());
+
             double aamass = cterm.empty() ? 0 : AASequence::fromString(cterm).getMonoWeight();
             if (std::abs(tag.getCtermMass() - aamass) > flanking_mass_tol_)
-              matched = false;
+              continue;
           }
+
+          for (Size off = 0; off < tag.getLength(); off++)
+          {
+            int score = tag.getScore((int)off);
+            auto iter = matched_pos_score.find(pos + off);
+            if (iter != matched_pos_score.end())
+              score = std::max(score, iter->second);
+            matched_pos_score[pos + off] = score;
+          }
+          matched_tag_indices.push_back(j);
+#pragma omp critical
+          if (k == 0) min_hit_tag_score = std::min(min_hit_tag_score, tag.getScore());
+        }
+        if (matched_tag_indices.empty())
+          continue;
+
+        int match_cntr = 0;
+        int match_score = 0;
+        for (const auto& ps : matched_pos_score)
+        {
+          if (seq[ps.first] == 'X')
+            continue;
+          match_cntr++;
+          match_score += ps.second;
         }
 
-        if (matched)
-        {
-          matched_tags.push_back(tag);
-        }
-      }
-      if (matched_tags.empty())
-        continue;
+        if (match_cntr < min_cov_aa_)
+          continue;
+        //(double score, UInt rank, String accession, String sequence)
+        ProteinHit hit(0, 0, identifier, seq); //
+        hit.setDescription(description);
+        hit.setMetaValue("MatchedAA", match_cntr);
+        hit.setMetaValue("IsDecoy", k == 0 ? 0 : 1);
+        hit.setCoverage(double(match_cntr) / seq.length());
+        hit.setScore(match_score);
 #pragma omp critical
-      pairs.emplace_back(fe, matched_tags);
+        pairs.emplace_back(hit, matched_tag_indices);
+      }
     }
 
+    protein_hits_.reserve(pairs.size());
+    matching_tags_indices_.reserve(pairs.size());
+
     std::sort(pairs.begin(), pairs.end(),
-              [](const std::pair<FASTAFile::FASTAEntry, std::vector<FLASHDeconvHelperStructs::Tag>>& left, const std::pair<FASTAFile::FASTAEntry, std::vector<FLASHDeconvHelperStructs::Tag>>& right) {
-                return left.second.size() > right.second.size();
-              });
-    return pairs;
+              [](const std::pair<ProteinHit, std::vector<int>>& left, const std::pair<ProteinHit, std::vector<int>>& right) { return left.first.getScore() > right.first.getScore(); });
+
+    // FDR calculation
+    double cum_target_count = 0;
+    double cum_decoy_count = 0;
+
+    for (auto& [hit, indices] : pairs)
+    {
+      bool is_decoy = (int)hit.getMetaValue("IsDecoy") > 0;
+      if (is_decoy)
+      {
+        cum_decoy_count += 1.0 / decoy_mul;
+      }
+      else
+      {
+        cum_target_count++;
+      }
+      double qvalue = fdr_ < 1.0 ? cum_decoy_count / (cum_target_count + cum_decoy_count) : -1.0;
+      hit.setMetaValue("qvalue", qvalue);
+    }
+
+    double min_qvalue = 1;
+    for (auto iter = pairs.rbegin(); iter != pairs.rend(); iter++)
+    {
+      min_qvalue = std::min(min_qvalue, (double)iter->first.getMetaValue("qvalue"));
+      iter->first.setMetaValue("qvalue", min_qvalue);
+    }
+
+    for (const auto& [hit, indices] : pairs)
+    {
+      if ((double)hit.getMetaValue("qvalue") > fdr_)
+        continue;
+      if ((int)hit.getMetaValue("IsDecoy") > 0 && !keep_decoy_)
+        continue;
+
+      protein_hits_.push_back(hit);
+      matching_tags_indices_.push_back(indices);
+    }
   }
+
+  const std::vector<ProteinHit>& TopDownTagger::getProteinHits() const
+  {
+    return protein_hits_;
+  }
+
+  const std::vector<FLASHDeconvHelperStructs::Tag>& TopDownTagger::getTags() const
+  {
+    return tags_;
+  }
+
+  std::vector<FLASHDeconvHelperStructs::Tag> TopDownTagger::getMatchingTags(const ProteinHit& hit) const
+  {
+    std::vector<FLASHDeconvHelperStructs::Tag> tags;
+    auto iter = std::find(protein_hits_.begin(), protein_hits_.end(), hit);
+    if (iter == protein_hits_.end())
+      return tags;
+    Size index = std::distance(protein_hits_.begin(), iter);
+    for (auto i : matching_tags_indices_[index])
+    {
+      tags.push_back(tags_[i]);
+    }
+    return tags;
+  }
+
 } // namespace OpenMS

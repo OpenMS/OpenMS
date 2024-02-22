@@ -60,11 +60,11 @@ and terminates the program if decoys are found.
 /// @cond TOPPCLASSES
 
 class TOPPDecoyDatabase :
-  public TOPPBase
+    public TOPPBase
 {
 public:
   TOPPDecoyDatabase() :
-    TOPPBase("DecoyDatabase", "Create decoy sequence database from forward sequence database.")
+      TOPPBase("DecoyDatabase", "Create decoy sequence database from forward sequence database.")
   {
   }
 
@@ -156,7 +156,7 @@ protected:
     if (in.size() == 1)
     {
       OPENMS_LOG_WARN << "Warning: Only one FASTA input file was provided, which might not contain contaminants. "
-               << "You probably want to have them! Just add the contaminant file to the input file list 'in'." << endl;
+                      << "You probably want to have them! Just add the contaminant file to the input file list 'in'." << endl;
     }
 
     set<String> identifiers; // spot duplicate identifiers  // std::unordered_set<string> has slightly more RAM, but slightly less CPU
@@ -256,8 +256,8 @@ protected:
 
           while (std::regex_search(quick_seq, m, re))
           {
-              tokenized.emplace_back(m.str(0));
-              quick_seq = m.suffix();
+            tokenized.emplace_back(m.str(0));
+            quick_seq = m.suffix();
           }
 
           if (shuffle)
