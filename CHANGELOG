@@ -18,8 +18,11 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 
 What's new:
 - Breaking change: Rename of parameters for FeatureFinderCentroided (debug->advanced), and PeakPickerWavelet/TOFCalibration (optimization -> optimization:type) (#7154)
+
 Library:
 - Extend FileHandler to support load and store operations for our major datastructures (spectra, features, identifications, etc.). Replaced file type specific code with the more generic FileHandler calls to decouple the IO code from other parts of the library.
+- SiriusAdapter reworked to SiriusExport: Instead of running SIRIUS directly, this reworked tool takes multiple mzML and feautureXML (optional) files exporting a single SIRIUS .ms input file as well as an input table with compound info from features for the new AssayGeneratorMetaboSirius tool. (#7234)
+- Splitting AssayGeneratorMetabo into two tools: In line with the changes to SiriusExport this tool has been split into two separate workflows. AssayGeneratorMetabo generates an assay library from mzML and feautreXML files using an heuristic approach picking the highest intensity MS2 peaks (like before). AssayGeneratorMetaboSirius takes an existing SIRIUS project directory as input to generate an assay library based on fragmentation trees. (#7234)
 - better documentation for all SpectraFilter... tools (#7183)
 
 Fixes:
@@ -469,7 +472,7 @@ New tools:
   - OpenPepXL -- Tool for protein-protein cross-linking identification using labeled linkers (UTIL)
   - OpenPepXLLF -- Tool for protein-protein cross linking with label-free linkers (UTIL)
   - PSMFeatureExtractor -- Computes extra features for each input PSM (UTIL)
-  - SiriusAdapter -- Tool for metabolite identification using single and tandem mass spectrometry (UTIL)
+  - SiriusExport -- Tool for metabolite identification using single and tandem mass spectrometry (UTIL)
   - XFDR -- Calculates false discovery rate estimates on protein-protein-crosslink identifications (UTIL)
 
 Deprecated and removed tools:

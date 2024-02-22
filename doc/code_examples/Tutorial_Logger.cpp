@@ -1,4 +1,4 @@
-//! [Logger] 
+//! [doxygen_snippet_Logger] 
 
   ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);  // set the log type (command line or a file)
@@ -15,4 +15,4 @@
     }
     progresslogger.endProgress();
 
-//! [Logger]
+//! [doxygen_snippet_Logger]

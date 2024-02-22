@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedTargetDecoy.h>" namesp
                 #  
                 #  :param t_exp: TransitionExperiment holds compound and transition information used for the mapping
 
-      void resolveOverlappingTargetDecoyMassesByIndividualMassShift(TargetedExperiment& t_exp, libcpp_vector[ MetaboTargetedTargetDecoy_MetaboTargetDecoyMassMapping ]& mappings, double& mass_to_add) except + nogil 
+      void resolveOverlappingTargetDecoyMassesByDecoyMassShift(TargetedExperiment& t_exp, libcpp_vector[ MetaboTargetedTargetDecoy_MetaboTargetDecoyMassMapping ]& mappings, double& mass_to_add, double& mz_tol, String& mz_tol_unit) except + nogil 
         # wrap-doc:
                 #  Resolves overlapping target and decoy transition masses by adding a specifiable mass (e.g. CH2) to the overlapping decoy fragment
                 #  
@@ -24,6 +24,8 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedTargetDecoy.h>" namesp
                 #  :param t_exp: TransitionExperiment holds compound and transition information
                 #  :param mappings: Map of identifier to target and decoy masses
                 #  :param mass_to_add: (e.g. CH2)
+                #  :param mz_tol: m/z tolerarance for target and decoy transition masses to be considered overlapping
+                #  :param mz_tol_unit: m/z tolerance unit
 
       void generateMissingDecoysByMassShift(TargetedExperiment& t_exp, libcpp_vector[ MetaboTargetedTargetDecoy_MetaboTargetDecoyMassMapping ]& mappings, double& mass_to_add) except + nogil 
         # wrap-doc:
