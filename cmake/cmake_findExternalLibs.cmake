@@ -146,9 +146,9 @@ find_package(BZip2 REQUIRED)
 #------------------------------------------------------------------------------
 # Find eigen3
 # creates Eigen3::Eigen3 package
-find_package(Eigen3 3.3.4 REQUIRED)
+find_package(Eigen3 3.4.0 REQUIRED)
 if(TARGET Eigen3::Eigen)
-    message("Eigen version found: ${Eigen3_VERSION}")
+    message(STATUS "Eigen version found: ${Eigen3_VERSION}")
 endif(TARGET Eigen3::Eigen)
 
 #------------------------------------------------------------------------------
