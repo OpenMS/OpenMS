@@ -137,6 +137,12 @@ private:
     /// Whether to apply S/N filtering
     bool mt_snr_filtering_;
 
+    /// Parameter for SavitzkyGolayFilter
+    int smoothing_polynomial_;
+
+    /// Minimum number of peaks within a trace
+    Size min_num_of_peaks_;
+
     /// Main function to do the work
     void detectElutionPeaks_(MassTrace&, std::vector<MassTrace>&);
   };

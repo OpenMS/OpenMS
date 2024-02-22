@@ -10,7 +10,6 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <boost/dynamic_bitset.hpp>
 
@@ -38,6 +37,9 @@ namespace OpenMS
 
     defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", {"advanced"});
     defaults_.setValidStrings("masstrace_snr_filtering", {"true","false"});
+
+    defaults_.setValue("smoothing_polynomial", 2, "The order of the smoothing polynomial used in Savitzky-Golay filter.", {"advanced"});
+    defaults_.setValue("min_num_of_peaks_", 0, "Minimum number of peaks a mass trace should have. Ignored if this parameter is set 0.", {"advanced"});
 
     defaultsToParam_();
     this->setLogType(CMD);
@@ -312,7 +314,7 @@ namespace OpenMS
     this->startProgress(0, mt_vec.size(), "elution peak detection");
     Size progress(0);
 #ifdef _OPENMP
-#pragma omp parallel for
+#pragma omp parallel for default(none) shared(mt_vec, single_mtraces, progress)
 #endif
     for (SignedSize i = 0; i < (SignedSize) mt_vec.size(); ++i)
     {
@@ -370,12 +372,19 @@ namespace OpenMS
     // *********************************************************************
     // Step 1: Smooth data
     // *********************************************************************
+    if (min_num_of_peaks_ > 0 && mt.getSize() < min_num_of_peaks_)
+    {
+      return;
+    }
 
     double scan_time(mt.getAverageMS1CycleTime());
-    Size win_size = std::ceil(chrom_fwhm_ / scan_time);
+    double fwhm = mt.estimateFWHM(false); // mt is not smoothed yet
+    Size win_size = std::ceil(fwhm / scan_time);
 
     // add smoothed data (original data is still accessible)
     smoothData(mt, static_cast<Int>(win_size));
+    double smoothed_fwhm = mt.estimateFWHM(true);
+    win_size = std::ceil(smoothed_fwhm / scan_time);
 
 #ifdef DEBUG_EPD
     Size i = 0;
@@ -395,7 +404,7 @@ namespace OpenMS
     // Step 2: Identify local maxima and minima
     // *********************************************************************
     std::vector<Size> maxes, mins;
-    findLocalExtrema(mt, win_size / 2, maxes, mins);
+    findLocalExtrema(mt, std::max(1, (int) win_size / 2), maxes, mins);
 
 #ifdef DEBUG_EPD
     std::cout << "findLocalExtrema returned: maxima " << maxes.size() << " / minima " << mins.size() << std::endl;
@@ -404,6 +413,30 @@ namespace OpenMS
     // *********************************************************************
     // Step 3: Split mass trace according to detected peaks
     // *********************************************************************
+    // remove idx in "mins" based on the number of min peaks
+    if (min_num_of_peaks_ > 0 && !mins.empty())
+    {
+      Size previous_loc = 0;
+      auto iter = mins.begin();
+      while (iter != mins.end())
+      {
+        if ((*iter)-previous_loc < min_num_of_peaks_)
+        {
+          iter = mins.erase(iter);
+        }
+        else
+        {
+          previous_loc = *iter;
+          ++iter;
+        }
+      }
+
+      // check if the last minima has less than minimum number of peaks
+      if ( !mins.empty() && (mt.getSize()-1) - mins.back() < min_num_of_peaks_)
+      {
+        mins.pop_back();
+      }
+    }
 
     // if only one maximum exists: finished!
     if (maxes.size() == 1)
@@ -505,7 +538,7 @@ namespace OpenMS
         // *********************************************************************
         if (mt_snr_filtering_)
         {
-          if (computeApexSNR(mt) < chrom_peak_snr_)
+          if (computeApexSNR(new_mt) < chrom_peak_snr_)
           {
             snr_ok = false;
           }
@@ -551,8 +584,8 @@ namespace OpenMS
 
     SavitzkyGolayFilter sg;
     Param param;
-    param.setValue("polynomial_order", 2);
-    param.setValue("frame_length", std::max(3, win_size)); // frame length must be at least polynomial_order+1, otherwise SG will fail
+    param.setValue("polynomial_order", smoothing_polynomial_);
+    param.setValue("frame_length", std::max((smoothing_polynomial_+1), win_size)); // frame length must be at least polynomial_order+1, otherwise SG will fail
     sg.setParameters(param);
     sg.filter(spectrum);
     MSSpectrum::iterator iter = spectrum.begin();
@@ -599,6 +632,8 @@ namespace OpenMS
 
     pw_filtering_ = param_.getValue("width_filtering").toString();
     mt_snr_filtering_ = param_.getValue("masstrace_snr_filtering").toBool();
+    smoothing_polynomial_ = (int)param_.getValue("smoothing_polynomial");
+    min_num_of_peaks_ = (Size)param_.getValue("min_num_of_peaks");
   }
 
 } //namespace OpenMS
