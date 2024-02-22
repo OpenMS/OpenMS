@@ -252,8 +252,9 @@ jobs:
           ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
           # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
           echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
-          # Install some dependencies from choco
+          # Install eigen from choco
           choco install eigen -y --no-progress
+          echo "eigen_choco=C:\ProgramData\chocolatey\lib\eigen\share\cmake" >> $GITHUB_OUTPUT
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             choco install doxygen.portable ghostscript graphviz -y --no-progress
@@ -386,6 +387,7 @@ jobs:
           CCACHE_SLOPPINESS: time_macros,include_file_ctime,include_file_mtime
           CCACHE_COMPILERCHECK: content
           WITH_THERMORAWFILEPARSER_TEST: "OFF"
+          Eigen3_DIR: ${{ steps.tools-prefix.outputs.eigen_choco }} # Eigen is installed on windows using choco
 
     - name: Test
       shell: bash
