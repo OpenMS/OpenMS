@@ -387,7 +387,7 @@ jobs:
           CCACHE_SLOPPINESS: time_macros,include_file_ctime,include_file_mtime
           CCACHE_COMPILERCHECK: content
           WITH_THERMORAWFILEPARSER_TEST: "OFF"
-          Eigen3_DIR: ${{ steps.tools-prefix.outputs.eigen_choco }} # Eigen is installed on windows using choco
+          Eigen3_DIR: "${{ steps.tools-prefix.outputs.eigen_choco }}" # Eigen is installed on windows using choco
 
     - name: Test
       shell: bash
