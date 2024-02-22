@@ -46,7 +46,7 @@ public:
     typedef std::map<Int, ChannelInfo> ChannelMapType;
 
     /// (user defined?) isotope correction matrix in (-2, -1, +1, +2) row style
-    typedef std::vector<Matrix<double> > IsotopeMatrices;
+    typedef std::vector<Matrix<double>> IsotopeMatrices;
 
     /// channel names for 4plex( 114, 115, 116, 117)
     static const Int CHANNELS_FOURPLEX[4][1];
