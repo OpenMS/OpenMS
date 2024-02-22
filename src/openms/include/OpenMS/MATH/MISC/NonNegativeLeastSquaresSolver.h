@@ -9,7 +9,6 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
-#include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
 
 namespace OpenMS
 {
