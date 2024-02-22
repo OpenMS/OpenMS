@@ -252,6 +252,8 @@ jobs:
           ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
           # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
           echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
+          # Install some dependencies from choco
+          choco install eigen -y --no-progress
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             choco install doxygen.portable ghostscript graphviz -y --no-progress
@@ -280,7 +282,7 @@ jobs:
       with:
         path: ${{ github.workspace }}/OpenMS/contrib
         key: ${{ runner.os }}-contrib3
-
+    
     - name: Download contrib build from archive (Windows)
       if: startsWith(matrix.os, 'windows') && steps.cache-contrib.outputs.cache-hit != 'true'
       shell: bash
