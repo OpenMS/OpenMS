@@ -21,5 +21,4 @@ Int main()
 
   ff.run("simple", input, output, parameters, seeds);
 
-  return 0;
 } //end of main

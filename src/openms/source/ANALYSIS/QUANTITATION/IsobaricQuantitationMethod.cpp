@@ -73,14 +73,14 @@ namespace OpenMS
           
           if (target_channel >= 0 && Size(target_channel) < getNumberOfChannels())
           {
-            channel_frequency.setValue(target_channel, contributing_channel, correction / 100.0);
+            channel_frequency(target_channel, contributing_channel) = correction / 100.0;
           }
           self_contribution -= correction; // count reduced self-contribution even if it does not affect another channel
         }
         affected_channel_idx++;
       }
       // set reduced self contribution
-      channel_frequency.setValue(contributing_channel, contributing_channel, self_contribution / 100.0);
+      channel_frequency(contributing_channel, contributing_channel) = self_contribution / 100.0;
       // increment channel index
       ++contributing_channel;
     }
