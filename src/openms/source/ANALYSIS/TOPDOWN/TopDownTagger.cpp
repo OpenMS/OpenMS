@@ -8,7 +8,6 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/TopDownTagger.h>
-#include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <utility>
 
 namespace OpenMS

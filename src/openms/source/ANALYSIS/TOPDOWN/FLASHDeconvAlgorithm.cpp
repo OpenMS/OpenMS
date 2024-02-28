@@ -148,17 +148,20 @@ namespace OpenMS
 
     for (auto& it : map)
     {
+      if (it.empty()) continue;
       Size count = it.getType(false) == SpectrumSettings::CENTROID ? max_peak_count_for_centroid_ : max_peak_count_for_profile_;
       it.sortByIntensity(true);
       double threshold = it.size() < count ? 0 : it[count].getIntensity();
       threshold = std::max(threshold, (double)it.begin()->getIntensity() / 1000);
       // pop back the low intensity peaks using threshold
+
       while (!it.empty() && it.back().getIntensity() <= threshold)
       {
         it.pop_back();
       }
       it.sortByPosition();
     }
+    OPENMS_LOG_INFO << "Done"<<std::endl;
   }
 
   void FLASHDeconvAlgorithm::mergeSpectra_(MSExperiment& map, uint ms_level)
