@@ -66,8 +66,6 @@ public:
 
     static FeatureFinderAlgorithm* create();
 
-    static const String getProductName();
-
 protected:
     /// editable copy of the map
     MapType map_;

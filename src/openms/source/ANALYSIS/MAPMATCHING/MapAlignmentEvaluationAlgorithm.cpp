@@ -16,12 +16,6 @@
 
 namespace OpenMS
 {
-  //register products here
-  void MapAlignmentEvaluationAlgorithm::registerChildren()
-  {
-    Factory<MapAlignmentEvaluationAlgorithm>::registerProduct(MapAlignmentEvaluationAlgorithmPrecision::getProductName(), &MapAlignmentEvaluationAlgorithmPrecision::create);
-    Factory<MapAlignmentEvaluationAlgorithm>::registerProduct(MapAlignmentEvaluationAlgorithmRecall::getProductName(), &MapAlignmentEvaluationAlgorithmRecall::create);
-  }
 
   // TODO consider using (RT,MZ,IT) as a unique identifier ?
   bool MapAlignmentEvaluationAlgorithm::isSameHandle(const FeatureHandle& lhs, const FeatureHandle& rhs, const double& rt_dev, const double& mz_dev, const Peak2D::IntensityType& int_dev, const bool use_charge)

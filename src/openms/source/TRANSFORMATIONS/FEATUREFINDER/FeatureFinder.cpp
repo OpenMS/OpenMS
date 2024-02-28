@@ -86,6 +86,8 @@ namespace OpenMS
       }
     }
 
+    // SERIOUSLY??? why having a base class/interface in the first place if everywhere I see this kind of code? 
+
     // do the work
     if (algorithm_name != "none")
     {

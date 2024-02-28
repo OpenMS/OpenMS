@@ -48,10 +48,6 @@ START_SECTION((static FeatureFinderAlgorithm<PeakType>* create()))
   delete ptr2;
 END_SECTION
 
-START_SECTION((static const String getProductName()))
-  TEST_EQUAL(FFPP::getProductName(),"centroided")
-END_SECTION
-
 START_SECTION((virtual void run()))
   //input and output
   PeakMap input;

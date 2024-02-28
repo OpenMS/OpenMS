@@ -36,11 +36,4 @@ namespace OpenMS
     return *this;
   }
 
-  void BinnedSpectrumCompareFunctor::registerChildren()
-  {
-    Factory<BinnedSpectrumCompareFunctor>::registerProduct(BinnedSharedPeakCount::getProductName(), &BinnedSharedPeakCount::create);
-    Factory<BinnedSpectrumCompareFunctor>::registerProduct(BinnedSpectralContrastAngle::getProductName(), &BinnedSpectralContrastAngle::create);
-    Factory<BinnedSpectrumCompareFunctor>::registerProduct(BinnedSumAgreeingIntensities::getProductName(), &BinnedSumAgreeingIntensities::create);
-  }
-
 }

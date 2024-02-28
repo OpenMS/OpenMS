@@ -52,15 +52,6 @@ namespace OpenMS
     return *this;
   }
 
-  void Fitter1D::registerChildren()
-  {
-    Factory<Fitter1D>::registerProduct(GaussFitter1D::getProductName(), &GaussFitter1D::create);
-    Factory<Fitter1D>::registerProduct(BiGaussFitter1D::getProductName(), &BiGaussFitter1D::create);
-    Factory<Fitter1D>::registerProduct(IsotopeFitter1D::getProductName(), &IsotopeFitter1D::create);
-    Factory<Fitter1D>::registerProduct(ExtendedIsotopeFitter1D::getProductName(), &ExtendedIsotopeFitter1D::create);
-    Factory<Fitter1D>::registerProduct(EmgFitter1D::getProductName(), &EmgFitter1D::create);
-  }
-
   void Fitter1D::updateMembers_()
   {
     tolerance_stdev_box_ = param_.getValue("tolerance_stdev_bounding_box");

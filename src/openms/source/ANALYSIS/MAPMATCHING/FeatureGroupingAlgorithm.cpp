@@ -21,15 +21,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  //register products here
-  void FeatureGroupingAlgorithm::registerChildren()
-  {
-    Factory<FeatureGroupingAlgorithm>::registerProduct(FeatureGroupingAlgorithmLabeled::getProductName(), &FeatureGroupingAlgorithmLabeled::create);
-    Factory<FeatureGroupingAlgorithm>::registerProduct(FeatureGroupingAlgorithmUnlabeled::getProductName(), &FeatureGroupingAlgorithmUnlabeled::create);
-    Factory<FeatureGroupingAlgorithm>::registerProduct(FeatureGroupingAlgorithmQT::getProductName(), &FeatureGroupingAlgorithmQT::create);
-    Factory<FeatureGroupingAlgorithm>::registerProduct(FeatureGroupingAlgorithmKD::getProductName(), &FeatureGroupingAlgorithmKD::create);
-
-  }
 
   FeatureGroupingAlgorithm::FeatureGroupingAlgorithm() :
     DefaultParamHandler("FeatureGroupingAlgorithm")

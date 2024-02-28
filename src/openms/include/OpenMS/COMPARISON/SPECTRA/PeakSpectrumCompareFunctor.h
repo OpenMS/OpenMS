@@ -47,15 +47,6 @@ public:
     /// calculates self similarity
     virtual double operator()(const PeakSpectrum & a) const = 0;
 
-    /// registers all derived products
-    static void registerChildren();
-
-    ///
-    static const String getProductName()
-    {
-      return "PeakSpectrumCompareFunctor";
-    }
-
   };
 
 }

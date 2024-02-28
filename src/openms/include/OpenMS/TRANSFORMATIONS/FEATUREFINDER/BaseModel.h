@@ -58,9 +58,6 @@ namespace OpenMS
       return *this;
     }
 
-    /// register all derived classes here (implemented in file BaseModel_impl.h)
-    static void registerChildren();
-
     /// access model predicted intensity at position @p pos
     virtual IntensityType getIntensity(const PositionType& pos) const = 0;
 

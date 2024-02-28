@@ -59,20 +59,6 @@ START_SECTION((virtual double operator()(const BinnedSpectrum &spec) const =0))
 }
 END_SECTION
 
-START_SECTION((static void registerChildren()))
-{
-  BinnedSpectrumCompareFunctor* c1 = Factory<BinnedSpectrumCompareFunctor>::create("BinnedSharedPeakCount");
-  TEST_EQUAL(c1->getName(), "BinnedSharedPeakCount")
-  delete c1;
-  c1 = Factory<BinnedSpectrumCompareFunctor>::create("BinnedSpectralContrastAngle");
-  TEST_EQUAL(c1->getName(), "BinnedSpectralContrastAngle")
-  delete c1;
-  c1 = Factory<BinnedSpectrumCompareFunctor>::create("BinnedSumAgreeingIntensities");
-  TEST_EQUAL(c1->getName(), "BinnedSumAgreeingIntensities")
-  delete c1;
-}
-END_SECTION
-
 START_SECTION((static const String getProductName()))
 {
 	TEST_EQUAL(BinnedSpectrumCompareFunctor::getProductName(), "BinnedSpectrumCompareFunctor")

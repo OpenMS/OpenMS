@@ -21,16 +21,6 @@
 namespace OpenMS
 {
   
-  OPENMS_DLLAPI void BaseModel::registerChildren()
-  {
-    Factory<BaseModel>::registerProduct(GaussModel::getProductName(), &GaussModel::create);
-    Factory<BaseModel>::registerProduct(BiGaussModel::getProductName(), &BiGaussModel::create);
-    Factory<BaseModel>::registerProduct(IsotopeModel::getProductName(), &IsotopeModel::create);
-    Factory<BaseModel>::registerProduct(ExtendedIsotopeModel::getProductName(), &ExtendedIsotopeModel::create);
-    Factory<BaseModel>::registerProduct(EmgModel::getProductName(), &EmgModel::create);
-
-    return;
-  }
 
 } // namespace OpenMS
 

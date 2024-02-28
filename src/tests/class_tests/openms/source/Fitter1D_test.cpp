@@ -115,11 +115,6 @@ START_SECTION((virtual QualityType fit1d(const  RawDataArrayType &, Interpolatio
 	TEST_EXCEPTION(Exception::NotImplemented,f1d.fit1d(rft,ipm));
 END_SECTION
 
-START_SECTION((void registerChildren()))
-	// dummy subtest
-	TEST_EQUAL(1,1)
-END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

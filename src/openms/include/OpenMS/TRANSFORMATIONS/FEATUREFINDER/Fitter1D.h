@@ -63,8 +63,7 @@ namespace OpenMS
     /// return interpolation model
     virtual QualityType fit1d(const RawDataArrayType& /* range */, std::unique_ptr<InterpolationModel>& /* model */);
 
-    /// register all derived classes here
-    static void registerChildren();
+
 
   protected:
     /// standard derivation in bounding box

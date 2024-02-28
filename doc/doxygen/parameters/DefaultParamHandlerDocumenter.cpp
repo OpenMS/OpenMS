@@ -34,7 +34,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>
@@ -412,7 +411,6 @@ int main(int argc, char** argv)
   DOCME(LinearResampler);
   DOCME(MSPFile);
   DOCME(MapAlignmentAlgorithmPoseClustering);
-  DOCME(MapAlignmentAlgorithmSpectrumAlignment);
   DOCME(SpectrumAnnotator);
   DOCME(TheoreticalSpectrumGeneratorXLMS);
   DOCME(MRMDecoy);
@@ -468,7 +466,6 @@ int main(int argc, char** argv)
   // workarounds for documenting model parameters in MapAligners:
   writeParameters("MapAlignerIdentificationModel", MapAlignerBase::getModelDefaults("interpolated"), true);
   writeParameters("MapAlignerPoseClusteringModel", MapAlignerBase::getModelDefaults("linear"), true);
-  writeParameters("MapAlignerSpectrumModel", MapAlignerBase::getModelDefaults("interpolated"), true);
   writeParameters("MapRTTransformerModel", MapAlignerBase::getModelDefaults("none"), true);
 
   //////////////////////////////////
