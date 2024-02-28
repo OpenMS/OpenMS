@@ -49,8 +49,11 @@ namespace OpenMS
     void runMatching(const String& fasta_file);
 
     const std::vector<ProteinHit>& getProteinHits() const;
-    std::vector<FLASHDeconvHelperStructs::Tag> getMatchingTags(const ProteinHit& hit) const;
+    const std::vector<ProteinHit> getProteinHits(const FLASHDeconvHelperStructs::Tag& tag) const;
+    std::vector<FLASHDeconvHelperStructs::Tag> getTags(const ProteinHit& hit) const;
     const std::vector<FLASHDeconvHelperStructs::Tag>& getTags() const;
+    int getProteinIndex(const ProteinHit& hit) const;
+    int getTagIndex(const FLASHDeconvHelperStructs::Tag& tag) const;
 
   protected:
     void updateMembers_() override;
@@ -81,7 +84,8 @@ namespace OpenMS
 
     std::vector<FLASHDeconvHelperStructs::Tag> tags_;
     std::vector<ProteinHit> protein_hits_;
-    std::vector<std::vector<int>> matching_tags_indices_;
+    std::vector<std::vector<int>> matching_tags_indices_; // from protein hit to tag index
+    std::vector<std::vector<int>> matching_hits_indices_; // from tag to protein hit index
 
     int max_tag_count_ = 0;
     int min_tag_length_ = 0;
