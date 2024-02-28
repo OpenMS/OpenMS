@@ -8,9 +8,10 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
+
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/CONCEPT/Factory.h>
 
 #include <unsupported/Eigen/NonLinearOptimization>
 
@@ -181,7 +182,7 @@ namespace OpenMS
     retention_ = x_init[3];
 
     // build model
-    model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel>::create("EmgModel")));
+    model = std::unique_ptr<InterpolationModel>(new EmgModel());
     model->setInterpolationStep(interpolation_step_);
 
     Param tmp;

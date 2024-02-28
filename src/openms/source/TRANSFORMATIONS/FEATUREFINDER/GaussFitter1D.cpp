@@ -8,8 +8,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussFitter1D.h>
 
-#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
 
 namespace OpenMS
 {
@@ -67,7 +67,8 @@ namespace OpenMS
 
 
     // build model
-    model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel>::create("GaussModel")));
+    model = std::unique_ptr<InterpolationModel>(new GaussModel());
+    
     model->setInterpolationStep(interpolation_step_);
 
     Param tmp;

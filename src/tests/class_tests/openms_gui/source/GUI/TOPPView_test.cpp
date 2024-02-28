@@ -15,7 +15,6 @@
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
 
 
@@ -96,7 +95,7 @@ void TestTOPPView::simulateClick_()
 void TestTOPPView::testGui()
 {
   // register a GUI logger
-  Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
+  // TODO: readd Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
 
   TOPPViewBase tv(TOPPViewBase::TOOL_SCAN::SKIP_SCAN);
   tv.show();

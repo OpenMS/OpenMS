@@ -10,7 +10,8 @@
 
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
-#include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeModel.h>
 
 namespace OpenMS
 {
@@ -76,7 +77,7 @@ namespace OpenMS
       max_bb += stdev;
 
 
-      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel>::create("GaussModel")));
+      model = std::unique_ptr<InterpolationModel>(new GaussModel());
       model->setInterpolationStep(interpolation_step_);
 
       Param tmp;
@@ -88,7 +89,7 @@ namespace OpenMS
     }
     else
     {
-      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel>::create("ExtendedIsotopeModel")));
+      model = std::unique_ptr<InterpolationModel>(new ExtendedIsotopeModel());
 
       Param iso_param = this->param_.copy("isotope_model:", true);
       iso_param.removeAll("stdev");

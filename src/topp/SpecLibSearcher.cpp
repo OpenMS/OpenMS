@@ -10,7 +10,6 @@
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
@@ -328,7 +327,20 @@ protected:
     OPENMS_LOG_INFO << "Time needed for preprocessing data: " << (end_build_time - start_build_time) << "\n";
 
     //compare function
-    std::unique_ptr<PeakSpectrumCompareFunctor> comparator(Factory<PeakSpectrumCompareFunctor>::create(compare_function));
+    std::unique_ptr<PeakSpectrumCompareFunctor> comparator;
+    if (compare_function == "SpectraSTSimilarityScore")
+    {
+      comparator.reset(new SpectraSTSimilarityScore());
+    }
+    else if (compare_function == "ZhangSimilarityScore")
+    {
+      comparator.reset(new ZhangSimilarityScore());
+    }
+    else 
+    {
+      writeLogError_("Unknown compare function");
+      return ILLEGAL_PARAMETERS;
+    }
  
    //-------------------------------------------------------------
     // calculations

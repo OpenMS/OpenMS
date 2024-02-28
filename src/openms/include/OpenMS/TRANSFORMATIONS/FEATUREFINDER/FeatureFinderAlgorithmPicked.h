@@ -64,7 +64,7 @@ public:
     /// Main method for actual FeatureFinder
     void run() override;
 
-    static FeatureFinderAlgorithm* create();
+    void run(PeakMap& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds);
 
 protected:
     /// editable copy of the map

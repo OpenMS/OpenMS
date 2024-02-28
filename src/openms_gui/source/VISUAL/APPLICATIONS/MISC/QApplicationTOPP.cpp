@@ -10,7 +10,6 @@
 #include <cstdlib>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -36,7 +35,7 @@ namespace OpenMS
     QApplication(argc, argv)
   {
     // register GUI ProgressLogger that can be used in GUI tools
-    Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
+    // TODO: Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
 
     // set plastique style unless windows / mac style is available
     if (QStyleFactory::keys().contains("windowsxp", Qt::CaseInsensitive))

@@ -41,16 +41,6 @@ START_SECTION( static void registerProduct(const String& name, const FunctionTyp
   delete ext;
 END_SECTION
 
-START_SECTION(static bool isRegistered(const String& name))
-	TEST_EQUAL(Factory<FilterFunctor>::isRegistered("TICFilter"), true)
-	TEST_EQUAL(Factory<FilterFunctor>::isRegistered("TICFilter_bla_bluff"), false)
-END_SECTION
-
-START_SECTION(static std::vector<String> registeredProducts())
-	vector<String> list = Factory<FilterFunctor>::registeredProducts();
-	TEST_EQUAL(list.size(),6)
-END_SECTION
-
 START_SECTION([EXTRA] multithreaded example)
 {
 

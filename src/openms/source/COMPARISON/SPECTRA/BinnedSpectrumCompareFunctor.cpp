@@ -10,9 +10,6 @@
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSharedPeakCount.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSumAgreeingIntensities.h>
-#include <OpenMS/CONCEPT/Factory.h>
-
-
 
 using namespace std;
 

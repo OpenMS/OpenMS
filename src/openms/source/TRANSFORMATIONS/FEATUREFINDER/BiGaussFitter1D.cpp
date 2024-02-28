@@ -8,8 +8,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>
 
-#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
 
 namespace OpenMS
 {
@@ -69,7 +69,7 @@ namespace OpenMS
 
 
     // build model
-    model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel>::create("BiGaussModel")));
+    model = std::unique_ptr<BiGaussModel>(new BiGaussModel());
     model->setInterpolationStep(interpolation_step_);
     Param tmp;
     tmp.setValue("bounding_box:min", min_bb);

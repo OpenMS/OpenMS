@@ -17,8 +17,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 
-#include <OpenMS/CONCEPT/Factory.h>
-
 using namespace OpenMS;
 using namespace std;
 
@@ -94,8 +92,7 @@ START_SECTION((void transferSubelements(const vector<ConsensusMap>& maps, Consen
 	out[0].insert(handle6);
 
 	// need an instance of FeatureGroupingAlgorithm:
-	String algo_name = Factory<FeatureGroupingAlgorithm>::registeredProducts()[0];
-	FeatureGroupingAlgorithm* algo = Factory<FeatureGroupingAlgorithm>::create(algo_name);
+	FeatureGroupingAlgorithm* algo = new FeatureGroupingAlgorithmKD();
 
 	algo->transferSubelements(maps, out);
 

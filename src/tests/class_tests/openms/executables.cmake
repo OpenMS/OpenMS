@@ -6,7 +6,6 @@ set(concept_executables_list
   Factory_test
   FuzzyStringComparator_test
   #GlobalExceptionHandler_test
-  SingletonRegistry_test
   StreamHandler_test
   VersionInfo_test
   LogConfigHandler_test

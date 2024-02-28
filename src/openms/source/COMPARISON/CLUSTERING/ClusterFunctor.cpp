@@ -11,7 +11,6 @@
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
 #include <OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>
-#include <OpenMS/CONCEPT/Factory.h>
 
 using namespace std;
 

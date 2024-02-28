@@ -14,7 +14,6 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/SteinScottImproveScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
-#include <OpenMS/CONCEPT/Factory.h>
 
 using namespace std;
 

@@ -350,16 +350,6 @@ namespace OpenMS
     }
   }
 
-  FeatureFinderAlgorithm* FeatureFinderAlgorithmMRM::create()
-  {
-    return new FeatureFinderAlgorithmMRM();
-  }
-
-  const String FeatureFinderAlgorithmMRM::getProductName()
-  {
-    return "mrm";
-  }
-
   double FeatureFinderAlgorithmMRM::fitRT_(std::vector<Peak1D>& rt_input_data, std::unique_ptr<InterpolationModel>& model) const
   {
     double quality;
@@ -392,6 +382,22 @@ param.setValue( "deltaRelError", deltaRelError_);
 
   void FeatureFinderAlgorithmMRM::updateMembers_()
   {
+  }
+
+  void FeatureFinderAlgorithmMRM::run(PeakMap& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds)
+  {
+    // Nothing to do if there is no data
+    if (input_map.getChromatograms().empty())
+    {
+      features.clear(true);
+      return;
+    }
+
+    // do the work
+    setParameters(param);
+    setData(input_map, features);
+    setSeeds(seeds); // TODO: needed for MRM????? was in old code
+    run();
   }
 
 }
