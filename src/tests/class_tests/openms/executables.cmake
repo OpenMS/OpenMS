@@ -67,7 +67,6 @@ set(datastructures_executables_list
   MassExplainer_test
   MatchedIterator_test
   Matrix_test
-  #MatrixUtils_test
   OPXLDataStructs_test
   Param_test
   ParamValue_test
@@ -505,6 +504,7 @@ set(analysis_executables_list
   ItraqEightPlexQuantitationMethod_test
   TMTSixPlexQuantitationMethod_test
   TMTTenPlexQuantitationMethod_test
+  TMTElevenPlexQuantitationMethod_test
   TMTSixteenPlexQuantitationMethod_test
   TMTEighteenPlexQuantitationMethod_test
   KDTreeFeatureMaps_test

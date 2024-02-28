@@ -42,7 +42,7 @@ PrecursorPurity.h
 ProtonDistributionModel.h
 PScore.h
 SimpleSearchEngineAlgorithm.h
-SiriusAdapterAlgorithm.h
+SiriusExportAlgorithm.h
 SiriusMSConverter.h
 )
 

@@ -6,7 +6,7 @@
 
   %OpenMS uses coding conventions that are automatically checked using <code>cpplint</code> (<code>/src/tests/coding/cpplint.py</code>), when `ENABLE_STYLE_TESTING` flag is 'ON' during CMake.
   
-  When developing in an IDE which support [Clang format](https://clang.llvm.org/docs/ClangFormat.html) you can use the our style preset from the source tree `OpenMS/.clang-format`. For Clion, you can import it by selecting **Preferences** > **Code Style** > **Manage**.  [VS2017 and later also support Clang format](https://devblogs.microsoft.com/cppblog/clangformat-support-in-visual-studio-2017-15-7-preview-1/) natively.
+  When developing in an IDE which support [Clang format](https://clang.llvm.org/docs/ClangFormat.html) you can use the our style preset from the source tree `OpenMS/.clang-format`. For Clion, you can import it by selecting **Preferences** > **Code Style** > **Manage**.  [VS2017 and later also support Clang format](https://devblogs.microsoft.com/cppblog/clangformat-support-in-visual-studio-2017-15-7-preview-1/) natively (press `Ctrl-K, Ctrl-D`).
 
   @tableofcontents
 
