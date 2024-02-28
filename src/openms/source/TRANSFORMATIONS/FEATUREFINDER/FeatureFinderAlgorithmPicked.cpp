@@ -1037,11 +1037,6 @@ namespace OpenMS
     return new FeatureFinderAlgorithmPicked();
   }
 
-  const String FeatureFinderAlgorithmPicked::getProductName()
-  {
-    return "centroided";
-  }
-
   void FeatureFinderAlgorithmPicked::updateMembers_()
   {
     pattern_tolerance_ = param_.getValue("mass_trace:mz_tolerance");

@@ -71,7 +71,7 @@ public:
     }
 
     /// register all derived classes here (see FeatureFinderAlgorithm_impl.h)
-    static void registerChildren();
+
 
     /// Main method that implements the actual algorithm
     virtual void run() = 0;

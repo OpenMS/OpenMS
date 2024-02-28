@@ -42,7 +42,7 @@ public:
     void transferSubelements(const std::vector<ConsensusMap> & maps, ConsensusMap & out) const;
 
     /// Register all derived classes in this method
-    static void registerChildren();
+
 
 protected:
 

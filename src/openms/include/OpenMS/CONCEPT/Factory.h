@@ -68,8 +68,6 @@ private:
           // now, attention as ORDER of commands is important here:
           // first register the Factory
           SingletonRegistry::registerFactory(myName, instance_ptr_);
-          // because this call, might use another instance of this factory, but we want the other instance to register the children with "US"
-          FactoryProduct::registerChildren();
         }
         else
         {

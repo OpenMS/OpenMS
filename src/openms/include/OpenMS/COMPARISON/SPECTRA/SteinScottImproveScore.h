@@ -75,11 +75,6 @@ public:
       return new SteinScottImproveScore();
     }
 
-    static const String getProductName()
-    {
-      return "SteinScottImproveScore";
-    }
-
   };
 }
 

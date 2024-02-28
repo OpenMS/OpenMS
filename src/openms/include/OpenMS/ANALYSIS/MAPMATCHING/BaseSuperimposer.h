@@ -48,8 +48,7 @@ public:
     */
     virtual void run(const ConsensusMap& map_model, const ConsensusMap& map_scene, TransformationDescription& transformation) = 0;
 
-    /// Register all derived classes here
-    static void registerChildren();
+
 
 private:
 

@@ -24,18 +24,6 @@ namespace OpenMS
 
   BaseGroupFinder::~BaseGroupFinder() = default;
 
-  void BaseGroupFinder::registerChildren()
-  {
-    Factory<BaseGroupFinder>::registerProduct(
-      SimplePairFinder::getProductName(), &SimplePairFinder::create);
-    Factory<BaseGroupFinder>::registerProduct(
-      LabeledPairFinder::getProductName(), &LabeledPairFinder::create);
-    Factory<BaseGroupFinder>::registerProduct(
-      StablePairFinder::getProductName(), &StablePairFinder::create);
-    Factory<BaseGroupFinder>::registerProduct(
-      QTClusterFinder::getProductName(), &QTClusterFinder::create);
-  }
-
   void BaseGroupFinder::checkIds_(const std::vector<ConsensusMap>& maps) const
   {
     std::set<Size> used_ids;

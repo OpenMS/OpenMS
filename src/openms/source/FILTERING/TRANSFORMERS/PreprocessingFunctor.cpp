@@ -35,19 +35,6 @@ namespace OpenMS
   {
   }
 
-  void PreprocessingFunctor::registerChildren()
-  {
-    Factory<PreprocessingFunctor>::registerProduct(ThresholdMower::getProductName(), &ThresholdMower::create);
-    Factory<PreprocessingFunctor>::registerProduct(WindowMower::getProductName(), &WindowMower::create);
-    Factory<PreprocessingFunctor>::registerProduct(Scaler::getProductName(), &Scaler::create);
-    Factory<PreprocessingFunctor>::registerProduct(NLargest::getProductName(), &NLargest::create);
-    Factory<PreprocessingFunctor>::registerProduct(MarkerMower::getProductName(), &MarkerMower::create);
-    Factory<PreprocessingFunctor>::registerProduct(SqrtMower::getProductName(), &SqrtMower::create);
-    Factory<PreprocessingFunctor>::registerProduct(Normalizer::getProductName(), &Normalizer::create);
-    Factory<PreprocessingFunctor>::registerProduct(ParentPeakMower::getProductName(), &ParentPeakMower::create);
-    Factory<PreprocessingFunctor>::registerProduct(BernNorm::getProductName(), &BernNorm::create);
-  }
-
   PreprocessingFunctor & PreprocessingFunctor::operator=(const PreprocessingFunctor & source)
   {
     if (this != &source)

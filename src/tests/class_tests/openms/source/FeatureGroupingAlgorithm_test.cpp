@@ -60,14 +60,6 @@ START_SECTION((virtual void group(const vector< FeatureMap > &maps, ConsensusMap
 	TEST_EQUAL(map.getColumnHeaders()[0].filename, "bla")
 END_SECTION
 
-START_SECTION((static void registerChildren()))
-{
-	TEST_STRING_EQUAL(Factory<FeatureGroupingAlgorithm>::registeredProducts()[0],FeatureGroupingAlgorithmLabeled::getProductName());
-	TEST_STRING_EQUAL(Factory<FeatureGroupingAlgorithm>::registeredProducts()[1],FeatureGroupingAlgorithmUnlabeled::getProductName());
-  TEST_EQUAL(Factory<FeatureGroupingAlgorithm>::registeredProducts().size(), 4)
-}
-END_SECTION
-
 START_SECTION((void transferSubelements(const vector<ConsensusMap>& maps, ConsensusMap& out) const))
 {
 	vector<ConsensusMap> maps(2);

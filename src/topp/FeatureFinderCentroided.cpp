@@ -147,7 +147,7 @@ protected:
 
   Param getSubsectionDefaults_(const String& /*section*/) const override
   {
-    return FeatureFinder().getParameters(FeatureFinderAlgorithmPicked::getProductName());
+    return FeatureFinder().getParameters("centroided");
   }
 
   ExitCodes main_(int, const char**) override
@@ -218,7 +218,7 @@ protected:
     writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 
     // Apply the feature finder
-    ff.run(FeatureFinderAlgorithmPicked::getProductName(), exp, features, feafi_param, seeds);
+    ff.run("centroided", exp, features, feafi_param, seeds);
     features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // DEBUG

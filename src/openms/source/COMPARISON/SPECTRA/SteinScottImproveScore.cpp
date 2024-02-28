@@ -17,7 +17,7 @@ namespace OpenMS
   SteinScottImproveScore::SteinScottImproveScore() :
     PeakSpectrumCompareFunctor()
   {
-    setName(SteinScottImproveScore::getProductName());
+    setName("SteinScottImproveScore");
     defaults_.setValue("tolerance", 0.2, "defines the absolute error of the mass spectrometer");
     defaults_.setValue("threshold", 0.2, "if the calculated score is smaller than the threshold, a zero is given back");
     defaultsToParam_();

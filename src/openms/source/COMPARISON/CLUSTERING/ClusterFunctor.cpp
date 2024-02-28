@@ -25,13 +25,6 @@ namespace OpenMS
 
   ClusterFunctor & ClusterFunctor::operator=(const ClusterFunctor & /*source*/) = default;
 
-  void ClusterFunctor::registerChildren()
-  {
-    Factory<ClusterFunctor>::registerProduct(SingleLinkage::getProductName(), &SingleLinkage::create);
-    Factory<ClusterFunctor>::registerProduct(CompleteLinkage::getProductName(), &CompleteLinkage::create);
-    Factory<ClusterFunctor>::registerProduct(AverageLinkage::getProductName(), &AverageLinkage::create);
-  }
-
   ClusterFunctor::InsufficientInput::InsufficientInput(const char * file, int line, const char * function, const char * message) throw() :
     BaseException(file, line, function, "ClusterFunctor::InsufficentInput", message)
   {

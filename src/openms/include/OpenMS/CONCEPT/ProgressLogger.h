@@ -62,7 +62,7 @@ public:
       virtual ~ProgressLoggerImpl() {}
 
       /// Factory requirements
-      static void registerChildren();
+  
 
     };
 
@@ -99,9 +99,6 @@ protected:
     mutable LogType type_;
     mutable time_t last_invoke_;
     static int recursion_depth_;
-
-    /// Return the name of the factory product used for this log type
-    static String logTypeToFactoryName_(LogType type);
 
     mutable ProgressLoggerImpl* current_logger_;
 

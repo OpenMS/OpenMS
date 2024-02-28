@@ -14,19 +14,5 @@
 
 namespace OpenMS
 {
-  void FeatureFinderAlgorithm::registerChildren()
-  {
-    Factory<FeatureFinderAlgorithm>::registerProduct
-    (
-      FeatureFinderAlgorithmPicked::getProductName(),
-      &FeatureFinderAlgorithmPicked::create
-    );
-    Factory<FeatureFinderAlgorithm>::registerProduct
-    (
-      FeatureFinderAlgorithmMRM::getProductName(),
-      &FeatureFinderAlgorithmMRM::create
-    );
-
-  }
 
 }
