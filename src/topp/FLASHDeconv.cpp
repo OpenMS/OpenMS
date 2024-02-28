@@ -400,7 +400,7 @@ protected:
       if (!out_tag.empty())
       {
         fstream out_tagger_stream = fstream(out_tag, fstream::out);
-        out_tagger_stream << "Scan\tTagIndex\tProteinIndex\tProteinAccession\tProteinDescription\tTagSequence\tNmass\tCmass\tTagScore\tLength\tmzs\n";
+        out_tagger_stream << "Scan\tTagIndex\tProteinIndex\tProteinAccession\tProteinDescription\tTagSequence\tNmass\tCmass\tLength\tDeNovoScore\tmzs\n";
 
         for (int n = 0; n <= tagger.getProteinHits().size(); n++)
         {
@@ -439,7 +439,7 @@ protected:
             }
 
             out_tagger_stream << dspec_for_tagging.getScanNumber() << "\t" << tagger.getTagIndex(tag) << "\t" << hitindices << "\t" << acc << "\t" << description << "\t" << tag.getSequence() << "\t"
-                              << std::to_string(tag.getNtermMass()) << "\t" << std::to_string(tag.getCtermMass()) << "\t" << tag.getScore() << "\t" << tag.getLength() << "\t";
+                              << std::to_string(tag.getNtermMass()) << "\t" << std::to_string(tag.getCtermMass()) << "\t" << tag.getLength() << "\t" << tag.getScore() << "\t";
 
             for (const auto& mz : tag.getMzs())
             {
