@@ -9,7 +9,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/Factory.h>
 
 namespace OpenMS
 {
@@ -20,8 +19,8 @@ namespace OpenMS
 
   FeatureFinder::~FeatureFinder() = default;
 
-  Param FeatureFinder::getParameters(const String& algorithm_name) const
-  {
+  Param FeatureFinder::getParameters(const String& /*algorithm_name*/) const
+  {/* TODO: remove?
     Param tmp;
     if (algorithm_name != "none")
     {
@@ -30,8 +29,12 @@ namespace OpenMS
       delete(a);
     }
     return tmp;
+    */
+   std::cerr << "TODO: remove" << std::endl;
+   return Param();
   }
 
+/* most of that stuff doesn't belong in a base class!!! and 100% no type checks via strings!!!
   void FeatureFinder::run(const String& algorithm_name, PeakMap& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds)
   {
     // Nothing to do if there is no data
@@ -93,12 +96,13 @@ namespace OpenMS
     {
       FeatureFinderAlgorithm* algorithm = Factory<FeatureFinderAlgorithm>::create(algorithm_name);
       algorithm->setParameters(param);
-      algorithm->setData(input_map, features, *this);
+      algorithm->setData(input_map, features);
       algorithm->setSeeds(seeds);
       algorithm->run();
       delete(algorithm);
     }
 
+    // *facepalm*
     if (algorithm_name != "mrm") // mrm  works on chromatograms; the next section is only for conventional data
     {
       //report RT apex spectrum index and native ID for each feature
@@ -121,5 +125,6 @@ namespace OpenMS
       }
     }
   }
+*/
 
 }

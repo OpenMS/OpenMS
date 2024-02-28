@@ -45,15 +45,15 @@ ptr = new FeatureFinderAlgorithmMRM();
 
 START_SECTION((virtual void run()))
 {
-	FeatureFinder ff;
-  ff.setLogType(ProgressLogger::NONE);
+  FeatureFinderAlgorithmMRM ff;
+  //ff.setLogType(ProgressLogger::NONE); // TODO: readd
 
   PeakMap exp;
 	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmMRM_input.mzML"), exp);
 
 	FeatureMap features, seeds;
 	Param ff_param(ptr->getParameters());
-	ff.run("mrm", exp, features, ff_param, seeds);
+	ff.run(exp, features, ff_param, seeds);
 
 	TEST_EQUAL(exp.getChromatograms().size(), 3)
 
@@ -78,15 +78,9 @@ END_SECTION
 START_SECTION((static FeatureFinderAlgorithm<PeakType>* create()))
 {
   FeatureFinderAlgorithm* ptr2 = nullptr;
-  ptr2 = FeatureFinderAlgorithmMRM::create();
+  ptr2 = new FeatureFinderAlgorithmMRM();
   TEST_NOT_EQUAL(ptr2, ffA_nullPointer)
   delete ptr2;
-}
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-{
-  TEST_STRING_EQUAL(ptr->getProductName(), "mrm")
 }
 END_SECTION
 

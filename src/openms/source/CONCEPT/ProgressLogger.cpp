@@ -9,7 +9,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/CONCEPT/Macros.h>
-//#include <OpenMS/CONCEPT/Factory.h>
 
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/SYSTEM/SysInfo.h>

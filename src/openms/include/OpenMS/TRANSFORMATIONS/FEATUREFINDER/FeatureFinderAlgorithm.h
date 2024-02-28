@@ -87,11 +87,10 @@ public:
     }
 
     /// Sets a reference to the calling FeatureFinder
-    void setData(const MapType& map, FeatureMap& features, FeatureFinder& ff)
+    void setData(const MapType& map, FeatureMap& features)
     {
       map_ = &map;
       features_ = &features;
-      ff_ = &ff;
     }
 
     /**

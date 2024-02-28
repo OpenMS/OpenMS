@@ -11,7 +11,6 @@
 
 ///////////////////////////
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor.h>
-#include <OpenMS/CONCEPT/Factory.h>
 
 using namespace OpenMS;
 using namespace std;

@@ -1032,9 +1032,74 @@ namespace OpenMS
 
   }
 
-  FeatureFinderAlgorithm* FeatureFinderAlgorithmPicked::create()
+  void FeatureFinderAlgorithmPicked::run(PeakMap& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds)
   {
-    return new FeatureFinderAlgorithmPicked();
+    // Nothing to do if there is no data
+    if (input_map.empty())
+    {
+      features.clear(true);
+      return;
+    }
+
+    // check input
+    {
+      // We need updated ranges => check number of peaks
+      if (input_map.getSize() == 0)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureFinder needs updated ranges on input map. Aborting.");
+      }
+
+      // We need MS1 data only => check levels
+      if (input_map.getMSLevels().size() != 1 || input_map.getMSLevels()[0] != 1)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureFinder can only operate on MS level 1 data. Please do not use MS/MS data. Aborting.");
+      }
+
+      //Check if the peaks are sorted according to m/z
+      if (!input_map.isSorted(true))
+      {
+        OPENMS_LOG_WARN << "Input map is not sorted by RT and m/z! This is done now, before applying the algorithm!" << std::endl;
+        input_map.sortSpectra(true);
+        input_map.sortChromatograms(true);
+      }
+
+      for (Size s = 0; s < input_map.size(); ++s)
+      {
+        if (input_map[s].empty())
+        {
+          continue;
+        }
+        if (input_map[s][0].getMZ() < 0)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureFinder can only operate on spectra that contain peaks with positive m/z values. Filter the data accordingly beforehand! Aborting.");
+        }
+      }
+    }
+
+    // do the work
+    setParameters(param);
+    setData(input_map, features);
+    setSeeds(seeds);
+    run();
+
+    //report RT apex spectrum index and native ID for each feature
+    for (Size i = 0; i < features.size(); ++i)
+    {
+      //index
+      Size spectrum_index = input_map.RTBegin(features[i].getRT()) - input_map.begin();
+      features[i].setMetaValue("spectrum_index", spectrum_index);
+      //native id
+      if (spectrum_index < input_map.size())
+      {
+        String native_id = input_map[spectrum_index].getNativeID();
+        features[i].setMetaValue("spectrum_native_id", native_id);
+      }
+      else
+      {
+        /// @todo that happens sometimes using IsotopeWaveletFeatureFinder (Rene, Marc, Andreas, Clemens)
+        std::cerr << "FeatureFinderAlgorithm_impl, line=" << __LINE__ << "; FixMe this cannot be, but happens" << std::endl;
+      }
+    }
   }
 
   void FeatureFinderAlgorithmPicked::updateMembers_()

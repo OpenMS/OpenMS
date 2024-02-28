@@ -15,7 +15,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/Factory.h>
 
 using namespace std;
 

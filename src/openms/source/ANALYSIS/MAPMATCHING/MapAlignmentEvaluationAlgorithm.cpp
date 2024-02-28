@@ -12,8 +12,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmPrecision.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRecall.h>
 
-#include <OpenMS/CONCEPT/Factory.h>
-
 namespace OpenMS
 {
 

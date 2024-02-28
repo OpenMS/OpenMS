@@ -12,8 +12,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
 
-#include <OpenMS/CONCEPT/Factory.h>
-
 namespace OpenMS
 {
 

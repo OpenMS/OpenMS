@@ -31,7 +31,6 @@ typedef FeatureFinderAlgorithmPicked FFPP;
 
 FFPP* ptr = nullptr;
 FFPP* nullPointer = nullptr;
-FeatureFinderAlgorithm* ffA_nullPointer = nullptr;
 
 START_SECTION((FeatureFinderAlgorithmPicked()))
   ptr = new FFPP;
@@ -40,12 +39,6 @@ END_SECTION
 
 START_SECTION((~FeatureFinderAlgorithmPicked()))
   delete ptr;
-END_SECTION
-
-START_SECTION((static FeatureFinderAlgorithm<PeakType>* create()))
-  FeatureFinderAlgorithm* ptr2 = FFPP::create();
-  TEST_NOT_EQUAL(ptr2,ffA_nullPointer)
-  delete ptr2;
 END_SECTION
 
 START_SECTION((virtual void run()))
@@ -67,7 +60,7 @@ START_SECTION((virtual void run()))
 
   FFPP ffpp;
   ffpp.setParameters(param);
-  ffpp.setData(input, output, ff);
+  ffpp.setData(input, output);
   ffpp.run();
 
   TEST_EQUAL(output.size(), 8);

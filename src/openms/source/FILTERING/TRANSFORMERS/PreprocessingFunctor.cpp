@@ -16,7 +16,6 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/Scaler.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
-#include <OpenMS/CONCEPT/Factory.h>
 
 namespace OpenMS
 {

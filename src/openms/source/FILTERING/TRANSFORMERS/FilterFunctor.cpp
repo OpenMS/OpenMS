@@ -16,8 +16,6 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/IsotopeDiffFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
 
-#include <OpenMS/CONCEPT/Factory.h>
-
 namespace OpenMS
 {
   FilterFunctor::FilterFunctor() :

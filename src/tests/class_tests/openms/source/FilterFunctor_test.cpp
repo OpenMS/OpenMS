@@ -14,7 +14,6 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 ///////////////////////////
 
-#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
 
 ///////////////////////////

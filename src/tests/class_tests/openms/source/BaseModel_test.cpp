@@ -179,10 +179,6 @@ START_SECTION([EXTRA] DefaultParmHandler::setParameters(...))
 	TEST_REAL_SIMILAR(m.getParameters().getValue("cutoff"), 17.0)
 END_SECTION
 
-START_SECTION((static void registerChildren()))
-	// TODO
-END_SECTION
-
 START_SECTION((virtual IntensityType getCutOff() const))
 	TestModel s;
 	s.setCutOff(4.4);
@@ -195,12 +191,6 @@ END_SECTION
 
 START_SECTION((virtual void getSamples(std::ostream &os)))
   NOT_TESTABLE;
-END_SECTION
-
-START_SECTION((template <class PeakIterator> void registerChildren()))
-{
-  NOT_TESTABLE;
-}
 END_SECTION
 
 

@@ -100,11 +100,10 @@ START_SECTION((void setData(const MapType& map, FeatureMap features, FeatureFind
   PeakMap map;
 	FeatureMap features;
 	FeatureFinder ff;
-	ffa.setData(map, features, ff);
+	ffa.setData(map, features);
 
   TEST_NOT_EQUAL(ffa.getMap(),map_nullPointer)
   TEST_NOT_EQUAL(ffa.getFeatures(),featureMap_nullPointer)
-  TEST_NOT_EQUAL(ffa.getFF(),ff_nullPointer)
 END_SECTION
 
 START_SECTION((virtual void setSeeds(const FeatureMap& seeds)))
