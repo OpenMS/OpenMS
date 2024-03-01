@@ -14,6 +14,15 @@ jobs:
       tag_name: ${{ steps.tag_name.outputs.tag }}
       downcase_repo: ${{ steps.downcase_repo.outputs.repo }}
     steps:
+      - name: Free up space on the runner
+        run: |
+          # see: https://github.com/actions/runner-images/issues/2840
+          df -h
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "/opt/ghc"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -h
       - name: Extract branch name
         shell: bash
         run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
