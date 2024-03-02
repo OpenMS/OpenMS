@@ -177,7 +177,7 @@ START_SECTION((test_run_full))
     MSSpectrum picked_result = fia_processor.extractPeaks(merged_result);
     vector<double> mzs_picked {109.951246, 109.957552, 109.959885, 109.961982, 109.982828};
     for (double mz : mzs_picked) {
-        TEST_EQUAL(picked_result.MZBegin(mz)->getIntensity(), spec_picked.MZBegin(mz)->getIntensity());
+        TEST_REAL_SIMILAR(picked_result.MZBegin(mz)->getIntensity(), spec_picked.MZBegin(mz)->getIntensity());
     }
     TEST_EQUAL(picked_result.size(), spec_picked.size());
     MzTab mztab_output;

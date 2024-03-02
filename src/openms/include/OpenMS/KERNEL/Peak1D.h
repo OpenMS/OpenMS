@@ -33,7 +33,7 @@ public:
     /// Dimension
     enum {DIMENSION = 1};
     /// Intensity type
-    using IntensityType = float;
+    using IntensityType = double;
     /// Position type
     using PositionType = DPosition<1>;
     /// Coordinate type
