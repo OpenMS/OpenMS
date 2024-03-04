@@ -250,15 +250,6 @@ if(CLANG_TIME_TRACE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftime-trace")
 endif()
 
-#------------------------------------------------------------------------------
-# Enable SIRIUS_test (SiriusAdapter/AssayGeneratorMetabo)
-#------------------------------------------------------------------------------
-option(ENABLE_SIRIUS_TEST "Enable test for SIRIUS (SiriusAdapter)" OFF)
-
-#------------------------------------------------------------------------------
-# Enable CSI:FingerID_test (SiriusAdapter)
-#------------------------------------------------------------------------------
-option(ENABLE_FINGERID_TEST "Enable test for CSI:FingerID (SiriusAdapter)" OFF)
 
 #------------------------------------------------------------------------------
 # Enable Coverage
