@@ -16,7 +16,8 @@ namespace OpenMS
   {
   private:
     int vertex_count_;
-    std::vector<std::vector<int>> adj_list_;
+    // 0, 1, 2, ... ,vertex_count - 1
+    std::vector<std::vector<int>> adj_list_; //
 
   public:
     DAC_(int vertice_count) : vertex_count_(vertice_count), adj_list_(vertice_count)
@@ -455,6 +456,7 @@ namespace OpenMS
       _mzs.push_back(mzs[i]);
       _scores.push_back(scores[i]);
     }
+    // filtration of top 500 masses is done
 
     int max_vertex_score = *std::max_element(_scores.begin(), _scores.end());
     int min_vertex_score = *std::min_element(_scores.begin(), _scores.end());
