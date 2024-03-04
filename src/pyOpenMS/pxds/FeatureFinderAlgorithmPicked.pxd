@@ -25,10 +25,3 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
 
         # static FeatureFinderAlgorithm* create()
 
-#
-# static methods are wrapped like this:
-#
-
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>" namespace "OpenMS::FeatureFinderAlgorithmPicked":
-
-    String getProductName()   except + nogil  # wrap-attach:FeatureFinderAlgorithmPicked

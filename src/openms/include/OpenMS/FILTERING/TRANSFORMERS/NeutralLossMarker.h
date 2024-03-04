@@ -101,12 +101,6 @@ public:
       return;
     }
 
-    ///
-    static const String getProductName()
-    {
-      return "NeutralLossMarker";
-    }
-
     // @}
 
   };

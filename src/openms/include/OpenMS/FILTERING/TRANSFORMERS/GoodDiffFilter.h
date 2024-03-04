@@ -103,12 +103,6 @@ public:
       return gooddiff / totaldiff;
     }
 
-    ///
-    static const String getProductName()
-    {
-      return "GoodDiffFilter";
-    }
-
     // @}
 
 

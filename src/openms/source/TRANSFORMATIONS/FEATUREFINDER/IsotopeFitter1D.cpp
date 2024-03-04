@@ -18,7 +18,7 @@ namespace OpenMS
   IsotopeFitter1D::IsotopeFitter1D() :
     MaxLikeliFitter1D()
   {
-    setName(getProductName());
+    setName("IsotopeFitter1D");
 
     defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", {"advanced"});
     defaults_.setValue("charge", 1, "Charge state of the model.", {"advanced"});

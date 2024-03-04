@@ -39,11 +39,6 @@ START_SECTION((virtual ~BiGaussModel()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(BiGaussModel::getProductName(),"BiGaussModel")
-	TEST_EQUAL(BiGaussModel().getName(),"BiGaussModel")
-END_SECTION
-
 START_SECTION( static BaseModel* create() )
     BaseModel* ptr = new BiGaussModel();
 	TEST_EQUAL(ptr->getName(), "BiGaussModel")

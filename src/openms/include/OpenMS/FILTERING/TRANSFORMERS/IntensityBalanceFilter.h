@@ -95,12 +95,6 @@ public:
       return (twobiggest - sevensmallest) / total_intensity;
     }
 
-    ///
-    static const String getProductName()
-    {
-      return "IntensityBalanceFilter";
-    }
-
     // @}
 
   };

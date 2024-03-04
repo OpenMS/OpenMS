@@ -61,13 +61,7 @@ public:
       }
       return TIC;
     }
-
-    ///
-    static const String getProductName()
-    {
-      return "TICFilter";
-    }
-
+    
     // @}
 
   };

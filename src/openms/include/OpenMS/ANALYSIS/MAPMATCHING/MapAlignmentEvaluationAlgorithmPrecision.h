@@ -40,12 +40,6 @@ public:
       return new MapAlignmentEvaluationAlgorithmPrecision();
     }
 
-    /// Returns the product name (for the Factory)
-    static String getProductName()
-    {
-      return "precision";
-    }
-
 private:
 
     /// Copy constructor intentionally not implemented -> private

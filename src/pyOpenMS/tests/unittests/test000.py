@@ -1295,29 +1295,6 @@ def testFeature():
 
 
 @report
-def testFeatureFinder():
-    """
-    @tests: FeatureFinder
-     FeatureFinder.__init__
-     FeatureFinder.endProgress
-     FeatureFinder.getLogType
-     FeatureFinder.getParameters
-     FeatureFinder.run
-     FeatureFinder.setLogType
-     FeatureFinder.setProgress
-     FeatureFinder.startProgress
-    """
-    ff = pyopenms.FeatureFinder()
-    name = pyopenms.FeatureFinderAlgorithmPicked.getProductName()
-    ff.run(name, pyopenms.MSExperiment(), pyopenms.FeatureMap() ,
-            pyopenms.Param(), pyopenms.FeatureMap())
-
-    _testProgressLogger(ff)
-
-    p = ff.getParameters(name)
-    _testParam(p)
-
-@report
 def testFeatureFileOptions():
     """
     @tests: FeatureFileOptions
@@ -1485,7 +1462,6 @@ def testFeatureFinderAlgorithmPicked():
     _testParam(ff.getParameters())
 
     assert ff.getName() == "FeatureFinderAlgorithm"
-    assert pyopenms.FeatureFinderAlgorithmPicked.getProductName() == "centroided"
 
     ff.setParameters(pyopenms.Param())
 

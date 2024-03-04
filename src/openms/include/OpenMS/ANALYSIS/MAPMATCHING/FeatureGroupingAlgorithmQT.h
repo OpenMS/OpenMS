@@ -59,12 +59,6 @@ public:
       return new FeatureGroupingAlgorithmQT();
     }
 
-    /// Returns the product name (for the Factory)
-    static String getProductName()
-    {
-      return "unlabeled_qt";
-    }
-
 private:
 
     /// Copy constructor intentionally not implemented -> private

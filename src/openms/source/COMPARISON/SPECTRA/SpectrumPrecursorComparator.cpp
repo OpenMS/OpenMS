@@ -18,7 +18,7 @@ namespace OpenMS
   SpectrumPrecursorComparator::SpectrumPrecursorComparator() :
     PeakSpectrumCompareFunctor()
   {
-    setName(SpectrumPrecursorComparator::getProductName());
+    setName("SpectrumPrecursorComparator");
     defaults_.setValue("window", 2, "Allowed deviation between precursor peaks.");
     defaultsToParam_();
   }

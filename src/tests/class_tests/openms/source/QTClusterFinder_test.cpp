@@ -52,13 +52,6 @@ START_SECTION((static BaseGroupFinder* create()))
 }
 END_SECTION
 
-START_SECTION((static const String getProductName()))
-{
-	QTClusterFinder finder;
-  TEST_EQUAL(finder.getName() == "qt", true);
-}
-END_SECTION
-
 START_SECTION((void run(const std::vector<FeatureMap >& input_maps, ConsensusMap& result_map)))
 {
   vector<FeatureMap > input(2);

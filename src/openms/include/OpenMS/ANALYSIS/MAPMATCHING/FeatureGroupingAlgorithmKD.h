@@ -183,12 +183,6 @@ public:
       return new FeatureGroupingAlgorithmKD();
     }
 
-    /// Returns the product name (for the Factory)
-    static String getProductName()
-    {
-      return "unlabeled_kd";
-    }
-
 private:
 
     /// Copy constructor intentionally not implemented -> private

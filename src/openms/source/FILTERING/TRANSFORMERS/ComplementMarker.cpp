@@ -15,7 +15,7 @@ namespace OpenMS
   ComplementMarker::ComplementMarker() :
     PeakMarker()
   {
-    setName(ComplementMarker::getProductName());
+    setName("ComplementMarker");
     defaults_.setValue("tolerance", 1.0, "Tolerance value as defined by Bern et al.");
     defaults_.setValue("marks", 1, "How often a peak needs to be marked to be returned");
     defaultsToParam_();

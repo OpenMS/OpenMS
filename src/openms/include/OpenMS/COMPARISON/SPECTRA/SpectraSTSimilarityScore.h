@@ -116,12 +116,6 @@ public:
     ///
     static PeakSpectrumCompareFunctor * create() { return new SpectraSTSimilarityScore(); }
 
-    ///Reimplemented from PeakSpectrumCompareFunctor.
-    static const String getProductName()
-    {
-      return "SpectraSTSimilarityScore";
-    }
-
 protected:
 
 

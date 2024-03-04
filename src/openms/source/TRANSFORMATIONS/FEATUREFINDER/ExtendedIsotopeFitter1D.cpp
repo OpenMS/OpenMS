@@ -19,7 +19,7 @@ namespace OpenMS
   ExtendedIsotopeFitter1D::ExtendedIsotopeFitter1D() :
     MaxLikeliFitter1D()
   {
-    setName(getProductName());
+    setName("ExtendedIsotopeFitter1D");
 
     defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", {"advanced"});
     defaults_.setValue("charge", 1, "Charge state of the model.", {"advanced"});

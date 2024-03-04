@@ -46,12 +46,6 @@ public:
       return new EmgModel();
     }
 
-    /// name of the model (needed by Factory)
-    static const String getProductName()
-    {
-      return "EmgModel";
-    }
-
     /// set offset without being computing all over and without any discrepancy
     void setOffset(CoordinateType offset) override;
 

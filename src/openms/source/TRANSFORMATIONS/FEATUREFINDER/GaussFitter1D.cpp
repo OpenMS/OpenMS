@@ -16,7 +16,7 @@ namespace OpenMS
   GaussFitter1D::GaussFitter1D() :
     MaxLikeliFitter1D()
   {
-    setName(getProductName());
+    setName("GaussFitter1D");
 
     defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", {"advanced"});
     defaults_.setValue("statistics:mean", 1.0, "Mean value of the model.", {"advanced"});

@@ -18,7 +18,7 @@ namespace OpenMS
   SpectraSTSimilarityScore::SpectraSTSimilarityScore() :
     PeakSpectrumCompareFunctor()
   {
-    setName(SpectraSTSimilarityScore::getProductName());
+    setName("SpectraSTSimilarityScore");
   }
 
   SpectraSTSimilarityScore::SpectraSTSimilarityScore(const SpectraSTSimilarityScore & source) = default;

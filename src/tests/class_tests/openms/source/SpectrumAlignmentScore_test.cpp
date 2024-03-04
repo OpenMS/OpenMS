@@ -118,10 +118,6 @@ START_SECTION(static PeakSpectrumCompareFunctor* create())
 	delete pscf;
 END_SECTION
 
-START_SECTION(static const String getProductName())
-	TEST_STRING_EQUAL(SpectrumAlignmentScore::getProductName(), "SpectrumAlignmentScore")
-END_SECTION
-
 delete ptr;
 
 /////////////////////////////////////////////////////////////

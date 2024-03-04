@@ -14,7 +14,7 @@ namespace OpenMS
     Base()
   {
     //set the name for DefaultParamHandler error messages
-    setName(getProductName());
+    setName("SimplePairFinder");
 
     defaults_.setValue("similarity:diff_intercept:RT", 1.0, "This parameter controls the asymptotic decay rate for large differences (for more details see the similarity measurement).", {"advanced"});
     defaults_.setValue("similarity:diff_intercept:MZ", 0.1, "This parameter controls the asymptotic decay rate for large differences (for more details see the similarity measurement).", {"advanced"});

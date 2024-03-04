@@ -38,10 +38,6 @@ START_SECTION((static FeatureGroupingAlgorithm* create()))
   delete ptr2;
 END_SECTION
 
-START_SECTION((static String getProductName()))
-  TEST_EQUAL(FeatureGroupingAlgorithmKD::getProductName(), "unlabeled_kd")
-END_SECTION
-
 START_SECTION((virtual void group(const std::vector<FeatureMap>& maps, ConsensusMap& out)))
   // This is tested in the tool
   NOT_TESTABLE;

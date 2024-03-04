@@ -12,4 +12,4 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/ComplementFilter.h>" namespace 
         double apply(MSSpectrum & ) except + nogil  # wrap-doc:Returns the total intensity of peak pairs which could result from complementing fragments
 
         # POINTER # FilterFunctor * create() except + nogil 
-        String getProductName() except + nogil  # wrap-doc:Returns the name for registration at the factory
+        

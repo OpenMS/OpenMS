@@ -80,12 +80,6 @@ public:
       return new PoseClusteringAffineSuperimposer();
     }
 
-    /// Returns the name of this module
-    static const String getProductName()
-    {
-      return "poseclustering_affine";
-    }
-
   };
 } // namespace OpenMS
 

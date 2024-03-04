@@ -258,12 +258,6 @@ public:
     /// Destructor
     ~QTClusterFinder() override;
 
-    /// Returns the name of the product
-    static const String getProductName()
-    {
-      return "qt";
-    }
-
     /**
        @brief Runs the algorithm on consensus maps
 

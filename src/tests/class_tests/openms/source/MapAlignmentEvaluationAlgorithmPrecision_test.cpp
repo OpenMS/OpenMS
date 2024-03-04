@@ -45,10 +45,6 @@ START_SECTION((static MapAlignmentEvaluationAlgorithm* create()))
   delete ptr2;
 END_SECTION
 
-START_SECTION((static String getProductName()))
-	TEST_EQUAL(MapAlignmentEvaluationAlgorithmPrecision::getProductName(),"precision")
-END_SECTION
-
 START_SECTION((virtual void evaluate(const ConsensusMap &consensus_map_in, const ConsensusMap &consensus_map_gt, const double &rt_dev, const double &mz_dev, const Peak2D::IntensityType &int_dev, const bool use_charge, double &out)))
 	MapAlignmentEvaluationAlgorithmPrecision maea;
 	ConsensusMap in;

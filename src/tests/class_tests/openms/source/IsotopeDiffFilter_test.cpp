@@ -77,10 +77,6 @@ START_SECTION((static FilterFunctor* create()))
 	delete ff;
 END_SECTION
 
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(e_ptr->getProductName(), "IsotopeDiffFilter")
-END_SECTION
-
 delete e_ptr;
 
 /////////////////////////////////////////////////////////////

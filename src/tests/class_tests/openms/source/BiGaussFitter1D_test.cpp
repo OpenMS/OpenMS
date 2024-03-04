@@ -100,14 +100,6 @@ START_SECTION((Fitter1D* create()))
 }
 END_SECTION
 
-START_SECTION((const String getProductName()))
-{
-  TEST_EQUAL(BiGaussFitter1D::getProductName(),"BiGaussFitter1D")
-  TEST_EQUAL(BiGaussFitter1D().getName(),"BiGaussFitter1D")
-}
-END_SECTION
-
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

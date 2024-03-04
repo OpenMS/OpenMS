@@ -44,12 +44,6 @@ START_SECTION((static BaseGroupFinder* create()))
   delete base_ptr;
 END_SECTION
 
-START_SECTION((static const String getProductName()))
-	StablePairFinder spf;
-
-  TEST_EQUAL(spf.getName() == "stable", true)
-END_SECTION
-
 START_SECTION((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map)))
 {
   std::vector<ConsensusMap> input(2);

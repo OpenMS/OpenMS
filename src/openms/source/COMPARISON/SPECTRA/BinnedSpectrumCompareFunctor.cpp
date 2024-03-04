@@ -16,7 +16,7 @@ using namespace std;
 namespace OpenMS
 {
   BinnedSpectrumCompareFunctor::BinnedSpectrumCompareFunctor() :
-    DefaultParamHandler(BinnedSpectrumCompareFunctor::getProductName())
+    DefaultParamHandler("BinnedSpectrumCompareFunctor")
   {
   }
 

@@ -14,4 +14,4 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/GoodDiffFilter.h>" namespace "O
 
         double apply(MSSpectrum & ) except + nogil 
         # POINTER # FilterFunctor * create() except + nogil 
-        String getProductName() except + nogil  # wrap-doc:Returns the final product name 
+       

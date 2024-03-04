@@ -102,7 +102,7 @@ namespace OpenMS
   EmgFitter1D::EmgFitter1D() :
     LevMarqFitter1D()
   {
-    setName(getProductName());
+    setName("EmgFitter1D");
     defaults_.setValue("init_mom", "false", "Initialize parameters using method of moments estimators.", {"advanced"});
     defaults_.setValidStrings("init_mom", {"true","false"});
     defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", {"advanced"});

@@ -39,13 +39,7 @@ public:
     {
       return new MapAlignmentEvaluationAlgorithmRecall();
     }
-
-    /// Returns the product name (for the Factory)
-    static String getProductName()
-    {
-      return "recall";
-    }
-
+    
 private:
 
     /// Copy constructor intentionally not implemented -> private

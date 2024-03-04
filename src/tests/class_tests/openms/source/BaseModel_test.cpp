@@ -28,7 +28,7 @@ class TestModel : public BaseModel
 	TestModel()
 		: BaseModel()
 	{
-		setName(getProductName());
+		setName("TestModel");
 		check_defaults_ = false;
 		defaultsToParam_();
 	}
@@ -68,11 +68,6 @@ class TestModel : public BaseModel
 
 	void getSamples(SamplesType& /*cont*/) const override
 	{
-	}
-
-	static const String getProductName()
-	{
-		return "TestModel";
 	}
 
 };

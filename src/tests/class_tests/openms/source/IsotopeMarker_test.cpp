@@ -82,10 +82,6 @@ START_SECTION((static PeakMarker* create()))
 	delete pm;
 END_SECTION
 
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(e_ptr->getProductName(), "IsotopeMarker")
-END_SECTION
-
 delete e_ptr;
 
 /////////////////////////////////////////////////////////////

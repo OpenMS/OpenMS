@@ -58,12 +58,6 @@ public:
     ///
     static PeakSpectrumCompareFunctor * create() { return new ZhangSimilarityScore(); }
 
-    ///
-    static const String getProductName()
-    {
-      return "ZhangSimilarityScore";
-    }
-
     // @}
 
 protected:

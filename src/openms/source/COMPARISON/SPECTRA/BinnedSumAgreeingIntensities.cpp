@@ -18,7 +18,7 @@ namespace OpenMS
   BinnedSumAgreeingIntensities::BinnedSumAgreeingIntensities() :
     BinnedSpectrumCompareFunctor()
   {
-    setName(BinnedSumAgreeingIntensities::getProductName());
+    setName("BinnedSumAgreeingIntensities");
     defaultsToParam_();
   }
 

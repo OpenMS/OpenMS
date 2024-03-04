@@ -46,12 +46,6 @@ public:
       return new GaussModel();
     }
 
-    /// name of the model (needed by Factory)
-    static const String getProductName()
-    {
-      return "GaussModel";
-    }
-
     /** @brief set the offset of the model
 
         The whole model will be shifted to the new offset without being computing all over.

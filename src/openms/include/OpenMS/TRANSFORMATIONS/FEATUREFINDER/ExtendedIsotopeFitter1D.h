@@ -40,12 +40,6 @@ public:
       return new ExtendedIsotopeFitter1D();
     }
 
-    /// name of the model (needed by Factory)
-    static const String getProductName()
-    {
-      return "ExtendedIsotopeFitter1D";
-    }
-
     /// return interpolation model
     QualityType fit1d(const RawDataArrayType & range, std::unique_ptr<InterpolationModel>& model) override;
 

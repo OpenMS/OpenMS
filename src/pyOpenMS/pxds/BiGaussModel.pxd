@@ -11,5 +11,4 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>" namespa
         void setSamples() except + nogil 
         double getCenter() except + nogil 
         # BaseModel * create() except + nogil 
-        String getProductName() except + nogil  # wrap-doc:Name of the model (needed by Factory)
-
+       

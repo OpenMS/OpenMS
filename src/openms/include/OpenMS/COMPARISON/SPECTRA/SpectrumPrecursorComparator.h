@@ -52,12 +52,6 @@ public:
     ///
     static PeakSpectrumCompareFunctor * create() { return new SpectrumPrecursorComparator(); }
 
-    ///
-    static const String getProductName()
-    {
-      return "SpectrumPrecursorComparator";
-    }
-
     // @}
 
   };

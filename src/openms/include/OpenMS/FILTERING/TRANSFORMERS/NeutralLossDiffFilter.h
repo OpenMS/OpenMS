@@ -79,12 +79,6 @@ public:
       return isodiff;
     }
 
-    ///
-    static const String getProductName()
-    {
-      return "NeutralLossDiffFilter";
-    }
-
     // @}
 
   };
