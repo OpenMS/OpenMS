@@ -6,7 +6,6 @@
 // $Authors: Kyowon Jeong $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <random>
@@ -450,100 +449,6 @@ namespace OpenMS
     {
       MzMLFile mzml_file;
       mzml_file.store(annotated_mzML_file, annotated_map);
-    }
-  }
-
-  void FLASHDeconvSpectrumFile::writeDLMatrixHeader(std::fstream& fs)
-  {
-    for (int i = 0; i < 3; i++)
-    {
-      String prefix = "Set" + std::to_string(i + 1) + "_";
-      PeakGroup peak_group;
-      int dlm = peak_group.getIsotopeRangeForDL() * peak_group.getChargeRangeForDL() / peak_group.getBinWidthDL();
-
-      for (int j = 0; j < dlm; j++)
-      {
-        fs << prefix << j << ",";
-      }
-    }
-    fs << "Class\n";
-  }
-
-  template<class BidiIter>
-  BidiIter random_unique(BidiIter begin, BidiIter end, size_t num_random)
-  {
-    size_t left = std::distance(begin, end);
-    while (num_random--)
-    {
-      BidiIter r = begin;
-      std::advance(r, rand() % left);
-      std::swap(*begin, *r);
-      ++begin;
-      --left;
-    }
-    return begin;
-  }
-
-  void FLASHDeconvSpectrumFile::writeDLMatrix(std::vector<DeconvolvedSpectrum>& dspecs, double tol, std::fstream& fs, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg)
-  {
-    String cns[] = {"T", "D1", "D2", "D3"};
-    // int count = 2000000;
-    // class,ID,group,data
-    std::vector<std::vector<PeakGroup>> grouped(4);
-
-    for (auto& dspec : dspecs)
-    {
-      for (auto& pg : dspec)
-      {
-        if (pg.size() == 0)
-        {
-          continue;
-        }
-        int cl = pg.getTargetDecoyType();
-        if (cl < 0 || cl >= (int)grouped.size())
-        {
-          continue;
-        }
-
-        pg.calculateDLMatrices(dspec.getOriginalSpectrum(), tol, avg);
-
-        auto dlmatrix = pg.getDLMatrix(0).asVector();
-        grouped[cl].push_back(pg);
-      }
-    }
-
-    /*
-    for(auto& g : grouped)
-    {
-      if((int)g.size() < count)
-      {
-         continue;
-      }
-      random_unique(g.begin(), g.end(), count);
-    }
-  */
-    for (auto& g : grouped)
-    {
-      // int cntr = 0;
-      for (auto& pg : g)
-      {
-        int cl = pg.getTargetDecoyType();
-
-        for (int i = 0; i < 3; i++)
-        {
-          auto dlm = pg.getDLMatrix(i).asVector();
-
-          for (double v : dlm)
-          {
-            fs << v << ",";
-          }
-        }
-        fs << cns[cl] << "\n";
-        // if(++cntr >= count)
-        //{
-        //  break;
-        // }
-      }
     }
   }
 

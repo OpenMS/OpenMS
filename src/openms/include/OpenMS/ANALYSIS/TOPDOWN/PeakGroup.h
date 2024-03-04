@@ -240,29 +240,6 @@ namespace OpenMS
     /// get feature index of this peak group
     uint getFeatureIndex() const;
 
-    int getChargeRangeForDL()
-    {
-      return charge_range_for_DL_;
-    };
-    int getIsotopeRangeForDL()
-    {
-      return iso_range_for_DL_;
-    };
-    float getBinWidthDL()
-    {
-      return bin_width_DL_;
-    }
-
-    /**
-     * @brief calculate the matrices for DL training and scoring
-     * @param spec original raw spectrum
-     * @param tol mass tolerance
-     * @param avg averagine to normalize the observed isotope pattern
-     */
-    void calculateDLMatrices(const MSSpectrum& spec, double tol, const PrecalculatedAveragine& avg);
-
-    /// get the calcualted DL matrix
-    Matrix<float> getDLMatrix(int index) const;
 
     /// iterators for the signal LogMz peaks in this PeakGroup
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator begin() const noexcept;
@@ -352,10 +329,6 @@ namespace OpenMS
     PeakGroup::TargetDecoyType target_decoy_type_ = target;
     /// up to which negative isotope index should be considered. By considereing negative istoopes, one can reduce isotope index error.
     int min_negative_isotope_index_ = -1;
-
-    int charge_range_for_DL_ = 7;
-    float bin_width_DL_ = 0.25;
-    int iso_range_for_DL_ = 21;
 
     /// distance between consecutive isotopes. Can be different for decoys
     double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;

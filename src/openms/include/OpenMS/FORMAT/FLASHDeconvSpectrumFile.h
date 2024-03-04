@@ -82,10 +82,6 @@ namespace OpenMS
      */
     static void writeIsobaricQuantification(std::fstream& fs, std::vector<DeconvolvedSpectrum>& deconvolved_spectra);
 
-    static void writeDLMatrixHeader(std::fstream& fs);
-
-    static void writeDLMatrix(std::vector<DeconvolvedSpectrum>& dspecs, double tol, std::fstream& fs, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg);
-
     static void writeTopFDHeader(std::fstream& fs, const Param& param);
 
     /**

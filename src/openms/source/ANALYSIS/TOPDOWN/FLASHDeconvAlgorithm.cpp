@@ -139,7 +139,7 @@ namespace OpenMS
 
   void FLASHDeconvAlgorithm::filterLowPeaks_(MSExperiment& map)
   {
-    OPENMS_LOG_INFO << "Filtering low peaks in spectra ... " << std::endl;
+    OPENMS_LOG_INFO << "Filtering low peaks in spectra ... ";
     ThresholdMower threshold_mower_filter;                         // threshold
     Param t_filter_param = threshold_mower_filter.getParameters(); //"threshold", .00001
     t_filter_param.setValue("threshold", 1e-6);
