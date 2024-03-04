@@ -15,4 +15,4 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/TopDownTagger.h>" namespace "OpenMS":
         # copy constructor
         TopDownTagger(TopDownTagger &) except + nogil  
         
-        void run(DeconvolvedSpectrum & dspec, double ppm , libcpp_vector[Tag_FDHS] & Tag) except + nogil
+        void run(DeconvolvedSpectrum & dspec, double ppm) except + nogil
