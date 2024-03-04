@@ -17,7 +17,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
 
-
 using namespace OpenMS;
 
 void TestTOPPView::scheduleModalWidget_(const QString& key_sequence, const QString& title, const int delay)
@@ -94,9 +93,6 @@ void TestTOPPView::simulateClick_()
 
 void TestTOPPView::testGui()
 {
-  // register a GUI logger
-  // TODO: readd Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
-
   TOPPViewBase tv(TOPPViewBase::TOOL_SCAN::SKIP_SCAN);
   tv.show();
   QApplication::processEvents();

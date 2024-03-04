@@ -1116,11 +1116,9 @@ PyOpenMSChecker:
     - OpenMS::StringListUtils
 
     # CONCEPT
-    - OpenMS::SingletonRegistry
     - OpenMS::StreamHandler
     - OpenMS::Factory
     - OpenMS::UniqueIdIndexer
-    - OpenMS::FactoryBase
 
     # METADATA
     - OpenMS::MetaInfoDescription

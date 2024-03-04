@@ -10,7 +10,6 @@
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
-#include <OpenMS/CONCEPT/Factory.h>
 
 #include <sstream>
 
@@ -63,17 +62,6 @@ public:
       parameters_ = source.parameters_;
 
       return *this;
-    }
-
-    /// creates model from the parameters defined in this class
-    /// returns 0 if no description is set.
-    BaseModel * createModel()
-    {
-      if (name_.empty()) return nullptr;
-
-      BaseModel * model = Factory<BaseModel >::create(name_);
-      model->setParameters(parameters_);
-      return model;
     }
 
     /** Accessors */

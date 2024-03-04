@@ -109,8 +109,8 @@ protected:
 //    registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment m", false, false);
 //    setValidStrings_("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
 
-//    registerStringOption_("compare_function", "<string>", "ZhangSimilarityScore", "function for similarity comparison", false);
-//    setValidStrings_("compare_function", Factory<PeakSpectrumCompareFunctor>::registeredProducts());
+    registerStringOption_("compare_function", "<string>", "ZhangSimilarityScore", "function for similarity comparison", false);
+    setValidStrings_("compare_function", {"ZhangSimilarityScore", "SpectraSTSimilarityScore"});
 
     registerTOPPSubsection_("report", "Reporting Options");
     registerIntOption_("report:top_hits", "<num>", 10, "Maximum number of top scoring hits per spectrum that are reported.", false, true);

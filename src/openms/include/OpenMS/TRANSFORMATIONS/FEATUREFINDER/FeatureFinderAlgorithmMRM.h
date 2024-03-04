@@ -44,7 +44,6 @@ public:
 
     using FeatureFinderAlgorithm::param_;
     using FeatureFinderAlgorithm::features_;
-    using FeatureFinderAlgorithm::ff_;
     using FeatureFinderAlgorithm::defaults_;
     using FeatureFinderAlgorithm::map_;
 

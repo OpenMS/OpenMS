@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
 
 // include derived classes here

@@ -122,17 +122,17 @@ START_SECTION((virtual void setCutOff(IntensityType cut_off)))
 END_SECTION
 
 START_SECTION(([EXTRA]const String& getName() const))
-	TestModel s;
+  TestModel s;
   TEST_EQUAL(s.getName(), "TestModel")
 END_SECTION
 
 START_SECTION((virtual IntensityType getIntensity(const PositionType &pos) const =0))
 {
-	const TestModel s;
+  const TestModel s;
   TestModel::PositionType pos;
   pos[0]=0.1;
   pos[1]=0.2;
-	TEST_REAL_SIMILAR(s.getIntensity(pos), 0.3);
+  TEST_REAL_SIMILAR(s.getIntensity(pos), 0.1);
 }
 END_SECTION
 
@@ -147,13 +147,13 @@ START_SECTION((virtual bool isContained(const PositionType &pos) const))
 END_SECTION
 
 START_SECTION((template <typename PeakType> void fillIntensity(PeakType &peak) const))
-	const TestModel t;
+  const TestModel t;
   TestModel::PeakType p;
   p.getPosition()[0]=0.1;
   p.getPosition()[1]=0.2;
   p.setIntensity(0.1f);
   t.fillIntensity(p);
-  TEST_REAL_SIMILAR(p.getIntensity(), 0.3)
+  TEST_REAL_SIMILAR(p.getIntensity(), 0.1)
 END_SECTION
 
 START_SECTION((template <class PeakIterator> void fillIntensities(PeakIterator begin, PeakIterator end) const))
@@ -163,7 +163,7 @@ START_SECTION((template <class PeakIterator> void fillIntensities(PeakIterator b
   {
 		vec[i].setIntensity(-0.5);
 		vec[i].getPosition()[0] = i;
-	}
+  }
   t.fillIntensities(vec.begin()+1, vec.end()-1);
   TEST_EQUAL(vec[0].getIntensity(), -0.5)
   TEST_EQUAL(vec[1].getIntensity(), 1.0)

@@ -52,11 +52,6 @@ namespace OpenMS
 			{
 				return this->features_;
 			}
-
-			const FeatureFinder* getFF()
-			{
-				return this->ff_;
-			}
 	};
 }
 
@@ -70,7 +65,6 @@ FFA* nullPointer = nullptr;
 
 PeakMap* map_nullPointer = nullptr;
 FeatureMap*  featureMap_nullPointer = nullptr;
-FeatureFinder*        ff_nullPointer = nullptr;
 
 START_SECTION((FeatureFinderAlgorithm()))
   ptr = new FFA();
@@ -95,7 +89,6 @@ START_SECTION((void setData(const MapType& map, FeatureMap features, FeatureFind
   FFA ffa;
   TEST_EQUAL(ffa.getMap(),map_nullPointer)
   TEST_EQUAL(ffa.getFeatures(),featureMap_nullPointer)
-  TEST_EQUAL(ffa.getFF(),ff_nullPointer)
 
   PeakMap map;
 	FeatureMap features;

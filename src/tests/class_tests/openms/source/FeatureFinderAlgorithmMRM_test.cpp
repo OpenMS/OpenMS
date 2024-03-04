@@ -13,8 +13,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -26,18 +26,17 @@ START_TEST(FeatureFinderAlgorithmMRM, "$Id$")
 
 FeatureFinderAlgorithmMRM* ptr = nullptr;
 FeatureFinderAlgorithmMRM* nullPointer = nullptr;
-FeatureFinderAlgorithm* ffA_nullPointer = nullptr;
 
 START_SECTION(FeatureFinderAlgorithmMRM())
 {
   ptr = new FeatureFinderAlgorithmMRM();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
 START_SECTION(~FeatureFinderAlgorithmMRM())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
@@ -46,40 +45,37 @@ ptr = new FeatureFinderAlgorithmMRM();
 START_SECTION((virtual void run()))
 {
   FeatureFinderAlgorithmMRM ff;
-  //ff.setLogType(ProgressLogger::NONE); // TODO: readd
+  ff.setLogType(ProgressLogger::NONE);
 
   PeakMap exp;
-	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmMRM_input.mzML"), exp);
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmMRM_input.mzML"), exp);
 
-	FeatureMap features, seeds;
-	Param ff_param(ptr->getParameters());
-	ff.run(exp, features, ff_param, seeds);
+  FeatureMap features, seeds;
+  Param ff_param(ptr->getParameters());
+  ff.run(exp, features, ff_param, seeds);
 
-	TEST_EQUAL(exp.getChromatograms().size(), 3)
+  TEST_EQUAL(exp.getChromatograms().size(), 3)
 
-	FeatureMap new_features;
-	for (Size i = 0; i != features.size(); ++i)
-	{
-		if (features[i].getQuality(0) > 0.99)
-		{
-			new_features.push_back(features[i]);
-		}
-	}
+  FeatureMap new_features;
+  for (Size i = 0; i != features.size(); ++i)
+  {
+    if (features[i].getQuality(0) > 0.99) { new_features.push_back(features[i]); }
+  }
 
-	TEST_EQUAL(new_features.size(), 3)
+  TEST_EQUAL(new_features.size(), 3)
 
-	for (Size i = 0; i != new_features.size(); ++i)
-	{
-		TEST_EQUAL(new_features[i].getIntensity() > 100000, true)
-	}
+  for (Size i = 0; i != new_features.size(); ++i)
+  {
+    TEST_EQUAL(new_features[i].getIntensity() > 100000, true)
+  }
 }
 END_SECTION
 
-START_SECTION((static FeatureFinderAlgorithm<PeakType>* create()))
+START_SECTION((static FeatureFinderAlgorithm<PeakType> * create()))
 {
-  FeatureFinderAlgorithm* ptr2 = nullptr;
+  FeatureFinderAlgorithmMRM* ptr2 = nullptr;
   ptr2 = new FeatureFinderAlgorithmMRM();
-  TEST_NOT_EQUAL(ptr2, ffA_nullPointer)
+  TEST_NOT_EQUAL(ptr2, nullptr)
   delete ptr2;
 }
 END_SECTION
@@ -89,6 +85,3 @@ delete ptr;
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-

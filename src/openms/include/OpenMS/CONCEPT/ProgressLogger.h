@@ -72,6 +72,10 @@ public:
     /// Returns the type of progress log being used.
     LogType getLogType() const;
 
+    /// @brief  Sets the logger to be used for progress logging
+    /// @param logger 
+    void setLogger(ProgressLoggerImpl* logger);
+
     /**
       @brief Initializes the progress display
 
