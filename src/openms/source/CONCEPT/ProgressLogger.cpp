@@ -21,26 +21,17 @@ using namespace std;
 
 namespace OpenMS
 {
+
   class CMDProgressLoggerImpl :
     public ProgressLogger::ProgressLoggerImpl
   {
 public:
-    CMDProgressLoggerImpl() :
-      stop_watch_()
-      
-    {
-    }
+    CMDProgressLoggerImpl() = default;
 
     /// create new object (needed by Factory)
     static ProgressLogger::ProgressLoggerImpl* create()
     {
       return new CMDProgressLoggerImpl();
-    }
-
-    /// name of the model (needed by Factory)
-    static const String getProductName()
-    {
-      return "CMD";
     }
 
     void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int current_recursion_depth) const override
@@ -105,12 +96,6 @@ public:
       return new NoProgressLoggerImpl();
     }
 
-    /// name of the model (needed by Factory)
-    static const String getProductName()
-    {
-      return "NONE";
-    }
-
     void startProgress(const SignedSize /* begin */, const SignedSize /* end */, const String& /* label */, const int /* current_recursion_depth */) const override
     {
     }
@@ -129,6 +114,12 @@ public:
     }
 
   };
+
+  // Simple runtime plugin system for GUI progress logger.
+  // An external library (e.g., OpenMS_GUI) can set this function to provide a GUI logger.
+  // As default, it just uses the NonProgressLoggerImpl.
+  MakeGUIProgressLoggerFunc make_gui_progress_logger = 
+    []() -> ProgressLogger::ProgressLoggerImpl* { return NoProgressLoggerImpl::create(); };
 
   int ProgressLogger::recursion_depth_ = 0;
 
@@ -157,7 +148,7 @@ public:
       }
       case GUI:
       {
-         //current_logger_ = GUIProgressLoggerImpl();
+        current_logger_ = make_gui_progress_logger();
       }
     }
   }
@@ -190,8 +181,7 @@ public:
       }
       case GUI:
       {
-        // current_logger_ = GUIProgressLoggerImpl::create();
-        break;
+        current_logger_ = make_gui_progress_logger();
       }
     }
 
@@ -223,7 +213,7 @@ public:
       }
       case GUI:
       {
-        // current_logger_ = GUIProgressLoggerImpl::create();
+        current_logger_ = make_gui_progress_logger();
       }
     }
   }
@@ -278,6 +268,5 @@ public:
     }
     current_logger_->endProgress(recursion_depth_, bytes_processed);
   }
-
 
 } //namespace OpenMS

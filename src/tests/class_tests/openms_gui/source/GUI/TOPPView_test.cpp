@@ -93,6 +93,10 @@ void TestTOPPView::simulateClick_()
 
 void TestTOPPView::testGui()
 {
+  // inject the GUIProgressLoggerImpl to be used by OpenMS lib via an extern variable
+  make_gui_progress_logger = 
+    []() -> ProgressLogger::ProgressLoggerImpl* { return new GUIProgressLoggerImpl(); };
+
   TOPPViewBase tv(TOPPViewBase::TOOL_SCAN::SKIP_SCAN);
   tv.show();
   QApplication::processEvents();
