@@ -13,12 +13,13 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+
 
 namespace OpenMS
 {
 
   // forward declaration
-  class FeatureFinder;
   class FeatureMap;
 
   /// Summary of fitting results
@@ -46,7 +47,8 @@ namespace OpenMS
 
   */
   class FeatureFinderAlgorithm :
-    public DefaultParamHandler
+    public DefaultParamHandler,
+    public ProgressLogger
   {
 public:
     /// Input map type
@@ -60,8 +62,7 @@ public:
     FeatureFinderAlgorithm() :
       DefaultParamHandler("FeatureFinderAlgorithm"),
       map_(nullptr),
-      features_(nullptr),
-      ff_(nullptr)
+      features_(nullptr)
     {
     }
 
@@ -113,9 +114,6 @@ protected:
 
     /// Output data pointer
     FeatureMap* features_;
-
-    /// Pointer to the calling FeatureFinder that is used to access the feature flags
-    FeatureFinder* ff_;
 
 private:
 

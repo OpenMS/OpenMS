@@ -49,7 +49,7 @@ namespace OpenMS
     LinearResampler resampler;
 
     // Split the whole map into traces (== MRM transitions)
-    ff_->startProgress(0, map_->getChromatograms().size(), "Finding features in traces.");
+    startProgress(0, map_->getChromatograms().size(), "Finding features in traces.");
     Size counter(0);
     double min_rt_distance(param_.getValue("min_rt_distance"));
     double min_signal_to_noise_ratio(param_.getValue("min_signal_to_noise_ratio"));
@@ -346,7 +346,7 @@ namespace OpenMS
         }
       }
 
-      ff_->setProgress(++counter);
+      setProgress(++counter);
     }
   }
 

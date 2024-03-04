@@ -14,7 +14,6 @@
 #include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <QtCore/QString>
-//#include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
 
 #include <iostream>
 
@@ -227,6 +226,12 @@ public:
         // current_logger_ = GUIProgressLoggerImpl::create();
       }
     }
+  }
+
+  void ProgressLogger::setLogger(ProgressLoggerImpl* logger)
+  {
+    delete current_logger_;
+    current_logger_ = logger;
   }
 
   ProgressLogger::LogType ProgressLogger::getLogType() const

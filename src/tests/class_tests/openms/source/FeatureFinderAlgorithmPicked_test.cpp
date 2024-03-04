@@ -54,9 +54,7 @@ START_SECTION((virtual void run()))
   Param param;
   ParamXMLFile paramFile;
   paramFile.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.ini"), param);
-  param = param.copy("FeatureFinder:1:algorithm:",true);
-  //Dummy featurefinder
-  FeatureFinder ff;
+  param = param.copy("FeatureFinder:1:algorithm:", true);
 
   FFPP ffpp;
   ffpp.setParameters(param);

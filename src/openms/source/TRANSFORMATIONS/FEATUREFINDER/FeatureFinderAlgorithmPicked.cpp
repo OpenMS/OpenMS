@@ -241,7 +241,7 @@ namespace OpenMS
     if (debug_) log_ << "Precalculating intensity thresholds ..." << std::endl;
     //new scope to make local variables disappear
     {
-      ff_->startProgress(0, intensity_bins_ * intensity_bins_, "Precalculating intensity scores");
+      startProgress(0, intensity_bins_ * intensity_bins_, "Precalculating intensity scores");
       double rt_start = map_.getMinRT();
       double mz_start = map_.getMinMZ();
       intensity_rt_step_ = (map_.getMaxRT() - rt_start) / (double)intensity_bins_;
@@ -255,7 +255,7 @@ namespace OpenMS
         std::vector<double> tmp;
         for (Size mz = 0; mz < intensity_bins_; ++mz)
         {
-          ff_->setProgress(rt * intensity_bins_ + mz);
+          setProgress(rt * intensity_bins_ + mz);
           double min_mz = mz_start + mz * intensity_mz_step_;
           double max_mz = mz_start + (mz + 1) * intensity_mz_step_;
           //std::cout << "rt range: " << min_rt << " - " << max_rt << std::endl;
@@ -288,7 +288,7 @@ namespace OpenMS
           map_[s].getFloatDataArrays()[1][p] = intensityScore_(s, p);
         }
       }
-      ff_->endProgress();
+      endProgress();
     }
 
     //---------------------------------------------------------------------------
@@ -298,11 +298,11 @@ namespace OpenMS
     //new scope to make local variables disappear
     {
       Size end_iteration = map_.size() - std::min((Size)min_spectra_, map_.size());
-      ff_->startProgress(min_spectra_, end_iteration, "Precalculating mass trace scores");
+      startProgress(min_spectra_, end_iteration, "Precalculating mass trace scores");
       // skip first and last scans since we cannot extend the mass traces there
       for (Size s = min_spectra_; s < end_iteration; ++s)
       {
-        ff_->setProgress(s);
+        setProgress(s);
         SpectrumType& spectrum = map_[s];
         //iterate over all peaks of the scan
         for (Size p = 0; p < spectrum.size(); ++p)
@@ -347,7 +347,7 @@ namespace OpenMS
           spectrum.getFloatDataArrays()[2][p] = is_max_peak;
         }
       }
-      ff_->endProgress();
+      endProgress();
     }
 
     //---------------------------------------------------------------------------
@@ -358,7 +358,7 @@ namespace OpenMS
     {
       double max_mass = map_.getMaxMZ() * charge_high;
       Size num_isotopes = std::ceil(max_mass / mass_window_width_) + 1;
-      ff_->startProgress(0, num_isotopes, "Precalculating isotope distributions");
+      startProgress(0, num_isotopes, "Precalculating isotope distributions");
 
       //reserve enough space
       isotope_distributions_.resize(num_isotopes);
@@ -429,7 +429,7 @@ namespace OpenMS
         //if(debug_) log_ << " - optional begin/end:" << begin << " / " << end << std::endl;
       }
 
-      ff_->endProgress();
+      endProgress();
     }
 
     //-------------------------------------------------------------------------
@@ -449,10 +449,10 @@ namespace OpenMS
       //-----------------------------------------------------------
       // Step 3.1: Precalculate IsotopePattern score
       //-----------------------------------------------------------
-      ff_->startProgress(0, map_.size(), String("Calculating isotope pattern scores for charge ") + String(c));
+      startProgress(0, map_.size(), String("Calculating isotope pattern scores for charge ") + String(c));
       for (Size s = 0; s < map_.size(); ++s)
       {
-        ff_->setProgress(s);
+        setProgress(s);
         const SpectrumType& spectrum = map_[s];
         for (Size p = 0; p < spectrum.size(); ++p)
         {
@@ -487,19 +487,19 @@ namespace OpenMS
           }
         }
       }
-      ff_->endProgress();
+      endProgress();
       //-----------------------------------------------------------
       // Step 3.2:
       // Find seeds for this charge
       //-----------------------------------------------------------
       Size end_of_iteration = map_.size() - std::min((Size)min_spectra_, map_.size());
-      ff_->startProgress(min_spectra_, end_of_iteration, String("Finding seeds for charge ") + String(c));
+      startProgress(min_spectra_, end_of_iteration, String("Finding seeds for charge ") + String(c));
 
       double min_seed_score = param_.getValue("seed:min_score");
       //do nothing for the first few and last few spectra as the scans required to search for traces are missing
       for (Size s = min_spectra_; s < end_of_iteration; ++s)
       {
-        ff_->setProgress(s);
+        setProgress(s);
 
         //iterate over peaks
         for (Size p = 0; p < map_[s].size(); ++p)
@@ -572,7 +572,7 @@ namespace OpenMS
         FileHandler().storeFeatures(String("debug/seeds_") + String(c) + ".featureXML", seed_map);
       }
 
-      ff_->endProgress();
+      endProgress();
       std::cout << "Found " << seeds.size() << " seeds for charge " << c << "." << std::endl;
 
       //------------------------------------------------------------------
@@ -592,7 +592,7 @@ namespace OpenMS
       typedef std::map<Size, Feature> FeatureMapType;
       FeatureMapType tmp_feature_map;
       int gl_progress = 0;
-      ff_->startProgress(0, seeds.size(), String("Extending seeds for charge ") + String(c));
+      startProgress(0, seeds.size(), String("Extending seeds for charge ") + String(c));
 
 #pragma omp parallel for
       for (SignedSize i = 0; i < (SignedSize)seeds.size(); ++i)
@@ -607,7 +607,7 @@ namespace OpenMS
 
         IF_MASTERTHREAD
         {
-          ff_->setProgress(gl_progress++);
+          setProgress(gl_progress++);
 
           if (debug_)
           {
@@ -853,7 +853,7 @@ namespace OpenMS
         }
       }
 
-      IF_MASTERTHREAD ff_->endProgress();
+      IF_MASTERTHREAD endProgress();
       std::cout << "Found " << feature_candidates << " feature candidates for charge " << c << "." << std::endl;
     }
     // END OPENMP
@@ -862,7 +862,7 @@ namespace OpenMS
     //Step 4:
     //Resolve contradicting and overlapping features
     //------------------------------------------------------------------
-    ff_->startProgress(0, features_->size() * features_->size(), "Resolving overlapping features");
+    startProgress(0, features_->size() * features_->size(), "Resolving overlapping features");
     if (debug_) log_ << "Resolving intersecting features (" << features_->size() << " candidates)" << std::endl;
     //sort features according to m/z in order to speed up the resolution
     features_->sortByMZ();
@@ -886,7 +886,7 @@ namespace OpenMS
       Feature& f1((*features_)[i]);
       for (Size j = i + 1; j < features_->size(); ++j)
       {
-        ff_->setProgress(i * features_->size() + j);
+        setProgress(i * features_->size() + j);
         Feature& f2((*features_)[j]);
         //features that are more than 2 times the maximum m/z span apart do not overlap => abort
         if (f2.getMZ() - f1.getMZ() > 2.0 * max_mz_span)
@@ -991,7 +991,7 @@ namespace OpenMS
     tmp.swapFeaturesOnly(*features_);
     // sort features by intensity
     features_->sortByIntensity(true);
-    ff_->endProgress();
+    endProgress();
 
     // Abort reasons
     OPENMS_LOG_INFO << '\n';
