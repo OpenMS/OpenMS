@@ -101,10 +101,6 @@ START_SECTION(static PeakSpectrumCompareFunctor* create())
 	delete psf;
 END_SECTION
 
-START_SECTION(static const String getProductName())
-	TEST_EQUAL(ptr->getProductName(), "ZhangSimilarityScore")
-END_SECTION
-
 delete ptr;
 
 /////////////////////////////////////////////////////////////

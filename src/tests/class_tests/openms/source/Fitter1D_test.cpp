@@ -21,7 +21,7 @@ class TestModel : public Fitter1D
   TestModel()
     : Fitter1D()
   {
-    setName(getProductName());
+    setName("TestModel");
 
     check_defaults_ = false;
 
@@ -60,11 +60,6 @@ class TestModel : public Fitter1D
     return 1.0;
   }
 
-  static const String getProductName()
-  {
-    return "TestModel";
-  }
-
 };
 
 
@@ -89,23 +84,8 @@ START_SECTION(Fitter1D())
 }
 END_SECTION
 
-START_SECTION((Fitter1D(const  Fitter1D &source)))
-	TestModel tm1;
-
-  TestModel tm2(tm1);
-	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
-END_SECTION
-
 START_SECTION((virtual ~Fitter1D()))
   delete ptr;
-END_SECTION
-
-START_SECTION((virtual Fitter1D& operator=(const  Fitter1D &source)))
-	TestModel tm1;
-  TestModel tm2;
-
-  tm2 = tm1;
-	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 END_SECTION
 
 START_SECTION((virtual QualityType fit1d(const  RawDataArrayType &, InterpolationModel *&)))

@@ -49,11 +49,6 @@ START_SECTION(static BaseModel* create())
 	delete ptr;
 END_SECTION
 
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(IsotopeModel::getProductName(),"IsotopeModel")
-	TEST_EQUAL(IsotopeModel().getName(),"IsotopeModel")
-END_SECTION
-
 // assignment operator
 START_SECTION((virtual IsotopeModel& operator=(const IsotopeModel &source)))
 	IsotopeModel im1;

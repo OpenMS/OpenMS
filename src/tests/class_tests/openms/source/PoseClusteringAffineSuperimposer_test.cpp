@@ -52,13 +52,6 @@ START_SECTION((static BaseSuperimposer* create()))
 }
 END_SECTION
 
-START_SECTION((static const String getProductName()))
-{
-  PoseClusteringAffineSuperimposer pcat;
-  TEST_EQUAL(pcat.getName() == "poseclustering_affine",true)
-}
-END_SECTION
-
 START_SECTION((virtual void run(const ConsensusMap& map_model, const ConsensusMap& map_scene, TransformationDescription& transformation)))
 {
   std::vector<ConsensusMap> input(2);

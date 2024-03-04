@@ -17,7 +17,7 @@ namespace OpenMS
   IsotopeDiffFilter::IsotopeDiffFilter() :
     FilterFunctor()
   {
-    setName(IsotopeDiffFilter::getProductName());
+    setName("IsotopeDiffFilter");
     //value from Bioinformatics, Bern 2004
     defaults_.setValue("tolerance", 0.37, "Tolerance value defined by Bern et al.");
     defaultsToParam_();

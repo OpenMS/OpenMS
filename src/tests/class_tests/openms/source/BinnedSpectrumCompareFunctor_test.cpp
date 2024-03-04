@@ -58,12 +58,6 @@ START_SECTION((virtual double operator()(const BinnedSpectrum &spec) const =0))
 }
 END_SECTION
 
-START_SECTION((static const String getProductName()))
-{
-	TEST_EQUAL(BinnedSpectrumCompareFunctor::getProductName(), "BinnedSpectrumCompareFunctor")
-}
-END_SECTION
-
 START_SECTION(([BinnedSpectrumCompareFunctor::IncompatibleBinning] IncompatibleBinning(const char *file, int line, const char *function, const char *message="compared spectra have different settings in binsize and/or binspread")))
 {
   NOT_TESTABLE

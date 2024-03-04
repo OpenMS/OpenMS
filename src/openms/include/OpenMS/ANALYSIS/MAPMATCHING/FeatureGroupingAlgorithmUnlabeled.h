@@ -88,12 +88,6 @@ public:
       return new FeatureGroupingAlgorithmUnlabeled();
     }
 
-    /// Returns the product name (for the Factory)
-    static String getProductName()
-    {
-      return "unlabeled";
-    }
-
 private:
 
     // This vector should always have 2 elements

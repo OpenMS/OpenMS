@@ -93,12 +93,6 @@ START_SECTION((Fitter1D* create()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((const String getProductName()))
-  TEST_EQUAL(ExtendedIsotopeFitter1D::getProductName(),"ExtendedIsotopeFitter1D")
-  TEST_EQUAL(ExtendedIsotopeFitter1D().getName(),"ExtendedIsotopeFitter1D")
-END_SECTION
-
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -90,12 +90,6 @@ START_SECTION((static BinnedSpectrumCompareFunctor* create()))
 }
 END_SECTION
 
-START_SECTION((static const String getProductName()))
-{
-  TEST_EQUAL(ptr->getProductName(), "BinnedSpectralContrastAngle")
-}
-END_SECTION
-
 delete ptr;
 
 /////////////////////////////////////////////////////////////

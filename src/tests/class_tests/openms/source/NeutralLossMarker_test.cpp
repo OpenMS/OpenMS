@@ -84,10 +84,6 @@ START_SECTION((static PeakMarker* create()))
 	delete pm;
 END_SECTION
 
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(e_ptr->getProductName(), "NeutralLossMarker")
-END_SECTION
-
 delete e_ptr;
 
 /////////////////////////////////////////////////////////////

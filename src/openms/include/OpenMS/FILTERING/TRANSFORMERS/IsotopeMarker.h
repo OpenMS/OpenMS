@@ -107,12 +107,6 @@ public:
       return;
     }
 
-    ///
-    static const String getProductName()
-    {
-      return "IsotopeMarker";
-    }
-
     // @}
 
   };

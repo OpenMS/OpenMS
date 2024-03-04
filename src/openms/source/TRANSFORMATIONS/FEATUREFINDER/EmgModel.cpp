@@ -15,7 +15,7 @@ namespace OpenMS
   EmgModel::EmgModel() :
     InterpolationModel()
   {
-    setName(getProductName());
+    setName("EmgModel");
 
     defaults_.setValue("bounding_box:min", 0.0f, "Lower end of bounding box enclosing the data used to fit the model.", {"advanced"});
     defaults_.setValue("bounding_box:max", 1.0f, "Upper end of bounding box enclosing the data used to fit the model.", {"advanced"});

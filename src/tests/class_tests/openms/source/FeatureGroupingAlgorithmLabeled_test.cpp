@@ -42,10 +42,6 @@ START_SECTION((static FeatureGroupingAlgorithm* create()))
   delete ptr2;
 END_SECTION
 
-START_SECTION((static String getProductName()))
-	TEST_EQUAL(FeatureGroupingAlgorithmLabeled::getProductName(),"labeled")
-END_SECTION
-
 START_SECTION((virtual void group(const std::vector< FeatureMap > &maps, ConsensusMap &out)))
 	TOLERANCE_ABSOLUTE(0.001)
 

@@ -46,12 +46,6 @@ START_SECTION((static BaseSuperimposer* create()))
   delete (base_ptr);
 END_SECTION
 
-START_SECTION((static const String getProductName()))
-  PoseClusteringShiftSuperimposer pcsi;
-
-  TEST_EQUAL(pcsi.getName() == "poseclustering_shift",true)
-END_SECTION
-
 START_SECTION((virtual void run(const ConsensusMap& map_model, const ConsensusMap& map_scene, TransformationDescription& transformation)))
 
   std::vector<ConsensusMap> input(2);

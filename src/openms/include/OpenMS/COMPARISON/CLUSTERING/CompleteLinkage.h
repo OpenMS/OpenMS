@@ -66,8 +66,6 @@ public:
   /// creates a new instance of a CompleteLinkage object
   static ClusterFunctor* create();
 
-  /// get the identifier for this object
-  static const String getProductName();
 };
 
 } // namespace OpenMS

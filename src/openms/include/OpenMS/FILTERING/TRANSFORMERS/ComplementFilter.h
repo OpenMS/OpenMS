@@ -91,12 +91,6 @@ public:
       return result;
     }
 
-    /// returns the name for registration at the factory
-    static const String getProductName()
-    {
-      return "ComplementFilter";
-    }
-
     //@}
 
   };

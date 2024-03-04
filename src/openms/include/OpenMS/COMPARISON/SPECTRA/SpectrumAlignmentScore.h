@@ -72,12 +72,6 @@ public:
     ///
     static PeakSpectrumCompareFunctor * create() { return new SpectrumAlignmentScore(); }
 
-    ///
-    static const String getProductName()
-    {
-      return "SpectrumAlignmentScore";
-    }
-
     // @}
 
   };

@@ -88,13 +88,6 @@ START_SECTION((Fitter1D* create()))
 }
 END_SECTION
 
-START_SECTION((const String getProductName()))
-{
-  TEST_EQUAL(GaussFitter1D::getProductName(),"GaussFitter1D")
-  TEST_EQUAL(GaussFitter1D().getName(),"GaussFitter1D")
-}
-END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

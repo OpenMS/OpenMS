@@ -105,10 +105,6 @@ START_SECTION(static PeakSpectrumCompareFunctor* create())
 	delete cf;
 END_SECTION
 
-START_SECTION(static const String getProductName())
-	TEST_EQUAL(SpectrumCheapDPCorr::getProductName(), "SpectrumCheapDPCorr")
-END_SECTION
-
 START_SECTION(void setFactor(double f))
 	e_ptr->setFactor(0.3);
 

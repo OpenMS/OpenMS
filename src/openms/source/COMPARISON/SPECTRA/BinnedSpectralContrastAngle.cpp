@@ -18,7 +18,7 @@ namespace OpenMS
   BinnedSpectralContrastAngle::BinnedSpectralContrastAngle() :
     BinnedSpectrumCompareFunctor()
   {
-    setName(BinnedSpectralContrastAngle::getProductName());
+    setName("BinnedSpectralContrastAngle");
     defaultsToParam_();
   }
 

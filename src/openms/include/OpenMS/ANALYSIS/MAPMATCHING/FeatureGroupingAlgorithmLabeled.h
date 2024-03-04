@@ -48,12 +48,6 @@ public:
       return new FeatureGroupingAlgorithmLabeled();
     }
 
-    ///Returns the product name (for the Factory)
-    static String getProductName()
-    {
-      return "labeled";
-    }
-
 private:
 
     ///Copy constructor is not implemented -> private

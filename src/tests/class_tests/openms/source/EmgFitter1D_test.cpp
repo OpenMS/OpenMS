@@ -147,14 +147,6 @@ START_SECTION((Fitter1D* create()))
 }
 END_SECTION
 
-START_SECTION((const String getProductName()))
-{
-  TEST_EQUAL(EmgFitter1D::getProductName(),"EmgFitter1D")
-  TEST_EQUAL(EmgFitter1D().getName(),"EmgFitter1D")
-}
-END_SECTION
-
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

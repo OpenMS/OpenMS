@@ -46,12 +46,6 @@ public:
     /// return interpolation model
     QualityType fit1d(const RawDataArrayType & range, std::unique_ptr<InterpolationModel>& model) override;
 
-    /// name of the model (needed by Factory)
-    static const String getProductName()
-    {
-      return "BiGaussFitter1D";
-    }
-
 protected:
 
     /// statistics for first peak site

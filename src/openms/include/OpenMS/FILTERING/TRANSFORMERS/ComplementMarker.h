@@ -94,12 +94,6 @@ public:
       }
     }
 
-    /// returns the name to register at the factory
-    static const String getProductName()
-    {
-      return "ComplementMarker";
-    }
-
     //@}
 
   };

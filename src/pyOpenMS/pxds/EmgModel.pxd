@@ -9,8 +9,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>" namespace "
         EmgModel() except + nogil  # wrap-doc:Exponentially modified gaussian distribution model for elution profiles
         EmgModel(EmgModel &) except + nogil 
         # BaseModel * create() except + nogil 
-        String getProductName() except + nogil  # wrap-doc:Name of the model 
-
+       
         # inherited from parent class - no second definition necessary!
         # void setOffset(CoordinateType offset) # wrap-ignore
         # void setSamples() # wrap-ignore

@@ -39,12 +39,6 @@ public:
     template <typename SpectrumType>
     void apply(std::map<double, bool> & /* marked */, SpectrumType & /* spectrum */) {}
 
-    ///
-    static const String getProductName()
-    {
-      return "PeakMarker";
-    }
-
   };
 
 }

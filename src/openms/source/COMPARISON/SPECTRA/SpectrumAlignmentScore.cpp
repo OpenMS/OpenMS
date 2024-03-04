@@ -15,7 +15,7 @@ namespace OpenMS
   SpectrumAlignmentScore::SpectrumAlignmentScore() :
     PeakSpectrumCompareFunctor()
   {
-    setName(SpectrumAlignmentScore::getProductName());
+    setName("SpectrumAlignmentScore");
     defaults_.setValue("tolerance", 0.3, "Defines the absolute (in Da) or relative (in ppm) tolerance");
     defaults_.setValue("is_relative_tolerance", "false", "if true, the tolerance value is interpreted as ppm");
     defaults_.setValidStrings("is_relative_tolerance", {"true","false"});
