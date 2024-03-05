@@ -537,6 +537,7 @@ jobs:
           name: source.tar.gz
 
       - name: Download changelog as artifact
+        if: inputs.do_release
         uses: actions/download-artifact@v4
         with:
           name: changelog.txt
