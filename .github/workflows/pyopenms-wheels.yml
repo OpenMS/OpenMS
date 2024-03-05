@@ -22,7 +22,7 @@ jobs:
         path: OpenMS
       
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.13
+      uses: jwlawson/actions-setup-cmake@v2
       with:
         cmake-version: '3.25.x'
 
@@ -138,7 +138,7 @@ jobs:
         path: OpenMS
 
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.13
+      uses: jwlawson/actions-setup-cmake@v2
       with:
         cmake-version: '3.25.x'
 
@@ -292,7 +292,7 @@ jobs:
         path: OpenMS
 
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.13
+      uses: jwlawson/actions-setup-cmake@v2
       with:
         cmake-version: '3.25.x'
 
