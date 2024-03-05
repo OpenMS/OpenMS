@@ -110,7 +110,7 @@ protected:
 
   // Function pointer for injecting the GUI progress logger implementation
   typedef ProgressLogger::ProgressLoggerImpl* (*MakeGUIProgressLoggerFunc)();
-  extern MakeGUIProgressLoggerFunc make_gui_progress_logger;
+  extern OPENMS_DLLAPI MakeGUIProgressLoggerFunc make_gui_progress_logger;
 
 } // namespace OpenMS
 
