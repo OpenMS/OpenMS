@@ -36,6 +36,7 @@ Fixes:
 
 Misc:
 - OpenMSInfo reports the ILP solver (CoinOr or glpk) (#7156)
+- add citation information for OpenMS 3.0 (Nat. Methods) (#7383)
 - Add export for Common Workflow Language (CWL) (#6156)
 - Add tool description lib (TDL) dependency (#6156)
 
