@@ -109,15 +109,6 @@ START_SECTION(double operator()(const PeakSpectrum &spec) const)
 	
 END_SECTION
 
-
-START_SECTION(static PeakSpectrumCompareFunctor* create())
-	PeakSpectrumCompareFunctor* pscf = SpectrumAlignmentScore::create();
-	SpectrumAlignmentScore sas;
-	TEST_EQUAL(pscf->getParameters(), sas.getParameters())
-	TEST_EQUAL(pscf->getName(), sas.getName())
-	delete pscf;
-END_SECTION
-
 delete ptr;
 
 /////////////////////////////////////////////////////////////

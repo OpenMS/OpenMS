@@ -53,12 +53,6 @@ public:
 
     UInt getCharge() const;
 
-    /// create new IsotopeModel object (needed by Factory)
-    static BaseModel * create()
-    {
-      return new IsotopeModel();
-    }
-
     /** @brief set the offset of the model
 
         The whole model will be shifted to the new offset without being computing all over.

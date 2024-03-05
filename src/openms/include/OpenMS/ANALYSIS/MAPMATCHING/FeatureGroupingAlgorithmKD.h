@@ -177,12 +177,6 @@ public:
     void group(const std::vector<ConsensusMap>& maps,
                        ConsensusMap& out) override;
 
-    /// Creates a new instance of this class (for Factory)
-    static FeatureGroupingAlgorithm* create()
-    {
-      return new FeatureGroupingAlgorithmKD();
-    }
-
 private:
 
     /// Copy constructor intentionally not implemented -> private

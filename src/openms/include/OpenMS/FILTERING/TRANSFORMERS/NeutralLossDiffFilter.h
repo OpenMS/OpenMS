@@ -47,8 +47,6 @@ public:
 
     // @name Accessors
     // @{
-    ///
-    static FilterFunctor * create() { return new NeutralLossDiffFilter(); }
 
     ///
     template <typename SpectrumType>

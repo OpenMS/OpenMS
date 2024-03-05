@@ -43,15 +43,6 @@ START_SECTION((virtual ~QTClusterFinder()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((static BaseGroupFinder* create()))
-{
-	BaseGroupFinder* base_ptr = nullptr;
-	base_ptr = QTClusterFinder::create();
-  TEST_NOT_EQUAL(base_ptr, base_nullPointer);
-  delete base_ptr;
-}
-END_SECTION
-
 START_SECTION((void run(const std::vector<FeatureMap >& input_maps, ConsensusMap& result_map)))
 {
   vector<FeatureMap > input(2);

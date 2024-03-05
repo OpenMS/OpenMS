@@ -70,11 +70,6 @@ public:
         This function return the similarity score of itself based on SteinScott.
     */
     double operator()(const PeakSpectrum & spec) const override;
-    static PeakSpectrumCompareFunctor * create()
-    {
-      return new SteinScottImproveScore();
-    }
-
   };
 }
 

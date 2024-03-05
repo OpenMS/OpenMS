@@ -41,13 +41,6 @@ START_SECTION((virtual ~EmgModel()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((static BaseModel* create()))
-	BaseModel* ptr = EmgModel::create();
-	TEST_EQUAL(ptr->getName(), "EmgModel")
-	TEST_NOT_EQUAL(ptr, nullPointer)
-	delete ptr;
-END_SECTION
-
 // assignment operator
 START_SECTION((virtual EmgModel& operator=(const EmgModel &source)))
 	EmgModel em1;

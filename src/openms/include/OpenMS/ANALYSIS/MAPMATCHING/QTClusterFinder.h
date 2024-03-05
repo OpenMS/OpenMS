@@ -278,11 +278,6 @@ public:
     void run(const std::vector<FeatureMap>& input_maps,
              ConsensusMap& result_map);
 
-    /// Returns an instance of this class
-    static BaseGroupFinder* create()
-    {
-      return new QTClusterFinder();
-    }
   };
 } // namespace OpenMS
 

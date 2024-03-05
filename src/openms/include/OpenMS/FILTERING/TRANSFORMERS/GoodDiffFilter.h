@@ -49,9 +49,7 @@ public:
 
     // @name Accessors
     // @{
-    ///
-    static FilterFunctor * create() { return new GoodDiffFilter(); }
-
+      
     ///
     template <typename SpectrumType>
     double apply(SpectrumType & spectrum)

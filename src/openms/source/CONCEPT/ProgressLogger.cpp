@@ -119,7 +119,7 @@ public:
   // An external library (e.g., OpenMS_GUI) can set this function to provide a GUI logger.
   // As default, it just uses the NonProgressLoggerImpl.
   MakeGUIProgressLoggerFunc make_gui_progress_logger = 
-    []() -> ProgressLogger::ProgressLoggerImpl* { return NoProgressLoggerImpl::create(); };
+    []() -> ProgressLogger::ProgressLoggerImpl* { return new NoProgressLoggerImpl(); };
 
   int ProgressLogger::recursion_depth_ = 0;
 
@@ -127,7 +127,7 @@ public:
     type_(NONE),
     last_invoke_()
   {
-    current_logger_ = NoProgressLoggerImpl::create();
+    current_logger_ = new NoProgressLoggerImpl();
   }
 
   ProgressLogger::ProgressLogger(const ProgressLogger& other) :
@@ -138,12 +138,12 @@ public:
     {
       case NONE:
       {
-        current_logger_ = NoProgressLoggerImpl::create();
+        current_logger_ = new NoProgressLoggerImpl();
         break;
       }
       case CMD:
       {
-        current_logger_ = CMDProgressLoggerImpl::create();
+        current_logger_ = new CMDProgressLoggerImpl();
         break;
       }
       case GUI:
@@ -171,12 +171,12 @@ public:
     {
       case NONE:
       {
-        current_logger_ = NoProgressLoggerImpl::create();
+        current_logger_ = new NoProgressLoggerImpl();
         break;
       }
       case CMD:
       {
-        current_logger_ = CMDProgressLoggerImpl::create();
+        current_logger_ = new CMDProgressLoggerImpl();
         break;
       }
       case GUI:
@@ -203,12 +203,12 @@ public:
     {
       case NONE:
       {
-        current_logger_ = NoProgressLoggerImpl::create();
+        current_logger_ = new NoProgressLoggerImpl();
         break;
       }
       case CMD:
       {
-        current_logger_ = CMDProgressLoggerImpl::create();
+        current_logger_ = new CMDProgressLoggerImpl();
         break;
       }
       case GUI:

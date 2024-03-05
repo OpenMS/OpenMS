@@ -53,8 +53,6 @@ public:
 
     // @name Accessors
     // @{
-    ///
-    static PeakMarker * create() { return new IsotopeMarker(); }
 
     ///
     template <typename SpectrumType>

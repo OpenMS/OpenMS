@@ -96,12 +96,6 @@ public:
     {
     }
 
-    /// Returns an instance of this class
-    static BaseGroupFinder* create()
-    {
-      return new StablePairFinder();
-    }
-
     /**
       @brief Run the algorithm
 

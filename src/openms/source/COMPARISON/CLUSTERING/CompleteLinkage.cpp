@@ -13,10 +13,6 @@
 
 namespace OpenMS
 {
-  ClusterFunctor * CompleteLinkage::create()
-  {
-    return new CompleteLinkage();
-  }
 
   CompleteLinkage::CompleteLinkage() :
     ClusterFunctor(), ProgressLogger()

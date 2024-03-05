@@ -46,8 +46,6 @@ public:
 
     // @name Accessors
     // @{
-    ///
-    static FilterFunctor * create() { return new IsotopeDiffFilter(); }
 
     ///
     template <typename SpectrumType>

@@ -84,16 +84,6 @@ START_SECTION((double operator()(const BinnedSpectrum &spec) const ))
 }
 END_SECTION
 
-START_SECTION((static BinnedSpectrumCompareFunctor* create()))
-{
-  BinnedSpectrumCompareFunctor* bsf = BinnedSumAgreeingIntensities::create();
-  BinnedSumAgreeingIntensities bsp;
-  TEST_EQUAL(bsf->getParameters(), bsp.getParameters())
-  TEST_EQUAL(bsf->getName(), bsp.getName())
-  delete bsf;
-}
-END_SECTION
-
 delete ptr;
 
 /////////////////////////////////////////////////////////////

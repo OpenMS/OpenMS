@@ -23,9 +23,6 @@ namespace OpenMS
     public ProgressLogger::ProgressLoggerImpl
   {
 public:
-    /// create new object (needed by Factory)
-    static ProgressLogger::ProgressLoggerImpl* create();
-
     /// default c'tor.
     GUIProgressLoggerImpl();
 

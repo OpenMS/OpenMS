@@ -47,13 +47,6 @@ public:
     double operator()(const PeakSpectrum & a) const override;
     // @}
 
-    // @name Accessors
-    // @{
-    ///
-    static PeakSpectrumCompareFunctor * create() { return new SpectrumPrecursorComparator(); }
-
-    // @}
-
   };
 
 }

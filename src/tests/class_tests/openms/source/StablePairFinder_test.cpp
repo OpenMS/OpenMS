@@ -38,11 +38,6 @@ START_SECTION((virtual ~StablePairFinder()))
 END_SECTION
 
 BaseGroupFinder* base_nullPointer = nullptr;
-START_SECTION((static BaseGroupFinder* create()))
-	BaseGroupFinder* base_ptr = StablePairFinder::create();
-  TEST_NOT_EQUAL(base_ptr, base_nullPointer)
-  delete base_ptr;
-END_SECTION
 
 START_SECTION((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map)))
 {
