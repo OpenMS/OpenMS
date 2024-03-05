@@ -40,13 +40,6 @@ START_SECTION((virtual ~ExtendedIsotopeModel()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(static BaseModel* create())
-	BaseModel* ptr = ExtendedIsotopeModel::create();
-	TEST_EQUAL(ptr->getName(), "ExtendedIsotopeModel")
-	TEST_NOT_EQUAL(ptr, nullPointer)
-	delete ptr;
-END_SECTION
-
 // assignment operator
 START_SECTION((virtual ExtendedIsotopeModel& operator=(const ExtendedIsotopeModel &source)))
 	ExtendedIsotopeModel im1;

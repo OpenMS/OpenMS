@@ -17,8 +17,6 @@ namespace OpenMS
   /**
     @brief Abstract base class for 1-dimensional models.
 
-    Every derived class has to implement the static functions
-    "T* create()" (see DefaultParamHandler for details)
   */
   class BaseModel : public DefaultParamHandler
   {

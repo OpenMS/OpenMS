@@ -44,8 +44,6 @@ public:
 
     // @name Accessors
     // @{
-    ///
-    static FilterFunctor * create() { return new TICFilter(); }
 
     ///
     template <typename SpectrumType>
@@ -61,7 +59,7 @@ public:
       }
       return TIC;
     }
-    
+
     // @}
 
   };

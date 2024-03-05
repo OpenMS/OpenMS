@@ -40,12 +40,6 @@ public:
     {
     }
 
-    /// Returns an instance of this class
-    static BaseGroupFinder * create()
-    {
-      return new LabeledPairFinder();
-    }
-
     /**
       @brief Run the algorithm
 

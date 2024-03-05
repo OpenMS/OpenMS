@@ -79,14 +79,6 @@ START_SECTION(double operator () (const PeakSpectrum& a) const)
 
 END_SECTION
 
-START_SECTION(static PeakSpectrumCompareFunctor* create())
-	PeakSpectrumCompareFunctor* cf = SpectrumPrecursorComparator::create();
-	SpectrumPrecursorComparator pre_comp;
-	TEST_EQUAL(cf->getName(), pre_comp.getName())
-	TEST_EQUAL(cf->getParameters(), pre_comp.getParameters())
-	delete cf;
-END_SECTION
-
 delete e_ptr;
 
 /////////////////////////////////////////////////////////////

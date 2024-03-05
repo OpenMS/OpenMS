@@ -42,13 +42,6 @@ START_SECTION((virtual ~IsotopeModel()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(static BaseModel* create())
-	BaseModel* ptr = IsotopeModel::create();
-	TEST_EQUAL(ptr->getName(), "IsotopeModel")
-	TEST_NOT_EQUAL(ptr, nullPointer)
-	delete ptr;
-END_SECTION
-
 // assignment operator
 START_SECTION((virtual IsotopeModel& operator=(const IsotopeModel &source)))
 	IsotopeModel im1;

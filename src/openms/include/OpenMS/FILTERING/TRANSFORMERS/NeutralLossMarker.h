@@ -47,8 +47,6 @@ public:
 
     // @name Accessors
     // @{
-    ///
-    static PeakMarker * create() { return new NeutralLossMarker(); }
 
     ///
     template <typename SpectrumType>

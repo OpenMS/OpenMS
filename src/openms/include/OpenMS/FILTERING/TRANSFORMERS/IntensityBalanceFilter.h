@@ -49,8 +49,6 @@ public:
 
     // @name Accessors
     // @{
-    ///
-    static FilterFunctor * create() { return new IntensityBalanceFilter(); }
 
     ///
     template <typename SpectrumType>

@@ -64,14 +64,6 @@ START_SECTION((template<typename SpectrumType> double apply(SpectrumType& spectr
 
 END_SECTION
 
-START_SECTION((static FilterFunctor* create()))
-	FilterFunctor* ff = IntensityBalanceFilter::create();
-	IntensityBalanceFilter filter;
-	TEST_EQUAL(ff->getParameters(), filter.getParameters())
-	TEST_EQUAL(ff->getName(), filter.getName())
-	delete ff;
-END_SECTION
-
 delete e_ptr;
 
 /////////////////////////////////////////////////////////////

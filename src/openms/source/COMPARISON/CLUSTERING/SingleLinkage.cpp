@@ -12,10 +12,6 @@
 
 namespace OpenMS
 {
-  ClusterFunctor * SingleLinkage::create()
-  {
-    return new SingleLinkage();
-  }
 
   SingleLinkage::SingleLinkage() :
     ClusterFunctor(), ProgressLogger()

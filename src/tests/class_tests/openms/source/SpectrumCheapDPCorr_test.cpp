@@ -97,14 +97,6 @@ START_SECTION(double operator () (const PeakSpectrum& a) const)
 
 END_SECTION
 
-START_SECTION(static PeakSpectrumCompareFunctor* create())
-	PeakSpectrumCompareFunctor* cf = SpectrumCheapDPCorr::create();
-	SpectrumCheapDPCorr corr;
-	TEST_EQUAL(cf->getParameters(), corr.getParameters())
-	TEST_EQUAL(cf->getName(), corr.getName())
-	delete cf;
-END_SECTION
-
 START_SECTION(void setFactor(double f))
 	e_ptr->setFactor(0.3);
 

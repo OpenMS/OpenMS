@@ -38,13 +38,6 @@ START_SECTION((virtual ~GaussModel()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(static BaseModel* create())
-	BaseModel* ptr = GaussModel::create();
-	TEST_EQUAL(ptr->getName(), "GaussModel")
-	TEST_NOT_EQUAL(ptr, nullPointer)
-	delete ptr;
-END_SECTION
-
 // assignment operator
 START_SECTION((virtual GaussModel& operator=(const GaussModel &source)))
 	GaussModel gm1;

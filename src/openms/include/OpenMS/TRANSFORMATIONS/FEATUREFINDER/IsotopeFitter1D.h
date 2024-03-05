@@ -34,11 +34,6 @@ public:
     /// assignment operator
     virtual IsotopeFitter1D & operator=(const IsotopeFitter1D & source);
 
-    /// create new IsotopeFitter1D object (function needed by Factory)
-    static Fitter1D * create()
-    {
-      return new IsotopeFitter1D();
-    }
     /// return interpolation model
     QualityType fit1d(const RawDataArrayType & range, std::unique_ptr<InterpolationModel>& model) override;
 

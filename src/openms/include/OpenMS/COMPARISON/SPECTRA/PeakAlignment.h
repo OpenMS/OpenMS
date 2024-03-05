@@ -51,9 +51,6 @@ public:
     /// function call operator, calculates self similarity
     double operator()(const PeakSpectrum & spec) const override;
 
-    ///
-    static PeakSpectrumCompareFunctor * create() { return new PeakAlignment(); }
-
     /// make alignment and get the traceback
     std::vector<std::pair<Size, Size> > getAlignmentTraceback(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const;
 

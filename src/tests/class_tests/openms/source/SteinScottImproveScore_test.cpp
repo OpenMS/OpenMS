@@ -95,15 +95,6 @@ START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum&
   TEST_REAL_SIMILAR(score, 1.0)
 END_SECTION
 
-START_SECTION(static PeakSpectrumCompareFunctor* create())
-	PeakSpectrumCompareFunctor* psf = SteinScottImproveScore::create();
-	SteinScottImproveScore stein;
-	TEST_EQUAL(psf->getParameters(), stein.getParameters())
-	TEST_EQUAL(psf->getName(), stein.getName())
-	delete psf;
-END_SECTION
-
-
 delete ptr;
 
 /////////////////////////////////////////////////////////////

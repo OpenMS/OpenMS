@@ -57,9 +57,6 @@ public:
     /// function call operator, calculates self similarity
     double operator()(const BinnedSpectrum& spec) const override;
 
-    ///
-    static BinnedSpectrumCompareFunctor* create() { return new BinnedSpectralContrastAngle(); }
-
 protected:
     void updateMembers_() override;
     double precursor_mass_tolerance_;

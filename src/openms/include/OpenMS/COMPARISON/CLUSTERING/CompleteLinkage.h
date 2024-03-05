@@ -63,9 +63,6 @@ public:
   */
   void operator()(DistanceMatrix<float>& original_distance, std::vector<BinaryTreeNode>& cluster_tree, const float threshold = 1) const override;
 
-  /// creates a new instance of a CompleteLinkage object
-  static ClusterFunctor* create();
-
 };
 
 } // namespace OpenMS

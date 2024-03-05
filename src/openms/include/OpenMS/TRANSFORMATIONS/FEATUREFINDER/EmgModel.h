@@ -40,12 +40,6 @@ public:
     /// assignment operator
     EmgModel & operator=(const EmgModel & source);
 
-    /// create new EmgModel object (needed by Factory)
-    static BaseModel * create()
-    {
-      return new EmgModel();
-    }
-
     /// set offset without being computing all over and without any discrepancy
     void setOffset(CoordinateType offset) override;
 

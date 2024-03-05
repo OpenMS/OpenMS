@@ -118,14 +118,6 @@ START_SECTION((void operator()(DistanceMatrix< float > &original_distance, std::
 }
 END_SECTION
 
-START_SECTION((static ClusterFunctor* create()))
-{
-	ClusterFunctor* cf = AverageLinkage::create();
-  TEST_NOT_EQUAL( dynamic_cast<AverageLinkage*>(cf) , nullPointer)
-  delete cf;
-}
-END_SECTION
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

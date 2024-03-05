@@ -119,14 +119,6 @@ START_SECTION((void operator()(DistanceMatrix< float > &original_distance, std::
 }
 END_SECTION
 
-START_SECTION((static ClusterFunctor* create()))
-{
-	ClusterFunctor* cf = CompleteLinkage::create();
-  TEST_NOT_EQUAL( dynamic_cast<CompleteLinkage*>(cf) , nullPointer)
-  delete cf;
-}
-END_SECTION
-
 delete ptr;
 
 /////////////////////////////////////////////////////////////

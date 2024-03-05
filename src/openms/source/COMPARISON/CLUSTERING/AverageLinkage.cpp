@@ -13,11 +13,6 @@
 
 namespace OpenMS
 {
-  /// creates a new instance of a AverageLinkage object
-  ClusterFunctor * AverageLinkage::create()
-  {
-    return new AverageLinkage();
-  }
 
   AverageLinkage::AverageLinkage() :
     ClusterFunctor(), ProgressLogger()
