@@ -60,5 +60,3 @@ jobs:
       if: steps.compare_branches.outputs.behind == 'true' || inputs.force
       run: |
         gh workflow run openms-ci-full --ref nightly
-      env:
-        GITHUB_TOKEN: ${{ secrets.OPENMS_GITHUB_APP_PRIVATE_KEY }}
