@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -20,27 +20,27 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_MapNormalizer MapNormalizer
+@page TOPP_MapNormalizer MapNormalizer
 
-  @brief Normalizes peak intensities to the percentage of the maximum intensity in the HPLC-MS map.
-  <center>
-  <table>
-  <tr>
-  <th ALIGN = "center"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> &rarr; MapNormalizer &rarr;</td>
-  <th ALIGN = "center"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
-  </tr>
-  </table>
-  </center>
+@brief Normalizes peak intensities to the percentage of the maximum intensity in the HPLC-MS map.
+<center>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=2> &rarr; MapNormalizer &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
+</tr>
+</table>
+</center>
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_MapNormalizer.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_MapNormalizer.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MapNormalizer.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MapNormalizer.html
 */
 
 // We do not want this class to show up in the docu:

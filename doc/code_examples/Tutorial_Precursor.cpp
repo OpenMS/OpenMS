@@ -1,7 +1,7 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 
-//! [Precursor]
+//! [doxygen_snippet_Precursor]
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Precursor.h>
@@ -56,4 +56,4 @@ int main(int argc, const char** argv)
   return 0;
 } // end of main
 
-//! [Precursor]
+//! [doxygen_snippet_Precursor]

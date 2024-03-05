@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,8 +10,10 @@
 
 #include <OpenMS/build_config.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <QSysInfo>
-#include <QString>
+
+#include <QtCore/QSysInfo>
+#include <QtCore/QString>
+
 #ifdef _OPENMP
   #include "omp.h"
 #endif

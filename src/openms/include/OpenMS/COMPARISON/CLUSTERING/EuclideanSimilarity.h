@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -19,7 +19,6 @@ namespace OpenMS
 
       each 2D point as a pair of float holds a float coordinate for each Dimension
 
-      @ingroup DummyComparison
   */
 
   class OPENMS_DLLAPI EuclideanSimilarity

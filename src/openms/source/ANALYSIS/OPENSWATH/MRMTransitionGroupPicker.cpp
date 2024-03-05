@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -61,7 +61,7 @@ namespace OpenMS
     defaults_.setValue("boundary_selection_method", "largest", "Method to use when selecting the best boundaries for peaks.", {"advanced"});
     defaults_.setValidStrings("boundary_selection_method", {"largest","widest"});
 
-    defaults_.insert("PeakPickerMRM:", PeakPickerMRM().getDefaults());
+    defaults_.insert("PeakPickerChromatogram:", PeakPickerChromatogram().getDefaults());
     defaults_.insert("PeakIntegrator:", PeakIntegrator().getDefaults());
 
     // write defaults into Param object param_
@@ -99,7 +99,7 @@ namespace OpenMS
     resample_boundary_ = (double)param_.getValue("resample_boundary");
     boundary_selection_method_ = param_.getValue("boundary_selection_method").toString();
 
-    picker_.setParameters(param_.copy("PeakPickerMRM:", true));
+    picker_.setParameters(param_.copy("PeakPickerChromatogram:", true));
     pi_.setParameters(param_.copy("PeakIntegrator:", true));
   }
 
@@ -127,8 +127,8 @@ namespace OpenMS
     {
       for (Size k = 0; k < picked_chroms[i].size(); ++k)
       {
-        const double left_rt = picked_chroms[i].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][k];
-        const double right_rt = picked_chroms[i].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][k];
+        const double left_rt = picked_chroms[i].getFloatDataArrays()[PeakPickerChromatogram::IDX_LEFTBORDER][k];
+        const double right_rt = picked_chroms[i].getFloatDataArrays()[PeakPickerChromatogram::IDX_RIGHTBORDER][k];
         const double local_peak_width = right_rt - left_rt;
         OPENMS_LOG_DEBUG << "findWidestPeakIndices(): local_peak_width=" << local_peak_width << std::endl;
         if (local_peak_width > max_width)

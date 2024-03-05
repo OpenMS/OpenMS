@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -113,10 +113,10 @@ Some information about the supported input types:
 @li @ref OpenMS::PercolatorOutfile "Percolator tab-delimited output"
 
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_IDFileConverter.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_IDFileConverter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_IDFileConverter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_IDFileConverter.html
 
 */
 

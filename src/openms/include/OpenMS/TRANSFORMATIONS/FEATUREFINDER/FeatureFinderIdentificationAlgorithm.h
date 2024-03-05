@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -239,7 +239,7 @@ protected:
 
   /// creates an assay library out of the peptide sequences and their RT elution windows
   /// the PeptideMap is mutable since we clear it on-the-go
-  /// @param clear_IDs set to false to keep IDs in internal charge maps (only needed for debugging purposes)
+  /// @p clear_IDs set to false to keep IDs in internal charge maps (only needed for debugging purposes)
   void createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map, bool clear_IDs = true);
 
   /// CAUTION: This method stores a pointer to the given @p peptide reference in internals

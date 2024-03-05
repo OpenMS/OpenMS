@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -18,7 +18,7 @@
 namespace OpenMS
 {
   /**
-    @brief Scaler scales the peak by ranking the peaks and assigning intensity according to rank
+    @brief Scales each peak by ranking the peaks per spectrum and assigning intensity according to rank
 
         @ingroup SpectraPreprocessers
   */

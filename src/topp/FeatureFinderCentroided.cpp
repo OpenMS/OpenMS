@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -26,9 +26,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
- @page TOPP_FeatureFinderCentroided FeatureFinderCentroided
+@page TOPP_FeatureFinderCentroided FeatureFinderCentroided
 
- @brief The feature detection application for quantitation (centroided).
+@brief The feature detection application for quantitation (centroided).
 
 <CENTER>
  <table>
@@ -38,7 +38,7 @@ using namespace std;
    <th ALIGN = "center"> pot. successor tools </td>
   </tr>
   <tr>
-   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinkerUnlabeled @n (or another feature grouping tool) </td>
   </tr>
   <tr>
@@ -48,62 +48,62 @@ using namespace std;
  </table>
 </CENTER>
 
- Reference:\n
- Weisser <em>et al.</em>: <a href="https://doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
+Reference:\n
+Weisser <em>et al.</em>: <a href="https://doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
 
- This module identifies "features" in a LC/MS map. By feature, we understand a peptide in a MS sample that
- reveals a characteristic isotope distribution. The algorithm
- computes positions in rt and m/z dimension and a charge estimate
- of each peptide.
+This module identifies "features" in a LC/MS map. By feature, we understand a peptide in a MS sample that
+reveals a characteristic isotope distribution. The algorithm
+computes positions in rt and m/z dimension and a charge estimate
+of each peptide.
 
- The algorithm identifies pronounced regions of the data around so-called <tt>seeds</tt>.
- In the next step, we iteratively fit a model of the isotope profile and the retention time to
- these data points. Data points with a low probability under this model are removed from the
- feature region. The intensity of the feature is then given by the sum of the data points included
- in its regions.
+The algorithm identifies pronounced regions of the data around so-called <tt>seeds</tt>.
+In the next step, we iteratively fit a model of the isotope profile and the retention time to
+these data points. Data points with a low probability under this model are removed from the
+feature region. The intensity of the feature is then given by the sum of the data points included
+in its regions.
 
- How to find suitable parameters and details of the different algorithms implemented are described
- in the @ref TOPP_example_featuredetection "TOPP tutorial".
+How to find suitable parameters and details of the different algorithms implemented are described
+in the "TOPP tutorial" (on https://openms.readthedocs.io/).
 
- Specialized tools are available for some experimental techniques: @ref TOPP_IsobaricAnalyzer.
+Specialized tools are available for some experimental techniques: @ref TOPP_IsobaricAnalyzer.
 
- <B>The command line parameters of this tool are:</B>
- @verbinclude TOPP_FeatureFinderCentroided.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_FeatureFinderCentroided.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FeatureFinderCentroided.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FeatureFinderCentroided.html
 
- For the parameters of the algorithm section see the algorithms documentation: @n
-  @ref OpenMS::FeatureFinderAlgorithmPicked "centroided" @n
+For the parameters of the algorithm section see the algorithms documentation: @n
+@ref OpenMS::FeatureFinderAlgorithmPicked "centroided" @n
 
- In the following table you can find example values of the most important parameters for
- different instrument types. @n These parameters are not valid for all instruments of that type,
- but can be used as a starting point for finding suitable parameters.
+In the following table you can find example values of the most important parameters for
+different instrument types. @n These parameters are not valid for all instruments of that type,
+but can be used as a starting point for finding suitable parameters.
 
- <b>'centroided' algorithm</b>:
- <table>
-  <tr>
-   <td>&nbsp;</td>
-   <td><b>Q-TOF</b></td>
-   <td><b>LTQ Orbitrap</b></td>
-  </tr>
-  <tr>
-   <td><b>intensity:bins</b></td>
-   <td>10</td>
-   <td>10</td>
-  </tr>
-  <tr>
-   <td><b>mass_trace:mz_tolerance</b></td>
-   <td>0.02</td>
-   <td>0.004</td>
-  </tr>
-  <tr>
-   <td><b>isotopic_pattern:mz_tolerance</b></td>
-   <td>0.04</td>
-   <td>0.005</td>
-  </tr>
- </table>
+<b>'centroided' algorithm</b>:
+<table>
+<tr>
+ <td>&nbsp;</td>
+ <td><b>Q-TOF</b></td>
+ <td><b>LTQ Orbitrap</b></td>
+</tr>
+<tr>
+ <td><b>intensity:bins</b></td>
+ <td>10</td>
+ <td>10</td>
+</tr>
+<tr>
+ <td><b>mass_trace:mz_tolerance</b></td>
+ <td>0.02</td>
+ <td>0.004</td>
+</tr>
+<tr>
+ <td><b>isotopic_pattern:mz_tolerance</b></td>
+ <td>0.04</td>
+ <td>0.005</td>
+</tr>
+</table>
 
- For the @em centroided algorithm centroided data is needed. In order to create centroided data from profile data use the @ref TOPP_PeakPickerWavelet.
+For the @em centroided algorithm centroided data is needed. In order to create centroided data from profile data use the @ref TOPP_PeakPickerHiRes.
 */
 
 // We do not want this class to show up in the docu:

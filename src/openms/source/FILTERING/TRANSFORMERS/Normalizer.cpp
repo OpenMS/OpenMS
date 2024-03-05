@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -15,7 +15,7 @@ namespace OpenMS
   Normalizer::Normalizer() :
     DefaultParamHandler("Normalizer")
   {
-    defaults_.setValue("method", "to_one", "Normalize via dividing by TIC ('to_TIC') per spectrum or normalize to max. intensity of one ('to_one') per spectrum.");
+    defaults_.setValue("method", "to_one", "Normalize via dividing by TIC ('to_TIC') per spectrum (i.e. all peaks sum to 1) or normalize to max. intensity to one ('to_one') per spectrum.");
     defaults_.setValidStrings("method", {"to_one","to_TIC"});
     defaultsToParam_();
   }

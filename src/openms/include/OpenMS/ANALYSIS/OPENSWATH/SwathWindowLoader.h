@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -56,10 +56,12 @@ namespace OpenMS
       @brief Reading a tab delimited file specifying the SWATH windows
      
       The file must of be tab delimited and of the following format:
-         window_lower window_upper
-         400 425
-         425 450
-         ...
+\verbatim
+window_lower window_upper
+400 425
+425 450
+...
+\endverbatim
      
       Note that the first line is a header and will be skipped.
      

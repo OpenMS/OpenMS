@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -290,7 +290,7 @@ public:
       void addValue(KeyType arg_pos_0, KeyType arg_pos_1, ValueType arg_value)
       {
 
-        typedef typename container_type::difference_type DiffType;
+        typedef typename std::ptrdiff_t DiffType;
 
         // apply key transformation _0
         KeyType const pos_0 = key2index_0(arg_pos_0);
@@ -506,7 +506,7 @@ public:
       /// Returns \c true if getData() is empty.
       bool empty() const
       {
-        return data_.empty();
+        return data_.getEigenMatrix().size() == 0;
       }
 
       //@}

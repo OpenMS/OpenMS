@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -33,32 +33,32 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_SpecLibSearcher SpecLibSearcher
+@page TOPP_SpecLibSearcher SpecLibSearcher
 
-  @brief Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
+@brief Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
 
 <CENTER>
-    <table>
-        <tr>
-            <th ALIGN = "center"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> &rarr; SpecLibSearcher &rarr;</td>
-            <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_SpecLibCreator </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
-        </tr>
-    </table>
+<table>
+    <tr>
+        <th ALIGN = "center"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=2> &rarr; SpecLibSearcher &rarr;</td>
+        <th ALIGN = "center"> pot. successor tools </td>
+    </tr>
+    <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_SpecLibCreator </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
+    </tr>
+</table>
 </CENTER>
 
-    @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested.
+@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_SpecLibSearcher.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_SpecLibSearcher.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_SpecLibSearcher.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_SpecLibSearcher.html
 */
 
 // We do not want this class to show up in the docu:

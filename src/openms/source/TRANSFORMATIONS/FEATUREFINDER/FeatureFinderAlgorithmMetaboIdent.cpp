@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -190,18 +190,18 @@ namespace OpenMS
     {
       min_peak_width_ *= peak_width_;
     }
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
+    params.setValue("TransitionGroupPicker:PeakPickerChromatogram:gauss_width",
                     peak_width_);
     params.setValue("TransitionGroupPicker:min_peak_width", min_peak_width_);
     // disabling the signal-to-noise threshold (setting the parameter to zero)
     // totally breaks the OpenSWATH feature detection (no features found)!
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise",
+    params.setValue("TransitionGroupPicker:PeakPickerChromatogram:signal_to_noise",
                     signal_to_noise_);
     
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages", "false");     
+    params.setValue("TransitionGroupPicker:PeakPickerChromatogram:write_sn_log_messages", "false");     
     params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:method",
+    params.setValue("TransitionGroupPicker:PeakPickerChromatogram:peak_width", -1.0);
+    params.setValue("TransitionGroupPicker:PeakPickerChromatogram:method",
                     "corrected");
     feat_finder_.setParameters(params);
     feat_finder_.setLogType(ProgressLogger::NONE);

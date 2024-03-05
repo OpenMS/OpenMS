@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -16,11 +16,11 @@
 namespace OpenMS
 {
   /**
-    @brief ThresholdMower removes all peaks below a threshold.
+    @brief Removes all peaks below an intensity threshold.
 
     @htmlinclude OpenMS_ThresholdMower.parameters
 
-        @ingroup SpectraPreprocessers
+    @ingroup SpectraPreprocessers
   */
   class OPENMS_DLLAPI ThresholdMower :
     public DefaultParamHandler

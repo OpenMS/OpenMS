@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -123,6 +123,7 @@ START_SECTION((virtual void test_dia_scores()))
   MRMFeature mrmfeature = OpenSWATH_Test::createMockFeature();
 
   int by_charge_state = 1;
+  RangeMobility empty_im_range;
 
   // find spectrum that is closest to the apex of the peak (set to 3120) using binary search
   MSSpectrum OpenMSspectrum = (*swath_map.RTBegin( 3120 ));
@@ -171,7 +172,11 @@ START_SECTION((virtual void test_dia_scores()))
   // We have to reorder the transitions to make the tests work
   std::vector<OpenSWATH_Test::TransitionType> transitions = transition_group.getTransitions();
   double isotope_corr = 0, isotope_overlap = 0;
-  diascoring.dia_isotope_scores(transitions, sptr, imrmfeature, isotope_corr, isotope_overlap);
+
+  std::vector<OpenSwath::SpectrumPtr> sptrArr;
+  sptrArr.push_back(sptr);
+
+  diascoring.dia_isotope_scores(transitions, sptrArr, imrmfeature, empty_im_range, isotope_corr, isotope_overlap);
 
   delete imrmfeature;
 
@@ -179,13 +184,13 @@ START_SECTION((virtual void test_dia_scores()))
   double ppm_score = 0, ppm_score_weighted = 0;
   std::vector<double> ppm_errors;
   diascoring.dia_massdiff_score(transition_group.getTransitions(),
-    sptr, normalized_library_intensity, ppm_score, ppm_score_weighted, ppm_errors);
+    sptrArr, normalized_library_intensity, empty_im_range, ppm_score, ppm_score_weighted, ppm_errors);
 
   // Presence of b/y series score
   double bseries_score = 0, yseries_score = 0;
   String sequence = "SYVAWDR";
   OpenMS::AASequence aas = AASequence::fromString(sequence);
-  diascoring.dia_by_ion_score(sptr, aas, by_charge_state, bseries_score, yseries_score);
+  diascoring.dia_by_ion_score(sptrArr, aas, by_charge_state, empty_im_range, bseries_score, yseries_score);
 
   TEST_REAL_SIMILAR(isotope_corr, 0.2866618 * transition_group.getTransitions().size() )
   TEST_REAL_SIMILAR(isotope_corr, 0.85998565339479)
@@ -206,7 +211,7 @@ START_SECTION((virtual void test_dia_scores()))
   // b/y series score with modifications
   bseries_score = 0, yseries_score = 0;
   aas.setModification(1, "Phospho" ); // modify the Y
-  diascoring.dia_by_ion_score(sptr, aas, by_charge_state, bseries_score, yseries_score);
+  diascoring.dia_by_ion_score(sptrArr, aas, by_charge_state, empty_im_range, bseries_score, yseries_score);
   TEST_EQUAL(bseries_score, 0)
   TEST_EQUAL(yseries_score, 1)
 }

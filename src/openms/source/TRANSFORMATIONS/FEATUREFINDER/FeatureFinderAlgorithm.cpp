@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 
@@ -21,11 +20,6 @@ namespace OpenMS
     (
       FeatureFinderAlgorithmPicked::getProductName(),
       &FeatureFinderAlgorithmPicked::create
-    );
-    Factory<FeatureFinderAlgorithm>::registerProduct
-    (
-      FeatureFinderAlgorithmIsotopeWavelet::getProductName(),
-      &FeatureFinderAlgorithmIsotopeWavelet::create
     );
     Factory<FeatureFinderAlgorithm>::registerProduct
     (

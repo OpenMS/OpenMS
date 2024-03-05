@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -115,7 +115,6 @@ protected:
    * @param file_list The input file(s)
    * @param exp_meta The output (meta data about experiment)
    * @param swath_maps The output (ptr to raw data)
-   * @param file_list The input file(s)
    * @param split_file If loading a single file that contains a single SWATH window
    * @param tmp Temporary directory
    * @param readoptions Description on how to read the data ("normal", "cache")
@@ -123,7 +122,10 @@ protected:
    * @param min_upper_edge_dist Distance for each assay to the upper edge of the SWATH window
    * @param force Whether to override the sanity check
    * @param sort_swath_maps Whether to sort the provided windows first before mapping
-   * @param sonar Whether data is in sonar format
+   * @param sonar Whether data is in sonar format; allows for overlap
+   * @param prm Whether data is in prm format; allows for overlap
+   * @param pasef Whether data is in PASEF format; allows for overlap
+   * @param plugin_consumer Intermediate consumer for mzML input. See SwathFile::loadMzML() for details.
    *
    * @return Returns whether loading and sanity check was successful
    *
@@ -427,7 +429,3 @@ protected:
 };
 
 }
-
-/// @endcond
-
-

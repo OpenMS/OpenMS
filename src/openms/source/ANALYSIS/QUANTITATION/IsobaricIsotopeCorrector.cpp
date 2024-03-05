@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,7 +10,6 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifierStatistics.h>
 
-#include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -40,16 +39,21 @@ namespace OpenMS
 
     Matrix<double> correction_matrix = quant_method->getIsotopeCorrectionMatrix();
 
-    if (matrixIsIdentityMatrix(correction_matrix))
+    if (correction_matrix.getEigenMatrix().isIdentity(0.0))
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "IsobaricIsotopeCorrector: The given isotope correction matrix is an identity matrix leading to no correction. "
-                                        "Please provide a valid isotope_correction matrix as it was provided with the sample kit!");
-    }
+      OPENMS_LOG_DEBUG << "Correction matrix is the identity matrix." << std::endl;
+      OPENMS_LOG_DEBUG << correction_matrix << std::endl;
 
-    // convert to Eigen matrix
-    EigenMatrixXdPtr m(convertOpenMSMatrix2EigenMatrixXd(correction_matrix));
-    Eigen::FullPivLU<Eigen::MatrixXd> ludecomp(*m);
+      // workaround: TMT11plex has a special case where the correction matrix is the identity matrix
+      if (quant_method->getMethodName() != "tmt11plex")
+      {        
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "IsobaricIsotopeCorrector: The given isotope correction matrix is an identity matrix leading to no correction. "
+                                          "Please provide a valid isotope_correction matrix as it was provided with the sample kit!");
+      }
+    }
+    
+    Eigen::FullPivLU<Eigen::MatrixXd> ludecomp(correction_matrix.getEigenMatrix());
     Eigen::VectorXd b;
     b.resize(quant_method->getNumberOfChannels());
     b.setZero();
@@ -79,7 +83,7 @@ namespace OpenMS
 
       //solve
       Eigen::MatrixXd e_mx = ludecomp.solve(b);
-      if (!((*m) * e_mx).isApprox(b))
+      if (!(correction_matrix.getEigenMatrix() * e_mx).isApprox(b))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricIsotopeCorrector: Cannot multiply!");
       }

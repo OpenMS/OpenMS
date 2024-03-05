@@ -56,6 +56,13 @@ if (NOT DEFINED OPENMS_64BIT_ARCHITECTURE)
 	message(FATAL_ERROR "Cmake script was re-ordered and is now invalid! Please make sure that OPENMS_64BIT_ARCHITECTURE is defined when config.h.in is configured!")
 endif()
 
+## conditionally include //@dot commands in doxygen using using #ifdef OPENMS_HASDOXYGENDOT
+if (DOXYGEN_HAVE_DOT)
+  set(CF_OPENMS_HASDOXYGENDOT 1)
+else()
+  set(CF_OPENMS_HASDOXYGENDOT 0)
+endif()
+
 include(CheckTypeSize) ## Check sizeof a type
 CHECK_TYPE_SIZE("unsigned char" SIZE_UCHAR)
 CHECK_TYPE_SIZE("unsigned short" SIZE_USHORT)
@@ -145,7 +152,7 @@ else()
 endif()
 
 #------------------------------------------------------------------------------
-## Check if various system heards exist
+## Check if various system headers exist
 include(CheckIncludeFileCXX)
 
 CHECK_INCLUDE_FILE_CXX("unistd.h" OPENMS_HAS_UNISTD_H)

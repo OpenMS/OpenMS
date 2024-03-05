@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -13,15 +13,16 @@
 namespace OpenMS
 {
   /**
-      @brief A feature grouping algorithm for unlabeled data.
+    @brief A feature grouping algorithm for unlabeled data.
 
-      The algorithm takes a number of feature or consensus maps and searches for corresponding (consensus) features across different maps. The maps have to be aligned (i.e. retention time distortions corrected, e.g. using one of the @ref MapAlignmentAlgorithm "MapAlignmentAlgorithms"), but small deviations are tolerated.
+    The algorithm takes a number of feature or consensus maps and searches for corresponding (consensus) features across different maps. The maps have to be aligned (i.e. retention time distortions corrected, 
+    using one of the map-alignment algorithms, e.g. @ref MapAlignmentAlgorithmKD), but small deviations are tolerated.
 
-      This particular algorithm accumulates the features from all input maps, then applies a variant of QT clustering to find groups of corresponding features. For more details, see QTClusterFinder.
+    This particular algorithm accumulates the features from all input maps, then applies a variant of QT clustering to find groups of corresponding features. For more details, see QTClusterFinder.
 
     @htmlinclude OpenMS_FeatureGroupingAlgorithmQT.parameters
 
-      @ingroup FeatureGrouping
+    @ingroup FeatureGrouping
   */
   class OPENMS_DLLAPI FeatureGroupingAlgorithmQT :
     public FeatureGroupingAlgorithm

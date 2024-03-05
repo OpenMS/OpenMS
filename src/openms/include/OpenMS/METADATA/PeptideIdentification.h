@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -180,7 +180,7 @@ public:
       @return Returns the UID for PeptideIdentification
     */
     static String buildUIDFromPepID(const PeptideIdentification& pep_id,
-                                    const std::map<String, StringList>& fidentifier_to_msrunpath);
+                                    const std::map<String, StringList>& identifier_to_msrunpath);
 
 protected:
 

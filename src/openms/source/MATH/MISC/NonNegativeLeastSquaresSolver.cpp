@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -64,9 +64,9 @@ namespace OpenMS
 
     NNLS::nnls_(a_vec, &a_rows, &a_rows, &a_cols, b_vec, x_vec, &rnorm, w, zz, indx, &mode);
 
-
     // translate solution back to Matrix:
-    x.resize(a_cols, 1);
+    x.getEigenMatrix().resize(a_cols, 1);
+    x.getEigenMatrix().setZero();
     for (Int row = 0; row < a_cols; ++row)
     {
       x(row, 0) = x_vec[row];

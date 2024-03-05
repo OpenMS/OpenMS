@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -349,7 +349,8 @@ namespace OpenMS
       @brief Search for the peak with highest intensity among the peaks near to a specific mobility given two +/- tolerance windows in Th
 
       @param mb The target mobility value
-      @param tolerance The non-negative tolerance applied to both sides of @p mb
+      @param tolerance_left The non-negative tolerance applied left of @p mb
+      @param tolerance_right The non-negative tolerance applied right of @p mb
 
       @return Returns the index of the peak or -1 if no peak present in tolerance window or if mobilogram is empty
 

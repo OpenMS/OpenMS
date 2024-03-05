@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -71,7 +71,7 @@ START_SECTION((const Ribonucleotide& getRibonucleotide(const String& code)))
   TEST_STRING_EQUAL(ribo->getName(), "2'-O-methyladenosine");
   // This loads from Custom_RNA_modifications.tsv
   const Ribonucleotide * customRibo = ptr->getRibonucleotide("msU?");
-
+  TEST_STRING_EQUAL(customRibo->getCode(), "msU?");
   TEST_EXCEPTION(Exception::ElementNotFound,
                  ptr->getRibonucleotide("bla"));
 }

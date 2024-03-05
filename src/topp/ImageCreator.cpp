@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -29,18 +29,18 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_ImageCreator ImageCreator
+@page TOPP_ImageCreator ImageCreator
 
-    @brief Transforms an LC-MS map into a png image.
+@brief Transforms an LC-MS map into a png image.
 
-    The input is first resampled into a matrix using bilinear forward resampling.
-    Then the content of the matrix is written to an image file.
-    The output has a uniform spacing in both dimensions regardless of the input.
+The input is first resampled into a matrix using bilinear forward resampling.
+Then the content of the matrix is written to an image file.
+The output has a uniform spacing in both dimensions regardless of the input.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_ImageCreator.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_ImageCreator.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_ImageCreator.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_ImageCreator.html
 */
 
 // We do not want this class to show up in the docu:
@@ -278,7 +278,8 @@ protected:
     //----------------------------------------------------------------
     //Do the actual resampling
     BilinearInterpolation<double, double> bilip;
-    bilip.getData().resize(rows, cols);
+    bilip.getData().getEigenMatrix().resize(rows, cols);
+    bilip.getData().getEigenMatrix().setZero();
 
     if (!getFlag_("transpose"))
     {
@@ -323,8 +324,8 @@ protected:
 
     //----------------------------------------------------------------
     //create and store image
-    int scans = (int) bilip.getData().sizePair().first;
-    int peaks = (int) bilip.getData().sizePair().second;
+    int scans = (int) bilip.getData().rows();
+    int peaks = (int) bilip.getData().cols();
 
     bool use_log = getFlag_("log_intensity");
 
@@ -358,7 +359,7 @@ protected:
     double factor = getDoubleOption_("max_intensity");
     if (factor == 0)
     {
-      factor = (*std::max_element(bilip.getData().begin(), bilip.getData().end()));
+      factor = bilip.getData().getEigenMatrix().maxCoeff();
     }
     // with a user-supplied gradient, we need to logarithmize explicitly;
     // by default, the gradient itself is adjusted to the log-scale:
@@ -370,7 +371,7 @@ protected:
     {
       for (int j = 0; j < peaks; ++j)
       {
-        double value = bilip.getData().getValue(i, j);
+        double value = bilip.getData()(i, j);
         if (use_log) value = std::log(value);
         if (value > 1e-4)
         {

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -27,7 +27,6 @@ namespace OpenMS
       written from TheoreticalSpectrumGenerator, PILISModel...). The second one is simply using
       the most abundant peaks in a specified m/z range.
 
-      @ingroup Analysis_MRM
   */
   class OPENMS_DLLAPI MRMFragmentSelection :
     public DefaultParamHandler

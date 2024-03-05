@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -21,44 +21,43 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_BaselineFilter BaselineFilter
+@page TOPP_BaselineFilter BaselineFilter
 
-    @brief Executes the top-hat filter to remove the baseline of an MS experiment.
+@brief Executes the top-hat filter to remove the baseline of an MS experiment.
 
-    <CENTER>
-    <table>
-        <tr>
-            <th ALIGN = "center"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> &rarr; BaselineFilter &rarr;</td>
-            <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay, @n @ref TOPP_NoiseFilterGaussian </td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet, @n @ref TOPP_PeakPickerHiRes @n (or ID engines on MS/MS data) </td>
-        </tr>
-    </table>
-    </CENTER>
+<CENTER>
+<table>
+    <tr>
+        <th ALIGN = "center"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=2> &rarr; BaselineFilter &rarr;</td>
+        <th ALIGN = "center"> pot. successor tools </td>
+    </tr>
+    <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay, @n @ref TOPP_NoiseFilterGaussian </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes @n (or ID engines on MS/MS data) </td>
+    </tr>
+</table>
+</CENTER>
 
-    This nonlinear filter, known as the top-hat operator in morphological
-    mathematics (see Soille, ''Morphological Image Analysis''), is independent
-    of the underlying baseline shape.  It is able to detect an over brightness
-    even if the environment is not uniform.  The principle is based on the
-    subtraction of a signal from its opening (erosion followed by a dilation).
-    The size the structuring element (here a flat line) being conditioned by the
-    width of the lineament (in our case the maximum width of a mass
-    spectrometric peak) to be detected.
+This nonlinear filter, known as the top-hat operator in morphological
+mathematics (see Soille, ''Morphological Image Analysis''), is independent
+of the underlying baseline shape.  It is able to detect an over brightness
+even if the environment is not uniform.  The principle is based on the
+subtraction of a signal from its opening (erosion followed by a dilation).
+The size the structuring element (here a flat line) being conditioned by the
+width of the lineament (in our case the maximum width of a mass
+spectrometric peak) to be detected.
 
-    @note The top-hat filter works only on roughly uniform data!
-          To generate equally-spaced data you can use the @ref TOPP_Resampler.
+@note The top-hat filter works only on roughly uniform data!
+      To generate equally-spaced data you can use the @ref TOPP_Resampler.
 
-    @note The length (given in Thomson) of the structuring element should be wider than the
-    maximum peak width in the raw data.
+@note The length (given in Thomson) of the structuring element should be wider than the
+maximum peak width in the raw data.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_BaselineFilter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_BaselineFilter.html
-
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_BaselineFilter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_BaselineFilter.html
 */
 
 // We do not want this class to show up in the docu:

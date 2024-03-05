@@ -1,5 +1,5 @@
-//! [Template]
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+//! [doxygen_snippet_Template]
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // --------------------------------------------------------------------------
 // $Maintainer: Maintainer $
@@ -88,4 +88,4 @@ int main(int argc, const char ** argv)
 }
 /// @endcond
 
-//! [Template]
+//! [doxygen_snippet_Template]

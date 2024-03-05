@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -19,7 +19,7 @@ namespace OpenMS
 {
 
   /**
-    @brief WindowMower augments the highest peaks in a sliding or jumping window
+    @brief Retains the highest peaks in a sliding or jumping window
 
     @htmlinclude OpenMS_WindowMower.parameters
 

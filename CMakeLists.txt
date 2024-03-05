@@ -249,15 +249,6 @@ if(CLANG_TIME_TRACE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftime-trace")
 endif()
 
-#------------------------------------------------------------------------------
-# Enable SIRIUS_test (SiriusAdapter/AssayGeneratorMetabo)
-#------------------------------------------------------------------------------
-option(ENABLE_SIRIUS_TEST "Enable test for SIRIUS (SiriusAdapter)" OFF)
-
-#------------------------------------------------------------------------------
-# Enable CSI:FingerID_test (SiriusAdapter)
-#------------------------------------------------------------------------------
-option(ENABLE_FINGERID_TEST "Enable test for CSI:FingerID (SiriusAdapter)" OFF)
 
 #------------------------------------------------------------------------------
 # Enable Coverage
@@ -325,6 +316,7 @@ set(VALID_PACKAGE_TYPES "none" # the classical build type make/make install
                         "nsis") # an NSIS installer for Windows
 
 set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
+message(STATUS "Package type is '${PACKAGE_TYPE}'")
 is_valid_package(${PACKAGE_TYPE})
 
 ## Warn here because you need the signing identity before the app bundles are defined in the
@@ -454,6 +446,11 @@ endif()
 include(cmake/cmake_findExternalLibs.cmake)
 
 #------------------------------------------------------------------------------
+# find the Doxygen (required by /doc and /src/OpenMS)
+find_package(Doxygen) ## defines 'DOXYGEN_HAVE_DOT', 'DOXYGEN_VERSION' etc
+
+
+#------------------------------------------------------------------------------
 # The actual OpenMS code (headers and source files)
 #------------------------------------------------------------------------------
 add_subdirectory(src)
@@ -474,6 +471,11 @@ set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare 
 if (ENABLE_PREPARE_KNIME_PACKAGE)
 	include(${OPENMS_HOST_DIRECTORY}/cmake/knime_package_support.cmake)
 endif()
+
+#------------------------------------------------------------------------------
+# CWL generation (updates openms/workflow/cwl/*.cwl files for all TOPP tools)
+#------------------------------------------------------------------------------
+include(${OPENMS_HOST_DIRECTORY}/cmake/cwl_generation.cmake)
 
 #------------------------------------------------------------------------------
 # Handle export of targets and install them

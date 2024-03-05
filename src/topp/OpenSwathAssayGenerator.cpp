@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -30,42 +30,42 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_OpenSwathAssayGenerator OpenSwathAssayGenerator
+@page TOPP_OpenSwathAssayGenerator OpenSwathAssayGenerator
 
-  @brief Generates filtered and optimized assays using TraML files.
+@brief Generates filtered and optimized assays using TraML files.
 
-  <CENTER>
-      <table>
-          <tr>
-              <th ALIGN = "center"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=2> &rarr; OpenSwathAssayGenerator &rarr;</td>
-              <th ALIGN = "center"> potential successor tools </td>
-          </tr>
-          <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>  </td>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathDecoyGenerator  </td>
-          </tr>
-      </table>
-  </CENTER>
+<CENTER>
+    <table>
+        <tr>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; OpenSwathAssayGenerator &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>  </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathDecoyGenerator  </td>
+        </tr>
+    </table>
+</CENTER>
 
-  This module generates assays for targeted proteomics using a set of rules
-  that was found to improve the sensitivity and selectivity for detection
-  of typical peptides (Schubert et al., 2015). The tool operates on @ref
-  OpenMS::TraMLFile "TraML" files, which can come from @ref
-  TOPP_TargetedFileConverter or any other tool. In a first step, the tool will
-  annotate all transitions according to the predefined criteria. In a second
-  step, the transitions will be filtered to improve sensitivity for detection
-  of peptides.
+This module generates assays for targeted proteomics using a set of rules
+that was found to improve the sensitivity and selectivity for detection
+of typical peptides (Schubert et al., 2015). The tool operates on @ref
+OpenMS::TraMLFile "TraML" files, which can come from @ref
+TOPP_TargetedFileConverter or any other tool. In a first step, the tool will
+annotate all transitions according to the predefined criteria. In a second
+step, the transitions will be filtered to improve sensitivity for detection
+of peptides.
 
-  Optionally, theoretical identification transitions can be generated when the
-  TraML will be used for IPF scoring in OpenSWATH, see @ref OpenMS::MRMAssay
-  "MRMAssay" for more information on the algorithm. This is recommended if
-  post-translational modifications are scored with OpenSWATH.
+Optionally, theoretical identification transitions can be generated when the
+TraML will be used for IPF scoring in OpenSWATH, see @ref OpenMS::MRMAssay
+"MRMAssay" for more information on the algorithm. This is recommended if
+post-translational modifications are scored with OpenSWATH.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_OpenSwathAssayGenerator.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_OpenSwathAssayGenerator.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_OpenSwathAssayGenerator.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_OpenSwathAssayGenerator.html
 
 
 */

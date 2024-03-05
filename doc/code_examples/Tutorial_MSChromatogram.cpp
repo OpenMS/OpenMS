@@ -1,7 +1,7 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 
-//! [MSChromatogram]
+//! [doxygen_snippet_MSChromatogram]
 
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/METADATA/ChromatogramSettings.h>
@@ -32,4 +32,4 @@ int main()
   return 0;
 } // end of main
 
-//! [MSChromatogram]
+//! [doxygen_snippet_MSChromatogram]

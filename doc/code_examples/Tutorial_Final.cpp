@@ -1,5 +1,5 @@
-//! [final]
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+//! [doxygen_snippet_final]
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
@@ -7,7 +7,7 @@
 // This file is ONLY used for code snippets in the developer tutorial
 // --------------------------------------------------------------------------
 
-//! [Includes]
+//! [doxygen_snippet_Includes]
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
@@ -15,7 +15,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-//! [Includes]
+//! [doxygen_snippet_Includes]
 
 using namespace OpenMS;
 using namespace std;
@@ -55,7 +55,7 @@ public:
 
 protected:
 
-//! [Register]
+//! [doxygen_snippet_Register]
 
  void registerOptionsAndFlags_() override
  {
@@ -69,9 +69,9 @@ protected:
    setValidFormats_("out", ListUtils::create<String>("fasta"));
  }
 
-//! [Register]
+//! [doxygen_snippet_Register]
 
-//! [Functionality_1]
+//! [doxygen_snippet_Functionality_1]
 
  void filterByProteinIDs_(const vector<FASTAFile::FASTAEntry>& db, const vector<PeptideIdentification>& peptide_identifications, bool whitelist, vector<FASTAFile::FASTAEntry>& db_new)
  {
@@ -91,11 +91,11 @@ protected:
      }
    }
 
- //! [Functionality_1]
+ //! [doxygen_snippet_Functionality_1]
 
    OPENMS_LOG_INFO << "Protein IDs: " << id_accessions.size() << endl;
 
- //! [Functionality_2]
+ //! [doxygen_snippet_Functionality_2]
 
    for (Size i = 0; i != db.size() ; ++i)
    {
@@ -107,13 +107,13 @@ protected:
      }
    }
 
- //! [Functionality_2]
+ //! [doxygen_snippet_Functionality_2]
  }
 
  ExitCodes main_(int, const char **) override
  {
 
-   //! [InputParam]
+   //! [doxygen_snippet_InputParam]
 
    //-------------------------------------------------------------
    // parsing parameters
@@ -124,18 +124,18 @@ protected:
    bool whitelist = (method == "whitelist");
    String out(getStringOption_("out"));
 
-   //! [InputParam]
+   //! [doxygen_snippet_InputParam]
 
    //-------------------------------------------------------------
    // reading input
    //-------------------------------------------------------------
 
-   //! [InputRead]
+   //! [doxygen_snippet_InputRead]
 
    vector<FASTAFile::FASTAEntry> db;
    FASTAFile().load(in, db);
 
-   //! [InputRead]
+   //! [doxygen_snippet_InputRead]
 
    // Check if no filter criteria was given
    // If you add a new filter please check if it was set here as well
@@ -175,11 +175,11 @@ protected:
    //-------------------------------------------------------------
 
    OPENMS_LOG_INFO << "Database entries (before / after): " << db.size() << " / " << db_new.size() << endl;
-   //! [output]  
+   //! [doxygen_snippet_output]  
 
    FASTAFile().store(out, db_new);
 
-   //! [output]
+   //! [doxygen_snippet_output]
 
    return EXECUTION_OK;
  }
@@ -196,5 +196,5 @@ int main(int argc, const char ** argv)
 
 /// @endcond
 
-//! [final]
+//! [doxygen_snippet_final]
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // -----------------------------------------
@@ -23,18 +23,18 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_SpectraSTSearchAdapter SpectraSTSearchAdapter
+@page TOPP_SpectraSTSearchAdapter SpectraSTSearchAdapter
 
-    @brief This util provides an interface to the 'SEARCH' mode of the SpectraST program.
-           All non-advanced parameters of the executable of SpectraST were translated into
-           parameters of this util.
+@brief This util provides an interface to the 'SEARCH' mode of the SpectraST program.
+       All non-advanced parameters of the executable of SpectraST were translated into
+       parameters of this util.
 
-    SpectraST: Version: 5
+SpectraST: Version: 5
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_SpectraSTSearchAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_SpectraSTSearchAdapter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_SpectraSTSearchAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_SpectraSTSearchAdapter.html
 */
 
 // We do not want this class to show up in the docu:
