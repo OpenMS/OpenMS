@@ -93,7 +93,7 @@ jobs:
       run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_OUTPUT
 
     - name: Get number of CPU cores
-      uses: SimenB/github-actions-cpu-cores@v1
+      uses: SimenB/github-actions-cpu-cores@v2
       id: cpu-cores
 
     - id: set-vars
@@ -537,6 +537,7 @@ jobs:
           name: source.tar.gz
 
       - name: Download changelog as artifact
+        if: inputs.do_release
         uses: actions/download-artifact@v4
         with:
           name: changelog.txt
@@ -700,7 +701,7 @@ jobs:
         
   build-deploy-knime-updatesite:
     env:
-      KNIME: 5.2
+      KNIME: 5.1
       JAVA_VER: 17
       PLUGIN_BUILD: ${{ github.workspace }}/plugin-build
       PLUGIN_SOURCE: ${{ github.workspace }}/plugin-source
@@ -738,7 +739,7 @@ jobs:
 
       # Should be the default. 
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VER }}
           distribution: 'temurin'
@@ -833,9 +834,6 @@ jobs:
 
       - name: Build KNIME update site
         shell: bash
-        env:
-          KNIME: 5.2
-
         run: |
           # fix folder structure
           mv ${PLUGIN_BUILD}/.mvn ./
