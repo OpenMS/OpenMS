@@ -701,7 +701,7 @@ jobs:
         
   build-deploy-knime-updatesite:
     env:
-      KNIME: 5.2
+      KNIME: 5.1
       JAVA_VER: 17
       PLUGIN_BUILD: ${{ github.workspace }}/plugin-build
       PLUGIN_SOURCE: ${{ github.workspace }}/plugin-source
