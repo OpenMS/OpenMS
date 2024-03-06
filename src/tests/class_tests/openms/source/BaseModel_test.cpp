@@ -88,12 +88,12 @@ END_SECTION
 
 // assignment operator
 START_SECTION((virtual BaseModel& operator=(const BaseModel &source)))
-	TestModel tm1;
+  TestModel tm1;
   TestModel tm2;
 
   tm1.setCutOff(3.3);
   tm2 = tm1;
-	TEST_REAL_SIMILAR(tm1.getCutOff(),tm2.getCutOff())
+  TEST_REAL_SIMILAR(tm1.getCutOff(),tm2.getCutOff())
 END_SECTION
 
 // copy constructor
@@ -126,17 +126,15 @@ START_SECTION((virtual IntensityType getIntensity(const PositionType &pos) const
   const TestModel s;
   TestModel::PositionType pos;
   pos[0]=0.1;
-  pos[1]=0.2;
   TEST_REAL_SIMILAR(s.getIntensity(pos), 0.1);
 }
 END_SECTION
 
 START_SECTION((virtual bool isContained(const PositionType &pos) const))
-	TestModel s;
+  TestModel s;
   s.setCutOff(0.9);
   TestModel::PositionType pos;
   pos[0]=0.1;
-  pos[1]=0.2;
   const TestModel& t = s;
   TEST_EQUAL(t.isContained(pos), false)
 END_SECTION
@@ -145,7 +143,6 @@ START_SECTION((template <typename PeakType> void fillIntensity(PeakType &peak) c
   const TestModel t;
   TestModel::PeakType p;
   p.getPosition()[0]=0.1;
-  p.getPosition()[1]=0.2;
   p.setIntensity(0.1f);
   t.fillIntensity(p);
   TEST_REAL_SIMILAR(p.getIntensity(), 0.1)
@@ -156,8 +153,8 @@ START_SECTION((template <class PeakIterator> void fillIntensities(PeakIterator b
   std::vector< TestModel::PeakType > vec(4);
   for (Size i=0; i<4; ++i)
   {
-		vec[i].setIntensity(-0.5);
-		vec[i].getPosition()[0] = i;
+	vec[i].setIntensity(-0.5);
+	vec[i].getPosition()[0] = i;
   }
   t.fillIntensities(vec.begin()+1, vec.end()-1);
   TEST_EQUAL(vec[0].getIntensity(), -0.5)
