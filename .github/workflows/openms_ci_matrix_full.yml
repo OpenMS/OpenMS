@@ -834,9 +834,6 @@ jobs:
 
       - name: Build KNIME update site
         shell: bash
-        env:
-          KNIME: 5.1
-
         run: |
           # fix folder structure
           mv ${PLUGIN_BUILD}/.mvn ./
