@@ -739,7 +739,7 @@ jobs:
 
       # Should be the default. 
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VER }}
           distribution: 'temurin'
