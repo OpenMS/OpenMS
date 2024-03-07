@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Kyowon Jeong, Jihyung Kim $
-// $Authors: Kyowon Jeong, Jihyung Kim $
+// $Maintainer: Kyowon Jeong, Jihyung Kim, Jaekwan Kim $
+// $Authors: Kyowon Jeong, Jihyung Kim, Jaekwan Kim $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
@@ -222,7 +222,6 @@ namespace OpenMS
           {
             if (original_precursor_map.find(native_id) == original_precursor_map.end())
               continue;
-            // auto precursor = original_precursor_map[native_id];
             mspec.setPrecursors(original_precursor_map[native_id]);
           }
         }

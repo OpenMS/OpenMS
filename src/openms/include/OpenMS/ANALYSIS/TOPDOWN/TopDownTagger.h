@@ -65,7 +65,6 @@ namespace OpenMS
 
     void constructDAC_(TopDownTagger::DAC_& dac, const std::vector<double>& mzs, const std::vector<int>& scores, int length, double tol);
     std::vector<Residue> getAA_(double l, double r, double tol, int iso_offset = 0) const;
-    // std::vector<std::vector<Residue>> getGap_(double l, double r, double tol, int z) const;
     void updateEdgeMasses_();
     int getVertex_(int index, int path_score, int level, int iso_level) const;
     int getIndex_(int vertex) const;

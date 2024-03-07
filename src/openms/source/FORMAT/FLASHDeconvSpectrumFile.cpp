@@ -351,7 +351,7 @@ namespace OpenMS
         fs << "\n";
         begin = false;
       }
-      fs << scan << "\t" << dspec.getPrecursorScanNumber() << "\t" << dspec.getPrecursorPeakGroup().getMonoMass() << "\t" << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursorCharge());
+      fs << scan << "\t" << dspec.getPrecursorScanNumber() << "\t" << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) << "\t" << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursorCharge());
       double sum = 0;
       for (auto q : quant.quantities)
       {

@@ -49,7 +49,8 @@ namespace OpenMS
                        "otherwise the tool will fail or produce invalid results.");
     defaults_.setValidStrings("isotope_correction", {"true", "false"});
     defaults_.setValue("reporter_mz_tol", 2e-3, "m/z tolerance in Th from the expected position of reporter ion m/zs.");
-
+    defaults_.setValue("only_fully_quantified", "false", "Use only the fully quantified spectra in which non-zero intensity report ions are found for all channels.");
+    defaults_.setValidStrings("only_fully_quantified", {"true", "false"});
     defaultsToParam_();
   }
 
@@ -62,6 +63,7 @@ namespace OpenMS
     addMethod_(std::make_unique<TMTElevenPlexQuantitationMethod>());
     addMethod_(std::make_unique<TMTSixteenPlexQuantitationMethod>());
     addMethod_(std::make_unique<TMTEighteenPlexQuantitationMethod>());
+    only_fully_quantified_ = param_.getValue("only_fully_quantified").toString() == "true";
   }
 
   void TopDownIsobaricQuantifier::quantify(const MSExperiment& exp, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features)
@@ -241,7 +243,8 @@ namespace OpenMS
         }
       }
 
-      if (!intensities.empty() && *std::min_element(intensities.begin(), intensities.end()) > 0) // all channel quantified
+      double min_intensity = only_fully_quantified_? *std::min_element(intensities.begin(), intensities.end()) : *std::max_element(intensities.begin(), intensities.end());
+      if (!intensities.empty() && min_intensity > 0) // at least one channel quantified
       {
         intensity_clusters[cluster_index].push_back(intensities);
         FLASHDeconvHelperStructs::IsobaricQuantities iq;
@@ -251,7 +254,6 @@ namespace OpenMS
         dspec.setQuantities(iq);
       }
     }
-
 
     for (Size i = 0; i < intensity_clusters.size(); i++)
     {
@@ -267,7 +269,6 @@ namespace OpenMS
         }
       }
     }
-
     for (auto& dspec : deconvolved_spectra)
     {
       if (dspec.getOriginalSpectrum().getMSLevel() == 1 || dspec.getPrecursorPeakGroup().empty())
@@ -275,14 +276,17 @@ namespace OpenMS
       int cluster_index = precursor_cluster_index[dspec.getPrecursorPeakGroup()];
       if (merged_intensity_clusters[cluster_index].empty())
         continue;
-      //int scan = dspec.getScanNumber();
 
       if (dspec.getQuantities().empty())
         continue;
-
       auto intensities = merged_intensity_clusters[cluster_index];
-      if (!intensities.empty() && *std::min_element(intensities.begin(), intensities.end()) > 0) // all channel quantified
-        dspec.getQuantities().merged_quantities = merged_intensity_clusters[cluster_index];
+      double min_intensity = only_fully_quantified_? *std::min_element(intensities.begin(), intensities.end()) : *std::max_element(intensities.begin(), intensities.end());
+      if (!intensities.empty() && min_intensity > 0) // all channel quantified
+      {
+        FLASHDeconvHelperStructs::IsobaricQuantities iq = dspec.getQuantities();
+        iq.merged_quantities = intensities;
+        dspec.setQuantities(iq);
+      }
       //else quantities_.erase(scan);
     }
   }
