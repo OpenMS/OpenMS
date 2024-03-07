@@ -98,10 +98,10 @@ public:
       @brief Tries to find and remove a known file extension, and append the new one.
 
       Internally calls 'stripExtension()' and adds the new suffix to the result.
-      E.g. 'experiment.featureXML'+ FileTypes::TRAFOXML becomes 'experiment.trafoXML' and 'c:\\files\\data.mzML.gz' + FileTypes::FEATUREXML becomes 'c:\\files\\data.featureXML'
-      If the existing extension is unknown, the everything after the last '.' is removed, e.g. 'exp.tmp'+FileTypes::IDXML becomes 'exp.idXML'
+      E.g. 'experiment.featureXML'+ FileTypes::TRANSFORMATIONXML  becomes 'experiment.trafoXML' and 'c:\\files\\data.mzML.gz' + FileTypes::FEATUREXML becomes 'c:\\files\\data.featureXML'
+      If the existing extension is unknown, the everything after the last '.' is removed, e.g. 'exp.tmp' + FileTypes::IDXML becomes 'exp.idXML'
 
-      @param filename the original @p filename String
+      @param filename the original @p filename
       @param new_type the @p FileTypes::Types to use to set the new extension
 
       @return the updated string

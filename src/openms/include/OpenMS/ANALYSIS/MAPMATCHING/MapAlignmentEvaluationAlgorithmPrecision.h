@@ -17,7 +17,7 @@ namespace OpenMS
 
       It evaluates an input consensus map with respect to a ground truth.
 
-      @ingroup MapAlignmentEvaluation
+      @ingroup MapAlignment
   */
   class OPENMS_DLLAPI MapAlignmentEvaluationAlgorithmPrecision :
     public MapAlignmentEvaluationAlgorithm

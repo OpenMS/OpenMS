@@ -97,8 +97,8 @@ namespace OpenMS
 
     /// Convenience function that performs graph building and group resolution.
     /// After resolution, all unreferenced proteins are removed and groups updated.
-    /// @param protein ProteinIdentification object storing IDs and groups
-    /// @param peptides vector of ProteinIdentifications with links to the proteins
+    /// @param inferred_protein_id ProteinIdentification object storing IDs and groups
+    /// @param inferred_peptide_ids Vector of ProteinIdentifications with links to the proteins
     static void run(std::vector<ProteinIdentification>& inferred_protein_id, 
                     std::vector<PeptideIdentification>& inferred_peptide_ids);
 

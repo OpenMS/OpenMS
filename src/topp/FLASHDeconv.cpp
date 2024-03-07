@@ -5,8 +5,8 @@
 // $Maintainer: Kyowon Jeong, Jihyung Kim $
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
-#define USE_TAGGER
-//#define TRAIN_OUT
+#define USE_TAGGER //
+// #define TRAIN_OUT
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
@@ -54,13 +54,10 @@ See https://openms.de/FLASHDeconv for more information.
 class TOPPFLASHDeconv : public TOPPBase
 {
 public:
-  TOPPFLASHDeconv() 
-    : TOPPBase("FLASHDeconv", "Ultra-fast high-quality deconvolution enables online processing of top-down MS data",
-      true,
-      {Citation {"Jeong K, Kim J, Gaikwad M et al.",
-                 "FLASHDeconv: Ultrafast, High-Quality Feature Deconvolution for Top-Down Proteomics",
-                 "Cell Syst 2020 Feb 26;10(2):213-218.e6",
-                 "10.1016/j.cels.2020.01.003"}})
+  TOPPFLASHDeconv() :
+      TOPPBase("FLASHDeconv", "Ultra-fast high-quality deconvolution enables online processing of top-down MS data", true,
+               {Citation {"Jeong K, Kim J, Gaikwad M et al.", "FLASHDeconv: Ultrafast, High-Quality Feature Deconvolution for Top-Down Proteomics", "Cell Syst 2020 Feb 26;10(2):213-218.e6",
+                          "10.1016/j.cels.2020.01.003"}})
   {
   }
 
@@ -123,7 +120,6 @@ protected:
     //                        false);
     //    setValidFormats_("out_msalign4", ListUtils::create<String>("msalign"), false);
 
-
     registerOutputFile_("out_feature1", "<file>", "",
                         "Output feature (topFD compatible) file containing MS1 deconvolved features. Likewise, use -out_feature2 for MS2 features. "
                         "The MS1 and MS2 feature files are necessary for TopPIC feature intensity output.",
@@ -156,6 +152,8 @@ protected:
     registerDoubleOption_("max_mz", "<m/z value>", -1.0, "If set to positive value, maximum m/z to deconvolve.", false, true);
     registerDoubleOption_("min_rt", "<RT value>", -1.0, "If set to positive value, minimum RT (in second) to deconvolve.", false, true);
     registerDoubleOption_("max_rt", "<RT value>", -1.0, "If set to positive value, maximum RT (in second) to deconvolve.", false, true);
+
+    registerIntOption_("max_ms_level", "<MS level>", -1.0, "If set to positive value, maximum MS level (inclusive) to deconvolve.", false, true);
 
     registerSubsection_("FD", "FLASHDeconv algorithm parameters");
     registerSubsection_("SD", "Spectral deconvolution parameters");
@@ -197,12 +195,15 @@ protected:
       auto tagger_param = TopDownTagger().getDefaults();
       tagger_param.remove("min_charge");
       tagger_param.remove("max_charge");
-      tagger_param.setValue("min_matched_aa", 5, "Minimum number of amino acids in matched proteins, covered by tags.");
 
       tagger_param.setValue("fasta", "", "Target protein sequence database against which tags will be matched.");
       tagger_param.addTag("fasta", "input file");
-      tagger_param.setValue("out", "", "Tagger output file.");
-      tagger_param.addTag("out", "output file");
+
+      tagger_param.setValue("out_tag", "", "Output file containing tags.");
+      tagger_param.addTag("out_tag", "output file");
+
+      tagger_param.setValue("out_protein", "", "Output file containing matched proteins.");
+      tagger_param.addTag("out_protein", "output file");
 
       return tagger_param;
     }
@@ -240,6 +241,8 @@ protected:
     double max_mz = getDoubleOption_("max_mz");
     double min_rt = getDoubleOption_("min_rt");
     double max_rt = getDoubleOption_("max_rt");
+    int max_ms_level = getIntOption_("max_ms_level");
+
     std::map<uint, int> per_ms_level_spec_count;
     std::map<uint, int> per_ms_level_deconv_spec_count;
     std::map<uint, int> per_ms_level_mass_count;
@@ -277,6 +280,13 @@ protected:
     if (min_mz > 0 || max_mz > 0)
     {
       opt.setMZRange(DRange<1> {min_mz, max_mz});
+    }
+    if (max_ms_level > 0)
+    {
+      IntList ms_levels;
+      for (int msl = 1; msl <= max_ms_level; msl++)
+        ms_levels.push_back(msl);
+      opt.setMSLevels(ms_levels);
     }
 
     mzml.setLogType(log_type_);
@@ -331,29 +341,22 @@ protected:
 #ifdef USE_TAGGER
     // Run tagger
     TopDownTagger tagger;
+
     auto tagger_param = getParam_().copy("tagger:", true);
     if ((int)tagger_param.getValue("max_tag_count") > 0 && !deconvolved_spectra.empty())
     {
       OPENMS_LOG_INFO << "Finding sequence tags from deconvolved spectra ..." << endl;
 
       String fastaname = tagger_param.getValue("fasta").toString();
-      String out_tagger = tagger_param.getValue("out").toString();
-      int min_cov_aa = (int)tagger_param.getValue("min_matched_aa");
+      String out_tag = tagger_param.getValue("out_tag").toString();
+      String out_protein_tag = tagger_param.getValue("out_protein").toString();
 
+      tagger_param.remove("out_tag");
+      tagger_param.remove("out_protein");
       tagger_param.remove("fasta");
-      tagger_param.remove("out");
-      tagger_param.remove("min_matched_aa");
       tagger.setParameters(tagger_param);
 
-      std::vector<FASTAFile::FASTAEntry> fasta_entry;
-      FASTAFile ffile;
-      ffile.load(fastaname, fasta_entry);
-      fstream out_tagger_stream = fstream(out_tagger, fstream::out);
-      out_tagger_stream << "Scan\tProteinIndex\tTagIndex\tProteinAccession\tProteinDescription\tMatchedAminoAcidCount\tCoverage(%)\tTagSequence\tNmass\tCmass\tScore\tCharge\tLength\tmzs\n";
-
-      std::vector<FLASHDeconvHelperStructs::Tag> tags;
       DeconvolvedSpectrum dspec_for_tagging;
-
       for (const auto& dspec : deconvolved_spectra)
       {
         if (dspec.isDecoy())
@@ -369,44 +372,85 @@ protected:
                                                            1e-6 * tols[deconvolved_spectra[0].getOriginalSpectrum().getMSLevel() - 1]); // merged peak groups have scan number information!
       }
 
-      tagger.run(dspec_for_tagging, tols[dspec_for_tagging.getOriginalSpectrum().getMSLevel() - 1], tags);
-      auto matches = tagger.runMatching(tags, fasta_entry);
+      tagger.run(dspec_for_tagging, tols[dspec_for_tagging.getOriginalSpectrum().getMSLevel() - 1]);
+      tagger.runMatching(fastaname);
 
-      int protein_index = 1;
-
-      for (const auto& match : matches)
+      if (!out_protein_tag.empty())
       {
-        int tag_index = 1;
+        fstream out_tagger_stream = fstream(out_protein_tag, fstream::out);
+        out_tagger_stream << "ProteinIndex\tProteinAccession\ttProteinDescription\tMatchedAminoAcidCount\tCoverage(%)\tProteinScore\tProteinQvalue\tTagIndices\n";
 
-        auto matched_fasta_entry = match.first;
-        std::set<Size> matched_aa;
-        for (const auto& matched_tag : match.second)
+        for (const auto& hit : tagger.getProteinHits())
         {
-          auto tagseq = matched_tag.getSequence();
-          auto start_pos = matched_fasta_entry.sequence.find(tagseq);
-          for (Size t = 0; t < tagseq.length(); t++)
-            matched_aa.insert(start_pos + t);
-        }
-        if (matched_aa.size() < min_cov_aa)
-          continue;
-
-        for (const auto& matched_tag : match.second)
-        {
-          out_tagger_stream << dspec_for_tagging.getScanNumber() << "\t" << protein_index << "\t" << tag_index++ << "\t" << matched_fasta_entry.identifier << "\t" << matched_fasta_entry.description
-                            << "\t" << matched_aa.size() << "\t" << 100.0 * matched_aa.size() / matched_fasta_entry.sequence.length() << "\t" << matched_tag.getSequence() << "\t"
-                            << matched_tag.getNtermMass() << "\t" << matched_tag.getCtermMass() << "\t" << matched_tag.getScore() << "\t" << matched_tag.getCharge() << "\t" << matched_tag.getLength()
-                            << "\t";
-
-          for (const auto& mz : matched_tag.getMzs())
+          String tagindices = "";
+          for (const auto& tag : tagger.getTags(hit))
           {
-            out_tagger_stream << std::to_string(mz) << ",";
+            if (!tagindices.empty())
+              tagindices += ";";
+            tagindices += std::to_string(tagger.getTagIndex(tag));
           }
-          out_tagger_stream << "\n";
+
+          out_tagger_stream << tagger.getProteinIndex(hit) << "\t" << hit.getAccession() << "\t" << hit.getDescription() << "\t" << hit.getMetaValue("MatchedAA") << "\t" << 100.0 * hit.getCoverage()
+                            << "\t" << hit.getScore() << "\t" << std::to_string((double)hit.getMetaValue("qvalue")) << "\t" << tagindices << "\n";
         }
-        protein_index++;
+
+        out_tagger_stream.close();
       }
 
-      out_tagger_stream.close();
+      if (!out_tag.empty())
+      {
+        fstream out_tagger_stream = fstream(out_tag, fstream::out);
+        out_tagger_stream << "Scan\tTagIndex\tProteinIndex\tProteinAccession\tProteinDescription\tTagSequence\tNmass\tCmass\tLength\tDeNovoScore\tmzs\n";
+
+        for (int n = 0; n <= tagger.getProteinHits().size(); n++)
+        {
+          for (const auto& tag : tagger.getTags())
+          {
+            auto hits = tagger.getProteinHits(tag);
+            if (n < tagger.getProteinHits().size())
+            {
+              bool found = false;
+              for (const auto& hit : hits)
+              {
+                if (n == tagger.getProteinIndex(hit))
+                  found = true;
+              }
+              if (!found)
+                continue;
+            }
+
+            if (n == tagger.getProteinHits().size() && !hits.empty())
+              continue;
+
+            String acc = "";
+            String description = "";
+            String hitindices = "";
+            for (const auto& hit : hits)
+            {
+              if (!acc.empty())
+                acc += ";";
+              if (!description.empty())
+                description += ";";
+              if (!hitindices.empty())
+                hitindices += ";";
+              acc += hit.getAccession();
+              description += hit.getDescription();
+              hitindices += std::to_string(tagger.getProteinIndex(hit));
+            }
+
+            out_tagger_stream << dspec_for_tagging.getScanNumber() << "\t" << tagger.getTagIndex(tag) << "\t" << hitindices << "\t" << acc << "\t" << description << "\t" << tag.getSequence() << "\t"
+                              << std::to_string(tag.getNtermMass()) << "\t" << std::to_string(tag.getCtermMass()) << "\t" << tag.getLength() << "\t" << tag.getScore() << "\t";
+
+            for (const auto& mz : tag.getMzs())
+            {
+              out_tagger_stream << std::to_string(mz) << ",";
+            }
+            out_tagger_stream << "\n";
+          }
+        }
+
+        out_tagger_stream.close();
+      }
     }
 #endif
     OPENMS_LOG_INFO << "FLASHDeconv run complete. Now writing the results in output files ..." << endl;
@@ -454,7 +498,7 @@ protected:
           continue;
         if (report_decoy)
           target_spec_map[deconvolved_spectrum.getScanNumber()] = deconvolved_spectrum;
-        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail, report_decoy);
+        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail, report_decoy, 1.0);
 #ifdef TRAIN_OUT
         Qscore::writeAttCsvForQscoreTraining(deconvolved_spectrum, out_train_streams[ms_level - 1]);
 #endif
@@ -462,6 +506,7 @@ protected:
 
       if (report_decoy)
       {
+        double noise_decoy_weight = fd.getNoiseDecoyWeight();
         for (auto& deconvolved_spectrum : deconvolved_spectra)
         {
           uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
@@ -469,7 +514,8 @@ protected:
             continue;
           if (!deconvolved_spectrum.isDecoy())
             continue;
-          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail, report_decoy);
+          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), tols[ms_level - 1], write_detail, report_decoy,
+                                                          noise_decoy_weight);
 #ifdef TRAIN_OUT
           Qscore::writeAttCsvForQscoreTraining(deconvolved_spectrum, out_train_streams[ms_level - 1]);
 #endif
@@ -513,7 +559,7 @@ protected:
       {
         if (out_topfd_file[i].empty() || (!keep_empty_out && per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()))
           continue;
-        OPENMS_LOG_INFO << "writing topfd *.tsv for MS level " << (i + 1) << " ..." << endl;
+        OPENMS_LOG_INFO << "writing topfd *.msalign for MS level " << (i + 1) << " ..." << endl;
 
         out_topfd_streams[i].open(out_topfd_file[i], fstream::out);
         FLASHDeconvSpectrumFile::writeTopFDHeader(out_topfd_streams[i], getParam_().copy("SD:", true));

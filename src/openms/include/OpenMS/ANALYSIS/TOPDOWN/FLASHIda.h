@@ -46,8 +46,7 @@ namespace OpenMS
    * This class contains functions to perform deconvolution (by SpectralDeconvolution) for the spectrum received from Thermo iAPI.
    * Also precursor selection is done in this class.
    * The functions in this class are invoked in C# Thermo iAPI side through the functions in FLASHIdaBridgeFunctions class
-   * @see FLASHIdaBridgeFunctions
-   * @reference: https://stackoverflow.com/questions/31417688/passing-a-vector-array-from-unmanaged-c-to-c-sharp
+   * @see FLASHIdaBridgeFunction, https://stackoverflow.com/questions/31417688/passing-a-vector-array-from-unmanaged-c-to-c-sharp
    */
   class OPENMS_DLLAPI FLASHIda
   {
@@ -78,6 +77,7 @@ namespace OpenMS
            @param rt Retention time in seconds
            @param ms_level ms level
            @param name spectrum name
+           @param cv CV values when FAIMS is used
            @return number of acquired peak groups
       */
     int getPeakGroups(const double *mzs,
@@ -85,7 +85,8 @@ namespace OpenMS
                       int length,
                       double rt,
                       int ms_level,
-                      const char *name);
+                      const char *name,
+                      const char *cv);
 
     /**
            @brief get isolation windows using FLASHDeconv algorithm. Many parameters are in primitive types so they can be passed to C# FLASHIda side.
@@ -105,6 +106,7 @@ namespace OpenMS
            @param ppm_errors average PPM errors
            @param precursor_intensities precursor peak intensities
            @param peakgroup_intensities precursor mass intensities
+           @param ids precursor IDs
       */
     void getIsolationWindows(double *window_start,
                              double *window_end,
@@ -119,7 +121,13 @@ namespace OpenMS
                              double *snrs, double *charge_scores,
                              double *ppm_errors,
                              double *precursor_intensities,
-                             double *peakgroup_intensities);
+                             double *peakgroup_intensities,
+                             int *ids);
+    /**
+           @brief Remove a given precursor from the exclusion list by id (needed for FAIMS)
+           @param id id of precursor
+      */
+    void removeFromExlusionList(int id);
 
 
     void getAllMonoisotopicMasses(double *masses, int length);
@@ -148,6 +156,14 @@ namespace OpenMS
     std::unordered_map<int, double> tqscore_exceeding_mass_rt_map_; /// integer mass value vs. retention time with tqscore exceeding total qscore threshold
     std::unordered_map<int, double> all_mass_rt_map_; /// mz value vs. retention time for all acquired precursors
     std::unordered_map<int, double> mass_qscore_map_; /// mass value vs. total qscore for all acquired precursors
+
+
+
+    /// Maps that are neccessary for selectively disabling mass exclusion (needed for FAIMS support)
+    std::unordered_map<int, int> id_mass_map_;
+    std::unordered_map<int, int> id_mz_map_;
+    std::unordered_map<int, double> id_qscore_map_;
+
 
     /**
          @brief discard peak groups using mass exclusion
@@ -182,12 +198,14 @@ namespace OpenMS
     /// peakGroup isolation window ranges
     std::vector<double> trigger_left_isolation_mzs_;
     std::vector<double> trigger_right_isolation_mzs_;
+    std::vector<int> trigger_ids_;
+    
 
     /// SpectralDeconvolution class for deconvolution
     SpectralDeconvolution fd_;
 
     /// total QScore threshold
-    double tqscore_threshold = .8;
+    double tqscore_threshold = .99;
 
     /// q score threshold - determined from C# side
     double qscore_threshold_;
@@ -202,6 +220,9 @@ namespace OpenMS
     std::map<double, std::vector<double>> target_mass_rt_map_;
     std::map<double, std::vector<double>> target_mass_qscore_map_;
     std::vector<double> target_masses_; /// current target masses. updated per spectrum
+
+    // For the possibility of removal each window is given an id, starting at zero (needed for FAIMS support)
+    int window_id_ = 0;
 
     /// maps for global exclusion
     std::map<double, std::vector<double>> exclusion_rt_masses_map_; /// if rt == 0, its mapped masses are always excluded.

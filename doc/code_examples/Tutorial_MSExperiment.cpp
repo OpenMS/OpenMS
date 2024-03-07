@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-//! [MSExperiment]
+//! [doxygen_snippet_MSExperiment]
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -63,4 +63,4 @@ int main()
   return 0;
 } //end of main
 
-//! [MSExperiment]
+//! [doxygen_snippet_MSExperiment]

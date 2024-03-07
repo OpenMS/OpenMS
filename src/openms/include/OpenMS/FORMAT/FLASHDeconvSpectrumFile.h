@@ -44,6 +44,7 @@ namespace OpenMS
           @param tol mass tolerance
           @param write_detail if this is set, more detailed information on each mass will be written in the output file.
           @param record_decoy if set true, decoy and qvalue information will be written.
+          @param noise_decoy_weight noise decoy weight. Determines how often the noise decoy masses will be written
           Default MS1 headers are:
             FileName, ScanNum, TargetDecoyType, RetentionTime, MassCountInSpec, AverageMass, MonoisotopicMass,
             SumIntensity, MinCharge, MaxCharge,
@@ -61,7 +62,7 @@ namespace OpenMS
                                        const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
                                        double tol,
                                        bool write_detail,
-                                       bool record_decoy);
+                                       bool record_decoy, double noise_decoy_weight);
 
     /**
      *
@@ -80,10 +81,6 @@ namespace OpenMS
      * @param deconvolved_spectra
      */
     static void writeIsobaricQuantification(std::fstream& fs, std::vector<DeconvolvedSpectrum>& deconvolved_spectra);
-
-    static void writeDLMatrixHeader(std::fstream& fs);
-
-    static void writeDLMatrix(std::vector<DeconvolvedSpectrum>& dspecs, double tol, std::fstream& fs, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg);
 
     static void writeTopFDHeader(std::fstream& fs, const Param& param);
 

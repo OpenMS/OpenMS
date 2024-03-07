@@ -51,11 +51,11 @@ namespace OpenMS
     }
   }
 
-  int GetPeakGroupSize(FLASHIda *pObject, double *mzs, double *ints, int length, double rt_min, int msLevel, char *name)
+  int GetPeakGroupSize(FLASHIda *pObject, double *mzs, double *ints, int length, double rt_min, int msLevel, char *name, char *cv)
   {
     if (pObject != nullptr)
     {
-      return pObject->getPeakGroups(mzs, ints, length, rt_min * 60.0, msLevel, name);
+      return pObject->getPeakGroups(mzs, ints, length, rt_min * 60.0, msLevel, name, cv);
     }
     return 0;
   }
@@ -75,7 +75,8 @@ namespace OpenMS
                            double *charge_scores,
                            double *ppm_errors,
                            double *precursor_intensities,
-                           double *peakgroup_intensities
+                           double *peakgroup_intensities,
+                           int *ids
   )
   {
     if (pObject != nullptr)
@@ -89,8 +90,20 @@ namespace OpenMS
                                    mono_masses, chare_cos,
                                    charge_snrs, iso_cos, snrs, charge_scores, ppm_errors,
                                    precursor_intensities,
-                                   peakgroup_intensities);
+                                   peakgroup_intensities,
+                                   ids);
     }
+  }
+
+  void RemoveFromExclusionList(
+      FLASHIda *pObject,
+      int id
+  )
+  {
+      if (pObject != nullptr) 
+      {
+        pObject->removeFromExlusionList(id);
+      }
   }
 
   int GetAllPeakGroupSize(FLASHIda *pObject)

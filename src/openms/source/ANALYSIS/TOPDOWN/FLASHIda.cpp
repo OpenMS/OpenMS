@@ -43,10 +43,9 @@
 
 namespace OpenMS
 {
-  /// minimum isolation window width divided by two
-  inline const double min_isolation_window_half_ = .6;
-  /// maximum isolation window width divided by two
-  inline const double max_isolation_window_half_ = 2.5;
+  /// optimal window margin
+  inline const double optimal_window_margin_ = .4;
+  //inline const double max_isolation_window_half_ = 2.5;
   /// constructor
   FLASHIda::FLASHIda(char* arg)
   {
@@ -114,8 +113,6 @@ namespace OpenMS
     sd_defaults.setValue("max_mass", inputs["max_mass"][0]);
     sd_defaults.setValue("tol", inputs["tol"]);
     tol_ = std::vector<double>(inputs["tol"]);
-    // fd_defaults.setValue("rt_window", rt_window_);
-    // fd_defaults.setValue("min_peaks", IntList{3, 3});//
 
     auto mass_count_double = inputs["max_mass_count"];
 
@@ -255,10 +252,13 @@ namespace OpenMS
     std::cout << sd_defaults << std::endl;
   }
 
-  int FLASHIda::getPeakGroups(const double* mzs, const double* ints, const int length, const double rt, const int ms_level, const char* name)
+  int FLASHIda::getPeakGroups(const double* mzs, const double* ints, const int length, const double rt, const int ms_level, const char* name, const char* cv)
   {
     // int ret[2] = {0,0};
     auto spec = makeMSSpectrum_(mzs, ints, length, rt, ms_level, name);
+    if (cv != nullptr) {
+      spec.setMetaValue("filter string", DataValue("cv=" + std::string(cv)));
+    }
     // selected_peak_groups_ = DeconvolvedSpectrum(spec, 1);
     if (ms_level == 1)
     {
@@ -327,6 +327,10 @@ namespace OpenMS
     trigger_left_isolation_mzs_.reserve(mass_count);
     trigger_right_isolation_mzs_.clear();
     trigger_right_isolation_mzs_.reserve(mass_count);
+    trigger_ids_.clear();
+    trigger_ids_.reserve(mass_count);
+
+
 
     selected_peak_groups_.reserve(mass_count_.size());
     std::set<double> current_selected_mzs;    // current selected mzs
@@ -424,10 +428,14 @@ namespace OpenMS
           }
 
           int charge = pg.getRepAbsCharge();
-          double qscore = pg.getQscore();
+          double qscore = std::min(.9, pg.getQscore());
           double mass = pg.getMonoMass();
           auto [mz1, mz2] = pg.getRepMzRange();
+
           double center_mz = (mz1 + mz2) / 2.0;
+
+          mz1 -= optimal_window_margin_;
+          mz2 += optimal_window_margin_;
 
           int nominal_mass = SpectralDeconvolution::getNominalMass(mass);
           bool target_matched = false;
@@ -477,7 +485,7 @@ namespace OpenMS
             if (target_matched)
             {
               snr_threshold = 0.0;
-              qscore_threshold = 0.0; // stop exclusion for targets. TODO tqscore lowest first? charge change.
+              qscore_threshold = 0.0; // stop exclusion for targets. todo tqscore lowest first? charge change.
             }
             else
             {
@@ -526,7 +534,6 @@ namespace OpenMS
             continue;
           }
 
-
           if (current_selected_mzs.find(center_mz) != current_selected_mzs.end()) // mz has been triggered
           {
             if (selection_phase < selection_phase_end)
@@ -547,68 +554,6 @@ namespace OpenMS
             }
           }
 
-
-          // here crawling isolation windows max_isolation_window_half_
-          auto ospec = deconvolved_spectrum_.getOriginalSpectrum();
-          if (ospec.size() > 2)
-          {
-            Size index = ospec.findNearest(center_mz);
-            Size tindexl = index == 0 ? index : index - 1;
-            Size tindexr = index == 0 ? index + 1 : index;
-            double lmz = center_mz, rmz = center_mz;
-            double sig_int = pg.getChargeIntensity(charge);
-            double noise_int = sqrt(sig_int * sig_int / (.01 + pg.getChargeSNR(charge)));
-
-            bool goleft = tindexl > 0 && (center_mz - lmz <= rmz - center_mz);
-            bool goright = tindexr < ospec.size() - 1 && (center_mz - lmz >= rmz - center_mz);
-
-            while (goleft || goright)
-            {
-              if (goleft)
-              {
-                tindexl--;
-                lmz = ospec[tindexl].getMZ();
-                double intensity = ospec[tindexl].getIntensity();
-                if (lmz < mz1)
-                {
-                  noise_int += intensity;
-                }
-              }
-              if (goright)
-              {
-                tindexr++;
-                rmz = ospec[tindexr].getMZ();
-                double intensity = ospec[tindexr].getIntensity();
-                if (rmz > mz2)
-                {
-                  noise_int += intensity;
-                }
-              }
-
-              goleft = tindexl > 0 && (center_mz - lmz <= rmz - center_mz);
-              goright = tindexr < ospec.size() - 1 && (center_mz - lmz >= rmz - center_mz);
-
-              if (lmz > mz1 || rmz < mz2 || rmz - lmz < min_isolation_window_half_ * 2)
-              {
-                continue;
-              }
-
-              if (sig_int / noise_int < sqrt(snr_threshold))
-              {
-                break;
-              }
-            }
-            mz1 = std::max(center_mz - max_isolation_window_half_, lmz);
-            mz2 = std::min(center_mz + max_isolation_window_half_, rmz);
-          }
-
-
-          if (mz1 < ospec[0].getMZ() - max_isolation_window_half_ || mz2 > ospec.back().getMZ() + max_isolation_window_half_ || mz1 + 2 * min_isolation_window_half_ - .01 > mz2 ||
-              mz2 - mz1 > 2 * max_isolation_window_half_ + .01)
-          {
-            continue;
-          }
-
           all_mass_rt_map_[nominal_mass] = rt;
           auto inter = mass_qscore_map_.find(nominal_mass);
           if (inter == mass_qscore_map_.end())
@@ -626,6 +571,12 @@ namespace OpenMS
             tqscore_exceeding_mz_rt_map_[integer_mz] = rt;
           }
 
+          id_mass_map_[window_id_] = nominal_mass;
+          id_mz_map_[window_id_] = integer_mz;
+          id_qscore_map_[window_id_] = qscore;
+          trigger_ids_.push_back(window_id_);
+          window_id_++;
+          
           selected_peak_groups_.push_back(pg);
           trigger_charges.push_back(charge);
 
@@ -636,6 +587,36 @@ namespace OpenMS
         }
       }
     }
+  }
+
+  void FLASHIda::removeFromExlusionList(int id)    
+  {
+      // Check if id is valid
+      if (id >= window_id_) 
+      {
+        return; 
+      }
+
+      // Obtain information needed for removal
+      int nominal_mass = id_mass_map_[id];
+      int integer_mz = id_mz_map_[id];
+      double qscore = id_qscore_map_[id];
+
+      // Remove from mass exclusion
+      if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end()) {
+        tqscore_exceeding_mass_rt_map_.erase(nominal_mass);
+      }
+
+      // Remove from mz exclusion
+      if (tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
+      {
+        tqscore_exceeding_mz_rt_map_.erase(integer_mz);
+      }
+
+      // Remove qscore from further calculations
+      if (mass_qscore_map_.find(nominal_mass) != mass_qscore_map_.end()) {
+        mass_qscore_map_[nominal_mass] /= 1 - qscore;
+      }
   }
 
   void FLASHIda::getAllMonoisotopicMasses(double* masses, int length)
@@ -653,7 +634,7 @@ namespace OpenMS
   }
 
   void FLASHIda::getIsolationWindows(double* wstart, double* wend, double* qscores, int* charges, int* min_charges, int* max_charges, double* mono_masses, double* chare_cos, double* charge_snrs,
-                                     double* iso_cos, double* snrs, double* charge_scores, double* ppm_errors, double* precursor_intensities, double* peakgroup_intensities)
+                                     double* iso_cos, double* snrs, double* charge_scores, double* ppm_errors, double* precursor_intensities, double* peakgroup_intensities, int* ids)
   {
     // std::sort(selected_peak_groups_.begin(), selected_peak_groups_.end(), QscoreComparator_);
 
@@ -669,8 +650,8 @@ namespace OpenMS
       min_charges[i] = std::get<0>(cr);
       max_charges[i] = std::get<1>(cr);
 
-      wstart[i] = trigger_left_isolation_mzs_[i]; // std::get<0>(mz_range) - min_isolation_window_half_;
-      wend[i] = trigger_right_isolation_mzs_[i];  // std::get<1>(mz_range) + min_isolation_window_half_;
+      wstart[i] = trigger_left_isolation_mzs_[i]; // std::get<0>(mz_range) - optimal_window_margin_;
+      wend[i] = trigger_right_isolation_mzs_[i];  // std::get<1>(mz_range) + optimal_window_margin_;
 
       qscores[i] = Qscore::getQscore(&peakgroup, deconvolved_spectrum_.getOriginalSpectrum());
       mono_masses[i] = peakgroup.getMonoMass();
@@ -682,6 +663,7 @@ namespace OpenMS
       ppm_errors[i] = peakgroup.getAvgPPMError();
       peakgroup_intensities[i] = peakgroup.getIntensity();
       precursor_intensities[i] = peakgroup.getChargeIntensity(charges[i]);
+      ids[i] = trigger_ids_[i];
     }
   }
 
@@ -845,8 +827,10 @@ namespace OpenMS
       std::cout << in_log_file << " not found\n";
     }
     int mass_cntr = 0;
-    for (const auto& v : precursor_map_for_real_time_acquisition)
+    for (auto& v : precursor_map_for_real_time_acquisition)
     {
+      std::sort(v.second.begin(), v.second.end(),[](const std::vector<float>& left, const std::vector<float>& right) {
+          return left[0] < right[0];});
       mass_cntr += v.second.size();
     }
 

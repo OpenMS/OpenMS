@@ -24,7 +24,6 @@ namespace OpenMS
    * ii) TopPicItem - represent TopPic identification. Currently used for setQscore training. TopPic is the top-down proteomics identification tool (https://www.toppic.org/).
    * iii) LogMzPeak - Log transformed peak from original peak. Contains information such as charge, isotope index, and uncharged mass.
    * @see SpectralDeconvolution
-   * @reference: FeatureFinderAlgorithmPickedHelperStructs
    */
 
   struct OPENMS_DLLAPI FLASHDeconvHelperStructs
@@ -190,6 +189,7 @@ namespace OpenMS
 
       /**
         @brief constructor from Peak1D.
+        @param peak the original spectral peak
         @param positive determines the charge carrier mass. Can be obtained by getChargeMass(true) for positive mode (Constants::PROTON_MASS_U) and getChargeMass(false) for negative mode
         (-Constants::PROTON_MASS_U)
       */
@@ -215,7 +215,7 @@ namespace OpenMS
     {
     public:
       /// constructor
-      explicit Tag(String  seq, double n_mass, double c_mass, int charge, double score, std::vector<double>& mzs);
+      explicit Tag(String  seq, double n_mass, double c_mass, std::vector<int>& scores, std::vector<double>& mzs);
 
       /// copy constructor
       Tag(const Tag&) = default;
@@ -230,17 +230,16 @@ namespace OpenMS
       String getSequence() const;
       double getNtermMass() const;
       double getCtermMass() const;
-      int getCharge() const;
       Size getLength() const;
-      double getScore() const;
+      int getScore() const;
+      int getScore(int pos) const;
       String toString() const;
       const std::vector<double>& getMzs() const;
 
     private:
       String seq_;
       double n_mass_ = -1, c_mass_ = -1;
-      int charge_;
-      double score_;
+      std::vector<int> scores_;
       std::vector<double> mzs_;
       Size length_;
     };
@@ -253,7 +252,7 @@ namespace OpenMS
     static double getLogMz(double mz, bool positive);
 
     /**
-       @brief get charge carrier mass : positive mode mass of (Constants::PROTON_MASS_U) and negative mode mass of (-Constants::PROTON_MASS_U)
+       @brief get charge carrier mass : positive mode mass of (Constants\::PROTON_MASS_U) and negative mode mass of (-Constants\::PROTON_MASS_U)
        @param positive_ioniziation_mode Determines the charge carrier mass (true = positive or false = negative)
     */
     static float getChargeMass(bool positive_ioniziation_mode);

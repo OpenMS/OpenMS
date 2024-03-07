@@ -808,7 +808,8 @@ WARN_NO_PARAMDOC       = YES
 # If the WARN_AS_ERROR tag is set to YES then doxygen will immediately stop when
 # a warning is encountered.
 # The default value is: NO.
-
+## We do not use this to detect error messages, since it stops at the first warning.
+## Rather, we use a dedicated test which runs with CTest and checks the content of ...\openms_build\doc\doxygen\doxygen-error.log
 WARN_AS_ERROR          = NO
 
 # The WARN_FORMAT tag determines the format of the warning messages that doxygen
@@ -837,10 +838,9 @@ WARN_LOGFILE           = "@CF_OPENMS_BIN_PATH@/doxygen/doxygen-error.log"
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = "@CF_OPENMS_SRC_PATH@/doc/OpenMS_tutorial/" \
-                         "@CF_OPENMS_SRC_PATH@/doc/doxygen/public/" \
+INPUT                  = "@CF_OPENMS_SRC_PATH@/doc/doxygen/public/" \
                          "@CF_OPENMS_SRC_PATH@/doc/doxygen/install/" \
-                         "@CF_OPENMS_DOCUMENTATION_DIRECTORIES@"
+                         @CF_OPENMS_DOCUMENTATION_DIRECTORIES@   ## already contains quotes. Do NOT add extra quotes to this variable.
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -943,8 +943,7 @@ EXAMPLE_RECURSIVE      = NO
 # that contain images that are to be included in the documentation (see the
 # \image command).
 
-IMAGE_PATH             = "@CF_OPENMS_SRC_PATH@/doc/doxygen/images/" \
-                         "@CF_OPENMS_SRC_PATH@/doc/OpenMS_tutorial/images/"
+IMAGE_PATH             = "@CF_OPENMS_SRC_PATH@/doc/doxygen/images/" 
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program

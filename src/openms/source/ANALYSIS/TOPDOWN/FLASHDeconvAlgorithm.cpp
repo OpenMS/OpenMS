@@ -139,7 +139,7 @@ namespace OpenMS
 
   void FLASHDeconvAlgorithm::filterLowPeaks_(MSExperiment& map)
   {
-    OPENMS_LOG_INFO << "Filtering low peaks in spectra ... " << std::endl;
+    OPENMS_LOG_INFO << "Filtering low peaks in spectra ... ";
     ThresholdMower threshold_mower_filter;                         // threshold
     Param t_filter_param = threshold_mower_filter.getParameters(); //"threshold", .00001
     t_filter_param.setValue("threshold", 1e-6);
@@ -148,17 +148,20 @@ namespace OpenMS
 
     for (auto& it : map)
     {
+      if (it.empty()) continue;
       Size count = it.getType(false) == SpectrumSettings::CENTROID ? max_peak_count_for_centroid_ : max_peak_count_for_profile_;
       it.sortByIntensity(true);
       double threshold = it.size() < count ? 0 : it[count].getIntensity();
       threshold = std::max(threshold, (double)it.begin()->getIntensity() / 1000);
       // pop back the low intensity peaks using threshold
+
       while (!it.empty() && it.back().getIntensity() <= threshold)
       {
         it.pop_back();
       }
       it.sortByPosition();
     }
+    OPENMS_LOG_INFO << "Done"<<std::endl;
   }
 
   void FLASHDeconvAlgorithm::mergeSpectra_(MSExperiment& map, uint ms_level)
@@ -407,7 +410,7 @@ namespace OpenMS
     // feature tracing here and update FeatureQScores
     runFeatureFinding_(deconvolved_spectra, deconvolved_features);
 
-    Qvalue::updatePeakGroupQvalues(deconvolved_spectra);
+    noise_decoy_weight_ = Qvalue::updatePeakGroupQvalues(deconvolved_spectra);
 
     TopDownIsobaricQuantifier quantifier;
     Param quant_param = param_.copy("iq:", true);
@@ -426,8 +429,11 @@ namespace OpenMS
 
     while (iter != precursor_map_for_ida_.begin() && native_id_precursor_peak_group_map_.find(map[index].getNativeID()) == native_id_precursor_peak_group_map_.end())
     {
-      --iter;
-      if (iter->first < scan_number - preceding_MS1_count_ - 10) // for FLASHIda, give 10 more buffer scans
+      if (iter->first > scan_number || iter == precursor_map_for_ida_.end()){
+        iter--;
+        continue;
+      }
+      if (iter->first < scan_number - preceding_MS1_count_ - 500) // for FLASHIda, give more buffer scans
       {
         return;
       }
@@ -463,6 +469,7 @@ namespace OpenMS
           }
         }
       }
+      --iter;
     }
   }
 

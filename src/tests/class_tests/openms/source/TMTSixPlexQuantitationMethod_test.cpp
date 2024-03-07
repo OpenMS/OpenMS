@@ -109,9 +109,9 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
   ABORT_IF(m.rows() != 6)
   ABORT_IF(m.cols() != 6)
   
-  for(Matrix<double>::SizeType i = 0; i < m.rows(); ++i)
+  for(size_t i = 0; i < m.rows(); ++i)
   {
-    for(Matrix<double>::SizeType j = 0; j < m.cols(); ++j)
+    for(size_t j = 0; j < m.cols(); ++j)
     {
       if (i == j)
         TEST_REAL_SIMILAR(m(i,j), 1.0)

@@ -82,10 +82,11 @@ namespace OpenMS
            @param min_cos the peak groups with cosine score less than this will have setQscore 0.
            @param tol ppm tolerance
            @param is_low_charge if set, charge fit score calculation becomes less stroct
+           @param allowed_iso_error allowed isotope error for decoy generation
            @param is_last if this is set, it means that Qscore calculation is at its last iteration. More detailed noise power calculation is activated and mono mass is not recalibrated.
            @return returns isotope offset after isotope cosine calculation
       */
-    int updateQscore(const std::vector<LogMzPeak>& noisy_peaks, const MSSpectrum& spec, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, double tol, bool is_low_charge, const bool is_last = false);
+    int updateQscore(const std::vector<LogMzPeak>& noisy_peaks, const MSSpectrum& spec, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, double tol, bool is_low_charge, int allowed_iso_error, const bool is_last = false);
 
     /**
      * @brief given a monoisotopic mass, recruit raw peaks from the raw input spectrum and add to this peakGroup. This is a bit time-consuming and is done for only a small number of selected
@@ -239,29 +240,6 @@ namespace OpenMS
     /// get feature index of this peak group
     uint getFeatureIndex() const;
 
-    int getChargeRangeForDL()
-    {
-      return charge_range_for_DL_;
-    };
-    int getIsotopeRangeForDL()
-    {
-      return iso_range_for_DL_;
-    };
-    float getBinWidthDL()
-    {
-      return bin_width_DL_;
-    }
-
-    /**
-     * @brief calculate the matrices for DL training and scoring
-     * @param spec original raw spectrum
-     * @param tol mass tolerance
-     * @param avg averagine to normalize the observed isotope pattern
-     */
-    void calculateDLMatrices(const MSSpectrum& spec, double tol, const PrecalculatedAveragine& avg);
-
-    /// get the calcualted DL matrix
-    Matrix<float> getDLMatrix(int index) const;
 
     /// iterators for the signal LogMz peaks in this PeakGroup
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator begin() const noexcept;
@@ -288,7 +266,6 @@ namespace OpenMS
     bool empty() const;
     void swap(std::vector<FLASHDeconvHelperStructs::LogMzPeak>& x);
     void sort();
-
   private:
     /// update chargefit score and also update per charge intensities here.
     void updateChargeFitScoreAndChargeIntensities_(bool is_low_charge);
@@ -352,10 +329,6 @@ namespace OpenMS
     PeakGroup::TargetDecoyType target_decoy_type_ = target;
     /// up to which negative isotope index should be considered. By considereing negative istoopes, one can reduce isotope index error.
     int min_negative_isotope_index_ = -1;
-
-    int charge_range_for_DL_ = 7;
-    float bin_width_DL_ = 0.25;
-    int iso_range_for_DL_ = 21;
 
     /// distance between consecutive isotopes. Can be different for decoys
     double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;

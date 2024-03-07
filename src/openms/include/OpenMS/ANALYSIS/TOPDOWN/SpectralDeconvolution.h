@@ -40,6 +40,7 @@ namespace OpenMS
     SpectralDeconvolution();
 
     /// copy constructor
+    SpectralDeconvolution(const SpectralDeconvolution&) = default;
 
     /// move constructor
     SpectralDeconvolution(SpectralDeconvolution&& other) = default;
@@ -71,6 +72,7 @@ namespace OpenMS
     void setAveragine(const PrecalculatedAveragine& avg);
 
     /** @brief set targeted or excluded masses for targeted deconvolution. Masses are targeted or excluded in all ms levels.
+     *  @param masses target masses to set
         @param exclude if set, masses are excluded.
      */
     void setTargetMasses(const std::vector<double>& masses, bool exclude = false);
@@ -89,9 +91,10 @@ namespace OpenMS
      * @param a_end non zero end index of a (exclusive)
      * @param b vector b
      * @param offset element index offset between a and b
-     * @param min_iso_size minimum isotope size. If isotope size is less than this, return 0
+     * @param min_iso_len minimum isotope size. If isotope size is less than this, return 0
+     * @param decoy if set, distorted isotope pattern is used
      */
-    static float getCosine(const std::vector<float>& a, int a_start, int a_end, const IsotopeDistribution& b, int offset, int min_iso_size, bool decoy = false);
+    static float getCosine(const std::vector<float>& a, int a_start, int a_end, const IsotopeDistribution& b, int offset, int min_iso_len, bool decoy = false);
 
 
     /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
@@ -159,7 +162,7 @@ namespace OpenMS
     /// Q value threshold for each MS level
     DoubleList max_qvalue_;
     /// the peak group vector from normal run. This is used when dummy masses are generated.
-    const DeconvolvedSpectrum* target_dspec_for_decoy_calcualtion_;
+    const DeconvolvedSpectrum* target_dspec_for_decoy_calculation_;
 
     /// PeakGroup::TargetDecoyType values
     PeakGroup::TargetDecoyType target_decoy_type_ = PeakGroup::TargetDecoyType::target;

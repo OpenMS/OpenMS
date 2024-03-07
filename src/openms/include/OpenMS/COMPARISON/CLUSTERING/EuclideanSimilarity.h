@@ -19,7 +19,6 @@ namespace OpenMS
 
       each 2D point as a pair of float holds a float coordinate for each Dimension
 
-      @ingroup DummyComparison
   */
 
   class OPENMS_DLLAPI EuclideanSimilarity

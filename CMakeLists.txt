@@ -250,15 +250,6 @@ if(CLANG_TIME_TRACE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftime-trace")
 endif()
 
-#------------------------------------------------------------------------------
-# Enable SIRIUS_test (SiriusAdapter/AssayGeneratorMetabo)
-#------------------------------------------------------------------------------
-option(ENABLE_SIRIUS_TEST "Enable test for SIRIUS (SiriusAdapter)" OFF)
-
-#------------------------------------------------------------------------------
-# Enable CSI:FingerID_test (SiriusAdapter)
-#------------------------------------------------------------------------------
-option(ENABLE_FINGERID_TEST "Enable test for CSI:FingerID (SiriusAdapter)" OFF)
 
 #------------------------------------------------------------------------------
 # Enable Coverage
@@ -326,6 +317,7 @@ set(VALID_PACKAGE_TYPES "none" # the classical build type make/make install
                         "nsis") # an NSIS installer for Windows
 
 set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
+message(STATUS "Package type is '${PACKAGE_TYPE}'")
 is_valid_package(${PACKAGE_TYPE})
 
 ## Warn here because you need the signing identity before the app bundles are defined in the

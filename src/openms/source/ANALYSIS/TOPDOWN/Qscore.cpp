@@ -14,20 +14,20 @@
 namespace OpenMS
 {
   //==================================== CV 0
-  std::vector<double> Qscore::weight_CV_0_ {-9.351, 0.6602, 0.0386, 0.052, 8.278};
+  std::vector<double> Qscore::weight_CV_0_ {-7.7938, -0.1906, -0.0416, -0.1163, 7.0469};
 
   //====================================== CV 40
-  std::vector<double> Qscore::weight_CV_40_ {-22.427, 0.8907, 0.0064, -0.4009, 20.4231};
+  std::vector<double> Qscore::weight_CV_40_ {-27.9965, -1.0965, 0.0433, -0.4031, 25.4324};
 
   // ====================================== CV 50
-  std::vector<double> Qscore::weight_CV_50_ {-17.9098, -0.6368, 0.0153, -0.5496, 16.2575};
+  std::vector<double> Qscore::weight_CV_50_ {-24.3951, -4.5628, -0.0825, -0.5998, 22.4699};
 
   //====================================== CV 60
-  std::vector<double> Qscore::weight_CV_60_ {-20.3958, 0.1383, -0.0095, -0.4995, 18.6557};
+  std::vector<double> Qscore::weight_CV_60_ {-29.2526, -3.0124, -0.1005, -0.619, 26.9777};
 
   //====================================== Normal
-  std::vector<double> Qscore::weight_centroid_ {-22.3725, 0.9744, -0.1092, -0.3888, 20.7859}; // apr23 all
-  std::vector<double> Qscore::weight_profile_ {-8.7134, 0.4861, -0.0234, 0.2416, 7.8392};
+  std::vector<double> Qscore::weight_centroid_ {-34.5625, -0.5184, -0.0291, -0.1775, 31.8576}; // apr23 all
+  std::vector<double> Qscore::weight_profile_ (weight_centroid_);// {-10.3777, 0.5173, -0.0154, 0.4278, 9.4117}; // yeast
 
   double Qscore::getQscore(const PeakGroup* pg, const MSSpectrum& spectrum)
   {
@@ -100,13 +100,10 @@ namespace OpenMS
     int index = 0;
     fvector[index++] = pg->getIsotopeCosine(); // (log2(a + d));
 
-    // a = pg->getSNR();
     fvector[index++] = pg->getIsotopeCosine() - pg->getChargeIsotopeCosine(pg->getRepAbsCharge()); // (log2(d + a / (d + a)));
 
-    // a = pg->getChargeSNR();
     fvector[index++] = log2(1 + pg->getChargeSNR(pg->getRepAbsCharge())); //(log2(d + a / (d + a)));
 
-    // a = pg->getChargeScore();
     fvector[index++] = log2(1 + pg->getChargeSNR(pg->getRepAbsCharge())) - log2(1 + pg->getSNR()); //(log2(a + d));
 
     return fvector;

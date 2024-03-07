@@ -155,9 +155,9 @@ public:
       @param name Tool name.
       @param description Short description of the tool (one line).
       @param official If this is an official TOPP tool contained in the OpenMS/TOPP release.
-      If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
-
-      @param citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during --help
+             If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
+      @param citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during `--help`
+      @param toolhandler_test Check if this tool is registered with the ToolHandler (disable for unit tests only)
     */
     TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true);
 
@@ -185,7 +185,10 @@ public:
     */
     String getToolPrefix() const;
 
-private:
+    /// Returns a link to the documentation of the tool (accessible on our servers and only after inclusion in the nightly branch or a release).
+    String getDocumentationURL() const;
+
+  private:
     /// Tool name.  This is assigned once and for all in the constructor.
     String const tool_name_;
 
@@ -349,9 +352,6 @@ private:
       The subsection extends until the last colon (":"). If there is no subsection, the empty string is returned.
     */
     String getSubsection_(const String& name) const;
-
-    /// Returns a link to the documentation of the tool (accessible on our servers and only after inclusion in the nightly branch or a release).
-    String getDocumentationURL() const;
 
     /// Returns the default parameters
     Param getDefaultParameters_() const;

@@ -38,6 +38,7 @@ namespace OpenMS
     FLASHDeconvAlgorithm();
 
     /// copy constructor
+    FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm&) = default;
 
     /// move constructor
     FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) = default;
@@ -61,6 +62,12 @@ namespace OpenMS
 
     /// get calculated averagine. Call after calculateAveragine is called.
     const FLASHDeconvHelperStructs::PrecalculatedAveragine& getAveragine();
+
+    /// get noise decoy weight
+    double getNoiseDecoyWeight()
+    {
+      return noise_decoy_weight_;
+    }
 
   protected:
     void updateMembers_() override;
@@ -102,6 +109,8 @@ namespace OpenMS
     /// default precursor isolation window size.
     double isolation_window_size_;
 
+    /// noise decoy weight determined with qvalue calcualtion.
+    double noise_decoy_weight_ = 1;
     /// FLASHIda parsing information is stored here: MS1 scan - information
     std::map<int, std::vector<std::vector<float>>> precursor_map_for_ida_;
     /// a map from native ID to precursor peak group

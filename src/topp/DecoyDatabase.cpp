@@ -60,11 +60,11 @@ and terminates the program if decoys are found.
 /// @cond TOPPCLASSES
 
 class TOPPDecoyDatabase :
-  public TOPPBase
+    public TOPPBase
 {
 public:
   TOPPDecoyDatabase() :
-    TOPPBase("DecoyDatabase", "Create decoy sequence database from forward sequence database.")
+      TOPPBase("DecoyDatabase", "Create decoy sequence database from forward sequence database.")
   {
   }
 
@@ -87,6 +87,8 @@ protected:
     setValidStrings_("method", ListUtils::create<String>("reverse,shuffle"));
     registerIntOption_("shuffle_max_attempts", "<int>", 30, "shuffle: maximum attempts to lower the amino acid sequence identity between target and decoy for the shuffle algorithm", false, true);
     registerDoubleOption_("shuffle_sequence_identity_threshold", "<double>", 0.5, "shuffle: target-decoy amino acid sequence identity threshold for the shuffle algorithm. If the sequence identity is above this threshold, shuffling is repeated. In case of repeated failure, individual amino acids are 'mutated' to produce a different amino acid sequence.", false, true);
+    registerIntOption_("shuffle_decoy_ratio", "<int>", 1, "shuffle: target-decoy database size ratio. The resulting size between target and decoy databases is 1 to this integer value.", false, true);
+    setMinInt_("shuffle_decoy_ratio", 1);
 
     registerStringOption_("seed", "<int>", '1', "Random number seed (use 'time' for system time)", false, true);
 
@@ -138,6 +140,7 @@ protected:
     String keep_const_pattern = decoy_param.getValue("non_shuffle_pattern").toString();
     Int max_attempts = getIntOption_("shuffle_max_attempts");
     double identity_threshold = getDoubleOption_("shuffle_sequence_identity_threshold");
+    int shuffle_ratio = shuffle ? getIntOption_("shuffle_decoy_ratio") : 1;
 
     // Set the seed for shuffling always to the same number, this
     // ensures that identical peptides get shuffled the same way
@@ -156,7 +159,7 @@ protected:
     if (in.size() == 1)
     {
       OPENMS_LOG_WARN << "Warning: Only one FASTA input file was provided, which might not contain contaminants. "
-               << "You probably want to have them! Just add the contaminant file to the input file list 'in'." << endl;
+                      << "You probably want to have them! Just add the contaminant file to the input file list 'in'." << endl;
     }
 
     set<String> identifiers; // spot duplicate identifiers  // std::unordered_set<string> has slightly more RAM, but slightly less CPU
@@ -231,101 +234,106 @@ protected:
           f.writeNext(entry);
         }
 
-        // identifier
-        entry.identifier = getIdentifier_(entry.identifier, decoy_string, decoy_string_position_prefix);
-
-        // sequence
-        if (input_type == SeqType::RNA)
+        String ori_identifier = entry.identifier;
+        for (int num_repeat = 0; num_repeat < shuffle_ratio; num_repeat++)
         {
-          string quick_seq = entry.sequence;
-          bool five_p = (entry.sequence.front() == 'p');
-          bool three_p = (entry.sequence.back() == 'p');
-          if (five_p) //we don't want to reverse terminal phosphates
-          {
-            quick_seq.erase(0, 1);
-          }
-          if (three_p)
-          {
-            quick_seq.pop_back();
-          }
+          String decoy_string_suffix = shuffle_ratio == 1? "" : std::to_string(num_repeat + 1) + "_";
+          // identifier
+          entry.identifier = getIdentifier_(ori_identifier, decoy_string + decoy_string_suffix, decoy_string_position_prefix);
 
-          vector<String> tokenized;
-          std::smatch m;
-          std::string pattern = R"([^\[]|(\[[^\[\]]*\]))";
-          std::regex re(pattern);
-
-          while (std::regex_search(quick_seq, m, re))
+          // sequence
+          if (input_type == SeqType::RNA)
           {
+            string quick_seq = entry.sequence;
+            bool five_p = (entry.sequence.front() == 'p');
+            bool three_p = (entry.sequence.back() == 'p');
+            if (five_p) //we don't want to reverse terminal phosphates
+            {
+              quick_seq.erase(0, 1);
+            }
+            if (three_p)
+            {
+              quick_seq.pop_back();
+            }
+
+            vector<String> tokenized;
+            std::smatch m;
+            std::string pattern = R"([^\[]|(\[[^\[\]]*\]))";
+            std::regex re(pattern);
+
+            while (std::regex_search(quick_seq, m, re))
+            {
               tokenized.emplace_back(m.str(0));
               quick_seq = m.suffix();
-          }
-
-          if (shuffle)
-          {
-            shuffler.portable_random_shuffle(tokenized.begin(), tokenized.end());
-          }
-          else  // reverse
-          {
-            reverse(tokenized.begin(), tokenized.end()); //reverse the tokens
-          }
-          if (five_p)  //add back 5'
-          {
-            tokenized.insert(tokenized.begin(), String("p"));
-          }
-          if (three_p) //add back 3'
-          {
-            tokenized.emplace_back("p");
-          }
-          entry.sequence = ListUtils::concatenate(tokenized, "");
-        }
-        else // protein input
-        {
-          // if (terminal_aminos != "none")
-          if (enzyme != "no cleavage" && (keepN || keepC))
-          {
-            std::vector<AASequence> peptides;
-            digestion.digest(AASequence::fromString(entry.sequence), peptides);
-            String new_sequence = "";
-            for (auto const& peptide : peptides)
-            {
-              //TODO why are the functions from TargetedExperiment and MRMDecoy not anywhere more general?
-              // No soul would look there.
-              if (shuffle)
-              {
-                OpenMS::TargetedExperiment::Peptide p;
-                p.sequence = peptide.toString();
-                OpenMS::TargetedExperiment::Peptide decoy_p = m.shufflePeptide(p, identity_threshold, seed, max_attempts);
-                new_sequence += decoy_p.sequence;
-              }
-              else
-              {
-                OpenMS::TargetedExperiment::Peptide p;
-                p.sequence = peptide.toString();
-                OpenMS::TargetedExperiment::Peptide decoy_p = MRMDecoy::reversePeptide(p, keepN, keepC, keep_const_pattern);
-                new_sequence += decoy_p.sequence;
-              }
             }
-            entry.sequence = new_sequence;
-          }
-          else
-          {
-            // sequence
+
             if (shuffle)
             {
-              shuffler.seed(seed); // identical proteins are shuffled the same way -> re-seed
-              shuffler.portable_random_shuffle(entry.sequence.begin(), entry.sequence.end());
+              shuffler.portable_random_shuffle(tokenized.begin(), tokenized.end());
             }
-            else // reverse
+            else  // reverse
             {
-              entry.sequence.reverse();
+              reverse(tokenized.begin(), tokenized.end()); //reverse the tokens
+            }
+            if (five_p)  //add back 5'
+            {
+              tokenized.insert(tokenized.begin(), String("p"));
+            }
+            if (three_p) //add back 3'
+            {
+              tokenized.emplace_back("p");
+            }
+            entry.sequence = ListUtils::concatenate(tokenized, "");
+          }
+          else // protein input
+          {
+            // if (terminal_aminos != "none")
+            if (enzyme != "no cleavage" && (keepN || keepC))
+            {
+              std::vector<AASequence> peptides;
+              digestion.digest(AASequence::fromString(entry.sequence), peptides);
+              String new_sequence = "";
+              for (auto const& peptide : peptides)
+              {
+                //TODO why are the functions from TargetedExperiment and MRMDecoy not anywhere more general?
+                // No soul would look there.
+                if (shuffle)
+                {
+                  OpenMS::TargetedExperiment::Peptide p;
+                  p.sequence = peptide.toString();
+                  OpenMS::TargetedExperiment::Peptide decoy_p = m.shufflePeptide(p, identity_threshold, seed, max_attempts);
+                  new_sequence += decoy_p.sequence;
+                }
+                else
+                {
+                  OpenMS::TargetedExperiment::Peptide p;
+                  p.sequence = peptide.toString();
+                  OpenMS::TargetedExperiment::Peptide decoy_p = MRMDecoy::reversePeptide(p, keepN, keepC, keep_const_pattern);
+                  new_sequence += decoy_p.sequence;
+                }
+              }
+              entry.sequence = new_sequence;
+            }
+            else
+            {
+              // sequence
+              if (shuffle)
+              {
+                shuffler.seed(seed); // identical proteins are shuffled the same way -> re-seed
+                shuffler.portable_random_shuffle(entry.sequence.begin(), entry.sequence.end());
+              }
+              else // reverse
+              {
+                entry.sequence.reverse();
+              }
             }
           }
-        }
 
-        //-------------------------------------------------------------
-        // writing output
-        //-------------------------------------------------------------
-        f.writeNext(entry);
+          //-------------------------------------------------------------
+          // writing output
+          //-------------------------------------------------------------
+          f.writeNext(entry);
+        }
       } // next protein
     } // input files
 
