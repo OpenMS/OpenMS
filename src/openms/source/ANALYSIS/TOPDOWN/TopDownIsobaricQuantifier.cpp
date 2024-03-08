@@ -243,8 +243,9 @@ namespace OpenMS
         }
       }
 
+      if (intensities.empty()) continue;
       double min_intensity = only_fully_quantified_? *std::min_element(intensities.begin(), intensities.end()) : *std::max_element(intensities.begin(), intensities.end());
-      if (!intensities.empty() && min_intensity > 0) // at least one channel quantified
+      if (min_intensity > 0) // at least one channel quantified
       {
         intensity_clusters[cluster_index].push_back(intensities);
         FLASHDeconvHelperStructs::IsobaricQuantities iq;
@@ -280,8 +281,9 @@ namespace OpenMS
       if (dspec.getQuantities().empty())
         continue;
       auto intensities = merged_intensity_clusters[cluster_index];
+      if (intensities.empty()) continue;
       double min_intensity = only_fully_quantified_? *std::min_element(intensities.begin(), intensities.end()) : *std::max_element(intensities.begin(), intensities.end());
-      if (!intensities.empty() && min_intensity > 0) // all channel quantified
+      if (min_intensity > 0) // all channel quantified
       {
         FLASHDeconvHelperStructs::IsobaricQuantities iq = dspec.getQuantities();
         iq.merged_quantities = intensities;
