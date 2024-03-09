@@ -73,7 +73,7 @@ namespace OpenMS
     static int edgeScore_(int vertex_score1, int vertex_score2);
     bool connectEdge_(TopDownTagger::DAC_& dac, int vertex1, int vertex2, boost::dynamic_bitset<>& visited);
 
-    static Size find_with_X_(const String& A, const String& B);
+    static Size find_with_X_(const std::string_view& A, const String& B);
 
     std::function<int(int, int)> edge_score_;
 

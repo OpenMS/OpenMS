@@ -12,6 +12,7 @@
 
 namespace OpenMS
 {
+  inline const Size max_node_cntr = 500;
   class TopDownTagger::DAC_
   {
   private:
@@ -313,11 +314,21 @@ namespace OpenMS
     std::vector<int> scores;
     mzs.reserve(dspec.size());
     scores.reserve(dspec.size());
+    std::vector<double> qscores;
+    qscores.reserve(dspec.size());
+    for (auto& pg : dspec)
+    {
+      qscores.push_back(pg.getQscore2D());
+    }
+    std::sort(qscores.rbegin(), qscores.rend());
+    auto end = std::min(qscores.end(), qscores.begin() + max_node_cntr);
+    double random_hit_prob = std::accumulate(qscores.begin(), end, .0);
+    random_hit_prob /= (double)std::distance(qscores.begin(), end);
 
     for (auto& pg : dspec)
     {
       mzs.push_back(pg.getMonoMass());
-      int score = (int)round(10 * log10(1e-6 + pg.getQscore2D() / .5));
+      int score = (int)round(10 * log10(std::max(1e-6, pg.getQscore2D() / std::max(1e-6, (1.0 - random_hit_prob)))));
       scores.push_back(score); //
     }
     run(mzs, scores, ppm);
@@ -419,7 +430,6 @@ namespace OpenMS
 
   void TopDownTagger::run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm, const std::function<int(int, int)>& edge_score)
   {
-    const Size max_node_cntr = 500;
     if (max_tag_count_ == 0)
       return;
 
@@ -510,7 +520,7 @@ namespace OpenMS
     std::sort(tags_.begin(), tags_.end(), [](const FLASHDeconvHelperStructs::Tag& a, const FLASHDeconvHelperStructs::Tag& b) { return a.getScore() > b.getScore(); });
   }
 
-  Size TopDownTagger::find_with_X_(const String& A, const String& B) // allow a single X
+  Size TopDownTagger::find_with_X_(const std::string_view & A, const String& B) // allow a single X
   {
     for (size_t i = 0; i <= A.length() - B.length(); ++i)
     {
@@ -607,6 +617,7 @@ namespace OpenMS
             s = fe.sequence.length() - 1 + start_loc[j];
             n = end_loc[j] - start_loc[j];
           }
+          if (s + n >= fe.sequence.length()) continue;
           const auto sub_seq = std::string_view(fe.sequence.data() + s, n);
 
           if (sub_seq.length() < tag.getLength())
@@ -626,17 +637,17 @@ namespace OpenMS
           }
           pos += s;
 
-          if (tag.getNtermMass() > 0)
+          if (tag.getNtermMass() > 0 && pos >= 0)
           {
             auto nterm = fe.sequence.substr(0, pos);
-            if (x_pos != String::npos)
+            if (x_pos != String::npos) {
               nterm.erase(remove(nterm.begin(), nterm.end(), 'X'), nterm.end());
-
+            }
             double aamass = nterm.empty() ? 0 : AASequence::fromString(nterm).getMonoWeight();
             if (std::abs(tag.getNtermMass() - aamass) > flanking_mass_tol_)
               continue;
           }
-          if (tag.getCtermMass() > 0)
+          if (tag.getCtermMass() > 0 && pos + tag.getSequence().length() < fe.sequence.length())
           {
             auto cterm = fe.sequence.substr(pos + tag.getSequence().length());
             if (x_pos != String::npos)

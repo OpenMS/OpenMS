@@ -378,20 +378,22 @@ protected:
       if (!out_protein_tag.empty())
       {
         fstream out_tagger_stream = fstream(out_protein_tag, fstream::out);
-        out_tagger_stream << "ProteinIndex\tProteinAccession\ttProteinDescription\tMatchedAminoAcidCount\tCoverage(%)\tProteinScore\tProteinQvalue\tTagIndices\n";
+        out_tagger_stream << "ProteinIndex\tProteinAccession\ttProteinDescription\tMatchedAminoAcidCount\tCoverage(%)\tProteinScore\tProteinQvalue\tTagCount\tTagIndices\n";
 
         for (const auto& hit : tagger.getProteinHits())
         {
           String tagindices = "";
+          int cntr = 0;
           for (const auto& tag : tagger.getTags(hit))
           {
             if (!tagindices.empty())
               tagindices += ";";
             tagindices += std::to_string(tagger.getTagIndex(tag));
+            cntr++;
           }
 
           out_tagger_stream << tagger.getProteinIndex(hit) << "\t" << hit.getAccession() << "\t" << hit.getDescription() << "\t" << hit.getMetaValue("MatchedAA") << "\t" << 100.0 * hit.getCoverage()
-                            << "\t" << hit.getScore() << "\t" << std::to_string((double)hit.getMetaValue("qvalue")) << "\t" << tagindices << "\n";
+                            << "\t" << hit.getScore() << "\t" << std::to_string((double)hit.getMetaValue("qvalue")) << "\t" << cntr << "\t" << tagindices << "\n";
         }
 
         out_tagger_stream.close();
