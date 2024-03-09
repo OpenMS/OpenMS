@@ -686,6 +686,7 @@ namespace OpenMS
         pairs.emplace_back(hit, matched_tag_indices);
       }
     }
+    if (pairs.empty()) return;
 
     protein_hits_.reserve(pairs.size());
 
