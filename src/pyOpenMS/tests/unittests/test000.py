@@ -3631,9 +3631,8 @@ def testMatrixDouble():
      MapAlignmentAlgorithmIdentification.__init__
      """
 
-    m = pyopenms.MatrixDouble()
     N = 90
-    m.resize(N-1, N+2, 5.0)
+    m = pyopenms.MatrixDouble(N-1, N+2, 5.0)
 
     assert m.rows() == 89
     assert m.cols() == 92
@@ -3680,7 +3679,7 @@ def testMatrixDouble():
     assert m.getValue(1, 6) == 11.0
     assert matrix_view[1, 6] == 11.0
 
-    m.clear()
+    m = pyopenms.MatrixDouble()
     assert m.rows() == 0
     assert m.cols() == 0
 
