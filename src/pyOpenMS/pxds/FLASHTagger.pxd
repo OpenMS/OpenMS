@@ -7,13 +7,13 @@ from DeconvolvedSpectrum cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHTaggerAlgorithm.h>" namespace "OpenMS":
 
-    cdef cppclass FLASHTagger(DefaultParamHandler):
+    cdef cppclass FLASHTaggerAlgorithm(DefaultParamHandler):
         # wrap-inherits:
 
         # default constructor
-        FLASHTagger() except + nogil
+        FLASHTaggerAlgorithm() except + nogil
         # copy constructor
-        FLASHTagger(FLASHTagger &) except + nogil
+        FLASHTaggerAlgorithm(FLASHTagger &) except + nogil
         
         void run(DeconvolvedSpectrum & dspec, double ppm) except + nogil
         void run(libcpp_vector[DeconvolvedSpectrum] & dspecs, double ppm) except + nogil
