@@ -5,7 +5,7 @@ from FASTAFile cimport *
 from libcpp.vector cimport vector as libcpp_vector
 from DeconvolvedSpectrum cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHTagger.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHTaggerAlgorithm.h>" namespace "OpenMS":
 
     cdef cppclass FLASHTagger(DefaultParamHandler):
         # wrap-inherits:
