@@ -15,22 +15,22 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/TopDownIsobaricQuantifier.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/TopDownIsobaricQuantification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
 namespace OpenMS
 {
-  TopDownIsobaricQuantifier::TopDownIsobaricQuantifier() : DefaultParamHandler("TopDownIsobaricQuantifier")
+TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHandler("TopDownIsobaricQuantification")
   {
     setDefaultParams_();
   }
 
-  TopDownIsobaricQuantifier::TopDownIsobaricQuantifier(const TopDownIsobaricQuantifier& other) : DefaultParamHandler(other)
+  TopDownIsobaricQuantification::TopDownIsobaricQuantification(const TopDownIsobaricQuantification& other) : DefaultParamHandler(other)
   {
   }
 
-  TopDownIsobaricQuantifier& TopDownIsobaricQuantifier::operator=(const TopDownIsobaricQuantifier& rhs)
+  TopDownIsobaricQuantification& TopDownIsobaricQuantification::operator=(const TopDownIsobaricQuantification& rhs)
   {
     if (this == &rhs)
       return *this;
@@ -39,7 +39,7 @@ namespace OpenMS
     return *this;
   }
 
-  void TopDownIsobaricQuantifier::setDefaultParams_()
+  void TopDownIsobaricQuantification::setDefaultParams_()
   {
     defaults_.setValue("type", "none", "Isobaric Quantitation method used in the experiment.");
     defaults_.setValidStrings("type", {"none", "itraq4plex", "itraq8plex", "tmt10plex", "tmt11plex", "tmt16plex", "tmt18plex", "tmt6plex"});
@@ -54,7 +54,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void TopDownIsobaricQuantifier::updateMembers_()
+  void TopDownIsobaricQuantification::updateMembers_()
   {
     addMethod_(std::make_unique<ItraqFourPlexQuantitationMethod>());
     addMethod_(std::make_unique<ItraqEightPlexQuantitationMethod>());
@@ -66,7 +66,7 @@ namespace OpenMS
     only_fully_quantified_ = param_.getValue("only_fully_quantified").toString() == "true";
   }
 
-  void TopDownIsobaricQuantifier::quantify(const MSExperiment& exp, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features)
+  void TopDownIsobaricQuantification::quantify(const MSExperiment& exp, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features)
   {
     // set the parameters for this method
     // Param extract_param(getParam_().copy("extraction:", true));

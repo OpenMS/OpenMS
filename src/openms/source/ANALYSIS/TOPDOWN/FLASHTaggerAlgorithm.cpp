@@ -7,13 +7,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/TopDownTagger.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHTaggerAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 #include <utility>
 
 namespace OpenMS
 {
   inline const Size max_node_cntr = 500;
-  class TopDownTagger::DAC_
+  class FLASHTaggerAlgorithm::DAC_
   {
   private:
     int vertex_count_;
@@ -74,7 +75,7 @@ namespace OpenMS
     }
   };
 
-  std::vector<Residue> TopDownTagger::getAA_(double l, double r, double tol, int iso_offset) const
+  std::vector<Residue> FLASHTaggerAlgorithm::getAA_(double l, double r, double tol, int iso_offset) const
   {
     std::vector<Residue> ret;
     if (l == r)
@@ -82,7 +83,7 @@ namespace OpenMS
     double iso_mass = std::abs(iso_offset * Constants::C13C12_MASSDIFF_U);
     double diff1 = std::abs(std::abs(r - l) - iso_mass);
     double diff2 = std::abs(std::abs(r - l) + iso_mass);
-    double abs_tol = std::max(l, r) * tol / 1e6;
+    double abs_tol = std::max(l, r) * tol / 1e6 * 2;
     auto iter = aa_mass_map_.lower_bound(diff1 - abs_tol);
 
     while (iter != aa_mass_map_.end())
@@ -102,7 +103,7 @@ namespace OpenMS
     return ret;
   }
 
-  void TopDownTagger::updateEdgeMasses_()
+  void FLASHTaggerAlgorithm::updateEdgeMasses_()
   {
     aa_mass_map_.clear();
     // gap_mass_map_.clear();
@@ -116,22 +117,22 @@ namespace OpenMS
     }
   }
 
-  int TopDownTagger::getVertex_(int index, int path_score, int level, int iso_level) const
+  int FLASHTaggerAlgorithm::getVertex_(int index, int path_score, int level, int iso_level) const
   {
     return ((index * (max_tag_length_ + 1) + level) * (max_iso_in_tag_ + 1) + iso_level) * (max_path_score_ - min_path_score_ + 1) + (path_score - min_path_score_);
   }
 
-  int TopDownTagger::getIndex_(int vertex) const
+  int FLASHTaggerAlgorithm::getIndex_(int vertex) const
   {
     return ((vertex / (max_path_score_ - min_path_score_ + 1)) / (max_iso_in_tag_ + 1)) / (max_tag_length_ + 1);
   }
 
-  int TopDownTagger::edgeScore_(int vertex_score1, int vertex_score2)
+  int FLASHTaggerAlgorithm::edgeScore_(int vertex_score1, int vertex_score2)
   {
     return vertex_score1 + vertex_score2;
   }
 
-  bool TopDownTagger::connectEdge_(TopDownTagger::DAC_& dac, int vertex1, int vertex2, boost::dynamic_bitset<>& visited)
+  bool FLASHTaggerAlgorithm::connectEdge_(FLASHTaggerAlgorithm::DAC_& dac, int vertex1, int vertex2, boost::dynamic_bitset<>& visited)
   {
     if (vertex1 < 0 || vertex2 < 0 || vertex1 >= visited.size() || vertex2 >= visited.size())
       return false;
@@ -143,7 +144,7 @@ namespace OpenMS
   }
 
 
-  void TopDownTagger::constructDAC_(TopDownTagger::DAC_& dac, const std::vector<double>& mzs, const std::vector<int>& scores, int length, double tol)
+  void FLASHTaggerAlgorithm::constructDAC_(FLASHTaggerAlgorithm::DAC_& dac, const std::vector<double>& mzs, const std::vector<int>& scores, int length, double tol)
   {
     // from source to sink, connect but the edge direction is from sink to source.
     edge_aa_map_.clear();
@@ -244,16 +245,16 @@ namespace OpenMS
     }
   }
 
-  TopDownTagger::TopDownTagger() : DefaultParamHandler("TopDownTagger")
+  FLASHTaggerAlgorithm::FLASHTaggerAlgorithm() : DefaultParamHandler("FLASHTaggerAlgorithm")
   {
     setDefaultParams_();
   }
 
-  TopDownTagger::TopDownTagger(const TopDownTagger& other) : DefaultParamHandler(other)
+  FLASHTaggerAlgorithm::FLASHTaggerAlgorithm(const FLASHTaggerAlgorithm& other) : DefaultParamHandler(other)
   {
   }
 
-  TopDownTagger& TopDownTagger::operator=(const TopDownTagger& rhs)
+  FLASHTaggerAlgorithm& FLASHTaggerAlgorithm::operator=(const FLASHTaggerAlgorithm& rhs)
   {
     if (this == &rhs)
       return *this;
@@ -262,7 +263,7 @@ namespace OpenMS
     return *this;
   }
 
-  void TopDownTagger::setDefaultParams_()
+  void FLASHTaggerAlgorithm::setDefaultParams_()
   {
     defaults_.setValue("max_tag_count", 0,
                        "Maximum number of the tags per length (lengths set by -min_length and -max_length options). The tags with different amino acid combinations are all treated separately. E.g., "
@@ -295,7 +296,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void TopDownTagger::updateMembers_()
+  void FLASHTaggerAlgorithm::updateMembers_()
   {
     max_tag_count_ = param_.getValue("max_tag_count");
     min_tag_length_ = param_.getValue("min_length");
@@ -308,7 +309,26 @@ namespace OpenMS
     max_edge_mass_ = aa_mass_map_.rbegin()->first + max_iso_in_tag_ * Constants::C13C12_MASSDIFF_U;
   }
 
-  void TopDownTagger::run(const DeconvolvedSpectrum& dspec, double ppm)
+  void FLASHTaggerAlgorithm::run(const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, double ppm)
+  {
+    DeconvolvedSpectrum dspec_for_tagging;
+    for (const auto& dspec : deconvolved_spectra)
+    {
+      if (dspec.isDecoy() || dspec.getOriginalSpectrum().getMSLevel() == 1)
+        continue;
+      for (const auto& pg : dspec)
+        dspec_for_tagging.push_back(pg);
+    }
+
+    if (deconvolved_spectra.size() > 1)
+    {
+      dspec_for_tagging.sort();
+      SpectralDeconvolution::removeOverlappingPeakGroups(dspec_for_tagging, ppm); // merged peak groups have scan number information!
+    }
+    run(dspec_for_tagging, ppm);
+  }
+
+  void FLASHTaggerAlgorithm::run(const DeconvolvedSpectrum& dspec, double ppm)
   {
     std::vector<double> mzs;
     std::vector<int> scores;
@@ -334,12 +354,12 @@ namespace OpenMS
     run(mzs, scores, ppm);
   }
 
-  void TopDownTagger::run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm)
+  void FLASHTaggerAlgorithm::run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm)
   {
     run(mzs, scores, ppm, edgeScore_);
   }
 
-  void TopDownTagger::updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>& tag_set, std::map<String, std::vector<FLASHDeconvHelperStructs::Tag>>& seq_tag, const std::vector<int>& path,
+  void FLASHTaggerAlgorithm::updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>& tag_set, std::map<String, std::vector<FLASHDeconvHelperStructs::Tag>>& seq_tag, const std::vector<int>& path,
                                     const std::vector<double>& mzs, const std::vector<int>& scores, double ppm)
   {
     double flanking_mass = -1;
@@ -428,7 +448,7 @@ namespace OpenMS
     }
   }
 
-  void TopDownTagger::run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm, const std::function<int(int, int)>& edge_score)
+  void FLASHTaggerAlgorithm::run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm, const std::function<int(int, int)>& edge_score)
   {
     if (max_tag_count_ == 0)
       return;
@@ -482,7 +502,7 @@ namespace OpenMS
 
     for (int length = min_tag_length_; length <= max_tag_length_; length++)
     {
-      TopDownTagger::DAC_ dac(_mzs.size() * (1 + max_tag_length_) * (1 + max_iso_in_tag_) * (1 + max_path_score_ - min_path_score_));
+      FLASHTaggerAlgorithm::DAC_ dac(_mzs.size() * (1 + max_tag_length_) * (1 + max_iso_in_tag_) * (1 + max_path_score_ - min_path_score_));
       constructDAC_(dac, _mzs, _scores, length, ppm);
 
       std::set<FLASHDeconvHelperStructs::Tag> _tagSet;
@@ -520,7 +540,7 @@ namespace OpenMS
     std::sort(tags_.begin(), tags_.end(), [](const FLASHDeconvHelperStructs::Tag& a, const FLASHDeconvHelperStructs::Tag& b) { return a.getScore() > b.getScore(); });
   }
 
-  Size TopDownTagger::find_with_X_(const std::string_view & A, const String& B) // allow a single X
+  Size FLASHTaggerAlgorithm::find_with_X_(const std::string_view & A, const String& B) // allow a single X
   {
     for (size_t i = 0; i <= A.length() - B.length(); ++i)
     {
@@ -545,7 +565,7 @@ namespace OpenMS
   }
 
   // Make output struct containing all information about matched entries and tags, coverage, score etc.
-  void TopDownTagger::runMatching(const String& fasta_file)
+  void FLASHTaggerAlgorithm::runMatching(const String& fasta_file)
   {
     std::vector<FASTAFile::FASTAEntry> fasta_entry;
     FASTAFile ffile;
@@ -753,7 +773,7 @@ namespace OpenMS
     }
   }
 
-  int TopDownTagger::getProteinIndex(const ProteinHit& hit) const
+  int FLASHTaggerAlgorithm::getProteinIndex(const ProteinHit& hit) const
   {
     auto iter = std::find(protein_hits_.begin(), protein_hits_.end(), hit);
     if (iter == protein_hits_.end())
@@ -761,7 +781,7 @@ namespace OpenMS
     return std::distance(protein_hits_.begin(), iter);
   }
 
-  int TopDownTagger::getTagIndex(const FLASHDeconvHelperStructs::Tag& tag) const
+  int FLASHTaggerAlgorithm::getTagIndex(const FLASHDeconvHelperStructs::Tag& tag) const
   {
     auto iter = std::find(tags_.begin(), tags_.end(), tag);
     if (iter == tags_.end())
@@ -770,12 +790,12 @@ namespace OpenMS
   }
 
 
-  const std::vector<ProteinHit>& TopDownTagger::getProteinHits() const
+  const std::vector<ProteinHit>& FLASHTaggerAlgorithm::getProteinHits() const
   {
     return protein_hits_;
   }
 
-  const std::vector<ProteinHit> TopDownTagger::getProteinHits(const FLASHDeconvHelperStructs::Tag& tag) const
+  const std::vector<ProteinHit> FLASHTaggerAlgorithm::getProteinHits(const FLASHDeconvHelperStructs::Tag& tag) const
   {
     std::vector<ProteinHit> hits;
     int index = getTagIndex(tag);
@@ -787,12 +807,12 @@ namespace OpenMS
     return hits;
   }
 
-  const std::vector<FLASHDeconvHelperStructs::Tag>& TopDownTagger::getTags() const
+  const std::vector<FLASHDeconvHelperStructs::Tag>& FLASHTaggerAlgorithm::getTags() const
   {
     return tags_;
   }
 
-  std::vector<FLASHDeconvHelperStructs::Tag> TopDownTagger::getTags(const ProteinHit& hit) const
+  std::vector<FLASHDeconvHelperStructs::Tag> FLASHTaggerAlgorithm::getTags(const ProteinHit& hit) const
   {
     std::vector<FLASHDeconvHelperStructs::Tag> tags;
     int index = getProteinIndex(hit);

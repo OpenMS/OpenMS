@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
+// $Maintainer: Kyowon Jeong $
 // $Authors: Kyowon Jeong $
 // --------------------------------------------------------------------------
 

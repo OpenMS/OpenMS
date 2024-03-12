@@ -11,9 +11,10 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #ifdef USE_TAGGER
-  #include <OpenMS/ANALYSIS/TOPDOWN/TopDownTagger.h>
+  #include <OpenMS/ANALYSIS/TOPDOWN/FLASHTaggerAlgorithm.h>
   #include <OpenMS/CHEMISTRY/AASequence.h>
   #include <OpenMS/FORMAT/FASTAFile.h>
+  #include <OpenMS/FORMAT/FLASHTaggerFile.h>
 #endif
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
@@ -192,7 +193,7 @@ protected:
 #ifdef USE_TAGGER
     else if (prefix == "tagger")
     {
-      auto tagger_param = TopDownTagger().getDefaults();
+      auto tagger_param = FLASHTaggerAlgorithm().getDefaults();
       tagger_param.remove("min_charge");
       tagger_param.remove("max_charge");
 
@@ -340,12 +341,12 @@ protected:
 
 #ifdef USE_TAGGER
     // Run tagger
-    TopDownTagger tagger;
+    FLASHTaggerAlgorithm tagger;
 
     auto tagger_param = getParam_().copy("tagger:", true);
-    if ((int)tagger_param.getValue("max_tag_count") > 0 && !deconvolved_spectra.empty())
+    if ((int)tagger_param.getValue("max_tag_count") > 0 && !deconvolved_spectra.empty() && tols.size() > 1)
     {
-      OPENMS_LOG_INFO << "Finding sequence tags from deconvolved spectra ..." << endl;
+      OPENMS_LOG_INFO << "Finding sequence tags from deconvolved MS2 spectra ..." << endl;
 
       String fastaname = tagger_param.getValue("fasta").toString();
       String out_tag = tagger_param.getValue("out_tag").toString();
@@ -356,107 +357,28 @@ protected:
       tagger_param.remove("fasta");
       tagger.setParameters(tagger_param);
 
-      DeconvolvedSpectrum dspec_for_tagging;
-      for (const auto& dspec : deconvolved_spectra)
-      {
-        if (dspec.isDecoy())
-          continue;
-        for (const auto& pg : dspec)
-          dspec_for_tagging.push_back(pg);
-      }
-
-      if (deconvolved_spectra.size() > 1)
-      {
-        dspec_for_tagging.sort();
-        SpectralDeconvolution::removeOverlappingPeakGroups(dspec_for_tagging,
-                                                           1e-6 * tols[deconvolved_spectra[0].getOriginalSpectrum().getMSLevel() - 1]); // merged peak groups have scan number information!
-      }
-
-      tagger.run(dspec_for_tagging, tols[dspec_for_tagging.getOriginalSpectrum().getMSLevel() - 1]);
+      tagger.run(deconvolved_spectra, tols[1]);
       tagger.runMatching(fastaname);
 
       if (!out_protein_tag.empty())
       {
         fstream out_tagger_stream = fstream(out_protein_tag, fstream::out);
-        out_tagger_stream << "ProteinIndex\tProteinAccession\ttProteinDescription\tMatchedAminoAcidCount\tCoverage(%)\tProteinScore\tProteinQvalue\tTagCount\tTagIndices\n";
-
-        for (const auto& hit : tagger.getProteinHits())
-        {
-          String tagindices = "";
-          int cntr = 0;
-          for (const auto& tag : tagger.getTags(hit))
-          {
-            if (!tagindices.empty())
-              tagindices += ";";
-            tagindices += std::to_string(tagger.getTagIndex(tag));
-            cntr++;
-          }
-
-          out_tagger_stream << tagger.getProteinIndex(hit) << "\t" << hit.getAccession() << "\t" << hit.getDescription() << "\t" << hit.getMetaValue("MatchedAA") << "\t" << 100.0 * hit.getCoverage()
-                            << "\t" << hit.getScore() << "\t" << std::to_string((double)hit.getMetaValue("qvalue")) << "\t" << cntr << "\t" << tagindices << "\n";
-        }
-
+        FLASHTaggerFile::writeProteinHeader(out_tagger_stream);
+        FLASHTaggerFile::writeProteins(tagger, out_tagger_stream);
         out_tagger_stream.close();
       }
 
       if (!out_tag.empty())
       {
         fstream out_tagger_stream = fstream(out_tag, fstream::out);
-        out_tagger_stream << "Scan\tTagIndex\tProteinIndex\tProteinAccession\tProteinDescription\tTagSequence\tNmass\tCmass\tLength\tDeNovoScore\tmzs\n";
-
-        for (int n = 0; n <= tagger.getProteinHits().size(); n++)
-        {
-          for (const auto& tag : tagger.getTags())
-          {
-            auto hits = tagger.getProteinHits(tag);
-            if (n < tagger.getProteinHits().size())
-            {
-              bool found = false;
-              for (const auto& hit : hits)
-              {
-                if (n == tagger.getProteinIndex(hit))
-                  found = true;
-              }
-              if (!found)
-                continue;
-            }
-
-            if (n == tagger.getProteinHits().size() && !hits.empty())
-              continue;
-
-            String acc = "";
-            String description = "";
-            String hitindices = "";
-            for (const auto& hit : hits)
-            {
-              if (!acc.empty())
-                acc += ";";
-              if (!description.empty())
-                description += ";";
-              if (!hitindices.empty())
-                hitindices += ";";
-              acc += hit.getAccession();
-              description += hit.getDescription();
-              hitindices += std::to_string(tagger.getProteinIndex(hit));
-            }
-
-            out_tagger_stream << dspec_for_tagging.getScanNumber() << "\t" << tagger.getTagIndex(tag) << "\t" << hitindices << "\t" << acc << "\t" << description << "\t" << tag.getSequence() << "\t"
-                              << std::to_string(tag.getNtermMass()) << "\t" << std::to_string(tag.getCtermMass()) << "\t" << tag.getLength() << "\t" << tag.getScore() << "\t";
-
-            for (const auto& mz : tag.getMzs())
-            {
-              out_tagger_stream << std::to_string(mz) << ",";
-            }
-            out_tagger_stream << "\n";
-          }
-        }
+        FLASHTaggerFile::writeTagHeader(out_tagger_stream);
+        FLASHTaggerFile::writeTags(tagger, out_tagger_stream);
 
         out_tagger_stream.close();
       }
     }
 #endif
     OPENMS_LOG_INFO << "FLASHDeconv run complete. Now writing the results in output files ..." << endl;
-
     // Write output files
     // default feature deconvolution tsv output
     if (keep_empty_out || !deconvolved_features.empty())

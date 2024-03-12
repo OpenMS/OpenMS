@@ -13,8 +13,8 @@ set(sources_list_h
     PeakGroup.h
     Qscore.h
 	Qvalue.h
-	TopDownIsobaricQuantifier.h
-	TopDownTagger.h
+		TopDownIsobaricQuantification.h
+		FLASHTaggerAlgorithm.h
     )
 
 ### add path to the filenames

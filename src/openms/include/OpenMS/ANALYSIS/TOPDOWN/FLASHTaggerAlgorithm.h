@@ -24,27 +24,28 @@ namespace OpenMS
   @ingroup Topdown
   */
 
-  class OPENMS_DLLAPI TopDownTagger : public DefaultParamHandler
+  class OPENMS_DLLAPI FLASHTaggerAlgorithm : public DefaultParamHandler
   {
   public:
     /// constructor
-    TopDownTagger();
+    FLASHTaggerAlgorithm();
 
     /// destructor
-    ~TopDownTagger() override = default;
+    ~FLASHTaggerAlgorithm() override = default;
 
     /// copy constructor
-    TopDownTagger(const TopDownTagger&);
+    FLASHTaggerAlgorithm(const FLASHTaggerAlgorithm&);
 
     /// move constructor
-    TopDownTagger(TopDownTagger&& other) = default;
+    FLASHTaggerAlgorithm(FLASHTaggerAlgorithm&& other) = default;
 
     /// assignment operator
-    TopDownTagger& operator=(const TopDownTagger& other);
+    FLASHTaggerAlgorithm& operator=(const FLASHTaggerAlgorithm& other);
 
     /// Find sequence tags from @p mzs and @p intensities then store them in @p tags.
     void run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm, const std::function<int(int, int)>& edge_score);
     void run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm);
+    void run(const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, double ppm);
     void run(const DeconvolvedSpectrum& dspec, double ppm);
     void runMatching(const String& fasta_file);
 
@@ -63,7 +64,7 @@ namespace OpenMS
   private:
     class DAC_;
 
-    void constructDAC_(TopDownTagger::DAC_& dac, const std::vector<double>& mzs, const std::vector<int>& scores, int length, double tol);
+    void constructDAC_(FLASHTaggerAlgorithm::DAC_& dac, const std::vector<double>& mzs, const std::vector<int>& scores, int length, double tol);
     std::vector<Residue> getAA_(double l, double r, double tol, int iso_offset = 0) const;
     void updateEdgeMasses_();
     int getVertex_(int index, int path_score, int level, int iso_level) const;
@@ -71,7 +72,7 @@ namespace OpenMS
     void updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>& tag_set, std::map<String, std::vector<FLASHDeconvHelperStructs::Tag>>& seq_tag, const std::vector<int>& path, const std::vector<double>& mzs, const std::vector<int>& scores, double ppm);
 
     static int edgeScore_(int vertex_score1, int vertex_score2);
-    bool connectEdge_(TopDownTagger::DAC_& dac, int vertex1, int vertex2, boost::dynamic_bitset<>& visited);
+    bool connectEdge_(FLASHTaggerAlgorithm::DAC_& dac, int vertex1, int vertex2, boost::dynamic_bitset<>& visited);
 
     static Size find_with_X_(const std::string_view& A, const String& B);
 

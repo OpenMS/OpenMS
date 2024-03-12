@@ -23,24 +23,24 @@ namespace OpenMS
   @ingroup Topdown
   */
 
-  class OPENMS_DLLAPI TopDownIsobaricQuantifier : public DefaultParamHandler
+  class OPENMS_DLLAPI TopDownIsobaricQuantification : public DefaultParamHandler
   {
   public:
 
     /// constructor
-    TopDownIsobaricQuantifier();
+    TopDownIsobaricQuantification();
 
     /// destructor
-    ~TopDownIsobaricQuantifier() override = default;
+    ~TopDownIsobaricQuantification() override = default;
 
     /// copy constructor
-    TopDownIsobaricQuantifier(const TopDownIsobaricQuantifier&);
+    TopDownIsobaricQuantification(const TopDownIsobaricQuantification&);
 
     /// move constructor
-    TopDownIsobaricQuantifier(TopDownIsobaricQuantifier&& other) = default;
+    TopDownIsobaricQuantification(TopDownIsobaricQuantification&& other) = default;
 
     /// assignment operator
-    TopDownIsobaricQuantifier& operator=(const TopDownIsobaricQuantifier& other);
+    TopDownIsobaricQuantification& operator=(const TopDownIsobaricQuantification& other);
 
     /**
      * Run quantification

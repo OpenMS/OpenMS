@@ -12,7 +12,7 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/Qvalue.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/TopDownIsobaricQuantifier.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/TopDownIsobaricQuantification.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
@@ -97,7 +97,7 @@ namespace OpenMS
     mf_defaults.remove("chrom_peak_snr");
 
     defaults_.insert("ft:", mf_defaults);
-    defaults_.insert("iq:", TopDownIsobaricQuantifier().getDefaults());
+    defaults_.insert("iq:", TopDownIsobaricQuantification().getDefaults());
 
     defaultsToParam_();
   }
@@ -394,7 +394,7 @@ namespace OpenMS
 
     noise_decoy_weight_ = Qvalue::updatePeakGroupQvalues(deconvolved_spectra);
 
-    TopDownIsobaricQuantifier quantifier;
+    TopDownIsobaricQuantification quantifier;
     Param quant_param = param_.copy("iq:", true);
     quantifier.setParameters(quant_param);
     // Isobaric quant run
