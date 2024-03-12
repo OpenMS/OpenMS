@@ -22,9 +22,9 @@ namespace OpenMS
     // translate A to array a (column major order)
     double * a_vec = new double[A.rows() * A.cols()];
     size_t idx = 0;
-    for (size_t col = 0; col < A.cols(); ++col)
+    for (long int col = 0; col < A.cols(); ++col)
     {
-      for (size_t row = 0; row < A.rows(); ++row)
+      for (long int row = 0; row < A.rows(); ++row)
       {
         a_vec[idx] = A(row, col);
         idx++;
@@ -41,7 +41,7 @@ namespace OpenMS
 
     // translate b
     double * b_vec = new double[a_rows];
-    for (size_t row = 0; row < b.rows(); ++row)
+    for (long int row = 0; row < b.rows(); ++row)
     {
       b_vec[row] = b(row, 0);
     }

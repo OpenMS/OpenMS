@@ -17,6 +17,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Matrix.h>" namespace "OpenMS":
         size_t rows() nogil
         size_t cols() nogil
         size_t size() nogil
+        ValueT* data() nogil
         ## bool operator==(Matrix & rhs) except + nogil 
         ## bool operator<(Matrix & rhs) except + nogil 
         # TEMPLATE # void setMatrix(ValueType matrix) except + nogil 
