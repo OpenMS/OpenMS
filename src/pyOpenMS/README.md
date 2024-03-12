@@ -14,7 +14,7 @@ See [README_WRAPPING_NEW_CLASSES](./README_WRAPPING_NEW_CLASSES)
 
 Build instructions
 ------------------
-
+pyopenms_env
 1. Get Python 3.7+ and the following Python libraries:
    - pip
    - Cython
