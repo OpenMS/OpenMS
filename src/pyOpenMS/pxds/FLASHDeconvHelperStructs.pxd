@@ -22,7 +22,3 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>" namespac
         Tag_FDHS(String seq, double n_mass, double c_mass, libcpp_vector[int]& scores, libcpp_vector[double] & mzs) except + nogil
         # copy constructor
         Tag_FDHS(Tag_FDHS &) except + nogil
-
-
-
-
