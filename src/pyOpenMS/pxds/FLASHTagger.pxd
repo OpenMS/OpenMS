@@ -16,4 +16,4 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHTagger.h>" namespace "OpenMS":
         FLASHTagger(FLASHTagger &) except + nogil
         
         void run(DeconvolvedSpectrum & dspec, double ppm) except + nogil
-        void run(std::vector<DeconvolvedSpectrum> & dspecs, double ppm) except + nogil
+        void run(libcpp_vector[DeconvolvedSpectrum] & dspecs, double ppm) except + nogil
