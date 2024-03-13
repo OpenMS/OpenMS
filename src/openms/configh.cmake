@@ -28,7 +28,7 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche, Chris Bielow $
+# $Maintainer: Chris Bielow $
 # $Authors: Chris Bielow, Stephan Aiche $
 # --------------------------------------------------------------------------
 
@@ -61,94 +61,6 @@ if (DOXYGEN_HAVE_DOT)
   set(CF_OPENMS_HASDOXYGENDOT 1)
 else()
   set(CF_OPENMS_HASDOXYGENDOT 0)
-endif()
-
-include(CheckTypeSize) ## Check sizeof a type
-CHECK_TYPE_SIZE("unsigned char" SIZE_UCHAR)
-CHECK_TYPE_SIZE("unsigned short" SIZE_USHORT)
-CHECK_TYPE_SIZE("unsigned int" SIZE_UINT)
-CHECK_TYPE_SIZE("unsigned long" SIZE_ULONG)
-CHECK_TYPE_SIZE("unsigned long long" SIZE_ULONGLONG)
-CHECK_TYPE_SIZE("short" SIZE_SHORT)
-CHECK_TYPE_SIZE("int" SIZE_INT)
-CHECK_TYPE_SIZE("long" SIZE_LONG)
-CHECK_TYPE_SIZE("long long" SIZE_LONGLONG)
-
-CHECK_TYPE_SIZE("int32_t" SIZE_INT32)
-if (HAVE_SIZE_INT32)
-	set(CF_OPENMS_INT32_TYPE int32_t)
-else()
-	## search for another Int32 type
-	if (SIZE_INT MATCHES "4")
-		set(CF_OPENMS_INT32_TYPE int)
-	elseif (SIZE_SHORT MATCHES "4")
-		set(CF_OPENMS_INT32_TYPE short)
-	elseif (SIZE_LONG MATCHES "4")
-		set(CF_OPENMS_INT32_TYPE long)
-	else()
-		Message(FATAL_ERROR "Cannot find signed 32bit integer type. Please contact the developers!")
-	endif()
-endif()
-
-CHECK_TYPE_SIZE("int64_t" SIZE_INT64)
-if (HAVE_SIZE_INT64)
-	set(CF_OPENMS_INT64_TYPE int64_t)
-else()
-	## search for another Int64 type
-	if (SIZE_INT MATCHES "8")
-		set(CF_OPENMS_INT64_TYPE int)
-	elseif (SIZE_LONG MATCHES "8")
-		set(CF_OPENMS_INT64_TYPE long)
-	elseif (SIZE_LONGLONG MATCHES "8")
-		set(CF_OPENMS_INT64_TYPE "long long")
-	else()
-		Message(FATAL_ERROR "Cannot find signed 64bit integer type. Please contact the developers!")
-	endif()
-endif()
-
-CHECK_TYPE_SIZE("uint8_t" SIZE_UINT8)
-if (HAVE_SIZE_UINT8)
-	set(CF_OPENMS_BYTE_TYPE uint8_t)
-else()
-	## search for another uint8 type
-	if (SIZE_UCHAR MATCHES "1")
-		set(CF_OPENMS_BYTE_TYPE "unsigned char")
-	elseif (SIZE_USHORT MATCHES "1")
-		set(CF_OPENMS_BYTE_TYPE "unsigned short")
-	else()
-		Message(FATAL_ERROR "Cannot find unsigned 8bit integer (byte) type. Please contact the developers!")
-	endif()
-endif()
-
-
-CHECK_TYPE_SIZE("uint32_t" SIZE_UINT32)
-if (HAVE_SIZE_UINT32)
-	set(CF_OPENMS_UINT32_TYPE uint32_t)
-else()
-	## search for another UInt32 type
-	if (SIZE_UINT MATCHES "4")
-		set(CF_OPENMS_UINT32_TYPE "unsigned int")
-	elseif (SIZE_USHORT MATCHES "4")
-		set(CF_OPENMS_UINT32_TYPE "unsigned short")
-	elseif (SIZE_ULONG MATCHES "4")
-		set(CF_OPENMS_UINT32_TYPE "unsigned long")
-	else()
-		Message(FATAL_ERROR "Cannot find unsigned 32bit integer type. Please contact the developers!")
-	endif()
-endif()
-
-CHECK_TYPE_SIZE("uint64_t" SIZE_UINT64)
-if (HAVE_SIZE_UINT64)
-	set(CF_OPENMS_UINT64_TYPE uint64_t)
-else()
-	## search for another uint64 type
-	if (SIZE_ULONG MATCHES "8")
-		set(CF_OPENMS_UINT64_TYPE "unsigned long")
-	elseif (SIZE_ULONGLONG MATCHES "8")
-		set(CF_OPENMS_UINT64_TYPE "unsigned long long")
-	else()
-		Message(FATAL_ERROR "Cannot find uint64 type. Please contact the developers!")
-	endif()
 endif()
 
 #------------------------------------------------------------------------------
