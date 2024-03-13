@@ -55,7 +55,7 @@ namespace OpenMS
     const std::vector<FLASHDeconvHelperStructs::Tag>& getTags() const;
     int getProteinIndex(const ProteinHit& hit) const;
     int getTagIndex(const FLASHDeconvHelperStructs::Tag& tag) const;
-
+    std::vector<int> getMatchedPositions(const ProteinHit& hit, const FLASHDeconvHelperStructs::Tag& tag) const;
   protected:
     void updateMembers_() override;
     /// implemented for DefaultParamHandler
@@ -69,12 +69,13 @@ namespace OpenMS
     void updateEdgeMasses_();
     int getVertex_(int index, int path_score, int level, int iso_level) const;
     int getIndex_(int vertex) const;
+
     void updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>& tag_set, std::map<String, std::vector<FLASHDeconvHelperStructs::Tag>>& seq_tag, const std::vector<int>& path, const std::vector<double>& mzs, const std::vector<int>& scores, double ppm);
 
     static int edgeScore_(int vertex_score1, int vertex_score2);
     bool connectEdge_(FLASHTaggerAlgorithm::DAC_& dac, int vertex1, int vertex2, boost::dynamic_bitset<>& visited);
 
-    static Size find_with_X_(const std::string_view& A, const String& B);
+    static Size find_with_X_(const std::string_view& A, const String& B, Size pos = 0);
 
     std::function<int(int, int)> edge_score_;
 
@@ -86,6 +87,7 @@ namespace OpenMS
     std::vector<ProteinHit> protein_hits_;
     std::vector<std::vector<int>> matching_tags_indices_; // from protein hit to tag index
     std::vector<std::vector<int>> matching_hits_indices_; // from tag to protein hit index
+    std::map<std::pair<int, int>, std::vector<int>> matching_hits_tag_positions_; // from hit tag indices to matching positions
 
     int max_tag_count_ = 0;
     int min_tag_length_ = 0;
