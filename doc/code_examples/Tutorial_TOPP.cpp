@@ -1,4 +1,4 @@
-//! [doxygen_snippet_final]
+//! [doxygen_snippet_TOPPexample]
 // Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // --------------------------------------------------------------------------
@@ -172,4 +172,4 @@ int main(int argc, const char** argv)
 
 /// @endcond
 
-//! [doxygen_snippet_final]
+//! [doxygen_snippet_TOPPexample]

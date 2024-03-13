@@ -614,7 +614,7 @@ Since different filter criteria may be introduced in the future, the structure w
 <br>
 Polish your code - add additional functionality
 
-\snippet Tutorial_Final.cpp doxygen_snippet_final 
+\snippet Tutorial_Final.cpp doxygen_snippet_TOPPexample
 
 @subsection tutorial_pull Open a pull request 
 Afterwards you can commit your changes to a new branch “feature/DatabaseFilter” of your %OpenMS clone on github and submit a pull request on your github page. After a short review process by the %OpenMS Team, the tool will be added the %OpenMS Library.
