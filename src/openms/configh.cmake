@@ -71,11 +71,9 @@ CHECK_INCLUDE_FILE_CXX("unistd.h" OPENMS_HAS_UNISTD_H)
 CHECK_INCLUDE_FILE_CXX("process.h" OPENMS_HAS_PROCESS_H)
 
 CHECK_INCLUDE_FILE_CXX("time.h" OPENMS_HAS_TIME_H)
-CHECK_INCLUDE_FILE_CXX("sys/types.h" OPENMS_HAS_SYS_TYPES_H)
 CHECK_INCLUDE_FILE_CXX("sys/times.h" OPENMS_HAS_SYS_TIMES_H)
 CHECK_INCLUDE_FILE_CXX("sys/time.h"  OPENMS_HAS_SYS_TIME_H)
 CHECK_INCLUDE_FILE_CXX("sys/resource.h"  OPENMS_HAS_SYS_RESOURCE_H)
-CHECK_INCLUDE_FILE_CXX("stdint.h"  OPENMS_HAS_STDINT_H)
 
 #------------------------------------------------------------------------------
 # check if certain c++ functions exist
