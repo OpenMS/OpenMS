@@ -373,11 +373,21 @@ Retrieve precursor information
 @subsection tutorial_library_kernelclasses_mrm MRMTransitionGroup
 The targeted analysis of SRM or DIA (SWATH-MS) type of data requires a set of targeted assays as well as raw data chromatograms. The MRMTransitionGroup class allows users to map these two types of information and store them together with identified features conveniently in a single object. 
 <br><br>
-<b>Example: Tutorial_MRMTransitionGroup</b>
-<br>
 Create an empty MRMTransitionGroup with two dummy transitions
 
-\snippet Tutorial_MRMTransitionGroup.cpp doxygen_snippet_MRMTransitionGroup
+@code
+using TrGroup = MRMTransitionGroup<MSChromatogram, ReactionMonitoringTransition>;
+TrGroup createTransitionGroup()
+{
+  TrGroup tr_group;
+  tr_group.addChromatogram(MSChromatogram(), “transition1”);
+  tr_group.addTransition(ReactionMonitoringTransition(), “transition1”);
+  tr_group.addChromatogram(MSChromatogram(), “transition2”);
+  tr_group.addTransition(ReactionMonitoringTransition(), “transition2”);
+  tr_group.setTransitionGroupID(“tr_peptideA”);
+  return tr_group;
+}
+@endcode
 
 Note how the identifiers of the chromatograms and the assay information (ReactionMonitoringTransition) are matched so that downstream algorithms can utilize the meta-information stored in the assays for data analysis.
 
@@ -590,14 +600,19 @@ Write the output
 \snippet Tutorial_Final.cpp doxygen_snippet_output
 
 @subsection tutorial_test Adding TOPP tests
-Testing your tools is essential and required to promote your experimental util to an official TOPP tool. It is not mandatory to provide a test for a util but appreciated.
-For this test a .fasta and a compatible .idXML file have to be added to /src/tests/topp/. Further the test procedure has to be added to CMakeLists.txt in the same folder.
-<br><br>
-<b>Example: Tutorial_Test.cpp</b>
-<br>
-Add tests
+Testing your tools is essential and all official TOPP tools need to be tested.
+Our particular test requires a .fasta and a compatible .idXML file. We add those to `/src/tests/topp/`.
+Furthermore, the actual calls to the TOPP tool using our test data, are added to CMakeLists.txt in the same folder, e.g.:
 
-\snippet Tutorial_Test.cpp doxygen_snippet_Test
+@code
+# DatabaseFilter test:
+add_test("TOPP_DatabaseFilter_1" ${TOPP_BIN_PATH}/DatabaseFilter -test -in ${DATA_DIR_TOPP}/DatabaseFilter_1.fasta -accession ${DATA_DIR_TOPP}/DatabaseFilter_1.idXML -out DatabaseFilter_1_out.fasta.tmp)
+add_test("TOPP_DatabaseFilter_1_out" ${DIFF} -in1 DatabaseFilter_1_out.fasta.tmp -in2 ${DATA_DIR_TOPP}/DatabaseFilter_1_out.fasta )
+set_tests_properties("TOPP_DatabaseFilter_1_out" PROPERTIES DEPENDS "TOPP_DatabaseFilter_1")
+add_test("TOPP_DatabaseFilter_2" ${TOPP_BIN_PATH}/DatabaseFilter -test -in ${DATA_DIR_TOPP}/DatabaseFilter_1.fasta -accession ${DATA_DIR_TOPP}/DatabaseFilter_1.idXML -out DatabaseFilter_2_out.fasta.tmp -method blacklist)
+add_test("TOPP_DatabaseFilter_2_out" ${DIFF} -in1 DatabaseFilter_2_out.fasta.tmp -in2 ${DATA_DIR_TOPP}/DatabaseFilter_2_out.fasta )
+set_tests_properties("TOPP_DatabaseFilter_2_out" PROPERTIES DEPENDS "TOPP_DatabaseFilter_2")
+@endcode
 
 These tests run the program with the given parameters and then call a diff tool to compare the generated output to the expected output.
 
