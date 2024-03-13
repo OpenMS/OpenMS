@@ -54,18 +54,18 @@ public:
 private:
     /**
      * @brief Fills the input vector for the Eigen/NNLS step given the ConsensusFeature.
-     * 
+     *
      * Warning, assumes that the consensusMap and its ConsensusFeatures have exactly the same cardinality as the
      * number of channels as in the quantitation method and are in the same order as the channels.
-     * 
+     *
      * I.e. for a TMT16plex, although the whole ConsensusMap has 160 potential map_index values because we had 10 files,
      * every ConsensusFeature is only allowed to have exactly 16 map_index values (one for each channel) and they are
      * in the same order as the channels in the quantitation method.
-     * 
-     * @param[out] b 
-     * @param[out] m_b 
-     * @param[in] cf 
-     * @param[in] cm 
+     *
+     * @param[out] b
+     * @param[out] m_b
+     * @param[in] cf
+     * @param[in] cm
      */
     static void fillInputVector_(Eigen::VectorXd& b,
                                  Matrix<double>& m_b,
@@ -79,9 +79,8 @@ private:
      */
     static void solveNNLS_(const Matrix<double>& correction_matrix,
                            const Matrix<double>& m_b, Matrix<double>& m_x);
-    // @jpfeuffer why shared_ptr needed here?                           
-    static void solveNNLS_(std::shared_ptr<Eigen::MatrixXd> & correction_matrix, std::vector<double> & b, std::vector<double> & x);
-    static void solveNNLS_(std::shared_ptr<const Eigen::MatrixXd> & correction_matrix, std::vector<double> & b, std::vector<double> & x);
+    // @jpfeuffer why shared_ptr needed here?
+    static void solveNNLS_(Matrix<double>::EigenMatrixType& correction_matrix, std::vector<double>& b, std::vector<double>& x);
 
     /**
      @brief
@@ -109,4 +108,3 @@ private:
                                  const Matrix<double>& m_x);
   };
 } // namespace
-

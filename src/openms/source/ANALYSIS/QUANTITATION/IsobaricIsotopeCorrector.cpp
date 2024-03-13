@@ -26,12 +26,12 @@ namespace OpenMS
 {
 
   void
-  IsobaricIsotopeCorrector::correctIsotopicImpurities(std::vector<double> & intensities,
-                                                     const IsobaricQuantitationMethod* quant_method)
+  IsobaricIsotopeCorrector::correctIsotopicImpurities(std::vector<double>& intensities,
+                                                      const IsobaricQuantitationMethod* quant_method)
   {
     std::vector<double> res(quant_method->getNumberOfChannels());
     // we need to copy anyway because NNLS will modify the input Matrix
-    MutableEigenMatrixXdPtr m(convertOpenMSMatrix2MutableEigenMatrixXd(quant_method->getIsotopeCorrectionMatrix()));
+    Matrix<double>::EigenMatrixType m = quant_method->getIsotopeCorrectionMatrix().getEigenMatrix();
     solveNNLS_(m, intensities, res);
     intensities = res;
   }
@@ -53,7 +53,7 @@ namespace OpenMS
     }
 
     Matrix<double> m_x(c, 1.);
-    
+
     solveNNLS_(m, m_b, m_x);
     for (Size i = 0; i < c; ++i)
     {
@@ -84,13 +84,13 @@ namespace OpenMS
 
       // workaround: TMT11plex has a special case where the correction matrix is the identity matrix
       if (quant_method->getMethodName() != "tmt11plex")
-      {        
+      {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "IsobaricIsotopeCorrector: The given isotope correction matrix is an identity matrix leading to no correction. "
                                           "Please provide a valid isotope_correction matrix as it was provided with the sample kit!");
       }
     }
-    
+
     Eigen::FullPivLU<Eigen::MatrixXd> ludecomp(correction_matrix.getEigenMatrix());
     Eigen::VectorXd b;
     b.resize(quant_method->getNumberOfChannels());
@@ -134,7 +134,7 @@ namespace OpenMS
       computeStats_(m_x, e_mx, cf_intensity, quant_method, stats);
 
       /* Try this when time permits
-      
+
       std::vector<double> b = getIntensities_(quant_method, consensus_map_in[i], consensus_map_in);
 
       //solve
@@ -207,21 +207,9 @@ namespace OpenMS
   }
 
   void
-  IsobaricIsotopeCorrector::solveNNLS_(std::shared_ptr<Eigen::MatrixXd> & correction_matrix, std::vector<double> & b, std::vector<double> & x)
+  IsobaricIsotopeCorrector::solveNNLS_(Matrix<double>::EigenMatrixType& correction_matrix, std::vector<double>& b, std::vector<double>& x)
   {
     Int status = NonNegativeLeastSquaresSolver::solve(correction_matrix, b, x);
-    if (status != NonNegativeLeastSquaresSolver::SOLVED)
-    {
-      throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricIsotopeCorrector: Failed to find least-squares fit!");
-    }
-  }
-
-  void
-  IsobaricIsotopeCorrector::solveNNLS_(std::shared_ptr<const Eigen::MatrixXd> & correction_matrix, std::vector<double> & b, std::vector<double> & x)
-  {
-    Eigen::MatrixXd copy = *correction_matrix;
-    auto copy_ptr = std::make_shared<Eigen::MatrixXd>(copy);
-    Int status = NonNegativeLeastSquaresSolver::solve(copy_ptr, b, x);
     if (status != NonNegativeLeastSquaresSolver::SOLVED)
     {
       throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricIsotopeCorrector: Failed to find least-squares fit!");

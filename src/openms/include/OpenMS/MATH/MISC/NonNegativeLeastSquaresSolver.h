@@ -49,8 +49,7 @@ public:
 
       @throws Exception::InvalidParameters if Matrix dimensions do not fit
     */
-    static Int solve(MutableEigenMatrixXdPtr & A, std::vector<double> & b, std::vector<double> & x);
+    static Int solve(Matrix<double>::EigenMatrixType& A, std::vector<double>& b, std::vector<double>& x);
   };
 
 } // namespace OpenMS
-
