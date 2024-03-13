@@ -3666,7 +3666,9 @@ def testMatrixDouble():
     m.setValue(3, 5, 8.0)
     assert m.getValue(3, 5) == 8.0
 
+    print(m)
     mat = m.get_matrix_as_view()
+    print(mat)
     assert mat[3, 5] == 8.0
 
     mat = m.get_matrix()
