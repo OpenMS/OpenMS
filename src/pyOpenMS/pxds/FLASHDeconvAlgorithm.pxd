@@ -13,6 +13,8 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>" namespace "O
 
     cdef cppclass FLASHDeconvAlgorithm(DefaultParamHandler,ProgressLogger):
         # wrap-inherits:
+        #   DefaultParamHandler
+        #   ProgressLogger
 
         # default constructor
         FLASHDeconvAlgorithm() except + nogil
