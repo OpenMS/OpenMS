@@ -22,7 +22,7 @@ jobs:
         path: OpenMS
       
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.13
+      uses: jwlawson/actions-setup-cmake@v2
       with:
         cmake-version: '3.25.x'
 
@@ -124,7 +124,7 @@ jobs:
 
         done
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       name: Upload artifacts
       with:
         name: ${{ runner.os }}-wheels
@@ -138,7 +138,7 @@ jobs:
         path: OpenMS
 
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.13
+      uses: jwlawson/actions-setup-cmake@v2
       with:
         cmake-version: '3.25.x'
 
@@ -260,7 +260,7 @@ jobs:
 
         done
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       name: Upload artifacts
       if: always()
       with:
@@ -269,7 +269,7 @@ jobs:
           bld/CMakeCache.txt
           bld/pyOpenMS/env.py
         
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       name: Upload wheels
       with:
         name: ${{ runner.os }}-wheels
@@ -292,7 +292,7 @@ jobs:
         path: OpenMS
 
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.13
+      uses: jwlawson/actions-setup-cmake@v2
       with:
         cmake-version: '3.25.x'
 
@@ -352,7 +352,7 @@ jobs:
         
         done
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       name: Upload artifacts
       with:
         name: ${{ runner.os }}-wheels
@@ -395,7 +395,7 @@ jobs:
         echo "$HOME/miniconda3/Scripts" >> $GITHUB_PATH
 
     - name: Download artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
           name: ${{ runner.os }}-wheels
 
@@ -445,17 +445,17 @@ jobs:
     steps:
     # haha github is just ridiculous.. not getting their actions to do basic stuff for years
     - name: Download artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
           name: Linux-wheels
           path: /home/runner/work/OpenMS/OpenMS/Linux-wheels
     - name: Download artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
           name: Windows-wheels
           path: /home/runner/work/OpenMS/OpenMS/Windows-wheels
     - name: Download artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
           name: macOS-wheels
           path: /home/runner/work/OpenMS/OpenMS/macOS-wheels
