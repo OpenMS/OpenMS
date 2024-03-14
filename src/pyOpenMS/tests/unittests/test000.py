@@ -3631,6 +3631,20 @@ def testMatrixDouble():
      MapAlignmentAlgorithmIdentification.__init__
      """
 
+    m = pyopenms.MatrixDouble(3, 2, 0.0)
+    for i in range(3):
+        for j in range(2):
+            m.setValue(i, j, i * 10.0 + j) 
+    print(m)
+
+    mv = m.get_matrix_as_view()
+    print(mv)
+
+    mc = m.get_matrix()
+    print(mc)
+
+    mat = m.get_matrix_as_view()
+
     N = 90
     m = pyopenms.MatrixDouble(N-1, N+2, 5.0)
 
