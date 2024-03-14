@@ -3659,21 +3659,21 @@ def testMatrixDouble():
     assert sum(sum(matrix_view)) == (N-1)*(N+2)*5
 
 
-    # Column = 2 / Row = 3
+    # Column = 1 / Row = 2
     ## Now change a value:
 
-    assert m.getValue(2, 3) == 5.0
-    m.setValue(2, 3, 8.0)
-    assert m.getValue(2, 3) == 8.0
+    assert m.getValue(1, 2) == 5.0
+    m.setValue(1, 2, 8.0)
+    assert m.getValue(1, 2) == 8.0
 
     print(m)
     mat = m.get_matrix_as_view()
     print(mat)
-    assert mat[2, 3] == 8.0
+    assert mat[1, 2] == 8.0
 
     mat = m.get_matrix()
-    assert m.getValue(2, 3) == 8.0
-    assert mat[2, 3] == 8.0
+    assert m.getValue(1, 2) == 8.0
+    assert mat[1, 2] == 8.0
 
     # Whatever we change here gets changed in the raw data as well
     matrix_view = m.get_matrix_as_view()
@@ -3687,7 +3687,7 @@ def testMatrixDouble():
 
     mat[3, 6] = 9.0
     m.set_matrix(mat)
-    assert m.getValue(2, 3) == 8.0
+    assert m.getValue(1, 2) == 8.0
     assert m.getValue(3, 6) == 9.0
 
 
