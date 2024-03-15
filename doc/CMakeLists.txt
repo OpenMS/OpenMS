@@ -377,10 +377,15 @@ if(ENABLE_DOCS)
   #------------------------------------------------------------------------------
   # Examples / Tutorials
   #------------------------------------------------------------------------------
-  option(BUILD_EXAMPLES "Compile OpenMS code examples" ON)
+  option(BUILD_EXAMPLES "Compile OpenMS code examples (C++ tutorials)" ON)
+  message(STATUS "Build C++ tutorials: ${BUILD_EXAMPLES} (-DBUILD_EXAMPLES=ON/OFF);")
   if(BUILD_EXAMPLES AND "${PACKAGE_TYPE}" STREQUAL "none")
     add_subdirectory(code_examples)
-  endif(BUILD_EXAMPLES AND "${PACKAGE_TYPE}" STREQUAL "none")
+    message(STATUS " --> Tutorials in '${PROJECT_SOURCE_DIR}/code_examples' will be build!")
+  else()
+    message(STATUS " --> Tutorials in '${PROJECT_SOURCE_DIR}/code_examples' will NOT be build! (since PACKAGE_TYPE=${PACKAGE_TYPE}, but must be 'none')")
+  endif()
+
 
 else()
   message(STATUS "Documentation is not built (-D ENABLE_DOCS=Off).")
