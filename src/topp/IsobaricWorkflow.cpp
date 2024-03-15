@@ -75,32 +75,32 @@ using namespace std;
   For intensity, the closest non-zero m/z signal to the theoretical position is taken as reporter ion abundance.
   The position (RT, m/z) of the consensus centroid is the precursor position in MS1 (from the MS2 spectrum);
   the consensus sub-elements correspond to the theoretical channel m/z (with m/z values of 113-121 Th for iTRAQ and 126-131 Th for TMT, respectively).
-  
+
   For all labeling techniques, the search radius (@p reporter_mass_shift) should be set as small as possible, to avoid picking up false-positive ions as reporters.
   Usually, Orbitraps deliver precision of about 0.0001 Th at this low mass range. Low intensity reporters might have a slightly higher deviation.
   By default, the mass range is set to ~0.002 Th, which should be sufficient for all instruments (~15 ppm).
   The tool will throw an Exception if you set it below 0.0001 Th (~0.7ppm).
   The tool will also throw an Exception if you set @p reporter_mass_shift > 0.003 Th for TMT-10plex and TMT-11plex, since this could
   lead to ambiguities with neighbouring channels (which are ~0.006 Th apart in most cases).
-  
+
   For quality control purposes, the tool reports the median distance between the theoretical vs. observed reporter ion peaks in each channel.
   The search radius is fixed to 0.5 Th (regardless of the user defined search radius). This allows to track calibration issues.
   For TMT-10plex, these results are automatically omitted if they could be confused with a neighbouring channel, i.e.
   exceed the tolerance to a neighbouring channel with the same nominal mass (C/N channels).
   If the distance is too large, you might have a m/z calibration problem (see @ref TOPP_InternalCalibration).
-  
-  @note If none of the reporter ions can be detected in an MSn scan, a consensus feature will still be generated, 
+
+  @note If none of the reporter ions can be detected in an MSn scan, a consensus feature will still be generated,
   but the intensities of the overall feature and of all its sub-elements will be zero.
   (If desired, such features can be removed by applying an intensity filter in @ref TOPP_FileFilter.)
   However, if the spectrum is completely empty (no ions whatsoever), no consensus feature will be generated.
-  
+
   Isotope correction is done using non-negative least squares (NNLS), i.e.:@n
-  Minimize ||Ax - b||, subject to x >= 0, where b is the vector of observed reporter intensities (with "contaminating" isotope species), 
+  Minimize ||Ax - b||, subject to x >= 0, where b is the vector of observed reporter intensities (with "contaminating" isotope species),
   A is a correction matrix (as supplied by the manufacturer of the labeling kit) and x is the desired vector of corrected (real) reporter intensities.
-  Other software tools solve this problem by using an inverse matrix multiplication, but this can yield entries in x which are negative. 
+  Other software tools solve this problem by using an inverse matrix multiplication, but this can yield entries in x which are negative.
   In a real sample, this solution cannot possibly be true, so usually negative values (= negative reporter intensities) are set to zero.
   However, a negative result usually means that noise was not properly accounted for in the calculation.
-  We thus use NNLS to get a non-negative solution, without the need to truncate negative values. 
+  We thus use NNLS to get a non-negative solution, without the need to truncate negative values.
   In the (usual) case that inverse matrix multiplication yields only positive values, our NNLS will give the exact same optimal solution.
 
   The correction matrices can be found (and changed) in the INI file (parameter @p correction_matrix of the corresponding labeling method).
@@ -123,8 +123,8 @@ using namespace std;
 
   After the quantitation, you may want to annotate the consensus features with corresponding peptide identifications,
   obtained from an identification pipeline. Use @ref TOPP_IDMapper to perform the annotation, but make sure to set
-  suitably small RT and m/z tolerances for the mapping. Since the positions of the consensus features reported here 
-  are taken from the precursor of the MS2 (also if quant was done in MS3), it should be possible to achieve a 
+  suitably small RT and m/z tolerances for the mapping. Since the positions of the consensus features reported here
+  are taken from the precursor of the MS2 (also if quant was done in MS3), it should be possible to achieve a
   perfect one-to-one matching of every identification (from MS2) to a single consensus feature.
 
   Note that quantification will be solely on peptide level after this stage. In order to obtain protein quantities,
@@ -280,7 +280,7 @@ protected:
         } while (next_ms1_spec < exp.size());
         ms1_purity = PrecursorPurity::computeInterpolatedPrecursorPurity(id_spec_idx, ms1_spec_idx, next_ms1_spec, exp, max_precursor_isotope_deviation)[0];
       }
-      
+
       if (has_ms3)
       {
         id_purity = ms1_purity;
@@ -296,7 +296,7 @@ protected:
 
   /**
    * @brief Fills an existing ConsensusFeature with all kinds of information of an identified and isobarically quantified peptide.
-   * 
+   *
    * @param[out] cf the ConsensusFeature to fill
    * @param pep information about the PSM (object will be moved)
    * @param exp the MSExperiment to extract information about spectra
@@ -403,7 +403,7 @@ protected:
     quant_method->setParameters(getParam_().copy(quant_method->getMethodName() + ":", true));
 
     bool calc_id_purity = getParam_().getValue("calculate_id_purity").toBool();
-    
+
 
     Param extract_param(getParam_().copy("extraction:", true));
     IsobaricChannelExtractor channel_extractor(quant_method.get());
@@ -444,14 +444,14 @@ protected:
     #pragma omp parallel for num_threads(max_parallel_files)
     #endif
     */
-   
+
     for (Size i = 0; i < in_mz.size(); ++i)
     {
       //ConsensusMap& cur_cmap = all_cmaps[i];
       ConsensusMap cur_cmap;
       const String& mz_file = in_mz[i];
       const String& id_file = in_id[i];
-      
+
       // load mzML
       PeakMap exp;
       mzml_file.load(mz_file, exp);
@@ -496,7 +496,7 @@ protected:
       {
         column.second.filename = mz_file;
       }
-      
+
       #ifdef _OPENMP
       #pragma omp parallel for /*num_threads(inner_threads)*/
       #endif
@@ -518,11 +518,11 @@ protected:
             {
               throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MS3 spectrum expected but not found.", String(exp[quant_spec_idx].getMSLevel()));
             }
-            
+
             std::vector<double> itys = channel_extractor.extractSingleSpec(quant_spec_idx, exp, channel_qc);
 
             // TODO if itys are all zero we can actually skip correction and quantification
-            auto m = convertOpenMSMatrix2MutableEigenMatrixXd(correction_matrix);
+            auto m = correction_matrix.getEigenMatrix();
             std::vector<double> corrected(itys.size(), 0.);
             NonNegativeLeastSquaresSolver::solve(m, itys, corrected);
             fillConsensusFeature_(cur_cmap[pep_idx], pep, exp, id_spec_idx, quant_spec_idx, corrected, quant_method, quant_purity, id_purity, min_reporter_intensity, i);
@@ -558,7 +558,7 @@ protected:
       //IsobaricNormalizer::normalize(cur_cmap);
 
       // TODO cleanup, reset?
-      
+
       if (cmap.empty())
       {
         cmap = std::move(cur_cmap);
@@ -576,7 +576,7 @@ protected:
     {
       cmap.insert(cmap.end(), std::make_move_iterator(cur_cmap.begin()), std::make_move_iterator(cur_cmap.end()));
     }*/
-    
+
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
@@ -610,17 +610,17 @@ protected:
     if (inferred_proteins.getIndistinguishableProteins().empty())
     {
       throw Exception::MissingInformation(
-       __FILE__, 
-       __LINE__, 
-       OPENMS_PRETTY_FUNCTION, 
+       __FILE__,
+       __LINE__,
+       OPENMS_PRETTY_FUNCTION,
        "No information on indistinguishable protein groups found.");
     }
 
     prot_quantifier.quantifyProteins(inferred_proteins);
-    
+
     auto const & protein_quants = prot_quantifier.getProteinResults();
     if (protein_quants.empty())
-    {        
+    {
      OPENMS_LOG_WARN << "Warning: No proteins were quantified." << endl;
     }
 

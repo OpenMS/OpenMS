@@ -12,11 +12,11 @@
 namespace OpenMS
 {
 
-  Int NonNegativeLeastSquaresSolver::solve(MutableEigenMatrixXdPtr & A, std::vector<double> & b, std::vector<double> & x)
+  Int NonNegativeLeastSquaresSolver::solve(Matrix<double>::EigenMatrixType& A, std::vector<double>& b, std::vector<double>& x)
   {
     // this needs to be int (not Int, Size or anything else), because the external nnls constructor expects it this way!
-    int a_rows = (int)A->rows();
-    int a_cols = (int)A->cols();
+    int a_rows = (int)A.rows();
+    int a_cols = (int)A.cols();
 
     if (a_rows != b.size())
     {
@@ -26,17 +26,17 @@ namespace OpenMS
     x.resize(a_cols); // description says it does not have to be initialized
 
     // translate A to array a (column major order)
-    double * a_vec = A->data();
+    double* a_vec = A.data();
 
     // translate b
-    double * b_vec = b.data();
+    double* b_vec = b.data();
 
     // prepare solution array (directly copied from example)
-    double * x_vec = x.data();
+    double* x_vec = x.data();
     double rnorm;
-    double * w = new double[a_cols];
-    double * zz = new double[a_rows];
-    int * indx = new int[a_cols];
+    double* w = new double[a_cols];
+    double* zz = new double[a_rows];
+    int* indx = new int[a_cols];
     int mode;
 
     NNLS::nnls_(a_vec, &a_rows, &a_rows, &a_cols, b_vec, x_vec, &rnorm, w, zz, indx, &mode);
