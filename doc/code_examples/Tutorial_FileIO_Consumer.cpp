@@ -36,7 +36,7 @@ public:
 
 int main(int argc, const char** argv)
 {
-  auto file_mzXML = OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_FileIO.mzXML");
+  auto file_mzXML = OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_FileIO_indexed.mzML");
   
   // Create the consumer, set output file name, transform
   TICWritingConsumer consumer("Tutorial_FileIO_output.mzML");

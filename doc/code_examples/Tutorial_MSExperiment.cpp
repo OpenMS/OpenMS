@@ -18,7 +18,7 @@ int main()
 
   // create a peak map containing 4 dummy spectra and peaks
   MSExperiment exp;
-  
+
   // The following examples creates a MSExperiment containing four MSSpectrum instances.
   for (Size i = 0; i < 4; ++i)
   {
@@ -62,7 +62,7 @@ int main()
   // Store the spectra to a mzML file with:
   FileHandler fh;
   auto tmp_filename = File::getTemporaryFile();
-  fh.storeExperiment(tmp_filename, exp);
+  fh.storeExperiment(tmp_filename, exp, {FileTypes::MZML});
 
   // And load it with
   fh.loadExperiment(tmp_filename, exp);
