@@ -36,7 +36,7 @@ cimport numpy as np
 
         cdef unsigned int rows = data.shape[0]
         cdef unsigned int cols = data.shape[1]
-        mat_.resize(rows, cols, 0)
+        mat_.resize(rows, cols)
 
         cdef int i = 0
         cdef int j = 0
