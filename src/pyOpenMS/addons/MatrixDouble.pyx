@@ -56,19 +56,19 @@ from numpy.lib.stride_tricks import as_strided
 
         return np.copy(np.lib.stride_tricks.as_strided(np.asarray(mem_view, dtype=dtype, order=o), strides=[row_stride*itemsize, col_stride*itemsize]))
 
-#    def set_matrix(self, np.ndarray[double, ndim=2, mode="c"] data not None):
-#        """Cython signature: numpy_matrix set_matrix()
-#        """
+    def set_matrix(self, np.ndarray[double, ndim=2] data not None):
+        """Cython signature: numpy_matrix set_matrix()
+        """
 
-#        cdef _Matrix[double] * mat_ = self.inst.get()
+        cdef _Matrix[double] * mat_ = self.inst.get()
 
-#        cdef unsigned int rows = data.shape[0]
-#        cdef unsigned int cols = data.shape[1]
-#        mat_.resize(rows, cols)
+        cdef unsigned int rows = data.shape[0]
+        cdef unsigned int cols = data.shape[1]
+        mat_.resize(rows, cols)
 
-#        cdef int i = 0
-#        cdef int j = 0
-#        for i in range(int(rows)):
-#            for j in range(int(cols)):
-#                mat_.setValue(i,j,data[i][j])
+        cdef int i = 0
+        cdef int j = 0
+        for i in range(int(rows)):
+            for j in range(int(cols)):
+                mat_.setValue(i, j, data[i][j])
 
