@@ -1,5 +1,6 @@
 from Matrix cimport *
 cimport numpy as np
+from numpy.lib.stride_tricks import as_strided
 
 
 # continue with extra code if needed
@@ -10,12 +11,21 @@ cimport numpy as np
         """
 
         cdef _Matrix[double] * mat_ = self.inst.get()
-
         cdef unsigned int rows = mat_.rows()
         cdef unsigned int cols = mat_.cols()
         cdef double* data = mat_.data()
-        # Create a NumPy array from the buffer, specifying not to copy the data.
-        return np.array(<double[:rows * cols:1]> data, order='F', copy=False).reshape(rows, cols, order='F')
+        cdef double[:,:] mem_view = <double[:rows,:cols]>data
+        dtype = 'double'
+        cdef int itemsize = np.dtype(dtype).itemsize
+        cdef unsigned int row_stride, col_stride
+        if mat_.rowMajor():
+            row_stride = mat_.outerStride() if mat_.outerStride() > 0 else cols
+            col_stride = mat_.innerStride() if mat_.innerStride() > 0 else 1
+        else:
+            row_stride = mat_.innerStride() if mat_.innerStride() > 0 else 1
+            col_stride = mat_.outerStride() if mat_.outerStride() > 0 else rows
+
+        return np.lib.stride_tricks.as_strided(np.asarray(mem_view, dtype=dtype, order="F"), strides=[row_stride*itemsize, col_stride*itemsize])
 
 
     def get_matrix(self):
@@ -26,7 +36,18 @@ cimport numpy as np
         cdef unsigned int rows = mat_.rows()
         cdef unsigned int cols = mat_.cols()
         cdef double* data = mat_.data()
-        return np.array(<double[:rows * cols:1]> data, order='F', copy=True).reshape(rows, cols, order='F')
+        cdef double[:,:] mem_view = <double[:rows,:cols]>data
+        dtype = 'double'
+        cdef int itemsize = np.dtype(dtype).itemsize
+        cdef unsigned int row_stride, col_stride
+        if mat_.rowMajor():
+            row_stride = mat_.outerStride() if mat_.outerStride() > 0 else cols
+            col_stride = mat_.innerStride() if mat_.innerStride() > 0 else 1
+        else:
+            row_stride = mat_.innerStride() if mat_.innerStride() > 0 else 1
+            col_stride = mat_.outerStride() if mat_.outerStride() > 0 else rows
+
+        return np.copy(np.lib.stride_tricks.as_strided(np.asarray(mem_view, dtype=dtype, order="F"), strides=[row_stride*itemsize, col_stride*itemsize]))
 
 #    def set_matrix(self, np.ndarray[double, ndim=2, mode="c"] data not None):
 #        """Cython signature: numpy_matrix set_matrix()

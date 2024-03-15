@@ -35,8 +35,9 @@ namespace OpenMS
      * @brief Eigen matrix type.
      */
     using EigenMatrixType = Eigen::Matrix<Value, Eigen::Dynamic, Eigen::Dynamic>;
-    using EigenMatrixType::resize;
     using EigenMatrixType::fill;
+    using EigenMatrixType::innerStride;
+    using EigenMatrixType::outerStride;
 
     // Default constructor. Creates the "null" matrix.
     Matrix() = default;
@@ -93,6 +94,27 @@ namespace OpenMS
     void setValue(size_t const i, size_t const j, const Value& value)
     {
       this->operator()(i, j) = value;
+    }
+
+    // apparently needed for cython
+    void resize(size_t rows, size_t cols)
+    {
+      EigenMatrixType::resize(rows, cols);
+    }
+
+    int innerStride() const
+    {
+      return EigenMatrixType::innerStride();
+    }
+
+    int outerStride() const
+    {
+      return EigenMatrixType::outerStride();
+    }
+
+    bool rowMajor() const
+    {
+      return EigenMatrixType::IsRowMajor;
     }
 
     /**
