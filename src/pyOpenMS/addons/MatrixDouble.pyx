@@ -28,19 +28,19 @@ cimport numpy as np
         cdef double* data = mat_.data()
         return np.array(<double[:rows * cols:1]> data, order='F', copy=True).reshape(rows, cols, order='F')
 
-    def set_matrix(self, np.ndarray[double, ndim=2, mode="c"] data not None):
-        """Cython signature: numpy_matrix set_matrix()
-        """
+#    def set_matrix(self, np.ndarray[double, ndim=2, mode="c"] data not None):
+#        """Cython signature: numpy_matrix set_matrix()
+#        """
 
-        cdef _Matrix[double] * mat_ = self.inst.get()
+#        cdef _Matrix[double] * mat_ = self.inst.get()
 
-        cdef unsigned int rows = data.shape[0]
-        cdef unsigned int cols = data.shape[1]
-        mat_.resize(rows, cols)
+#        cdef unsigned int rows = data.shape[0]
+#        cdef unsigned int cols = data.shape[1]
+#        mat_.resize(rows, cols)
 
-        cdef int i = 0
-        cdef int j = 0
-        for i in range(int(rows)):
-            for j in range(int(cols)):
-                mat_.setValue(i,j,data[i][j])
+#        cdef int i = 0
+#        cdef int j = 0
+#        for i in range(int(rows)):
+#            for j in range(int(cols)):
+#                mat_.setValue(i,j,data[i][j])
 
