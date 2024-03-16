@@ -7,7 +7,13 @@ from numpy.lib.stride_tricks import as_strided
             
 
     def get_matrix_as_view(self):
-        """Cython signature: numpy_matrix get_matrix_as_view()
+        """get_matrix(self) -> np.ndarray[double, ndim=2]
+
+        Returns a view on the underlying Matrix as a 2D numpy ndarray.
+        .. caution::
+           Future changes to the Matrix will affect the ndarray and vice versa.
+           Make sure that the Matrix does not go out of scope before the last use
+           of your ndarray.
         """
 
         cdef _Matrix[double] * mat_ = self.inst.get()
@@ -32,32 +38,18 @@ from numpy.lib.stride_tricks import as_strided
 
 
     def get_matrix(self):
-        """Cython signature: numpy_matrix get_matrix()
+        """get_matrix(self) -> np.ndarray[double, ndim=2]
+
+        Returns a copy of the underlying Matrix as a 2D numpy ndarray.
         """
 
-        cdef _Matrix[double] * mat_ = self.inst.get()
-        cdef unsigned int rows = mat_.rows()
-        cdef unsigned int cols = mat_.cols()
-        cdef double* data = mat_.data()
-        cdef double[:,:] mem_view = <double[:rows,:cols]>data
-        dtype = 'double'
-        cdef int itemsize = np.dtype(dtype).itemsize
-        cdef unsigned int row_stride, col_stride
-        o = 'F'
-        
-        if mat_.rowMajor():
-            row_stride = mat_.outerStride() if mat_.outerStride() > 0 else cols
-            col_stride = mat_.innerStride() if mat_.innerStride() > 0 else 1
-            o = 'F'
-        else:
-            row_stride = mat_.innerStride() if mat_.innerStride() > 0 else 1
-            col_stride = mat_.outerStride() if mat_.outerStride() > 0 else rows
-            o = 'C'
+        return np.copy(self.get_matrix_as_view())
 
-        return np.copy(np.lib.stride_tricks.as_strided(np.asarray(mem_view, dtype=dtype, order=o), strides=[row_stride*itemsize, col_stride*itemsize]))
 
     def set_matrix(self, np.ndarray[double, ndim=2] data not None):
-        """Cython signature: numpy_matrix set_matrix()
+        """set_matrix(self, data: np.ndarray[double, ndim=2]) -> None
+
+        Copies the values from the numpy ndarray into the Matrix.
         """
 
         cdef _Matrix[double] * mat_ = self.inst.get()
