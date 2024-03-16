@@ -185,7 +185,10 @@ public:
     */
     String getToolPrefix() const;
 
-private:
+    /// Returns a link to the documentation of the tool (accessible on our servers and only after inclusion in the nightly branch or a release).
+    String getDocumentationURL() const;
+
+  private:
     /// Tool name.  This is assigned once and for all in the constructor.
     String const tool_name_;
 
@@ -349,9 +352,6 @@ private:
       The subsection extends until the last colon (":"). If there is no subsection, the empty string is returned.
     */
     String getSubsection_(const String& name) const;
-
-    /// Returns a link to the documentation of the tool (accessible on our servers and only after inclusion in the nightly branch or a release).
-    String getDocumentationURL() const;
 
     /// Returns the default parameters
     Param getDefaultParameters_() const;
