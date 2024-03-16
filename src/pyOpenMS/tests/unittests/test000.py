@@ -3631,9 +3631,22 @@ def testMatrixDouble():
      MapAlignmentAlgorithmIdentification.__init__
      """
 
-    m = pyopenms.MatrixDouble()
+    m = pyopenms.MatrixDouble(3, 2, 0.0)
+    for i in range(3):
+        for j in range(2):
+            m.setValue(i, j, i * 10.0 + j) 
+    print(m)
+
+    mv = m.get_matrix_as_view()
+    print(mv)
+
+    mc = m.get_matrix()
+    print(mc)
+
+    mat = m.get_matrix_as_view()
+
     N = 90
-    m.resize(N-1, N+2, 5.0)
+    m = pyopenms.MatrixDouble(N-1, N+2, 5.0)
 
     assert m.rows() == 89
     assert m.cols() == 92
@@ -3660,19 +3673,21 @@ def testMatrixDouble():
     assert sum(sum(matrix_view)) == (N-1)*(N+2)*5
 
 
-    # Column = 3 / Row = 5
+    # Column = 1 / Row = 2
     ## Now change a value:
 
-    assert m.getValue(3, 5) == 5.0
-    m.setValue(3, 5, 8.0)
-    assert m.getValue(3, 5) == 8.0
+    assert m.getValue(1, 2) == 5.0
+    m.setValue(1, 2, 8.0)
+    assert m.getValue(1, 2) == 8.0
 
+    print(m)
     mat = m.get_matrix_as_view()
-    assert mat[3, 5] == 8.0
+    print(mat)
+    assert mat[1, 2] == 8.0
 
     mat = m.get_matrix()
-    assert m.getValue(3, 5) == 8.0
-    assert mat[3, 5] == 8.0
+    assert m.getValue(1, 2) == 8.0
+    assert mat[1, 2] == 8.0
 
     # Whatever we change here gets changed in the raw data as well
     matrix_view = m.get_matrix_as_view()
@@ -3680,13 +3695,13 @@ def testMatrixDouble():
     assert m.getValue(1, 6) == 11.0
     assert matrix_view[1, 6] == 11.0
 
-    m.clear()
+    m = pyopenms.MatrixDouble()
     assert m.rows() == 0
     assert m.cols() == 0
 
     mat[3, 6] = 9.0
     m.set_matrix(mat)
-    assert m.getValue(3, 5) == 8.0
+    assert m.getValue(1, 2) == 8.0
     assert m.getValue(3, 6) == 9.0
 
 
