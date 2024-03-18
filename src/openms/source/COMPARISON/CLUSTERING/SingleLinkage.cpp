@@ -12,15 +12,6 @@
 
 namespace OpenMS
 {
-  ClusterFunctor * SingleLinkage::create()
-  {
-    return new SingleLinkage();
-  }
-
-  const String SingleLinkage::getProductName()
-  {
-    return "SingleLinkage";
-  }
 
   SingleLinkage::SingleLinkage() :
     ClusterFunctor(), ProgressLogger()

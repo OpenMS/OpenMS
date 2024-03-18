@@ -47,8 +47,6 @@ public:
 
     // @name Accessors
     // @{
-    ///
-    static FilterFunctor * create() { return new NeutralLossDiffFilter(); }
 
     ///
     template <typename SpectrumType>
@@ -77,12 +75,6 @@ public:
       }
 
       return isodiff;
-    }
-
-    ///
-    static const String getProductName()
-    {
-      return "NeutralLossDiffFilter";
     }
 
     // @}

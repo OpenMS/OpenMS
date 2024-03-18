@@ -11,5 +11,4 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/IsotopeDiffFilter.h>" namespace
         double apply(MSSpectrum & ) except + nogil  # TODO
 
         # POINTER # FilterFunctor * create() except + nogil 
-        String getProductName() except + nogil  # TODO
 

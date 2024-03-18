@@ -202,20 +202,6 @@ START_SECTION(bool preprocess(PeakSpectrum &spec, float remove_peak_intensity_th
   TEST_EQUAL(s3.size(),8)
 END_SECTION
 
-
-
-START_SECTION(static PeakSpectrumCompareFunctor* create())
-  PeakSpectrumCompareFunctor* psf = SpectraSTSimilarityScore::create();
-  SpectraSTSimilarityScore spectrast;
-  TEST_EQUAL(psf->getParameters(), spectrast.getParameters())
-  TEST_EQUAL(psf->getName(), spectrast.getName())
-  delete psf;
-END_SECTION
-
-START_SECTION(static const String getProductName())
-  TEST_EQUAL(ptr->getProductName(), "SpectraSTSimilarityScore")
-END_SECTION
-
 START_SECTION(double delta_D(double top_hit, double runner_up))
 SpectraSTSimilarityScore spectrast;
 TEST_EXCEPTION( Exception::DivisionByZero, spectrast.delta_D(0,5))

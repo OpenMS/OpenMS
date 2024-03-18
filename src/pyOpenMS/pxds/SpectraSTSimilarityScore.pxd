@@ -52,4 +52,4 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>" namesp
                 #  :returns: The SpectraST similarity score
 
         # POINTER # MSSpectrumCompareFunctor * create() except + nogil 
-        String getProductName() except + nogil  # wrap-doc:Reimplemented from PeakSpectrumCompareFunctor
+     

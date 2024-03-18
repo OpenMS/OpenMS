@@ -34,7 +34,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>
@@ -138,7 +137,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerIterative.h>
@@ -413,7 +411,6 @@ int main(int argc, char** argv)
   DOCME(LinearResampler);
   DOCME(MSPFile);
   DOCME(MapAlignmentAlgorithmPoseClustering);
-  DOCME(MapAlignmentAlgorithmSpectrumAlignment);
   DOCME(SpectrumAnnotator);
   DOCME(TheoreticalSpectrumGeneratorXLMS);
   DOCME(MRMDecoy);
@@ -469,7 +466,6 @@ int main(int argc, char** argv)
   // workarounds for documenting model parameters in MapAligners:
   writeParameters("MapAlignerIdentificationModel", MapAlignerBase::getModelDefaults("interpolated"), true);
   writeParameters("MapAlignerPoseClusteringModel", MapAlignerBase::getModelDefaults("linear"), true);
-  writeParameters("MapAlignerSpectrumModel", MapAlignerBase::getModelDefaults("interpolated"), true);
   writeParameters("MapRTTransformerModel", MapAlignerBase::getModelDefaults("none"), true);
 
   //////////////////////////////////
@@ -483,7 +479,6 @@ int main(int argc, char** argv)
   DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked()));
   DOCME2(FeatureFinderAlgorithmMRM, (FeatureFinderAlgorithmMRM()));
   DOCME2(FeatureFinderAlgorithm, (FeatureFinderAlgorithmMRM())); //FeatureFinderAlgorithm is a base class, get parameters from subclass FeatureFinderAlgorithmMRM
-  DOCME2(ProductModel, ProductModel<2>());
   DOCME2(SignalToNoiseEstimatorMeanIterative, SignalToNoiseEstimatorMeanIterative<>());
   DOCME2(SignalToNoiseEstimatorMedian, SignalToNoiseEstimatorMedian<>());
   DOCME2(SignalToNoiseEstimator, SignalToNoiseEstimatorMedian<>()); //SignalToNoiseEstimator is a base class, get parameters from subclass SignalToNoiseEstimatorMedian

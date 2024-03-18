@@ -49,9 +49,7 @@ public:
 
     // @name Accessors
     // @{
-    ///
-    static FilterFunctor * create() { return new GoodDiffFilter(); }
-
+      
     ///
     template <typename SpectrumType>
     double apply(SpectrumType & spectrum)
@@ -101,12 +99,6 @@ public:
       }
 
       return gooddiff / totaldiff;
-    }
-
-    ///
-    static const String getProductName()
-    {
-      return "GoodDiffFilter";
     }
 
     // @}

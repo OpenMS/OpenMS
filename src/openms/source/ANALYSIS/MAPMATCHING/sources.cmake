@@ -20,7 +20,6 @@ MapAlignmentAlgorithmIdentification.cpp
 MapAlignmentAlgorithmKD.cpp
 MapAlignmentAlgorithmPoseClustering.cpp
 MapAlignmentAlgorithmTreeGuided.cpp
-MapAlignmentAlgorithmSpectrumAlignment.cpp
 MapAlignmentEvaluationAlgorithm.cpp
 MapAlignmentEvaluationAlgorithmPrecision.cpp
 MapAlignmentEvaluationAlgorithmRecall.cpp

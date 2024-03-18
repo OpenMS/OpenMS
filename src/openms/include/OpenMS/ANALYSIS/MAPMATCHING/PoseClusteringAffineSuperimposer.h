@@ -74,18 +74,6 @@ public:
     /// Perform alignment on vector of 1D peaks
     virtual void run(const std::vector<Peak2D> & map_model, const std::vector<Peak2D> & map_scene, TransformationDescription & transformation);
 
-    /// Returns an instance of this class
-    static BaseSuperimposer * create()
-    {
-      return new PoseClusteringAffineSuperimposer();
-    }
-
-    /// Returns the name of this module
-    static const String getProductName()
-    {
-      return "poseclustering_affine";
-    }
-
   };
 } // namespace OpenMS
 

@@ -13,17 +13,6 @@
 
 namespace OpenMS
 {
-  /// creates a new instance of a AverageLinkage object
-  ClusterFunctor * AverageLinkage::create()
-  {
-    return new AverageLinkage();
-  }
-
-  /// get the identifier for this object
-  const String AverageLinkage::getProductName()
-  {
-    return "AverageLinkage";
-  }
 
   AverageLinkage::AverageLinkage() :
     ClusterFunctor(), ProgressLogger()

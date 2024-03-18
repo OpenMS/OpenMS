@@ -33,7 +33,7 @@ public:
     FilterFunctor & operator=(const FilterFunctor & source);
 
     ///
-    static void registerChildren();
+
 
     /// function call operator
     template <typename SpectrumType>

@@ -18,4 +18,3 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>" namespace "
         Fitter1D(Fitter1D &) except + nogil 
 
         # QualityType fit1d(RawDataArrayType &, InterpolationModel *&) except + nogil 
-        void registerChildren() except + nogil  # wrap-doc:Register all derived classes here

@@ -69,10 +69,10 @@ namespace OpenMS
   using namespace Exception;
 
   String TOPPBase::topp_ini_file_ = String(QDir::homePath()) + "/.TOPP.ini";
-  const Citation TOPPBase::cite_openms_ = { "Rost HL, Sachsenberg T, Aiche S, Bielow C et al.",
-      "OpenMS: a flexible open-source software platform for mass spectrometry data analysis",
-      "Nat Meth. 2016; 13, 9: 741-748",
-      "10.1038/nmeth.3959" };
+  const Citation TOPPBase::cite_openms_
+    = {"Pfeuffer, J., Bielow, C., Wein, S. et al.", "OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data",
+       "Nat Methods (2024)", "10.1038/s41592-024-02197-7"};
+
 
   void TOPPBase::setMaxNumberOfThreads(int
 #ifdef _OPENMP
@@ -580,7 +580,7 @@ namespace OpenMS
         is << " + " << is.indent(3) << c.toString() << is.indent(0) << "\n";
     }
     is << is.indent(0) << "\n";
-    is << invert("Usage:\n")
+    is << invert("Usage:") << "\n" // line break needs to be separate, to avoid colored trailing whitespaces
        << "  " << bright(tool_name_) << " <options>" << "\n"
        << "\n";
 
