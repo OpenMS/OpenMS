@@ -40,6 +40,7 @@ FileFilter
 FileInfo
 FileMerger
 FLASHDeconv
+FLASHTagger
 FuzzyDiff
 GenericWrapper
 GNPSExport

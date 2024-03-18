@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Kyowon Jeon $
+// $Maintainer: Kyowon Jeong $
 // $Authors: Kyowon Jeong $
 // --------------------------------------------------------------------------
 
@@ -43,8 +43,7 @@ namespace OpenMS
     FLASHTaggerAlgorithm& operator=(const FLASHTaggerAlgorithm& other);
 
     /// Find sequence tags from @p mzs and @p intensities then store them in @p tags.
-    void run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm, const std::function<int(int, int)>& edge_score);
-    void run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm);
+    void run(const std::vector<double>& mzs, const std::vector<int>& scores, const std::vector<int>& scan_numbers, double ppm);
     void run(const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, double ppm);
     void run(const DeconvolvedSpectrum& dspec, double ppm);
     void runMatching(const String& fasta_file);
@@ -70,14 +69,11 @@ namespace OpenMS
     int getVertex_(int index, int path_score, int level, int iso_level) const;
     int getIndex_(int vertex) const;
 
-    void updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>& tag_set, std::map<String, std::vector<FLASHDeconvHelperStructs::Tag>>& seq_tag, const std::vector<int>& path, const std::vector<double>& mzs, const std::vector<int>& scores, double ppm);
+    void updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>& tag_set, std::map<String, std::vector<FLASHDeconvHelperStructs::Tag>>& seq_tag, const std::vector<int>& path, const std::vector<double>& mzs, const std::vector<int>& scores, const std::vector<int>& scans, double ppm);
 
-    static int edgeScore_(int vertex_score1, int vertex_score2);
     bool connectEdge_(FLASHTaggerAlgorithm::DAC_& dac, int vertex1, int vertex2, boost::dynamic_bitset<>& visited);
 
     static Size find_with_X_(const std::string_view& A, const String& B, Size pos = 0);
-
-    std::function<int(int, int)> edge_score_;
 
     std::set<const Residue*> aas_ = ResidueDB::getInstance()->getResidues("Natural20");
     std::map<double, std::vector<Residue>> aa_mass_map_;

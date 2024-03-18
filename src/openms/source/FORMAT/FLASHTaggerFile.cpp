@@ -18,7 +18,7 @@ namespace OpenMS
 **/
 void FLASHTaggerFile::writeTagHeader(std::fstream& fs)
 {
-  fs << "TagIndex\tProteinIndex\tProteinAccession\tProteinDescription\tTagSequence\tNmass\tCmass\tStartPos\tLength\tDeNovoScore\tmzs\n";
+  fs << "TagIndex\tProteinIndex\tProteinAccession\tProteinDescription\tTagSequence\tNmass\tCmass\tStartPos\tLength\tDeNovoScore\tmzs\tscores\tscans\n";
 }
 
 /// write header line for topFD feature file
@@ -74,6 +74,16 @@ void FLASHTaggerFile::writeTags(const FLASHTaggerAlgorithm& tagger, std::fstream
       for (const auto& mz : tag.getMzs())
       {
         fs << std::to_string(mz) << ",";
+      }
+      fs <<"\t";
+      for (auto i = 0; i < tag.getLength(); i++)
+      {
+        fs << std::to_string(tag.getScore(i)) << ",";
+      }
+      fs <<"\t";
+      for (auto i = 0; i < tag.getLength(); i++)
+      {
+        fs << std::to_string(tag.getScan(i)) << ",";
       }
       fs << "\n";
     }

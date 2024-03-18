@@ -124,11 +124,6 @@ int FLASHTaggerAlgorithm::getIndex_(int vertex) const
   return ((vertex / (max_path_score_ - min_path_score_ + 1)) / (max_iso_in_tag_ + 1)) / (max_tag_length_ + 1);
 }
 
-int FLASHTaggerAlgorithm::edgeScore_(int vertex_score1, int vertex_score2)
-{
-  return vertex_score1 + vertex_score2;
-}
-
 bool FLASHTaggerAlgorithm::connectEdge_(FLASHTaggerAlgorithm::DAC_& dac, int vertex1, int vertex2, boost::dynamic_bitset<>& visited)
 {
   if (vertex1 < 0 || vertex2 < 0 || vertex1 >= visited.size() || vertex2 >= visited.size()) return false;
@@ -157,7 +152,7 @@ void FLASHTaggerAlgorithm::constructDAC_(FLASHTaggerAlgorithm::DAC_& dac,
     auto r = mzs[end_index];
 
     // first, make edge from r to source and sink to r.
-    int vertex1 = getVertex_(end_index, edge_score_(scores[end_index], scores[0]), 0, 0);
+    int vertex1 = getVertex_(end_index, scores[end_index], 0, 0);
     int vertex2 = getVertex_(0, 0, 0, 0);
 
     connectEdge_(dac, vertex1, vertex2, visited);
@@ -172,7 +167,7 @@ void FLASHTaggerAlgorithm::constructDAC_(FLASHTaggerAlgorithm::DAC_& dac,
       for (int current_index = start_index; current_index < end_index; current_index++)
       {
         auto l = mzs[current_index];
-        int edge_score = edge_score_(scores[end_index], scores[current_index]);
+        int edge_score = scores[end_index];
 
         // make edge from r to l if they make an a.a. mass.
         std::vector<Residue> aas;
@@ -218,7 +213,7 @@ void FLASHTaggerAlgorithm::constructDAC_(FLASHTaggerAlgorithm::DAC_& dac,
       {
         for (int score = min_path_score_; score <= max_path_score_; score++)
         {
-          int edge_score = edge_score_(scores[mzs.size() - 1], scores[end_index]);
+          int edge_score = scores[mzs.size() - 1];
           if (score - edge_score < min_path_score_) continue;
           if (score - edge_score > max_path_score_) break;
 
@@ -251,7 +246,7 @@ FLASHTaggerAlgorithm& FLASHTaggerAlgorithm::operator=(const FLASHTaggerAlgorithm
 
 void FLASHTaggerAlgorithm::setDefaultParams_()
 {
-  defaults_.setValue("max_tag_count", 0,
+  defaults_.setValue("max_tag_count", 500,
                      "Maximum number of the tags per length (lengths set by -min_length and -max_length options). The tags with different amino acid "
                      "combinations are all treated separately. E.g., "
                      "TII, TIL, TLI, TLL are distinct tags even though they have the same mass differences. "
@@ -270,7 +265,7 @@ void FLASHTaggerAlgorithm::setDefaultParams_()
   defaults_.setMaxInt("max_length", 30);
   defaults_.setMinInt("max_length", 3);
 
-  defaults_.setValue("flanking_mass_tol", 200.0, "Flanking mass tolerance in Da.");
+  defaults_.setValue("flanking_mass_tol", 500.0, "Flanking mass tolerance in Da.");
   defaults_.setValue("max_iso_error_count", 0, "Maximum isotope error count per tag.");
   defaults_.setMaxInt("max_iso_error_count", 2);
   defaults_.setMinInt("max_iso_error_count", 0);
@@ -322,6 +317,7 @@ void FLASHTaggerAlgorithm::run(const DeconvolvedSpectrum& dspec, double ppm)
 {
   std::vector<double> mzs;
   std::vector<int> scores;
+  std::vector<int> scans;
   mzs.reserve(dspec.size());
   scores.reserve(dspec.size());
   std::vector<double> qscores;
@@ -340,13 +336,9 @@ void FLASHTaggerAlgorithm::run(const DeconvolvedSpectrum& dspec, double ppm)
     mzs.push_back(pg.getMonoMass());
     int score = (int)round(10 * log10(std::max(1e-6, pg.getQscore2D() / std::max(1e-6, (1.0 - random_hit_prob)))));
     scores.push_back(score); //
+    scans.push_back(pg.getScanNumber());
   }
-  run(mzs, scores, ppm);
-}
-
-void FLASHTaggerAlgorithm::run(const std::vector<double>& mzs, const std::vector<int>& scores, double ppm)
-{
-  run(mzs, scores, ppm, edgeScore_);
+  run(mzs, scores, scans, ppm);
 }
 
 void FLASHTaggerAlgorithm::updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>& tag_set,
@@ -354,6 +346,7 @@ void FLASHTaggerAlgorithm::updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>
                                          const std::vector<int>& path,
                                          const std::vector<double>& mzs,
                                          const std::vector<int>& scores,
+                                         const std::vector<int>& scans,
                                          double ppm)
 {
   double flanking_mass = -1;
@@ -361,8 +354,10 @@ void FLASHTaggerAlgorithm::updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>
   std::vector<String> seqs {""};
   std::vector<double> tag_mzs;
   std::vector<int> tag_scores;
+  std::vector<int> tag_scans;
   tag_mzs.reserve(path.size() - 1);
   tag_scores.reserve(path.size() - 1);
+  tag_scans.reserve(path.size() - 1);
 
   for (int j = 1; j < path.size(); j++)
   {
@@ -383,17 +378,25 @@ void FLASHTaggerAlgorithm::updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>
       seqs = tmp_seqs;
       tag_mzs.push_back(mzs[i1]);
       tag_scores.push_back(scores[i1]);
+      tag_scans.push_back(scans[i1]);
     }
     else if (i2 == 0) // nterm
     {
       tag_mzs.push_back(mzs[i1]);
       tag_scores.push_back(scores[i1]);
+      tag_scans.push_back(scans[i1]);
       flanking_mass = mzs[i1];
     }
   }
 
   std::vector<double> rev_tag_mzs(tag_mzs);
-  std::reverse(tag_mzs.begin(), tag_mzs.end());
+  std::reverse(rev_tag_mzs.begin(), rev_tag_mzs.end());
+
+  std::vector<int> rev_tag_scores(tag_scores);
+  std::reverse(rev_tag_scores.begin(), rev_tag_scores.end());
+
+  std::vector<int> rev_tag_scans(tag_scans);
+  std::reverse(rev_tag_scans.begin(), rev_tag_scans.end());
 
   for (const auto& seq : seqs)
   {
@@ -411,7 +414,7 @@ void FLASHTaggerAlgorithm::updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>
     }
     if (pass)
     {
-      auto direct_tag = FLASHDeconvHelperStructs::Tag(seq, flanking_mass, -1, tag_scores, tag_mzs);
+      auto direct_tag = FLASHDeconvHelperStructs::Tag(seq, flanking_mass, -1, tag_mzs, tag_scores, tag_scans);
       tag_set.insert(direct_tag);
       seq_tag[seq].push_back(direct_tag);
     }
@@ -431,7 +434,7 @@ void FLASHTaggerAlgorithm::updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>
     }
     if (pass)
     {
-      auto reverse_tag = FLASHDeconvHelperStructs::Tag(rev_seq, -1, flanking_mass, tag_scores, rev_tag_mzs);
+      auto reverse_tag = FLASHDeconvHelperStructs::Tag(rev_seq, -1, flanking_mass, rev_tag_mzs, rev_tag_scores, rev_tag_scans);
       tag_set.insert(reverse_tag);
       seq_tag[rev_seq].push_back(reverse_tag);
     }
@@ -440,15 +443,13 @@ void FLASHTaggerAlgorithm::updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>
 
 void FLASHTaggerAlgorithm::run(const std::vector<double>& mzs,
                                const std::vector<int>& scores,
-                               double ppm,
-                               const std::function<int(int, int)>& edge_score)
+                               const std::vector<int>& scans,
+                               double ppm)
 {
   if (max_tag_count_ == 0) return;
 
-  edge_score_ = edge_score;
-
   std::vector<double> _mzs;
-  std::vector<int> _scores;
+  std::vector<int> _scores, _scans;
   int threshold;
 
   if (mzs.size() >= max_node_cntr)
@@ -460,33 +461,36 @@ void FLASHTaggerAlgorithm::run(const std::vector<double>& mzs,
 
     _mzs.reserve(max_node_cntr + 1);
     _scores.reserve(max_node_cntr + 1);
+    _scans.reserve(max_node_cntr + 1);
   }
   else
   {
     _mzs.reserve(mzs.size() + 1);
-    _scores.reserve(_scores.size() + 1);
+    _scores.reserve(mzs.size() + 1);
+    _scans.reserve(mzs.size() + 1);
     threshold = *std::min_element(scores.begin(), scores.end());
   }
 
   _mzs.push_back(.0);
   _scores.push_back(0);
-
+  _scans.push_back(0);
   for (int i = 0; i < mzs.size(); i++)
   {
     if (scores[i] < threshold) continue;
     _mzs.push_back(mzs[i]);
     _scores.push_back(scores[i]);
+    _scans.push_back(scans[i]);
   }
   // filtration of top 500 masses is done
 
   int max_vertex_score = *std::max_element(_scores.begin(), _scores.end());
   int min_vertex_score = *std::min_element(_scores.begin(), _scores.end());
 
-  max_path_score_ = edge_score_(max_vertex_score, max_vertex_score) * (max_tag_length_ + 2);
-  min_path_score_ = edge_score_(min_vertex_score, min_vertex_score) * (max_tag_length_ + 2);
+  max_path_score_ = std::max(max_vertex_score, max_vertex_score) * (max_tag_length_ + 2);
+  min_path_score_ = std::max(min_vertex_score, min_vertex_score) * (max_tag_length_ + 2);
 
-  max_path_score_ = std::max(max_path_score_, edge_score_(max_vertex_score, max_vertex_score) * (min_tag_length_ - 2));
-  min_path_score_ = std::min(min_path_score_, edge_score_(min_vertex_score, min_vertex_score) * (min_tag_length_ - 2));
+  max_path_score_ = std::max(max_path_score_, std::max(max_vertex_score, max_vertex_score) * (min_tag_length_ - 2));
+  min_path_score_ = std::min(min_path_score_, std::max(min_vertex_score, min_vertex_score) * (min_tag_length_ - 2));
 
   std::set<FLASHDeconvHelperStructs::Tag> tagSet;
   std::map<String, std::vector<FLASHDeconvHelperStructs::Tag>> seq_tag;
@@ -507,12 +511,11 @@ void FLASHTaggerAlgorithm::run(const std::vector<double>& mzs,
       }
       for (const auto& path : all_paths)
       {
-        updateTagSet_(_tagSet, seq_tag, path, _mzs, _scores, ppm);
+        updateTagSet_(_tagSet, seq_tag, path, _mzs, _scores, _scans, ppm);
       }
     }
     tagSet.insert(_tagSet.begin(), _tagSet.end());
   }
-
 
   for (int length = min_tag_length_; length <= max_tag_length_; length++)
   {

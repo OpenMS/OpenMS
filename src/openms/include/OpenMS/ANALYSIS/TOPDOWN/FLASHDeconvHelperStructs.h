@@ -215,7 +215,7 @@ namespace OpenMS
     {
     public:
       /// constructor
-      explicit Tag(String  seq, double n_mass, double c_mass, std::vector<int>& scores, std::vector<double>& mzs);
+      explicit Tag(String  seq, double n_mass, double c_mass, std::vector<double>& mzs, std::vector<int>& scores,  std::vector<int>& scans);
 
       /// copy constructor
       Tag(const Tag&) = default;
@@ -233,14 +233,16 @@ namespace OpenMS
       Size getLength() const;
       int getScore() const;
       int getScore(int pos) const;
+      int getScan(int pos) const;
       String toString() const;
       const std::vector<double>& getMzs() const;
 
     private:
       String seq_;
       double n_mass_ = -1, c_mass_ = -1;
-      std::vector<int> scores_;
       std::vector<double> mzs_;
+      std::vector<int> scores_;
+      std::vector<int> scans_;
       Size length_;
     };
 
