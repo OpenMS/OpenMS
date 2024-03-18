@@ -842,7 +842,9 @@ namespace OpenMS
       if (pro_index < 0 || tag_index < 0) return {};
       auto indices = std::pair<int, int>(pro_index,tag_index);
       auto iter = matching_hits_tag_positions_.find(indices);
-      if (iter != matching_hits_tag_positions_.end()) return {iter->second};
+      if (iter != matching_hits_tag_positions_.end()){
+        return iter->second;
+      } 
       return {};
   }
 

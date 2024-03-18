@@ -18,14 +18,13 @@ namespace OpenMS
 **/
 void FLASHTaggerFile::writeTagHeader(std::fstream& fs)
 {
-  fs << "TagIndex\tProteinIndex\tProteinAccession\tProteinDescription\tTagSequence\tNmass\tCmass\tLength\tDeNovoScore\tmzs\n";
+  fs << "TagIndex\tProteinIndex\tProteinAccession\tProteinDescription\tTagSequence\tNmass\tCmass\tStartPos\tLength\tDeNovoScore\tmzs\n";
 }
 
 /// write header line for topFD feature file
 void FLASHTaggerFile::writeProteinHeader(std::fstream& fs)
 {
-  fs
-    << "ProteinIndex\tProteinAccession\ttProteinDescription\tMatchedAminoAcidCount\tCoverage(%)\tProteinScore\tProteinQvalue\tTagCount\tTagIndices\n";
+  fs << "ProteinIndex\tProteinAccession\tProteinDescription\tProteinSequence\tMatchedAminoAcidCount\tCoverage(%)\tProteinScore\tProteinQvalue\tTagCount\tTagIndices\n";
 }
 
 /// write the features in regular file output
@@ -51,18 +50,25 @@ void FLASHTaggerFile::writeTags(const FLASHTaggerAlgorithm& tagger, std::fstream
       String acc = "";
       String description = "";
       String hitindices = "";
+      String positions = "";
       for (const auto& hit : hits)
       {
         if (! acc.empty()) acc += ";";
         if (! description.empty()) description += ";";
         if (! hitindices.empty()) hitindices += ";";
+        if (! positions.empty()) positions += ";";
         acc += hit.getAccession();
         description += hit.getDescription();
         hitindices += std::to_string(tagger.getProteinIndex(hit));
+
+        auto seqposition = tagger.getMatchedPositions(hit, tag);
+        if (seqposition.size() != 0) {
+          positions += std::to_string(seqposition[0]);
+        }
       }
 
       fs << tagger.getTagIndex(tag) << "\t" << hitindices << "\t" << acc << "\t" << description << "\t" << tag.getSequence() << "\t"
-         << std::to_string(tag.getNtermMass()) << "\t" << std::to_string(tag.getCtermMass()) << "\t" << tag.getLength() << "\t" << tag.getScore()
+         << std::to_string(tag.getNtermMass()) << "\t" << std::to_string(tag.getCtermMass()) << "\t" << positions << "\t" << tag.getLength() << "\t" << tag.getScore()
          << "\t";
 
       for (const auto& mz : tag.getMzs())
@@ -88,7 +94,7 @@ void FLASHTaggerFile::writeProteins(const FLASHTaggerAlgorithm& tagger, std::fst
       cntr++;
     }
 
-    fs << tagger.getProteinIndex(hit) << "\t" << hit.getAccession() << "\t" << hit.getDescription() << "\t" << hit.getMetaValue("MatchedAA") << "\t"
+    fs << tagger.getProteinIndex(hit) << "\t" << hit.getAccession() << "\t" << hit.getDescription() << "\t" << hit.getSequence() << "\t" << hit.getMetaValue("MatchedAA") << "\t"
        << 100.0 * hit.getCoverage() << "\t" << hit.getScore() << "\t" << std::to_string((double)hit.getMetaValue("qvalue")) << "\t" << cntr << "\t"
        << tagindices << "\n";
   }
