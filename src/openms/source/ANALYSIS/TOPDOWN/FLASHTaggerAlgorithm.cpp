@@ -560,7 +560,6 @@ void FLASHTaggerAlgorithm::runMatching(const String& fasta_file)
   std::vector<std::pair<ProteinHit, std::vector<int>>> pairs;
   std::vector<int> start_loc(tags_.size(), 0);
   std::vector<int> end_loc(tags_.size(), 0);
-  std::map<std::pair<int, int>, std::vector<int>> matching_hits_tag_positions_before_sort;
 
   // for each tag, find the possible start and end locations in the protein sequence. If C term, they are negative values to specify values are from
   // the end of the protein
@@ -579,8 +578,7 @@ void FLASHTaggerAlgorithm::runMatching(const String& fasta_file)
 
   for (int n = 0; n < 2; n++)
   {
-#pragma omp parallel for default(none) \
-  shared(pairs, matching_hits_tag_positions_before_sort, fasta_entry, start_loc, end_loc, decoy_mul, min_hit_tag_score, n)
+#pragma omp parallel for default(none) shared(pairs, fasta_entry, start_loc, end_loc, decoy_mul, min_hit_tag_score, n)
     for (int i = 0; i < fasta_entry.size(); i++)
     {
       const auto& fe = fasta_entry[i];
@@ -636,7 +634,7 @@ void FLASHTaggerAlgorithm::runMatching(const String& fasta_file)
           }
         }
 
-        std::vector<int> matched_pos;
+        bool matched = false;
         for (const auto& pos : positions)
         {
           if (tag.getNtermMass() > 0 && pos >= 0)
@@ -662,20 +660,12 @@ void FLASHTaggerAlgorithm::runMatching(const String& fasta_file)
             auto iter = matched_pos_score.find(pos + off);
             if (iter != matched_pos_score.end()) score = std::max(score, iter->second);
             matched_pos_score[pos + off] = score;
+            matched = true;
           }
-          matched_pos.push_back(pos);
         }
-        if (! matched_pos.empty())
+        if (matched)
         {
           matched_tag_indices.push_back(j); // tag indices
-#pragma omp critical
-          {
-            auto indices = std::pair<int, int>(i, j);
-            for (const auto& mp : matched_pos)
-            {
-              matching_hits_tag_positions_before_sort[indices].push_back(mp);
-            }
-          }
         }
         else
           continue;
@@ -755,20 +745,6 @@ void FLASHTaggerAlgorithm::runMatching(const String& fasta_file)
       matching_hits_indices_[index].push_back(protein_hits_.size() - 1);
     }
   }
-
-  for (const auto& [f, s] :
-       matching_hits_tag_positions_before_sort) // fix the protein indices for matching_hits_tag_positions_. Not efficient. fix later.
-  {
-    auto hit = fasta_entry[f.first];
-    for (int i = 0; i < protein_hits_.size(); i++)
-    {
-      if (protein_hits_[i].getAccession() == hit.identifier)
-      {
-        auto indices = std::pair<int, int>(i, f.second);
-        matching_hits_tag_positions_[indices] = s;
-      }
-    }
-  }
 }
 
 int FLASHTaggerAlgorithm::getProteinIndex(const ProteinHit& hit) const
@@ -810,13 +786,17 @@ const std::vector<FLASHDeconvHelperStructs::Tag>& FLASHTaggerAlgorithm::getTags(
 
 std::vector<int> FLASHTaggerAlgorithm::getMatchedPositions(const ProteinHit& hit, const FLASHDeconvHelperStructs::Tag& tag) const
 {
-  int pro_index = getProteinIndex(hit);
-  int tag_index = getTagIndex(tag);
-  if (pro_index < 0 || tag_index < 0) return {};
-  auto indices = std::pair<int, int>(pro_index, tag_index);
-  auto iter = matching_hits_tag_positions_.find(indices);
-  if (iter != matching_hits_tag_positions_.end()) { return iter->second; }
-  return {};
+  int pos = 0;
+  std::vector<int> indices;
+  auto seq = hit.getSequence();
+  auto tagseq = tag.getSequence().toUpper();
+  while (true)
+  {
+    pos = find_with_X_(seq, tagseq, pos + 1);
+    if (pos == String::npos) break;
+    indices.push_back(pos);
+  }
+  return indices;
 }
 
 std::vector<FLASHDeconvHelperStructs::Tag> FLASHTaggerAlgorithm::getTags(const ProteinHit& hit) const

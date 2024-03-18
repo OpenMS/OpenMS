@@ -87,7 +87,6 @@ namespace OpenMS
     std::vector<ProteinHit> protein_hits_;
     std::vector<std::vector<int>> matching_tags_indices_; // from protein hit to tag index
     std::vector<std::vector<int>> matching_hits_indices_; // from tag to protein hit index
-    std::map<std::pair<int, int>, std::vector<int>> matching_hits_tag_positions_; // from hit tag indices to matching positions
 
     int max_tag_count_ = 0;
     int min_tag_length_ = 0;
