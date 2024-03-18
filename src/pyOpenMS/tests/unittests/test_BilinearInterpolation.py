@@ -8,8 +8,7 @@ import pyopenms
 class TestBilinearInterpolation(unittest.TestCase):
 
     def test_BilinearInterpolation(self):
-        mat = pyopenms.MatrixDouble()
-        mat.resize(2, 3, float())
+        mat = pyopenms.MatrixDouble(2, 3, 0.0)
         mat.setValue(0, 0, 17)
         mat.setValue(0, 1, 18.9)
         mat.setValue(0, 2, 20.333)
@@ -43,8 +42,8 @@ class TestBilinearInterpolation(unittest.TestCase):
     def test_getData_setData(self):
         bilip = pyopenms.BilinearInterpolation()
 
-        tmp = bilip.getData()
-        tmp.resize(2, 3, float())
+        tmp = pyopenms.MatrixDouble(2, 3, 0.0)
+
         tmp.setValue(1, 2, 10012)
         tmp.setValue(0, 0, 10000)
         tmp.setValue(1, 0, 10010)
@@ -108,8 +107,8 @@ class TestBilinearInterpolation(unittest.TestCase):
         bilip.setMapping_0(3.0, 1.0, 2.0)
         bilip.setMapping_1(5.0, 3.0, 4.0)
 
-        tmp = bilip.getData()
-        tmp.resize(2, 3, float())
+        tmp = pyopenms.MatrixDouble(2, 3, 0.0)
+
         bilip.setData(tmp)
         self.assertAlmostEqual(bilip.index2key_0(0), -1)
         self.assertAlmostEqual(bilip.index2key_0(1), 2)
@@ -174,8 +173,7 @@ class TestBilinearInterpolation(unittest.TestCase):
         bilip.setMapping_1(3.0, 1.0, 2.0)
         bilip.setMapping_0(5.0, 3.0, 4.0)
 
-        tmp = bilip.getData()
-        tmp.resize(3, 2, float())
+        tmp = pyopenms.MatrixDouble(3, 2, 0.0)
         bilip.setData(tmp)
         self.assertAlmostEqual(bilip.index2key_1(0), -1)
         self.assertAlmostEqual(bilip.index2key_1(1), 2)
@@ -191,43 +189,36 @@ class TestBilinearInterpolation(unittest.TestCase):
         bilip = pyopenms.BilinearInterpolation()
         self.assertTrue(bilip.empty())
 
-        tmp = bilip.getData()
-        tmp.resize(1, 2, float())
+        tmp = pyopenms.MatrixDouble(1, 2, 0.0)
         bilip.setData(tmp)
         self.assertFalse(bilip.empty())
 
-        tmp = bilip.getData()
-        tmp.resize(0, 0, float())
+        tmp = pyopenms.MatrixDouble(0, 0, 0.0)
         bilip.setData(tmp)
         self.assertTrue(bilip.empty())
 
-        tmp = bilip.getData()
-        tmp.resize(1, 2, float())
+        tmp = pyopenms.MatrixDouble(1, 2, 0.0)
         bilip.setData(tmp)
         self.assertFalse(bilip.empty())
 
-        tmp = bilip.getData()
-        tmp.resize(1, 0, float())
+        tmp = pyopenms.MatrixDouble(1, 0, 0.0)
         bilip.setData(tmp)
         self.assertTrue(bilip.empty())
 
-        tmp = bilip.getData()
-        tmp.resize(1, 2, float())
+        tmp = pyopenms.MatrixDouble(1, 2, 0.0)
         bilip.setData(tmp)
         self.assertFalse(bilip.empty())
 
-        tmp = bilip.getData()
-        tmp.resize(0, 0, float())
+        tmp = pyopenms.MatrixDouble(0, 0, 0.0)
         bilip.setData(tmp)
         self.assertTrue(bilip.empty())
 
-        tmp = bilip.getData()
-        tmp.resize(2, 2, float())
+        tmp = pyopenms.MatrixDouble(2, 2, 0.0)
         bilip.setData(tmp)
         self.assertFalse(bilip.empty())
 
         tmp = bilip.getData()
-        tmp.clear()
+        tmp = pyopenms.MatrixDouble(0, 0, 0.0)
         bilip.setData(tmp)
         self.assertTrue(bilip.empty())
 
@@ -239,23 +230,21 @@ class TestBilinearInterpolation(unittest.TestCase):
                 q = j / 10.0
 
                 bilip_small = pyopenms.BilinearInterpolation()
-                tmp = bilip_small.getData()
-                tmp.resize(5, 5, float())
+                tmp = pyopenms.MatrixDouble(5, 5, 0.0)
                 bilip_small.setData(tmp)
                 bilip_small.setMapping_0(0.0, 0.0, 5.0, 5.0)
                 bilip_small.setMapping_1(0.0, 0.0, 5.0, 5.0)
                 bilip_small.addValue(p, q, 100)
 
                 bilip_big = pyopenms.BilinearInterpolation()
-                tmp = bilip_big.getData()
-                tmp.resize(15, 15, float())
+                tmp = pyopenms.MatrixDouble(15, 15, 0.0)
                 bilip_big.setData(tmp)
                 bilip_big.setMapping_0(5.0, 0.0, 10.0, 5.0)
                 bilip_big.setMapping_1(5.0, 0.0, 10.0, 5.0)
                 bilip_big.addValue(p, q, 100)
 
-                big_submatrix = pyopenms.MatrixDouble()
-                big_submatrix.resize(5, 5, float())
+                big_submatrix = pyopenms.MatrixDouble(5, 5, 0.0)
+
                 for m in range(5):
                     for n in range(5):
                         big_submatrix.setValue(m, n,
@@ -271,11 +260,8 @@ class TestBilinearInterpolation(unittest.TestCase):
         bilip_small = pyopenms.BilinearInterpolation()
         bilip_big = pyopenms.BilinearInterpolation()
 
-        tmp_small = bilip_small.getData()
-        tmp_big = bilip_big.getData()
-
-        tmp_small.resize(5, 5, float())
-        tmp_big.resize(15, 15, float())
+        tmp_small = pyopenms.MatrixDouble(5, 5, 0.0)
+        tmp_big = pyopenms.MatrixDouble(15, 15, 0.0)
 
         for i in range(5):
             for j in range(5):
