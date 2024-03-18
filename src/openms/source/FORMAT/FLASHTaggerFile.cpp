@@ -18,7 +18,7 @@ namespace OpenMS
 **/
 void FLASHTaggerFile::writeTagHeader(std::fstream& fs)
 {
-  fs << "TagIndex\tProteinIndex\tProteinAccession\tProteinDescription\tTagSequence\tNmass\tCmass\tStartPos\tLength\tDeNovoScore\tmzs\tscores\tscans\n";
+  fs << "TagIndex\tProteinIndex\tProteinAccession\tProteinDescription\tTagSequence\tNmass\tCmass\tStartPos\tLength\tDeNovoScore\tMasses\tMassScores\tScans\n";
 }
 
 /// write header line for topFD feature file
