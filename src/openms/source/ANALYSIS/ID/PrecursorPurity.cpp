@@ -6,6 +6,7 @@
 // $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
+#include "OpenMS/METADATA/InstrumentSettings.h"
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -23,8 +24,8 @@ namespace OpenMS
   {
     const auto& ms2_spec = exp[ms2_spec_idx];
     const auto& precursor_spec = exp[precursor_spec_idx];
-    std::vector<double> purities(ms2_spec.getPrecursors().size(), 0.0);
-    if (precursor_spec.empty()) return purities;
+    std::vector<double> purities(ms2_spec.getPrecursors().size(), 1.0);
+    if (precursor_spec.empty()) return purities; // TODO fail instead?
 
     Size precursor_idx = 0;
     for (const auto& precursor_info : ms2_spec.getPrecursors())
@@ -37,9 +38,14 @@ namespace OpenMS
       // the actual boundary values
       const double strict_lower_mz = precursor_info.getMZ() - precursor_info.getIsolationWindowLowerOffset();
       const double strict_upper_mz = precursor_info.getMZ() + precursor_info.getIsolationWindowUpperOffset();
+      if (strict_lower_mz == strict_upper_mz)
+      {
+        return purities;
+      }
 
-      const double fuzzy_lower_mz = strict_lower_mz - Math::getPPM(strict_lower_mz, max_precursor_isotope_deviation);
-      const double fuzzy_upper_mz = strict_upper_mz + Math::getPPM(strict_upper_mz, max_precursor_isotope_deviation);
+      const double dev_ppm = max_precursor_isotope_deviation / 1e6;
+      const double fuzzy_lower_mz = strict_lower_mz * (1 - dev_ppm);
+      const double fuzzy_upper_mz = strict_upper_mz * (1 + dev_ppm);
 
       // first find the actual precursor peak
       Size precursor_peak_idx = precursor_spec.findNearest(precursor_info.getMZ());
@@ -197,7 +203,6 @@ namespace OpenMS
     const auto& ms2_spec = exp[ms2_spec_idx];
     const auto& precursor_spec = exp[precursor_spec_idx];
     const auto& next_ms1_spec = exp[next_ms1_spec_idx];
-    const auto& precursor_info = ms2_spec.getPrecursors()[0];
     // compute purity of preceding ms1 scan
     std::vector<double> early_scan_purity = computeSingleScanPrecursorPurities(ms2_spec_idx, precursor_spec_idx, exp, max_precursor_isotope_deviation);
     std::vector<double> late_scan_purity  = computeSingleScanPrecursorPurities(ms2_spec_idx, next_ms1_spec_idx, exp, max_precursor_isotope_deviation);

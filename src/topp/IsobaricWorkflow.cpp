@@ -256,7 +256,7 @@ protected:
     if (has_ms3)
     {
       // TODO double-check that this is the correct way to compute the purity for MS3. Currently purities are very low.
-      std::vector<double> quant_purities = PrecursorPurity::computeSingleScanPrecursorPurities(quant_spec_idx, ms1_spec_idx, exp, max_precursor_isotope_deviation);
+      std::vector<double> quant_purities = PrecursorPurity::computeSingleScanPrecursorPurities(quant_spec_idx, id_spec_idx, exp, max_precursor_isotope_deviation);
       // average over all precursors
       quant_purity = std::accumulate(quant_purities.begin(), quant_purities.end(), 0.0) / quant_purities.size();
     }

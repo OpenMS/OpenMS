@@ -18,7 +18,7 @@ namespace OpenMS
     int a_rows = (int)A.rows();
     int a_cols = (int)A.cols();
 
-    if (a_rows != b.size())
+    if (a_rows != (int) b.size())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "NNSL::solve() #rows of A does not match #rows of b !");
     }
