@@ -145,10 +145,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const override
+
+  Param getSubsectionDefaults_(const String& ) const override
   {
-    return FeatureFinder().getParameters(FeatureFinderAlgorithmPicked::getProductName());
+    return FeatureFinderAlgorithmPicked().getDefaultParameters();
   }
+
 
   ExitCodes main_(int, const char**) override
   {
@@ -197,8 +199,8 @@ protected:
     }
 
     //setup of FeatureFinder
-    FeatureFinder ff;
-    ff.setLogType(log_type_);
+    FeatureFinderAlgorithmPicked ff;
+    //ff.setLogType(log_type_); TODO
 
     // A map for the resulting features
     FeatureMap features;
@@ -218,7 +220,7 @@ protected:
     writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 
     // Apply the feature finder
-    ff.run(FeatureFinderAlgorithmPicked::getProductName(), exp, features, feafi_param, seeds);
+    ff.run(exp, features, feafi_param, seeds);
     features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // DEBUG

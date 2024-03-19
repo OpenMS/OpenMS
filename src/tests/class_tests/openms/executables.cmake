@@ -2,11 +2,8 @@ set(concept_executables_list
   ClassTest_test
   Colorizer_test
   Exception_Base_test
-  FactoryBase_test
-  Factory_test
   FuzzyStringComparator_test
   #GlobalExceptionHandler_test
-  SingletonRegistry_test
   StreamHandler_test
   VersionInfo_test
   LogConfigHandler_test
@@ -67,7 +64,6 @@ set(datastructures_executables_list
   MassExplainer_test
   MatchedIterator_test
   Matrix_test
-  #MatrixUtils_test
   OPXLDataStructs_test
   Param_test
   ParamValue_test
@@ -485,7 +481,6 @@ set(analysis_executables_list
   FIAMSScheduler_test
   FLASHDeconvAlgorithm_test
   FLASHDeconvHelperStructs_test
-  HiddenMarkovModel_test
   IDBoostGraph_test
   IDMapper_test
   IDMergerAlgorithm_test
@@ -505,6 +500,7 @@ set(analysis_executables_list
   ItraqEightPlexQuantitationMethod_test
   TMTSixPlexQuantitationMethod_test
   TMTTenPlexQuantitationMethod_test
+  TMTElevenPlexQuantitationMethod_test
   TMTSixteenPlexQuantitationMethod_test
   TMTEighteenPlexQuantitationMethod_test
   KDTreeFeatureMaps_test
@@ -519,7 +515,6 @@ set(analysis_executables_list
   MapAlignmentAlgorithmIdentification_test
   MapAlignmentAlgorithmKD_test
   MapAlignmentAlgorithmPoseClustering_test
-  MapAlignmentAlgorithmSpectrumAlignment_test
   MapAlignmentAlgorithmTreeGuided_test
   MapAlignmentEvaluationAlgorithmPrecision_test
   MapAlignmentEvaluationAlgorithmRecall_test
@@ -546,7 +541,6 @@ set(analysis_executables_list
   PoseClusteringAffineSuperimposer_test
   PoseClusteringShiftSuperimposer_test
   PrecursorPurity_test
-  ProtonDistributionModel_test
   ProteinResolver_test
   PSProteinInference_test
   QTClusterFinder_test
@@ -610,7 +604,6 @@ set(transformations_executables_list
   PeakPickerIterative_test
   PeakPickerMaxima_test
   PeakWidthEstimator_test
-  ProductModel_test
   SeedListGenerator_test
   TraceFitter_test
 )

@@ -66,18 +66,6 @@ public:
     {
     }
 
-    /// returns an instance of this class
-    static BaseGroupFinder * create()
-    {
-      return new SimplePairFinder();
-    }
-
-    /// returns the name of this module
-    static const String getProductName()
-    {
-      return "simple";
-    }
-
     /**
       @brief Run the algorithm
 

@@ -70,18 +70,6 @@ START_SECTION((template<typename SpectrumType> double apply(SpectrumType& spectr
 	
 END_SECTION
 
-START_SECTION((static FilterFunctor* create()))
-	FilterFunctor* ff = ComplementFilter::create();
-	ComplementFilter cf;
-	TEST_EQUAL(ff->getParameters(), cf.getParameters())
-	TEST_EQUAL(ff->getName(), cf.getName())
-	delete ff;
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(e_ptr->getProductName(), "ComplementFilter")
-END_SECTION
-
 delete e_ptr;
 
 /////////////////////////////////////////////////////////////

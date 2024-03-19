@@ -15,7 +15,7 @@ namespace OpenMS
   GoodDiffFilter::GoodDiffFilter() :
     FilterFunctor()
   {
-    setName(GoodDiffFilter::getProductName());
+    setName("GoodDiffFilter");
     //values from kinter sherman
 
 

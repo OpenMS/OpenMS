@@ -1737,7 +1737,6 @@ Phenylalanin
 PlotWidgets
 Precomputing
 Proc
-ProductModels
 ProteinAccession
 ProteinIDRun
 ProteinIdentifications
@@ -3208,7 +3207,7 @@ Selenocysteine
 Ser
 Serine
 SimTandem
-SiriusAdapter
+SiriusExport
 SparseVectors
 Specqual
 Spectronaut

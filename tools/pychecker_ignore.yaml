@@ -799,9 +799,6 @@ PyOpenMSChecker:
     OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace:
         - max_peak
         - peaks
-    OpenMS::HiddenMarkovModel:
-        - write # stream
-        - calculateEmissionProbabilities # ptr inside Map
     OpenMS::MarkerMower:
         - insertmarker
     OpenMS::ProteinResolver::ProteinEntry:
@@ -1116,11 +1113,9 @@ PyOpenMSChecker:
     - OpenMS::StringListUtils
 
     # CONCEPT
-    - OpenMS::SingletonRegistry
     - OpenMS::StreamHandler
     - OpenMS::Factory
     - OpenMS::UniqueIdIndexer
-    - OpenMS::FactoryBase
 
     # METADATA
     - OpenMS::MetaInfoDescription
@@ -1148,7 +1143,6 @@ PyOpenMSChecker:
     - OpenMS::LmaGaussModel
     - OpenMS::FeatureFinderAlgorithm
     - OpenMS::FeatureFinderDefs::NoSuccessor
-    - OpenMS::ProductModel< 2 >
     - OpenMS::LmaGaussFitter1D
     - OpenMS::MaxLikeliFitter1D
     - OpenMS::LmaIsotopeFitter1D

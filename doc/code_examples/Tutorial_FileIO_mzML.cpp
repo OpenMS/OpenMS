@@ -2,24 +2,26 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
+
 #include <iostream>
+
 
 using namespace OpenMS;
 using namespace std;
 
 int main(int argc, const char** argv)
 {
-  if (argc < 2) return 1;
-  // the path to the data should be given on the command line
-  String tutorial_data_path(argv[1]);
-  
+  auto file_mzXML = OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_FileIO_indexed.mzML");
+
   IndexedMzMLFileLoader imzml;
 
   // load data from an indexed MzML file
   OnDiscPeakMap map;
-  imzml.load(tutorial_data_path + "/data/Tutorial_FileIO_indexed.mzML", map);
+  imzml.load(file_mzXML, map);
 
   // get the first spectrum in memory, do some constant (non-changing) data processing
   MSSpectrum s = map.getSpectrum(0);
@@ -29,5 +31,4 @@ int main(int argc, const char** argv)
   // store the (unmodified) data in a different file
   imzml.store("Tutorial_FileIO_output.mzML", map);
 
-  return 0;
-} //end of main
+} // end of main

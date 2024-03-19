@@ -90,7 +90,7 @@ protected:
 
   Param getSubsectionDefaults_(const String& /*section*/) const override
   {
-    return FeatureFinder().getParameters(FeatureFinderAlgorithmMRM::getProductName());
+    return FeatureFinderAlgorithmMRM().getDefaultParameters();
   }
 
   ExitCodes main_(int, const char**) override
@@ -104,8 +104,8 @@ protected:
     writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 
     //setup of FeatureFinder
-    FeatureFinder ff;
-    ff.setLogType(log_type_);
+    FeatureFinderAlgorithmMRM ff;
+    //ff.setLogType(log_type_); // TODO: add back
 
     //reading input data
     PeakMap exp;
@@ -133,7 +133,7 @@ protected:
     }
 
     // Apply the feature finder
-    ff.run(FeatureFinderAlgorithmMRM::getProductName(), exp, features, feafi_param, seeds);
+    ff.run(exp, features, feafi_param, seeds);
     features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // DEBUG

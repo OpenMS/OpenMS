@@ -47,8 +47,6 @@ public:
 
     // @name Accessors
     // @{
-    ///
-    static PeakMarker * create() { return new NeutralLossMarker(); }
 
     ///
     template <typename SpectrumType>
@@ -99,12 +97,6 @@ public:
         }
       }
       return;
-    }
-
-    ///
-    static const String getProductName()
-    {
-      return "NeutralLossMarker";
     }
 
     // @}

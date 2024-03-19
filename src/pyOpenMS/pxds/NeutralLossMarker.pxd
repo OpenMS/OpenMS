@@ -15,5 +15,4 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/NeutralLossMarker.h>" namespace
         NeutralLossMarker(NeutralLossMarker &) except + nogil 
         void apply(libcpp_map[ double, bool ] & , MSSpectrum & ) except + nogil 
         PeakMarker * create() except + nogil  # wrap-ignore
-        # String getProductName() except + nogil 
-
+        

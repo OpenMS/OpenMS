@@ -10,7 +10,7 @@
 namespace OpenMS
 {
   PeakMarker::PeakMarker() :
-    DefaultParamHandler(PeakMarker::getProductName())
+    DefaultParamHandler("PeakMarker")
   {
   }
 

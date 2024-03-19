@@ -31,7 +31,6 @@ typedef FeatureFinderAlgorithmPicked FFPP;
 
 FFPP* ptr = nullptr;
 FFPP* nullPointer = nullptr;
-FeatureFinderAlgorithm* ffA_nullPointer = nullptr;
 
 START_SECTION((FeatureFinderAlgorithmPicked()))
   ptr = new FFPP;
@@ -40,16 +39,6 @@ END_SECTION
 
 START_SECTION((~FeatureFinderAlgorithmPicked()))
   delete ptr;
-END_SECTION
-
-START_SECTION((static FeatureFinderAlgorithm<PeakType>* create()))
-  FeatureFinderAlgorithm* ptr2 = FFPP::create();
-  TEST_NOT_EQUAL(ptr2,ffA_nullPointer)
-  delete ptr2;
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-  TEST_EQUAL(FFPP::getProductName(),"centroided")
 END_SECTION
 
 START_SECTION((virtual void run()))
@@ -65,13 +54,11 @@ START_SECTION((virtual void run()))
   Param param;
   ParamXMLFile paramFile;
   paramFile.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.ini"), param);
-  param = param.copy("FeatureFinder:1:algorithm:",true);
-  //Dummy featurefinder
-  FeatureFinder ff;
+  param = param.copy("FeatureFinder:1:algorithm:", true);
 
   FFPP ffpp;
   ffpp.setParameters(param);
-  ffpp.setData(input, output, ff);
+  ffpp.setData(input, output);
   ffpp.run();
 
   TEST_EQUAL(output.size(), 8);

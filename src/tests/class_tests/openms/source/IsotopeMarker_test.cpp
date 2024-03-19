@@ -74,18 +74,6 @@ START_SECTION((template<typename SpectrumType> void apply(std::map<double, bool>
 	TEST_EQUAL(marked.size(), 17)
 END_SECTION
 
-START_SECTION((static PeakMarker* create()))
-	PeakMarker* pm = IsotopeMarker::create();
-	IsotopeMarker im;
-	TEST_EQUAL(pm->getParameters(), im.getParameters())
-	TEST_EQUAL(pm->getName(), im.getName())
-	delete pm;
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(e_ptr->getProductName(), "IsotopeMarker")
-END_SECTION
-
 delete e_ptr;
 
 /////////////////////////////////////////////////////////////

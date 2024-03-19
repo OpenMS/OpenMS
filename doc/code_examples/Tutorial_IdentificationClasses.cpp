@@ -6,7 +6,7 @@
 // $Authors: Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
-//! [Identification]
+//! [doxygen_snippet_Identification]
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -23,19 +23,17 @@ using namespace std;
 int main()
 {
   // Create new protein identification object corresponding to a single search
-  vector<ProteinIdentification> protein_ids;
-  ProteinIdentification protein_id;
-
-  protein_id.setIdentifier("Identifier");
 
   // Each ProteinIdentification object stores a vector of protein hits
   vector<ProteinHit> protein_hits;
-  ProteinHit protein_hit = ProteinHit();
+  ProteinHit protein_hit;
   protein_hit.setAccession("MyAccession");
   protein_hit.setSequence("PEPTIDEPEPTIDEPEPTIDEPEPTIDER");
   protein_hit.setScore(1.0);
   protein_hits.push_back(protein_hit);
 
+  ProteinIdentification protein_id;
+  protein_id.setIdentifier("Identifier");
   protein_id.setHits(protein_hits);
 
   DateTime now = DateTime::now();
@@ -53,16 +51,17 @@ int main()
   protein_id.setSearchEngine("SearchEngine");
   protein_id.setScoreType("HyperScore");
 
+  vector<ProteinIdentification> protein_ids;
   protein_ids.push_back(protein_id);
 
   // Iterate over protein identifications and protein hits
-  for (auto it = protein_ids.begin(); it != protein_ids.end(); ++it)
+  for (const auto& prot : protein_ids)
   {
-    for (auto hit = it->getHits().begin(); hit < it->getHits().end(); ++hit)
+    for (const auto& hit : prot.getHits())
     {
-      cout << "Protein hit accession: " << hit->getAccession() << endl;
-      cout << "Protein hit sequence: " << hit->getSequence() << endl;
-      cout << "Protein hit score: " << hit->getScore() << endl;
+      cout << "Protein hit accession: " << hit.getAccession() << '\n';
+      cout << "Protein hit sequence: " << hit.getSequence() << '\n';
+      cout << "Protein hit score: " << hit.getScore() << '\n';
     }
   }
 
@@ -110,21 +109,19 @@ int main()
   for (const auto& peptide_id : peptide_ids)
   {
     // Peptide identification values
-    cout << "Peptide ID m/z: " << peptide_id.getMZ() << endl;
-    cout << "Peptide ID rt: " << peptide_id.getRT() << endl;
-    cout << "Peptide ID score type: " << peptide_id.getScoreType() << endl;
+    cout << "Peptide ID m/z: " << peptide_id.getMZ() << '\n';
+    cout << "Peptide ID rt: " << peptide_id.getRT() << '\n';
+    cout << "Peptide ID score type: " << peptide_id.getScoreType() << '\n';
 
     // PeptideHits
     for (const auto& scored_hit : peptide_id.getHits())
     {
-      cout << " - Peptide hit rank: " << scored_hit.getRank() << endl;
-      cout << " - Peptide hit sequence: " << scored_hit.getSequence().toString() << endl;
-      cout << " - Peptide hit score: " << scored_hit.getScore() << endl;
+      cout << " - Peptide hit rank: " << scored_hit.getRank() << '\n';
+      cout << " - Peptide hit sequence: " << scored_hit.getSequence().toString() << '\n';
+      cout << " - Peptide hit score: " << scored_hit.getScore() << '\n';
     }
   }
-  // ...
-  return 0;
 }
 
 
-//! [Identification]
+//! [doxygen_snippet_Identification]

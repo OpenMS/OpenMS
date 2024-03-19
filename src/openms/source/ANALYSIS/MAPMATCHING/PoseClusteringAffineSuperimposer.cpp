@@ -21,7 +21,7 @@ namespace OpenMS
   PoseClusteringAffineSuperimposer::PoseClusteringAffineSuperimposer() :
     BaseSuperimposer()
   {
-    setName(getProductName());
+    setName("PoseClusteringAffineSuperimposer");
 
     defaults_.setValue("mz_pair_max_distance", 0.5, "Maximum of m/z deviation of corresponding elements in different maps.  "
                                                     "This condition applies to the pairs considered in hashing.");

@@ -53,8 +53,6 @@ public:
 
     // @name Accessors
     // @{
-    ///
-    static PeakMarker * create() { return new IsotopeMarker(); }
 
     ///
     template <typename SpectrumType>
@@ -105,12 +103,6 @@ public:
         }
       }
       return;
-    }
-
-    ///
-    static const String getProductName()
-    {
-      return "IsotopeMarker";
     }
 
     // @}

@@ -67,17 +67,6 @@ public:
     double operator()(const PeakSpectrum & spec) const override;
     // @}
 
-    // @name Accessors
-    // @{
-    ///
-    static PeakSpectrumCompareFunctor * create() { return new SpectrumAlignmentScore(); }
-
-    ///
-    static const String getProductName()
-    {
-      return "SpectrumAlignmentScore";
-    }
-
     // @}
 
   };

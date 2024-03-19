@@ -41,18 +41,6 @@ START_SECTION((virtual ~SimplePairFinder()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((static BaseGroupFinder* create()))
-	BaseGroupFinder* base_ptr = SimplePairFinder::create();
-  TEST_NOT_EQUAL(base_ptr, base_nullPointer)
-  delete base_ptr;
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-  SimplePairFinder spf;
-  
-  TEST_EQUAL(spf.getName() == "simple",true)
-END_SECTION
-
 START_SECTION((virtual void run(const std::vector< ConsensusMap > &input_maps, ConsensusMap &result_map)))
   FeatureMap scene;
   Feature feat1;

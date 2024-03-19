@@ -22,9 +22,9 @@ namespace OpenMS
     // translate A to array a (column major order)
     double * a_vec = new double[A.rows() * A.cols()];
     size_t idx = 0;
-    for (size_t col = 0; col < A.cols(); ++col)
+    for (long int col = 0; col < A.cols(); ++col)
     {
-      for (size_t row = 0; row < A.rows(); ++row)
+      for (long int row = 0; row < A.rows(); ++row)
       {
         a_vec[idx] = A(row, col);
         idx++;
@@ -41,7 +41,7 @@ namespace OpenMS
 
     // translate b
     double * b_vec = new double[a_rows];
-    for (size_t row = 0; row < b.rows(); ++row)
+    for (long int row = 0; row < b.rows(); ++row)
     {
       b_vec[row] = b(row, 0);
     }
@@ -64,9 +64,9 @@ namespace OpenMS
 
     NNLS::nnls_(a_vec, &a_rows, &a_rows, &a_cols, b_vec, x_vec, &rnorm, w, zz, indx, &mode);
 
-
     // translate solution back to Matrix:
-    x.resize(a_cols, 1);
+    x.getEigenMatrix().resize(a_cols, 1);
+    x.getEigenMatrix().setZero();
     for (Int row = 0; row < a_cols; ++row)
     {
       x(row, 0) = x_vec[row];
