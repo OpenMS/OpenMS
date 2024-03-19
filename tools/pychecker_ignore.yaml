@@ -799,9 +799,6 @@ PyOpenMSChecker:
     OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace:
         - max_peak
         - peaks
-    OpenMS::HiddenMarkovModel:
-        - write # stream
-        - calculateEmissionProbabilities # ptr inside Map
     OpenMS::MarkerMower:
         - insertmarker
     OpenMS::ProteinResolver::ProteinEntry:

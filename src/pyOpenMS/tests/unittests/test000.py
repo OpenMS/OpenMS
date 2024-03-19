@@ -5058,49 +5058,6 @@ def testPercolatorOutfile():
     e = pyopenms.PercolatorOutfile()
     assert e
 
-
-
-@report
-def testHiddenMarkovModel():
-    hmm = pyopenms.HiddenMarkovModel()
-    assert hmm
-
-    assert hmm.getNumberOfStates() == 0
-
-    ss = s("testState")
-    hmm.addNewState(ss)
-
-    assert hmm.getNumberOfStates() == 1
-
-    e = pyopenms.HMMState()
-    # hmm.addNewState(e) # Segfault !
-
-    r = hmm.getState(s("testState"))
-    assert r
-    ## assert r == ss # requires ==
-
-@report
-def testHMMState():
-    e = pyopenms.HMMState()
-    assert e
-    e.setName(s("somename"))
-    assert e.getName() == "somename", e.getName()
-    e.setHidden(True)
-    assert e.isHidden()
-
-    pre = pyopenms.HMMState()
-    pre.setName(s("pre"))
-    suc = pyopenms.HMMState()
-    suc.setName(s("suc"))
-
-    e.addPredecessorState(pre)
-    e.addSuccessorState(suc)
-
-    assert e.getPredecessorStates()
-    assert e.getSuccessorStates()
-
-
-
 @report
 def testProteaseDB():
     edb = pyopenms.ProteaseDB()

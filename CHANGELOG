@@ -56,6 +56,9 @@ Cleanup/Removal:
   - ERPairFinder
   - RNPxlSearch
 
+- removed library code:
+  - HiddenMarkovModel
+
 - removed tutorials:
   - Tutorial_PeakPickerCWT
   - Tutorial_TOFCalibration
