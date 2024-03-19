@@ -15,8 +15,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
 
-#include <OpenMS/CONCEPT/Factory.h>
-
 namespace OpenMS
 {
   Fitter1D::Fitter1D() :
@@ -50,15 +48,6 @@ namespace OpenMS
     updateMembers_();
 
     return *this;
-  }
-
-  void Fitter1D::registerChildren()
-  {
-    Factory<Fitter1D>::registerProduct(GaussFitter1D::getProductName(), &GaussFitter1D::create);
-    Factory<Fitter1D>::registerProduct(BiGaussFitter1D::getProductName(), &BiGaussFitter1D::create);
-    Factory<Fitter1D>::registerProduct(IsotopeFitter1D::getProductName(), &IsotopeFitter1D::create);
-    Factory<Fitter1D>::registerProduct(ExtendedIsotopeFitter1D::getProductName(), &ExtendedIsotopeFitter1D::create);
-    Factory<Fitter1D>::registerProduct(EmgFitter1D::getProductName(), &EmgFitter1D::create);
   }
 
   void Fitter1D::updateMembers_()

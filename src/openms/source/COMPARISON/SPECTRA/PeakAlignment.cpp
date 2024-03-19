@@ -100,11 +100,11 @@ namespace OpenMS
 
     //initialize alignment matrix with 0 in (0,0) and a multiple of gapcost in the first row/col matrix(row,col,values)
     Matrix<double> matrix(spec1.size() + 1, spec2.size() + 1, 0);
-    for (Size i = 1; i < matrix.rows(); i++)
+    for (long int i = 1; i < matrix.rows(); i++)
     {
       matrix(i, 0) = -gap * i;
     }
-    for (Size i = 1; i < matrix.cols(); i++)
+    for (long int i = 1; i < matrix.cols(); i++)
     {
       matrix(0, i) = -gap * i;
     }
@@ -184,11 +184,11 @@ namespace OpenMS
 
     //get best overall score and return
     double best_score(numeric_limits<double>::min());
-    for (Size i = 0; i < matrix.cols(); i++)
+    for (long int i = 0; i < matrix.cols(); i++)
     {
       best_score = max(best_score, matrix(matrix.rows() - 1, i));
     }
-    for (Size i = 0; i < matrix.rows(); i++)
+    for (long int i = 0; i < matrix.rows(); i++)
     {
       best_score = max(best_score, matrix(i, matrix.cols() - 1));
     }
@@ -235,11 +235,11 @@ namespace OpenMS
 
     //initialize alignment matrix with 0 in (0,0) and a multiple of gapcost in the first row/col matrix(row,col,values)
     Matrix<double> matrix(spec1.size() + 1, spec2.size() + 1, 0);
-    for (Size i = 1; i < matrix.rows(); i++)
+    for (long int i = 1; i < matrix.rows(); i++)
     {
       matrix(i, 0) = -gap * i;
     }
-    for (Size i = 1; i < matrix.cols(); i++)
+    for (long int i = 1; i < matrix.cols(); i++)
     {
       matrix(0, i) = -gap * i;
     }
@@ -346,7 +346,7 @@ namespace OpenMS
     //get matrix coordinates from best alloverscore
     Size row_index(0), col_index(0);
     double best_score(numeric_limits<double>::min());
-    for (Size i = 0; i < matrix.cols(); i++)
+    for (long int i = 0; i < matrix.cols(); i++)
     {
       if (best_score < matrix(matrix.rows() - 1, i))
       {
@@ -355,7 +355,7 @@ namespace OpenMS
         col_index = i;
       }
     }
-    for (Size i = 0; i < matrix.rows(); i++)
+    for (long int i = 0; i < matrix.rows(); i++)
     {
       if (best_score < matrix(i, matrix.cols() - 1))
       {

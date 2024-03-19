@@ -50,10 +50,6 @@ START_SECTION((template<typename SpectrumType> void apply(std::map<double, bool>
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(static const String getProductName())
-	TEST_EQUAL(e_ptr->getProductName(), "PeakMarker")
-END_SECTION
-
 START_SECTION((PeakMarker& operator = (const PeakMarker& source)))
 	PeakMarker copy;
 	copy = *e_ptr;

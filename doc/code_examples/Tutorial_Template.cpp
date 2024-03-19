@@ -75,6 +75,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
+    return ExitCodes::EXECUTION_OK;
   }
 
 };

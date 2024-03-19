@@ -61,14 +61,6 @@ public:
 
     // @name Accessors
     // @{
-    ///
-    static PeakSpectrumCompareFunctor * create() { return new SpectrumCheapDPCorr(); }
-
-    ///
-    static const String getProductName()
-    {
-      return "SpectrumCheapDPCorr";
-    }
 
     /// return consensus spectrum from last function call operator
     const PeakSpectrum & lastconsensus() const;

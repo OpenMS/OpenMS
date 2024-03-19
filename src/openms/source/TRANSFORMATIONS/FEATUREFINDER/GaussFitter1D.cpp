@@ -8,15 +8,15 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussFitter1D.h>
 
-#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
 
 namespace OpenMS
 {
   GaussFitter1D::GaussFitter1D() :
     MaxLikeliFitter1D()
   {
-    setName(getProductName());
+    setName("GaussFitter1D");
 
     defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", {"advanced"});
     defaults_.setValue("statistics:mean", 1.0, "Mean value of the model.", {"advanced"});
@@ -67,7 +67,8 @@ namespace OpenMS
 
 
     // build model
-    model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("GaussModel")));
+    model = std::unique_ptr<InterpolationModel>(new GaussModel());
+    
     model->setInterpolationStep(interpolation_step_);
 
     Param tmp;

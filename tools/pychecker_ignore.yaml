@@ -1116,11 +1116,9 @@ PyOpenMSChecker:
     - OpenMS::StringListUtils
 
     # CONCEPT
-    - OpenMS::SingletonRegistry
     - OpenMS::StreamHandler
     - OpenMS::Factory
     - OpenMS::UniqueIdIndexer
-    - OpenMS::FactoryBase
 
     # METADATA
     - OpenMS::MetaInfoDescription
@@ -1148,7 +1146,6 @@ PyOpenMSChecker:
     - OpenMS::LmaGaussModel
     - OpenMS::FeatureFinderAlgorithm
     - OpenMS::FeatureFinderDefs::NoSuccessor
-    - OpenMS::ProductModel< 2 >
     - OpenMS::LmaGaussFitter1D
     - OpenMS::MaxLikeliFitter1D
     - OpenMS::LmaIsotopeFitter1D

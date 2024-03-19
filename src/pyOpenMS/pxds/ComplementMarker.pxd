@@ -14,4 +14,3 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/ComplementMarker.h>" namespace 
 
         void apply(libcpp_map[ double, bool ] & , MSSpectrum & ) except + nogil 
         PeakMarker * create() except + nogil  # wrap-ignore
-        # String getProductName() except + nogil 

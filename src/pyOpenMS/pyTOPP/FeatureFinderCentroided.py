@@ -17,8 +17,7 @@ def run_featurefinder_centroided(input_path, params, seeds, out_path):
     ff.setLogType(pms.LogType.CMD)
 
     features = pms.FeatureMap()
-    name = pms.FeatureFinderAlgorithmPicked.getProductName()
-    ff.run(name, input_map, features, params, seeds)
+    ff.run("centroided", input_map, features, params, seeds)
 
     features.setUniqueIds()
     addDataProcessing(features, params, pms.DataProcessing.ProcessingAction.QUANTITATION)
@@ -84,8 +83,7 @@ def main():
                      "the peakpicker\nor -write(dict)ini for creating std "
                      "ini file")
 
-    name = pms.FeatureFinderAlgorithmPicked.getProductName()
-    defaults = pms.FeatureFinder().getParameters(name)
+    defaults = pms.FeatureFinder().getParameters("centroided")
 
     write_requested = writeParamsIfRequested(args, defaults)
 

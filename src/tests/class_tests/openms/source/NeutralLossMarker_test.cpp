@@ -76,18 +76,6 @@ START_SECTION((template<typename SpectrumType> void apply(std::map<double, bool>
 	TEST_EQUAL(marked.size(), 49)
 END_SECTION
 
-START_SECTION((static PeakMarker* create()))
-	PeakMarker* pm = NeutralLossMarker::create();
-	NeutralLossMarker marker;
-	TEST_EQUAL(pm->getParameters(), marker.getParameters())
-	TEST_EQUAL(pm->getName(), marker.getName())
-	delete pm;
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(e_ptr->getProductName(), "NeutralLossMarker")
-END_SECTION
-
 delete e_ptr;
 
 /////////////////////////////////////////////////////////////

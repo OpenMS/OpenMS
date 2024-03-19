@@ -2,11 +2,8 @@ set(concept_executables_list
   ClassTest_test
   Colorizer_test
   Exception_Base_test
-  FactoryBase_test
-  Factory_test
   FuzzyStringComparator_test
   #GlobalExceptionHandler_test
-  SingletonRegistry_test
   StreamHandler_test
   VersionInfo_test
   LogConfigHandler_test
@@ -519,7 +516,6 @@ set(analysis_executables_list
   MapAlignmentAlgorithmIdentification_test
   MapAlignmentAlgorithmKD_test
   MapAlignmentAlgorithmPoseClustering_test
-  MapAlignmentAlgorithmSpectrumAlignment_test
   MapAlignmentAlgorithmTreeGuided_test
   MapAlignmentEvaluationAlgorithmPrecision_test
   MapAlignmentEvaluationAlgorithmRecall_test
@@ -610,7 +606,6 @@ set(transformations_executables_list
   PeakPickerIterative_test
   PeakPickerMaxima_test
   PeakWidthEstimator_test
-  ProductModel_test
   SeedListGenerator_test
   TraceFitter_test
 )

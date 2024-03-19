@@ -10,7 +10,8 @@
 
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
-#include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeModel.h>
 
 namespace OpenMS
 {
@@ -18,7 +19,7 @@ namespace OpenMS
   ExtendedIsotopeFitter1D::ExtendedIsotopeFitter1D() :
     MaxLikeliFitter1D()
   {
-    setName(getProductName());
+    setName("ExtendedIsotopeFitter1D");
 
     defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", {"advanced"});
     defaults_.setValue("charge", 1, "Charge state of the model.", {"advanced"});
@@ -76,7 +77,7 @@ namespace OpenMS
       max_bb += stdev;
 
 
-      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("GaussModel")));
+      model = std::unique_ptr<InterpolationModel>(new GaussModel());
       model->setInterpolationStep(interpolation_step_);
 
       Param tmp;
@@ -88,7 +89,7 @@ namespace OpenMS
     }
     else
     {
-      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("ExtendedIsotopeModel")));
+      model = std::unique_ptr<InterpolationModel>(new ExtendedIsotopeModel());
 
       Param iso_param = this->param_.copy("isotope_model:", true);
       iso_param.removeAll("stdev");

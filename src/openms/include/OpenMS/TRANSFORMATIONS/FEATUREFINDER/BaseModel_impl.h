@@ -15,30 +15,11 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 
 namespace OpenMS
 {
-
-  template <>
-  OPENMS_DLLAPI void BaseModel<2>::registerChildren()
-  {
-    Factory<BaseModel<2> >::registerProduct(ProductModel<2>::getProductName(), &ProductModel<2>::create);
-  }
-
-  template <>
-  OPENMS_DLLAPI void BaseModel<1>::registerChildren()
-  {
-
-    Factory<BaseModel<1> >::registerProduct(GaussModel::getProductName(), &GaussModel::create);
-    Factory<BaseModel<1> >::registerProduct(BiGaussModel::getProductName(), &BiGaussModel::create);
-    Factory<BaseModel<1> >::registerProduct(IsotopeModel::getProductName(), &IsotopeModel::create);
-    Factory<BaseModel<1> >::registerProduct(ExtendedIsotopeModel::getProductName(), &ExtendedIsotopeModel::create);
-    Factory<BaseModel<1> >::registerProduct(EmgModel::getProductName(), &EmgModel::create);
-
-    return;
-  }
+  
 
 } // namespace OpenMS
 

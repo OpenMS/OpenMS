@@ -81,12 +81,7 @@ public:
     void filterPeakSpectrum(PeakSpectrum & spectrum);
 
     void filterPeakMap(PeakMap & exp);
-
-    static const String getProductName()
-    {
-      return "MarkerMower";
-    }
-
+    
     /// insert new Marker (violates the DefaultParamHandler interface)
     void insertmarker(PeakMarker * peak_marker);
 

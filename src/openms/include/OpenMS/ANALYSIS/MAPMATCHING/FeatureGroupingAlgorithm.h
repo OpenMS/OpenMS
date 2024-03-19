@@ -41,8 +41,6 @@ public:
     /// Transfers subelements (grouped features) from input consensus maps to the result consensus map
     void transferSubelements(const std::vector<ConsensusMap> & maps, ConsensusMap & out) const;
 
-    /// Register all derived classes in this method
-    static void registerChildren();
 
 protected:
 

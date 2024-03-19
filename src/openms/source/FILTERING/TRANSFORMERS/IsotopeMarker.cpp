@@ -16,7 +16,7 @@ namespace OpenMS
   IsotopeMarker::IsotopeMarker() :
     PeakMarker()
   {
-    setName(IsotopeMarker::getProductName());
+    setName("IsotopeMarker");
     defaults_.setValue("marks", 1, "How often a peak must be marked to be reported");
     defaults_.setValue("mz_variation", 0.1, "variation in m/z direction");
     defaults_.setValue("in_variation", 0.5, "variation in intensity");

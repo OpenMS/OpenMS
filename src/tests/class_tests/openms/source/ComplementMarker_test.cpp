@@ -76,18 +76,6 @@ START_SECTION((template<typename SpectrumType> void apply(std::map<double, bool>
 
 END_SECTION
 
-START_SECTION((static PeakMarker* create()))
-	PeakMarker* pm = ComplementMarker::create();
-	ComplementMarker cm;
-	TEST_EQUAL(pm->getParameters(), cm.getParameters())
-	TEST_EQUAL(pm->getName(), cm.getName())
-	delete pm;
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(e_ptr->getProductName(), "ComplementMarker")
-END_SECTION
-
 delete e_ptr;
 
 /////////////////////////////////////////////////////////////

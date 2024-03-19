@@ -11,7 +11,6 @@
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
 #include <OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>
-#include <OpenMS/CONCEPT/Factory.h>
 
 using namespace std;
 
@@ -24,13 +23,6 @@ namespace OpenMS
   ClusterFunctor::~ClusterFunctor() = default;
 
   ClusterFunctor & ClusterFunctor::operator=(const ClusterFunctor & /*source*/) = default;
-
-  void ClusterFunctor::registerChildren()
-  {
-    Factory<ClusterFunctor>::registerProduct(SingleLinkage::getProductName(), &SingleLinkage::create);
-    Factory<ClusterFunctor>::registerProduct(CompleteLinkage::getProductName(), &CompleteLinkage::create);
-    Factory<ClusterFunctor>::registerProduct(AverageLinkage::getProductName(), &AverageLinkage::create);
-  }
 
   ClusterFunctor::InsufficientInput::InsufficientInput(const char * file, int line, const char * function, const char * message) throw() :
     BaseException(file, line, function, "ClusterFunctor::InsufficentInput", message)

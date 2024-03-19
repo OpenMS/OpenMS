@@ -16,7 +16,7 @@ namespace OpenMS
   TICFilter::TICFilter() :
     FilterFunctor()
   {
-    setName(TICFilter::getProductName());
+    setName("TICFilter");
     defaults_.setValue("window", 5, "Windowing parameter which defines the windows size");
     defaultsToParam_();
   }

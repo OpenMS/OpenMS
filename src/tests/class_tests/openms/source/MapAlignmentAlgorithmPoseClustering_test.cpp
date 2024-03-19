@@ -13,8 +13,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
-#include <OpenMS/CONCEPT/Factory.h>
-
 using namespace std;
 using namespace OpenMS;
 

@@ -29,7 +29,7 @@ namespace OpenMS
   QTClusterFinder::QTClusterFinder() :
     BaseGroupFinder(), feature_distance_(FeatureDistance())
   {
-    setName(getProductName());
+    setName("QTClusterFinder");
 
     defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account).");
     defaults_.setValidStrings("use_identifications", {"true","false"});

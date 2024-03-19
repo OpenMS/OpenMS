@@ -51,7 +51,7 @@ namespace OpenMS
     /// Cross Correlation array
     typedef OpenSwath::Scoring::XCorrArrayType XCorrArrayType;
     /// Cross Correlation matrix
-    typedef std::vector<std::vector<XCorrArrayType> > XCorrMatrixType;
+    typedef std::vector<std::vector<XCorrArrayType>> XCorrMatrixType;
 
     XCorrMatrixType xcorr_matrix;
     xcorr_matrix.resize(sonar_profiles.size());

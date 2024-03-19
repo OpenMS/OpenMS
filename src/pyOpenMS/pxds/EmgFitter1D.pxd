@@ -11,5 +11,4 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>" namespac
         EmgFitter1D(EmgFitter1D &) except + nogil 
         # float fit1d(libcpp_vector[Peak1D] range_, InterpolationModel * & model) except + nogil  # wrap-ignore
         # Fitter1D * create() except + nogil 
-        String getProductName() except + nogil  # wrap-doc:Name of the model (needed by Factory)
-
+      

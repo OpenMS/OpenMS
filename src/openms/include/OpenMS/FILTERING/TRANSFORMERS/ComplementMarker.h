@@ -47,8 +47,6 @@ public:
 
     // @name Accessors
     //@{
-    ///
-    static PeakMarker * create() { return new ComplementMarker(); }
 
     ///
     template <typename SpectrumType>
@@ -92,12 +90,6 @@ public:
           marked.insert(std::pair<double, bool>(cmit->first, true));
         }
       }
-    }
-
-    /// returns the name to register at the factory
-    static const String getProductName()
-    {
-      return "ComplementMarker";
     }
 
     //@}
