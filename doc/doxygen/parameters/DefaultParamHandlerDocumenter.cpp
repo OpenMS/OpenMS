@@ -25,7 +25,6 @@
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
@@ -457,7 +456,6 @@ int main(int argc, char** argv)
   DOCME(MorphologicalFilter);
   DOCME(MassDecompositionAlgorithm);
   DOCME(MRMFragmentSelection);
-  DOCME(ProtonDistributionModel);
   DOCME(MascotRemoteQuery);
   DOCME(MascotGenericFile);
   DOCME(Fitter1D);  
