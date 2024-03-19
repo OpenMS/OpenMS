@@ -1,18 +1,25 @@
 from libcpp.vector cimport vector as libcpp_vector
 from String cimport *
+from IsotopeDistribution cimport *
+from Types cimport *
 
 
 
 cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>" namespace "OpenMS":
 
     cdef cppclass MassFeature_FDHS "OpenMS::FLASHDeconvHelperStructs::MassFeature":
-
+    
         # wrap-inherits:
 
         # default constructor
         MassFeature_FDHS() except + nogil
         # copy constructor
         MassFeature_FDHS(MassFeature_FDHS &) except + nogil
+
+
+        bool operator<(MassFeature_FDHS& a) except + nogil
+        bool operator>(MassFeature_FDHS& a) except + nogil
+        bool operator==(MassFeature_FDHS& other) except + nogil
 
     cdef cppclass Tag "OpenMS::FLASHDeconvHelperStructs::Tag":
 
@@ -29,5 +36,49 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>" namespac
         double getCtermMass() except + nogil
         int getScore() except + nogil
         int getScore(int pos) except + nogil
+
+    cdef cppclass PrecalAveragine "OpenMS::FLASHDeconvHelperStructs::PrecalculatedAveragine":
+            
+        # wrap-inherits:
+
+        # default constructor
+        PrecalAveragine() except + nogil
+        # constructor
+        PrecalAveragine(double min_mass, double max_mass, double delta, CoarseIsotopePatternGenerator& generator, bool use_RNA_averagine) except + nogil
+        # copy constructor
+        PrecalAveragine(PrecalAveragine &) except + nogil
+        
+        IsotopeDistribution get(double mass) except + nogil
+        size_t getMaxIsotopeIndex() except + nogil
+        void setMaxIsotopeIndex(int index) except + nogil
+        Size getLeftCountFromApex(double mass) except + nogil
+        Size getRightCountFromApex(double mass) except + nogil
+        Size getApexIndex(double mass) except + nogil
+        Size getLastIndex(double mass) except + nogil
+        double getAverageMassDelta(double mass) except + nogil
+        double getMostAbundantMassDelta(double mass) except + nogil
+        double getSNRMultiplicationFactor(double mass) except + nogil
+
+    cdef cppclass IsobaricQuantities "OpenMS::FLASHDeconvHelperStructs::IsobaricQuantities":
+       # wrap-inherits:
+
+        # default constructor
+        IsobaricQuantities() except + nogil
+        # copy constructor
+        IsobaricQuantities(IsobaricQuantities &) except + nogil
+
+    cdef cppclass LogMzPeak "OpenMS::FLASHDeconvHelperStructs::LogMzPeak":
+       # wrap-inherits:
+
+        # default constructor
+        LogMzPeak() except + nogil
+        # copy constructor
+        LogMzPeak(LogMzPeak &) except + nogil
+
+        double getUnchargedMass() except + nogil
+
+        bool operator<(LogMzPeak& a) except + nogil
+        bool operator>(LogMzPeak& a) except + nogil
+        bool operator==(LogMzPeak& other) except + nogil
 
 

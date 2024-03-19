@@ -20,5 +20,13 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>" namespace "O
         FLASHDeconvAlgorithm() except + nogil
         # copy constructor
         FLASHDeconvAlgorithm(FLASHDeconvAlgorithm &) except + nogil
+        # move constructor
+        #FLASHDeconvAlgorithm(FLASHDeconvAlgorithm && other) except + nogil
+        
+        PrecalAveragine& getAveragine() except + nogil
+
+        double getNoiseDecoyWeight() except + nogil
+
+        
         
         void run(MSExperiment & input_map,libcpp_vector[DeconvolvedSpectrum] & Dspectrum, libcpp_vector[MassFeature_FDHS] & massfeature) except + nogil
