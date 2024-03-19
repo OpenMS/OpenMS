@@ -241,7 +241,7 @@ namespace OpenMS
     filterLowPeaks_(map);
   }
 
-  int FLASHDeconvAlgorithm::getScanNumber_(const MSExperiment& map, Size index)
+  int FLASHDeconvAlgorithm::getScanNumber(const MSExperiment& map, Size index)
   {
     auto native_id_str = map[index].getNativeID();
     std::vector<String> native_ids;
@@ -284,7 +284,7 @@ namespace OpenMS
       // run Spectral deconvolution
       for (Size index = 0; index < map.size(); index++)
       {
-        int scan_number = getScanNumber_(map, index);
+        int scan_number = getScanNumber(map, index);
         auto spec = map[index];
 
         if (ms_level != spec.getMSLevel()) { continue; }
@@ -405,7 +405,7 @@ namespace OpenMS
   {
     if (precursor_map_for_ida_.empty()) return;
 
-    int scan_number = getScanNumber_(map, index);
+    int scan_number = getScanNumber(map, index);
     auto iter = precursor_map_for_ida_.lower_bound(scan_number);
 
     while (iter != precursor_map_for_ida_.begin()
@@ -465,7 +465,7 @@ namespace OpenMS
       auto spec = map[index];
       if (spec.getMSLevel() != ms_level) { continue; }
 
-      int scan_number = getScanNumber_(map, index);
+      int scan_number = getScanNumber(map, index);
       String native_id = spec.getNativeID();
       // find all candidate scan numbers from ms_level - 1
       int num_preceding = ms_level == 2 ? preceding_MS1_count_ : 1;
@@ -475,7 +475,7 @@ namespace OpenMS
         index_copy--;
         if (map[index_copy].getMSLevel() == ms_level - 1) { num_preceding--; }
       }
-      int b_scan_number = getScanNumber_(map, index_copy);
+      int b_scan_number = getScanNumber(map, index_copy);
 
       // then find deconvolved spectra within the scan numbers.
       auto diter = std::lower_bound(deconvolved_spectra.begin(), deconvolved_spectra.end(), DeconvolvedSpectrum(b_scan_number));

@@ -310,6 +310,7 @@ void FLASHTaggerAlgorithm::run(const std::vector<DeconvolvedSpectrum>& deconvolv
     dspec_for_tagging.sort();
     SpectralDeconvolution::removeOverlappingPeakGroups(dspec_for_tagging, ppm); // merged peak groups have scan number information!
   }
+
   run(dspec_for_tagging, ppm);
 }
 
@@ -322,6 +323,7 @@ void FLASHTaggerAlgorithm::run(const DeconvolvedSpectrum& dspec, double ppm)
   scores.reserve(dspec.size());
   std::vector<double> qscores;
   qscores.reserve(dspec.size());
+
   for (auto& pg : dspec)
   {
     qscores.push_back(pg.getQscore2D());
@@ -335,6 +337,7 @@ void FLASHTaggerAlgorithm::run(const DeconvolvedSpectrum& dspec, double ppm)
   {
     mzs.push_back(pg.getMonoMass());
     int score = (int)round(10 * log10(std::max(1e-6, pg.getQscore2D() / std::max(1e-6, (1.0 - random_hit_prob)))));
+
     scores.push_back(score); //
     scans.push_back(pg.getScanNumber());
   }
