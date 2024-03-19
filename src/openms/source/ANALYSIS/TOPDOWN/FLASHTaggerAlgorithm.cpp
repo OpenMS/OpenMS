@@ -302,15 +302,15 @@ void FLASHTaggerAlgorithm::run(const std::vector<DeconvolvedSpectrum>& deconvolv
   {
     if (dspec.isDecoy() || dspec.getOriginalSpectrum().getMSLevel() == 1) continue;
     for (const auto& pg : dspec)
+    {
       dspec_for_tagging.push_back(pg);
+    }
   }
-
   if (deconvolved_spectra.size() > 1)
   {
     dspec_for_tagging.sort();
-    SpectralDeconvolution::removeOverlappingPeakGroups(dspec_for_tagging, ppm); // merged peak groups have scan number information!
+    SpectralDeconvolution::removeOverlappingPeakGroups(dspec_for_tagging, ppm * 1e-6); // merged peak groups have scan number information!
   }
-
   run(dspec_for_tagging, ppm);
 }
 
