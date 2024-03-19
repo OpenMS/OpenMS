@@ -499,7 +499,7 @@ protected:
     vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load(
       output_folder + "/results.sage.pin",
       true,
-      "ln(hyperscore)",
+      "ln(hyperscore)", //TODO can we get sage's "sage_discriminant_score" out of the pin? Probably not. Suboptimal!
       extra_scores,
       filenames,
       decoy_prefix);
@@ -526,7 +526,7 @@ protected:
     
     if (filenames.empty()) filenames = getStringList_("in");
 
-    // TODO: split / merge results and create idXMLs
+    // TODO: allow optional split and create multiple idXMLs one per input file
     vector<ProteinIdentification> protein_identifications(1, ProteinIdentification());
 
     writeDebug_("write idXMLFile", 1);    
@@ -542,7 +542,7 @@ protected:
     for (auto & pid : peptide_identifications) 
     { 
       pid.setIdentifier(identifier);
-      pid.setScoreType("hyperscore");
+      pid.setScoreType("ln(hyperscore)");
       pid.setHigherScoreBetter(true);
     }
 
