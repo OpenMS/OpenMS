@@ -484,7 +484,6 @@ set(analysis_executables_list
   FIAMSScheduler_test
   FLASHDeconvAlgorithm_test
   FLASHDeconvHelperStructs_test
-  HiddenMarkovModel_test
   IDBoostGraph_test
   IDMapper_test
   IDMergerAlgorithm_test
@@ -546,7 +545,6 @@ set(analysis_executables_list
   PoseClusteringAffineSuperimposer_test
   PoseClusteringShiftSuperimposer_test
   PrecursorPurity_test
-  ProtonDistributionModel_test
   ProteinResolver_test
   PSProteinInference_test
   QTClusterFinder_test

@@ -39,7 +39,6 @@ PeptideProteinResolution.cpp
 PeptideIndexing.cpp
 PercolatorFeatureSetHelper.cpp
 PrecursorPurity.cpp
-ProtonDistributionModel.cpp
 PScore.cpp
 SimpleSearchEngineAlgorithm.cpp
 SiriusExportAlgorithm.cpp

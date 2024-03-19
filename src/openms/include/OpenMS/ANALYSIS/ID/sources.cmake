@@ -39,7 +39,6 @@ PeptideIndexing.h
 PeptideProteinResolution.h
 PercolatorFeatureSetHelper.h
 PrecursorPurity.h
-ProtonDistributionModel.h
 PScore.h
 SimpleSearchEngineAlgorithm.h
 SiriusExportAlgorithm.h
