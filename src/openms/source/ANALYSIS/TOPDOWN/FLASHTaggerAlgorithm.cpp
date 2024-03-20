@@ -610,10 +610,9 @@ void FLASHTaggerAlgorithm::runMatching(const String& fasta_file)
         if (isNterm) { s = start_loc[j]; }
         else { s = std::max(0, int(fe.sequence.length()) - 1 - end_loc[j]); }
         n = std::min(end_loc[j] - start_loc[j], int(fe.sequence.length()) - s);
+        if (n < tag.getLength()) continue;
         const auto sub_seq = std::string_view(fe.sequence.data() + s, n);
-
-        if (sub_seq.length() < tag.getLength()) continue;
-
+        
         auto uppercase_tag_seq = tag.getSequence().toUpper();
         std::vector<int> positions;
         Size tpos = 0;
