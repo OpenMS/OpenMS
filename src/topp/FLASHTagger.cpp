@@ -130,13 +130,13 @@ protected:
       int s_loc_e = deconv_meta_str.find(";", s_loc_s);
       auto s_str = deconv_meta_str.substr(s_loc_s, s_loc_e - s_loc_s);
       pos = 0;
-      std::vector<double> snrs;
+      std::vector<float> snrs;
       while (true)
       {
         Size pos_t = s_str.find(",", pos);
         if (pos_t == String::npos) break;
         auto token = s_str.substr(pos, pos_t - pos);
-        snrs.push_back(stod(token));
+        snrs.push_back(stof(token));
         pos = pos_t + 1;
       }
 
