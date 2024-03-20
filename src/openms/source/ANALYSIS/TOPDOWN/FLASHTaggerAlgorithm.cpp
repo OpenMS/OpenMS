@@ -444,10 +444,7 @@ void FLASHTaggerAlgorithm::updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>
   }
 }
 
-void FLASHTaggerAlgorithm::run(const std::vector<double>& mzs,
-                               const std::vector<int>& scores,
-                               const std::vector<int>& scans,
-                               double ppm)
+void FLASHTaggerAlgorithm::run(const std::vector<double>& mzs, const std::vector<int>& scores, const std::vector<int>& scans, double ppm)
 {
   if (max_tag_count_ == 0) return;
 
@@ -624,7 +621,7 @@ void FLASHTaggerAlgorithm::runMatching(const String& fasta_file)
         {
           tpos = sub_seq.find(uppercase_tag_seq, tpos);
           if (tpos == std::string_view::npos) break;
-          positions.push_back(tpos + s);
+          positions.push_back((int)tpos + s);
           tpos++;
         }
 
@@ -635,7 +632,7 @@ void FLASHTaggerAlgorithm::runMatching(const String& fasta_file)
           {
             tpos = find_with_X_(sub_seq, uppercase_tag_seq, tpos);
             if (tpos == std::string_view::npos) break;
-            positions.push_back(tpos + s);
+            positions.push_back((int)tpos + s);
             tpos++;
           }
         }
