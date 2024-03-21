@@ -85,7 +85,7 @@ START_SECTION((virtual Param getDefaultParameters() const))
 	TEST_EQUAL(String(ffa.getDefaultParameters().getValue("bla").toString()),"bluff")
 END_SECTION
 
-START_SECTION((void setData(const MapType& map, FeatureMap features, FeatureFinder& ff)))
+START_SECTION((void setData(const MapType& map, FeatureMap features)))
   FFA ffa;
   TEST_EQUAL(ffa.getMap(),map_nullPointer)
   TEST_EQUAL(ffa.getFeatures(),featureMap_nullPointer)
