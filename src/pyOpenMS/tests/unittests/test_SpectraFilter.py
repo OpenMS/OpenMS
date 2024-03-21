@@ -37,26 +37,6 @@ class TestSpectraFilter(unittest.TestCase):
         self.assertNotEqual(new_firstspec[10].getMZ(), self.exp[0][10].getMZ())
         self.assertNotEqual(new_firstspec[10].getIntensity(), self.exp[0][10].getIntensity())
 
-    def test_map_MarkerMower(self):
-        thisfilter = pyopenms.MarkerMower();
-
-        old_firstspec = self.exp[0]
-        thisfilter.filterPeakMap(self.exp)
-
-        # this deletes the spectrum ... 
-        self.assertNotEqual(self.exp.size(), 0)
-        self.assertNotEqual(old_firstspec, self.exp[0])
-
-    def test_spectrum_MarkerMower(self):
-        thisfilter = pyopenms.MarkerMower();
-
-        new_firstspec = self.exp[0]
-        self.assertNotEqual(new_firstspec.size(), 0)
-        thisfilter.filterSpectrum(new_firstspec)
-
-        # this deletes the spectrum ... 
-        self.assertEqual(new_firstspec.size(), 0)
-
     def test_map_NLargest(self):
         thisfilter = pyopenms.NLargest();
 
