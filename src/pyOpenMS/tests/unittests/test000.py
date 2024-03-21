@@ -4797,22 +4797,6 @@ def testInspectInfile():
     mods = inst.getModifications()
     assert len(mods) == 0
 
-
-@report
-def testIsotopeMarker():
-    """
-    @tests: IsotopeMarker
-     IsotopeMarker.__init__
-    """
-    inst = pyopenms.IsotopeMarker()
-    ptr = inst.create()
-
-    assert ptr.apply is not None
-
-    res = {}
-    spec = pyopenms.MSSpectrum()
-    ptr.apply(res, spec)
-
 @report
 def testAttachment():
     """

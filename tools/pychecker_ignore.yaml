@@ -10,8 +10,6 @@ PyOpenMSChecker:
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-    OpenMS::PeakMarker:
-      - apply
     OpenMS::FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern:
       - peak
     OpenMS::SqMassFile:
@@ -194,8 +192,6 @@ PyOpenMSChecker:
         - init
     OpenMS::SplineSpectrum:
         - getNavigator
-    OpenMS::ComplementMarker:
-        - getProductName
     OpenMS::TheoreticalSpectrumGenerator:
         - updateMembers_
     OpenMS::PeakPickerIterative:
@@ -341,8 +337,6 @@ PyOpenMSChecker:
     OpenMS::MapAlignmentEvaluationAlgorithm:
         - evaluate
         - isSameHandle
-    OpenMS::IsotopeMarker:
-        - getProductName
     OpenMS_Matrix:
         - row
         - col
@@ -799,8 +793,6 @@ PyOpenMSChecker:
     OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace:
         - max_peak
         - peaks
-    OpenMS::MarkerMower:
-        - insertmarker
     OpenMS::ProteinResolver::ProteinEntry:
         - peptides
         - fasta_entry
@@ -910,8 +902,6 @@ PyOpenMSChecker:
     OpenMS::FeatureGroupingAlgorithm:
         - group
         - FeatureGroupingAlgorithm # abstract class
-    OpenMS::NeutralLossMarker:
-        - getProductName
     OpenMS::MetaInfoInterface:
         - getMetaValue
         - metaValueExists
