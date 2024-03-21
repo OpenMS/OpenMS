@@ -602,7 +602,6 @@ set(transformations_executables_list
   ModelDescription_test
   PeakPickerHiRes_test
   PeakPickerIterative_test
-  PeakPickerMaxima_test
   PeakWidthEstimator_test
   SeedListGenerator_test
   TraceFitter_test
