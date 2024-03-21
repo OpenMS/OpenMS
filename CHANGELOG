@@ -58,7 +58,8 @@ Cleanup/Removal:
 
 - removed library code:
   - HiddenMarkovModel
-  - DeNovo related marker code
+  - PeakPickerMaxima
+  - DeNovo related, old marker code
 
 - removed tutorials:
   - Tutorial_PeakPickerCWT
