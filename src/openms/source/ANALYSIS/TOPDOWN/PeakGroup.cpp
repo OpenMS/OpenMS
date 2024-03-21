@@ -195,7 +195,7 @@ namespace OpenMS
     if (noise_peak_count == 0)
       return 0;
     // get intensity threshold
-    if (noise_peak_count > max_noisy_peak_number)
+    if (noise_peak_count > (int)max_noisy_peak_number)
     {
       std::vector<float> intensities;
       intensities.reserve(noise_peak_count);
@@ -258,7 +258,7 @@ namespace OpenMS
         const auto& [p2, p2_signal] = all_peaks[j];
         const double normalized_dist = (p2.getMZ() - p1_mass) / iso_da_distance_;
 
-        if (p1_signal && p2_signal && normalized_dist >= .75) // if both are signals, and they are different from each other by more than .75 isotope distance, do not connect. Otherwise connect as
+        if (p1_signal && p2_signal && normalized_dist >= .75) // if both are signals, and they are different from each other by more than .75 isotope distance, do not connect. Otherwise, connect as
                                                               // they may a part of consecutive other noisy peaks.
         {
           continue;
@@ -350,7 +350,7 @@ namespace OpenMS
       const int ori_index = index;
       float sum_intensity = .0;
 
-      while (index < all_peaks.size())
+      while (index < (int)all_peaks.size())
       {
         const auto& [p, p_signal] = all_peaks[index];
         if (p.getMZ() - ori_mass > tol / 2.0 * p.getMZ())
@@ -1013,7 +1013,7 @@ namespace OpenMS
     per_charge_snr_ = std::vector<float>(1 + max_abs_charge_, .0);
     float total_nom = 1e-6;
     float total_denom = 1e-6;
-    for (size_t c = min_abs_charge_; c < 1 + max_abs_charge_; ++c)
+    for (size_t c = min_abs_charge_; (int)c < 1 + max_abs_charge_; ++c)
     {
       if (per_charge_cos_.size() > c)
       {

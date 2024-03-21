@@ -557,14 +557,14 @@ namespace OpenMS
 
     for (auto& dspec : deconvolved_spectra)
     {
-      if (dspec.getOriginalSpectrum().getMSLevel() != ms_level - 1) continue;
+      if ((int)dspec.getOriginalSpectrum().getMSLevel() != ms_level - 1) continue;
       int scan = dspec.getScanNumber();
       scan_fullscan[scan] = dspec;
     }
 
     for (auto& dspec : deconvolved_spectra)
     {
-      if (dspec.getOriginalSpectrum().getMSLevel() != ms_level) continue;
+      if ((int)dspec.getOriginalSpectrum().getMSLevel() != ms_level) continue;
       if (dspec.getPrecursorPeakGroup().empty()) continue;
 
       auto precursor_pg = dspec.getPrecursorPeakGroup();
@@ -622,14 +622,14 @@ namespace OpenMS
     mf_param.setValue("min_trace_length", 1e-5); // allow all traces for MSn
     mass_tracer.setParameters(mf_param);
     // Find features for MSn
-    for (int ms_level = current_min_ms_level_ + 1; ms_level <= current_max_ms_level_; ms_level++)
+    for (int ms_level = (int)current_min_ms_level_ + 1; ms_level <= (int)current_max_ms_level_; ms_level++)
     {
       updatePrecursorQScores_(deconvolved_spectra, ms_level);
       std::map<uint, std::vector<Size>> feature_index_set;
       for (Size i = 0; i < deconvolved_spectra.size(); i++)
       {
         const auto& dspec = deconvolved_spectra[i];
-        if (dspec.getOriginalSpectrum().getMSLevel() != ms_level) continue;
+        if ((int)dspec.getOriginalSpectrum().getMSLevel() != ms_level) continue;
         if (dspec.getPrecursorPeakGroup().empty()) continue;
         uint findex = dspec.getPrecursorPeakGroup().getFeatureIndex();
         if (findex == 0) continue;

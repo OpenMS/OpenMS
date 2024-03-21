@@ -875,7 +875,7 @@ namespace OpenMS
       {
         if (m <= 0) { continue; }
         Size j = getBinNumber_(log(m), mass_bin_min_value_, bin_mul_factors_[ms_level_ - 1]);
-        if (j >= bin_offset && j < previously_deconved_mass_bins_for_decoy_.size() - bin_offset)
+        if ((int)j >= bin_offset && j < previously_deconved_mass_bins_for_decoy_.size() - bin_offset)
         {
           for (int k = -bin_offset; k <= bin_offset; k++)
             previously_deconved_mass_bins_for_decoy_[j + k] = true;
@@ -1036,7 +1036,7 @@ namespace OpenMS
     filtered_peak_groups = std::vector<PeakGroup>();
 
   #pragma omp parallel for default(none) shared(filtered_peak_groups, tol, selected, harmonic_charges_)
-    for (int i = 0; i < deconvolved_spectrum_.size(); i++)
+    for (int i = 0; i < (int)deconvolved_spectrum_.size(); i++)
     {
       auto peak_group = deconvolved_spectrum_[i];
       bool pass = true;
@@ -1175,7 +1175,7 @@ namespace OpenMS
 
     if (decoy)
     {
-      for (int i = 0; i < b.size(); i++)
+      for (int i = 0; i < (int)b.size(); i++)
       {
         int ni = (i % 2 == 0 ? i + 1 : i - 1) % (int)b.size();
         b_norm += b[ni].getIntensity() * b[ni].getIntensity();
@@ -1197,7 +1197,7 @@ namespace OpenMS
       {
         // n -= a[j] * b[0].getIntensity();
       }
-      else if (i >= b.size() || i < 0 || b[i].getIntensity() <= 0) { continue; }
+      else if (i >= (int)b.size() || i < 0 || b[i].getIntensity() <= 0) { continue; }
       else
       {
         if (decoy)

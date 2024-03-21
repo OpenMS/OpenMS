@@ -52,7 +52,7 @@ private:
                      std::vector<std::vector<int>>& all_paths,
                      int max_count)
   {
-    if (all_paths.size() >= max_count) return;
+    if ((int)all_paths.size() >= max_count) return;
     visited[current] = true;
     path.push_back(current);
 
@@ -126,7 +126,7 @@ int FLASHTaggerAlgorithm::getIndex_(int vertex) const
 
 bool FLASHTaggerAlgorithm::connectEdge_(FLASHTaggerAlgorithm::DAC_& dac, int vertex1, int vertex2, boost::dynamic_bitset<>& visited)
 {
-  if (vertex1 < 0 || vertex2 < 0 || vertex1 >= visited.size() || vertex2 >= visited.size()) return false;
+  if (vertex1 < 0 || vertex2 < 0 || vertex1 >= (int)visited.size() || vertex2 >= (int)visited.size()) return false;
   if (! visited[vertex2]) return false;
 
   dac.addEdge(vertex1, vertex2);
@@ -147,7 +147,7 @@ void FLASHTaggerAlgorithm::constructDAC_(FLASHTaggerAlgorithm::DAC_& dac,
   boost::dynamic_bitset<> visited(dac.size());
   visited[getVertex_(0, 0, 0, 0)] = true;
 
-  while (end_index < mzs.size())
+  while (end_index < (int)mzs.size())
   {
     auto r = mzs[end_index];
 
@@ -207,7 +207,7 @@ void FLASHTaggerAlgorithm::constructDAC_(FLASHTaggerAlgorithm::DAC_& dac,
       if (max_iso_in_tag_ == 0) break;
     }
 
-    if (end_index < mzs.size() - 1)
+    if (end_index < (int)mzs.size() - 1)
     {
       for (int g = 0; g <= max_iso_in_tag_; g++)
       {
@@ -217,8 +217,8 @@ void FLASHTaggerAlgorithm::constructDAC_(FLASHTaggerAlgorithm::DAC_& dac,
           if (score - edge_score < min_path_score_) continue;
           if (score - edge_score > max_path_score_) break;
 
-          int vertex1 = getVertex_(mzs.size() - 1, score, length, g);
-          int vertex2 = getVertex_(end_index, score - edge_score, length, g);
+          int vertex1 = (int)getVertex_((int)mzs.size() - 1, score, length, g);
+          int vertex2 = (int)getVertex_(end_index, score - edge_score, length, g);
           connectEdge_(dac, vertex1, vertex2, visited);
         }
       }
@@ -362,7 +362,7 @@ void FLASHTaggerAlgorithm::updateTagSet_(std::set<FLASHDeconvHelperStructs::Tag>
   tag_scores.reserve(path.size() - 1);
   tag_scans.reserve(path.size() - 1);
 
-  for (int j = 1; j < path.size(); j++)
+  for (int j = 1; j < (int)path.size(); j++)
   {
     int i1 = getIndex_(path[j - 1]); // c term size
     int i2 = getIndex_(path[j]);     // n term side
@@ -474,7 +474,7 @@ void FLASHTaggerAlgorithm::run(const std::vector<double>& mzs, const std::vector
   _mzs.push_back(.0);
   _scores.push_back(0);
   _scans.push_back(0);
-  for (int i = 0; i < mzs.size(); i++)
+  for (int i = 0; i < (int)mzs.size(); i++)
   {
     if (scores[i] < threshold) continue;
     _mzs.push_back(mzs[i]);
@@ -501,7 +501,7 @@ void FLASHTaggerAlgorithm::run(const std::vector<double>& mzs, const std::vector
     constructDAC_(dac, _mzs, _scores, length, ppm);
 
     std::set<FLASHDeconvHelperStructs::Tag> _tagSet;
-    for (int score = max_path_score_; score >= min_path_score_ && _tagSet.size() < max_tag_count_; score--)
+    for (int score = max_path_score_; score >= min_path_score_ && (int)_tagSet.size() < max_tag_count_; score--)
     {
       std::vector<std::vector<int>> all_paths;
       all_paths.reserve(max_tag_count_);
@@ -522,7 +522,7 @@ void FLASHTaggerAlgorithm::run(const std::vector<double>& mzs, const std::vector
     int count = 0;
     for (const auto& tag : tagSet)
     {
-      if (tag.getLength() != length) continue;
+      if ((int)tag.getLength() != length) continue;
       tags_.push_back(tag);
       if (++count == max_tag_count_) break;
     }
@@ -567,7 +567,7 @@ void FLASHTaggerAlgorithm::runMatching(const String& fasta_file)
   // for each tag, find the possible start and end locations in the protein sequence. If C term, they are negative values to specify values are from
   // the end of the protein
 #pragma omp parallel for default(none) shared(end_loc, start_loc)
-  for (int i = 0; i < tags_.size(); i++)
+  for (int i = 0; i < (int)tags_.size(); i++)
   {
     const auto& tag = tags_[i];
     auto flanking_mass = std::max(tag.getNtermMass(), tag.getCtermMass());
@@ -582,7 +582,7 @@ void FLASHTaggerAlgorithm::runMatching(const String& fasta_file)
   for (int n = 0; n < 2; n++)
   {
 #pragma omp parallel for default(none) shared(pairs, fasta_entry, start_loc, end_loc, decoy_mul, min_hit_tag_score, n)
-    for (int i = 0; i < fasta_entry.size(); i++)
+    for (int i = 0; i < (int)fasta_entry.size(); i++)
     {
       const auto& fe = fasta_entry[i];
       bool is_decoy = false;
@@ -600,7 +600,7 @@ void FLASHTaggerAlgorithm::runMatching(const String& fasta_file)
       auto x_pos = fe.sequence.find('X');
       std::map<Size, int> matched_pos_score;
       // find range, match allowing X.
-      for (int j = 0; j < tags_.size(); j++)
+      for (int j = 0; j < (int)tags_.size(); j++)
       {
         auto& tag = tags_[j];
         if (is_decoy && tag.getScore() < min_hit_tag_score) break;
@@ -610,9 +610,9 @@ void FLASHTaggerAlgorithm::runMatching(const String& fasta_file)
         if (isNterm) { s = start_loc[j]; }
         else { s = std::max(0, int(fe.sequence.length()) - 1 - end_loc[j]); }
         n = std::min(end_loc[j] - start_loc[j], int(fe.sequence.length()) - s);
-        if (n < tag.getLength()) continue;
+        if (n < (int)tag.getLength()) continue;
         const auto sub_seq = std::string_view(fe.sequence.data() + s, n);
-        
+
         auto uppercase_tag_seq = tag.getSequence().toUpper();
         std::vector<int> positions;
         Size tpos = 0;
@@ -624,7 +624,7 @@ void FLASHTaggerAlgorithm::runMatching(const String& fasta_file)
           tpos++;
         }
 
-        if (positions.empty() && x_pos >= s && x_pos <= s + n) // only if perfect hits are not found and X exists
+        if (positions.empty() && (int)x_pos >= s && (int)x_pos <= s + n) // only if perfect hits are not found and X exists
         {
           tpos = 0;
           while (true)
@@ -656,7 +656,7 @@ void FLASHTaggerAlgorithm::runMatching(const String& fasta_file)
             if (std::abs(tag.getCtermMass() - aamass) > flanking_mass_tol_) continue;
           }
 
-          for (int off = 0; off < tag.getLength(); off++)
+          for (int off = 0; off < (int)tag.getLength(); off++)
           {
             int score = tag.getScore(off);
             auto iter = matched_pos_score.find(pos + off);
