@@ -58,6 +58,7 @@ Cleanup/Removal:
 
 - removed library code:
   - HiddenMarkovModel
+  - PeakPickerMaxima
 
 - removed tutorials:
   - Tutorial_PeakPickerCWT
