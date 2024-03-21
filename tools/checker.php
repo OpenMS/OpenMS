@@ -656,7 +656,6 @@ foreach ($files_todo as $f)
       "/FORMAT/HANDLERS/",
       "/VISUAL/",
       "/CONCEPT/Types.h",
-      "/CONCEPT/TypeAsString.h",
       "/CONCEPT/PrecisionWrapper.h",
       "/FORMAT/FileTypes.h",
       "/CONCEPT/Macros.h",
