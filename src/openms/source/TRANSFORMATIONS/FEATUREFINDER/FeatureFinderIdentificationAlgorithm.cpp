@@ -118,8 +118,10 @@ namespace OpenMS
     defaults_.setMinFloat("add_mass_offset_peptides", 0.0);
 
     // available scores: initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelution,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score
-    // exclude some redundant/uninformative scores:
-    // @TODO: intensity bias introduced by "peak_apices_sum"?
+    // TODO: evaluate and exclude some redundant/uninformative scores:
+    //  - intensity bias introduced by "peak_apices_sum"?
+    //  - xx_lda_prelim_score is already a lin. comb. of other scores
+    //  - main_var_xx_swath_prelim_score is potentially the same as xx_lda_prelim_score
     // names of scores to use as SVM features
     String score_metavalues = "peak_apices_sum,var_xcorr_coelution,var_xcorr_shape,var_library_sangle,var_intensity_score,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_ms1_isotope_correlation_score,var_ms1_isotope_overlap_score,var_massdev_score,main_var_xx_swath_prelim_score";
 
@@ -398,6 +400,13 @@ namespace OpenMS
     params.setValue("Scores:use_ms1_mi", "false"); // same as above. On MS1 level we basically only care about the "MS1 fullscan" scores
     //TODO for MS1 level scoring there is an additional parameter add_up_spectra with which we can add up spectra
     // around the apex, to complete isotopic envelopes (and therefore make this score more robust).
+    
+    if (peptides_ext.empty()) // SVM scores not needed, disable the most expensive ones
+    {
+      // TODO this score also affects Swath LDA prescoring. I wonder if/how this impacts the
+      //  creation/addition of a feature.
+      params.setValue("Scores:use_elution_model_score", "false");
+    }
 
     if ((elution_model_ != "none") || (!candidates_out_.empty()))
     {
@@ -407,6 +416,12 @@ namespace OpenMS
     {
       min_peak_width_ *= peak_width_;
     }
+
+    // TODO I wonder if the following parameters would be enough.
+    //  In theory we only care for one feature per one set of extracted chromatograms (transition group)
+    //params.setValue("stop_report_after_feature", 1); // best by quality, after scoring
+    //params.setValue("TransitionGroupPicker:stop_after_feature", 1); // best by intensity, after picking, before scoring
+    
     params.setValue("TransitionGroupPicker:PeakPickerChromatogram:gauss_width",
                     peak_width_);
     params.setValue("TransitionGroupPicker:min_peak_width", min_peak_width_);
@@ -416,8 +431,25 @@ namespace OpenMS
                     signal_to_noise_);
     params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
     params.setValue("TransitionGroupPicker:PeakPickerChromatogram:peak_width", -1.0);
-    params.setValue("TransitionGroupPicker:PeakPickerChromatogram:method",
-                    "corrected");    
+    params.setValue("TransitionGroupPicker:PeakPickerChromatogram:method", "corrected"); // default
+
+    // ======================================================================================================================================
+    // TODO: The following group of parameters probably only have an effect if ElutionModelFitter at the end of FFID
+    //  (in post_process_) is deactivated with 'elution_model = "none"'.
+    //  Otherwise ElutionModelFitter fits a new model (EGH instead of EMG) that takes into account all traces per feature
+    //  at the same time and overwrites intensities. "Old" SWATH intensities might be available in the feature as metavalue
+    //  "raw_intensity" though.
+
+    // Note: this EMG fitting only affects integration, not scoring
+    params.setValue("TransitionGroupPicker:PeakIntegrator:fit_EMG", "false"); // default (= disabled)
+    // Note: Fitting for scoring is controlled via EMGScoring parameter group. Fitting for integration here uses a completely
+    //  different algorithm (EmgGradientDescent class; params not exposed) with gradient descent instead of Eigen::LevenbergMarquardt algorithm (EmgFitter1D class).
+    // TODO: evaluate difference in runtimes and quality of result
+    params.setValue("TransitionGroupPicker:PeakIntegrator:integration_type", "intensity_sum"); // default
+    params.setValue("TransitionGroupPicker:background_subtraction", "exact"); // enable (default was "none")
+    params.setValue("TransitionGroupPicker:PeakIntegrator:baseline_type", "base_to_base"); // default
+    // ======================================================================================================================================
+    
     params.setValue("TransitionGroupPicker:PeakPickerChromatogram:write_sn_log_messages", "false"); // disabled in OpenSWATH
     
     feat_finder_.setParameters(params);
