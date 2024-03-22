@@ -24,7 +24,7 @@ using namespace std;
 // Doxygen docu
 //-------------------------------------------------------------
 /**
-@page
+@page TOPP_FLASHTagger FLASHTagger
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPPFLASHTagger.cli
