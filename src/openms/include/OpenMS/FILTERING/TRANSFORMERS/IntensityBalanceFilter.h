@@ -49,8 +49,6 @@ public:
 
     // @name Accessors
     // @{
-    ///
-    static FilterFunctor * create() { return new IntensityBalanceFilter(); }
 
     ///
     template <typename SpectrumType>
@@ -93,12 +91,6 @@ public:
       }
 
       return (twobiggest - sevensmallest) / total_intensity;
-    }
-
-    ///
-    static const String getProductName()
-    {
-      return "IntensityBalanceFilter";
     }
 
     // @}

@@ -63,18 +63,6 @@ public:
     */
     void run(const ConsensusMap & map_model, const ConsensusMap & map_scene, TransformationDescription & transformation) override;
 
-    /// Returns an instance of this class
-    static BaseSuperimposer * create()
-    {
-      return new PoseClusteringShiftSuperimposer();
-    }
-
-    /// Returns the name of this module
-    static const String getProductName()
-    {
-      return "poseclustering_shift";
-    }
-
   };
 } // namespace OpenMS
 

@@ -10,5 +10,4 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFitter1D.h>" name
 
         # QualityType fit1d(RawDataArrayType &range, InterpolationModel *&model) except + nogil 
         # Fitter1D * create() except + nogil 
-        String getProductName() except + nogil  # wrap-doc:Name of the model (needed by Factory)
 

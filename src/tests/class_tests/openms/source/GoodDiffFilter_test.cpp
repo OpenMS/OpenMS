@@ -72,18 +72,6 @@ START_SECTION((template<typename SpectrumType> double apply(SpectrumType& spectr
 	TEST_REAL_SIMILAR(filter, 0.811684)
 END_SECTION
 
-START_SECTION((static FilterFunctor* create()))
-	FilterFunctor* ff = GoodDiffFilter::create();
-	GoodDiffFilter good;
-	TEST_EQUAL(ff->getParameters(), good.getParameters())
-	TEST_EQUAL(ff->getName(), good.getName())
-	delete ff;
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(e_ptr->getProductName(), "GoodDiffFilter")
-END_SECTION
-
 delete e_ptr;
 
 /////////////////////////////////////////////////////////////

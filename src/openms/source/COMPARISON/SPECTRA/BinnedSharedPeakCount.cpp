@@ -18,7 +18,7 @@ namespace OpenMS
   BinnedSharedPeakCount::BinnedSharedPeakCount() :
     BinnedSpectrumCompareFunctor()
   {
-    setName(BinnedSharedPeakCount::getProductName());
+    setName("BinnedSharedPeakCount");
     defaultsToParam_();
   }
 

@@ -10,16 +10,13 @@
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSharedPeakCount.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSumAgreeingIntensities.h>
-#include <OpenMS/CONCEPT/Factory.h>
-
-
 
 using namespace std;
 
 namespace OpenMS
 {
   BinnedSpectrumCompareFunctor::BinnedSpectrumCompareFunctor() :
-    DefaultParamHandler(BinnedSpectrumCompareFunctor::getProductName())
+    DefaultParamHandler("BinnedSpectrumCompareFunctor")
   {
   }
 
@@ -34,13 +31,6 @@ namespace OpenMS
       DefaultParamHandler::operator=(source);
     }
     return *this;
-  }
-
-  void BinnedSpectrumCompareFunctor::registerChildren()
-  {
-    Factory<BinnedSpectrumCompareFunctor>::registerProduct(BinnedSharedPeakCount::getProductName(), &BinnedSharedPeakCount::create);
-    Factory<BinnedSpectrumCompareFunctor>::registerProduct(BinnedSpectralContrastAngle::getProductName(), &BinnedSpectralContrastAngle::create);
-    Factory<BinnedSpectrumCompareFunctor>::registerProduct(BinnedSumAgreeingIntensities::getProductName(), &BinnedSumAgreeingIntensities::create);
   }
 
 }

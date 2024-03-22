@@ -6,7 +6,6 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-
 #pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
@@ -40,18 +39,6 @@ public:
 
     /// assignment operator
     EmgModel & operator=(const EmgModel & source);
-
-    /// create new EmgModel object (needed by Factory)
-    static BaseModel<1> * create()
-    {
-      return new EmgModel();
-    }
-
-    /// name of the model (needed by Factory)
-    static const String getProductName()
-    {
-      return "EmgModel";
-    }
 
     /// set offset without being computing all over and without any discrepancy
     void setOffset(CoordinateType offset) override;

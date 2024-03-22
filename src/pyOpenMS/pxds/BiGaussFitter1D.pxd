@@ -9,5 +9,4 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>" name
         BiGaussFitter1D(BiGaussFitter1D &) except + nogil 
         # QualityType fit1d(RawDataArrayType &range, InterpolationModel *&model) except + nogil 
         # Fitter1D * create() except + nogil 
-        String getProductName() except + nogil  # wrap-doc:Name of the model (needed by Factory)
-
+       

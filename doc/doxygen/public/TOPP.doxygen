@@ -140,7 +140,6 @@
   <b>Map Alignment</b>
   - @subpage TOPP_MapAlignerIdentification - Corrects RT distortions between maps based on common peptide identifications using one map as reference.
   - @subpage TOPP_MapAlignerPoseClustering - Corrects RT distortions between maps using a pose clustering approach (not using pep-ids and a linear model).
-  - @subpage TOPP_MapAlignerSpectrum - Corrects RT distortions between maps by spectrum alignment.
   - @subpage TOPP_MapAlignerTreeGuided - Corrects RT distortions between maps based on common peptide identifications guided by a similarity tree.
   - @subpage TOPP_MapRTTransformer - Applies RT transformations to maps.
 

@@ -7,10 +7,6 @@
 
 //########################### Please read this carefully! ###########################
 
-// Sections:
-// - to add new pages you have to add them to:
-//    - doc/doxygen/public/OpenMS_Tutorial_html.doxygen (html output)
-
 // Conventions:
 // - Please write a short introduction for each chapter that explains
 //   what classes are described and where these classes can be found (folder)
@@ -35,7 +31,7 @@
 
 Mass spectrometry (MS) is an essential analytical technique for high-throughput analysis in proteomics and metabolomics. The development of new separation techniques, precise mass analyzers and experimental protocols is a very active field of research. This leads to more complex experimental setups yielding ever increasing amounts of data. Consequently, analysis of the data is currently often the bottleneck for experimental studies. Although software tools for many data analysis tasks are available today, they are often hard to combine with each other or not flexible enough to allow for rapid prototyping of a new analysis workflow. <br>
 
-<b>%OpenMS</b>, a software framework for rapid <b>application and method development</b> in mass spectrometry has been designed to be portable, easy-to-use, and robust while offering a rich functionality ranging from basic data structures to sophisticated algorithms for data analysis (https://www.nature.com/nmeth/journal/v13/n9/abs/nmeth.3959.html). <br>
+<b>%OpenMS</b>, a software framework for rapid <b>application and method development</b> in mass spectrometry has been designed to be portable, easy-to-use, and robust while offering a rich functionality ranging from basic data structures to sophisticated algorithms for data analysis (for OpenMS 3: https://www.nature.com/articles/s41592-024-02197-7 ; and for OpenMS 2: https://www.nature.com/nmeth/journal/v13/n9/abs/nmeth.3959.html). <br>
 
 <b>Ease of use:</b>
 %OpenMS follows the <b>object-oriented</b> programming paradigm, which aims at mapping real-world entities to comprehensible data structures and interfaces. %OpenMS enforces @ref developer_coding_conventions that ensure consistent names of classes, methods and member variables which increases the usability as a software library. Another important feature of a software framework is documentation. We decided to use <a href="http://www.doxygen.org" target="_blank">doxygen</a> to generate the class documentation from the <b>source code</b>, which ensures consistency of code and documentation. The documentation is generated in HTML format making it easy to read with a web browser. <br>
@@ -182,7 +178,7 @@ The extensible %OpenMS library implements common mass spectrometric data process
             - fast, KD-tree based linking (Tool FeatureLinkerUnlabeledKD)
             - QT based clustering and linking (Tool FeatureLinkerUnlabeledQT)
         - Protein inference:
-            - WIP (currently via third-party tool FIDO and Wrapper FidoAdapter)
+            - Tool Epiphany
         - Protein Quantification:
             - Tool ProteinQuantifier
         - Targeted data extraction: 
@@ -216,7 +212,7 @@ The extensible %OpenMS library implements common mass spectrometric data process
 - General:
     - Mass decomposition algorithms
     - Isotope pattern generators
-    - Quality control (Tools QCCalculator, QCExtractor) metrics and file format (QcML)
+    - Quality control (Tools QualityControl) metrics and file format (mzQC and its predecessor QcML)
 
 <br>
 <table>
@@ -342,6 +338,8 @@ The base class of the two-dimensional data points is Peak2D. It provides the sam
 <br>
 For information on d-dimensional data points see the appendix.
 
+@note All subsequent code snippets are taken from fully self-contained compilation units in `openms/doc/code_examples`, which can be build as executables using the `Tutorials_build` target.
+
 @subsection tutorial_library_kernelclasses_spectra Spectra
 The most important container for raw/profile data and centroided peaks is MSSpectrum. The elements of a MSSpectrum are peaks (Peak1D). In fact it is so common that it has its own typedef PeakSpectrum. MSSpectrum is derived from SpectrumSettings, a container for the metadata of a spectrum (e.g. precursor information). Here, only MS data handling is explained, SpectrumSettings is described in subsection meta data of a spectrum. In the following example (Tutorial_MSSpectrum.cpp) program, a MSSpectrum is filled with peaks, sorted according to mass-to-charge ratio and a selection of peak positions is displayed as One-dimensional data points:
 <br><br>
@@ -373,11 +371,21 @@ Retrieve precursor information
 @subsection tutorial_library_kernelclasses_mrm MRMTransitionGroup
 The targeted analysis of SRM or DIA (SWATH-MS) type of data requires a set of targeted assays as well as raw data chromatograms. The MRMTransitionGroup class allows users to map these two types of information and store them together with identified features conveniently in a single object. 
 <br><br>
-<b>Example: Tutorial_MRMTransitionGroup</b>
-<br>
 Create an empty MRMTransitionGroup with two dummy transitions
 
-\snippet Tutorial_MRMTransitionGroup.cpp doxygen_snippet_MRMTransitionGroup
+@code
+using TrGroup = MRMTransitionGroup<MSChromatogram, ReactionMonitoringTransition>;
+TrGroup createTransitionGroup()
+{
+  TrGroup tr_group;
+  tr_group.addChromatogram(MSChromatogram(), “transition1”);
+  tr_group.addTransition(ReactionMonitoringTransition(), “transition1”);
+  tr_group.addChromatogram(MSChromatogram(), “transition2”);
+  tr_group.addTransition(ReactionMonitoringTransition(), “transition2”);
+  tr_group.setTransitionGroupID(“tr_peptideA”);
+  return tr_group;
+}
+@endcode
 
 Note how the identifiers of the chromatograms and the assay information (ReactionMonitoringTransition) are matched so that downstream algorithms can utilize the meta-information stored in the assays for data analysis.
 
@@ -532,35 +540,35 @@ This creates a manual (doxygen) page with the information –help output of the 
 @subsection tutorial_param_def Define tool parameters
 Define tool parameters Each TOPP tool defines a set of parameters that will be available from the command line, KNIME, and other workflow systems. This is done in the void registerOptionsAndFlags_() method. In our case we want to read a protein database (fasta format), a file containing identification data (idXML format), and an option to switch between keeping (whitelisting) and removing (blacklisting) entries based on the filter result. This is our input. The reduced database forms the output and should be written to a protein database in fasta format. This is easily done by adding following lines to:
 <br><br>
-<b>Example: Tutorial_Final.cpp</b>
+<b>Example: Tutorial_TOPP.cpp</b>
 <br>
 Registration of tool parameters
 
-\snippet Tutorial_Final.cpp doxygen_snippet_Register
+\snippet Tutorial_TOPP.cpp doxygen_snippet_Register
 
 Functions, classes and references can be checked in the %OpenMS / TOPP documentation (ftp://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/index.html)
 
 @subsection tutorial_param_read Read tool parameters
 After a tool is executed, the registered parameters are available in the main_ function of the TOPP tool and can be read using the getStringOption_ method. Special methods for integers, lists and floating point parameters exist and are in the TOPPBase documentation but are not needed for this example.
 <br><br>
-<b>Example: Tutorial_Final.cpp</b>
+<b>Example: Tutorial_TOPP.cpp</b>
 <br>
 
-\snippet Tutorial_Final.cpp doxygen_snippet_InputParam
+\snippet Tutorial_TOPP.cpp doxygen_snippet_InputParam
 
 @subsection tutorial_read Read Input Files
 First the different file formats and data structures for peptide identifications have to be included at the top of the file.
 <br><br>
-<b>Example: Tutorial_Final.cpp</b>
+<b>Example: Tutorial_TOPP.cpp</b>
 <br>
 Add essential includes
 
-\snippet Tutorial_Final.cpp doxygen_snippet_Includes
+\snippet Tutorial_TOPP.cpp doxygen_snippet_Includes
 
 <b> Read the input files </b>
 <br>
 
-\snippet Tutorial_Final.cpp doxygen_snippet_InputRead
+\snippet Tutorial_TOPP.cpp doxygen_snippet_InputRead
 
 Note: both peptide_identifications and protein_identifications contain protein accessions. The difference between them is that protein_identifications only contain the inferred set of protein accessions while peptide_identifications contains all protein accessions the peptides map to. We consider only the larger set of protein accessions stored in the peptide identifications. In principle, it would be easy to add another parameter that adds a filter for the inferred accessions stored in protein_identifications.
 
@@ -569,35 +577,40 @@ First, the accessions are extracted from the IdXML file. Here knowledge of the d
 
 To store all proteins accessions in the set id_accessions, we write: 
 <br><br>
-<b>Example: Tutorial_Final.cpp</b>
+<b>Example: Tutorial_TOPP.cpp</b>
 <br>
 Store protein accessions
 
-\snippet Tutorial_Final.cpp doxygen_snippet_Functionality_1
+\snippet Tutorial_TOPP.cpp doxygen_snippet_Functionality_1
 
 Now that we assembled the set of all protein accessions we are ready to compare them to the fasta_accessions. If they are similar and the method whitelist or they are different and the method blacklist was chosen, the fasta entries are copied to the new fasta database.
 <br><br>
-<b>Example: Tutorial_Final.cpp</b>
+<b>Example: Tutorial_TOPP.cpp</b>
 <br>
 Add method functionality
-\snippet Tutorial_Final.cpp doxygen_snippet_Functionality_2
+\snippet Tutorial_TOPP.cpp doxygen_snippet_Functionality_2
 
 @subsection tutorial_write Write Output Files 
-<b>Example: Tutorial_Final.cpp</b>
+<b>Example: Tutorial_TOPP.cpp</b>
 <br>
 Write the output
 
-\snippet Tutorial_Final.cpp doxygen_snippet_output
+\snippet Tutorial_TOPP.cpp doxygen_snippet_output
 
 @subsection tutorial_test Adding TOPP tests
-Testing your tools is essential and required to promote your experimental util to an official TOPP tool. It is not mandatory to provide a test for a util but appreciated.
-For this test a .fasta and a compatible .idXML file have to be added to /src/tests/topp/. Further the test procedure has to be added to CMakeLists.txt in the same folder.
-<br><br>
-<b>Example: Tutorial_Test.cpp</b>
-<br>
-Add tests
+Testing your tools is essential and all official TOPP tools need to be tested.
+Our particular test requires a .fasta and a compatible .idXML file. We add those to `/src/tests/topp/`.
+Furthermore, the actual calls to the TOPP tool using our test data, are added to CMakeLists.txt in the same folder, e.g.:
 
-\snippet Tutorial_Test.cpp doxygen_snippet_Test
+@code
+# DatabaseFilter test:
+add_test("TOPP_DatabaseFilter_1" ${TOPP_BIN_PATH}/DatabaseFilter -test -in ${DATA_DIR_TOPP}/DatabaseFilter_1.fasta -accession ${DATA_DIR_TOPP}/DatabaseFilter_1.idXML -out DatabaseFilter_1_out.fasta.tmp)
+add_test("TOPP_DatabaseFilter_1_out" ${DIFF} -in1 DatabaseFilter_1_out.fasta.tmp -in2 ${DATA_DIR_TOPP}/DatabaseFilter_1_out.fasta )
+set_tests_properties("TOPP_DatabaseFilter_1_out" PROPERTIES DEPENDS "TOPP_DatabaseFilter_1")
+add_test("TOPP_DatabaseFilter_2" ${TOPP_BIN_PATH}/DatabaseFilter -test -in ${DATA_DIR_TOPP}/DatabaseFilter_1.fasta -accession ${DATA_DIR_TOPP}/DatabaseFilter_1.idXML -out DatabaseFilter_2_out.fasta.tmp -method blacklist)
+add_test("TOPP_DatabaseFilter_2_out" ${DIFF} -in1 DatabaseFilter_2_out.fasta.tmp -in2 ${DATA_DIR_TOPP}/DatabaseFilter_2_out.fasta )
+set_tests_properties("TOPP_DatabaseFilter_2_out" PROPERTIES DEPENDS "TOPP_DatabaseFilter_2")
+@endcode
 
 These tests run the program with the given parameters and then call a diff tool to compare the generated output to the expected output.
 
@@ -610,11 +623,11 @@ This is how a util should look after code polishing:
 Here, the support for different formats was extended (idXML and MZIdentML).
 Since different filter criteria may be introduced in the future, the structure was slightly changed with a function for the filtering by ID (filterByProteinIDs_) - in order to allow higher flexibility when adding new a functionality later on.
 <br><br>
-<b>Example: Tutorial_final.cpp</b>
+<b>Example: Tutorial_TOPP.cpp</b>
 <br>
 Polish your code - add additional functionality
 
-\snippet Tutorial_Final.cpp doxygen_snippet_final 
+\snippet Tutorial_TOPP.cpp doxygen_snippet_TOPPexample
 
 @subsection tutorial_pull Open a pull request 
 Afterwards you can commit your changes to a new branch “feature/DatabaseFilter” of your %OpenMS clone on github and submit a pull request on your github page. After a short review process by the %OpenMS Team, the tool will be added the %OpenMS Library.

@@ -41,18 +41,6 @@ START_SECTION((virtual ~EmgModel()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(EmgModel::getProductName(),"EmgModel")
-	TEST_EQUAL(EmgModel().getName(),"EmgModel")
-END_SECTION
-
-START_SECTION((static BaseModel<1>* create()))
-	BaseModel<1>* ptr = EmgModel::create();
-	TEST_EQUAL(ptr->getName(), "EmgModel")
-	TEST_NOT_EQUAL(ptr, nullPointer)
-	delete ptr;
-END_SECTION
-
 // assignment operator
 START_SECTION((virtual EmgModel& operator=(const EmgModel &source)))
 	EmgModel em1;

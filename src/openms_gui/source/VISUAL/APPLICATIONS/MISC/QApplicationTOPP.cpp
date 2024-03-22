@@ -10,11 +10,12 @@
 #include <cstdlib>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
+
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
 
 //Qt
@@ -35,8 +36,9 @@ namespace OpenMS
   QApplicationTOPP::QApplicationTOPP(int& argc, char** argv) :
     QApplication(argc, argv)
   {
-    // register GUI ProgressLogger that can be used in GUI tools
-    Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
+    // inject the GUIProgressLoggerImpl to be used by OpenMS lib via an extern variable
+    make_gui_progress_logger = 
+      []() -> ProgressLogger::ProgressLoggerImpl* { return new GUIProgressLoggerImpl(); };
 
     // set plastique style unless windows / mac style is available
     if (QStyleFactory::keys().contains("windowsxp", Qt::CaseInsensitive))

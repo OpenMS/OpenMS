@@ -5,7 +5,6 @@ set(directory source/TRANSFORMATIONS/RAW2PEAK)
 set(sources_list
 PeakPickerHiRes.cpp
 PeakPickerIterative.cpp
-PeakPickerMaxima.cpp
 )
 
 ### add path to the filenames

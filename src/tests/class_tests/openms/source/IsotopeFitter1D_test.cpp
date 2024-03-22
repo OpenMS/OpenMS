@@ -87,19 +87,6 @@ START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationMo
 	TEST_EQUAL(if1.getParameters(), if1.getParameters())
 END_SECTION
 
-START_SECTION((Fitter1D* create()))
-  Fitter1D* ptr = IsotopeFitter1D::create();
-  TEST_EQUAL(ptr->getName(), "IsotopeFitter1D")
-	TEST_NOT_EQUAL(ptr, nullPointer)
-	delete ptr;
-END_SECTION
-
-START_SECTION((const String getProductName()))
-  TEST_EQUAL(IsotopeFitter1D::getProductName(),"IsotopeFitter1D")
-  TEST_EQUAL(IsotopeFitter1D().getName(),"IsotopeFitter1D")
-END_SECTION
-
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

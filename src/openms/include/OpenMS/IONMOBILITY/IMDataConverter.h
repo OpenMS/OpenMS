@@ -31,13 +31,13 @@ namespace OpenMS
       /**
         @brief Splits a PeakMap into one PeakMap per FAIMS compensation voltage
 
-        This only works with a PeakMap that has a FAIMS compensation voltage
-        associated with each spectrum.
+        This only works with a PeakMap that has a FAIMS compensation voltage 
+        (obtained via 'spec.getDriftTime()') associated with each spectrum.
         The spectra from the original PeakMap are moved to new PeakMaps,
         so the original PeakMap is unusable afterwards.
 
         @param exp The PeakMap
-        @return Several maps, split by CVs
+        @return Several maps, one for each CV
         @throws Exception::MissingInformation if @p exp is not FAIMS data
       */
       static std::vector<PeakMap> splitByFAIMSCV(PeakMap&& exp);
@@ -48,7 +48,9 @@ namespace OpenMS
    
         The input @p im_frame must have a floatDataArray where IM values are annotated. If not, an exception is thrown.
 
-        To get some coarser binning, choose a smaller @p number_of_bins. The default creates a new bin (=spectrum in the output) for each distinct ion mobility value.
+        To get some coarser binning, choose a smaller @p number_of_bins. The default of `-1` creates a new bin (=spectrum in the output) for each distinct ion mobility value.
+
+        For the output spectra, the IM value is annotated once in `spec.getDriftTime()` (using the center of the IM bin). There is no metadata array which contains IM values floatDataArray.
       
         @param im_frame Concatenated spectrum representing a frame
         @param number_of_bins In how many bins should the ion mobility frame be sliced? Default(-1) assigns all peaks with identical ion-mobility values to a separate spectrum.
@@ -62,7 +64,9 @@ namespace OpenMS
          @brief Expands all (TimsTOF) ion mobility frames in the PeakMap (i.e. all IM spectra with an IM float data array) into separate spectra. Non-IM spectra are simply copied to the result.
  
          To get some coarser custom binning, choose a smaller @p number_of_bins. The default creates a new bin (=spectrum in the output) for each distinct ion mobility value.
-         For custom bins, the IM range is divided into equally spaced bins and the bin center is the new drift time.
+         For custom bins, the IM range is divided into equally spaced bins and the bin center is the new drift time. 
+         For the new output spectra, the IM value is annotated once in `spec.getDriftTime()` (using the center of the IM bin). There is no metadata array which
+         contains IM values floatDataArray.
 
          @param in The PeakMap containing IM-frame spectra
          @param number_of_bins In how many bins should the ion mobility frame be sliced? Default(-1) assigns all peaks with identical ion-mobility values to a separate spectrum.

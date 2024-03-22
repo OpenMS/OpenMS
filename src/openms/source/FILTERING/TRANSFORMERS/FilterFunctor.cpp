@@ -16,8 +16,6 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/IsotopeDiffFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
 
-#include <OpenMS/CONCEPT/Factory.h>
-
 namespace OpenMS
 {
   FilterFunctor::FilterFunctor() :
@@ -37,15 +35,5 @@ namespace OpenMS
   }
 
   FilterFunctor::~FilterFunctor() = default;
-
-  void FilterFunctor::registerChildren()
-  {
-    Factory<FilterFunctor>::registerProduct(ComplementFilter::getProductName(), &ComplementFilter::create);
-    Factory<FilterFunctor>::registerProduct(GoodDiffFilter::getProductName(), &GoodDiffFilter::create);
-    Factory<FilterFunctor>::registerProduct(IntensityBalanceFilter::getProductName(), &IntensityBalanceFilter::create);
-    Factory<FilterFunctor>::registerProduct(NeutralLossDiffFilter::getProductName(), &NeutralLossDiffFilter::create);
-    Factory<FilterFunctor>::registerProduct(IsotopeDiffFilter::getProductName(), &IsotopeDiffFilter::create);
-    Factory<FilterFunctor>::registerProduct(TICFilter::getProductName(), &TICFilter::create);
-  }
 
 }

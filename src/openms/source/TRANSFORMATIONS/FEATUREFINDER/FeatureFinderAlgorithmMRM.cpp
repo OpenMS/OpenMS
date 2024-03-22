@@ -7,7 +7,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
@@ -50,7 +49,7 @@ namespace OpenMS
     LinearResampler resampler;
 
     // Split the whole map into traces (== MRM transitions)
-    ff_->startProgress(0, map_->getChromatograms().size(), "Finding features in traces.");
+    startProgress(0, map_->getChromatograms().size(), "Finding features in traces.");
     Size counter(0);
     double min_rt_distance(param_.getValue("min_rt_distance"));
     double min_signal_to_noise_ratio(param_.getValue("min_signal_to_noise_ratio"));
@@ -347,18 +346,8 @@ namespace OpenMS
         }
       }
 
-      ff_->setProgress(++counter);
+      setProgress(++counter);
     }
-  }
-
-  FeatureFinderAlgorithm* FeatureFinderAlgorithmMRM::create()
-  {
-    return new FeatureFinderAlgorithmMRM();
-  }
-
-  const String FeatureFinderAlgorithmMRM::getProductName()
-  {
-    return "mrm";
   }
 
   double FeatureFinderAlgorithmMRM::fitRT_(std::vector<Peak1D>& rt_input_data, std::unique_ptr<InterpolationModel>& model) const
@@ -393,6 +382,22 @@ param.setValue( "deltaRelError", deltaRelError_);
 
   void FeatureFinderAlgorithmMRM::updateMembers_()
   {
+  }
+
+  void FeatureFinderAlgorithmMRM::run(PeakMap& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds)
+  {
+    // Nothing to do if there is no data
+    if (input_map.getChromatograms().empty())
+    {
+      features.clear(true);
+      return;
+    }
+
+    // do the work
+    setParameters(param);
+    setData(input_map, features);
+    setSeeds(seeds); // TODO: needed for MRM????? was in old code
+    run();
   }
 
 }

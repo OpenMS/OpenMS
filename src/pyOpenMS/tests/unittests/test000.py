@@ -1295,29 +1295,6 @@ def testFeature():
 
 
 @report
-def testFeatureFinder():
-    """
-    @tests: FeatureFinder
-     FeatureFinder.__init__
-     FeatureFinder.endProgress
-     FeatureFinder.getLogType
-     FeatureFinder.getParameters
-     FeatureFinder.run
-     FeatureFinder.setLogType
-     FeatureFinder.setProgress
-     FeatureFinder.startProgress
-    """
-    ff = pyopenms.FeatureFinder()
-    name = pyopenms.FeatureFinderAlgorithmPicked.getProductName()
-    ff.run(name, pyopenms.MSExperiment(), pyopenms.FeatureMap() ,
-            pyopenms.Param(), pyopenms.FeatureMap())
-
-    _testProgressLogger(ff)
-
-    p = ff.getParameters(name)
-    _testParam(p)
-
-@report
 def testFeatureFileOptions():
     """
     @tests: FeatureFileOptions
@@ -1485,7 +1462,6 @@ def testFeatureFinderAlgorithmPicked():
     _testParam(ff.getParameters())
 
     assert ff.getName() == "FeatureFinderAlgorithm"
-    assert pyopenms.FeatureFinderAlgorithmPicked.getProductName() == "centroided"
 
     ff.setParameters(pyopenms.Param())
 
@@ -3631,6 +3607,20 @@ def testMatrixDouble():
      MapAlignmentAlgorithmIdentification.__init__
      """
 
+    m = pyopenms.MatrixDouble(3, 2, 0.0)
+    for i in range(3):
+        for j in range(2):
+            m.setValue(i, j, i * 10.0 + j) 
+    print(m)
+
+    mv = m.get_matrix_as_view()
+    print(mv)
+
+    mc = m.get_matrix()
+    print(mc)
+
+    mat = m.get_matrix_as_view()
+
     N = 90
     m = pyopenms.MatrixDouble(N-1, N+2, 5.0)
 
@@ -3659,19 +3649,21 @@ def testMatrixDouble():
     assert sum(sum(matrix_view)) == (N-1)*(N+2)*5
 
 
-    # Column = 3 / Row = 5
+    # Column = 1 / Row = 2
     ## Now change a value:
 
-    assert m.getValue(3, 5) == 5.0
-    m.setValue(3, 5, 8.0)
-    assert m.getValue(3, 5) == 8.0
+    assert m.getValue(1, 2) == 5.0
+    m.setValue(1, 2, 8.0)
+    assert m.getValue(1, 2) == 8.0
 
+    print(m)
     mat = m.get_matrix_as_view()
-    assert mat[3, 5] == 8.0
+    print(mat)
+    assert mat[1, 2] == 8.0
 
     mat = m.get_matrix()
-    assert m.getValue(3, 5) == 8.0
-    assert mat[3, 5] == 8.0
+    assert m.getValue(1, 2) == 8.0
+    assert mat[1, 2] == 8.0
 
     # Whatever we change here gets changed in the raw data as well
     matrix_view = m.get_matrix_as_view()
@@ -3685,7 +3677,7 @@ def testMatrixDouble():
 
     mat[3, 6] = 9.0
     m.set_matrix(mat)
-    assert m.getValue(3, 5) == 8.0
+    assert m.getValue(1, 2) == 8.0
     assert m.getValue(3, 6) == 9.0
 
 
@@ -4805,22 +4797,6 @@ def testInspectInfile():
     mods = inst.getModifications()
     assert len(mods) == 0
 
-
-@report
-def testIsotopeMarker():
-    """
-    @tests: IsotopeMarker
-     IsotopeMarker.__init__
-    """
-    inst = pyopenms.IsotopeMarker()
-    ptr = inst.create()
-
-    assert ptr.apply is not None
-
-    res = {}
-    spec = pyopenms.MSSpectrum()
-    ptr.apply(res, spec)
-
 @report
 def testAttachment():
     """
@@ -5056,49 +5032,6 @@ def testPeptideProteinResolution():
 def testPercolatorOutfile():
     e = pyopenms.PercolatorOutfile()
     assert e
-
-
-
-@report
-def testHiddenMarkovModel():
-    hmm = pyopenms.HiddenMarkovModel()
-    assert hmm
-
-    assert hmm.getNumberOfStates() == 0
-
-    ss = s("testState")
-    hmm.addNewState(ss)
-
-    assert hmm.getNumberOfStates() == 1
-
-    e = pyopenms.HMMState()
-    # hmm.addNewState(e) # Segfault !
-
-    r = hmm.getState(s("testState"))
-    assert r
-    ## assert r == ss # requires ==
-
-@report
-def testHMMState():
-    e = pyopenms.HMMState()
-    assert e
-    e.setName(s("somename"))
-    assert e.getName() == "somename", e.getName()
-    e.setHidden(True)
-    assert e.isHidden()
-
-    pre = pyopenms.HMMState()
-    pre.setName(s("pre"))
-    suc = pyopenms.HMMState()
-    suc.setName(s("suc"))
-
-    e.addPredecessorState(pre)
-    e.addSuccessorState(suc)
-
-    assert e.getPredecessorStates()
-    assert e.getSuccessorStates()
-
-
 
 @report
 def testProteaseDB():

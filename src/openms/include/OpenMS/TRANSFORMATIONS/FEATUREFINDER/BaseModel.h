@@ -15,19 +15,16 @@ namespace OpenMS
 {
 
   /**
-    @brief Abstract base class for all D-dimensional models.
+    @brief Abstract base class for 1-dimensional models.
 
-    Every derived class has to implement the static functions
-    "T* create()" and "const String getProductName()" (see DefaultParamHandler for details)
   */
-  template<UInt D>
   class BaseModel : public DefaultParamHandler
   {
   public:
     typedef double IntensityType;
     typedef double CoordinateType;
-    typedef DPosition<D> PositionType;
-    typedef typename DPeak<D>::Type PeakType;
+    typedef DPosition<1> PositionType;
+    typedef typename DPeak<1>::Type PeakType;
     typedef std::vector<PeakType> SamplesType;
 
 
@@ -58,9 +55,6 @@ namespace OpenMS
 
       return *this;
     }
-
-    /// register all derived classes here (implemented in file BaseModel_impl.h)
-    static void registerChildren();
 
     /// access model predicted intensity at position @p pos
     virtual IntensityType getIntensity(const PositionType& pos) const = 0;
