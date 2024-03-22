@@ -556,6 +556,7 @@ Size FLASHTaggerAlgorithm::find_with_X_(const std::string_view& A, const String&
 // Make output struct containing all information about matched entries and tags, coverage, score etc.
 void FLASHTaggerAlgorithm::runMatching(const String& fasta_file)
 {
+  if (tags_.empty()) return;
   std::vector<FASTAFile::FASTAEntry> fasta_entry;
   FASTAFile ffile;
   ffile.load(fasta_file, fasta_entry);
