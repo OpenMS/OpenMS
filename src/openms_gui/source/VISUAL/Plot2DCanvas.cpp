@@ -895,9 +895,9 @@ namespace OpenMS
       //find nearest survey scan
       SignedSize size = lp->getPeakData()->size();
       Int current = lp->getPeakData()->RTBegin(e_units.getMinRT()) - lp->getPeakData()->begin();
-      if (current == size)  // if only one element is present RTBegin points to one after the last element (see RTBegin implementation)
+      if (current == size)  // if the user clicked right of the last MS1 scan
       {
-        current = 0;
+        current = std::max(SignedSize{0}, size - 1); // we want the rightmost valid scan index
       }
 
       SignedSize i = 0;
