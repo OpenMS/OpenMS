@@ -26,7 +26,7 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>" namespac
         # wrap-inherits:
 
         # default constructor
-        Tag(String seq, double n_mass, double c_mass, libcpp_vector[int]& scores, libcpp_vector[double] & mzs) except + nogil
+        Tag(String seq, double n_mass, double c_mass, libcpp_vector[double] & mzs, libcpp_vector[int]& scores, libcpp_vector[int] & scans) except + nogil
         # copy constructor
         Tag(Tag &) except + nogil
 
@@ -80,5 +80,3 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>" namespac
         bool operator<(LogMzPeak& a) except + nogil
         bool operator>(LogMzPeak& a) except + nogil
         bool operator==(LogMzPeak& other) except + nogil
-
-
