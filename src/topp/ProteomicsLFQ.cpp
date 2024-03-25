@@ -20,6 +20,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/DDAWorkflowCommons.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
@@ -274,40 +275,6 @@ protected:
     registerFullParam_(combined);
   }
 
-  // Map between mzML file and corresponding id file
-  // Warn if the primaryMSRun indicates that files were provided in the wrong order.
-  map<String, String> mapMzML2Ids_(StringList & in, StringList & in_ids)
-  {
-    // Detect the common case that ID files have same names as spectra files
-    if (!File::validateMatchingFileNames(in, in_ids, true, true, false)) // only basenames, without extension, only order
-    {
-      // Spectra and id files have the same set of basenames but appear in different order. -> this is most likely an error
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "ID and spectra file match but order of file names seem to differ. They need to be provided in the same order.");
-    }
-
-    map<String, String> mzfile2idfile;
-    for (Size i = 0; i != in.size(); ++i)
-    {
-      const String& in_abs_path = File::absolutePath(in[i]);
-      const String& id_abs_path = File::absolutePath(in_ids[i]);
-      mzfile2idfile[in_abs_path] = id_abs_path;      
-      writeDebug_("Spectra: " + in[i] + "\t Ids: " + in_ids[i],  1);
-    }
-    return mzfile2idfile;
-  }
-
-  // map back
-  map<String, String> mapId2MzMLs_(const map<String, String>& m2i)
-  {
-    map<String, String> idfile2mzfile;
-    for (const auto& m : m2i)
-    {
-      idfile2mzfile[m.second] = m.first;
-    }
-    return idfile2mzfile;
-  }
-
   ExitCodes centroidAndCorrectPrecursors_(const String & mz_file, MSExperiment & ms_centroided)
   { 
     Param pp_param = getParam_().copy("Centroiding:", true);
@@ -382,111 +349,6 @@ protected:
         + " ppm  MAD = " + String(MAD_abs));
     }
     return EXECUTION_OK;
-  }
-
-  void recalibrateMasses_(MSExperiment & ms_centroided, vector<PeptideIdentification>& peptide_ids, const String & id_file_abs_path)
-  {
-    InternalCalibration ic;
-    ic.setLogType(log_type_);
-    ic.fillCalibrants(peptide_ids, 25.0); // >25 ppm maximum deviation defines an outlier TODO: check if we need to adapt this
-    if (ic.getCalibrationPoints().size() <= 1) return;
-
-    // choose calibration model based on number of calibration points
-
-    // there seem to be some problems with the QUADRATIC model that we first need to investigate
-    //MZTrafoModel::MODELTYPE md = (ic.getCalibrationPoints().size() == 2) ? MZTrafoModel::LINEAR : MZTrafoModel::QUADRATIC;
-    //bool use_RANSAC = (md == MZTrafoModel::LINEAR || md == MZTrafoModel::QUADRATIC);
-
-    MZTrafoModel::MODELTYPE md = MZTrafoModel::LINEAR;
-    bool use_RANSAC = true;
-
-    Size RANSAC_initial_points = (md == MZTrafoModel::LINEAR) ? 2 : 3;
-    Math::RANSACParam p(RANSAC_initial_points, 70, 10, 30, true); // TODO: check defaults (taken from tool)
-    MZTrafoModel::setRANSACParams(p);
-    // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
-    MZTrafoModel::setCoefficientLimits(25.0, 25.0, 0.5); 
-
-    IntList ms_level = {1};
-    double rt_chunk = 300.0; // 5 minutes
-    String qc_residual_path, qc_residual_png_path;
-    if (debug_level_ >= 1)
-    {
-      const String & id_basename = File::basename(id_file_abs_path);
-      qc_residual_path = id_basename + "qc_residuals.tsv";
-      qc_residual_png_path = id_basename + "qc_residuals.png";
-    } 
-
-    if (!ic.calibrate(ms_centroided, ms_level, md, rt_chunk, use_RANSAC, 
-                  10.0,
-                  5.0, 
-                  "",                      
-                  "",
-                  qc_residual_path,
-                  qc_residual_png_path,
-                  "Rscript"))
-    {
-      OPENMS_LOG_WARN << "\nCalibration failed. See error message above!" << std::endl;
-    }
-  }
-
-  double estimateMedianChromatographicFWHM_(MSExperiment & ms_centroided)
-  {
-    MassTraceDetection mt_ext;
-    Param mtd_param = mt_ext.getParameters();
-    writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
-
-    std::vector<MassTrace> m_traces;
-    mt_ext.run(ms_centroided, m_traces, 1000);
-
-    std::vector<double> fwhm_1000;
-    for (auto &m : m_traces)
-    {
-      if (m.getSize() == 0) continue;
-      m.updateMeanMZ();
-      m.updateWeightedMZsd();
-      double fwhm = m.estimateFWHM(false);
-      fwhm_1000.push_back(fwhm);
-    }
-
-    double median_fwhm = Math::median(fwhm_1000.begin(), fwhm_1000.end());
-
-    OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << std::endl;
-
-    return median_fwhm;
-  }
-
-  void calculateSeeds_(const MSExperiment & ms_centroided, FeatureMap & seeds, double median_fwhm)
-  {
-    //TODO: Actually FFM provides a parameter for minimum intensity. Also it copies the full experiment again once or twice.
-    MSExperiment e;
-    for (const auto& s : ms_centroided)
-    { 
-      if (s.getMSLevel() == 1) 
-      {              
-        e.addSpectrum(s);
-      }
-    }
-
-    ThresholdMower threshold_mower_filter;
-    Param tm = threshold_mower_filter.getParameters();
-    tm.setValue("threshold", getDoubleOption_("Seeding:intThreshold"));  // TODO: derive from data
-    threshold_mower_filter.setParameters(tm);
-    threshold_mower_filter.filterPeakMap(e);
-
-    FeatureFinderMultiplexAlgorithm algorithm;
-    Param p = algorithm.getParameters();
-    p.setValue("algorithm:labels", ""); // unlabeled only
-    p.setValue("algorithm:charge", getStringOption_("Seeding:charge")); //TODO infer from IDs?
-    p.setValue("algorithm:rt_typical", median_fwhm * 3.0);
-    p.setValue("algorithm:rt_band", getDoubleOption_("Seeding:traceRTTolerance")); // max 3 seconds shifts between isotopic traces
-    p.setValue("algorithm:rt_min", median_fwhm * 0.5);
-    p.setValue("algorithm:spectrum_type", "centroid");
-    algorithm.setParameters(p);
-    //FIXME progress of FFM is not printed at all
-    const bool progress(true);
-    algorithm.run(e, progress);
-    seeds = algorithm.getFeatureMap(); 
-    OPENMS_LOG_INFO << "Using " << seeds.size() << " seeds from untargeted feature extraction." << endl;
   }
 
 
@@ -1019,7 +881,8 @@ protected:
       //-------------------------------------------------------------
       if (getStringOption_("mass_recalibration") == "true")
       {
-        recalibrateMasses_(ms_centroided, peptide_ids, id_file_abs_path);
+        String debug_output_basename = (debug_level_ > 666) ? id_file_abs_path : "";
+        DDAWorkflowCommons::recalibrateMS1(ms_centroided, peptide_ids, debug_output_basename);
       }
 
       vector<ProteinIdentification> ext_protein_ids;
@@ -1028,7 +891,8 @@ protected:
       //////////////////////////////////////////
       // Chromatographic parameter estimation
       //////////////////////////////////////////
-      median_fwhm = estimateMedianChromatographicFWHM_(ms_centroided);
+      median_fwhm = DDAWorkflowCommons::estimateMedianChromatographicFWHM(ms_centroided);
+      OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << std::endl;
 
       //-------------------------------------------------------------
       // Feature detection
@@ -1044,7 +908,8 @@ protected:
 
       if (!targeted_only)
       {
-        calculateSeeds_(ms_centroided, seeds, median_fwhm);
+        // TODO: infer min/max charge from ID data
+        DDAWorkflowCommons::calculateSeeds(ms_centroided, getDoubleOption_("Seeding:intThreshold"), seeds, median_fwhm, 2, 5);
         if (debug_level_ > 666)
         {
           FileHandler().storeFeatures("debug_seeds_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", seeds, {FileTypes::FEATUREXML});
@@ -1669,9 +1534,9 @@ protected:
     }
 
     // Map between mzML file and corresponding id file
-    // Here we currently assume that these are provided in the exact same order.
-    map<String, String> mzfile2idfile = mapMzML2Ids_(in, in_ids);
-    map<String, String> idfile2mzfile = mapId2MzMLs_(mzfile2idfile);
+    // We assume that these are provided in the exact same order.
+    map<String, String> mzfile2idfile = DDAWorkflowCommons::mapMzML2Ids(in, in_ids);
+    map<String, String> idfile2mzfile = DDAWorkflowCommons::mapId2MzMLs(mzfile2idfile);
 
     // TODO maybe check if mzMLs in experimental design match to mzMLs passed as in parameter
     //  IF both are present

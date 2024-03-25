@@ -19,6 +19,21 @@ namespace OpenMS
   class ConsensusMap;
   class ConsensusFeature;
 
+  /// small quality control class, holding temporary data for reporting
+  struct ChannelQC
+  {
+    // C'tor
+    ChannelQC() :
+      mz_deltas()
+      
+    {}
+
+    std::vector<double> mz_deltas; ///< m/z distance between expected and observed reporter ion closest to expected position
+    int signal_not_unique{0};  ///< counts if more than one peak was found within the search window of each reporter position
+  };
+
+  typedef std::map<String, ChannelQC> ChannelQCSet;
+
   /**
     @brief Extracts individual channels from MS/MS spectra for isobaric labeling experiments.
 
@@ -64,6 +79,62 @@ public:
       @param consensus_map Output map containing the identified channels and the corresponding intensities.
     */
     void extractChannels(const PeakMap& ms_exp_data, ConsensusMap& consensus_map);
+
+    /**
+     * @brief Extracts single spectrum from MSExperiment and returns a ConsensusFeature with the intensities of the extracted channels.
+     * 
+     * Stores statistics about extraction in @p channel_qc.
+     * 
+     * @param[in] spec_idx index in the MSExperiment @p exp
+     * @param[in] exp reference to the MSExperiment for finding precursors etc.
+     * @param[in] has_ms3 if this experiment has MS3 spectra and is therefore an SPS TMT experiment
+     * @param[out] channel_qc vector of pairs of m/z and channel index for storing channel QC information
+     * @return ConsensusFeature
+     */
+    ConsensusFeature extractSingleSpec(Size spec_idx, const MSExperiment& exp, bool has_ms3, std::vector<std::pair<double, unsigned>>& channel_qc);
+
+    /**
+     * @brief Extracts intensities for channels of reporter ions from isobaric tags (according to the quantitation method given when creating this object)
+     * 
+     * Stores statistics about extraction in @p channel_qc.
+     * 
+     * @param[in] spec_idx index in the MSExperiment @p exp
+     * @param[in] exp reference to the MSExperiment for finding precursors etc.
+     * @param[out] channel_qc vector of pairs of m/z and channel index for storing channel QC information
+     * @return std::vector<double> extracted intensities for each channel (0 if no peak was found)
+     */
+    std::vector<double> extractSingleSpec(Size spec_idx, const MSExperiment& exp, std::vector<std::pair<double, unsigned>>& channel_qc);
+
+
+    /// add channel information to a ConsensusMap (usually done before or after filling it).
+    /// only needed when using extractSingleSpec() instead of extractChannels()
+    void registerChannelsInOutputMap(ConsensusMap& consensus_map, const String& filename = "");
+
+    /**
+     * @brief Prints statistics about the channel errors with OPENMS_LOG_INFO.
+     * 
+     * @param stats ChannelQCSet containing the statistics. NOTE: Will be sorted for median
+     */
+    void printStats();
+    void printStats(ChannelQCSet& stats) const;
+
+    /**
+     * @brief Prints the stats collected during quantification. ChannelQC mzdeltas may contain missing values encoded as quiet_NaN.
+     * 
+     * @param[in] stats the stats to print (NOT const, since we need to sort it for median calculation)
+     *
+     */
+    void printStatsWithMissing(std::vector<ChannelQC>& stats) const;
+
+    /**
+     * @brief Clears channel statistics, e.g. after a new experiment has been loaded.
+     */
+    void clearStats();
+
+    /**
+     * @brief Clears channel statistics, e.g. after a new experiment has been loaded.
+     */
+    ChannelQCSet& getStats();
 
 private:
     /**
@@ -137,8 +208,11 @@ private:
     /// Flag if precursor purity will solely be computed based on the precursor scan (false), or interpolated between the precursor- and the following MS1 scan.
     bool interpolate_precursor_purity_;
 
-    /// add channel information to the map after it has been filled
-    void registerChannelsInOutputMap_(ConsensusMap& consensus_map);
+    /// Constant for distance used in qc calculations
+    static constexpr double qc_dist_mz = 0.5; // fixed! Do not change!
+
+    /// Accumulates QC metrics for the different channels
+    ChannelQCSet channel_mz_delta;
 
     /**
       @brief Checks if the given precursor fulfills all constraints for extractions.

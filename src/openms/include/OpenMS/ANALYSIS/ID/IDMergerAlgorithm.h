@@ -37,7 +37,7 @@ namespace OpenMS
     public ProgressLogger
   {
   public:
-    explicit IDMergerAlgorithm (const String& runIdentifier = "merged");
+    explicit IDMergerAlgorithm (const String& runIdentifier = "merged", bool addTimeStampToID = true);
 
     /// Insert (=move and clear) a run with its peptide IDs into the internal merged data structures,
     /// based on the initial mapping from fileorigins to new run
@@ -60,7 +60,7 @@ namespace OpenMS
   private:
 
     /// Returns the new identifier. The initial identifier plus a timestamp.
-    String getNewIdentifier_() const;
+    String getNewIdentifier_(bool addTimeStampToID) const;
 
     /// Copies over search parameters
     static void copySearchParams_(const ProteinIdentification& from, ProteinIdentification& to);
@@ -131,5 +131,8 @@ namespace OpenMS
 
     /// the new identifier string
     String id_;
+
+    /// if the identifier should be fixed (i.e. not contain a timestamp)
+    bool fixed_identifier_;
   };
 } // namespace OpenMS
