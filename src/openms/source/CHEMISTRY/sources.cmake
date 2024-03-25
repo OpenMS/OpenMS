@@ -36,7 +36,6 @@ SimpleTSGXLMS.cpp
 Tagger.cpp
 TheoreticalSpectrumGenerator.cpp
 TheoreticalSpectrumGeneratorXLMS.cpp
-WeightWrapper.cpp
 )
 
 ### add path to the filenames
