@@ -542,7 +542,6 @@ set(analysis_executables_list
   QuantitativeExperimentalDesign_test
   ReactionMonitoringTransition_test
   SimpleSearchEngineAlgorithm_test
-  SimplePairFinder_test
   SimpleSVM_test
   StablePairFinder_test
   PercolatorFeatureSetHelper_test
