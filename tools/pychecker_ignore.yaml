@@ -954,7 +954,6 @@ PyOpenMSChecker:
     - OpenMS::ControlledVocabulary::CVTerm::XRefType
 
     # rarely used classes
-    - OpenMS::WeightWrapper
     - OpenMS::FileTypes # no need for them, the actual types are at OpenMS::FileTypes::Types
 
     # produces compile error

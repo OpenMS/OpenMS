@@ -37,7 +37,6 @@ SpectrumAnnotator.h
 Tagger.h
 TheoreticalSpectrumGenerator.h
 TheoreticalSpectrumGeneratorXLMS.h
-WeightWrapper.h
 )
 
 ### add path to the filenames

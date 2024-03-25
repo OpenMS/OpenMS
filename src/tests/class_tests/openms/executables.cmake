@@ -432,7 +432,6 @@ set(chemistry_executables_list
   Tagger_test
   TheoreticalSpectrumGeneratorXLMS_test
   TheoreticalSpectrumGenerator_test
-  WeightWrapper_test
   Weights_test
 )
 
