@@ -5,7 +5,10 @@
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
 
+#include <iostream>
 #include <QApplication>
 
 using namespace OpenMS;
@@ -13,10 +16,8 @@ using namespace std;
 
 Int main(int argc, const char** argv)
 {
-  if (argc < 2) return 1;
-  // the path to the data should be given on the command line
-  String tutorial_data_path(argv[1]);
-  
+  String tutorial_data_path(OPENMS_DOC_PATH + String("/code_examples/"));
+    
   QApplication app(argc, const_cast<char**>(argv));
 
   Param param;
@@ -24,14 +25,12 @@ Int main(int argc, const char** argv)
 
   paramFile.load(tutorial_data_path + "/data/Tutorial_ParamEditor.ini", param);
 
-  ParamEditor* editor = new ParamEditor(nullptr);
-  editor->load(param);
-  editor->show();
+  ParamEditor editor(nullptr);
+  editor.load(param);
+  editor.show();
 
   app.exec();
 
-  editor->store();
+  editor.store();
   paramFile.store("Tutorial_ParamEditor_out.ini", param);
-
-  return 0;
 } //end of main

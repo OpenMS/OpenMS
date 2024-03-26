@@ -14,7 +14,7 @@ namespace OpenMS
     InterpolationModel(),
     statistics_()
   {
-    setName(getProductName());
+    setName("GaussModel");
 
     defaults_.setValue("bounding_box:min", 0.0, "Lower end of bounding box enclosing the data used to fit the model.", {"advanced"});
     defaults_.setValue("bounding_box:max", 1.0, "Upper end of bounding box enclosing the data used to fit the model.", {"advanced"});

@@ -4,7 +4,6 @@ from FeatureMap cimport *
 from MSExperiment cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
-from FeatureFinder cimport *
 from ConsensusMap cimport *
 from DefaultParamHandler cimport *
 

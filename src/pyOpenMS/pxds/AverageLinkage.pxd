@@ -10,5 +10,4 @@ cdef extern from "<OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>" namespace "Op
         AverageLinkage(AverageLinkage &) except + nogil 
         # void operator()(DistanceMatrix[ float ] &original_distance, libcpp_vector[ BinaryTreeNode ] &cluster_tree, float threshold) except + nogil 
         # ClusterFunctor * create() except + nogil 
-        String getProductName() except + nogil 
-
+      

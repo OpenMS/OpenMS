@@ -37,20 +37,8 @@ public:
     /// assignment operator
     virtual BiGaussFitter1D & operator=(const BiGaussFitter1D & source);
 
-    /// create new BiGaussModel object (function needed by Factory)
-    static Fitter1D * create()
-    {
-      return new BiGaussFitter1D();
-    }
-
     /// return interpolation model
     QualityType fit1d(const RawDataArrayType & range, std::unique_ptr<InterpolationModel>& model) override;
-
-    /// name of the model (needed by Factory)
-    static const String getProductName()
-    {
-      return "BiGaussFitter1D";
-    }
 
 protected:
 

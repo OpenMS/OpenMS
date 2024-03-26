@@ -111,17 +111,6 @@ public:
     */
     double compute_F(double dot_product, double delta_D, double dot_bias);
 
-
-
-    ///
-    static PeakSpectrumCompareFunctor * create() { return new SpectraSTSimilarityScore(); }
-
-    ///Reimplemented from PeakSpectrumCompareFunctor.
-    static const String getProductName()
-    {
-      return "SpectraSTSimilarityScore";
-    }
-
 protected:
 
 

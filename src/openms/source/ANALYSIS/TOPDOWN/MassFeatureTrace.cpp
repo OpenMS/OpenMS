@@ -55,7 +55,7 @@ namespace OpenMS
       auto deconvolved_spectrum = deconvolved_spectra[i];
       if (deconvolved_spectrum.empty() || is_decoy != deconvolved_spectrum.isDecoy())
         continue;
-      if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != ms_level)
+      if ((int)deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != ms_level)
         continue;
       int scan = deconvolved_spectrum.getScanNumber();
 
@@ -157,9 +157,9 @@ namespace OpenMS
         }
         int iso_off = int(.5 + (pg->getMonoMass() - mass) / pg->getIsotopeDaDistance());
         auto iso_int = pg->getIsotopeIntensities();
-        for (int i = 0; i + iso_off < per_isotope_intensity.size(); i++)
+        for (int i = 0; i + iso_off < (int)per_isotope_intensity.size(); i++)
         {
-          if ((int)i + iso_off < 0 || i >= iso_int.size())
+          if ((int)i + iso_off < 0 || i >= (int)iso_int.size())
           {
             continue;
           }

@@ -56,6 +56,11 @@ Cleanup/Removal:
   - ERPairFinder
   - RNPxlSearch
 
+- removed library code:
+  - HiddenMarkovModel
+  - PeakPickerMaxima
+  - DeNovo related, old marker code
+
 - removed tutorials:
   - Tutorial_PeakPickerCWT
   - Tutorial_TOFCalibration

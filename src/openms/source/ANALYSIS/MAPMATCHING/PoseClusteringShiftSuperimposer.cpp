@@ -26,7 +26,7 @@ namespace OpenMS
   PoseClusteringShiftSuperimposer::PoseClusteringShiftSuperimposer() :
     BaseSuperimposer()
   {
-    setName(getProductName());
+    setName("PoseClusteringShiftSuperimposer");
 
     defaults_.setValue("mz_pair_max_distance", 0.5, "Maximum of m/z deviation of corresponding elements in different maps.  "
                                                     "This condition applies to the pairs considered in hashing.");

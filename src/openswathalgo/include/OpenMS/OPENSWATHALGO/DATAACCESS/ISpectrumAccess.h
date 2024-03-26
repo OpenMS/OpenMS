@@ -109,7 +109,7 @@ public:
 
       while (mz_it != mz_end)
       {
-        if ( (drift_start <= *im_it) & (drift_end >= *im_it) )
+        if ( (drift_start <= *im_it) && (drift_end >= *im_it) )
         {
           mz_arr_out->data.push_back( *mz_it );
           intens_arr_out->data.push_back( *int_it );

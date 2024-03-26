@@ -46,8 +46,6 @@ public:
 
     // @name Accessors
     // @{
-    ///
-    static FilterFunctor * create() { return new IsotopeDiffFilter(); }
 
     ///
     template <typename SpectrumType>
@@ -77,12 +75,6 @@ public:
         }
       }
       return isodiff;
-    }
-
-    ///
-    static const String getProductName()
-    {
-      return "IsotopeDiffFilter";
     }
 
     // @}

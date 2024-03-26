@@ -20,7 +20,7 @@ namespace OpenMS
   ZhangSimilarityScore::ZhangSimilarityScore() :
     PeakSpectrumCompareFunctor()
   {
-    setName(ZhangSimilarityScore::getProductName());
+    setName("ZhangSimilarityScore");
     defaults_.setValue("tolerance", 0.2, "defines the absolute (in Da) or relative (in ppm) tolerance");
     defaults_.setValue("is_relative_tolerance", "false", "If set to true, the tolerance is interpreted as relative");
     defaults_.setValidStrings("is_relative_tolerance", {"true","false"});

@@ -14,14 +14,13 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/SteinScottImproveScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
-#include <OpenMS/CONCEPT/Factory.h>
 
 using namespace std;
 
 namespace OpenMS
 {
   PeakSpectrumCompareFunctor::PeakSpectrumCompareFunctor() :
-    DefaultParamHandler(PeakSpectrumCompareFunctor::getProductName())
+    DefaultParamHandler("PeakSpectrumCompareFunctor")
   {
   }
 
@@ -36,16 +35,6 @@ namespace OpenMS
       DefaultParamHandler::operator=(source);
     }
     return *this;
-  }
-
-  void PeakSpectrumCompareFunctor::registerChildren()
-  {
-    Factory<PeakSpectrumCompareFunctor>::registerProduct(SpectrumCheapDPCorr::getProductName(), &SpectrumCheapDPCorr::create);
-    Factory<PeakSpectrumCompareFunctor>::registerProduct(SpectrumPrecursorComparator::getProductName(), &SpectrumPrecursorComparator::create);
-    Factory<PeakSpectrumCompareFunctor>::registerProduct(ZhangSimilarityScore::getProductName(), &ZhangSimilarityScore::create);
-    Factory<PeakSpectrumCompareFunctor>::registerProduct(SpectrumAlignmentScore::getProductName(), &SpectrumAlignmentScore::create);
-    Factory<PeakSpectrumCompareFunctor>::registerProduct(SteinScottImproveScore::getProductName(), &SteinScottImproveScore::create);
-    Factory<PeakSpectrumCompareFunctor>::registerProduct(PeakAlignment::getProductName(), &PeakAlignment::create);
   }
 
 }

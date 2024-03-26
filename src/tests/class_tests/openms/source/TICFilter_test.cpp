@@ -66,10 +66,6 @@ START_SECTION((static FilterFunctor* create()))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(e_ptr->getProductName(), "TICFilter")
-END_SECTION
-
 delete e_ptr;
 
 /////////////////////////////////////////////////////////////
