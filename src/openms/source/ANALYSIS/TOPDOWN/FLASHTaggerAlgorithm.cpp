@@ -257,7 +257,7 @@ void FLASHTaggerAlgorithm::setDefaultParams_()
     "min_length", 4,
     "Minimum length of a tag. Each mass gap contributes to a single length (even if a mass gap is represented by multiple amino acids). ");
   defaults_.setMaxInt("min_length", 30);
-  defaults_.setMinInt("min_length", 3);
+  defaults_.setMinInt("min_length", 2);
 
   defaults_.setValue(
     "max_length", 10,

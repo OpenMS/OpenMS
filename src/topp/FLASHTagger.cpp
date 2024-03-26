@@ -10,7 +10,6 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHTaggerAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FLASHTaggerFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -183,8 +182,6 @@ protected:
         out_tagger_stream.close();
       }
     }
-
-
     return EXECUTION_OK;
   }
 };

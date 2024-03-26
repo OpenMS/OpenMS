@@ -6,9 +6,15 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 // #define TRAIN_OUT
-
+#define USE_TAGGER
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#ifdef USE_TAGGER
+  #include <OpenMS/ANALYSIS/TOPDOWN/FLASHTaggerAlgorithm.h>
+  #include <OpenMS/CHEMISTRY/AASequence.h>
+  #include <OpenMS/FORMAT/FASTAFile.h>
+  #include <OpenMS/FORMAT/FLASHTaggerFile.h>
+#endif
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
@@ -153,6 +159,9 @@ protected:
     registerSubsection_("SD", "Spectral deconvolution parameters");
     registerSubsection_("ft", "Feature tracing parameters");
     registerSubsection_("iq", "Isobaric quantification parameters");
+#ifdef USE_TAGGER
+    registerSubsection_("tagger", "Tagger parameters");
+#endif
   }
 
   Param getSubsectionDefaults_(const String& prefix) const override
@@ -180,6 +189,23 @@ protected:
       auto fd_param = FLASHDeconvAlgorithm().getDefaults();
       return fd_param.copy("iq:", true);
     }
+#ifdef USE_TAGGER
+    else if (prefix == "tagger")
+    {
+      auto tagger_param = FLASHTaggerAlgorithm().getDefaults();
+
+      tagger_param.setValue("fasta", "", "Target protein sequence database against which tags will be matched.");
+      tagger_param.addTag("fasta", "input file");
+
+      tagger_param.setValue("out_tag", "", "Output file containing tags.");
+      tagger_param.addTag("out_tag", "output file");
+
+      tagger_param.setValue("out_protein", "", "Output file containing matched proteins.");
+      tagger_param.addTag("out_protein", "output file");
+
+      return tagger_param;
+    }
+#endif
     else
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown subsection", prefix);
@@ -309,6 +335,46 @@ protected:
     {
       OPENMS_LOG_INFO << "Mass tracer found " << deconvolved_features.size() << " features" << endl;
     }
+
+#ifdef USE_TAGGER
+    // Run tagger
+    FLASHTaggerAlgorithm tagger;
+
+    auto tagger_param = getParam_().copy("tagger:", true);
+    if ((int)tagger_param.getValue("max_tag_count") > 0 && !deconvolved_spectra.empty() && tols.size() > 1)
+    {
+      OPENMS_LOG_INFO << "Finding sequence tags from deconvolved MS2 spectra ..." << endl;
+
+      String fastaname = tagger_param.getValue("fasta").toString();
+      String out_tag = tagger_param.getValue("out_tag").toString();
+      String out_protein_tag = tagger_param.getValue("out_protein").toString();
+
+      tagger_param.remove("out_tag");
+      tagger_param.remove("out_protein");
+      tagger_param.remove("fasta");
+      tagger.setParameters(tagger_param);
+
+      tagger.run(deconvolved_spectra, tols[1]);
+      tagger.runMatching(fastaname);
+
+      if (!out_protein_tag.empty())
+      {
+        fstream out_tagger_stream = fstream(out_protein_tag, fstream::out);
+        FLASHTaggerFile::writeProteinHeader(out_tagger_stream);
+        FLASHTaggerFile::writeProteins(tagger, out_tagger_stream);
+        out_tagger_stream.close();
+      }
+
+      if (!out_tag.empty())
+      {
+        fstream out_tagger_stream = fstream(out_tag, fstream::out);
+        FLASHTaggerFile::writeTagHeader(out_tagger_stream);
+        FLASHTaggerFile::writeTags(tagger, out_tagger_stream);
+
+        out_tagger_stream.close();
+      }
+    }
+#endif
     OPENMS_LOG_INFO << "FLASHDeconv run complete. Now writing the results in output files ..." << endl;
     // Write output files
     // default feature deconvolution tsv output

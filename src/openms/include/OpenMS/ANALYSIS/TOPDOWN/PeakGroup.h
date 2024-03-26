@@ -13,14 +13,14 @@
 
 namespace OpenMS
 {
-  /**
-@brief  Class describing a deconvolved mass.
-   A mass contains multiple (LogMz) peaks of different charges and isotope indices.
-   PeakGroup is the set of such peaks representing a single monoisotopic mass.
-   PeakGroup also contains features that define the quality of it. It is used by setQscore calculation.
-   DeconvolvedSpectrum consists of PeakGroups.
-@ingroup Topdown
-*/
+    /**
+  @brief  Class describing a deconvolved mass.
+     A mass contains multiple (LogMz) peaks of different charges and isotope indices.
+     PeakGroup is the set of such peaks representing a single monoisotopic mass.
+     PeakGroup also contains features that define the quality of it. It is used by setQscore calculation.
+     DeconvolvedSpectrum consists of PeakGroups.
+  @ingroup Topdown
+    */
 
   class OPENMS_DLLAPI PeakGroup
   {
@@ -47,7 +47,7 @@ namespace OpenMS
            @param min_abs_charge min Charge
            @param max_abs_charge max Charge
            @param is_positive whether MS is positive mode
-      */
+    */
     explicit PeakGroup(int min_abs_charge, int max_abs_charge, bool is_positive);
 
     /// default destructor
@@ -71,7 +71,7 @@ namespace OpenMS
 
     /**
            @brief add monoisotopic indices of peaks by offset and discard negative isotope peaks. Total intensity is also updated
-      */
+    */
     void updateMonoMassAndIsotopeIntensities();
 
     /**

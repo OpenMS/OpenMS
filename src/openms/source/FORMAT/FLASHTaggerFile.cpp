@@ -32,22 +32,14 @@ namespace OpenMS
   /// write the features in regular file output
   void FLASHTaggerFile::writeTags(const FLASHTaggerAlgorithm& tagger, std::fstream& fs)
   {
-    for (int n = 0; n < tagger.getProteinHits().size(); n++)
+    for (int c = 0; c < 2; c++)
     {
       for (const auto& tag : tagger.getTags())
       {
         auto hits = tagger.getProteinHits(tag);
-        if (n < tagger.getProteinHits().size())
-        {
-          bool found = false;
-          for (const auto& hit : hits)
-          {
-            if (n == tagger.getProteinIndex(hit)) found = true;
-          }
-          if (! found) continue;
-        }
 
-        if (n == tagger.getProteinHits().size() && ! hits.empty()) continue;
+        if (c == 0 && hits.empty()) continue;
+        if (c == 1 && !hits.empty()) continue;
 
         String acc = "";
         String description = "";
@@ -68,8 +60,8 @@ namespace OpenMS
         }
 
         fs << tagger.getTagIndex(tag) << "\t" << hitindices << "\t" << acc << "\t" << description << "\t" << tag.getSequence() << "\t"
-           << std::to_string(tag.getNtermMass()) << "\t" << std::to_string(tag.getCtermMass()) << "\t" << positions << "\t" << tag.getLength() << "\t"
-           << tag.getScore() << "\t";
+           << std::to_string(tag.getNtermMass()) << "\t" << std::to_string(tag.getCtermMass()) << "\t" << positions << "\t" << tag.getLength()
+           << "\t" << tag.getScore() << "\t";
 
         for (const auto& mz : tag.getMzs())
         {
@@ -87,6 +79,7 @@ namespace OpenMS
         }
         fs << "\n";
       }
+
     }
   }
 
