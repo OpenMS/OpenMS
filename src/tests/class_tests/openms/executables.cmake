@@ -555,6 +555,7 @@ set(analysis_executables_list
   SimpleSearchEngineAlgorithm_test
   SimplePairFinder_test
   SimpleSVM_test
+  SpectralDeconvolution_test
   StablePairFinder_test
   PercolatorFeatureSetHelper_test
   TransformationDescription_test
