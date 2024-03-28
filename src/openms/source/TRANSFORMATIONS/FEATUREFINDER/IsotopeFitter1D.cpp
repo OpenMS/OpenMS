@@ -8,7 +8,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
-#include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
+
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
 namespace OpenMS
@@ -17,7 +18,7 @@ namespace OpenMS
   IsotopeFitter1D::IsotopeFitter1D() :
     MaxLikeliFitter1D()
   {
-    setName(getProductName());
+    setName("IsotopeFitter1D");
 
     defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", {"advanced"});
     defaults_.setValue("charge", 1, "Charge state of the model.", {"advanced"});
@@ -74,7 +75,7 @@ namespace OpenMS
     // build model
     if (charge_ == 0)
     {
-      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("GaussModel")));
+  model = std::unique_ptr<InterpolationModel>(new GaussModel());
       model->setInterpolationStep(interpolation_step_);
 
       Param tmp;
@@ -86,7 +87,7 @@ namespace OpenMS
     }
     else
     {
-      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("IsotopeModel")));
+      model = std::unique_ptr<InterpolationModel>(new IsotopeModel());
 
       Param iso_param = this->param_.copy("isotope_model:", true);
       iso_param.removeAll("stdev");

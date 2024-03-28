@@ -19,7 +19,7 @@ namespace OpenMS
     charge_(0),
     monoisotopic_mz_(0.0)
   {
-    setName(getProductName());
+    setName("IsotopeModel");
 
     defaults_.setValue("averagines:C", 0.04443989f, "Number of C atoms per Dalton of mass.", {"advanced"});
     defaults_.setValue("averagines:H", 0.06981572f, "Number of H atoms per Dalton of mass.", {"advanced"});

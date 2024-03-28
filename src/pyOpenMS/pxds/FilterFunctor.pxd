@@ -13,4 +13,3 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>" namespace "Op
         FilterFunctor(FilterFunctor &) except + nogil 
 
         # double apply(MSSpectrum & ) except + nogil 
-        void registerChildren() except + nogil 

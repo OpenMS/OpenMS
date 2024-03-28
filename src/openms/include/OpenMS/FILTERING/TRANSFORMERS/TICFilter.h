@@ -44,8 +44,6 @@ public:
 
     // @name Accessors
     // @{
-    ///
-    static FilterFunctor * create() { return new TICFilter(); }
 
     ///
     template <typename SpectrumType>
@@ -60,12 +58,6 @@ public:
         TIC += it->getIntensity();
       }
       return TIC;
-    }
-
-    ///
-    static const String getProductName()
-    {
-      return "TICFilter";
     }
 
     // @}

@@ -53,19 +53,6 @@ public:
     double operator()(const PeakSpectrum & spec) const override;
     // @}
 
-    // @name Accessors
-    // @{
-    ///
-    static PeakSpectrumCompareFunctor * create() { return new ZhangSimilarityScore(); }
-
-    ///
-    static const String getProductName()
-    {
-      return "ZhangSimilarityScore";
-    }
-
-    // @}
-
 protected:
 
     /// returns the factor associated with the m/z tolerance and m/z difference of the peaks

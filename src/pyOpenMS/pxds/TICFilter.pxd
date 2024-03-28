@@ -10,4 +10,3 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>" namespace "OpenMS
         TICFilter(TICFilter &) except + nogil 
         double apply(MSSpectrum & ) except + nogil 
         # POINTER # FilterFunctor * create() except + nogil 
-        String getProductName() except + nogil 

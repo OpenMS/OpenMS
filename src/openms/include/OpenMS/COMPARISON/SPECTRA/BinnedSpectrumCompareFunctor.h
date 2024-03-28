@@ -52,15 +52,6 @@ public:
     /// function call operator, calculates self similarity
     virtual double operator()(const BinnedSpectrum& spec) const = 0;
 
-    /// registers all derived products
-    static void registerChildren();
-
-    /// get the identifier for a DefaultParamHandler
-    static const String getProductName()
-    {
-      return "BinnedSpectrumCompareFunctor";
-    }
-
   };
 
 }

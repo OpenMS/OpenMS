@@ -34,18 +34,6 @@ START_SECTION((virtual ~FeatureGroupingAlgorithmQT()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((static FeatureGroupingAlgorithm* create()))
-	FeatureGroupingAlgorithm* ptr2 = nullptr;
-  FeatureGroupingAlgorithm* base_NullPointer = nullptr;
-	ptr2 = FeatureGroupingAlgorithmQT::create();
-  TEST_NOT_EQUAL(ptr2, base_NullPointer)
-  delete ptr2;
-END_SECTION
-
-START_SECTION((static String getProductName()))
-	TEST_EQUAL(FeatureGroupingAlgorithmQT::getProductName(), "unlabeled_qt")
-END_SECTION
-
 START_SECTION((virtual void group(const std::vector< FeatureMap >& maps, ConsensusMap& out)))
 	// This is tested extensively in TEST/TOPP
 	NOT_TESTABLE;

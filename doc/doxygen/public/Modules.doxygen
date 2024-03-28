@@ -150,17 +150,6 @@
 	@ingroup Filtering
 */
 
-/**
-	@defgroup PeakMarker Peak Marker
-
-	@brief These classes mark peaks according to different criteria
-
-	For a detailed description of the available parameters and functions the details are documented
-	in the class documentation
-
-	@ingroup Filtering
-*/
-
 // ----------------------------- Analysis -------------------------------
 
 /**

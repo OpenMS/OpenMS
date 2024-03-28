@@ -69,18 +69,6 @@ START_SECTION((template<typename SpectrumType> double apply(SpectrumType& spectr
 	TEST_REAL_SIMILAR(filter, 2482.5)
 END_SECTION
 
-START_SECTION((static FilterFunctor* create()))
-	FilterFunctor* ff = NeutralLossDiffFilter::create();
-	NeutralLossDiffFilter filter;
-	TEST_EQUAL(ff->getParameters(), filter.getParameters())
-	TEST_EQUAL(ff->getName(), filter.getName())
-	delete ff;
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(e_ptr->getProductName(), "NeutralLossDiffFilter");
-END_SECTION
-
 delete e_ptr;
 
 /////////////////////////////////////////////////////////////

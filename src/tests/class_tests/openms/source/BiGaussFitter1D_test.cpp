@@ -91,23 +91,6 @@ START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationMo
 	TEST_EQUAL(1,1)
 END_SECTION
 
-START_SECTION((Fitter1D* create()))
-{
-  Fitter1D* ptr = BiGaussFitter1D::create();
-  TEST_EQUAL(ptr->getName(), "BiGaussFitter1D")
-	TEST_NOT_EQUAL(ptr, nullPointer)
-	delete ptr;
-}
-END_SECTION
-
-START_SECTION((const String getProductName()))
-{
-  TEST_EQUAL(BiGaussFitter1D::getProductName(),"BiGaussFitter1D")
-  TEST_EQUAL(BiGaussFitter1D().getName(),"BiGaussFitter1D")
-}
-END_SECTION
-
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

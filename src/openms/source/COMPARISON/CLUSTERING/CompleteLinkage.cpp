@@ -13,15 +13,6 @@
 
 namespace OpenMS
 {
-  ClusterFunctor * CompleteLinkage::create()
-  {
-    return new CompleteLinkage();
-  }
-
-  const String CompleteLinkage::getProductName()
-  {
-    return "CompleteLinkage";
-  }
 
   CompleteLinkage::CompleteLinkage() :
     ClusterFunctor(), ProgressLogger()

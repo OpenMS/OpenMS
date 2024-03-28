@@ -16,7 +16,7 @@ namespace OpenMS
     FilterFunctor()
   {
     check_defaults_ = false;
-    setName(IntensityBalanceFilter::getProductName());
+    setName("IntensityBalanceFilter");
     defaultsToParam_();
   }
 

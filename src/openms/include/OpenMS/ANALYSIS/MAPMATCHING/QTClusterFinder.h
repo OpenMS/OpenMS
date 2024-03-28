@@ -258,12 +258,6 @@ public:
     /// Destructor
     ~QTClusterFinder() override;
 
-    /// Returns the name of the product
-    static const String getProductName()
-    {
-      return "qt";
-    }
-
     /**
        @brief Runs the algorithm on consensus maps
 
@@ -284,11 +278,6 @@ public:
     void run(const std::vector<FeatureMap>& input_maps,
              ConsensusMap& result_map);
 
-    /// Returns an instance of this class
-    static BaseGroupFinder* create()
-    {
-      return new QTClusterFinder();
-    }
   };
 } // namespace OpenMS
 

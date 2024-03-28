@@ -138,23 +138,6 @@ START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationMo
 
 END_SECTION
 
-START_SECTION((Fitter1D* create()))
-{
-  Fitter1D* ptr = EmgFitter1D::create();
-  TEST_EQUAL(ptr->getName(), "EmgFitter1D")
-	TEST_NOT_EQUAL(ptr, nullPointer)
-	delete ptr;
-}
-END_SECTION
-
-START_SECTION((const String getProductName()))
-{
-  TEST_EQUAL(EmgFitter1D::getProductName(),"EmgFitter1D")
-  TEST_EQUAL(EmgFitter1D().getName(),"EmgFitter1D")
-}
-END_SECTION
-
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

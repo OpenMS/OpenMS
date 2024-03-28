@@ -43,7 +43,6 @@ public:
 
     using FeatureFinderAlgorithm::param_;
     using FeatureFinderAlgorithm::features_;
-    using FeatureFinderAlgorithm::ff_;
     using FeatureFinderAlgorithm::defaults_;
 
 protected:
@@ -64,9 +63,7 @@ public:
     /// Main method for actual FeatureFinder
     void run() override;
 
-    static FeatureFinderAlgorithm* create();
-
-    static const String getProductName();
+    void run(PeakMap& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds);
 
 protected:
     /// editable copy of the map

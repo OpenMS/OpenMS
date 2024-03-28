@@ -84,22 +84,6 @@ START_SECTION((double operator()(const BinnedSpectrum &spec) const ))
 }
 END_SECTION
 
-START_SECTION((static BinnedSpectrumCompareFunctor* create()))
-{
-  BinnedSpectrumCompareFunctor* bsf = BinnedSharedPeakCount::create();
-  BinnedSharedPeakCount bsp;
-  TEST_EQUAL(bsf->getParameters(), bsp.getParameters())
-  TEST_EQUAL(bsf->getName(), bsp.getName())
-  delete bsf;
-}
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-{
-  TEST_EQUAL(ptr->getProductName(), "BinnedSharedPeakCount")
-}
-END_SECTION
-
 delete ptr;
 
 /////////////////////////////////////////////////////////////
