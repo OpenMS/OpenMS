@@ -83,6 +83,7 @@
 			<userParam name="MSGFPlusAdapter:1:min_peptide_length" unitName="xsd:integer" value="6"/>
 			<userParam name="MSGFPlusAdapter:1:max_peptide_length" unitName="xsd:integer" value="40"/>
 			<userParam name="MSGFPlusAdapter:1:matches_per_spec" unitName="xsd:integer" value="1"/>
+			<userParam name="MSGFPlusAdapter:1:min_peaks" unitName="xsd:integer" value="10"/>
 			<userParam name="MSGFPlusAdapter:1:add_features" unitName="xsd:string" value="false"/>
 			<userParam name="MSGFPlusAdapter:1:max_mods" unitName="xsd:integer" value="2"/>
 			<userParam name="MSGFPlusAdapter:1:max_missed_cleavages" unitName="xsd:integer" value="-1"/>
