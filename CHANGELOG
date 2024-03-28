@@ -33,6 +33,7 @@ Fixes:
 - MSGFPlusAdapter: allow concurrent creation of indexed database (#7272)
 - ParamEditor: fixed error for the subsection parameter (ParamNode) to go through store function (#7180)
 - TOPPAS: open files in TOPPView (#7213)
+- pyOpenMS: Log warnings in pure Python code with warnings.warn instead of print (#7418)
 
 Misc:
 - OpenMSInfo reports the ILP solver (CoinOr or glpk) (#7156)
