@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
+#include <OpenMS/MATH/SVM/SimpleSVM.h>
 ///////////////////////////
 
 #include <fstream>
