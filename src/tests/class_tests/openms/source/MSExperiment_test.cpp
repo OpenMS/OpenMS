@@ -21,13 +21,28 @@
 
 ///////////////////////////
 
+using namespace OpenMS;
+using namespace std;
+
+
+MSExperiment createPeakMapWithRTs(std::vector<double> RTs)
+{
+  MSExperiment map;
+  MSSpectrum s;
+  for (auto rt : RTs)
+  {
+    s.setRT(rt);
+    map.addSpectrum(s);
+  }
+  return map;
+}
+
 START_TEST(MSExperiment, "$Id$");
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-using namespace OpenMS;
-using namespace std;
+
 
 PeakMap* ptr = nullptr;
 PeakMap* nullPointer = nullptr;
@@ -728,18 +743,7 @@ END_SECTION
 
 START_SECTION((Iterator RTBegin(CoordinateType rt)))
 {
-  PeakMap tmp;
-  MSSpectrum s;
-
-  s.setRT(30.0);
-  tmp.addSpectrum(s);
-  s.setRT(40.0);
-  tmp.addSpectrum(s);
-  s.setRT(45.0);
-  tmp.addSpectrum(s);
-  s.setRT(50.0);
-  tmp.addSpectrum(s);
-
+  PeakMap tmp = createPeakMapWithRTs({30, 40, 45, 50});
   PeakMap::Iterator it;
 
   it = tmp.RTBegin(20.0);
@@ -748,24 +752,13 @@ START_SECTION((Iterator RTBegin(CoordinateType rt)))
   TEST_REAL_SIMILAR(it->getRT(),30.0)
   it = tmp.RTBegin(31.0);
   TEST_REAL_SIMILAR(it->getRT(),40.0)
-  TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
+  TEST_TRUE(tmp.RTBegin(55.0) == tmp.end())
 }
 END_SECTION
 
 START_SECTION((Iterator RTEnd(CoordinateType rt)))
 {
-  PeakMap tmp;
-  MSSpectrum s;
-
-  s.setRT(30.0);
-  tmp.addSpectrum(s);
-  s.setRT(40.0);
-  tmp.addSpectrum(s);
-  s.setRT(45.0);
-  tmp.addSpectrum(s);
-  s.setRT(50.0);
-  tmp.addSpectrum(s);
-
+  PeakMap tmp = createPeakMapWithRTs({30, 40, 45, 50});
   PeakMap::Iterator it;
 
   it = tmp.RTEnd(20.0);
@@ -774,7 +767,7 @@ START_SECTION((Iterator RTEnd(CoordinateType rt)))
   TEST_REAL_SIMILAR(it->getRT(),40.0)
   it = tmp.RTEnd(31.0);
   TEST_REAL_SIMILAR(it->getRT(),40.0)
-  TEST_EQUAL(tmp.RTEnd(55.0) == tmp.end(), true)
+  TEST_TRUE(tmp.RTEnd(55.0) == tmp.end())
 }
 END_SECTION
 
