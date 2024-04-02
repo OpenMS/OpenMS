@@ -27,7 +27,6 @@ MapAlignmentTransformer.h
 PoseClusteringAffineSuperimposer.h
 PoseClusteringShiftSuperimposer.h
 QTClusterFinder.h
-SimplePairFinder.h
 StablePairFinder.h
 TransformationDescription.h
 TransformationModel.h

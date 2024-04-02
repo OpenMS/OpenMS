@@ -432,7 +432,6 @@ set(chemistry_executables_list
   Tagger_test
   TheoreticalSpectrumGeneratorXLMS_test
   TheoreticalSpectrumGenerator_test
-  WeightWrapper_test
   Weights_test
 )
 
@@ -542,7 +541,6 @@ set(analysis_executables_list
   QuantitativeExperimentalDesign_test
   ReactionMonitoringTransition_test
   SimpleSearchEngineAlgorithm_test
-  SimplePairFinder_test
   SimpleSVM_test
   SpectralDeconvolution_test
   StablePairFinder_test

@@ -819,69 +819,6 @@ PyOpenMSChecker:
         - getPosition # position type
         - setPosition
 
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    #  Factory pattern / create methods
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    OpenMS::FeatureGroupingAlgorithmUnlabeled:
-        - create
-    OpenMS::SimplePairFinder:
-        - create
-    OpenMS::NeutralLossDiffFilter:
-        - create
-    OpenMS::FeatureGroupingAlgorithmIdentification:
-        - create
-    OpenMS::FeatureFinderAlgorithmPicked:
-        - create
-    OpenMS::MapAlignmentEvaluationAlgorithmPrecision:
-        - evaluate
-        - create
-    OpenMS::FeatureGroupingAlgorithmQT:
-        - create
-    OpenMS::MapAlignmentAlgorithmSpectrumAlignment:
-        - alignPeakMaps
-        - create
-    OpenMS::StablePairFinder:
-        - create
-    OpenMS::IsotopeDiffFilter:
-        - create
-    OpenMS::TICFilter:
-        - create
-    OpenMS::IsotopeModel:
-        - create
-    OpenMS::LabeledPairFinder:
-        - create
-    OpenMS::BiGaussModel:
-        - create
-    OpenMS::MapAlignmentAlgorithmPoseClustering:
-        - create
-    OpenMS::MapAlignmentEvaluationAlgorithmRecall:
-        - evaluate
-        - create
-    OpenMS::FeatureGroupingAlgorithmLabeled:
-        - create
-    OpenMS::SpectraSTSimilarityScore:
-        #- transform
-        #- dot_bias
-        - create
-    OpenMS::IntensityBalanceFilter:
-        - create
-    OpenMS::GoodDiffFilter:
-        - create
-    OpenMS::MapAlignmentAlgorithmIdentification:
-        - create
-    OpenMS::BiGaussFitter1D:
-        - fit1d # needs pointer
-        - create
-    OpenMS::IsotopeFitter1D:
-        - fit1d # needs pointer
-        - create
-    OpenMS::EmgFitter1D:
-        - fit1d # needs pointer
-        - create
-    OpenMS::AverageLinkage:
-        - create
-    OpenMS::ComplementFilter:
-        - create
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Base class problem :
@@ -1017,7 +954,6 @@ PyOpenMSChecker:
     - OpenMS::ControlledVocabulary::CVTerm::XRefType
 
     # rarely used classes
-    - OpenMS::WeightWrapper
     - OpenMS::FileTypes # no need for them, the actual types are at OpenMS::FileTypes::Types
 
     # produces compile error

@@ -37,7 +37,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 #include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
@@ -60,7 +59,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
+#include <OpenMS/MATH/SVM/SimpleSVM.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
 #include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
@@ -430,7 +429,6 @@ int main(int argc, char** argv)
   DOCME(QTClusterFinder);
   DOCME(SavitzkyGolayFilter);
   DOCME(LowessSmoothing);
-  DOCME(SimplePairFinder);
   DOCME(SimpleSVM);
   DOCME(SONARScoring);
   DOCME(StablePairFinder);

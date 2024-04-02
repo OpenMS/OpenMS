@@ -27,7 +27,6 @@ MapAlignmentTransformer.cpp
 PoseClusteringAffineSuperimposer.cpp
 PoseClusteringShiftSuperimposer.cpp
 QTClusterFinder.cpp
-SimplePairFinder.cpp
 StablePairFinder.cpp
 TransformationDescription.cpp
 TransformationModel.cpp
