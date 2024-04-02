@@ -866,19 +866,20 @@ namespace OpenMS
     context_menu->addAction(layer_name.toQString())->setEnabled(false);
     context_menu->addSeparator();
 
-    context_menu->addAction("Layer meta data");
+    context_menu->addAction("Layer meta data", [&]() { showMetaData(true); });
 
     QMenu * settings_menu = new QMenu("Settings");
     settings_menu->addAction("Show/hide grid lines");
     settings_menu->addAction("Show/hide axis legends");
     context_menu->addSeparator();
 
-    context_menu->addAction("Switch to 3D view");
+    context_menu->addAction("Switch to 3D view", [&]() { emit showCurrentPeaksAs3D(); });
 
     const RangeType e_units = [&](){ // mouse position in units
       RangeType r;
       unit_mapper_.fromXY(widgetToData_(e->pos()), r);
-      return r; }();
+      return r;
+    }();
 
     // a small 10x10 pixel area around the current mouse position
     auto check_area = visible_area_.cloneWith({widgetToData_(e->pos() - QPoint(10, 10)), widgetToData_(e->pos() + QPoint(10, 10))}).getAreaUnit();
@@ -915,7 +916,7 @@ namespace OpenMS
         }
         ++i;
       }
-      //search for four scans in both directions
+      // search for four scans in both directions
       vector<Int> indices;
       indices.push_back(current);
       i = 1;
@@ -994,6 +995,14 @@ namespace OpenMS
         context_menu->addMenu(msn_meta);
         context_menu->addSeparator();
       }
+      
+      auto it_closest_MS1 = lp->getPeakData()->getClosestSpecInRT(e_units.getMinRT(), 1);
+      if (it_closest_MS1->containsIMData())
+      {
+        context_menu->addAction(("Switch to ion mobility view (RT: " + String(it_closest_MS1->getRT(), false) + ")").c_str(),
+                                [&]() {emit showCurrentPeaksAsIonMobility(*it_closest_MS1); });
+      }
+
 
       finishContextMenu_(context_menu, settings_menu);
 
@@ -1013,7 +1022,7 @@ namespace OpenMS
     //-------------------FEATURES----------------------------------
     else if (auto* lf = dynamic_cast<const LayerDataFeature*>(&layer))
     {
-      //add settings
+      // add settings
       settings_menu->addSeparator();
       settings_menu->addAction("Show/hide convex hull");
       settings_menu->addAction("Show/hide trace convex hulls");
@@ -1028,11 +1037,12 @@ namespace OpenMS
       {
         if (check_area.containsMZ(it->getMZ()) && check_area.containsRT(it->getRT()))
         {
-          a = meta->addAction(QString("RT: ") + QString::number(it->getRT()) + "  m/z:" + QString::number(it->getMZ()) + "  charge:" + QString::number(it->getCharge()));
+          a = meta->addAction(QString("RT: ") + QString::number(it->getRT()) + "  m/z:" + QString::number(it->getMZ())
+                              + "  charge:" + QString::number(it->getCharge()));
           a->setData((int)(it - features.begin()));
         }
       }
-      if (!meta->actions().empty())
+      if (! meta->actions().empty())
       {
         context_menu->addMenu(meta);
         context_menu->addSeparator();
@@ -1040,7 +1050,7 @@ namespace OpenMS
 
       // add modifiable flag
       settings_menu->addSeparator();
-      settings_menu->addAction("Toggle edit/view mode");
+      settings_menu->addAction("Toggle edit/view mode", [&]() { getCurrentLayer().modifiable = ! getCurrentLayer().modifiable; });
 
       finishContextMenu_(context_menu, settings_menu);
 
@@ -1058,7 +1068,7 @@ namespace OpenMS
     {
       // add settings
       settings_menu->addSeparator();
-      settings_menu->addAction("Show/hide elements");
+      settings_menu->addAction("Show/hide elements", [&]() { setLayerFlag(LayerDataBase::C_ELEMENTS, ! getLayerFlag(LayerDataBase::C_ELEMENTS)); });
 
       // search for nearby features
       QMenu* consens_meta = new QMenu("Consensus meta data");
@@ -1247,22 +1257,7 @@ namespace OpenMS
           getCurrentLayer().label = LayerDataBase::L_NONE;
         }
       }
-      else if (result->text() == "Toggle edit/view mode")
-      {
-        getCurrentLayer().modifiable = !getCurrentLayer().modifiable;
-      }
-      else if (result->text() == "Show/hide elements")
-      {
-        setLayerFlag(LayerDataBase::C_ELEMENTS, !getLayerFlag(LayerDataBase::C_ELEMENTS));
-      }
-      else if (result->text() == "Layer meta data")
-      {
-        showMetaData(true);
-      }
-      else if (result->text() == "Switch to 3D view")
-      {
-        emit showCurrentPeaksAs3D();
-      }
+
     }
 
     e->accept();
