@@ -602,6 +602,14 @@ public:
     /// returns the spectrum list (mutable)
     std::vector<MSSpectrum>& getSpectra();
 
+    /// Returns the closest(=nearest) spectrum in retention time to the given RT
+    ConstIterator getClosestSpecInRT(const double RT) const;
+    Iterator getClosestSpecInRT(const double RT);
+
+    /// Returns the closest(=nearest) spectrum in retention time to the given RT of a certain MS level
+    ConstIterator getClosestSpecInRT(const double RT, UInt ms_level) const;
+    Iterator getClosestSpecInRT(const double RT, UInt ms_level);
+
     /// sets the chromatogram list
     void setChromatograms(const std::vector<MSChromatogram>& chromatograms);
     void setChromatograms(std::vector<MSChromatogram>&& chromatograms);

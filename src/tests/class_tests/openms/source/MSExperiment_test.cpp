@@ -37,6 +37,15 @@ MSExperiment createPeakMapWithRTs(std::vector<double> RTs)
   return map;
 }
 
+MSExperiment setMSLevel(MSExperiment exp, std::vector<int> ms_levels)
+{
+  for (int i = 0; i < ms_levels.size(); ++i)
+  {
+    exp[i].setMSLevel(ms_levels[i]);
+  }
+  return exp;
+}
+
 START_TEST(MSExperiment, "$Id$");
 
 /////////////////////////////////////////////////////////////
@@ -768,6 +777,143 @@ START_SECTION((Iterator RTEnd(CoordinateType rt)))
   it = tmp.RTEnd(31.0);
   TEST_REAL_SIMILAR(it->getRT(),40.0)
   TEST_TRUE(tmp.RTEnd(55.0) == tmp.end())
+}
+END_SECTION
+
+START_SECTION(ConstIterator getClosestSpecInRT(const double RT) const)
+{
+  const PeakMap tmp = createPeakMapWithRTs({30, 40, 45, 50});
+  PeakMap::ConstIterator it;
+
+  it = tmp.getClosestSpecInRT(-200.0);
+  TEST_TRUE(it == tmp.cbegin());
+  it = tmp.getClosestSpecInRT(20.0);
+  TEST_TRUE(it == tmp.cbegin());
+  it = tmp.getClosestSpecInRT(31.0);
+  TEST_TRUE(it == tmp.cbegin());
+  it = tmp.getClosestSpecInRT(34.9);
+  TEST_TRUE(it == tmp.cbegin());
+
+  it = tmp.getClosestSpecInRT(39);
+  TEST_TRUE(it == tmp.cbegin() + 1);
+  it = tmp.getClosestSpecInRT(41);
+  TEST_TRUE(it == tmp.cbegin() + 1);
+  it = tmp.getClosestSpecInRT(42.4);
+  TEST_TRUE(it == tmp.cbegin() + 1);
+
+  it = tmp.getClosestSpecInRT(44);
+  TEST_TRUE(it == tmp.cbegin() + 2);
+  it = tmp.getClosestSpecInRT(47);
+  TEST_TRUE(it == tmp.cbegin() + 2);
+
+  it = tmp.getClosestSpecInRT(47.6);
+  TEST_TRUE(it == tmp.cbegin() + 3);
+  it = tmp.getClosestSpecInRT(51);
+  TEST_TRUE(it == tmp.cbegin() + 3);
+  it = tmp.getClosestSpecInRT(5100000);
+  TEST_TRUE(it == tmp.cbegin() + 3);
+
+
+  const PeakMap tmp_empty;
+  it = tmp_empty.getClosestSpecInRT(47.6);
+  TEST_TRUE(it == tmp_empty.cend());
+}
+END_SECTION
+
+START_SECTION(Iterator getClosestSpecInRT(const double RT))
+{
+  // minimal version of the above, just to see if iterator types are correct
+  PeakMap tmp = createPeakMapWithRTs({30, 40, 45, 50});
+  PeakMap::Iterator it;
+
+  it = tmp.getClosestSpecInRT(-200.0);
+  TEST_TRUE(it == tmp.begin());
+
+  PeakMap tmp_empty;
+  it = tmp_empty.getClosestSpecInRT(47.6);
+  TEST_TRUE(it == tmp_empty.end());
+}
+END_SECTION
+
+
+START_SECTION(ConstIterator getClosestSpecInRT(const double RT, UInt ms_level) const)
+{
+  const PeakMap tmp = setMSLevel(createPeakMapWithRTs({30, 31, 32,       40, 41,       50,       60, 61}), {1, 2, 2,     1, 2,     1,      1, 2});
+  PeakMap::ConstIterator it;
+
+  it = tmp.getClosestSpecInRT(-200.0, 0); // MS-level 0 does not exist --> cend()
+  TEST_TRUE(it == tmp.cend());
+  it = tmp.getClosestSpecInRT(-200.0, 1);
+  TEST_TRUE(it == tmp.cbegin());
+  it = tmp.getClosestSpecInRT(-200.0, 2);
+  TEST_TRUE(it == tmp.cbegin() + 1);
+
+  it = tmp.getClosestSpecInRT(20.0, 1);
+  TEST_TRUE(it == tmp.cbegin());
+  it = tmp.getClosestSpecInRT(31.0, 1);
+  TEST_TRUE(it == tmp.cbegin());
+  it = tmp.getClosestSpecInRT(34.9, 1);
+  TEST_TRUE(it == tmp.cbegin());
+
+  it = tmp.getClosestSpecInRT(20.0, 2);
+  TEST_TRUE(it == tmp.cbegin() + 1);
+  it = tmp.getClosestSpecInRT(31.0, 2);
+  TEST_TRUE(it == tmp.cbegin() + 1);
+  it = tmp.getClosestSpecInRT(31.4, 2);
+  TEST_TRUE(it == tmp.cbegin() + 1);
+
+
+  it = tmp.getClosestSpecInRT(39, 1);
+  TEST_TRUE(it == tmp.cbegin() + 3);
+  it = tmp.getClosestSpecInRT(41, 1);
+  TEST_TRUE(it == tmp.cbegin() + 3);
+  it = tmp.getClosestSpecInRT(42.4, 1);
+  TEST_TRUE(it == tmp.cbegin() + 3);
+
+  it = tmp.getClosestSpecInRT(45.5, 1);
+  TEST_TRUE(it == tmp.cbegin() + 5);
+  it = tmp.getClosestSpecInRT(49, 1);
+  TEST_TRUE(it == tmp.cbegin() + 5);
+  it = tmp.getClosestSpecInRT(54.5, 1);
+  TEST_TRUE(it == tmp.cbegin() + 5);
+
+  it = tmp.getClosestSpecInRT(55.1, 1);
+  TEST_TRUE(it == tmp.cbegin() + 6);
+  it = tmp.getClosestSpecInRT(59.1, 1);
+  TEST_TRUE(it == tmp.cbegin() + 6);
+  it = tmp.getClosestSpecInRT(5100000, 1);
+  TEST_TRUE(it == tmp.cbegin() + 6);
+
+  it = tmp.getClosestSpecInRT(58, 2);
+  TEST_TRUE(it == tmp.cbegin() + 7);
+  it = tmp.getClosestSpecInRT(63, 2);
+  TEST_TRUE(it == tmp.cbegin() + 7);
+  it = tmp.getClosestSpecInRT(5100000, 2);
+  TEST_TRUE(it == tmp.cbegin() + 7);
+
+
+  const PeakMap tmp_empty;
+  it = tmp_empty.getClosestSpecInRT(47.6, 1);
+  TEST_TRUE(it == tmp_empty.cend());
+}
+END_SECTION
+
+START_SECTION(Iterator getClosestSpecInRT(const double RT, UInt ms_level))
+{
+  // minimal version of the above, just to see if iterator types are correct
+  PeakMap tmp = setMSLevel(createPeakMapWithRTs({30, 31, 32, 40, 41, 50, 60, 61}), {1, 2, 2, 1, 2, 1, 1, 2});
+  PeakMap::Iterator it;
+
+  it = tmp.getClosestSpecInRT(-200.0, 0); // MS-level 0 does not exist --> cend()
+  TEST_TRUE(it == tmp.cend());
+  it = tmp.getClosestSpecInRT(-200.0, 1);
+  TEST_TRUE(it == tmp.cbegin());
+  it = tmp.getClosestSpecInRT(-200.0, 2);
+  TEST_TRUE(it == tmp.cbegin() + 1);
+  
+  PeakMap tmp_empty;
+  it = tmp_empty.getClosestSpecInRT(47.6, 1);
+  TEST_TRUE(it == tmp_empty.cend());
 }
 END_SECTION
 
