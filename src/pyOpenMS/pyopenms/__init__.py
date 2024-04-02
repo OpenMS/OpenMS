@@ -23,6 +23,8 @@ Please cite:
 """
 from __future__ import print_function
 
+import warnings
+
 from ._sysinfo import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
 from ._version import version as __version__
 
@@ -36,7 +38,7 @@ if os.path.exists(default_openms_data_path):
     if not env_openms_data_path:
         os.environ["OPENMS_DATA_PATH"] = default_openms_data_path
     else:
-        print(
+        warnings.warn(
             "Warning: OPENMS_DATA_PATH environment variable already exists. "
             "pyOpenMS will use it ({env}) to locate data in the OpenMS share folder "
             "(e.g., the unimod database), instead of the default ({default})."
@@ -44,7 +46,7 @@ if os.path.exists(default_openms_data_path):
         )
 else:
     if not env_openms_data_path:
-         print(
+        warnings.warn(
             "Warning: OPENMS_DATA_PATH environment variable not found and no share directory was installed. "
             "Some functionality might not work as expected."
         )

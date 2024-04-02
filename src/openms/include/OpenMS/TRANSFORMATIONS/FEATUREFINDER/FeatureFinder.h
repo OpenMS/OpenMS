@@ -39,26 +39,6 @@ public:
     /// Destructor
     ~FeatureFinder() override;
 
-    /**
-        @brief Executes the FeatureFinder using the given algorithm
-
-        There are several constraints for the @p input_map.  They are tested before
-        the algorithm starts.  It must only contain MS 1 level scans and you
-        have to call updateRanges() before passing it to this method.
-The input map is sorted by RT & m/z if that's not the case.
-Furthermore we throw an Exception if the data contains negative m/z values,
-as this will disturb most algorithms.
-
-        @param algorithm_name Name of the feature finding algorithm to use
-        @param input_map Input peak map
-        @param features Output feature map
-        @param param Algorithm parameters
-        @param seeds List of seeds to use
-
-        Implemented in FeatureFinder_impl.h
-    */
-    //void run(const String& algorithm_name, PeakMap& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds);
-
     /// Returns a non-mutable reference to a peak flag
     const Flag& getPeakFlag(const IndexPair& index) const
     {

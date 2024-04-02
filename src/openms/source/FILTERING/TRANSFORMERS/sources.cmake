@@ -5,21 +5,15 @@ set(directory source/FILTERING/TRANSFORMERS)
 set(sources_list
 BernNorm.cpp
 ComplementFilter.cpp
-ComplementMarker.cpp
 FilterFunctor.cpp
 GoodDiffFilter.cpp
 IntensityBalanceFilter.cpp
 IsotopeDiffFilter.cpp
-IsotopeMarker.cpp
 LinearResampler.cpp
-MarkerMower.cpp
 NLargest.cpp
 NeutralLossDiffFilter.cpp
-NeutralLossMarker.cpp
 Normalizer.cpp
 ParentPeakMower.cpp
-PeakMarker.cpp
-#~ PreprocessingFunctor.cpp
 Scaler.cpp
 SpectraMerger.cpp
 SqrtMower.cpp

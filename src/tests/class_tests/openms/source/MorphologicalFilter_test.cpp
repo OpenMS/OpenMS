@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/CONCEPT/TypeAsString.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////

@@ -37,7 +37,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 #include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
@@ -60,7 +59,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
+#include <OpenMS/MATH/SVM/SimpleSVM.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
 #include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
@@ -93,14 +92,11 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ComplementFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ComplementMarker.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/GoodDiffFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/IsotopeDiffFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/IsotopeMarker.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NeutralLossDiffFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NeutralLossMarker.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ParentPeakMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
@@ -359,7 +355,7 @@ int main(int argc, char** argv)
   DOCME(BinnedSpectralContrastAngle);
   DOCME(BinnedSumAgreeingIntensities);
   DOCME(ComplementFilter);
-  DOCME(ComplementMarker);
+
   DOCME(ConsensusIDAlgorithmAverage);
   DOCME(ConsensusIDAlgorithmBest);
   DOCME(ConsensusIDAlgorithmPEPIons);
@@ -398,7 +394,6 @@ int main(int argc, char** argv)
   DOCME(InterpolationModel);
   DOCME(IsotopeDiffFilter);
   DOCME(IsotopeFitter1D);
-  DOCME(IsotopeMarker);
   DOCME(IsotopeModel);
   DOCME(TMTSixPlexQuantitationMethod);
   DOCME(TMTTenPlexQuantitationMethod);
@@ -421,7 +416,6 @@ int main(int argc, char** argv)
   DOCME(NucleicAcidSpectrumGenerator);
   DOCME(NLargest);
   DOCME(NeutralLossDiffFilter);
-  DOCME(NeutralLossMarker);
   DOCME(Normalizer);
   DOCME(ParentPeakMower);
   DOCME(PeakAlignment);
@@ -435,7 +429,6 @@ int main(int argc, char** argv)
   DOCME(QTClusterFinder);
   DOCME(SavitzkyGolayFilter);
   DOCME(LowessSmoothing);
-  DOCME(SimplePairFinder);
   DOCME(SimpleSVM);
   DOCME(SONARScoring);
   DOCME(StablePairFinder);
