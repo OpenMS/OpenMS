@@ -8,8 +8,10 @@
 
 #pragma once
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <cmath>
 
@@ -40,7 +42,7 @@ namespace OpenMS
 
     @ingroup Chemistry
   */
-  class AAIndex
+  class OPENMS_DLLAPI AAIndex
   {
 
 public:
