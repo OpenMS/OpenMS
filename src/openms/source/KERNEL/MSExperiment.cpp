@@ -607,6 +607,55 @@ namespace OpenMS
     return spectra_;
   }
 
+  /// Returns the closest(=nearest) spectrum in retention time to the given RT
+  MSExperiment::ConstIterator MSExperiment::getClosestSpectrumInRT(const double RT) const
+  {
+    auto above = RTBegin(RT);           // the spec above or equal to our RT
+    if (above == begin()) return above; // we hit the first element, or no spectra (begin==end)
+    if (above == end()) return --above; // queried beyond last spec, but we know there are spectra, so `--above` is safe
+    // we are between two spectra
+    auto diff_left = RT - (above - 1)->getRT();
+    auto diff_right = above->getRT() - RT;
+    if (diff_left < diff_right) --above;
+    return above;
+  }
+  MSExperiment::Iterator MSExperiment::getClosestSpectrumInRT(const double RT)
+  {
+    return begin() + std::distance(cbegin(), const_cast<const MSExperiment*>(this)->getClosestSpectrumInRT(RT));
+  }
+
+  /// Returns the closest(=nearest) spectrum in retention time to the given RT of a certain MS level
+  MSExperiment::ConstIterator MSExperiment::getClosestSpectrumInRT(const double RT, UInt ms_level) const
+  {
+    auto above = RTBegin(RT); // the spec above or equal to our RT
+    auto below = above; // for later
+    // search for the next available spec to the right with correct MS level
+    while (above != end() && above->getMSLevel() != ms_level)
+    {
+      ++above;
+    }
+    if (above == begin()) return above; // we hit the first element; or no spectra at all
+
+    // careful: below may be end() at this point, yet below!=begin()
+    if (below != begin()) --below; // we need to make one step left, so we are different from `above`
+    // we are not at end() (or begin()==end())
+    while (below != begin() && below->getMSLevel() != ms_level)
+    {
+      --below;
+    }
+    if (below->getMSLevel() != ms_level) return above; // below did not find anything valid; so it must be whatever `above` is (could be end())
+    if (above == end()) return below;                  // queried beyond last spec, but we know there are spectra, so it must be whatever `below` is (which we know is valid)
+    // we are between two spectra
+    auto diff_left = RT - below->getRT();
+    auto diff_right = above->getRT() - RT;
+    return (diff_left < diff_right ? below : above);
+  }
+
+  MSExperiment::Iterator MSExperiment::getClosestSpectrumInRT(const double RT, UInt ms_level)
+  {
+    return begin() + std::distance(cbegin(), const_cast<const MSExperiment*>(this)->getClosestSpectrumInRT(RT, ms_level));
+  }
+
   /// sets the chromatogram list
   void MSExperiment::setChromatograms(const std::vector<MSChromatogram > & chromatograms)
   {

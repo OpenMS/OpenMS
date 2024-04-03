@@ -118,7 +118,7 @@ public:
     bool operator!=(const MSExperiment & rhs) const;
     
     /// The number of spectra
-    inline Size size() const
+    inline Size size() const noexcept
     {
       return spectra_.size();
     }
@@ -130,7 +130,7 @@ public:
     }
 
     /// Are there any spectra (does not consider chromatograms)
-    inline bool empty() const
+    inline bool empty() const noexcept
     {
       return spectra_.empty();
     }
@@ -153,14 +153,19 @@ public:
       return spectra_[n];
     }
 
-    inline Iterator begin()
+    inline Iterator begin() noexcept
     {
       return spectra_.begin();
     }
 
-    inline ConstIterator begin() const
+    inline ConstIterator begin() const noexcept
     {
-      return spectra_.begin();
+      return spectra_.cbegin();
+    }
+
+    inline ConstIterator cbegin() const noexcept
+    {
+      return spectra_.cbegin();
     }
 
     inline Iterator end()
@@ -168,9 +173,14 @@ public:
       return spectra_.end();
     }
 
-    inline ConstIterator end() const
+    inline ConstIterator end() const noexcept
     {
-      return spectra_.end();
+      return spectra_.cend();
+    }
+    
+    inline ConstIterator cend() const noexcept
+    {
+      return spectra_.cend();
     }
     //@}
 
@@ -591,6 +601,14 @@ public:
 
     /// returns the spectrum list (mutable)
     std::vector<MSSpectrum>& getSpectra();
+
+    /// Returns the closest(=nearest) spectrum in retention time to the given RT
+    ConstIterator getClosestSpectrumInRT(const double RT) const;
+    Iterator getClosestSpectrumInRT(const double RT);
+
+    /// Returns the closest(=nearest) spectrum in retention time to the given RT of a certain MS level
+    ConstIterator getClosestSpectrumInRT(const double RT, UInt ms_level) const;
+    Iterator getClosestSpectrumInRT(const double RT, UInt ms_level);
 
     /// sets the chromatogram list
     void setChromatograms(const std::vector<MSChromatogram>& chromatograms);
