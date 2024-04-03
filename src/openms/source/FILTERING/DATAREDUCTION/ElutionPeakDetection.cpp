@@ -39,7 +39,7 @@ namespace OpenMS
     defaults_.setValidStrings("masstrace_snr_filtering", {"true","false"});
 
     defaults_.setValue("smoothing_polynomial", 2, "The order of the smoothing polynomial used in Savitzky-Golay filter.", {"advanced"});
-    defaults_.setValue("min_num_of_peaks_", 0, "Minimum number of peaks a mass trace should have. Ignored if this parameter is set 0.", {"advanced"});
+    defaults_.setValue("min_num_of_peaks", 0, "Minimum number of peaks a mass trace should have. Ignored if this parameter is set 0.", {"advanced"});
 
     defaultsToParam_();
     this->setLogType(CMD);

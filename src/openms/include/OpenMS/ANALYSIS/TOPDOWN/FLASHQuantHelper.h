@@ -12,6 +12,7 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/KERNEL/MassTrace.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 using namespace OpenMS;
 namespace FLASHQuantHelper
@@ -48,7 +49,7 @@ namespace FLASHQuantHelper
         mass_trace_(mt),
         centroid_mz_(mt.getCentroidMZ()),
         charge_(-1),
-        intensity_(use_smoothed_ints? mt.computeSmoothedPeakArea() : mt.computePeakArea()),
+        intensity_(use_smoothed_ints? mt.getIntensity(true) : mt.getIntensity(false)), // mt.computeSmoothedPeakArea() : mt.computePeakArea()),
         isotope_index_(-1),
         trace_index_(0), // index of current trace (out of all input mass traces), thus not set here but after this construction
         mass_(0) // determined mass after deconvolution. NOT monoisotopic but only decharged
@@ -56,6 +57,22 @@ namespace FLASHQuantHelper
         auto fwhm = mt.getFWHMborders();
         fwhm_start_ = mt[fwhm.first].getRT();
         fwhm_end_ = mt[fwhm.second].getRT();
+
+//        // intensity by peaks
+//        if (use_smoothed_ints)
+//        {
+//          auto &inty = mt.getSmoothedIntensities();
+//          intensity_ = std::accumulate(inty.begin(), inty.end(), .0);
+//        }
+//        else
+//        {
+//          double tmp_inty = .0;
+//          for (auto &p : mt)
+//          {
+//            tmp_inty += p.getIntensity();
+//          }
+//          intensity_ = tmp_inty;
+//        }
       }
 
     /// default getter
@@ -166,6 +183,9 @@ namespace FLASHQuantHelper
     float getIsotopeCosineOfCharge(const int &abs_charge) const;
     double getAverageMass() const;
     std::vector<FeatureSeed> getTheoreticalShapes() const;
+
+    /// for quantification
+    std::pair<double, double> getMedianValuesOfFWHMs() const;
 
     /** default setters **/
     void setMonoisotopicMass(const double mass);
@@ -284,6 +304,15 @@ namespace FLASHQuantHelper
     }
   };
 
+  class OPENMS_DLLAPI CmpFeatureGroupByIntensity
+  {
+  public:
+    bool operator()(const FeatureGroup* x, const FeatureGroup* y) const
+    {
+      return x->getIntensity() < y->getIntensity();
+    }
+  };
+
   class OPENMS_DLLAPI CmpFeatureGroupPointersByMass
   {
   public:
@@ -300,9 +329,8 @@ namespace FLASHQuantHelper
     std::vector<FeatureSeed> shared_traces;
     std::vector<Size> unique_trace_indices; // index to input shared_m_traces_indices
     std::vector<Size> shared_trace_indices; // index to input shared_m_traces_indices
-    std::vector<double> isotope_probabilities; // used as weights to EGHTraceFitter. Index of this vec = same index as unique's
-//    LogMassTrace* most_abundant_mt_in_fg = nullptr;
     std::vector<FeatureSeed> theoretical_shapes;
+    std::vector<Size> solved_trace_indices; // index to input shared_m_traces_indices
 
     int charge;
     Size feature_group_index;
@@ -327,8 +355,8 @@ namespace FLASHQuantHelper
                               const std::vector<double> &theo_intensities,
                               const double &calculated_ratio)
     {
-      FeatureSeed theoretical_seed = input_trace;
-      MassTrace trace = theoretical_seed.getMassTrace();
+      FeatureSeed theoretical_seed = input_trace; // copying
+      MassTrace trace(theoretical_seed.getMassTrace()); // copying
       for (Size i = 0; i < theo_intensities.size(); ++i)
       {
         trace[i].setIntensity(theo_intensities[i]);

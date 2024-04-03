@@ -55,6 +55,7 @@ namespace OpenMS
 
     // test purpose
     String output_file_path_;
+    std::vector<double> rts_from_org_scans_;
 
   protected:
     void updateMembers_() override;
@@ -66,6 +67,8 @@ namespace OpenMS
     void getFeatureFromSpectrum_(std::vector<FeatureSeed*> &local_traces, std::vector<FeatureGroup> &local_fgroup, const double &rt);
 
     void buildMassTraceGroups_(std::vector<FeatureSeed> &in_seeds, std::vector<FeatureGroup> &features);
+
+    void filterOutNoisePeaks(std::vector<FeatureGroup> &fgroups, std::vector<MassTrace> &input_mtraces) const;
 
     bool scoreAndFilterFeatureGroup_(FeatureGroup& fg, double min_iso_score = -1) const;
 
@@ -115,11 +118,6 @@ namespace OpenMS
     void updateFeatureWithFitModel(std::vector<Feature>& conflicting_features, Size mt_index,
                                    const MassTrace& obs_masstrace, const Size& org_index_of_obs_mt,
                                    Matrix<int>& pointer_to_components, vector<std::vector<double>>& components);
-
-    void getMostAbundantMassTraceFromFeatureGroup_(const FeatureGroup &fgroup,
-                                                  const int &ignore_this_charge,
-                                                  FeatureSeed* &most_abundant_mt_ptr,
-                                                  const std::vector<std::vector<Size>>& shared_m_traces) const;
 
     void getFLASHDeconvConsensusResult();
 

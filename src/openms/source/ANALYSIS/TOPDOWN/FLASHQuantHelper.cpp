@@ -418,6 +418,24 @@ namespace FLASHQuantHelper
     theoretical_shapes_.insert(theoretical_shapes_.end(), shapes.begin(), shapes.end());
   }
 
+  std::pair<double, double> FeatureGroup::getMedianValuesOfFWHMs() const
+  {
+    std::vector<double> fwhm_starts;
+    std::vector<double> fwhm_ends;
+    fwhm_starts.reserve(feature_seeds_.size());
+    fwhm_ends.reserve(feature_seeds_.size());
+
+    for (const auto& seed : feature_seeds_)
+    {
+      fwhm_starts.push_back(seed.getFwhmStart());
+      fwhm_ends.push_back(seed.getFwhmEnd());
+    }
+    double median_of_start = Math::median(fwhm_starts.begin(), fwhm_starts.end());
+    double median_of_end = Math::median(fwhm_ends.begin(), fwhm_ends.end());
+
+    return std::make_pair(median_of_start, median_of_end);
+  }
+
   void FeatureGroup::updateMembers(bool use_smoothed_ints)
   {
     /// --- Excluded members for updates ----
@@ -458,7 +476,7 @@ namespace FLASHQuantHelper
     }
 
     // find the most abundant peak
-    Size max_peak_idx = most_abundant_seed->getMassTrace().findMaxByIntPeak(use_smoothed_ints);  // smoothed intensity
+    Size max_peak_idx = most_abundant_seed->getMassTrace().findMaxByIntPeak(use_smoothed_ints);
     auto tmp_max_peak = most_abundant_seed->getMassTrace()[max_peak_idx];
     centroid_rt_of_most_abundant_mt_ = tmp_max_peak.getRT();
 

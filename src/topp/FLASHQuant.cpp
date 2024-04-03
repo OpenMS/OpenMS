@@ -19,6 +19,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MassTrace.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 
 using namespace OpenMS;
@@ -77,14 +78,17 @@ protected:
     Param combined;
 
     Param p_mtd = MassTraceDetection().getDefaults();
-//    p_mtd.setValue("noise_threshold_int", 0.0);
+//    p_mtd.setValue("noise_threshold_int", 0.0); // if zero, all peaks are considered for apex
     p_mtd.setValue("chrom_peak_snr", 3.0);
-    p_mtd.setValue("mass_error_ppm", 5.0);
+    p_mtd.setValue("mass_error_ppm", 10.0);
+    p_mtd.setValue("trace_termination_outliers", 2);
     combined.insert("mtd:", p_mtd);
     combined.setSectionDescription("mtd", "Mass Trace Detection parameters");
 
     Param p_epd = ElutionPeakDetection().getDefaults();
     p_epd.setValue("width_filtering", "auto");
+    p_epd.setValue("smoothing_polynomial", 3);
+    p_epd.setValue("min_num_of_peaks", 4);
     combined.insert("epd:", p_epd);
     combined.setSectionDescription("epd", "Elution Profile Detection (to separate isobaric Mass Traces by elution time).");
 
@@ -209,6 +213,7 @@ protected:
       // centroid rt of apices from all MassTraces
       std::vector<double> apex_rts;
       apex_rts.reserve(fg.size());
+//      std::pair<double, double> medians_of_fwhms = fg.getMedianValuesOfFWHMs();
 
       // getting information while looping through mass traces in FeatureGroup
       for (auto &lmt: fg)
@@ -245,6 +250,10 @@ protected:
           double previous_peak_rt = lmt_ptr[0].getRT();
           for (auto &peaks: lmt_ptr)
           {
+//            if ((previous_peak_rt >= medians_of_fwhms.first) && (peaks.getRT() <= medians_of_fwhms.second))
+//            {
+//              feature_quant += (previous_peak_inty + peaks.getIntensity()) / 2 * (peaks.getRT() - previous_peak_rt);
+//            }
             all_area += (previous_peak_inty + peaks.getIntensity()) / 2 * (peaks.getRT() - previous_peak_rt);
             previous_peak_inty = peaks.getIntensity();
             previous_peak_rt = peaks.getRT();
@@ -286,7 +295,7 @@ protected:
   {
     std::fstream out_stream;
     out_stream.open(outfile_path, std::fstream::out);
-    out_stream << "FeatureGroupID\tMass\tCharge\tIsotopeIndex\tQuantValue\tCentroidMz\tisTheoretical\tRTs\tMZs\tIntensities\n"; // header
+    out_stream << "FeatureGroupID\tMass\tCharge\tIsotopeIndex\tQuantValue\tCentroidMz\tisTheoretical\tTraceLabel\tRTs\tMZs\tIntensities\n"; // header
 
     Size fg_index = 0;
     for (const auto &fgroup : fgroups)
@@ -312,7 +321,7 @@ protected:
         out_stream << fg_index << "\t" << std::to_string(fgroup.getMonoisotopicMass()) << "\t"
                    << trace.getCharge() << "\t" << trace.getIsotopeIndex() << "\t"
                    << std::to_string(trace.getIntensity()) << "\t" << std::to_string(trace.getCentroidMz()) << "\t"
-                   << 0 << "\t" << peaks + "\n";
+                   << 0 << "\t" << trace.getMassTrace().getLabel() << "\t" << peaks + "\n";
       }
 
       // theoretical
@@ -337,7 +346,7 @@ protected:
         out_stream << fg_index << "\t" << std::to_string(fgroup.getMonoisotopicMass()) << "\t"
                    << shape.getCharge() << "\t" << shape.getIsotopeIndex() << "\t"
                    << std::to_string(shape.getIntensity()) << "\t" << std::to_string(shape.getCentroidMz()) << "\t"
-                   << 1 << "\t" << peaks + "\n";
+                   << 1 << "\t" << shape.getMassTrace().getLabel() << "\t" << peaks + "\n";
       }
 
       ++fg_index;
@@ -393,6 +402,22 @@ protected:
     }
   }
 
+  double getNoiseIntensityFromTheInitialScans(PeakMap &map, Size num_of_scans = 3)
+  {
+    std::vector<double> median_intensities;
+    for (PeakMap::const_iterator iter=map.begin(); iter != map.begin()+num_of_scans; ++iter)
+    {
+      std::vector<double> intensities;
+      intensities.reserve(iter->size());
+      for (auto &peaks : *iter)
+      {
+        intensities.push_back(peaks.getIntensity());
+      }
+      median_intensities.push_back(OpenMS::Math::median(intensities.begin(), intensities.end()));
+    }
+    return OpenMS::Math::median(median_intensities.begin(), median_intensities.end());
+  }
+
 public:
   ExitCodes main_(int, const char**) override
   {
@@ -431,6 +456,17 @@ public:
                                            "Error: Profile data provided but centroided spectra expected. To enforce processing of the data set the -force flag.");
       }
     }
+    // get rt information from the original spectra
+    std::vector<double> rts_from_original_spec;
+    rts_from_original_spec.reserve(ms_peakmap.getNrSpectra());
+    for (const auto& scan : ms_peakmap)
+    {
+      rts_from_original_spec.push_back(scan.getRT());
+    }
+
+    // noise estimation
+//    double noise = getNoiseIntensityFromTheInitialScans(ms_peakmap, 3);
+//    cout << "calculated noise: " + to_string(noise) << endl;
 
     // make sure the spectra are sorted by m/z
     ms_peakmap.sortSpectra(true);
@@ -452,6 +488,7 @@ public:
     //-------------------------------------------------------------
     std::vector<MassTrace> m_traces;
     MassTraceDetection mtdet;
+//    mtd_param.setValue("noise_threshold_int", noise);
     mtdet.setParameters(mtd_param);
     mtdet.run(ms_peakmap, m_traces);
     OPENMS_LOG_INFO << "# initial input mass traces : " << m_traces.size() << endl;
@@ -464,6 +501,10 @@ public:
     epdet.setParameters(epd_param);
     // fill mass traces with smoothed data as well .. bad design..
     epdet.detectPeaks(m_traces, m_traces_final);
+//    std::vector<MassTrace> tmp_traces (m_traces.begin()+500000, m_traces.begin()+500100);
+//    epdet.detectPeaks(tmp_traces, m_traces_final);
+
+    OPENMS_LOG_INFO << "# mass traces after elution peak detection : " << m_traces_final.size() << endl;
 
     //-------------------------------------------------------------
     // Feature finding
@@ -473,6 +514,7 @@ public:
     std::vector<FeatureGroup> out_fgroups;
 
     fq_algo.output_file_path_ = out;
+    fq_algo.rts_from_org_scans_ = rts_from_original_spec;
     fq_algo.run(m_traces_final, out_fgroups);
 
     //-------------------------------------------------------------
