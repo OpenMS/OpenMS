@@ -49,7 +49,8 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
                        "otherwise the tool will fail or produce invalid results.");
     defaults_.setValidStrings("isotope_correction", {"true", "false"});
     defaults_.setValue("reporter_mz_tol", 2e-3, "m/z tolerance in Th from the expected position of reporter ion m/zs.");
-
+    defaults_.setValue("only_fully_quantified", "false", "Use only the fully quantified spectra in which non-zero intensity report ions are found for all channels.");
+    defaults_.setValidStrings("only_fully_quantified", {"true", "false"});
     defaultsToParam_();
   }
 
@@ -62,6 +63,7 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
     addMethod_(std::make_unique<TMTElevenPlexQuantitationMethod>());
     addMethod_(std::make_unique<TMTSixteenPlexQuantitationMethod>());
     addMethod_(std::make_unique<TMTEighteenPlexQuantitationMethod>());
+    only_fully_quantified_ = param_.getValue("only_fully_quantified").toString() == "true";
   }
 
   void TopDownIsobaricQuantification::quantify(const MSExperiment& exp, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features)
@@ -254,7 +256,6 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
       }
     }
 
-
     for (Size i = 0; i < intensity_clusters.size(); i++)
     {
       auto intensities = intensity_clusters[i];
@@ -276,7 +277,6 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
       int cluster_index = precursor_cluster_index[dspec.getPrecursorPeakGroup()];
       if (merged_intensity_clusters[cluster_index].empty())
         continue;
-      //int scan = dspec.getScanNumber();
 
       if (dspec.getQuantities().empty())
         continue;
