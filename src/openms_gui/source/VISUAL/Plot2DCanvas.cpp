@@ -996,7 +996,7 @@ namespace OpenMS
         context_menu->addSeparator();
       }
       
-      auto it_closest_MS1 = lp->getPeakData()->getClosestSpecInRT(e_units.getMinRT(), 1);
+      auto it_closest_MS1 = lp->getPeakData()->getClosestSpectrumInRT(e_units.getMinRT(), 1);
       if (it_closest_MS1->containsIMData())
       {
         context_menu->addAction(("Switch to ion mobility view (RT: " + String(it_closest_MS1->getRT(), false) + ")").c_str(),

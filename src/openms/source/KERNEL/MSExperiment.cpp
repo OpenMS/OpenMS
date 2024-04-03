@@ -608,7 +608,7 @@ namespace OpenMS
   }
 
   /// Returns the closest(=nearest) spectrum in retention time to the given RT
-  MSExperiment::ConstIterator MSExperiment::getClosestSpecInRT(const double RT) const
+  MSExperiment::ConstIterator MSExperiment::getClosestSpectrumInRT(const double RT) const
   {
     auto above = RTBegin(RT);           // the spec above or equal to our RT
     if (above == begin()) return above; // we hit the first element, or no spectra (begin==end)
@@ -619,13 +619,13 @@ namespace OpenMS
     if (diff_left < diff_right) --above;
     return above;
   }
-  MSExperiment::Iterator MSExperiment::getClosestSpecInRT(const double RT)
+  MSExperiment::Iterator MSExperiment::getClosestSpectrumInRT(const double RT)
   {
-    return begin() + std::distance(cbegin(), const_cast<const MSExperiment*>(this)->getClosestSpecInRT(RT));
+    return begin() + std::distance(cbegin(), const_cast<const MSExperiment*>(this)->getClosestSpectrumInRT(RT));
   }
 
   /// Returns the closest(=nearest) spectrum in retention time to the given RT of a certain MS level
-  MSExperiment::ConstIterator MSExperiment::getClosestSpecInRT(const double RT, UInt ms_level) const
+  MSExperiment::ConstIterator MSExperiment::getClosestSpectrumInRT(const double RT, UInt ms_level) const
   {
     auto above = RTBegin(RT); // the spec above or equal to our RT
     auto below = above; // for later
@@ -651,9 +651,9 @@ namespace OpenMS
     return (diff_left < diff_right ? below : above);
   }
 
-  MSExperiment::Iterator MSExperiment::getClosestSpecInRT(const double RT, UInt ms_level)
+  MSExperiment::Iterator MSExperiment::getClosestSpectrumInRT(const double RT, UInt ms_level)
   {
-    return begin() + std::distance(cbegin(), const_cast<const MSExperiment*>(this)->getClosestSpecInRT(RT, ms_level));
+    return begin() + std::distance(cbegin(), const_cast<const MSExperiment*>(this)->getClosestSpectrumInRT(RT, ms_level));
   }
 
   /// sets the chromatogram list
