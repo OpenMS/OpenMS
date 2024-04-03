@@ -35,6 +35,7 @@
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="XTandemID" value="[R]|[X]" type="string" />
+      <ITEM name="CometID"   value="12" type="int" />
       <ITEM name="MSGFID" value="6" type="int" />
     </NODE>
     <NODE name="Asp-N">

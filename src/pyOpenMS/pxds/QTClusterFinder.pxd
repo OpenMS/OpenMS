@@ -17,5 +17,4 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>" namespace "Op
         QTClusterFinder(QTClusterFinder &) except + nogil  # wrap-ignore
         void run(libcpp_vector[ ConsensusMap ] & input_maps, ConsensusMap & result_map) except + nogil 
         void run(libcpp_vector[ FeatureMap ] & input_maps, ConsensusMap & result_map) except + nogil 
-        String getProductName() except + nogil  # wrap-doc:Returns the name of the product
         # POINTER # BaseGroupFinder * create() except + nogil 

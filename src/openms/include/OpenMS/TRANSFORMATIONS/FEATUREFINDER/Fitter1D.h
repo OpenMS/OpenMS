@@ -23,9 +23,6 @@ namespace OpenMS
   /**
   @brief Abstract base class for all 1D-dimensional model fitter.
 
-  Every derived class has to implement the static functions
-  "T* create()" and "const String getProductName()" (see DefaultParamHandler for details)
-
   @htmlinclude OpenMS_Fitter1D.parameters
 
   @ingroup FeatureFinder
@@ -63,8 +60,7 @@ namespace OpenMS
     /// return interpolation model
     virtual QualityType fit1d(const RawDataArrayType& /* range */, std::unique_ptr<InterpolationModel>& /* model */);
 
-    /// register all derived classes here
-    static void registerChildren();
+
 
   protected:
     /// standard derivation in bounding box

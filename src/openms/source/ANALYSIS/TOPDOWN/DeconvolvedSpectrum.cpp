@@ -148,7 +148,7 @@ namespace OpenMS
       {
         continue;
       }
-      val << pg.getQscore() << ",";
+      val << pg.getQscore2D() << ",";
     }
 
     val << ";qvalue=";

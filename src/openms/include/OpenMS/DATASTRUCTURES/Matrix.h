@@ -28,13 +28,16 @@ namespace OpenMS
    * @ingroup Datastructures
    */
   template <typename Value>
-  class Matrix
+  class Matrix : public Eigen::Matrix<Value, Eigen::Dynamic, Eigen::Dynamic>
   {
   public:
     /**
      * @brief Eigen matrix type.
      */
     using EigenMatrixType = Eigen::Matrix<Value, Eigen::Dynamic, Eigen::Dynamic>;
+    using EigenMatrixType::fill;
+    using EigenMatrixType::innerStride;
+    using EigenMatrixType::outerStride;
 
     // Default constructor. Creates the "null" matrix.
     Matrix() = default;
@@ -61,33 +64,9 @@ namespace OpenMS
      * @param cols Number of columns in the matrix.
      * @param value Initial value to fill the matrix.
      */
-    Matrix(Size rows, Size cols, Value value = Value()) : data_(rows, cols)
+    Matrix(Size rows, Size cols, Value value = Value()) : EigenMatrixType(rows, cols)
     {
-      data_.fill(value);
-    }
-    
-    /**
-     * @brief Accessor to get the value at the specified position in the matrix.
-     * 
-     * @param i Row index.
-     * @param j Column index.
-     * @return reference to the value at the specified position.
-     */
-    const Value& operator()(int i, int j) const
-    {
-      return data_(i, j);
-    }
-
-    /**
-     * @brief Accessor to get the value at the specified position in the matrix.
-     * 
-     * @param i Row index.
-     * @param j Column index.
-     * @return const reference to the value at the specified position.
-     */
-    Value& operator()(int i, int j)
-    {
-      return data_(i, j);
+      fill(value);
     }
 
     /*
@@ -96,7 +75,7 @@ namespace OpenMS
     */
     const Value& getValue(size_t const i, size_t const j) const
     {
-      return data_(i, j);
+      return this->operator()(i, j);
     }
 
     /*
@@ -105,7 +84,7 @@ namespace OpenMS
     */
     Value& getValue(size_t const i, size_t const j)
     {
-      return data_(i, j);
+      return this->operator()(i, j);
     }    
 
     /*
@@ -114,23 +93,28 @@ namespace OpenMS
     */
     void setValue(size_t const i, size_t const j, const Value& value)
     {
-      data_(i, j) = value;
+      this->operator()(i, j) = value;
     }
 
-    /**
-     * @brief Number of rows
-     */
-    size_t rows() const 
-    { 
-      return data_.rows(); 
+    // apparently needed for cython
+    void resize(size_t rows, size_t cols)
+    {
+      EigenMatrixType::resize(rows, cols);
     }
 
-    /**
-     * @brief Number of columns
-     */
-    size_t cols() const 
-    { 
-      return data_.cols(); 
+    int innerStride() const
+    {
+      return EigenMatrixType::innerStride();
+    }
+
+    int outerStride() const
+    {
+      return EigenMatrixType::outerStride();
+    }
+
+    bool rowMajor() const
+    {
+      return EigenMatrixType::IsRowMajor;
     }
 
     /**
@@ -145,15 +129,15 @@ namespace OpenMS
      * @tparam COLS The number of columns in the matrix.
      * @param array The 2D array containing the values to be assigned to the matrix.
      */
-    template <typename T, int ROWS, int COLS>
+    template <typename T, long int ROWS, long int COLS>
     void setMatrix(T const (&array)[ROWS][COLS]) 
     {
-      data_.resize(ROWS, COLS);
+      resize(ROWS, COLS);
       for (int i = 0; i < ROWS; ++i) 
       {
         for (int j = 0; j < COLS; ++j) 
         {
-          data_(i, j) = array[i][j];
+          this->operator()(i, j) = array[i][j];
         }
       }
     }
@@ -164,20 +148,8 @@ namespace OpenMS
      * @param rhs The matrix to be compared.
      * @return True if matrices are equal, false otherwise.
      */
-    bool operator==(const Matrix& rhs) const
-    {
-      return data_ == rhs.data_;
-    }
-
-    /**
-     * @brief Get the total number of elements in the matrix. Useful for checking if the matrix is empty
-     * or iterating over raw data.
-     * 
-     * @return The total number of elements.
-     */
-    size_t size() const
-    {
-      return data_.size();
+    bool operator==(const Matrix& rhs) const { 
+      return EigenMatrixType::operator==(rhs);
     }
 
     /**
@@ -189,9 +161,9 @@ namespace OpenMS
      */
     friend std::ostream& operator<<(std::ostream& os, const Matrix<Value>& matrix)
     {
-      for (size_t i = 0; i < matrix.rows(); ++i)
+      for (long int i = 0; i < matrix.rows(); ++i)
       {
-        for (size_t j = 0; j < matrix.cols(); ++j)
+        for (long int j = 0; j < matrix.cols(); ++j)
         {
           os << std::setprecision(6) << std::setw(6) << matrix(i, j) << ' ';
         }
@@ -207,7 +179,7 @@ namespace OpenMS
      */
     const EigenMatrixType& getEigenMatrix() const
     {
-      return data_;
+      return *this;
     }
 
     /**
@@ -217,9 +189,7 @@ namespace OpenMS
      */
     EigenMatrixType& getEigenMatrix()
     {
-      return data_;
+      return *this;
     }
-  private:
-    EigenMatrixType data_; ///< Eigen matrix storing the actual data.
   };
 } // namespace OpenMS

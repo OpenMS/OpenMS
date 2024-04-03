@@ -43,7 +43,6 @@ MultiplexIsotopicPeakPattern.cpp
 MultiplexSatelliteCentroided.cpp
 MultiplexSatelliteProfile.cpp
 PeakWidthEstimator.cpp
-ProductModel.cpp
 SeedListGenerator.cpp
 TraceFitter.cpp
 )

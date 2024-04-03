@@ -8,15 +8,15 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>
 
-#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
 
 namespace OpenMS
 {
   BiGaussFitter1D::BiGaussFitter1D() :
     MaxLikeliFitter1D()
   {
-    setName(getProductName());
+    setName("BiGaussFitter1D");
 
     defaults_.setValue("statistics:variance1", 1.0, "Variance of the first gaussian, used for the lower half of the model.", {"advanced"});
     defaults_.setValue("statistics:variance2", 1.0, "Variance of the second gaussian, used for the upper half of the model.", {"advanced"});
@@ -69,7 +69,7 @@ namespace OpenMS
 
 
     // build model
-    model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("BiGaussModel")));
+    model = std::unique_ptr<BiGaussModel>(new BiGaussModel());
     model->setInterpolationStep(interpolation_step_);
     Param tmp;
     tmp.setValue("bounding_box:min", min_bb);

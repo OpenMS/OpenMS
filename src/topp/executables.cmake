@@ -42,6 +42,7 @@ FileInfo
 FileMerger
 FLASHDeconv
 FLASHQuant
+FLASHTagger
 FuzzyDiff
 GenericWrapper
 GNPSExport
@@ -65,7 +66,6 @@ JSONExporter
 LuciphorAdapter
 MapAlignerIdentification
 MapAlignerPoseClustering
-MapAlignerSpectrum
 MapAlignerTreeGuided
 MapNormalizer
 MapRTTransformer

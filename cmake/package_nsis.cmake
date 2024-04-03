@@ -72,11 +72,9 @@ else()
 endif()
 
 
-
 #### Install System runtime libraries into /bin, so NSIS picks them up; this saves us from shipping a VC-Redist.exe with the installer
 set(CMAKE_INSTALL_OPENMP_LIBRARIES TRUE)
 set (CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ${INSTALL_LIB_DIR})
-message(STATUS "\nInstalling system libs to '${INSTALL_LIB_DIR}'\n")
 include(InstallRequiredSystemLibraries)
 
 

@@ -68,6 +68,8 @@ namespace OpenMS
     {
       return noise_decoy_weight_;
     }
+    /// get scan number of the spectrum in @p index -th in @p map
+    static int getScanNumber(const MSExperiment& map, Size index);
 
   protected:
     void updateMembers_() override;
@@ -136,9 +138,6 @@ namespace OpenMS
 
     /// register the precursor peak group (or mass) if possible for MSn (n>1) spectrum.
     void findPrecursorPeakGroupsForMSnSpectra_(const MSExperiment& map, const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, uint ms_level);
-
-    /// get scan number of the spectrum in @p index -th in @p map
-    static int getScanNumber_(const MSExperiment& map, Size index);
 
     /// filter low intensity peaks
     static void filterLowPeaks_(MSExperiment& map);

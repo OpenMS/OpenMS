@@ -70,8 +70,7 @@ public:
     */
     virtual void operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold = 1) const = 0;
 
-    /// registers all derived products
-    static void registerChildren();
+
 
   };
 

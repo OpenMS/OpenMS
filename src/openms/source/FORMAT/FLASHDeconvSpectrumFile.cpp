@@ -416,11 +416,15 @@ namespace OpenMS
       if (!annotated_mzML_file.empty())
       {
         auto anno_spec = MSSpectrum(deconvolved_spectrum.getOriginalSpectrum());
-
+        anno_spec.sortByPosition();
         std::stringstream val {};
 
         for (auto& pg : deconvolved_spectrum)
         {
+          if (pg.empty())
+          {
+            continue;
+          }
           val << std::to_string(pg.getMonoMass()) << ":";
           for (size_t k = 0; k < pg.size(); k++)
           {

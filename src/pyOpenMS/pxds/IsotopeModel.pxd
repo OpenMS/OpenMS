@@ -43,9 +43,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>" namespa
                 #  
                 #  Useful to determine the number of isotopes that the model contains and their position
 
-        # BaseModel[ 1 ] * create() except + nogil 
-        String getProductName() except + nogil  # wrap-doc:Name of the model (needed by Factory)
-
+        # BaseModel * create() except + nogil 
+        
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>" namespace "OpenMS::IsotopeModel":
     cdef enum Averagines "OpenMS::IsotopeModel::Averagines":
         #wrap-attach:

@@ -11,5 +11,4 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/IntensityBalanceFilter.h>" name
 
         double apply(MSSpectrum & ) except + nogil 
         # POINTER # FilterFunctor * create() except + nogil 
-        String getProductName() except + nogil 
 

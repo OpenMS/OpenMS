@@ -15,7 +15,7 @@ namespace OpenMS
   ComplementFilter::ComplementFilter() :
     FilterFunctor()
   {
-    setName(ComplementFilter::getProductName());
+    setName("ComplementFilter");
     //value from Bioinformatics, Bern 2004
     defaults_.setValue("tolerance", 0.37, "Tolerance value as defined by Bern et al.");
     defaultsToParam_();

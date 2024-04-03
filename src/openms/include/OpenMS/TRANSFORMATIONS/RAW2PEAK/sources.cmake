@@ -5,7 +5,6 @@ set(directory include/OpenMS/TRANSFORMATIONS/RAW2PEAK)
 set(sources_list_h
 PeakPickerHiRes.h
 PeakPickerIterative.h
-PeakPickerMaxima.h
 )
 
 ### add path to the filenames

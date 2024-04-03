@@ -226,8 +226,8 @@ namespace OpenMS
   {
     return quantities.empty();
   }
-  FLASHDeconvHelperStructs::Tag::Tag(String seq, double n_mass, double c_mass, std::vector<int>& scores, std::vector<double>& mzs) :
-      seq_(std::move(seq)), n_mass_(n_mass), c_mass_(c_mass), scores_(scores), mzs_(mzs), length_(mzs.size() - 1)
+  FLASHDeconvHelperStructs::Tag::Tag(String seq, double n_mass, double c_mass, std::vector<double>& mzs, std::vector<int>& scores,  std::vector<int>& scans) :
+      seq_(std::move(seq)), n_mass_(n_mass), c_mass_(c_mass), mzs_(mzs), scores_(scores), scans_(scans), length_(mzs.size() - 1)
   {
   }
 
@@ -266,6 +266,12 @@ namespace OpenMS
   {
     if (pos < 0 || pos >= scores_.size()) return 0;
     return scores_[pos];
+  }
+
+  int FLASHDeconvHelperStructs::Tag::getScan(int pos) const
+  {
+    if (pos < 0 || pos >= scans_.size()) return 0;
+    return scans_[pos];
   }
 
   bool FLASHDeconvHelperStructs::Tag::operator<(const Tag& a) const

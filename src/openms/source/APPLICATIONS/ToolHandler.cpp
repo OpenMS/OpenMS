@@ -84,6 +84,7 @@ namespace OpenMS
     tools_map["FileMerger"] = Internal::ToolDescription("FileMerger", cat_file_filter_extract_merge);
     tools_map["FLASHDeconv"] = Internal::ToolDescription("FLASHDeconv", cat_topdown);
     tools_map["FLASHQuant"] = Internal::ToolDescription("FLASHQuant", cat_topdown);
+    tools_map["FLASHTagger"] = Internal::ToolDescription("FLASHTagger", cat_topdown);
     tools_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", cat_dev);
     // tools_map["GenericWrapper"] = ... below (extra handling)
     tools_map["GNPSExport"] = Internal::ToolDescription("GNPSExport", cat_file_converter);
@@ -109,7 +110,6 @@ namespace OpenMS
     tools_map["LuciphorAdapter"] = Internal::ToolDescription("LuciphorAdapter", cat_ID_search);
     tools_map["MapAlignerIdentification"] = Internal::ToolDescription("MapAlignerIdentification", cat_map_align);
     tools_map["MapAlignerPoseClustering"] = Internal::ToolDescription("MapAlignerPoseClustering", cat_map_align);
-    tools_map["MapAlignerSpectrum"] = Internal::ToolDescription("MapAlignerSpectrum", cat_map_align);
     tools_map["MapAlignerTreeGuided"] = Internal::ToolDescription("MapAlignerTreeGuided", cat_map_align);
     tools_map["MapNormalizer"] = Internal::ToolDescription("MapNormalizer", cat_signal_proc_smooth_normalize);
     tools_map["MapRTTransformer"] = Internal::ToolDescription("MapRTTransformer", cat_map_align);
