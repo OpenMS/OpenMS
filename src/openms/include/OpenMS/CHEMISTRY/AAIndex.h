@@ -40,9 +40,12 @@ namespace OpenMS
 
     @ingroup Chemistry
   */
-  class OPENMS_DLLAPI AAIndex
+  class AAIndex
   {
+
 public:
+    /// Constructor not implemented
+    AAIndex() = delete;
 
     /// Returns if the residue is aliphatic (1.0 or 0.0)
     static double aliphatic(char aa)
@@ -1233,11 +1236,6 @@ protected:
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown amino acid one-letter-code", String(aa));
       }
     }
-
-private:
-
-    ///Constructor not implemented => private
-    AAIndex();
   };
 
 }
