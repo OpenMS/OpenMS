@@ -16,7 +16,7 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
-#include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
+#include <OpenMS/MATH/SVM/SimpleSVM.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>

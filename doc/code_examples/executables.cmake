@@ -36,7 +36,6 @@ Tutorial_SavitzkyGolayFilter
 Tutorial_Template           ## only used in developer_tutorial.doxygen, but still testing here if it compiles
 Tutorial_TheoreticalSpectrumGenerator
 Tutorial_TOPP
-Tutorial_typeAsString
 Tutorial_Unlabeled
 )
 

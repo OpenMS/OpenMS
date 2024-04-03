@@ -315,7 +315,6 @@ set(math_executables_list
 set(filtering_executables_list
   BernNorm_test
   ComplementFilter_test
-  ComplementMarker_test
   DataFilters_test
   Deisotoper_test
   ElutionPeakDetection_test
@@ -331,11 +330,9 @@ set(filtering_executables_list
   InternalCalibration_test
   IsotopeDiffFilter_test
   IsotopeDistributionCache_test
-  IsotopeMarker_test
   LinearResampler_test
   LinearResamplerAlign_test
   LowessSmoothing_test
-  MarkerMower_test
   MassTraceDetection_test
   MorphologicalFilter_test
   MultiplexClustering_test
@@ -352,10 +349,8 @@ set(filtering_executables_list
   MZTrafoModel_test
   NLargest_test
   NeutralLossDiffFilter_test
-  NeutralLossMarker_test
   Normalizer_test
   ParentPeakMower_test
-  PeakMarker_test
   PrecursorCorrection_test
   SplineInterpolatedPeaks_test
   SplinePackage_test
@@ -437,7 +432,6 @@ set(chemistry_executables_list
   Tagger_test
   TheoreticalSpectrumGeneratorXLMS_test
   TheoreticalSpectrumGenerator_test
-  WeightWrapper_test
   Weights_test
 )
 
@@ -547,7 +541,6 @@ set(analysis_executables_list
   QuantitativeExperimentalDesign_test
   ReactionMonitoringTransition_test
   SimpleSearchEngineAlgorithm_test
-  SimplePairFinder_test
   SimpleSVM_test
   StablePairFinder_test
   PercolatorFeatureSetHelper_test
@@ -602,7 +595,6 @@ set(transformations_executables_list
   ModelDescription_test
   PeakPickerHiRes_test
   PeakPickerIterative_test
-  PeakPickerMaxima_test
   PeakWidthEstimator_test
   SeedListGenerator_test
   TraceFitter_test

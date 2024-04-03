@@ -3188,7 +3188,7 @@ set_tests_properties("TOPP_QCCalculator_2_out" PROPERTIES DEPENDS "TOPP_QCCalcul
 #------------------------------------------------------------------------------
 # PSMFeatureExtractor
 add_test("TOPP_PSMFeatureExtractor_1" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1_out.idXML -multiple_search_engines -skip_db_check -out_type idXML -out PSMFeatureExtractor_1_out.tmp.idXML)
-add_test("TOPP_PSMFeatureExtractor_1_out" ${DIFF} -whitelist "InferenceEngineVersion" "date=" -in1 PSMFeatureExtractor_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_1_out.idXML)
+add_test("TOPP_PSMFeatureExtractor_1_out" ${DIFF} -whitelist "InferenceEngineVersion" "MSGFPlusAdapter:" "date=" -in1 PSMFeatureExtractor_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_1_out.idXML)
 set_tests_properties("TOPP_PSMFeatureExtractor_1_out" PROPERTIES DEPENDS "TOPP_PSMFeatureExtractor_1")
 
 add_test("TOPP_PSMFeatureExtractor_2" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1_out.idXML -multiple_search_engines -skip_db_check -out_type mzid -out PSMFeatureExtractor_2_out.tmp.mzid)
