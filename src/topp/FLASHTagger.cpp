@@ -22,14 +22,8 @@ using namespace std;
 //-------------------------------------------------------------
 // Doxygen docu
 //-------------------------------------------------------------
-/**
-@page TOPP_FLASHTagger FLASHTagger
+// We do not want this class to show up in the docu:
 
-<B>The command line parameters of this tool are:</B>
-@verbinclude TOPPFLASHTagger.cli
-<B>INI file documentation of this tool:</B>
-@htmlinclude TOPPFLASHTagger.html
-*/
 class TOPPFLASHTagger : public TOPPBase
 {
 public:
