@@ -158,7 +158,7 @@ namespace OpenMS
 
       if (auto it = to_idx.find("ion_mobility"); it != to_idx.end())
       {
-        const String& sIM = row[*it];
+        const String& sIM = row[it->second];
         const double IM = sIM.toDouble();  
         pids.back().setMetaValue(Constants::UserParam::IM, IM);
       }
