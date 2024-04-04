@@ -156,7 +156,7 @@ namespace OpenMS
       //  by this loosely defined format.
       const String& sSpecId = row[to_idx.at("SpecId")];
 
-      if (auto it = to_idx.find("ion_mobility"); i != to_idx.end())
+      if (auto it = to_idx.find("ion_mobility"); it != to_idx.end())
       {
         const String& sIM = row[*it];
         const double IM = sIM.toDouble();  
