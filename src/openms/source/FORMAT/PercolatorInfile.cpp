@@ -66,7 +66,6 @@ namespace OpenMS
   {
     CsvFile csv(pin_file, '\t');
     StringList header;
-    //TODO DANGEROUS! Our CSV reader does not support comment lines!!
     csv.getRow(0, header);
 
     unordered_map<String, size_t> to_idx; // map column name to column index
@@ -156,6 +155,13 @@ namespace OpenMS
       // However, many search engines (e.g. Sage) choose arbitrary IDs, which is unfortunately allowed
       //  by this loosely defined format.
       const String& sSpecId = row[to_idx.at("SpecId")];
+
+      if (auto it = to_idx.find("ion_mobility"); it != to_idx.end())
+      {
+        const String& sIM = row[it->second];
+        const double IM = sIM.toDouble();  
+        pids.back().setMetaValue(Constants::UserParam::IM, IM);
+      }
 
       // In theory, this should be an integer, but Sage currently cannot extract the number from all vendor spectrum IDs,
       //  so it writes the full ID as string
