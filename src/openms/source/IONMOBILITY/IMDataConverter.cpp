@@ -64,7 +64,11 @@ namespace OpenMS
    
     The input @p im_frame must have a floatDataArray where IM values are annotated. If not, an exception is thrown.
 
-    To get some coarser binning, choose a smaller @p number_of_bins. The default creates a new bin (=spectrum in the output) for each distinct ion mobility value.
+    To get some coarser binning, choose a smaller @p number_of_bins.
+    @note If the number of bins is smaller than the number of distinct IM values, the resulting spectra may contain peaks with identical m/z values. I.e no averaging/subsummation in m/z is done here.
+          You may want to postprocess your data.
+
+    The default creates a new bin (=spectrum in the output) for each distinct ion mobility value.
       
     @param im_frame Concatenated spectrum representing a frame
     @param number_of_bins In how many bins should ion mobility values be sliced? Default(-1) assigns all peaks with identical ion-mobility values to a separate spectrum.
@@ -88,7 +92,7 @@ namespace OpenMS
 
     // check if data is sorted by IM... if not, sort
     if (!std::is_sorted(im_data.begin(), im_data.end()))
-    {
+    { // sorts the spectrum (and its binary data arrays) according to IM
       im_frame.sort([&im_data](const Size i1, const Size i2) {
         return im_data[i1] < im_data[i2];
       });
@@ -124,7 +128,7 @@ namespace OpenMS
           im_last = im;
           last_spec = addBinnedSpec(im);
         }
-        last_spec->push_back(im_frame[i]);// copy the peak
+        last_spec->push_back(im_frame[i]);// copy the m/z of the peak
       }
     }
     else
@@ -140,7 +144,7 @@ namespace OpenMS
         double right_end_of_bin = hist.rightBorderOfBin(i_bin);
         while (i_data < im_data.size() && im_data[i_data] < right_end_of_bin)
         {
-          last_spec->push_back(im_frame[i_data]);// copy the peak
+          last_spec->push_back(im_frame[i_data]);// copy the m/z of the peak
           ++i_data;                              // next peak
         }
       }
@@ -196,7 +200,7 @@ namespace OpenMS
   }
 
   
-  /// Process a stack of drift time spectra
+  /// private: Process a stack of drift time spectra
   void processDriftTimeStack(std::vector<const MSSpectrum*>& stack, MSExperiment& result)
   {
     if (stack.empty()) return;

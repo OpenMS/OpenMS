@@ -507,7 +507,7 @@ signals:
     /// Requests to display all spectra in 3D plot
     void showCurrentPeaksAs3D();
 
-    /// Requests to display all spectra in ion mobility plot
+    /// Requests to display this spectrum (=frame) in ion mobility plot
     void showCurrentPeaksAsIonMobility(const MSSpectrum& spec);
 
     /// Requests to display all spectra as DIA

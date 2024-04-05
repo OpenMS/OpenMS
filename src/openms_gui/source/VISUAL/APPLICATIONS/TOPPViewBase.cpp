@@ -1398,7 +1398,8 @@ namespace OpenMS
       connect(sw2->getProjectionOntoX(), &Plot1DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
       connect(sw2->getProjectionOntoY(), &Plot1DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
       connect(sw2, &Plot2DWidget::showSpectrumAsNew1D, selection_view_, &DataSelectionTabs::showSpectrumAsNew1D);
-      connect(sw2, &Plot2DWidget::showCurrentPeaksAs3D , this, &TOPPViewBase::showCurrentPeaksAs3D);
+      connect(sw2, &Plot2DWidget::showCurrentPeaksAsIonMobility, this, &TOPPViewBase::showCurrentPeaksAsIonMobility);
+      connect(sw2, &Plot2DWidget::showCurrentPeaksAs3D, this, &TOPPViewBase::showCurrentPeaksAs3D);
       base_name += " (2D)";
     }
 
