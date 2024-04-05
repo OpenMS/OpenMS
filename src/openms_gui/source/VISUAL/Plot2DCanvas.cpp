@@ -996,11 +996,11 @@ namespace OpenMS
         context_menu->addSeparator();
       }
       
-      auto it_closest_MS1 = lp->getPeakData()->getClosestSpectrumInRT(e_units.getMinRT(), 1);
-      if (it_closest_MS1->containsIMData())
+      auto it_closest_MS = lp->getPeakData()->getClosestSpectrumInRT(e_units.getMinRT());
+      if (it_closest_MS->containsIMData())
       {
-        context_menu->addAction(("Switch to ion mobility view (RT: " + String(it_closest_MS1->getRT(), false) + ")").c_str(),
-                                [&]() {emit showCurrentPeaksAsIonMobility(*it_closest_MS1); });
+        context_menu->addAction(("Switch to ion mobility view (MSLevel: " + String(it_closest_MS->getMSLevel()) + ";RT: " + String(it_closest_MS->getRT(), false) + ")").c_str(),
+                                [&]() {emit showCurrentPeaksAsIonMobility(*it_closest_MS); });
       }
 
 
