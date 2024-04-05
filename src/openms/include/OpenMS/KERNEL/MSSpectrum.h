@@ -190,7 +190,7 @@ public:
     void setRT(double rt);
 
     /**
-      @brief Returns the ion mobility drift time (MSSpectrum::DRIFTTIME_NOT_SET means it is not set)
+      @brief Returns the ion mobility drift time (IMTypes::DRIFTTIME_NOT_SET means it is not set)
 
       @note Drift times may be stored directly as an attribute of the spectrum
       (if they relate to the spectrum as a whole). In case of ion mobility

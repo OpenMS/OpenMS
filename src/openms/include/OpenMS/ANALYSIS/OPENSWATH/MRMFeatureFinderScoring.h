@@ -91,7 +91,7 @@ public:
 
     /** @brief Pick and score features in a single experiment from chromatograms
      *
-     * Function for for wrapping in Python, only uses OpenMS datastructures and
+     * Function for wrapping in Python, only uses OpenMS datastructures and
      * does not return the map.
      *
      * @param chromatograms The input chromatograms
