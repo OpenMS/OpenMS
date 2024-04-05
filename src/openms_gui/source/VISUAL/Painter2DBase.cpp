@@ -136,13 +136,24 @@ namespace OpenMS
     const auto [mz_min, mz_max] = canvas->visible_area_.getAreaUnit().RangeMZ::getNonEmptyRange();
     const auto [im_min, im_max] = canvas->visible_area_.getAreaUnit().RangeMobility::getNonEmptyRange();
 
+    // do we currently show an IM frame (with IM + m/z) as units?
+    const bool is_IM_frame = peak_map.isIMFrame();
+
+    auto is_visible_scan = [&](MSExperiment::ConstIterator it_scan) {
+      if (it_scan->size() <= 1) return false;
+      // an IM scan? (where we do not care about MS level)
+      if (is_IM_frame) { return true; }
+      // for 'standard' RT, m/z data
+      return it_scan->getMSLevel() == 1;
+    };
+
     //-----------------------------------------------------------------------------------------------
     // Determine number of shown scans (MS1)
-    std::vector<Size> scan_indices; // list of visible RT/IM scans in MS1 with at least 2 points
+    std::vector<Size> scan_indices; // list of visible RT/IM scans with at least 2 points
     const auto rt_end = peak_map.RTEnd(rt_max);
     for (auto it = peak_map.RTBegin(rt_min); it != rt_end; ++it)
     {
-      if (it->getMSLevel() == 1 && it->size() > 1 && Math::contains(it->getDriftTime(), im_min, im_max))
+      if (is_visible_scan(it) && Math::contains(it->getDriftTime(), im_min, im_max))
       {
         scan_indices.push_back(std::distance(peak_map.begin(), it));
       }
@@ -234,7 +245,8 @@ namespace OpenMS
     const auto& map = *layer_->getPeakData();
     const auto& area = canvas->visible_area_.getAreaUnit();
     const auto end_area = map.areaEndConst();
-    const UInt MS_LEVEL {1};
+    // for IM data, use whatever is there. For RT/mz data, use MSlevel 1
+    const UInt MS_LEVEL = (! map.empty() && map.isIMFrame()) ? map[0].getMSLevel() : 1;
     for (auto i = map.areaBeginConst(area, MS_LEVEL); i != end_area; ++i)
     {
       PeakIndex pi = i.getPeakIndex();
@@ -335,6 +347,9 @@ namespace OpenMS
     const auto& map = *layer_->getPeakData();
     const auto& area = canvas->visible_area_.getAreaUnit();
 
+    // for IM data, use whatever is there. For RT/mz data, use MSlevel 1
+    const UInt MS_LEVEL = (! map.empty() && map.isIMFrame()) ? map[0].getMSLevel() : 1;
+
     auto RT_or_IM_paint = [&](const DimInfo& mapper) {
       // note: the variables are named, assuming we have an RT+mz canvas.
       //       However, by using 'DimInfo' this could well be an IM+mz canvas (i.e. an IM Frame)
@@ -375,7 +390,7 @@ namespace OpenMS
             scan_index = i; // store last scan index for next RT pixel
             break;
           }
-          if (spec.getMSLevel() == 1 && !spec.empty())
+          if (spec.getMSLevel() == MS_LEVEL && ! spec.empty())
           {
             scan_indices.push_back(i);
             peak_indices.push_back(spec.MZBegin(mz_min) - spec.begin());
@@ -454,29 +469,36 @@ namespace OpenMS
       else if (it->getMSLevel() == 2 && !it->getPrecursors().empty())
       { // this is an MS/MS scan
         
-        // position of precursor in MS2
-        const auto data_xy_ms2 = canvas->unit_mapper_.map(Peak2D({it->getRT(), it->getPrecursors()[0].getMZ()}, {}));
-        const QPoint pos_px_ms2 = canvas->dataToWidget_(data_xy_ms2); 
-        const int x2 = pos_px_ms2.x();
-        const int y2 = pos_px_ms2.y();
-
-        if (it_prec != peak_map.end())
+        // position of precursor in MS2 (only works for 2D views with RT, m/z), not for ion mobility (IM, m/z) views.
+        try
         {
-          // position of precursor in MS1
-          const auto data_xy_ms1 = canvas->unit_mapper_.map(Peak2D({it_prec->getRT(), it->getPrecursors()[0].getMZ()}, {}));
-          const QPoint pos_px_ms1 = canvas->dataToWidget_(data_xy_ms1);
-          const int x = pos_px_ms1.x();
-          const int y = pos_px_ms1.y();
-          // diamond shape in MS1
-          drawDiamond({x, y}, &painter, 6);
+          const auto data_xy_ms2 = canvas->unit_mapper_.map(Peak2D({it->getRT(), it->getPrecursors()[0].getMZ()}, {}));
+          const QPoint pos_px_ms2 = canvas->dataToWidget_(data_xy_ms2); 
+          const int x2 = pos_px_ms2.x();
+          const int y2 = pos_px_ms2.y();
 
-          // rt position of corresponding MS2
-          painter.drawLine(x, y, x2, y2);
-        }
-        else // no preceding MS1
+          if (it_prec != peak_map.end())
+          {
+            // position of precursor in MS1
+            const auto data_xy_ms1 = canvas->unit_mapper_.map(Peak2D({it_prec->getRT(), it->getPrecursors()[0].getMZ()}, {}));
+            const QPoint pos_px_ms1 = canvas->dataToWidget_(data_xy_ms1);
+            const int x = pos_px_ms1.x();
+            const int y = pos_px_ms1.y();
+            // diamond shape in MS1
+            drawDiamond({x, y}, &painter, 6);
+
+            // rt position of corresponding MS2
+            painter.drawLine(x, y, x2, y2);
+          }
+          else // no preceding MS1
+          {
+            // rt position of corresponding MS2 (cross)
+            drawCross({x2, y2}, &painter, 6);
+          }
+        } // end try
+        catch (...)
         {
-          // rt position of corresponding MS2 (cross)
-          drawCross({x2, y2}, &painter, 6);
+          // paint nothing, since the coordinate system is wrong
         }
       }
     }

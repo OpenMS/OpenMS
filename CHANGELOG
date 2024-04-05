@@ -25,6 +25,7 @@ Library:
 - Splitting AssayGeneratorMetabo into two tools: In line with the changes to SiriusExport this tool has been split into two separate workflows. AssayGeneratorMetabo generates an assay library from mzML and feautreXML files using an heuristic approach picking the highest intensity MS2 peaks (like before). AssayGeneratorMetaboSirius takes an existing SIRIUS project directory as input to generate an assay library based on fragmentation trees. (#7234)
 - better documentation for all SpectraFilter... tools (#7183)
 - TOPPView: offer Ion mobility view from 2D spectra view (#7423)
+- TOPPView: view ion mobility frames, irrespective of its MS level (formerly only MS1 was supported) (#7427)
 
 
 Fixes:
