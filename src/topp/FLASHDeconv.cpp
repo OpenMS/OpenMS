@@ -273,10 +273,12 @@ protected:
     PeakFileOptions opt = mzml.getOptions();
     if (min_rt > 0 || max_rt > 0)
     {
+      if (min_rt > 0 && max_rt < 0) max_rt = 1e7;
       opt.setRTRange(DRange<1> {min_rt, max_rt});
     }
     if (min_mz > 0 || max_mz > 0)
     {
+      if (min_mz > 0 && max_mz < 0) max_mz = 1e7;
       opt.setMZRange(DRange<1> {min_mz, max_mz});
     }
     if (max_ms_level > 0)
@@ -298,6 +300,7 @@ protected:
 
     // Run FLASHDeconvAlgorithm here!
     OPENMS_LOG_INFO << "Processing : " << in_file << endl;
+
     fd.run(map, deconvolved_spectra, deconvolved_features);
 
     // collect statistics for information

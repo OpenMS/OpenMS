@@ -505,7 +505,9 @@ namespace OpenMS
               if (! mass_bins_[mass_bin_index])
               {
                 spc++;
-                if (spc >= min_support_peak_count_ || spc >= abs_charge / 2) { mass_bins_[mass_bin_index] = true; }
+                if (spc >= min_support_peak_count_ || spc >= abs_charge / 2) {
+                   mass_bins_[mass_bin_index] = true;
+                }
               }
             }
             else // if harmonic
@@ -804,6 +806,7 @@ namespace OpenMS
           if (pg.getMonoMass() < current_min_mass_ || pg.getMonoMass() > current_max_mass_) { continue; }
           pg.setScanNumber(deconvolved_spectrum_.getScanNumber());
           pg.sort();
+
           deconvolved_spectrum_.push_back(pg); //
         }
       }
@@ -925,6 +928,7 @@ namespace OpenMS
     {
       int offset = 0;
       auto& peak_group = deconvolved_spectrum_[i];
+
       auto prev_peak_group(peak_group);
       peak_group.setTargetDecoyType(target_decoy_type_);
       bool is_isotope_decoy = target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy;
@@ -934,7 +938,8 @@ namespace OpenMS
                                                -peak_group.getMinNegativeIsotopeIndex(), window_width, allowed_iso_error_, target_decoy_type_);
       peak_group.setIsotopeCosine(cos);
       // first filtration to remove false positives before further processing.
-      if (cos <= 0.5) { continue; }
+
+      if (cos < std::min(min_isotope_cosine_[ms_level_ - 1], 0.5)) { continue; }
 
       int num_iteration = 10;
       bool mass_determined = false;
@@ -1170,7 +1175,6 @@ namespace OpenMS
 
     if (a_end - a_start < min_iso_len) { return 0; }
 
-    int max_intensity_index = 0;
     float max_intensity = 0;
 
     if (decoy)
@@ -1190,7 +1194,6 @@ namespace OpenMS
       if (max_intensity < a[j])
       {
         max_intensity = a[j];
-        max_intensity_index = j;
       }
       //
       if (i < 0 && a[j] > 0)
@@ -1207,23 +1210,6 @@ namespace OpenMS
         }
         else
           n += a[j] * b[i].getIntensity();
-      }
-    }
-
-    // two consecutive isotopes around the max intensity isotope
-    if (min_iso_len > 0)
-    {
-      if (max_intensity_index == a_end - 1)
-      {
-        if (max_intensity_index > 0 && a[max_intensity_index - 1] == 0) { return 0; }
-      }
-      else if (max_intensity_index == a_start)
-      {
-        if (max_intensity_index + 1 < (int)a.size() && a[max_intensity_index + 1] == 0) { return 0; }
-      }
-      else if (max_intensity_index > 0 && max_intensity_index + 1 < (int)a.size())
-      {
-        if (a[max_intensity_index + 1] == 0 && a[max_intensity_index - 1] == 0) { return 0; }
       }
     }
 
