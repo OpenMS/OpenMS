@@ -14,6 +14,15 @@ and what it cuts before. Also be sure to add gains before and after the cut. -->
       <ITEM name="ThreePrimeGain" value="p" type="string" />
       <ITEM name="FivePrimeGain" value="" type="string" />
     </NODE>
+    <NODE name="RNase_T1_Phosphatase">
+      <ITEM name="Name" value="RNase_T1_Phosphatase" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=G)" type="string" />
+      <ITEM name="RegExDescription" value="RNase T1 cuts after G. Then a phosphatase is added to remove the 3' terminal phosphate" type="string" />
+      <ITEM name="CutsAfter" value="G(?!m)" type="string" />
+      <ITEM name="CutsBefore" value=".*" type="string" />
+      <ITEM name="ThreePrimeGain" value="" type="string" />
+      <ITEM name="FivePrimeGain" value="" type="string" />
+    </NODE>
     <NODE name="cusativin">
       <ITEM name="Name" value="cusativin" type="string" />
       <ITEM name="RegEx" value="(?&lt;=C)(?!C)" type="string" />
