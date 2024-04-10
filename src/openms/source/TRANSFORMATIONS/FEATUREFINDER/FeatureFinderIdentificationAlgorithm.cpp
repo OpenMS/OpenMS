@@ -495,7 +495,7 @@ namespace OpenMS
 
     for (auto& pep : peptides)
     {
-      addPeptideToMap_(pep, peptide_map_);
+      addPeptideToMap_(pep, peptide_map_); // stores pointer to pep in map
       pep.setMetaValue("FFId_category", "internal");
     }
 

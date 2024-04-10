@@ -8,7 +8,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/TRANSFORMATIONS/CENTROIDING/PeakPickerHiRes.h>
 
 namespace OpenMS
 {
