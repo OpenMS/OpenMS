@@ -45,7 +45,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/TRANSFORMATIONS/CENTROIDING/PeakPickerHiRes.h>
 
 #include <OpenMS/MATH/SVM/SimpleSVM.h>
 

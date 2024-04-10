@@ -2441,7 +2441,7 @@ Detailed list of changes to specific OpenMS classes:
   - KERNEL/FeatureHandle
   - KERNEL/MSExperimentExtern
   - KERNEL/PeakIndex
-  - TRANSFORMATIONS/RAW2PEAK/PeakShapeType
+  - TRANSFORMATIONS/CENTROIDING/PeakShapeType
 
 - New classes
   - CHEMISTRY/ModificationsDB which handles the PSI-MOD modifications
