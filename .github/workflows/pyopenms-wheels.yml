@@ -168,28 +168,8 @@ jobs:
     - name: Install build tools
       run: brew install autoconf automake libtool
 
-    - name: Load contrib build
-      run: |
-          mkdir contribbld
-          cd contribbld
-          curl -o contribbld.tar.gz https://abibuilder.cs.uni-tuebingen.de/archive/openms/contrib/macOS/10.15.5/x64/appleclang-11.0.0/contrib_build.tar.gz
-          tar -xzf contribbld.tar.gz
-          rm contribbld.tar.gz
-          cd .. 
-
-    - name: Load contrib and build OpenMP
-      run: |
-          git clone https://github.com/OpenMS/contrib.git
-          cd contribbld
-          cmake -DBUILD_TYPE=OPENMP -DNUMBER_OF_JOBS=4 -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 ../contrib
-
-    - name: Fix contrib install names
-      shell: bash
-      run: |
-          for lib in $GITHUB_WORKSPACE/contribbld/lib/*.dylib
-          do
-            install_name_tool -id $lib $lib
-          done
+    - name: Install contrib packages from brew
+      run: brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp
 
     - name: Build
       run: |
@@ -202,26 +182,10 @@ jobs:
         export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
         export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
 
-        # create symlinks like brew https://github.com/Homebrew/homebrew-core/blob/master/Formula/qt.rb#L61
-        pushd $Qt5_Dir/include
-          for f in $Qt5_Dir/lib/*.framework/Headers
-          do
-            lnknm=$(basename "${f%/*}" ".framework")
-            ln -s $f $lnknm
-          done
-          for f in $Qt5_Dir/lib/*.framework/Versions/5/Qt*
-          do
-            install_name_tool -id $Qt5_Dir/lib/$(basename $f).framework/Versions/Current/$(basename $f) $f
-          done
-          for f in $Qt5_Dir/lib/*.framework/Versions/Current/Qt*
-          do
-            install_name_tool -id $f $f
-          done
-        popd
         mkdir bld
         pushd bld
         # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
-        cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir};$GITHUB_WORKSPACE/contribbld/lib/" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
+        cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
         make -j4 OpenMS
 
         mkdir pyopenms_whls
