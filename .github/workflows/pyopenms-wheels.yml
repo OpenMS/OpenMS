@@ -163,7 +163,7 @@ jobs:
         ## Needed for Qt. Install before to overwrite the default softlinks on the GH runners
         brew install python3 --force --overwrite
         brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
-        brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@5 icu4c
+        brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@5
         echo "cmake_prefix=$(brew --prefix qt@5)/lib/cmake;$(brew --prefix qt@5)" >> $GITHUB_OUTPUT
         echo "Qt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5" >> $GITHUB_ENV
         if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
@@ -181,15 +181,10 @@ jobs:
         export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
         export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
 
-        # Need to explicitly point to the icu4c lib installation see: https://web.archive.org/web/20231126001229/https://stackoverflow.com/questions/52510499/the-following-icu-libraries-were-not-found-i18n-required
-        export LDFLAGS="${LDFLAGS} -L/usr/local/opt/icu4c/lib"
-        export CPPFLAGS="${CPPFLAGS} -I/usr/local/opt/icu4c/include"
-        export PKG_CONFIG_PATH=/usr/local/opt/icu4c/lib/pkgconfig:"$PKG_CONFIG_PATH"
-
         mkdir bld
         pushd bld
         # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
-        cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
+        cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=OFF ../OpenMS
         make -j4 OpenMS
 
         mkdir pyopenms_whls
