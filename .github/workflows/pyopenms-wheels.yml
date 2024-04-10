@@ -181,6 +181,11 @@ jobs:
         export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
         export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
 
+        # Need to explicitly point to the icu4c lib installation see: https://web.archive.org/web/20231126001229/https://stackoverflow.com/questions/52510499/the-following-icu-libraries-were-not-found-i18n-required
+        export LDFLAGS="${LDFLAGS} -L/usr/local/opt/icu4c/lib"
+        export CPPFLAGS="${CPPFLAGS} -I/usr/local/opt/icu4c/include"
+        export PKG_CONFIG_PATH=/usr/local/opt/icu4c/lib/pkgconfig:"$PKG_CONFIG_PATH"
+
         mkdir bld
         pushd bld
         # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
