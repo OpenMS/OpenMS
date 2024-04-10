@@ -142,16 +142,6 @@ jobs:
       with:
         cmake-version: '3.25.x'
 
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v3
-      with:
-        version: '5.12.7'
-        host: 'mac'
-        target: 'desktop'
-        install-deps: 'true'
-        cache: 'false'
-        setup-python: 'false' # https://github.com/jurplel/install-qt-action/issues/130
-
     - name: Install Miniconda
       shell: bash
       run: |
@@ -265,7 +255,7 @@ jobs:
         path: OpenMS
 
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v2
+      uses: jwlawson/actions-setup-cmake@v1
       with:
         cmake-version: '3.25.x'
 
