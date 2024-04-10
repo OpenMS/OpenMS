@@ -184,7 +184,7 @@ jobs:
         mkdir bld
         pushd bld
         # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
-        cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=OFF ../OpenMS
+        cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=OFF ../OpenMS
         make -j4 OpenMS
 
         mkdir pyopenms_whls
