@@ -183,8 +183,6 @@ PyOpenMSChecker:
         - findNext # iterator
     OpenMS::FeatureMap:
         - getAnnotationStatistics
-    OpenMS::PSProteinInference:
-        - getNumberOfProtIdsPeptideRule
     OpenMS::FilterFunctor:
         - apply
     OpenMS::ContinuousWaveletTransformNumIntegration:
