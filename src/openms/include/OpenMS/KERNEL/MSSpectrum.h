@@ -39,7 +39,7 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI MSSpectrum final :
     private std::vector<Peak1D>,
-    public RangeManagerContainer<RangeMZ, RangeIntensity>,
+    public RangeManagerContainer<RangeMZ, RangeIntensity, RangeMobility>,
     public SpectrumSettings
   {
 public:
@@ -89,8 +89,8 @@ public:
     /// Spectrum base type
     typedef std::vector<PeakType> ContainerType;
     /// RangeManager
-    typedef RangeManagerContainer<RangeMZ, RangeIntensity> RangeManagerContainerType;
-    typedef RangeManager<RangeMZ, RangeIntensity> RangeManagerType;
+    typedef RangeManagerContainer<RangeMZ, RangeIntensity, RangeMobility> RangeManagerContainerType;
+    typedef RangeManager<RangeMZ, RangeIntensity, RangeMobility> RangeManagerType;
     /// Float data array vector type
     typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
     typedef std::vector<FloatDataArray> FloatDataArrays;
@@ -296,6 +296,15 @@ public:
     void sortByPosition();
 
     /**
+      @brief Sorts the m/z peaks by their ion mobility value (and the accociated IM data arrays accordingly).
+
+      Requires a binary data array which is a child of 'MS:1002893 ! ion mobility array' (see getIMData())
+      
+      @throws Exception::MissingInformation if containsIMData() returns false
+    */
+    void sortByIonMobility();
+
+    /**
       @brief Sort the spectrum, but uses the fact, that certain chunks are presorted
       @param chunks a Chunk is an object that contains the start and end of a sublist of peaks in the spectrum, that is or isn't sorted yet (is_sorted member)
     */
@@ -303,6 +312,12 @@ public:
 
     /// Checks if all peaks are sorted with respect to ascending m/z
     bool isSorted() const;
+
+    /// Checks if m/z peaks are sorted by their associated ion mobility value.
+    /// Requires a binary data array which is a child of 'MS:1002893 ! ion mobility array' (see getIMData())
+    ///
+    /// @throws Exception::MissingInformation if containsIMData() returns false
+    bool isSortedByIM() const;
 
     /// Checks if container is sorted by a certain user-defined property.
     /// You can pass any lambda function with <tt>[](Size index_1, Size index_2) --> bool</tt>

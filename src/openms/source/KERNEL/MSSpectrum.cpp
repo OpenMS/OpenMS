@@ -519,6 +519,21 @@ namespace OpenMS
       extendMZ(peak.getMZ()); 
       extendIntensity(peak.getIntensity());
     }
+    // IM
+    // if this is an ion mobility frame, consider the binary data array as well
+    if (this->containsIMData())
+    {
+      auto [im_array_index, im_unit] = getIMData();
+      const auto& im_data = getFloatDataArrays()[im_array_index];
+      for (const auto& im : im_data)
+      {
+        this->extendMobility(im);
+      }
+    }
+    else if (getDriftTime() != IMTypes::DRIFTTIME_NOT_SET) // != -1
+    { 
+      this->extendMobility(getDriftTime());
+    }
   }
 
   double MSSpectrum::getRT() const

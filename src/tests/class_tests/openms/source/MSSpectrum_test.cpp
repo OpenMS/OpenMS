@@ -309,28 +309,28 @@ END_SECTION
 
 START_SECTION((virtual void updateRanges()))
 {
-  MSSpectrum s;
-  s.push_back(p1);
-  s.push_back(p2);
-  s.push_back(p1);
+  MSSpectrum s = getPrefilledSpec();
 
-  s.updateRanges();
-  s.updateRanges(); //second time to check the initialization
-
-  TEST_REAL_SIMILAR(s.getMaxIntensity(), 2)
-  TEST_REAL_SIMILAR(s.getMinIntensity(), 1)
-  TEST_REAL_SIMILAR(s.getMaxMZ(),10)
-  TEST_REAL_SIMILAR(s.getMinMZ(),2)
+  for (int i = 0; i < 2; ++i) // second time to check the initialization
+  {
+    s.updateRanges();
+    TEST_REAL_SIMILAR(s.getMinIntensity(), 29)
+    TEST_REAL_SIMILAR(s.getMaxIntensity(), 201)
+    TEST_REAL_SIMILAR(s.getMinMZ(), 412.321)
+    TEST_REAL_SIMILAR(s.getMaxMZ(), 423.269)
+    TEST_REAL_SIMILAR(s.getMinMobility(), 29)
+    TEST_REAL_SIMILAR(s.getMaxMobility(), 201)
+  }
 
   //test with only one peak
-
-  s.clear(true);
+  s = MSSpectrum{};
   s.push_back(p1);
   s.updateRanges();
   TEST_REAL_SIMILAR(s.getMaxIntensity(), 1)
   TEST_REAL_SIMILAR(s.getMinIntensity(), 1)
-  TEST_REAL_SIMILAR(s.getMaxMZ(),2)
-  TEST_REAL_SIMILAR(s.getMinMZ(),2)
+  TEST_REAL_SIMILAR(s.getMaxMZ(), 2)
+  TEST_REAL_SIMILAR(s.getMinMZ(), 2)
+  TEST_TRUE(s.RangeMobility::isEmpty())
 }
 END_SECTION
 
