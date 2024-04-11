@@ -1,5 +1,5 @@
 graft pyopenms/share
-prune pyopenms/share/OpenMS/examples
+prune pyopenms/share/OpenMS
 include pyopenms/*.dll
 include pyopenms/*.dylib
 include pyopenms/*.so
