@@ -17,7 +17,7 @@ jobs:
   build-win:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         path: OpenMS
       
@@ -133,7 +133,7 @@ jobs:
   build-macos:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         path: OpenMS
 
@@ -286,7 +286,7 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v3 # ManyLinux2014 does not support Node20, which is required for v4. This is likely to be an issue as github phases out node16, but there doesn't seem to be a good workaround for now
       name: Checkout sources
       with:
         path: OpenMS
@@ -366,7 +366,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       name: Checkout sources
       with:
         path: OpenMS
