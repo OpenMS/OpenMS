@@ -2090,12 +2090,6 @@ namespace OpenMS
           {
             temp_aa_sequence.setNTerminalModification(mod.getRegisteredMod());
           }
-          else
-          {
-            warning(LOAD, "Trying to add a fixed N-term modification from the search_summary to an already"
-                          " annotated and modified N-terminus of " + current_sequence_
-                          + " ... skipping.");
-          }
         }
         else if (mod.getRegisteredMod()->getTermSpecificity() == ResidueModification::C_TERM ||
             mod.getRegisteredMod()->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)

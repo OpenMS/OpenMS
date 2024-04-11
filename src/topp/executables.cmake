@@ -59,6 +59,7 @@ IDScoreSwitcher
 IDSplitter
 InternalCalibration
 IsobaricAnalyzer
+IsobaricWorkflow
 JSONExporter
 LuciphorAdapter
 MapAlignerIdentification

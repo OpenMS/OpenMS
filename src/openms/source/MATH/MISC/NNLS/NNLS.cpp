@@ -15,7 +15,7 @@
 
  The code below was converted from FORTRAN using f2c from http://www.netlib.org/lawson-hanson/all
  Some modifications were made, in order for it to run properly (search for "--removed", "-- added" and "--changed" in the code below)
-
+ Made thread-safe by Julianus Pfeuffer by removing static variables, 2023
 */
 
 namespace OpenMS::NNLS
@@ -40,9 +40,9 @@ namespace OpenMS::NNLS
 
     /* Table of constant values */
 
-    static integer c__1 = 1;
-    static integer c__0 = 0;
-    static integer c__2 = 2;
+     integer c__1 = 1;
+     integer c__0 = 0;
+     integer c__2 = 2;
 
     /*     SUBROUTINE NNLS  (A,MDA,M,N,B,X,RNORM,W,ZZ,INDEX,MODE) */
 
@@ -106,25 +106,25 @@ namespace OpenMS::NNLS
       /* integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe(void); -- removed */
 
       /* Local variables */
-      static integer i__, j, l;
-      static double t;
+       integer i__, j, l;
+       double t;
       /* Subroutine */ int g1_(double *, double *, double *, double *, double *);
-      static double cc;
+       double cc;
       /* Subroutine */ int h12_(integer *, integer *, integer *, integer *, double *, integer *, double *, double *, integer *, integer *, integer *);
-      static integer ii, jj, ip;
-      static double sm;
-      static integer iz, jz;
-      static double up, ss;
-      static integer iz1, iz2, npp1;
+       integer ii, jj, ip;
+       double sm;
+       integer iz, jz;
+       double up, ss;
+       integer iz1, iz2, npp1;
       double diff_(double *, double *);
-      static integer iter;
-      static double temp, wmax, alpha, asave;
-      static integer itmax, izmax, nsetp;
-      static double dummy, unorm, ztest;
-      static integer rtnkey;
+       integer iter;
+       double temp, wmax, alpha, asave;
+       integer itmax, izmax, nsetp;
+       double dummy, unorm, ztest;
+       integer rtnkey;
 
       /* Fortran I/O blocks */
-      /* static cilist io___22 = { 0, 6, 0, "(/a)", 0 }; --removed */
+      /*  cilist io___22 = { 0, 6, 0, "(/a)", 0 }; --removed */
 
 
       /*     ------------------------------------------------------------------ */
@@ -532,7 +532,7 @@ L400:
       /* double sqrt(double), d_sign(double *, double *); --removed */
 
       /* Local variables */
-      static double xr, yr;
+       double xr, yr;
 
 
       /*     COMPUTE ORTHOGONAL ROTATION MATRIX.. */
@@ -628,11 +628,11 @@ L400:
       /* double sqrt(double); --removed */
 
       /* Local variables */
-      static double b;
-      static integer i__, j, i2, i3, i4;
-      static double cl, sm;
-      static integer incr;
-      static double clinv;
+       double b;
+       integer i__, j, i2, i3, i4;
+       double cl, sm;
+       integer incr;
+       double clinv;
 
       /*     ------------------------------------------------------------------ */
       /*     double precision U(IUE,M) */

@@ -19,12 +19,13 @@ namespace OpenMS
   //TODO parameterize so it only adds/keeps best per peptide, peptide charge, modified peptide
   // How? Maybe keep a map here about the best scores and lookup before adding and update and insert only if better
   // proteins of this peptide could be skipped (if we assume same database as we do currently, it has to be there already)
-  IDMergerAlgorithm::IDMergerAlgorithm(const String& runIdentifier) :
+  IDMergerAlgorithm::IDMergerAlgorithm(const String& runIdentifier, bool addTimeStampToID) :
       IDMergerAlgorithm::DefaultParamHandler("IDMergerAlgorithm"),
       prot_result_(),
       pep_result_(),
       collected_protein_hits_(0, accessionHash_, accessionEqual_),
-      id_(runIdentifier)
+      id_(runIdentifier),
+      fixed_identifier_(!addTimeStampToID)
   {
     defaults_.setValue("annotate_origin",
                        "true",
@@ -35,7 +36,7 @@ namespace OpenMS
                        "Force merging of disagreeing runs. Use at your own risk.");
     defaults_.setValidStrings("allow_disagreeing_settings", {"true","false"});
     defaultsToParam_();
-    prot_result_.setIdentifier(getNewIdentifier_());
+    prot_result_.setIdentifier(getNewIdentifier_(addTimeStampToID));
   }
 
   //TODO overload to accept a set of specific runIDs only
@@ -44,7 +45,6 @@ namespace OpenMS
       std::vector<PeptideIdentification>&& peps
       )
   {
-    if (prots.empty() || peps.empty()) return; //error?
 
     //TODO instead of only checking consistency, merge if possible (especially for SILAC mods)
     if (!filled_)
@@ -74,7 +74,6 @@ namespace OpenMS
     //copy
     std::vector<ProteinIdentification> pr = prots;
     std::vector<PeptideIdentification> pep = peps;
-    if (prots.empty() || peps.empty()) return; //error?
 
     //TODO instead of only checking consistency, merge if possible (especially for SILAC mods)
     if (!filled_)
@@ -112,7 +111,7 @@ namespace OpenMS
     std::swap(peps, pep_result_);
     //reset so the new this class is reuseable
     prot_result_ = ProteinIdentification{};
-    prot_result_.setIdentifier(getNewIdentifier_());
+    prot_result_.setIdentifier(getNewIdentifier_(!fixed_identifier_));
     //clear, if user gave non-empty vector
     pep_result_.clear();
     //reset internals
@@ -125,8 +124,9 @@ namespace OpenMS
     collected_protein_hits_.clear();
   }
 
-  String IDMergerAlgorithm::getNewIdentifier_() const
+  String IDMergerAlgorithm::getNewIdentifier_(bool addTimeStampToID) const
   {
+    if (!addTimeStampToID) return id_;
     std::array<char, 64> buffer;
     buffer.fill(0);
     time_t rawtime;

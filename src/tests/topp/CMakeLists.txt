@@ -862,6 +862,13 @@ add_test("TOPP_IsobaricAnalyzer_MS3TMT10Plex_1_out1" ${DIFF} -whitelist "id=" "<
 set_tests_properties("TOPP_IsobaricAnalyzer_MS3TMT10Plex_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_MS3TMT10Plex_1")
 
 #------------------------------------------------------------------------------
+# IsobaricWorkflow tests
+# TODO
+#add_test("TOPP_IsobaricAnalyzer_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML -ini ${DATA_DIR_TOPP}/IsobaricAnalyzer.ini -out IsobaricAnalyzer_output_1.tmp.consensusXML)
+#add_test("TOPP_IsobaricAnalyzer_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 IsobaricAnalyzer_output_1.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricAnalyzer_output_1.consensusXML )
+#set_tests_properties("TOPP_IsobaricAnalyzer_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_1")
+
+#------------------------------------------------------------------------------
 # IDConflictResolver tests
 add_test("TOPP_IDConflictResolver_1" ${TOPP_BIN_PATH}/IDConflictResolver -test -in ${DATA_DIR_TOPP}/IDConflictResolver_1_input.featureXML -out IDConflictResolver_1_output.tmp.featureXML)
 add_test("TOPP_IDConflictResolver_1_out1" ${DIFF} -in1 IDConflictResolver_1_output.tmp.featureXML -in2 ${DATA_DIR_TOPP}/IDConflictResolver_1_output.featureXML )

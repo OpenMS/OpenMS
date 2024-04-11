@@ -11,6 +11,55 @@
 
 namespace OpenMS
 {
+
+  Int NonNegativeLeastSquaresSolver::solve(Matrix<double>::EigenMatrixType& A, std::vector<double>& b, std::vector<double>& x)
+  {
+    // this needs to be int (not Int, Size or anything else), because the external nnls constructor expects it this way!
+    int a_rows = (int)A.rows();
+    int a_cols = (int)A.cols();
+
+    if (a_rows != (int) b.size())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "NNSL::solve() #rows of A does not match #rows of b !");
+    }
+
+    x.resize(a_cols); // description says it does not have to be initialized
+
+    // translate A to array a (column major order)
+    double* a_vec = A.data();
+
+    // translate b
+    double* b_vec = b.data();
+
+    // prepare solution array (directly copied from example)
+    double* x_vec = x.data();
+    double rnorm;
+    double* w = new double[a_cols];
+    double* zz = new double[a_rows];
+    int* indx = new int[a_cols];
+    int mode;
+
+    NNLS::nnls_(a_vec, &a_rows, &a_rows, &a_cols, b_vec, x_vec, &rnorm, w, zz, indx, &mode);
+
+    // clean up
+    delete[] w;
+    delete[] zz;
+    delete[] indx;
+
+    if (mode == 1)
+    {
+      return SOLVED;
+    }
+    else if (mode == 2) // this should not happen (dimensions are bad)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "NonNegativeLeastSquaresSolver::solve() Bad dimension reported!");
+    }
+    else /*if (mode==3)*/
+    {
+      return ITERATION_EXCEEDED;
+    }
+  }
+
   Int NonNegativeLeastSquaresSolver::solve(const Matrix<double> & A, const Matrix<double> & b, Matrix<double> & x)
   {
 
@@ -51,11 +100,11 @@ namespace OpenMS
 #endif
 
     // prepare solution array (directly copied from example)
-    double * x_vec = new double[a_cols + 1];
+    double * x_vec = new double[a_cols];
     double rnorm;
-    double * w = new double[a_cols + 1];
-    double * zz = new double[a_rows + 1];
-    int * indx = new int[a_cols + 1];
+    double * w = new double[a_cols];
+    double * zz = new double[a_rows];
+    int * indx = new int[a_cols];
     int mode;
 
 #ifdef NNLS_DEBUG
@@ -77,7 +126,6 @@ namespace OpenMS
     std::cout << "solution x:\n" << x << std::endl;
 #endif
 
-    // clean up
     delete[] a_vec;
     delete[] b_vec;
     delete[] x_vec;
