@@ -339,6 +339,19 @@ namespace OpenMS
     return (max_intensity_it - this->begin());
   }
 
+  void MSSpectrum::sortByIonMobility()
+  {
+    // can throw if IM float data array is missing
+    const auto [im_data_index, im_unit] = getIMData();
+    // Capture IM array by Ref, because .getIMData() is expensive to call for every peak!
+    const auto& im_data = getFloatDataArrays()[im_data_index];
+
+    // check if data is sorted by IM... if not, sort
+    if (! std::is_sorted(im_data.begin(), im_data.end()))
+    { // sorts the spectrum (and its binary data arrays) according to IM
+      this->sort([&im_data](const Size i1, const Size i2) { return im_data[i1] < im_data[i2]; });
+    }
+  }
 
   void MSSpectrum::sortByPositionPresorted(const std::vector<Chunk>& chunks)
   {
@@ -446,6 +459,14 @@ namespace OpenMS
   bool MSSpectrum::isSorted() const
   {
     return std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
+  }
+
+  bool MSSpectrum::isSortedByIM() const
+  {
+    auto [im_data_index, D] = getIMData(); // may throw
+    const auto& im_data = getFloatDataArrays()[im_data_index];
+    // check if data is sorted by IM
+    return std::is_sorted(im_data.begin(), im_data.end());
   }
 
   bool MSSpectrum::operator==(const MSSpectrum &rhs) const

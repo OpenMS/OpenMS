@@ -809,6 +809,25 @@ START_SECTION((void sortByPosition()))
 }
 END_SECTION
 
+START_SECTION(void sortByIonMobility())
+{
+  auto ds = getPrefilledSpec();
+
+  TEST_FALSE(ds.isSortedByIM())
+  ds.sortByIonMobility();
+  TEST_TRUE(ds.isSortedByIM())
+  auto [idx, unit] = ds.getIMData();
+  TEST_EQUAL(idx, 1)
+  const auto& im = ds.getFloatDataArrays()[idx];
+  TEST_TRUE(std::is_sorted(im.begin(), im.end())) 
+}
+END_SECTION
+
+START_SECTION(void isSortedByIM() const)
+{
+  NOT_TESTABLE // tested above
+}
+END_SECTION
 
 START_SECTION((void sortByPositionPresorted()))
 {
