@@ -1,9 +1,12 @@
 ### the directory name
-set(directory source/MATH/MISC/NNLS)
+set(directory source/MATH/MISC)
 
 ### list all filenames of the directory here
 set(sources_list
-NNLS.cpp
+RANSAC.cpp,
+RANSACModel.cpp,
+RANSACModelLinear.cpp,
+RANSACModelQuadratic.cpp
 )
 
 ### add path to the filenames
@@ -16,4 +19,4 @@ endforeach(i)
 set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
-source_group("Source Files\\MATH\\MISC\\NNLS" FILES ${sources})
+source_group("Source Files\\MATH\\MISC" FILES ${sources})

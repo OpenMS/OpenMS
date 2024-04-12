@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
+#include <OpenMS/ML/NNLS/NonnegativeLeastSquaresSolver.h>
 ///////////////////////////
 
 using namespace OpenMS;

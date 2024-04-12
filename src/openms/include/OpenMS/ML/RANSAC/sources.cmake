@@ -1,9 +1,12 @@
 ### the directory name
-set(directory include/OpenMS/MATH/MISC/NNLS)
+set(directory include/OpenMS/ML/RANSAC)
 
 ### list all header files of the directory here
 set(sources_list_h
-NNLS.h
+RANSAC.h
+RANSACModel.h
+RANSACModelLinear.h
+RANSACModelQuadratic.h
 )
 
 ### add path to the filenames
@@ -13,7 +16,6 @@ foreach(i ${sources_list_h})
 endforeach(i)
 
 ### source group definition
-source_group("Header Files\\OpenMS\\MATH\\MISC\\NNLS" FILES ${sources_h})
+source_group("Header Files\\OpenMS\\ML\\RANSAC" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

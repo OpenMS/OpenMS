@@ -5,6 +5,7 @@ set(directory source/KERNEL)
 set(sources_list
 AreaIterator.cpp
 BaseFeature.cpp
+BinnedSpectrum.cpp
 ConsensusFeature.cpp
 ConsensusMap.cpp
 ConversionHelper.cpp
