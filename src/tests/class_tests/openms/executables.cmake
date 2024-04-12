@@ -536,7 +536,6 @@ set(analysis_executables_list
   PoseClusteringShiftSuperimposer_test
   PrecursorPurity_test
   ProteinResolver_test
-  PSProteinInference_test
   QTClusterFinder_test
   QuantitativeExperimentalDesign_test
   ReactionMonitoringTransition_test
