@@ -95,7 +95,6 @@
   - @subpage TOPP_MetaProSIP - Detect labeled peptides from protein-SIP experiments.
   - @subpage TOPP_MultiplexResolver - Resolves conflicts between identifications and quantifications in multiplex data.
   - @subpage TOPP_ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps.
-  - @subpage TOPP_ProteinResolver - A peptide-centric algorithm for protein inference.
   - @subpage TOPP_ProteomicsLFQ - Perform label-free quantification in a single tool.
   - @subpage TOPP_SeedListGenerator - Generates seed lists for feature detection.
 

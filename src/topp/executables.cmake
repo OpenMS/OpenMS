@@ -105,7 +105,6 @@ PercolatorAdapter
 PhosphoScoring
 ProteinInference
 ProteinQuantifier
-ProteinResolver
 ProteomicsLFQ
 PSMFeatureExtractor
 QCCalculator
