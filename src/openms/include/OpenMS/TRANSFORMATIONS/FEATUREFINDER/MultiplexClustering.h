@@ -14,7 +14,7 @@
 #include <OpenMS/TRANSFORMATIONS/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
-#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
+#include <OpenMS/ML/CLUSTERING/GridBasedCluster.h>
 
 #include <vector>
 #include <algorithm>

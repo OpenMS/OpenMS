@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
+#include <OpenMS/ML/CLUSTERING/ClusterAnalyzer.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 

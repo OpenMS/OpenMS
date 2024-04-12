@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/COMPARISON/CLUSTERING/EuclideanSimilarity.h>
+#include <OpenMS/ML/CLUSTERING/EuclideanSimilarity.h>
 
 namespace OpenMS
 {

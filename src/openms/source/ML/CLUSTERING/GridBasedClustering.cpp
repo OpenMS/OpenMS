@@ -6,7 +6,7 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/COMPARISON/CLUSTERING/GridBasedClustering.h>
+#include <OpenMS/ML/CLUSTERING/GridBasedClustering.h>
 
 using namespace std;
 

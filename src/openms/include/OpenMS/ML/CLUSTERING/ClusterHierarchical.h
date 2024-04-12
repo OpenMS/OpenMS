@@ -14,8 +14,8 @@
 //
 #pragma once
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
+#include <OpenMS/ML/CLUSTERING/ClusterAnalyzer.h>
+#include <OpenMS/ML/CLUSTERING/ClusterFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>

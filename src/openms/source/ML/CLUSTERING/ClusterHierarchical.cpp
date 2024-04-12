@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
+#include <OpenMS/ML/CLUSTERING/ClusterHierarchical.h>
 
 //using namespace std;
 

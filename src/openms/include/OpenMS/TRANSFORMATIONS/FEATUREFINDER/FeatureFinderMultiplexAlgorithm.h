@@ -18,7 +18,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
-#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
+#include <OpenMS/ML/CLUSTERING/GridBasedCluster.h>
 
 #include <vector>
 #include <fstream>

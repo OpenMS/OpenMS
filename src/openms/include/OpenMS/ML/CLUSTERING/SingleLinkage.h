@@ -13,7 +13,7 @@
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
+#include <OpenMS/ML/CLUSTERING/ClusterFunctor.h>
 
 namespace OpenMS
 {

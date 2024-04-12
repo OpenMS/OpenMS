@@ -7,10 +7,10 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
-#include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
-#include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
-#include <OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>
+#include <OpenMS/ML/CLUSTERING/ClusterFunctor.h>
+#include <OpenMS/ML/CLUSTERING/SingleLinkage.h>
+#include <OpenMS/ML/CLUSTERING/CompleteLinkage.h>
+#include <OpenMS/ML/CLUSTERING/AverageLinkage.h>
 
 using namespace std;
 

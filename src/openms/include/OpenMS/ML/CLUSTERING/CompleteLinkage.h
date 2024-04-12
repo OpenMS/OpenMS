@@ -8,7 +8,7 @@
 //
 #pragma once
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
+#include <OpenMS/ML/CLUSTERING/ClusterFunctor.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <cmath>

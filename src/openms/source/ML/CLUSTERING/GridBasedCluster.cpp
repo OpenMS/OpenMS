@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
+#include <OpenMS/ML/CLUSTERING/GridBasedCluster.h>
 
 namespace OpenMS
 {

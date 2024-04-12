@@ -12,8 +12,8 @@
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusteringGrid.h>
-#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
+#include <OpenMS/ML/CLUSTERING/ClusteringGrid.h>
+#include <OpenMS/ML/CLUSTERING/GridBasedCluster.h>
 
 #include <cmath>
 #include <limits>

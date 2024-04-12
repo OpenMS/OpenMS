@@ -10,7 +10,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/COMPARISON/CLUSTERING/HashGrid.h>
+#include <OpenMS/ML/CLUSTERING/HashGrid.h>
 #include <OpenMS/DATASTRUCTURES/GridFeature.h>
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>

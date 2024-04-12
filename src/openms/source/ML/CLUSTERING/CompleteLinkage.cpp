@@ -7,23 +7,26 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>
+#include <OpenMS/ML/CLUSTERING/CompleteLinkage.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
 {
 
-  AverageLinkage::AverageLinkage() :
+  CompleteLinkage::CompleteLinkage() :
     ClusterFunctor(), ProgressLogger()
   {
   }
 
-  AverageLinkage::AverageLinkage(const AverageLinkage & source)  = default;
+  CompleteLinkage::CompleteLinkage(const CompleteLinkage & source) :
+    ClusterFunctor(source), ProgressLogger()
+  {
+  }
 
-  AverageLinkage::~AverageLinkage() = default;
+  CompleteLinkage::~CompleteLinkage() = default;
 
-  AverageLinkage & AverageLinkage::operator=(const AverageLinkage & source)
+  CompleteLinkage & CompleteLinkage::operator=(const CompleteLinkage & source)
   {
     if (this != &source)
     {
@@ -33,8 +36,11 @@ namespace OpenMS
     return *this;
   }
 
-  void AverageLinkage::operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold /*=1*/) const
+  void CompleteLinkage::operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold /*=1*/) const
   {
+    // attention: clustering process is done by clustering the indices
+    // pointing to elements in input vector and distances in input matrix
+
     // input MUST have >= 2 elements!
     if (original_distance.dimensionsize() < 2)
     {
@@ -57,7 +63,7 @@ namespace OpenMS
     Size overall_cluster_steps(original_distance.dimensionsize());
     startProgress(0, original_distance.dimensionsize(), "clustering data");
 
-    while (original_distance(min.second, min.first) < threshold)
+    while (original_distance(min.first, min.second) < threshold)
     {
       //grow the tree
       cluster_tree.emplace_back(*(clusters[min.second].begin()), *(clusters[min.first].begin()), original_distance(min.first, min.second));
@@ -70,30 +76,25 @@ namespace OpenMS
       {
         //pick minimum-distance pair i,j and merge them
 
-        //calculate parameter for lance-williams formula
-        float alpha_i = (float)(clusters[min.first].size() / (float)(clusters[min.first].size() + clusters[min.second].size()));
-        float alpha_j = (float)(clusters[min.second].size() / (float)(clusters[min.first].size() + clusters[min.second].size()));
-        //~ std::cout << alpha_i << '\t' << alpha_j << std::endl;
-
         //pushback elements of second to first (and then erase second)
         clusters[min.second].insert(clusters[min.first].begin(), clusters[min.first].end());
         // erase first one
         clusters.erase(clusters.begin() + min.first);
 
         //update original_distance matrix
-        //average linkage: new distance between clusters is the minimum distance between elements of each cluster
-        //lance-williams update for d((i,j),k): (m_i/m_i+m_j)* d(i,k) + (m_j/m_i+m_j)* d(j,k) ; m_x is the number of elements in cluster x
+        //complete linkage: new distance between clusters is the minimum distance between elements of each cluster
+        //lance-williams update for d((i,j),k): 0.5* d(i,k) + 0.5* d(j,k) + 0.5* |d(i,k)-d(j,k)|
         for (Size k = 0; k < min.second; ++k)
         {
           float dik = original_distance.getValue(min.first, k);
           float djk = original_distance.getValue(min.second, k);
-          original_distance.setValueQuick(min.second, k, (alpha_i * dik + alpha_j * djk));
+          original_distance.setValueQuick(min.second, k, (0.5f * dik + 0.5f * djk + 0.5f * std::fabs(dik - djk)));
         }
         for (Size k = min.second + 1; k < original_distance.dimensionsize(); ++k)
         {
           float dik = original_distance.getValue(min.first, k);
           float djk = original_distance.getValue(min.second, k);
-          original_distance.setValueQuick(k, min.second, (alpha_i * dik + alpha_j * djk));
+          original_distance.setValueQuick(k, min.second, (0.5f * dik + 0.5f * djk + 0.5f * std::fabs(dik - djk)));
         }
 
         //reduce
@@ -102,7 +103,7 @@ namespace OpenMS
         //update minimum-distance pair
         original_distance.updateMinElement();
 
-        //get min-pair from triangular matrix
+        //get new min-pair
         min = original_distance.getMinElementCoordinates();
       }
       else
@@ -111,14 +112,18 @@ namespace OpenMS
       }
       setProgress(overall_cluster_steps - original_distance.dimensionsize());
 
-      //repeat until only two cluster remains, last step skips matrix operations
+      //repeat until only two cluster remains or threshold exceeded, last step skips matrix operations
     }
     //fill tree with dummy nodes
     Size sad(*clusters.front().begin());
-    for (Size i = 1; (i < clusters.size()) && (cluster_tree.size() < cluster_tree.capacity()); ++i)
+    for (Size i = 1; i < clusters.size() && (cluster_tree.size() < cluster_tree.capacity()); ++i)
     {
       cluster_tree.emplace_back(sad, *clusters[i].begin(), -1.0);
     }
+    //~ while(cluster_tree.size() < cluster_tree.capacity())
+    //~ {
+    //~ cluster_tree.push_back(BinaryTreeNode(0,1,-1.0));
+    //~ }
 
     endProgress();
   }

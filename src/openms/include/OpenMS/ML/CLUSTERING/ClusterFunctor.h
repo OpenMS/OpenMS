@@ -10,7 +10,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
+#include <OpenMS/ML/CLUSTERING/ClusterAnalyzer.h>
 
 #include <vector>
 

@@ -1,5 +1,5 @@
 ### the directory name
-set(directory source/COMPARISON/CLUSTERING)
+set(directory source/ML/CLUSTERING)
 
 ### list all filenames of the directory here
 set(sources_list
@@ -25,5 +25,5 @@ endforeach(i)
 set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
-source_group("Source Files\\COMPARISON\\CLUSTERING" FILES ${sources})
+source_group("Source Files\\ML\\CLUSTERING" FILES ${sources})
 
