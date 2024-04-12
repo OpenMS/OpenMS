@@ -6,7 +6,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ML/NNLS/NonnegativeLeastSquaresSolver.h>
+#include <OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h>
 #include <OpenMS/ML/NNLS/NNLS.h>
 
 namespace OpenMS

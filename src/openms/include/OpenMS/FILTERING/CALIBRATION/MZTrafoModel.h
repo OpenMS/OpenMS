@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
-#include <OpenMS/MATH/MISC/RANSAC.h>
+#include <OpenMS/ML/RANSAC/RANSAC.h>
 
 #include <vector>
 

@@ -11,7 +11,7 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/RANSACModelQuadratic.h>
+#include <OpenMS/ML/RANSAC/RANSACModelQuadratic.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>

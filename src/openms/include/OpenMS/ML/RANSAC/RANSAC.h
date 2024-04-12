@@ -10,11 +10,11 @@
 
 #include <OpenMS/config.h>
 
-#include <OpenMS/MATH/MISC/RANSACModel.h>
+#include <OpenMS/ML/RANSAC/RANSACModel.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/MATH/MISC/RANSACModelLinear.h>
+#include <OpenMS/ML/RANSAC/RANSACModelLinear.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <limits>       // std::numeric_limits

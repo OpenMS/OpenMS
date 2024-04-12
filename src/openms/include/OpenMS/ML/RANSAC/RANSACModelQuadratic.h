@@ -9,25 +9,24 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/MATH/MISC/RANSACModel.h>
+#include <OpenMS/ML/RANSAC/RANSACModel.h>
 
 namespace OpenMS
 {
 
   namespace Math
   {
-
     /**
-      @brief Implementation of a linear RANSAC model fit.
+      @brief Implementation of a quadratic RANSAC model fit.
       
       Using generic plug-in template base class 'RansacModel' using 'Curiously recurring template pattern' (CRTP).
     */
-    class OPENMS_DLLAPI RansacModelLinear
-      : public RansacModel<RansacModelLinear>
+    class OPENMS_DLLAPI RansacModelQuadratic
+      : public RansacModel<RansacModelQuadratic>
     {
     public:
       static ModelParameters rm_fit_impl(const DVecIt& begin, const DVecIt& end);
-      
+
       static double rm_rsq_impl(const DVecIt& begin, const DVecIt& end);
 
       static double rm_rss_impl(const DVecIt& begin, const DVecIt& end, const ModelParameters& coefficients);
@@ -35,7 +34,6 @@ namespace OpenMS
       static DVec rm_inliers_impl(const DVecIt& begin, const DVecIt& end, const ModelParameters& coefficients, double max_threshold);
 
     };
-
 
   }
 

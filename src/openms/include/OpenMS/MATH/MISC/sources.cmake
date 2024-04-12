@@ -10,12 +10,7 @@ EmgGradientDescent.h
 GridSearch.h
 LinearInterpolation.h
 MathFunctions.h
-NonNegativeLeastSquaresSolver.h
 MSNumpress.h
-RANSAC.h
-RANSACModel.h
-RANSACModelLinear.h
-RANSACModelQuadratic.h
 SplineBisection.h
 )
 

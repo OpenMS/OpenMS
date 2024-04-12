@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/MATH/MISC/RANSAC.h>
+#include <OpenMS/ML/RANSAC/RANSAC.h>
 ///////////////////////////
 
 using namespace std;

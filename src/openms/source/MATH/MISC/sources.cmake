@@ -10,12 +10,7 @@ EmgGradientDescent.cpp
 GridSearch.cpp
 LinearInterpolation.cpp
 MathFunctions.cpp
-NonNegativeLeastSquaresSolver.cpp
 MSNumpress.cpp
-RANSAC.cpp
-RANSACModel.cpp
-RANSACModelLinear.cpp
-RANSACModelQuadratic.cpp
 SplineBisection.cpp
 )
 
