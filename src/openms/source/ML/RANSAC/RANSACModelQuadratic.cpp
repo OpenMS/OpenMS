@@ -6,7 +6,7 @@
 // $Authors: George Rosenberger, Hannes Roest, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/MATH/MISC/RANSACModelQuadratic.h>
+#include <OpenMS/ML/RANSAC/RANSACModelQuadratic.h>
 
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 #include <numeric>

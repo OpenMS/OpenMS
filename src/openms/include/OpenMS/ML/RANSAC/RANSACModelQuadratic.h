@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/MATH/MISC/RANSACModel.h>
+#include <OpenMS/ML/RANSAC/RANSACModel.h>
 
 namespace OpenMS
 {

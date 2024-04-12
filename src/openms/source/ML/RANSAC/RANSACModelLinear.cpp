@@ -6,7 +6,7 @@
 // $Authors: George Rosenberger, Hannes Roest, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/MATH/MISC/RANSACModelLinear.h>
+#include <OpenMS/ML/RANSAC/RANSACModelLinear.h>
 
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <numeric>
