@@ -1,5 +1,0 @@
-# Protein abundances computed from file '/home/matteo/CLionProjects/OpenMS/src/tests/topp/ProteinQuantifier_input.featureXML'
-# Parameters (relevant only): method=top, top:N=2, top:aggregate=sum, top:include_all=true, best_charge_and_fraction=true
-"protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance"
-"Protein0"	1	0.0	3	9999.0
-"Protein1"	1	0.0	1	8888.0

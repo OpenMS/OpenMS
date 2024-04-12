@@ -1,3 +1,0 @@
-FileMerger_5_input_rt1023.331.dta
-FileMerger_5_input_rt2044.334.dta
-FileMerger_5_input_rt889.32.dta

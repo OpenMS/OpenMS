@@ -94,7 +94,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/ComplementFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/GoodDiffFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/IsotopeDiffFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
+#include <OpenMS/FILTERING/RESAMPLING/LinearResampler.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NeutralLossDiffFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>

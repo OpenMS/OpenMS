@@ -1,4 +1,0 @@
-# Protein abundances computed from file 'source/TEST/TOPP/ProteinQuantifier_input.featureXML'
-# Parameters (relevant only): method=top, top:N=2, top:aggregate=mean, top:include_all=true
-"protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance"
-"Protein0"	1	0.0	1	9999.0

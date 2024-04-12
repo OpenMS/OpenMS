@@ -1,9 +1,0 @@
-# Peptide abundances computed from file '/home/matteo/CLionProjects/OpenMS/src/tests/topp/ProteinQuantifier_input.featureXML'
-# Parameters (relevant only): best_charge_and_fraction=true
-"peptide"	"protein"	"n_proteins"	"charge"	"abundance"	"fraction"
-"AAAAA"	"Protein0"	1	1	3333.0	1
-"CCCCC"	"Protein0"	1	1	3333.0	1
-"CCCCC"	"Protein0"	1	2	4444.0	1
-"DDDDD"	"Protein0"	1	1	5555.0	1
-"GGGGG"	"Protein0/Protein1"	2	1	7777.0	1
-"HHHHH"	"Protein1"	1	1	8888.0	1
