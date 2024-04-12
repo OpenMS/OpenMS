@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
+#include <OpenMS/COMPARISON/SpectrumCheapDPCorr.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 

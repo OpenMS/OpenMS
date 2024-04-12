@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor.h>
+#include <OpenMS/COMPARISON/BinnedSpectrumCompareFunctor.h>
 
 using namespace OpenMS;
 using namespace std;

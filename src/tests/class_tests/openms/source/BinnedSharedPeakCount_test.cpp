@@ -10,8 +10,8 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSharedPeakCount.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
+#include <OpenMS/COMPARISON/BinnedSharedPeakCount.h>
+#include <OpenMS/COMPARISON/BinnedSpectrum.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 ///////////////////////////
 

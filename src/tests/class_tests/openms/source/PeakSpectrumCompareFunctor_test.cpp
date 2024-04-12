@@ -12,7 +12,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
+#include <OpenMS/COMPARISON/PeakSpectrumCompareFunctor.h>
 
 using namespace OpenMS;
 using namespace std;

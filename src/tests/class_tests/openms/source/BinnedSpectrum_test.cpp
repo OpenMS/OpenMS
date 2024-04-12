@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
+#include <OpenMS/COMPARISON/BinnedSpectrum.h>
 ///////////////////////////
 
 #include <Eigen/Sparse>

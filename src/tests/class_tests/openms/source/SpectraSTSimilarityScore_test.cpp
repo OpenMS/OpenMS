@@ -13,7 +13,7 @@
 
 #include <iostream>
 
-#include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
+#include <OpenMS/COMPARISONSTSimilarityScore.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>

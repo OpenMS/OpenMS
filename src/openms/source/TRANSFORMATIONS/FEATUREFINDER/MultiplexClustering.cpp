@@ -13,7 +13,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/COMPARISON/CLUSTERING/GridBasedClustering.h>
+#include <OpenMS/ML/CLUSTERING/GridBasedClustering.h>
 
 #include <QtCore/QDir>
 

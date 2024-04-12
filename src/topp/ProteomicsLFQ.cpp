@@ -47,7 +47,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/CENTROIDING/PeakPickerHiRes.h>
 
-#include <OpenMS/MATH/SVM/SimpleSVM.h>
+#include <OpenMS/ML/SVM/SimpleSVM.h>
 
 using namespace OpenMS;
 using namespace std;

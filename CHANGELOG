@@ -2424,11 +2424,11 @@ Detailed list of changes to specific OpenMS classes:
   - ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher (restructuring of map alignment)
   - ANALYSIS/MAPMATCHING/StarAlignment (restructuring of map alignment)
   - ANALYSIS/CLUSTERING/BinnedRep (reimplemented in BinnedSpectrum)
-  - COMPARISON/SPECTRA/BinnedRepCompareFunctor (reimplemented in BinnedSpectrumCompareFunctor)
-  - COMPARISON/SPECTRA/BinnedRepMutualInformation (reimplemented in BinnedMutualInformation)
-  - COMPARISON/SPECTRA/BinnedRepSharedPeakCount (reimplemented in BinnedSharedPeakCount)
-  - COMPARISON/SPECTRA/BinnedRepSpectrumContrastAngle (reimplemented in BinnedSpectralContrastAngle)
-  - COMPARISON/SPECTRA/BinnedRepSumAgreeingIntensities (reimplemented in BinnedSumAgreeingIntensities)
+  - COMPARISON/BinnedRepCompareFunctor (reimplemented in BinnedSpectrumCompareFunctor)
+  - COMPARISON/BinnedRepMutualInformation (reimplemented in BinnedMutualInformation)
+  - COMPARISON/BinnedRepSharedPeakCount (reimplemented in BinnedSharedPeakCount)
+  - COMPARISON/BinnedRepSpectrumContrastAngle (reimplemented in BinnedSpectralContrastAngle)
+  - COMPARISON/BinnedRepSumAgreeingIntensities (reimplemented in BinnedSumAgreeingIntensities)
   - CONCEPT/Benchmark
   - CONCEPT/HashFunction
   - FILTERING/SMOOTHING/SmoothFilter
@@ -2465,15 +2465,15 @@ Detailed list of changes to specific OpenMS classes:
   - ANALYSIS/CLUSTERING/ClusterHierachical (new framework for clustering)
   - ANALYSIS/CLUSTERING/CompleteLinkage (new framework for clustering)
   - ANALYSIS/CLUSTERING/SingleLinkage (new framework for clustering)
-  - COMPARISON/SPECTRA/BinnedSpectrum (Binned represenetation of a spectrum)
-  - COMPARISON/SPECTRA/BinnedMutualInformation
-  - COMPARISON/SPECTRA/BinnedSumAgreeingIntensities
-  - COMPARISON/SPECTRA/BinnedSpectralContrastAngle
-  - COMPARISON/SPECTRA/BinnedSharedPeakCount
-  - COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor
-  - COMPARISON/SPECTRA/CompareFourierTransform
-  - COMPARISON/SPECTRA/PeakAlignment
-  - COMPARISON/SPECTRA/SteinScottImproveScore
+  - COMPARISON/BinnedSpectrum (Binned represenetation of a spectrum)
+  - COMPARISON/BinnedMutualInformation
+  - COMPARISON/BinnedSumAgreeingIntensities
+  - COMPARISON/BinnedSpectralContrastAngle
+  - COMPARISON/BinnedSharedPeakCount
+  - COMPARISON/BinnedSpectrumCompareFunctor
+  - COMPARISON/CompareFourierTransform
+  - COMPARISON/PeakAlignment
+  - COMPARISON/SteinScottImproveScore
   - DATASTRUCTURE/DistanceMatrix
   - FORMAT/ControlledVocabulary
   - FORMAT/HANDLER/MzMLHandler
