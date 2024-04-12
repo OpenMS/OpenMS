@@ -69,7 +69,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSharedPeakCount.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
-#include <OpenMS/KERNEL/BinnedSpectrumCompareFunctor.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSumAgreeingIntensities.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>

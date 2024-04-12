@@ -11,10 +11,6 @@ GridSearch.cpp
 LinearInterpolation.cpp
 MathFunctions.cpp
 MSNumpress.cpp
-RANSAC.cpp
-RANSACModel.cpp
-RANSACModelLinear.cpp
-RANSACModelQuadratic.cpp
 SplineBisection.cpp
 )
 

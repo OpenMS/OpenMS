@@ -10,7 +10,7 @@
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/KERNEL/BinnedSpectrum.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include <OpenMS/FORMAT/FileHandler.h>

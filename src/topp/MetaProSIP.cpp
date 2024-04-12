@@ -18,7 +18,7 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/TRANSFORMATIONS/CENTROIDING/PeakPickerHiRes.h>
-#include <OpenMS/ML/NNLS/NonnegativeLeastSquaresSolver.h>
+#include <OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>

@@ -14,7 +14,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 // NNLS isotope correction
-#include <OpenMS/ML/NNLS/NonnegativeLeastSquaresSolver.h>
+#include <OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h>
 
 #include <Eigen/Core>
 #include <Eigen/LU>
