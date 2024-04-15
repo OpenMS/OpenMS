@@ -8,7 +8,7 @@
 
 
 #include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
-#include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
+#include <OpenMS/ML/REGRESSION/QuadraticRegression.h>
 
 #include <algorithm>
 #include <cmath>

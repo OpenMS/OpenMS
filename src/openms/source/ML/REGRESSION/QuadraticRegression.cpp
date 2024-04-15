@@ -6,7 +6,7 @@
 // $Authors: Christian Ehrlich, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
+#include <OpenMS/ML/REGRESSION/QuadraticRegression.h>
 
 #include <Mathematics/Vector2.h>
 #include <Mathematics/Vector3.h>
