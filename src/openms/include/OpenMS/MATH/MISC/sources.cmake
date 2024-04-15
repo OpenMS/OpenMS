@@ -9,7 +9,6 @@ CubicSpline2d.h
 EmgGradientDescent.h
 LinearInterpolation.h
 MathFunctions.h
-MSNumpress.h
 SplineBisection.h
 )
 

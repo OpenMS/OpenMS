@@ -9,7 +9,6 @@ CubicSpline2d.cpp
 EmgGradientDescent.cpp
 LinearInterpolation.cpp
 MathFunctions.cpp
-MSNumpress.cpp
 SplineBisection.cpp
 )
 
