@@ -12,7 +12,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SeedListGenerator.h>
+#include <OpenMS/FEATUREFINDER/SeedListGenerator.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 

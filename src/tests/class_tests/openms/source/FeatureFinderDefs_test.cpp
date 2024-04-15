@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderDefs.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderDefs.h>
 ///////////////////////////
 
 using namespace OpenMS;

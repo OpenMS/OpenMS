@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 ///////////////////////////
 
 using namespace OpenMS;
