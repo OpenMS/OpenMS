@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/MATH/MISC/GridSearch.h>
+#include <OpenMS/ML/GRIDSEARCH/GridSearch.h>
 
 namespace OpenMS
 {

@@ -1,16 +1,9 @@
 ### the directory name
-set(directory source/MATH/MISC)
+set(directory source/ML/GRIDSEARCH)
 
 ### list all filenames of the directory here
 set(sources_list
-BilinearInterpolation.cpp
-BSpline2d.cpp
-CubicSpline2d.cpp
-EmgGradientDescent.cpp
-LinearInterpolation.cpp
-MathFunctions.cpp
-MSNumpress.cpp
-SplineBisection.cpp
+GridSearch.cpp
 )
 
 ### add path to the filenames
@@ -23,4 +16,4 @@ endforeach(i)
 set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
-source_group("Source Files\\MATH\\MISC" FILES ${sources})
+source_group("Source Files\\ML\\GRIDSEARCH" FILES ${sources})
