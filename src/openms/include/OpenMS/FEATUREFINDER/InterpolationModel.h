@@ -10,7 +10,7 @@
 #pragma once
 
 #include <OpenMS/FEATUREFINDER/BaseModel.h>
-#include <OpenMS/MATH/MISC/LinearInterpolation.h>
+#include <OpenMS/ML/INTERPOLATION/LinearInterpolation.h>
 
 namespace OpenMS
 {
