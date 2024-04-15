@@ -1,5 +1,5 @@
 ### the directory name
-set(directory source/TRANSFORMATIONS/CENTROIDING)
+set(directory source/FILTERING/CENTROIDING)
 
 ### list all filenames of the directory here
 set(sources_list
@@ -17,5 +17,5 @@ endforeach(i)
 set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
-source_group("Source Files\\TRANSFORMATIONS\\CENTROIDING" FILES ${sources})
+source_group("Source Files\\FILTERING\\CENTROIDING" FILES ${sources})
 

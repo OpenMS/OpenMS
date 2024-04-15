@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/TRANSFORMATIONS/CENTROIDING/PeakPickerIterative.h>
+#include <OpenMS/FILTERING/CENTROIDING/PeakPickerIterative.h>
 ///////////////////////////
 
 using namespace OpenMS;
