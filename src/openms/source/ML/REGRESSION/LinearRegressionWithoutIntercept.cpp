@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 //#include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/MATH/STATISTICS/LinearRegressionWithoutIntercept.h>
+#include <OpenMS/ML/REGRESSION/LinearRegressionWithoutIntercept.h>
 
 namespace OpenMS::Math
 {

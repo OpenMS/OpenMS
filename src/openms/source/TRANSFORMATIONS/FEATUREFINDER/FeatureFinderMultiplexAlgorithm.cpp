@@ -21,7 +21,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>
 
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/STATISTICS/LinearRegressionWithoutIntercept.h>
+#include <OpenMS/ML/REGRESSION/LinearRegressionWithoutIntercept.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>

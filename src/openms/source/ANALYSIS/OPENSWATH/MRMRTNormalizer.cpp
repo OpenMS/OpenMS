@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
-#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
+#include <OpenMS/ML/REGRESSION/LinearRegression.h>
 #include <OpenMS/CONCEPT/LogStream.h> // OPENMS_LOG_DEBUG
 #include <OpenMS/ML/RANSAC/RANSAC.h> // RANSAC algorithm
 

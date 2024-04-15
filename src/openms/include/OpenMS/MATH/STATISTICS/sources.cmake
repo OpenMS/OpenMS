@@ -11,9 +11,6 @@ GaussFitter.h
 GumbelDistributionFitter.h
 GumbelMaxLikelihoodFitter.h
 Histogram.h
-LinearRegression.h
-LinearRegressionWithoutIntercept.h
-QuadraticRegression.h
 PosteriorErrorProbabilityModel.h
 StatisticFunctions.h
 )

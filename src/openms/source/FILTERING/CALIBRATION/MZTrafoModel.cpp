@@ -8,7 +8,7 @@
 
 #include <OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>
 
-#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
+#include <OpenMS/ML/REGRESSION/LinearRegression.h>
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/ML/RANSAC/RANSACModelQuadratic.h>
