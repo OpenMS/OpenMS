@@ -13,7 +13,7 @@ from DPosition cimport DPosition2
 
 ctypedef libcpp_vector[DPosition2] SeedList
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/SeedListGenerator.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/SeedListGenerator.h>" namespace "OpenMS":
 
     cdef cppclass SeedListGenerator:
 

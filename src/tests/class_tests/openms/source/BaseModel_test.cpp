@@ -11,8 +11,8 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel_impl.h>
+#include <OpenMS/FEATUREFINDER/BaseModel.h>
+#include <OpenMS/FEATUREFINDER/BaseModel_impl.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 ///////////////////////////

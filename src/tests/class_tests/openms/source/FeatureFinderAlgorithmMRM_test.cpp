@@ -10,11 +10,11 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinder.h>
 
 using namespace OpenMS;
 using namespace std;

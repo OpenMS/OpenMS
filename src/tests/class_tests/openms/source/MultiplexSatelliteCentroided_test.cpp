@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
+#include <OpenMS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
 
 using namespace OpenMS;
 

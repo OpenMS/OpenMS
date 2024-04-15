@@ -11,7 +11,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 
 ///////////////////////////
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 ///////////////////////////
 
 #include <OpenMS/MATH/MISC/MathFunctions.h>

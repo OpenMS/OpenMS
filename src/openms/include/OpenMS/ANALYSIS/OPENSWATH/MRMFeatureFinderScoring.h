@@ -15,7 +15,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>
+#include <OpenMS/FEATUREFINDER/EmgScoring.h>
 
 // Kernel classes
 #include <OpenMS/KERNEL/StandardTypes.h>
