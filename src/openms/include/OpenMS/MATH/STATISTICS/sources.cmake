@@ -15,7 +15,6 @@ LinearRegression.h
 LinearRegressionWithoutIntercept.h
 QuadraticRegression.h
 PosteriorErrorProbabilityModel.h
-ROCCurve.h
 StatisticFunctions.h
 )
 

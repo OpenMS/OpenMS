@@ -6,7 +6,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#include <OpenMS/MATH/STATISTICS/ROCCurve.h>
+#include <OpenMS/ML/ROCCURVE/ROCCurve.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
 
