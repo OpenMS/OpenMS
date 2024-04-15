@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSumAgreeingIntensities.h>
+#include <OpenMS/COMPARISON/BinnedSumAgreeingIntensities.h>
 #include <OpenMS/KERNEL/BinnedSpectrum.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 ///////////////////////////

@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSumAgreeingIntensities.h>
+#include <OpenMS/COMPARISON/BinnedSumAgreeingIntensities.h>
 
 #include <Eigen/Sparse>
 

@@ -6,7 +6,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
+#include <OpenMS/COMPARISON/SpectrumAlignmentScore.h>
 
 using namespace std;
 

@@ -6,7 +6,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
+#include <OpenMS/COMPARISON/SpectraSTSimilarityScore.h>
 
 #include <Eigen/Sparse>
 

@@ -21,7 +21,7 @@
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
+#include <OpenMS/COMPARISON/ZhangSimilarityScore.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 

@@ -17,8 +17,8 @@
 #include <OpenMS/ML/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/ML/CLUSTERING/ClusterFunctor.h>
 #include <OpenMS/KERNEL/BinnedSpectrum.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor.h>
-#include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
+#include <OpenMS/COMPARISON/BinnedSpectrumCompareFunctor.h>
+#include <OpenMS/COMPARISON/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/KERNEL/StandardTypes.h>

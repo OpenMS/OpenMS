@@ -8,7 +8,7 @@
 //
 #pragma once
 
-#include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
+#include <OpenMS/COMPARISON/PeakSpectrumCompareFunctor.h>
 #include <vector>
 
 namespace OpenMS

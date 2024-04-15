@@ -6,14 +6,14 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
+#include <OpenMS/COMPARISON/PeakSpectrumCompareFunctor.h>
 
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
-#include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
-#include <OpenMS/COMPARISON/SPECTRA/SteinScottImproveScore.h>
-#include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
+#include <OpenMS/COMPARISON/SpectrumCheapDPCorr.h>
+#include <OpenMS/COMPARISON/SpectrumPrecursorComparator.h>
+#include <OpenMS/COMPARISON/ZhangSimilarityScore.h>
+#include <OpenMS/COMPARISON/SpectrumAlignmentScore.h>
+#include <OpenMS/COMPARISON/SteinScottImproveScore.h>
+#include <OpenMS/COMPARISON/PeakAlignment.h>
 
 using namespace std;
 

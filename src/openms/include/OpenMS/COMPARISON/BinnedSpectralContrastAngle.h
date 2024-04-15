@@ -8,7 +8,7 @@
 //
 #pragma once
 
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor.h>
+#include <OpenMS/COMPARISON/BinnedSpectrumCompareFunctor.h>
 
 namespace OpenMS
 {

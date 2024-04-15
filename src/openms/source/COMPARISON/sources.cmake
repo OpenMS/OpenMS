@@ -1,5 +1,5 @@
 ### the directory name
-set(directory source/COMPARISON/SPECTRA)
+set(directory source/COMPARISON)
 
 ### list all filenames of the directory here
 set(sources_list
@@ -28,5 +28,5 @@ endforeach(i)
 set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
-source_group("Source Files\\COMPARISON\\SPECTRA" FILES ${sources})
+source_group("Source Files\\COMPARISON" FILES ${sources})
 

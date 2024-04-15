@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSharedPeakCount.h>
+#include <OpenMS/COMPARISON/BinnedSharedPeakCount.h>
 
 using namespace std;
 
