@@ -5,7 +5,6 @@ set(directory source/COMPARISON/SPECTRA)
 set(sources_list
 BinnedSharedPeakCount.cpp
 BinnedSpectralContrastAngle.cpp
-BinnedSpectrum.cpp
 BinnedSpectrumCompareFunctor.cpp
 BinnedSumAgreeingIntensities.cpp
 PeakAlignment.cpp

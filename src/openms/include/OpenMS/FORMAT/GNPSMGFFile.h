@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
+#include <OpenMS/KERNEL/BinnedSpectrum.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 namespace OpenMS

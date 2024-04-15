@@ -9,7 +9,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
+#include <OpenMS/KERNEL/BinnedSpectrum.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
