@@ -18,7 +18,7 @@
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 
-#include <OpenMS/TRANSFORMATIONS/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/FILTERING/CENTROIDING/PeakPickerHiRes.h>
 
 #ifdef WITH_CRAWDAD
 #include <CrawdadWrapper.h>

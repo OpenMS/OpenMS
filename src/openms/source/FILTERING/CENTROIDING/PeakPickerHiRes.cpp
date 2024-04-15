@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/TRANSFORMATIONS/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/FILTERING/CENTROIDING/PeakPickerHiRes.h>
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>

@@ -21,7 +21,7 @@
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 
 #include <OpenMS/METADATA/MSQuantifications.h>
-#include <OpenMS/TRANSFORMATIONS/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/FILTERING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>

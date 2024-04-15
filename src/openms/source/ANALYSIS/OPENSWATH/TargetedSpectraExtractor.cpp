@@ -13,7 +13,7 @@
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/TRANSFORMATIONS/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/FILTERING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>

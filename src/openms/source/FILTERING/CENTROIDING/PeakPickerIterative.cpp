@@ -6,7 +6,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/CENTROIDING/PeakPickerIterative.h>
+#include <OpenMS/FILTERING/CENTROIDING/PeakPickerIterative.h>
 
 using namespace std;
 

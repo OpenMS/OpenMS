@@ -22,7 +22,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
-#include <OpenMS/TRANSFORMATIONS/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/FILTERING/CENTROIDING/PeakPickerHiRes.h>
 
 #include <iostream>
 
