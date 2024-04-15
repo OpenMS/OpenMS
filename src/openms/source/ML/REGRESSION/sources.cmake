@@ -1,16 +1,11 @@
 ### the directory name
-set(directory source/MATH/STATISTICS)
+set(directory source/ML/REGRESSION)
 
 ### list all filenames of the directory here
 set(sources_list
-AsymmetricStatistics.cpp
-BasicStatistics.cpp
-GammaDistributionFitter.cpp
-GaussFitter.cpp
-GumbelDistributionFitter.cpp
-GumbelMaxLikelihoodFitter.cpp
-Histogram.cpp
-PosteriorErrorProbabilityModel.cpp
+LinearRegression.cpp
+LinearRegressionWithoutIntercept.cpp
+QuadraticRegression.cpp
 )
 
 ### add path to the filenames
@@ -23,4 +18,4 @@ endforeach(i)
 set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
-source_group("Source Files\\MATH\\STATISTICS" FILES ${sources})
+source_group("Source Files\\ML\\REGRESSION" FILES ${sources})

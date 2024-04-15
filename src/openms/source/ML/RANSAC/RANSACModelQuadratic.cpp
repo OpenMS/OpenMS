@@ -8,7 +8,7 @@
 
 #include <OpenMS/ML/RANSAC/RANSACModelQuadratic.h>
 
-#include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
+#include <OpenMS/ML/REGRESSION/QuadraticRegression.h>
 #include <numeric>
 
 
