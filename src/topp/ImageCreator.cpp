@@ -12,7 +12,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/MATH/MISC/BilinearInterpolation.h>
+#include <OpenMS/ML/INTERPOLATION/BilinearInterpolation.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 
 

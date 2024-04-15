@@ -9,7 +9,7 @@
 ///////////////////////////
 
 // This one is going to be tested.
-#include <OpenMS/MATH/MISC/BilinearInterpolation.h>
+#include <OpenMS/ML/INTERPOLATION/BilinearInterpolation.h>
 
 ///////////////////////////
 
