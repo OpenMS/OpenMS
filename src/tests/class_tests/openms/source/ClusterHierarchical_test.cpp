@@ -13,7 +13,7 @@
 #include <OpenMS/ML/CLUSTERING/ClusterHierarchical.h>
 #include <OpenMS/ML/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/KERNEL/BinnedSpectrum.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSharedPeakCount.h>
+#include <OpenMS/COMPARISON/BinnedSharedPeakCount.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 

@@ -6,7 +6,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
+#include <OpenMS/COMPARISON/SpectrumCheapDPCorr.h>
 #include <map>
 
 // #define SPECTRUMCHEAPDPCORR_DEBUG

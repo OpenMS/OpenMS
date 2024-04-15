@@ -6,7 +6,7 @@
 // $Authors: Vipul Patel $
 // --------------------------------------------------------------------------
 //
-#include <OpenMS/COMPARISON/SPECTRA/SteinScottImproveScore.h>
+#include <OpenMS/COMPARISON/SteinScottImproveScore.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>

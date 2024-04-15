@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
+#include <OpenMS/COMPARISON/PeakAlignment.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 

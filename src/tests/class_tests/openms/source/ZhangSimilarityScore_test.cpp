@@ -13,7 +13,7 @@
 
 #include <iostream>
 
-#include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
+#include <OpenMS/COMPARISON/ZhangSimilarityScore.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
