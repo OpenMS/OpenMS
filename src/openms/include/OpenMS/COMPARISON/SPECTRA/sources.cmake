@@ -5,7 +5,6 @@ set(directory include/OpenMS/COMPARISON/SPECTRA)
 set(sources_list_h
 BinnedSharedPeakCount.h
 BinnedSpectralContrastAngle.h
-BinnedSpectrum.h
 BinnedSpectrumCompareFunctor.h
 BinnedSumAgreeingIntensities.h
 PeakAlignment.h

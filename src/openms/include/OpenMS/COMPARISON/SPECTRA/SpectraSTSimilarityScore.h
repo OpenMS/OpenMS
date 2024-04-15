@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
+#include <OpenMS/KERNEL/BinnedSpectrum.h>
 
 namespace OpenMS
 {
