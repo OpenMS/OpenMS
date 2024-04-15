@@ -34,7 +34,7 @@
 #include <climits>
 #include <cmath>
 #include <iostream>
-#include <OpenMS/MATH/MISC/MSNumpress.h>
+#include <OpenMS/FORMAT/MSNUMPRESS/MSNumpress.h>
 
 
 namespace ms::numpress::MSNumpress {
