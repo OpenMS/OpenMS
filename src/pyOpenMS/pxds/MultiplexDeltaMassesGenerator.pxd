@@ -3,7 +3,7 @@ from String cimport *
 from DefaultParamHandler cimport *
 from MultiplexDeltaMasses cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>" namespace "OpenMS":
     
     cdef cppclass MultiplexDeltaMassesGenerator(DefaultParamHandler) :
         # wrap-inherits:
@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGene
         # missing multiset support
         # NAMESPACE # MultiplexDeltaMasses::LabelSet extractLabelSet(AASequence sequence) except + nogil 
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>" namespace "OpenMS::MultiplexDeltaMassesGenerator":
+cdef extern from "<OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>" namespace "OpenMS::MultiplexDeltaMassesGenerator":
     
     cdef cppclass MultiplexDeltaMassesGenerator_Label "OpenMS::MultiplexDeltaMassesGenerator::Label":
 

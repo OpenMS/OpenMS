@@ -6,7 +6,7 @@ from Peak1D cimport *
 from ChromatogramPeak cimport *
 from DefaultParamHandler cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>" namespace "OpenMS":
 
     cdef cppclass FeatureFinderAlgorithmPicked(DefaultParamHandler):
 

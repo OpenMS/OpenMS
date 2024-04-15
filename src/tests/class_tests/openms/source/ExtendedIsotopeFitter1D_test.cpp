@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
+#include <OpenMS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
 
 ///////////////////////////
 

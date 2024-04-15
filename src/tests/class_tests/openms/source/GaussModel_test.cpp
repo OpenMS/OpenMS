@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
+#include <OpenMS/FEATUREFINDER/GaussModel.h>
 
 ///////////////////////////
 

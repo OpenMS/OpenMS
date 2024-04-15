@@ -1021,8 +1021,8 @@ foreach ($files_todo as $f)
       "src/openms/include/OpenMS/VISUAL/PlotCanvas.h",
       "src/openms/include/OpenMS/APPLICATIONS/TOPPViewBase.h",
       "src/openms/include/OpenMS/APPLICATIONS/TOPPASBase.h",
-      "src/openms/include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h",
-      "src/openms/include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h",
+      "src/openms/include/OpenMS/FEATUREFINDER/BaseModel.h",
+      "src/openms/include/OpenMS/FEATUREFINDER/LevMarqFitter1D.h",
     );
 
     $ignore = false;

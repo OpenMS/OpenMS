@@ -9,8 +9,8 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteredPeak.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 
 using namespace OpenMS;
 

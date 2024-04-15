@@ -24,14 +24,14 @@
 #include <OpenMS/FILTERING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringCentroided.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
+#include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
+#include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
+#include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteringCentroided.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteringProfile.h>
+#include <OpenMS/FEATUREFINDER/MultiplexClustering.h>
+#include <OpenMS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 #include <OpenMS/ML/CLUSTERING/GridBasedCluster.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>

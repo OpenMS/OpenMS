@@ -22,7 +22,7 @@
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
+#include <OpenMS/FEATUREFINDER/GaussModel.h>
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
