@@ -131,6 +131,7 @@ namespace OpenMS
       "TRANSITION_ID INT NOT NULL," \
       "AREA_INTENSITY REAL NOT NULL," \
       "TOTAL_AREA_INTENSITY REAL NOT NULL," \
+      "APEX_RT REAL NULL," \
       "APEX_INTENSITY REAL NOT NULL," \
       "RT_FWHM REAL NOT NULL," \
       "MASSERROR_PPM REAL NULL,"
@@ -250,7 +251,7 @@ namespace OpenMS
 
           // Create sql query for storing transition level data, include peak shape metrics if they exist
           sql_feature_ms2_transition << "INSERT INTO FEATURE_TRANSITION "
-                         << "(FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, RT_FWHM, MASSERROR_PPM, TOTAL_MI"
+                         << "(FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, APEX_RT, RT_FWHM, MASSERROR_PPM, TOTAL_MI"
                          << (enable_compute_peak_shape_metrics_ ? ", START_POSITION_AT_5, END_POSITION_AT_5, "
                                          "START_POSITION_AT_10, END_POSITION_AT_10, START_POSITION_AT_50, END_POSITION_AT_50, "
                                          "TOTAL_WIDTH, TAILING_FACTOR, ASYMMETRY_FACTOR, SLOPE_OF_BASELINE, BASELINE_DELTA_2_HEIGHT, "
@@ -261,6 +262,7 @@ namespace OpenMS
                          << sub_it.getIntensity() << ", "
                          << sub_it.getMetaValue("total_xic") << ", "
                          << sub_it.getMetaValue("peak_apex_int") << ", "
+                         << sub_it.getMetaValue("peak_apex_position") << ", "
                          << sub_it.getMetaValue("width_at_50") << ", "
                          << masserror_ppm_query << ", "
                          << total_mi;
