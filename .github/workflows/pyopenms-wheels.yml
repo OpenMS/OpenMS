@@ -280,11 +280,12 @@ jobs:
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
           py=$(echo "$py" | tr -d " \n")
           pynodot=$(echo "$py" | tr -d ".")
+          PYBIN=$(echo /opt/python/cp*${pynodot})
+          
           # Create a venv for this python version
           "$PYBIN/bin/python" -m venv $pynodot
           source $pynodot/bin/activate
           
-          PYBIN=$(echo /opt/python/cp*${pynodot})
           "$PYBIN/bin/pip" install -U pip
           "$PYBIN/bin/pip" install -U Cython
           "$PYBIN/bin/pip" install -U setuptools
