@@ -12,7 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h> // for "median"
+#include <OpenMS/MATH/StatisticFunctions.h> // for "median"
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>

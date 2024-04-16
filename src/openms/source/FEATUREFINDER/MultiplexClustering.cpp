@@ -12,7 +12,7 @@
 #include <OpenMS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/FEATUREFINDER/MultiplexClustering.h>
 #include <OpenMS/FEATUREFINDER/PeakWidthEstimator.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/ML/CLUSTERING/GridBasedClustering.h>
 
 #include <QtCore/QDir>

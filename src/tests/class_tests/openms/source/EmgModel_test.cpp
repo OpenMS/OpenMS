@@ -13,7 +13,7 @@
 ///////////////////////////
 
 #include <OpenMS/FEATUREFINDER/EmgModel.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <boost/math/special_functions/fpclassify.hpp>
 
 

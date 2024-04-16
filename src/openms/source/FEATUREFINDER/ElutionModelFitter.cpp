@@ -10,7 +10,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/FEATUREFINDER/GaussTraceFitter.h>
 

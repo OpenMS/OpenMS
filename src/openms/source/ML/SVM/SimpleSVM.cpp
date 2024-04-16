@@ -12,7 +12,7 @@
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/ML/GRIDSEARCH/GridSearch.h>
 
 #include <cstdlib>

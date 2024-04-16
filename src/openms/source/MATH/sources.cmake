@@ -1,12 +1,10 @@
 ### the directory name
-set(directory source/MATH/MISC)
+set(directory source/MATH)
 
 ### list all filenames of the directory here
 set(sources_list
-BSpline2d.cpp
-CubicSpline2d.cpp
-EmgGradientDescent.cpp
-SplineBisection.cpp
+MathFunctions.cpp
+StatisticFunctions.cpp
 )
 
 ### add path to the filenames
@@ -19,4 +17,4 @@ endforeach(i)
 set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
-source_group("Source Files\\MATH\\MISC" FILES ${sources})
+source_group("Source Files\\MATH" FILES ${sources})

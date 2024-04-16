@@ -10,7 +10,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <boost/dynamic_bitset.hpp>
 

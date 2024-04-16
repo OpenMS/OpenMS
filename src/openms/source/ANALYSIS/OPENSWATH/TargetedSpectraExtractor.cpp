@@ -16,7 +16,7 @@
 #include <OpenMS/FILTERING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>

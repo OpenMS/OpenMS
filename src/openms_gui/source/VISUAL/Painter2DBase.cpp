@@ -10,7 +10,7 @@
 #include <OpenMS/VISUAL/Painter2DBase.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/LayerDataConsensus.h>

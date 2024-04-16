@@ -39,7 +39,7 @@
 #include <OpenMS/KERNEL/ConversionHelper.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MassTrace.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/SYSTEM/File.h>

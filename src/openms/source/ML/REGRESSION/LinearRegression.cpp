@@ -8,7 +8,7 @@
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/ML/REGRESSION/LinearRegression.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <Mathematics/Vector2.h>
 #include <Mathematics/ApprHeightLine2.h>

@@ -14,7 +14,7 @@
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 ///////////////////////////
 
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 

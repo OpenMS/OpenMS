@@ -11,7 +11,6 @@ GumbelDistributionFitter.h
 GumbelMaxLikelihoodFitter.h
 Histogram.h
 PosteriorErrorProbabilityModel.h
-StatisticFunctions.h
 )
 
 ### add path to the filenames

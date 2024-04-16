@@ -14,7 +14,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 namespace OpenMS
 {

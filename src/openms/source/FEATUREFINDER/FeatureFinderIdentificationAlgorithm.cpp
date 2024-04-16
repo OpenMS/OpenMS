@@ -22,7 +22,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 
 #include <vector>

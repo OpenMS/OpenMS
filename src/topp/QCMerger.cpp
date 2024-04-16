@@ -16,8 +16,8 @@
 #include <QFile>
 #include <QString>
 #include <QFileInfo>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 //~ #include <QIODevice>
 #include <algorithm>

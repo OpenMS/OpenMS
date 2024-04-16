@@ -12,7 +12,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/QC/PSMExplainedIonCurrent.h>
 #include <cfloat>
 #include <numeric>

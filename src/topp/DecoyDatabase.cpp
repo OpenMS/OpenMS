@@ -13,7 +13,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <regex>
 

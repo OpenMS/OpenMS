@@ -10,7 +10,7 @@
 #include <OpenMS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/FEATUREFINDER/EmgModel.h>
 
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
 #include <unsupported/Eigen/NonLinearOptimization>
