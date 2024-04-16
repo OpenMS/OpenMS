@@ -321,7 +321,7 @@ jobs:
           deactivate
         done
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v3 # ManyLinux2014 does not support Node20, which is required for v4. This is likely to be an issue as github phases out node16, but there doesn't seem to be a good workaround for now
       name: Upload artifacts
       with:
         name: ${{ runner.os }}-wheels
