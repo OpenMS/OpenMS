@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -86,10 +86,12 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
         /**
         * @brief constructor of iterator
         * 
+        * @param packages Spline packages to be accessed
+        * @param pos_max Maximum in m/z (or RT) of the spectrum (or chromatogram)
         * @param scaling    The step width can be scaled by this factor. Often it is advantageous to iterate
         * in slightly smaller steps over the spectrum (or chromatogram).
         */
-        Navigator(const std::vector<SplinePackage> * packages, double posMax, double scaling);
+        Navigator(const std::vector<SplinePackage>* packages, double pos_max, double scaling);
 
         /**
         * @brief constructor (for pyOpenMS)

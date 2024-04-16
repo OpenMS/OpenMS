@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,7 +12,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <algorithm>
 #include <iostream>
@@ -26,19 +26,19 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_IDExtractor IDExtractor
+@page TOPP_IDExtractor IDExtractor
 
-    @brief Extracts 'n' peptides randomly or best 'n' from idXML files.
+@brief Extracts 'n' peptides randomly or best 'n' from idXML files.
 
-    Input and output format are 'idXML'. The tools allows you to extract subsets of peptides
-    from idXML files.
+Input and output format are 'idXML'. The tools allows you to extract subsets of peptides
+from idXML files.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_IDExtractor.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_IDExtractor.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_IDExtractor.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_IDExtractor.html
 */
 
 // We do not want this class to show up in the docu:

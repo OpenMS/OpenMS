@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/COMPARISON/SpectrumAlignment.h>
 
 #include <OpenMS/KERNEL/Peak1D.h>
 
@@ -66,7 +66,6 @@ namespace OpenMS
 
       The matches are added as DataArrays to the spectrum (Names: IonName and IonMatchError). The parameters of the TheoreticalSpectrumGenerator define the comprehensiveness of the available matching. The parameters of SpectrumAlignment define the matching tolerance.
       See the parameter section of this class for the available options.
-      @htmlinclude OpenMS_SpectrumAnnotator.parameters
     */
     void annotateMatches(PeakSpectrum &spec, const PeptideHit& ph, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const;
 
@@ -80,7 +79,6 @@ namespace OpenMS
 
       The ion match statistics are added as UserParams to either the PeptideIdentification (parameters of the matching) and PeptideHit. The parameters of the TheoreticalSpectrumGenerator define the comprehensiveness of the available matching. The parameters of SpectrumAlignment define the matching tolerance.
       See the parameter section of this class for the available statistics.
-      @htmlinclude OpenMS_SpectrumAnnotator.parameters
     */
     void addIonMatchStatistics(PeptideIdentification& pi, MSSpectrum &spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const;
 
@@ -103,7 +101,6 @@ namespace OpenMS
       static const boost::regex ct_regex_;
       static const boost::regex noloss_regex_;
       static const boost::regex seriesposition_regex_;
-
   };
 }
 

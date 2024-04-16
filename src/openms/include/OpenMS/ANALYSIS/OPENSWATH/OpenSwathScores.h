@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -75,7 +75,7 @@ namespace OpenMS
     double weighted_coelution_score = 0;
     double weighted_xcorr_shape = 0;
     double weighted_massdev_score = 0;
-   
+
     double ms1_xcorr_coelution_score = -1;
     double ms1_xcorr_coelution_contrast_score = 0;
     double ms1_xcorr_coelution_combined_score = 0;
@@ -148,9 +148,9 @@ namespace OpenMS
     double calculate_lda_prescore(const OpenSwath_Scores& scores) const;
 
     /** @brief A scoring model for peak groups with a single transition
-     * 
+     *
      * Manually derived scoring model for single transition peakgroups, only
-     * uses norm_rt_score, log_sn_score, and elution_model_fit_score. 
+     * uses norm_rt_score, log_sn_score, and elution_model_fit_score.
      *
      * @returns A score which is better when more negative
      *

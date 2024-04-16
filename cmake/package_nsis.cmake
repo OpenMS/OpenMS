@@ -34,8 +34,14 @@
 
 ## Windows installer
 
+find_program(MAKENSIS_EXE makensis)
+
+if (NOT MAKENSIS_EXE)
+  MESSAGE(FATAL_ERROR "Could not find 'makensis.exe'. Please make sure it's in $PATH!")
+endif()
+
 ## check for correct NSIS version
-execute_process(COMMAND makensis /HDRINFO
+execute_process(COMMAND ${MAKENSIS_EXE} /HDRINFO
                 OUTPUT_VARIABLE NSIS_INFO 
                 COMMAND_ERROR_IS_FATAL ANY)                
 STRING(FIND ${NSIS_INFO} "Size of each section is 16408 bytes" NSIS_IS_8K) ## the 1k version gives "2072 bytes"
@@ -66,11 +72,9 @@ else()
 endif()
 
 
-
 #### Install System runtime libraries into /bin, so NSIS picks them up; this saves us from shipping a VC-Redist.exe with the installer
 set(CMAKE_INSTALL_OPENMP_LIBRARIES TRUE)
 set (CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ${INSTALL_LIB_DIR})
-message(STATUS "\nInstalling system libs to '${INSTALL_LIB_DIR}'\n")
 include(InstallRequiredSystemLibraries)
 
 

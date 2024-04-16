@@ -18,7 +18,7 @@
       </TH>
       <TH width="50%">
         <H3>%OpenMS library</H3>
-          Information for developers (please make sure to read the Developer Quickstart Guide).
+          Information for developers (please make sure to read the @ref developer_tutorial).
         <BR>&nbsp;
       </TH>
     </TR>
@@ -27,7 +27,11 @@
       <TD valign="top">
 
         <BR>
-        Documentation:
+
+        All aspects of using %OpenMS (installation, workflows, user tutorials etc), can be found on
+        our <em><a href="https://openms.readthedocs.io/en/latest/index.html">ReadTheDocs website</a></em>
+        
+        Only documentation for individual TOPP tools and TOPPAS remains here (since this is build directly from the %OpenMS source code using Doxygen):
         <UL>
           <LI> @subpage TOPP_documentation
           <LI> @subpage TOPPAS_tutorial
@@ -35,7 +39,7 @@
 
         Misc:
         <UL>
-          <LI> @subpage FAQ
+          <LI> @subpage user_FAQ
           <LI> @subpage ChangeLog
         </UL>
       </TD>
@@ -53,21 +57,16 @@
         Development:
         <UL>
           <LI> @subpage developer_tutorial
-          <LI> @subpage coding_conventions
+          <LI> @subpage developer_coding_conventions
           <LI> @subpage developer_faq
-          <LI> @subpage cpp_guide
-          <LI> @subpage how_to_write_tests
+          <LI> @subpage developer_cpp_guide
+          <LI> @subpage developer_how_to_write_tests
         </UL>
 
         Documentation:
         <UL>
-          <LI> <a class="el" href="https://pyopenms.readthedocs.io/en/latest/index.html" target="_blank">Developer Python Quickstart Guide (online)</a>
+          <LI> <a class="el" href="https://pyopenms.readthedocs.io/en/latest/index.html" target="_blank">Developer Python Guide (online)</a>
           <LI> @subpage external_code
-        </UL>
-
-        Misc:
-        <UL>
-          <LI> @subpage known_dev_bugs
         </UL>
 
       </TD>

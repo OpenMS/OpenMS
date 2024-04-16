@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -16,14 +16,14 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
+#include <OpenMS/FILTERING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/FEATUREFINDER/GaussModel.h>
+#include <OpenMS/COMPARISON/SpectrumAlignment.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
@@ -63,14 +63,14 @@ typedef vector<IsotopePattern> IsotopePatterns;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_MetaProSIP MetaProSIP
+@page TOPP_MetaProSIP MetaProSIP
 
-    @brief Performs proteinSIP on peptide features for elemental flux analysis.
+@brief Performs proteinSIP on peptide features for elemental flux analysis.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_MetaProSIP.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MetaProSIP.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MetaProSIP.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MetaProSIP.html
  */
 
 // We do not want this class to show up in the docu:

@@ -83,7 +83,6 @@
   - @subpage TOPP_ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).
   - @subpage TOPP_Decharger - Decharges and merges different feature charge variants of the same chemical entity.
   - @subpage TOPP_EICExtractor - Quantifies signals at given positions in (raw or picked) LC-MS maps.
-  - @subpage TOPP_ERPairFinder - Evaluates pair ratios on enhanced resolution (ER = zoom) scans.
   - @subpage TOPP_FeatureFinderCentroided - Detects two-dimensional features in centroided LC-MS data.
   - @subpage TOPP_FeatureFinderIdentification - Detects two-dimensional features in MS1 data based on peptide identifications.
   - @subpage TOPP_FeatureFinderMetabo - Detects two-dimensional features in centroided LC-MS data of metabolites.
@@ -96,7 +95,6 @@
   - @subpage TOPP_MetaProSIP - Detect labeled peptides from protein-SIP experiments.
   - @subpage TOPP_MultiplexResolver - Resolves conflicts between identifications and quantifications in multiplex data.
   - @subpage TOPP_ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps.
-  - @subpage TOPP_ProteinResolver - A peptide-centric algorithm for protein inference.
   - @subpage TOPP_ProteomicsLFQ - Perform label-free quantification in a single tool.
   - @subpage TOPP_SeedListGenerator - Generates seed lists for feature detection.
 
@@ -141,7 +139,6 @@
   <b>Map Alignment</b>
   - @subpage TOPP_MapAlignerIdentification - Corrects RT distortions between maps based on common peptide identifications using one map as reference.
   - @subpage TOPP_MapAlignerPoseClustering - Corrects RT distortions between maps using a pose clustering approach (not using pep-ids and a linear model).
-  - @subpage TOPP_MapAlignerSpectrum - Corrects RT distortions between maps by spectrum alignment.
   - @subpage TOPP_MapAlignerTreeGuided - Corrects RT distortions between maps based on common peptide identifications guided by a similarity tree.
   - @subpage TOPP_MapRTTransformer - Applies RT transformations to maps.
 
@@ -153,6 +150,7 @@
 
   <b>Targeted Experiments and OpenSWATH</b>
   - @subpage TOPP_AssayGeneratorMetabo - Generates an assay library using DDA data (Metabolomics).
+  - @subpage TOPP_AssayGeneratorMetaboSirius - Generates an assay library using SIRIUS project directory (Metabolomics).
   - @subpage TOPP_ClusterMassTracesByPrecursor - Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps.
   - @subpage TOPP_MRMMapper - MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML).
   - @subpage TOPP_MRMPairFinder - Evaluates labeled pair ratios on MRM features.
@@ -173,7 +171,6 @@
   <b>Cross-linking</b>
   - @subpage TOPP_OpenPepXL - Search for peptide pairs linked with a labeled cross-linker.
   - @subpage TOPP_OpenPepXLLF - Search for cross-linked peptide pairs in tandem MS spectra.
-  - @subpage TOPP_RNPxlSearch - Annotates RNA-to-peptide cross-links in MS/MS spectra.
   - @subpage TOPP_RNPxlXICFilter - Removes MS2 spectra from treatment based on the fold change between control and treatment for RNA-to-peptide cross-linking experiments.
   - @subpage TOPP_XFDR - Calculates false discovery rate estimates on cross-link identifications.
 
@@ -194,7 +191,7 @@
   <b>Metabolite Identification</b>
   - @subpage TOPP_AccurateMassSearch - Finds potential HMDB IDs within the given mass error window.
   - @subpage TOPP_MetaboliteSpectralMatcher - Identifies small molecules from tandem MS spectra.
-  - @subpage TOPP_SiriusAdapter - De novo metabolite identification.
+  - @subpage TOPP_SiriusExport - Export for Sirius de novo metabolite identification.
 
   <b>RNA</b>
   - @subpage TOPP_NucleicAcidSearchEngine - Search MzML files for oligonucleotides and their modifications.

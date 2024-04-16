@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,7 +14,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <OpenMS/METADATA/Precursor.h>
 
@@ -42,11 +42,10 @@ class OPENMS_DLLAPI PrecursorCorrection
 
      /**
      @brief Extract precursors and associated information (precursor retention time and precursor scan index).
-     @param exp: constant MSExperiment.
-     @param precursors: vector of Precursor.
-     @param precursors_rt: vector double of precursors retention time.
-     @param precursor_scan_index: vector size of precursor scan index.
-     @return vectors of Precursor, precursor retention time and precursor scan index.
+     @param exp: Spectra with precursors
+     @param[out] precursors: vector of all precursors in @p exp (can be more than one per MSn spectrum)
+     @param[out] precursors_rt: vector double of precursors retention time (same length as @p precursors)
+     @param[out] precursor_scan_index: Indices into @p exp, which have a precursor
      */
      static void getPrecursors(const MSExperiment & exp,
                               std::vector<Precursor> & precursors,
@@ -56,17 +55,19 @@ class OPENMS_DLLAPI PrecursorCorrection
 
      /**
      @brief Writer can be used in association with correctToNearestMS1Peak or correctToHighestIntensityMS1Peak.
-     @param out_csv: constant String for csv output.
-     @param delta_mzs: constant vector double  delta mass to charge.
-     @param mzs: constant vector double mass to charge.
-     @param rts: constant vector double retention time.
-     @return A csv file with additional information (RT, uncorrectedMZ, correctedMZ, deltaMZ).
+     A csv file with additional information (RT, uncorrectedMZ, correctedMZ, deltaMZ).
 
      Format:
      RT	    uncorrectedMZ	correctedMZ	deltaMZ
      100.1	509.9999	    510	         0.0001
      180.9	610.0001	    610	        -0.0001
      183.92	611.0035	    611.0033	  -0.0002
+     
+     @param out_csv: constant String for csv output.
+     @param delta_mzs: delta m/z column values.
+     @param mzs: m/z column vector (uncorrectedMZ)
+     @param rts: retention time column vector 
+     
      */
      static void writeHist(const String& out_csv,
                            const std::vector<double> & delta_mzs,

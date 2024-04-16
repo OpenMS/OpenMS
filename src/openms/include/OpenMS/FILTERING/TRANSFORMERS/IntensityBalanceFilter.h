@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -49,8 +49,6 @@ public:
 
     // @name Accessors
     // @{
-    ///
-    static FilterFunctor * create() { return new IntensityBalanceFilter(); }
 
     ///
     template <typename SpectrumType>
@@ -93,12 +91,6 @@ public:
       }
 
       return (twobiggest - sevensmallest) / total_intensity;
-    }
-
-    ///
-    static const String getProductName()
-    {
-      return "IntensityBalanceFilter";
     }
 
     // @}

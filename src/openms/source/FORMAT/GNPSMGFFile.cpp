@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,7 +9,7 @@
 //
 
 #include <OpenMS/FORMAT/GNPSMGFFile.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
+#include <OpenMS/COMPARISON/BinnedSpectralContrastAngle.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/FORMAT/FileHandler.h>

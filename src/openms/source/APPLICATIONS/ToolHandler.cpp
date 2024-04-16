@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -46,6 +46,7 @@ namespace OpenMS
 
     tools_map["AccurateMassSearch"] = Internal::ToolDescription("AccurateMassSearch", cat_ID_MTX);
     tools_map["AssayGeneratorMetabo"] = Internal::ToolDescription("AssayGeneratorMetabo", cat_targeted);
+    tools_map["AssayGeneratorMetaboSirius"] = Internal::ToolDescription("AssayGeneratorMetaboSirius", cat_targeted);
     tools_map["BaselineFilter"] = Internal::ToolDescription("BaselineFilter", cat_signal_proc_smooth_normalize);
     tools_map["ClusterMassTraces"] = Internal::ToolDescription("ClusterMassTraces", cat_misc);
     tools_map["ClusterMassTracesByPrecursor"] = Internal::ToolDescription("ClusterMassTracesByPrecursor", cat_targeted);
@@ -106,7 +107,6 @@ namespace OpenMS
     tools_map["LuciphorAdapter"] = Internal::ToolDescription("LuciphorAdapter", cat_ID_search);
     tools_map["MapAlignerIdentification"] = Internal::ToolDescription("MapAlignerIdentification", cat_map_align);
     tools_map["MapAlignerPoseClustering"] = Internal::ToolDescription("MapAlignerPoseClustering", cat_map_align);
-    tools_map["MapAlignerSpectrum"] = Internal::ToolDescription("MapAlignerSpectrum", cat_map_align);
     tools_map["MapAlignerTreeGuided"] = Internal::ToolDescription("MapAlignerTreeGuided", cat_map_align);
     tools_map["MapNormalizer"] = Internal::ToolDescription("MapNormalizer", cat_signal_proc_smooth_normalize);
     tools_map["MapRTTransformer"] = Internal::ToolDescription("MapRTTransformer", cat_map_align);
@@ -155,7 +155,6 @@ namespace OpenMS
     tools_map["PhosphoScoring"] = Internal::ToolDescription("PhosphoScoring", cat_ID_proc);
     tools_map["ProteinInference"] = Internal::ToolDescription("ProteinInference", cat_ID_proc);
     tools_map["ProteinQuantifier"] = Internal::ToolDescription("ProteinQuantifier", cat_quant);
-    tools_map["ProteinResolver"] = Internal::ToolDescription("ProteinResolver", cat_quant);
     tools_map["ProteomicsLFQ"] = Internal::ToolDescription("ProteomicsLFQ", cat_quant);
     tools_map["PSMFeatureExtractor"] = Internal::ToolDescription("PSMFeatureExtractor", cat_ID_proc);
     tools_map["QCCalculator"] = Internal::ToolDescription("QCCalculator", cat_QC);
@@ -169,14 +168,13 @@ namespace OpenMS
     tools_map["Resampler"] = Internal::ToolDescription("Resampler", cat_signal_proc_misc);
     tools_map["RNADigestor"] = Internal::ToolDescription("RNADigestor", cat_rna);
     tools_map["RNAMassCalculator"] = Internal::ToolDescription("RNAMassCalculator", cat_rna);
-    tools_map["RNPxlSearch"] = Internal::ToolDescription("RNPxlSearch", cat_crosslinking);
     tools_map["RNPxlXICFilter"] = Internal::ToolDescription("RNPxlXICFilter", cat_crosslinking);
     tools_map["SageAdapter"] = Internal::ToolDescription("SageAdapter", cat_ID_search);
     tools_map["SeedListGenerator"] = Internal::ToolDescription("SeedListGenerator", cat_quant);
     tools_map["SemanticValidator"] = Internal::ToolDescription("SemanticValidator", cat_dev);
     tools_map["SequenceCoverageCalculator"] = Internal::ToolDescription("SequenceCoverageCalculator", cat_ID_proc);
     tools_map["SimpleSearchEngine"] = Internal::ToolDescription("SimpleSearchEngine", cat_ID_search);
-    tools_map["SiriusAdapter"] = Internal::ToolDescription("SiriusAdapter", cat_ID_MTX);
+    tools_map["SiriusExport"] = Internal::ToolDescription("SiriusExport", cat_ID_MTX);
     tools_map["SpecLibCreator"] = Internal::ToolDescription("SpecLibCreator", cat_ID_proc);
     tools_map["SpecLibSearcher"] = Internal::ToolDescription("SpecLibSearcher", cat_ID_search);
     tools_map["SpectraFilterBernNorm"] = Internal::ToolDescription("SpectraFilterBernNorm", cat_signal_proc_smooth_normalize);

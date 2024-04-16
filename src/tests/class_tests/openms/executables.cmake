@@ -2,11 +2,8 @@ set(concept_executables_list
   ClassTest_test
   Colorizer_test
   Exception_Base_test
-  FactoryBase_test
-  Factory_test
   FuzzyStringComparator_test
   #GlobalExceptionHandler_test
-  SingletonRegistry_test
   StreamHandler_test
   VersionInfo_test
   LogConfigHandler_test
@@ -67,7 +64,6 @@ set(datastructures_executables_list
   MassExplainer_test
   MatchedIterator_test
   Matrix_test
-  #MatrixUtils_test
   OPXLDataStructs_test
   Param_test
   ParamValue_test
@@ -289,7 +285,6 @@ endif()
 
 set(math_executables_list
   AsymmetricStatistics_test
-  AveragePosition_test
   BasicStatistics_test
   BilinearInterpolation_test
   BSpline2d_test
@@ -319,7 +314,6 @@ set(math_executables_list
 set(filtering_executables_list
   BernNorm_test
   ComplementFilter_test
-  ComplementMarker_test
   DataFilters_test
   Deisotoper_test
   ElutionPeakDetection_test
@@ -335,11 +329,9 @@ set(filtering_executables_list
   InternalCalibration_test
   IsotopeDiffFilter_test
   IsotopeDistributionCache_test
-  IsotopeMarker_test
   LinearResampler_test
   LinearResamplerAlign_test
   LowessSmoothing_test
-  MarkerMower_test
   MassTraceDetection_test
   MorphologicalFilter_test
   MultiplexClustering_test
@@ -356,10 +348,8 @@ set(filtering_executables_list
   MZTrafoModel_test
   NLargest_test
   NeutralLossDiffFilter_test
-  NeutralLossMarker_test
   Normalizer_test
   ParentPeakMower_test
-  PeakMarker_test
   PrecursorCorrection_test
   SplineInterpolatedPeaks_test
   SplinePackage_test
@@ -441,7 +431,6 @@ set(chemistry_executables_list
   Tagger_test
   TheoreticalSpectrumGeneratorXLMS_test
   TheoreticalSpectrumGenerator_test
-  WeightWrapper_test
   Weights_test
 )
 
@@ -485,7 +474,6 @@ set(analysis_executables_list
   FIAMSScheduler_test
   FLASHDeconvAlgorithm_test
   FLASHDeconvHelperStructs_test
-  HiddenMarkovModel_test
   IDBoostGraph_test
   IDMapper_test
   IDMergerAlgorithm_test
@@ -505,6 +493,7 @@ set(analysis_executables_list
   ItraqEightPlexQuantitationMethod_test
   TMTSixPlexQuantitationMethod_test
   TMTTenPlexQuantitationMethod_test
+  TMTElevenPlexQuantitationMethod_test
   TMTSixteenPlexQuantitationMethod_test
   TMTEighteenPlexQuantitationMethod_test
   KDTreeFeatureMaps_test
@@ -519,7 +508,6 @@ set(analysis_executables_list
   MapAlignmentAlgorithmIdentification_test
   MapAlignmentAlgorithmKD_test
   MapAlignmentAlgorithmPoseClustering_test
-  MapAlignmentAlgorithmSpectrumAlignment_test
   MapAlignmentAlgorithmTreeGuided_test
   MapAlignmentEvaluationAlgorithmPrecision_test
   MapAlignmentEvaluationAlgorithmRecall_test
@@ -546,15 +534,9 @@ set(analysis_executables_list
   PoseClusteringAffineSuperimposer_test
   PoseClusteringShiftSuperimposer_test
   PrecursorPurity_test
-  ProtonDistributionModel_test
-  ProteinResolver_test
-  PSProteinInference_test
   QTClusterFinder_test
-  QuantitativeExperimentalDesign_test
   ReactionMonitoringTransition_test
-  RNPxlModificationsGenerator_test
   SimpleSearchEngineAlgorithm_test
-  SimplePairFinder_test
   SimpleSVM_test
   StablePairFinder_test
   PercolatorFeatureSetHelper_test
@@ -609,9 +591,7 @@ set(transformations_executables_list
   ModelDescription_test
   PeakPickerHiRes_test
   PeakPickerIterative_test
-  PeakPickerMaxima_test
   PeakWidthEstimator_test
-  ProductModel_test
   SeedListGenerator_test
   TraceFitter_test
 )

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -35,20 +35,6 @@ END_SECTION
 
 START_SECTION((virtual ~LabeledPairFinder()))
 	delete ptr;
-END_SECTION
-
-START_SECTION((static BaseGroupFinder* create()))
-	BaseGroupFinder* base_ptr = nullptr;
-  BaseGroupFinder* base_nullPointer = nullptr;
-	base_ptr = LabeledPairFinder::create();
-  TEST_NOT_EQUAL(base_ptr, base_nullPointer)
-  delete base_ptr;
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-  LabeledPairFinder spf;
-
-  TEST_STRING_EQUAL(spf.getProductName(),"labeled_pair_finder")
 END_SECTION
 
 FeatureMap features;

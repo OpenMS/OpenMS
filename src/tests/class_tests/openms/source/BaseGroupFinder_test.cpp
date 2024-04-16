@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -46,9 +46,6 @@ START_SECTION((virtual ~BaseGroupFinder()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((static void registerChildren()))
-  NOT_TESTABLE
-END_SECTION
 
 START_SECTION((virtual void run(const std::vector< ConsensusMap > &input, ConsensusMap &result)=0))
 	NOT_TESTABLE

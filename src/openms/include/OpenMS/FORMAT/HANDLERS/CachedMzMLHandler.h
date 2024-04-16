@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -104,10 +104,11 @@ public:
     /**
       @brief fast access to a spectrum (a direct copy of the data into the provided arrays)
 
-      @param data1 First data array (m/z)
-      @param data2 Second data array (Intensity)
-      @param ms_level Output parameter to store the MS level of the spectrum (1, 2, 3 ...)
-      @param rt Output parameter to store the retention time of the spectrum
+      @param[out] data1 First data array (m/z)
+      @param[out] data2 Second data array (Intensity)
+      @param ifs Input file stream (moved to the correct position)
+      @param[out] ms_level Output parameter to store the MS level of the spectrum (1, 2, 3 ...)
+      @param[out] rt Output parameter to store the retention time of the spectrum
 
       @throws Exception::ParseError is thrown if the spectrum cannot be read
     */
@@ -138,6 +139,7 @@ public:
 
       @param data1 First data array (RT)
       @param data2 Second data array (Intensity)
+      @param ifs Input file stream (moved to the correct position)
 
       @throws Exception::ParseError is thrown if the chromatogram size cannot be read
     */

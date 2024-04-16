@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -95,7 +95,8 @@ namespace OpenMS
       const auto& [it_unique, was_inserted] = unique_names.insert(fi.canonicalFilePath().toStdString());
       if (!was_inserted) // duplicate
       {
-        OPENMS_LOG_ERROR << "File '" << file.toStdString() << "' (resolved to '" << *it_unique << "') appears twice in the input list!" << std::endl;
+        const auto path = *it_unique;  // working around 'error: reference to local binding 'it_unique' declared in enclosing function' on Clang (capture of structured binding problem)
+        OPENMS_LOG_ERROR << "File '" << file.toStdString() << "' (resolved to '" << path << "') appears twice in the input list!" << std::endl;
         return false;
       }
     }

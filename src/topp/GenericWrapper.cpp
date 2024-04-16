@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,7 +11,6 @@
 
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -28,9 +27,9 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-    @page TOPP_GenericWrapper GenericWrapper
+@page TOPP_GenericWrapper GenericWrapper
 
-    @brief Allows generically the wrapping of external tools.
+@brief Allows generically the wrapping of external tools.
 <CENTER>
     <table>
         <tr>
@@ -56,60 +55,60 @@ using namespace std;
     </table>
 </CENTER>
 
-  This tool is a wrapper to call external (non-OpenMS) executables/scripts.
-  Each supported tool is represented by a certain <tt>type</tt>.
-  Each type exposes certain parameters which you can set (usually at least a <tt>in</tt> and <tt>out</tt>).
+This tool is a wrapper to call external (non-OpenMS) executables/scripts.
+Each supported tool is represented by a certain <tt>type</tt>.
+Each type exposes certain parameters which you can set (usually at least a <tt>in</tt> and <tt>out</tt>).
 
-  To obtain support for more external programs, visit the OpenMS website or (if you cannot find your tool there) ask on the OpenMS mailing list.
+To obtain support for more external programs, visit the OpenMS website or (if you cannot find your tool there) ask on the OpenMS mailing list.
 
-  <b>The following section is for experts only, who want to add their own external tool:</b>
+<b>The following section is for experts only, who want to add their own external tool:</b>
 
-  Each external tool is configured via a wrapper XML file in 'OpenMS/share/OpenMS/TOOLS/EXTERNAL'. All files have the ending .ttd (TOPP tool description).
-  You can add one or more wrappers (i.e. types) per file, but we recommend one. The filename does not really matter, but it should be descriptive.
+Each external tool is configured via a wrapper XML file in 'OpenMS/share/OpenMS/TOOLS/EXTERNAL'. All files have the ending .ttd (TOPP tool description).
+You can add one or more wrappers (i.e. types) per file, but we recommend one. The filename does not really matter, but it should be descriptive.
 
-  The ttd file has the following structure:
-  <table>
+The ttd file has the following structure:
+<table>
 
-  <tr><th>type</th><td>
-  The name of the type which is added to list of valid GenericWrapper types. It should be unique, otherwise you get a fatal error.
-  </td></tr>
+<tr><th>type</th><td>
+The name of the type which is added to list of valid GenericWrapper types. It should be unique, otherwise you get a fatal error.
+</td></tr>
 
-  <tr><th>category</th><td>
-  Category for TOPPAS.
-  </td></tr>
+<tr><th>category</th><td>
+Category for TOPPAS.
+</td></tr>
 
-  <tr><th>cloptions</th><td>
-  Command line options (arguments) appended to the executable.
-  This string might contain placeholders of the form "%&lt;i&gt;"
-  where each placeholder will be substituted with a value that is determined in the
-  mappings section (see below).
+<tr><th>cloptions</th><td>
+Command line options (arguments) appended to the executable.
+This string might contain placeholders of the form "%&lt;i&gt;"
+where each placeholder will be substituted with a value that is determined in the
+mappings section (see below).
 
-  Example:
+Example:
 @code
-<cloptions>-o "%1" --mzML "%2"</cloptions>
+  <cloptions>-o "%1" --mzML "%2"</cloptions>
 @endcode
-  </td></tr>
+</td></tr>
 
-  <tr><th>path</th><td>
-  Path (can be relative) to the executable that is executed.
-  </td></tr>
+<tr><th>path</th><td>
+Path (can be relative) to the executable that is executed.
+</td></tr>
 
-  <tr><th>mappings</th><td>
-  Used to replace placeholders with input parameters.
-  The mapping id corresponds to the placeholder in <tt>cloptions</tt>.
-  The template used as starting string is given in <tt>cl</tt>.
-  All tokens therein will be replaced and the result will be patched into the <tt>cloptions</tt> string.
-  Allowed tokens are:
-  <ul>
-  <li>\%TMP  --> The current temp directory, fetched using File::getTempDirectory()
-  <li>\%DIR --> directory prefix, e.g.:, c:/tmp/mzfile.mzML gives 'c:/tmp'
-  <li>\%BASENAME[file] --> the basename of a file, e.g. c:/tmp/myfile.mzML gives 'myfile'
-  <li>\%RND --> generates a long random number, which can be used to generate unique directory or file names in a &lt;file_pre&gt; tag
-  <li>\%WORKINGDIR --> expands to the current working directory (default is '.'), settable by &lt;workingdirectory&gt; tag in the .ttd file.
-  <li>\%\%&lt;param&gt; --> any param registered in the ini_param section, e.g. '\%\%in'
-  </ul>
+<tr><th>mappings</th><td>
+Used to replace placeholders with input parameters.
+The mapping id corresponds to the placeholder in <tt>cloptions</tt>.
+The template used as starting string is given in <tt>cl</tt>.
+All tokens therein will be replaced and the result will be patched into the <tt>cloptions</tt> string.
+Allowed tokens are:
+<ul>
+<li>\%TMP  --> The current temp directory, fetched using File::getTempDirectory()
+<li>\%DIR --> directory prefix, e.g.:, c:/tmp/mzfile.mzML gives 'c:/tmp'
+<li>\%BASENAME[file] --> the basename of a file, e.g. c:/tmp/myfile.mzML gives 'myfile'
+<li>\%RND --> generates a long random number, which can be used to generate unique directory or file names in a &lt;file_pre&gt; tag
+<li>\%WORKINGDIR --> expands to the current working directory (default is '.'), settable by &lt;workingdirectory&gt; tag in the .ttd file.
+<li>\%\%&lt;param&gt; --> any param registered in the ini_param section, e.g. '\%\%in'
+</ul>
 
-  Example:
+Example:
 @code
   <mapping id="2" cl="-output_file %BASENAME[%%in].mgf -temp_dir %TMP -depth 3" />
 @endcode
@@ -122,15 +121,15 @@ using namespace std;
   <ITEM name="out" value="" type="string" description="output XML file containg regression line and confidence interval" tags="output file" />
   <ITEM name="mz_tolerance" value="1" type="float" description="Tolerance in m/z dimension" />
 @endcode
-  </td></tr>
+</td></tr>
 
-  </table>
+</table>
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_GenericWrapper.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_GenericWrapper.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_GenericWrapper.cli
+<B>INI file documentation of this tool:</B>
 */
+// no @htmlinclude TOPP_GenericWrapper.html since it needs a type to create an .INI (which would be only valid for this type)
 
 
 // We do not want this class to show up in the docu:

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -67,18 +67,6 @@ START_SECTION((template<typename SpectrumType> double apply(SpectrumType& spectr
 	e_ptr->setParameters(p);
 	filter = e_ptr->apply(spec);
 	TEST_REAL_SIMILAR(filter, 2162)
-END_SECTION
-
-START_SECTION((static FilterFunctor* create()))
-	FilterFunctor* ff = IsotopeDiffFilter::create();
-	IsotopeDiffFilter filter;
-	TEST_EQUAL(ff->getParameters(), filter.getParameters())
-	TEST_EQUAL(ff->getName(), filter.getName())
-	delete ff;
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(e_ptr->getProductName(), "IsotopeDiffFilter")
 END_SECTION
 
 delete e_ptr;

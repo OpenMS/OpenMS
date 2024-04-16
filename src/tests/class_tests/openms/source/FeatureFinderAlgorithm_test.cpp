@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -52,11 +52,6 @@ namespace OpenMS
 			{
 				return this->features_;
 			}
-
-			const FeatureFinder* getFF()
-			{
-				return this->ff_;
-			}
 	};
 }
 
@@ -70,7 +65,6 @@ FFA* nullPointer = nullptr;
 
 PeakMap* map_nullPointer = nullptr;
 FeatureMap*  featureMap_nullPointer = nullptr;
-FeatureFinder*        ff_nullPointer = nullptr;
 
 START_SECTION((FeatureFinderAlgorithm()))
   ptr = new FFA();
@@ -91,20 +85,18 @@ START_SECTION((virtual Param getDefaultParameters() const))
 	TEST_EQUAL(String(ffa.getDefaultParameters().getValue("bla").toString()),"bluff")
 END_SECTION
 
-START_SECTION((void setData(const MapType& map, FeatureMap features, FeatureFinder& ff)))
+START_SECTION((void setData(const MapType& map, FeatureMap features)))
   FFA ffa;
   TEST_EQUAL(ffa.getMap(),map_nullPointer)
   TEST_EQUAL(ffa.getFeatures(),featureMap_nullPointer)
-  TEST_EQUAL(ffa.getFF(),ff_nullPointer)
 
   PeakMap map;
 	FeatureMap features;
 	FeatureFinder ff;
-	ffa.setData(map, features, ff);
+	ffa.setData(map, features);
 
   TEST_NOT_EQUAL(ffa.getMap(),map_nullPointer)
   TEST_NOT_EQUAL(ffa.getFeatures(),featureMap_nullPointer)
-  TEST_NOT_EQUAL(ffa.getFF(),ff_nullPointer)
 END_SECTION
 
 START_SECTION((virtual void setSeeds(const FeatureMap& seeds)))

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,8 +11,8 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -23,9 +23,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_FeatureFinderMRM FeatureFinderMRM
+@page TOPP_FeatureFinderMRM FeatureFinderMRM
 
- @brief The feature detection application for quantitation.
+@brief The feature detection application for quantitation.
 
 <CENTER>
  <table>
@@ -44,24 +44,24 @@ using namespace std;
  </table>
 </CENTER>
 
- This module identifies "features" in a LC/MS map. By feature, we understand a peptide in a MS sample that
- reveals a characteristic isotope distribution. The algorithm
- computes positions in rt and m/z dimension and a charge estimate
- of each peptide.
+This module identifies "features" in a LC/MS map. By feature, we understand a peptide in a MS sample that
+reveals a characteristic isotope distribution. The algorithm
+computes positions in rt and m/z dimension and a charge estimate
+of each peptide.
 
- How to find suitable parameters and details of the different algorithms implemented are described
- in the @ref TOPP_example_featuredetection "TOPP tutorial".
+How to find suitable parameters and details of the different algorithms implemented are described
+in the "TOPP tutorial" (on https://openms.readthedocs.io/).
 
- Specialized tools are available for some experimental techniques: @ref TOPP_IsobaricAnalyzer.
+Specialized tools are available for some experimental techniques: @ref TOPP_IsobaricAnalyzer.
 
- <B>The command line parameters of this tool are:</B>
- @verbinclude TOPP_FeatureFinderMRM.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_FeatureFinderMRM.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FeatureFinderMRM.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_FeatureFinderMRM.html
 
- For the parameters of the algorithm section see the algorithms documentation: @n
+For the parameters of the algorithm section see the algorithms documentation: @n
 
- @ref OpenMS::FeatureFinderAlgorithmMRM FeatureFinderAlgorithmMRM
+@ref OpenMS::FeatureFinderAlgorithmMRM FeatureFinderAlgorithmMRM
 
 */
 
@@ -90,7 +90,7 @@ protected:
 
   Param getSubsectionDefaults_(const String& /*section*/) const override
   {
-    return FeatureFinder().getParameters(FeatureFinderAlgorithmMRM::getProductName());
+    return FeatureFinderAlgorithmMRM().getDefaultParameters();
   }
 
   ExitCodes main_(int, const char**) override
@@ -104,8 +104,8 @@ protected:
     writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 
     //setup of FeatureFinder
-    FeatureFinder ff;
-    ff.setLogType(log_type_);
+    FeatureFinderAlgorithmMRM ff;
+    //ff.setLogType(log_type_); // TODO: add back
 
     //reading input data
     PeakMap exp;
@@ -133,7 +133,7 @@ protected:
     }
 
     // Apply the feature finder
-    ff.run(FeatureFinderAlgorithmMRM::getProductName(), exp, features, feafi_param, seeds);
+    ff.run(exp, features, feafi_param, seeds);
     features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // DEBUG

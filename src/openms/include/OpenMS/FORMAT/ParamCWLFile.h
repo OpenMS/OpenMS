@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -31,7 +31,7 @@ namespace OpenMS
 
        @param filename The name of the file the param data structure should be stored in.
        @param param The param data structure that should be stored.
-       @param ToolInfo Additional information about the Tool for which the param data should be stored.
+       @param tool_info Additional information about the Tool for which the param data should be stored.
 
        @exception std::ios::failure is thrown if the file could not be created
      */

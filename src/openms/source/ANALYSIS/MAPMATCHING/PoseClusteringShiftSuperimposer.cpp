@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,7 +10,7 @@
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
-#include <OpenMS/MATH/MISC/LinearInterpolation.h>
+#include <OpenMS/ML/INTERPOLATION/LinearInterpolation.h>
 
 // #define Debug_PoseClusteringShiftSuperimposer
 #ifdef Debug_PoseClusteringShiftSuperimposer
@@ -26,7 +26,7 @@ namespace OpenMS
   PoseClusteringShiftSuperimposer::PoseClusteringShiftSuperimposer() :
     BaseSuperimposer()
   {
-    setName(getProductName());
+    setName("PoseClusteringShiftSuperimposer");
 
     defaults_.setValue("mz_pair_max_distance", 0.5, "Maximum of m/z deviation of corresponding elements in different maps.  "
                                                     "This condition applies to the pairs considered in hashing.");

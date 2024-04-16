@@ -17,12 +17,12 @@ jobs:
   build-win:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         path: OpenMS
       
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.13
+      uses: jwlawson/actions-setup-cmake@v2
       with:
         cmake-version: '3.25.x'
 
@@ -124,7 +124,7 @@ jobs:
 
         done
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       name: Upload artifacts
       with:
         name: ${{ runner.os }}-wheels
@@ -133,24 +133,14 @@ jobs:
   build-macos:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         path: OpenMS
 
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.13
+      uses: jwlawson/actions-setup-cmake@v2
       with:
         cmake-version: '3.25.x'
-
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v3
-      with:
-        version: '5.12.7'
-        host: 'mac'
-        target: 'desktop'
-        install-deps: 'true'
-        cache: 'false'
-        setup-python: 'false' # https://github.com/jurplel/install-qt-action/issues/130
 
     - name: Install Miniconda
       shell: bash
@@ -168,28 +158,17 @@ jobs:
     - name: Install build tools
       run: brew install autoconf automake libtool
 
-    - name: Load contrib build
+    - name: Install contrib packages from brew
       run: |
-          mkdir contribbld
-          cd contribbld
-          curl -o contribbld.tar.gz https://abibuilder.cs.uni-tuebingen.de/archive/openms/contrib/macOS/10.15.5/x64/appleclang-11.0.0/contrib_build.tar.gz
-          tar -xzf contribbld.tar.gz
-          rm contribbld.tar.gz
-          cd .. 
-
-    - name: Load contrib and build OpenMP
-      run: |
-          git clone https://github.com/OpenMS/contrib.git
-          cd contribbld
-          cmake -DBUILD_TYPE=OPENMP -DNUMBER_OF_JOBS=4 -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 ../contrib
-
-    - name: Fix contrib install names
-      shell: bash
-      run: |
-          for lib in $GITHUB_WORKSPACE/contribbld/lib/*.dylib
-          do
-            install_name_tool -id $lib $lib
-          done
+        ## Needed for Qt. Install before to overwrite the default softlinks on the GH runners
+        brew install python3 --force --overwrite
+        brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
+        brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@5 libomp
+        echo "cmake_prefix=$(brew --prefix qt@5)/lib/cmake;$(brew --prefix qt@5)" >> $GITHUB_OUTPUT
+        echo "Qt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5" >> $GITHUB_ENV
+        if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
+          brew install --quiet doxygen ghostscript graphviz
+        fi
 
     - name: Build
       run: |
@@ -202,26 +181,10 @@ jobs:
         export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
         export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
 
-        # create symlinks like brew https://github.com/Homebrew/homebrew-core/blob/master/Formula/qt.rb#L61
-        pushd $Qt5_Dir/include
-          for f in $Qt5_Dir/lib/*.framework/Headers
-          do
-            lnknm=$(basename "${f%/*}" ".framework")
-            ln -s $f $lnknm
-          done
-          for f in $Qt5_Dir/lib/*.framework/Versions/5/Qt*
-          do
-            install_name_tool -id $Qt5_Dir/lib/$(basename $f).framework/Versions/Current/$(basename $f) $f
-          done
-          for f in $Qt5_Dir/lib/*.framework/Versions/Current/Qt*
-          do
-            install_name_tool -id $f $f
-          done
-        popd
         mkdir bld
         pushd bld
         # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
-        cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir};$GITHUB_WORKSPACE/contribbld/lib/" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
+        cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=OFF ../OpenMS
         make -j4 OpenMS
 
         mkdir pyopenms_whls
@@ -260,7 +223,7 @@ jobs:
 
         done
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       name: Upload artifacts
       if: always()
       with:
@@ -269,7 +232,7 @@ jobs:
           bld/CMakeCache.txt
           bld/pyOpenMS/env.py
         
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       name: Upload wheels
       with:
         name: ${{ runner.os }}-wheels
@@ -286,13 +249,13 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v3 # ManyLinux2014 does not support Node20, which is required for v4. This is likely to be an issue as github phases out node16, but there doesn't seem to be a good workaround for now
       name: Checkout sources
       with:
         path: OpenMS
 
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.13
+      uses: jwlawson/actions-setup-cmake@v1
       with:
         cmake-version: '3.25.x'
 
@@ -352,7 +315,7 @@ jobs:
         
         done
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       name: Upload artifacts
       with:
         name: ${{ runner.os }}-wheels
@@ -366,7 +329,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       name: Checkout sources
       with:
         path: OpenMS
@@ -395,7 +358,7 @@ jobs:
         echo "$HOME/miniconda3/Scripts" >> $GITHUB_PATH
 
     - name: Download artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
           name: ${{ runner.os }}-wheels
 
@@ -445,17 +408,17 @@ jobs:
     steps:
     # haha github is just ridiculous.. not getting their actions to do basic stuff for years
     - name: Download artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
           name: Linux-wheels
           path: /home/runner/work/OpenMS/OpenMS/Linux-wheels
     - name: Download artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
           name: Windows-wheels
           path: /home/runner/work/OpenMS/OpenMS/Windows-wheels
     - name: Download artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
           name: macOS-wheels
           path: /home/runner/work/OpenMS/OpenMS/macOS-wheels

@@ -59,11 +59,11 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 
 
 #------------------------------------------------------------------------------
-# third party libs shipped with OpenMS directly
+# external third-party libs statically linked to OpenMS
 #------------------------------------------------------------------------------
 # The following library is in our public API, so create export targets
 #install(EXPORT EvergreenTarget DESTINATION ${INSTALL_LIB_DIR}/cmake/OpenMS FILE OpenMSTargets.cmake COMPONENT cmake)
-add_subdirectory(thirdparty)
+add_subdirectory(extern)
 
 #------------------------------------------------------------------------------
 # external libs (contrib or system)
@@ -86,7 +86,7 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
-set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network)
+set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Eigen3::Eigen Qt5::Core Qt5::Network)
 
 ## setup the argumentes to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
 set(OPENMS_DEP_PRIVATE_LIBRARIES
@@ -97,7 +97,6 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   Boost::date_time
   Boost::iostreams
   Boost::regex
-  Eigen3::Eigen
   GTE
   Quadtree
   SIMDe
@@ -174,7 +173,7 @@ install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
   REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
   REGEX "OpenMS/examples" EXCLUDE
 )
-install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR}/examples examples)
+install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR} examples)
 
 # Devs also need our custom find modules
 install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_LIB_DIR}/cmake/OpenMS/Modules cmake)

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -68,18 +68,6 @@ START_SECTION((template<typename SpectrumType> double apply(SpectrumType& spectr
 	filter = e_ptr->apply(spec);
 	TEST_REAL_SIMILAR(filter, 132.5)
 	
-END_SECTION
-
-START_SECTION((static FilterFunctor* create()))
-	FilterFunctor* ff = ComplementFilter::create();
-	ComplementFilter cf;
-	TEST_EQUAL(ff->getParameters(), cf.getParameters())
-	TEST_EQUAL(ff->getName(), cf.getName())
-	delete ff;
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(e_ptr->getProductName(), "ComplementFilter")
 END_SECTION
 
 delete e_ptr;
