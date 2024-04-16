@@ -8,7 +8,7 @@
 
 #include <OpenMS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
 
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/FEATUREFINDER/GaussModel.h>
 #include <OpenMS/FEATUREFINDER/ExtendedIsotopeModel.h>

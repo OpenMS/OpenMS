@@ -8,7 +8,7 @@
 
 #include <OpenMS/FEATUREFINDER/MaxLikeliFitter1D.h>
 
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/FEATUREFINDER/InterpolationModel.h>
 
 namespace OpenMS

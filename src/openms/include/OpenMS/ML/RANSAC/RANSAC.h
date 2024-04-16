@@ -15,7 +15,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/ML/RANSAC/RANSACModelLinear.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <limits>       // std::numeric_limits
 #include <vector>       // std::vector

@@ -14,7 +14,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <OpenMS/METADATA/Precursor.h>
 

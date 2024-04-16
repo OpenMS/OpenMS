@@ -20,7 +20,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>
 
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/ML/REGRESSION/LinearRegressionWithoutIntercept.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>

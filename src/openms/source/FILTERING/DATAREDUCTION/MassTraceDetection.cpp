@@ -8,7 +8,7 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <boost/dynamic_bitset.hpp>
 
