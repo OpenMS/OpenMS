@@ -681,7 +681,7 @@ endif()
 IF(LINUX AND PY_NO_OUTPUT)
     add_custom_target(pyopenms
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg 2> /dev/null
-            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms . -vvv
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip 2> /dev/null
             #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace 2> /dev/null
             COMMENT "Packaging pyopenms wheel."
