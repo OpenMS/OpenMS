@@ -1,14 +1,18 @@
-# Function to automatically create source groups for files based on their directory structure
-function(assign_source_groups)
-    foreach(FILE_PATH ${ARGN})
-        # Get the directory part of the file path
-        get_filename_component(PARENT_DIR "${FILE_PATH}" DIRECTORY)
-        # Replace the base source or include directory path to form the group structure
-        string(REPLACE "${CMAKE_SOURCE_DIR}/source/OPENSWATHALGO/" "" GROUP "${PARENT_DIR}")
-        string(REPLACE "${CMAKE_SOURCE_DIR}/include/OpenMS/OPENSWATHALGO/" "" GROUP "${GROUP}")
-        string(REPLACE "/" "\\" GROUP "${GROUP}")
-
-        # Assign the file to the appropriate source group
-        source_group("${GROUP}" FILES "${FILE_PATH}")
+# Function to add files to a source group, stripping a base path if necessary
+function(add_to_source_group base_path group_prefix files)
+    set(sources_with_path "")
+    foreach(file ${files})
+        list(APPEND sources_with_path "${base_path}/${file}")
     endforeach()
+
+    # Create a formatted group name by removing the base path and replacing slashes
+    string(REPLACE "${CMAKE_SOURCE_DIR}/" "" group_name "${base_path}")
+    string(REPLACE "/" "\\" group_name "${group_name}")
+
+    # Prefix the group name if provided
+    if(NOT "${group_prefix}" STREQUAL "")
+        set(group_name "${group_prefix}\\${group_name}")
+    endif()
+
+    source_group("${group_name}" FILES ${sources_with_path})
 endfunction()
