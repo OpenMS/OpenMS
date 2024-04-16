@@ -289,7 +289,7 @@ jobs:
           "$PYBIN/bin/pip" install -U pip
           "$PYBIN/bin/pip" install -U Cython
           "$PYBIN/bin/pip" install -U setuptools
-          "$PYBIN/bin/pip" install -U wheel==0.31.1
+          "$PYBIN/bin/pip" install -U wheel
           "$PYBIN/bin/pip" install -U numpy
           "$PYBIN/bin/pip" install -U pytest
           "$PYBIN/bin/pip" install -U autowrap
