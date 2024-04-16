@@ -209,7 +209,7 @@ jobs:
 
           # build pyopenms distribution (macOS)
           cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=4 .
-          make -j4 pyopenms --trace
+          make -j4 pyopenms
 
           # copy to directory
           cp pyOpenMS/dist/*.whl pyopenms_whls/
@@ -281,7 +281,7 @@ jobs:
           py=$(echo "$py" | tr -d " \n")
           pynodot=$(echo "$py" | tr -d ".")
           # Create a venv for this python version
-          python -m venv $pynodot
+          "$PYBIN/bin/python" -m venv $pynodot
           source $pynodot/bin/activate
           
           PYBIN=$(echo /opt/python/cp*${pynodot})
@@ -295,7 +295,7 @@ jobs:
 
           # configure (don't copy deps since we use auditwheel)
           cmake -DNO_DEPENDENCIES=ON -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" -DPY_NUM_THREADS=4 $GITHUB_WORKSPACE/OpenMS
-          make -j4 pyopenms
+          make -j4 pyopenms --trace
           
           # ensure auditwheel can find the libraries
           export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
