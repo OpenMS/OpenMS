@@ -209,7 +209,7 @@ jobs:
 
           # build pyopenms distribution (macOS)
           cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=4 .
-          make -j4 pyopenms
+          make -j4 pyopenms --trace
 
           # copy to directory
           cp pyOpenMS/dist/*.whl pyopenms_whls/
