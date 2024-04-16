@@ -14,15 +14,14 @@
 
 namespace OpenMS
 {
-  OpenSwathOSWWriter::OpenSwathOSWWriter(const String& output_filename, const UInt64 run_id, const String& input_filename, bool ms1_scores, bool sonar, bool uis_scores, bool compute_peak_shape_metrics) :
+  OpenSwathOSWWriter::OpenSwathOSWWriter(const String& output_filename, const UInt64 run_id, const String& input_filename, bool ms1_scores, bool sonar, bool uis_scores) :
     output_filename_(output_filename),
     input_filename_(input_filename),
     run_id_(Internal::SqliteHelper::clearSignBit(run_id)),
     doWrite_(!output_filename.empty()),
     use_ms1_traces_(ms1_scores),
     sonar_(sonar),
-    enable_uis_scoring_(uis_scores),
-    enable_compute_peak_shape_metrics_(compute_peak_shape_metrics)
+    enable_uis_scoring_(uis_scores)
   {}
 
   bool OpenSwathOSWWriter::isActive() const
@@ -249,10 +248,11 @@ namespace OpenMS
             total_mi = sub_it.getMetaValue("total_mi").toString();
           }
 
+          bool enable_compute_peak_shape_metrics = sub_it.metaValueExists("start_position_at_5");
           // Create sql query for storing transition level data, include peak shape metrics if they exist
           sql_feature_ms2_transition << "INSERT INTO FEATURE_TRANSITION "
                          << "(FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, APEX_RT, RT_FWHM, MASSERROR_PPM, TOTAL_MI"
-                         << (enable_compute_peak_shape_metrics_ ? ", START_POSITION_AT_5, END_POSITION_AT_5, "
+                         << (enable_compute_peak_shape_metrics ? ", START_POSITION_AT_5, END_POSITION_AT_5, "
                                          "START_POSITION_AT_10, END_POSITION_AT_10, START_POSITION_AT_50, END_POSITION_AT_50, "
                                          "TOTAL_WIDTH, TAILING_FACTOR, ASYMMETRY_FACTOR, SLOPE_OF_BASELINE, BASELINE_DELTA_2_HEIGHT, "
                                          "POINTS_ACROSS_BASELINE, POINTS_ACROSS_HALF_HEIGHT" : "")
@@ -267,7 +267,7 @@ namespace OpenMS
                          << masserror_ppm_query << ", "
                          << total_mi;
 
-                         if (enable_compute_peak_shape_metrics_)
+                         if (enable_compute_peak_shape_metrics)
                          {
                             sql_feature_ms2_transition << ", "
                                           << sub_it.getMetaValue("start_position_at_5") << ", "
