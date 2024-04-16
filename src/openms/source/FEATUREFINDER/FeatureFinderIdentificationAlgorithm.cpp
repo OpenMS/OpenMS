@@ -55,6 +55,12 @@ namespace OpenMS
     defaults_.setMinInt("extract:batch_size", 1);
     defaults_.setValue("extract:mz_window", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)");
     defaults_.setMinFloat("extract:mz_window", 0.0);
+    defaults_.setValue(
+      "extract:IM_window", 
+      0.06, 
+      "Ion mobility window for chromatogram extraction (ignored if data does not contain IM information).");
+    defaults_.setMinFloat("extract:IM_window", 0.0);
+
     defaults_.setValue("extract:n_isotopes", 2, "Number of isotopes to include in each peptide assay.");
     defaults_.setMinInt("extract:n_isotopes", 2);
     defaults_.setValue(
@@ -399,6 +405,8 @@ namespace OpenMS
     //TODO for MS1 level scoring there is an additional parameter add_up_spectra with which we can add up spectra
     // around the apex, to complete isotopic envelopes (and therefore make this score more robust).
 
+    double IM_window = param_.getValue("extract:IM_window");
+
     if ((elution_model_ != "none") || (!candidates_out_.empty()))
     {
       params.setValue("write_convex_hull", "true");
@@ -546,6 +554,7 @@ namespace OpenMS
     {
       //TODO since ref_rt_map is only used after chunking, we could create
       // maps per chunk and merge them in the end. Would help in parallelizing as well.
+      // fills library_ (TargetedExperiment)
       createAssayLibrary_(chunk.first, chunk.second, ref_rt_map);
       OPENMS_LOG_DEBUG << "#Transitions: " << library_.getTransitions().size() << endl;
 
@@ -558,9 +567,17 @@ namespace OpenMS
         extractor.prepare_coordinates(chrom_temp, coords, library_,
                                       numeric_limits<double>::quiet_NaN(), false);
 
+        if (has_IM)
+        {
+          extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
+                                        mz_window_ppm_, IM_window, "tophat");
+        }
+        else
+        {
+          extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
+                                        mz_window_ppm_, "tophat");
+        }
 
-        extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
-                                       mz_window_ppm_, "tophat");
         extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
                                       chrom_data_.getChromatograms(), false);
       }
