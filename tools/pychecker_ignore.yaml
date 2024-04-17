@@ -183,8 +183,6 @@ PyOpenMSChecker:
         - findNext # iterator
     OpenMS::FeatureMap:
         - getAnnotationStatistics
-    OpenMS::FilterFunctor:
-        - apply
     OpenMS::ContinuousWaveletTransformNumIntegration:
         - transform
         - init

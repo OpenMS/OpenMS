@@ -60,6 +60,7 @@ Cleanup/Removal:
   - TOFCalibration
   - ERPairFinder
   - RNPxlSearch
+  - SpectraFilterParentPeakMower
 
 - removed library code:
   - HiddenMarkovModel

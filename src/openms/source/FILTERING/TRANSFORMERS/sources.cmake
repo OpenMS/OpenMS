@@ -4,20 +4,12 @@ set(directory source/FILTERING/TRANSFORMERS)
 ### list all filenames of the directory here
 set(sources_list
 BernNorm.cpp
-ComplementFilter.cpp
-FilterFunctor.cpp
-GoodDiffFilter.cpp
-IntensityBalanceFilter.cpp
-IsotopeDiffFilter.cpp
 LinearResampler.cpp
 NLargest.cpp
-NeutralLossDiffFilter.cpp
 Normalizer.cpp
-ParentPeakMower.cpp
 Scaler.cpp
 SpectraMerger.cpp
 SqrtMower.cpp
-TICFilter.cpp
 ThresholdMower.cpp
 WindowMower.cpp
 )
