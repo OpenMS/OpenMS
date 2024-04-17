@@ -240,7 +240,7 @@ jobs:
 
   build-lnx:
     runs-on: ubuntu-latest
-    container: ghcr.io/openms/contrib_manylinux2014:latest
+    container: ghcr.io/openms/contrib_manylinux_2_28:latest
 
     steps:
     # Cancels older builds if still running
