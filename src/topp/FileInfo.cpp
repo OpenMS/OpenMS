@@ -70,7 +70,7 @@ using namespace std;
 </CENTER>
 
 This tool can show basic information about the data in different file types, such as raw peak, featureXML and consensusXML files. It can
-- show information about the data range of a file (m/z, RT, intensity)
+- show information about the data range of a file (m/z, RT, ion mobility, intensity)
 - show a statistical summary for intensities, qualities, feature widths, precursor charges, activation methods
 - show an overview of the metadata
 - validate several XML formats against their XML schema
@@ -170,11 +170,17 @@ protected:
   template <class Map>
   void writeRangesHumanReadable_(const Map& map, ostream &os)
   {
-    os << "Ranges:"
-       << '\n'
-       << "  retention time: " << String::number(map.getMinRT(), 2) << " .. " << String::number(map.getMaxRT(), 2) << " sec (" << String::number((map.getMaxRT() - map.getMinRT()) / 60, 1) << " min)\n"
+    os << "Ranges:" << '\n'
+       << "  retention time: " << String::number(map.getMinRT(), 2) << " .. " << String::number(map.getMaxRT(), 2) << " sec ("
+       << String::number((map.getMaxRT() - map.getMinRT()) / 60, 1) << " min)\n"
        << "  mass-to-charge: " << String::number(map.getMinMZ(), 2) << " .. " << String::number(map.getMaxMZ(), 2) << '\n'
-       << "  intensity:      " << String::number(map.getMinIntensity(), 2) << " .. " << String::number(map.getMaxIntensity(), 2) << '\n'
+       << "    ion mobility: ";
+    if constexpr (std::is_base_of < RangeMobility, Map>())
+    {
+      if (map.RangeMobility::isEmpty()) os << " <none>\n";
+      else { os << String::number(map.getMinMobility(), 2) << " .. " << String::number(map.getMaxMobility(), 2) << '\n'; }
+    }
+    os << "       intensity: " << String::number(map.getMinIntensity(), 2) << " .. " << String::number(map.getMaxIntensity(), 2) << '\n'
        << '\n';
   }
 
