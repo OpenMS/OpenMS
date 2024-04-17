@@ -14,13 +14,12 @@
 
 namespace OpenMS
 {
-  OpenSwathOSWWriter::OpenSwathOSWWriter(const String& output_filename, const UInt64 run_id, const String& input_filename, bool ms1_scores, bool sonar, bool uis_scores) :
+  OpenSwathOSWWriter::OpenSwathOSWWriter(const String& output_filename, const UInt64 run_id, const String& input_filename, bool ms1_scores, bool uis_scores) :
     output_filename_(output_filename),
     input_filename_(input_filename),
     run_id_(Internal::SqliteHelper::clearSignBit(run_id)),
     doWrite_(!output_filename.empty()),
     use_ms1_traces_(ms1_scores),
-    sonar_(sonar),
     enable_uis_scoring_(uis_scores)
   {}
 
@@ -303,6 +302,8 @@ namespace OpenMS
       if (feature_it.metaValueExists("norm_RT") ) norm_rt = feature_it.getMetaValue("norm_RT");
       if (feature_it.metaValueExists("delta_rt") ) delta_rt = feature_it.getMetaValue("delta_rt");
 
+      bool sonar = feature_it.metaValueExists("var_sonar_lag");
+
       sql_feature << "INSERT INTO FEATURE (ID, RUN_ID, PRECURSOR_ID, EXP_RT, EXP_IM, NORM_RT, DELTA_RT, LEFT_WIDTH, RIGHT_WIDTH) VALUES ("
                   << feature_id << ", "
                   << run_id_ << ", "
@@ -324,7 +325,7 @@ namespace OpenMS
         "VAR_XCORR_COELUTION,VAR_XCORR_COELUTION_WEIGHTED, VAR_XCORR_SHAPE, "\
         "VAR_XCORR_SHAPE_WEIGHTED, VAR_YSERIES_SCORE, VAR_ELUTION_MODEL_FIT_SCORE, "\
         "VAR_IM_XCORR_SHAPE, VAR_IM_XCORR_COELUTION, VAR_IM_DELTA_SCORE"
-        << (sonar_ ? ", VAR_SONAR_LAG, VAR_SONAR_SHAPE, VAR_SONAR_LOG_SN, VAR_SONAR_LOG_DIFF, VAR_SONAR_LOG_TREND, VAR_SONAR_RSQ " : "")
+        << (sonar ? ", VAR_SONAR_LAG, VAR_SONAR_SHAPE, VAR_SONAR_LOG_SN, VAR_SONAR_LOG_DIFF, VAR_SONAR_LOG_TREND, VAR_SONAR_RSQ " : "")
         << ") VALUES ("
                       << feature_id << ", "
                       << feature_it.getIntensity() << ", "
@@ -361,7 +362,7 @@ namespace OpenMS
                       << getScore(feature_it, "var_im_xcorr_shape") << ", "
                       << getScore(feature_it, "var_im_xcorr_coelution") << ", "
                       << getScore(feature_it, "var_im_delta_score");
-      if (sonar_) {
+      if (sonar) {
         sql_feature_ms2 << ", " << getScore(feature_it, "var_sonar_lag")
                         << ", " << getScore(feature_it, "var_sonar_shape")
                         << ", " << getScore(feature_it, "var_sonar_log_sn")
