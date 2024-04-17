@@ -10,7 +10,6 @@
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
-#include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -18,8 +17,6 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
-#include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <vector>
 
@@ -129,12 +126,20 @@ public:
 
     // @name Merging functions
     // @{
-    ///
+    
+    /// Merges spectra block-wise, i.e. spectra are merged if they are close in RT. Each block consists of at most @p block_method:rt_block_size spectra and spans at most @p block_method:rt_max_length seconds.
+    /// The MS levels to be merged are specified by @p block_method:ms_levels. Spectra with other MS levels remain untouched.
     template <typename MapType>
     void mergeSpectraBlockWise(MapType& exp)
     {
       IntList ms_levels = param_.getValue("block_method:ms_levels");
-      Int rt_block_size(param_.getValue("block_method:rt_block_size"));
+      // just checking negative values
+      if ((Int)param_.getValue("block_method:rt_block_size") < 1)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The parameter 'block_method:rt_block_size' must be greater than 0.");
+      }
+      // now actually using an UNSIGNED int, so we can increase it by 1 even if the value is INT_MAX without overflow
+      UInt rt_block_size(param_.getValue("block_method:rt_block_size"));
       double rt_max_length = (param_.getValue("block_method:rt_max_length"));
 
       if (rt_max_length == 0) // no rt restriction set?
@@ -146,7 +151,7 @@ public:
       {
         MergeBlocks spectra_to_merge;
         Size idx_block(0);
-        SignedSize block_size_count(rt_block_size + 1);
+        UInt block_size_count(rt_block_size + 1);
         Size idx_spectrum(0);
         for (typename MapType::const_iterator it1 = exp.begin(); it1 != exp.end(); ++it1)
         {
@@ -661,7 +666,7 @@ protected:
               {
                 ++copy_of_align_index;
                 ++counter;
-              } // Count the number of peaks in a which correspond to a single b peak.
+              } // Count the number of peaks which correspond to a single b peak.
 
               while (!alignment.empty() &&
                      align_index < alignment.size() &&  
