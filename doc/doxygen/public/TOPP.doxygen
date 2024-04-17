@@ -44,6 +44,7 @@
   - @subpage TOPP_IDMerger -  Merges several protein/peptide identification files into one file.  
   - @subpage TOPP_IDRipper - Splits protein/peptide identifications according their file-origin.
   - @subpage TOPP_IDSplitter - Splits protein/peptide identifications off of annotated data files.
+  - @subpage TOPP_IonMobilityBinning - Merges spectra with similar IM values and creates @p N output mzML's by discretizing the IM range.
   - @subpage TOPP_MapStatistics - Extract extended statistics on the features of a map for quality control.
   - @subpage TOPP_MzMLSplitter - Splits an mzML file into multiple parts.
   
