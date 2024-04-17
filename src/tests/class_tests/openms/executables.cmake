@@ -313,21 +313,16 @@ set(math_executables_list
 
 set(filtering_executables_list
   BernNorm_test
-  ComplementFilter_test
   DataFilters_test
   Deisotoper_test
   ElutionPeakDetection_test
   FeatureFindingMetabo_test
   FeatureOverlapFilter_test
-  FilterFunctor_test
   FastLowessSmoothing_test
   GaussFilter_test
   GaussFilterAlgorithm_test
-  GoodDiffFilter_test
   IDFilter_test
-  IntensityBalanceFilter_test
   InternalCalibration_test
-  IsotopeDiffFilter_test
   IsotopeDistributionCache_test
   LinearResampler_test
   LinearResamplerAlign_test
@@ -347,7 +342,6 @@ set(filtering_executables_list
   MultiplexSatelliteProfile_test
   MZTrafoModel_test
   NLargest_test
-  NeutralLossDiffFilter_test
   Normalizer_test
   ParentPeakMower_test
   PrecursorCorrection_test
@@ -360,7 +354,6 @@ set(filtering_executables_list
   SignalToNoiseEstimatorMedianRapid_test
   SignalToNoiseEstimator_test
   SqrtMower_test
-  TICFilter_test
   ThresholdMower_test
   WindowMower_test
   SpectraMerger_test
