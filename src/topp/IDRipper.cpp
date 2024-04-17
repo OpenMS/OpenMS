@@ -97,18 +97,7 @@ protected:
     bool numeric_filenames = getFlag_("numeric_filenames");
     bool split_ident_runs = getFlag_("split_ident_runs");
 
-    if (out_dir.empty())
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please specify an output directory!");
-    }
-
-    QString dir_path = QFileInfo(out_dir.toQString()).absoluteFilePath();
-
-    if (!QDir(dir_path).exists())
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Specified path does not exist or is not a directory.");
-    }
-    String output_directory = dir_path.toStdString();
+    String output_directory = QFileInfo(out_dir.toQString()).absoluteFilePath().toStdString();
 
     //-------------------------------------------------------------
     // calculations
