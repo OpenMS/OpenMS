@@ -98,6 +98,7 @@ namespace Math
     return res;
   }
 
+  using BinContainer = std::vector<RangeBase>;
   /**
     @brief Split a range [min,max] into @p number_of_bins (with optional overlap) and return the ranges of each bin.
 
@@ -112,9 +113,8 @@ namespace Math
     @return Vector with @p number_of_bins elements, each representing the margins of one bin
 
     @throws OpenMS::Precondition if `min >= max` or `number_of_bins == 0`
-
   */
-  inline std::vector<RangeBase> createBins(double min, double max, uint32_t number_of_bins, double extend_margin = 0)
+  inline BinContainer createBins(double min, double max, uint32_t number_of_bins, double extend_margin = 0)
   {
     OPENMS_PRECONDITION(number_of_bins >= 1, "Number of bins must be >= 1")
     OPENMS_PRECONDITION(min < max, "Require min < max");
