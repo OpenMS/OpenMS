@@ -132,6 +132,8 @@ jobs:
 
   build-macos:
     runs-on: macos-latest
+    env:
+      SYSTEM_VERSION_COMPAT: 0 #courtesy of https://github.com/actions/setup-python/issues/469 in lieu of an actual solution.
     steps:
     - uses: actions/checkout@v4
       with:
