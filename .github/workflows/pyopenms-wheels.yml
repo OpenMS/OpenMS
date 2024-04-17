@@ -333,6 +333,8 @@ jobs:
   test:
     needs: [build-win, build-macos, build-lnx]
     runs-on: ${{ matrix.os }}
+    env:
+      SYSTEM_VERSION_COMPAT: 0 #courtesy of https://github.com/actions/setup-python/issues/469 in lieu of an actual solution.
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
