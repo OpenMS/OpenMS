@@ -407,7 +407,15 @@ namespace OpenMS
     // around the apex, to complete isotopic envelopes (and therefore make this score more robust).
 
     double IM_window = param_.getValue("extract:IM_window");
-
+      IMFormat im_format = IMTypes::determineIMFormat(exp);
+      bool has_IM = false;
+      if (im_format == IMFormat::CONCATENATED)
+      {
+        has_IM = true;
+      } else if (im_format != IMFormat::NONE) // has IM but wrong format
+      {
+        OPENMS_LOG_ERROR << "Wrong IM format detected. Expecting in concatenated format (float data arrays)" << std::endl;
+      }
     if ((elution_model_ != "none") || (!candidates_out_.empty()))
     {
       params.setValue("write_convex_hull", "true");
