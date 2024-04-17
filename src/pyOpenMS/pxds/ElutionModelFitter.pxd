@@ -3,7 +3,7 @@ from DefaultParamHandler cimport *
 from FeatureMap cimport *
 from FeatureFinderAlgorithmPickedHelperStructs cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/ElutionModelFitter.h>" namespace "OpenMS":
     
     cdef cppclass ElutionModelFitter(DefaultParamHandler) :
         # wrap-inherits:

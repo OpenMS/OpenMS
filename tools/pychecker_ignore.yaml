@@ -183,10 +183,6 @@ PyOpenMSChecker:
         - findNext # iterator
     OpenMS::FeatureMap:
         - getAnnotationStatistics
-    OpenMS::PSProteinInference:
-        - getNumberOfProtIdsPeptideRule
-    OpenMS::FilterFunctor:
-        - apply
     OpenMS::ContinuousWaveletTransformNumIntegration:
         - transform
         - init
@@ -259,23 +255,11 @@ PyOpenMSChecker:
         - secondary_types
         - static_intensities
         - conditional_prob
-    OpenMS::ProteinResolver::ISDGroup:
-        # STL pointer attributes / list
-        - proteins
-        - peptides
-        - msd_groups # TODO no converter for List
-    OpenMS::ProteinResolver::MSDGroup:
-        # STL pointer attributes / list
-        - proteins
-        - peptides
-        - isd_group # raw pointer
     OpenMS::PeptideAndProteinQuant::ProteinData:
         - ProteinData # constructor
         # STL attributes / map
         - abundances
         - total_abundances
-    OpenMS::ProteinResolver::PeptideEntry:
-        - proteins # std::list
     OpenMS::Base64:
         # unwrappable type (QByteArray)
         - decodeSingleString
@@ -441,10 +425,6 @@ PyOpenMSChecker:
     # immutable types by reference
     OpenMS::SequestOutfile:
         - readOutHeader
-    OpenMS::ProteinResolver:
-        # pointers
-        - getPeptideIdentification
-        - getPeptideHit
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Not implemented = errors in OpenMS API
@@ -531,18 +511,6 @@ PyOpenMSChecker:
         - Type
     OpenMS::ControlledVocabulary::CVTerm:
         - XRefType
-    OpenMS::ProteinResolver::ResolverResult:
-        - type
-        # attributes (raw ptrs)
-        - isds
-        - msds
-        - protein_entries
-        - peptide_entries
-        - reindexed_peptides
-        - reindexed_proteins
-        - input_type
-        - peptide_identification
-        - consensus_map
     OpenMS::ims::Weights:
         - Weights
     OpenMS::PeptideAndProteinQuant::Statistics:
@@ -793,12 +761,6 @@ PyOpenMSChecker:
     OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace:
         - max_peak
         - peaks
-    OpenMS::ProteinResolver::ProteinEntry:
-        - peptides
-        - fasta_entry
-        - indis
-        - type
-    # char pointer
     OpenMS::Peak2D:
         - shortDimensionName
         - shortDimensionNameRT
@@ -1390,7 +1352,6 @@ PyOpenMSChecker:
     # MATH - Python provides alternative functions for most
     - OpenMS::Math
     - OpenMS::Math::AsymmetricStatistics
-    - OpenMS::Math::AveragePosition
     - OpenMS::Math::BasicStatistics
     - OpenMS::Math::BilinearInterpolation
     - OpenMS::Math::GammaDistributionFitter

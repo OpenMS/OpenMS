@@ -13,7 +13,7 @@
 
 #include <iostream>
 
-#include <OpenMS/COMPARISON/SPECTRA/SteinScottImproveScore.h>
+#include <OpenMS/COMPARISON/SteinScottImproveScore.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 

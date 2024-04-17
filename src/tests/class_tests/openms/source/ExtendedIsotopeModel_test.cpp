@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeModel.h>
+#include <OpenMS/FEATUREFINDER/ExtendedIsotopeModel.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <sstream>
 

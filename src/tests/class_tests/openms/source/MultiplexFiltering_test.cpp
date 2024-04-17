@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFiltering.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 

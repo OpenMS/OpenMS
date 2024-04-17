@@ -106,7 +106,6 @@ PercolatorAdapter
 PhosphoScoring
 ProteinInference
 ProteinQuantifier
-ProteinResolver
 ProteomicsLFQ
 PSMFeatureExtractor
 QCCalculator
@@ -131,7 +130,6 @@ SpecLibSearcher
 SpectraFilterBernNorm
 SpectraFilterNLargest
 SpectraFilterNormalizer
-SpectraFilterParentPeakMower
 SpectraFilterScaler
 SpectraFilterSqrtMower
 SpectraFilterThresholdMower

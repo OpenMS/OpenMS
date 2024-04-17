@@ -11,7 +11,7 @@
 #include <OpenMS/CONCEPT/CommonEnums.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <tuple>
 #include <vector>

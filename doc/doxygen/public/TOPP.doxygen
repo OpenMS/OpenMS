@@ -62,7 +62,6 @@
   - @subpage TOPP_SpectraFilterBernNorm - Scales and filters spectra according to the Bern norm.
   - @subpage TOPP_SpectraFilterNLargest - Keeps only the n largest peaks per spectrum.
   - @subpage TOPP_SpectraFilterNormalizer - Scale intensities per spectrum to either sum to 1 or have a maximum of 1.
-  - @subpage TOPP_SpectraFilterParentPeakMower - Removes high peaks that could stem from unfragmented precursor ions.
   - @subpage TOPP_SpectraFilterScaler - Assigns new intensity per spectrum according to intensity rank.
   - @subpage TOPP_SpectraFilterSqrtMower - Scales the intensity of peaks to their sqrt.
   - @subpage TOPP_SpectraFilterThresholdMower - Removes all peaks below an intensity threshold.
@@ -96,7 +95,6 @@
   - @subpage TOPP_MetaProSIP - Detect labeled peptides from protein-SIP experiments.
   - @subpage TOPP_MultiplexResolver - Resolves conflicts between identifications and quantifications in multiplex data.
   - @subpage TOPP_ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps.
-  - @subpage TOPP_ProteinResolver - A peptide-centric algorithm for protein inference.
   - @subpage TOPP_ProteomicsLFQ - Perform label-free quantification in a single tool.
   - @subpage TOPP_SeedListGenerator - Generates seed lists for feature detection.
 

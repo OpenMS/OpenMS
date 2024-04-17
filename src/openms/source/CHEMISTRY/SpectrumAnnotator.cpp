@@ -8,8 +8,8 @@
 
 #include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 using namespace std;
 

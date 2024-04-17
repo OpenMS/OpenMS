@@ -59,7 +59,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
-#include <OpenMS/MATH/SVM/SimpleSVM.h>
+#include <OpenMS/ML/SVM/SimpleSVM.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
 #include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
@@ -67,18 +67,18 @@
 #include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSharedPeakCount.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSumAgreeingIntensities.h>
-#include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
-#include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
-#include <OpenMS/COMPARISON/SPECTRA/SteinScottImproveScore.h>
-#include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
+#include <OpenMS/COMPARISON/BinnedSharedPeakCount.h>
+#include <OpenMS/COMPARISON/BinnedSpectralContrastAngle.h>
+#include <OpenMS/COMPARISON/BinnedSpectrumCompareFunctor.h>
+#include <OpenMS/COMPARISON/BinnedSumAgreeingIntensities.h>
+#include <OpenMS/COMPARISON/PeakAlignment.h>
+#include <OpenMS/COMPARISON/PeakSpectrumCompareFunctor.h>
+#include <OpenMS/COMPARISON/SpectrumAlignment.h>
+#include <OpenMS/COMPARISON/SpectrumAlignmentScore.h>
+#include <OpenMS/COMPARISON/SpectrumCheapDPCorr.h>
+#include <OpenMS/COMPARISON/SpectrumPrecursorComparator.h>
+#include <OpenMS/COMPARISON/SteinScottImproveScore.h>
+#include <OpenMS/COMPARISON/ZhangSimilarityScore.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
@@ -90,18 +90,11 @@
 #include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ComplementFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/GoodDiffFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/IsotopeDiffFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NeutralLossDiffFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ParentPeakMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/FORMAT/MSPFile.h>
@@ -110,31 +103,31 @@
 #include <OpenMS/MATH/MISC/EmgGradientDescent.h>
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/QC/DBSuitability.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerIterative.h>
+#include <OpenMS/FEATUREFINDER/BaseModel.h>
+#include <OpenMS/FEATUREFINDER/BiGaussFitter1D.h>
+#include <OpenMS/FEATUREFINDER/BiGaussModel.h>
+#include <OpenMS/FEATUREFINDER/EGHTraceFitter.h>
+#include <OpenMS/FEATUREFINDER/ElutionModelFitter.h>
+#include <OpenMS/FEATUREFINDER/EmgFitter1D.h>
+#include <OpenMS/FEATUREFINDER/EmgModel.h>
+#include <OpenMS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
+#include <OpenMS/FEATUREFINDER/ExtendedIsotopeModel.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithm.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
+#include <OpenMS/FEATUREFINDER/Fitter1D.h>
+#include <OpenMS/FEATUREFINDER/GaussFitter1D.h>
+#include <OpenMS/FEATUREFINDER/GaussModel.h>
+#include <OpenMS/FEATUREFINDER/GaussTraceFitter.h>
+#include <OpenMS/FEATUREFINDER/InterpolationModel.h>
+#include <OpenMS/FEATUREFINDER/IsotopeFitter1D.h>
+#include <OpenMS/FEATUREFINDER/IsotopeModel.h>
+#include <OpenMS/FEATUREFINDER/MaxLikeliFitter1D.h>
+#include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
+#include <OpenMS/FEATUREFINDER/TraceFitter.h>
+#include <OpenMS/FILTERING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/FILTERING/CENTROIDING/PeakPickerIterative.h>
 
 // those are only added if GUI is enabled
 #ifdef WITH_GUI
@@ -354,7 +347,6 @@ int main(int argc, char** argv)
   DOCME(BinnedSharedPeakCount);
   DOCME(BinnedSpectralContrastAngle);
   DOCME(BinnedSumAgreeingIntensities);
-  DOCME(ComplementFilter);
 
   DOCME(ConsensusIDAlgorithmAverage);
   DOCME(ConsensusIDAlgorithmBest);
@@ -388,11 +380,9 @@ int main(int argc, char** argv)
   DOCME(GaussFilter);
   DOCME(GaussFitter1D);
   DOCME(GaussModel);
-  DOCME(GoodDiffFilter);
   DOCME(IDMapper);
   DOCME(IDRipper);
   DOCME(InterpolationModel);
-  DOCME(IsotopeDiffFilter);
   DOCME(IsotopeFitter1D);
   DOCME(IsotopeModel);
   DOCME(TMTSixPlexQuantitationMethod);
@@ -415,9 +405,7 @@ int main(int argc, char** argv)
   DOCME(MultiplexDeltaMassesGenerator);
   DOCME(NucleicAcidSpectrumGenerator);
   DOCME(NLargest);
-  DOCME(NeutralLossDiffFilter);
   DOCME(Normalizer);
-  DOCME(ParentPeakMower);
   DOCME(PeakAlignment);
   DOCME(PeakIntegrator);
   DOCME(PeakPickerHiRes);
@@ -439,7 +427,6 @@ int main(int argc, char** argv)
   DOCME(SqrtMower);
   DOCME(SteinScottImproveScore);
   DOCME(SpectraMerger);
-  DOCME(TICFilter);
   DOCME(TheoreticalSpectrumGenerator);
   DOCME(ThresholdMower);
   DOCME(TransitionTSVFile);

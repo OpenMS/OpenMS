@@ -11,8 +11,8 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
