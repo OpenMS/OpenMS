@@ -347,7 +347,6 @@ int main(int argc, char** argv)
   DOCME(BinnedSharedPeakCount);
   DOCME(BinnedSpectralContrastAngle);
   DOCME(BinnedSumAgreeingIntensities);
-  DOCME(ComplementFilter);
 
   DOCME(ConsensusIDAlgorithmAverage);
   DOCME(ConsensusIDAlgorithmBest);
@@ -381,11 +380,9 @@ int main(int argc, char** argv)
   DOCME(GaussFilter);
   DOCME(GaussFitter1D);
   DOCME(GaussModel);
-  DOCME(GoodDiffFilter);
   DOCME(IDMapper);
   DOCME(IDRipper);
   DOCME(InterpolationModel);
-  DOCME(IsotopeDiffFilter);
   DOCME(IsotopeFitter1D);
   DOCME(IsotopeModel);
   DOCME(TMTSixPlexQuantitationMethod);
@@ -408,9 +405,7 @@ int main(int argc, char** argv)
   DOCME(MultiplexDeltaMassesGenerator);
   DOCME(NucleicAcidSpectrumGenerator);
   DOCME(NLargest);
-  DOCME(NeutralLossDiffFilter);
   DOCME(Normalizer);
-  DOCME(ParentPeakMower);
   DOCME(PeakAlignment);
   DOCME(PeakIntegrator);
   DOCME(PeakPickerHiRes);
@@ -432,7 +427,6 @@ int main(int argc, char** argv)
   DOCME(SqrtMower);
   DOCME(SteinScottImproveScore);
   DOCME(SpectraMerger);
-  DOCME(TICFilter);
   DOCME(TheoreticalSpectrumGenerator);
   DOCME(ThresholdMower);
   DOCME(TransitionTSVFile);

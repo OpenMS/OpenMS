@@ -8,7 +8,6 @@ LinearResampler.h
 LinearResamplerAlign.h
 NLargest.h
 Normalizer.h
-ParentPeakMower.h
 Scaler.h
 SpectraMerger.h
 SqrtMower.h

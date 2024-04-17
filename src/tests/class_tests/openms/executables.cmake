@@ -343,7 +343,6 @@ set(filtering_executables_list
   MZTrafoModel_test
   NLargest_test
   Normalizer_test
-  ParentPeakMower_test
   PrecursorCorrection_test
   SplineInterpolatedPeaks_test
   SplinePackage_test
