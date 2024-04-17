@@ -249,13 +249,13 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
 
-    - uses: actions/checkout@v3 # ManyLinux2014 does not support Node20, which is required for v4. This is likely to be an issue as github phases out node16, but there doesn't seem to be a good workaround for now
+    - uses: actions/checkout@v4
       name: Checkout sources
       with:
         path: OpenMS
 
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1
+      uses: jwlawson/actions-setup-cmake@v2
       with:
         cmake-version: '3.25.x'
 
@@ -321,7 +321,7 @@ jobs:
           deactivate
         done
 
-    - uses: actions/upload-artifact@v3 # ManyLinux2014 does not support Node20, which is required for v4. This is likely to be an issue as github phases out node16, but there doesn't seem to be a good workaround for now
+    - uses: actions/upload-artifact@v4
       name: Upload artifacts
       with:
         name: ${{ runner.os }}-wheels
