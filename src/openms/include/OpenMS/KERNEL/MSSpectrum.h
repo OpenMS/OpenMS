@@ -544,6 +544,7 @@ public:
       @brief Get the Ion mobility data array's @p index and its associated @p unit
 
       This only works for spectra which represent an IM-frame, i.e. they have a float metadata array which is a child of 'MS:1002893 ! ion mobility array'?
+      Check this first by using `containsIMData()`.
 
       @throws Exception::MissingInformation if IM data is not present
     */
