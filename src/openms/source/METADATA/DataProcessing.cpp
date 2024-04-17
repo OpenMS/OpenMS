@@ -34,7 +34,8 @@ namespace OpenMS
     "Conversion to mzML format",
     "Conversion to mzXML format",
     "Conversion to DTA format",
-    "Identification"
+    "Identification",
+    "Ion mobility binning"
   };
 
   DataProcessing::~DataProcessing() = default;
