@@ -187,15 +187,19 @@ protected:
   template <class Map>
   void writeRangesMachineReadable_(const Map& map, ostream &os)
   {
-    os << "general: ranges: retention time: min"
-       << '\t' << String::number(map.getMinRT(), 2) << '\n'
-       << "general: ranges: retention time: max"
-       << '\t' << String::number(map.getMaxRT(), 2) << '\n'
-       << "general: ranges: mass-to-charge: min"
-       << '\t' << String::number(map.getMinMZ(), 2) << '\n'
-       << "general: ranges: mass-to-charge: max"
-       << '\t' << String::number(map.getMaxMZ(), 2) << '\n'
-       << "general: ranges: intensity: min"
+    os << "general: ranges: retention time: min" << '\t' << String::number(map.getMinRT(), 2) << '\n'
+       << "general: ranges: retention time: max" << '\t' << String::number(map.getMaxRT(), 2) << '\n'
+       << "general: ranges: mass-to-charge: min" << '\t' << String::number(map.getMinMZ(), 2) << '\n'
+       << "general: ranges: mass-to-charge: max" << '\t' << String::number(map.getMaxMZ(), 2) << '\n';
+    if constexpr (std::is_base_of < RangeMobility, Map>())
+    {
+      if (!map.RangeMobility::isEmpty())
+      {
+        os << "general: ranges: ion-mobility: min" << '\t' << String::number(map.getMinMobility(), 2) << '\n'
+           << "general: ranges: ion-mobility: max" << '\t' << String::number(map.getMaxMobility(), 2) << '\n';
+      }
+    }
+    os << "general: ranges: intensity: min"
        << '\t' << String::number(map.getMinIntensity(), 2) << '\n'
        << "general: ranges: intensity: max"
        << '\t' << String::number(map.getMaxIntensity(), 2) << '\n';
