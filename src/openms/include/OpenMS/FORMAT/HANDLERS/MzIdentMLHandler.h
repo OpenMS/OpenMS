@@ -27,6 +27,209 @@ namespace OpenMS
 
   namespace Internal
   {
+  /**
+    @brief Represents a object which can store the information of an analysisXML instance
+
+    //@todo docu (Andreas)
+
+    @ingroup Metadata
+  */
+  class OPENMS_DLLAPI IdentificationHit :
+    public MetaInfoInterface
+  {
+public:
+
+    /// @name constructors,destructors,assignment operator
+    //@{
+
+    /// Default constructor
+    IdentificationHit();
+    /// Copy constructor
+    IdentificationHit(const IdentificationHit &) = default;
+    /// Destructor
+    virtual ~IdentificationHit();
+    /// Move constructor
+    IdentificationHit(IdentificationHit&&) = default;
+
+    /// Assignment operator
+    IdentificationHit & operator=(const IdentificationHit &) = default;
+    /// Move assignment operator
+    IdentificationHit& operator=(IdentificationHit&&) & = default;
+
+    /// Equality operator
+    bool operator==(const IdentificationHit & rhs) const;
+    /// Inequality operator
+    bool operator!=(const IdentificationHit & rhs) const;
+    //@}
+
+    /// @name Accessors
+    //@{
+    /// sets the identifier
+    void setId(const String & id);
+
+    /// returns the id
+    const String & getId() const;
+
+    /// sets the charge state of the peptide
+    void setCharge(Int charge);
+
+    /// returns the charge state
+    Int getCharge() const;
+
+    /// sets the calculated mass to charge ratio
+    void setCalculatedMassToCharge(double mz);
+
+    /// returns the calculated mass to charge ratio
+    double getCalculatedMassToCharge() const;
+
+    /// sets the experimental mass to charge ratio
+    void setExperimentalMassToCharge(double mz);
+
+    /// returns the experimental mass to charge
+    double getExperimentalMassToCharge() const;
+
+    /// sets the name
+    void setName(const String & name);
+
+    /// returns the name
+    const String & getName() const;
+
+    /// sets whether the peptide passed the threshold
+    void setPassThreshold(bool pass);
+
+    /// returns whether the peptide passed the threshold
+    bool getPassThreshold() const;
+
+    /// set the rank of the peptide
+    void setRank(Int rank);
+
+    /// returns the rank of the peptide
+    Int getRank() const;
+    //@}
+
+
+protected:
+
+    String id_;                                     ///< identifier
+    Int charge_;                                    ///< peptide charge
+    double calculated_mass_to_charge_;         ///< calculated mass to charge ratio
+    double experimental_mass_to_charge_;         ///< experimental mass to charge ratio
+    String name_;                               ///< name
+    bool pass_threshold_;               ///< pass threshold
+    Int rank_;                                      ///< rank of the peptide
+  };
+
+  /**
+    @brief Represents a object which can store the information of an analysisXML instance
+
+        //@todo docu (Andreas)
+
+        @ingroup Metadata
+  */
+  class OPENMS_DLLAPI SpectrumIdentification :
+    public MetaInfoInterface
+  {
+public:
+
+    /// @name constructors,destructors,assignment operator
+    //@{
+    /// Default constructor
+    SpectrumIdentification() = default;
+    /// Destructor
+    virtual ~SpectrumIdentification();
+    /// Copy constructor
+    SpectrumIdentification(const SpectrumIdentification &) = default;
+    /// Move constructor
+    SpectrumIdentification(SpectrumIdentification&&) = default;
+    /// Assignment operator
+    SpectrumIdentification & operator=(const SpectrumIdentification &) = default;
+    /// Move assignment operator
+    SpectrumIdentification& operator=(SpectrumIdentification&&) & = default;
+    /// Equality operator
+    bool operator==(const SpectrumIdentification & rhs) const;
+    /// Inequality operator
+    bool operator!=(const SpectrumIdentification & rhs) const;
+    //@}
+
+    // @name Accessors
+    //@{
+    /// sets the identification hits of this spectrum identification (corresponds to single peptide hit in the list)
+    void setHits(const std::vector<IdentificationHit> & hits);
+
+    /// adds a single identification hit to the hits
+    void addHit(const IdentificationHit & hit);
+
+    /// returns the identification hits of this spectrum identification
+    const std::vector<IdentificationHit> & getHits() const;
+    //@}
+
+protected:
+
+    String id_; ///< Identifier
+    std::vector<IdentificationHit> hits_; ///< Single peptide hits
+  };
+
+    /**
+      @brief Represents a object which can store the information of an analysisXML instance
+
+          //@todo docu (Andreas)
+
+          @ingroup Metadata
+    */
+    class OPENMS_DLLAPI Identification :
+      public MetaInfoInterface
+    {
+  public:
+
+      /// @name constructors,destructors,assignment operator
+      //@{
+
+      /// Default constructor
+      Identification() = default;
+      /// Copy constructor
+      Identification(const Identification & source) = default;
+      /// Move constructor
+      Identification(Identification&&) = default;
+      /// Destructor
+      virtual ~Identification();
+
+      /// Assignment operator
+      Identification & operator=(const Identification & source) = default;
+      /// Move assignment operator
+      Identification& operator=(Identification&&) & = default;
+
+      /// Equality operator
+      bool operator==(const Identification & rhs) const;
+      /// Inequality operator
+      bool operator!=(const Identification & rhs) const;
+      //@}
+
+      /// @name Accessors
+      //@{
+      /// sets the date and time the file was written
+      void setCreationDate(const DateTime & date);
+
+      /// returns the date and time the file was created
+      const DateTime & getCreationDate() const;
+
+      /// sets the spectrum identifications
+      void setSpectrumIdentifications(const std::vector<SpectrumIdentification> & ids);
+
+      /// adds a spectrum identification
+      void addSpectrumIdentification(const SpectrumIdentification & id);
+
+      /// returns the spectrum identifications stored
+      const std::vector<SpectrumIdentification> & getSpectrumIdentifications() const;
+      //@}
+  protected:
+      String id_; ///< Identifier
+      DateTime creation_date_; ///< Date and time the search was performed
+      std::vector<SpectrumIdentification> spectrum_identifications_;
+    };
+
+  } //namespace OpenMS
+
+
 
     /**
         @brief XML STREAM handler for MzIdentMLFile
@@ -43,13 +246,9 @@ namespace OpenMS
 public:
       /**@name Constructors and destructor */
       //@{
-      /// Constructor for a write-only handler
-      MzIdentMLHandler(const Identification& id, const String& filename, const String& version, const ProgressLogger& logger);
       /// Constructor for a write-only handler for internal identification structures
       MzIdentMLHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
 
-      /// Constructor for a read-only handler
-      MzIdentMLHandler(Identification& id, const String& filename, const String& version, const ProgressLogger& logger);
       /// Constructor for a read-only handler for internal identification structures
       MzIdentMLHandler(std::vector<ProteinIdentification>& pro_id, std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
 
