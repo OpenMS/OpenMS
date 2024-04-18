@@ -1207,7 +1207,7 @@ START_SECTION(bool containsIMData() const)
 }
 END_SECTION
 
-START_SECTION(std::pair<Size, DriftTimeUnit> getIMData() const)
+START_SECTION((std::pair<Size,DriftTimeUnit> getIMData() const))
 {
   auto ds = getPrefilledSpec();
   auto [im_data_index, unit] = ds.getIMData();
