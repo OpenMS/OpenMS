@@ -93,7 +93,6 @@ set(metadata_executables_list
   Identification_test
   IdentificationData_test
   IdentificationDataConverter_test
-  IdentificationHit_test
   InstrumentSettings_test
   Instrument_test
   IonDetector_test
@@ -118,7 +117,6 @@ set(metadata_executables_list
   ScanWindow_test
   Software_test
   SourceFile_test
-  SpectrumIdentification_test
   SpectrumLookup_test
   SpectrumMetaDataLookup_test
   SpectrumSettings_test
