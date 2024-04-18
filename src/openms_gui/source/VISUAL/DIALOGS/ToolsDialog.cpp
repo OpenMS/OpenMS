@@ -442,8 +442,17 @@ namespace OpenMS
 
   String ToolsDialog::getExtension()
   {
-    // Return the first valid string for the extension on the output parameter
-    return vis_param_.getValidStrings(output_combo_->currentText().toStdString())[0];
+    // Try to Return the first valid string for the extension on the output parameter
+    String extension = FileTypes::typeToName(FileTypes::UNKNOWN);
+    try 
+    {
+      extension = vis_param_.getValidStrings(output_combo_->currentText().toStdString())[0];
+    }
+    catch (Exception::BaseException e)
+    {
+      QMessageBox::critical(this, "Error", QString("Error storing INI file: ") + e.what());
+    }
+    return extension;
   }
 
 }

@@ -1643,26 +1643,6 @@ namespace OpenMS
     // create and store unique file name prefix for files
     topp_.file_name = File::getTempDirectory() + "/TOPPView_" + File::getUniqueName();
     // Figure out the correct extension to give the temp file TODO start using OMS and cachedmzml
-    switch (layer.type)
-    {
-      case LayerDataBase::DataType::DT_PEAK:
-        topp_.file_extension = FileTypes::typeToName(FileTypes::MZML);
-        break;
-      case LayerDataBase::DataType::DT_CHROMATOGRAM:
-        topp_.file_extension = FileTypes::typeToName(FileTypes::MZML);
-        break;
-      case LayerDataBase::DataType::DT_FEATURE:
-        topp_.file_extension = FileTypes::typeToName(FileTypes::FEATUREXML);
-        break;
-      case LayerDataBase::DataType::DT_CONSENSUS:
-        topp_.file_extension = FileTypes::typeToName(FileTypes::CONSENSUSXML);
-        break;
-      case LayerDataBase::DataType::DT_IDENT:
-        topp_.file_extension = FileTypes::typeToName(FileTypes::IDXML);
-        break;
-      default:
-        topp_.file_extension = FileTypes::typeToName(FileTypes::UNKNOWN);
-    }
 
     if (!File::writable(topp_.file_name + "_ini"))
     {
@@ -1686,8 +1666,31 @@ namespace OpenMS
       topp_.in = tools_dialog.getInput();
       topp_.out = tools_dialog.getOutput();
       topp_.visible_area_only = visible_area_only;
+      // Build the input file name
+      String file_extension;
+      switch (layer.type)
+        {
+          case LayerDataBase::DataType::DT_PEAK:
+            file_extension = FileTypes::typeToName(FileTypes::MZML);
+            break;
+          case LayerDataBase::DataType::DT_CHROMATOGRAM:
+            file_extension = FileTypes::typeToName(FileTypes::MZML);
+            break;
+          case LayerDataBase::DataType::DT_FEATURE:
+            file_extension = FileTypes::typeToName(FileTypes::FEATUREXML);
+            break;
+          case LayerDataBase::DataType::DT_CONSENSUS:
+            file_extension = FileTypes::typeToName(FileTypes::CONSENSUSXML);
+            break;
+          case LayerDataBase::DataType::DT_IDENT:
+            file_extension = FileTypes::typeToName(FileTypes::IDXML);
+            break;
+          default:
+            file_extension = FileTypes::typeToName(FileTypes::UNKNOWN);
+        }
+      topp_.file_name_in = topp_.file_name + '_in.' + file_extension;
       // Get the output file extension
-      topp_.output_extension = tools_dialog.getExtension();
+      topp_.file_name_out = topp_.file_name + '_out.' + tools_dialog.getExtension();
       // run the tool
       runTOPPTool_();
     }
@@ -1717,18 +1720,18 @@ namespace OpenMS
 
 
     // delete old input and output file
-    File::remove(topp_.file_name + "_in." + topp_.file_extension);
-    File::remove(topp_.file_name + "_out." + topp_.output_extension);
+    File::remove(topp_.file_name_in);
+    File::remove(topp_.file_name_out);
 
     // test if files are writable
-    if (!File::writable(topp_.file_name + "_in." + topp_.file_extension))
+    if (!File::writable(topp_.file_name_in))
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "_in." + topp_.file_extension + "'!");
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name_in + "'!");
       return;
     }
-    if (!File::writable(topp_.file_name + "_out." + topp_.output_extension))
+    if (!File::writable(topp_.file_name_out))
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "_out." + topp_.output_extension + "'!");
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name_out + "'!");
       return;
     }
 
@@ -1744,7 +1747,7 @@ namespace OpenMS
       auto visitor_data = topp_.visible_area_only
                           ? layer.storeVisibleData(getActiveCanvas()->getVisibleArea().getAreaUnit(), layer.filters)
                           : layer.storeFullData();
-      visitor_data->saveToFile(topp_.file_name + "_in." + topp_.file_extension, ProgressLogger::GUI);
+      visitor_data->saveToFile(topp_.file_name_in, ProgressLogger::GUI);
     }
 
     // compose argument list
@@ -1752,12 +1755,12 @@ namespace OpenMS
     args << "-ini"
          << (topp_.file_name + "_ini").toQString()
          << QString("-%1").arg(topp_.in.toQString())
-         << (topp_.file_name + "_in." + topp_.file_extension).toQString()
+         << topp_.file_name_in.toQString()
          << "-no_progress";
     if (topp_.out != "")
     {
       args << QString("-%1").arg(topp_.out.toQString())
-           << (topp_.file_name + "_out." + topp_.output_extension).toQString();
+           << topp_.file_name_out.toQString();
     }
 
     // start log and show it
@@ -1829,13 +1832,13 @@ namespace OpenMS
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, QString("'%1' finished successfully").arg(topp_.tool.toQString()),
                       QString("Execution time: %1 ms").arg(topp_.timer.elapsed()));
-      if (!File::readable(topp_.file_name + "_out." + topp_.output_extension))
+      if (!File::readable(topp_.file_name + "_out." + topp_.file_name_out))
       {
-        log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot read TOPP output", String("Cannot read '") + topp_.file_name + "_out'" + topp_.file_extension + "!");
+        log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot read TOPP output", String("Cannot read '") + topp_.file_name_in + "!");
       }
       else
       {
-        addDataFile(topp_.file_name + "_out." + topp_.output_extension, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
+        addDataFile(topp_.file_name + "_out." + topp_.file_name_out, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
       }
     }
 
@@ -1848,8 +1851,8 @@ namespace OpenMS
     if (param_.getValue("preferences:topp_cleanup") == "true")
     {
       File::remove(topp_.file_name + "_ini");
-      File::remove(topp_.file_name + "_in." + topp_.file_extension);
-      File::remove(topp_.file_name + "_out." + topp_.output_extension);
+      File::remove(topp_.file_name_in);
+      File::remove(topp_.file_name_out);
     }
   }
 
