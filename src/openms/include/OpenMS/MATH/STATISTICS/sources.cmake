@@ -3,7 +3,6 @@ set(directory include/OpenMS/MATH/STATISTICS)
 
 ### list all header files of the directory here
 set(sources_list_h
-AsymmetricStatistics.h
 BasicStatistics.h
 GammaDistributionFitter.h
 GaussFitter.h
