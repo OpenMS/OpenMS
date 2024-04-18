@@ -1351,7 +1351,6 @@ PyOpenMSChecker:
 
     # MATH - Python provides alternative functions for most
     - OpenMS::Math
-    - OpenMS::Math::AsymmetricStatistics
     - OpenMS::Math::BasicStatistics
     - OpenMS::Math::BilinearInterpolation
     - OpenMS::Math::GammaDistributionFitter
