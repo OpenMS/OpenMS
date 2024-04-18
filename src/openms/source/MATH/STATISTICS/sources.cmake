@@ -3,7 +3,6 @@ set(directory source/MATH/STATISTICS)
 
 ### list all filenames of the directory here
 set(sources_list
-AsymmetricStatistics.cpp
 BasicStatistics.cpp
 GammaDistributionFitter.cpp
 GaussFitter.cpp
