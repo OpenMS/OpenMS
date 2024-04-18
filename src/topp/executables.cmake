@@ -129,7 +129,6 @@ SpecLibSearcher
 SpectraFilterBernNorm
 SpectraFilterNLargest
 SpectraFilterNormalizer
-SpectraFilterParentPeakMower
 SpectraFilterScaler
 SpectraFilterSqrtMower
 SpectraFilterThresholdMower
