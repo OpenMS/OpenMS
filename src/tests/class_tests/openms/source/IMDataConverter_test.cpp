@@ -144,7 +144,7 @@ START_SECTION(static MSExperiment reshapeIMFrameToMany(MSSpectrum im_frame))
 }
 END_SECTION
 
-START_SECTION(static std::tuple<std::vector<MSExperiment>, Math::BinContainer> splitExperimentByIonMobility(MSExperiment&& in, UInt number_of_IM_bins, double bin_extension_abs, double mz_binning_width, MZ_UNITS mz_binning_width_unit))
+START_SECTION((static std::tuple<std::vector<MSExperiment>, Math::BinContainer> splitExperimentByIonMobility(MSExperiment&& in, UInt number_of_IM_bins, double bin_extension_abs, double mz_binning_width, MZ_UNITS mz_binning_width_unit)))
 {
 	MSExperiment e_in;
 	e_in.addSpectrum(frame);
