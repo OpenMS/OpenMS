@@ -90,18 +90,11 @@
 #include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ComplementFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/GoodDiffFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/IsotopeDiffFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NeutralLossDiffFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ParentPeakMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/FORMAT/MSPFile.h>
@@ -354,7 +347,6 @@ int main(int argc, char** argv)
   DOCME(BinnedSharedPeakCount);
   DOCME(BinnedSpectralContrastAngle);
   DOCME(BinnedSumAgreeingIntensities);
-  DOCME(ComplementFilter);
 
   DOCME(ConsensusIDAlgorithmAverage);
   DOCME(ConsensusIDAlgorithmBest);
@@ -388,11 +380,9 @@ int main(int argc, char** argv)
   DOCME(GaussFilter);
   DOCME(GaussFitter1D);
   DOCME(GaussModel);
-  DOCME(GoodDiffFilter);
   DOCME(IDMapper);
   DOCME(IDRipper);
   DOCME(InterpolationModel);
-  DOCME(IsotopeDiffFilter);
   DOCME(IsotopeFitter1D);
   DOCME(IsotopeModel);
   DOCME(TMTSixPlexQuantitationMethod);
@@ -415,9 +405,7 @@ int main(int argc, char** argv)
   DOCME(MultiplexDeltaMassesGenerator);
   DOCME(NucleicAcidSpectrumGenerator);
   DOCME(NLargest);
-  DOCME(NeutralLossDiffFilter);
   DOCME(Normalizer);
-  DOCME(ParentPeakMower);
   DOCME(PeakAlignment);
   DOCME(PeakIntegrator);
   DOCME(PeakPickerHiRes);
@@ -439,7 +427,6 @@ int main(int argc, char** argv)
   DOCME(SqrtMower);
   DOCME(SteinScottImproveScore);
   DOCME(SpectraMerger);
-  DOCME(TICFilter);
   DOCME(TheoreticalSpectrumGenerator);
   DOCME(ThresholdMower);
   DOCME(TransitionTSVFile);
