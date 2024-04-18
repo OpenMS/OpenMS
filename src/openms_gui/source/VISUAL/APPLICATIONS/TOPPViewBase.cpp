@@ -1688,9 +1688,9 @@ namespace OpenMS
           default:
             file_extension = FileTypes::typeToName(FileTypes::UNKNOWN);
         }
-      topp_.file_name_in = topp_.file_name + '_in.' + file_extension;
+      topp_.file_name_in = topp_.file_name + "_in." + file_extension;
       // Get the output file extension
-      topp_.file_name_out = topp_.file_name + '_out.' + tools_dialog.getExtension();
+      topp_.file_name_out = topp_.file_name + "_out." + tools_dialog.getExtension();
       // run the tool
       runTOPPTool_();
     }
