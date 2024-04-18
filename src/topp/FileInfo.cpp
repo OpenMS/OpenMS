@@ -173,12 +173,12 @@ protected:
     os << "Ranges:" << '\n'
        << "  retention time: " << String::number(map.getMinRT(), 2) << " .. " << String::number(map.getMaxRT(), 2) << " sec ("
        << String::number((map.getMaxRT() - map.getMinRT()) / 60, 1) << " min)\n"
-       << "  mass-to-charge: " << String::number(map.getMinMZ(), 2) << " .. " << String::number(map.getMaxMZ(), 2) << '\n'
-       << "    ion mobility: ";
+       << "  mass-to-charge: " << String::number(map.getMinMZ(), 2) << " .. " << String::number(map.getMaxMZ(), 2) << '\n';
     if constexpr (std::is_base_of < RangeMobility, Map>())
     {
-      if (map.RangeMobility::isEmpty()) os << " <none>\n";
-      else { os << String::number(map.getMinMobility(), 2) << " .. " << String::number(map.getMaxMobility(), 2) << '\n'; }
+      os << "    ion mobility: ";
+      if (map.RangeMobility::isEmpty()) os << "<none>\n";
+      else os << String::number(map.getMinMobility(), 2) << " .. " << String::number(map.getMaxMobility(), 2) << '\n';
     }
     os << "       intensity: " << String::number(map.getMinIntensity(), 2) << " .. " << String::number(map.getMaxIntensity(), 2) << '\n'
        << '\n';
