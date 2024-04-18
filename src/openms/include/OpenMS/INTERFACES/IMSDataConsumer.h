@@ -13,6 +13,9 @@
 
 namespace OpenMS
 {
+  class MSSpectrum;
+  class MSChromatogram;
+  class ExperimentalSettings;
 
 namespace Interfaces
 {
