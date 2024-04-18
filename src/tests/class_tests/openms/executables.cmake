@@ -284,7 +284,6 @@ if(WITH_HDF5)
 endif()
 
 set(math_executables_list
-  AsymmetricStatistics_test
   BasicStatistics_test
   BilinearInterpolation_test
   BSpline2d_test
