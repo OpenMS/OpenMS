@@ -227,10 +227,6 @@ protected:
       std::vector<SpectrumIdentification> spectrum_identifications_;
     };
 
-  } //namespace OpenMS
-
-
-
     /**
         @brief XML STREAM handler for MzIdentMLFile
 

@@ -26,28 +26,6 @@ using namespace std;
 namespace OpenMS::Internal
   {
 
-    MzIdentMLHandler::MzIdentMLHandler(const Identification& id, const String& filename, const String& version, const ProgressLogger& logger) :
-      XMLHandler(filename, version),
-      logger_(logger),
-      //~ ms_exp_(0),
-      id_(nullptr),
-      cid_(&id)
-    {
-      cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-      unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
-    }
-
-    MzIdentMLHandler::MzIdentMLHandler(Identification& id, const String& filename, const String& version, const ProgressLogger& logger) :
-      XMLHandler(filename, version),
-      logger_(logger),
-      //~ ms_exp_(0),
-      id_(&id),
-      cid_(nullptr)
-    {
-      cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-      unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
-    }
-
     MzIdentMLHandler::MzIdentMLHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
