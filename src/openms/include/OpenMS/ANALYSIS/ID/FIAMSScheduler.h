@@ -36,7 +36,7 @@ public:
 
     /// Default constructor
     FIAMSScheduler(
-      String filename, ///< fulll path to the csv file
+      String filename, ///< full path to the csv file
       String base_dir = "/",  ///< base directory, where subdirectories within the CSV are located; must include a trailing slash at the end of the directory
       String output_dir = "/", ///< output dir for results; must include a trailing slash at the end of the directory
       bool load_cached_ = true ///< load the cached results if they exist
