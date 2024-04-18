@@ -67,6 +67,9 @@ public:
     String getInput();
     /// to get the currently selected tool-name
     String getTool();
+    /// get the default extension for the output file
+    String getExtension();
+
 
 private:
     /// ParamEditor for reading ini-files

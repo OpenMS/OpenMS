@@ -440,4 +440,10 @@ namespace OpenMS
     return tools_combo_->currentText();
   }
 
+  String ToolsDialog::getExtension()
+  {
+    // Return the first valid string for the extension on the output parameter
+    return vis_param_.getValidStrings(output_combo_->currentText().toStdString())[0];
+  }
+
 }

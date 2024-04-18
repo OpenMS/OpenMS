@@ -621,6 +621,7 @@ if ("${PY_NUM_MODULES}" GREATER "1")
       target_link_libraries(pyopenms_${nr} PRIVATE OpenMS)
       target_include_directories(pyopenms_${nr} SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDES})
       target_compile_options(pyopenms_${nr} PRIVATE ${EXTRA_WARNINGS})
+      target_compile_definitions(pyopenms_${nr} PRIVATE NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION)
       set_target_properties(pyopenms_${nr} PROPERTIES
         OUTPUT_NAME _pyopenms_${nr}
         PREFIX "" # if you build a shared module it adds lib as prefix
