@@ -160,7 +160,7 @@ namespace OpenMS
 
       // Start iteration from mz start, end iteration when mz value is larger than mz_end, only store only storing ion mobility values that are in the range
       double mz_end = mz_range.getMax();
-      while ( ( *mz_it < mz_end ) && (mz_it < mz_arr_end) )
+      while ((mz_it < mz_arr_end) && (*mz_it < mz_end))
       {
         if (im_range.contains(*im_it))
         {

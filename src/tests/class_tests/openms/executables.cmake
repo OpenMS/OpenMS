@@ -90,10 +90,8 @@ set(metadata_executables_list
   ExperimentalSettings_test
   Gradient_test
   HPLC_test
-  Identification_test
   IdentificationData_test
   IdentificationDataConverter_test
-  IdentificationHit_test
   InstrumentSettings_test
   Instrument_test
   IonDetector_test
@@ -105,7 +103,6 @@ set(metadata_executables_list
   MetaInfoRegistry_test
   MetaInfo_test
   Modification_test
-  MSQuantifications_test
   PeptideEvidence_test
   PeptideHit_test
   PeptideIdentification_test
@@ -118,7 +115,6 @@ set(metadata_executables_list
   ScanWindow_test
   Software_test
   SourceFile_test
-  SpectrumIdentification_test
   SpectrumLookup_test
   SpectrumMetaDataLookup_test
   SpectrumSettings_test
@@ -223,9 +219,6 @@ set(format_executables_list
   MzTabFile_test
   MzTabM_test
   MzTabMFile_test
-  # MSstatsFile_test
-  MzQuantMLFile_test
-  #MzQuantMLValidator_test
   MzXMLFile_test
   NoopMSDataConsumer_test
   TraMLValidator_test

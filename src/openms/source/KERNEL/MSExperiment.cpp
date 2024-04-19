@@ -226,9 +226,9 @@ namespace OpenMS
   }
 
   /**
-  @brief Updates the m/z, intensity, retention time and MS level ranges of all spectra with a certain ms level
+  @brief Updates the m/z, intensity, retention time, ion mobility and MS level ranges of all spectra with a certain ms level
 
-  @param ms_level MS level to consider for m/z range, RT range and intensity range (all MS levels if negative)
+  @param ms_level MS level to consider for m/z range, RT range, intensity range and ion mobility (if negative, all MS levels are used)
   */
   void MSExperiment::updateRanges(Int ms_level)
   {
@@ -262,9 +262,9 @@ namespace OpenMS
 
         // ranges
         this->extendRT(it->getRT()); // RT
-        this->extendMobility(it->getDriftTime()); // IM
+        // m/z, intensity and ion mobility from spectrum's range
         it->updateRanges();
-        this->extend(*it);           // m/z and intensity from spectrum's range
+        this->extend(*it);
       }
       // for MS level = 1 we extend the range for all the MS2 precursors
       if (ms_level == 1 && it->getMSLevel() == 2)

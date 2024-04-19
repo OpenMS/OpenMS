@@ -58,6 +58,7 @@ IDRTCalibration
 IDScoreSwitcher
 IDSplitter
 InternalCalibration
+IonMobilityBinning
 IsobaricAnalyzer
 JSONExporter
 LuciphorAdapter

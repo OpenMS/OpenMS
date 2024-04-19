@@ -496,8 +496,6 @@ PyOpenMSChecker:
         - NamesOfSpectrumType
     OpenMS::Instrument:
         - NamesOfIonOpticsType
-    OpenMS::MSQuantifications:
-        - NamesOfQuantTypes
     OpenMS::IonDetector:
         - Type
         - AcquisitionMode
@@ -1312,8 +1310,6 @@ PyOpenMSChecker:
     - OpenMS::Internal::MzMLHandlerHelper
     - OpenMS::Internal::MzMLHandlerHelper::BinaryData
     - OpenMS::Internal::MzMLValidator
-    - OpenMS::Internal::MzQuantMLHandler
-    - OpenMS::Internal::MzQuantMLValidator
     - OpenMS::Internal::MzXMLHandler
     - OpenMS::Internal::OpenMSOSInfo
     - OpenMS::Internal::OpenMSXMLFormatTarget

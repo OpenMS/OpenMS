@@ -37,9 +37,6 @@ namespace OpenMS
     calling FeatureXMLFile::store().  There will be a message on OPENMS_LOG_INFO but
     we will make no attempt to fix the problem in this class.  (all developers)
 
-    @note This format will eventually be replaced by the HUPO-PSI AnalysisXML
-    (mzIdentML and mzQuantML) formats!
-
     @ingroup FileIO
   */
   class OPENMS_DLLAPI FeatureXMLHandler :
