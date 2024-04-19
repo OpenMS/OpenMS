@@ -22,7 +22,7 @@ namespace OpenMS
 
         @ingroup SpectraPreprocessers
   */
-  class OPENMS_DLLAPI Scaler :
+  class OPENMS_DLLAPI RankScaler :
     public DefaultParamHandler
   {
 public:
@@ -30,14 +30,14 @@ public:
     // @name Constructors and Destructors
     // @{
     /// default constructor
-    Scaler();
+    RankScaler();
     /// destructor
-    ~Scaler() override;
+    ~RankScaler() override;
 
     /// copy constructor
-    Scaler(const Scaler & source);
+    RankScaler(const RankScaler & source);
     /// assignment operator
-    Scaler & operator=(const Scaler & source);
+    RankScaler & operator=(const RankScaler & source);
 
     // @}
 

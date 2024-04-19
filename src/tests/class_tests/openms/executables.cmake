@@ -304,7 +304,6 @@ set(math_executables_list
 )
 
 set(filtering_executables_list
-  BernNorm_test
   DataFilters_test
   Deisotoper_test
   ElutionPeakDetection_test
@@ -339,7 +338,7 @@ set(filtering_executables_list
   SplineInterpolatedPeaks_test
   SplinePackage_test
   SavitzkyGolayFilter_test
-  Scaler_test
+  RankScaler_test
   SignalToNoiseEstimatorMeanIterative_test
   SignalToNoiseEstimatorMedian_test
   SignalToNoiseEstimatorMedianRapid_test

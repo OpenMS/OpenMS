@@ -12,7 +12,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/FILTERING/TRANSFORMERS/Scaler.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/RankScaler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
@@ -21,33 +21,33 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(Scaler, "$Id$")
+START_TEST(RankScaler, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
 TOLERANCE_ABSOLUTE(0.01)
 
-Scaler* e_ptr = nullptr;
-Scaler* e_nullPointer = nullptr;
-START_SECTION((Scaler()))
-	e_ptr = new Scaler;
+RankScaler* e_ptr = nullptr;
+RankScaler* e_nullPointer = nullptr;
+START_SECTION((RankScaler()))
+	e_ptr = new RankScaler;
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
-START_SECTION((~Scaler()))
+START_SECTION((~RankScaler()))
 	delete e_ptr;
 END_SECTION
 
-e_ptr = new Scaler();
+e_ptr = new RankScaler();
 
-START_SECTION((Scaler(const Scaler& source)))
-	Scaler copy(*e_ptr);
+START_SECTION((RankScaler(const RankScaler& source)))
+	RankScaler copy(*e_ptr);
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 END_SECTION
 
-START_SECTION((Scaler& operator = (const Scaler& source)))
-	Scaler copy;
+START_SECTION((RankScaler& operator = (const RankScaler& source)))
+	RankScaler copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())

@@ -7,7 +7,7 @@ LinearResampler.h
 LinearResamplerAlign.h
 NLargest.h
 Normalizer.h
-Scaler.h
+RankScaler.h
 SpectraMerger.h
 SqrtMower.h
 ThresholdMower.h

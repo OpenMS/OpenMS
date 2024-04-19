@@ -63,7 +63,7 @@ class TestSpectraFilter(unittest.TestCase):
         self.assertNotEqual(new_firstspec[10].getIntensity(), self.exp[0][10].getIntensity())
 
     def test_map_Scaler(self):
-        thisfilter = pyopenms.Scaler();
+        thisfilter = pyopenms.RankScaler();
 
         old_firstspec = self.exp[0]
         thisfilter.filterPeakMap(self.exp)
@@ -76,7 +76,7 @@ class TestSpectraFilter(unittest.TestCase):
         self.assertNotEqual(old_firstspec[10].getIntensity(), self.exp[0][10].getIntensity())
 
     def test_spectrum_Scaler(self):
-        thisfilter = pyopenms.Scaler();
+        thisfilter = pyopenms.RankScaler();
 
         new_firstspec = self.exp[0]
         thisfilter.filterSpectrum(new_firstspec)

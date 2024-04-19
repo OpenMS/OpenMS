@@ -6,21 +6,21 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#include <OpenMS/FILTERING/TRANSFORMERS/Scaler.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/RankScaler.h>
 
 using namespace std;
 namespace OpenMS
 {
-  Scaler::Scaler() :
-    DefaultParamHandler("Scaler")
+  RankScaler::RankScaler() :
+    DefaultParamHandler("RankScaler")
   {
   }
 
-  Scaler::~Scaler() = default;
+  RankScaler::~RankScaler() = default;
 
-  Scaler::Scaler(const Scaler & source) = default;
+  RankScaler::RankScaler(const RankScaler & source) = default;
 
-  Scaler & Scaler::operator=(const Scaler & source)
+  RankScaler & RankScaler::operator=(const RankScaler & source)
   {
     if (this != &source)
     {
@@ -29,12 +29,12 @@ namespace OpenMS
     return *this;
   }
 
-  void Scaler::filterPeakSpectrum(PeakSpectrum & spectrum)
+  void RankScaler::filterPeakSpectrum(PeakSpectrum & spectrum)
   {
     filterSpectrum(spectrum);
   }
 
-  void Scaler::filterPeakMap(PeakMap & exp)
+  void RankScaler::filterPeakMap(PeakMap & exp)
   {
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {

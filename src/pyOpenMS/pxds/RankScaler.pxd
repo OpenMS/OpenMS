@@ -5,14 +5,14 @@ from ChromatogramPeak cimport *
 from Peak1D cimport *
 from DefaultParamHandler cimport *
 
-cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/Scaler.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/RankScaler.h>" namespace "OpenMS":
 
-    cdef cppclass Scaler(DefaultParamHandler):
+    cdef cppclass RankScaler(DefaultParamHandler):
         # wrap-inherits:
         #   DefaultParamHandler
 
-        Scaler()       except + nogil 
-        Scaler(Scaler &) except + nogil  #wrap-ignore
+        RankScaler()       except + nogil 
+        RankScaler(RankScaler &) except + nogil  #wrap-ignore
 
         void filterSpectrum(MSSpectrum & spec) except + nogil 
         void filterPeakSpectrum(MSSpectrum & spec) except + nogil 

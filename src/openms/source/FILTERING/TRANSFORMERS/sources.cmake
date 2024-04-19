@@ -6,7 +6,7 @@ set(sources_list
 LinearResampler.cpp
 NLargest.cpp
 Normalizer.cpp
-Scaler.cpp
+RankScaler.cpp
 SpectraMerger.cpp
 SqrtMower.cpp
 ThresholdMower.cpp
