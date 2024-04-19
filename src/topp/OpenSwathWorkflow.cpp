@@ -922,7 +922,7 @@ protected:
     ///////////////////////////////////
     FeatureMap out_featureFile;
     OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, sonar); // only active if filename not empty
-    OpenSwathOSWWriter oswwriter(out_osw, run_id, file_list[0], use_ms1_traces, enable_uis_scoring); // only active if filename not empty
+    OpenSwathOSWWriter oswwriter(out_osw, run_id, file_list[0], enable_uis_scoring); // only active if filename not empty
 
     ///////////////////////////////////
     // Extract and score

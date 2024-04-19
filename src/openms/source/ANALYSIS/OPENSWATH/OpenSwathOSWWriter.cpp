@@ -14,12 +14,11 @@
 
 namespace OpenMS
 {
-  OpenSwathOSWWriter::OpenSwathOSWWriter(const String& output_filename, const UInt64 run_id, const String& input_filename, bool ms1_scores, bool uis_scores) :
+  OpenSwathOSWWriter::OpenSwathOSWWriter(const String& output_filename, const UInt64 run_id, const String& input_filename, bool uis_scores) :
     output_filename_(output_filename),
     input_filename_(input_filename),
     run_id_(Internal::SqliteHelper::clearSignBit(run_id)),
     doWrite_(!output_filename.empty()),
-    use_ms1_traces_(ms1_scores),
     enable_uis_scoring_(uis_scores)
   {}
 
@@ -372,7 +371,7 @@ namespace OpenMS
       }
       sql_feature_ms2 << "); ";
 
-      if (use_ms1_traces_)
+      if (feature_it.metaValueExists("ms1_apex_intensity")) // MS1-level scores, only if exist
       {
         sql_feature_ms1 << "INSERT INTO FEATURE_MS1 "\
           "(FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, EXP_IM, DELTA_IM, "\
