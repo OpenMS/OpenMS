@@ -27,19 +27,23 @@ Library:
 - TOPPView: offer Ion mobility view from 2D spectra view (#7423)
 - TOPPView: view ion mobility frames, irrespective of its MS level (formerly only MS1 was supported) (#7427)
 
+New Tools:
+- IonMobilityBinning - Merges spectra with similar IM values and creates @p N output mzML's by discretizing the IM range (#7459)
+
 
 Fixes:
-- TOPPView: fix crash when viewing certain Chromatograms (#7220)
-- TOPPView: in 2D view, show correct adjacent layers in context menu, if user clicked to the right of the last MS1 scan (now shows the 4 rightmost MS1 scans, used to show the 4 leftmost scans) (#7423)
-- more robust parsing of mzIdentML (#7153)
-- more robust FileConverter (#7176)
+- FileConverter: more robust (#7176)
 - MSFragger: allow relative path to database (#7155)
 - MSGFPlusAdapter: allow concurrent creation of indexed database (#7272)
 - ParamEditor: fixed error for the subsection parameter (ParamNode) to go through store function (#7180)
+- TOPPView: fix crash when viewing certain Chromatograms (#7220)
+- TOPPView: in 2D view, show correct adjacent layers in context menu, if user clicked to the right of the last MS1 scan (now shows the 4 rightmost MS1 scans, used to show the 4 leftmost scans) (#7423)
 - TOPPAS: open files in TOPPView (#7213)
 - pyOpenMS: Log warnings in pure Python code with warnings.warn instead of print (#7418)
+- more robust parsing of mzIdentML (#7153)
 
 Misc:
+- FileInfo: Report IM ranges (if any) (#7459)
 - OpenMSInfo reports the ILP solver (CoinOr or glpk) (#7156)
 - add citation information for OpenMS 3.0 (Nat. Methods) (#7383)
 - Add export for Common Workflow Language (CWL) (#6156)
