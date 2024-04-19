@@ -1838,7 +1838,7 @@ namespace OpenMS
       }
       else
       {
-        addDataFile(topp_.file_name + "_out." + topp_.file_name_out, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
+        addDataFile(topp_.file_name_out, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
       }
     }
 
