@@ -15,8 +15,6 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/FORMAT/MzQuantMLFile.h>
-#include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/config.h>
 
 using namespace OpenMS;
@@ -235,25 +233,6 @@ protected:
       addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
 
       featureFile.storeFeatures(out, map, {FileTypes::FEATUREXML});
-    }
-
-    //----------------------------------------------------------------
-    // MzQuantML
-    //----------------------------------------------------------------
-    if (in_type == FileTypes::MZQUANTML)
-    {
-      MSQuantifications msq;
-      FileHandler quantFile;
-      quantFile.loadQuantifications(in, msq, {FileTypes::MZQUANTML});
-
-      bool measure_from_subelements = getFlag_("consensus:use_subelements");
-      for (ConsensusMap& cm : msq.getConsensusMaps())
-      {
-        mapper.annotate(cm, peptide_ids, protein_ids, measure_from_subelements);
-        // annotate output with data processing info
-        addDataProcessing_(cm, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
-      }
-      quantFile.storeQuantifications(out, msq, {FileTypes::MZQUANTML});
     }
 
     return EXECUTION_OK;

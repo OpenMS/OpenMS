@@ -21,7 +21,6 @@
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/FORMAT/MzQCFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
@@ -317,11 +316,6 @@ namespace OpenMS
     if (all_simple.hasSubstring("<MzIdentML"))
     {
       return FileTypes::MZIDENTML;
-    }
-    //mzq (all lines)
-    if (all_simple.hasSubstring("<qcML"))
-    {
-      return FileTypes::MZQUANTML;
     }
     //subject to change!
     if (all_simple.hasSubstring("<MzQualityMLType"))
@@ -1335,67 +1329,6 @@ namespace OpenMS
       default:
       {
         throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing transitions"); 
-      }
-    }
-  }
-
-  void FileHandler::loadQuantifications(const String& filename, MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
-  {
-    //determine file type
-    FileTypes::Type type = getType(filename);
-    if (allowed_types.size() != 0)
-    {
-      if (!FileTypeList(allowed_types).contains(type))
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for loading quantifications, Allowed types are: " + allowedToString_(allowed_types));
-      }
-    }
-    switch (type)
-    {
-      case FileTypes::MZQUANTML:
-      {
-        MzQuantMLFile f;
-        f.setLogType(log);
-        f.load(filename, map);
-      }
-      break;
-      
-      default:
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,"type: " + FileTypes::typeToName(type) + " is not supported for loading quantifications");
-      }
-    }
-  }
-
-  void FileHandler::storeQuantifications(const String& filename, const MSQuantifications& map,  const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
-  {
-    auto type = getTypeByFileName(filename);
-    if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
-    { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
-      type = allowed_types[0];
-    }
-    // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
-    {
-      if (!FileTypeList(allowed_types).contains(type))
-      {
-        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing quantifications. Allowed types are: " + allowedToString_(allowed_types));
-      }
-    }
-    
-    switch (type)
-    {
-      case FileTypes::MZQUANTML:
-      {
-        MzQuantMLFile f;
-        f.setLogType(log);
-        f.store(filename, map);
-      }
-      break;
-
-      default:
-      {
-        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing quantifications");
       }
     }
   }

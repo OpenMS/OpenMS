@@ -12,8 +12,6 @@
 #include <OpenMS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/MzQuantMLFile.h>
-#include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <limits>
@@ -136,9 +134,6 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
     registerInputFile_("seeds", "<file>", "", "User specified seed list", false);
     setValidFormats_("seeds", ListUtils::create<String>("featureXML"));
-
-    registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
-    setValidFormats_("out_mzq", ListUtils::create<String>("mzq"));
 
     addEmptyLine_();
 
@@ -268,19 +263,6 @@ protected:
     }
 
     map_file.storeFeatures(out, features, {FileTypes::FEATUREXML});
-
-    if (!out_mzq.trim().empty())
-    {
-      std::vector<DataProcessing> tmp;
-      for (Size i = 0; i < exp[0].getDataProcessing().size(); i++)
-      {
-        tmp.push_back(*exp[0].getDataProcessing()[i].get());
-      }
-      MSQuantifications msq(features, exp.getExperimentalSettings(), tmp );
-      msq.assignUIDs();
-      FileHandler file;
-      file.storeQuantifications(out_mzq, msq, {FileTypes::MZQUANTML});
-    }
 
     return EXECUTION_OK;
   }

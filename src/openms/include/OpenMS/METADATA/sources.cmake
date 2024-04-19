@@ -23,7 +23,6 @@ Instrument.h
 InstrumentSettings.h
 IonDetector.h
 IonSource.h
-MSQuantifications.h
 MassAnalyzer.h
 MetaInfo.h
 MetaInfoDescription.h

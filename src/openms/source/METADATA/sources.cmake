@@ -23,7 +23,6 @@ Instrument.cpp
 InstrumentSettings.cpp
 IonDetector.cpp
 IonSource.cpp
-MSQuantifications.cpp
 MassAnalyzer.cpp
 MetaInfo.cpp
 MetaInfoDescription.cpp
