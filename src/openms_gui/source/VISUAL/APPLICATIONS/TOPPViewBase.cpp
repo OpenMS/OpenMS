@@ -1991,7 +1991,7 @@ namespace OpenMS
   {
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
     
-    ExperimentSharedPtrType exp(new MSExperiment(IMDataConverter::splitByIonMobility(spec)));
+    ExperimentSharedPtrType exp(new MSExperiment(IMDataConverter::reshapeIMFrameToMany(spec)));
     // hack, but currently not avoidable, because 2D widget does not support IM natively yet...
     // for (auto& spec : exp->getSpectra()) spec.setRT(spec.getDriftTime());
 
