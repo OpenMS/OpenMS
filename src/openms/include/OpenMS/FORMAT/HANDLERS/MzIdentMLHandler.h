@@ -30,10 +30,6 @@ namespace OpenMS
 
 namespace OpenMS {
 
-class IdentificationHit : public MetaInfoInterface {
-
-
-
 
   /**
     @brief Represents a object which can store the information of an analysisXML instance
@@ -53,7 +49,7 @@ class IdentificationHit : public MetaInfoInterface {
     IdentificationHit(const IdentificationHit&) = default;
     
     /// Virtual destructor
-    virtual ~IdentificationHit() override = default;
+    virtual ~IdentificationHit() = default;
     
     /// Move constructor
     IdentificationHit(IdentificationHit&&) noexcept = default;

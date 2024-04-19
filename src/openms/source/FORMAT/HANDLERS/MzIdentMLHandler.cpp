@@ -113,6 +113,79 @@ namespace OpenMS::Internal
       return !(*this == rhs);
     }
 
+  SpectrumIdentification::~SpectrumIdentification() = default;
+
+  // Equality operator
+  bool SpectrumIdentification::operator==(const SpectrumIdentification & rhs) const
+  {
+    return MetaInfoInterface::operator==(rhs)
+           && id_ == rhs.id_
+           && hits_ == rhs.hits_;
+  }
+
+  // Inequality operator
+  bool SpectrumIdentification::operator!=(const SpectrumIdentification & rhs) const
+  {
+    return !(*this == rhs);
+  }
+
+  void SpectrumIdentification::setHits(const vector<IdentificationHit> & hits)
+  {
+    hits_ = hits;
+  }
+
+  void SpectrumIdentification::addHit(const IdentificationHit & hit)
+  {
+    hits_.push_back(hit);
+  }
+
+  const vector<IdentificationHit> & SpectrumIdentification::getHits() const
+  {
+    return hits_;
+  }
+
+  Identification::~Identification() = default;
+
+  // Equality operator
+  bool Identification::operator==(const Identification & rhs) const
+  {
+    return MetaInfoInterface::operator==(rhs)
+           && id_ == rhs.id_
+           && creation_date_ == rhs.creation_date_
+           && spectrum_identifications_ == rhs.spectrum_identifications_;
+  }
+
+  // Inequality operator
+  bool Identification::operator!=(const Identification & rhs) const
+  {
+    return !(*this == rhs);
+  }
+
+  void Identification::setCreationDate(const DateTime & date)
+  {
+    creation_date_ = date;
+  }
+
+  const DateTime & Identification::getCreationDate() const
+  {
+    return creation_date_;
+  }
+
+  void Identification::setSpectrumIdentifications(const vector<SpectrumIdentification> & ids)
+  {
+    spectrum_identifications_ = ids;
+  }
+
+  void Identification::addSpectrumIdentification(const SpectrumIdentification & id)
+  {
+    spectrum_identifications_.push_back(id);
+  }
+
+  const vector<SpectrumIdentification> & Identification::getSpectrumIdentifications() const
+  {
+    return spectrum_identifications_;
+  }
+
     MzIdentMLHandler::MzIdentMLHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
