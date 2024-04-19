@@ -89,7 +89,6 @@
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
@@ -337,8 +336,6 @@ int main(int argc, char** argv)
   //////////////////////////////////
 
   DOCME(AScore);
-  DOCME(AccurateMassSearchEngine);
-  DOCME(BernNorm);
   DOCME(BasicProteinInferenceAlgorithm);
   DOCME(BayesianProteinInferenceAlgorithm);
   DOCME(TransitionPQPFile);

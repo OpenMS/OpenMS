@@ -11,32 +11,6 @@ class TestSpectraFilter(unittest.TestCase):
         self.exp = pyopenms.MSExperiment()
         pyopenms.MzMLFile().load(self.filename, self.exp)
 
-    def test_map_BernNorm(self):
-        thisfilter = pyopenms.BernNorm();
-
-        old_firstspec = self.exp[0]
-        thisfilter.filterPeakMap(self.exp)
-
-        self.assertNotEqual(self.exp.size(), 0)
-        self.assertNotEqual(old_firstspec, self.exp[0])
-
-        # in most cases, a different spectrum is returned
-        self.assertNotEqual(old_firstspec[10].getMZ(), self.exp[0][10].getMZ())
-        self.assertNotEqual(old_firstspec[10].getIntensity(), self.exp[0][10].getIntensity())
-
-    def test_spectrum_BernNorm(self):
-        thisfilter = pyopenms.BernNorm();
-
-        new_firstspec = self.exp[0]
-        thisfilter.filterSpectrum(new_firstspec)
-
-        self.assertNotEqual(new_firstspec.size(), 0)
-        self.assertNotEqual(new_firstspec, self.exp[0])
-
-        # in most cases, a different spectrum is returned
-        self.assertNotEqual(new_firstspec[10].getMZ(), self.exp[0][10].getMZ())
-        self.assertNotEqual(new_firstspec[10].getIntensity(), self.exp[0][10].getIntensity())
-
     def test_map_NLargest(self):
         thisfilter = pyopenms.NLargest();
 

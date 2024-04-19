@@ -3,7 +3,6 @@ set(directory include/OpenMS/FILTERING/TRANSFORMERS)
 
 ### list all header files of the directory here
 set(sources_list_h
-BernNorm.h
 LinearResampler.h
 LinearResamplerAlign.h
 NLargest.h
