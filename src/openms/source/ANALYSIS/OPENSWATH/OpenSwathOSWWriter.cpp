@@ -371,7 +371,8 @@ namespace OpenMS
       }
       sql_feature_ms2 << "); ";
 
-      if (feature_it.metaValueExists("ms1_apex_intensity")) // MS1-level scores, only if exist
+      bool enable_ms1 = feature_it.metaValueExists("var_ms1_ppm_diff");
+      if (enable_ms1) // only write MS1 scores if they are present
       {
         sql_feature_ms1 << "INSERT INTO FEATURE_MS1 "\
           "(FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, EXP_IM, DELTA_IM, "\
