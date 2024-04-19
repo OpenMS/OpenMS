@@ -26,6 +26,93 @@ using namespace std;
 namespace OpenMS::Internal
   {
 
+    void IdentificationHit::setId(const std::string& id) noexcept 
+    {
+      id_ = id;
+    }
+
+    const std::string& IdentificationHit::getId() const noexcept 
+    {
+      return id_;
+    }
+
+    void IdentificationHit::setCharge(int charge) noexcept 
+    {
+      charge_ = charge;
+    }
+
+    int IdentificationHit::getCharge() const noexcept 
+    {
+      return charge_;
+    }
+
+    void IdentificationHit::setCalculatedMassToCharge(double mz) noexcept 
+    {
+      calculated_mass_to_charge_ = mz;
+    }
+
+    double IdentificationHit::getCalculatedMassToCharge() const noexcept 
+    {
+      return calculated_mass_to_charge_;
+    }
+
+    void IdentificationHit::setExperimentalMassToCharge(double mz) noexcept 
+    {
+      experimental_mass_to_charge_ = mz;
+    }
+
+    double IdentificationHit::getExperimentalMassToCharge() const noexcept 
+    {
+      return experimental_mass_to_charge_;
+    }
+
+    void IdentificationHit::setName(const std::string& name) noexcept 
+    {
+      name_ = name;
+    }
+
+    const std::string& IdentificationHit::getName() const noexcept 
+    {
+      return name_;
+    }
+
+    void IdentificationHit::setPassThreshold(bool pass) noexcept 
+    {
+      pass_threshold_ = pass;
+    }
+
+    bool IdentificationHit::getPassThreshold() const noexcept 
+    {
+      return pass_threshold_;
+    }
+
+    void IdentificationHit::setRank(int rank) noexcept 
+    {
+      rank_ = rank;
+    }
+
+    int IdentificationHit::getRank() const noexcept 
+    {
+      return rank_;
+    }
+
+    bool IdentificationHit::operator==(const IdentificationHit& rhs) const noexcept 
+    {
+      return MetaInfoInterface::operator==(rhs)
+          && id_ == rhs.id_
+          && charge_ == rhs.charge_
+          && calculated_mass_to_charge_ == rhs.calculated_mass_to_charge_
+          && experimental_mass_to_charge_ == rhs.experimental_mass_to_charge_
+          && name_ == rhs.name_
+          && pass_threshold_ == rhs.pass_threshold_
+          && rank_ == rhs.rank_;
+    }
+
+    bool IdentificationHit::operator!=(const IdentificationHit& rhs) const noexcept 
+    {
+      return !(*this == rhs);
+    }
+
     MzIdentMLHandler::MzIdentMLHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),

@@ -27,96 +27,106 @@ namespace OpenMS
 
   namespace Internal
   {
+
+namespace OpenMS {
+
+class IdentificationHit : public MetaInfoInterface {
+
+
+
+
   /**
     @brief Represents a object which can store the information of an analysisXML instance
-
-    //@todo docu (Andreas)
 
     @ingroup Metadata
   */
   class OPENMS_DLLAPI IdentificationHit :
     public MetaInfoInterface
   {
-public:
-
-    /// @name constructors,destructors,assignment operator
+  public:
+    /// @name Constructors, Destructors, Assignment Operators
     //@{
-
     /// Default constructor
-    IdentificationHit();
+    IdentificationHit() = default;
+    
     /// Copy constructor
-    IdentificationHit(const IdentificationHit &) = default;
-    /// Destructor
-    virtual ~IdentificationHit();
+    IdentificationHit(const IdentificationHit&) = default;
+    
+    /// Virtual destructor
+    virtual ~IdentificationHit() override = default;
+    
     /// Move constructor
-    IdentificationHit(IdentificationHit&&) = default;
-
-    /// Assignment operator
-    IdentificationHit & operator=(const IdentificationHit &) = default;
+    IdentificationHit(IdentificationHit&&) noexcept = default;
+    
+    /// Copy assignment operator
+    IdentificationHit& operator=(const IdentificationHit&) = default;
+    
     /// Move assignment operator
-    IdentificationHit& operator=(IdentificationHit&&) & = default;
+    IdentificationHit& operator=(IdentificationHit&&) noexcept = default;
+    //@}
 
-    /// Equality operator
-    bool operator==(const IdentificationHit & rhs) const;
-    /// Inequality operator
-    bool operator!=(const IdentificationHit & rhs) const;
+    /// @name Equality and Inequality Operators
+    //@{
+    /// Checks for equality with another IdentificationHit object
+    bool operator==(const IdentificationHit& rhs) const noexcept;
+    
+    /// Checks for inequality with another IdentificationHit object
+    bool operator!=(const IdentificationHit& rhs) const noexcept;
     //@}
 
     /// @name Accessors
     //@{
-    /// sets the identifier
-    void setId(const String & id);
-
-    /// returns the id
-    const String & getId() const;
-
-    /// sets the charge state of the peptide
-    void setCharge(Int charge);
-
-    /// returns the charge state
-    Int getCharge() const;
-
-    /// sets the calculated mass to charge ratio
-    void setCalculatedMassToCharge(double mz);
-
-    /// returns the calculated mass to charge ratio
-    double getCalculatedMassToCharge() const;
-
-    /// sets the experimental mass to charge ratio
-    void setExperimentalMassToCharge(double mz);
-
-    /// returns the experimental mass to charge
-    double getExperimentalMassToCharge() const;
-
-    /// sets the name
-    void setName(const String & name);
-
-    /// returns the name
-    const String & getName() const;
-
-    /// sets whether the peptide passed the threshold
-    void setPassThreshold(bool pass);
-
-    /// returns whether the peptide passed the threshold
-    bool getPassThreshold() const;
-
-    /// set the rank of the peptide
-    void setRank(Int rank);
-
-    /// returns the rank of the peptide
-    Int getRank() const;
+    /// Sets the identifier
+    void setId(const std::string& id) noexcept;
+    
+    /// Returns the identifier
+    const std::string& getId() const noexcept;
+    
+    /// Sets the charge state of the peptide
+    void setCharge(int charge) noexcept;
+    
+    /// Returns the charge state of the peptide
+    int getCharge() const noexcept;
+    
+    /// Sets the calculated mass to charge ratio
+    void setCalculatedMassToCharge(double mz) noexcept;
+    
+    /// Returns the calculated mass to charge ratio
+    double getCalculatedMassToCharge() const noexcept;
+    
+    /// Sets the experimental mass to charge ratio
+    void setExperimentalMassToCharge(double mz) noexcept;
+    
+    /// Returns the experimental mass to charge ratio
+    double getExperimentalMassToCharge() const noexcept;
+    
+    /// Sets the name
+    void setName(const std::string& name) noexcept;
+    
+    /// Returns the name
+    const std::string& getName() const noexcept;
+    
+    /// Sets whether the peptide passed the threshold
+    void setPassThreshold(bool pass) noexcept;
+    
+    /// Returns whether the peptide passed the threshold
+    bool getPassThreshold() const noexcept;
+    
+    /// Sets the rank of the peptide
+    void setRank(int rank) noexcept;
+    
+    /// Returns the rank of the peptide
+    int getRank() const noexcept;
     //@}
 
-
-protected:
-
-    String id_;                                     ///< identifier
-    Int charge_;                                    ///< peptide charge
-    double calculated_mass_to_charge_;         ///< calculated mass to charge ratio
-    double experimental_mass_to_charge_;         ///< experimental mass to charge ratio
-    String name_;                               ///< name
-    bool pass_threshold_;               ///< pass threshold
-    Int rank_;                                      ///< rank of the peptide
+  private:
+    std::string id_;                              ///< Identifier
+    int charge_ = 0;                             ///< Peptide charge
+    double calculated_mass_to_charge_ = 0.0;     ///< Calculated mass to charge ratio
+    double experimental_mass_to_charge_ = 0.0;   ///< Experimental mass to charge ratio
+    std::string name_;                           ///< Name
+    bool pass_threshold_ = true;                 ///< Pass threshold
+    int rank_ = 0;                               ///< Rank of the peptide
   };
 
   /**

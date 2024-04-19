@@ -90,7 +90,6 @@ set(metadata_executables_list
   ExperimentalSettings_test
   Gradient_test
   HPLC_test
-  Identification_test
   IdentificationData_test
   IdentificationDataConverter_test
   InstrumentSettings_test
