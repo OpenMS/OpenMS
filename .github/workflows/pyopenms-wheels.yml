@@ -110,7 +110,7 @@ jobs:
 
           # build pyopenms distribution
           cmake --version
-          cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
+          cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=4 .
           cmake --build . --config Release --target pyopenms
 
           # copy to directory
@@ -132,6 +132,8 @@ jobs:
 
   build-macos:
     runs-on: macos-latest
+    env:
+      SYSTEM_VERSION_COMPAT: 0 # workaround for mac see https://github.com/actions/setup-python/issues/469 for details.
     steps:
     - uses: actions/checkout@v4
       with:
@@ -175,7 +177,7 @@ jobs:
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         export CC=clang
         export CXX=clang++
-        export MACOSX_DEPLOYMENT_TARGET=10.9
+        export MACOSX_DEPLOYMENT_TARGET=12
         # Unfortunately, on macOS due to the inofficial way of enabling OpenMP on AppleClang, passing the following
         # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
         export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
@@ -184,7 +186,7 @@ jobs:
         mkdir bld
         pushd bld
         # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
-        cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=OFF ../OpenMS
+        cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=12 -DBOOST_USE_STATIC=OFF ../OpenMS
         make -j4 OpenMS
 
         mkdir pyopenms_whls
@@ -208,7 +210,7 @@ jobs:
           pip install -U pandas
 
           # build pyopenms distribution (macOS)
-          cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
+          cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=4 .
           make -j4 pyopenms
 
           # copy to directory
@@ -240,7 +242,7 @@ jobs:
 
   build-lnx:
     runs-on: ubuntu-latest
-    container: ghcr.io/openms/contrib_manylinux2014:latest
+    container: ghcr.io/openms/contrib_manylinux_2_28:latest
 
     steps:
     # Cancels older builds if still running
@@ -249,13 +251,13 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
 
-    - uses: actions/checkout@v3 # ManyLinux2014 does not support Node20, which is required for v4. This is likely to be an issue as github phases out node16, but there doesn't seem to be a good workaround for now
+    - uses: actions/checkout@v4
       name: Checkout sources
       with:
         path: OpenMS
 
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1
+      uses: jwlawson/actions-setup-cmake@v2
       with:
         cmake-version: '3.25.x'
 
@@ -281,16 +283,21 @@ jobs:
           py=$(echo "$py" | tr -d " \n")
           pynodot=$(echo "$py" | tr -d ".")
           PYBIN=$(echo /opt/python/cp*${pynodot})
+          
+          # Create a venv for this python version
+          "$PYBIN/bin/python" -m venv $pynodot
+          source $pynodot/bin/activate
+          
           "$PYBIN/bin/pip" install -U pip
           "$PYBIN/bin/pip" install -U Cython
           "$PYBIN/bin/pip" install -U setuptools
-          "$PYBIN/bin/pip" install -U wheel==0.31.1
+          "$PYBIN/bin/pip" install -U wheel
           "$PYBIN/bin/pip" install -U numpy
           "$PYBIN/bin/pip" install -U pytest
           "$PYBIN/bin/pip" install -U autowrap
 
           # configure (don't copy deps since we use auditwheel)
-          cmake -DNO_DEPENDENCIES=ON -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" $GITHUB_WORKSPACE/OpenMS
+          cmake -DNO_DEPENDENCIES=ON -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" -DPY_NUM_THREADS=4 $GITHUB_WORKSPACE/OpenMS
           make -j4 pyopenms
           
           # ensure auditwheel can find the libraries
@@ -312,7 +319,8 @@ jobs:
           
           # clean previous pyopenms libs
           rm pyOpenMS/pyopenms/_pyopenms*.so
-        
+          # deactivate the venv
+          deactivate
         done
 
     - uses: actions/upload-artifact@v4
@@ -325,6 +333,8 @@ jobs:
   test:
     needs: [build-win, build-macos, build-lnx]
     runs-on: ${{ matrix.os }}
+    env:
+      SYSTEM_VERSION_COMPAT: 0 #courtesy of https://github.com/actions/setup-python/issues/469 in lieu of an actual solution.
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
