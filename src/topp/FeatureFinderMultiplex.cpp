@@ -20,7 +20,6 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 
-#include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/FILTERING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/ML/REGRESSION/LinearRegression.h>
 

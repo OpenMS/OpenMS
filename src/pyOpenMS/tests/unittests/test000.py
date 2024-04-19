@@ -2745,42 +2745,6 @@ def testMSExperiment():
     assert np.allclose(ms1_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS1_MassQL_ION.tsv'), sep='\t'))
 
 @report
-def testMSQuantifications():
-    """
-    @tests: MSQuantifications
-     MSQuantifications.__eq__
-     MSQuantifications.__ge__
-     MSQuantifications.__gt__
-     MSQuantifications.__init__
-     MSQuantifications.__le__
-     MSQuantifications.__lt__
-     MSQuantifications.__ne__
-     MSQuantifications.getConsensusMaps
-     MSQuantifications.setConsensusMaps
-     MSQuantifications.setDataProcessing
-     MSQuantifications.getDataProcessing
-     MSQuantifications.getAssays
-     MSQuantifications.getFeatureMaps
-     MSQuantifications.setAnalysisSummaryQuantType
-     MSQuantifications.getAnalysisSummary
-     MSQuantifications.addConsensusMap
-     MSQuantifications.assignUIDs
-    """
-    msq = pyopenms.MSQuantifications()
-    assert msq == msq
-    assert not msq != msq
-    msq.setConsensusMaps(msq.getConsensusMaps())
-
-    summary = msq.getAnalysisSummary()
-    msq.setDataProcessingList(msq.getDataProcessingList())
-    msq.getAssays()
-    msq.getFeatureMaps()
-    msq.setAnalysisSummaryQuantType(pyopenms.MSQuantifications.QUANT_TYPES.LABELFREE)
-
-    msq.addConsensusMap(pyopenms.ConsensusMap())
-    msq.assignUIDs()
-
-@report
 def testMSSpectrum():
     """
     @tests: MSSpectrum
@@ -3634,10 +3598,6 @@ def testMxxxFile():
      MzXMLFile.startProgress
      MzXMLFile.store
 
-     MzQuantMLFile.__init__
-     MzQuantMLFile.isSemanticallyValid
-     MzQuantMLFile.load
-     MzQuantMLFile.store
     """
     mse = pyopenms.MSExperiment()
     s = pyopenms.MSSpectrum()
@@ -3669,11 +3629,6 @@ def testMxxxFile():
     fh.store("test.mzXML", mse)
     fh.load("test.mzXML", mse)
     fh.setOptions(fh.getOptions())
-
-    fh = pyopenms.MzQuantMLFile()
-    fh.isSemanticallyValid
-    fh.load
-    fh.store
 
 
 

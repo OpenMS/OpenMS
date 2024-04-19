@@ -103,7 +103,6 @@ set(metadata_executables_list
   MetaInfoRegistry_test
   MetaInfo_test
   Modification_test
-  MSQuantifications_test
   PeptideEvidence_test
   PeptideHit_test
   PeptideIdentification_test
@@ -220,9 +219,6 @@ set(format_executables_list
   MzTabFile_test
   MzTabM_test
   MzTabMFile_test
-  # MSstatsFile_test
-  MzQuantMLFile_test
-  #MzQuantMLValidator_test
   MzXMLFile_test
   NoopMSDataConsumer_test
   TraMLValidator_test
