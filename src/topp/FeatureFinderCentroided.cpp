@@ -152,7 +152,6 @@ protected:
     //input file names
     String in = getStringOption_("in");
     String out = getStringOption_("out");
-    String out_mzq = getStringOption_("out_mzq");
 
     // prevent loading of fragment spectra
     PeakFileOptions options;

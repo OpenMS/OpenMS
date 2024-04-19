@@ -102,9 +102,9 @@ protected:
     registerInputFile_("id", "<file>", "", "Protein/peptide identifications file");
     setValidFormats_("id", ListUtils::create<String>("mzid,idXML"));
     registerInputFile_("in", "<file>", "", "Feature map/consensus map file");
-    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,mzq"));
+    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "Output file (the format depends on the input file format).");
-    setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML,mzq"));
+    setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
 
     addEmptyLine_();
     IDMapper mapper;
