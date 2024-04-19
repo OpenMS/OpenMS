@@ -1834,7 +1834,7 @@ namespace OpenMS
                       QString("Execution time: %1 ms").arg(topp_.timer.elapsed()));
       if (!File::readable(topp_.file_name_out))
       {
-        log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot read TOPP output", String("Cannot read '") + topp_.file_name_in + "!");
+        log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot read TOPP output", String("Cannot read '") + topp_.file_name_out + "'!");
       }
       else
       {
