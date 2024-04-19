@@ -419,6 +419,24 @@ namespace OpenMS
         auto id_target_ind_isotope_correlation = getSeparateScore(feature_it, "id_target_ind_isotope_correlation");
         auto id_target_ind_isotope_overlap = getSeparateScore(feature_it, "id_target_ind_isotope_overlap");
 
+        // check if there are compute_peak_shape_metrics scores
+        bool enable_compute_peak_shape_metrics = getSeparateScore(feature_it, "start_position_at_5").size() > 0;
+        
+        // get scores for peak shape metrics will just be empty vector if not present
+        auto start_position_at_5 = getSeparateScore(feature_it, "start_position_at_5");
+        auto end_position_at_5 = getSeparateScore(feature_it, "end_position_at_5");
+        auto start_position_at_10 = getSeparateScore(feature_it, "start_position_at_10");
+        auto end_position_at_10 = getSeparateScore(feature_it, "end_position_at_10");
+        auto start_position_at_50 = getSeparateScore(feature_it, "start_position_at_50");
+        auto end_position_at_50 = getSeparateScore(feature_it, "end_position_at_50");
+        auto total_width = getSeparateScore(feature_it, "total_width");
+        auto tailing_factor = getSeparateScore(feature_it, "tailing_factor");
+        auto asymmetry_factor = getSeparateScore(feature_it, "asymmetry_factor");
+        auto slope_of_baseline = getSeparateScore(feature_it, "slope_of_baseline");
+        auto baseline_delta_2_height = getSeparateScore(feature_it, "baseline_delta_2_height");
+        auto points_across_baseline = getSeparateScore(feature_it, "points_across_baseline");
+        auto points_across_half_height = getSeparateScore(feature_it, "points_across_half_height");
+
         if (feature_it.metaValueExists("id_target_num_transitions"))
         {
           int id_target_num_transitions = feature_it.getMetaValue("id_target_num_transitions");
@@ -430,8 +448,12 @@ namespace OpenMS
               " APEX_INTENSITY, TOTAL_MI, VAR_INTENSITY_SCORE, VAR_INTENSITY_RATIO_SCORE, "\
               " VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, "\
               " VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_MI_RATIO_SCORE, "\
-              " VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE "\
-              ") VALUES ("
+              " VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE "
+              << (enable_compute_peak_shape_metrics ? ", START_POSITION_AT_5, END_POSITION_AT_5, "
+                                         "START_POSITION_AT_10, END_POSITION_AT_10, START_POSITION_AT_50, END_POSITION_AT_50, "
+                                         "TOTAL_WIDTH, TAILING_FACTOR, ASYMMETRY_FACTOR, SLOPE_OF_BASELINE, BASELINE_DELTA_2_HEIGHT, "
+                                         "POINTS_ACROSS_BASELINE, POINTS_ACROSS_HALF_HEIGHT" : "")
+              << ") VALUES ("
                                         << feature_id << ", "
                                         << id_target_transition_names[i] << ", "
                                         << id_target_area_intensity[i] << ", "
@@ -449,6 +471,26 @@ namespace OpenMS
                                         << id_target_ind_mi_ratio_score[i] << ", "
                                         << id_target_ind_isotope_correlation[i] << ", "
                                         << id_target_ind_isotope_overlap[i] << "); ";
+
+                         if (enable_compute_peak_shape_metrics)
+                         {
+                            sql_feature_uis_transition << ", "
+                                          << start_position_at_5[i] << ", "
+                                          << end_position_at_5[i] << ", "
+                                          << start_position_at_10[i] << ", "
+                                          << end_position_at_10[i] << ", "
+                                          << start_position_at_50[i] << ", "
+                                          << end_position_at_50[i] << ", "
+                                          << total_width[i] << ", "
+                                          << tailing_factor[i] << ", "
+                                          << asymmetry_factor[i] << ", "
+                                          << slope_of_baseline[i] << ", "
+                                          << baseline_delta_2_height[i] << ", "
+                                          << points_across_baseline[i] << ", "
+                                          << points_across_half_height[i];
+                         }
+                         sql_feature_ms2_transition << "); ";
+
           }
         }
 
