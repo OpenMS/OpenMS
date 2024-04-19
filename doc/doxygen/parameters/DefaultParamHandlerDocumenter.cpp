@@ -93,7 +93,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/SqrtScaler.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/FORMAT/MSPFile.h>
@@ -421,7 +421,7 @@ int main(int argc, char** argv)
   DOCME(SpectrumAlignmentScore);
   DOCME(SpectrumCheapDPCorr);
   DOCME(SpectrumPrecursorComparator);
-  DOCME(SqrtMower);
+  DOCME(SqrtScaler);
   DOCME(SteinScottImproveScore);
   DOCME(SpectraMerger);
   DOCME(TheoreticalSpectrumGenerator);

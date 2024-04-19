@@ -1928,9 +1928,6 @@ set_tests_properties("TOPP_SeedListGenerator_3_out2" PROPERTIES DEPENDS "TOPP_Se
 
 #------------------------------------------------------------------------------
 # SpectraFilter tests
-add_test("TOPP_SpectraFilterSqrtMower_1" ${TOPP_BIN_PATH}/SpectraFilterSqrtMower -test -in ${DATA_DIR_TOPP}/SpectraFilterSqrtMower_1_input.mzML -out SpectraFilterSqrtMower.tmp.mzML)
-add_test("TOPP_SpectraFilterSqrtMower_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 SpectraFilterSqrtMower.tmp.mzML -in2 ${DATA_DIR_TOPP}/SpectraFilterSqrtMower_1_output.mzML )
-set_tests_properties("TOPP_SpectraFilterSqrtMower_1_out1" PROPERTIES DEPENDS "TOPP_SpectraFilterSqrtMower_1")
 add_test("TOPP_SpectraFilterWindowMower_1" ${TOPP_BIN_PATH}/SpectraFilterWindowMower -test -in ${DATA_DIR_TOPP}/SpectraFilterWindowMower_1_input.mzML -out SpectraFilterWindowMower_1.tmp.mzML)
 add_test("TOPP_SpectraFilterWindowMower_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 SpectraFilterWindowMower_1.tmp.mzML -in2 ${DATA_DIR_TOPP}/SpectraFilterWindowMower_1_output.mzML )
 set_tests_properties("TOPP_SpectraFilterWindowMower_1_out1" PROPERTIES DEPENDS "TOPP_SpectraFilterWindowMower_1")

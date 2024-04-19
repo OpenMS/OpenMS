@@ -129,7 +129,6 @@ SpecLibCreator
 SpecLibSearcher
 SpectraFilterNLargest
 SpectraFilterNormalizer
-SpectraFilterSqrtMower
 SpectraFilterThresholdMower
 SpectraFilterWindowMower
 SpectraMerger

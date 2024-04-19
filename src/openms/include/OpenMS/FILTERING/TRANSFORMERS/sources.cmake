@@ -9,7 +9,7 @@ NLargest.h
 Normalizer.h
 RankScaler.h
 SpectraMerger.h
-SqrtMower.h
+SqrtScaler.h
 ThresholdMower.h
 WindowMower.h
 )

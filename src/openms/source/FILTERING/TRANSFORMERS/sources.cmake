@@ -8,7 +8,7 @@ NLargest.cpp
 Normalizer.cpp
 RankScaler.cpp
 SpectraMerger.cpp
-SqrtMower.cpp
+SqrtScaler.cpp
 ThresholdMower.cpp
 WindowMower.cpp
 )

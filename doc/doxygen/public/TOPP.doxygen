@@ -61,7 +61,6 @@
   - @subpage TOPP_MapNormalizer - Normalizes peak intensities in an MS run.
   - @subpage TOPP_SpectraFilterNLargest - Keeps only the n largest peaks per spectrum.
   - @subpage TOPP_SpectraFilterNormalizer - Scale intensities per spectrum to either sum to 1 or have a maximum of 1.
-  - @subpage TOPP_SpectraFilterSqrtMower - Scales the intensity of peaks to their sqrt.
   - @subpage TOPP_SpectraFilterThresholdMower - Removes all peaks below an intensity threshold.
   - @subpage TOPP_SpectraFilterWindowMower - Retains the highest peaks in a sliding or jumping window.
   

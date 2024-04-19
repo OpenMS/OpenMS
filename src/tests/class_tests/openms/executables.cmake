@@ -343,7 +343,7 @@ set(filtering_executables_list
   SignalToNoiseEstimatorMedian_test
   SignalToNoiseEstimatorMedianRapid_test
   SignalToNoiseEstimator_test
-  SqrtMower_test
+  SqrtScaler_test
   ThresholdMower_test
   WindowMower_test
   SpectraMerger_test

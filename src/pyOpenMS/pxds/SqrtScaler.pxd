@@ -5,16 +5,16 @@ from ChromatogramPeak cimport *
 from Peak1D cimport *
 from DefaultParamHandler cimport *
 
-cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/SqrtScaler.h>" namespace "OpenMS":
 
-    cdef cppclass SqrtMower(DefaultParamHandler):
+    cdef cppclass SqrtScaler(DefaultParamHandler):
         # wrap-inherits:
         #   DefaultParamHandler
         # wrap-doc:
         #  Scales the intensity of peaks to the sqrt
 
-        SqrtMower() except + nogil  
-        SqrtMower(SqrtMower &) except + nogil 
+        SqrtScaler() except + nogil  
+        SqrtScaler(SqrtScaler &) except + nogil 
 
         void filterSpectrum(MSSpectrum & spec) except + nogil 
         void filterPeakSpectrum(MSSpectrum & spec) except + nogil 

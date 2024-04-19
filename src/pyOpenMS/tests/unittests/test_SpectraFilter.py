@@ -88,8 +88,8 @@ class TestSpectraFilter(unittest.TestCase):
         self.assertNotEqual(new_firstspec[10].getMZ(), self.exp[0][10].getMZ())
         self.assertNotEqual(new_firstspec[10].getIntensity(), self.exp[0][10].getIntensity())
 
-    def test_map_SqrtMower(self):
-        thisfilter = pyopenms.SqrtMower();
+    def test_map_SqrtScaler(self):
+        thisfilter = pyopenms.SqrtScaler();
 
         old_firstspec = self.exp[0]
         thisfilter.filterPeakMap(self.exp)
@@ -101,8 +101,8 @@ class TestSpectraFilter(unittest.TestCase):
         self.assertEqual(old_firstspec[10].getMZ(), self.exp[0][10].getMZ())
         self.assertNotEqual(old_firstspec[10].getIntensity(), self.exp[0][10].getIntensity())
 
-    def test_spectrum_SqrtMower(self):
-        thisfilter = pyopenms.SqrtMower();
+    def test_spectrum_SqrtScaler(self):
+        thisfilter = pyopenms.SqrtScaler();
 
         new_firstspec = self.exp[0]
         thisfilter.filterSpectrum(new_firstspec)
