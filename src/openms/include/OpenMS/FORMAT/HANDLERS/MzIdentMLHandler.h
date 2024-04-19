@@ -28,9 +28,6 @@ namespace OpenMS
   namespace Internal
   {
 
-namespace OpenMS {
-
-
   /**
     @brief Represents a object which can store the information of an analysisXML instance
 
