@@ -3,13 +3,12 @@ set(directory source/FILTERING/TRANSFORMERS)
 
 ### list all filenames of the directory here
 set(sources_list
-BernNorm.cpp
 LinearResampler.cpp
 NLargest.cpp
 Normalizer.cpp
-Scaler.cpp
+RankScaler.cpp
 SpectraMerger.cpp
-SqrtMower.cpp
+SqrtScaler.cpp
 ThresholdMower.cpp
 WindowMower.cpp
 )

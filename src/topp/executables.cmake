@@ -127,11 +127,8 @@ SimpleSearchEngine
 SiriusExport
 SpecLibCreator
 SpecLibSearcher
-SpectraFilterBernNorm
 SpectraFilterNLargest
 SpectraFilterNormalizer
-SpectraFilterScaler
-SpectraFilterSqrtMower
 SpectraFilterThresholdMower
 SpectraFilterWindowMower
 SpectraMerger

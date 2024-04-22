@@ -3,20 +3,19 @@ from MSSpectrum cimport *
 from MSExperiment cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
-from Param cimport *
 from DefaultParamHandler cimport *
-from ProgressLogger cimport *
 
-cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/SqrtScaler.h>" namespace "OpenMS":
 
-    cdef cppclass BernNorm(DefaultParamHandler):
+    cdef cppclass SqrtScaler(DefaultParamHandler):
         # wrap-inherits:
         #   DefaultParamHandler
+        # wrap-doc:
+        #  Scales the intensity of peaks to the sqrt
 
-        BernNorm() except + nogil 
-        BernNorm(BernNorm &) except + nogil 
+        SqrtScaler() except + nogil  
+        SqrtScaler(SqrtScaler &) except + nogil 
 
         void filterSpectrum(MSSpectrum & spec) except + nogil 
         void filterPeakSpectrum(MSSpectrum & spec) except + nogil 
         void filterPeakMap(MSExperiment & exp) except + nogil 
-

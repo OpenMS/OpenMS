@@ -6,22 +6,21 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/RankScaler.h>
 
 using namespace std;
-
 namespace OpenMS
 {
-  SqrtMower::SqrtMower() :
-    DefaultParamHandler("SqrtMower")
+  RankScaler::RankScaler() :
+    DefaultParamHandler("RankScaler")
   {
   }
 
-  SqrtMower::~SqrtMower() = default;
+  RankScaler::~RankScaler() = default;
 
-  SqrtMower::SqrtMower(const SqrtMower & source) = default;
+  RankScaler::RankScaler(const RankScaler & source) = default;
 
-  SqrtMower & SqrtMower::operator=(const SqrtMower & source)
+  RankScaler & RankScaler::operator=(const RankScaler & source)
   {
     if (this != &source)
     {
@@ -30,12 +29,12 @@ namespace OpenMS
     return *this;
   }
 
-  void SqrtMower::filterPeakSpectrum(PeakSpectrum & spectrum)
+  void RankScaler::filterPeakSpectrum(PeakSpectrum & spectrum)
   {
     filterSpectrum(spectrum);
   }
 
-  void SqrtMower::filterPeakMap(PeakMap & exp)
+  void RankScaler::filterPeakMap(PeakMap & exp)
   {
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {

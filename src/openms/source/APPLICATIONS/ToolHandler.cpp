@@ -178,11 +178,8 @@ namespace OpenMS
     tools_map["SiriusExport"] = Internal::ToolDescription("SiriusExport", cat_ID_MTX);
     tools_map["SpecLibCreator"] = Internal::ToolDescription("SpecLibCreator", cat_ID_proc);
     tools_map["SpecLibSearcher"] = Internal::ToolDescription("SpecLibSearcher", cat_ID_search);
-    tools_map["SpectraFilterBernNorm"] = Internal::ToolDescription("SpectraFilterBernNorm", cat_signal_proc_smooth_normalize);
     tools_map["SpectraFilterNLargest"] = Internal::ToolDescription("SpectraFilterNLargest", cat_signal_proc_smooth_normalize);
     tools_map["SpectraFilterNormalizer"] = Internal::ToolDescription("SpectraFilterNormalizer", cat_signal_proc_smooth_normalize);
-    tools_map["SpectraFilterScaler"] = Internal::ToolDescription("SpectraFilterScaler", cat_signal_proc_smooth_normalize);
-    tools_map["SpectraFilterSqrtMower"] = Internal::ToolDescription("SpectraFilterSqrtMower", cat_signal_proc_smooth_normalize);
     tools_map["SpectraFilterThresholdMower"] = Internal::ToolDescription("SpectraFilterThresholdMower", cat_signal_proc_smooth_normalize);
     tools_map["SpectraFilterWindowMower"] = Internal::ToolDescription("SpectraFilterWindowMower", cat_signal_proc_smooth_normalize);
     tools_map["SpectraMerger"] = Internal::ToolDescription("SpectraMerger", cat_signal_proc_misc);

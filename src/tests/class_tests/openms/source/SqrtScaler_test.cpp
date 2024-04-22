@@ -12,7 +12,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/SqrtScaler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <cmath>
@@ -22,30 +22,30 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(SqrtMower, "$Id$")
+START_TEST(SqrtScaler, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-SqrtMower* e_ptr = nullptr;
-SqrtMower* e_nullPointer = nullptr;
-START_SECTION((SqrtMower()))
-	e_ptr = new SqrtMower;
+SqrtScaler* e_ptr = nullptr;
+SqrtScaler* e_nullPointer = nullptr;
+START_SECTION((SqrtScaler()))
+	e_ptr = new SqrtScaler;
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
-START_SECTION((~SqrtMower()))
+START_SECTION((~SqrtScaler()))
 	delete e_ptr;
 END_SECTION
 
-e_ptr = new SqrtMower();
+e_ptr = new SqrtScaler();
 
-START_SECTION((SqrtMower(const SqrtMower& source)))
-	SqrtMower copy(*e_ptr);
+START_SECTION((SqrtScaler(const SqrtScaler& source)))
+	SqrtScaler copy(*e_ptr);
 	TEST_EQUAL(*e_ptr == copy, true)
 END_SECTION
 
-START_SECTION((SqrtMower& operator=(const SqrtMower& source)))
-	SqrtMower copy;
+START_SECTION((SqrtScaler& operator=(const SqrtScaler& source)))
+	SqrtScaler copy;
 	copy = *e_ptr;
 	TEST_EQUAL(*e_ptr == copy, true)
 END_SECTION

@@ -59,11 +59,8 @@
   - @subpage TOPP_NoiseFilterGaussian - Removes noise from profile spectra using a Gaussian smoothing.
   - @subpage TOPP_NoiseFilterSGolay - Removes noise from profile spectra using Savitzky-Golay smoothing.
   - @subpage TOPP_MapNormalizer - Normalizes peak intensities in an MS run.
-  - @subpage TOPP_SpectraFilterBernNorm - Scales and filters spectra according to the Bern norm.
   - @subpage TOPP_SpectraFilterNLargest - Keeps only the n largest peaks per spectrum.
   - @subpage TOPP_SpectraFilterNormalizer - Scale intensities per spectrum to either sum to 1 or have a maximum of 1.
-  - @subpage TOPP_SpectraFilterScaler - Assigns new intensity per spectrum according to intensity rank.
-  - @subpage TOPP_SpectraFilterSqrtMower - Scales the intensity of peaks to their sqrt.
   - @subpage TOPP_SpectraFilterThresholdMower - Removes all peaks below an intensity threshold.
   - @subpage TOPP_SpectraFilterWindowMower - Retains the highest peaks in a sliding or jumping window.
   

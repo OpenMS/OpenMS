@@ -6,21 +6,22 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#include <OpenMS/FILTERING/TRANSFORMERS/Scaler.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/SqrtScaler.h>
 
 using namespace std;
+
 namespace OpenMS
 {
-  Scaler::Scaler() :
-    DefaultParamHandler("Scaler")
+  SqrtScaler::SqrtScaler() :
+    DefaultParamHandler("SqrtScaler")
   {
   }
 
-  Scaler::~Scaler() = default;
+  SqrtScaler::~SqrtScaler() = default;
 
-  Scaler::Scaler(const Scaler & source) = default;
+  SqrtScaler::SqrtScaler(const SqrtScaler & source) = default;
 
-  Scaler & Scaler::operator=(const Scaler & source)
+  SqrtScaler & SqrtScaler::operator=(const SqrtScaler & source)
   {
     if (this != &source)
     {
@@ -29,12 +30,12 @@ namespace OpenMS
     return *this;
   }
 
-  void Scaler::filterPeakSpectrum(PeakSpectrum & spectrum)
+  void SqrtScaler::filterPeakSpectrum(PeakSpectrum & spectrum)
   {
     filterSpectrum(spectrum);
   }
 
-  void Scaler::filterPeakMap(PeakMap & exp)
+  void SqrtScaler::filterPeakMap(PeakMap & exp)
   {
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {

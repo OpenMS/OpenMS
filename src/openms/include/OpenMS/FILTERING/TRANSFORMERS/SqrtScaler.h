@@ -22,7 +22,7 @@ namespace OpenMS
 
         @ingroup SpectraPreprocessers
   */
-  class OPENMS_DLLAPI SqrtMower :
+  class OPENMS_DLLAPI SqrtScaler :
     public DefaultParamHandler
   {
 public:
@@ -30,14 +30,14 @@ public:
     // @name Constructors and Destructors
     // @{
     /// default constructor
-    SqrtMower();
+    SqrtScaler();
     /// destructor
-    ~SqrtMower() override;
+    ~SqrtScaler() override;
 
     /// copy constructor
-    SqrtMower(const SqrtMower & source);
+    SqrtScaler(const SqrtScaler & source);
     /// assignment operator
-    SqrtMower & operator=(const SqrtMower & source);
+    SqrtScaler & operator=(const SqrtScaler & source);
     // @}
 
     ///
