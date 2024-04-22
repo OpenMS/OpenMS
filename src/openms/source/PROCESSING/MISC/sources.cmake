@@ -1,9 +1,11 @@
 ### the directory name
-set(directory source/PROCESSING/BASELINE)
+set(directory source/PROCESSING/MISC)
 
 ### list all filenames of the directory here
 set(sources_list
-MorphologicalFilter.cpp
+DataFilters.cpp
+SplineInterpolatedPeaks.cpp
+SplinePackage.cpp
 )
 
 ### add path to the filenames
@@ -16,5 +18,5 @@ endforeach(i)
 set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
-source_group("Source Files\\PROCESSING\\BASELINE" FILES ${sources})
+source_group("Source Files\\FILTERING\\MISC" FILES ${sources})
 

@@ -26,8 +26,8 @@
 #include <OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>
 #include <OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>
 #include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
-#include <OpenMS/PROCESSING/DATAREDUCTION/FeatureFindingMetabo.h>
-#include <OpenMS/PROCESSING/DATAREDUCTION/MassTraceDetection.h>
+#include <OpenMS/FEATUREFINDER/FeatureFindingMetabo.h>
+#include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>

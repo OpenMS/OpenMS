@@ -6,7 +6,7 @@
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/PROCESSING/DATAREDUCTION/FeatureOverlapFilter.h>
+#include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
 #include <Quadtree.h>
 #include <Box.h>

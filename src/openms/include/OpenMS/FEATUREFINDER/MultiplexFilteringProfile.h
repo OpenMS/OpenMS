@@ -17,7 +17,7 @@
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredPeak.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
-#include <OpenMS/PROCESSING/DATAREDUCTION/SplineInterpolatedPeaks.h>
+#include <OpenMS/PROCESSING/MISC/SplineInterpolatedPeaks.h>
 
 #include <vector>
 #include <algorithm>

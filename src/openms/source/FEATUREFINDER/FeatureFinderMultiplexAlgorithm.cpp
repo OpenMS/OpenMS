@@ -17,8 +17,8 @@
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/ML/CLUSTERING/GridBasedCluster.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
-#include <OpenMS/PROCESSING/DATAREDUCTION/SplinePackage.h>
-#include <OpenMS/PROCESSING/DATAREDUCTION/SplineInterpolatedPeaks.h>
+#include <OpenMS/PROCESSING/MISC/SplinePackage.h>
+#include <OpenMS/PROCESSING/MISC/SplineInterpolatedPeaks.h>
 
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/ML/REGRESSION/LinearRegressionWithoutIntercept.h>

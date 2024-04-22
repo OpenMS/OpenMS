@@ -20,7 +20,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
-#include <OpenMS/PROCESSING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>

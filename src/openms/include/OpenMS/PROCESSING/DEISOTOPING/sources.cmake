@@ -1,17 +1,9 @@
 ### the directory name
-set(directory include/OpenMS/PROCESSING/DATAREDUCTION)
+set(directory include/OpenMS/PROCESSING/DEISOTOPING)
 
 ### list all header files of the directory here
 set(sources_list_h
-DataFilters.h
 Deisotoper.h
-ElutionPeakDetection.h
-FeatureFindingMetabo.h
-FeatureOverlapFilter.h
-IsotopeDistributionCache.h
-MassTraceDetection.h
-SplineInterpolatedPeaks.h
-SplinePackage.h
 )
 
 ### add path to the filenames
@@ -21,7 +13,7 @@ foreach(i ${sources_list_h})
 endforeach(i)
 
 ### source group definition
-source_group("Header Files\\OpenMS\\PROCESSING\\DATAREDUCTION" FILES ${sources_h})
+source_group("Header Files\\OpenMS\\PROCESSING\\DEISOTOPING" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
 

@@ -6,7 +6,7 @@
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/PROCESSING/DATAREDUCTION/FeatureFindingMetabo.h>
+#include <OpenMS/FEATUREFINDER/FeatureFindingMetabo.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>

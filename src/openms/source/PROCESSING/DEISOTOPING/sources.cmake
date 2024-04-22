@@ -1,17 +1,9 @@
 ### the directory name
-set(directory source/PROCESSING/DATAREDUCTION)
+set(directory source/PROCESSING/DEISOTOPING)
 
 ### list all filenames of the directory here
 set(sources_list
-DataFilters.cpp
 Deisotoper.cpp
-ElutionPeakDetection.cpp
-FeatureFindingMetabo.cpp
-FeatureOverlapFilter.cpp
-IsotopeDistributionCache.cpp
-MassTraceDetection.cpp
-SplineInterpolatedPeaks.cpp
-SplinePackage.cpp
 )
 
 ### add path to the filenames
@@ -24,5 +16,5 @@ endforeach(i)
 set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
-source_group("Source Files\\FILTERING\\DATAREDUCTION" FILES ${sources})
+source_group("Source Files\\PROCESSING\\DEISOTOPING" FILES ${sources})
 

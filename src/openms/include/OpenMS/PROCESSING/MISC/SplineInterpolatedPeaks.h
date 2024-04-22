@@ -10,7 +10,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/PROCESSING/DATAREDUCTION/SplinePackage.h>
+#include <OpenMS/PROCESSING/MISC/SplinePackage.h>
 
 #include <vector>
 

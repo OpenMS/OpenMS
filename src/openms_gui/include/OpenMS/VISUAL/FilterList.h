@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/PROCESSING/DATAREDUCTION/DataFilters.h>
+#include <OpenMS/PROCESSING/MISC/DataFilters.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QWidget>

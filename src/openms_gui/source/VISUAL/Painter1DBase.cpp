@@ -18,7 +18,7 @@
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 
 // preprocessing and filtering for automated m/z annotations
-#include <OpenMS/PROCESSING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
 #include <OpenMS/PROCESSING/FILTERING/WindowMower.h>

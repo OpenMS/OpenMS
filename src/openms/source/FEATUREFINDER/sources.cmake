@@ -8,6 +8,7 @@ BiGaussFitter1D.cpp
 BiGaussModel.cpp
 EGHTraceFitter.cpp
 ElutionModelFitter.cpp
+ElutionPeakDetection.cpp
 EmgFitter1D.cpp
 EmgModel.cpp
 EmgScoring.cpp
@@ -21,6 +22,7 @@ FeatureFinderAlgorithmPickedHelperStructs.cpp
 FeatureFinderIdentificationAlgorithm.cpp
 FeatureFinderAlgorithmMetaboIdent.cpp
 FeatureFinderMultiplexAlgorithm.cpp
+FeatureFindingMetabo.cpp
 Fitter1D.cpp
 GaussFitter1D.cpp
 GaussModel.cpp
@@ -29,6 +31,7 @@ InterpolationModel.cpp
 IsotopeFitter1D.cpp
 IsotopeModel.cpp
 LevMarqFitter1D.cpp
+MassTraceDetection.cpp
 MaxLikeliFitter1D.cpp
 ModelDescription.cpp
 MultiplexClustering.cpp

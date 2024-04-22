@@ -16,7 +16,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
-#include <OpenMS/PROCESSING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
 #include <OpenMS/FORMAT/FileHandler.h>

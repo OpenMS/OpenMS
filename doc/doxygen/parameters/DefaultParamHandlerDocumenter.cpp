@@ -80,9 +80,9 @@
 #include <OpenMS/COMPARISON/SteinScottImproveScore.h>
 #include <OpenMS/COMPARISON/ZhangSimilarityScore.h>
 #include <OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>
-#include <OpenMS/PROCESSING/DATAREDUCTION/ElutionPeakDetection.h>
-#include <OpenMS/PROCESSING/DATAREDUCTION/FeatureFindingMetabo.h>
-#include <OpenMS/PROCESSING/DATAREDUCTION/MassTraceDetection.h>
+#include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
+#include <OpenMS/FEATUREFINDER/FeatureFindingMetabo.h>
+#include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
