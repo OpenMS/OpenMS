@@ -8,7 +8,6 @@ Deisotoper.cpp
 ElutionPeakDetection.cpp
 FeatureFindingMetabo.cpp
 FeatureOverlapFilter.cpp
-IsotopeDistributionCache.cpp
 MassTraceDetection.cpp
 SplineInterpolatedPeaks.cpp
 SplinePackage.cpp
