@@ -15,15 +15,11 @@ EmgModel.h
 EmgScoring.h
 ExtendedIsotopeFitter1D.h
 ExtendedIsotopeModel.h
-FeatureFinder.h
-FeatureFinderAlgorithm.h
-FeatureFinderAlgorithmMRM.h
 FeatureFinderAlgorithmPicked.h
 FeatureFinderAlgorithmPickedHelperStructs.h
 FeatureFinderIdentificationAlgorithm.h
 FeatureFinderAlgorithmMetaboIdent.h
 FeatureFinderMultiplexAlgorithm.h
-FeatureFinderDefs.h
 FeatureFindingMetabo.h
 Fitter1D.h
 GaussFitter1D.h

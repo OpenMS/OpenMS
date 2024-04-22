@@ -21,7 +21,6 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
-
 #include <QtCore/QDir>
 
 #include <boost/math/special_functions/fpclassify.hpp> // isnan
@@ -33,9 +32,7 @@
 namespace OpenMS
 {
   FeatureFinderAlgorithmPicked::FeatureFinderAlgorithmPicked() :
-    FeatureFinderAlgorithm(),
-    map_(),
-    log_()
+    DefaultParamHandler("FeatureFinderAlgorithmPicked")
   {
     //debugging
     defaults_.setValue("debug", "false", "When debug mode is activated, several files with intermediate results are written to the folder 'debug' (do not use in parallel mode).");
@@ -133,6 +130,12 @@ namespace OpenMS
     seeds_ = seeds;
   }
 
+  void FeatureFinderAlgorithmPicked::setData(const MSExperiment& map, FeatureMap& features)
+  {
+    map_ = map;
+    features_ = &features;
+  }
+
   void FeatureFinderAlgorithmPicked::run()
   {
     //-------------------------------------------------------------------------
@@ -181,9 +184,6 @@ namespace OpenMS
     // https://github.com/OpenMS/OpenMS/issues/147
     Param trace_fitter_params;
     trace_fitter_params.setValue("max_iteration", max_iterations);
-
-    //copy the input map
-    map_ = *(FeatureFinderAlgorithm::map_);
 
     //flag for user-specified seed mode
     bool user_seeds = (!seeds_.empty());

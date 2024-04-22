@@ -29,7 +29,6 @@ FeatureFinderCentroided
 FeatureFinderIdentification
 FeatureFinderMetabo
 FeatureFinderMetaboIdent
-FeatureFinderMRM
 FeatureFinderMultiplex
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled

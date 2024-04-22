@@ -111,8 +111,6 @@
 #include <OpenMS/FEATUREFINDER/EmgModel.h>
 #include <OpenMS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
 #include <OpenMS/FEATUREFINDER/ExtendedIsotopeModel.h>
-#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithm.h>
-#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/FEATUREFINDER/Fitter1D.h>
@@ -452,8 +450,6 @@ int main(int argc, char** argv)
   DOCME2(ConsensusIDAlgorithmIdentity, (ConsensusIDAlgorithmBest()));
   DOCME2(ConsensusIDAlgorithmSimilarity, (ConsensusIDAlgorithmBest()));
   DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked()));
-  DOCME2(FeatureFinderAlgorithmMRM, (FeatureFinderAlgorithmMRM()));
-  DOCME2(FeatureFinderAlgorithm, (FeatureFinderAlgorithmMRM())); //FeatureFinderAlgorithm is a base class, get parameters from subclass FeatureFinderAlgorithmMRM
   DOCME2(SignalToNoiseEstimatorMeanIterative, SignalToNoiseEstimatorMeanIterative<>());
   DOCME2(SignalToNoiseEstimatorMedian, SignalToNoiseEstimatorMedian<>());
   DOCME2(SignalToNoiseEstimator, SignalToNoiseEstimatorMedian<>()); //SignalToNoiseEstimator is a base class, get parameters from subclass SignalToNoiseEstimatorMedian

@@ -552,14 +552,10 @@ set(transformations_executables_list
   EmgModel_test
   ExtendedIsotopeFitter1D_test
   ExtendedIsotopeModel_test  
-  FeatureFinderAlgorithmMRM_test
   FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
-  FeatureFinderAlgorithm_test
   FeatureFinderIdentificationAlgorithm_test
   FeatureFinderMultiplexAlgorithm_test
-  FeatureFinderDefs_test
-  FeatureFinder_test
   Fitter1D_test
   GaussFitter1D_test
   GaussModel_test

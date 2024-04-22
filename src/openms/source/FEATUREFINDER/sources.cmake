@@ -14,9 +14,6 @@ EmgModel.cpp
 EmgScoring.cpp
 ExtendedIsotopeFitter1D.cpp
 ExtendedIsotopeModel.cpp
-FeatureFinder.cpp
-FeatureFinderAlgorithm.cpp
-FeatureFinderAlgorithmMRM.cpp
 FeatureFinderAlgorithmPicked.cpp
 FeatureFinderAlgorithmPickedHelperStructs.cpp
 FeatureFinderIdentificationAlgorithm.cpp
