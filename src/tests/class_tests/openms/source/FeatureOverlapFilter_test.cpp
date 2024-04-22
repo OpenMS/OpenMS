@@ -10,7 +10,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/PROCESSING/DATAREDUCTION/FeatureOverlapFilter.h>
+#include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
 ///////////////////////////
 

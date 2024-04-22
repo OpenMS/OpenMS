@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/PROCESSING/DATAREDUCTION/SplinePackage.h>
+#include <OpenMS/PROCESSING/MISC/SplinePackage.h>
 
 using namespace std;
 

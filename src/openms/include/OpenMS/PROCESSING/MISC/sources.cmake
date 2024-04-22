@@ -4,7 +4,6 @@ set(directory include/OpenMS/PROCESSING/DATAREDUCTION)
 ### list all header files of the directory here
 set(sources_list_h
 DataFilters.h
-FeatureOverlapFilter.h
 SplineInterpolatedPeaks.h
 SplinePackage.h
 )
