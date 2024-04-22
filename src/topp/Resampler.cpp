@@ -11,7 +11,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
+#include <OpenMS/FILTERING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 
 #include <QtGui/QImage>
