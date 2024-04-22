@@ -5,7 +5,7 @@ from ChromatogramPeak cimport *
 from Peak1D cimport *
 from DefaultParamHandler cimport *
 
-cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/SqrtScaler.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FILTERING/SCALING/SqrtScaler.h>" namespace "OpenMS":
 
     cdef cppclass SqrtScaler(DefaultParamHandler):
         # wrap-inherits:

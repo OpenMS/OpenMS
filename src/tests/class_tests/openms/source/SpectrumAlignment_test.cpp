@@ -14,7 +14,7 @@
 #include <iostream>
 
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/FILTERING/SCALING/Normalizer.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
 ///////////////////////////

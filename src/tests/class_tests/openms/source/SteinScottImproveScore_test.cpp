@@ -15,7 +15,7 @@
 
 #include <OpenMS/COMPARISON/SteinScottImproveScore.h>
 #include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/FILTERING/SCALING/Normalizer.h>
 
 ///////////////////////////
 
