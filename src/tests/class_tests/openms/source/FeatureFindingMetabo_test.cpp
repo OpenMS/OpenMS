@@ -11,12 +11,12 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/PROCESSING/DATAREDUCTION/MassTraceDetection.h>
-#include <OpenMS/PROCESSING/DATAREDUCTION/ElutionPeakDetection.h>
+#include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
+#include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 ///////////////////////////
-#include <OpenMS/PROCESSING/DATAREDUCTION/FeatureFindingMetabo.h>
+#include <OpenMS/FEATUREFINDER/FeatureFindingMetabo.h>
 ///////////////////////////
 
 using namespace OpenMS;

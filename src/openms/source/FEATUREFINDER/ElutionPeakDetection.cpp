@@ -8,7 +8,7 @@
 
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/PROCESSING/DATAREDUCTION/ElutionPeakDetection.h>
+#include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
 #include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 

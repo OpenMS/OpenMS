@@ -6,7 +6,7 @@
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/PROCESSING/DATAREDUCTION/MassTraceDetection.h>
+#include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
 
 #include <OpenMS/MATH/StatisticFunctions.h>
 

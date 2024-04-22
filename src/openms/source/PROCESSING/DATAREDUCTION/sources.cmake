@@ -4,11 +4,7 @@ set(directory source/PROCESSING/DATAREDUCTION)
 ### list all filenames of the directory here
 set(sources_list
 DataFilters.cpp
-Deisotoper.cpp
-ElutionPeakDetection.cpp
-FeatureFindingMetabo.cpp
 FeatureOverlapFilter.cpp
-MassTraceDetection.cpp
 SplineInterpolatedPeaks.cpp
 SplinePackage.cpp
 )

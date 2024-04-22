@@ -8,6 +8,7 @@ BaseModel_impl.h
 BiGaussFitter1D.h
 BiGaussModel.h
 EGHTraceFitter.h
+ElutionPeakDetection.h
 ElutionModelFitter.h
 EmgFitter1D.h
 EmgModel.h
@@ -23,6 +24,7 @@ FeatureFinderIdentificationAlgorithm.h
 FeatureFinderAlgorithmMetaboIdent.h
 FeatureFinderMultiplexAlgorithm.h
 FeatureFinderDefs.h
+FeatureFindingMetabo.h
 Fitter1D.h
 GaussFitter1D.h
 GaussModel.h
@@ -32,6 +34,7 @@ IsotopeFitter1D.h
 IsotopeModel.h
 LevMarqFitter1D.h
 MaxLikeliFitter1D.h
+MassTraceDetection.h
 ModelDescription.h
 MultiplexClustering.h
 MultiplexDeltaMasses.h
