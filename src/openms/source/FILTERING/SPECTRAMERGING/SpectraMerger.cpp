@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/FILTERING/SPECTRAMERGING/SpectraMerger.h>
 
 using namespace std;
 namespace OpenMS
