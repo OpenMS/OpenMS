@@ -14,7 +14,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
+#include <OpenMS/FILTERING/RESAMPLING/LinearResamplerAlign.h>
 
 using namespace OpenMS;
 using namespace std;

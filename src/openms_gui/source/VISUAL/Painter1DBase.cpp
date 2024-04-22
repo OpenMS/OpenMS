@@ -19,9 +19,9 @@
 
 // preprocessing and filtering for automated m/z annotations
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <OpenMS/FILTERING/FILTERING/ThresholdMower.h>
+#include <OpenMS/FILTERING/FILTERING/NLargest.h>
+#include <OpenMS/FILTERING/FILTERING/WindowMower.h>
 
 
 #include <QPainter>

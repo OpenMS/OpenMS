@@ -39,9 +39,9 @@
 #include <OpenMS/CHEMISTRY/NASequence.h>
 
 // preprocessing and filtering of spectra
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <OpenMS/FILTERING/FILTERING/ThresholdMower.h>
+#include <OpenMS/FILTERING/FILTERING/NLargest.h>
+#include <OpenMS/FILTERING/FILTERING/WindowMower.h>
 #include <OpenMS/FILTERING/SCALING/Normalizer.h>
 
 // spectra comparison
