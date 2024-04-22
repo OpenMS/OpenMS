@@ -542,12 +542,13 @@ namespace OpenMS
     auto chunks = chunk_(peptide_map_.begin(), peptide_map_.end(), batch_size_);
 
     PeptideRefRTMap ref_rt_map;
+    PeptideRefIMMap ref_im_map;
     if (debug_level_ >= 668)
     {
       OPENMS_LOG_INFO << "Creating full assay library for debugging." << endl;
       // Warning: this step is pretty inefficient, since it does the whole library generation twice
       // Really use for debug only
-      createAssayLibrary_(peptide_map_.begin(), peptide_map_.end(), ref_rt_map, false);
+      createAssayLibrary_(peptide_map_.begin(), peptide_map_.end(), ref_rt_map, ref_IM_map, false);
       cout << "Writing debug.traml file." << endl;
       FileHandler().storeTransitions("debug.traml", library_);
       ref_rt_map.clear();

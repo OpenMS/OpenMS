@@ -88,6 +88,9 @@ protected:
   /// mapping: peptide ref. -> int./ext.: (RT -> pointer to peptide)
   typedef std::map<String, std::pair<RTMap, RTMap> > PeptideRefRTMap;
 
+  /// mapping: peptide ref. -> int./ext.: (IM -> pointer to peptide)
+  typedef std::map<String, std::pair<RTMap, RTMap> > PeptideRefIMMap;
+
   PeptideMap peptide_map_;
 
   Size n_internal_peps_; ///< number of internal peptide
@@ -240,7 +243,7 @@ protected:
   /// creates an assay library out of the peptide sequences and their RT elution windows
   /// the PeptideMap is mutable since we clear it on-the-go
   /// @p clear_IDs set to false to keep IDs in internal charge maps (only needed for debugging purposes)
-  void createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map, bool clear_IDs = true);
+  static void createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map, bool clear_IDs = true);
 
   /// CAUTION: This method stores a pointer to the given @p peptide reference in internals
   /// Make sure it stays valid until destruction of the class.
