@@ -12,7 +12,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <OpenMS/FILTERING/FILTERING/WindowMower.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MathFunctions.h>

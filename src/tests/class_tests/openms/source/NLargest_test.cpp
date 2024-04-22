@@ -12,7 +12,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
+#include <OpenMS/FILTERING/FILTERING/NLargest.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 

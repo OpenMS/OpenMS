@@ -1,12 +1,9 @@
 ### the directory name
-set(directory source/FILTERING/TRANSFORMERS)
+set(directory source/FILTERING/FILTERING)
 
 ### list all filenames of the directory here
 set(sources_list
 NLargest.cpp
-Normalizer.cpp
-RankScaler.cpp
-SqrtScaler.cpp
 ThresholdMower.cpp
 WindowMower.cpp
 )
@@ -21,5 +18,5 @@ endforeach(i)
 set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
-source_group("Source Files\\FILTERING\\TRANSFORMERS" FILES ${sources})
+source_group("Source Files\\FILTERING\\FILTERING" FILES ${sources})
 

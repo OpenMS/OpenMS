@@ -9,7 +9,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
+#include <OpenMS/FILTERING/FILTERING/NLargest.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
 

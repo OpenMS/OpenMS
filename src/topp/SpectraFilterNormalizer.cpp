@@ -9,7 +9,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/FILTERING/SCALING/Normalizer.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
 

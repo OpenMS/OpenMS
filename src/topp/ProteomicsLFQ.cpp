@@ -29,7 +29,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+#include <OpenMS/FILTERING/FILTERING/ThresholdMower.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MSstatsFile.h>

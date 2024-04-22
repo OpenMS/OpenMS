@@ -6,7 +6,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
+#include <OpenMS/FILTERING/FILTERING/NLargest.h>
 
 using namespace std;
 

@@ -21,10 +21,10 @@
 #include <OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/FILTERING/SCALING/Normalizer.h>
 #include <OpenMS/FEATUREFINDER/GaussModel.h>
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+#include <OpenMS/FILTERING/FILTERING/ThresholdMower.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>

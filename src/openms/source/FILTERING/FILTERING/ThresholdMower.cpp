@@ -6,7 +6,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 //
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+#include <OpenMS/FILTERING/FILTERING/ThresholdMower.h>
 
 using namespace std;
 namespace OpenMS
