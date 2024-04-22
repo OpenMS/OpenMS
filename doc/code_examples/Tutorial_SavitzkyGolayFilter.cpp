@@ -3,7 +3,7 @@
 //
 
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
+#include <OpenMS/FILTERING/RESAMPLING/LinearResampler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data

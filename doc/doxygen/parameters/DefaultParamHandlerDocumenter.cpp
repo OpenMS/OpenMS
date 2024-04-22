@@ -89,10 +89,10 @@
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
+#include <OpenMS/FILTERING/RESAMPLING/LinearResampler.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/FILTERING/SPECTRAMERGING/SpectraMerger.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SqrtScaler.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>

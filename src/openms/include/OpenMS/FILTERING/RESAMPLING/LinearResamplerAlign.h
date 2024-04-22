@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
+#include <OpenMS/FILTERING/RESAMPLING/LinearResampler.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
 namespace OpenMS
