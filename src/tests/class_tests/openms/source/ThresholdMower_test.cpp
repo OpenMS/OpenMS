@@ -12,7 +12,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/FILTERING/FILTERING/ThresholdMower.h>
+#include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 

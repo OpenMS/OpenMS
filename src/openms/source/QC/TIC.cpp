@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/FILTERING/RESAMPLING/LinearResamplerAlign.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/QC/TIC.h>
 

@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/FILTERING/DATAREDUCTION/IsotopeDistributionCache.h>
+#include <OpenMS/PROCESSING/DATAREDUCTION/IsotopeDistributionCache.h>
 
 using namespace OpenMS;
 

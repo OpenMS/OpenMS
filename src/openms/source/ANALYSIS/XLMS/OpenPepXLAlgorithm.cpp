@@ -20,9 +20,9 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
-#include <OpenMS/FILTERING/FILTERING/NLargest.h>
+#include <OpenMS/PROCESSING/FILTERING/NLargest.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
-#include <OpenMS/FILTERING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 
 #include <iostream>
 

@@ -36,7 +36,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
-#include <OpenMS/FILTERING/RESAMPLING/LinearResamplerAlign.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 
 #include <cassert>
 #include <limits>

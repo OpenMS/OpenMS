@@ -11,7 +11,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 ///////////////////////////
-#include <OpenMS/FILTERING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 ///////////////////////////
 
 using namespace OpenMS;

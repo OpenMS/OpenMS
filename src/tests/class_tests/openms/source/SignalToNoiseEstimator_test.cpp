@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 ///////////////////////////
 
 using namespace OpenMS;

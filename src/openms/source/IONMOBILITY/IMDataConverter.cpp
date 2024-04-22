@@ -17,7 +17,7 @@
 
 
 #include <map>
-#include <OpenMS/FILTERING/SPECTRAMERGING/SpectraMerger.h>
+#include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 
 namespace OpenMS
 {

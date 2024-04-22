@@ -17,14 +17,14 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
-#include <OpenMS/FILTERING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FILTERING/SCALING/Normalizer.h>
+#include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 #include <OpenMS/FEATUREFINDER/GaussModel.h>
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
-#include <OpenMS/FILTERING/FILTERING/ThresholdMower.h>
+#include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>

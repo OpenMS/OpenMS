@@ -11,7 +11,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 ///////////////////////////
-#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
+#include <OpenMS/PROCESSING/DATAREDUCTION/MassTraceDetection.h>
 ///////////////////////////
 
 using namespace OpenMS;

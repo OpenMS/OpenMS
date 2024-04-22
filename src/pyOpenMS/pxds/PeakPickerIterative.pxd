@@ -6,7 +6,7 @@ from Param cimport *
 from DefaultParamHandler cimport *
 from ProgressLogger cimport *
 
-cdef extern from "<OpenMS/FILTERING/CENTROIDING/PeakPickerIterative.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h>" namespace "OpenMS":
 
     cdef cppclass PeakPickerIterative(DefaultParamHandler, ProgressLogger):
         # wrap-inherits:
@@ -35,7 +35,7 @@ cdef extern from "<OpenMS/FILTERING/CENTROIDING/PeakPickerIterative.h>" namespac
 
 
 
-# cdef extern from "<OpenMS/FILTERING/CENTROIDING/PeakPickerIterative.h>" namespace "OpenMS":
+# cdef extern from "<OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h>" namespace "OpenMS":
 # 
 #    cdef cppclass PeakCandidate:
 #        PeakCandidate() except + nogil 

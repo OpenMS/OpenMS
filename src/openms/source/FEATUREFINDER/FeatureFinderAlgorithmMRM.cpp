@@ -9,9 +9,9 @@
 
 #include <OpenMS/FEATUREFINDER/EmgFitter1D.h>
 #include <OpenMS/FEATUREFINDER/EmgModel.h>
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
-#include <OpenMS/FILTERING/RESAMPLING/LinearResampler.h>
+#include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResampler.h>
 
 #include <fstream>
 #include <map>
