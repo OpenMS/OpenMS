@@ -16,7 +16,7 @@
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
 #include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
-#include <OpenMS/PROCESSING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 
 #ifdef _OPENMP
 #include <omp.h>

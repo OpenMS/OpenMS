@@ -10,7 +10,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/PROCESSING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 
