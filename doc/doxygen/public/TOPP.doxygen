@@ -84,7 +84,6 @@
   - @subpage TOPP_FeatureFinderIdentification - Detects two-dimensional features in MS1 data based on peptide identifications.
   - @subpage TOPP_FeatureFinderMetabo - Detects two-dimensional features in centroided LC-MS data of metabolites.
   - @subpage TOPP_FeatureFinderMetaboIdent - Detects features in MS1 data corresponding to small molecule identifications.
-  - @subpage TOPP_FeatureFinderMRM - Quantifies features LC-MS/MS MRM data.
   - @subpage TOPP_FeatureFinderMultiplex - Identifies peptide multiplets (pairs, triplets etc., e.g. for SILAC or Dimethyl labeling) and determines their relative abundance.
   - @subpage TOPP_IsobaricAnalyzer - Extracts and normalizes TMT and iTRAQ information from an MS experiment.
   - @subpage TOPP_MassTraceExtractor - Annotates mass traces in centroided LC-MS maps.

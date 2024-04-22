@@ -71,7 +71,6 @@ namespace OpenMS
     tools_map["FeatureFinderIdentification"] = Internal::ToolDescription("FeatureFinderIdentification", cat_quant);
     tools_map["FeatureFinderMetabo"] = Internal::ToolDescription("FeatureFinderMetabo", cat_quant);
     tools_map["FeatureFinderMetaboIdent"] = Internal::ToolDescription("FeatureFinderMetaboIdent", cat_quant);
-    tools_map["FeatureFinderMRM"] = Internal::ToolDescription("FeatureFinderMRM", cat_quant);
     tools_map["FeatureFinderMultiplex"] = Internal::ToolDescription("FeatureFinderMultiplex", cat_quant);
     tools_map["FeatureLinkerLabeled"] = Internal::ToolDescription("FeatureLinkerLabeled", cat_linking);
     tools_map["FeatureLinkerUnlabeled"] = Internal::ToolDescription("FeatureLinkerUnlabeled", cat_linking);

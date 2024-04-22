@@ -9,7 +9,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>

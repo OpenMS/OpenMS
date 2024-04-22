@@ -302,13 +302,6 @@ add_test("TOPP_FeatureFinderIdentification_5_out2" ${DIFF} -whitelist "feature i
 set_tests_properties("TOPP_FeatureFinderIdentification_5_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_5")
 
 
-
-#------------------------------------------------------------------------------
-# FeatureFinderMRM test
-add_test("TOPP_FeatureFinderMRM_1" ${TOPP_BIN_PATH}/FeatureFinderMRM -test -in ${DATA_DIR_TOPP}/FeatureFinderMRM_1_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMRM_1_parameters.ini -out FeatureFinderMRM_1.tmp.featureXML)
-add_test("TOPP_FeatureFinderMRM_1_out1" ${DIFF} -whitelist "id=" -in1 FeatureFinderMRM_1.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMRM_1_output.featureXML )
-set_tests_properties("TOPP_FeatureFinderMRM_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMRM_1")
-
 #------------------------------------------------------------------------------
 # FeatureFinderMultiplex test
 add_test("TOPP_FeatureFinderMultiplex_1" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_parameters.ini -out FeatureFinderMultiplex_1.tmp.featureXML -out_multiplets FeatureFinderMultiplex_2.tmp.consensusXML)
