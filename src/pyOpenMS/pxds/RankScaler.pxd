@@ -5,7 +5,7 @@ from ChromatogramPeak cimport *
 from Peak1D cimport *
 from DefaultParamHandler cimport *
 
-cdef extern from "<OpenMS/FILTERING/SCALING/RankScaler.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/SCALING/RankScaler.h>" namespace "OpenMS":
 
     cdef cppclass RankScaler(DefaultParamHandler):
         # wrap-inherits:

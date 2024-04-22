@@ -12,11 +12,11 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 
 // preprocessing and filtering
-#include <OpenMS/FILTERING/FILTERING/ThresholdMower.h>
-#include <OpenMS/FILTERING/SCALING/Normalizer.h>
-#include <OpenMS/FILTERING/FILTERING/NLargest.h>
-#include <OpenMS/FILTERING/FILTERING/WindowMower.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
+#include <OpenMS/PROCESSING/SCALING/Normalizer.h>
+#include <OpenMS/PROCESSING/FILTERING/NLargest.h>
+#include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
+#include <OpenMS/PROCESSING/DATAREDUCTION/Deisotoper.h>
 
 #ifdef _OPENMP
 #include <omp.h>

@@ -18,10 +18,10 @@
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 
 // preprocessing and filtering for automated m/z annotations
-#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
-#include <OpenMS/FILTERING/FILTERING/ThresholdMower.h>
-#include <OpenMS/FILTERING/FILTERING/NLargest.h>
-#include <OpenMS/FILTERING/FILTERING/WindowMower.h>
+#include <OpenMS/PROCESSING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
+#include <OpenMS/PROCESSING/FILTERING/NLargest.h>
+#include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 
 
 #include <QPainter>

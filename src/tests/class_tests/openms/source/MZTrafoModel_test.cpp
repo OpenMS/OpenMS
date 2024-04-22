@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>
+#include <OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>
 ///////////////////////////
 
 #include <OpenMS/MATH/MathFunctions.h>
