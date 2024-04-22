@@ -10,7 +10,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
+#include <OpenMS/FILTERING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/SYSTEM/File.h>
