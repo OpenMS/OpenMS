@@ -542,13 +542,13 @@ namespace OpenMS
     auto chunks = chunk_(peptide_map_.begin(), peptide_map_.end(), batch_size_);
 
     PeptideRefRTMap ref_rt_map;
-    PeptideRefIMMap ref_im_map;
+
     if (debug_level_ >= 668)
     {
       OPENMS_LOG_INFO << "Creating full assay library for debugging." << endl;
       // Warning: this step is pretty inefficient, since it does the whole library generation twice
       // Really use for debug only
-      createAssayLibrary_(peptide_map_.begin(), peptide_map_.end(), ref_rt_map, ref_IM_map, false);
+      createAssayLibrary_(peptide_map_.begin(), peptide_map_.end(), ref_rt_map, false);
       cout << "Writing debug.traml file." << endl;
       FileHandler().storeTransitions("debug.traml", library_);
       ref_rt_map.clear();
@@ -852,7 +852,11 @@ namespace OpenMS
 
   }
 
-  void FeatureFinderIdentificationAlgorithm::createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map, bool clear_IDs)
+  void FeatureFinderIdentificationAlgorithm::createAssayLibrary_(
+    const PeptideMap::iterator& begin, 
+    const PeptideMap::iterator& end, 
+    PeptideRefRTMap& ref_rt_map, 
+    bool clear_IDs)
   {
     std::set<String> protein_accessions;
 
@@ -938,13 +942,15 @@ namespace OpenMS
         peptide.sequence = seq.toString();
         // keep track of protein accessions:
         set<String> current_accessions;
-        // internal/external pair
-        const pair<RTMap, RTMap> &pair = pm_it->second.begin()->second;
+        
+        const pair<RTMap, RTMap> &pair = pm_it->second.begin()->second; // internal/external pair
+        const RTMap& internal_ids = pair.first;
+        const RTMap& external_ids = pair.second;
 
         // WARNING: This assumes that at least one hit is present.
-        const PeptideHit &hit = (pair.first.empty() ?
-                                 pair.second.begin()->second->getHits()[0] :
-                                 pair.first.begin()->second->getHits()[0]);
+        const PeptideHit &hit = (internal_ids.empty() ?
+                                 external_ids.begin()->second->getHits()[0] :
+                                 internal_ids.begin()->second->getHits()[0]);
         current_accessions = hit.extractProteinAccessionsSet();
         protein_accessions.insert(current_accessions.begin(),
                                   current_accessions.end());
@@ -956,9 +962,12 @@ namespace OpenMS
 
         peptide.protein_refs = vector<String>(current_accessions.begin(),
                                               current_accessions.end());
-        // get regions in which peptide eludes (ideally only one):
+        // get regions in RT which peptide eludes (ideally only one):
         std::vector<RTRegion> rt_regions;
         getRTRegions_(pm_it->second, rt_regions, clear_IDs);
+
+        // note: IM values are stored in the PeptideIdentifications* for the different
+        // peptides, charges, and regions
 
         // get isotope distribution for peptide:
         Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
@@ -1007,6 +1016,10 @@ namespace OpenMS
               peptide.rts.clear();
               addPeptideRT_(peptide, reg.start);
               addPeptideRT_(peptide, reg.end);
+
+              // TODO: determine e.g. one IM value (or range, but should not differ a lot) 
+              // for the peptide and current charge state
+              
               library_.addPeptide(peptide);
               generateTransitions_(peptide.id, mz, charge, iso_dist);
             }
@@ -1027,12 +1040,13 @@ namespace OpenMS
     }
   }
 
+  // extract RT regions of identified peptides (from charge map)
   void FeatureFinderIdentificationAlgorithm::getRTRegions_(
     ChargeMap& peptide_data,
     std::vector<RTRegion>& rt_regions,
     bool clear_IDs) const
   {
-    // use RTs from all charge states here to get a more complete picture:
+    // use RTs from all charge states of a single peptide to get a more complete picture:
     std::vector<double> rts;
     for (auto& cm : peptide_data)
     {
@@ -1052,7 +1066,7 @@ namespace OpenMS
 
     for (auto& rt : rts)
     {
-      // create a new region?
+      // large gap between last RT of last region and current RT? then create a new region?
       if (rt_regions.empty() || (rt_regions.back().end < rt - rt_tolerance))
       {
         RTRegion region;
@@ -1060,6 +1074,7 @@ namespace OpenMS
         // TODO
         // cppcheck-suppress uninitStructMember
         rt_regions.push_back(region);
+        im_values.push_back(im_value); // TODO: fill with IM data
       }
       rt_regions.back().end = rt + rt_tolerance;
     }
@@ -1068,15 +1083,21 @@ namespace OpenMS
     for (auto& cm : peptide_data)
     {
       // regions are sorted by RT, as are IDs, so just iterate linearly:
-      auto reg_it = rt_regions.begin();
+      std::vector<RTRegion>::iterator reg_it = rt_regions.begin();
+      auto reg_index = reg_it - rt_regions.begin();
+      int charge = cm.first;
+
       // "internal" IDs:
       for (auto& rt : cm.second.first)
       {
-        while (rt.first > reg_it->end)
+        // while RT larger than current region end: skip to next region (or end)
+        while (rt.first > reg_it->end) 
         {
           ++reg_it;
         }
-        reg_it->ids[cm.first].first.insert(rt);
+        RTMap& internal_ids = reg_it->ids[charge].first;
+         // insert RT and peptide id object into multimap (for current charge of the peptide)
+        internal_ids.insert(rt);
       }
       reg_it = rt_regions.begin(); // reset to start
       // "external" IDs:
@@ -1086,7 +1107,8 @@ namespace OpenMS
         {
           ++reg_it;
         }
-        reg_it->ids[cm.first].second.insert(rt);
+        RTMap& external_ids = reg_it->ids[charge].second;
+        external_ids.insert(rt);
       }
       if (clear_IDs)
       {

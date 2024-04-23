@@ -88,9 +88,10 @@ protected:
   /// mapping: peptide ref. -> int./ext.: (RT -> pointer to peptide)
   typedef std::map<String, std::pair<RTMap, RTMap> > PeptideRefRTMap;
 
+/** REMOVE
   /// mapping: peptide ref. -> int./ext.: (IM -> pointer to peptide)
   typedef std::map<String, std::pair<RTMap, RTMap> > PeptideRefIMMap;
-
+*/
   PeptideMap peptide_map_;
 
   Size n_internal_peps_; ///< number of internal peptide
