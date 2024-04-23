@@ -446,7 +446,7 @@ namespace OpenMS
     // If we can't get any valid strings show an error.
     String extension = FileTypes::typeToName(FileTypes::UNKNOWN);
     auto validStrings = vis_param_.getValidStrings(output_combo_->currentText().toStdString()); 
-    if (validStrings.size() > 0)
+    if (!validStrings.empty())
     {
       extension = validStrings[0];
     }
