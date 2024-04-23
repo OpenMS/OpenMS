@@ -1019,9 +1019,9 @@ namespace OpenMS
 
               // TODO: determine e.g. one IM value (or range, but should not differ a lot) 
               // for the peptide and current charge state in the region
-              if (has_IM)
+              double im_value = reg.getIMValue();
+              if (im_value != -1)
               {
-                im_value = reg.getIMValue(); // TODO: e.g., average IM value of region
                 peptide.setDriftTime(im_value);
               }
 
