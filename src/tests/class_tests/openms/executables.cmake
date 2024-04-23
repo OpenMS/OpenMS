@@ -304,7 +304,6 @@ set(math_executables_list
 )
 
 set(filtering_executables_list
-  BernNorm_test
   DataFilters_test
   Deisotoper_test
   ElutionPeakDetection_test
@@ -315,7 +314,6 @@ set(filtering_executables_list
   GaussFilterAlgorithm_test
   IDFilter_test
   InternalCalibration_test
-  IsotopeDistributionCache_test
   LinearResampler_test
   LinearResamplerAlign_test
   LowessSmoothing_test
@@ -339,12 +337,12 @@ set(filtering_executables_list
   SplineInterpolatedPeaks_test
   SplinePackage_test
   SavitzkyGolayFilter_test
-  Scaler_test
+  RankScaler_test
   SignalToNoiseEstimatorMeanIterative_test
   SignalToNoiseEstimatorMedian_test
   SignalToNoiseEstimatorMedianRapid_test
   SignalToNoiseEstimator_test
-  SqrtMower_test
+  SqrtScaler_test
   ThresholdMower_test
   WindowMower_test
   SpectraMerger_test
@@ -554,14 +552,10 @@ set(transformations_executables_list
   EmgModel_test
   ExtendedIsotopeFitter1D_test
   ExtendedIsotopeModel_test  
-  FeatureFinderAlgorithmMRM_test
   FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
-  FeatureFinderAlgorithm_test
   FeatureFinderIdentificationAlgorithm_test
   FeatureFinderMultiplexAlgorithm_test
-  FeatureFinderDefs_test
-  FeatureFinder_test
   Fitter1D_test
   GaussFitter1D_test
   GaussModel_test

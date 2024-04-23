@@ -12,8 +12,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
+#include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 

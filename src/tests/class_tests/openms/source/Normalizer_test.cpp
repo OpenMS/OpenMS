@@ -12,7 +12,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 

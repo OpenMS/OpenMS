@@ -71,7 +71,6 @@ namespace OpenMS
     tools_map["FeatureFinderIdentification"] = Internal::ToolDescription("FeatureFinderIdentification", cat_quant);
     tools_map["FeatureFinderMetabo"] = Internal::ToolDescription("FeatureFinderMetabo", cat_quant);
     tools_map["FeatureFinderMetaboIdent"] = Internal::ToolDescription("FeatureFinderMetaboIdent", cat_quant);
-    tools_map["FeatureFinderMRM"] = Internal::ToolDescription("FeatureFinderMRM", cat_quant);
     tools_map["FeatureFinderMultiplex"] = Internal::ToolDescription("FeatureFinderMultiplex", cat_quant);
     tools_map["FeatureLinkerLabeled"] = Internal::ToolDescription("FeatureLinkerLabeled", cat_linking);
     tools_map["FeatureLinkerUnlabeled"] = Internal::ToolDescription("FeatureLinkerUnlabeled", cat_linking);
@@ -178,11 +177,8 @@ namespace OpenMS
     tools_map["SiriusExport"] = Internal::ToolDescription("SiriusExport", cat_ID_MTX);
     tools_map["SpecLibCreator"] = Internal::ToolDescription("SpecLibCreator", cat_ID_proc);
     tools_map["SpecLibSearcher"] = Internal::ToolDescription("SpecLibSearcher", cat_ID_search);
-    tools_map["SpectraFilterBernNorm"] = Internal::ToolDescription("SpectraFilterBernNorm", cat_signal_proc_smooth_normalize);
     tools_map["SpectraFilterNLargest"] = Internal::ToolDescription("SpectraFilterNLargest", cat_signal_proc_smooth_normalize);
     tools_map["SpectraFilterNormalizer"] = Internal::ToolDescription("SpectraFilterNormalizer", cat_signal_proc_smooth_normalize);
-    tools_map["SpectraFilterScaler"] = Internal::ToolDescription("SpectraFilterScaler", cat_signal_proc_smooth_normalize);
-    tools_map["SpectraFilterSqrtMower"] = Internal::ToolDescription("SpectraFilterSqrtMower", cat_signal_proc_smooth_normalize);
     tools_map["SpectraFilterThresholdMower"] = Internal::ToolDescription("SpectraFilterThresholdMower", cat_signal_proc_smooth_normalize);
     tools_map["SpectraFilterWindowMower"] = Internal::ToolDescription("SpectraFilterWindowMower", cat_signal_proc_smooth_normalize);
     tools_map["SpectraMerger"] = Internal::ToolDescription("SpectraMerger", cat_signal_proc_misc);

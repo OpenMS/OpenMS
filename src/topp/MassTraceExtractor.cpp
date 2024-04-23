@@ -7,8 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
+#include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
+#include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/KERNEL/MSExperiment.h>

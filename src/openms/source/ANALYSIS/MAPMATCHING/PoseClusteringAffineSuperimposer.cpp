@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
-#include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
+#include <OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/ML/INTERPOLATION/LinearInterpolation.h>
 

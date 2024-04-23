@@ -79,24 +79,23 @@
 #include <OpenMS/COMPARISON/SpectrumPrecursorComparator.h>
 #include <OpenMS/COMPARISON/SteinScottImproveScore.h>
 #include <OpenMS/COMPARISON/ZhangSimilarityScore.h>
-#include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-#include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>
+#include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
+#include <OpenMS/FEATUREFINDER/FeatureFindingMetabo.h>
+#include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
+#include <OpenMS/PROCESSING/SMOOTHING/LowessSmoothing.h>
+#include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResampler.h>
+#include <OpenMS/PROCESSING/FILTERING/NLargest.h>
+#include <OpenMS/PROCESSING/SCALING/Normalizer.h>
+#include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
+#include <OpenMS/PROCESSING/SCALING/SqrtScaler.h>
+#include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
+#include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
@@ -112,8 +111,6 @@
 #include <OpenMS/FEATUREFINDER/EmgModel.h>
 #include <OpenMS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
 #include <OpenMS/FEATUREFINDER/ExtendedIsotopeModel.h>
-#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithm.h>
-#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/FEATUREFINDER/Fitter1D.h>
@@ -126,8 +123,8 @@
 #include <OpenMS/FEATUREFINDER/MaxLikeliFitter1D.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 #include <OpenMS/FEATUREFINDER/TraceFitter.h>
-#include <OpenMS/FILTERING/CENTROIDING/PeakPickerHiRes.h>
-#include <OpenMS/FILTERING/CENTROIDING/PeakPickerIterative.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h>
 
 // those are only added if GUI is enabled
 #ifdef WITH_GUI
@@ -337,8 +334,6 @@ int main(int argc, char** argv)
   //////////////////////////////////
 
   DOCME(AScore);
-  DOCME(AccurateMassSearchEngine);
-  DOCME(BernNorm);
   DOCME(BasicProteinInferenceAlgorithm);
   DOCME(BayesianProteinInferenceAlgorithm);
   DOCME(TransitionPQPFile);
@@ -424,7 +419,7 @@ int main(int argc, char** argv)
   DOCME(SpectrumAlignmentScore);
   DOCME(SpectrumCheapDPCorr);
   DOCME(SpectrumPrecursorComparator);
-  DOCME(SqrtMower);
+  DOCME(SqrtScaler);
   DOCME(SteinScottImproveScore);
   DOCME(SpectraMerger);
   DOCME(TheoreticalSpectrumGenerator);
@@ -455,8 +450,6 @@ int main(int argc, char** argv)
   DOCME2(ConsensusIDAlgorithmIdentity, (ConsensusIDAlgorithmBest()));
   DOCME2(ConsensusIDAlgorithmSimilarity, (ConsensusIDAlgorithmBest()));
   DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked()));
-  DOCME2(FeatureFinderAlgorithmMRM, (FeatureFinderAlgorithmMRM()));
-  DOCME2(FeatureFinderAlgorithm, (FeatureFinderAlgorithmMRM())); //FeatureFinderAlgorithm is a base class, get parameters from subclass FeatureFinderAlgorithmMRM
   DOCME2(SignalToNoiseEstimatorMeanIterative, SignalToNoiseEstimatorMeanIterative<>());
   DOCME2(SignalToNoiseEstimatorMedian, SignalToNoiseEstimatorMedian<>());
   DOCME2(SignalToNoiseEstimator, SignalToNoiseEstimatorMedian<>()); //SignalToNoiseEstimator is a base class, get parameters from subclass SignalToNoiseEstimatorMedian

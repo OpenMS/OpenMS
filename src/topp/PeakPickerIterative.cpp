@@ -8,7 +8,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FILTERING/CENTROIDING/PeakPickerIterative.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h>
 
 using namespace OpenMS;
 using namespace std;

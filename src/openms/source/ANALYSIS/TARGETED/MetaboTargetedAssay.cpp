@@ -11,7 +11,7 @@
 
 #include <OpenMS/KERNEL/BinnedSpectrum.h>
 #include <OpenMS/COMPARISON/BinnedSpectralContrastAngle.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/MATH/MathFunctions.h>
