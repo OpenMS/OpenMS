@@ -449,7 +449,7 @@ namespace OpenMS
     if (validStrings.size() > 0)
     {
       extension = validStrings[0];
-    };
+    }
     else
     {
       QMessageBox::critical(this, "Error", QString("Error determining output type from tool. Tool is not compatible with TOPPView"));
