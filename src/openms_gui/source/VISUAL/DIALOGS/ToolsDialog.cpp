@@ -443,14 +443,16 @@ namespace OpenMS
   String ToolsDialog::getExtension()
   {
     // Try to Return the first valid string for the extension on the output parameter
+    // If we can't get any valid strings show an error.
     String extension = FileTypes::typeToName(FileTypes::UNKNOWN);
-    try 
+    vector<String> validStrings = vis_param_.getValidStrings(output_combo_->currentText().toStdString())
+    if (validStrings.size() > 0)
     {
-      extension = vis_param_.getValidStrings(output_combo_->currentText().toStdString())[0];
+      extension = validStrings[0];
     }
-    catch (Exception::BaseException e)
+    else
     {
-      QMessageBox::critical(this, "Error", QString("Error storing INI file: ") + e.what());
+      QMessageBox::critical(this, "Error", QString("Error determining output type from tool. Tool is not compatible with TOPPView"));
     }
     return extension;
   }
