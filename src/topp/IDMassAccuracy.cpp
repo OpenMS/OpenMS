@@ -16,12 +16,12 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 using namespace OpenMS;
 using namespace std;

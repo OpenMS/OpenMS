@@ -29,7 +29,6 @@ FeatureFinderCentroided
 FeatureFinderIdentification
 FeatureFinderMetabo
 FeatureFinderMetaboIdent
-FeatureFinderMRM
 FeatureFinderMultiplex
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled
@@ -58,6 +57,7 @@ IDRTCalibration
 IDScoreSwitcher
 IDSplitter
 InternalCalibration
+IonMobilityBinning
 IsobaricAnalyzer
 JSONExporter
 LuciphorAdapter
@@ -126,12 +126,8 @@ SimpleSearchEngine
 SiriusExport
 SpecLibCreator
 SpecLibSearcher
-SpectraFilterBernNorm
 SpectraFilterNLargest
 SpectraFilterNormalizer
-SpectraFilterParentPeakMower
-SpectraFilterScaler
-SpectraFilterSqrtMower
 SpectraFilterThresholdMower
 SpectraFilterWindowMower
 SpectraMerger

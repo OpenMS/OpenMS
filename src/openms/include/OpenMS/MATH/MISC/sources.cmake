@@ -6,7 +6,6 @@ set(sources_list_h
 BSpline2d.h
 CubicSpline2d.h
 EmgGradientDescent.h
-MathFunctions.h
 SplineBisection.h
 )
 

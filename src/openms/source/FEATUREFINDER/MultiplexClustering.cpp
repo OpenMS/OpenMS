@@ -8,11 +8,11 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/FILTERING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/FEATUREFINDER/MultiplexClustering.h>
 #include <OpenMS/FEATUREFINDER/PeakWidthEstimator.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/ML/CLUSTERING/GridBasedClustering.h>
 
 #include <QtCore/QDir>

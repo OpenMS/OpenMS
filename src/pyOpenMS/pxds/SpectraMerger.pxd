@@ -6,7 +6,7 @@ from Peak1D cimport *
 from String cimport *
 from DefaultParamHandler cimport *
 
-cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>" namespace "OpenMS":
 
     cdef cppclass SpectraMerger(DefaultParamHandler):
         # wrap-inherits:

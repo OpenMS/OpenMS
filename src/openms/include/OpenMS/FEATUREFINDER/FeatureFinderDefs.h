@@ -8,7 +8,6 @@
 
 #pragma once
 
-
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -16,10 +15,6 @@
 
 namespace OpenMS
 {
-
-  // forward declaration
-  class FeatureFinder;
-
   /**@brief The purpose of this struct is to provide definitions of classes and typedefs which are used throughout all FeatureFinder classes.  */
   struct OPENMS_DLLAPI FeatureFinderDefs
   {

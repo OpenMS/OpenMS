@@ -21,12 +21,12 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <OpenMS/FILTERING/DATAREDUCTION/FeatureOverlapFilter.h>
+#include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
 #include <vector>
 #include <numeric>

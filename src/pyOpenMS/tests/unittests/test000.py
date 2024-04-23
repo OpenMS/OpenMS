@@ -461,100 +461,6 @@ def testEmpiricalFormula():
     assert ef.getNumberOfAtoms() == 7
 
 @report
-def testIdentificationHit():
-    """
-    @tests: IdentificationHit
-     IdentificationHit.__init__
-    """
-    f = pyopenms.IdentificationHit()
-    _testMetaInfoInterface(f)
-
-    assert pyopenms.IdentificationHit().setId is not None
-    assert pyopenms.IdentificationHit().getId is not None
-    assert pyopenms.IdentificationHit().setCharge is not None
-    assert pyopenms.IdentificationHit().getCharge is not None
-    assert pyopenms.IdentificationHit().setCalculatedMassToCharge is not None
-    assert pyopenms.IdentificationHit().getCalculatedMassToCharge is not None
-    assert pyopenms.IdentificationHit().setExperimentalMassToCharge is not None
-    assert pyopenms.IdentificationHit().getExperimentalMassToCharge is not None
-    assert pyopenms.IdentificationHit().setName is not None
-    assert pyopenms.IdentificationHit().getName is not None
-    assert pyopenms.IdentificationHit().setPassThreshold is not None
-    assert pyopenms.IdentificationHit().getPassThreshold is not None
-    assert pyopenms.IdentificationHit().setRank is not None
-    assert pyopenms.IdentificationHit().getRank is not None
-
-    f.setId("test_id")
-    assert f.getId() == "test_id"
-
-    f.setId("test_id")
-    assert f.getId() == "test_id"
-
-    f.setCharge(5)
-    assert f.getCharge() == 5
-
-    f.setCalculatedMassToCharge(5.0)
-    assert f.getCalculatedMassToCharge() == 5.0
-
-    f.setExperimentalMassToCharge(5.0)
-    assert f.getExperimentalMassToCharge() == 5.0
-
-    f.setName("test")
-    assert f.getName() == "test"
-
-    f.setPassThreshold(True)
-    assert f.getPassThreshold() == True
-
-    f.setRank(42)
-    assert f.getRank() == 42
-
-@report
-def testSpectrumIdentification():
-    """
-    @tests: SpectrumIdentification
-     SpectrumIdentification.__init__
-    """
-    f = pyopenms.SpectrumIdentification()
-    _testMetaInfoInterface(f)
-
-    assert pyopenms.SpectrumIdentification().setHits is not None
-    assert pyopenms.SpectrumIdentification().addHit is not None
-    assert pyopenms.SpectrumIdentification().getHits is not None
-
-    hit = pyopenms.IdentificationHit()
-    hit.setName("test1")
-    f.addHit(hit)
-    hit = pyopenms.IdentificationHit()
-    hit.setName("test2")
-    f.addHit(hit)
-    all_hits = f.getHits()
-    assert len(all_hits) == 2
-    assert "test1" in [h.getName() for h in all_hits]
-    assert "test2" in [h.getName() for h in all_hits]
-
-@report
-def testIdentification():
-    """
-    @tests: Identification
-     Identification.__init__
-    """
-    f = pyopenms.Identification()
-    _testMetaInfoInterface(f)
-
-    assert pyopenms.Identification().setCreationDate is not None
-    assert pyopenms.Identification().getCreationDate is not None
-    assert pyopenms.Identification().setSpectrumIdentifications is not None
-    assert pyopenms.Identification().addSpectrumIdentification is not None
-    assert pyopenms.Identification().getSpectrumIdentifications is not None
-
-    id1 = pyopenms.SpectrumIdentification()
-    f.addSpectrumIdentification(id1)
-    assert len(f.getSpectrumIdentifications()) == 1
-    id2 = pyopenms.SpectrumIdentification()
-    f.addSpectrumIdentification(id2)
-    assert len(f.getSpectrumIdentifications()) == 2
-
-@report
 def testModificationDefinitionsSet():
     """
     @tests: ModificationDefinitionsSet
@@ -2839,42 +2745,6 @@ def testMSExperiment():
     assert np.allclose(ms1_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS1_MassQL_ION.tsv'), sep='\t'))
 
 @report
-def testMSQuantifications():
-    """
-    @tests: MSQuantifications
-     MSQuantifications.__eq__
-     MSQuantifications.__ge__
-     MSQuantifications.__gt__
-     MSQuantifications.__init__
-     MSQuantifications.__le__
-     MSQuantifications.__lt__
-     MSQuantifications.__ne__
-     MSQuantifications.getConsensusMaps
-     MSQuantifications.setConsensusMaps
-     MSQuantifications.setDataProcessing
-     MSQuantifications.getDataProcessing
-     MSQuantifications.getAssays
-     MSQuantifications.getFeatureMaps
-     MSQuantifications.setAnalysisSummaryQuantType
-     MSQuantifications.getAnalysisSummary
-     MSQuantifications.addConsensusMap
-     MSQuantifications.assignUIDs
-    """
-    msq = pyopenms.MSQuantifications()
-    assert msq == msq
-    assert not msq != msq
-    msq.setConsensusMaps(msq.getConsensusMaps())
-
-    summary = msq.getAnalysisSummary()
-    msq.setDataProcessingList(msq.getDataProcessingList())
-    msq.getAssays()
-    msq.getFeatureMaps()
-    msq.setAnalysisSummaryQuantType(pyopenms.MSQuantifications.QUANT_TYPES.LABELFREE)
-
-    msq.addConsensusMap(pyopenms.ConsensusMap())
-    msq.assignUIDs()
-
-@report
 def testMSSpectrum():
     """
     @tests: MSSpectrum
@@ -3728,10 +3598,6 @@ def testMxxxFile():
      MzXMLFile.startProgress
      MzXMLFile.store
 
-     MzQuantMLFile.__init__
-     MzQuantMLFile.isSemanticallyValid
-     MzQuantMLFile.load
-     MzQuantMLFile.store
     """
     mse = pyopenms.MSExperiment()
     s = pyopenms.MSSpectrum()
@@ -3763,11 +3629,6 @@ def testMxxxFile():
     fh.store("test.mzXML", mse)
     fh.load("test.mzXML", mse)
     fh.setOptions(fh.getOptions())
-
-    fh = pyopenms.MzQuantMLFile()
-    fh.isSemanticallyValid
-    fh.load
-    fh.store
 
 
 

@@ -23,7 +23,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/COMPARISON/SpectrumAlignmentScore.h>
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/LayerData1DChrom.h>

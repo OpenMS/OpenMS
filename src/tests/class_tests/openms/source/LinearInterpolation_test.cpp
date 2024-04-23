@@ -22,7 +22,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 ///////////////////////////
 

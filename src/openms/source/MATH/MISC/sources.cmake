@@ -6,7 +6,6 @@ set(sources_list
 BSpline2d.cpp
 CubicSpline2d.cpp
 EmgGradientDescent.cpp
-MathFunctions.cpp
 SplineBisection.cpp
 )
 

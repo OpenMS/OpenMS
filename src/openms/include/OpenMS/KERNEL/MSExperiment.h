@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>

@@ -14,13 +14,13 @@
 #include <OpenMS/FEATUREFINDER/MultiplexFilteringCentroided.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/FEATUREFINDER/MultiplexClustering.h>
-#include <OpenMS/FILTERING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/ML/CLUSTERING/GridBasedCluster.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>
+#include <OpenMS/PROCESSING/MISC/SplinePackage.h>
+#include <OpenMS/PROCESSING/MISC/SplineInterpolatedPeaks.h>
 
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/ML/REGRESSION/LinearRegressionWithoutIntercept.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>

@@ -106,7 +106,6 @@ XTandemInfile.h
 XTandemXMLFile.h
 FileTypes.h
 MzIdentMLFile.h
-MzQuantMLFile.h
 TraMLFile.h
 XMassFile.h
 XQuestResultXMLFile.h

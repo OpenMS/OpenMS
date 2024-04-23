@@ -17,7 +17,7 @@
 // TODO add ID support to Handler
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <ctime>
