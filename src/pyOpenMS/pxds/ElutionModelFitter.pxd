@@ -1,7 +1,6 @@
 from Types cimport *
 from DefaultParamHandler cimport *
 from FeatureMap cimport *
-from FeatureFinderAlgorithmPickedHelperStructs cimport *
 
 cdef extern from "<OpenMS/FEATUREFINDER/ElutionModelFitter.h>" namespace "OpenMS":
     

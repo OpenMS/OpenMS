@@ -58,9 +58,9 @@ def main(test_data_dir, source_files_to_check):
         if not found: 
             test_files_not_in_sources.append(test_file)
 
-    print("Test files not found in any source file:")
-    for file in test_files_not_in_sources:
-        print(file)
+    #print("Test files not found in any source file:")
+    #for file in test_files_not_in_sources:
+    #    print(file)
 
     print("Test files tracked by GIT but not found in any source file:")
     tracked = filter_tracked_files(test_files_not_in_sources) # print tracked files not referenced in sources
