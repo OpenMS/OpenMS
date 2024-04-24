@@ -1367,7 +1367,7 @@ def testFeatureFinderAlgorithmPicked():
 
     _testParam(ff.getParameters())
 
-    assert ff.getName() == "FeatureFinderAlgorithm"
+    assert ff.getName() == "FeatureFinderAlgorithmPicked"
 
     ff.setParameters(pyopenms.Param())
 
