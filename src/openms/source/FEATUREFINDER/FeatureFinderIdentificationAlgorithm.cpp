@@ -852,6 +852,27 @@ namespace OpenMS
 
   }
 
+  double getRTRegionMeanIM_(const RTRgion& r)
+  {
+    const ChargeMap& cm = r.ids;
+    double mean = -1.0;
+    Size count = 0;
+    for (const auto& e : cm)
+    {
+      const int charge = e.first;
+      const RTMap& internal_ids = e.second.first; // internal
+      for (const auto& rt_pepidptr : internal_ids)
+      {
+        const PeptideIdentification& pep_id = *rt_pepidptr.second;
+        const double im = ped_id.getMetaValue(Constants::UserParam::IM, -1.0);
+        if (im == -1.0) { return -1.0; } // missing IM annotation? assume no IM present at all
+        mean += im;
+        ++count;
+      }
+    }
+    return mean / (double)count;
+  }
+
   void FeatureFinderIdentificationAlgorithm::createAssayLibrary_(
     const PeptideMap::iterator& begin, 
     const PeptideMap::iterator& end, 
@@ -1017,9 +1038,10 @@ namespace OpenMS
               addPeptideRT_(peptide, reg.start);
               addPeptideRT_(peptide, reg.end);
 
-              // TODO: determine e.g. one IM value (or range, but should not differ a lot) 
+              // determine e.g. one IM value  
               // for the peptide and current charge state in the region
-              double im_value = reg.getIMValue();
+              // (Note: because it is the same peptide and charge state the IM should not differ that much)
+              double im_value = getRTRegionMeanIM_(reg);
               if (im_value != -1)
               {
                 peptide.setDriftTime(im_value);
