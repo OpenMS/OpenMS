@@ -1,5 +1,6 @@
 import os
 import subprocess
+import glob
 
 # script that lists all test files in the topp folder that are:
 # 1. tracked by git
@@ -23,9 +24,27 @@ def file_contains_text(file_path, text):
     except UnicodeDecodeError:
         return False
 
+def resolve_files(file_list):
+    """ Resolves a list of file paths and wildcard patterns to actual file paths. """
+    resolved_files = []
+    for file_path in file_list:
+        # Check if the file path contains a wildcard
+        if '*' in file_path:
+            # Expand the wildcard pattern to actual file paths
+            expanded_files = glob.glob(file_path, recursive=True)
+            resolved_files.extend(expanded_files)
+        else:
+            # If no wildcard, just add the file path as is
+            if os.path.exists(file_path):
+                resolved_files.append(file_path)
+            else:
+                print(f"Warning: The file '{file_path}' does not exist.")
+    return resolved_files
+
+
 def main(test_data_dir, source_files_to_check):
     test_files = list_files_in_directory(test_data_dir)
-    source_files = source_files_to_check
+    source_files = resolve_files(source_files_to_check) # glob wildcards
 
     test_files_not_in_sources = []
 
@@ -71,6 +90,6 @@ def filter_tracked_files(file_list):
 if __name__ == "__main__":
     # file names in test data will be checked for existance in source file
     test_data_directory = '../../src/tests/topp'
-    source_files_to_check = [ '../../src/tests/topp/CMakeLists.txt' ]
+    source_files_to_check = [ '../../src/tests/topp/CMakeLists.txt',  '../../src/tests/class_tests/openms/source/*.cpp']
     main(test_data_directory, source_files_to_check)
 
