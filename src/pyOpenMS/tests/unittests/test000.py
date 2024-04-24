@@ -1578,18 +1578,6 @@ def testConsensusMapNormalizerAlgorithmThreshold():
 
 
 @report
-def testFeatureFinderAlgorithmPicked():
-    """
-    @tests: FeatureFinderAlgorithmPicked
-     FeatureFinderAlgorithmPicked.__init__
-    """
-    ff = pyopenms.FeatureFinderAlgorithmPicked()
-
-    assert pyopenms.FeatureFinderAlgorithmPicked().setData is not None
-    assert pyopenms.FeatureFinderAlgorithmPicked().run is not None
-
-
-@report
 def testAScore():
     """
     @tests: AScore
