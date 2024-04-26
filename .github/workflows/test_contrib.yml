@@ -28,6 +28,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+	  mkdir OpenMS/contrib
           cd OpenMS/contrib
           # Use GitHub API to get the download URL for the latest release asset named 'contrib_build-Windows.tar.gz'
           DOWNLOAD_URL=$(curl -sH "Authorization: token $GITHUB_TOKEN" \
