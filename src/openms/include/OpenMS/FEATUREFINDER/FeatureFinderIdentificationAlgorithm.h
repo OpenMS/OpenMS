@@ -226,6 +226,9 @@ protected:
   /// get regions in which peptide eludes (ideally only one) by clustering RT elution times
   void getRTRegions_(ChargeMap& peptide_data, std::vector<RTRegion>& rt_regions, bool clear_IDs = true) const;
 
+  /// get mean IM of a single RT region
+  double getRTRegionMeanIM_(const RTRegion& r);
+
   void annotateFeaturesFinalizeAssay_(
     FeatureMap& features,
     std::map<Size, std::vector<PeptideIdentification*> >& feat_ids,
@@ -244,7 +247,7 @@ protected:
   /// creates an assay library out of the peptide sequences and their RT elution windows
   /// the PeptideMap is mutable since we clear it on-the-go
   /// @p clear_IDs set to false to keep IDs in internal charge maps (only needed for debugging purposes)
-  static void createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map, bool clear_IDs = true);
+  void createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map, bool clear_IDs = true);
 
   /// CAUTION: This method stores a pointer to the given @p peptide reference in internals
   /// Make sure it stays valid until destruction of the class.

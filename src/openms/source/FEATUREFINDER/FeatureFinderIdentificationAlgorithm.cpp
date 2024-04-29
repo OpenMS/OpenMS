@@ -852,19 +852,19 @@ namespace OpenMS
 
   }
 
-  double getRTRegionMeanIM_(const RTRgion& r)
+  double FeatureFinderIdentificationAlgorithm::getRTRegionMeanIM_(const RTRegion& r)
   {
     const ChargeMap& cm = r.ids;
     double mean = -1.0;
     Size count = 0;
     for (const auto& e : cm)
     {
-      const int charge = e.first;
+      //const int charge = e.first;
       const RTMap& internal_ids = e.second.first; // internal
       for (const auto& rt_pepidptr : internal_ids)
       {
         const PeptideIdentification& pep_id = *rt_pepidptr.second;
-        const double im = ped_id.getMetaValue(Constants::UserParam::IM, -1.0);
+        const double im = pep_id.getMetaValue(Constants::UserParam::IM, -1.0);
         if (im == -1.0) { return -1.0; } // missing IM annotation? assume no IM present at all
         mean += im;
         ++count;
@@ -1101,7 +1101,6 @@ namespace OpenMS
         // TODO
         // cppcheck-suppress uninitStructMember
         rt_regions.push_back(region);
-        im_values.push_back(im_value); // TODO: fill with IM data
       }
       rt_regions.back().end = rt + rt_tolerance;
     }
