@@ -1367,7 +1367,7 @@ def testFeatureFinderAlgorithmPicked():
 
     _testParam(ff.getParameters())
 
-    assert ff.getName() == "FeatureFinderAlgorithm"
+    assert ff.getName() == "FeatureFinderAlgorithmPicked"
 
     ff.setParameters(pyopenms.Param())
 
@@ -1575,18 +1575,6 @@ def testConsensusMapNormalizerAlgorithmThreshold():
 
     assert pyopenms.ConsensusMapNormalizerAlgorithmThreshold().computeCorrelation is not None
     assert pyopenms.ConsensusMapNormalizerAlgorithmThreshold().normalizeMaps is not None
-
-
-@report
-def testFeatureFinderAlgorithmPicked():
-    """
-    @tests: FeatureFinderAlgorithmPicked
-     FeatureFinderAlgorithmPicked.__init__
-    """
-    ff = pyopenms.FeatureFinderAlgorithmPicked()
-
-    assert pyopenms.FeatureFinderAlgorithmPicked().setData is not None
-    assert pyopenms.FeatureFinderAlgorithmPicked().run is not None
 
 
 @report
