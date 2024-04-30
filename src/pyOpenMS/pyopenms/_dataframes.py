@@ -10,9 +10,12 @@ from . import PeptideIdentification as _PeptideIdentification
 from . import ControlledVocabulary as _ControlledVocabulary
 from . import File as _File
 from . import IonSource as _IonSource
+from . import MSSpectrum as _MSSpectrum
+from . import MSChromatogram as _MSChromatogram
 
 import pandas as _pd
 import numpy as _np
+from enum import Enum as _Enum
 
 class _ConsensusMapDF(_ConsensusMap):
     def __init__(self, *args, **kwargs):
@@ -608,5 +611,145 @@ def update_scores_from_df(peps: List[_PeptideIdentification], df : _pd.DataFrame
 
     return rets
 
+def _add_meta_values(df: _pd.DataFrame, object: any) -> _pd.DataFrame:
+    """
+    Adds metavalues from given object to given DataFrame.
+    
+    Args:
+        df (pd.DataFrame): DataFrame to which metavalues will be added.
+        obj (any): Object from which metavalues will be extracted.
+    
+    Returns:
+        pd.DataFrame: DataFrame with added meta values.
+    """
+    mvs = []
+    object.getKeys(mvs)
+    for k in mvs:
+        v = object.getMetaValue(k)
+        dtype = 'U100'
+        try:
+            v = int(v)
+            dtype = int
+        except ValueError:
+            try:
+                v = float(v)
+                dtype = 'double'
+            except ValueError:
+                dtype = f'U{len(v)}'
+        
+        df[k.decode()] = _np.full(df.shape[0], v, dtype=_np.dtype(dtype))
 
+    return df
 
+class _MSSpectrumDF(_MSSpectrum):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_df(self, export_meta_values: bool = True, export_peptide_identifications: bool = False) -> _pd.DataFrame:
+        """
+        Returns a DataFrame representation of the MSSpectrum.
+
+        Args:
+            export_meta_values (bool): Whether to export meta values.
+            export_peptide_identifications (bool): Whether to export peptide identifications.
+
+        Returns:
+            pd.DataFrame: DataFrame representation of the MSSpectrum.
+        """
+        def extract_peak_data(s: _MSSpectrum):
+            for p in s:
+                yield p.getMZ(), p.getIntensity()
+
+        cnt = self.size()
+        dtypes = [('mz', _np.dtype('double')), ('intensity', _np.dtype('uint64'))]
+
+        arr = _np.fromiter(iter=extract_peak_data(self), dtype=dtypes, count=cnt)
+
+        df = _pd.DataFrame(arr)
+
+        df['ms_level'] = _np.full(cnt, self.getMSLevel(), dtype=_np.dtype('uint16'))
+
+        precs = self.getPrecursors()
+        df['precursor_mz'] = _np.full(cnt, (precs[0].getMZ() if precs else 0.0), dtype=_np.dtype('double'))
+        df['precursor_charge'] = _np.full(cnt, (precs[0].getCharge() if precs else 0), dtype=_np.dtype('uint16'))
+        
+        df['native_id'] = _np.full(cnt, self.getNativeID(), dtype=_np.dtype('U100'))
+
+        if export_peptide_identifications:
+            peps = self.getPeptideIdentifications()  # type: list[PeptideIdentification]
+            seq = ''
+            if peps:
+                hits = peps[0].getHits()
+                if hits:
+                    seq = hits[0].getSequence()
+            df['sequence'] = _np.full(cnt, seq, dtype=_np.dtype('U200'))
+
+        if export_meta_values:
+            df = _add_meta_values(df, self)
+
+        return df
+
+MSSpectrum = _MSSpectrumDF
+
+class _ChromatogramType(_Enum):
+    MASS_CHROMATOGRAM = 0
+    TOTAL_ION_CURRENT_CHROMATOGRAM = 1
+    SELECTED_ION_CURRENT_CHROMATOGRAM = 2
+    BASEPEAK_CHROMATOGRAM = 3
+    SELECTED_ION_MONITORING_CHROMATOGRAM = 4
+    SELECTED_REACTION_MONITORING_CHROMATOGRAM = 5
+    ELECTROMAGNETIC_RADIATION_CHROMATOGRAM = 6
+    ABSORPTION_CHROMATOGRAM = 7
+    EMISSION_CHROMATOGRAM = 8
+    SIZE_OF_CHROMATOGRAM_TYPE = 9
+
+class _MSChromatogramDF(_MSChromatogram):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_df(self, export_meta_values: bool = True) -> _pd.DataFrame:
+        """
+        Returns a DataFrame representation of the MSChromatogram.
+
+        Args:
+            export_meta_values (bool): Whether to export meta values.
+
+        Returns:
+            pd.DataFrame: DataFrame representation of the MSChromatogram.
+        """
+        def extract_data(c: _MSChromatogram):
+            rts, intys = c.get_peaks()
+            for rt, inty in zip(rts, intys):
+                yield rt, inty
+
+        cnt = len(self.get_peaks()[0])
+
+        dtypes = [('time', _np.dtype('double')), ('intensity', _np.dtype('uint64'))]
+
+        arr = _np.fromiter(iter=extract_data(self), dtype=dtypes, count=cnt)
+
+        df = _pd.DataFrame(arr)
+
+        df['chromatogram_type'] = _np.full(cnt, _ChromatogramType(self.getChromatogramType()).name, dtype=_np.dtype('U100'))
+
+        df['precursor_mz'] = _np.full(cnt, self.getPrecursor().getMZ(), dtype=_np.dtype('double'))
+        df['precursor_charge'] = _np.full(cnt, self.getPrecursor().getCharge(), dtype=_np.dtype('uint16'))
+
+        df['product_mz'] = _np.full(cnt, self.getProduct().getMZ(), dtype=_np.dtype('double'))
+
+        df['comment'] = _np.full(cnt, self.getComment(), dtype=_np.dtype('U100'))
+
+        df['max_intensity'] = _np.full(cnt, self.getMaxIntensity(), dtype=_np.dtype('uint64'))
+
+        df['min_rt'] = _np.full(cnt, self.getMinRT(), dtype=_np.dtype('double'))
+
+        df['max_rt'] = _np.full(cnt, self.getMinRT(), dtype=_np.dtype('double'))
+
+        df['native_id'] = _np.full(cnt, self.getNativeID(), dtype=_np.dtype('U100'))
+
+        if export_meta_values:
+            df = _add_meta_values(df, self)
+
+        return df
+
+MSChromatogram = _MSChromatogramDF
