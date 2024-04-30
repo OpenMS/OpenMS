@@ -1110,7 +1110,6 @@ namespace OpenMS
     {
       // regions are sorted by RT, as are IDs, so just iterate linearly:
       std::vector<RTRegion>::iterator reg_it = rt_regions.begin();
-      auto reg_index = reg_it - rt_regions.begin();
       int charge = cm.first;
 
       // "internal" IDs:
