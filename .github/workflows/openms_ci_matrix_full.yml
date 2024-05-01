@@ -288,6 +288,8 @@ jobs:
     - name: Download contrib build from archive (Windows)
       if: startsWith(matrix.os, 'windows') && steps.cache-contrib.outputs.cache-hit != 'true'
       shell: bash
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
           cd OpenMS/contrib
           # Use GitHub API to get the download URL for the latest release asset named 'contrib_build-Windows.tar.gz'
