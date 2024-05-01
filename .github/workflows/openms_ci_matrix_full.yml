@@ -289,25 +289,15 @@ jobs:
       if: startsWith(matrix.os, 'windows') && steps.cache-contrib.outputs.cache-hit != 'true'
       shell: bash
       run: |
-          # Install jq to decipher assets
-          choco install jq
           cd OpenMS/contrib
           # Use GitHub API to get the download URL for the latest release asset named 'contrib_build-Windows.tar.gz'
           DOWNLOAD_URL=$(curl -sH "Authorization: token $GITHUB_TOKEN" \
             https://api.github.com/repos/t0mdavid-m/contrib/releases/latest \
             | jq -r '.assets[] | select(.name == "contrib_build-Windows.tar.gz") | .browser_download_url')
-          
           # Download the file using the URL fetched from GitHub
           curl --no-progress-meter -L -o contribbld.tar.gz $DOWNLOAD_URL
-          
           # Extract the archive
           7z x -so contribbld.tar.gz | 7z x -si -ttar
-          
-          # Remove the archive file
-          rm contribbld.tar.gz
-          
-          # List contents to verify
-          ls -la
 
     - name: Setup ccache cache
       uses: actions/cache@v4
