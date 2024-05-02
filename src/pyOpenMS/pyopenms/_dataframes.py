@@ -6,6 +6,7 @@ from . import ConsensusFeature as _ConsensusFeature
 from . import FeatureMap as _FeatureMap
 from . import Feature as _Feature
 from . import MSExperiment as _MSExperiment
+from . import PeakMap as _PeakMap
 from . import PeptideIdentification as _PeptideIdentification
 from . import ControlledVocabulary as _ControlledVocabulary
 from . import File as _File
@@ -134,6 +135,8 @@ class _ConsensusMapDF(_ConsensusMap):
         return _pd.concat([self.get_metadata_df(), self.get_intensity_df()], axis=1)
 
 ConsensusMap = _ConsensusMapDF
+ConsensusMap.__module__ = _ConsensusMap.__module__
+ConsensusMap.__name__ = 'ConsensusMap'
 
 # TODO tell the advanced user that they could change this, in case they have different needs.
 # TODO check if type could be inferred in the first pass
@@ -297,6 +300,8 @@ class _FeatureMapDF(_FeatureMap):
         return result
 
 FeatureMap = _FeatureMapDF
+FeatureMap.__module__ = _FeatureMap.__module__
+FeatureMap.__name__ = 'FeatureMap'
 
 
 class _MSExperimentDF(_MSExperiment):
@@ -479,8 +484,13 @@ class _MSExperimentDF(_MSExperiment):
 
         return ms1_df, ms2_df
     
-MSExperiment = _MSExperimentDF
 PeakMap = _MSExperimentDF
+PeakMap.__module__ = _PeakMap.__module__
+PeakMap.__name__ = 'PeakMap'
+
+MSExperiment = _MSExperimentDF
+MSExperiment.__module__ = _MSExperiment.__module__
+MSExperiment.__name__ = 'MSExperiment'
 
 
 # TODO think about the best way for such top-level function. IMHO in python, encapsulation in a stateless class in unnecessary.
@@ -685,6 +695,8 @@ class _MSSpectrumDF(_MSSpectrum):
         return df
 
 MSSpectrum = _MSSpectrumDF
+MSSpectrum.__module__ = _MSSpectrum.__module__
+MSSpectrum.__name__ = 'MSSpectrum'
 
 class _ChromatogramType(_Enum):
     MASS_CHROMATOGRAM = 0
@@ -742,3 +754,5 @@ class _MSChromatogramDF(_MSChromatogram):
         return df
 
 MSChromatogram = _MSChromatogramDF
+MSChromatogram.__module__ = _MSChromatogram.__module__
+MSChromatogram.__name__ = 'MSChromatogram'
