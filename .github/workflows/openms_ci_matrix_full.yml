@@ -295,8 +295,8 @@ jobs:
           # Download the file using the URL fetched from GitHub
           gh release download -R OpenMS/contrib --pattern 'contrib_build-Windows.tar.gz'
           # Extract the archive
-          7z x -so contribbld.tar.gz | 7z x -si -ttar
-          rm contribbld.tar.gz
+          7z x -so contrib_build-Windows.tar.gz | 7z x -si -ttar
+          rm ccontrib_build-Windows.tar.gz
           ls -la
 
     - name: Setup ccache cache
