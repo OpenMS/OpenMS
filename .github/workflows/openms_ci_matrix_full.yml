@@ -289,7 +289,7 @@ jobs:
       if: startsWith(matrix.os, 'windows') && steps.cache-contrib.outputs.cache-hit != 'true'
       shell: bash
       env:
-        GH_TOKEN: ${{ github.token }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
           cd OpenMS/contrib
           # Download the file using the URL fetched from GitHub
