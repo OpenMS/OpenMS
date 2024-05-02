@@ -676,8 +676,8 @@ class _MSSpectrumDF(_MSSpectrum):
             if peps:
                 hits = peps[0].getHits()
                 if hits:
-                    seq = hits[0].getSequence()
-            df['sequence'] = _np.full(cnt, seq, dtype=_np.dtype('U200'))
+                    seq = hits[0].getSequence().toString()
+            df['sequence'] = _np.full(cnt, seq, dtype=_np.dtype(f'U{len(seq)}'))
 
         if export_meta_values:
             df = _add_meta_values(df, self)
