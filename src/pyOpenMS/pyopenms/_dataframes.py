@@ -627,7 +627,7 @@ def _add_meta_values(df: _pd.DataFrame, object: any) -> _pd.DataFrame:
     
     Args:
         df (pd.DataFrame): DataFrame to which metavalues will be added.
-        obj (any): Object from which metavalues will be extracted.
+        object (any): Object from which metavalues will be extracted.
     
     Returns:
         pd.DataFrame: DataFrame with added meta values.
