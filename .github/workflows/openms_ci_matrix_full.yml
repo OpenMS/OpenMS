@@ -300,6 +300,8 @@ jobs:
           curl --no-progress-meter -L -o contribbld.tar.gz $DOWNLOAD_URL
           # Extract the archive
           7z x -so contribbld.tar.gz | 7z x -si -ttar
+          rm contribbld.tar.gz
+          ls -la
 
     - name: Setup ccache cache
       uses: actions/cache@v4
