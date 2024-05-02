@@ -3187,6 +3187,29 @@ def testMSChromatogram():
     assert ii[0] == 200.0
     assert ii[1] == 400.0
 
+    chrom.setNativeID('chrom_0')
+    chrom.setMetaValue('FWHM', 5.0)
+    prec = pyopenms.Precursor()
+    prec.setMZ(100.0)
+    prec.setCharge(1)
+    chrom.setPrecursor(prec)
+    prod = pyopenms.Product()
+    prod.setMZ(50.0)
+    chrom.setProduct(prod)
+    chrom.setComment('comment')
+
+    df = chrom.get_df()
+    assert df.shape == (2, 9)
+    assert df.loc[0, 'time'] == 1000.0
+    assert df.loc[1, 'intensity'] == 400
+    assert df.loc[0, 'chromatogram_type'] == 'MASS_CHROMATOGRAM'
+    assert df.loc[1, 'precursor_mz'] == 100.0
+    assert df.loc[0, 'precursor_charge'] == 1
+    assert df.loc[1, 'product_mz'] == 50.0
+    assert df.loc[0, 'comment'] == 'comment'
+    assert df.loc[1, 'native_id'] == 'chrom_0'
+    assert df.loc[0, 'FWHM'] == 5
+
     chrom.clear(False)
     data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
     data_i = np.array( [50.0, 80.0] ).astype(np.float32)
