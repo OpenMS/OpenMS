@@ -655,9 +655,17 @@ class _MSSpectrumDF(_MSSpectrum):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def get_df(self, export_meta_values: bool = True, export_peptide_identifications: bool = False) -> _pd.DataFrame:
+    def get_df(self, export_meta_values: bool = True, export_peptide_identifications: bool = True) -> _pd.DataFrame:
         """
         Returns a DataFrame representation of the MSSpectrum.
+
+        mz: The mass-to-charge ratio (m/z) values of the peaks in the mass spectrum.
+        intensity: The intensity (abundance) of the peaks in the mass spectrum.
+        ms_level: The MS level of the mass spectrum (1 for MS1, 2 for MS2, etc.).
+        precursor_mz: The mass-to-charge of the precursor ion.
+        precursor_charge: The charge of the precursor ion.
+        native_id: The native identifier of the spectrum.
+        spectrum: The spectrum of annotated peptide identification hit.
 
         Args:
             export_meta_values (bool): Whether to export meta values.
@@ -717,6 +725,14 @@ class _MSChromatogramDF(_MSChromatogram):
     def get_df(self, export_meta_values: bool = True) -> _pd.DataFrame:
         """
         Returns a DataFrame representation of the MSChromatogram.
+
+        time: The retention time (in seconds) of the chromatographic peaks.
+        intensity: The intensity (abundance) of the signal at each time point.
+        chromatogram_type: The type of chromatogram.
+        precursor_mz: The mass-to-charge of the precursor ion.
+        precursor_charge: The charge of the precursor ion.
+        comment: A comment assigned to the chromatogram.
+        native_id: The chromatogram native identifier.
 
         Args:
             export_meta_values (bool): Whether to export meta values.

@@ -2868,7 +2868,7 @@ def testMSSpectrum():
     pepid.setHits([hit])
     spec.setPeptideIdentifications([pepid])
 
-    df = spec.get_df(export_peptide_identifications=True)
+    df = spec.get_df()
     assert df.shape == (2, 8)
     assert df.loc[0, 'mz'] == 1000.0
     assert df.loc[1, 'intensity'] == 400.0
