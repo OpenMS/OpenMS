@@ -656,16 +656,11 @@ class _MSSpectrumDF(_MSSpectrum):
         Returns:
             pd.DataFrame: DataFrame representation of the MSSpectrum.
         """
-        def extract_peak_data(s: _MSSpectrum):
-            for p in s:
-                yield p.getMZ(), p.getIntensity()
+        mzs, intensities = self.get_peaks()
 
-        cnt = self.size()
-        dtypes = [('mz', _np.dtype('double')), ('intensity', _np.dtype('uint64'))]
+        df = _pd.DataFrame({'mz': mzs, 'intensity': intensities})
 
-        arr = _np.fromiter(iter=extract_peak_data(self), dtype=dtypes, count=cnt)
-
-        df = _pd.DataFrame(arr)
+        cnt = df.shape[0]
 
         df['ms_level'] = _np.full(cnt, self.getMSLevel(), dtype=_np.dtype('uint16'))
 
@@ -676,7 +671,7 @@ class _MSSpectrumDF(_MSSpectrum):
         df['native_id'] = _np.full(cnt, self.getNativeID(), dtype=_np.dtype('U100'))
 
         if export_peptide_identifications:
-            peps = self.getPeptideIdentifications()  # type: list[PeptideIdentification]
+            peps = self.getPeptideIdentifications()
             seq = ''
             if peps:
                 hits = peps[0].getHits()
