@@ -134,6 +134,8 @@ class _ConsensusMapDF(_ConsensusMap):
         """
         return _pd.concat([self.get_metadata_df(), self.get_intensity_df()], axis=1)
 
+# fix class module and name to show up correctly in readthedocs page generated with sphinx autodoc
+# needs to link back to rst page of original class, which is pyopenms.ConsensusMap, NOT pyopenms._dataframes._ConsensusMapDF (wh)
 ConsensusMap = _ConsensusMapDF
 ConsensusMap.__module__ = _ConsensusMap.__module__
 ConsensusMap.__name__ = 'ConsensusMap'
