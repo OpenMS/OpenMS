@@ -294,7 +294,7 @@ jobs:
           cd OpenMS/contrib
           # Use GitHub API to get the download URL for the latest release asset named 'contrib_build-Windows.tar.gz'
           DOWNLOAD_URL=$(curl -sH "Authorization: token $GITHUB_TOKEN" \
-            https://api.github.com/repos/t0mdavid-m/contrib/releases/latest \
+            https://api.github.com/repos/OpenMS/contrib/releases/latest \
             | jq -r '.assets[] | select(.name == "contrib_build-Windows.tar.gz") | .browser_download_url')
           # Download the file using the URL fetched from GitHub
           curl --no-progress-meter -L -o contribbld.tar.gz $DOWNLOAD_URL
