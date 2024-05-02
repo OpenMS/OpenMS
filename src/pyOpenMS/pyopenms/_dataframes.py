@@ -734,12 +734,6 @@ class _MSChromatogramDF(_MSChromatogram):
 
         df['comment'] = _np.full(cnt, self.getComment(), dtype=_np.dtype('U100'))
 
-        df['max_intensity'] = _np.full(cnt, self.getMaxIntensity(), dtype=_np.dtype('uint64'))
-
-        df['min_rt'] = _np.full(cnt, self.getMinRT(), dtype=_np.dtype('double'))
-
-        df['max_rt'] = _np.full(cnt, self.getMinRT(), dtype=_np.dtype('double'))
-
         df['native_id'] = _np.full(cnt, self.getNativeID(), dtype=_np.dtype('U100'))
 
         if export_meta_values:
