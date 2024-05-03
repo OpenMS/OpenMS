@@ -1663,8 +1663,8 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   -enable_ms1 "false" ${OLD_OSW_PARAM} )
   add_test("TOPP_OpenSwathWorkflow_11a_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_11.chrom.tmp.mzML  -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_output.chrom.mzML)
   add_test("TOPP_OpenSwathWorkflow_11a_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_11.tmp.featureXML  -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_output.featureXML)
-  set_tests_properties("TOPP_OpenSwathWorkflow_11a_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_11")
-  set_tests_properties("TOPP_OpenSwathWorkflow_11a_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_11")
+  set_tests_properties("TOPP_OpenSwathWorkflow_11a_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_11a")
+  set_tests_properties("TOPP_OpenSwathWorkflow_11a_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_11a")
 
   add_test("TOPP_OpenSwathWorkflow_11b_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -out OpenSwathWorkflow_11_input.tmp.pqp -out_type pqp)
   add_test("TOPP_OpenSwathWorkflow_11b" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.mzML -tr_irt OpenSwathWorkflow_11_input.tmp.pqp -tr OpenSwathWorkflow_11_input.tmp.pqp -out_osw OpenSwathWorkflow_11.tmp.osw
