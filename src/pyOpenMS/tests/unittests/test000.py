@@ -3351,6 +3351,41 @@ def testMRMTransitionGroup():
     mrmgroup.addTransition(pyopenms.ReactionMonitoringTransition(), "tr1")
     assert len(mrmgroup.getTransitions()) == 1
 
+    # add data for testing df output
+    ## test chromatogram df
+    rt, intensity = [[1.0], [5]]
+    chrom = pyopenms.MSChromatogram()
+    chrom.set_peaks([rt, intensity])
+    chrom.setNativeID("tr1")
+    mrmgroup.addChromatogram(chrom, 'tr1')
+
+    df = mrmgroup.get_chromatogram_df()
+    assert df.shape == (1, 8)
+    assert df.loc[0, 'time'] == 1.0
+    assert df.loc[0, 'intensity'] == 5
+    assert df.loc[0, 'chromatogram_type'] == 'MASS_CHROMATOGRAM'
+    assert df.loc[0, 'native_id'] == 'tr1'
+
+    ## feature
+    f = pyopenms.MRMFeature()
+    f.setRT(1.0)
+    f.setMetaValue(b'leftWidth', 0.5)
+    f.setMetaValue(b'rightWidth', 1.5)
+    f.setMetaValue(b'peak_apices_sum', 10.0)
+    f.setOverallQuality(0.5)
+    f.setUniqueId(1)
+    f.setIntensity(20.0)
+
+    df = mrmgroup.get_feature_df(meta_values=[b'leftWidth', b'rightWidth', b'peak_apices_sum'])
+    assert df.shape == (1, 8)
+    assert df.loc[0, 'leftWidth'] == 0.5
+    assert df.loc[0, 'rightWidth'] == 1.5
+    assert df.loc[0, 'peak_apices_sum'] == 10.0
+    assert df.loc[0, 'intensity'] == 10.0
+    assert df.loc[0, 'quality'] == 0.5
+    assert df.loc[0, 'RT'] == 1.0
+    assert df.index[0] == 1
+
 @report
 def testReactionMonitoringTransition():
     """
