@@ -5,6 +5,7 @@ from . import ConsensusMap as _ConsensusMap
 from . import ConsensusFeature as _ConsensusFeature
 from . import FeatureMap as _FeatureMap
 from . import Feature as _Feature
+from . import MRMFeature as _MRMFeature
 from . import MSExperiment as _MSExperiment
 from . import PeakMap as _PeakMap
 from . import PeptideIdentification as _PeptideIdentification
@@ -13,6 +14,7 @@ from . import File as _File
 from . import IonSource as _IonSource
 from . import MSSpectrum as _MSSpectrum
 from . import MSChromatogram as _MSChromatogram
+from . import MRMTransitionGroupCP as _MRMTransitionGroupCP
 
 import pandas as _pd
 import numpy as _np
@@ -155,7 +157,12 @@ common_meta_value_types = {
     b'num_of_masstraces': 'i',
     b'masstrace_intensity': 'f', # TODO this is actually a DoubleList. Think about what to do here. For _np.fromiter we would need to set the length of the array.
     b'Group': 'U50',
-    b'is_ungrouped_monoisotopic': 'i' # TODO this sounds very boolean to me
+    b'is_ungrouped_monoisotopic': 'i', # TODO this sounds very boolean to me
+    b'left_width': 'f',
+    b'right_width': 'f',
+    b'total_xic': 'f',
+    b'PeptideRef': 'U100',
+    b'peak_apices_sum': 'f'
 }
 """Global dict to define which autoconversion to numpy types is tried for certain metavalues.
 
@@ -774,3 +781,103 @@ class _MSChromatogramDF(_MSChromatogram):
 MSChromatogram = _MSChromatogramDF
 MSChromatogram.__module__ = _MSChromatogram.__module__
 MSChromatogram.__name__ = 'MSChromatogram'
+
+class _MRMTransitionGroupCPDF(_MRMTransitionGroupCP):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_chromatogram_df(self, export_meta_values: bool = True) -> _pd.DataFrame:
+        """
+        Returns a DataFrame representation of the Chromatograms stored in MRMTransitionGroupCP.
+
+        rt: The retention time of the transition group.
+        intensity: The intensity of the transition group.
+        precursor_mz: The mass-to-charge ratio of the precursor ion.
+        precursor_charge: The charge of the precursor ion.
+        product_mz: The mass-to-charge ratio of the product ion.
+        product_charge: The charge of the product ion.
+        native_id: The native identifier of the transition group.
+
+        Args:
+            export_meta_values (bool): Whether to export meta values.
+
+        Returns:
+            pd.DataFrame: DataFrame representation of the chromatograms stored in MRMTransitionGroupCP.
+        """
+        chroms = self.getChromatograms()
+        out = [ _MSChromatogramDF(c).get_df(export_meta_values=export_meta_values) for c in chroms ]
+        return _pd.concat(out)
+    
+    def get_feature_df(self, meta_values: Union[None, List[str], str] = None) -> _pd.DataFrame:
+        """
+        Returns a DataFrame representation of the Features stored in MRMTransitionGroupCP.
+
+        rt: The retention time of the transition group.
+        intensity: The intensity of the transition group.
+        precursor_mz: The mass-to-charge ratio of the precursor ion.
+        precursor_charge: The charge of the precursor ion.
+        product_mz: The mass-to-charge ratio of the product ion.
+        product_charge: The charge of the product ion.
+        native_id: The native identifier of the transition group.
+
+        Args:
+            export_meta_values (bool): Whether to export meta values.
+
+        Returns:
+            pd.DataFrame: DataFrame representation of the Features stored in MRMTransitionGroupCP.
+        """
+        # get all possible meta value keys in a set
+        if meta_values == 'all':
+            meta_values = set()
+            for f in self:
+                mvs = []
+                f.getKeys(mvs)
+                for m in mvs:
+                    meta_values.add(m)
+
+        elif not meta_values: # if None, set to empty list
+            meta_values = []
+
+        features = self.getFeatures()
+        
+        def gen(features: List[_MRMFeature], fun):
+            for f in features:
+                yield from fun(f)
+
+        def extract_meta_data(f: _MRMFeature):
+            """Extracts feature meta data.
+            
+            Extracts information from a given feature with the requested meta values and, if requested,
+            the sequence, score and ID_filename (primary MS run path of the linked ProteinIdentification)
+            of the best PeptideHit (first) assigned to that feature.
+
+            Parameters:
+            f (Feature): feature from which to extract the meta data
+
+            Yields:
+            tuple: tuple containing feature information, and meta values (optional)
+            """
+            vals = [f.getMetaValue(m) if f.metaValueExists(m) else _np.nan for m in meta_values]
+            
+            yield tuple((f.getUniqueId(), f.getRT(), f.getIntensity(), f.getOverallQuality(), *vals))
+
+        features = self.getFeatures()
+
+
+        mddtypes = [('feature_id', _np.dtype('uint64')), ('RT', 'f'), ('intensity', 'f'), ('quality', 'f')]
+
+        for meta_value in meta_values:
+            if meta_value in common_meta_value_types:
+                mddtypes.append((meta_value.decode(), common_meta_value_types[meta_value]))
+            else:
+                mddtypes.append((meta_value.decode(), 'U50'))
+
+        mdarr = _np.fromiter(iter=gen(features, extract_meta_data), dtype=mddtypes, count=len(features))
+
+        return _pd.DataFrame(mdarr).set_index('feature_id')
+
+# fix class module and name to show up correctly in readthedocs page generated with sphinx autodoc
+# needs to link back to rst page of original class, which is pyopenms.MRMTransitionGroupCP, NOT pyopenms._dataframes._MRMTransitionGroupCPDF (wh)
+MRMTransitionGroupCP = _MRMTransitionGroupCPDF
+MRMTransitionGroupCP.__module__ = _MRMTransitionGroupCP.__module__
+MRMTransitionGroupCP.__name__ = 'MRMTransitionGroupCP'
