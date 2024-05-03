@@ -14,9 +14,10 @@
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/MATH/STATISTICS/Histogram.h>
+
 
 #include <map>
+#include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 
 namespace OpenMS
 {
@@ -59,25 +60,7 @@ namespace OpenMS
     return split_peakmap;
   }
 
-  /**
-    @brief Split a (TimsTOF) ion mobility frame (i.e. a spectrum concatenated from multiple spectra with different IM values) into separate spectra
-   
-    The input @p im_frame must have a floatDataArray where IM values are annotated. If not, an exception is thrown.
-
-    To get some coarser binning, choose a smaller @p number_of_bins.
-    @note If the number of bins is smaller than the number of distinct IM values, the resulting spectra may contain peaks with identical m/z values. I.e no averaging/subsummation in m/z is done here.
-          You may want to postprocess your data.
-
-    The default creates a new bin (=spectrum in the output) for each distinct ion mobility value.
-      
-    @param im_frame Concatenated spectrum representing a frame
-    @param number_of_bins In how many bins should ion mobility values be sliced? Default(-1) assigns all peaks with identical ion-mobility values to a separate spectrum.
-    @return IM frame split into multiple bins (= 1 spectrum per bin)
-
-    @throws Exception::MissingInformation if @p im_frame does not have IM data in floatDataArrays
-  */
-
-  MSExperiment IMDataConverter::splitByIonMobility(MSSpectrum im_frame, UInt number_of_bins)
+  MSExperiment IMDataConverter::reshapeIMFrameToMany(MSSpectrum im_frame)
   {
     MSExperiment out;
 
@@ -85,28 +68,27 @@ namespace OpenMS
     {// nothing to split (we do not even check for IM data, for robustness)
       return out;
     }
+
+    // check if data is sorted by IM... if not, sort
+    if (! im_frame.isSortedByIM())
+    { // sorts the spectrum (and its binary data arrays) according to IM
+      im_frame.sortByIonMobility();
+    }
+
     // can throw if IM float data array is missing
     const auto [im_data_index, im_unit] = im_frame.getIMData();
     // Capture IM array by Ref, because .getIMData() is expensive to call for every peak!
     const auto& im_data = im_frame.getFloatDataArrays()[im_data_index];
-
-    // check if data is sorted by IM... if not, sort
-    if (!std::is_sorted(im_data.begin(), im_data.end()))
-    { // sorts the spectrum (and its binary data arrays) according to IM
-      im_frame.sort([&im_data](const Size i1, const Size i2) {
-        return im_data[i1] < im_data[i2];
-      });
-    }
 
     // copy meta data (RT, name, ...) without the raw data and without the IM array
     MSSpectrum prototype = im_frame;
     prototype.clear(false);
 
     // adds a new spectrum with drift time to `out`
-    auto addBinnedSpec = [&out, im_unit = im_unit, &prototype](double drift_time_avg) {
+    auto addSpectrum = [&out, im_unit = im_unit, &prototype](double drift_time_avg) {
       // keeps RT identical for all scans, since they are from the same IM-frame
       // keeps MSlevel
-      out.addSpectrum(MSSpectrum(prototype));
+      out.addSpectrum(prototype);
       auto& spec = out.getSpectra().back();
       // copy drift-time unit from parent scan
       spec.setDriftTime(drift_time_avg);
@@ -115,70 +97,103 @@ namespace OpenMS
     };
 
     MSSpectrum* last_spec{};
-    if (number_of_bins == (UInt) -1)
-    {// Separate spec for each IM value:
-      OPENMS_PRECONDITION(std::is_sorted(im_data.begin(), im_data.end()), "we sorted it... what happened???");
-      using IMV_t = MSSpectrum::FloatDataArray::value_type;
-      IMV_t im_last = std::numeric_limits<IMV_t>::max();
-      for (Size i = 0; i < im_data.size(); ++i)// is sorted now!
-      {
-        const IMV_t im = im_data[i];
-        if (im != im_last)
-        {
-          im_last = im;
-          last_spec = addBinnedSpec(im);
-        }
-        last_spec->push_back(im_frame[i]);// copy the m/z of the peak
-      }
-    }
-    else
+    // Separate spec for each IM value:
+    OPENMS_PRECONDITION(std::is_sorted(im_data.begin(), im_data.end()), "we sorted it... what happened???");
+    using IMV_t = MSSpectrum::FloatDataArray::value_type;
+    IMV_t im_last = std::numeric_limits<IMV_t>::max();
+    for (Size i = 0; i < im_data.size(); ++i)// is sorted now!
     {
-      auto min_IM = im_data.front();
-      auto max_IM = im_data.back();
-      Math::Histogram<double, double> hist(min_IM, max_IM, (max_IM - min_IM) / number_of_bins);
-      out.reserveSpaceSpectra(number_of_bins);
-      Size i_data = 0;
-      for (Size i_bin = 0; i_bin < number_of_bins; ++i_bin)
+      const IMV_t im = im_data[i];
+      if (im != im_last)
       {
-        last_spec = addBinnedSpec(hist.centerOfBin(i_bin));
-        double right_end_of_bin = hist.rightBorderOfBin(i_bin);
-        while (i_data < im_data.size() && im_data[i_data] < right_end_of_bin)
-        {
-          last_spec->push_back(im_frame[i_data]);// copy the m/z of the peak
-          ++i_data;                              // next peak
-        }
+        im_last = im;
+        last_spec = addSpectrum(im);
       }
-      assert(i_data == im_data.size());
+      last_spec->push_back(im_frame[i]);// copy the m/z of the peak
     }
-
+    out.sortSpectra(true);
     out.updateRanges();
     return out;
   }
 
-  MSExperiment IMDataConverter::splitByIonMobility(MSExperiment&& in, UInt number_of_bins)
+  std::tuple<std::vector<MSExperiment>, Math::BinContainer> IMDataConverter::splitExperimentByIonMobility(MSExperiment&& in,
+                                                                                                          UInt number_of_bins,
+                                                                                                          double bin_extension_abs,
+                                                                                                          double mz_binning_width,
+                                                                                                          MZ_UNITS mz_binning_width_unit)
   {
-    MSExperiment result;
-    for (Size k = 0; k < in.size(); k++)
+    if (number_of_bins == 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot split into 0 bins.", String(number_of_bins));
+    }
+    if (bin_extension_abs < 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Overlap must not be negative.", String(bin_extension_abs));
+    }
+    std::vector<MSExperiment> results(number_of_bins);
+    in.updateRanges();
+    // find the IM range
+    const auto range_IM = RangeMobility(in);
+    if (range_IM.getSpan() / number_of_bins < bin_extension_abs * 2)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Bin size (") + String(range_IM.getSpan() / number_of_bins) + ") is smaller than the overlap.", String(bin_extension_abs*2));
+    }
+
+    // compute the bins
+    const auto bins = Math::createBins(range_IM.getMin(), range_IM.getMax(), number_of_bins, bin_extension_abs);
+
+    // results for each IM-frame: all spectra per bin, to get merged
+    MSExperiment binned_spectra;
+
+
+    SpectraMerger merger;
+    auto p = merger.getParameters();
+    const auto ms_levels = in.getMSLevels();
+    p.setValue("block_method:ms_levels", IntList(ms_levels.begin(), ms_levels.end())); // merge all MS levels
+    p.setValue("mz_binning_width", mz_binning_width);
+    p.setValue("mz_binning_width_unit", String(MZ_UNIT_NAMES[(int)mz_binning_width_unit]));
+    p.setValue("block_method:rt_block_size", INT_MAX);
+    p.setValue("block_method:rt_max_length", 10e10);
+
+
+    for (auto& frame : in)
     {
       // For data without ion mobility, simply append the result (only
       // collapse for scans that actually have a float data array).
-      if (in[k].containsIMData())
+      if (! frame.containsIMData())
       {
-        MSExperiment frame = IMDataConverter::splitByIonMobility(std::move(in[k]), number_of_bins);
-        // move into result
-        for (auto&& spec : frame)
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Spectrum does not contain 'wide' IM data.", frame.getNativeID());
+      }
+      
+      MSExperiment frame_melt = IMDataConverter::reshapeIMFrameToMany(std::move(frame));
+      for (int i = 0; i < bins.size(); ++i)
+      {
+        binned_spectra.clear(false);
+        // check if spectrum goes into this bin
+        for (auto&& spec : frame_melt)
         {
-          result.getSpectra().insert(result.getSpectra().end(), std::move(spec));
+          if (bins[i].contains(spec.getDriftTime()))
+          { // spectrum goes into this bin
+            binned_spectra.addSpectrum(std::move(spec));
+          }
+        }
+        // collapse spectra in this bin
+        if (!binned_spectra.empty())
+        {
+          merger.setParameters(p);
+          merger.mergeSpectraBlockWise(binned_spectra);
+          assert(binned_spectra.size() == 1);
+          results[i].addSpectrum(std::move(binned_spectra.getSpectra().back()));
+          results[i].getSpectra().back().setDriftTime(bins[i].center());
         }
       }
-      else
-      {
-        result.addSpectrum(std::move(in[k]));
-      }
     }
-    result.ExperimentalSettings::operator=(std::move(in));
-    in.clear(true);
-    return result;
+    for (auto& result : results)
+    {
+      result.ExperimentalSettings::operator=(in);
+      result.updateRanges();
+    }
+    return {std::move(results), std::move(bins)};
   }
 
   void annotateAsIM(OpenMS::DataArrays::FloatDataArray& fda, const DriftTimeUnit unit)
@@ -228,7 +243,7 @@ namespace OpenMS
 
 
 
-  MSExperiment IMDataConverter::collapseFramesToSingle(const MSExperiment& exp)
+  MSExperiment IMDataConverter::reshapeIMFrameToSingle(const MSExperiment& exp)
   {
     MSExperiment result;
 

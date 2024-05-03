@@ -37,8 +37,6 @@ START_SECTION((virtual ~StablePairFinder()))
 	delete ptr;
 END_SECTION
 
-BaseGroupFinder* base_nullPointer = nullptr;
-
 START_SECTION((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map)))
 {
   std::vector<ConsensusMap> input(2);

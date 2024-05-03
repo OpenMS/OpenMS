@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/FILTERING/SMOOTHING/FastLowessSmoothing.h>
+#include <OpenMS/PROCESSING/SMOOTHING/FastLowessSmoothing.h>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/normal_distribution.hpp>
 ///////////////////////////

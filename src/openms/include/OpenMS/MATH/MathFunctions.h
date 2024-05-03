@@ -11,6 +11,8 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/KERNEL/RangeManager.h>
+
 #include <boost/random/mersenne_twister.hpp> // for mt19937_64
 #include <boost/random/uniform_int.hpp>
 #include <cmath>
@@ -95,6 +97,40 @@ namespace Math
     res.second = res.first + old_width * factor;
     return res;
   }
+
+  using BinContainer = std::vector<RangeBase>;
+  /**
+    @brief Split a range [min,max] into @p number_of_bins (with optional overlap) and return the ranges of each bin.
+
+    Optionally, bins can be made overlapping, by extending each bins' left and right margin by @p extend_margin. 
+    The overlap between neighboring bins will thus be `2 x extend_margin`.
+    The borders of the original interval will @em not be extended.
+    
+    @param min The minimum of the range; must be smaller than @p max
+    @param max The maximum of the range
+    @param number_of_bins How many bins should the range be divided into? Must be 1 or larger
+    @param extend_margin Overlap of neighboring bins (=0 for no overlap). Negative values will shrink the range (feature).
+    @return Vector with @p number_of_bins elements, each representing the margins of one bin
+
+    @throws OpenMS::Precondition if `min >= max` or `number_of_bins == 0`
+  */
+  inline BinContainer createBins(double min, double max, uint32_t number_of_bins, double extend_margin = 0)
+  {
+    OPENMS_PRECONDITION(number_of_bins >= 1, "Number of bins must be >= 1")
+    OPENMS_PRECONDITION(min < max, "Require min < max");
+    std::vector<RangeBase> res(number_of_bins);
+    const double bin_width = (max - min) / number_of_bins;
+    for (uint32_t i = 0; i < number_of_bins; ++i)
+    {
+      res[i] = RangeBase(min + i * bin_width, min + (i + 1) * bin_width);
+      res[i].extendLeftRight(extend_margin);
+    }
+    res.front().setMin(min); // undo potential margin
+    res.back().setMax(max);  // undo potential margin
+    
+    return res;
+  }
+
 
   /**
     @brief rounds @p x up to the next decimal power 10 ^ @p decPow

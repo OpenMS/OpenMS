@@ -13,7 +13,6 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
-#include <OpenMS/FEATUREFINDER/FeatureFinderDefs.h>
 #include <memory>
 
 namespace OpenMS
@@ -27,7 +26,7 @@ namespace OpenMS
 
   @ingroup FeatureFinder
   */
-  class OPENMS_DLLAPI Fitter1D : public DefaultParamHandler, public FeatureFinderDefs
+  class OPENMS_DLLAPI Fitter1D : public DefaultParamHandler
   {
   public:
     /// IndexSet

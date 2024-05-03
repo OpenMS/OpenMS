@@ -10,6 +10,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <vector>
 
@@ -51,7 +52,7 @@ public:
     MRMFragmentSelection & operator=(const MRMFragmentSelection & rhs);
 
     /// selects accordingly to the parameters the best peaks of spec and writes them into selected_peaks
-    void selectFragments(std::vector<Peak1D> & selected_peaks, const PeakSpectrum & spec);
+    void selectFragments(std::vector<Peak1D> & selected_peaks, const MSSpectrum & spec);
 
 protected:
 
