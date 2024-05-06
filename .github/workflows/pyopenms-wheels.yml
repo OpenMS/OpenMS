@@ -334,15 +334,6 @@ jobs:
           find . -name "pyopenms*.so" -exec rm -rf {} \;
 
         done
-
-    - uses: actions/upload-artifact@v4
-      name: Upload artifacts
-      if: always()
-      with:
-        name: ${{ runner.os }}-buildfiles
-        path: |
-          bld/CMakeCache.txt
-          bld/pyOpenMS/env.py
         
     - uses: actions/upload-artifact@v4
       name: Upload wheels
