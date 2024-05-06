@@ -336,7 +336,7 @@ class _MSExperimentDF(_MSExperiment):
         cols = ["RT", "mzarray", "intarray"]
 
         return _pd.DataFrame(data=((spec.getRT(), *spec.get_peaks()) for spec in self), columns=cols)
-    
+
     def get_ion_df(self):
         """Generates a pandas DataFrame with all peaks and the ionic mobility in the MSExperiment
         
@@ -664,12 +664,14 @@ class _MSSpectrumDF(_MSSpectrum):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def get_df(self, export_meta_values: bool = True, export_peptide_identifications: bool = True) -> _pd.DataFrame:
+    def get_df(self, export_ion_mobility: bool = True, export_meta_values: bool = True, export_peptide_identifications: bool = True) -> _pd.DataFrame:
         """
         Returns a DataFrame representation of the MSSpectrum.
 
         mz: The mass-to-charge ratio (m/z) values of the peaks in the mass spectrum.
         intensity: The intensity (abundance) of the peaks in the mass spectrum.
+        ion_mobility: The ion mobility values.
+        ion_mobility_unit: The ion mobility unit.
         ms_level: The MS level of the mass spectrum (1 for MS1, 2 for MS2, etc.).
         precursor_mz: The mass-to-charge of the precursor ion.
         precursor_charge: The charge of the precursor ion.
@@ -677,6 +679,7 @@ class _MSSpectrumDF(_MSSpectrum):
         spectrum: The spectrum of annotated peptide identification hit.
 
         Args:
+            export_ion_mobility (bool): Whether to export ion mobility data.
             export_meta_values (bool): Whether to export meta values.
             export_peptide_identifications (bool): Whether to export peptide identifications.
 
@@ -688,6 +691,10 @@ class _MSSpectrumDF(_MSSpectrum):
         df = _pd.DataFrame({'mz': mzs, 'intensity': intensities})
 
         cnt = df.shape[0]
+
+        if export_ion_mobility:
+            df['ion_mobility'] = _np.array([i for i in self.getFloatDataArrays()[0]]) if self.containsIMData() else _np.nan
+            df['ion_mobility_unit'] = _np.full(cnt, self.getDriftTimeUnitAsString(), dtype=_np.dtype('U20'))
 
         df['ms_level'] = _np.full(cnt, self.getMSLevel(), dtype=_np.dtype('uint16'))
 
@@ -725,7 +732,6 @@ class _ChromatogramType(_Enum):
     ELECTROMAGNETIC_RADIATION_CHROMATOGRAM = 6
     ABSORPTION_CHROMATOGRAM = 7
     EMISSION_CHROMATOGRAM = 8
-    SIZE_OF_CHROMATOGRAM_TYPE = 9
 
 class _MSChromatogramDF(_MSChromatogram):
     def __init__(self, *args, **kwargs):

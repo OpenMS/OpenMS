@@ -2868,12 +2868,23 @@ def testMSSpectrum():
     pepid.setHits([hit])
     spec.setPeptideIdentifications([pepid])
 
+    data = np.array( [5, 8] ).astype(np.float32)
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].set_data(data)
+    f_da[0].setName("Ion Mobility")
+    spec.setFloatDataArrays( f_da )
+    spec.setDriftTimeUnit( pyopenms.DriftTimeUnit.MILLISECOND )
+
     df = spec.get_df()
-    assert df.shape == (2, 8)
+    assert df.shape == (2, 10)
     assert df.loc[0, 'mz'] == 1000.0
-    assert df.loc[1, 'intensity'] == 400.0
-    assert df.loc[1, 'precursor_charge'] == 1
-    assert df.loc[1, 'sequence'] == 'A'
+    assert df.loc[0, 'intensity'] == 200.0
+    assert df.loc[0, 'ion_mobility'] == 5.0
+    assert df.loc[0, 'ion_mobility_unit'] == 'ms'
+    assert df.loc[0, 'precursor_mz'] == 100.0
+    assert df.loc[0, 'precursor_charge'] == 1
+    assert df.loc[0, 'native_id'] == 'scan=1'
+    assert df.loc[0, 'sequence'] == 'A'
     assert df.loc[0, 'total ion current'] == 600
 
     spec.clear(False)
