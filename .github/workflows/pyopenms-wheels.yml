@@ -525,12 +525,12 @@ jobs:
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
-          name: Linux-wheels
+          name: Linux-X64-wheels
           path: /home/runner/work/OpenMS/OpenMS/Linux-X64-wheels
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
-          name: Windows-wheels
+          name: Windows-X64-wheels
           path: /home/runner/work/OpenMS/OpenMS/Windows-X64-wheels
     - name: Download artifacts
       uses: actions/download-artifact@v4
