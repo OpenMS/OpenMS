@@ -90,10 +90,8 @@ set(metadata_executables_list
   ExperimentalSettings_test
   Gradient_test
   HPLC_test
-  Identification_test
   IdentificationData_test
   IdentificationDataConverter_test
-  IdentificationHit_test
   InstrumentSettings_test
   Instrument_test
   IonDetector_test
@@ -105,7 +103,6 @@ set(metadata_executables_list
   MetaInfoRegistry_test
   MetaInfo_test
   Modification_test
-  MSQuantifications_test
   PeptideEvidence_test
   PeptideHit_test
   PeptideIdentification_test
@@ -118,7 +115,6 @@ set(metadata_executables_list
   ScanWindow_test
   Software_test
   SourceFile_test
-  SpectrumIdentification_test
   SpectrumLookup_test
   SpectrumMetaDataLookup_test
   SpectrumSettings_test
@@ -223,9 +219,6 @@ set(format_executables_list
   MzTabFile_test
   MzTabM_test
   MzTabMFile_test
-  # MSstatsFile_test
-  MzQuantMLFile_test
-  #MzQuantMLValidator_test
   MzXMLFile_test
   NoopMSDataConsumer_test
   TraMLValidator_test
@@ -284,7 +277,6 @@ if(WITH_HDF5)
 endif()
 
 set(math_executables_list
-  AsymmetricStatistics_test
   BasicStatistics_test
   BilinearInterpolation_test
   BSpline2d_test
@@ -312,23 +304,16 @@ set(math_executables_list
 )
 
 set(filtering_executables_list
-  BernNorm_test
-  ComplementFilter_test
   DataFilters_test
   Deisotoper_test
   ElutionPeakDetection_test
   FeatureFindingMetabo_test
   FeatureOverlapFilter_test
-  FilterFunctor_test
   FastLowessSmoothing_test
   GaussFilter_test
   GaussFilterAlgorithm_test
-  GoodDiffFilter_test
   IDFilter_test
-  IntensityBalanceFilter_test
   InternalCalibration_test
-  IsotopeDiffFilter_test
-  IsotopeDistributionCache_test
   LinearResampler_test
   LinearResamplerAlign_test
   LowessSmoothing_test
@@ -347,20 +332,17 @@ set(filtering_executables_list
   MultiplexSatelliteProfile_test
   MZTrafoModel_test
   NLargest_test
-  NeutralLossDiffFilter_test
   Normalizer_test
-  ParentPeakMower_test
   PrecursorCorrection_test
   SplineInterpolatedPeaks_test
   SplinePackage_test
   SavitzkyGolayFilter_test
-  Scaler_test
+  RankScaler_test
   SignalToNoiseEstimatorMeanIterative_test
   SignalToNoiseEstimatorMedian_test
   SignalToNoiseEstimatorMedianRapid_test
   SignalToNoiseEstimator_test
-  SqrtMower_test
-  TICFilter_test
+  SqrtScaler_test
   ThresholdMower_test
   WindowMower_test
   SpectraMerger_test
@@ -570,14 +552,10 @@ set(transformations_executables_list
   EmgModel_test
   ExtendedIsotopeFitter1D_test
   ExtendedIsotopeModel_test  
-  FeatureFinderAlgorithmMRM_test
   FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
-  FeatureFinderAlgorithm_test
   FeatureFinderIdentificationAlgorithm_test
   FeatureFinderMultiplexAlgorithm_test
-  FeatureFinderDefs_test
-  FeatureFinder_test
   Fitter1D_test
   GaussFitter1D_test
   GaussModel_test

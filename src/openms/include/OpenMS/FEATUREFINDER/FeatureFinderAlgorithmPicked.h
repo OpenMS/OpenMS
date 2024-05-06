@@ -8,14 +8,53 @@
 
 #pragma once
 
-#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithm.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/FEATUREFINDER/TraceFitter.h>
+#include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <fstream>
 
 namespace OpenMS
 {
+  /**@brief The purpose of this struct is to provide definitions of classes and typedefs which are used throughout all FeatureFinder classes.  */
+  struct OPENMS_DLLAPI FeatureFinderDefs
+  {
+    /// Index to peak consisting of two UInts (scan index / peak index)
+    typedef IsotopeCluster::IndexPair IndexPair;
+
+    /// Index to peak consisting of two UInts (scan index / peak index) with charge information
+    typedef IsotopeCluster::ChargedIndexSet ChargedIndexSet;
+
+    /// A set of peak indices
+    typedef IsotopeCluster::IndexSet IndexSet;
+
+    /// Flags that indicate if a peak is already used in a feature
+    enum Flag {UNUSED, USED};
+
+    /// Exception that is thrown if a method an invalid IndexPair is given
+    class OPENMS_DLLAPI NoSuccessor :
+      public Exception::BaseException
+    {
+public:
+      NoSuccessor(const char * file, int line, const char * function, const IndexPair & index) :
+        BaseException(file, line, function, "NoSuccessor", String("there is no successor/predecessor for the given Index: ") + String(index.first) + "/" + String(index.second)),
+        index_(index)
+      {
+        Exception::GlobalExceptionHandler::setMessage(what());
+      }
+
+      ~NoSuccessor() noexcept override = default;
+
+protected:
+      IndexPair index_; // index without successor/predecessor
+    };
+  };
+
+
   /**
     @brief FeatureFinderAlgorithm for picked peaks.
 
@@ -30,20 +69,15 @@ namespace OpenMS
     @ingroup FeatureFinder
   */
   class OPENMS_DLLAPI FeatureFinderAlgorithmPicked :
-    public FeatureFinderAlgorithm,
-    public FeatureFinderDefs
+    public DefaultParamHandler, public ProgressLogger
   {
 public:
     /// @name Type definitions
     //@{
-    typedef FeatureFinderAlgorithm::MapType MapType;
+    typedef MSExperiment MapType;
     typedef MapType::SpectrumType SpectrumType;
     typedef SpectrumType::FloatDataArrays FloatDataArrays;
     //@}
-
-    using FeatureFinderAlgorithm::param_;
-    using FeatureFinderAlgorithm::features_;
-    using FeatureFinderAlgorithm::defaults_;
 
 protected:
     typedef Peak1D PeakType;
@@ -57,17 +91,27 @@ public:
     /// default constructor
     FeatureFinderAlgorithmPicked();
 
-    // docu in base class
-    void setSeeds(const FeatureMap& seeds) override;
+    void setSeeds(const FeatureMap& seeds);
 
-    /// Main method for actual FeatureFinder
-    void run() override;
+    void setData(const MSExperiment& map, FeatureMap& features);
 
-    void run(PeakMap& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds);
+    void run(PeakMap& input_map, 
+      FeatureMap& features, 
+      const Param& param, 
+      const FeatureMap& seeds);
 
+    virtual Param getDefaultParameters() const
+    {
+      return defaults_;
+    }
 protected:
+    void run();
+
     /// editable copy of the map
     MapType map_;
+
+    FeatureMap* features_;
+
     /// Output stream for log/debug info
     mutable std::ofstream log_;
     /// debug flag

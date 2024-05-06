@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
+#include <OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/FeatureMap.h>

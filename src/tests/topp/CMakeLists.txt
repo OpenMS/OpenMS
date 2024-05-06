@@ -302,13 +302,6 @@ add_test("TOPP_FeatureFinderIdentification_5_out2" ${DIFF} -whitelist "feature i
 set_tests_properties("TOPP_FeatureFinderIdentification_5_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_5")
 
 
-
-#------------------------------------------------------------------------------
-# FeatureFinderMRM test
-add_test("TOPP_FeatureFinderMRM_1" ${TOPP_BIN_PATH}/FeatureFinderMRM -test -in ${DATA_DIR_TOPP}/FeatureFinderMRM_1_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMRM_1_parameters.ini -out FeatureFinderMRM_1.tmp.featureXML)
-add_test("TOPP_FeatureFinderMRM_1_out1" ${DIFF} -whitelist "id=" -in1 FeatureFinderMRM_1.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMRM_1_output.featureXML )
-set_tests_properties("TOPP_FeatureFinderMRM_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMRM_1")
-
 #------------------------------------------------------------------------------
 # FeatureFinderMultiplex test
 add_test("TOPP_FeatureFinderMultiplex_1" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_parameters.ini -out FeatureFinderMultiplex_1.tmp.featureXML -out_multiplets FeatureFinderMultiplex_2.tmp.consensusXML)
@@ -485,16 +478,6 @@ add_test("TOPP_FileConverter_29_out" ${DIFF} -in1 FileConverter_29.tmp.mzML -in2
 add_test("TOPP_FileConverter_29_back" ${TOPP_BIN_PATH}/FileConverter -test -in FileConverter_29.tmp.mzML -in_type mzML -out FileConverter_29.back.tmp.mzML -out_type mzML)
 set_tests_properties("TOPP_FileConverter_29_out" PROPERTIES DEPENDS "TOPP_FileConverter_29")
 set_tests_properties("TOPP_FileConverter_29_back" PROPERTIES DEPENDS "TOPP_FileConverter_29")
-# Test with ion mobility
-add_test("TOPP_FileConverter_30" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_30_input.mzML -change_im_format multiple_spectra -out_type mzML -out FileConverter_30.tmp.mzML)
-add_test("TOPP_FileConverter_30_out" ${DIFF} -in1 FileConverter_30.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileConverter_30_output.mzML -whitelist "location=" "<offset")
-set_tests_properties("TOPP_FileConverter_30_out" PROPERTIES DEPENDS "TOPP_FileConverter_30")
-add_test("TOPP_FileConverter_31" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_30_output.mzML -change_im_format concatenated -out_type mzML -out FileConverter_31.tmp.mzML)
-add_test("TOPP_FileConverter_31_out" ${DIFF} -in1 FileConverter_31.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileConverter_31_output.mzML -whitelist "location=" "<offset")
-set_tests_properties("TOPP_FileConverter_31_out" PROPERTIES DEPENDS "TOPP_FileConverter_31")
-add_test("TOPP_FileConverter_32" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_32_input.mzML -out_type mzML -out FileConverter_32.tmp.mzML)
-add_test("TOPP_FileConverter_32_out" ${DIFF} -in1 FileConverter_32.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileConverter_32_output.mzML -whitelist "location=" "<offset")
-set_tests_properties("TOPP_FileConverter_32_out" PROPERTIES DEPENDS "TOPP_FileConverter_32")
 
 #------------------------------------------------------------------------------
 # FileFilter tests
@@ -1938,9 +1921,6 @@ set_tests_properties("TOPP_SeedListGenerator_3_out2" PROPERTIES DEPENDS "TOPP_Se
 
 #------------------------------------------------------------------------------
 # SpectraFilter tests
-add_test("TOPP_SpectraFilterSqrtMower_1" ${TOPP_BIN_PATH}/SpectraFilterSqrtMower -test -in ${DATA_DIR_TOPP}/SpectraFilterSqrtMower_1_input.mzML -out SpectraFilterSqrtMower.tmp.mzML)
-add_test("TOPP_SpectraFilterSqrtMower_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 SpectraFilterSqrtMower.tmp.mzML -in2 ${DATA_DIR_TOPP}/SpectraFilterSqrtMower_1_output.mzML )
-set_tests_properties("TOPP_SpectraFilterSqrtMower_1_out1" PROPERTIES DEPENDS "TOPP_SpectraFilterSqrtMower_1")
 add_test("TOPP_SpectraFilterWindowMower_1" ${TOPP_BIN_PATH}/SpectraFilterWindowMower -test -in ${DATA_DIR_TOPP}/SpectraFilterWindowMower_1_input.mzML -out SpectraFilterWindowMower_1.tmp.mzML)
 add_test("TOPP_SpectraFilterWindowMower_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 SpectraFilterWindowMower_1.tmp.mzML -in2 ${DATA_DIR_TOPP}/SpectraFilterWindowMower_1_output.mzML )
 set_tests_properties("TOPP_SpectraFilterWindowMower_1_out1" PROPERTIES DEPENDS "TOPP_SpectraFilterWindowMower_1")

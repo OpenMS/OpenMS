@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
+#include <OpenMS/PROCESSING/MISC/DataFilters.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/Peak1D.h>

@@ -10,7 +10,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 
 // #define DEBUG_MASSTRACES

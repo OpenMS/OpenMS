@@ -183,8 +183,6 @@ PyOpenMSChecker:
         - findNext # iterator
     OpenMS::FeatureMap:
         - getAnnotationStatistics
-    OpenMS::FilterFunctor:
-        - apply
     OpenMS::ContinuousWaveletTransformNumIntegration:
         - transform
         - init
@@ -498,8 +496,6 @@ PyOpenMSChecker:
         - NamesOfSpectrumType
     OpenMS::Instrument:
         - NamesOfIonOpticsType
-    OpenMS::MSQuantifications:
-        - NamesOfQuantTypes
     OpenMS::IonDetector:
         - Type
         - AcquisitionMode
@@ -1314,8 +1310,6 @@ PyOpenMSChecker:
     - OpenMS::Internal::MzMLHandlerHelper
     - OpenMS::Internal::MzMLHandlerHelper::BinaryData
     - OpenMS::Internal::MzMLValidator
-    - OpenMS::Internal::MzQuantMLHandler
-    - OpenMS::Internal::MzQuantMLValidator
     - OpenMS::Internal::MzXMLHandler
     - OpenMS::Internal::OpenMSOSInfo
     - OpenMS::Internal::OpenMSXMLFormatTarget
@@ -1353,7 +1347,6 @@ PyOpenMSChecker:
 
     # MATH - Python provides alternative functions for most
     - OpenMS::Math
-    - OpenMS::Math::AsymmetricStatistics
     - OpenMS::Math::BasicStatistics
     - OpenMS::Math::BilinearInterpolation
     - OpenMS::Math::GammaDistributionFitter

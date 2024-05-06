@@ -213,6 +213,23 @@ namespace OpenMS
       IndexOverflow(const char* file, int line, const char* function, SignedSize index = 0, Size size = 0) noexcept;
     };
 
+
+    /**
+      @brief Array not sorted exception
+
+      Throw this exception to indicate that an array/vector of elements
+      was expected to be sorted, but was found to be unsorted.
+
+      @param	message What was unsorted?
+
+      @ingroup Exceptions
+    */
+    class OPENMS_DLLAPI NotSorted : public BaseException
+    {
+    public:
+      NotSorted(const char* file, int line, const char* function, const std::string& message) noexcept;
+    };
+
     /**
       @brief A call to an external library (other than OpenMS) went wrong.
 

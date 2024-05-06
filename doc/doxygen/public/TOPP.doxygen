@@ -44,6 +44,7 @@
   - @subpage TOPP_IDMerger -  Merges several protein/peptide identification files into one file.  
   - @subpage TOPP_IDRipper - Splits protein/peptide identifications according their file-origin.
   - @subpage TOPP_IDSplitter - Splits protein/peptide identifications off of annotated data files.
+  - @subpage TOPP_IonMobilityBinning - Merges spectra with similar IM values and creates @p N output mzML's by discretizing the IM range.
   - @subpage TOPP_MapStatistics - Extract extended statistics on the features of a map for quality control.
   - @subpage TOPP_MzMLSplitter - Splits an mzML file into multiple parts.
   
@@ -58,12 +59,8 @@
   - @subpage TOPP_NoiseFilterGaussian - Removes noise from profile spectra using a Gaussian smoothing.
   - @subpage TOPP_NoiseFilterSGolay - Removes noise from profile spectra using Savitzky-Golay smoothing.
   - @subpage TOPP_MapNormalizer - Normalizes peak intensities in an MS run.
-  - @subpage TOPP_SpectraFilterBernNorm - Scales and filters spectra according to the Bern norm.
   - @subpage TOPP_SpectraFilterNLargest - Keeps only the n largest peaks per spectrum.
   - @subpage TOPP_SpectraFilterNormalizer - Scale intensities per spectrum to either sum to 1 or have a maximum of 1.
-  - @subpage TOPP_SpectraFilterParentPeakMower - Removes high peaks that could stem from unfragmented precursor ions.
-  - @subpage TOPP_SpectraFilterScaler - Assigns new intensity per spectrum according to intensity rank.
-  - @subpage TOPP_SpectraFilterSqrtMower - Scales the intensity of peaks to their sqrt.
   - @subpage TOPP_SpectraFilterThresholdMower - Removes all peaks below an intensity threshold.
   - @subpage TOPP_SpectraFilterWindowMower - Retains the highest peaks in a sliding or jumping window.
   
@@ -87,7 +84,6 @@
   - @subpage TOPP_FeatureFinderIdentification - Detects two-dimensional features in MS1 data based on peptide identifications.
   - @subpage TOPP_FeatureFinderMetabo - Detects two-dimensional features in centroided LC-MS data of metabolites.
   - @subpage TOPP_FeatureFinderMetaboIdent - Detects features in MS1 data corresponding to small molecule identifications.
-  - @subpage TOPP_FeatureFinderMRM - Quantifies features LC-MS/MS MRM data.
   - @subpage TOPP_FeatureFinderMultiplex - Identifies peptide multiplets (pairs, triplets etc., e.g. for SILAC or Dimethyl labeling) and determines their relative abundance.
   - @subpage TOPP_IsobaricAnalyzer - Extracts and normalizes TMT and iTRAQ information from an MS experiment.
   - @subpage TOPP_MassTraceExtractor - Annotates mass traces in centroided LC-MS maps.

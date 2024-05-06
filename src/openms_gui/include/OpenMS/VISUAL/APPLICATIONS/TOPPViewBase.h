@@ -502,6 +502,8 @@ protected:
       String in;
       String out;
       String file_name;
+      String file_name_in;
+      String file_name_out;
       String layer_name;
       UInt window_id;
       Size spectrum_id;

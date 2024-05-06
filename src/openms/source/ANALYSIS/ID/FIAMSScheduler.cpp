@@ -12,23 +12,20 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
-
-#include <utility>
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+#include <QDir>
 
 namespace OpenMS {
   /// default constructor
   FIAMSScheduler::FIAMSScheduler(
     String filename,
     String base_dir,
+    String output_dir,
     bool load_cached
   )
     : 
     filename_(std::move(filename)),
     base_dir_(std::move(base_dir)),
+    output_dir_(std::move(output_dir)),
     load_cached_(load_cached),
     samples_()
   {
@@ -59,7 +56,9 @@ namespace OpenMS {
       FIAMSDataProcessor fia_processor;
       Param p;
       p.setValue("filename", samples_[i].at("filename"));
-      p.setValue("dir_output", base_dir_ + samples_[i].at("dir_output"));
+      p.setValue("dir_output", output_dir_ + samples_[i].at("dir_output"));
+      QDir qd;
+      qd.mkpath(p.getValue("dir_output").toString().c_str());
       p.setValue("resolution", std::stof(samples_[i].at("resolution")));
       p.setValue("polarity", samples_[i].at("charge"));
       p.setValue("db:mapping", std::vector<std::string>{base_dir_ + samples_[i].at("db_mapping")});
@@ -86,5 +85,9 @@ namespace OpenMS {
 
   const String& FIAMSScheduler::getBaseDir() {
     return base_dir_;
+  }
+
+  const String& FIAMSScheduler::getOutputDir() {
+    return output_dir_;
   }
 }
