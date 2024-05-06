@@ -222,7 +222,7 @@ protected:
     FileTypes::Type out_type = FileHandler::getConsistentOutputfileType(out, getStringOption_("out_type"));
     if (out_type == FileTypes::UNKNOWN)
     {
-      writeLogError_("Error: Could not determine output file type!");
+      writeLogError_("Error: Could not determine output file type! Please adjust the 'out_type' parameter of this tool.");
       return PARSE_ERROR;
     }
 
