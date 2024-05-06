@@ -441,7 +441,7 @@ jobs:
 
 # Tests the build workflows
   test:
-    needs: [build-win, build-macos, build-lnx]
+    needs: [build-win, build-macos, build-lnx, build-macos-arm]
     runs-on: ${{ matrix.os }}
     env:
       SYSTEM_VERSION_COMPAT: 0 #courtesy of https://github.com/actions/setup-python/issues/469 in lieu of an actual solution.
