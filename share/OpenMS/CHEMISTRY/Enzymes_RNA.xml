@@ -68,6 +68,24 @@ and what it cuts before. Also be sure to add gains before and after the cut. -->
       <ITEM name="ThreePrimeGain" value="" type="string" />
       <ITEM name="FivePrimeGain" value="p" type="string" />
     </NODE>
+    <NODE name="RNase_4">
+      <ITEM name="Name" value="RNase_4" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=U|P|\]|D|5)(?=A|G)" type="string" />
+      <ITEM name="RegExDescription" value="RNase 4 cuts after U (or modified U) only if followed by A or G. NB: 3' ends are Heterogenous, run in parallel with RNase_4p to get 3'p as well" type="string" />
+      <ITEM name="CutsAfter" value="U|P|\]|D|5" type="string" />
+      <ITEM name="CutsBefore" value="G|A" type="string" />
+      <ITEM name="ThreePrimeGain" value="" type="string" />
+      <ITEM name="FivePrimeGain" value="" type="string" />
+    </NODE>
+    <NODE name="RNase_4p">
+      <ITEM name="Name" value="RNase_4" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=U|P|m1Y|D|5)(?=A|G)" type="string" />
+      <ITEM name="RegExDescription" value="RNase 4 cuts after U (or modified U) only if followed by A or G. NB: 3' ends are Heterogenous, run in parallel with RNase_4 to get 3'OH as well" type="string" />
+      <ITEM name="CutsAfter" value="U|P|m1Y|D|5" type="string" />
+      <ITEM name="CutsBefore" value="G|A" type="string" />
+      <ITEM name="ThreePrimeGain" value="p" type="string" />
+      <ITEM name="FivePrimeGain" value="" type="string" />
+    </NODE>        
     <NODE name="mazF">
       <ITEM name="Name" value="mazF" type="string" />
       <ITEM name="RegEx" value="(?&lt;=(?&lt;!m6)A,(?&lt;!m5)C,A)" type="string" />

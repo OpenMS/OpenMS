@@ -104,7 +104,7 @@
     </NODE>
     <NODE name="Formic_acid">
       <ITEM name="Name" value="Formic_acid" type="string" />
-      <ITEM name="RegEx" value="((?&lt;=[DBX]))|((?=[DBX]))" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[DBX])(?=[DBX])" type="string" />
       <ITEM name="RegExDescription" value="Formic_acid cuts after D(or B) and next residue is D (or B)." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
