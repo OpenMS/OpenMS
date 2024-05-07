@@ -2857,6 +2857,36 @@ def testMSSpectrum():
     assert ii[0] == 200.0
     assert ii[1] == 400.0
 
+    spec.setNativeID('scan=1')
+    prec = pyopenms.Precursor()
+    prec.setMZ(100.0)
+    prec.setCharge(1)
+    spec.setPrecursors([prec])
+    spec.setMetaValue('total ion current', 600)
+    pepid = pyopenms.PeptideIdentification()
+    hit = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString('A'))
+    pepid.setHits([hit])
+    spec.setPeptideIdentifications([pepid])
+
+    data = np.array( [5, 8] ).astype(np.float32)
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].set_data(data)
+    f_da[0].setName("Ion Mobility")
+    spec.setFloatDataArrays( f_da )
+    spec.setDriftTimeUnit( pyopenms.DriftTimeUnit.MILLISECOND )
+
+    df = spec.get_df()
+    assert df.shape == (2, 10)
+    assert df.loc[0, 'mz'] == 1000.0
+    assert df.loc[0, 'intensity'] == 200.0
+    assert df.loc[0, 'ion_mobility'] == 5.0
+    assert df.loc[0, 'ion_mobility_unit'] == 'ms'
+    assert df.loc[0, 'precursor_mz'] == 100.0
+    assert df.loc[0, 'precursor_charge'] == 1
+    assert df.loc[0, 'native_id'] == 'scan=1'
+    assert df.loc[0, 'sequence'] == 'A'
+    assert df.loc[0, 'total ion current'] == 600
+
     spec.clear(False)
     data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
     data_i = np.array( [50.0, 80.0] ).astype(np.float32)
@@ -3168,6 +3198,29 @@ def testMSChromatogram():
     assert ii[0] == 200.0
     assert ii[1] == 400.0
 
+    chrom.setNativeID('chrom_0')
+    chrom.setMetaValue('FWHM', 5.0)
+    prec = pyopenms.Precursor()
+    prec.setMZ(100.0)
+    prec.setCharge(1)
+    chrom.setPrecursor(prec)
+    prod = pyopenms.Product()
+    prod.setMZ(50.0)
+    chrom.setProduct(prod)
+    chrom.setComment('comment')
+
+    df = chrom.get_df()
+    assert df.shape == (2, 9)
+    assert df.loc[0, 'time'] == 1000.0
+    assert df.loc[1, 'intensity'] == 400
+    assert df.loc[0, 'chromatogram_type'] == 'MASS_CHROMATOGRAM'
+    assert df.loc[1, 'precursor_mz'] == 100.0
+    assert df.loc[0, 'precursor_charge'] == 1
+    assert df.loc[1, 'product_mz'] == 50.0
+    assert df.loc[0, 'comment'] == 'comment'
+    assert df.loc[1, 'native_id'] == 'chrom_0'
+    assert df.loc[0, 'FWHM'] == 5
+
     chrom.clear(False)
     data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
     data_i = np.array( [50.0, 80.0] ).astype(np.float32)
@@ -3308,6 +3361,41 @@ def testMRMTransitionGroup():
     assert len(mrmgroup.getTransitions()) == 0
     mrmgroup.addTransition(pyopenms.ReactionMonitoringTransition(), "tr1")
     assert len(mrmgroup.getTransitions()) == 1
+
+    # add data for testing df output
+    ## test chromatogram df
+    rt, intensity = [[1.0], [5]]
+    chrom = pyopenms.MSChromatogram()
+    chrom.set_peaks([rt, intensity])
+    chrom.setNativeID("tr1")
+    mrmgroup.addChromatogram(chrom, 'tr1')
+
+    df = mrmgroup.get_chromatogram_df()
+    assert df.shape == (1, 8)
+    assert df.loc[0, 'time'] == 1.0
+    assert df.loc[0, 'intensity'] == 5
+    assert df.loc[0, 'chromatogram_type'] == 'MASS_CHROMATOGRAM'
+    assert df.loc[0, 'native_id'] == 'tr1'
+
+    ## feature
+    f = pyopenms.MRMFeature()
+    f.setRT(1.0)
+    f.setMetaValue(b'leftWidth', 0.5)
+    f.setMetaValue(b'rightWidth', 1.5)
+    f.setMetaValue(b'peak_apices_sum', 10.0)
+    f.setOverallQuality(0.5)
+    f.setUniqueId(1)
+    f.setIntensity(20.0)
+
+    df = mrmgroup.get_feature_df(meta_values=[b'leftWidth', b'rightWidth', b'peak_apices_sum'])
+    assert df.shape == (1, 8)
+    assert df.loc[0, 'leftWidth'] == 0.5
+    assert df.loc[0, 'rightWidth'] == 1.5
+    assert df.loc[0, 'peak_apices_sum'] == 10.0
+    assert df.loc[0, 'intensity'] == 10.0
+    assert df.loc[0, 'quality'] == 0.5
+    assert df.loc[0, 'RT'] == 1.0
+    assert df.index[0] == 1
 
 @report
 def testReactionMonitoringTransition():
