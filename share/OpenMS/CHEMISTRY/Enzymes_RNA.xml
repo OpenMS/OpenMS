@@ -1,7 +1,27 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--To add new enzymes you must define a regex for where they cut, as well a regex
 (or a comma separated list of regexes for specificity for multiple successive sites) for what the enzyme cuts after
-and what it cuts before. Also be sure to add gains before and after the cut. -->
+and what it cuts before. Also be sure to add gains before and after the cut.
+Each enzyme NODE contains six items:
+
+Name - a string with the name of the enzyme to show to the user
+
+RegExDescription - a string describing how the enzyme cuts in plain English.
+
+CutsBefore - a string representation of one or more javascript styled regular expressions, separated by commas.
+  The rightmost regular expression matches the nucleotide that is immediately 5' of the cut-site,
+  if there are more comma separated regex's, each one matches a single nucleotide "upstream" of the cut site (eg A,G|C,U would cut only after AGU or ACU).
+
+CutsAfter - a string representation of one or more javascript styled regular expressions, separated by commas.
+  The leftmost regular expression matches the nucleotide that is immediately 3' of the cut-site,
+  if there are more comma separated regex's, each one matches a single nucleotide "downstream" of the cut site (eg A,G|C,U would cut only before AGU or ACU).
+
+ThreePrimeGain - a string with the short name of a modomics entry that gets added to the 3' end of the "upstream" nucleotide after a cut.
+  Currently only p is used (representing the retention of a phosphate after enzymatic cleavage.
+
+FivePrimeGain - a string with the short name of a modomics entry that gets added to the 5' end of the "downstream" nucleotide after a cut.
+  Currently only p is used (representing the retention of a phosphate after enzymatic cleavage.
+ -->
 
 <PARAMETERS>
   <NODE name="Enzymes">
