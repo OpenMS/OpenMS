@@ -209,7 +209,7 @@ namespace OpenMS
     }
 
     spectrum.getStringDataArrays().resize(1);
-    spectrum.getStringDataArrays()[0].setName("IonNames");
+    spectrum.getStringDataArrays()[0].setName(Constants::UserParam::IonNames);
 
     vector<double> fragments_left, fragments_right, thiol_offsets;
     Size start = add_first_prefix_ion_ ? 0 : 1;
@@ -367,7 +367,7 @@ namespace OpenMS
       if (spectrum.getStringDataArrays().empty())
       {
         spectrum.getStringDataArrays().resize(1);
-        spectrum.getStringDataArrays()[0].setName("IonNames");
+        spectrum.getStringDataArrays()[0].setName(Constants::UserParam::IonNames);
       }
     }
 
@@ -400,7 +400,7 @@ namespace OpenMS
         spectrum.getIntegerDataArrays().resize(1);
         spectrum.getIntegerDataArrays()[0].setName("Charges");
         spectrum.getStringDataArrays().resize(1);
-        spectrum.getStringDataArrays()[0].setName("IonNames");
+        spectrum.getStringDataArrays()[0].setName(Constants::UserParam::IonNames);
       }
     }
 
