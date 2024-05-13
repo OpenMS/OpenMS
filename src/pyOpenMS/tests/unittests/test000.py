@@ -1249,6 +1249,7 @@ def _testParam(p):
      Param.setMinInt
      Param.setSectionDescription
      Param.setValidStrings
+     Param.getValidStrings
      Param.setValue
      Param.size
      Param.update
@@ -1327,6 +1328,7 @@ def _testParam(p):
     p1.update(dd)
 
     p.setValidStrings
+    p.getValidStrings
     p.setMinFloat
     p.setMaxFloat
     p.setMinInt
