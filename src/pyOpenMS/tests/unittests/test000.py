@@ -2879,7 +2879,7 @@ def testMSSpectrum():
     s_da = pyopenms.StringDataArray()
     for s in ['b3+', 'y4+']:
         s_da.push_back(s)
-    s_da.setName("IonName")
+    s_da.setName("IonNames")
     spec.setStringDataArrays([s_da])
 
     df = spec.get_df()
