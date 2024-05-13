@@ -2081,15 +2081,15 @@ protected:
     valid_element.push_back("O");
     setValidStrings_("labeling_element", valid_element);
 
-    registerFlag_("use_unassigned_ids", "Include identifications not assigned to a feature in pattern detection.", false, true);
+    registerFlag_("use_unassigned_ids", "Include identifications not assigned to a feature in pattern detection.", true);
 
-    registerFlag_("use_averagine_ids", "Use averagine peptides as model to perform pattern detection on unidentified peptides.", false);
+    registerFlag_("use_averagine_ids", "Use averagine peptides as model to perform pattern detection on unidentified peptides.", true);
 
     registerFlag_("report_natural_peptides", "Whether purely natural peptides are reported in the quality report.", false);
 
     registerFlag_("filter_monoisotopic", "Try to filter out mono-isotopic patterns to improve detection of low RIA patterns", false);
 
-    registerFlag_("cluster", "Perform grouping", false, true);
+    registerFlag_("cluster", "Perform grouping", true);
 
     registerDoubleOption_("observed_peak_fraction", "<threshold>", 0.5, "Fraction of observed/expected peaks.", false, true);
 
