@@ -2085,9 +2085,9 @@ protected:
 
     registerFlag_("use_averagine_ids", "Use averagine peptides as model to perform pattern detection on unidentified peptides.", true);
 
-    registerFlag_("report_natural_peptides", "Whether purely natural peptides are reported in the quality report.", false);
+    registerFlag_("report_natural_peptides", "Whether purely natural peptides are reported in the quality report.", true);
 
-    registerFlag_("filter_monoisotopic", "Try to filter out mono-isotopic patterns to improve detection of low RIA patterns", false);
+    registerFlag_("filter_monoisotopic", "Try to filter out mono-isotopic patterns to improve detection of low RIA patterns", true);
 
     registerFlag_("cluster", "Perform grouping", true);
 
