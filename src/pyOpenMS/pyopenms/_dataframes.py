@@ -664,24 +664,12 @@ class _MSSpectrumDF(_MSSpectrum):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def get_df(self, export_ion_mobility: bool = True, export_meta_values: bool = True, export_peptide_identifications: bool = True) -> _pd.DataFrame:
+    def get_df(self, export_meta_values: bool = True) -> _pd.DataFrame:
         """
         Returns a DataFrame representation of the MSSpectrum.
 
-        mz: The mass-to-charge ratio (m/z) values of the peaks in the mass spectrum.
-        intensity: The intensity (abundance) of the peaks in the mass spectrum.
-        ion_mobility: The ion mobility values.
-        ion_mobility_unit: The ion mobility unit.
-        ms_level: The MS level of the mass spectrum (1 for MS1, 2 for MS2, etc.).
-        precursor_mz: The mass-to-charge of the precursor ion.
-        precursor_charge: The charge of the precursor ion.
-        native_id: The native identifier of the spectrum.
-        spectrum: The spectrum of annotated peptide identification hit.
-
         Args:
-            export_ion_mobility (bool): Whether to export ion mobility data.
             export_meta_values (bool): Whether to export meta values.
-            export_peptide_identifications (bool): Whether to export peptide identifications.
 
         Returns:
             pd.DataFrame: DataFrame representation of the MSSpectrum.
@@ -692,9 +680,7 @@ class _MSSpectrumDF(_MSSpectrum):
 
         cnt = df.shape[0]
 
-        if export_ion_mobility:
-            df['ion_mobility'] = _np.array([i for i in self.getFloatDataArrays()[0]]) if self.containsIMData() else _np.nan
-            df['ion_mobility_unit'] = _np.full(cnt, self.getDriftTimeUnitAsString(), dtype=_np.dtype('U20'))
+        df['ion_mobility_unit'] = _np.full(cnt, self.getDriftTimeUnitAsString(), dtype=_np.dtype(f'U{len(self.getDriftTimeUnitAsString())}'))
 
         df['ms_level'] = _np.full(cnt, self.getMSLevel(), dtype=_np.dtype('uint16'))
 
@@ -704,14 +690,24 @@ class _MSSpectrumDF(_MSSpectrum):
         
         df['native_id'] = _np.full(cnt, self.getNativeID(), dtype=_np.dtype('U100'))
 
-        if export_peptide_identifications:
-            peps = self.getPeptideIdentifications()
-            seq = ''
-            if peps:
-                hits = peps[0].getHits()
-                if hits:
-                    seq = hits[0].getSequence().toString()
-            df['sequence'] = _np.full(cnt, seq, dtype=_np.dtype(f'U{len(seq)}'))
+        # peptide sequence
+        peps = self.getPeptideIdentifications()  # type: list[PeptideIdentification]
+        seq = ''
+        if peps:
+            hits = peps[0].getHits()
+            if hits:
+                seq = hits[0].getSequence().toString()
+        df['sequence'] = _np.full(cnt, seq, dtype=_np.dtype(f'U{len(seq)}'))
+
+        # ion annotations in string data array with names IonName or IonNames
+        ion_annotations = _np.full(cnt, '', dtype=_np.dtype('U1'))
+        for sda in self.getStringDataArrays():
+            if sda.getName() in ('IonName', 'IonNames'):
+                decoded = [ion.decode() for ion in sda]
+                if len(decoded) == df.shape[0]:
+                    ion_annotations = _np.array(decoded, dtype=_np.dtype(f'U{len(max(decoded))}'))
+                    break
+        df['ion_annotation'] = ion_annotations
 
         if export_meta_values:
             df = _add_meta_values(df, self)
