@@ -484,7 +484,6 @@ set(analysis_executables_list
   TargetedExperiment_test
   TargetedExperimentHelper_test
   MRMFeaturePicker_test
-  MRMFragmentSelection_test
   MRMMapping_test
   MRMScoring_test
   MapAlignmentAlgorithmIdentification_test
