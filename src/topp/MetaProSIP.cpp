@@ -2046,7 +2046,7 @@ protected:
 
     registerDoubleOption_("rt_tolerance_s", "<tol>", 30.0, "Tolerance window around feature rt for XIC extraction", false, true);
 
-    registerDoubleOption_("intensity_threshold", "<tol>", 10.0, "Intensity threshold to collect peaks in the MS1 spectrum.", false), true;
+    registerDoubleOption_("intensity_threshold", "<tol>", 10.0, "Intensity threshold to collect peaks in the MS1 spectrum.", false, true;
 
     registerDoubleOption_("correlation_threshold", "<tol>", 0.7, "Correlation threshold for reporting a RIA", false, true);
 
