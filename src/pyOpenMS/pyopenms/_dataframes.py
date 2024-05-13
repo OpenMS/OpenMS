@@ -702,7 +702,7 @@ class _MSSpectrumDF(_MSSpectrum):
         # ion annotations in string data array with names IonName or IonNames
         ion_annotations = _np.full(cnt, '', dtype=_np.dtype('U1'))
         for sda in self.getStringDataArrays():
-            if sda.getName() in ('IonName', 'IonNames'):
+            if sda.getName() == 'IonNames':
                 decoded = [ion.decode() for ion in sda]
                 if len(decoded) == df.shape[0]:
                     ion_annotations = _np.array(decoded, dtype=_np.dtype(f'U{len(max(decoded))}'))
