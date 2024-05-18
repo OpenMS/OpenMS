@@ -307,7 +307,7 @@ jobs:
         # Restoring: From current branch/PR, otherwise from nightly, otherwise from any branch.
         restore-keys: |
           ${{ runner.os }}-${{ runner.arch }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}
-          ${{ runner.os }}-${{ runner.arch }}-ccache-nightly
+          ${{ runner.os }}-${{ runner.arch }}-ccache-develop
           ${{ runner.os }}-${{ runner.arch }}-ccache-
 
     - name: Add THIRDPARTY
