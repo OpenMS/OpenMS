@@ -27,7 +27,7 @@ namespace OpenMS
     const StringList& feature_set, 
     const std::string& enz, 
     int min_charge, 
-    int max_charge)
+    int max_charge) 
   {
     TextFile txt = preparePin_(peptide_ids, feature_set, enz, min_charge, max_charge);
     txt.store(pin_file);
@@ -82,11 +82,20 @@ namespace OpenMS
     }
 
     // get column indices of extra scores
+
+
+    
+   
     std::set<String> found_extra_scores; // additional (non-main) scores that should be stored in the PeptideHit, order important for comparable idXML
+
+     
+    int cou = 0; 
     for (const String& s : extra_scores)
     {
+      //OPENMS_LOG_INFO <<  << std::endl;
       if (auto it = std::find(header.begin(), header.end(), s); it != header.end())
       {
+        OPENMS_LOG_INFO <<  header.at(cou++) << std::endl;
         found_extra_scores.insert(s);
       }
       else
@@ -169,6 +178,8 @@ namespace OpenMS
         pids.back().setMetaValue(Constants::UserParam::ID_MERGE_INDEX, map_filename_to_idx.at(raw_file_name));
         pids.back().setRT(row[to_idx.at("retentiontime")].toDouble() * 60.0); // search engines typically write minutes (e.g., sage)
         pids.back().setMetaValue("PinSpecId", sSpecId);
+        pids.back().setMetaValue("CalcMass", row[to_idx.at("CalcMass")].toDouble());
+        pids.back().setMetaValue("ExpMass", row[to_idx.at("ExpMass")].toDouble());
         // Since ScanNr is the closest to help in identifying the spectrum in the file later on,
         // we use it as spectrum_reference. Since it can be integer only or the complete
         // vendor ID, you will need a lookup in case of number only later!!

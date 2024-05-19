@@ -90,6 +90,105 @@ public:
   {
   }
 
+  static vector<double>  getDeltaClusterCenter(const vector<PeptideIdentification>& pips, bool debug = false)
+  {
+    vector<double> cluster;
+    MapRateToScoreType hist;
+
+    for (auto& id : peptide_identifications)
+    {
+      auto& hits = id.getHits();
+      for (auto& h : hits)
+      {
+         double expval  =  std::stod(h.getMetaValue("SAGE:ExpMass")); 
+         double calcval = std::stod(h.getMetaValue("SAGE:CalcMass"));
+         double DeltaMass = expval - calcval; 
+        if (hist.find(DeltaMass) == hist.end())
+        {
+          hist[DeltaMass] = 1.0;
+        }
+        else
+        {
+          hist[DeltaMass] += 1.0;
+        }
+
+      }
+
+
+    // kernel density estimation, TODO: binary search for 5 sigma boundaries
+    vector<double> density(101, 0);
+    for (Size i = 0; i != density.size(); ++i)
+    {
+      double sum = 0;
+      for (MapRateToScoreType::const_iterator mit = hist.begin(); mit != hist.end(); ++mit)
+      {
+        normal s(mit->first, 2.0);
+        sum += mit->second * pdf(s, (double)i);
+      }
+      density[i] = sum;
+    }
+
+    MapRateToScoreType delta_density;
+
+    for (Size i = 0; i != density.size(); ++i)
+    {
+      delta_density[i] = density[i];
+    }
+
+    vector<RateScorePair> cluster_center = MetaProSIPInterpolation::getHighPoints(0.5, delta_density, debug);
+
+    // return cluster centers
+    for (vector<RateScorePair>::const_iterator cit = cluster_center.begin(); cit != cluster_center.end(); ++cit)
+    {
+      cluster.push_back(cit->rate);
+    }
+    return cluster;
+  }
+
+  static vector<vector<PeptideIdentification> > clusterPeptides(const vector<double>& centers, vector<PeptideIdentification>& pips)
+  {
+    // one cluster for each cluster center
+    vector<vector<PeptideIdentification> > clusters(centers.size(), vector<PeptideIdentification>());
+    for (auto& id : peptide_identifications)
+    {
+      auto& hits = id.getHits();
+      for (auto& h : hits)
+      {
+         double expval  =  std::stod(h.getMetaValue("SAGE:ExpMass")); 
+         double calcval = std::stod(h.getMetaValue("SAGE:CalcMass"));
+         double DeltaMass = expval - calcval; 
+
+         Size closest_cluster_idx = 0;
+         double closest_cluster_dist = std::numeric_limits<double>::max();
+
+        for (Size i = 0; i != centers.size(); ++i)
+        {
+          double dist = std::fabs(centers[i] - DeltaMass);
+          if (dist < closest_cluster_dist)
+          {
+            closest_cluster_dist = dist;
+            closest_cluster_idx = i;
+          }
+        }
+
+        clusters[closest_cluster_idx].push_back(*h);
+
+        } 
+      }
+    // assign sip peptide to cluster center with largest RIA
+
+    // rearrange SIP peptides to reflect new order
+    pips.clear();
+    for (vector<vector<PeptideIdentification> >::const_iterator sit = clusters.begin(); sit != clusters.end(); ++sit)
+    {
+      pips.insert(pips.end(), sit->begin(), sit->end());
+    }
+
+    return clusters;
+  }
+
+}; 
+
 protected:
   // create a template-based configuration file for sage
   // variable values correspond to sage parameter that can be configured via TOPP tool parameter.
@@ -177,7 +276,7 @@ protected:
   {
     String origin;
     if (mod->getTermSpecificity() == ResidueModification::N_TERM)
-    {
+    { 
       origin += "^";
     }
     else if (mod->getTermSpecificity() == ResidueModification::C_TERM)
@@ -495,7 +594,7 @@ protected:
     StringList filenames;
     StringList extra_scores = {"ln(-poisson)", "ln(delta_best)", "ln(delta_next)", 
       "ln(matched_intensity_pct)", "longest_b", "longest_y", 
-      "longest_y_pct", "matched_peaks", "scored_candidates"};
+      "longest_y_pct", "matched_peaks", "scored_candidates", "CalcMass", "ExpMass"};
     vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load(
       output_folder + "/results.sage.pin",
       true,
@@ -503,7 +602,6 @@ protected:
       extra_scores,
       filenames,
       decoy_prefix);
-
     // rename SAGE subscores to have prefix "SAGE:"
     for (auto& id : peptide_identifications)
     {
@@ -521,8 +619,33 @@ protected:
       }
     }
 
+  /*
+    int i = 0; 
+    for (auto& id : peptide_identifications)
+    {
+      auto& hits = id.getHits();
+      for (auto& h : hits)
+      {
+         double expval  =  std::stod(h.getMetaValue("SAGE:ExpMass")); 
+         double calcval = std::stod(h.getMetaValue("SAGE:CalcMass"));
+         double DeltaMass = expval - calcval; 
+        if(i++ < 5){
+          //OPENMS_LOG_INFO << "Calc" << h.getMetaValue("SAGE:CalcMass") << std::endl;
+          //OPENMS_LOG_INFO << "Exp" << h.getMetaValue("SAGE:ExpMass")  << std::endl;
+          //OPENMS_LOG_INFO << "try" <<  DeltaMass << std::endl;
+          
+        } 
+      }
+    }*/
+
+
+
+
+
     // remove hits without charge state assigned or charge outside of default range (fix for downstream bugs). TODO: remove if all charges annotated in sage
     IDFilter::filterPeptidesByCharge(peptide_identifications, 2, numeric_limits<int>::max());
+
+
     
     if (filenames.empty()) filenames = getStringList_("in");
 
