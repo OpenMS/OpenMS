@@ -775,6 +775,12 @@ protected:
       feature_finder_param.setValue("Scores:use_uis_scores", "true");
     }
 
+    bool compute_peak_shape_metrics = feature_finder_param.getValue("TransitionGroupPicker:compute_peak_shape_metrics") == "true";
+    if (compute_peak_shape_metrics)
+    {
+      feature_finder_param.setValue("Scores:use_peak_shape_metrics", "true");
+    }
+
     ///////////////////////////////////
     // Load the transitions
     ///////////////////////////////////

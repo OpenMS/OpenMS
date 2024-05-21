@@ -406,7 +406,9 @@ namespace OpenMS
         auto id_target_transition_names = getSeparateScore(feature_it, "id_target_transition_names");
         auto id_target_area_intensity = getSeparateScore(feature_it, "id_target_area_intensity");
         auto id_target_total_area_intensity = getSeparateScore(feature_it, "id_target_total_area_intensity");
-        auto id_target_apex_intensity = getSeparateScore(feature_it, "id_target_apex_intensity");
+        auto id_target_apex_intensity = getSeparateScore(feature_it, "id_target_ind_apex_intensity");
+        auto id_target_peak_apex_position = getSeparateScore(feature_it, "id_target_peak_apex_position");
+        auto id_target_peak_fwhm = getSeparateScore(feature_it, "id_target_width_at_50");
         auto id_target_total_mi = getSeparateScore(feature_it, "id_target_apex_intensity");
         auto id_target_intensity_score = getSeparateScore(feature_it, "id_target_intensity_score");
         auto id_target_intensity_ratio_score = getSeparateScore(feature_it, "id_target_intensity_ratio_score");
@@ -421,22 +423,23 @@ namespace OpenMS
         auto id_target_ind_isotope_overlap = getSeparateScore(feature_it, "id_target_ind_isotope_overlap");
 
         // check if there are compute_peak_shape_metrics scores
-        bool enable_compute_peak_shape_metrics = getSeparateScore(feature_it, "start_position_at_5").size() > 0;
+        auto id_target_ind_start_position_at_5 = getSeparateScore(feature_it, "id_target_ind_start_position_at_5");
+        bool enable_compute_peak_shape_metrics = id_target_ind_start_position_at_5.size() > 0 && id_target_ind_start_position_at_5[0] != "0";
         
         // get scores for peak shape metrics will just be empty vector if not present
-        auto start_position_at_5 = getSeparateScore(feature_it, "start_position_at_5");
-        auto end_position_at_5 = getSeparateScore(feature_it, "end_position_at_5");
-        auto start_position_at_10 = getSeparateScore(feature_it, "start_position_at_10");
-        auto end_position_at_10 = getSeparateScore(feature_it, "end_position_at_10");
-        auto start_position_at_50 = getSeparateScore(feature_it, "start_position_at_50");
-        auto end_position_at_50 = getSeparateScore(feature_it, "end_position_at_50");
-        auto total_width = getSeparateScore(feature_it, "total_width");
-        auto tailing_factor = getSeparateScore(feature_it, "tailing_factor");
-        auto asymmetry_factor = getSeparateScore(feature_it, "asymmetry_factor");
-        auto slope_of_baseline = getSeparateScore(feature_it, "slope_of_baseline");
-        auto baseline_delta_2_height = getSeparateScore(feature_it, "baseline_delta_2_height");
-        auto points_across_baseline = getSeparateScore(feature_it, "points_across_baseline");
-        auto points_across_half_height = getSeparateScore(feature_it, "points_across_half_height");
+        auto start_position_at_5 = getSeparateScore(feature_it, "id_target_ind_start_position_at_5");
+        auto end_position_at_5 = getSeparateScore(feature_it, "id_target_ind_end_position_at_5");
+        auto start_position_at_10 = getSeparateScore(feature_it, "id_target_ind_start_position_at_10");
+        auto end_position_at_10 = getSeparateScore(feature_it, "id_target_ind_end_position_at_10");
+        auto start_position_at_50 = getSeparateScore(feature_it, "id_target_ind_start_position_at_50");
+        auto end_position_at_50 = getSeparateScore(feature_it, "id_target_ind_end_position_at_50");
+        auto total_width = getSeparateScore(feature_it, "id_target_ind_total_width");
+        auto tailing_factor = getSeparateScore(feature_it, "id_target_ind_tailing_factor");
+        auto asymmetry_factor = getSeparateScore(feature_it, "id_target_ind_asymmetry_factor");
+        auto slope_of_baseline = getSeparateScore(feature_it, "id_target_ind_slope_of_baseline");
+        auto baseline_delta_2_height = getSeparateScore(feature_it, "id_target_ind_baseline_delta_2_height");
+        auto points_across_baseline = getSeparateScore(feature_it, "id_target_ind_points_across_baseline");
+        auto points_across_half_height = getSeparateScore(feature_it, "id_target_ind_points_across_half_height");
 
         if (feature_it.metaValueExists("id_target_num_transitions"))
         {
@@ -446,7 +449,7 @@ namespace OpenMS
           {
             sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION "\
               "(FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, "\
-              " APEX_INTENSITY, TOTAL_MI, VAR_INTENSITY_SCORE, VAR_INTENSITY_RATIO_SCORE, "\
+              " APEX_INTENSITY, APEX_RT, RT_FWHM, MASSERROR_PPM, TOTAL_MI, VAR_INTENSITY_SCORE, VAR_INTENSITY_RATIO_SCORE, "\
               " VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, "\
               " VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_MI_RATIO_SCORE, "\
               " VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE "
@@ -460,6 +463,9 @@ namespace OpenMS
                                         << id_target_area_intensity[i] << ", "
                                         << id_target_total_area_intensity[i] << ", "
                                         << id_target_apex_intensity[i] << ", "
+                                        << id_target_peak_apex_position[i] << ", "
+                                        << id_target_peak_fwhm[i] << ", "
+                                        << id_target_ind_massdev_score[i] << ", "
                                         << id_target_total_mi[i] << ", "
                                         << id_target_intensity_score[i] << ", "
                                         << id_target_intensity_ratio_score[i] << ", "
@@ -512,6 +518,21 @@ namespace OpenMS
         auto id_decoy_ind_isotope_correlation = getSeparateScore(feature_it, "id_decoy_ind_isotope_correlation");
         auto id_decoy_ind_isotope_overlap = getSeparateScore(feature_it, "id_decoy_ind_isotope_overlap");
 
+        // get scores for peak shape metrics will just be empty vector if not present
+        auto decoy_start_position_at_5 = getSeparateScore(feature_it, "id_decoy_ind_start_position_at_5");
+        auto decoy_end_position_at_5 = getSeparateScore(feature_it, "id_decoy_ind_end_position_at_5");
+        auto decoy_start_position_at_10 = getSeparateScore(feature_it, "id_decoy_ind_start_position_at_10");
+        auto decoy_end_position_at_10 = getSeparateScore(feature_it, "id_decoy_ind_end_position_at_10");
+        auto decoy_start_position_at_50 = getSeparateScore(feature_it, "id_decoy_ind_start_position_at_50");
+        auto decoy_end_position_at_50 = getSeparateScore(feature_it, "id_decoy_ind_end_position_at_50");
+        auto decoy_total_width = getSeparateScore(feature_it, "id_decoy_ind_total_width");
+        auto decoy_tailing_factor = getSeparateScore(feature_it, "id_decoy_ind_tailing_factor");
+        auto decoy_asymmetry_factor = getSeparateScore(feature_it, "id_decoy_ind_asymmetry_factor");
+        auto decoy_slope_of_baseline = getSeparateScore(feature_it, "id_decoy_ind_slope_of_baseline");
+        auto decoy_baseline_delta_2_height = getSeparateScore(feature_it, "id_decoy_ind_baseline_delta_2_height");
+        auto decoy_points_across_baseline = getSeparateScore(feature_it, "id_decoy_ind_points_across_baseline");
+        auto decoy_points_across_half_height = getSeparateScore(feature_it, "id_decoy_ind_points_across_half_height");
+
         if (feature_it.metaValueExists("id_decoy_num_transitions"))
         {
           int id_decoy_num_transitions = feature_it.getMetaValue("id_decoy_num_transitions");
@@ -520,11 +541,15 @@ namespace OpenMS
           {
              sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION "\
                 "(FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, "\
-                " APEX_INTENSITY, TOTAL_MI, VAR_INTENSITY_SCORE, VAR_INTENSITY_RATIO_SCORE, "\
+                " APEX_INTENSITY, APEX_RT, RT_FWHM, MASSERROR_PPM, TOTAL_MI, VAR_INTENSITY_SCORE, VAR_INTENSITY_RATIO_SCORE, "\
                 " VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, "\
                 " VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_MI_RATIO_SCORE, "\
-                " VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) "\
-                "VALUES ("
+                " VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE "
+                << (enable_compute_peak_shape_metrics ? ", START_POSITION_AT_5, END_POSITION_AT_5, "
+                                         "START_POSITION_AT_10, END_POSITION_AT_10, START_POSITION_AT_50, END_POSITION_AT_50, "
+                                         "TOTAL_WIDTH, TAILING_FACTOR, ASYMMETRY_FACTOR, SLOPE_OF_BASELINE, BASELINE_DELTA_2_HEIGHT, "
+                                         "POINTS_ACROSS_BASELINE, POINTS_ACROSS_HALF_HEIGHT" : "")
+                << ") VALUES ("
                                         << feature_id << ", "
                                         << id_decoy_transition_names[i] << ", "
                                         << id_decoy_area_intensity[i] << ", "
@@ -542,6 +567,24 @@ namespace OpenMS
                                         << id_decoy_ind_mi_ratio_score[i] << ", "
                                         << id_decoy_ind_isotope_correlation[i] << ", "
                                         << id_decoy_ind_isotope_overlap[i] << "); ";
+
+                         if (enable_compute_peak_shape_metrics)
+                         {
+                            sql_feature_uis_transition << ", "
+                                          << decoy_start_position_at_5[i] << ", "
+                                          << decoy_end_position_at_5[i] << ", "
+                                          << decoy_start_position_at_10[i] << ", "
+                                          << decoy_end_position_at_10[i] << ", "
+                                          << decoy_start_position_at_50[i] << ", "
+                                          << decoy_end_position_at_50[i] << ", "
+                                          << decoy_total_width[i] << ", "
+                                          << decoy_tailing_factor[i] << ", "
+                                          << decoy_asymmetry_factor[i] << ", "
+                                          << decoy_slope_of_baseline[i] << ", "
+                                          << decoy_baseline_delta_2_height[i] << ", "
+                                          << decoy_points_across_baseline[i] << ", "
+                                          << decoy_points_across_half_height[i];
+                         }
           }
         }
       }

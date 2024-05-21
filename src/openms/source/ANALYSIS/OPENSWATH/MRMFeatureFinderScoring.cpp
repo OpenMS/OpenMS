@@ -130,6 +130,7 @@ namespace OpenMS
     scores_to_use.setValidStrings("use_ms1_mi", {"true","false"});
     scores_to_use.setValue("use_uis_scores", "false", "Use UIS scores for peptidoform identification", {"advanced"});
     scores_to_use.setValidStrings("use_uis_scores", {"true","false"});
+    scores_to_use.setValue("use_peak_shape_metrics", "false", "Use peak shape metrics for scoring", {"advanced"});
     scores_to_use.setValue("use_ionseries_scores", "true", "Use MS2-level b/y ion-series scores for peptidoform identification", {"advanced"});
     scores_to_use.setValidStrings("use_ionseries_scores", {"true","false"});
     scores_to_use.setValue("use_ms2_isotope_scores", "true", "Use MS2-level isotope scores (pearson & manhattan) across product transitions (based on ID if annotated or averagine)", {"advanced"});
@@ -349,10 +350,26 @@ namespace OpenMS
       std::vector<double> ind_total_area_intensity;
       std::vector<double> ind_intensity_score;
       std::vector<double> ind_apex_intensity;
+      std::vector<double> ind_fwhm;
       std::vector<double> ind_total_mi;
       std::vector<double> ind_log_intensity;
       std::vector<double> ind_intensity_ratio;
       std::vector<double> ind_mi_ratio;
+
+      // peak shape metrics
+      std::vector<double> ind_start_position_at_5;
+      std::vector<double> ind_end_position_at_5;
+      std::vector<double> ind_start_position_at_10;
+      std::vector<double> ind_end_position_at_10;
+      std::vector<double> ind_start_position_at_50;
+      std::vector<double> ind_end_position_at_50;
+      std::vector<double> ind_total_width;
+      std::vector<double> ind_tailing_factor;
+      std::vector<double> ind_asymmetry_factor;
+      std::vector<double> ind_slope_of_baseline;
+      std::vector<double> ind_baseline_delta_2_height;
+      std::vector<double> ind_points_across_baseline;
+      std::vector<double> ind_points_across_half_height;
 
       std::vector<double> ind_mi_score;
       if (su_.use_mi_score_)
@@ -388,10 +405,28 @@ namespace OpenMS
           ind_total_area_intensity.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic"));
           ind_intensity_score.push_back(intensity_score);
           ind_apex_intensity.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("peak_apex_int"));
+          ind_fwhm.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("width_at_50"));
           ind_total_mi .push_back(total_mi);
           ind_log_intensity.push_back(std::log(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity()));
           ind_intensity_ratio.push_back(intensity_ratio);
           ind_mi_ratio.push_back(mi_ratio);
+
+          if (su_.use_peak_shape_metrics)
+          {
+            ind_start_position_at_5.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("start_position_at_5"));
+            ind_end_position_at_5.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("end_position_at_5"));
+            ind_start_position_at_10.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("start_position_at_10"));
+            ind_end_position_at_10.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("end_position_at_10"));
+            ind_start_position_at_50.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("start_position_at_50"));
+            ind_end_position_at_50.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("end_position_at_50"));
+            ind_total_width.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_width"));
+            ind_tailing_factor.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("tailing_factor"));
+            ind_asymmetry_factor.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("asymmetry_factor"));
+            ind_slope_of_baseline.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("slope_of_baseline"));
+            ind_baseline_delta_2_height.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("baseline_delta_2_height"));
+            ind_points_across_baseline.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("points_across_baseline"));
+            ind_points_across_half_height.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("points_across_half_height"));
+          }
         }
         else
         {
@@ -399,10 +434,28 @@ namespace OpenMS
           ind_total_area_intensity.push_back(0);
           ind_intensity_score.push_back(0);
           ind_apex_intensity.push_back(0);
+          ind_fwhm.push_back(0);
           ind_total_mi.push_back(0);
           ind_log_intensity.push_back(0);
           ind_intensity_ratio.push_back(0);
           ind_mi_ratio.push_back(0);
+
+          if (su_.use_peak_shape_metrics)
+          {
+            ind_start_position_at_5.push_back(0);
+            ind_end_position_at_5.push_back(0);
+            ind_start_position_at_10.push_back(0);
+            ind_end_position_at_10.push_back(0);
+            ind_start_position_at_50.push_back(0);
+            ind_end_position_at_50.push_back(0);
+            ind_total_width.push_back(0);
+            ind_tailing_factor.push_back(0);
+            ind_asymmetry_factor.push_back(0);
+            ind_slope_of_baseline.push_back(0);
+            ind_baseline_delta_2_height.push_back(0);
+            ind_points_across_baseline.push_back(0);
+            ind_points_across_half_height.push_back(0);
+          }
         }
       }
       idscores.ind_transition_names = ind_transition_names;
@@ -410,11 +463,29 @@ namespace OpenMS
       idscores.ind_total_area_intensity = ind_total_area_intensity;
       idscores.ind_intensity_score = ind_intensity_score;
       idscores.ind_apex_intensity = ind_apex_intensity;
+      idscores.ind_fwhm = ind_fwhm;
       idscores.ind_total_mi = ind_total_mi;
       idscores.ind_log_intensity = ind_log_intensity;
       idscores.ind_intensity_ratio = ind_intensity_ratio;
       idscores.ind_mi_ratio = ind_mi_ratio;
       idscores.ind_num_transitions = native_ids_identification.size();
+
+      if (su_.use_peak_shape_metrics)
+      {
+        idscores.ind_start_position_at_5 = ind_start_position_at_5;
+        idscores.ind_end_position_at_5 = ind_end_position_at_5;
+        idscores.ind_start_position_at_10 = ind_start_position_at_10;
+        idscores.ind_end_position_at_10 = ind_end_position_at_10;
+        idscores.ind_start_position_at_50 = ind_start_position_at_50;
+        idscores.ind_end_position_at_50 = ind_end_position_at_50;
+        idscores.ind_total_width = ind_total_width;
+        idscores.ind_tailing_factor = ind_tailing_factor;
+        idscores.ind_asymmetry_factor = ind_asymmetry_factor;
+        idscores.ind_slope_of_baseline = ind_slope_of_baseline;
+        idscores.ind_baseline_delta_2_height = ind_baseline_delta_2_height;
+        idscores.ind_points_across_baseline = ind_points_across_baseline;
+        idscores.ind_points_across_half_height = ind_points_across_half_height;
+      }
     }
 
     // Compute DIA scores only on the identification transitions
