@@ -406,10 +406,10 @@ namespace OpenMS
         auto id_target_transition_names = getSeparateScore(feature_it, "id_target_transition_names");
         auto id_target_area_intensity = getSeparateScore(feature_it, "id_target_area_intensity");
         auto id_target_total_area_intensity = getSeparateScore(feature_it, "id_target_total_area_intensity");
-        auto id_target_apex_intensity = getSeparateScore(feature_it, "id_target_ind_apex_intensity");
+        auto id_target_apex_intensity = getSeparateScore(feature_it, "id_target_apex_intensity");
         auto id_target_peak_apex_position = getSeparateScore(feature_it, "id_target_peak_apex_position");
         auto id_target_peak_fwhm = getSeparateScore(feature_it, "id_target_width_at_50");
-        auto id_target_total_mi = getSeparateScore(feature_it, "id_target_apex_intensity");
+        auto id_target_total_mi = getSeparateScore(feature_it, "id_target_total_mi");
         auto id_target_intensity_score = getSeparateScore(feature_it, "id_target_intensity_score");
         auto id_target_intensity_ratio_score = getSeparateScore(feature_it, "id_target_intensity_ratio_score");
         auto id_target_log_intensity = getSeparateScore(feature_it, "id_target_ind_log_intensity");
@@ -477,7 +477,7 @@ namespace OpenMS
                                         << id_target_ind_mi_score[i] << ", "
                                         << id_target_ind_mi_ratio_score[i] << ", "
                                         << id_target_ind_isotope_correlation[i] << ", "
-                                        << id_target_ind_isotope_overlap[i] << "); ";
+                                        << id_target_ind_isotope_overlap[i];
 
                          if (enable_compute_peak_shape_metrics)
                          {
@@ -496,7 +496,7 @@ namespace OpenMS
                                           << points_across_baseline[i] << ", "
                                           << points_across_half_height[i];
                          }
-                         sql_feature_ms2_transition << "); ";
+                         sql_feature_uis_transition << "); ";
 
           }
         }
@@ -505,6 +505,8 @@ namespace OpenMS
         auto id_decoy_area_intensity = getSeparateScore(feature_it, "id_decoy_area_intensity");
         auto id_decoy_total_area_intensity = getSeparateScore(feature_it, "id_decoy_total_area_intensity");
         auto id_decoy_apex_intensity = getSeparateScore(feature_it, "id_decoy_apex_intensity");
+        auto id_decoy_peak_apex_position = getSeparateScore(feature_it, "id_decoy_peak_apex_position");
+        auto id_decoy_peak_fwhm = getSeparateScore(feature_it, "id_decoy_width_at_50");
         auto id_decoy_total_mi = getSeparateScore(feature_it, "id_decoy_total_mi");
         auto id_decoy_intensity_score = getSeparateScore(feature_it, "id_decoy_intensity_score");
         auto id_decoy_intensity_ratio_score = getSeparateScore(feature_it, "id_decoy_intensity_ratio_score");
@@ -555,6 +557,9 @@ namespace OpenMS
                                         << id_decoy_area_intensity[i] << ", "
                                         << id_decoy_total_area_intensity[i] << ", "
                                         << id_decoy_apex_intensity[i] << ", "
+                                        << id_decoy_peak_apex_position[i] << ", "
+                                        << id_decoy_peak_fwhm[i] << ", "
+                                        << id_decoy_ind_massdev_score[i] << ", "
                                         << id_decoy_total_mi[i] << ", "
                                         << id_decoy_intensity_score[i] << ", "
                                         << id_decoy_intensity_ratio_score[i] << ", "
@@ -566,7 +571,7 @@ namespace OpenMS
                                         << id_decoy_ind_mi_score[i] << ", "
                                         << id_decoy_ind_mi_ratio_score[i] << ", "
                                         << id_decoy_ind_isotope_correlation[i] << ", "
-                                        << id_decoy_ind_isotope_overlap[i] << "); ";
+                                        << id_decoy_ind_isotope_overlap[i];
 
                          if (enable_compute_peak_shape_metrics)
                          {
@@ -585,6 +590,7 @@ namespace OpenMS
                                           << decoy_points_across_baseline[i] << ", "
                                           << decoy_points_across_half_height[i];
                          }
+                         sql_feature_uis_transition << "); ";
           }
         }
       }

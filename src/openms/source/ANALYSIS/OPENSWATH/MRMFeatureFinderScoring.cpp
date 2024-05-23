@@ -350,6 +350,7 @@ namespace OpenMS
       std::vector<double> ind_total_area_intensity;
       std::vector<double> ind_intensity_score;
       std::vector<double> ind_apex_intensity;
+      std::vector<double> ind_apex_position;
       std::vector<double> ind_fwhm;
       std::vector<double> ind_total_mi;
       std::vector<double> ind_log_intensity;
@@ -405,6 +406,7 @@ namespace OpenMS
           ind_total_area_intensity.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic"));
           ind_intensity_score.push_back(intensity_score);
           ind_apex_intensity.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("peak_apex_int"));
+          ind_apex_position.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("peak_apex_position"));
           ind_fwhm.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("width_at_50"));
           ind_total_mi .push_back(total_mi);
           ind_log_intensity.push_back(std::log(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity()));
@@ -434,6 +436,7 @@ namespace OpenMS
           ind_total_area_intensity.push_back(0);
           ind_intensity_score.push_back(0);
           ind_apex_intensity.push_back(0);
+          ind_apex_position.push_back(0);
           ind_fwhm.push_back(0);
           ind_total_mi.push_back(0);
           ind_log_intensity.push_back(0);
@@ -463,6 +466,7 @@ namespace OpenMS
       idscores.ind_total_area_intensity = ind_total_area_intensity;
       idscores.ind_intensity_score = ind_intensity_score;
       idscores.ind_apex_intensity = ind_apex_intensity;
+      idscores.ind_apex_position = ind_apex_position;
       idscores.ind_fwhm = ind_fwhm;
       idscores.ind_total_mi = ind_total_mi;
       idscores.ind_log_intensity = ind_log_intensity;
@@ -1133,6 +1137,7 @@ namespace OpenMS
     su_.use_uis_scores           = param_.getValue("Scores:use_uis_scores").toBool();
     su_.use_ionseries_scores     = param_.getValue("Scores:use_ionseries_scores").toBool();
     su_.use_ms2_isotope_scores   = param_.getValue("Scores:use_ms2_isotope_scores").toBool();
+    su_.use_peak_shape_metrics   = param_.getValue("Scores:use_peak_shape_metrics").toBool();
   }
 
   void MRMFeatureFinderScoring::mapExperimentToTransitionList(const OpenSwath::SpectrumAccessPtr& input,

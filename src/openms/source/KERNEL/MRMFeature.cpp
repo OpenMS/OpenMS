@@ -146,6 +146,7 @@ namespace OpenMS
     setMetaValue(id + "intensity_score", idscores.ind_intensity_score);
     setMetaValue(id + "intensity_ratio_score", idscores.ind_intensity_ratio);
     setMetaValue(id + "apex_intensity", idscores.ind_apex_intensity);
+    setMetaValue(id + "peak_apex_position", idscores.ind_apex_position);
     setMetaValue(id + "width_at_50", idscores.ind_fwhm);
     setMetaValue(id + "total_mi", idscores.ind_total_mi);
     setMetaValue(id + "transition_names", idscores.ind_transition_names);

@@ -183,6 +183,7 @@ namespace OpenMS
     std::vector<double> ind_total_area_intensity;
     std::vector<double> ind_intensity_score;
     std::vector<double> ind_apex_intensity;
+    std::vector<double> ind_apex_position;
     std::vector<double> ind_fwhm;
     std::vector<double> ind_total_mi;
     std::vector<double> ind_log_intensity;
