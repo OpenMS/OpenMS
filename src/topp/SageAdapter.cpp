@@ -22,16 +22,20 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
 #include <regex>
 
+#include <boost/math/distributions/normal.hpp>
+
 #include <QStringList>
 
 using namespace OpenMS;
 using namespace std;
+using boost::math::normal;
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -75,6 +79,9 @@ because of limitations in OpenMS' data structures and file formats.
 /*
 */
 
+
+typedef map<double, double> MapRateToScoreType;
+
 class TOPPSageAdapter :
   public SearchEngineBase
 {
@@ -90,12 +97,91 @@ public:
   {
   }
 
+
+  struct RateScorePair
+{
+  double rate = -1.;
+  double score = -1.;
+};
+
+class MetaProSIPInterpolation
+{
+public:
+  ///< Determine score maxima from rate to score distribution using derivatives from spline interpolation
+  static vector<RateScorePair> getHighPoints(double threshold, const MapRateToScoreType& rate2score, bool debug = false)
+  {
+    vector<RateScorePair> high_points;
+    vector<double> x, y;
+
+    // set proper boundaries (uniform spacing)
+    x.push_back(-100.0 / (double)rate2score.size());
+    y.push_back(0);
+
+    // copy data
+    for (MapRateToScoreType::const_iterator it = rate2score.begin(); it != rate2score.end(); ++it)
+    {
+      x.push_back(it->first);
+      y.push_back(it->second);
+    }
+
+    if (rate2score.find(100.0) == rate2score.end() && x[x.size() - 1] < 100.0)
+    {
+      x.push_back(100.0);
+      y.push_back(0);
+    }
+
+    const size_t n = x.size();
+
+    //gte::IntpAkimaNonuniform1<double> spline(x.size(), &x.front(), &y.front());
+    CubicSpline2d spline(x, y);
+
+    if (debug)
+    {
+      OPENMS_LOG_DEBUG << x[0] << " " << x[n - 1] << " " << n << endl;
+    }
+
+    double last_dxdy = 0;
+    for (double xi = x[0]; xi < x[n - 1]; xi += 0.01)
+    {
+      double dxdy = spline.derivatives(xi, 1);
+      double yi = spline.eval(xi);
+
+      if (debug)
+      {
+        cout << x[0] << " " << x[n - 1] << " " << xi << " " << yi << endl;
+      }
+
+      if (last_dxdy > 0.0 && dxdy <= 0 && yi > threshold)
+      {
+        RateScorePair rsp{};
+        rsp.rate = xi;
+        rsp.score = yi;
+        high_points.push_back(rsp);
+      }
+      last_dxdy = dxdy;
+    }
+
+    if (debug)
+    {
+      OPENMS_LOG_DEBUG << "Found: " << high_points.size() << " local maxima." << endl;
+      for (Size i = 0; i != high_points.size(); ++i)
+      {
+        OPENMS_LOG_DEBUG << high_points[i].rate << " " << high_points[i].score << endl;
+      }
+    }
+
+    return high_points;
+  }
+
+};
+
+class SageClustering{
   static vector<double>  getDeltaClusterCenter(const vector<PeptideIdentification>& pips, bool debug = false)
   {
     vector<double> cluster;
-    MapRateToScoreType hist;
+    map<double, double> hist;
 
-    for (auto& id : peptide_identifications)
+    for (auto& id : pips)
     {
       auto& hits = id.getHits();
       for (auto& h : hits)
@@ -112,7 +198,7 @@ public:
           hist[DeltaMass] += 1.0;
         }
 
-      }
+      }}
 
 
     // kernel density estimation, TODO: binary search for 5 sigma boundaries
@@ -120,7 +206,7 @@ public:
     for (Size i = 0; i != density.size(); ++i)
     {
       double sum = 0;
-      for (MapRateToScoreType::const_iterator mit = hist.begin(); mit != hist.end(); ++mit)
+      for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit)
       {
         normal s(mit->first, 2.0);
         sum += mit->second * pdf(s, (double)i);
@@ -128,7 +214,7 @@ public:
       density[i] = sum;
     }
 
-    MapRateToScoreType delta_density;
+    map<double, double> delta_density;
 
     for (Size i = 0; i != density.size(); ++i)
     {
@@ -142,14 +228,18 @@ public:
     {
       cluster.push_back(cit->rate);
     }
-    return cluster;
+    
+  
+  return cluster;
   }
 
+
+  //
   static vector<vector<PeptideIdentification> > clusterPeptides(const vector<double>& centers, vector<PeptideIdentification>& pips)
   {
     // one cluster for each cluster center
-    vector<vector<PeptideIdentification> > clusters(centers.size(), vector<PeptideIdentification>());
-    for (auto& id : peptide_identifications)
+    vector<vector<PeptideIdentification>> clusters(centers.size(), vector<PeptideIdentification>());
+    for (auto& id : pips)
     {
       auto& hits = id.getHits();
       for (auto& h : hits)
@@ -164,14 +254,13 @@ public:
         for (Size i = 0; i != centers.size(); ++i)
         {
           double dist = std::fabs(centers[i] - DeltaMass);
-          if (dist < closest_cluster_dist)
-          {
+          if (dist < closest_cluster_dist){
             closest_cluster_dist = dist;
             closest_cluster_idx = i;
           }
         }
 
-        clusters[closest_cluster_idx].push_back(*h);
+        clusters[closest_cluster_idx].push_back(id);
 
         } 
       }
@@ -185,7 +274,9 @@ public:
     }
 
     return clusters;
-  }
+  } /**/
+
+
 
 }; 
 
