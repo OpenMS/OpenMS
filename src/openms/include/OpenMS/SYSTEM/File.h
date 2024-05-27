@@ -126,6 +126,10 @@ public:
     /// Removes the directory and all subdirectories (absolute path).
     static bool removeDir(const QString& dir_name);
 
+    /// Creates a directory (absolute path or relative to the current working dir), even if subdirectories do not exist. Returns true if successful.
+    /// If the path already exists when this function is called, it will return true.
+    static bool makeDir(const String& dir_name);
+
     /// Replaces the relative path in the argument with the absolute path.
     static String absolutePath(const String& file);
 

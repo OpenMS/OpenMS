@@ -284,6 +284,12 @@ namespace OpenMS
     return result;
   }
 
+  bool File::makeDir(const String& dir_name)
+  {
+    QDir dir;
+    return dir.mkpath(dir_name.toQString());
+  }
+
   bool File::removeDirRecursively(const String& dir_name)
   {
     bool fail = false;
