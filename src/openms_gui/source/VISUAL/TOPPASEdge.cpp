@@ -338,15 +338,13 @@ namespace OpenMS
       return ES_NO_TARGET_PARAM;
     }
 
-    QVector<TOPPASToolVertex::IOInfo> source_output_files;
-    source_tool->getOutputParameters(source_output_files);
+    QVector<TOPPASToolVertex::IOInfo> source_output_files = source_tool->getOutputParameters();
     if (source_param_index >= source_output_files.size())
     {
       return ES_TOOL_API_CHANGED;
     }
 
-    QVector<TOPPASToolVertex::IOInfo> target_input_files;
-    target_tool->getInputParameters(target_input_files);
+    QVector<TOPPASToolVertex::IOInfo> target_input_files = target_tool->getInputParameters();
     if (target_param_index >= target_input_files.size())
     {
       return ES_TOOL_API_CHANGED;
@@ -399,8 +397,7 @@ namespace OpenMS
 
   TOPPASEdge::EdgeStatus TOPPASEdge::getListToolStatus_(TOPPASInputFileListVertex* source_input_list, TOPPASToolVertex* target_tool, int target_param_index)
   {
-    QVector<TOPPASToolVertex::IOInfo> target_input_files;
-    target_tool->getInputParameters(target_input_files);
+    QVector<TOPPASToolVertex::IOInfo> target_input_files = target_tool->getInputParameters();
     if (target_param_index >= target_input_files.size())
     {
       return ES_TOOL_API_CHANGED;
@@ -610,13 +607,12 @@ namespace OpenMS
       const TOPPASToolVertex* target = qobject_cast<TOPPASToolVertex*>(target_o);
       if (target && target_in_param_>=0)
       {
-         QVector<TOPPASToolVertex::IOInfo> docks;
-         target->getInputParameters(docks);
+         QVector<TOPPASToolVertex::IOInfo> docks = target->getInputParameters();
          const TOPPASToolVertex::IOInfo& param = docks[this->target_in_param_]; 
          return param.param_name.toQString();
       }
     }
-    return "";    
+    return "";
   }
 
 
@@ -629,13 +625,12 @@ namespace OpenMS
       const TOPPASToolVertex* source = qobject_cast<TOPPASToolVertex*>(source_o);
       if (source && source_out_param_>=0)
       {
-         QVector<TOPPASToolVertex::IOInfo> docks;
-         source->getOutputParameters(docks);
+         QVector<TOPPASToolVertex::IOInfo> docks = source->getOutputParameters();
          const TOPPASToolVertex::IOInfo& param = docks[this->source_out_param_]; 
          return param.param_name.toQString();
       }
     }
-    return "";    
+    return "";
   }
 
   void TOPPASEdge::updateColor()

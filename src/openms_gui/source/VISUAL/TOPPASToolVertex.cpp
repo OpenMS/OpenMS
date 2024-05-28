@@ -192,8 +192,7 @@ namespace OpenMS
 
     QVector<String> hidden_entries;
     // remove entries that are handled by edges already, user should not see them
-    QVector<IOInfo> input_infos;
-    getInputParameters(input_infos);
+    QVector<IOInfo> input_infos = getInputParameters();
     for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
     {
       int index = (*it)->getTargetInParam();
@@ -209,8 +208,7 @@ namespace OpenMS
       }
     }
 
-    QVector<IOInfo> output_infos;
-    getOutputParameters(output_infos);
+    QVector<IOInfo> output_infos = getOutputParameters();
     for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
     {
       int index = (*it)->getSourceOutParam();
@@ -266,21 +264,22 @@ namespace OpenMS
     return allow_output_recycling_;
   }
 
-  void TOPPASToolVertex::getInputParameters(QVector<IOInfo>& input_infos) const
+  QVector<TOPPASToolVertex::IOInfo> TOPPASToolVertex::getInputParameters() const
   {
-    getParameters_(input_infos, true);
+    return getParameters_(true);
   }
 
-  void TOPPASToolVertex::getOutputParameters(QVector<IOInfo>& output_infos) const
+  QVector<TOPPASToolVertex::IOInfo> TOPPASToolVertex::getOutputParameters() const
   {
-    getParameters_(output_infos, false);
+    return getParameters_(false);
   }
 
-  void TOPPASToolVertex::getParameters_(QVector<IOInfo>& io_infos, bool input_params) const
   {
+
+  QVector<TOPPASToolVertex::IOInfo> TOPPASToolVertex::getParameters_(bool input_params) const
+  {
+    QVector<IOInfo> io_infos;
     String search_tag = input_params ? "input file" : "output file";
-
-    io_infos.clear();
 
     for (Param::ParamIterator it = param_.begin(); it != param_.end(); ++it)
     {
@@ -317,6 +316,7 @@ namespace OpenMS
     }
     // order in param can change --> sort
     std::sort(io_infos.begin(), io_infos.end());
+    return io_infos;
   }
 
   void TOPPASToolVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
@@ -502,9 +502,7 @@ namespace OpenMS
       shared_args << "-type" << type_.toQString();
     }
     // get *all* input|output file parameters (regardless if edge exists)
-    QVector<IOInfo> in_params, out_params;
-    getInputParameters(in_params);
-    getOutputParameters(out_params);
+    QVector<IOInfo> in_params = getInputParameters(), out_params = getOutputParameters();
 
     bool ini_round_dependent = false; // indicates if we need a new INI file for each round (usually GenericWrapper issue)
 
@@ -831,9 +829,7 @@ namespace OpenMS
       return false;
     }
 
-
-    QVector<IOInfo> out_params;
-    getOutputParameters(out_params);
+    QVector<IOInfo> out_params = getOutputParameters();
     // check if this tool outputs a list of files, or only single files
     bool has_only_singlefile_output = !IOInfo::isAnyList(out_params);
 

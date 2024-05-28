@@ -143,8 +143,7 @@ namespace OpenMS
           TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(e->getSourceVertex());
           if (ttv)
           {
-            QVector<TOPPASToolVertex::IOInfo> source_output_files;
-            ttv->getOutputParameters(source_output_files);
+            QVector<TOPPASToolVertex::IOInfo> source_output_files = ttv->getOutputParameters();
             if (e->getSourceOutParam() < source_output_files.size())
             {
               StringList types = source_output_files[e->getSourceOutParam()].valid_types;

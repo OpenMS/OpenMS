@@ -484,8 +484,7 @@ namespace OpenMS
     TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(v);
     if (tv)
     {
-      QVector<TOPPASToolVertex::IOInfo> input_infos;
-      tv->getInputParameters(input_infos);
+      QVector<TOPPASToolVertex::IOInfo> input_infos = tv->getInputParameters();
       if (tv->incomingEdgesCount() >= Size(input_infos.size()))
       {
         return false;
@@ -508,8 +507,7 @@ namespace OpenMS
       TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(u);
       if (tv)
       {
-        QVector<TOPPASToolVertex::IOInfo> output_infos;
-        tv->getOutputParameters(output_infos);
+        QVector<TOPPASToolVertex::IOInfo> output_infos = tv->getOutputParameters();
         bool any_list = TOPPASToolVertex::IOInfo::isAnyList(output_infos);
         if (!any_list)
         {
@@ -767,14 +765,13 @@ namespace OpenMS
       save_param.setValue("edges:" + String(counter) + ":source/target:", String(te->getSourceVertex()->getTopoNr() - 1) + "/" + String(te->getTargetVertex()->getTopoNr() - 1));
       //save_param.setValue("edges:"+String(counter)+":source_out_param:", te->getSourceOutParam()));
       //save_param.setValue("edges:"+String(counter)+":target_in_param:", te->getTargetInParam()));
-      QVector<TOPPASToolVertex::IOInfo> files;
       String v = "__no_name__";
       if (te->getSourceOutParam() >= 0)
       {
         TOPPASToolVertex* tv_src = qobject_cast<TOPPASToolVertex*>(te->getSourceVertex());
         if (tv_src)
         {
-          tv_src->getOutputParameters(files);
+          QVector<TOPPASToolVertex::IOInfo> files = tv_src->getOutputParameters();
           //std::cout << "#p: " << files.size() << " . " << te->getSourceOutParam() << "\n";
           v = files[te->getSourceOutParam()].param_name;
         }
@@ -787,7 +784,7 @@ namespace OpenMS
         TOPPASToolVertex* tv_src = qobject_cast<TOPPASToolVertex*>(te->getTargetVertex());
         if (tv_src)
         {
-          tv_src->getInputParameters(files);
+          QVector<TOPPASToolVertex::IOInfo> files = tv_src->getInputParameters();
           //std::cout << "#p: " << files.size() << " . " << te->getTargetInParam() << "\n";
           v = files[te->getTargetInParam()].param_name;
         }
@@ -1065,13 +1062,12 @@ namespace OpenMS
         }
         else
         {
-          QVector<TOPPASToolVertex::IOInfo> files;
           Int src_index = -1;
           Int tgt_index = -1;
           TOPPASToolVertex* tv_src = qobject_cast<TOPPASToolVertex*>(tv_1);
           if (source_out_param != "__no_name__" && tv_src)
           {
-            tv_src->getOutputParameters(files);
+            QVector<TOPPASToolVertex::IOInfo> files = tv_src->getOutputParameters();
             // search for the name
             for (int i = 0; i < files.size(); ++i)
             {
@@ -1088,7 +1084,7 @@ namespace OpenMS
           tv_src = qobject_cast<TOPPASToolVertex*>(tv_2);
           if (target_in_param != "__no_name__" && tv_src)
           {
-            tv_src->getInputParameters(files);
+            QVector<TOPPASToolVertex::IOInfo> files = tv_src->getInputParameters();
             // search for the name
             for (int i = 0; i < files.size(); ++i)
             {

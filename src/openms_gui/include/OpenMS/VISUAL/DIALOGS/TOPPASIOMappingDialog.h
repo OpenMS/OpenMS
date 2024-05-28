@@ -11,8 +11,6 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/TOPPASToolVertex.h>
-
 #include <QtCore/QVector>
 #include <QtWidgets/QDialog>
 
