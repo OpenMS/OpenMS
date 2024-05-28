@@ -113,6 +113,9 @@ public:
     enum class CopyOptions {OVERWRITE,SKIP,CANCEL};
     static bool copyDirRecursively(const QString &from_dir, const QString &to_dir, File::CopyOptions option = CopyOptions::OVERWRITE);
 
+    /// Copy a file (if it exists). Returns true if successful.
+    static bool copy(const String& from, const String& to);
+
     /**
       @brief Removes a file (if it exists).
 

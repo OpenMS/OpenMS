@@ -244,6 +244,11 @@ namespace OpenMS
     return true;
   }
 
+  bool File::copy(const String& from, const String& to)
+  {
+    return QFile::copy(from.toQString(), to.toQString());
+  }
+
   bool File::remove(const String& file)
   {
     if (!exists(file))
