@@ -121,6 +121,12 @@ public:
   class OPENMS_DLLAPI TOPPBase
   {
 public:
+    inline static const char* TAG_OUTPUT_FILE = "output file";
+    inline static const char* TAG_INPUT_FILE = "input file";
+    inline static const char* TAG_OUTPUT_DIR = "output dir";
+    inline static const char* TAG_OUTPUT_PREFIX = "output prefix";
+    inline static const char* TAG_ADVANCED = "advanced";
+    inline static const char* TAG_REQUIRED = "required";
 
     /// Exit codes
     enum ExitCodes

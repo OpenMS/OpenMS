@@ -826,10 +826,10 @@ namespace OpenMS
       return ParameterInformation(name, ParameterInformation::FLAG, "", "", entry.description, false, advanced);
     }
 
-    const bool input_file = entry.tags.count("input file");
-    const bool output_file = entry.tags.count("output file");
-    const bool output_prefix = entry.tags.count("output prefix");
-    const bool output_dir = entry.tags.count("output dir");
+    const bool input_file = entry.tags.count(TAG_INPUT_FILE);
+    const bool output_file = entry.tags.count(TAG_OUTPUT_FILE);
+    const bool output_prefix = entry.tags.count(TAG_OUTPUT_PREFIX);
+    const bool output_dir = entry.tags.count(TAG_OUTPUT_DIR);
     assert(input_file + output_file + output_prefix + output_dir <= 1); // at most one of these should be true (or none)
     enum ParameterInformation::ParameterTypes type = ParameterInformation::NONE;
     switch (entry.value.valueType())
@@ -2100,7 +2100,7 @@ namespace OpenMS
 
       if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::INPUT_FILE_LIST)
       {
-        tags.emplace_back("input file");
+        tags.emplace_back(TAG_INPUT_FILE);
       }
 
       if (it->type == ParameterInformation::INPUT_FILE && std::find(it->tags.begin(), it->tags.end(), "is_executable") != it->tags.end())
@@ -2108,9 +2108,9 @@ namespace OpenMS
         tags.emplace_back("is_executable");
       }
 
-      if (it->type == ParameterInformation::OUTPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE_LIST) { tags.emplace_back("output file"); }
-      if (it->type == ParameterInformation::OUTPUT_PREFIX) { tags.emplace_back("output prefix"); }
-      if (it->type == ParameterInformation::OUTPUT_DIR) { tags.emplace_back("output dir"); }
+      if (it->type == ParameterInformation::OUTPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE_LIST) { tags.emplace_back(TAG_OUTPUT_FILE); }
+      if (it->type == ParameterInformation::OUTPUT_PREFIX) { tags.emplace_back(TAG_OUTPUT_PREFIX); }
+      if (it->type == ParameterInformation::OUTPUT_DIR) { tags.emplace_back(TAG_OUTPUT_DIR); }
 
       switch (it->type)
       {
