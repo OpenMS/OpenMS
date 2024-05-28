@@ -30,14 +30,14 @@ namespace OpenMS
 {
   TOPPASOutputFileListVertex::TOPPASOutputFileListVertex(const TOPPASOutputFileListVertex& rhs) :
     TOPPASVertex(rhs),
-    output_folder_name_() // leave empty! otherwise we have conflicting output folder names
+    output_folder_name_() // leave empty on copy, otherwise we will have conficting output folder names
   {
   }
 
   TOPPASOutputFileListVertex& TOPPASOutputFileListVertex::operator=(const TOPPASOutputFileListVertex& rhs)
   {
     TOPPASVertex::operator=(rhs);
-    output_folder_name_ = ""; // leave empty! otherwise we have conflicting output folder names
+    output_folder_name_ = ""; // leave empty on copy, otherwise we will have conficting output folder names
 
     return *this;
   }
@@ -214,7 +214,7 @@ namespace OpenMS
 
           // running the copy() in an extra thread, such that the GUI stays responsive
   
-          auto copyFuture = std::async(std::launch::async, &copy_, file_from, file_to);  
+          auto copyFuture = std::async(std::launch::async, &File::copy, file_from, file_to);
           while (copyFuture.wait_for(std::chrono::milliseconds(25)) != std::future_status::ready)
           {
             qApp->processEvents(); // GUI responsiveness
@@ -246,11 +246,6 @@ namespace OpenMS
     finished_ = true;
 
     __DEBUG_END_METHOD__
-  }
-
-  bool TOPPASOutputFileListVertex::copy_(const QString& from, const QString& to)
-  {
-    return QFile::copy(from, to);
   }
 
   void TOPPASOutputFileListVertex::inEdgeHasChanged()
@@ -306,8 +301,7 @@ namespace OpenMS
     String full_dir = getFullOutputDirectory();
     if (!File::exists(full_dir))
     {
-      QDir dir;
-      if (!dir.mkpath(full_dir.toQString()))
+      if (!File::makeDir(full_dir.toQString()))
       {
         std::cerr << "Could not create path " << full_dir << std::endl;
       }
