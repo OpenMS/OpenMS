@@ -41,8 +41,11 @@ namespace OpenMS
          number is then weighted by the relative intensity of the transition
          (thus less is better here).
 
-    - massdiff score: computes the difference in ppm of the experimental signal
-         to the expected signal (thus less is better)
+    - massdiff score: computes the difference in ppm of the experimental signal. 
+         to the expected signal (thus less is better). 
+         sum(ppm_difference) / # transitions
+         Divide by the total number of transitions and is thus quite punnishing if a transition is missing
+         Also outputs a list of all the ppm differences, if signal is not found output -1.0
 
     - b/y ion score: checks for the presence of b/y ions of the peptide in question
 
