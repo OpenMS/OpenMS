@@ -63,7 +63,8 @@ public:
       enum IOType
       {
         IOT_FILE,
-        IOT_LIST
+        IOT_LIST,
+        IOT_DIR ///< output directory
       };
 
       /// Comparison operator
@@ -77,6 +78,11 @@ public:
         {
           return param_name.compare(rhs.param_name) < 0;
         }
+      }
+      /// Comparison operator
+      bool operator==(const IOInfo& rhs) const
+      {
+        return type == rhs.type && param_name == rhs.param_name;
       }
 
       /// Assignment operator
@@ -92,10 +98,9 @@ public:
       /// Is any of the input/output parameters a list?
       static bool isAnyList(const QVector<IOInfo>& params)
       {
-        for (QVector<IOInfo>::const_iterator it = params.begin();
-             it != params.end(); ++it)
+        for (const auto& p : params)
         {
-          if (it->type == IOT_LIST) return true;
+          if (p.type == IOT_LIST) return true;
         }
         return false;
       }
@@ -125,10 +130,8 @@ public:
     const String& getType() const;
     /// Returns input file/list parameters together with their valid types.
     QVector<IOInfo> getInputParameters() const;
-    /// Returns output file/list parameters together with their valid types.
+    /// Returns output file/list/dir parameters together with their valid types.
     QVector<IOInfo> getOutputParameters() const;
-    /// Returns 'output dir' parameters (if any)
-    QVector<IOInfo> getOutputDirParameters() const;
     // documented in base class
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     // documented in base class

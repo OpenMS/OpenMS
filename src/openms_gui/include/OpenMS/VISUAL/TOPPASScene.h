@@ -191,7 +191,7 @@ public:
     ///Connects the signals to slots
     void connectToolVertexSignals(TOPPASToolVertex * ttv);
     ///Connects the signals to slots
-    void connectOutputVertexSignals(TOPPASOutputFileListVertex * oflv);
+    void connectOutputVertexSignals(TOPPASOutputVertex * oflv);
     ///Connects the signals to slots
     void connectMergerVertexSignals(TOPPASMergerVertex * tmv);
     ///Connects the signals to slots

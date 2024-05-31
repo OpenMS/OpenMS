@@ -28,20 +28,6 @@
 
 namespace OpenMS
 {
-  TOPPASOutputFileListVertex::TOPPASOutputFileListVertex(const TOPPASOutputFileListVertex& rhs) :
-    TOPPASVertex(rhs),
-    output_folder_name_() // leave empty on copy, otherwise we will have conficting output folder names
-  {
-  }
-
-  TOPPASOutputFileListVertex& TOPPASOutputFileListVertex::operator=(const TOPPASOutputFileListVertex& rhs)
-  {
-    TOPPASVertex::operator=(rhs);
-    output_folder_name_ = ""; // leave empty on copy, otherwise we will have conficting output folder names
-
-    return *this;
-  }
-
   void TOPPASOutputFileListVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
   {
     TOPPASVertex::paint(painter, option, widget);
@@ -269,7 +255,7 @@ namespace OpenMS
 
   String TOPPASOutputFileListVertex::getName() const
   {
-    return "OutputVertex";
+    return "OutputFileVertex";
   }
 
   String TOPPASOutputFileListVertex::getOutputDir() const

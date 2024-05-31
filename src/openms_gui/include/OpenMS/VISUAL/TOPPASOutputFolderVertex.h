@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Johannes Junker, Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -16,17 +16,17 @@
 namespace OpenMS
 {
   /**
-      @brief A vertex representing an output file list
+      @brief A vertex representing an output folder
 
       @ingroup TOPPAS_elements
   */
-  class OPENMS_GUI_DLLAPI TOPPASOutputFileListVertex :
+  class OPENMS_GUI_DLLAPI TOPPASOutputFolderVertex :
     public TOPPASOutputVertex
   {
     Q_OBJECT
 
 public:
-    /// returns "OutputFileVertex"
+    /// returns "OutputFolderVertex"
     String getName() const override;
     // documented in base class
     void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) override;
@@ -57,6 +57,7 @@ public:
 public slots:
     //documented in base class
     void inEdgeHasChanged() override;
+
   };
 }
 

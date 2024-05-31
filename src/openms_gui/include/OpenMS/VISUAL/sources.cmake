@@ -57,6 +57,7 @@ TOPPASEdge.h
 TOPPASInputFileListVertex.h
 TOPPASMergerVertex.h
 TOPPASOutputFileListVertex.h
+TOPPASOutputFolderVertex.h
 TOPPASResource.h
 TOPPASResources.h
 TOPPASScene.h

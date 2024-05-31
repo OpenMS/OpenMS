@@ -180,6 +180,8 @@ protected:
       }
       else // unlabeled == LFQ mode
       {
+        OPENMS_LOG_INFO << "Unlabeled data detected in ConsensusXML detected! This functionality is currently only supported if you also provide the featureXML files!"
+                        << std::endl;
         throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         // currently missing:
         // - invert RT of all features+their PepIDs to allow RTmetric to work (if TrafoXMLs are provided) -- or even better: delegate this to the RTMetric

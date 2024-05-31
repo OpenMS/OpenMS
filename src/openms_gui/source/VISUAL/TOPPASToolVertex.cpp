@@ -18,6 +18,7 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASToolConfigDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QMessageBox>
@@ -274,21 +275,18 @@ namespace OpenMS
     return getParameters_(false);
   }
 
-  {
-
   QVector<TOPPASToolVertex::IOInfo> TOPPASToolVertex::getParameters_(bool input_params) const
   {
     QVector<IOInfo> io_infos;
-    String search_tag = input_params ? "input file" : "output file";
-
-    for (Param::ParamIterator it = param_.begin(); it != param_.end(); ++it)
-    {
-      if (it->tags.count(search_tag))
+    auto add_params = [&](const String& search_tag) {
+      for (Param::ParamIterator it = param_.begin(); it != param_.end(); ++it)
       {
+        if (! it->tags.count(search_tag)) continue; // skip irrelevant parameters
+
         StringList valid_types(ListUtils::toStringList<std::string>(it->valid_strings));
         for (Size i = 0; i < valid_types.size(); ++i)
         {
-          if (!valid_types[i].hasPrefix("*."))
+          if (! valid_types[i].hasPrefix("*."))
           {
             std::cerr << "Invalid restriction \"" + valid_types[i] + "\"" + " for parameter \"" + it->name + "\"!" << std::endl;
             break;
@@ -300,20 +298,27 @@ namespace OpenMS
         io_info.param_name = it.getName();
         io_info.valid_types = valid_types;
         if (it->value.valueType() == ParamValue::STRING_LIST)
-        {
+        { 
           io_info.type = IOInfo::IOT_LIST;
         }
         else if (it->value.valueType() == ParamValue::STRING_VALUE)
         {
-          io_info.type = IOInfo::IOT_FILE;
+          io_info.type = search_tag == TOPPBase::TAG_OUTPUT_DIR ?IOInfo::IOT_DIR : IOInfo::IOT_FILE;
         }
-        else
-        {
-          std::cerr << "TOPPAS: Unexpected parameter value!" << std::endl;
-        }
+        else { std::cerr << "TOPPAS: Unexpected parameter value!" << std::endl; }
         io_infos.push_back(io_info);
       }
+    };
+    if (input_params)
+    {
+      add_params(TOPPBase::TAG_INPUT_FILE);
     }
+    else
+    {
+      add_params(TOPPBase::TAG_OUTPUT_FILE);
+      add_params(TOPPBase::TAG_OUTPUT_DIR);
+    }
+
     // order in param can change --> sort
     std::sort(io_infos.begin(), io_infos.end());
     return io_infos;
@@ -567,7 +572,7 @@ namespace OpenMS
         }
       }
 
-      // OUTGOING EDGES
+      // OUTGOING EDGES (output files and output folders)
       // ;output names are already prepared by 'updateCurrentOutputFileNames()'
       typedef RoundPackage::iterator EdgeIndexIt;
       for (EdgeIndexIt it_edge  = output_files_[round].begin();
@@ -888,14 +893,7 @@ namespace OpenMS
       // try to find the type (only by looking at the suffix); not doing it manually, since it could be .mzXML.gz
       for (QString& filename : filenames)
       {
-        String fn = filename.toLower(); // tolower() is required for robust rfind() below
-        String type = FileTypes::typeToName(FileHandler::getTypeByFileName(fn));
-        // try to find it -- might not be present, since it could be 'unknown'
-        size_t pos = fn.rfind("." + type.toLower());
-        if (pos != std::string::npos)
-        {
-          filename.truncate((int)pos);
-        }
+        filename = FileHandler::stripExtension(filename).toQString();
       }
       per_round_basenames.push_back(filenames);
       //std::cerr << "  output filenames (round " << i  <<"): " << per_round_basenames.back().join(", ") << std::endl;
@@ -932,8 +930,12 @@ namespace OpenMS
 
       // determine output file format if possible (for suffix)
       String file_suffix;
-      String p_out_format = out_params[i].param_name + "_type"; // expected parameter name which determines output format
-      if (out_params[i].valid_types.size() == 1)
+      if (out_params[i].type == IOInfo::IOT_DIR)
+      {
+        file_suffix = "_dir";
+      }
+      // Single file or list of files
+      else if (out_params[i].valid_types.size() == 1)
       { // only one format allowed
         auto t = FileTypes::nameToType(out_params[i].valid_types[0]);
         if (t != FileTypes::UNKNOWN) 
@@ -946,7 +948,8 @@ namespace OpenMS
           file_suffix = "." + out_params[i].valid_types[0];
         }
       }
-      else if (param_.exists(p_out_format))
+      else if (String p_out_format = out_params[i].param_name + "_type"; // expected parameter name which determines output format
+               param_.exists(p_out_format))
       { // 'out_type' or alike is specified
         if (!param_.getValue(p_out_format).toString().empty())
         {
@@ -999,7 +1002,15 @@ namespace OpenMS
         {
           QString fn = path + QFileInfo(input_file).fileName(); // out_path + filename
           OPENMS_LOG_DEBUG << "Single:" << fn.toStdString() << "\n";
-          if (list_to_single)
+          if (out_params[param_index].type == IOInfo::IOT_DIR)
+          { // output is a directory
+            fn = path + QFileInfo(input_file).baseName(); // out_path + baseName
+            fn = QDir::toNativeSeparators(fn);
+            output_files_[r][param_index].filenames.push_back(fn);
+            OPENMS_LOG_DEBUG << "Dir:" << fn.toStdString() << "\n";
+            break; // only one iteration required (there is only one output dir per output param)
+          }
+          else if (list_to_single)
           {
             if (fn.contains(QRegExp(".*_to_.*_mrgd")))
             {
@@ -1022,25 +1033,22 @@ namespace OpenMS
             OPENMS_LOG_DEBUG << "  Suffix-add: " << file_suffix << "\n";
           }
           fn = QDir::toNativeSeparators(fn);
-          if (filename_output_set.count(fn) > 0)
+          output_files_[r][param_index].filenames.push_back(fn);
+          if (list_to_single)
+          {
+            break; // only one iteration required
+          }
+          if (auto [it, newly_inserted] = filename_output_set.insert(fn); !newly_inserted)
           {
             error_msg = "TOPPAS failed to build correct filenames. Please report this bug, along with your Pipeline\n!";
             OPENMS_LOG_ERROR << error_msg;
             return false;
           }
-          output_files_[r][param_index].filenames.push_back(fn);
-          filename_output_set.insert(fn);
-          if (list_to_single)
-          {
-            break; // only one iteration required
-          }
         }
-      }
+      } // end for rounds
           
       //std::cerr << "output filenames (" << out_params[i].param_name <<") final: " << ListUtils::concatenate< std::set<QString> >(filename_output_set, ", ") << std::endl;
-    }
-
-
+    } // end for out params (each edge)
 
     return true;
   }

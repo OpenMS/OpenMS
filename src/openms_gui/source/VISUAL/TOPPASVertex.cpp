@@ -633,4 +633,19 @@ namespace OpenMS
     return reachable_;
   }
 
+
+  TOPPASOutputVertex::TOPPASOutputVertex(const TOPPASOutputVertex& rhs):
+      TOPPASVertex(rhs),
+      output_folder_name_() // leave empty on copy, otherwise we will have conficting output folder names
+  {
+  }
+
+  TOPPASOutputVertex& TOPPASOutputVertex::operator=(const TOPPASOutputVertex& rhs)
+  {
+    TOPPASVertex::operator=(rhs);
+    output_folder_name_ = ""; // leave empty on copy, otherwise we will have conficting output folder names
+
+    return *this;
+  }
+
 }

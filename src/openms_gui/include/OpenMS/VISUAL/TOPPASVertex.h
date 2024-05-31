@@ -131,12 +131,12 @@ public:
     /// indexing via "parameter_index" of adjacent edge (could later be param_name) -> filenames
     /// Index for input and output edges is (-1) implicitly, thus we need signed type
     /// warning: the index refers to either input OR output (depending on if this structure is used for input files storage or output files storage)
-    typedef std::map<Int, VertexRoundPackage> RoundPackage;
-    typedef RoundPackage::const_iterator RoundPackageConstIt;
-    typedef RoundPackage::iterator RoundPackageIt;
+    using RoundPackage        = std::map<Int, VertexRoundPackage>;
+    using RoundPackageConstIt = RoundPackage::const_iterator;
+    using RoundPackageIt      = RoundPackage::iterator;
 
     /// all information a node needs to process all rounds
-    typedef std::vector<RoundPackage> RoundPackages;
+    using RoundPackages = std::vector<RoundPackage>;
 
     /// The color of a vertex during depth-first search
     enum DFS_COLOR
@@ -346,5 +346,37 @@ protected:
     }
 
   };
-}
+
+  /**
+  @brief A vertex representing an output, either folder or files(s)
+
+  @ingroup TOPPAS_elements
+  */
+  class OPENMS_GUI_DLLAPI TOPPASOutputVertex : public TOPPASVertex
+  {
+    Q_OBJECT
+  public:
+    /// Default C'tor
+    TOPPASOutputVertex() = default;
+    /// Copy constructor
+    TOPPASOutputVertex(const TOPPASOutputVertex& rhs);
+    /// Assignment operator
+    TOPPASOutputVertex& operator=(const TOPPASOutputVertex& rhs);
+
+  signals:
+    /// Emitted when an output file was written
+    void outputFileWritten(const String& file);
+
+    /// Emitted when user has changed the output folder name (i.e. output dir needs to be newly created and packages updates)
+    void outputFolderNameChanged();
+
+  protected:
+    /// custom output folder name
+    QString output_folder_name_;
+
+    // convenience members, not required for operation, but for progress during copying
+    int files_written_ = 0; ///< files that were already written
+    int files_total_ = 0;   ///< total number of files from upstream
+  };
+  }
 

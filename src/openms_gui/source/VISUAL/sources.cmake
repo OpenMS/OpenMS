@@ -65,6 +65,7 @@ TOPPASEdge.cpp
 TOPPASInputFileListVertex.cpp
 TOPPASMergerVertex.cpp
 TOPPASOutputFileListVertex.cpp
+TOPPASOutputFolderVertex.cpp
 TOPPASResource.cpp
 TOPPASResources.cpp
 TOPPASScene.cpp
