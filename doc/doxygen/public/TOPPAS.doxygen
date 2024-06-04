@@ -18,8 +18,8 @@
 /**
 	@page TOPPAS_tutorial TOPPAS tutorial
 	
-	The OpenMS Pipeline Assistant (@b TOPPAS) allows to create, edit, open, save, and run TOPP workflows. Pipelines
-	can be created conveniently in the @ref TOPP_TOPPAS ["TOPPAS GUI"]. The
+	The %OpenMS Pipeline Assistant (@ref TOPP_TOPPAS) allows to create, edit, open, save, and run TOPP workflows. Pipelines
+	can be created conveniently in the @ref TOPP_TOPPAS "TOPPAS GUI". The
 	parameters of all involved tools can be edited within TOPPAS
 	and are also saved as part of the pipeline definition in the @p TOPPAS file.
 
@@ -31,9 +31,9 @@
 	@page TOPPAS_general General introduction
 
 		@b TOPPAS allows you to create, edit, open, save, and run TOPP workflows. Pipelines
-		can be created conveniently in the @ref TOPP_TOPPAS ["TOPPAS GUI"]. The
+		can be created conveniently in the @ref TOPP_TOPPAS "TOPPAS GUI". The
 		parameters of all involved tools can be edited within TOPPAS
-		and are also saved as part of the pipeline definition in the @p .toppas file.
+		and are also saved as part of the pipeline definition in the <tt>.toppas</tt> file.
 		Furthermore, @b TOPPAS interactively performs validity checks during the pipeline
 		editing process and before execution (i.e., a dry run of the entire pipeline),
 		in order to prevent the creation of invalid workflows.
@@ -49,41 +49,50 @@
     @note Some example pipelines are shipped with %OpenMS and can be opened in TOPPAS by selecting @p File > @p Open @p example @p file. 
           Also see @subpage TOPPAS_examples for more information.
 
+		
+	@page TOPPAS_interface User interface
+		
+		@section TOPPAS_interface_introduction Creating a pipeline from scratch
+    
+
 		To create a new TOPPAS file, you can either: 
 
 			- open TOPPAS without providing any existing workflow - an empty workflow will be opened automatically
 			- in a running TOPPAS program choose: @p File @p > @p New
 			- create an empty file in your file browser (Windows Explorer, MacOS Finder, Nautilus, etc) with the suffix @p \.toppas and double-click it (on Windows systems all @p \.toppas files are associated with TOPPAS automatically during installation of %OpenMS, on Linux and MacOS you might need to manually associate the extension)
-		
-	@page TOPPAS_interface User interface
-		
-		@section TOPPAS_interface_introduction Introduction
+
+    When you start TOPPAS, you will see the main window with a list of TOPP tools on the left side.
 		
 		The following figure shows the @ref TOPP_TOPPAS main window and a pipeline which is just being created.
 		The user has added some tools by drag&dropping them from the TOPP tool list on the left
-		onto the central window. Additionally, the user has added nodes
-		for input and output files.
+		onto the central window (double clicking an item in the tool list also works).
+    Additionally, the user has added nodes for input and output files.
     You can arrange the tools/nodes on the canvas freely by left-clicking them with the mouse, such that they become selected (bold) and then 
     dragging (i.e. left-click and keep the mouse button pressed) them to their desired position with the mouse.
 
     @note To find TOPP tools in the list, you can either scroll through the list or use the search bar at the top of the list. 
           The search bar will filter the list as you type, so you can quickly find the tool you are looking for.
+    
 
-			
-		Next, the user has drawn some connections (edges) between the tools
-		which determine the data flow of the pipeline. Connections can be drawn by dragging (i.e. left-click and keep the mouse button pressed) 
+    @subsection TOPPAS_tut_edges On connections (=edges)
+    
+    Edges determine the data flow of the pipeline. Connections can be drawn by dragging (i.e. left-click and keep the mouse button pressed) 
     the mouse from the source to the target node. Before starting the drag, make sure that you de-select any node or edge by left-clicking
     anywhere on the white canvas background.
 		When a connection is created, and the source (, or the target) has more than one output (, or input) parameter,
 		an input/output parameter
 		mapping dialog shows up and lets the user select the output parameter of the source node and the
-		input parameter of the target node for this data flow - shown here for the connection between FalseDiscoveryRate and IDFilter.
+		input parameter of the target node for this data flow - shown above for the connection between @ref TOPP_FalseDiscoveryRate and @ref TOPP_IDFilter.
 		If the file types of the selected input and output parameters are not compatible with each other,
 		@b TOPPAS will refuse to add the connection. It will also refuse to add a connection if it
 		would create a cycle in the workflow, or if it just would not make sense, e.g., if
-		its target is an input file node. The connection between the input file node (#1) and the CometAdapter (#5)
-		tool is painted yellow which indicates it is not ready yet, because no input files have been
-		specified.
+		an edge points to an input file node.
+
+    If an edge is painted <span style="color:orange">orange</span> which indicates it is not ready yet. Usually, because no input files have been
+		specified.<br>
+    A <span style="color:green">green</span> edge indicates that the edge is ready to be executed.<br>
+    A <span style="color:red">red</span> edge indicates that the edge is not ready to be executed, 
+    e.g., because the input files are not compatible with the tool's input requirements.
 			
 		@image html TOPPAS_edges.png
 		@image latex TOPPAS_edges.png "" width=14cm
@@ -93,18 +102,24 @@
 		All visible items (i.e. connections and the different kinds of nodes) have such a context menu. For a detailed list
 		of the different menus and their entries, see @ref TOPPAS_interface_menus .
 		
-		The following figure shows a possible next step: the user has double-clicked one of the tool nodes in order
-		to configure its parameters. By default, the standard parameters are used for each tool. Again, this can also
+    @subsection TOPPAS_tut_param Configuring tool parameters
+
+		TOPP tools can be configured by double-clicking  the tool node.
+    By default, the standard parameters are used for each tool. Again, this can also
 		be done by selecting @p Edit @p parameters from the context menu of the tool.
 		
 		@image html TOPPAS_parameters.png
 		@image latex TOPPAS_parameters.png "" width=14cm
 		
+    @subsection TOPPAS_tut_input About input nodes
+
 		Once the pipeline has been set up, the input files have to be specified before the pipeline can be executed.
 		This is done by double-clicking an input node and selecting the desired files in the dialog that appears. 
+    You can also drag'n'drop files from your file manager into the dialog to add them to the list.
 		
     
-    @subsection On "Recycling" mode
+    @subsection TOPPAS_tut_recycling On "Recycling" mode
+
     @image html TOPPAS_recycling.png
 		@image latex TOPPAS_recycling.png "" width=14cm
 
@@ -117,7 +132,7 @@
 		downstream node have to be a multiple of the number of input files. Recycling mode can be activated by right-clicking 
 		the input node and clicking the "Toggle recycling mode" entry from the context menu.
 		
-    @subsection On special nodes (Merger and Collector)
+    @subsection TOPPAS_tut_specialnodes On special nodes (Merger and Collector)
     
     Sometimes, it is necessary to merge or collect files from different input nodes.
     This is where the @em Merger and @em Collector nodes come into play.
@@ -136,9 +151,9 @@
     all files from a FeatureFinder node (which is invoked many times, once for each raw file) and pass the list of
     resulting featureXML files to a MapAligner tool (which runs only once, on all featureXML files simulaneously).
 
-    There is also a @ splitter node, which is the opposite of a collector, but it should be required only in very rare cases.
+    There is also a @p splitter node, which is the opposite of a collector, but it should be required only in very rare cases.
 
-    @subsection Running the pipeline
+    @subsection TOPPAS_tut_running Running the pipeline
 
     Finally, if you have input and output nodes at every end of your pipeline and all connections are green, 
 		you can select @p Pipeline @p > @p Run in the menu bar or just press @p F5.
@@ -148,18 +163,29 @@
 		
 		You will be asked for an output file directory where
 		a sub-directory, @p TOPPAS_out, will be created. This directory will contain your output files.
+    Also, you can specify the number of jobs (i.e. TOPP tool invocations) that TOPPAS is allowed to run in parallel (see @ref TOPPAS_tut_parallel below for details).
+
+    During pipeline execution, the status lights in the top-right corner of the
+		tools indicate if the tool has finished successfully (<span style="color:green">green</span>), is currently running (<span style="color:yellow">yellow</span>),
+		has not done anything so far (<span style="color:gray">gray</span>), 
+    is scheduled to run next (<span style="color:blue">blue</span>), or has crashed (<span style="color:red">red</span>).
+		The numbers in the bottom-right corner of every tool show how many files have already been processed and
+		the overall number of files to be processed by this tool.
+		When the execution has finished, you can check the generated output files of every node quickly by right-clicking  on the node and
+    selecting @p Open @p files @p in @p TOPPView or @p Open @p containing @p folder from the context menu.
 		
     
-    @subsection On parallel execution
+    @subsection TOPPAS_tut_parallel On parallel execution
 
-    You can also specify the number of jobs (i.e. TOPP tool invocations) that TOPPAS is allowed to run in parallel. If a number greater than 1
+    You can specify the number of jobs (i.e. TOPP tool invocations) that TOPPAS is allowed to run in parallel in the 
+    "Run dialog" (after pressing F5). If a number greater than 1
 		is selected, TOPPAS will parallelize the pipeline execution in the following scenarios:
 
 		- A tool has to process more than one input file, but can only handle one file at a time (as is the case for most TOPP tools; notable exceptions are MapAligners and FeatureLinkers). In this case, multiple instances of the same tool are run in parallel.
 		- The pipeline contains multiple branches that are independent of each other. In this case, nodes in independent branches are run in parallel.
 
-		Be careful with this setting, however, as some of the TOPP tools require large amounts of RAM (depending
-		on the size of your dataset). Running too many parallel jobs on a machine with not enough memory will cause problems.
+		Be careful with this setting, however, as some of the TOPP tools require larger amounts of RAM (depending
+		on the size of your dataset). Running too many parallel jobs on a machine with not enough memory may cause problems.
 		Also, do not confuse this setting with the @em threads parameter of the individual TOPP tools: every TOPP tool has this
 		parameter specifying the maximum number of threads the tool is allowed to use (although only a subset of the TOPP tools make use
 		of this parameter, since there are tasks that cannot be computed in parallel). Be especially careful with combinations
@@ -167,19 +193,13 @@
 		is set to 8, and you additionally set the number of parallel jobs in @b TOPPAS to 8, then you may end up using 8*8=64 threads in parallel (if you have 8 or more input files), which
 		might not be what you intended to do.
 
-    @subsection Output and temporary files
+    @subsection TOPPAS_tut_output Output and temporary files
 
 		In addition to @p TOPPAS_out, a @p TOPPAS_tmp directory will be created in the %OpenMS temp path
 		(call the @ref TOPP_OpenMSInfo tool to see where exactly).
 		It will contain all temporary files that are passed from tool to tool within the pipeline.
 		Both folders contain further sub-directories which are named after the number in the top-left corner of the node they
-		belong to (plus the name of the tool for temporary files). During pipeline execution, the status lights in the top-right corner of the
-		tools indicate if the tool has finished successfully (green), is currently running (yellow),
-		has not done anything so far (gray), is scheduled to run next (blue), or has crashed (red).
-		The numbers in the bottom-right corner of every tool show how many files have already been processed and
-		the overall number of files to be processed by this tool.
-		When the execution has finished, you can check the generated output files of every node quickly by selecting
-		@p Open @p files @p in @p TOPPView or @p Open @p containing @p folder from the context menu (right click on the node).
+		belong to (plus the name of the tool for temporary files).
 
     @note Files in the @p TOPPAS_out directory are not automatically deleted after the pipeline execution. These are your results! You have to delete them manually if you don't need them anymore. Files in the @p TOPPAS_tmp directory are deleted automatically upon closing the TOPPAS GUI.
 		
@@ -359,6 +379,27 @@
 
 		@image html TOPPAS_BSA_results_3d.png 
 		@image latex TOPPAS_BSA_results_3d.png "" width=10cm 
+
+
+
+    @section TOPPAS_qc_example Quality control of a DDA run
+
+    @image html TOPPAS_qc.png
+		@image latex TOPPAS_qc.png "" width=10cm
+
+    A quality control pipeline for DDA data (@p QualityControl.toppas), which also performs identification (using @ref TOPP_MSGFPlusAdapter),
+    mass calibration (using @ref TOPP_InternalCalibration) and quantitation (using @ref TOPP_FeatureFinderIdentification).
+
+    Since we analyse more than one raw file (run), we can also employ MapAlignment and FeatureLinking, 
+    to transfer identifications and enable a quantitative comparison across samples.
+
+    Finally, the @ref TOPP_QualityControl node receives all intermediate and final output data to extract and compute quality metrics.
+    These are exported in the form several output files which can be inspected. 
+
+    Most important is probably the output folder (node #25), which contains MaxQuant compatible output (@p evidence.txt and @p msms.txt).
+    These .txt files can be used as input to external tools, such as <a href="https://github.com/cbielow/PTXQC" target="_blank">PTX-QC</a> to automatically obtain a comprehensive QC report.
+
+
 
 		@section TOPPAS_merger_example Merger and Collect nodes
 		
