@@ -325,48 +325,7 @@ namespace OpenMS
         continue;
       }
 
-      TOPPASVertex* new_v = nullptr;
-
-      TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(v);
-      if (iflv)
-      {
-        TOPPASInputFileListVertex* new_iflv = new TOPPASInputFileListVertex(*iflv);
-        new_v = new_iflv;
-      }
-
-      TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(v);
-      if (oflv)
-      {
-        TOPPASOutputFileListVertex* new_oflv = new TOPPASOutputFileListVertex(*oflv);
-        new_v = new_oflv;
-      }
-
-      TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(v);
-      if (tv)
-      {
-        TOPPASToolVertex* new_tv = new TOPPASToolVertex(*tv);
-        new_v = new_tv;
-      }
-
-      TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(v);
-      if (mv)
-      {
-        TOPPASMergerVertex* new_mv = new TOPPASMergerVertex(*mv);
-        new_v = new_mv;
-      }
-
-      TOPPASSplitterVertex* sv = qobject_cast<TOPPASSplitterVertex*>(v);
-      if (sv)
-      {
-        TOPPASSplitterVertex* new_sv = new TOPPASSplitterVertex(*sv);
-        new_v = new_sv;
-      }
-
-      if (!new_v)
-      {
-        std::cerr << "Unknown vertex type! Aborting." << std::endl;
-        return;
-      }
+      TOPPASVertex* new_v = v->clone().release();
 
       vertex_map[v] = new_v;
       tmp_scene->addVertex(new_v);
@@ -1742,11 +1701,11 @@ namespace OpenMS
       // check which kinds of items are selected and display a context menu containing only actions compatible with all of them
       bool found_tool = false;
       bool found_input = false;
-      bool found_output = false;
+      bool found_output = false, found_output_files = false;
       bool found_merger = false;
       bool found_splitter = false;
       bool found_edge = false;
-      bool disable_resume = false;
+      bool disable_resume = this->isPipelineRunning();
       //bool disable_toppview = true;
 
       foreach(TOPPASEdge* edge, edges_)
@@ -1785,9 +1744,14 @@ namespace OpenMS
           found_input = true;
           continue;
         }
-        if (qobject_cast<TOPPASOutputFileListVertex*>(tv))
+        if (qobject_cast<TOPPASOutputVertex*>(tv))
         {
           found_output = true;
+          // no continue here; derived classes below
+        }
+        if (qobject_cast<TOPPASOutputFileListVertex*>(tv))
+        {
+          found_output_files = true;
           continue;
         }
         if (qobject_cast<TOPPASMergerVertex*>(tv))
@@ -1801,9 +1765,6 @@ namespace OpenMS
           continue;
         }
       }
-
-      if (this->isPipelineRunning())
-        disable_resume = true;
 
       QSet<QString> action;
 
@@ -1827,8 +1788,11 @@ namespace OpenMS
       if (found_output)
       {
         action.insert("Set output folder name");
-        action.insert("Open files in TOPPView");
         action.insert("Open containing folder");
+      }
+      if (found_output_files)
+      {
+        action.insert("Open files in TOPPView");
       }
 
       if (found_edge)
@@ -1903,8 +1867,7 @@ namespace OpenMS
 
         if (text == "Toggle recycling mode")
         {
-          TOPPASVertex* tv = dynamic_cast<TOPPASVertex*>(gi);
-          if (tv)
+          if (auto* tv = dynamic_cast<TOPPASVertex*>(gi); tv)
           {
             tv->invertRecylingMode();
             tv->update(tv->boundingRect());
@@ -1912,8 +1875,7 @@ namespace OpenMS
           continue;
         }
 
-        TOPPASEdge* edge = dynamic_cast<TOPPASEdge*>(gi);
-        if (edge)
+        if (auto* edge = dynamic_cast<TOPPASEdge*>(gi); edge)
         {
           if (text == "Edit I/O mapping")
           {
@@ -1923,8 +1885,7 @@ namespace OpenMS
           continue;
         }
 
-        TOPPASToolVertex* ttv = dynamic_cast<TOPPASToolVertex*>(gi);
-        if (ttv)
+        if (auto* ttv = dynamic_cast<TOPPASToolVertex*>(gi); ttv)
         {
           if (text == "Edit parameters")
           {
@@ -1958,8 +1919,7 @@ namespace OpenMS
           continue;
         }
 
-        TOPPASInputFileListVertex* ifv = dynamic_cast<TOPPASInputFileListVertex*>(gi);
-        if (ifv)
+        if (auto* ifv = dynamic_cast<TOPPASInputFileListVertex*>(gi); ifv)
         {
           if (text == "Open files in TOPPView")
           {
@@ -1982,29 +1942,32 @@ namespace OpenMS
               ifv->setKey(dlg.getName());
             }
           }
-
           continue;
         }
 
-        TOPPASOutputFileListVertex* ofv = dynamic_cast<TOPPASOutputFileListVertex*>(gi);
-        if (ofv)
+        
+        if (auto* ov = dynamic_cast<TOPPASOutputVertex*>(gi); ov)
+        {
+          if (text == "Open containing folder")
+          {
+            ov->openContainingFolder();
+          }
+          else if (text == "Set output folder name")
+          {
+            TOPPASVertexNameDialog dlg(ov->getOutputFolderName(), "[a-zA-Z0-9_-]*");
+            if (dlg.exec())
+            { ov->setOutputFolderName(dlg.getName());
+            }
+          }
+          // no continue - derived classes below
+        }
+        
+        if (auto* ofv = dynamic_cast<TOPPASOutputFileListVertex*>(gi); ofv)
         {
           if (text == "Open files in TOPPView")
           {
             QStringList out_files = ofv->getFileNames();
             emit openInTOPPView(out_files);
-          }
-          else if (text == "Open containing folder")
-          {
-            ofv->openContainingFolder();
-          }
-          else if (text == "Set output folder name")
-          {
-            TOPPASVertexNameDialog dlg(ofv->getOutputFolderName(), "[a-zA-Z0-9_-]*");
-            if (dlg.exec())
-            {
-              ofv->setOutputFolderName(dlg.getName());
-            }
           }
           continue;
         }

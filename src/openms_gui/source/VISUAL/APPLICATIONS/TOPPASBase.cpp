@@ -440,18 +440,19 @@ namespace OpenMS
     header_labels.append(QString("TOPP tools"));
     tools_tree_view->setHeaderLabels(header_labels);
 
-    auto add_list_item = [&tools_tree_view](const QString& node_name)
+    auto add_list_item = [&tools_tree_view](const QString& node_name, const QString& tool_tip)
       {
       QTreeWidgetItem* item = new QTreeWidgetItem(tools_tree_view);
       item->setText(0, node_name);
+      item->setToolTip(0, tool_tip);
       tools_tree_view->addTopLevelItem(item);
     };
-    add_list_item("<Input files>");
-    add_list_item("<Output files>");
-    add_list_item("<Output folder>");
-    add_list_item("<Merger>");
-    add_list_item("<Collector>");
-    add_list_item("<Splitter>");
+    add_list_item("<Input files>", "One or multiple input files, such as mzML or FASTA files from your local hard drive");
+    add_list_item("<Output files>", "Sink for one or more output files, which are produced by a TOPP tool and which you want to keep for later.");
+    add_list_item("<Output folder>", "Some TOPP tools write their output to a folder. Usually a fixed set of files, whose names cannot be set explicitly.");
+    add_list_item("<Merger>", "Concatenate files from multiple input edges to a list and forward that list.");
+    add_list_item("<Collector>", "Collect each single file from \na single input edge (for every time it runs)\nand then foward this list to the next tool (which is only invoked once)");
+    add_list_item("<Splitter>", "Opposite of a collector.");
 
     //Param category_param = param_.copy("tool_categories:", true);
 

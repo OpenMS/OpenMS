@@ -91,6 +91,11 @@ namespace OpenMS
     return *this;
   }
 
+  std::unique_ptr<TOPPASVertex> TOPPASToolVertex::clone() const
+  {
+    return std::make_unique<TOPPASToolVertex>(*this);
+  }
+
   bool TOPPASToolVertex::initParam_(const QString& old_ini_file)
   {
     // this is the only exception for writing directly to the tmpDir, instead of a subdir of tmpDir, as scene()->getTempDir() might not be available yet
@@ -752,6 +757,8 @@ namespace OpenMS
 
     for (const QString& file : files)
     {
+      if (File::isDirectory(file)) continue; // skip output directories
+
       String new_prefix = FileHandler::stripExtension(file);
       String new_suffix = FileTypes::typeToName(FileHandler::getTypeByContent(file)); // this might replace bla.fasta with bla.FASTA ... which is the same file on Windows
       if (file.endsWith(new_suffix.toQString(), Qt::CaseInsensitive)) // --> use the native suffix (to avoid deleting the source file when renaming)
@@ -780,6 +787,12 @@ namespace OpenMS
       {
         for (int fi = 0; fi < it->second.filenames.size(); ++fi)
         {
+          // skip output directories
+          if (File::isDirectory(it->second.filenames[fi]))
+          { 
+            continue;
+          }
+
           // rename file and update record
           String old_filename = QDir::toNativeSeparators(it->second.filenames[fi]);
           String new_filename = QDir::toNativeSeparators(name_old_to_new[it->second.filenames[fi]].toString().toQString());
@@ -827,6 +840,7 @@ namespace OpenMS
 
   bool TOPPASToolVertex::updateCurrentOutputFileNames(const RoundPackages& pkg, String& error_msg)
   {
+    const auto number_of_rounds = pkg.size();
     if (pkg.empty())
     {
       error_msg = "Less than one round received from upstream tools. Something is fishy!\n";
@@ -883,7 +897,7 @@ namespace OpenMS
     // now we construct output filenames for this node
     // use names from the selected upstream vertex (hoping that this is the maximal number of files we are going to produce)
     std::vector<QStringList> per_round_basenames;
-    for (Size i = 0; i < pkg.size(); ++i)
+    for (Size i = 0; i < number_of_rounds; ++i)
     {
       QStringList filenames = pkg[i].find(max_size_index)->second.filenames.get();
       //
@@ -904,7 +918,7 @@ namespace OpenMS
 
     // clear output file list
     output_files_.clear();
-    output_files_.resize(pkg.size()); // #rounds
+    output_files_.resize(number_of_rounds);
 
     const TOPPASScene* ts = getScene_();
     
@@ -932,7 +946,7 @@ namespace OpenMS
       String file_suffix;
       if (out_params[i].type == IOInfo::IOT_DIR)
       {
-        file_suffix = "_dir";
+        file_suffix = "_dir"; // we need something non-empty
       }
       // Single file or list of files
       else if (out_params[i].valid_types.size() == 1)
@@ -990,25 +1004,29 @@ namespace OpenMS
       vrp.edge = edge_out;
 
       std::set<QString> filename_output_set; // verify that output files are unique (avoid overwriting)
-
-      for (Size r = 0; r < per_round_basenames.size(); ++r)
+      assert(per_round_basenames.size() == number_of_rounds);
+      for (Size round = 0; round < number_of_rounds; ++round)
       {
         // store edge for this param for all rounds
-        output_files_[r][param_index] = vrp; // index by index of source-out param
+        output_files_[round][param_index] = vrp; // index by index of source-out param
 
         // list --> single file (e.g. IDMerger or FileMerger)
-        bool list_to_single = (per_round_basenames[r].size() > 1 && out_params[param_index].type == IOInfo::IOT_FILE);
-        for (const QString &input_file : per_round_basenames[r])
+        bool list_to_single = (per_round_basenames[round].size() > 1 && out_params[param_index].type == IOInfo::IOT_FILE);
+        for (const QString &input_file : per_round_basenames[round])
         {
           QString fn = path + QFileInfo(input_file).fileName(); // out_path + filename
           OPENMS_LOG_DEBUG << "Single:" << fn.toStdString() << "\n";
           if (out_params[param_index].type == IOInfo::IOT_DIR)
           { // output is a directory
-            fn = path + QFileInfo(input_file).baseName(); // out_path + baseName
-            fn = QDir::toNativeSeparators(fn);
-            output_files_[r][param_index].filenames.push_back(fn);
+            fn = QDir::toNativeSeparators(path);
+            if (number_of_rounds > 1)
+            { // use a different output folder for each round if multiple rounds are present
+              fn += QFileInfo(input_file).baseName(); 
+            }
+              
+            output_files_[round][param_index].filenames.push_back(fn);
             OPENMS_LOG_DEBUG << "Dir:" << fn.toStdString() << "\n";
-            break; // only one iteration required (there is only one output dir per output param)
+            break; // only one iteration required (there is only one output dir per output param, irrespective of #input files)
           }
           else if (list_to_single)
           {
@@ -1017,7 +1035,7 @@ namespace OpenMS
               fn = fn.left(fn.indexOf("_to_"));
               OPENMS_LOG_DEBUG << "  first merge in merge: " << fn.toStdString() << "\n";
             }
-            QString fn_last = QFileInfo(per_round_basenames[r].last()).fileName();
+            QString fn_last = QFileInfo(per_round_basenames[round].last()).fileName();
             if (fn_last.contains(QRegExp(".*_to_.*_mrgd")))
             {
               int i_start = fn_last.indexOf("_to_") + 4;
@@ -1033,7 +1051,7 @@ namespace OpenMS
             OPENMS_LOG_DEBUG << "  Suffix-add: " << file_suffix << "\n";
           }
           fn = QDir::toNativeSeparators(fn);
-          output_files_[r][param_index].filenames.push_back(fn);
+          output_files_[round][param_index].filenames.push_back(fn);
           if (list_to_single)
           {
             break; // only one iteration required

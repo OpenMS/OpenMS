@@ -123,6 +123,8 @@ public:
     ~TOPPASToolVertex() override = default;
     /// Assignment operator
     TOPPASToolVertex& operator=(const TOPPASToolVertex& rhs);
+    
+    virtual std::unique_ptr<TOPPASVertex> clone() const override;
 
     /// returns the name of the TOPP tool
     String getName() const override;

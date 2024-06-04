@@ -28,6 +28,15 @@
 
 namespace OpenMS
 {
+  std::unique_ptr<TOPPASVertex> TOPPASOutputFolderVertex::clone() const
+  {
+    return std::make_unique<TOPPASOutputFolderVertex>(*this);
+  }
+
+  String TOPPASOutputFolderVertex::getName() const
+    {
+      return "OutputFolderVertex";
+    }
 
   void TOPPASOutputFolderVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
   {
@@ -42,20 +51,6 @@ namespace OpenMS
 
     // output folder name
     painter->drawText(painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, output_folder_name_).width()/-2, -25, output_folder_name_);
-  }
-
-  void TOPPASOutputFolderVertex::setOutputFolderName(const QString& name)
-  {
-    if (output_folder_name_ != name)
-    {
-      output_folder_name_ = name;
-      emit outputFolderNameChanged(); // enable storing of modified pipeline
-    }
-  }
-
-  const QString& TOPPASOutputFolderVertex::getOutputFolderName() const
-  {
-    return output_folder_name_;
   }
 
   QRectF TOPPASOutputFolderVertex::boundingRect() const
@@ -93,7 +88,7 @@ namespace OpenMS
 
     int param_index_src = e->getSourceOutParam();
     int param_index_me = e->getTargetInParam();
-    for (Size round = 0; round < pkg.size(); ++round)
+    for (Size round = 0; round < round_total_; ++round)
     {
       for (const QString &src_dir : pkg[round][param_index_src].filenames.get())
       {
@@ -102,13 +97,14 @@ namespace OpenMS
           OPENMS_LOG_ERROR << "The directory '" << String(src_dir) << "' does not exist!" << std::endl;
           throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, src_dir.toStdString());
         }
-        String new_dir = full_dir + '/';
+        String new_dir = full_dir;
         // if its only one round, do not create a subfolder
-        if (pkg.size() > 1)
-        {
-          new_dir += "round_" + String(round + 1) + '/';
+        if (round_total_ > 1)
+        { // the previous TOPP tool node should have placed all files in a subfolder for each round. Use that name
+          String last_subfolder = QDir(src_dir).dirName();
+          new_dir += last_subfolder.ensureLastChar('/');
         }
-        output_files_[round][param_index_me].filenames.push_back(QDir::toNativeSeparators(new_dir.toQString()));
+        output_files_[round][param_index_me].filenames.push_back(new_dir.toQString());
         // find number of files in 'src_dir'
         QDir dir(src_dir);
         auto nr_of_files = dir.entryInfoList(QDir::Files).size();
@@ -141,20 +137,39 @@ namespace OpenMS
         round_counter_ = (int)round; // for global update, in case someone asks
         for (int i = 0; i < pkg[round][param_index_src].filenames.size(); ++i)
         {
-          QString dir_from = pkg[round][param_index_src].filenames[i];
-          QString dir_to   = output_files_[round][param_index_me].filenames[i];
-          const auto& src_files_to_copy = QDir(dir_from).entryInfoList(QDir::Files);
+          String dir_from = pkg[round][param_index_src].filenames[i];
+          String dir_to   = output_files_[round][param_index_me].filenames[i];
+          // create the output directory (if it does not exist)
+          if (!File::makeDir(dir_to))
+          {
+              String msg = "Could not create output directory '" + dir_to + "' for node '"
+                           + pkg[round][param_index_src].edge->getTargetVertex()->getName() + "' . Please make sure the path is writable.";
+              OPENMS_LOG_ERROR << msg << std::endl;
+              if (ts->isGUIMode())
+              {
+                QMessageBox::warning(nullptr, tr("Directory creation failed"), tr(msg.c_str()), QMessageBox::Ok);
+              }
+              else
+              {
+                throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg); // fail hard for ExecutePipeline
+              }
+          }
+          const auto& src_files_to_copy = QDir(dir_from.toQString()).entryInfoList(QDir::Files);
           for (const auto& src_file : src_files_to_copy)
           {
-            QString file_from = src_file.absoluteFilePath();
-            QString file_to = dir_to + '/' + src_file.fileName();
-            if (! QFile::remove(file_to))
+            String file_from = src_file.absoluteFilePath();
+            String file_to = dir_to + '/' + src_file.fileName();
+            if (File::exists(file_to) // someone may have deleted the file in the meantime, which is fine
+              && !QFile::remove(file_to.toQString())) // remove old file (would fail if file does not exist)
             {
-              String msg = "Error: Could not remove old output file '" + String(file_to) + "' for node '"
+              String msg = "Error: Could not remove old output file '" + file_to + "' for node '"
                            + pkg[round][param_index_src].edge->getTargetVertex()->getName()
                            + "' in preparation to write the new one. Please make sure the file is not open in other applications and try again.";
               OPENMS_LOG_ERROR << msg << std::endl;
-              if (ts->isGUIMode()) { QMessageBox::warning(nullptr, tr("File removing failed"), tr(msg.c_str()), QMessageBox::Ok); }
+              if (ts->isGUIMode()) 
+              {
+                QMessageBox::warning(nullptr, tr("File removing failed"), tr(msg.c_str()), QMessageBox::Ok);
+              }
               else
               {
                 throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg); // fail hard for ExecutePipeline
@@ -174,8 +189,8 @@ namespace OpenMS
             }
             else
             {
-              String msg = "Error: Could not copy temporary output file '" + String(file_to) + "' for node '"
-                           + pkg[round][param_index_src].edge->getTargetVertex()->getName() + "' to " + String(file_to)
+              String msg = "Error: Could not copy temporary output file '" + file_from + "' for node '"
+                           + pkg[round][param_index_src].edge->getTargetVertex()->getName() + "' to " + file_to
                            + "'. Probably the old file still exists (see earlier errors).";
               OPENMS_LOG_ERROR << msg << std::endl;
               if (ts->isGUIMode()) { QMessageBox::warning(nullptr, tr("File copy failed"), tr(msg.c_str()), QMessageBox::Ok); }
@@ -193,96 +208,4 @@ namespace OpenMS
     finished_ = true;
   }
 
-  void TOPPASOutputFolderVertex::inEdgeHasChanged()
-  {
-    reset(true);
-    qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
-    TOPPASVertex::inEdgeHasChanged();
-  }
-
-  void TOPPASOutputFolderVertex::openContainingFolder() const
-  {
-    QString path = getFullOutputDirectory().toQString();
-    GUIHelpers::openFolder(path);
-  }
-
-  String TOPPASOutputFolderVertex::getFullOutputDirectory() const
-  {
-    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
-    String dir = String(ts->getOutDir()).substitute("\\", "/");
-    return QDir::cleanPath((dir.ensureLastChar('/') + getOutputDir()).toQString());
-  }
-
-  String TOPPASOutputFolderVertex::getName() const
-  {
-    return "OutputFolderVertex";
-  }
-
-  String TOPPASOutputFolderVertex::getOutputDir() const
-  {
-    String dir = String("TOPPAS_out") + String(QDir::separator());
-    if (output_folder_name_.isEmpty())
-    {
-      TOPPASEdge* e = *inEdgesBegin();
-      if (e == nullptr)
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "To open the output folder, an input edge is required to knit a folder name.");
-      }
-      const TOPPASVertex* tv = e->getSourceVertex();
-      // create meaningful output name using vertex + TOPP name + output parameter, e.g. "010-FileConverter-out"
-      dir += get3CharsNumber_(topo_nr_) + "-"
-             + tv->getName() + "-" 
-             + e->getSourceOutParamName().remove(':');
-    }
-    else
-    {
-      dir += output_folder_name_;
-    }
-    return dir;
-  }
-
-  String TOPPASOutputFolderVertex::createOutputDir() const
-  {
-    String full_dir = getFullOutputDirectory();
-    if (!File::exists(full_dir))
-    {
-      if (!File::makeDir(full_dir))
-      {
-        std::cerr << "Could not create path " << full_dir << std::endl;
-      }
-    }
-    return full_dir;
-  }
-
-  void TOPPASOutputFolderVertex::setTopoNr(UInt nr)
-  {
-    if (topo_nr_ != nr)
-    {
-      // topological number changes --> output dir changes --> reset
-      reset(true);
-      topo_nr_ = nr;
-    }
-  }
-
-  void TOPPASOutputFolderVertex::reset(bool reset_all_files)
-  {
-    __DEBUG_BEGIN_METHOD__
-    files_total_ = 0;
-    files_written_ = 0;
-    
-    TOPPASVertex::reset();
-
-    if (reset_all_files)
-    {
-      // do not actually delete the output files here 
-      // --> we do not know which files were written by the tool 
-      // and which were already there (we do not want to delete user files)
-    }
-    __DEBUG_END_METHOD__
-  }
-
-  void TOPPASOutputFolderVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
-  {
-    openContainingFolder();
-  }
-}
+} //namespace OpenMS

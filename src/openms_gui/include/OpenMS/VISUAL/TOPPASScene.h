@@ -13,6 +13,7 @@
 
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/TOPPASOutputVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 
 #include <QtWidgets/QGraphicsScene>

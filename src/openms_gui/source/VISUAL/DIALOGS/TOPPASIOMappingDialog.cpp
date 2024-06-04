@@ -110,13 +110,6 @@ namespace OpenMS
         ui_->source_combo->clear();
         return;
       }
-      if (ui_->source_combo->count() == 2) // only 1 parameter (+ <select>)
-      {
-        ui_->source_combo->setCurrentIndex(1);
-      }
-      {
-        ui_->source_combo->setCurrentIndex(1);
-      }
     }
     else if (source_tool)
     {
@@ -150,13 +143,6 @@ namespace OpenMS
         item_name += ss.str();
 
         ui_->source_combo->addItem(item_name.toQString(), source_output_files.indexOf(info));
-      }
-      if (ui_->source_combo->count() == 2) // only 1 parameter (+ <select>)
-      {
-        ui_->source_combo->setCurrentIndex(1);
-      }
-      {
-        ui_->source_combo->setCurrentIndex(1);
       }
     }
     else if (source_list || source_merger || source_splitter)
@@ -229,10 +215,6 @@ namespace OpenMS
 
         ui_->target_combo->addItem(item_name.toQString(), target_input_files.indexOf(info));
       }
-      if (ui_->target_combo->count() == 2) // only 1 parameter (+ <select>)
-      {
-        ui_->target_combo->setCurrentIndex(1);
-      }
     }
     else if (target_list || target_dir || target_merger || target_splitter)
     {
@@ -258,12 +240,18 @@ namespace OpenMS
     }
 
     // pre-select the current mapping for existing edges
+    // note: for new edges, @p edge_index is -1
     auto find_index = [](QComboBox* combo, int edge_index) -> int {
       for (int i = 1; i < combo->count(); ++i)
       {
         if (combo->itemData(i).toInt() == edge_index) return i;
       }
-      return -1;
+      // no mapping found
+      if (combo->count() == 2) // only 1 parameter (+ <select>)
+      {
+        return 1; // pre-select the only parameter
+      }
+      return 0; // use '<select>'
     };
     ui_->source_combo->setCurrentIndex(find_index(ui_->source_combo, edge_->getSourceOutParam()));
     ui_->target_combo->setCurrentIndex(find_index(ui_->target_combo, edge_->getTargetInParam()));

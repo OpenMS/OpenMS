@@ -56,6 +56,7 @@ TableView.h
 TOPPASEdge.h
 TOPPASInputFileListVertex.h
 TOPPASMergerVertex.h
+TOPPASOutputVertex.h
 TOPPASOutputFileListVertex.h
 TOPPASOutputFolderVertex.h
 TOPPASResource.h

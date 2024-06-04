@@ -162,6 +162,10 @@ public:
     ~TOPPASVertex() override = default;
     /// Assignment operator
     TOPPASVertex& operator=(const TOPPASVertex & rhs);
+
+    /// Make a copy of this vertex on the heap and return a pointer to it (useful for copying nodes)
+    virtual std::unique_ptr<TOPPASVertex> clone() const = 0;
+
     /// base paint method for all derived classes. should be called first in child-class paint
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/, bool round_shape = true);
 
@@ -347,36 +351,5 @@ protected:
 
   };
 
-  /**
-  @brief A vertex representing an output, either folder or files(s)
-
-  @ingroup TOPPAS_elements
-  */
-  class OPENMS_GUI_DLLAPI TOPPASOutputVertex : public TOPPASVertex
-  {
-    Q_OBJECT
-  public:
-    /// Default C'tor
-    TOPPASOutputVertex() = default;
-    /// Copy constructor
-    TOPPASOutputVertex(const TOPPASOutputVertex& rhs);
-    /// Assignment operator
-    TOPPASOutputVertex& operator=(const TOPPASOutputVertex& rhs);
-
-  signals:
-    /// Emitted when an output file was written
-    void outputFileWritten(const String& file);
-
-    /// Emitted when user has changed the output folder name (i.e. output dir needs to be newly created and packages updates)
-    void outputFolderNameChanged();
-
-  protected:
-    /// custom output folder name
-    QString output_folder_name_;
-
-    // convenience members, not required for operation, but for progress during copying
-    int files_written_ = 0; ///< files that were already written
-    int files_total_ = 0;   ///< total number of files from upstream
-  };
-  }
+} // namespace OpenMS
 
