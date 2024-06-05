@@ -43,6 +43,7 @@ namespace OpenMS
     bool use_uis_scores = true;
     bool use_ionseries_scores = true;
     bool use_ms2_isotope_scores = true;
+    bool use_peak_shape_metrics = false;
   };
 
   /** @brief A structure to hold the different scores computed by OpenSWATH
@@ -182,11 +183,28 @@ namespace OpenMS
     std::vector<double> ind_total_area_intensity;
     std::vector<double> ind_intensity_score;
     std::vector<double> ind_apex_intensity;
+    std::vector<double> ind_apex_position;
+    std::vector<double> ind_fwhm;
     std::vector<double> ind_total_mi;
     std::vector<double> ind_log_intensity;
     std::vector<double> ind_intensity_ratio;
     std::vector<double> ind_mi_ratio;
     std::vector<double> ind_mi_score;
+    
+    // peak shape metrics
+    std::vector<double> ind_start_position_at_5;
+    std::vector<double> ind_end_position_at_5;
+    std::vector<double> ind_start_position_at_10;
+    std::vector<double> ind_end_position_at_10;
+    std::vector<double> ind_start_position_at_50;
+    std::vector<double> ind_end_position_at_50;
+    std::vector<double> ind_total_width;
+    std::vector<double> ind_tailing_factor;
+    std::vector<double> ind_asymmetry_factor;
+    std::vector<double> ind_slope_of_baseline;
+    std::vector<double> ind_baseline_delta_2_height;
+    std::vector<double> ind_points_across_baseline;
+    std::vector<double> ind_points_across_half_height;
 
     OpenSwath_Ind_Scores() = default;
 
