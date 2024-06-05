@@ -30,19 +30,22 @@ namespace OpenMS
     compute a number of scores based on the full MS2 spectrum available. The scores are the following:
 
     - isotope scores:
-      -- isotope_corr: computes the correlation of each fragment ion with the
+      - isotope_corr: computes the correlation of each fragment ion with the
          theoretical isotope distribution. This is the pearson correlation to
          the theoretical isotope pattern weighted by the relative intensity of
          the transition (more is better).
-      -- isotope_overlap: checks whether a signal at position (mz - 1) / charge
+      - isotope_overlap: checks whether a signal at position (mz - 1) / charge
          exists and how strong it is. This would be an indication that the current
          peak is an isotopic signal of another peak. This simply counts how
          often a peak was observed that is higher than the current peak, thus
          number is then weighted by the relative intensity of the transition
          (thus less is better here).
 
-    - massdiff score: computes the difference in ppm of the experimental signal
-         to the expected signal (thus less is better)
+    - massdiff score: computes the difference in ppm of the experimental signal to the expected signal (thus less is better). 
+      - Equation: sum(ppm_difference) / # transitions
+      - Notes: 
+        - Divide by the total number of transitions and is thus quite punishing if a transition is missing
+        - Also outputs a list of all the ppm differences, if signal is not found output -1.0
 
     - b/y ion score: checks for the presence of b/y ions of the peptide in question
 

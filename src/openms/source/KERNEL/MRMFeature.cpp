@@ -146,6 +146,8 @@ namespace OpenMS
     setMetaValue(id + "intensity_score", idscores.ind_intensity_score);
     setMetaValue(id + "intensity_ratio_score", idscores.ind_intensity_ratio);
     setMetaValue(id + "apex_intensity", idscores.ind_apex_intensity);
+    setMetaValue(id + "peak_apex_position", idscores.ind_apex_position);
+    setMetaValue(id + "width_at_50", idscores.ind_fwhm);
     setMetaValue(id + "total_mi", idscores.ind_total_mi);
     setMetaValue(id + "transition_names", idscores.ind_transition_names);
     setMetaValue(id + "ind_log_intensity", idscores.ind_log_intensity);
@@ -157,6 +159,23 @@ namespace OpenMS
     setMetaValue(id + "ind_massdev_score", idscores.ind_massdev_score);
     setMetaValue(id + "ind_mi_score", idscores.ind_mi_score);
     setMetaValue(id + "ind_mi_ratio_score", idscores.ind_mi_ratio);
+
+    // peak shape metrics
+    setMetaValue(id + "ind_start_position_at_5", idscores.ind_start_position_at_5);
+    setMetaValue(id + "ind_end_position_at_5", idscores.ind_end_position_at_5);
+    setMetaValue(id + "ind_start_position_at_10", idscores.ind_start_position_at_10);
+    setMetaValue(id + "ind_end_position_at_10", idscores.ind_end_position_at_10);
+    setMetaValue(id + "ind_start_position_at_50", idscores.ind_start_position_at_50);
+    setMetaValue(id + "ind_end_position_at_50", idscores.ind_end_position_at_50);
+    setMetaValue(id + "ind_total_width", idscores.ind_total_width);
+    setMetaValue(id + "ind_tailing_factor", idscores.ind_tailing_factor);
+    setMetaValue(id + "ind_asymmetry_factor", idscores.ind_asymmetry_factor);
+    setMetaValue(id + "ind_slope_of_baseline", idscores.ind_slope_of_baseline);
+    setMetaValue(id + "ind_baseline_delta_2_height", idscores.ind_baseline_delta_2_height);
+    setMetaValue(id + "ind_points_across_baseline", idscores.ind_points_across_baseline);
+    setMetaValue(id + "ind_points_across_half_height", idscores.ind_points_across_half_height);
+
+
   }
 }
 
