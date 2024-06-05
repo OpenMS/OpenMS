@@ -14,6 +14,8 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <OpenMS/SYSTEM/File.h>
+
 #include <QSvgRenderer>
 #include <QtCore/QFileInfo>
 

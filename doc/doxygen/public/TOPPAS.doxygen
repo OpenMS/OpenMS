@@ -117,20 +117,40 @@
 		This is done by double-clicking an input node and selecting the desired files in the dialog that appears. 
     You can also drag'n'drop files from your file manager into the dialog to add them to the list.
 		
+    @subsection TOPPAS_tut_output_nodes About output nodes
+
+    Output files from any TOPP tool in the pipeline can be stored permanently (i.e., after the pipeline has finished and TOPPAS is closed) by adding either of these nodes after any TOPP tool:
+    
+      - an `output files` node<br>
+        This node can be connected to any tool that produces output files - either a single file or a list of files.
+      - an `output folder` node<br>
+        This node can be connected to any tool that support output folders (which is more rare than output files), e.g., the @ref TOPP_QualityControl tool.
+
+    You should use these output nodes to store the results of any TOPP node you may need later on; typically the TOPP nodes which come last in the pipeline.
+    If you do not add output nodes, the results from TOPP nodes will be stored in the temporary folder and will be deleted when you close TOPPAS.
+    You can add multiple output nodes at different places in the pipeline to store intermediate results, if you feel you need them later on.
+
+    See @ref TOPPAS_tut_output and @ref TOPPAS_tut_running for more information on output and temporary files.
     
     @subsection TOPPAS_tut_recycling On "Recycling" mode
 
     @image html TOPPAS_recycling.png
 		@image latex TOPPAS_recycling.png "" width=14cm
 
-    Input nodes have a special mode named @em "recycling mode", i.e., if the input node has fewer files than the following
-		node has rounds (as it might have two incoming connections) then the files are recycled until all rounds 
-		are satisfied. This might be useful if one input node specifies a single database file (for a Search-Adapter like Comet)
-		and another input node has the actual MS2 experimental data (which is usually more than one). Then the database input 
-		node would be set to "recycle" the database file, i.e. use it for every run of the CometAdapter node. The input 
-		list can be recycled an arbitrary number of times, but the recycling has to be @em complete, i.e. the number of rounds of the
-		downstream node have to be a multiple of the number of input files. Recycling mode can be activated by right-clicking 
-		the input node and clicking the "Toggle recycling mode" entry from the context menu.
+    Input nodes and all TOPP nodes have a special mode named @em "recycling mode".
+    Imagine a typical node, such as @ref TOPP_CometAdapter. Every time it runs, it consumes a single mzML file and a single FASTA file.
+    Thus, the node has two input edges, one for the mzML file and one for the FASTA file.
+    In a typical workflow, you have a bunch of mzML files, say five, in one `input files` node, but only one FASTA file the other `input files` node.
+    CometAdapter will run five times. This is what we call a 'round', i.e. one invocation of the node. 
+    If you want to run CometAdapter with the same FASTA file for all five mzML files, you can set the FASTA input node to "recycle" the FASTA file.
+    The alternative would be to have five identical FASTA files in the input node, which is not very elegant.
+
+    The input from a recylced node can be used an arbitrary number of times, but the recycling has to be "complete", i.e. the number of rounds of the
+		downstream node (CometAdapter in our example) have to be a multiple of the number of input files. Typically, the number of items to be recycled is 'one' (e.g. one FASTA file), so this usually not a problem.
+    
+    Recycling mode can be activated by right-clicking the input node and clicking the "Toggle recycling mode" entry from the context menu.
+
+    See @ref TOPPAS_tut_edges for an example of a recycling input node.
 		
     @subsection TOPPAS_tut_specialnodes On special nodes (Merger and Collector)
     
@@ -175,6 +195,16 @@
     selecting @p Open @p files @p in @p TOPPView or @p Open @p containing @p folder from the context menu.
 		
     
+    @subsection TOPPAS_tut_output Output and temporary files
+
+		In addition to @p TOPPAS_out, which holds all files captured in `output files` and `output folder` node of the pipeline, a @p TOPPAS_tmp directory will be created in the %OpenMS temp path
+		(call the @ref TOPP_OpenMSInfo tool to see where exactly).
+		The @p TOPPAS_tmp will contain all temporary files that are passed from tool to tool within the pipeline.
+		Both folders contain further sub-directories which are named after the number in the top-left corner of the node they
+		belong to (plus the name of the tool for temporary files).
+
+    @note Files in the @p TOPPAS_out directory are not automatically deleted after the pipeline execution. These are your results! You have to delete them manually if you don't need them anymore. Files in the @p TOPPAS_tmp directory are deleted automatically upon closing the pipeline or the TOPPAS GUI.
+    
     @subsection TOPPAS_tut_parallel On parallel execution
 
     You can specify the number of jobs (i.e. TOPP tool invocations) that TOPPAS is allowed to run in parallel in the 
@@ -192,16 +222,6 @@
 		of both parameters! If you have a pipeline containing the @em FeatureFinderCentroided, for example, and its @em threads parameter
 		is set to 8, and you additionally set the number of parallel jobs in @b TOPPAS to 8, then you may end up using 8*8=64 threads in parallel (if you have 8 or more input files), which
 		might not be what you intended to do.
-
-    @subsection TOPPAS_tut_output Output and temporary files
-
-		In addition to @p TOPPAS_out, a @p TOPPAS_tmp directory will be created in the %OpenMS temp path
-		(call the @ref TOPP_OpenMSInfo tool to see where exactly).
-		It will contain all temporary files that are passed from tool to tool within the pipeline.
-		Both folders contain further sub-directories which are named after the number in the top-left corner of the node they
-		belong to (plus the name of the tool for temporary files).
-
-    @note Files in the @p TOPPAS_out directory are not automatically deleted after the pipeline execution. These are your results! You have to delete them manually if you don't need them anymore. Files in the @p TOPPAS_tmp directory are deleted automatically upon closing the TOPPAS GUI.
 		
 			
 		@section TOPPAS_interface_mk Mouse and keyboard
