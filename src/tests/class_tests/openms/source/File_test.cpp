@@ -217,7 +217,9 @@ START_SECTION(static bool makeDir(const String& dir_name))
   TEST_TRUE(File::makeDir("subdir/333"))
   TEST_TRUE(File::isDirectory("./subdir/333/"))
   // try create something which should be forbidden
-  TEST_FALSE(File::makeDir("c:\\te:st")) // ':' is not allowed in path on Windows and 'c:\\' is not allowed on Unix
+#if defined(OPENMS_WINDOWSPLATFORM)
+  TEST_FALSE(File::makeDir("c:\\te:st")) // ':' is not allowed in path on Windows; Unix pretty much allows everything
+#endif
   std::filesystem::current_path(current_path); // reset current path (enable deletion of dirname)
 END_SECTION
 
