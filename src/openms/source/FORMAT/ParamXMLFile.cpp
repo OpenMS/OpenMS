@@ -23,7 +23,7 @@ namespace OpenMS
   }
 
   ParamXMLFile::ParamXMLFile() :
-    XMLFile("/SCHEMAS/Param_1_7_0.xsd", "1.7.0")
+    XMLFile("/SCHEMAS/Param_1_8_0.xsd", "1.8.0")
   {
   }
 
