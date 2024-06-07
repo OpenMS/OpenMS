@@ -86,7 +86,7 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
-set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Eigen3::Eigen Qt5::Core Qt5::Network)
+set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Eigen3::Eigen Qt6::Core Qt6::Network)
 
 ## setup the argumentes to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
 set(OPENMS_DEP_PRIVATE_LIBRARIES
@@ -105,15 +105,6 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   nlohmann_json::nlohmann_json
   tdl::tdl
   )
-
-## ----------
-## No need to for this at the moment: no Qt plugins required anymore. Left here for reference.
-## ----------
-#------------------------------------------------------------------------------
-# Install the QSQLite driver if we are not on linux so we can use oms files
-#if(WIN32 OR APPLE)
-#  install_qt5_plugin_builddir("Qt5::QSQLiteDriverPlugin" QT_SQLITE_PLUGIN "${INSTALL_PLUGIN_DIR}" Dependencies)
-#endif()
 
 # Xerces requires linking against CoreFoundation&CoreServices on macOS
 # TODO check if this is still the case

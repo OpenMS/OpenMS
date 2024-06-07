@@ -35,7 +35,7 @@
 project("OpenMS_GUI")
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
-set(CMAKE_AUTOUIC OFF) # leave off since this is broken, see qt5_wrap_ui below
+set(CMAKE_AUTOUIC ON) # convert .ui files to ui_....h files using CMake + Qt's UIC
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -47,14 +47,6 @@ include(add_mac_bundle.cmake)
 # --------------------------------------------------------------------------
 # big include file for headers and cpp files
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
-
-# --------------------------------------------------------------------------
-
-# manually extract .ui files and track them (trigger rebuild of ui_CLASS.h upon changing CLASS.ui)
-# see https://gitlab.kitware.com/cmake/cmake/issues/18741
-set(UI_SOURCES ${OpenMSVisual_sources}) # copy list of .cpp + .ui files
-list(FILTER UI_SOURCES INCLUDE REGEX "\\.ui$")
-qt5_wrap_ui(UI_SOURCES2 ${UI_SOURCES}) # transform .ui to ui_....h files and add them to OpenMSVisual_sources_h
 
 #------------------------------------------------------------------------------
 # add the library
@@ -113,7 +105,7 @@ endforeach(i)
 
   ## install platform plugins. On Mac this is handled for every GUI app inside its app bundle.
   if(WIN32)
-      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::QWindowsIntegrationPlugin"
+      install(IMPORTED_RUNTIME_ARTIFACTS "Qt6::QWindowsIntegrationPlugin"
               DESTINATION "${INSTALL_PLUGIN_DIR}/platforms"
               RUNTIME_DEPENDENCY_SET OPENMS_DEPS
               COMPONENT Dependencies)

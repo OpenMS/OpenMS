@@ -304,13 +304,13 @@ function(openms_add_library)
     ## WARNING: HACK needed because of:
     # https://gitlab.kitware.com/cmake/cmake/-/issues/16462
     # https://bugreports.qt.io/browse/QTBUG-110118
-    # There is a private dependency of Qt5WebEngineWidgets to Qt5QuickWidgets.
+    # There is a private dependency of Qt6WebEngineWidgets to Qt6QuickWidgets.
     # We need to copy it and all its deps, too.
-    if(Qt5WebEngineWidgets_FOUND)
+    if(Qt6WebEngineWidgets_FOUND)
       set (genex "IMPORTED_LOCATION_$<UPPER_CASE:$<CONFIG>>")
       add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
               COMMAND ${CMAKE_COMMAND} -E copy_if_different
-              $<TARGET_PROPERTY:Qt5::QuickWidgets,${genex}>
+              $<TARGET_PROPERTY:Qt6::QuickWidgets,${genex}>
               $<TARGET_FILE_DIR:${openms_add_library_TARGET_NAME}>
               )
 
@@ -320,13 +320,13 @@ function(openms_add_library)
       # And I think the documenters are not called very often outside of CMake.
       #add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
       #        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      #        $<TARGET_PROPERTY:Qt5::QuickWidgets,${genex}>
+      #        $<TARGET_PROPERTY:Qt6::QuickWidgets,${genex}>
       #        ${DLL_DOC_TARGET_PATH}
       #        )
 
       add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
               COMMAND ${CMAKE_COMMAND} -E copy_if_different
-              $<TARGET_PROPERTY:Qt5::QuickWidgets,${genex}>
+              $<TARGET_PROPERTY:Qt6::QuickWidgets,${genex}>
               ${DLL_TEST_TARGET_PATH}
               )
     endif()

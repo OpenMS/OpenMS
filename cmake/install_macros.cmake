@@ -160,7 +160,7 @@ endmacro()
 # Installs Qt plugins. Prefix can be the usual CMAKE_INSTALL_PREFIX or
 # if you install to a bundle, the app folder
 # Fills _qt_plugins_var with paths to be used e.g. with fixup_bundle at INSTALL time.
-macro(install_qt5_plugin_installdir _qt_plugin_name _qt_plugins_var _targetpath _component)
+macro(install_qt6_plugin_installdir _qt_plugin_name _qt_plugins_var _targetpath _component)
   get_target_property(_qt_plugin_path "${_qt_plugin_name}" LOCATION)
   if(EXISTS "${_qt_plugin_path}")
     get_filename_component(_qt_plugin_file "${_qt_plugin_path}" NAME)
@@ -181,7 +181,7 @@ endmacro()
 # Installs Qt plugins. Prefix can be the usual CMAKE_INSTALL_PREFIX or
 # if you install to a bundle, the app folder
 # Fills _qt_plugins_var with paths to be used e.g. with fixup_bundle at BUILD time.
-macro(install_qt5_plugin_builddir _qt_plugin_name _qt_plugins_var _targetpath _component)
+macro(install_qt6_plugin_builddir _qt_plugin_name _qt_plugins_var _targetpath _component)
   get_target_property(_qt_plugin_path "${_qt_plugin_name}" LOCATION)
   if(EXISTS "${_qt_plugin_path}")
     get_filename_component(_qt_plugin_file "${_qt_plugin_path}" NAME)
@@ -199,10 +199,10 @@ macro(install_qt5_plugin_builddir _qt_plugin_name _qt_plugins_var _targetpath _c
 endmacro()
 
 #------------------------------------------------------------------------------
-# Installs QT5 libraries to CMAKE_INSTALL_PREFIX based on given components
-macro(install_qt5_libs _qt_components _targetpath _install_component)
+# Installs QT6 libraries to CMAKE_INSTALL_PREFIX based on given components
+macro(install_qt6_libs _qt_components _targetpath _install_component)
   foreach (_qt_component ${_qt_components})
-    get_target_property(_qt_lib_path "Qt5::${_qt_component}" LOCATION)
+    get_target_property(_qt_lib_path "Qt6::${_qt_component}" LOCATION)
     if(_qt_lib_path MATCHES "^.*\\/.*${_qt_component}\\.framework\\/.*$")
     ## we could use if Mac but this is more general
       get_filename_component(_qt_lib_path "${_qt_lib_path}" PATH)
