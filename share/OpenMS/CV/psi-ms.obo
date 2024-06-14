@@ -17777,7 +17777,7 @@ is_a: MS:1002687 ! analysis attribute
 
 [Term]
 id: MS:1002694
-name: single identification result attribute
+name: single identification attribute
 def: "Attribute of a single identification item (as opposed to a list) in the result of mass spectrometry proteomics data analysis." [PSI:PI]
 is_a: MS:1002693 ! identification attribute
 
