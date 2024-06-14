@@ -431,6 +431,11 @@ namespace OpenMS
             term.xref_type = CVTerm::XSD_ANYURI;
             continue;
           }
+          if (line_wo_spaces.hasSubstring("MS:1002712"))
+          {
+            term.xref_type = CVTerm::XSD_STRING; // store list of integers as string
+            continue;
+          }
           cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << "\n";
         }       
         else if (line_wo_spaces.hasPrefix("xref:binary-data-type") || line_wo_spaces.hasPrefix("xref_analog:binary-data-type"))
