@@ -382,7 +382,8 @@ namespace OpenMS
             term.xref_type = CVTerm::XSD_STRING;
             continue;
           }
-          if (line_wo_spaces.hasSubstring("xsd:integer") || line_wo_spaces.hasSubstring("value-type:xsd:int"))
+          if (line_wo_spaces.hasSubstring("xsd:integer") 
+          || line_wo_spaces.hasSubstring("xsd:int"))
           {
             term.xref_type = CVTerm::XSD_INTEGER;
             continue;

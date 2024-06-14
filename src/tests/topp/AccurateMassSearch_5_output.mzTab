@@ -14,7 +14,7 @@ MTD	study_variable[1]-description	study_variable_PestMix1_1ngSolventDDA20-50
 MTD	cv[1]-label	PSI-MS
 MTD	cv[1]-full_name	MS
 MTD	cv[1]-version	4.1.49
-MTD	cv[1]-uri	https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo
+MTD	cv[1]-uri	http://purl.obolibrary.org/obo/ms/psi-ms.obo
 MTD	database[1]	[, , CustomDB, ]
 MTD	database[1]-prefix	CustomDB
 MTD	database[1]-version	0.0
