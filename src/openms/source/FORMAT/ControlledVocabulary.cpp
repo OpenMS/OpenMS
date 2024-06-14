@@ -183,8 +183,22 @@ namespace OpenMS
       }
       if (line_wo_spaces.hasPrefix("remark:URL:"))
       {
-        // https://
-        url_ = line.substr(line.find_first_of('/') - 7).trim();
+        // Find the position of "http://" or "https://"
+        size_t httpPos = line.find("http://");
+        size_t httpsPos = line.find("https://");
+
+        // Determine the starting position of the URL
+        if (httpPos != std::string::npos) 
+        {
+          url_ = line.substr(httpPos).trim();
+        } else if (httpsPos != std::string::npos) 
+        {
+          url_ = line.substr(httpsPos).trim();
+        } else 
+        {
+          // No URL found
+          std::cerr << "No URL found in the line." << std::endl;
+        }
       }
 
       //********************************************************************************
