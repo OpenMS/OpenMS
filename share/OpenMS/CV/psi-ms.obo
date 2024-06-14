@@ -17777,7 +17777,7 @@ is_a: MS:1002687 ! analysis attribute
 
 [Term]
 id: MS:1002694
-name: single identification attribute
+name: single identification result attribute
 def: "Attribute of a single identification item (as opposed to a list) in the result of mass spectrometry proteomics data analysis." [PSI:PI]
 is_a: MS:1002693 ! identification attribute
 
@@ -21791,7 +21791,7 @@ synonym: "SSM" EXACT []
 id: MS:1003303
 name: spectral similarity
 def: "A measure of how similar two spectra are, based on the features of the spectra (the locations and intensities of peaks) alone." [PSI:PI]
-is_a: MS:1002694 ! single identification attribute
+is_a: MS:1002694 ! single identification result attribute
 relationship: part_of MS:1003302 ! spectrum-spectrum match
 
 [Term]
@@ -22030,7 +22030,7 @@ name: crosslinked PSM-level global FDR
 def: "Estimation of the global false discovery rate of crosslinked peptide spectrum matches." [PSI:MS]
 is_a: MS:1002701 ! PSM-level result list statistic
 is_a: MS:1002483 ! PSM-level statistical threshold
-is_a: MS:1002664 ! interaction score derived from  crosslinking
+is_a: MS:1002664 ! interaction score derived from crosslinking
 relationship: has_value_type xsd:double ! The allowed value-type for this CV term
 
 [Term]
@@ -22039,7 +22039,7 @@ name: peptide-pair sequence-level global FDR
 def: "Estimation of the global false discovery rate for distinct peptide-pairs (id est multiple PSMs have been collapsed to one entry). Applicable in the case of crosslinked peptides or noncovalently associated peptides." [PSI:MS]
 is_a: MS:1002703 ! peptide sequence-level result list statistic
 is_a: MS:1002484 ! peptide-level statistical threshold
-is_a: MS:1002664 ! interaction score derived from  crosslinking
+is_a: MS:1002664 ! interaction score derived from crosslinking
 relationship: has_value_type xsd:double ! The allowed value-type for this CV term
 
 [Term]
@@ -24190,7 +24190,7 @@ is_a: MS:1001456 ! analysis software
 id: MS:1003408
 name: Scout score
 def: "Scout identification search engine score" [PSI:MS]
-is_a: MS:1003407 ! PSM-level search engine specific statistic
+is_a: MS:1003407 ! Scout
 relationship: has_order MS:1003407 ! higher score better
 relationship: has_value_type xsd:double ! The allowed value-type for this CV term
 

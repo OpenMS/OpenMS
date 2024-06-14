@@ -628,7 +628,7 @@ namespace OpenMS::Internal
         sip += "\t\t<AdditionalSearchParams>\n";
         if (is_ppxl)
         {
-          sip += "\n\t\t\t" + cv_.getTermByName("cross-linking search").toXMLString(cv_ns) + "\n";
+          sip += "\n\t\t\t" + cv_.getTermByName("crosslinking search").toXMLString(cv_ns) + "\n";
         }
         //remove MS:1001029 written if present in <SearchDatabase> as of SearchDatabase_may rule
         ProteinIdentification::SearchParameters search_params = it->getSearchParameters();

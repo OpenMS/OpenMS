@@ -431,7 +431,9 @@ namespace OpenMS
             term.xref_type = CVTerm::XSD_ANYURI;
             continue;
           }
-          if (line_wo_spaces.hasSubstring("MS:1002712") ||
+          if (
+            line_wo_spaces.hasSubstring("MS:1002711") ||
+            line_wo_spaces.hasSubstring("MS:1002712") ||
             line_wo_spaces.hasSubstring("MS:1002713")
           )
           {
