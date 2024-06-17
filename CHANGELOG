@@ -26,10 +26,10 @@ Library:
 - better documentation for all SpectraFilter... tools (#7183)
 - TOPPView: offer Ion mobility view from 2D spectra view (#7423)
 - TOPPView: view ion mobility frames, irrespective of its MS level (formerly only MS1 was supported) (#7427)
+- OpenSwath: Add output on peak shape metrics to .osw file (#7222)
 
 New Tools:
 - IonMobilityBinning - Merges spectra with similar IM values and creates @p N output mzML's by discretizing the IM range (#7459)
-
 
 Fixes:
 - FileConverter: more robust (#7176)

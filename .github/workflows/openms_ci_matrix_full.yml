@@ -255,9 +255,9 @@ jobs:
           # Install eigen from choco
           choco install eigen -y --no-progress
           echo "eigen_choco=C:\ProgramData\chocolatey\lib\eigen\share\cmake" >> $GITHUB_OUTPUT
-
+          choco install doxygen.portable ghostscript graphviz -y --no-progress
+          
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            choco install doxygen.portable ghostscript graphviz -y --no-progress
             # uses a custom NSIS, which provides 8-k string support and has UltraModernUI integrated already
             curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
             ## overwrite existing NSIS (which has only 1k-string support)
@@ -272,9 +272,7 @@ jobs:
           brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@5
           echo "cmake_prefix=$(brew --prefix qt@5)/lib/cmake;$(brew --prefix qt@5)" >> $GITHUB_OUTPUT
           echo "Qt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5" >> $GITHUB_ENV
-          if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            brew install --quiet doxygen ghostscript graphviz
-          fi
+          brew install --quiet doxygen ghostscript graphviz
         fi
 
     - name: Cache contrib (Windows)
@@ -307,7 +305,7 @@ jobs:
         # Restoring: From current branch/PR, otherwise from nightly, otherwise from any branch.
         restore-keys: |
           ${{ runner.os }}-${{ runner.arch }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}
-          ${{ runner.os }}-${{ runner.arch }}-ccache-nightly
+          ${{ runner.os }}-${{ runner.arch }}-ccache-develop
           ${{ runner.os }}-${{ runner.arch }}-ccache-
 
     - name: Add THIRDPARTY

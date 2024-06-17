@@ -131,11 +131,11 @@ namespace OpenMS
       // about the mass difference if no signal is present.
       if (!signalFound)
       {
+        diff_ppm.push_back(-1); // if no signal is found than we set the ppm to -1
         continue;
       }
 
       double ppm = Math::getPPM(mz, transition.getProductMZ());
-      diff_ppm.push_back(transition.getProductMZ());
       diff_ppm.push_back(ppm);
       ppm_score += std::fabs(ppm);
       ppm_score_weighted += std::fabs(ppm) * normalized_library_intensity[k];

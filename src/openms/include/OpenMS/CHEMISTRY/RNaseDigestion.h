@@ -52,7 +52,7 @@ namespace OpenMS
   protected:
     const Ribonucleotide* five_prime_gain_; ///< 5' mod added by the enzyme
     const Ribonucleotide* three_prime_gain_; ///< 3' mod added by the enzyme
-    std::vector<boost::regex> cuts_after_regexes_; ///< a vector of reg. exp. for enzyme cutting pattern
+    std::vector<boost::regex> cuts_after_regexes_; ///< a vector of reg. exp. for enzyme cutting pattern, each regex represents a single nucleotide
     std::vector<boost::regex> cuts_before_regexes_; ///< a vector reg. exp. for enzyme cutting pattern
 
     /**

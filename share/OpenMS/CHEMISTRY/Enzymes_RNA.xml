@@ -1,13 +1,32 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--To add new enzymes you must define a regex for where they cut, as well a regex
 (or a comma separated list of regexes for specificity for multiple successive sites) for what the enzyme cuts after
-and what it cuts before. Also be sure to add gains before and after the cut. -->
+and what it cuts before. Also be sure to add gains before and after the cut.
+Each enzyme NODE contains six items:
+
+Name - a string with the name of the enzyme to show to the user
+
+RegExDescription - a string describing how the enzyme cuts in plain English.
+
+CutsBefore - a string representation of one or more javascript styled regular expressions, separated by commas.
+  The rightmost regular expression matches the nucleotide that is immediately 5' of the cut-site,
+  if there are more comma separated regex's, each one matches a single nucleotide "upstream" of the cut site (eg A,G|C,U would cut only after AGU or ACU).
+
+CutsAfter - a string representation of one or more javascript styled regular expressions, separated by commas.
+  The leftmost regular expression matches the nucleotide that is immediately 3' of the cut-site,
+  if there are more comma separated regex's, each one matches a single nucleotide "downstream" of the cut site (eg A,G|C,U would cut only before AGU or ACU).
+
+ThreePrimeGain - a string with the short name of a modomics entry that gets added to the 3' end of the "upstream" nucleotide after a cut.
+  Currently only p is used (representing the retention of a phosphate after enzymatic cleavage.
+
+FivePrimeGain - a string with the short name of a modomics entry that gets added to the 5' end of the "downstream" nucleotide after a cut.
+  Currently only p is used (representing the retention of a phosphate after enzymatic cleavage.
+ -->
 
 <PARAMETERS>
   <NODE name="Enzymes">
     <NODE name="RNase_T1">
       <ITEM name="Name" value="RNase_T1" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=G)" type="string" />
       <ITEM name="RegExDescription" value="RNase T1 cuts after G." type="string" />
       <ITEM name="CutsAfter" value="G(?!m)" type="string" />
       <ITEM name="CutsBefore" value=".*" type="string" />
@@ -16,7 +35,6 @@ and what it cuts before. Also be sure to add gains before and after the cut. -->
     </NODE>
     <NODE name="RNase_T1_Phosphatase">
       <ITEM name="Name" value="RNase_T1_Phosphatase" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=G)" type="string" />
       <ITEM name="RegExDescription" value="RNase T1 cuts after G. Then a phosphatase is added to remove the 3' terminal phosphate" type="string" />
       <ITEM name="CutsAfter" value="G(?!m)" type="string" />
       <ITEM name="CutsBefore" value=".*" type="string" />
@@ -25,7 +43,6 @@ and what it cuts before. Also be sure to add gains before and after the cut. -->
     </NODE>
     <NODE name="cusativin">
       <ITEM name="Name" value="cusativin" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=C)(?!C)" type="string" />
       <ITEM name="RegExDescription" value="Cusativin cuts after a row of Cs." type="string" />
       <ITEM name="CutsAfter" value="C(?!m)" type="string" />
       <ITEM name="CutsBefore" value="^[^C]+$" type="string" />
@@ -34,7 +51,6 @@ and what it cuts before. Also be sure to add gains before and after the cut. -->
     </NODE>
     <NODE name="RNase_U2">
       <ITEM name="Name" value="RNase_U2" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=A|G)" type="string" />
       <ITEM name="RegExDescription" value="RNase U2 cuts after A or G." type="string" />
       <ITEM name="CutsAfter" value="G|A(?!m)" type="string" />
       <ITEM name="CutsBefore" value=".*" type="string" />
@@ -43,7 +59,6 @@ and what it cuts before. Also be sure to add gains before and after the cut. -->
     </NODE>
     <NODE name="RNase_A">
       <ITEM name="Name" value="RNase_A" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=C|U)" type="string" />
       <ITEM name="RegExDescription" value="RNase A cuts after C or U." type="string" />
       <ITEM name="CutsAfter" value="[CUY](?!m)" type="string" />
       <ITEM name="CutsBefore" value=".*" type="string" />
@@ -52,7 +67,6 @@ and what it cuts before. Also be sure to add gains before and after the cut. -->
     </NODE>
     <NODE name="RNase_MC1">
       <ITEM name="Name" value="RNase_MC1" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=U)" type="string" />
       <ITEM name="RegExDescription" value="RNase MC1 cuts before U." type="string" />
       <ITEM name="CutsAfter" value=".*(?!m)$" type="string" />
       <ITEM name="CutsBefore" value="U|Y" type="string" />
@@ -61,16 +75,30 @@ and what it cuts before. Also be sure to add gains before and after the cut. -->
     </NODE>
     <NODE name="RNase_H">
       <ITEM name="Name" value="RNase_H" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=.)" type="string" />
       <ITEM name="RegExDescription" value="RNase H can cut anywhere (in an RNA-DNA duplex)." type="string" />
       <ITEM name="CutsAfter" value=".*" type="string" />
       <ITEM name="CutsBefore" value=".*" type="string" />
       <ITEM name="ThreePrimeGain" value="" type="string" />
       <ITEM name="FivePrimeGain" value="p" type="string" />
     </NODE>
+    <NODE name="RNase_4">
+      <ITEM name="Name" value="RNase_4" type="string" />
+      <ITEM name="RegExDescription" value="RNase 4 cuts after U (or modified U) only if followed by A or G. NB: 3' ends are Heterogenous, run in parallel with RNase_4p to get 3'p as well" type="string" />
+      <ITEM name="CutsAfter" value="U|P|\]|D|5" type="string" />
+      <ITEM name="CutsBefore" value="G|A" type="string" />
+      <ITEM name="ThreePrimeGain" value="" type="string" />
+      <ITEM name="FivePrimeGain" value="" type="string" />
+    </NODE>
+    <NODE name="RNase_4p">
+      <ITEM name="Name" value="RNase_4p" type="string" />
+      <ITEM name="RegExDescription" value="RNase 4 cuts after U (or modified U) only if followed by A or G. NB: 3' ends are Heterogenous, run in parallel with RNase_4 to get 3'OH as well" type="string" />
+      <ITEM name="CutsAfter" value="U|P|m1Y|D|5" type="string" />
+      <ITEM name="CutsBefore" value="G|A" type="string" />
+      <ITEM name="ThreePrimeGain" value="p" type="string" />
+      <ITEM name="FivePrimeGain" value="" type="string" />
+    </NODE>        
     <NODE name="mazF">
       <ITEM name="Name" value="mazF" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=(?&lt;!m6)A,(?&lt;!m5)C,A)" type="string" />
       <ITEM name="RegExDescription" value="mazF cuts before ACA but does not cut if the first A is an m6A OR the C is an m5C. NB cleaving behaviour relative to other methylation is not considered" type="string" />
       <ITEM name="CutsAfter" value=".*" type="string" />
       <ITEM name="CutsBefore" value="(?&lt;!m6)A,(?&lt;!m5)C,A" type="string" />
@@ -79,7 +107,6 @@ and what it cuts before. Also be sure to add gains before and after the cut. -->
     </NODE>
     <NODE name="colicin_E5">
       <ITEM name="Name" value="colicin_E5" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=G|Q)U" type="string" />
       <ITEM name="RegExDescription" value="colicin E5 cuts after G (or Q) followed by U." type="string" />
       <ITEM name="CutsAfter" value="G|Q(?!m)" type="string" />
       <ITEM name="CutsBefore" value="U" type="string" />
@@ -88,14 +115,12 @@ and what it cuts before. Also be sure to add gains before and after the cut. -->
     </NODE>
     <NODE name="no cleavage">
       <ITEM name="Name" value="no cleavage" type="string" />
-      <ITEM name="RegEx" value="()" type="string" />
       <ITEM name="RegExDescription" value="No cleavage." type="string" />
       <ITEM name="CutsAfter" value="" type="string" />
       <ITEM name="CutsBefore" value="" type="string" />
     </NODE>
     <NODE name="unspecific cleavage">
       <ITEM name="Name" value="unspecific cleavage" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=.)" type="string" />
       <ITEM name="RegExDescription" value="Unspecific cleavage cuts at every site." type="string" />
       <ITEM name="CutsAfter" value=".*" type="string" />
       <ITEM name="CutsBefore" value=".*" type="string" />
