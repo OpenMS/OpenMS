@@ -679,7 +679,9 @@ class _MSSpectrumDF(_MSSpectrum):
         df = _pd.DataFrame({'mz': mzs, 'intensity': intensities})
 
         cnt = df.shape[0]
-
+        
+        # ion mobility
+        df['ion_mobility'] = _np.array([i for i in self.getFloatDataArrays()[0]]) if self.containsIMData() else _np.nan
         df['ion_mobility_unit'] = _np.full(cnt, self.getDriftTimeUnitAsString(), dtype=_np.dtype(f'U{len(self.getDriftTimeUnitAsString())}'))
 
         df['ms_level'] = _np.full(cnt, self.getMSLevel(), dtype=_np.dtype('uint16'))
