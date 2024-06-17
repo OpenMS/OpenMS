@@ -12,7 +12,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
+#include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
 
 namespace OpenMS
 {

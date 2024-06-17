@@ -1040,54 +1040,6 @@ END_SECTION
 
 START_SECTION((String& operator+= (long double d)))
 {
-  /*
-  NOTE (by Clemens): Windows platforms do not really support long double.  See
-  <CONCEPT/Types.h>.  I am leaving this code here because it will help to
-  clarify how to set writtenDigits on new platforms.
-  */
-#if 0
-#define ECHO_AND_DO(bla) STATUS(""#bla); bla
-#define ECHO_AND_VALUE(bla) STATUS(""#bla << ": " << bla);
-  typedef long double longdouble;
-
-  ECHO_AND_VALUE(sizeof(double));
-  ECHO_AND_VALUE(std::numeric_limits<double>::digits);
-  ECHO_AND_VALUE(std::numeric_limits<double>::digits10);
-  ECHO_AND_VALUE(writtenDigits<double>(0.0));
-
-  ECHO_AND_DO(std::cout.precision(std::numeric_limits<double>::digits10));
-  ECHO_AND_VALUE(typeAsString(7.4) << ": " << 7.4);
-  ECHO_AND_VALUE(typeAsString(7.4L) << ": " << 7.4L);
-
-  ECHO_AND_DO(std::cout.precision( writtenDigits<>(double()) ));
-  ECHO_AND_VALUE(typeAsString(7.4) << ": " << 7.4);
-  ECHO_AND_VALUE(typeAsString(7.4L) << ": " << 7.4L);
-
-  ECHO_AND_VALUE(sizeof(long double));
-  ECHO_AND_VALUE(std::numeric_limits<long double>::digits);
-  ECHO_AND_VALUE(std::numeric_limits<long double>::digits10);
-  ECHO_AND_VALUE( writtenDigits<>( longdouble() ) );
-
-  ECHO_AND_DO(std::cout.precision(std::numeric_limits<long double>::digits10));
-  STATUS(typeAsString(7.4) << ": " << 7.4);
-  STATUS(typeAsString(7.4L) << ": " << 7.4L);
-
-  ECHO_AND_DO(std::cout.precision(writtenDigits<>( longdouble() )));
-  STATUS(typeAsString(7.4) << ": " << 7.4);
-  STATUS(typeAsString(7.4L) << ": " << 7.4L);
-
-  const UInt save_prec  = std::cout.precision();
-  for ( UInt prec = 10; prec <= 30; ++prec)
-  {
-    std::cout.precision(prec);
-    STATUS("prec: " << prec << "   7.4: " << 7.4 << "   7.4L: " << 7.4L);
-  }
-  std::cout.precision(save_prec);
-
-#undef ECHO_AND_DO
-#undef ECHO_AND_VALUE
-#endif /* End of funny stuff by Clemens */
-
   String s = "test";
   // long double x = 7.4; // implictly double (not long double!)  =>  7.40000000000000036
   long double x = 7.4L; // explictly long double  =>  7.4

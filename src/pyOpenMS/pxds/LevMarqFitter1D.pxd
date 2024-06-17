@@ -1,6 +1,6 @@
 from Fitter1D cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/LevMarqFitter1D.h>" namespace "OpenMS":
     
     cdef cppclass LevMarqFitter1D(Fitter1D):
         # wrap-ignore

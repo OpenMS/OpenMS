@@ -7,7 +7,7 @@ from MRMFeature cimport *
 from MRMTransitionGroup cimport *
 from DPosition cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/EmgScoring.h>" namespace "OpenMS":
     
     cdef cppclass EmgScoring "OpenMS::EmgScoring":
         EmgScoring() except + nogil  # wrap-doc:Helps in scoring of an elution peak using an exponentially modified gaussian distribution model

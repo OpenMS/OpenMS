@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
-#include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
-#include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
+#include <OpenMS/ML/CLUSTERING/ClusterAnalyzer.h>
+#include <OpenMS/ML/CLUSTERING/ClusterHierarchical.h>
+#include <OpenMS/ML/CLUSTERING/CompleteLinkage.h>
+#include <OpenMS/ML/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <algorithm>
 #include <iostream>

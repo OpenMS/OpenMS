@@ -23,13 +23,13 @@
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
-#include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
-#include <OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>
-#include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+#include <OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>
+#include <OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>
+#include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
+#include <OpenMS/FEATUREFINDER/FeatureFindingMetabo.h>
+#include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MSstatsFile.h>
@@ -39,15 +39,15 @@
 #include <OpenMS/KERNEL/ConversionHelper.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MassTrace.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 
-#include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
+#include <OpenMS/ML/SVM/SimpleSVM.h>
 
 using namespace OpenMS;
 using namespace std;

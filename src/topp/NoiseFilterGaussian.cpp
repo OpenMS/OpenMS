@@ -12,7 +12,7 @@
 // TODO remove needed here for transform
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
+#include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 

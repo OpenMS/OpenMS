@@ -8,8 +8,10 @@
 
 #pragma once
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <cmath>
 
@@ -42,7 +44,10 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI AAIndex
   {
+
 public:
+    /// Constructor not implemented
+    AAIndex() = delete;
 
     /// Returns if the residue is aliphatic (1.0 or 0.0)
     static double aliphatic(char aa)
@@ -1233,11 +1238,6 @@ protected:
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown amino acid one-letter-code", String(aa));
       }
     }
-
-private:
-
-    ///Constructor not implemented => private
-    AAIndex();
   };
 
 }

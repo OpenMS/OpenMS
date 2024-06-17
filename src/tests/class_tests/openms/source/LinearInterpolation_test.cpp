@@ -9,7 +9,7 @@
 ///////////////////////////
 
 // This one is going to be tested.
-#include <OpenMS/MATH/MISC/LinearInterpolation.h>
+#include <OpenMS/ML/INTERPOLATION/LinearInterpolation.h>
 
 ///////////////////////////
 
@@ -22,7 +22,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 ///////////////////////////
 

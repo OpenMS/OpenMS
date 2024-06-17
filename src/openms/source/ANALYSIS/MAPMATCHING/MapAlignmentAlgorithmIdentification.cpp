@@ -9,7 +9,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 using namespace std;
 

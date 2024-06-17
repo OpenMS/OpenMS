@@ -17,7 +17,7 @@ jobs:
   build-win:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         path: OpenMS
       
@@ -110,7 +110,7 @@ jobs:
 
           # build pyopenms distribution
           cmake --version
-          cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
+          cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=4 .
           cmake --build . --config Release --target pyopenms
 
           # copy to directory
@@ -127,13 +127,15 @@ jobs:
     - uses: actions/upload-artifact@v4
       name: Upload artifacts
       with:
-        name: ${{ runner.os }}-wheels
+        name: ${{ runner.os }}-${{ runner.arch }}-wheels
         path: bld/pyopenms_whls
-
-  build-macos:
+        
+  build-macos-arm:
     runs-on: macos-latest
+    env:
+      SYSTEM_VERSION_COMPAT: 0 # workaround for mac see https://github.com/actions/setup-python/issues/469 for details.
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         path: OpenMS
 
@@ -142,20 +144,10 @@ jobs:
       with:
         cmake-version: '3.25.x'
 
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v3
-      with:
-        version: '5.12.7'
-        host: 'mac'
-        target: 'desktop'
-        install-deps: 'true'
-        cache: 'false'
-        setup-python: 'false' # https://github.com/jurplel/install-qt-action/issues/130
-
     - name: Install Miniconda
       shell: bash
       run: |
-            MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
+            MINICONDA_FILENAME=Miniconda3-latest-MacOSX-arm64.sh
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
 
@@ -168,60 +160,33 @@ jobs:
     - name: Install build tools
       run: brew install autoconf automake libtool
 
-    - name: Load contrib build
+    - name: Install contrib packages from brew
       run: |
-          mkdir contribbld
-          cd contribbld
-          curl -o contribbld.tar.gz https://abibuilder.cs.uni-tuebingen.de/archive/openms/contrib/macOS/10.15.5/x64/appleclang-11.0.0/contrib_build.tar.gz
-          tar -xzf contribbld.tar.gz
-          rm contribbld.tar.gz
-          cd .. 
-
-    - name: Load contrib and build OpenMP
-      run: |
-          git clone https://github.com/OpenMS/contrib.git
-          cd contribbld
-          cmake -DBUILD_TYPE=OPENMP -DNUMBER_OF_JOBS=4 -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 ../contrib
-
-    - name: Fix contrib install names
-      shell: bash
-      run: |
-          for lib in $GITHUB_WORKSPACE/contribbld/lib/*.dylib
-          do
-            install_name_tool -id $lib $lib
-          done
+        ## Needed for Qt. Install before to overwrite the default softlinks on the GH runners
+        brew install python3 --force --overwrite
+        brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
+        brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@5 libomp
+        echo "cmake_prefix=$(brew --prefix qt@5)/lib/cmake;$(brew --prefix qt@5)" >> $GITHUB_OUTPUT
+        echo "Qt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5" >> $GITHUB_ENV
+        if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
+          brew install --quiet doxygen ghostscript graphviz
+        fi
 
     - name: Build
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         export CC=clang
         export CXX=clang++
-        export MACOSX_DEPLOYMENT_TARGET=10.9
+        export MACOSX_DEPLOYMENT_TARGET=12
         # Unfortunately, on macOS due to the inofficial way of enabling OpenMP on AppleClang, passing the following
         # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
         export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
         export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
 
-        # create symlinks like brew https://github.com/Homebrew/homebrew-core/blob/master/Formula/qt.rb#L61
-        pushd $Qt5_Dir/include
-          for f in $Qt5_Dir/lib/*.framework/Headers
-          do
-            lnknm=$(basename "${f%/*}" ".framework")
-            ln -s $f $lnknm
-          done
-          for f in $Qt5_Dir/lib/*.framework/Versions/5/Qt*
-          do
-            install_name_tool -id $Qt5_Dir/lib/$(basename $f).framework/Versions/Current/$(basename $f) $f
-          done
-          for f in $Qt5_Dir/lib/*.framework/Versions/Current/Qt*
-          do
-            install_name_tool -id $f $f
-          done
-        popd
         mkdir bld
         pushd bld
         # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
-        cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir};$GITHUB_WORKSPACE/contribbld/lib/" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
+        cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=12 -DBOOST_USE_STATIC=OFF ../OpenMS
         make -j4 OpenMS
 
         mkdir pyopenms_whls
@@ -245,7 +210,7 @@ jobs:
           pip install -U pandas
 
           # build pyopenms distribution (macOS)
-          cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
+          cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=4 .
           make -j4 pyopenms
 
           # copy to directory
@@ -272,12 +237,113 @@ jobs:
     - uses: actions/upload-artifact@v4
       name: Upload wheels
       with:
-        name: ${{ runner.os }}-wheels
+        name: ${{ runner.os }}-${{ runner.arch }}-wheels
+        path: bld/pyopenms_whls
+        
+  build-macos:
+    runs-on: macos-13
+    env:
+      SYSTEM_VERSION_COMPAT: 0 # workaround for mac see https://github.com/actions/setup-python/issues/469 for details.
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        path: OpenMS
+
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v2
+      with:
+        cmake-version: '3.25.x'
+
+    - name: Install Miniconda
+      shell: bash
+      run: |
+            MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
+            bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+
+    - name: Setup conda paths
+      shell: bash
+      run: |
+        echo "$HOME/miniconda3/bin" >> $GITHUB_PATH
+        echo "$HOME/miniconda3/Scripts" >> $GITHUB_PATH
+
+    - name: Install build tools
+      run: brew install autoconf automake libtool
+
+    - name: Install contrib packages from brew
+      run: |
+        ## Needed for Qt. Install before to overwrite the default softlinks on the GH runners
+        brew install python3 --force --overwrite
+        brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
+        brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@5 libomp
+        echo "cmake_prefix=$(brew --prefix qt@5)/lib/cmake;$(brew --prefix qt@5)" >> $GITHUB_OUTPUT
+        echo "Qt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5" >> $GITHUB_ENV
+        if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
+          brew install --quiet doxygen ghostscript graphviz
+        fi
+
+    - name: Build
+      run: |
+        PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
+        export CC=clang
+        export CXX=clang++
+        export MACOSX_DEPLOYMENT_TARGET=12
+        # Unfortunately, on macOS due to the inofficial way of enabling OpenMP on AppleClang, passing the following
+        # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
+        export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
+        export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
+
+        mkdir bld
+        pushd bld
+        # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
+        cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=12 -DBOOST_USE_STATIC=OFF ../OpenMS
+        make -j4 OpenMS
+
+        mkdir pyopenms_whls
+
+        for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
+          py=$(echo "$py" | tr -d " \n")
+          pynodot=$(echo "$py" | tr -d ".")
+          conda create -n pyoms-bld-"${pynodot}" python="${py}"
+          source activate pyoms-bld-"${pynodot}"
+
+          # set current python executable
+          CURRENT_PYTHON_EXECUTABLE=$(which python)
+
+          # pip install all the stuff
+          pip install -U setuptools
+          pip install -U pip
+          pip install -U autowrap
+          pip install -U pytest
+          pip install -U numpy
+          pip install -U wheel
+          pip install -U pandas
+
+          # build pyopenms distribution (macOS)
+          cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=4 .
+          make -j4 pyopenms
+
+          # copy to directory
+          cp pyOpenMS/dist/*.whl pyopenms_whls/
+
+          # clean up
+          conda deactivate
+          conda remove --name pyoms-bld-"${pynodot}" --all
+
+          # clean previous pyopenms libs
+          find . -name "pyopenms*.so" -exec rm -rf {} \;
+
+        done
+        
+    - uses: actions/upload-artifact@v4
+      name: Upload wheels
+      with:
+        name: ${{ runner.os }}-${{ runner.arch }}-wheels
         path: bld/pyopenms_whls
 
   build-lnx:
     runs-on: ubuntu-latest
-    container: ghcr.io/openms/contrib_manylinux2014:latest
+    container: ghcr.io/openms/contrib_manylinux_2_28:latest
 
     steps:
     # Cancels older builds if still running
@@ -286,7 +352,7 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       name: Checkout sources
       with:
         path: OpenMS
@@ -318,16 +384,21 @@ jobs:
           py=$(echo "$py" | tr -d " \n")
           pynodot=$(echo "$py" | tr -d ".")
           PYBIN=$(echo /opt/python/cp*${pynodot})
+          
+          # Create a venv for this python version
+          "$PYBIN/bin/python" -m venv $pynodot
+          source $pynodot/bin/activate
+          
           "$PYBIN/bin/pip" install -U pip
           "$PYBIN/bin/pip" install -U Cython
           "$PYBIN/bin/pip" install -U setuptools
-          "$PYBIN/bin/pip" install -U wheel==0.31.1
+          "$PYBIN/bin/pip" install -U wheel
           "$PYBIN/bin/pip" install -U numpy
           "$PYBIN/bin/pip" install -U pytest
           "$PYBIN/bin/pip" install -U autowrap
 
           # configure (don't copy deps since we use auditwheel)
-          cmake -DNO_DEPENDENCIES=ON -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" $GITHUB_WORKSPACE/OpenMS
+          cmake -DNO_DEPENDENCIES=ON -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" -DPY_NUM_THREADS=4 $GITHUB_WORKSPACE/OpenMS
           make -j4 pyopenms
           
           # ensure auditwheel can find the libraries
@@ -349,24 +420,27 @@ jobs:
           
           # clean previous pyopenms libs
           rm pyOpenMS/pyopenms/_pyopenms*.so
-        
+          # deactivate the venv
+          deactivate
         done
 
     - uses: actions/upload-artifact@v4
       name: Upload artifacts
       with:
-        name: ${{ runner.os }}-wheels
+        name: ${{ runner.os }}-${{ runner.arch }}-wheels
         path: data/wheelhouse/
 
 # Tests the build workflows
   test:
-    needs: [build-win, build-macos, build-lnx]
+    needs: [build-win, build-macos, build-lnx, build-macos-arm]
     runs-on: ${{ matrix.os }}
+    env:
+      SYSTEM_VERSION_COMPAT: 0 #courtesy of https://github.com/actions/setup-python/issues/469 in lieu of an actual solution.
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-13, windows-latest, macos-latest]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       name: Checkout sources
       with:
         path: OpenMS
@@ -378,8 +452,12 @@ jobs:
             MINICONDA_FILENAME=Miniconda3-latest-Linux-x86_64.sh
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
-          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+          elif [[ "${{ runner.os }}" == "macOS" && "${{ runner.arch }}" == "X64" ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
+            bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+          elif [[ "${{ runner.os }}" == "macOS" && "${{ runner.arch }}" == "ARM64"  ]]; then
+            MINICONDA_FILENAME=Miniconda3-latest-MacOSX-arm64.sh
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
           elif [[ "${{ runner.os }}" == "Windows" ]]; then
@@ -397,7 +475,7 @@ jobs:
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
-          name: ${{ runner.os }}-wheels
+          name: ${{ runner.os }}-${{ runner.arch }}-wheels
 
     - name: Test
       shell: bash 
@@ -447,18 +525,23 @@ jobs:
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
-          name: Linux-wheels
-          path: /home/runner/work/OpenMS/OpenMS/Linux-wheels
+          name: Linux-X64-wheels
+          path: /home/runner/work/OpenMS/OpenMS/Linux-X64-wheels
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
-          name: Windows-wheels
-          path: /home/runner/work/OpenMS/OpenMS/Windows-wheels
+          name: Windows-X64-wheels
+          path: /home/runner/work/OpenMS/OpenMS/Windows-X64-wheels
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
-          name: macOS-wheels
-          path: /home/runner/work/OpenMS/OpenMS/macOS-wheels
+          name: macOS-X64-wheels
+          path: /home/runner/work/OpenMS/OpenMS/macOS-X64-wheels
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+          name: macOS-ARM64-wheels
+          path: /home/runner/work/OpenMS/OpenMS/macOS-ARM64-wheels
 
     - name: Merge all artifacts
       run: |

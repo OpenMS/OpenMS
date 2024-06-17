@@ -9,7 +9,7 @@
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
 

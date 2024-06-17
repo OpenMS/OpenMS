@@ -196,7 +196,7 @@ namespace OpenMS::Internal
           while (child && !xl_ms_search_)
           {
             String accession = StringManager::convert(child->getAttribute(CONST_XMLCH("accession")));
-            if (accession == "MS:1002494") // accession for "cross-linking search"
+            if (accession == "MS:1002494") // accession for "crosslinking search"
             {
               xl_ms_search_ = true;
             }
@@ -2343,7 +2343,7 @@ namespace OpenMS::Internal
 
               while (cvp)
               {
-                if (XMLString::equals(cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002509"))) // cross-link donor
+                if (XMLString::equals(cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002509"))) // crosslink donor
                 {
                   String donor_val = StringManager::convert(cvp->getAttribute(CONST_XMLCH("value")));
                   xl_id_donor_map_.insert(make_pair(pep_id, donor_val));
@@ -2357,7 +2357,7 @@ namespace OpenMS::Internal
                   xl_mod_map_.insert(make_pair(pep_id, xl_mod_name));
                   donor_acceptor_found = true;
                 }
-                else if (XMLString::equals(cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002510"))) // cross-link acceptor
+                else if (XMLString::equals(cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002510"))) // crosslink acceptor
                 {
                   String acceptor_val = StringManager::convert(cvp->getAttribute(CONST_XMLCH("value")));
                   xl_id_acceptor_map_.insert(make_pair(pep_id, acceptor_val));

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 
 using namespace OpenMS;
 using namespace std;

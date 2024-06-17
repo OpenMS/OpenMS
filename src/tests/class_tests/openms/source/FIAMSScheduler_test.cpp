@@ -12,6 +12,10 @@
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/FIAMSScheduler.h>
 
+#include <OpenMS/SYSTEM/File.h>
+
+#include <QDir>
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -42,13 +46,19 @@ END_SECTION
 
 START_SECTION(FIAMSScheduler)
 {
-    FIAMSScheduler fia_scheduler(
-        String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input/params_test.csv")),
-        String(OPENMS_GET_TEST_DATA_PATH(""))
-    );
-    const vector<map<String, String>> samples = fia_scheduler.getSamples();
-    TEST_EQUAL(samples[0].at("time"), "10");
-    fia_scheduler.run();
+  QDir d;
+  String tmp_dir = d.currentPath().toStdString()  + "/"; // write output to current directory
+  FIAMSScheduler fia_scheduler(
+      String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input/params_test.csv")),
+      String(OPENMS_GET_TEST_DATA_PATH("")),
+      tmp_dir
+  );
+  const vector<map<String, String>> samples = fia_scheduler.getSamples();
+  TEST_EQUAL(samples[0].at("time"), "10");
+  fia_scheduler.run();
+  String outfile = String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/SerumTest_10.mzTab"));
+  String outfile2 = tmp_dir + "FIAMS_output/SerumTest_10.mzTab";
+  TEST_FILE_EQUAL(outfile2.c_str(), outfile.c_str());
 }
 END_SECTION
 

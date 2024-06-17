@@ -34,6 +34,7 @@
 				<UserParam type="int" name="MSGFPlusAdapter:1:min_peptide_length" value="6"/>
 				<UserParam type="int" name="MSGFPlusAdapter:1:max_peptide_length" value="40"/>
 				<UserParam type="int" name="MSGFPlusAdapter:1:matches_per_spec" value="1"/>
+				<UserParam type="int" name="MSGFPlusAdapter:1:min_peaks" value="10"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:add_features" value="false"/>
 				<UserParam type="int" name="MSGFPlusAdapter:1:max_mods" value="2"/>
 				<UserParam type="int" name="MSGFPlusAdapter:1:max_missed_cleavages" value="-1"/>

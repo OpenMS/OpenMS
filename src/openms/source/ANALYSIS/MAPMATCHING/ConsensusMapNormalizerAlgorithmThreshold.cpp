@@ -11,7 +11,7 @@
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 using namespace std;
 

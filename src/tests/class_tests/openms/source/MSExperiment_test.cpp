@@ -21,13 +21,37 @@
 
 ///////////////////////////
 
+using namespace OpenMS;
+using namespace std;
+
+
+MSExperiment createPeakMapWithRTs(std::vector<double> RTs)
+{
+  MSExperiment map;
+  MSSpectrum s;
+  for (auto rt : RTs)
+  {
+    s.setRT(rt);
+    map.addSpectrum(s);
+  }
+  return map;
+}
+
+MSExperiment setMSLevel(MSExperiment exp, std::vector<int> ms_levels)
+{
+  for (int i = 0; i < ms_levels.size(); ++i)
+  {
+    exp[i].setMSLevel(ms_levels[i]);
+  }
+  return exp;
+}
+
 START_TEST(MSExperiment, "$Id$");
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-using namespace OpenMS;
-using namespace std;
+
 
 PeakMap* ptr = nullptr;
 PeakMap* nullPointer = nullptr;
@@ -728,18 +752,7 @@ END_SECTION
 
 START_SECTION((Iterator RTBegin(CoordinateType rt)))
 {
-  PeakMap tmp;
-  MSSpectrum s;
-
-  s.setRT(30.0);
-  tmp.addSpectrum(s);
-  s.setRT(40.0);
-  tmp.addSpectrum(s);
-  s.setRT(45.0);
-  tmp.addSpectrum(s);
-  s.setRT(50.0);
-  tmp.addSpectrum(s);
-
+  PeakMap tmp = createPeakMapWithRTs({30, 40, 45, 50});
   PeakMap::Iterator it;
 
   it = tmp.RTBegin(20.0);
@@ -748,24 +761,13 @@ START_SECTION((Iterator RTBegin(CoordinateType rt)))
   TEST_REAL_SIMILAR(it->getRT(),30.0)
   it = tmp.RTBegin(31.0);
   TEST_REAL_SIMILAR(it->getRT(),40.0)
-  TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
+  TEST_TRUE(tmp.RTBegin(55.0) == tmp.end())
 }
 END_SECTION
 
 START_SECTION((Iterator RTEnd(CoordinateType rt)))
 {
-  PeakMap tmp;
-  MSSpectrum s;
-
-  s.setRT(30.0);
-  tmp.addSpectrum(s);
-  s.setRT(40.0);
-  tmp.addSpectrum(s);
-  s.setRT(45.0);
-  tmp.addSpectrum(s);
-  s.setRT(50.0);
-  tmp.addSpectrum(s);
-
+  PeakMap tmp = createPeakMapWithRTs({30, 40, 45, 50});
   PeakMap::Iterator it;
 
   it = tmp.RTEnd(20.0);
@@ -774,7 +776,144 @@ START_SECTION((Iterator RTEnd(CoordinateType rt)))
   TEST_REAL_SIMILAR(it->getRT(),40.0)
   it = tmp.RTEnd(31.0);
   TEST_REAL_SIMILAR(it->getRT(),40.0)
-  TEST_EQUAL(tmp.RTEnd(55.0) == tmp.end(), true)
+  TEST_TRUE(tmp.RTEnd(55.0) == tmp.end())
+}
+END_SECTION
+
+START_SECTION(ConstIterator getClosestSpectrumInRT(const double RT) const)
+{
+  const PeakMap tmp = createPeakMapWithRTs({30, 40, 45, 50});
+  PeakMap::ConstIterator it;
+
+  it = tmp.getClosestSpectrumInRT(-200.0);
+  TEST_TRUE(it == tmp.cbegin());
+  it = tmp.getClosestSpectrumInRT(20.0);
+  TEST_TRUE(it == tmp.cbegin());
+  it = tmp.getClosestSpectrumInRT(31.0);
+  TEST_TRUE(it == tmp.cbegin());
+  it = tmp.getClosestSpectrumInRT(34.9);
+  TEST_TRUE(it == tmp.cbegin());
+
+  it = tmp.getClosestSpectrumInRT(39);
+  TEST_TRUE(it == tmp.cbegin() + 1);
+  it = tmp.getClosestSpectrumInRT(41);
+  TEST_TRUE(it == tmp.cbegin() + 1);
+  it = tmp.getClosestSpectrumInRT(42.4);
+  TEST_TRUE(it == tmp.cbegin() + 1);
+
+  it = tmp.getClosestSpectrumInRT(44);
+  TEST_TRUE(it == tmp.cbegin() + 2);
+  it = tmp.getClosestSpectrumInRT(47);
+  TEST_TRUE(it == tmp.cbegin() + 2);
+
+  it = tmp.getClosestSpectrumInRT(47.6);
+  TEST_TRUE(it == tmp.cbegin() + 3);
+  it = tmp.getClosestSpectrumInRT(51);
+  TEST_TRUE(it == tmp.cbegin() + 3);
+  it = tmp.getClosestSpectrumInRT(5100000);
+  TEST_TRUE(it == tmp.cbegin() + 3);
+
+
+  const PeakMap tmp_empty;
+  it = tmp_empty.getClosestSpectrumInRT(47.6);
+  TEST_TRUE(it == tmp_empty.cend());
+}
+END_SECTION
+
+START_SECTION(Iterator getClosestSpectrumInRT(const double RT))
+{
+  // minimal version of the above, just to see if iterator types are correct
+  PeakMap tmp = createPeakMapWithRTs({30, 40, 45, 50});
+  PeakMap::Iterator it;
+
+  it = tmp.getClosestSpectrumInRT(-200.0);
+  TEST_TRUE(it == tmp.begin());
+
+  PeakMap tmp_empty;
+  it = tmp_empty.getClosestSpectrumInRT(47.6);
+  TEST_TRUE(it == tmp_empty.end());
+}
+END_SECTION
+
+
+START_SECTION(ConstIterator getClosestSpectrumInRT(const double RT, UInt ms_level) const)
+{
+  const PeakMap tmp = setMSLevel(createPeakMapWithRTs({30, 31, 32,       40, 41,       50,       60, 61}), {1, 2, 2,     1, 2,     1,      1, 2});
+  PeakMap::ConstIterator it;
+
+  it = tmp.getClosestSpectrumInRT(-200.0, 0); // MS-level 0 does not exist --> cend()
+  TEST_TRUE(it == tmp.cend());
+  it = tmp.getClosestSpectrumInRT(-200.0, 1);
+  TEST_TRUE(it == tmp.cbegin());
+  it = tmp.getClosestSpectrumInRT(-200.0, 2);
+  TEST_TRUE(it == tmp.cbegin() + 1);
+
+  it = tmp.getClosestSpectrumInRT(20.0, 1);
+  TEST_TRUE(it == tmp.cbegin());
+  it = tmp.getClosestSpectrumInRT(31.0, 1);
+  TEST_TRUE(it == tmp.cbegin());
+  it = tmp.getClosestSpectrumInRT(34.9, 1);
+  TEST_TRUE(it == tmp.cbegin());
+
+  it = tmp.getClosestSpectrumInRT(20.0, 2);
+  TEST_TRUE(it == tmp.cbegin() + 1);
+  it = tmp.getClosestSpectrumInRT(31.0, 2);
+  TEST_TRUE(it == tmp.cbegin() + 1);
+  it = tmp.getClosestSpectrumInRT(31.4, 2);
+  TEST_TRUE(it == tmp.cbegin() + 1);
+
+
+  it = tmp.getClosestSpectrumInRT(39, 1);
+  TEST_TRUE(it == tmp.cbegin() + 3);
+  it = tmp.getClosestSpectrumInRT(41, 1);
+  TEST_TRUE(it == tmp.cbegin() + 3);
+  it = tmp.getClosestSpectrumInRT(42.4, 1);
+  TEST_TRUE(it == tmp.cbegin() + 3);
+
+  it = tmp.getClosestSpectrumInRT(45.5, 1);
+  TEST_TRUE(it == tmp.cbegin() + 5);
+  it = tmp.getClosestSpectrumInRT(49, 1);
+  TEST_TRUE(it == tmp.cbegin() + 5);
+  it = tmp.getClosestSpectrumInRT(54.5, 1);
+  TEST_TRUE(it == tmp.cbegin() + 5);
+
+  it = tmp.getClosestSpectrumInRT(55.1, 1);
+  TEST_TRUE(it == tmp.cbegin() + 6);
+  it = tmp.getClosestSpectrumInRT(59.1, 1);
+  TEST_TRUE(it == tmp.cbegin() + 6);
+  it = tmp.getClosestSpectrumInRT(5100000, 1);
+  TEST_TRUE(it == tmp.cbegin() + 6);
+
+  it = tmp.getClosestSpectrumInRT(58, 2);
+  TEST_TRUE(it == tmp.cbegin() + 7);
+  it = tmp.getClosestSpectrumInRT(63, 2);
+  TEST_TRUE(it == tmp.cbegin() + 7);
+  it = tmp.getClosestSpectrumInRT(5100000, 2);
+  TEST_TRUE(it == tmp.cbegin() + 7);
+
+
+  const PeakMap tmp_empty;
+  it = tmp_empty.getClosestSpectrumInRT(47.6, 1);
+  TEST_TRUE(it == tmp_empty.cend());
+}
+END_SECTION
+
+START_SECTION(Iterator getClosestSpectrumInRT(const double RT, UInt ms_level))
+{
+  // minimal version of the above, just to see if iterator types are correct
+  PeakMap tmp = setMSLevel(createPeakMapWithRTs({30, 31, 32, 40, 41, 50, 60, 61}), {1, 2, 2, 1, 2, 1, 1, 2});
+  PeakMap::Iterator it;
+
+  it = tmp.getClosestSpectrumInRT(-200.0, 0); // MS-level 0 does not exist --> cend()
+  TEST_TRUE(it == tmp.cend());
+  it = tmp.getClosestSpectrumInRT(-200.0, 1);
+  TEST_TRUE(it == tmp.cbegin());
+  it = tmp.getClosestSpectrumInRT(-200.0, 2);
+  TEST_TRUE(it == tmp.cbegin() + 1);
+  
+  PeakMap tmp_empty;
+  it = tmp_empty.getClosestSpectrumInRT(47.6, 1);
+  TEST_TRUE(it == tmp_empty.cend());
 }
 END_SECTION
 

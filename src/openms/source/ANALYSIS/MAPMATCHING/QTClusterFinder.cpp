@@ -13,7 +13,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 //#define DEBUG_QTCLUSTERFINDER_IDS
 

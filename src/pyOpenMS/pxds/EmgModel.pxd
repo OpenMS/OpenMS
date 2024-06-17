@@ -1,7 +1,7 @@
 from InterpolationModel cimport *
 from String cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/EmgModel.h>" namespace "OpenMS":
     
     cdef cppclass EmgModel(InterpolationModel):
         # wrap-inherits:

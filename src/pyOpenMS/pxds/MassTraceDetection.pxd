@@ -10,7 +10,7 @@ from ProgressLogger cimport *
 
 from libcpp.vector cimport vector as libcpp_vector
 
-cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/MassTraceDetection.h>" namespace "OpenMS":
 
     cdef cppclass MassTraceDetection(ProgressLogger, DefaultParamHandler):
         # wrap-inherits:

@@ -17,8 +17,8 @@
 
 #include <boost/dynamic_bitset.hpp>
 
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
+#include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 
 using namespace std;
 

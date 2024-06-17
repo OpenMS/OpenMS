@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
+#include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>

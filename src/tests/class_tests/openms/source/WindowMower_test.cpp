@@ -12,7 +12,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 

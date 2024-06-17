@@ -9,8 +9,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
-#include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
+#include <OpenMS/ML/REGRESSION/LinearRegression.h>
+#include <OpenMS/ML/REGRESSION/QuadraticRegression.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
