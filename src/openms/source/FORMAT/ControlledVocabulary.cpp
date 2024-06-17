@@ -183,8 +183,22 @@ namespace OpenMS
       }
       if (line_wo_spaces.hasPrefix("remark:URL:"))
       {
-        // https://
-        url_ = line.substr(line.find_first_of('/') - 7).trim();
+        // Find the position of "http://" or "https://"
+        size_t httpPos = line.find("http://");
+        size_t httpsPos = line.find("https://");
+
+        // Determine the starting position of the URL
+        if (httpPos != std::string::npos) 
+        {
+          url_ = line.substr(httpPos).trim();
+        } else if (httpsPos != std::string::npos) 
+        {
+          url_ = line.substr(httpsPos).trim();
+        } else 
+        {
+          // No URL found
+          std::cerr << "No URL found in the line." << std::endl;
+        }
       }
 
       //********************************************************************************
@@ -382,7 +396,8 @@ namespace OpenMS
             term.xref_type = CVTerm::XSD_STRING;
             continue;
           }
-          if (line_wo_spaces.hasSubstring("xsd:integer") || line_wo_spaces.hasSubstring("value-type:xsd:int"))
+          if (line_wo_spaces.hasSubstring("xsd:integer") 
+          || line_wo_spaces.hasSubstring("xsd:int"))
           {
             term.xref_type = CVTerm::XSD_INTEGER;
             continue;
@@ -428,6 +443,15 @@ namespace OpenMS
           if (line_wo_spaces.hasSubstring("xsd:anyURI"))
           {
             term.xref_type = CVTerm::XSD_ANYURI;
+            continue;
+          }
+          if (
+            line_wo_spaces.hasSubstring("MS:1002711") ||
+            line_wo_spaces.hasSubstring("MS:1002712") ||
+            line_wo_spaces.hasSubstring("MS:1002713")
+          )
+          {
+            term.xref_type = CVTerm::XSD_STRING; // store list as string
             continue;
           }
           cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << "\n";
