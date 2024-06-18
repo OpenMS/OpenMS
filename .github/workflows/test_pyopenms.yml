@@ -31,7 +31,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest, windows-latest ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
         python-version: ${{ fromJson(needs.read-python-versions.outputs.matrix) }}
     steps:
       - name: Set up Python ${{ matrix.python-version }}
