@@ -103,7 +103,7 @@ jobs:
           pip install -U pip
           pip install -U autowrap
           pip install -U pytest
-          pip install --force-reinstall numpy<=1.26.4
+          pip install 'numpy<=1.26.4'
           pip install -U wheel
 
           echo $CURRENT_PYTHON_EXECUTABLE
@@ -205,7 +205,7 @@ jobs:
           pip install -U pip
           pip install -U autowrap
           pip install -U pytest
-          pip install --force-reinstall numpy<=1.26.4
+          pip install 'numpy<=1.26.4'
           pip install -U wheel
           pip install -U pandas
 
@@ -315,7 +315,7 @@ jobs:
           pip install -U pip
           pip install -U autowrap
           pip install -U pytest
-          pip install --force-reinstall numpy<=1.26.4
+          pip install 'numpy<=1.26.4'
           pip install -U wheel
           pip install -U pandas
 
@@ -393,7 +393,7 @@ jobs:
           "$PYBIN/bin/pip" install -U Cython
           "$PYBIN/bin/pip" install -U setuptools
           "$PYBIN/bin/pip" install -U wheel
-          "$PYBIN/bin/pip" install --force-reinstall numpy<=1.26.4
+          "$PYBIN/bin/pip" install 'numpy<=1.26.4'
           "$PYBIN/bin/pip" install -U pytest
           "$PYBIN/bin/pip" install -U autowrap
 
