@@ -112,7 +112,6 @@ What's new:
 - Base64 encoding/decoding using the SIMDe library (#6978)
 - Filter features in ProteomicsLFQ according to feature p-value (additional parameters feature_with(out)_id_min_score, MBR is automatically active if targeted_only = false)
 - TOPPAS: filter TOPP tools by name for faster access when building a pipeline (#7139)
-- Breaking change: Rename of parameters for FeatureFinderCentroided (debug->advanced), and PeakPickerWavelet/TOFCalibration (optimization -> optimization:type) (#7154)
 
 Fixes:
 - Fix a crash when loading mzML data with multiple threads which contains non-MS spectra, e.g. 'electromagnetic radiation spectrum' (#7011)
