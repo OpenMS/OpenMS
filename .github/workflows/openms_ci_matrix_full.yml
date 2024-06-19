@@ -456,8 +456,8 @@ jobs:
         type: 'tar'
         directory: ${{ github.workspace }}
         path: OpenMS
-        exclusions: 'bld/* ./source.tar.gz THIRDPARTY/* .git/*'
-        filename: 'source.tar.gz'
+        exclusions: 'bld/* ./OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz THIRDPARTY/* .git/*'
+        filename: 'OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz'
 
         
 
@@ -466,9 +466,9 @@ jobs:
       if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
       uses: actions/upload-artifact@v4
       with:
-        name: source.tar.gz
+        name: OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
         path: |
-          ${{ github.workspace }}/source.tar.gz
+          ${{ github.workspace }}/OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
 
 
     # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
@@ -537,7 +537,7 @@ jobs:
       - name: Download source archive as artifact
         uses: actions/download-artifact@v4
         with:
-          name: source.tar.gz
+          name: OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
 
       - name: Download changelog as artifact
         if: inputs.do_release
