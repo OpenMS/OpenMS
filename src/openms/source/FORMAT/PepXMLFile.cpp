@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -6,10 +6,10 @@
 // $Authors: Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/CHEMISTRY/AASequence.h"
-#include "OpenMS/CHEMISTRY/Residue.h"
-#include "OpenMS/CONCEPT/Constants.h"
-#include "OpenMS/CONCEPT/Exception.h"
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>

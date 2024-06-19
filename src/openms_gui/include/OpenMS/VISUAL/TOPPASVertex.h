@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -52,9 +52,10 @@
 #include <QtWidgets/QGraphicsSceneMouseEvent>
 #include <QtWidgets/QGraphicsSceneContextMenuEvent>
 #include <QtWidgets/QGraphicsItem>
-#include <QtCore/QProcess>
 #include <QtWidgets/QMenu>
-#include <QStringList>
+
+#include <QtCore/QProcess>
+#include <QtCore/QStringList>
 
 namespace OpenMS
 {

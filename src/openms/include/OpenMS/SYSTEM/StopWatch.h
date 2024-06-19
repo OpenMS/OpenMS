@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -187,7 +187,7 @@ public:
 
 private:
   #ifdef OPENMS_WINDOWSPLATFORM
-    typedef OPENMS_UINT64_TYPE TimeType; ///< do not use clock_t on Windows, since its not big enough for larger time intervals
+    typedef UInt64 TimeType; ///< do not use clock_t on Windows, since its not big enough for larger time intervals
     static const long long SecondsTo100Nano_;  ///< 10 million; convert from 100 nanosecond ticks to seconds (factor of 1 billion/100 = 10 million)
   #else
     typedef clock_t TimeType;

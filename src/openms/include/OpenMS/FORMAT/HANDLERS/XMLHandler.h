@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -439,16 +439,15 @@ public:
 
 
       /**
-         @brief Convert the value of a <cvParam value=.> (as commonly found in PSI schemata) to the DataValue with the correct type (e.g. int) according to
+         @brief Convert the value of a <em>\<cvParam value=.\></em> (as commonly found in PSI schemata) to the DataValue with the correct type (e.g. int) according to
                 the type stored in the CV (usually PSI-MS CV), as well as set its unit.
 
          @param cv A CV, usually the PSI-MS CV, see ControlledVocabulary::getPSIMSCV()
-         @param parent_tag The tag which encloses the <cvParam>
-         @param accession The accession from the 'accession' attribute of the <cvParam>
-         @param name The name from the 'name' attribute of the <cvParam>
-         @param value The value from the 'value' attribute of the <cvParam>
-         @param unit_accession The unit_accession from the 'unitAccession' attribute of the <cvParam>
-         @param raw_term Represenation of the raw data (i.e. all strings) from a <cvParam ...> without the conversion to a specific value type
+         @param parent_tag The tag which encloses the \<cvParam\>
+         @param accession The accession from the 'accession' attribute of the \<cvParam\>
+         @param name The name from the 'name' attribute of the \<cvParam\>
+         @param value The value from the 'value' attribute of the \<cvParam\>
+         @param unit_accession The unit_accession from the 'unitAccession' attribute of the \<cvParam\>
          @return DataValue::EMPTY if a conversion error occured (e.g. if @p value could not be converted to an integer for an @p accession which requires an integer) or the DataValue upon success
       */
       DataValue cvParamToValue(const ControlledVocabulary& cv, const String& parent_tag, 
@@ -456,11 +455,11 @@ public:
                                const String& unit_accession) const;
 
       /**
-         @brief Convert the value of a <cvParam value=.> (as commonly found in PSI schemata) to the DataValue with the correct type (e.g. int) according to
+         @brief Convert the value of a <em>\<cvParam value=.\></em> (as commonly found in PSI schemata) to the DataValue with the correct type (e.g. int) according to
                 the type stored in the CV (usually PSI-MS CV), as well as set its unit.
 
          @param cv A CV, usually the PSI-MS CV, see ControlledVocabulary::getPSIMSCV()
-         @param raw_term Represenation of the raw data (i.e. all strings) from a <cvParam ...> without the conversion to a specific value type
+         @param raw_term Represenation of the raw data (i.e. all strings) from a \<cvParam ...\> without the conversion to a specific value type
          @return DataValue::EMPTY if a conversion error occured (e.g. if @p value could not be converted to an integer for an @p accession which requires an integer) or the DataValue upon success
       */
       DataValue cvParamToValue(const ControlledVocabulary& cv, const CVTerm& raw_term) const;

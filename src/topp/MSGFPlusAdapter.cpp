@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -21,6 +21,7 @@
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
 #include <QProcessEnvironment>
+#include <QLockFile>
 
 #include <algorithm>
 #include <fstream>
@@ -32,9 +33,9 @@
 //-------------------------------------------------------------
 
 /**
-   @page TOPP_MSGFPlusAdapter MSGFPlusAdapter
+@page TOPP_MSGFPlusAdapter MSGFPlusAdapter
 
-   @brief Adapter for the MS-GF+ protein identification (database search) engine.
+@brief Adapter for the MS-GF+ protein identification (database search) engine.
 
 <CENTER>
     <table>
@@ -50,42 +51,43 @@
     </table>
 </CENTER>
 
-    MS-GF+ must be installed before this wrapper can be used. Please make sure that Java and MS-GF+ are working.@n
-    At the time of writing, MS-GF+ can be downloaded from https://github.com/MSGFPlus/msgfplus/releases.
+MS-GF+ must be installed before this wrapper can be used. Please make sure that Java and MS-GF+ are working.@n
+At the time of writing, MS-GF+ can be downloaded from https://github.com/MSGFPlus/msgfplus/releases.
 
-    The following MS-GF+ version is required: <b>MS-GF+ 2019/07/03</b>. Older versions will not work properly, giving
-    an error: <em>[Error] Invalid parameter: -maxMissedCleavages.</em>
-    
-    Input spectra for MS-GF+ have to be centroided; profile spectra will raise an error in the adapter.
+The following MS-GF+ version is required: <b>MS-GF+ 2019/07/03</b>. Older versions will not work properly, giving
+an error: <em>[Error] Invalid parameter: -maxMissedCleavages.</em>
 
-    The first time MS-GF+ is applied to a database (FASTA file), it will index the file contents and
-    generate a number of auxiliary files in the same directory as the database (e.g. for "db.fasta": "db.canno", "db.cnlap", "db.csarr" and "db.cseq" will be generated).
-    It is advisable to keep these files for future MS-GF+ searches, to save the indexing step.@n
+Input spectra for MS-GF+ have to be centroided; profile spectra will raise an error in the adapter.
 
-    @note When a new database is used for the first time, make sure to run only one MS-GF+ search against it! Otherwise one process will start the 
-    indexing and the others will crash due to incomplete index files. After a database has been indexed, multiple MS-GF+ processes can use it in parallel.
+The first time MS-GF+ is applied to a database (FASTA file), it will index the file contents and
+generate a number of auxiliary files in the same directory as the database (e.g. for "db.fasta": "db.canno", "db.cnlap", "db.csarr" and "db.cseq" will be generated).
+It is advisable to keep these files for future MS-GF+ searches, to save the indexing step.@n
 
-    This adapter supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified 
-    by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
+@note This Adapter uses an internal locking mechanism (a file lock), to ensure that MSGF+ does not attempt to create the database index
+in parallel (which would fail badly) when multiple instances of this Adapter are run concurrently on the same FASTA database.
+After the database has been indexed, multiple MS-GF+ processes (even without this Adapters locking) can use it in parallel.
 
-    The adapter works in three steps to generate an idXML file: First MS-GF+ is run on the input MS data and the sequence database, 
-    producing an mzIdentML (.mzid) output file containing the search results. This file is then converted to a text file (.tsv) using MS-GF+' "MzIDToTsv" tool.
-    Finally, the .tsv file is parsed and a result in idXML format is generated.
+This adapter supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified 
+by 'OpenMS.ini:id_db_dir'.
 
-    An optional MSGF+ configuration file can be added via '-conf' parameter.
-    See https://github.com/MSGFPlus/msgfplus/blob/master/docs/examples/MSGFPlus_Params.txt for 
-    an example and consult the MSGF+ documentation for further details.
-    Parameters specified in the configuration file are ignored by MS-GF+ if they are also specified on the command line.
-    This adapter passes all flags which you can set on the command line, so use the configuration file <b>only</b> for parameters which
-    are not available here (this includes fixed/variable modifications, which are passed on the commandline via <code>-mod &lt;file&gt;</code>).
-    Thus, be very careful that your settings in '-conf' actually take effect (try running again without '-conf' file and test if the results change).
+The adapter works in three steps to generate an idXML file: First MS-GF+ is run on the input MS data and the sequence database, 
+producing an mzIdentML (.mzid) output file containing the search results. This file is then converted to a text file (.tsv) using MS-GF+' "MzIDToTsv" tool.
+Finally, the .tsv file is parsed and a result in idXML format is generated.
 
-    @note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
+An optional MSGF+ configuration file can be added via '-conf' parameter.
+See https://github.com/MSGFPlus/msgfplus/blob/master/docs/examples/MSGFPlus_Params.txt for 
+an example and consult the MSGF+ documentation for further details.
+Parameters specified in the configuration file are ignored by MS-GF+ if they are also specified on the command line.
+This adapter passes all flags which you can set on the command line, so use the configuration file <b>only</b> for parameters which
+are not available here (this includes fixed/variable modifications, which are passed on the commandline via <code>-mod &lt;file&gt;</code>).
+Thus, be very careful that your settings in '-conf' actually take effect (try running again without '-conf' file and test if the results change).
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_MSGFPlusAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MSGFPlusAdapter.html
+@note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MSGFPlusAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MSGFPlusAdapter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -172,6 +174,9 @@ protected:
     registerIntOption_("matches_per_spec", "<num>", 1, "Number of matches per spectrum to be reported (MS-GF+ parameter '-n')", false);
     setMinInt_("matches_per_spec", 1);
 
+    registerIntOption_("min_peaks", "<num>", 10, "Minimum number of ions a spectrum must have to be examined", false); 
+    setMinInt_("min_peaks", 10); 
+
     registerStringOption_("add_features", "<true/false>", "true", "Output additional features (MS-GF+ parameter '-addFeatures'). This is required by Percolator and hence by default enabled.", false, false);
     setValidStrings_("add_features", ListUtils::create<String>("true,false"));
     
@@ -191,9 +196,10 @@ protected:
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("fixed_modifications", "<mods>", {"Carbamidomethyl (C)"}, "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("variable_modifications", "<mods>", {"Oxidation (M)"}, "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'",
+                        false);
     setValidStrings_("variable_modifications", all_mods);
 
     registerFlag_("legacy_conversion", "Use the indirect conversion of MS-GF+ results to idXML via export to TSV. Try this only if the default conversion takes too long or uses too much memory.", true);
@@ -409,6 +415,74 @@ protected:
     id.setHigherScoreBetter(false);
   }
 
+  bool createLockedDBIndex(const String& db_name, const QString java_executable, const QString java_memory, const QString executable)
+  {
+    const String db_indexfile = FileHandler::stripExtension(db_name) + ".canno";
+    const QString lockfile = (db_name + ".lock").toQString();
+    QLockFile lock_db(lockfile);
+    OPENMS_LOG_DEBUG << "Checking for db index, using a lock file ..." << std::endl;
+    if (!lock_db.lock())
+    {
+      String msg;
+      switch (lock_db.error())
+      {
+        case QLockFile::NoError:
+          msg = "The lock was acquired successfully.";
+          break;
+        case QLockFile::LockFailedError:
+          msg = "The lock could not be acquired because another process holds it.";
+          break;
+        case QLockFile::PermissionError: // if we cannot create the log, hopefully noone else can (who runs on different accounts anyways?)
+          // so we may dare to check for existance of the index (even though we are not locked right now)
+          msg = "The lock file could not be created, for lack of permissions in the parent directory.";
+          if (!File::exists(db_indexfile))
+          {
+            OPENMS_LOG_ERROR << msg << " Checking index anyway: No database index found! Please make the directory writable or pre-create an DB index." << std::endl;
+            return false;
+          }
+          OPENMS_LOG_DEBUG << msg << " Checking index anyway: found it!" << std::endl;
+          return true;
+        case QLockFile::UnknownError:
+          msg = "Another error happened, for instance a full partition prevented writing out the lock file.";
+      };
+      OPENMS_LOG_ERROR << "An error occurred while trying to acquire a file lock: " << msg << " using the file '" << lockfile.toStdString()
+                       << "'.\nPlease check the previous error message and contact OpenMS support if you cannot solve the problem.";
+      return false;
+    }
+    // we have a lock: now check if we need to create a new index (which only one instance should do)
+    if (!File::exists(db_indexfile))
+    {
+      OPENMS_LOG_INFO << "\nNo database index found! Creating index while holding a lock ..." << std::endl;
+      QStringList process_params; // the actual process is Java, not MS-GF+!
+      // java -Xmx3500M -cp MSGFPlus.jar edu.ucsd.msjava.msdbsearch.BuildSA -d DatabaseFile
+      process_params << java_memory 
+                     << "-cp" << executable
+                     << "edu.ucsd.msjava.msdbsearch.BuildSA"
+                     << "-d" << db_name.toQString()
+                     << "-tda" << "0"; // do NOT add & index a reverse DB (i.e. '-tda=2'), since this DB may already contain FW+BW,
+                                       // and duplicating again will cause MSGF+ to error with 'too many redundant proteins'
+      
+      // collect all output since MSGF+ might return 'success' even though it did not like the command arguments (e.g. if the version is too old)
+      // If no output file is produced, we can print the stderr below.
+      String proc_stdout, proc_stderr;
+
+      TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable, process_params, proc_stdout, proc_stderr);
+      if (exit_code != EXECUTION_OK)
+      {
+        // if there was sth like a segfault, runExternalProcess_ will write a warning about the type of error,
+        //  but not print the output of the program.
+        OPENMS_LOG_ERROR << "The output of MSGF+'s Index Database Creation was:\nSTDOUT:\n" << proc_stdout << "\nSTDERR:\n" << proc_stderr << endl;
+        return false;
+      }
+      OPENMS_LOG_INFO << " ... done" << std::endl;
+    }
+
+    // free lock, since database index exists at this point
+    lock_db.unlock();
+    OPENMS_LOG_DEBUG << "... releasing DB lock" << std::endl;
+    return true;
+  }
+
   ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
@@ -424,18 +498,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    String java_executable = getStringOption_("java_executable");
-    String db_name = getDBFilename();
-
-    vector<String> fixed_mods = getStringList_("fixed_modifications");
-    vector<String> variable_mods = getStringList_("variable_modifications");
-    bool no_mods = fixed_mods.empty() && variable_mods.empty();
-    Int max_mods = getIntOption_("max_mods");
-    if ((max_mods == 0) && !no_mods)
-    {
-      writeLogWarn_("Warning: Modifications are defined ('fixed_modifications'/'variable_modifications'), but the number of allowed modifications is zero ('max_mods'). Is that intended?");
-    }
-
+    const String java_executable = getStringOption_("java_executable");
     if (!getFlag_("force"))
     {
       if (!JavaInfo::canRun(java_executable))
@@ -447,6 +510,25 @@ protected:
     else
     {
       writeLogWarn_("The installation of Java was not checked.");
+    }
+    
+    const QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
+    const QString executable = getStringOption_("executable").toQString();
+    
+    const String db_name = getDBFilename();
+    if (!createLockedDBIndex(db_name, java_executable.toQString(), java_memory, executable))
+    {
+      OPENMS_LOG_ERROR << "Could not create/verify database index. Aborting ..." << std::endl;
+      return ExitCodes::INTERNAL_ERROR;
+    }
+
+    vector<String> fixed_mods = getStringList_("fixed_modifications");
+    vector<String> variable_mods = getStringList_("variable_modifications");
+    bool no_mods = fixed_mods.empty() && variable_mods.empty();
+    Int max_mods = getIntOption_("max_mods");
+    if ((max_mods == 0) && !no_mods)
+    {
+      writeLogWarn_("Warning: Modifications are defined ('fixed_modifications'/'variable_modifications'), but the number of allowed modifications is zero ('max_mods'). Is that intended?");
     }
 
     // create temporary directory (and modifications file, if necessary):
@@ -469,8 +551,6 @@ protected:
     Int min_precursor_charge = getIntOption_("min_precursor_charge");
     Int max_precursor_charge = getIntOption_("max_precursor_charge");
     // parameters only needed for MS-GF+:
-    QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
-    QString executable = getStringOption_("executable").toQString();
     // no need to handle "not found" case - would have given error during parameter parsing:
     Int fragment_method_code = ListUtils::getIndex<String>(fragment_methods_, getStringOption_("fragment_method"));
     Int instrument_code = ListUtils::getIndex<String>(instruments_, getStringOption_("instrument"));
@@ -498,6 +578,7 @@ protected:
                    << "-ntt" << QString::number(tryptic_code)
                    << "-minLength" << QString::number(getIntOption_("min_peptide_length"))
                    << "-maxLength" << QString::number(getIntOption_("max_peptide_length"))
+                   << "-minNumPeaks" << QString::number(getIntOption_("min_peaks"))
                    << "-minCharge" << QString::number(min_precursor_charge)
                    << "-maxCharge" << QString::number(max_precursor_charge)
                    << "-maxMissedCleavages" << QString::number(getIntOption_("max_missed_cleavages"))
@@ -530,6 +611,9 @@ protected:
     TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params, proc_stdout, proc_stderr);
     if (exit_code != EXECUTION_OK)
     {
+      // if there was sth like a segfault, runExternalProcess_ will write a warning about the type of error,
+      //  but not print the output of the program.
+      OPENMS_LOG_ERROR << "The output of MSGF+ was:\nSTDOUT:\n" << proc_stdout << "\nSTDERR:\n" << proc_stderr << endl;
       return exit_code;
     }
 
@@ -541,7 +625,7 @@ protected:
       if (!File::exists(mzid_temp))
       {
         OPENMS_LOG_ERROR << "MSGF+ failed. Temporary output file '" << mzid_temp << "' was not created.\n"
-                         << "The output of MSGF+ was:\n" << proc_stdout << "\n" << proc_stderr << endl;
+                         << "The output of MSGF+ was:\nSTDOUT:\n" << proc_stdout << "\nSTDERR:\n" << proc_stderr << endl;
         return EXTERNAL_PROGRAM_ERROR;
       }
 
@@ -578,7 +662,7 @@ protected:
 
         // handle the search parameters
         ProteinIdentification::SearchParameters search_parameters;
-        search_parameters.db = getStringOption_("database");
+        search_parameters.db = db_name;
         search_parameters.charges = "+" + String(min_precursor_charge) + "-+" + String(max_precursor_charge);
         search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
         search_parameters.fixed_modifications = fixed_mods;

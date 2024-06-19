@@ -5,7 +5,7 @@ from ChromatogramPeak cimport *
 from Peak1D cimport *
 from DefaultParamHandler cimport *
 
-cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/FILTERING/ThresholdMower.h>" namespace "OpenMS":
 
     cdef cppclass ThresholdMower(DefaultParamHandler):
         # wrap-inherits:

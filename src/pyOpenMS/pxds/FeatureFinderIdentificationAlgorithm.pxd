@@ -8,7 +8,7 @@ from PeptideIdentification cimport *
 from ProteinIdentification cimport *
 from FeatureMap cimport * 
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>" namespace "OpenMS":
 
     cdef cppclass FeatureFinderIdentificationAlgorithm(DefaultParamHandler) :
         # wrap-inherits:

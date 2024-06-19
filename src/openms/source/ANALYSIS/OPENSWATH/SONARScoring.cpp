@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,8 +12,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h>
 
-#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/ML/REGRESSION/LinearRegression.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 
@@ -51,7 +51,7 @@ namespace OpenMS
     /// Cross Correlation array
     typedef OpenSwath::Scoring::XCorrArrayType XCorrArrayType;
     /// Cross Correlation matrix
-    typedef std::vector<std::vector<XCorrArrayType> > XCorrMatrixType;
+    typedef std::vector<std::vector<XCorrArrayType>> XCorrMatrixType;
 
     XCorrMatrixType xcorr_matrix;
     xcorr_matrix.resize(sonar_profiles.size());
@@ -187,20 +187,11 @@ namespace OpenMS
         OpenSwath::SpectrumPtr spectrum_ = swath_map->getSpectrumById(closest_idx);
 
         // integrate intensity within that scan
-        double left = transitions[k].getProductMZ();
-        double right = transitions[k].getProductMZ();
-        if (dia_extraction_ppm_)
-        {
-          left -= left * dia_extract_window_ / 2e6;
-          right += right * dia_extract_window_ / 2e6;
-        }
-        else
-        {
-          left -= dia_extract_window_ / 2.0;
-          right += dia_extract_window_ / 2.0;
-        }
-        double mz, intensity;
-        DIAHelpers::integrateWindow(spectrum_, left, right, mz, intensity, dia_centroided_);
+        RangeMZ mz_range = DIAHelpers::createMZRangePPM(transitions[k].getProductMZ(), dia_extract_window_, dia_extraction_ppm_);
+
+        double mz, intensity, im; // create im even though not used
+        RangeMobility im_range;
+        DIAHelpers::integrateWindow(spectrum_, mz, im, intensity, mz_range, im_range, dia_centroided_);
 
         sonar_profile.push_back(intensity);
         sonar_mz_profile.push_back(mz);

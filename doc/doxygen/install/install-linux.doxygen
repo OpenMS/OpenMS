@@ -4,7 +4,7 @@
 
   This document describes how to build %OpenMS on a GNU/Linux system from source.
   If you encounter errors during configuring/compiling our software,
-  have a look at our @ref known_dev_bugs section and search in our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>,
+  search in our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>,
   maybe the error is already known.
   If not, please write to the <a href="https://lists.sourceforge.net/lists/listinfo/open-ms-general">mailing list</a>
   or report the error on our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>.
@@ -233,7 +233,7 @@
   <tt>HAS_XSERVER=Off</tt>, especially as you may not have compiled Qt with
   OpenGL and you may not have an X server.
 
-  \includedoc "../doxygen/install/common-cmake-parameters.doxygen"
+  \include "../doxygen/install/common-cmake-parameters.doxygen"
 
   A full list of the CMake variables is shown when you execute
 

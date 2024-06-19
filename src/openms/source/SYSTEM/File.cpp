@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -37,18 +37,18 @@
 #endif
 
 
-#include <QObject>
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QUrl>
-#include <QDateTime>
-#include <QFile>
-#include <QDebug>
+#include <QtCore/QObject>
+#include <QtNetwork/QNetworkAccessManager>
+#include <QtNetwork/QNetworkRequest>
+#include <QtNetwork/QNetworkReply>
+#include <QtCore/QUrl>
+#include <QtCore/QDateTime>
+#include <QtCore/QFile>
+#include <QtCore/QDebug>
 
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
-#include <QDir>
-#include <QCoreApplication>
+#include <QtCore/QDir>
+#include <QtCore/QCoreApplication>
 #include <QtCore/QDateTime>
 #include <QtCore/QTimer>
 

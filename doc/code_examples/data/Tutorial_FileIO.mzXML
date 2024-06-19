@@ -1,19 +1,55 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<mzXML xmlns="http://sashimi.sourceforge.net/schema_revision/mzXML_2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/mzXML_2.0 http://sashimi.sourceforge.net/schema_revision/mzXML_2.0/mzXML_idx_2.0.xsd">
-	<msRun scanCount="3">
-		<parentFile fileName="File_test_1.raw" fileType="RAWData" fileSha1="0000000000000000000000000000000000000000"/>
+<mzXML xmlns="http://sashimi.sourceforge.net/schema_revision/mzXML_3.1" 
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+ xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/mzXML_3.1 http://sashimi.sourceforge.net/schema_revision/mzXML_3.1/mzXML_idx_3.1.xsd">
+	<msRun scanCount="3" startTime="PT60S" endTime="PT180S" >
+		<parentFile fileName="Tutorial_FileIO.mzXML" fileType="processedData" fileSha1="f8bb3bfb8b7b43adf9f6d124f7a75deb9aebc43b"/>
 		<dataProcessing deisotoped="0" chargeDeconvoluted="0" centroided="0">
 			<software type="conversion" name="MS-X" version="1.0"/>
 		</dataProcessing>
-		<scan num="1" msLevel="1" peaksCount="1" polarity="-" retentionTime="PT60S">
-			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QvAAAELIAAA=</peaks>
+		<dataProcessing deisotoped="0" chargeDeconvoluted="0" centroided="0">
+			<software type="processing" name="FileConverter" version="3.1.0-pre-disabled-20231216" completionTime="2024-02-09T15:03:39"/>
+			<processingOperation name="parameter: in" value="Tutorial_FileIO.mzXML"/>
+			<processingOperation name="parameter: in_type" value=""/>
+			<processingOperation name="parameter: UID_postprocessing" value="ensure"/>
+			<processingOperation name="parameter: out" value="Tutorial_FileIO.mzXML"/>
+			<processingOperation name="parameter: out_type" value=""/>
+			<processingOperation name="parameter: TIC_DTA2D" value="false"/>
+			<processingOperation name="parameter: MGF_compact" value="false"/>
+			<processingOperation name="parameter: force_MaxQuant_compatibility" value="false"/>
+			<processingOperation name="parameter: force_TPP_compatibility" value="false"/>
+			<processingOperation name="parameter: convert_to_chromatograms" value="false"/>
+			<processingOperation name="parameter: change_im_format" value="none"/>
+			<processingOperation name="parameter: write_scan_index" value="true"/>
+			<processingOperation name="parameter: lossy_compression" value="false"/>
+			<processingOperation name="parameter: lossy_mass_accuracy" value="-1.0"/>
+			<processingOperation name="parameter: process_lowmemory" value="false"/>
+			<processingOperation name="parameter: NET_executable" value=""/>
+			<processingOperation name="parameter: ThermoRaw_executable" value="ThermoRawFileParser.exe"/>
+			<processingOperation name="parameter: no_peak_picking" value="false"/>
+			<processingOperation name="parameter: no_zlib_compression" value="false"/>
+			<processingOperation name="parameter: include_noise" value="false"/>
+			<processingOperation name="parameter: log" value=""/>
+			<processingOperation name="parameter: debug" value="0"/>
+			<processingOperation name="parameter: threads" value="1"/>
+			<processingOperation name="parameter: no_progress" value="false"/>
+			<processingOperation name="parameter: force" value="false"/>
+			<processingOperation name="parameter: test" value="false"/>
+		</dataProcessing>
+		<scan num="1" msLevel="1" peaksCount="1" polarity="-" retentionTime="PT60S" basePeakMz="120.0">
+			<peaks precision="32" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="0" >QvAAAELIAAA=</peaks>
 		</scan>
-		<scan num="2" msLevel="1" peaksCount="3" polarity="+" retentionTime="PT120S">
-			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QtwAAELIAABC8AAAQ0gAAEMCAABCyAAA</peaks>
+		<scan num="2" msLevel="1" peaksCount="3" polarity="+" retentionTime="PT120S" basePeakMz="120.0">
+			<peaks precision="32" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="0" >QtwAAELIAABC8AAAQ0gAAEMCAABCyAAA</peaks>
 		</scan>
-		<scan num="3" msLevel="1" peaksCount="5" polarity="any" retentionTime="PT180S">
-			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QsgAAELIAABC3AAAQ0gAAELwAABDlgAAQwIAAENIAABDDAAAQsgAAA==</peaks>
+		<scan num="3" msLevel="1" peaksCount="5" polarity="any" retentionTime="PT180S" basePeakMz="120.0">
+			<peaks precision="32" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="0" >QsgAAELIAABC3AAAQ0gAAELwAABDlgAAQwIAAENIAABDDAAAQsgAAA==</peaks>
 		</scan>
 	</msRun>
-	<indexOffset>0</indexOffset>
+<index name = "scan" >
+<offset id = "1" >2775</offset>
+<offset id = "2" >3013</offset>
+<offset id = "3" >3272</offset>
+</index>
+<indexOffset>3565</indexOffset>
 </mzXML>

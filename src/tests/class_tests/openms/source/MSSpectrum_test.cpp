@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,9 +14,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 ///////////////////////////
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 
 #include <sstream>
 
@@ -27,6 +25,39 @@ static_assert(OpenMS::Test::fulfills_rule_of_5<MSSpectrum>(), "Must fulfill rule
 static_assert(OpenMS::Test::fulfills_rule_of_6<MSSpectrum>(), "Must fulfill rule of 6");
 static_assert(OpenMS::Test::fulfills_fast_vector<MSSpectrum>(), "Must have fast vector semantics");
 static_assert(std::is_nothrow_move_constructible_v<MSSpectrum>, "Must have nothrow move constructible");
+
+/// A spec with RT, m/z, intensity, and meta data arrays, marked as an IM spectrum (i.e. spec.containsIMData() == true)
+MSSpectrum getPrefilledSpec()
+{
+  MSSpectrum ds;
+  MSSpectrum::FloatDataArray float_array {56.0, 201.0, 31, 31, 31, 37, 29, 34, 60, 29};
+  MSSpectrum::StringDataArray string_array {"56", "201", "31", "31", "31", "37", "29", "34", "60", "29"};
+  MSSpectrum::IntegerDataArray int_array {56, 201, 31, 31, 31, 37, 29, 34, 60, 29};
+  std::vector<double> mzs {423.269, 420.130, 419.113, 418.232, 416.293, 415.287, 414.301, 413.800, 412.824, 412.321};
+  std::vector<double> intensities {56, 201, 31, 31, 31, 37, 29, 34, 60, 29};
+
+  for (Size i = 0; i < mzs.size(); ++i)
+  {
+    ds.emplace_back(mzs[i], intensities[i]);
+  }
+  ds.getFloatDataArrays() = std::vector<MSSpectrum::FloatDataArray>(3, float_array);
+  ds.getFloatDataArrays()[0].setName("f1");
+  ds.getFloatDataArrays()[1].setName("f2");
+  ds.getFloatDataArrays()[2].setName("f3");
+
+  IMDataConverter::setIMUnit(ds.getFloatDataArrays()[1], DriftTimeUnit::MILLISECOND);
+  TEST_TRUE(ds.containsIMData())
+
+  ds.getStringDataArrays() = std::vector<MSSpectrum::StringDataArray>(2, string_array);
+  ds.getStringDataArrays()[0].setName("s1");
+  ds.getStringDataArrays()[1].setName("s2");
+
+  ds.getIntegerDataArrays() = std::vector<MSSpectrum::IntegerDataArray>(2, int_array);
+  ds.getIntegerDataArrays()[0].setName("i1");
+  
+  ds.setRT(5.0);
+  return ds;
+}
 
 START_TEST(MSSpectrum, "$Id$")
 
@@ -215,13 +246,9 @@ START_SECTION((MSSpectrum& select(const std::vector<Size>& indices)))
   s.push_back(p3);
   s.push_back(p2);
 
-  MSSpectrum::IntegerDataArray aia;
-  aia.assign({1, 2, 3, 4, 5});
-  MSSpectrum::FloatDataArray afa;
-  afa.assign({1.0, 2.0, 3.0, 4.0, 5.0});
-  MSSpectrum::StringDataArray asa;
-  asa.assign({"1", "2", "3", "4", "5"});
-  //MSSpectrum::IntegerDataArray
+  MSSpectrum::IntegerDataArray aia{1, 2, 3, 4, 5};
+  MSSpectrum::FloatDataArray afa{1.0, 2.0, 3.0, 4.0, 5.0};
+  MSSpectrum::StringDataArray asa{"1", "2", "3", "4", "5"};
   s.getFloatDataArrays().push_back(afa);
   s.getIntegerDataArrays().push_back(aia);
   s.getStringDataArrays().push_back(asa);
@@ -282,28 +309,28 @@ END_SECTION
 
 START_SECTION((virtual void updateRanges()))
 {
-  MSSpectrum s;
-  s.push_back(p1);
-  s.push_back(p2);
-  s.push_back(p1);
+  MSSpectrum s = getPrefilledSpec();
 
-  s.updateRanges();
-  s.updateRanges(); //second time to check the initialization
-
-  TEST_REAL_SIMILAR(s.getMaxIntensity(), 2)
-  TEST_REAL_SIMILAR(s.getMinIntensity(), 1)
-  TEST_REAL_SIMILAR(s.getMaxMZ(),10)
-  TEST_REAL_SIMILAR(s.getMinMZ(),2)
+  for (int i = 0; i < 2; ++i) // second time to check the initialization
+  {
+    s.updateRanges();
+    TEST_REAL_SIMILAR(s.getMinIntensity(), 29)
+    TEST_REAL_SIMILAR(s.getMaxIntensity(), 201)
+    TEST_REAL_SIMILAR(s.getMinMZ(), 412.321)
+    TEST_REAL_SIMILAR(s.getMaxMZ(), 423.269)
+    TEST_REAL_SIMILAR(s.getMinMobility(), 29)
+    TEST_REAL_SIMILAR(s.getMaxMobility(), 201)
+  }
 
   //test with only one peak
-
-  s.clear(true);
+  s = MSSpectrum{};
   s.push_back(p1);
   s.updateRanges();
   TEST_REAL_SIMILAR(s.getMaxIntensity(), 1)
   TEST_REAL_SIMILAR(s.getMinIntensity(), 1)
-  TEST_REAL_SIMILAR(s.getMaxMZ(),2)
-  TEST_REAL_SIMILAR(s.getMinMZ(),2)
+  TEST_REAL_SIMILAR(s.getMaxMZ(), 2)
+  TEST_REAL_SIMILAR(s.getMinMZ(), 2)
+  TEST_TRUE(s.RangeMobility::isEmpty())
 }
 END_SECTION
 
@@ -704,15 +731,14 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
 }
 END_SECTION
 
+
+
 START_SECTION((void sortByPosition()))
 {
   MSSpectrum ds;
-  MSSpectrum::FloatDataArray float_array;
-  MSSpectrum::StringDataArray string_array;
-  MSSpectrum::IntegerDataArray int_array;
-  float_array.assign({56, 201, 31, 31, 31, 37, 29, 34, 60, 29});
-  string_array.assign({"56", "201", "31", "31", "31", "37", "29", "34", "60", "29"});
-  int_array.assign({56, 201, 31, 31, 31, 37, 29, 34, 60, 29});
+  MSSpectrum::FloatDataArray float_array {56.0, 201.0, 31, 31, 31, 37, 29, 34, 60, 29};
+  MSSpectrum::StringDataArray string_array {"56", "201", "31", "31", "31", "37", "29", "34", "60", "29"};
+  MSSpectrum::IntegerDataArray int_array {56, 201, 31, 31, 31, 37, 29, 34, 60, 29};
   std::vector<double> mzs {423.269, 420.130, 419.113, 418.232, 416.293, 415.287, 414.301, 413.800, 412.824, 412.321};
   std::vector<double> intensities {56, 201, 31, 31, 31, 37, 29, 34, 60, 29};
 
@@ -783,16 +809,32 @@ START_SECTION((void sortByPosition()))
 }
 END_SECTION
 
+START_SECTION(void sortByIonMobility())
+{
+  auto ds = getPrefilledSpec();
+
+  TEST_FALSE(ds.isSortedByIM())
+  ds.sortByIonMobility();
+  TEST_TRUE(ds.isSortedByIM())
+  auto [idx, unit] = ds.getIMData();
+  TEST_EQUAL(idx, 1)
+  const auto& im = ds.getFloatDataArrays()[idx];
+  TEST_TRUE(std::is_sorted(im.begin(), im.end())) 
+}
+END_SECTION
+
+START_SECTION(void isSortedByIM() const)
+{
+  NOT_TESTABLE // tested above
+}
+END_SECTION
 
 START_SECTION((void sortByPositionPresorted()))
 {
   MSSpectrum ds;
-  MSSpectrum::FloatDataArray float_array;
-  MSSpectrum::StringDataArray string_array ;
-  MSSpectrum::IntegerDataArray int_array ;
-  float_array.assign({19, 20, 23, 15, 16, 18, 13, 14, 12, 12});
-  string_array.assign({"19", "20", "23", "15", "16", "18", "13", "14", "12", "12"});
-  int_array.assign({19, 20, 23, 15, 16, 18, 13, 14, 12, 12});
+  MSSpectrum::FloatDataArray float_array {19, 20, 23, 15, 16, 18, 13, 14, 12, 12};
+  MSSpectrum::StringDataArray string_array {"19", "20", "23", "15", "16", "18", "13", "14", "12", "12"};
+  MSSpectrum::IntegerDataArray int_array {19, 20, 23, 15, 16, 18, 13, 14, 12, 12};
   std::vector<double> mzs {419.113, 420.130, 423.269, 415.287, 416.293, 418.232, 413.800, 414.301, 412.824, 412.321};
   std::vector<double> intensities {19, 20, 23, 15, 16, 18, 13, 14, 12, 12};
 
@@ -879,12 +921,9 @@ START_SECTION(template<class Predicate>
               bool isSorted(const Predicate& lamdba) const)
 {
   MSSpectrum ds;
-  MSSpectrum::FloatDataArray float_array;
-  MSSpectrum::StringDataArray string_array;
-  MSSpectrum::IntegerDataArray int_array;
-  float_array.assign({56, 201, 31, 31, 31, 37, 29, 34, 60, 29});
-  string_array.assign({"56", "201", "31", "31", "31", "37", "29", "34", "60", "29"});
-  int_array.assign({56, 201, 31, 31, 31, 37, 29, 34, 60, 29});
+  MSSpectrum::FloatDataArray float_array {56, 201, 31, 31, 31, 37, 29, 34, 60, 29};
+  MSSpectrum::StringDataArray string_array {"56", "201", "31", "31", "31", "37", "29", "34", "60", "29"};
+  MSSpectrum::IntegerDataArray int_array {56, 201, 31, 31, 31, 37, 29, 34, 60, 29};
   std::vector<double> mzs{423.269, 420.130, 419.113, 418.232, 416.293, 415.287, 414.301, 413.800, 412.824, 412.321};
   std::vector<double> intensities{56, 201, 31, 31, 31, 37, 29, 34, 60, 29};
 
@@ -1158,6 +1197,22 @@ START_SECTION((ConstIterator PosEnd(ConstIterator begin, CoordinateType mz, Cons
   TEST_EQUAL(it->getPos(), tmp.begin()->getPos())
   it = tmp.PosBegin(tmp.begin(), 8.0, tmp.end());
   TEST_EQUAL((it-1)->getPos(), (tmp.end()-1)->getPos())
+}
+END_SECTION
+
+START_SECTION(bool containsIMData() const)
+{
+  auto ds = getPrefilledSpec();
+  TEST_TRUE(ds.containsIMData())
+}
+END_SECTION
+
+START_SECTION((std::pair<Size,DriftTimeUnit> getIMData() const))
+{
+  auto ds = getPrefilledSpec();
+  auto [im_data_index, unit] = ds.getIMData();
+  TEST_EQUAL(im_data_index, 1)
+  TEST_TRUE(unit == DriftTimeUnit::MILLISECOND)
 }
 END_SECTION
 

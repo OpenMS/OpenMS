@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -507,7 +507,7 @@ signals:
     /// Requests to display all spectra in 3D plot
     void showCurrentPeaksAs3D();
 
-    /// Requests to display all spectra in ion mobility plot
+    /// Requests to display this spectrum (=frame) in ion mobility plot
     void showCurrentPeaksAsIonMobility(const MSSpectrum& spec);
 
     /// Requests to display all spectra as DIA

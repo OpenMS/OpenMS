@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,7 +8,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -17,9 +17,9 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-    @page TOPP_FalseDiscoveryRate FalseDiscoveryRate
+@page TOPP_FalseDiscoveryRate FalseDiscoveryRate
 
-    @brief Tool to estimate the false discovery rate on peptide and protein level
+@brief Tool to estimate the false discovery rate on peptide and protein level
 <CENTER>
     <table>
         <tr>
@@ -37,26 +37,26 @@ using namespace std;
     </table>
 </CENTER>
 
-    This TOPP tool calculates the false discovery rate (FDR) for results of target-decoy searches. The FDR calculation can be performed for proteins and/or for peptides (more exactly, peptide spectrum matches).
+This TOPP tool calculates the false discovery rate (FDR) for results of target-decoy searches. The FDR calculation can be performed for proteins and/or for peptides (more exactly, peptide spectrum matches).
 
-    The false discovery rate is defined as the number of false discoveries (decoy hits) divided by the number of false and correct discoveries (both target and decoy hits) with a score better than a given threshold.
+The false discovery rate is defined as the number of false discoveries (decoy hits) divided by the number of false and correct discoveries (both target and decoy hits) with a score better than a given threshold.
 
-    @ref TOPP_PeptideIndexer must be applied to the search results (idXML file) to index the data and to annotate peptide and protein hits with their target/decoy status.
+@ref TOPP_PeptideIndexer must be applied to the search results (idXML file) to index the data and to annotate peptide and protein hits with their target/decoy status.
 
-    @note When no decoy hits were found you will get a warning like this:<br>
-    "FalseDiscoveryRate: #decoy sequences is zero! Setting all target sequences to q-value/FDR 0!"<br>
-    This should be a serious concern, since it indicates a possible problem with the target/decoy annotation step (@ref TOPP_PeptideIndexer), e.g. due to a misconfigured database.
+@note When no decoy hits were found you will get a warning like this:<br>
+"FalseDiscoveryRate: #decoy sequences is zero! Setting all target sequences to q-value/FDR 0!"<br>
+This should be a serious concern, since it indicates a possible problem with the target/decoy annotation step (@ref TOPP_PeptideIndexer), e.g. due to a misconfigured database.
 
-    @note FalseDiscoveryRate only annotates peptides and proteins with their FDR. By setting FDR:PSM or FDR:protein the maximum q-value (e.g., 0.05 corresponds to an FDR of 5%) can be controlled on the PSM and protein level.
-    Alternatively, FDR filtering can be performed in the @ref TOPP_IDFilter tool by setting score:pep and score:prot to the maximum q-value. After potential filtering, associations are
-    automatically updated and unreferenced proteins/peptides removed based on the advanced cleanup parameters.
+@note FalseDiscoveryRate only annotates peptides and proteins with their FDR. By setting FDR:PSM or FDR:protein the maximum q-value (e.g., 0.05 corresponds to an FDR of 5%) can be controlled on the PSM and protein level.
+Alternatively, FDR filtering can be performed in the @ref TOPP_IDFilter tool by setting score:pep and score:prot to the maximum q-value. After potential filtering, associations are
+automatically updated and unreferenced proteins/peptides removed based on the advanced cleanup parameters.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_FalseDiscoveryRate.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_FalseDiscoveryRate.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FalseDiscoveryRate.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FalseDiscoveryRate.html
 */
 
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,7 +14,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -28,9 +28,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
- @page TOPP_IDFilter IDFilter
+@page TOPP_IDFilter IDFilter
 
- @brief Filters peptide/protein identification results by different criteria.
+@brief Filters peptide/protein identification results by different criteria.
 <CENTER>
  <table>
   <tr>
@@ -57,37 +57,37 @@ using namespace std;
  </table>
 </CENTER>
 
- This tool is used to filter the identifications found by a peptide/protein identification engine like Mascot.
- Different filters can be applied.
- To enable any of them, just change their default value.
- All active filters are applied in order.
+This tool is used to filter the identifications found by a peptide/protein identification engine like Mascot.
+Different filters can be applied.
+To enable any of them, just change their default value.
+All active filters are applied in order.
 
- Most filtering options should be straight-forward - see the documentation of the different parameters.
- For some filters that warrent further discussion, see below.
+Most filtering options should be straight-forward - see the documentation of the different parameters.
+For some filters that warrent further discussion, see below.
 
- <b>Score filters</b> (@p score:pep, @p score:prot):
+<b>Score filters</b> (@p score:pep, @p score:prot):
 
- Peptide or protein hits with scores at least as good as the given cut-off are retained by the filter; hits with worse scores are removed.
- Whether scores should be higher or lower than the cut-off depends on the type/orientation of the score.
+Peptide or protein hits with scores at least as good as the given cut-off are retained by the filter; hits with worse scores are removed.
+Whether scores should be higher or lower than the cut-off depends on the type/orientation of the score.
 
- The score that was most recently set by a processing step is considered for filtering.
- For example, it could be a Mascot score (if MascotAdapterOnline was applied) or an FDR (if FalseDiscoveryRate was applied), etc.
- @ref TOPP_IDScoreSwitcher is useful to switch to a particular score before filtering.
+The score that was most recently set by a processing step is considered for filtering.
+For example, it could be a Mascot score (if MascotAdapterOnline was applied) or an FDR (if FalseDiscoveryRate was applied), etc.
+@ref TOPP_IDScoreSwitcher is useful to switch to a particular score before filtering.
 
- <b>Protein accession filters</b> (@p whitelist:proteins, @p whitelist:protein_accessions, @p blacklist:proteins, @p blacklist:protein_accessions):
+<b>Protein accession filters</b> (@p whitelist:proteins, @p whitelist:protein_accessions, @p blacklist:proteins, @p blacklist:protein_accessions):
 
- These filters retain only peptide and protein hits that @e do (whitelist) or <em>do not</em> (blacklist) match any of the proteins from a given set.
- This set of proteins can be given through a FASTA file (<tt>...:proteins</tt>) or as a list of accessions (<tt>...:protein_accessions</tt>).
+These filters retain only peptide and protein hits that @e do (whitelist) or <em>do not</em> (blacklist) match any of the proteins from a given set.
+This set of proteins can be given through a FASTA file (<tt>...:proteins</tt>) or as a list of accessions (<tt>...:protein_accessions</tt>).
 
- Note that even in the case of a FASTA file, matching is only done by protein accession, not by sequence.
- If necessary, use @ref TOPP_PeptideIndexer to generate protein references for peptide hits via sequence look-up.
+Note that even in the case of a FASTA file, matching is only done by protein accession, not by sequence.
+If necessary, use @ref TOPP_PeptideIndexer to generate protein references for peptide hits via sequence look-up.
 
- @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
- <B>The command line parameters of this tool are:</B>
- @verbinclude TOPP_IDFilter.cli
- <B>INI file documentation of this tool:</B>
- @htmlinclude TOPP_IDFilter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_IDFilter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_IDFilter.html
 */
 
 // We do not want this class to show up in the docu:

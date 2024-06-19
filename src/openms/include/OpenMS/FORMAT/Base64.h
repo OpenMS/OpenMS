@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -21,7 +21,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 
-#include <QByteArray>
+#include <QtCore/QByteArray>
 
 #include <algorithm>
 #include <array>
@@ -30,8 +30,6 @@
 #include <iterator>
 #include <string>
 #include <vector>
-
-
 
 #ifdef OPENMS_COMPILER_MSVC
 #pragma comment(linker, "/export:compress")

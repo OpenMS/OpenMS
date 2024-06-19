@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -140,8 +140,10 @@ public:
     void getAllChildTerms(std::set<String>& terms, const String& parent_id) const;
 
     /**
-        @brief Iterates over all children of parent recursively.
-        @param lbd Function that gets the child-Strings passed. Must return bool.
+        @brief Iterates over all children (incl. subchildren etc) of parent recursively, i.e. the whole subtree.
+        
+        @param parent_id Id of parent (to be passed to getTerm(), to obtain its children).
+        @param lbd Function that gets the child-Ids passed. Must return bool.
                  Used for comparisons and / or to set captured variables.
                  If the lambda returns true, the iteration is exited prematurely.
                  E.g. if you have found your search, you don't need to continue searching.

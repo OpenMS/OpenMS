@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -35,8 +35,8 @@
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <QtCore/QString>
 
@@ -52,36 +52,36 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_FileInfo FileInfo
-  @brief Shows basic information about the data in an %OpenMS readable file.
+@page TOPP_FileInfo FileInfo
+@brief Shows basic information about the data in an %OpenMS readable file.
 
-  <CENTER>
-  <table>
-  <tr>
-  <th ALIGN = "center"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> &rarr; FileInfo &rarr;</td>
-  <th ALIGN = "center"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> none ; console or text file</td>
-  </tr>
-  </table>
-  </CENTER>
+<CENTER>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=2> &rarr; FileInfo &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> none ; console or text file</td>
+</tr>
+</table>
+</CENTER>
 
-  This tool can show basic information about the data in different file types, such as raw peak, featureXML and consensusXML files. It can
-  - show information about the data range of a file (m/z, RT, intensity)
-  - show a statistical summary for intensities, qualities, feature widths, precursor charges, activation methods
-  - show an overview of the metadata
-  - validate several XML formats against their XML schema
-  - check for corrupt data in a file (e.g., duplicate spectra)
+This tool can show basic information about the data in different file types, such as raw peak, featureXML and consensusXML files. It can
+- show information about the data range of a file (m/z, RT, ion mobility, intensity)
+- show a statistical summary for intensities, qualities, feature widths, precursor charges, activation methods
+- show an overview of the metadata
+- validate several XML formats against their XML schema
+- check for corrupt data in a file (e.g., duplicate spectra)
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_FileInfo.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_FileInfo.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FileInfo.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FileInfo.html
 
-  In order to enrich the resulting data of your analysis pipeline or to quickly compare different outcomes of your pipeline you can invoke the aforementioned information of your input data and (intermediary) results.
+In order to enrich the resulting data of your analysis pipeline or to quickly compare different outcomes of your pipeline you can invoke the aforementioned information of your input data and (intermediary) results.
 */
 
 // We do not want this class to show up in the docu:
@@ -170,26 +170,36 @@ protected:
   template <class Map>
   void writeRangesHumanReadable_(const Map& map, ostream &os)
   {
-    os << "Ranges:"
-       << '\n'
-       << "  retention time: " << String::number(map.getMinRT(), 2) << " .. " << String::number(map.getMaxRT(), 2) << " sec (" << String::number((map.getMaxRT() - map.getMinRT()) / 60, 1) << " min)\n"
-       << "  mass-to-charge: " << String::number(map.getMinMZ(), 2) << " .. " << String::number(map.getMaxMZ(), 2) << '\n'
-       << "  intensity:      " << String::number(map.getMinIntensity(), 2) << " .. " << String::number(map.getMaxIntensity(), 2) << '\n'
+    os << "Ranges:" << '\n'
+       << "  retention time: " << String::number(map.getMinRT(), 2) << " .. " << String::number(map.getMaxRT(), 2) << " sec ("
+       << String::number((map.getMaxRT() - map.getMinRT()) / 60, 1) << " min)\n"
+       << "  mass-to-charge: " << String::number(map.getMinMZ(), 2) << " .. " << String::number(map.getMaxMZ(), 2) << '\n';
+    if constexpr (std::is_base_of < RangeMobility, Map>())
+    {
+      os << "    ion mobility: ";
+      if (map.RangeMobility::isEmpty()) os << "<none>\n";
+      else os << String::number(map.getMinMobility(), 2) << " .. " << String::number(map.getMaxMobility(), 2) << '\n';
+    }
+    os << "       intensity: " << String::number(map.getMinIntensity(), 2) << " .. " << String::number(map.getMaxIntensity(), 2) << '\n'
        << '\n';
   }
 
   template <class Map>
   void writeRangesMachineReadable_(const Map& map, ostream &os)
   {
-    os << "general: ranges: retention time: min"
-       << '\t' << String::number(map.getMinRT(), 2) << '\n'
-       << "general: ranges: retention time: max"
-       << '\t' << String::number(map.getMaxRT(), 2) << '\n'
-       << "general: ranges: mass-to-charge: min"
-       << '\t' << String::number(map.getMinMZ(), 2) << '\n'
-       << "general: ranges: mass-to-charge: max"
-       << '\t' << String::number(map.getMaxMZ(), 2) << '\n'
-       << "general: ranges: intensity: min"
+    os << "general: ranges: retention time: min" << '\t' << String::number(map.getMinRT(), 2) << '\n'
+       << "general: ranges: retention time: max" << '\t' << String::number(map.getMaxRT(), 2) << '\n'
+       << "general: ranges: mass-to-charge: min" << '\t' << String::number(map.getMinMZ(), 2) << '\n'
+       << "general: ranges: mass-to-charge: max" << '\t' << String::number(map.getMaxMZ(), 2) << '\n';
+    if constexpr (std::is_base_of < RangeMobility, Map>())
+    {
+      if (!map.RangeMobility::isEmpty())
+      {
+        os << "general: ranges: ion-mobility: min" << '\t' << String::number(map.getMinMobility(), 2) << '\n'
+           << "general: ranges: ion-mobility: max" << '\t' << String::number(map.getMaxMobility(), 2) << '\n';
+      }
+    }
+    os << "general: ranges: intensity: min"
        << '\t' << String::number(map.getMinIntensity(), 2) << '\n'
        << "general: ranges: intensity: max"
        << '\t' << String::number(map.getMaxIntensity(), 2) << '\n';

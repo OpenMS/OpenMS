@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
+#include <OpenMS/PROCESSING/MISC/DataFilters.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QWidget>

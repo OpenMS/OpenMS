@@ -8,7 +8,6 @@ MzMLValidator.cpp
 MzDataValidator.cpp
 SemanticValidator.cpp
 MzIdentMLValidator.cpp
-MzQuantMLValidator.cpp
 TraMLValidator.cpp
 )
 

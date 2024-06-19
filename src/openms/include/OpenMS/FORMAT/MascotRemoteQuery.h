@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,9 +11,9 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <QtCore/QObject>
 #include <QtCore/QString>
+#include <QtCore/QTimer>
 #include <QtNetwork/QNetworkAccessManager>
-#include <QTimer>
-#include <QNetworkReply>
+#include <QtNetwork/QNetworkReply>
 
 
 namespace OpenMS
@@ -122,7 +122,7 @@ private:
     /**
       @brief Remove host name information from an url, e.g., "http://www.google.de/search" -> "search"
 
-      @param The url that will be manipulated.
+      @param url The url that will be manipulated.
     */
     void removeHostName_(QString& url);
 

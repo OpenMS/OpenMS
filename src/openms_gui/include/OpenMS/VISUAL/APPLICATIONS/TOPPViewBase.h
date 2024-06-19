@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -502,6 +502,8 @@ protected:
       String in;
       String out;
       String file_name;
+      String file_name_in;
+      String file_name_out;
       String layer_name;
       UInt window_id;
       Size spectrum_id;

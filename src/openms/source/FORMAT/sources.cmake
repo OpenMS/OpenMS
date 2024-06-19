@@ -53,7 +53,6 @@ MzDataFile.cpp
 MzIdentMLFile.cpp
 MzMLFile.cpp
 MzQCFile.cpp
-MzQuantMLFile.cpp
 MzTab.cpp
 MzTabBase.cpp
 MzTabM.cpp
@@ -68,6 +67,7 @@ OMSSAXMLFile.cpp
 OSWFile.cpp
 ParamCTDFile.cpp
 ParamCWLFile.cpp
+ParamJSONFile.cpp
 ParamXMLFile.cpp
 PTMXMLFile.cpp
 PeakTypeEstimator.cpp

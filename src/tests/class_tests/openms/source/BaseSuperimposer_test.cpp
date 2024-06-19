@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -63,10 +63,6 @@ START_SECTION((virtual void run(const ConsensusMap& map_model, const ConsensusMa
   TEST_REAL_SIMILAR(params.getValue("slope"), 1.1)
   TEST_REAL_SIMILAR(params.getValue("intercept"), 5.0)
 }
-END_SECTION
-
-START_SECTION((static void registerChildren()))
-  NOT_TESTABLE
 END_SECTION
 
 /////////////////////////////////////////////////////////////

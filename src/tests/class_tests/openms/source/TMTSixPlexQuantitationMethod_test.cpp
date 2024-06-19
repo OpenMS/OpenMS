@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -109,9 +109,9 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
   ABORT_IF(m.rows() != 6)
   ABORT_IF(m.cols() != 6)
   
-  for(Matrix<double>::SizeType i = 0; i < m.rows(); ++i)
+  for(size_t i = 0; i < m.rows(); ++i)
   {
-    for(Matrix<double>::SizeType j = 0; j < m.cols(); ++j)
+    for(size_t j = 0; j < m.cols(); ++j)
     {
       if (i == j)
         TEST_REAL_SIMILAR(m(i,j), 1.0)

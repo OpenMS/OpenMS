@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,7 +14,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 
 using namespace OpenMS;
 using namespace std;

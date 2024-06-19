@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -10,10 +10,10 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
-#include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSharedPeakCount.h>
+#include <OpenMS/ML/CLUSTERING/ClusterHierarchical.h>
+#include <OpenMS/ML/CLUSTERING/SingleLinkage.h>
+#include <OpenMS/KERNEL/BinnedSpectrum.h>
+#include <OpenMS/COMPARISON/BinnedSharedPeakCount.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
