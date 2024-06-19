@@ -161,7 +161,7 @@ jobs:
 
     # Create the changelog for the release from our overall changelog
     - id: create_changelog
-      if: matrix.compiler != 'clang++' && startsWith(matrix.os, 'ubuntu')
+      if: matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu')
       shell: bash
       name: Create changelog for release on Ubuntu + GCC
       run: |
