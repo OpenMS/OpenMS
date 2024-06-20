@@ -11,6 +11,8 @@ set(sources_list_h
   MSDataTransformingConsumer.h
   MSDataWritingConsumer.h
   NoopMSDataConsumer.h
+  S3InputSource.h
+  S3ChunkedInputSource.h
   SiriusFragmentAnnotation.h
   SwathFileConsumer.h
 )

@@ -13,6 +13,8 @@ set(sources_list
   MSDataTransformingConsumer.cpp
   MSDataWritingConsumer.cpp
   NoopMSDataConsumer.cpp
+  S3InputSource.cpp
+  S3ChunkedInputSource.cpp
   SiriusFragmentAnnotation.cpp
   SwathFileConsumer.cpp
 )
