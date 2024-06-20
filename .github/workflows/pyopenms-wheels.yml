@@ -7,6 +7,11 @@ name: pyopenms-wheels-and-packages
 # events but only for the master branch
 on:
   workflow_dispatch:
+    inputs:
+      upload-to-pypi:
+        type: boolean
+        description: actually upload the release package to pypi.org
+        default: false
   push:
     tags:
       - 'Release*'
@@ -573,7 +578,8 @@ jobs:
             ls -la wheels/
 
     - name: Publish package to nightly PyPI
-      if: "contains(github.ref, 'develop') || contains(github.ref, 'nightly')"
+        # Upload the wheels to our pypi server for develop, nightly and release branches (unless it's explictly stated to upload it to pypi.org)
+      if: contains(github.ref, 'develop') || contains(github.ref, 'nightly') || (contains(github.ref, 'Release') && !inputs.upload-to-pypi)
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository-url: https://pypi.cs.uni-tuebingen.de/
@@ -582,9 +588,10 @@ jobs:
         packages-dir: ${{ github.workspace }}/wheels
 
     - name: Publish package to PyPI
-      if: "contains(github.ref, 'Release')"
+      if: contains(github.ref, 'Release') && inputs.upload-to-pypi
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
+        repository-url: https://test.pypi.org/
         password: ${{ secrets.pypi_api_token_release }}
         packages-dir: ${{ github.workspace }}/wheels
