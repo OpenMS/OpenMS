@@ -1,0 +1,257 @@
+<project>
+    <shortName>OMSprerequisities</shortName>
+    <fullName>OpenMS</fullName>
+    <version>3.0</version>
+    <componentList>
+        <component>
+            <name>default</name>
+            <description>Default Component</description>
+            <canBeEdited>1</canBeEdited>
+            <selected>1</selected>
+            <show>1</show>
+            <folderList>
+                <folder>
+                    <description>Program Files</description>
+                    <destination>${installdir}</destination>
+                    <name>programfiles</name>
+                    <platforms>all</platforms>
+                    <shortcutList>
+                        <shortcut>
+                            <comment>Uninstall</comment>
+                            <exec>${installdir}/${uninstallerName}</exec>
+                            <icon></icon>
+                            <name>Uninstall ${product_fullname}</name>
+                            <path>${installdir}</path>
+                            <platforms>all</platforms>
+                            <runAsAdmin>0</runAsAdmin>
+                            <runInTerminal>0</runInTerminal>
+                            <windowsExec>${installdir}/${uninstallerName}.exe</windowsExec>
+                            <windowsExecArgs></windowsExecArgs>
+                            <windowsIcon></windowsIcon>
+                            <windowsPath>${installdir}</windowsPath>
+                        </shortcut>
+                    </shortcutList>
+                </folder>
+                <folder>
+                    <description>Program Files</description>
+                    <destination>${installdir}</destination>
+                    <name>programfileslinux</name>
+                    <platforms>linux</platforms>
+                </folder>
+                <folder>
+                    <description>Redistributables</description>
+                    <destination>${system_temp_directory}</destination>
+                    <name>programfileswindows</name>
+                    <platforms>windows</platforms>
+                    <distributionFileList>
+                        <distributionFile origin="C:\Users\sachs\Documents\InstallBuilder\OpenMSDependencies\vcredist2010_upd1_x86.exe"/>
+                        <distributionFile origin="C:\Users\sachs\Documents\InstallBuilder\OpenMSDependencies\vcredist2010_upd1_x64.exe"/>
+                        <distributionFile origin="C:\Users\sachs\Documents\InstallBuilder\OpenMSDependencies\vcredist20152017_x64.exe"/>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Program Files</description>
+                    <destination>${installdir}</destination>
+                    <name>programfilesosx</name>
+                    <platforms>osx</platforms>
+                </folder>
+            </folderList>
+            <startMenuShortcutList>
+                <startMenuShortcut>
+                    <comment>Uninstall ${product_fullname}</comment>
+                    <name>Uninstall ${product_fullname}</name>
+                    <runAsAdmin>0</runAsAdmin>
+                    <runInTerminal>0</runInTerminal>
+                    <windowsExec>${installdir}/${uninstallerName}.exe</windowsExec>
+                    <windowsExecArgs></windowsExecArgs>
+                    <windowsIcon></windowsIcon>
+                    <windowsPath>${installdir}/</windowsPath>
+                </startMenuShortcut>
+            </startMenuShortcutList>
+        </component>
+    </componentList>
+    <initializationActionList>
+        <setInstallerVariable name="dotNet4Available" value="0"/>
+        <setInstallerVariable name="dotNet35Available" value="0"/>
+        <setInstallerVariable name="VCredist2010_x86Available" value="0"/>
+        <setInstallerVariable name="VCredist2010_x64Available" value="0"/>
+        <setInstallerVariable name="VCredist2015_x64Available" value="0"/>
+        <actionGroup>
+            <actionList>
+                <registryGet key="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Client" name="Install" variable="dotNet4Value"/>
+                <setInstallerVariable name="dotNet4Available" value="1">
+                    <ruleList>
+                        <compareText logic="equals" text="${dotNet4Value}" value="1"/>
+                    </ruleList>
+                </setInstallerVariable>
+                <registryGet key="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" name="Install" variable="dotNet4Value"/>
+                <setInstallerVariable name="dotNet4Available" value="1">
+                    <ruleList>
+                        <compareText logic="equals" text="${dotNet4Value}" value="1"/>
+                    </ruleList>
+                </setInstallerVariable>
+                <registryGet key="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\NET Framework Setup\NDP\v3.5" name="Install" variable="dotNet35Value"/>
+                <setInstallerVariable name="dotNet35Available" value="1">
+                    <ruleList>
+                        <compareText logic="equals" text="${dotNet35Value}" value="1"/>
+                    </ruleList>
+                </setInstallerVariable>
+                <registryGet key="HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\10.0\VC\VCRedist\x64" name="Installed" variable="VCredist2010_x64Value"/>
+                <setInstallerVariable name="VCredist2010_x64Available" value="1">
+                    <ruleList>
+                        <compareText logic="equals" text="${VCredist2010_x64Value}" value="1"/>
+                    </ruleList>
+                </setInstallerVariable>
+                <registryGet key="HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\10.0\VC\VCRedist\x86" name="Installed" variable="VCredist2010_x86Value"/>
+                <setInstallerVariable name="VCredist2010_x86Available" value="1">
+                    <ruleList>
+                        <compareText logic="equals" text="${VCredist2010_x86Value}" value="1"/>
+                    </ruleList>
+                </setInstallerVariable>
+                <registryGet key="HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\14.0\VC\Runtimes\x64" name="Bld" variable="VCredist2015_x64Value"/>
+                <setInstallerVariable name="VCredist2015_x64Available" value="1">
+                    <ruleList>
+                        <compareValues logic="greater_or_equal" value1="${VCredist2015_x64Value}" value2="0x6ddf"/>
+                    </ruleList>
+                </setInstallerVariable>
+            </actionList>
+        </actionGroup>
+    </initializationActionList>
+    <readyToInstallActionList>
+        <showProgressDialog>
+            <title>Downloading .NET 4</title>
+            <actionList>
+                <httpGet>
+                    <filename>${system_temp_directory}/NET4.0_installer.exe</filename>
+                    <url>http://www.microsoft.com/downloads/info.aspx?u=http%3a%2f%2fdownload.microsoft.com%2fdownload%2f9%2f5%2fA%2f95A9616B-7A37-4AF6-BC36-D6EA96C8DAAE%2fdotNetFx40_Full_x86_x64.exe</url>
+                </httpGet>
+            </actionList>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${dotNet4Available}</value1>
+                    <value2>0</value2>
+                </compareValues>
+            </ruleList>
+        </showProgressDialog>
+        <showProgressDialog>
+            <title>Downloading .NET 3.5</title>
+            <actionList>
+                <httpGet>
+                    <filename>${system_temp_directory}/NET3.5_installer.exe</filename>
+                    <url>http://www.microsoft.com/downloads/info.aspx?u=http%3a%2f%2fdownload.microsoft.com%2fdownload%2f0%2f6%2f1%2f061F001C-8752-4600-A198-53214C69B51F%2fdotnetfx35setup.exe</url>
+                </httpGet>
+            </actionList>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${dotNet35Available}</value1>
+                    <value2>0</value2>
+                </compareValues>
+            </ruleList>
+        </showProgressDialog>
+        <runProgram>
+            <program>${system_temp_directory}/NET4.0_installer.exe</program>
+            <programArguments></programArguments>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${dotNET4Available}</value1>
+                    <value2>0</value2>
+                </compareValues>
+            </ruleList>
+        </runProgram>
+        <runProgram>
+            <program>${system_temp_directory}/NET3.5_installer.exe</program>
+            <programArguments></programArguments>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${dotNET35Available}</value1>
+                    <value2>0</value2>
+                </compareValues>
+            </ruleList>
+        </runProgram>
+    </readyToInstallActionList>
+    <postInstallationActionList>
+        <runProgram>
+            <program>${system_temp_directory}/vcredist2010_upd1_x64.exe</program>
+            <programArguments>/q /norestart</programArguments>
+            <ruleList>
+                <platformTest>
+                    <type>windows-x64</type>
+                </platformTest>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${VCredist2010_x64Available}</value1>
+                    <value2>0</value2>
+                </compareValues>
+            </ruleList>
+        </runProgram>
+        <runProgram>
+            <program>${system_temp_directory}/vcredist2010_upd1_x86.exe</program>
+            <programArguments>/q /norestart</programArguments>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${VCredist2010_x86Available}</value1>
+                    <value2>0</value2>
+                </compareValues>
+            </ruleList>
+        </runProgram>
+        <runProgram>
+            <program>${system_temp_directory}/vcredist20152017_x64.exe</program>
+            <programArguments>/q /norestart</programArguments>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${VCredist2015_x64Available}</value1>
+                    <value2>0</value2>
+                </compareValues>
+            </ruleList>
+        </runProgram>
+    </postInstallationActionList>
+    <createUninstaller>0</createUninstaller>
+    <disableSplashScreen>1</disableSplashScreen>
+    <enableDebugger>1</enableDebugger>
+    <enableRollback>1</enableRollback>
+    <enableSslSupport>1</enableSslSupport>
+    <enableTimestamp>1</enableTimestamp>
+    <requireInstallationByRootUser>1</requireInstallationByRootUser>
+    <vendor>The OpenMS team</vendor>
+    <parameterList>
+        <infoParameter>
+            <name>NETversions</name>
+            <title>.NET</title>
+            <description>Installed versions of the .NET framework</description>
+            <explanation></explanation>
+            <value>Microsoft .NET 4 available: ${dotNet4Available}
+Microsoft .NET 3.5 available: ${dotNet35Available}
+VC runtime 10.0 x64 available: ${VCredist2010_x64Available}
+VC runtime 10.0 x86 available: ${VCredist2010_x86Available}
+VC runtime 14.0+ x64 available: ${VCredist2015_x64Available}
+</value>
+            <default></default>
+            <cliOptionShow>0</cliOptionShow>
+            <trimMarginNumChars>0</trimMarginNumChars>
+        </infoParameter>
+        <directoryParameter>
+            <name>installdir</name>
+            <description>Installer.Parameter.installdir.description</description>
+            <explanation>Installer.Parameter.installdir.explanation</explanation>
+            <value></value>
+            <default>${platform_install_prefix}/${product_shortname}-${product_version}</default>
+            <allowEmptyValue>0</allowEmptyValue>
+            <ask>0</ask>
+            <cliOptionName>prefix</cliOptionName>
+            <mustBeWritable>1</mustBeWritable>
+            <mustExist>0</mustExist>
+            <width>40</width>
+        </directoryParameter>
+    </parameterList>
+    <platformOptionsList>
+        <platformOptions>
+            <platform>windows</platform>
+        </platformOptions>
+    </platformOptionsList>
+</project>
