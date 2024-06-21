@@ -70,9 +70,10 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
         
-    - name: Build wheels
-      if: steps.compare_branches.outputs.behind == 'true' || inputs.force
-      run: |
-        gh workflow run pyopenms-wheels-and-packages --ref nightly
-      env:
-        GH_TOKEN: ${{ github.token }}
+# Moved to openms_ci_matrix_full        
+#    - name: Build wheels
+#      if: steps.compare_branches.outputs.behind == 'true' || inputs.force
+#      run: |
+#      gh workflow run pyopenms-wheels-and-packages --ref nightly
+#      env:
+#        GH_TOKEN: ${{ github.token }}

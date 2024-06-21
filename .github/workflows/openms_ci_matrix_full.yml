@@ -427,6 +427,13 @@ jobs:
           CI_PROVIDER: "GitHub-Actions"
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
 
+    - name: Build python wheels
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
+      run: |
+        gh workflow run pyopenms-wheels-and-packages --ref ${{ github.ref_name }}
+      env:
+        GH_TOKEN: ${{ github.token }}    
+
     # WARNING: Here you have to make sure that only one matrix configuration per OS produces packages. See set-vars steps.
     - name: Upload packages as artifacts
       if: steps.set-vars.outputs.pkg_type != 'none'
@@ -459,8 +466,6 @@ jobs:
         exclusions: 'bld/* ./OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz THIRDPARTY/* .git/*'
         filename: 'OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz'
 
-        
-
    # Upload the source tar
     - name: Upload source tar as artifact
       if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
@@ -469,7 +474,6 @@ jobs:
         name: OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
         path: |
           ${{ github.workspace }}/OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
-
 
     # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
 
@@ -499,13 +503,13 @@ jobs:
         name: ${{ format('knime-{0}{1}', steps.set-vars.outputs.tp_folder, runner.arch == 'arm64' && '-arm64' || '') }}
         path: ${{ github.workspace }}/OpenMS/bld/knime/**/*
 
+
   deploy-installer:
     if: github.ref == 'refs/heads/nightly' || contains(github.ref, 'release/') || inputs.package
     runs-on: ubuntu-latest
     needs: build-and-test
     outputs:
       release_text_contents: ${{ steps.mk_release_txt.outputs.release_text_contents }}
-
 
     steps:
       - name: Extract branch/PR infos
