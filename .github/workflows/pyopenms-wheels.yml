@@ -579,7 +579,7 @@ jobs:
 
     - name: Publish package to nightly PyPI
         # Upload the wheels to our pypi server for develop, nightly and release branches (unless it's explictly stated to upload it to pypi.org)
-      if: contains(github.ref, 'develop') || contains(github.ref, 'nightly') || (contains(github.ref, 'Release') && !inputs.upload-to-pypi)
+      if: contains(github.ref, 'develop') || contains(github.ref, 'nightly') || (contains(github.ref, 'Release') && inputs.upload-to-pypi == 'false')
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository-url: https://pypi.cs.uni-tuebingen.de/
