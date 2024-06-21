@@ -2042,19 +2042,19 @@ protected:
 
     registerInputFile_("r_executable", "<file>", "R", "Path to the R executable (default: 'R')", false, false, {"is_executable"});
 
-    registerDoubleOption_("mz_tolerance_ppm", "<tol>", 10.0, "Tolerance in ppm", false);
+    registerDoubleOption_("mz_tolerance_ppm", "<tol>", 10.0, "Tolerance in ppm", false, true);
 
-    registerDoubleOption_("rt_tolerance_s", "<tol>", 30.0, "Tolerance window around feature rt for XIC extraction", false);
+    registerDoubleOption_("rt_tolerance_s", "<tol>", 30.0, "Tolerance window around feature rt for XIC extraction", false, true);
 
-    registerDoubleOption_("intensity_threshold", "<tol>", 10.0, "Intensity threshold to collect peaks in the MS1 spectrum.", false);
+    registerDoubleOption_("intensity_threshold", "<tol>", 10.0, "Intensity threshold to collect peaks in the MS1 spectrum.", false, true);
 
-    registerDoubleOption_("correlation_threshold", "<tol>", 0.7, "Correlation threshold for reporting a RIA", false);
+    registerDoubleOption_("correlation_threshold", "<tol>", 0.7, "Correlation threshold for reporting a RIA", false, true);
 
-    registerDoubleOption_("xic_threshold", "<tol>", 0.7, "Minimum correlation to mono-isotopic peak for retaining a higher isotopic peak. If featureXML from reference file is used it should be disabled (set to -1) as no mono-isotopic peak is expected to be present.", false);
+    registerDoubleOption_("xic_threshold", "<tol>", 0.7, "Minimum correlation to mono-isotopic peak for retaining a higher isotopic peak. If featureXML from reference file is used it should be disabled (set to -1) as no mono-isotopic peak is expected to be present.", false, true);
 
-    registerDoubleOption_("decomposition_threshold", "<tol>", 0.7, "Minimum R-squared of decomposition that must be achieved for a peptide to be reported.", false);
+    registerDoubleOption_("decomposition_threshold", "<tol>", 0.7, "Minimum R-squared of decomposition that must be achieved for a peptide to be reported.", false, true);
 
-    registerDoubleOption_("weight_merge_window", "<tol>", 5.0, "Decomposition coefficients within +- this rate window will be combined", false);
+    registerDoubleOption_("weight_merge_window", "<tol>", 5.0, "Decomposition coefficients within +- this rate window will be combined", false, true);
 
     registerDoubleOption_("min_correlation_distance_to_averagine", "<tol>", -1.0, "Minimum difference in correlation between incorporation pattern and averagine pattern. Positive values filter all RIAs passing the correlation threshold but that also show a better correlation to an averagine peptide. Disabled for values <= -1", false, true);
 
@@ -2064,14 +2064,14 @@ protected:
     registerDoubleOption_("pattern_18O_TIC_threshold", "<threshold>", 0.95, "The most intense peaks of the theoretical pattern contributing to at least this TIC fraction are taken into account.", false, true);
     registerIntOption_("heatmap_bins", "<threshold>", 20, "Number of RIA bins for heat map generation.", false, true);
 
-    registerStringOption_("plot_extension", "<extension>", "png", "Extension used for plots (png|svg|pdf).", false);
+    registerStringOption_("plot_extension", "<extension>", "png", "Extension used for plots (png|svg|pdf).", false, true);
     StringList valid_extensions;
     valid_extensions.push_back("png");
     valid_extensions.push_back("svg");
     valid_extensions.push_back("pdf");
     setValidStrings_("plot_extension", valid_extensions);
 
-    registerStringOption_("qc_output_directory", "<directory>", "", "Output directory for the quality report", false);
+    registerStringOption_("qc_output_directory", "<directory>", "", "Output directory for the quality report", false, true);
 
     registerStringOption_("labeling_element", "<parameter>", "C", "Which element (single letter code) is labeled.", false);
     StringList valid_element;
@@ -2081,15 +2081,15 @@ protected:
     valid_element.push_back("O");
     setValidStrings_("labeling_element", valid_element);
 
-    registerFlag_("use_unassigned_ids", "Include identifications not assigned to a feature in pattern detection.", false);
+    registerFlag_("use_unassigned_ids", "Include identifications not assigned to a feature in pattern detection.", true);
 
-    registerFlag_("use_averagine_ids", "Use averagine peptides as model to perform pattern detection on unidentified peptides.", false);
+    registerFlag_("use_averagine_ids", "Use averagine peptides as model to perform pattern detection on unidentified peptides.", true);
 
-    registerFlag_("report_natural_peptides", "Whether purely natural peptides are reported in the quality report.", false);
+    registerFlag_("report_natural_peptides", "Whether purely natural peptides are reported in the quality report.", true);
 
-    registerFlag_("filter_monoisotopic", "Try to filter out mono-isotopic patterns to improve detection of low RIA patterns", false);
+    registerFlag_("filter_monoisotopic", "Try to filter out mono-isotopic patterns to improve detection of low RIA patterns", true);
 
-    registerFlag_("cluster", "Perform grouping", false);
+    registerFlag_("cluster", "Perform grouping", true);
 
     registerDoubleOption_("observed_peak_fraction", "<threshold>", 0.5, "Fraction of observed/expected peaks.", false, true);
 

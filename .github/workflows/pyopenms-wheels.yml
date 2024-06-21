@@ -46,19 +46,25 @@ jobs:
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S //D=$HOME/miniconda3
 
+
+    - name: Download contrib build from archive (Windows)
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+          cd OpenMS/contrib
+          # Download the file using the URL fetched from GitHub
+          gh release download -R OpenMS/contrib --pattern 'contrib_build-Windows.tar.gz'
+          # Extract the archive
+          7z x -so contrib_build-Windows.tar.gz | 7z x -si -ttar
+          rm contrib_build-Windows.tar.gz
+          ls -la
+
     # https://github.com/marketplace/actions/visual-studio-shell
     - name: Set up Visual Studio shell
       uses: egor-tensin/vs-shell@v2
       with:
         arch: x64
-
-    - name: Load contrib build
-      run: |
-          mkdir contribbld
-          cd contribbld
-          curl -o contribbld.tar.gz https://abibuilder.cs.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-14.2/contrib_build.tar.gz
-          tar -xzf contribbld.tar.gz
-          rm contribbld.tar.gz
 
     - name: Setup conda paths
       shell: bash
@@ -74,7 +80,7 @@ jobs:
         pushd bld
         # TODO: set generator via variable, then we can share this step
         cmake --version
-        cmake -G "Visual Studio 17 2022" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
+        cmake -G "Visual Studio 17 2022" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/OpenMS/contrib" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
         # Note: multiple --targets only supported by CMake 3.15+
         cmake --build . --config Release --target OpenMS
       
@@ -103,7 +109,7 @@ jobs:
           pip install -U pip
           pip install -U autowrap
           pip install -U pytest
-          pip install -U numpy
+          pip install 'numpy<=1.26.4'
           pip install -U wheel
 
           echo $CURRENT_PYTHON_EXECUTABLE
@@ -205,7 +211,7 @@ jobs:
           pip install -U pip
           pip install -U autowrap
           pip install -U pytest
-          pip install -U numpy
+          pip install 'numpy<=1.26.4'
           pip install -U wheel
           pip install -U pandas
 
@@ -315,7 +321,7 @@ jobs:
           pip install -U pip
           pip install -U autowrap
           pip install -U pytest
-          pip install -U numpy
+          pip install 'numpy<=1.26.4'
           pip install -U wheel
           pip install -U pandas
 
@@ -393,7 +399,7 @@ jobs:
           "$PYBIN/bin/pip" install -U Cython
           "$PYBIN/bin/pip" install -U setuptools
           "$PYBIN/bin/pip" install -U wheel
-          "$PYBIN/bin/pip" install -U numpy
+          "$PYBIN/bin/pip" install 'numpy<=1.26.4'
           "$PYBIN/bin/pip" install -U pytest
           "$PYBIN/bin/pip" install -U autowrap
 
