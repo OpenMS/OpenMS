@@ -93,7 +93,7 @@ class SimpleSearchEngine :
       String in = getStringOption_("in");
       String database = getStringOption_("database");
       String out = getStringOption_("out");
-
+ 
       ProgressLogger progresslogger;
       progresslogger.setLogType(log_type_);
 

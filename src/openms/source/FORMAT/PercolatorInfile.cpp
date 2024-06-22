@@ -95,7 +95,7 @@ namespace OpenMS
       //OPENMS_LOG_INFO <<  << std::endl;
       if (auto it = std::find(header.begin(), header.end(), s); it != header.end())
       {
-        OPENMS_LOG_INFO <<  header.at(cou++) << std::endl;
+        //OPENMS_LOG_INFO <<  header.at(cou++) << std::endl;
         found_extra_scores.insert(s);
       }
       else

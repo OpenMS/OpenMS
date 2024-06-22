@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
@@ -80,7 +81,7 @@ because of limitations in OpenMS' data structures and file formats.
 */
 
 
-typedef map<double, double> MapRateToScoreType;
+typedef map<double, double> mapRatetoMass;
 
 class TOPPSageAdapter :
   public SearchEngineBase
@@ -98,19 +99,19 @@ public:
   }
 
 
-  struct RateScorePair
+  struct RateMassPair
 {
   double rate = -1.;
-  double score = -1.;
+  double deltamass = -1.;
 };
 
-class MetaProSIPInterpolation
+  class MetaProSIPInterpolation
 {
 public:
   ///< Determine score maxima from rate to score distribution using derivatives from spline interpolation
-  static vector<RateScorePair> getHighPoints(double threshold, const MapRateToScoreType& rate2score, bool debug = false)
+  static vector<RateMassPair> getHighPoints(double threshold, const mapRatetoMass& rate2score, bool debug = false)
   {
-    vector<RateScorePair> high_points;
+    vector<RateMassPair> high_points;
     vector<double> x, y;
 
     // set proper boundaries (uniform spacing)
@@ -118,18 +119,18 @@ public:
     y.push_back(0);
 
     // copy data
-    for (MapRateToScoreType::const_iterator it = rate2score.begin(); it != rate2score.end(); ++it)
+    for (mapRatetoMass::const_iterator it = rate2score.begin(); it != rate2score.end(); ++it)
     {
       x.push_back(it->first);
       y.push_back(it->second);
     }
-
-    if (rate2score.find(100.0) == rate2score.end() && x[x.size() - 1] < 100.0)
+  //?? 
+    /* if (rate2score.find(100.0) == rate2score.end() && x[x.size() - 1] < 100.0)
     {
       x.push_back(100.0);
       y.push_back(0);
-    }
-
+    } */
+    
     const size_t n = x.size();
 
     //gte::IntpAkimaNonuniform1<double> spline(x.size(), &x.front(), &y.front());
@@ -150,12 +151,12 @@ public:
       {
         cout << x[0] << " " << x[n - 1] << " " << xi << " " << yi << endl;
       }
-
+        //Rate and deltamass are swapped currently 
       if (last_dxdy > 0.0 && dxdy <= 0 && yi > threshold)
       {
-        RateScorePair rsp{};
+        RateMassPair rsp{};
         rsp.rate = xi;
-        rsp.score = yi;
+        rsp.deltamass = yi;
         high_points.push_back(rsp);
       }
       last_dxdy = dxdy;
@@ -166,7 +167,7 @@ public:
       OPENMS_LOG_DEBUG << "Found: " << high_points.size() << " local maxima." << endl;
       for (Size i = 0; i != high_points.size(); ++i)
       {
-        OPENMS_LOG_DEBUG << high_points[i].rate << " " << high_points[i].score << endl;
+        OPENMS_LOG_DEBUG << high_points[i].rate << " " << high_points[i].deltamass << endl;
       }
     }
 
@@ -175,20 +176,27 @@ public:
 
 };
 
-class SageClustering{
+  class SageClustering{
+  public: 
   static vector<double>  getDeltaClusterCenter(const vector<PeptideIdentification>& pips, bool debug = false)
   {
     vector<double> cluster;
-    map<double, double> hist;
-
+    mapRatetoMass hist;
+    int count = 0; 
     for (auto& id : pips)
     {
+
       auto& hits = id.getHits();
       for (auto& h : hits)
-      {
+      { 
+        //Build histogram of Deltamasses 
          double expval  =  std::stod(h.getMetaValue("SAGE:ExpMass")); 
          double calcval = std::stod(h.getMetaValue("SAGE:CalcMass"));
          double DeltaMass = expval - calcval; 
+         /* if(count++ < 20){ cout << "DeltaMass: " << DeltaMass << std::endl; 
+         cout << "ExpMass: " << expval << std::endl; 
+         cout << "CalcMass: " << calcval << std::endl; 
+         } */
         if (hist.find(DeltaMass) == hist.end())
         {
           hist[DeltaMass] = 1.0;
@@ -197,12 +205,34 @@ class SageClustering{
         {
           hist[DeltaMass] += 1.0;
         }
-
+       
       }}
+      int co = 0; 
+    
 
+    for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit){
+      if(mit->first > 20 && mit->second > 5){
+        cout << " Hist Deltamass " << mit->first << " " << " Hist Rate " << mit->second << " " <<  endl;
+        }
+      }
+    
+    //determining bounds of dist. 
+    double lowb = DBL_MAX; 
+    double upb = DBL_MIN; 
+    double step = 0; 
 
-    // kernel density estimation, TODO: binary search for 5 sigma boundaries
-    vector<double> density(101, 0);
+    
+    for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit)
+      { 
+        if(mit->first < lowb) lowb = mit->first; 
+        if(mit->first > upb) upb = mit->first; 
+        step = upb - lowb; 
+      }
+    OPENMS_LOG_INFO << "Lowb" << lowb << "Highb" << upb <<  std::endl; 
+
+    // kernel density estimation
+    vector<double> density(floor(upb), 0); 
+
     for (Size i = 0; i != density.size(); ++i)
     {
       double sum = 0;
@@ -219,13 +249,16 @@ class SageClustering{
     for (Size i = 0; i != density.size(); ++i)
     {
       delta_density[i] = density[i];
+      //if(i < 20) OPENMS_LOG_INFO << "Density: " << density[i] << std::endl;
     }
 
-    vector<RateScorePair> cluster_center = MetaProSIPInterpolation::getHighPoints(0.5, delta_density, debug);
+    vector<RateMassPair> cluster_center = MetaProSIPInterpolation::getHighPoints(10, delta_density, debug);
+
 
     // return cluster centers
-    for (vector<RateScorePair>::const_iterator cit = cluster_center.begin(); cit != cluster_center.end(); ++cit)
+    for (vector<RateMassPair>::const_iterator cit = cluster_center.begin(); cit != cluster_center.end(); ++cit)
     {
+      OPENMS_LOG_INFO << "Clust: " << cit->rate << std::endl;
       cluster.push_back(cit->rate);
     }
     
@@ -235,7 +268,7 @@ class SageClustering{
 
 
   //
-  static vector<vector<PeptideIdentification> > clusterPeptides(const vector<double>& centers, vector<PeptideIdentification>& pips)
+  static vector<vector<PeptideIdentification>> clusterPeptides(const vector<double>& centers, vector<PeptideIdentification>& pips)
   {
     // one cluster for each cluster center
     vector<vector<PeptideIdentification>> clusters(centers.size(), vector<PeptideIdentification>());
@@ -274,11 +307,75 @@ class SageClustering{
     }
 
     return clusters;
-  } /**/
+  } //Problem currently: clusters upshifted by small amount (ranges from .01 to .4 or even .6)
 
+  static vector<vector<PeptideIdentification>> mapDifftoMods(const vector<double>& centers, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 100.0, bool precursor_mass_tolerance_unit_ppm = false)
+  {
+    
+    vector<vector<PeptideIdentification>> clusters(centers.size(), vector<PeptideIdentification>());
+   
+  
+    /* Mapping with tolerances 
+  if (precursor_mass_tolerance_unit_ppm) // ppm default 20 
+          {
+            low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - current_peptide_mass * precursor_mass_tolerance_ * 1e-6);
+            up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + current_peptide_mass * precursor_mass_tolerance_ * 1e-6);
+          }
+          else // Dalton
+          {
+            low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - precursor_mass_tolerance_);
+            up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + precursor_mass_tolerance_);
+          }
+  */
 
+ // Accessing zhe .obo file 
+ ControlledVocabulary unimod_; //Causes trace trap? 
+      try{
+ unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
+    }
+ catch(Exception::FileNotFound& e){
+   cout << "File could not be found! " << std::endl; 
+ } 
+
+ 
+ map<String, ControlledVocabulary::CVTerm> terms = unimod_.getTerms(); 
+ int ii = 0; 
+ //Try unparsed? 
+ 
+ ControlledVocabulary::CVTerm zeroterm = terms.begin()->second; 
+ //cout << zeroterm.unparsed.at(0) << std::endl; 
+ cout << "Size of map " <<  terms.size() << std::endl; 
+for(auto& x : terms){
+    if(x.second.unparsed.size() != 0){
+      for(auto& y : x.second.unparsed){
+        //cout << "Unparsed: " << y << std::endl; //this works 
+        if(y.hasSubstring("delta_avge_mass")){
+           std::vector<String> substrings(3);  
+           y.split(' ', substrings); 
+           cout << "Delta avge mass: " << substrings.at(2) << std::endl;
+        }
+      }
+    }
+ } 
+ //const String& varval = "delta_avge_mass"; 
+ //cout << terms.at(0).children << std::endl; 
+ //cout << terms.at(0).xref_binary << std::endl; 
+ //cout << terms.at(0).xref_type << std::endl; 
+ // cout <<  zeroterm.toXMLString(unimod_.name(), varval) << std::endl; 
+ //This causes a segfault
+  /* for ( auto& teit : terms)
+    {
+       //cout << "First: "<<  teit.first << " second: " << teit.second.toXMLString(unimod_.name()) << std::endl; 
+       //cout << "First: "<<  teit.first << " second: " << teit.second.unparsed << std::endl; 
+    } */
+    cout << "Works without crashing" << std::endl; 
+    return clusters; 
+  } 
 
 }; 
+
+
+ 
 
 protected:
   // create a template-based configuration file for sage
@@ -729,8 +826,15 @@ protected:
       }
     }*/
 
+  const vector<double> resultsClus =  SageClustering::getDeltaClusterCenter(peptide_identifications); 
+  vector<vector<PeptideIdentification>> resultsClus2 = SageClustering::clusterPeptides(resultsClus, peptide_identifications);
+  vector<vector<PeptideIdentification>> mapD = SageClustering::mapDifftoMods(resultsClus, peptide_identifications); 
+  long j = 0;  
+  while(j++ < resultsClus2.size()) cout << "Size of Clus at " << j-1 << " " <<  resultsClus2.at(j-1).size() << std::endl; 
+  //while(++j < 20 && j < resultsClus.size()) OPENMS_LOG_INFO << "Clus at " << j << " " << resultsClus.at(j) << std::endl;
+  //OPENMS_LOG_INFO << "Clus size" << resultsClus.size() << std::endl;
 
-
+  
 
 
     // remove hits without charge state assigned or charge outside of default range (fix for downstream bugs). TODO: remove if all charges annotated in sage
