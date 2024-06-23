@@ -109,7 +109,7 @@ public:
 {
 public:
   ///< Determine score maxima from rate to score distribution using derivatives from spline interpolation
-  static vector<RateMassPair> getHighPoints(double threshold, const mapRatetoMass& rate2score, bool debug = false)
+  static vector<RateMassPair> getHighPoints(double threshold, double lowb, double upb, const mapRatetoMass& rate2score, bool debug = false)
   {
     vector<RateMassPair> high_points;
     vector<double> x, y;
@@ -207,7 +207,7 @@ public:
         }
        
       }}
-      int co = 0; 
+      
     
 
     for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit){
@@ -231,14 +231,14 @@ public:
     OPENMS_LOG_INFO << "Lowb" << lowb << "Highb" << upb <<  std::endl; 
 
     // kernel density estimation
-    vector<double> density(floor(upb), 0); 
+    vector<double> density(ceil(upb), 0); 
 
     for (Size i = 0; i != density.size(); ++i)
     {
       double sum = 0;
       for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit)
       {
-        normal s(mit->first, 2.0);
+        normal s(mit->first, 1.0);
         sum += mit->second * pdf(s, (double)i);
       }
       density[i] = sum;
@@ -252,7 +252,7 @@ public:
       //if(i < 20) OPENMS_LOG_INFO << "Density: " << density[i] << std::endl;
     }
 
-    vector<RateMassPair> cluster_center = MetaProSIPInterpolation::getHighPoints(10, delta_density, debug);
+    vector<RateMassPair> cluster_center = MetaProSIPInterpolation::getHighPoints(10, delta_density, lowb, upb,  debug);
 
 
     // return cluster centers
@@ -267,7 +267,7 @@ public:
   }
 
 
-  //
+  //Maybe change to map with Clust weight and peptide Vec? 
   static vector<vector<PeptideIdentification>> clusterPeptides(const vector<double>& centers, vector<PeptideIdentification>& pips)
   {
     // one cluster for each cluster center
@@ -309,24 +309,10 @@ public:
     return clusters;
   } //Problem currently: clusters upshifted by small amount (ranges from .01 to .4 or even .6)
 
-  static vector<vector<PeptideIdentification>> mapDifftoMods(const vector<double>& centers, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 100.0, bool precursor_mass_tolerance_unit_ppm = false)
+  static vector<vector<PeptideIdentification>> mapDifftoMods(const vector<double>& centers, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 0.01, bool precursor_mass_tolerance_unit_ppm = false)
   {
     
     vector<vector<PeptideIdentification>> clusters(centers.size(), vector<PeptideIdentification>());
-   
-  
-    /* Mapping with tolerances 
-  if (precursor_mass_tolerance_unit_ppm) // ppm default 20 
-          {
-            low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - current_peptide_mass * precursor_mass_tolerance_ * 1e-6);
-            up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + current_peptide_mass * precursor_mass_tolerance_ * 1e-6);
-          }
-          else // Dalton
-          {
-            low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - precursor_mass_tolerance_);
-            up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + precursor_mass_tolerance_);
-          }
-  */
 
  // Accessing zhe .obo file 
  ControlledVocabulary unimod_; //Causes trace trap? 
@@ -341,7 +327,7 @@ public:
  map<String, ControlledVocabulary::CVTerm> terms = unimod_.getTerms(); 
  int ii = 0; 
  //Try unparsed? 
- 
+  map<double, String> mass_of_mods; 
  ControlledVocabulary::CVTerm zeroterm = terms.begin()->second; 
  //cout << zeroterm.unparsed.at(0) << std::endl; 
  cout << "Size of map " <<  terms.size() << std::endl; 
@@ -351,23 +337,43 @@ for(auto& x : terms){
         //cout << "Unparsed: " << y << std::endl; //this works 
         if(y.hasSubstring("delta_avge_mass")){
            std::vector<String> substrings(3);  
-           y.split(' ', substrings); 
-           cout << "Delta avge mass: " << substrings.at(2) << std::endl;
+           y.split(' ', substrings);
+           String val = substrings.at(2); 
+           //val.replace(substrings.at(2).find("."), sizeof(".") - 1, ",");
+           val = val.substr(1, val.length()-2); 
+           //cout << "Delta avge mass: " << val << std::endl;
+           double avge; 
+           avge = std::stod(val); 
+           mass_of_mods[avge] = x.second.name; 
         }
       }
     }
  } 
- //const String& varval = "delta_avge_mass"; 
- //cout << terms.at(0).children << std::endl; 
- //cout << terms.at(0).xref_binary << std::endl; 
- //cout << terms.at(0).xref_type << std::endl; 
- // cout <<  zeroterm.toXMLString(unimod_.name(), varval) << std::endl; 
- //This causes a segfault
-  /* for ( auto& teit : terms)
-    {
-       //cout << "First: "<<  teit.first << " second: " << teit.second.toXMLString(unimod_.name()) << std::endl; 
-       //cout << "First: "<<  teit.first << " second: " << teit.second.unparsed << std::endl; 
-    } */
+  map<double, String>::const_iterator low_it;
+  map<double, String>::const_iterator up_it;
+ //Mapping with tolerances 
+
+ for(auto& current_cluster_mass : centers){
+  if (precursor_mass_tolerance_unit_ppm) // ppm default 20, use Da 0.1 for now due to mass shift when clustering 
+          {
+            low_it = mass_of_mods.lower_bound(current_cluster_mass - current_cluster_mass * precursor_mass_tolerance_ * 1e-6);
+            up_it = mass_of_mods.upper_bound(current_cluster_mass + current_cluster_mass * precursor_mass_tolerance_ * 1e-6);
+          }
+          else // Dalton
+          {
+            low_it = mass_of_mods.lower_bound(current_cluster_mass - precursor_mass_tolerance_);
+            up_it = mass_of_mods.upper_bound(current_cluster_mass + precursor_mass_tolerance_ );
+          }
+            //Means found a mapping 
+          if(low_it == up_it){
+            auto mapped_val = *low_it; 
+            cout << mapped_val.first << " " << mass_of_mods[mapped_val.first] << " second:  " << mapped_val.second << std::endl; 
+          }
+          else{
+            auto mapped_val = *low_it; 
+            cout << " not mapped? " << mapped_val.first << " " << mass_of_mods[mapped_val.first] << " second:  " << mapped_val.second << std::endl; 
+          }
+ }
     cout << "Works without crashing" << std::endl; 
     return clusters; 
   } 
