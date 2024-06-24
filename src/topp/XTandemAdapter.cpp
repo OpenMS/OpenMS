@@ -37,6 +37,8 @@ using namespace std;
 
 @brief Identifies peptides in MS/MS spectra via the search engine X! Tandem.
 
+@note This adapter is deprecated (and likely removed in OpenMS 3.3). Contact us, if you feel it's irreplaceable.
+
 <CENTER>
     <table>
         <tr>
