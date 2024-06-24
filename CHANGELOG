@@ -87,6 +87,8 @@ Cleanup/Removal:
   - PeakPickerCWT_test
   - PeakShape_test
 
+- Deprecated (and likely removed in the next release)
+  - XTandemAdapter
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.1     (released 10/2023)                 ----
 ------------------------------------------------------------------------------------------
