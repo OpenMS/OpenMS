@@ -254,7 +254,7 @@ setup(
         'pyopenms': ['py.typed', '*.pyi']
     },
 	install_requires=[
-          'numpy',
+          'numpy<=1.26.4',
           'pandas',
           'matplotlib>=3.5'
     ],
