@@ -20,7 +20,7 @@
 class QModelIndex;
 class QStyleOptionViewItem;
 class QAbstractItemModel;
-class QStringList;
+#include <QtCore/qcontainerfwd.h> // for QStringList
 class QString;
 
 namespace Ui

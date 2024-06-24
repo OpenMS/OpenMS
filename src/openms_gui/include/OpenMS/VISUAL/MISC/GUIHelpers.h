@@ -17,7 +17,7 @@ class QPainter;
 class QPoint;
 class QRectF;
 class QString; 
-class QStringList;
+#include <QtCore/qcontainerfwd.h> // for QStringList
 class QWidget;
 
 #include <QColor>
