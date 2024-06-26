@@ -628,7 +628,7 @@ namespace OpenMS::Internal
         sip += "\t\t<AdditionalSearchParams>\n";
         if (is_ppxl)
         {
-          sip += "\n\t\t\t" + cv_.getTermByName("cross-linking search").toXMLString(cv_ns) + "\n";
+          sip += "\n\t\t\t" + cv_.getTermByName("crosslinking search").toXMLString(cv_ns) + "\n";
         }
         //remove MS:1001029 written if present in <SearchDatabase> as of SearchDatabase_may rule
         ProteinIdentification::SearchParameters search_params = it->getSearchParameters();
@@ -971,7 +971,7 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       os << "<cvList>\n"
          << "\t<cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\" "
-         << "uri=\"https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo\" "
+         << "uri=\"http://purl.obolibrary.org/obo/ms/psi-ms.obo\" "
          << "version=\"3.15.0\"></cv>\n "
          << "\t<cv id=\"UNIMOD\" fullName=\"UNIMOD\" uri=\"http://www.unimod.org/obo/unimod.obo\"></cv>\n"
          << "\t<cv id=\"UO\"     fullName=\"UNIT-ONTOLOGY\" "

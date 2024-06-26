@@ -254,9 +254,9 @@ jobs:
           # Install eigen from choco
           choco install eigen -y --no-progress
           echo "eigen_choco=C:\ProgramData\chocolatey\lib\eigen\share\cmake" >> $GITHUB_OUTPUT
-
+          choco install doxygen.portable ghostscript graphviz -y --no-progress
+          
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            choco install doxygen.portable ghostscript graphviz -y --no-progress
             # uses a custom NSIS, which provides 8-k string support and has UltraModernUI integrated already
             curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
             ## overwrite existing NSIS (which has only 1k-string support)
@@ -270,9 +270,7 @@ jobs:
           brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
           brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt
           echo "cmake_prefix=$(brew --prefix qt)/lib/cmake;$(brew --prefix qt)" >> $GITHUB_OUTPUT
-          if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            brew install --quiet doxygen ghostscript graphviz
-          fi
+          brew install --quiet doxygen ghostscript graphviz
         fi
 
     - name: Cache contrib (Windows)
@@ -456,8 +454,8 @@ jobs:
         type: 'tar'
         directory: ${{ github.workspace }}
         path: OpenMS
-        exclusions: 'bld/* ./source.tar.gz THIRDPARTY/* .git/*'
-        filename: 'source.tar.gz'
+        exclusions: 'bld/* ./OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz THIRDPARTY/* .git/*'
+        filename: 'OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz'
 
         
 
@@ -466,9 +464,9 @@ jobs:
       if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
       uses: actions/upload-artifact@v4
       with:
-        name: source.tar.gz
+        name: OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
         path: |
-          ${{ github.workspace }}/source.tar.gz
+          ${{ github.workspace }}/OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
 
 
     # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
@@ -537,7 +535,7 @@ jobs:
       - name: Download source archive as artifact
         uses: actions/download-artifact@v4
         with:
-          name: source.tar.gz
+          name: OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
 
       - name: Download changelog as artifact
         if: inputs.do_release
