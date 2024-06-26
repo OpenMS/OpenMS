@@ -34,10 +34,6 @@
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 
-
-using namespace OpenMS;
-using namespace std;
-
 //STL
 #include <iostream>
 #include <map>
@@ -49,6 +45,10 @@ using namespace std;
 #   endif
 #   include <Windows.h>
 #endif
+
+
+using namespace OpenMS;
+using namespace std;
 
 //-------------------------------------------------------------
 // command line name of this tool
@@ -87,6 +87,10 @@ void print_usage()
 
 int main(int argc, const char** argv)
 {
+ #ifdef OPENMS_WINDOWSPLATFORM
+  qputenv("QT_QPA_PLATFORM", "windows:darkmode=0"); // disable dark mode on Windows, since our buttons etc are not designed for it
+#endif
+
   //list of all the valid options
   std::map<std::string, std::string> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";

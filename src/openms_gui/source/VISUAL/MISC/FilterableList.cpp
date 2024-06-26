@@ -9,6 +9,8 @@
 #include <OpenMS/VISUAL/MISC/FilterableList.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Qt5Port.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <ui_FilterableList.h>
 
@@ -43,44 +45,27 @@ namespace OpenMS
 
     void FilterableList::setBlacklistItems(const QStringList& bl_items)
     {
-      /*
-       * Suppressing warning toSet() deprecated till Qt 5.14
-       */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-      blacklist_ = bl_items.toSet();
-#pragma GCC diagnostic pop
+      blacklist_ = toQSet(bl_items);
       updateInternalList_();
     }
 
     void FilterableList::addBlackListItems(const QStringList& items)
     {
-      /*
-       * Suppressing warning toSet() deprecated till Qt 5.14
-       */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-      blacklist_.unite(items.toSet());
-#pragma GCC diagnostic pop
+      blacklist_.unite(toQSet(items));
       updateInternalList_();
     }
 
     void FilterableList::removeBlackListItems(const QStringList& outdated_blacklist_items)
     {
-      // quadratic runtime, but maintains order of items (as opposed to converting to set)
-      /*
-       * Suppressing warning toSet() deprecated till Qt 5.14
-       */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-      for (const auto& bl : outdated_blacklist_items.toSet())
-#pragma GCC diagnostic pop
+      for (const auto& bl : outdated_blacklist_items)
       {
-        if (blacklist_.remove(bl) == 0)
+        if (!blacklist_.contains(bl))
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value cannot be taken from blacklist. Does not belong to set!", bl.toStdString());
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value '" + String(bl) + "' cannot be taken from blacklist. Does not belong to set!", bl.toStdString());
         }
       }
+      // remove all items from blacklist
+      blacklist_.subtract(toQSet(outdated_blacklist_items));
       updateInternalList_();
     }
 
@@ -122,7 +107,8 @@ namespace OpenMS
 
     void FilterableList::updateVisibleList_()
     {
-      QRegExp regex(ui_->filter_text->text(), Qt::CaseInsensitive, QRegExp::WildcardUnix);
+      QRegularExpression regex(QRegularExpression::wildcardToRegularExpression(ui_->filter_text->text()),
+                               QRegularExpression::CaseInsensitiveOption);
       ui_->list_items->clear();
       ui_->list_items->addItems(items_wo_bl_.filter(regex));
     }

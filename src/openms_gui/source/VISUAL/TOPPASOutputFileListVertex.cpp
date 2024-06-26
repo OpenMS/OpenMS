@@ -129,8 +129,8 @@ namespace OpenMS
             + File::basename(f).toQString();
 
         // remove "_tmp<number>" if its a suffix
-        QRegExp rx("_tmp\\d+$");
-        int tmp_index = rx.indexIn(new_file);
+        QRegularExpression rx("_tmp\\d+$");
+        int tmp_index = new_file.indexOf(rx);
         if (tmp_index != -1)
         {
           new_file = new_file.left(tmp_index);

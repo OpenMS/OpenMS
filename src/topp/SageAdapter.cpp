@@ -474,7 +474,7 @@ protected:
               << "-f" << fasta_file.toQString() 
               << "-o" << output_folder.toQString() 
               << "--write-pin";
-    if (batch >= 1) arguments << "--batch-size" << QString(batch);
+    if (batch >= 1) arguments << "--batch-size" << QString::number(batch);
     for (auto s : input_files) arguments << s.toQString();
 
     OPENMS_LOG_INFO << "Sage command line: " << sage_executable << " " << arguments.join(' ').toStdString() << std::endl;

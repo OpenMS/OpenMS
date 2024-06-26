@@ -11,9 +11,6 @@
 #include <ui_TOPPASInputFileDialog.h>
 
 #include <QtWidgets/QMessageBox>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QCompleter>
-#include <QtWidgets/QDirModel>
 #include <QtCore/QFileInfo>
 
 namespace OpenMS
