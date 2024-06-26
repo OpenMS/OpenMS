@@ -233,7 +233,7 @@ jobs:
           sudo add-apt-repository universe
           sudo apt update   
           sudo apt-get -qq install -y build-essential cmake autoconf patch libtool git automake ninja-build xvfb ccache
-          sudo apt-get -qq install -y qtbase6-dev libqt6svg6-dev libqt6opengl6-dev libqt6openglwidgets6-dev
+          sudo apt-get -qq install -y qt6-base-dev libqt6svg6-dev libqt6opengl6-dev libqt6openglwidgets6
           sudo apt-get -qq install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev \
            libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
@@ -245,7 +245,7 @@ jobs:
         fi
         
         if [[ "${{ matrix.os }}" == windows-* ]]; then
-          # QT_ROOT_DIR set by Install Qt5 step
+          # QT_ROOT_DIR set by Install Qt step
           echo "cmake_prefix=$QT_ROOT_DIR/lib/cmake;$QT_ROOT_DIR" >> $GITHUB_OUTPUT
           choco install ccache ninja cmake -y --no-progress
           ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
