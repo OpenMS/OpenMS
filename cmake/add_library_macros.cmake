@@ -330,6 +330,15 @@ function(openms_add_library)
               ${DLL_TEST_TARGET_PATH}
               )
     endif()
+    
+    ## another fix for APPLE, see https://github.com/OpenMS/OpenMS/pull/7525
+    if(APPLECLANG)
+      if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "15.0.0")
+          target_link_options(${openms_add_library_TARGET_NAME} PRIVATE -ld_classic)
+          set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES
+              QT_NO_DISABLE_WARN_DUPLICATE_LIBRARIES TRUE)
+      endif()
+    endif()
   endif()
   #------------------------------------------------------------------------------
   # Status message for configure output
