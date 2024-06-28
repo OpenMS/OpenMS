@@ -37,7 +37,6 @@ if (OPENMS_64BIT_ARCHITECTURE)
 else()
   set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-Debian-Linux-x86")
 endif()
-set(CPACK_GENERATOR "DEB")
 
 ## CPack issues when building the package.
 ## https://bugs.launchpad.net/ubuntu/+source/cmake/+bug/972419

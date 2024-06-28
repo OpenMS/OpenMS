@@ -31,7 +31,6 @@
 # $Maintainer: Julianus Pfeuffer $
 # $Authors: Julianus Pfeuffer $
 # --------------------------------------------------------------------------
-set(CPACK_GENERATOR "RPM")
 
 
 set(CPACK_RPM_PACKAGE_VENDOR "OpenMS developers <open-ms-general@lists.sourceforge.net>")

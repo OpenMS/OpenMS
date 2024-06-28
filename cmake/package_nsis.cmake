@@ -85,7 +85,6 @@ install(CODE "
 	configure_file(${PROJECT_BINARY_DIR}/Cfg_Settings.nsh.in.conf ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh)
 	")
 
-set(CPACK_GENERATOR NSIS)
 ## Remove the next three lines if you use the NSIS autogeneration feature at some point!
 ## For now it makes sure everything is merged into the usual folders bin/share/include
 set(CPACK_COMPONENT_ALL_IN_ONE 1)

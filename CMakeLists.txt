@@ -486,9 +486,27 @@ install_export_targets()
 # Installation and packaging:
 #------------------------------------------------------------------------------
 
-
-# packaging routines:
 if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
+
+  # Set packaging type
+  if((DEFINED ENV{PACK_ZIP}) AND (NOT "$ENV{PACK_ZIP}" STREQUAL ""))
+    set(CPACK_GENERATOR "ZIP")
+  else()
+    # Set CPACK_GENERATOR based on PACKAGE_TYPE
+    if("${PACKAGE_TYPE}" STREQUAL "dmg")
+      set(CPACK_GENERATOR "DragNDrop")
+    elseif("${PACKAGE_TYPE}" STREQUAL "pkg")
+      set(CPACK_GENERATOR "productbuild")
+    elseif("${PACKAGE_TYPE}" STREQUAL "rpm")
+      set(CPACK_GENERATOR "RPM")
+    elseif("${PACKAGE_TYPE}" STREQUAL "deb")
+      set(CPACK_GENERATOR "DEB")
+    elseif("${PACKAGE_TYPE}" STREQUAL "nsis")
+      set(CPACK_GENERATOR "NSIS")
+    endif()
+  endif()
+
+  # packaging routines:
   include(cmake/package_general.cmake)
   if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. macOS dmg
     include(cmake/package_dragndrop_dmg.cmake)
@@ -507,7 +525,7 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
     include(cmake/package_nsis.cmake)
   endif()
   include(CPack)
-  include(cmake/package_components.cmake)
+    include(cmake/package_components.cmake)
 endif()
 
 #------------------------------------------------------------------------------

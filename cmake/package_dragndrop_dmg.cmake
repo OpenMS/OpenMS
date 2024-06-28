@@ -38,7 +38,6 @@
 ## Or reduce the set of components to package
 #set(CPACK_COMPONENTS_ALL Applications Dependencies zzz-fixing-dependencies)
 
-set(CPACK_GENERATOR "DragNDrop")
 
 ## We want to package the whole top-level dir so a user can drag'n'drop it via the image.
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 0) ## dmg seems to be component-aware and makes an ALL-IN-ONE package
