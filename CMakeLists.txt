@@ -525,7 +525,7 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
     include(cmake/package_nsis.cmake)
   endif()
   include(CPack)
-    include(cmake/package_components.cmake)
+  include(cmake/package_components.cmake)
 endif()
 
 #------------------------------------------------------------------------------
