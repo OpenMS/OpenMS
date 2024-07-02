@@ -526,7 +526,7 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
     # in the script. Unfortunately we have a lot of specific code in the script.
     include(cmake/package_nsis.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "zip")
-    message(FATAL_ERROR "Please use the compiler flag PACK_ZIP to package as a zip file.")
+    message(WARNING "Please use the compiler flag PACK_ZIP to package as a zip file.")
   else()
     message(FATAL_ERROR "Invalid value for PACKAGE_TYPE")
   endif()
