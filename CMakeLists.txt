@@ -313,7 +313,8 @@ set(VALID_PACKAGE_TYPES "none" # the classical build type make/make install
                         "deb"  # deb package
                         "dmg"  # a drag&drop dmg package for macOS
                         "pkg"  # a productbuild installer for macOS
-                        "nsis") # an NSIS installer for Windows
+                        "nsis" # an NSIS installer for Windows
+                        "zip") # a portable version for Windows
 
 set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
 message(STATUS "Package type is '${PACKAGE_TYPE}'")
@@ -519,8 +520,6 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
     # are met for the portable version. 
     # TODO refactor this to only execute the relevant processing steps
     include(cmake/package_nsis.cmake)
-  else()
-    message(FATAL_ERROR "Invalid value for PACKAGE_TYPE")
   endif()
   include(CPack)
   include(cmake/package_components.cmake)
