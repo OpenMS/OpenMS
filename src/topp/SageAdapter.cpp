@@ -109,13 +109,13 @@ public:
 {
 public:
   ///< Determine score maxima from rate to score distribution using derivatives from spline interpolation
-  static vector<RateMassPair> getHighPoints(double threshold, double lowb, double upb, const mapRatetoMass& rate2score, bool debug = false)
+  static vector<RateMassPair> getHighPoints(double threshold,  const mapRatetoMass& rate2score, double lowb, double upb, bool debug = false)
   {
     vector<RateMassPair> high_points;
     vector<double> x, y;
 
     // set proper boundaries (uniform spacing)
-    x.push_back(-100.0 / (double)rate2score.size());
+    x.push_back(lowb);
     y.push_back(0);
 
     // copy data
@@ -125,11 +125,13 @@ public:
       y.push_back(it->second);
     }
   //?? 
-    /* if (rate2score.find(100.0) == rate2score.end() && x[x.size() - 1] < 100.0)
+    /*  if (rate2score.find(upb) == rate2score.end() && x[x.size() - 1] < upb)
     {
-      x.push_back(100.0);
+      x.push_back(upb);
       y.push_back(0);
-    } */
+    }  */
+    
+   
     
     const size_t n = x.size();
 
@@ -155,8 +157,8 @@ public:
       if (last_dxdy > 0.0 && dxdy <= 0 && yi > threshold)
       {
         RateMassPair rsp{};
-        rsp.rate = xi;
-        rsp.deltamass = yi;
+        rsp.deltamass = xi;
+        rsp.rate = yi;
         high_points.push_back(rsp);
       }
       last_dxdy = dxdy;
@@ -181,6 +183,7 @@ public:
   static vector<double>  getDeltaClusterCenter(const vector<PeptideIdentification>& pips, bool debug = false)
   {
     vector<double> cluster;
+    vector<double> delta_masses; 
     mapRatetoMass hist;
     int count = 0; 
     for (auto& id : pips)
@@ -193,13 +196,23 @@ public:
          double expval  =  std::stod(h.getMetaValue("SAGE:ExpMass")); 
          double calcval = std::stod(h.getMetaValue("SAGE:CalcMass"));
          double DeltaMass = expval - calcval; 
+         delta_masses.push_back(DeltaMass); 
          /* if(count++ < 20){ cout << "DeltaMass: " << DeltaMass << std::endl; 
          cout << "ExpMass: " << expval << std::endl; 
          cout << "CalcMass: " << calcval << std::endl; 
          } */
+        //Alternatively: Increase size of bins, make them +- 0.01
         if (hist.find(DeltaMass) == hist.end())
         {
-          hist[DeltaMass] = 1.0;
+          bool bucketcheck = true; 
+          for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit){
+            if(DeltaMass <  mit->first+0.03 && DeltaMass >  mit->first-0.03 && bucketcheck){
+              hist[mit->first] += 1.0; 
+              bucketcheck = false; 
+              //mit = hist.end(); 
+            }
+          }
+          if(bucketcheck) hist[DeltaMass] = 1.0;
         }
         else
         {
@@ -209,19 +222,29 @@ public:
       }}
       
     
-
+    vector<double> preClus; 
+    bool push = true; 
     for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit){
-      if(mit->first > 20 && mit->second > 5){
+      if(mit->first > 2 && mit->second > 100){ //next step remove lowb 
         cout << " Hist Deltamass " << mit->first << " " << " Hist Rate " << mit->second << " " <<  endl;
+        for(auto& clu : preClus){
+            if(clu < (mit->first + 0.01) && clu > (mit->first - 0.01)) push = false; 
+          }
+          if(push) preClus.push_back(mit->first); 
+          push = true; 
         }
       }
+
+    for(auto& clu : preClus){
+          cout << clu << " is a clus " << std::endl; 
+          }
     
     //determining bounds of dist. 
     double lowb = DBL_MAX; 
     double upb = DBL_MIN; 
     double step = 0; 
 
-    
+    //First is delta mass, second is rate 
     for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit)
       { 
         if(mit->first < lowb) lowb = mit->first; 
@@ -230,39 +253,111 @@ public:
       }
     OPENMS_LOG_INFO << "Lowb" << lowb << "Highb" << upb <<  std::endl; 
 
-    // kernel density estimation
-    vector<double> density(ceil(upb), 0); 
+    // kernel density estimation variant 1 
+    vector<double> density(ceil(upb), 0); //originally just upb 
+    cout << density.size() << " size of dens vec" << std::endl; 
 
     for (Size i = 0; i != density.size(); ++i)
     {
+      //double bandwidth; 
+      //double norm_factor = 1.0 / (density.size() * bandwidth);
       double sum = 0;
       for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit)
       {
-        normal s(mit->first, 1.0);
-        sum += mit->second * pdf(s, (double)i);
+        normal s(mit->first, 0.5);
+        sum += mit->second * pdf(s, (double)i );
       }
-      density[i] = sum;
+      density[i] = sum ;
+    }
+    //Attempt at direct map, doesn't make a difference! //Attempt to use i as a double next, map across full spectrum 
+    //i as double unnecessary, run next //Check how getHighpoints deals with negarive values 
+    //Try reducing var, otherwise: try different kernel? 
+    
+     map<double, double> deltaDense2; 
+    /* for(int i = ceil(lowb); i < ceil(upb); ++i){
+      double sum = 0;
+      for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit)
+      {
+        normal s(mit->first, 0.005);
+        sum += mit->second * pdf(s, (double)i );
+      }
+      deltaDense2[(double)i] = sum;
+    } */
+    //Try KDE by hand using delta_masses 
+    cout << "Delta_masses size: " << delta_masses.size() << std::endl; 
+
+    for(int i = ceil(lowb); i < ceil(upb); ++i){
+      double sum = 0;
+      for (Size j = 0; j < delta_masses.size(); ++j)
+      {
+        normal s(delta_masses.at(j), 0.001);
+        sum += pdf(s, (double)i );
+      }
+      deltaDense2[(double)i] = sum;
     }
 
+
+    //Try spline interp 
+
+    //map<double, double> y_val; 
+
+    /* for(int i = ceil(lowb)+1; i < ceil(upb); ++i){
+      y_val[i] = Y[i] = Y[i-1] + avg[i-1]*(X[i]-X[i-1]);
+ */    
+    /* for(int i = ceil(lowb); i < ceil(upb); ++i){
+      double sum = 0;
+      for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit)
+      {
+        normal s(mit->first, 0.5);
+        sum += mit->second * pdf(s, (double)i );
+      }
+      deltaDense2[(double)i] = sum;
+    } */
+
+
+  // idea: remove density, iterate in steps of 0.9, 1, 1.1? 
+
+    //kernel density estimation 2
+    /* vector<double> density2(ceil(upb), 0); 
+    double bandwidth = 0.1; 
+    for (Size i = 0; i != density2.size(); ++i)
+    {
+      
+      //double norm_factor = 1.0 / (density.size() * bandwidth);
+      double sum = 0;
+      for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit)
+      {
+        double x = (i - mit->first)/bandwidth; 
+        
+        sum += std::exp(-0.5 * x * x) / std::sqrt(2 * M_PI);
+      }
+      density2[i] = sum/(hist.size() * bandwidth) ;
+    }
+
+    cout << density2.size() << "dens2 size " << std::endl; */ 
     map<double, double> delta_density;
 
     for (Size i = 0; i != density.size(); ++i)
     {
       delta_density[i] = density[i];
-      //if(i < 20) OPENMS_LOG_INFO << "Density: " << density[i] << std::endl;
+      //if(i < 20) cout << "Density at "<< i <<  ": " << density[i] << " and density at " << i*2 << ": " << density[8*i] <<  std::endl;
     }
 
-    vector<RateMassPair> cluster_center = MetaProSIPInterpolation::getHighPoints(10, delta_density, lowb, upb,  debug);
-
-
+    vector<RateMassPair> cluster_center = MetaProSIPInterpolation::getHighPoints(100, delta_density, lowb, upb,  debug);
+    vector<RateMassPair> cluster_center2 = MetaProSIPInterpolation::getHighPoints(100, deltaDense2, lowb, upb,  debug);
+    
+    for(vector<RateMassPair>::const_iterator cit = cluster_center2.begin(); cit != cluster_center2.end(); ++cit)
+    {
+      cout << "Clust 2: " << cit->deltamass << std::endl;
+    }
     // return cluster centers
     for (vector<RateMassPair>::const_iterator cit = cluster_center.begin(); cit != cluster_center.end(); ++cit)
     {
-      OPENMS_LOG_INFO << "Clust: " << cit->rate << std::endl;
-      cluster.push_back(cit->rate);
+      cout << "Clust: " << cit->deltamass << std::endl;
+      cluster.push_back(cit->deltamass);
     }
     
-  
+  return preClus; 
   return cluster;
   }
 
@@ -309,7 +404,7 @@ public:
     return clusters;
   } //Problem currently: clusters upshifted by small amount (ranges from .01 to .4 or even .6)
 
-  static vector<vector<PeptideIdentification>> mapDifftoMods(const vector<double>& centers, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 0.01, bool precursor_mass_tolerance_unit_ppm = false)
+  static vector<PeptideIdentification> mapDifftoMods(const vector<double>& centers, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 0.01, bool precursor_mass_tolerance_unit_ppm = false)
   {
     
     vector<vector<PeptideIdentification>> clusters(centers.size(), vector<PeptideIdentification>());
@@ -334,6 +429,7 @@ public:
 for(auto& x : terms){
     if(x.second.unparsed.size() != 0){
       for(auto& y : x.second.unparsed){
+        //cout << x.second.name << std::endl; 
         //cout << "Unparsed: " << y << std::endl; //this works 
         if(y.hasSubstring("delta_avge_mass")){
            std::vector<String> substrings(3);  
@@ -351,6 +447,7 @@ for(auto& x : terms){
  } 
   map<double, String>::const_iterator low_it;
   map<double, String>::const_iterator up_it;
+  StringList modnames; 
  //Mapping with tolerances 
 
  for(auto& current_cluster_mass : centers){
@@ -361,21 +458,67 @@ for(auto& x : terms){
           }
           else // Dalton
           {
-            low_it = mass_of_mods.lower_bound(current_cluster_mass - precursor_mass_tolerance_);
+            low_it = mass_of_mods.lower_bound(current_cluster_mass - precursor_mass_tolerance_ );
             up_it = mass_of_mods.upper_bound(current_cluster_mass + precursor_mass_tolerance_ );
           }
-            //Means found a mapping 
+          auto mapped_val = *low_it; 
+          auto mapped_val_high = *up_it; 
+            //Means found a mapping? Or does it? 
           if(low_it == up_it){
-            auto mapped_val = *low_it; 
+            
             cout << mapped_val.first << " " << mass_of_mods[mapped_val.first] << " second:  " << mapped_val.second << std::endl; 
+            modnames.push_back(mapped_val.second); 
+
           }
           else{
-            auto mapped_val = *low_it; 
-            cout << " not mapped? " << mapped_val.first << " " << mass_of_mods[mapped_val.first] << " second:  " << mapped_val.second << std::endl; 
+            cout << "Low not mapped? " << mapped_val.first << " " << mass_of_mods[mapped_val.first] << " second:  " << mapped_val.second << std::endl; 
+            cout << "High not mapped? " << mapped_val_high.first << " " << mass_of_mods[mapped_val_high.first] << " second:  " << mapped_val_high.second << std::endl; 
+
           }
+          
  }
-    cout << "Works without crashing" << std::endl; 
-    return clusters; 
+
+ /* // ModifiedPeptideGenerator::applyVariableModifications(const MapToResidueType& var_mods,
+    const AASequence& peptide, 
+    Size max_variable_mods_per_peptide, 
+    vector<AASequence>& all_modified_peptides, 
+    bool keep_unmodified) */
+
+
+ //Add the modifications
+  vector<PeptideIdentification> finalModifiedpeptides; 
+  ModifiedPeptideGenerator::MapToResidueType mapRT  = ModifiedPeptideGenerator::getModifications(modnames); 
+  bool si = true; 
+  cout << "Passed" << std::endl; 
+  for (auto& id : pips)
+    {
+      auto& hits = id.getHits();
+      PeptideIdentification hitlist; 
+      for (auto& h : hits)
+      { 
+        AASequence aas = h.getSequence(); 
+        Size var = 2; 
+        vector<AASequence> all_modified_peptides; 
+        ModifiedPeptideGenerator::applyVariableModifications( mapRT, aas, var, all_modified_peptides); 
+         if(si){
+          cout << all_modified_peptides.size() << " is size of all_mod_pep"; 
+          for(auto& x : all_modified_peptides) cout << x.toString() << std::endl; 
+          si = false; 
+        } 
+        for(auto& a :all_modified_peptides ){
+            PeptideHit hit = PeptideHit(h.getScore(), h.getRank(), h.getCharge(), a);
+            hitlist.insertHit(hit); 
+        }
+            
+        
+      }
+      
+      finalModifiedpeptides.push_back(hitlist); 
+    } 
+    cout << "Original size of pips: " << pips.size() << std::endl; 
+    cout << "Works without crashing, size of final peptide list: " << finalModifiedpeptides.size() << std::endl; 
+
+    return finalModifiedpeptides; 
   } 
 
 }; 
@@ -813,38 +956,19 @@ protected:
       }
     }
 
-  /*
-    int i = 0; 
-    for (auto& id : peptide_identifications)
-    {
-      auto& hits = id.getHits();
-      for (auto& h : hits)
-      {
-         double expval  =  std::stod(h.getMetaValue("SAGE:ExpMass")); 
-         double calcval = std::stod(h.getMetaValue("SAGE:CalcMass"));
-         double DeltaMass = expval - calcval; 
-        if(i++ < 5){
-          //OPENMS_LOG_INFO << "Calc" << h.getMetaValue("SAGE:CalcMass") << std::endl;
-          //OPENMS_LOG_INFO << "Exp" << h.getMetaValue("SAGE:ExpMass")  << std::endl;
-          //OPENMS_LOG_INFO << "try" <<  DeltaMass << std::endl;
-          
-        } 
-      }
-    }*/
 
   const vector<double> resultsClus =  SageClustering::getDeltaClusterCenter(peptide_identifications); 
   vector<vector<PeptideIdentification>> resultsClus2 = SageClustering::clusterPeptides(resultsClus, peptide_identifications);
-  vector<vector<PeptideIdentification>> mapD = SageClustering::mapDifftoMods(resultsClus, peptide_identifications); 
-  long j = 0;  
-  while(j++ < resultsClus2.size()) cout << "Size of Clus at " << j-1 << " " <<  resultsClus2.at(j-1).size() << std::endl; 
-  //while(++j < 20 && j < resultsClus.size()) OPENMS_LOG_INFO << "Clus at " << j << " " << resultsClus.at(j) << std::endl;
-  //OPENMS_LOG_INFO << "Clus size" << resultsClus.size() << std::endl;
+  vector<PeptideIdentification> mapD = SageClustering::mapDifftoMods(resultsClus, peptide_identifications); //peptide_identifications; 
+  //vector<PeptideIdentification> mapD =  peptide_identifications; 
+
+  //while(j++ < resultsClus2.size()) cout << "Size of Clus at " << j-1 << " " <<  resultsClus2.at(j-1).size() << std::endl; 
 
   
 
 
     // remove hits without charge state assigned or charge outside of default range (fix for downstream bugs). TODO: remove if all charges annotated in sage
-    IDFilter::filterPeptidesByCharge(peptide_identifications, 2, numeric_limits<int>::max());
+    IDFilter::filterPeptidesByCharge(mapD, 2, numeric_limits<int>::max());
 
 
     
@@ -863,7 +987,7 @@ protected:
     DateTime now = DateTime::now();
     String identifier("Sage_" + now.get());
     protein_identifications[0].setIdentifier(identifier);
-    for (auto & pid : peptide_identifications) 
+    for (auto & pid : mapD) 
     { 
       pid.setIdentifier(identifier);
       pid.setScoreType("hyperscore");
@@ -900,7 +1024,7 @@ protected:
     }
 
     // if "reindex" parameter is set to true: will perform reindexing
-    if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
+    if (auto ret = reindex_(protein_identifications, mapD); ret != EXECUTION_OK) return ret;
 
     map<String,unordered_map<int,String>> file2specnr2nativeid;
     for (const auto& mzml : input_files)
@@ -949,7 +1073,7 @@ protected:
       ++cnt;
     }
 
-    for (auto& id : peptide_identifications)
+    for (auto& id : mapD)
     {
       Int64 scanNrAsInt = 0;
       
@@ -963,8 +1087,8 @@ protected:
       {
       }
     }
-
-    IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
+    //Test to see if it still works
+    IdXMLFile().store(output_file, protein_identifications, mapD);
 
     return EXECUTION_OK;
   }
