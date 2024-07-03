@@ -13,7 +13,7 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 #<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit e.g. https://github.com/OpenMS/OpenMS/pull/XXXX (replace XXXX with number of interest) for details
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.2     (in development)                   ----
+----                                OpenMS 3.2.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
 What's new:
@@ -30,6 +30,8 @@ Library:
 
 New Tools:
 - IonMobilityBinning - Merges spectra with similar IM values and creates @p N output mzML's by discretizing the IM range (#7459)
+- AssayGeneratorMetaboSirius -- Assay library generation from a SIRIUS project directory (Metabolomics)
+- SiriusExport -- Metabolite identification using single and tandem mass spectrometry
 
 Fixes:
 - FileConverter: more robust (#7176)
@@ -49,6 +51,8 @@ Misc:
 - Add export for Common Workflow Language (CWL) (#6156)
 - Add tool description lib (TDL) dependency (#6156)
 
+Changed/new parameters: see CHANGELOG_PARAMS for details
+
 Note: The goal of our library is to provide useful, reusable code in a way that’s easy to understand and use.
 To make OpenMS simpler, more focused and more accessible we gradually remove potentially outdated tools and algorithms.
 If you, as a user, are negatively affected by this step please contact us. We listen to our users and will try to find 
@@ -57,14 +61,20 @@ an alternative solution or reverse a particular decision for removal.
 Cleanup/Removal:
 
 - removed tools:
-  - Removed SpectraFilterMarkerMower TOPP tool (#7183)
-  - FeatureFinderIsotopeWavelet
-  - PeakPickerWavelet
-  - PrecursorMassCorrector
-  - TOFCalibration
-  - ERPairFinder
-  - RNPxlSearch
-  - SpectraFilterParentPeakMower
+  - SpectraFilterMarkerMower -- Applies thresholdfilter to peak spectra (#7183)
+  - FeatureFinderIsotopeWavelet -- Detects two-dimensional features in LC-MS data
+  - PeakPickerWavelet -- Finds mass spectrometric peaks in profile mass spectra
+  - PrecursorMassCorrector -- Corrects the precursor entries of MS/MS spectra, by using MS1 information
+  - TOFCalibration -- Applies time of flight calibration
+  - ERPairFinder -- Util which can be used to evaluate pair ratios on enhanced resolution (zoom) scans
+  - RNPxlSearch -- Annotate RNA/DNA-peptide cross-links in MS/MS spectra
+  - SpectraFilterSqrtMower -- Applies thresholdfilter to peak spectra
+  - FeatureFinderMRM -- Detects two-dimensional features in LC-MS data
+  - MapAlignerSpectrum -- Corrects retention time distortions between maps by spectrum alignment
+  - ProteinResolver -- protein inference
+  - SiriusAdapter -- Tool for metabolite identification using single and tandem mass spectrometry
+  - SpectraFilterBernNorm -- Applies thresholdfilter to peak spectra
+  - SpectraFilterScaler -- Applies thresholdfilter to peak spectra
 
 - removed library code:
   - HiddenMarkovModel
@@ -89,6 +99,7 @@ Cleanup/Removal:
 
 - Deprecated (and likely removed in the next release)
   - XTandemAdapter
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.1     (released 10/2023)                 ----
 ------------------------------------------------------------------------------------------
