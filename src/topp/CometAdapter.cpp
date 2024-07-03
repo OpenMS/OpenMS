@@ -282,7 +282,16 @@ protected:
     isotope_error["-8/-4/0/4/8"] = 4;
     isotope_error["-1/0/1/2/3"] = 5;
 
-    os << "peptide_mass_tolerance = " << getDoubleOption_("precursor_mass_tolerance") << "\n";
+    double precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
+    if (comet_version.hasSubstring("2024.01 rev. 0"))
+    { // workaround for Comet bug in v2024.01.0, which introduces “peptide_mass_tolerance_lower” and “peptide_mass_tolerance_upper” parameters
+      // but deprecates “peptide_mass_tolerance”. It's still supported but buggy: it causes the search to return empty results since lower-upper
+      // boundaries are inverted, e.g. a '10' in param.txt is internally translated to 10 to -10 instead of -10 to 10. So we fix by giving a negative tolerance, see
+      // https://github.com/UWPR/Comet/issues/59 ;; should only affect this version
+      OPENMS_LOG_INFO << "Comet 2024.01 rev. 0 detected. Using negation workaround for precursor_mass_tolerance." << endl;
+      precursor_mass_tolerance *= -1;
+    }    
+    os << "peptide_mass_tolerance = " << precursor_mass_tolerance << "\n";
     os << "peptide_mass_units = " << precursor_error_units[getStringOption_("precursor_error_units")] << "\n";                  // 0=amu, 1=mmu, 2=ppm
     os << "mass_type_parent = " << 1 << "\n";                    // 0=average masses, 1=monoisotopic masses
     os << "mass_type_fragment = " << 1 << "\n";                  // 0=average masses, 1=monoisotopic masses
@@ -498,7 +507,7 @@ protected:
     os << "spectrum_batch_size = " << getIntOption_("spectrum_batch_size") << "\n";                 // max. // of spectra to search at a time; 0 to search the entire scan range in one loop
     os << "max_duplicate_proteins = 20\n";                       // maximum number of protein names to report for each peptide identification; -1 reports all duplicates
     os << "equal_I_and_L = 1\n";
-    os << "output_suffix = " << "" << "\n";                      // add a suffix to output base names i.e. suffix "-C" generates base-C.pep.xml from base.mzXML input
+    os << "output_suffix =\n";                                   // add a suffix to output base names i.e. suffix "-C" generates base-C.pep.xml from base.mzXML input
     os << "mass_offsets = " << ListUtils::concatenate(getDoubleList_("mass_offsets"), " ") << "\n"; // one or more mass offsets to search (values subtracted from deconvoluted precursor mass)
     os << "precursor_NL_ions =\n"; //  one or more precursor neutral loss masses, will be added to xcorr analysis 
 
