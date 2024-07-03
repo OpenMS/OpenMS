@@ -488,35 +488,19 @@ install_export_targets()
 
 if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
 
-  # Set packaging type
-  if((DEFINED ENV{PACK_ZIP}) AND (NOT "$ENV{PACK_ZIP}" STREQUAL ""))
-    set(CPACK_GENERATOR "ZIP")
-  else()
-    # Set CPACK_GENERATOR based on PACKAGE_TYPE
-    if("${PACKAGE_TYPE}" STREQUAL "dmg")
-      set(CPACK_GENERATOR "DragNDrop")
-    elseif("${PACKAGE_TYPE}" STREQUAL "pkg")
-      set(CPACK_GENERATOR "productbuild")
-    elseif("${PACKAGE_TYPE}" STREQUAL "rpm")
-      set(CPACK_GENERATOR "RPM")
-    elseif("${PACKAGE_TYPE}" STREQUAL "deb")
-      set(CPACK_GENERATOR "DEB")
-    elseif("${PACKAGE_TYPE}" STREQUAL "nsis")
-      set(CPACK_GENERATOR "NSIS")
-    else()
-      message(FATAL_ERROR "Invalid value for PACKAGE_TYPE")
-    endif()
-  endif()
-
   # packaging routines:
   include(cmake/package_general.cmake)
   if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. macOS dmg
+    set(CPACK_GENERATOR "DragNDrop")
     include(cmake/package_dragndrop_dmg.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "pkg") # .. macOS pkg
+    set(CPACK_GENERATOR "productbuild")
     include(cmake/package_mac_productbuild.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "rpm") # .. rpms
+    set(CPACK_GENERATOR "RPM")
     include(cmake/package_rpm.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "deb") # .. debs
+    set(CPACK_GENERATOR "DEB")
     include(cmake/package_deb.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "nsis") # .. Windows nsis
     # For now we use the old NSIS script AS IS
@@ -524,9 +508,17 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
     # will use everything from the usual build folder like before.
     # TODO automate more and let CMake generate install commands
     # in the script. Unfortunately we have a lot of specific code in the script.
+    set(CPACK_GENERATOR "NSIS")
     include(cmake/package_nsis.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "zip")
-    message(WARNING "Please use the compiler flag PACK_ZIP to package as a zip file.")
+    if(NOT WIN32)
+      message(FATAL_ERROR "The package type ZIP is only supported for windows.")
+    endif()
+    set(CPACK_GENERATOR "ZIP")
+    # For now we use the package nsis script to ensure all dependencies
+    # are met for the portable version. 
+    # TODO refactor this to only execute the relevant processing steps
+    include(cmake/package_nsis.cmake)
   else()
     message(FATAL_ERROR "Invalid value for PACKAGE_TYPE")
   endif()
