@@ -25,6 +25,7 @@
 #include <fstream>
 
 #include <QStringList>
+#include <QRegularExpression>
 
 using namespace OpenMS;
 using namespace std;
@@ -56,11 +57,13 @@ using namespace std;
 
 @warning We recommend to use Comet 2019.01 rev. 5 or later, due to a serious "empty result" bug in earlier versions (which occurs frequently on Windows; Linux seems not/less affected).
 
+@warning Skip over 'Comet v2024.01.0', since it contains several bugs (see https://github.com/UWPR/Comet/issues/63).
+
 Comet settings not exposed by this adapter can be directly adjusted using a param file, which can be generated using comet -p.
 By default, All (!) parameters available explicitly via this param file will take precedence over the wrapper parameters.
 
 Parameter names have been changed to match names found in other search engine adapters, however some are Comet specific.
-For a detailed description of all available parameters check the Comet documentation at http://comet-ms.sourceforge.net/parameters/parameters_201601/
+For a detailed description of all available parameters check the Comet documentation at https://uwpr.github.io/Comet/parameters/
 The default parameters are set for a high resolution instrument.
 
 @note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
@@ -282,16 +285,36 @@ protected:
     isotope_error["-8/-4/0/4/8"] = 4;
     isotope_error["-1/0/1/2/3"] = 5;
 
-    double precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
-    if (comet_version.hasSubstring("2024.01 rev. 0"))
-    { // workaround for Comet bug in v2024.01.0, which introduces “peptide_mass_tolerance_lower” and “peptide_mass_tolerance_upper” parameters
-      // but deprecates “peptide_mass_tolerance”. It's still supported but buggy: it causes the search to return empty results since lower-upper
-      // boundaries are inverted, e.g. a '10' in param.txt is internally translated to 10 to -10 instead of -10 to 10. So we fix by giving a negative tolerance, see
-      // https://github.com/UWPR/Comet/issues/59 ;; should only affect this version
-      OPENMS_LOG_INFO << "Comet 2024.01 rev. 0 detected. Using negation workaround for precursor_mass_tolerance." << endl;
-      precursor_mass_tolerance *= -1;
-    }    
-    os << "peptide_mass_tolerance = " << precursor_mass_tolerance << "\n";
+    // comet_version is something like "# comet_version 2017.01 rev. 1"
+    auto comet_year_str = StringUtils::removeWhitespaces(String(comet_version));
+    QRegularExpression comet_version_regex("(\\d{4})\\.(\\d*)rev");
+    if (auto match = comet_version_regex.match(comet_year_str.toQString()); match.hasMatch())
+    {
+      const int comet_year = match.captured(1).toInt();
+      if (comet_version.hasSubstring("2024.01 rev. 0"))
+      {
+        OPENMS_LOG_WARN << "Comet v2024.01.0 is known to have several bugs (see https://github.com/UWPR/Comet/issues/63). Please use a different version if possible." << std::endl;
+      }
+      // Comet v2024.01.0 introduces “peptide_mass_tolerance_lower” and “peptide_mass_tolerance_upper” parameters
+      // and deprecates “peptide_mass_tolerance” (which is buggy in this version, see https://github.com/UWPR/Comet/issues/59)
+      // We need to use the new parameters from this version onwards
+      double precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
+      if (comet_year >= 2024)
+      {
+        os << "peptide_mass_tolerance_lower = " << -precursor_mass_tolerance << "\n";
+        os << "peptide_mass_tolerance_upper = " << precursor_mass_tolerance << "\n";
+      }
+      else
+      { // for Comet versions before 2024, we use the old parameter
+        os << "peptide_mass_tolerance = " << precursor_mass_tolerance << "\n";
+      }
+    }
+    else
+    { 
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                               "Error: Could not extract year from Comet version string: " + comet_version + ". Please report this to the OpenMS team.");
+    }
+
     os << "peptide_mass_units = " << precursor_error_units[getStringOption_("precursor_error_units")] << "\n";                  // 0=amu, 1=mmu, 2=ppm
     os << "mass_type_parent = " << 1 << "\n";                    // 0=average masses, 1=monoisotopic masses
     os << "mass_type_fragment = " << 1 << "\n";                  // 0=average masses, 1=monoisotopic masses
