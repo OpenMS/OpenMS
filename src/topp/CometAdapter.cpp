@@ -286,9 +286,8 @@ protected:
     isotope_error["-1/0/1/2/3"] = 5;
 
     // comet_version is something like "# comet_version 2017.01 rev. 1"
-    auto comet_year_str = StringUtils::removeWhitespaces(String(comet_version));
     QRegularExpression comet_version_regex("(\\d{4})\\.(\\d*)rev");
-    if (auto match = comet_version_regex.match(comet_year_str.toQString()); match.hasMatch())
+    if (auto match = comet_version_regex.match(comet_version.toQString().remove(' ')); match.hasMatch())
     {
       const int comet_year = match.captured(1).toInt();
       if (comet_version.hasSubstring("2024.01 rev. 0"))
