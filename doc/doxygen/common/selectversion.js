@@ -76,7 +76,7 @@ function parseDirectoryListing(stringOfHtml) {
     // TODO Style nightly differently to make sure users see it?
     docs.unshift('<a class="verslink" href="'
         + urlrootdir
-        + '/nightly/' + patharr[patharr.length - 1] + '">'
+        + '/nightly/' + 'html/' + patharr[patharr.length - 1] + '">'
         + 'nightly'
         + '</a>');
         
