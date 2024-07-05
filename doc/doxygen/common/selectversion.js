@@ -66,7 +66,7 @@ function parseDirectoryListing(stringOfHtml) {
 
     docs = docs.map((x) => '<a class="verslink" href="'
         + urlrootdir
-        + '/release/' + x + '/' + 'html/' + patharr[patharr.length - 1] + '">'
+        + '/release/' + x + '/html/' + patharr[patharr.length - 1] + '">'
         + x
         + '</a>');
         
