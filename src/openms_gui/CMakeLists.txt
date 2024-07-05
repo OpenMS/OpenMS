@@ -70,6 +70,19 @@ if (MSVC)
   set_property(TARGET OpenMS_GUI APPEND PROPERTY LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
 endif()
 
+
+# --------------------------------------------------------------------------
+# some targets using OpenMS_GUI (e.g. in the GUI tests) need the ui_..h files, so add them to OpenMS_GUI's interface.
+get_property(_isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(_isMultiConfig)
+  set(AUTOGEN_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/OpenMS_GUI_autogen/include_$<CONFIG>)
+else()
+  set(AUTOGEN_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/OpenMS_GUI_autogen/include)
+endif()
+# add include-directories for UIC'd files (CMake does not do that automatically)
+target_include_directories(OpenMS_GUI INTERFACE $<BUILD_INTERFACE:${AUTOGEN_INCLUDE_DIR}>)
+
+
 #------------------------------------------------------------------------------
 # register relevant paths for the doxygen doc generation
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
