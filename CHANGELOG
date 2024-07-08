@@ -39,6 +39,7 @@ Fixes:
 - FileConverter: more robust (#7176)
 - MSFragger: allow relative path to database (#7155)
 - MSGFPlusAdapter: allow concurrent creation of indexed database (#7272)
+- CometAdapter: work around bug in Comet 2024.01 rev. 0 to avoid empty results (#7540)
 - ParamEditor: fixed error for the subsection parameter (ParamNode) to go through store function (#7180)
 - TOPPView: fix crash when viewing certain Chromatograms (#7220)
 - TOPPView: in 2D view, show correct adjacent layers in context menu, if user clicked to the right of the last MS1 scan (now shows the 4 rightmost MS1 scans, used to show the 4 leftmost scans) (#7423)
