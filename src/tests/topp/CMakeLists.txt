@@ -1015,18 +1015,18 @@ add_test("TOPP_IDFilter_4" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/
 add_test("TOPP_IDFilter_4_out1" ${DIFF} -in1 IDFilter_4_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDFilter_4_output.idXML )
 set_tests_properties("TOPP_IDFilter_4_out1" PROPERTIES DEPENDS "TOPP_IDFilter_4")
 
-add_test("TOPP_IDFilter_5" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_5_input.idXML -out IDFilter_5_output.tmp.idXML -score:pep 32 -score:prot 25)
+add_test("TOPP_IDFilter_5" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_5_input.idXML -out IDFilter_5_output.tmp.idXML -score:psm 32 -score:protein 25)
 add_test("TOPP_IDFilter_5_out1" ${DIFF} -in1 IDFilter_5_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDFilter_5_output.idXML )
 set_tests_properties("TOPP_IDFilter_5_out1" PROPERTIES DEPENDS "TOPP_IDFilter_5")
-add_test("TOPP_IDFilter_5a" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_5_input.idXML -out IDFilter_5a_output.tmp.idXML -score:pep 32 )
+add_test("TOPP_IDFilter_5a" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_5_input.idXML -out IDFilter_5a_output.tmp.idXML -score:psm 32 )
 add_test("TOPP_IDFilter_5a_out1" ${DIFF} -in1 IDFilter_5a_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDFilter_5_output.idXML )
 set_tests_properties("TOPP_IDFilter_5a_out1" PROPERTIES DEPENDS "TOPP_IDFilter_5a")
 
-add_test("TOPP_IDFilter_5b" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_5_input.idXML -out IDFilter_5b_output.tmp.idXML -score:prot 25)
+add_test("TOPP_IDFilter_5b" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_5_input.idXML -out IDFilter_5b_output.tmp.idXML -score:protein 25)
 add_test("TOPP_IDFilter_5b_out1" ${DIFF} -in1 IDFilter_5b_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDFilter_5b_output.idXML )
 set_tests_properties("TOPP_IDFilter_5b_out1" PROPERTIES DEPENDS "TOPP_IDFilter_5b")
 
-add_test("TOPP_IDFilter_5c" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_5_input.idXML -out IDFilter_5c_output.tmp.idXML -score:prot 25 -delete_unreferenced_peptide_hits)
+add_test("TOPP_IDFilter_5c" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_5_input.idXML -out IDFilter_5c_output.tmp.idXML -score:protein 25 -delete_unreferenced_peptide_hits)
 add_test("TOPP_IDFilter_5c_out1" ${DIFF} -in1 IDFilter_5c_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDFilter_5c_output.idXML )
 set_tests_properties("TOPP_IDFilter_5c_out1" PROPERTIES DEPENDS "TOPP_IDFilter_5c")
 
@@ -1042,11 +1042,11 @@ add_test("TOPP_IDFilter_8" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/
 add_test("TOPP_IDFilter_8_out1" ${DIFF} -in1 IDFilter_8_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDFilter_8_output.idXML )
 set_tests_properties("TOPP_IDFilter_8_out1" PROPERTIES DEPENDS "TOPP_IDFilter_8")
 # check for issue 887 regression (multiple runs)
-add_test("TOPP_IDFilter_9" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_9_input.idXML -out IDFilter_9_output.tmp.idXML -score:pep 0.05)
+add_test("TOPP_IDFilter_9" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_9_input.idXML -out IDFilter_9_output.tmp.idXML -score:psm 0.05)
 add_test("TOPP_IDFilter_9_out1" ${DIFF} -in1 IDFilter_9_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDFilter_9_output.idXML )
 set_tests_properties("TOPP_IDFilter_9_out1" PROPERTIES DEPENDS "TOPP_IDFilter_9")
 # update protein groups ("IDFilter_10_input.idXML" is same as "IDFileConverter_3_output.idXML", i.e. converted protXML):
-add_test("TOPP_IDFilter_10" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_10_input.idXML -out IDFilter_10_output.tmp.idXML -score:prot 0.3 -delete_unreferenced_peptide_hits)
+add_test("TOPP_IDFilter_10" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_10_input.idXML -out IDFilter_10_output.tmp.idXML -score:protein 0.3 -delete_unreferenced_peptide_hits)
 add_test("TOPP_IDFilter_10_out1" ${DIFF} -in1 IDFilter_10_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDFilter_10_output.idXML )
 set_tests_properties("TOPP_IDFilter_10_out1" PROPERTIES DEPENDS "TOPP_IDFilter_10")
 # remove decoys and update protein groups:
@@ -1108,7 +1108,7 @@ add_test("TOPP_IDFilter_23_out1" ${DIFF} -in1 IDFilter_23_output.tmp.consensusXM
 set_tests_properties("TOPP_IDFilter_23_out1" PROPERTIES DEPENDS "TOPP_IDFilter_23")
 
 #consenusXML and protein groups
-add_test("TOPP_IDFilter_24" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/Epifany_3_out.consensusXML -out IDFilter_24_output.tmp.consensusXML -score:protgroup 0.99)
+add_test("TOPP_IDFilter_24" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/Epifany_3_out.consensusXML -out IDFilter_24_output.tmp.consensusXML -score:proteingroup 0.99)
 add_test("TOPP_IDFilter_24_out1" ${DIFF} -in1 IDFilter_24_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IDFilter_24_output.consensusXML)
 set_tests_properties("TOPP_IDFilter_24_out1" PROPERTIES DEPENDS "TOPP_IDFilter_24")
 

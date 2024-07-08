@@ -127,17 +127,17 @@ protected:
     registerStringOption_("precursor:charge", "[min]:[max]", ":", "Keep only peptide hits with charge states in this range.", false);
 
     registerTOPPSubsection_("score", "Filtering by peptide/protein score.");
-    registerDoubleOption_("score:pep", "<score>", 0, "The score which should be reached by a peptide hit to be kept.", false);
-    registerDoubleOption_("score:prot", "<score>", 0, "The score which should be reached by a protein hit to be kept. All proteins are filtered based on their singleton scores irrespective of grouping. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false);
-    registerDoubleOption_("score:protgroup", "<score>", 0, "The score which should be reached by a protein group to be kept. Performs group level score filtering (including groups of single proteins). Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false);
+    registerDoubleOption_("score:psm", "<score>", NAN, "The score which should be reached by a peptide hit to be kept. (use 'NAN' to disable this filter)", false);
+    registerDoubleOption_("score:protein", "<score>", NAN, "The score which should be reached by a protein hit to be kept. All proteins are filtered based on their singleton scores irrespective of grouping. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides. (use 'NAN' to disable this filter)", false);
+    registerDoubleOption_("score:proteingroup", "<score>", NAN, "The score which should be reached by a protein group to be kept. Performs group level score filtering (including groups of single proteins). Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides. (use 'NAN' to disable this filter)", false);
     registerTOPPSubsection_("whitelist", "Filtering by whitelisting (only peptides/proteins from a given set can pass)");
     registerInputFile_("whitelist:proteins", "<file>", "", "Filename of a FASTA file containing protein sequences.\n"
                                                            "All peptides that are not referencing a protein in this file are removed.\n"
                                                            "All proteins whose accessions are not present in this file are removed.", false);
-    setValidFormats_("whitelist:proteins", ListUtils::create<String>("fasta"));
+    setValidFormats_("whitelist:proteins", {"fasta"});
     registerStringList_("whitelist:protein_accessions", "<accessions>", vector<String>(), "All peptides that do not reference at least one of the provided protein accession are removed.\nOnly proteins of the provided list are retained.", false);
     registerInputFile_("whitelist:peptides", "<file>", "", "Only peptides with the same sequence and modification assignment as any peptide in this file are kept. Use with 'whitelist:ignore_modifications' to only compare by sequence.\n", false);
-    setValidFormats_("whitelist:peptides", ListUtils::create<String>("idXML"));
+    setValidFormats_("whitelist:peptides", {"idXML"});
     registerFlag_("whitelist:ignore_modifications", "Compare whitelisted peptides by sequence only.", true);
     registerStringList_("whitelist:modifications", "<selection>", vector<String>(), "Keep only peptides with sequences that contain (any of) the selected modification(s)", false, true);
     setValidStrings_("whitelist:modifications", all_mods);
@@ -146,17 +146,17 @@ protected:
     registerInputFile_("blacklist:proteins", "<file>", "", "Filename of a FASTA file containing protein sequences.\n"
                                                            "All peptides that are referencing a protein in this file are removed.\n"
                                                            "All proteins whose accessions are present in this file are removed.", false);
-    setValidFormats_("blacklist:proteins", ListUtils::create<String>("fasta"));
+    setValidFormats_("blacklist:proteins", {"fasta"});
     registerStringList_("blacklist:protein_accessions", "<accessions>", vector<String>(), "All peptides that reference at least one of the provided protein accession are removed.\nOnly proteins not in the provided list are retained.", false);
     registerInputFile_("blacklist:peptides", "<file>", "", "Peptides with the same sequence and modification assignment as any peptide in this file are filtered out. Use with 'blacklist:ignore_modifications' to only compare by sequence.\n", false);
-    setValidFormats_("blacklist:peptides", ListUtils::create<String>("idXML"));
+    setValidFormats_("blacklist:peptides", {"idXML"});
     registerFlag_("blacklist:ignore_modifications", "Compare blacklisted peptides by sequence only.", true);
     registerStringList_("blacklist:modifications", "<selection>", vector<String>(), "Remove all peptides with sequences that contain (any of) the selected modification(s)", false, true);
     setValidStrings_("blacklist:modifications", all_mods);
     registerStringOption_("blacklist:RegEx",  "<selection>", "", "Remove all peptides with (unmodified) sequences matched by the RegEx e.g. [BJXZ] removes ambiguous peptides.", false, true);
     registerTOPPSubsection_("in_silico_digestion", "This filter option removes peptide hits which are not in the list of in silico peptides generated by the rules specified below");
     registerInputFile_("in_silico_digestion:fasta", "<file>", "", "fasta protein sequence database.", false);
-    setValidFormats_("in_silico_digestion:fasta", ListUtils::create<String>("fasta"));
+    setValidFormats_("in_silico_digestion:fasta", {"fasta"});
     registerStringOption_("in_silico_digestion:enzyme", "<enzyme>", "Trypsin", "enzyme used for the digestion of the sample",false, true);
     setValidStrings_("in_silico_digestion:enzyme", all_enzymes);
     registerStringOption_("in_silico_digestion:specificity", "<specificity>", specificity[EnzymaticDigestion::SPEC_FULL], "Specificity of the filter", false, true);
@@ -208,7 +208,7 @@ protected:
     registerFlag_("remove_shared_peptides", "Only peptides matching exactly one protein are kept. Remember that isoforms count as different proteins!");
     registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the IDs.");
     registerFlag_("remove_decoys", "Remove proteins according to the information in the user parameters. Usually used in combination with 'delete_unreferenced_peptide_hits'.");
-    registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the IDs. Usually used in combination with 'score:prot' or 'thresh:prot'.");
+    registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the IDs. Usually used in combination with 'score:protein' or 'thresh:prot'.");
 
     registerStringList_("remove_peptide_hits_by_metavalue", "<name> 'lt|eq|gt|ne' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt|ne' <value>; the first is the name of meta value, followed by the comparison operator (equal, less, greater, not equal) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false, true);
   }
@@ -549,12 +549,15 @@ protected:
       IDFilter::keepPeptidesWithMatchingModifications(peptides, var_mods);
     }
 
-    double pep_score = getDoubleOption_("score:pep");
-    // @TODO: what if 0 is a reasonable cut-off for some score?
-    if (pep_score != 0)
+    double psm_score = getDoubleOption_("score:psm");
+    if (!std::isnan(psm_score))
     {
-      OPENMS_LOG_INFO << "Filtering by peptide score..." << endl;
-      IDFilter::filterHitsByScore(peptides, pep_score);
+      OPENMS_LOG_INFO << "Filtering by PSM score (better than " << psm_score << ")..." << endl;
+      IDFilter::filterHitsByScore(peptides, psm_score);
+    }
+    else
+    {
+      OPENMS_LOG_INFO << "No 'score:psm' threshold set. Not filtering by peptide score." << endl;
     }
 
     Int min_charge = numeric_limits<Int>::min(), max_charge =
@@ -621,18 +624,22 @@ protected:
 
 
     // Filtering protein identifications according to set criteria
-    double prot_score = getDoubleOption_("score:prot");
-    // @TODO: what if 0 is a reasonable cut-off for some score?
-    if (prot_score != 0)
+    double prot_score = getDoubleOption_("score:protein");
+    if (!std::isnan(prot_score))
     {
-      OPENMS_LOG_INFO << "Filtering by protein score..." << endl;
+      OPENMS_LOG_INFO << "Filtering by protein score  (better than " << prot_score << ") ..." << endl;
       IDFilter::filterHitsByScore(proteins, prot_score);
     }
+    else
+    {
+      OPENMS_LOG_INFO << "No 'score:protein' threshold set. Not filtering by protein score." << endl;
+    }
+
 
     Size best_n_prot = getIntOption_("best:n_protein_hits");
     if (best_n_prot > 0)
     {
-      OPENMS_LOG_INFO << "Filtering by best n protein hits..." << endl;
+      OPENMS_LOG_INFO << "Filtering by best n protein hits (" << best_n_prot << ") ... " << endl;
       IDFilter::keepNBestHits(proteins, best_n_prot);
     }
 
@@ -644,9 +651,8 @@ protected:
     }
 
     // Filtering protein identifications according to set criteria
-    double prot_grp_score = getDoubleOption_("score:protgroup");
-    // @TODO: what if 0 is a reasonable cut-off for some score?
-    if (prot_grp_score != 0)
+    double prot_grp_score = getDoubleOption_("score:proteingroup");
+    if (!std::isnan(prot_grp_score))
     {
       for (auto& proteinid : proteins)
       {
@@ -655,6 +661,11 @@ protected:
         IDFilter::filterGroupsByScore(proteinid.getProteinGroups(), prot_grp_score, proteinid.isHigherScoreBetter());
       }
     }
+    else
+    {
+      OPENMS_LOG_INFO << "No 'score:proteingroup' threshold set. Not filtering by protein group score." << endl;
+    }
+
 
     // remove peptide hits with meta values:
     if (remove_meta_enabled)
@@ -732,7 +743,7 @@ protected:
         OPENMS_LOG_WARN << "Warning: While updating indistinguishable proteins, some proteins were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more." << endl;
       }
 
-      if (prot_grp_score != 0.0)
+      if (!std::isnan(prot_grp_score))
       {
         // Pass potential filtering on group level down to proteins
         IDFilter::removeUngroupedProteins(prot.getIndistinguishableProteins(), prot.getHits());
