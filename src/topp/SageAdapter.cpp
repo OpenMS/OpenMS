@@ -105,6 +105,12 @@ public:
   double deltamass = -1.;
 };
 
+struct modification{
+  double rate = 0; 
+  double mass = -1; 
+  double numcharges = 1; 
+}; 
+
   class MetaProSIPInterpolation
 {
 public:
@@ -180,11 +186,13 @@ public:
 
   class SageClustering{
   public: 
-  static vector<double>  getDeltaClusterCenter(const vector<PeptideIdentification>& pips, bool debug = false)
+  static pair<mapRatetoMass, map<double, double>>  getDeltaClusterCenter(const vector<PeptideIdentification>& pips, bool debug = false)
   {
     vector<double> cluster;
     vector<double> delta_masses; 
     mapRatetoMass hist;
+    map<double, vector<double>> charge_states; 
+    map<double, double> num_charges_at_mass; 
     int count = 0; 
     for (auto& id : pips)
     {
@@ -202,43 +210,85 @@ public:
          cout << "CalcMass: " << calcval << std::endl; 
          } */
         //Alternatively: Increase size of bins, make them +- 0.01
+        if(count++ < 20){
+           cout << "Charge: " << h.getCharge() << "\n"; 
+        } 
+
         if (hist.find(DeltaMass) == hist.end())
         {
           bool bucketcheck = true; 
+          bool chargecheck = false; 
           for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit){
-            if(DeltaMass <  mit->first+0.03 && DeltaMass >  mit->first-0.03 && bucketcheck){
+            if(DeltaMass <  mit->first+0.0005 && DeltaMass >  mit->first-0.0005 && bucketcheck){
               hist[mit->first] += 1.0; 
               bucketcheck = false; 
-              //mit = hist.end(); 
+
+              for(auto& x : charge_states[mit->first]){
+                if(x == h.getCharge()) chargecheck = true; 
+              }
+              if(!chargecheck){
+                num_charges_at_mass[mit->first] += 1.0; 
+                charge_states[mit->first].push_back(h.getCharge()); 
+              }
+
             }
           }
-          if(bucketcheck) hist[DeltaMass] = 1.0;
+          if(bucketcheck){
+             hist[DeltaMass] += 1.0;
+             num_charges_at_mass[DeltaMass] += 1.0; 
+             charge_states[DeltaMass].push_back(h.getCharge()); 
+          }
         }
+
         else
         {
           hist[DeltaMass] += 1.0;
+          bool chargecheck = false; 
+          for(auto& x : charge_states[DeltaMass]){
+                if(x == h.getCharge()) chargecheck = true; 
+              }
+              if(!chargecheck)
+              {
+                num_charges_at_mass[DeltaMass] += 1.0; 
+                charge_states[DeltaMass].push_back(h.getCharge()); 
+              } 
         }
-       
-      }}
+       }
+      }
       
     
-    vector<double> preClus; 
+   /*  vector<double> preClus; 
     bool push = true; 
+    //Unnecessary? 
     for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit){
-      if(mit->first > 2 && mit->second > 100){ //next step remove lowb 
+      if(mit->second >= 10){ //next step remove lowb 
         cout << " Hist Deltamass " << mit->first << " " << " Hist Rate " << mit->second << " " <<  endl;
         for(auto& clu : preClus){
-            if(clu < (mit->first + 0.01) && clu > (mit->first - 0.01)) push = false; 
+            if(clu < (mit->first + 0.001) && clu > (mit->first - 0.001)) push = false; 
           }
           if(push) preClus.push_back(mit->first); 
           push = true; 
         }
-      }
+      } */
 
-    for(auto& clu : preClus){
+    /* for(auto& clu : preClus){
           cout << clu << " is a clus " << std::endl; 
-          }
-    
+          } */
+
+    /* for (map<double, double>::const_iterator mit = num_charges_at_mass.begin(); mit != num_charges_at_mass.end(); ++mit){
+      if(mit->second > 1){ //next step remove lowb 
+        //cout << "Mass " << mit->first <<  " Charge Amount " << mit->second << " " <<  endl;
+      }
+    } */ 
+
+    pair<mapRatetoMass, map<double,double>> results; 
+    results.first = hist; 
+    results.second = num_charges_at_mass; 
+    return results ; 
+
+
+
+
     //determining bounds of dist. 
     double lowb = DBL_MAX; 
     double upb = DBL_MIN; 
@@ -251,6 +301,8 @@ public:
         if(mit->first > upb) upb = mit->first; 
         step = upb - lowb; 
       }
+
+      ///Look at hist 
     OPENMS_LOG_INFO << "Lowb" << lowb << "Highb" << upb <<  std::endl; 
 
     // kernel density estimation variant 1 
@@ -343,8 +395,8 @@ public:
       //if(i < 20) cout << "Density at "<< i <<  ": " << density[i] << " and density at " << i*2 << ": " << density[8*i] <<  std::endl;
     }
 
-    vector<RateMassPair> cluster_center = MetaProSIPInterpolation::getHighPoints(100, delta_density, lowb, upb,  debug);
-    vector<RateMassPair> cluster_center2 = MetaProSIPInterpolation::getHighPoints(100, deltaDense2, lowb, upb,  debug);
+    /* vector<RateMassPair> cluster_center = MetaProSIPInterpolation::getHighPoints(50, delta_density, lowb, upb,  debug);
+    vector<RateMassPair> cluster_center2 = MetaProSIPInterpolation::getHighPoints(50, deltaDense2, lowb, upb,  debug);
     
     for(vector<RateMassPair>::const_iterator cit = cluster_center2.begin(); cit != cluster_center2.end(); ++cit)
     {
@@ -354,16 +406,16 @@ public:
     for (vector<RateMassPair>::const_iterator cit = cluster_center.begin(); cit != cluster_center.end(); ++cit)
     {
       cout << "Clust: " << cit->deltamass << std::endl;
-      cluster.push_back(cit->deltamass);
-    }
+      cluster.push_back(cit->deltamass); */
+    //}
     
-  return preClus; 
-  return cluster;
+  //return preClus; 
+  //return cluster;
   }
 
 
   //Maybe change to map with Clust weight and peptide Vec? 
-  static vector<vector<PeptideIdentification>> clusterPeptides(const vector<double>& centers, vector<PeptideIdentification>& pips)
+  /* static vector<vector<PeptideIdentification>> clusterPeptides(const mapRatetoMass centers, vector<PeptideIdentification>& pips)
   {
     // one cluster for each cluster center
     vector<vector<PeptideIdentification>> clusters(centers.size(), vector<PeptideIdentification>());
@@ -403,11 +455,11 @@ public:
 
     return clusters;
   } //Problem currently: clusters upshifted by small amount (ranges from .01 to .4 or even .6)
-
-  static vector<PeptideIdentification> mapDifftoMods(const vector<double>& centers, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 0.01, bool precursor_mass_tolerance_unit_ppm = false)
+ */
+  static vector<PeptideIdentification> mapDifftoMods(const mapRatetoMass hist, map<double, double> charge_hist, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 5, bool precursor_mass_tolerance_unit_ppm = true)
   {
     
-    vector<vector<PeptideIdentification>> clusters(centers.size(), vector<PeptideIdentification>());
+    vector<vector<PeptideIdentification>> clusters(hist.size(), vector<PeptideIdentification>());
 
  // Accessing zhe .obo file 
  ControlledVocabulary unimod_; //Causes trace trap? 
@@ -447,14 +499,19 @@ for(auto& x : terms){
  } 
   map<double, String>::const_iterator low_it;
   map<double, String>::const_iterator up_it;
+  map<double, double>::const_iterator cit = charge_hist.begin(); 
+  std::vector< map<double, String>> between; 
   StringList modnames; 
+  map<String, modification> modifications; 
  //Mapping with tolerances 
-
- for(auto& current_cluster_mass : centers){
+//Think about dealing with charge 
+ for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit){
+  double current_cluster_mass = mit->first; 
   if (precursor_mass_tolerance_unit_ppm) // ppm default 20, use Da 0.1 for now due to mass shift when clustering 
           {
             low_it = mass_of_mods.lower_bound(current_cluster_mass - current_cluster_mass * precursor_mass_tolerance_ * 1e-6);
             up_it = mass_of_mods.upper_bound(current_cluster_mass + current_cluster_mass * precursor_mass_tolerance_ * 1e-6);
+            
           }
           else // Dalton
           {
@@ -466,17 +523,43 @@ for(auto& x : terms){
             //Means found a mapping? Or does it? 
           if(low_it == up_it){
             
-            cout << mapped_val.first << " " << mass_of_mods[mapped_val.first] << " second:  " << mapped_val.second << std::endl; 
+            //cout << mapped_val.first << " " << mass_of_mods[mapped_val.first] << " second:  " << mapped_val.second << std::endl; 
             modnames.push_back(mapped_val.second); 
+            if(modifications.find(mapped_val.second) == modifications.end()){
+            modification modi{}; 
+            modi.mass = mapped_val.first; 
+            modi.rate = mit->second; 
+            modi.numcharges = cit->second; 
+            modifications[mapped_val.second] = modi; 
+          }
 
+
+            else{
+             //modifications[mapped_val.second].rate += mit->second;  
+             modifications[mapped_val.second].rate = max(mit->second, modifications[mapped_val.second].rate) ;  
+             modifications[mapped_val.second].numcharges = max(cit->second, modifications[mapped_val.second].numcharges);
+            }
+            
+         
           }
           else{
             cout << "Low not mapped? " << mapped_val.first << " " << mass_of_mods[mapped_val.first] << " second:  " << mapped_val.second << std::endl; 
             cout << "High not mapped? " << mapped_val_high.first << " " << mass_of_mods[mapped_val_high.first] << " second:  " << mapped_val_high.second << std::endl; 
+            /* while(low_it++ != up_it){
+              between.push_back(*low_it); 
+            }
+            for(auto& x: between){
+              auto map_val_tween = x; 
+              cout << "Between: " << map_val_tween.first << " " << mass_of_mods[map_val_tween.first] << " second:  " << map_val_tween.second << std::endl; 
+            } */
 
           }
-          
+
+    //TODO: handle in-betweeners
+    ++cit; 
  }
+
+ //
 
  /* // ModifiedPeptideGenerator::applyVariableModifications(const MapToResidueType& var_mods,
     const AASequence& peptide, 
@@ -484,10 +567,42 @@ for(auto& x : terms){
     vector<AASequence>& all_modified_peptides, 
     bool keep_unmodified) */
 
+  vector<pair<double, pair<String, pair<double, double>>>> pairs_by_rate; 
 
+  for (map<String, modification>::const_iterator modit = modifications.begin(); modit != modifications.end(); ++modit){
+          //cout << "Modification: " << "Name: " << modit->first << " Rate: " << modit->second.rate << " Mass: " << modit->second.mass << std::endl; 
+          pair<double, double> Pair0; 
+          Pair0.first = modit->second.numcharges; 
+          Pair0.second = modit->second.mass; ; 
+
+          pair<String, pair<double, double>> Pair1; 
+          Pair1.first = modit->first; 
+          Pair1.second = Pair0; 
+
+          pair<double, pair<String, pair<double, double>>> Pair2; 
+          Pair2.first = modit->second.rate; 
+          Pair2.second = Pair1; 
+
+
+
+
+          pairs_by_rate.push_back(Pair2); 
+      }
+
+sort(pairs_by_rate.begin(), pairs_by_rate.end(), [=](std::pair<double, pair<String, pair<double, double>>>& a, std::pair<double, pair<String, pair<double, double>>>& b)
+{
+    return a.second.second.first + a.first > b.second.second.first + b.first;
+}
+);
+
+for(auto& x : pairs_by_rate){
+  if( x.first >= 0){
+  cout << "Rate: " << x.first << " Name: " << x.second.first << " Mass: " << x.second.second.second << std::endl; 
+  }
+}
  //Add the modifications
   vector<PeptideIdentification> finalModifiedpeptides; 
-  ModifiedPeptideGenerator::MapToResidueType mapRT  = ModifiedPeptideGenerator::getModifications(modnames); 
+  /* ModifiedPeptideGenerator::MapToResidueType mapRT  = ModifiedPeptideGenerator::getModifications(modnames); 
   bool si = true; 
   cout << "Passed" << std::endl; 
   for (auto& id : pips)
@@ -516,10 +631,29 @@ for(auto& x : terms){
       finalModifiedpeptides.push_back(hitlist); 
     } 
     cout << "Original size of pips: " << pips.size() << std::endl; 
-    cout << "Works without crashing, size of final peptide list: " << finalModifiedpeptides.size() << std::endl; 
+    cout << "Works without crashing, size of final peptide list: " << finalModifiedpeptides.size() << std::endl;  */
+
+    std::ofstream outFile("./OutputTable.tsv");
+
+    // Check if the file was opened successfully
+    if (!outFile.is_open()) {
+        std::cerr << "Error opening file: " << "./OutputTable.tsv" << std::endl;
+        return finalModifiedpeptides;
+    }
+    outFile << "Name" << '\t' << "Mass" << '\t' << "Rate + Charge States" << '\t' << "Rate" << '\n'; 
+    // Iterate over the data and write to the file
+    for (const auto& x : pairs_by_rate) {
+                outFile <<  x.second.first << '\t' << x.second.second.second << '\t' << x.second.second.first +  x.first << '\t' << x.first  << '\n'; 
+        }
+    
+
+    // Close the file
+    outFile.close();
 
     return finalModifiedpeptides; 
   } 
+
+
 
 }; 
 
@@ -931,7 +1065,7 @@ protected:
     StringList filenames;
     StringList extra_scores = {"ln(-poisson)", "ln(delta_best)", "ln(delta_next)", 
       "ln(matched_intensity_pct)", "longest_b", "longest_y", 
-      "longest_y_pct", "matched_peaks", "scored_candidates", "CalcMass", "ExpMass"};
+      "longest_y_pct", "matched_peaks", "scored_candidates", "CalcMass", "ExpMass" }; //Also charge and peptide! 
     vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load(
       output_folder + "/results.sage.pin",
       true,
@@ -950,17 +1084,17 @@ protected:
           if (h.metaValueExists(meta))
           {
             h.setMetaValue("SAGE:" + meta, h.getMetaValue(meta));
-            h.removeMetaValue(meta);        
+            h.removeMetaValue(meta);      
           }          
         }
       }
     }
 
 
-  const vector<double> resultsClus =  SageClustering::getDeltaClusterCenter(peptide_identifications); 
-  vector<vector<PeptideIdentification>> resultsClus2 = SageClustering::clusterPeptides(resultsClus, peptide_identifications);
-  vector<PeptideIdentification> mapD = SageClustering::mapDifftoMods(resultsClus, peptide_identifications); //peptide_identifications; 
-  //vector<PeptideIdentification> mapD =  peptide_identifications; 
+  const pair<mapRatetoMass, map<double,double>> resultsClus =  SageClustering::getDeltaClusterCenter(peptide_identifications); 
+  //vector<vector<PeptideIdentification>> resultsClus2 = SageClustering::clusterPeptides(resultsClus, peptide_identifications);
+  vector<PeptideIdentification> mapD = SageClustering::mapDifftoMods(resultsClus.first, resultsClus.second, peptide_identifications); //peptide_identifications; 
+  //vector<PeptideIdentification> peptide_identifications =  peptide_identifications; 
 
   //while(j++ < resultsClus2.size()) cout << "Size of Clus at " << j-1 << " " <<  resultsClus2.at(j-1).size() << std::endl; 
 
@@ -968,7 +1102,7 @@ protected:
 
 
     // remove hits without charge state assigned or charge outside of default range (fix for downstream bugs). TODO: remove if all charges annotated in sage
-    IDFilter::filterPeptidesByCharge(mapD, 2, numeric_limits<int>::max());
+    IDFilter::filterPeptidesByCharge(peptide_identifications, 2, numeric_limits<int>::max());
 
 
     
@@ -987,7 +1121,7 @@ protected:
     DateTime now = DateTime::now();
     String identifier("Sage_" + now.get());
     protein_identifications[0].setIdentifier(identifier);
-    for (auto & pid : mapD) 
+    for (auto & pid : peptide_identifications) 
     { 
       pid.setIdentifier(identifier);
       pid.setScoreType("hyperscore");
@@ -1024,7 +1158,7 @@ protected:
     }
 
     // if "reindex" parameter is set to true: will perform reindexing
-    if (auto ret = reindex_(protein_identifications, mapD); ret != EXECUTION_OK) return ret;
+    if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
     map<String,unordered_map<int,String>> file2specnr2nativeid;
     for (const auto& mzml : input_files)
@@ -1073,7 +1207,7 @@ protected:
       ++cnt;
     }
 
-    for (auto& id : mapD)
+    for (auto& id : peptide_identifications)
     {
       Int64 scanNrAsInt = 0;
       
@@ -1088,7 +1222,7 @@ protected:
       }
     }
     //Test to see if it still works
-    IdXMLFile().store(output_file, protein_identifications, mapD);
+    IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
 
     return EXECUTION_OK;
   }

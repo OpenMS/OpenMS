@@ -58,7 +58,7 @@ namespace OpenMS
 
   vector<PeptideIdentification> PercolatorInfile::load(
     const String& pin_file,
-    bool higher_score_better,
+    bool higher_score_better, 
     const String& score_name,
     const StringList& extra_scores,
     StringList& filenames,
@@ -180,6 +180,7 @@ namespace OpenMS
         pids.back().setMetaValue("PinSpecId", sSpecId);
         pids.back().setMetaValue("CalcMass", row[to_idx.at("CalcMass")].toDouble());
         pids.back().setMetaValue("ExpMass", row[to_idx.at("ExpMass")].toDouble());
+        //pids.back().setMetaValue("Charge", row[to_idx.at("Charge")].toDouble());
         // Since ScanNr is the closest to help in identifying the spectrum in the file later on,
         // we use it as spectrum_reference. Since it can be integer only or the complete
         // vendor ID, you will need a lookup in case of number only later!!
