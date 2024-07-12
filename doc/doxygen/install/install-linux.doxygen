@@ -239,8 +239,8 @@
   \endcode
   to the CMake options, where <tt>/PATH/TO/qt/lib/cmake/Qt6/</tt> depends on your system settings and Qt version.
 
-  When configuring %OpenMS, consider setting <tt>WITH_GUI=Off</tt> and
-  <tt>HAS_XSERVER=Off</tt>, especially as you may not have compiled Qt with
+  When configuring %OpenMS using CMake, consider setting <tt>-D WITH_GUI=Off</tt> and
+  <tt>-D HAS_XSERVER=Off</tt>, especially as you may not have compiled Qt with
   OpenGL and you may not have an X server.
 
   \include "../doxygen/install/common-cmake-parameters.doxygen"
@@ -312,6 +312,21 @@
     \endcode
     If you want to enable the corresponding tests in CMake, this has to happen <b>before</b> you configure and build the
     project.
+
+  When running OpenMS executables or building the documentation, it may happen that Qt will cause problems and bail out with
+  error messages such as:
+  ```
+qt.qpa.plugin: Could not find the Qt platform plugin "xcb" in ""
+This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
+
+Available platform plugins are: linuxfb, wayland, minimalegl, vnc, minimal, wayland-egl, eglfs, vkkhrdisplay.
+  ```
+  
+  To fix, you can try to set the environment variable `QT_QPA_PLATFORM` to another plugin, such as
+  ```
+  export QT_QPA_PLATFORM=minimal
+  ```
+  and re-run the application.
 
   @section running_linux_openms Running OpenMS
   If the build from @ref install_linux_openms is ready, you can now run a
