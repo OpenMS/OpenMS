@@ -349,7 +349,7 @@ namespace OpenMS
             // We group by the precursor mz (center of the window) since this
             // should be present
             // for ion mobility, since the center value is not present in the raw data (it is computed) we use the imLower and upper bounds
-            if ((std::fabs(center - known_window_boundaries[j].center) < 1e-6) && (std::fabs(lowerIm - known_window_boundaries[j].imLower) < 1e-6) && (std::fabs(upperIm - known_window_boundaries[j].imUpper < 1e-6)))
+            if ((std::fabs(center - known_window_boundaries[j].center) < 1e-6) && (std::fabs(lowerIm - known_window_boundaries[j].imLower) < 1e-6) && (std::fabs(upperIm - known_window_boundaries[j].imUpper) < 1e-6))
             {
               found = true;
               swath_counter[j]++;
