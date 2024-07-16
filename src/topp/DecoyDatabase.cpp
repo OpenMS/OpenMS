@@ -16,6 +16,13 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <regex>
+#include <OpenMS/ANALYSIS/ID/NeighborSeq.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <cmath>
+#include <set>
+
+
 
 using namespace OpenMS;
 using namespace std;
@@ -54,6 +61,11 @@ and terminates the program if decoys are found.
 @verbinclude TOPP_DecoyDatabase.cli
 <B>INI file documentation of this tool:</B>
 @htmlinclude TOPP_DecoyDatabase.html
+
+
+The Neighbor Peptide functionality in the TOPPDecoyDatabase class is designed to find peptides from a given set of sequences (FASTA file) that are
+similar to a target peptide based on mass and spectral characteristics. This section will detail the methods and functionalities specifically related
+to the Neighbor Peptide search.
 */
 
 // We do not want this class to show up in the docu:
@@ -73,7 +85,7 @@ protected:
   {
     registerInputFileList_("in", "<file(s)>", ListUtils::create<String>(""), "Input FASTA file(s), each containing a database. It is recommended to include a contaminant database as well.");
     setValidFormats_("in", ListUtils::create<String>("fasta"));
-    registerOutputFile_("out", "<file>", "", "Output FASTA file where the decoy database will be written to.");
+    registerOutputFile_("out", "<file>", "", "Output FASTA file where the decoy database or neighbor peptide will be written to.");
     setValidFormats_("out", ListUtils::create<String>("fasta"));
     registerStringOption_("decoy_string", "<string>", "DECOY_", "String that is combined with the accession of the protein identifier to indicate a decoy protein.", false);
     registerStringOption_("decoy_string_position", "<choice>", "prefix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?", false);
@@ -96,6 +108,15 @@ protected:
     setValidStrings_("enzyme", all_enzymes);
 
     registerSubsection_("Decoy", "Decoy parameters section");
+
+    // New options for neighbor peptide search
+    registerTOPPSubsection_("Neighbor_Search", "Parameters for neighbor peptide search");
+    registerInputFile_("Neighbor_Search:neighbor_in", "<file>","", "Input FASTA file for neighbor peptide search", false);
+    setValidFormats_("Neighbor_Search:neighbor_in", {"fasta"});
+    registerStringOption_("Neighbor_Search:resolution", "<choice>", "low", "Sets the resolution of the neighbor peptide search. Options are 'low'(0.05 Da) and 'high'(1.0005079 Da)",false);
+    setValidStrings_("Neighbor_Search:resolution", ListUtils::create<String>("low,high"));
+    registerDoubleOption_("Neighbor_Search:mass_tolerance", "<double>", 0.00004, "Tolerance of the mass of the neighbor peptide m1-m2 > tm", false, true);
+    registerDoubleOption_("Neighbor_Search:ion_tolerance", "<double>", 0.25, "Tolerance of the proportion of b and y ions shared by the neighbor peptide 2*B12/B1+B2 > ti", false, true);
   }
 
   Param getSubsectionDefaults_(const String& /* name */) const override
@@ -111,6 +132,7 @@ protected:
     if (as_prefix) return decoy_string + identifier;
     else return identifier + decoy_string;
   }
+  
 
   ExitCodes main_(int, const char**) override
   {
@@ -165,173 +187,215 @@ protected:
     f.writeStart(out);
     FASTAFile::FASTAEntry entry;
 
-    // Configure Enzymatic digestion
-    // TODO: allow user-specified regex
-    ProteaseDigestion digestion;
-    String enzyme = getStringOption_("enzyme").trim();
-    if ((input_type == SeqType::protein) && !enzyme.empty())
-    {
-      digestion.setEnzyme(enzyme);
-    }
-    // check if decoy_string is common decoy string (e.g. decoy, rev, ...)
-    String decoy_string_lower = decoy_string;
-    decoy_string_lower.toLower();
-    bool is_common = false;
-    for (const auto& a : DecoyHelper::affixes)
-    {
-      if ((decoy_string_lower.hasPrefix(a) && decoy_string_position_prefix) || (decoy_string_lower.hasSuffix(a) && !decoy_string_position_prefix))
-      {
-        is_common = true;
-      }
-    }
-    // terminate, if decoy_string is not one of the allowed decoy strings (exit code 11)
-    if (!is_common)
-    {
-      if (getFlag_("force"))
-      {
-        OPENMS_LOG_WARN << "Force Flag is enabled, decoys with custom decoy string (not in DecoyHelper::affixes) will not be detected.\n";
-      }
-      else
-      {
-        OPENMS_LOG_FATAL_ERROR << "Given decoy string is not allowed. Please use one of the strings in DecoyHelper::affixes as either prefix or suffix (case insensitive): \n";
-        return INCOMPATIBLE_INPUT_DATA;
-      }
-    }
-    MRMDecoy m;
-    m.setParameters(decoy_param);
 
-    Math::RandomShuffler shuffler(seed);
-    for (Size i = 0; i < in.size(); ++i)
+ // Neighbor peptide search   
+    String neighbor_file = getStringOption_("Neighbor_Search:neighbor_in");
+ // Check if the neighbor file option is provided
+    if (! neighbor_file.empty())
     {
-      // check input files for decoys
-      FASTAContainer<TFI_File> in_entries{in[i]};
-      auto r = DecoyHelper::countDecoys(in_entries);
-      // if decoys found, throw exception
-      if (static_cast<double>(r.all_prefix_occur + r.all_suffix_occur) >= 0.4 * static_cast<double>(r.all_proteins_count))
+      String resolution = getStringOption_("Neighbor_Search:resolution");
+      double ion_tolerance = getDoubleOption_("Neighbor_Search:ion_tolerance");
+      double mass_tolerance = getDoubleOption_("Neighbor_Search:mass_tolerance");
+ // Create a ProteaseDigestion object for peptide digestion
+      ProteaseDigestion digestion;
+      String enzyme = getStringOption_("enzyme").trim();
+      if ((input_type == SeqType::protein) && ! enzyme.empty()) 
       {
-        // if decoys found, program terminates with exit code 11
-        OPENMS_LOG_FATAL_ERROR << "Invalid input in " + in[i] + ": Input file already contains decoys." << '\n';
-        return INCOMPATIBLE_INPUT_DATA;
+          digestion.setEnzyme(enzyme); 
       }
+      
+ // Vector to hold all digested peptides from the input files
+      vector<AASequence> all_peptides;
 
-      f.readStart(in[i]);
-      //-------------------------------------------------------------
-      // calculations
-      //-------------------------------------------------------------
-      while (f.readNext(entry))
+      for (Size i = 0; i < in.size(); ++i)
       {
-        if (identifiers.find(entry.identifier) != identifiers.end())
+        //FASTAContainer<TFI_File> in_entries {in[i]};
+        f.readStart(in[i]);
+        while (f.readNext(entry))
         {
-          OPENMS_LOG_WARN << "DecoyDatabase: Warning, identifier '" << entry.identifier << "' occurs more than once!" << endl;
+        
+          // Vector to hold the peptides generated from digestion
+          vector<AASequence> peptides;
+          // Digest the current entry sequence into peptides
+          digestion.digest(AASequence::fromString(entry.sequence), peptides);
+          // Add the generated peptides to the all_peptides vector
+          all_peptides.insert(all_peptides.end(), peptides.begin(), peptides.end());
         }
-        identifiers.insert(entry.identifier);
-
-        if (append)
+      }
+ // Load the neighbor peptides from the neighbor file
+      FASTAFile neighbor_fasta;
+      vector<FASTAFile::FASTAEntry> neighbor_entries;
+      neighbor_fasta.load(neighbor_file, neighbor_entries);
+      for (auto i = all_peptides.begin(); i != all_peptides.end(); ++i)
+      { 
+          {
+          // Find neighbor peptides for the current peptide
+            vector<FASTAFile::FASTAEntry> result = NeighborSeq::findNeighborPeptides(*i, neighbor_entries, mass_tolerance, ion_tolerance, resolution);
+            for (const auto& sub : result)
+            {
+            // Write the neighbor peptide to the output file
+                f.writeNext(sub);
+            }
+          }
+      }
+    }
+    else
+    {
+      // Configure Enzymatic digestion
+      // TODO: allow user-specified regex
+      ProteaseDigestion digestion;
+      String enzyme = getStringOption_("enzyme").trim();
+      if ((input_type == SeqType::protein) && ! enzyme.empty()) { digestion.setEnzyme(enzyme); }
+      // check if decoy_string is common decoy string (e.g. decoy, rev, ...)
+      String decoy_string_lower = decoy_string;
+      decoy_string_lower.toLower();
+      bool is_common = false;
+      for (const auto& a : DecoyHelper::affixes)
+      {
+        if ((decoy_string_lower.hasPrefix(a) && decoy_string_position_prefix) || (decoy_string_lower.hasSuffix(a) && ! decoy_string_position_prefix))
         {
-          f.writeNext(entry);
+          is_common = true;
+        }
+      }
+      // terminate, if decoy_string is not one of the allowed decoy strings (exit code 11)
+      if (! is_common)
+      {
+        if (getFlag_("force"))
+        {
+          OPENMS_LOG_WARN << "Force Flag is enabled, decoys with custom decoy string (not in DecoyHelper::affixes) will not be detected.\n";
+        }
+        else
+        {
+          OPENMS_LOG_FATAL_ERROR << "Given decoy string is not allowed. Please use one of the strings in DecoyHelper::affixes as either prefix or "
+                                    "suffix (case insensitive): \n";
+          return INCOMPATIBLE_INPUT_DATA;
+        }
+      }
+      MRMDecoy m;
+      m.setParameters(decoy_param);
+
+      Math::RandomShuffler shuffler(seed);
+      for (Size i = 0; i < in.size(); ++i)
+      {
+        // check input files for decoys
+        FASTAContainer<TFI_File> in_entries {in[i]};
+        auto r = DecoyHelper::countDecoys(in_entries);
+        // if decoys found, throw exception
+        if (static_cast<double>(r.all_prefix_occur + r.all_suffix_occur) >= 0.4 * static_cast<double>(r.all_proteins_count))
+        {
+          // if decoys found, program terminates with exit code 11
+          OPENMS_LOG_FATAL_ERROR << "Invalid input in " + in[i] + ": Input file already contains decoys." << '\n';
+          return INCOMPATIBLE_INPUT_DATA;
         }
 
-        // identifier
-        entry.identifier = getIdentifier_(entry.identifier, decoy_string, decoy_string_position_prefix);
-
-        // sequence
-        if (input_type == SeqType::RNA)
+        f.readStart(in[i]);
+        //-------------------------------------------------------------
+        // calculations
+        //-------------------------------------------------------------
+        while (f.readNext(entry))
         {
-          string quick_seq = entry.sequence;
-          bool five_p = (entry.sequence.front() == 'p');
-          bool three_p = (entry.sequence.back() == 'p');
-          if (five_p) //we don't want to reverse terminal phosphates
+          if (identifiers.find(entry.identifier) != identifiers.end())
           {
-            quick_seq.erase(0, 1);
+            OPENMS_LOG_WARN << "DecoyDatabase: Warning, identifier '" << entry.identifier << "' occurs more than once!" << endl;
           }
-          if (three_p)
-          {
-            quick_seq.pop_back();
-          }
+          identifiers.insert(entry.identifier);
 
-          vector<String> tokenized;
-          std::smatch m;
-          std::string pattern = R"([^\[]|(\[[^\[\]]*\]))";
-          std::regex re(pattern);
+          if (append) { f.writeNext(entry); }
 
-          while (std::regex_search(quick_seq, m, re))
+          // identifier
+          entry.identifier = getIdentifier_(entry.identifier, decoy_string, decoy_string_position_prefix);
+
+          // sequence
+          if (input_type == SeqType::RNA)
           {
+            string quick_seq = entry.sequence;
+            bool five_p = (entry.sequence.front() == 'p');
+            bool three_p = (entry.sequence.back() == 'p');
+            if (five_p) // we don't want to reverse terminal phosphates
+            {
+              quick_seq.erase(0, 1);
+            }
+            if (three_p) { quick_seq.pop_back(); }
+
+            vector<String> tokenized;
+            std::smatch m;
+            std::string pattern = R"([^\[]|(\[[^\[\]]*\]))";
+            std::regex re(pattern);
+
+            while (std::regex_search(quick_seq, m, re))
+            {
               tokenized.emplace_back(m.str(0));
               quick_seq = m.suffix();
-          }
+            }
 
-          if (shuffle)
-          {
-            shuffler.portable_random_shuffle(tokenized.begin(), tokenized.end());
-          }
-          else  // reverse
-          {
-            reverse(tokenized.begin(), tokenized.end()); //reverse the tokens
-          }
-          if (five_p)  //add back 5'
-          {
-            tokenized.insert(tokenized.begin(), String("p"));
-          }
-          if (three_p) //add back 3'
-          {
-            tokenized.emplace_back("p");
-          }
-          entry.sequence = ListUtils::concatenate(tokenized, "");
-        }
-        else // protein input
-        {
-          // if (terminal_aminos != "none")
-          if (enzyme != "no cleavage" && (keepN || keepC))
-          {
-            std::vector<AASequence> peptides;
-            digestion.digest(AASequence::fromString(entry.sequence), peptides);
-            String new_sequence = "";
-            for (auto const& peptide : peptides)
-            {
-              //TODO why are the functions from TargetedExperiment and MRMDecoy not anywhere more general?
-              // No soul would look there.
-              if (shuffle)
-              {
-                OpenMS::TargetedExperiment::Peptide p;
-                p.sequence = peptide.toString();
-                OpenMS::TargetedExperiment::Peptide decoy_p = m.shufflePeptide(p, identity_threshold, seed, max_attempts);
-                new_sequence += decoy_p.sequence;
-              }
-              else
-              {
-                OpenMS::TargetedExperiment::Peptide p;
-                p.sequence = peptide.toString();
-                OpenMS::TargetedExperiment::Peptide decoy_p = MRMDecoy::reversePeptide(p, keepN, keepC, keep_const_pattern);
-                new_sequence += decoy_p.sequence;
-              }
-            }
-            entry.sequence = new_sequence;
-          }
-          else
-          {
-            // sequence
-            if (shuffle)
-            {
-              shuffler.seed(seed); // identical proteins are shuffled the same way -> re-seed
-              shuffler.portable_random_shuffle(entry.sequence.begin(), entry.sequence.end());
-            }
+            if (shuffle) { shuffler.portable_random_shuffle(tokenized.begin(), tokenized.end()); }
             else // reverse
             {
-              entry.sequence.reverse();
+              reverse(tokenized.begin(), tokenized.end()); // reverse the tokens
+            }
+            if (five_p) // add back 5'
+            {
+              tokenized.insert(tokenized.begin(), String("p"));
+            }
+            if (three_p) // add back 3'
+            {
+              tokenized.emplace_back("p");
+            }
+            entry.sequence = ListUtils::concatenate(tokenized, "");
+          }
+          else // protein input
+          {
+            // if (terminal_aminos != "none")
+            if (enzyme != "no cleavage" && (keepN || keepC))
+            {
+              std::vector<AASequence> peptides;
+              digestion.digest(AASequence::fromString(entry.sequence), peptides);
+              String new_sequence = "";
+              for (auto const& peptide : peptides)
+              {
+                // TODO why are the functions from TargetedExperiment and MRMDecoy not anywhere more general?
+                //  No soul would look there.
+                if (shuffle)
+                {
+                  OpenMS::TargetedExperiment::Peptide p;
+                  p.sequence = peptide.toString();
+                  OpenMS::TargetedExperiment::Peptide decoy_p = m.shufflePeptide(p, identity_threshold, seed, max_attempts);
+                  new_sequence += decoy_p.sequence;
+                }
+                else
+                {
+                  OpenMS::TargetedExperiment::Peptide p;
+                  p.sequence = peptide.toString();
+                  OpenMS::TargetedExperiment::Peptide decoy_p = MRMDecoy::reversePeptide(p, keepN, keepC, keep_const_pattern);
+                  new_sequence += decoy_p.sequence;
+                }
+              }
+              entry.sequence = new_sequence;
+            }
+            else
+            {
+              // sequence
+              if (shuffle)
+              {
+                shuffler.seed(seed); // identical proteins are shuffled the same way -> re-seed
+                shuffler.portable_random_shuffle(entry.sequence.begin(), entry.sequence.end());
+              }
+              else // reverse
+              {
+                entry.sequence.reverse();
+              }
             }
           }
-        }
 
-        //-------------------------------------------------------------
-        // writing output
-        //-------------------------------------------------------------
-        f.writeNext(entry);
-      } // next protein
-    } // input files
-
+          //-------------------------------------------------------------
+          // writing output
+          //-------------------------------------------------------------
+          f.writeNext(entry);
+        } // next protein
+      }   // input files
+    }
     return EXECUTION_OK;
   }
-
 };
 
 
