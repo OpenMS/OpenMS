@@ -499,7 +499,7 @@ namespace OpenMS
 
         @see overall_data_range_
     */
-    const RangeType& getDataRange() const;
+    virtual const RangeType& getDataRange() const;
 
     /**
         @brief Returns the first intensity scaling factor for 'snap to maximum intensity mode' (for the currently visible data range).

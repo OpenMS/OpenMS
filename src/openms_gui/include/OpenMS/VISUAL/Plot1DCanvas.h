@@ -418,6 +418,12 @@ public:
       return point;
     }
 
+    /// overload to call the 1D version (which has min-intensity of '0')
+    virtual const RangeType& getDataRange() const override
+    { 
+      return overall_data_range_1d_;
+    }
+
     /**
      * \brief Pushes a data point back into the valid data range of the current layer area. Useful for annotation items which were mouse-dragged outside the range by the user.
      * \tparam T A data point, e.g. Peak1D, which may be outside the data area

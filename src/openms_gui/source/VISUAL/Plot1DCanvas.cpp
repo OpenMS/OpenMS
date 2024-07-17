@@ -190,12 +190,6 @@ namespace OpenMS
   void Plot1DCanvas::changeVisibleAreaCommon_(const UnitRange& new_area, bool repaint, bool add_to_stack)
   {
     auto corrected = correctGravityAxisOfVisibleArea_(new_area);
-    
-    if (intensity_mode_ != IM_PERCENTAGE) // not for Percentage mode, which is always [0,100]
-    { // make sure we stay inside the overall data range of the currently displayable 1D data
-      corrected.pushInto(overall_data_range_1d_);
-    }
-    
     PlotCanvas::changeVisibleArea_(visible_area_.cloneWith(corrected), repaint, add_to_stack);
   }
 

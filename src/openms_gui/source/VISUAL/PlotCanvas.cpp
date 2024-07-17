@@ -129,8 +129,14 @@ namespace OpenMS
 
   void PlotCanvas::changeVisibleArea_(VisibleArea new_area, bool repaint, bool add_to_stack)
   {
-    // make sure we stay inside the overall data range
-    new_area.pushInto(overall_data_range_);
+    auto data_range = getDataRange(); // getDataRange() is virtual, since its special for 1D (0-based intensity)
+    if (intensity_mode_ == IM_PERCENTAGE)
+    { // new_area will have [0, 100], and we don't want to make that any smaller if the data only goes up to, say 50
+    }
+    else
+    { // make sure we stay inside the overall data range
+      new_area.pushInto(data_range);
+    }
 
     // store old zoom state
     if (add_to_stack)
@@ -144,14 +150,12 @@ namespace OpenMS
       zoomAdd_(new_area);
     }
 
-    if (new_area != visible_area_)
-    {
-      visible_area_ = new_area;
-      updateScrollbars_();
-      recalculateSnapFactor_();
-      emit visibleAreaChanged(new_area); // calls PlotWidget::updateAxes, which calls Plot(1D/2D/3D)Widget::recalculateAxes_
-      emit layerZoomChanged(this); // calls TOPPViewBase::zoomOtherWindows (for linked windows)
-    }
+    // always update, even if the area did not change, since the intensity mode might have changed
+    visible_area_ = new_area;
+    updateScrollbars_();
+    recalculateSnapFactor_();
+    emit visibleAreaChanged(new_area); // calls PlotWidget::updateAxes, which calls Plot(1D/2D/3D)Widget::recalculateAxes_
+    emit layerZoomChanged(this); // calls TOPPViewBase::zoomOtherWindows (for linked windows)
 
     if (repaint)
     {
