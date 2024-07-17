@@ -392,22 +392,33 @@ namespace OpenMS
   }
 
 
-  void setBaseLayerParameters(LayerDataBase* new_layer, const Param& param, const String& filename)
+  void setBaseLayerParameters(LayerDataBase* new_layer, const Param& param, const String& filename, const String& caption)
   {
     new_layer->param = param;
     new_layer->filename = filename;
-    new_layer->setName(QFileInfo(filename.toQString()).completeBaseName());
+    if (! caption.empty())
+    {
+      new_layer->setName(caption);
+    }
+    else 
+    {
+      new_layer->setName(QFileInfo(filename.toQString()).completeBaseName());
+    }
   }
 
   bool PlotCanvas::addLayer(std::unique_ptr<LayerData1DBase> new_layer)
   {
-    setBaseLayerParameters(new_layer.get(), param_, new_layer->filename);
+    setBaseLayerParameters(new_layer.get(), param_, new_layer->filename, new_layer->getName());
     layers_.addLayer(std::move(new_layer));
 
     return finishAdding_();
   }
 
-  bool PlotCanvas::addPeakLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename, const bool use_noise_cutoff)
+  bool PlotCanvas::addPeakLayer(const ExperimentSharedPtrType& map,
+                                ODExperimentSharedPtrType od_map,
+                                const String& filename,
+                                const String& caption,
+                                const bool use_noise_cutoff)
   {
     if (map->getSpectra().empty())
     {
@@ -425,7 +436,7 @@ namespace OpenMS
     new_layer->setPeakData(map);
     new_layer->setOnDiscPeakData(std::move(od_map));
 
-    setBaseLayerParameters(new_layer.get(), param_, filename);
+    setBaseLayerParameters(new_layer.get(), param_, filename, caption);
     layers_.addLayer(std::move(new_layer));
 
     // calculate noise
@@ -450,7 +461,7 @@ namespace OpenMS
   }
 
   
-  bool PlotCanvas::addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename)
+  bool PlotCanvas::addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename, const String& caption)
   {
     if (map->getChromatograms().empty())
     {
@@ -468,36 +479,36 @@ namespace OpenMS
     new_layer->setChromData(map);
     new_layer->setOnDiscPeakData(std::move(od_map));
 
-    setBaseLayerParameters(new_layer.get(), param_, filename);
+    setBaseLayerParameters(new_layer.get(), param_, filename, caption);
     layers_.addLayer(std::move(new_layer));
 
     return finishAdding_();
   }
 
-  bool PlotCanvas::addLayer(FeatureMapSharedPtrType map, const String& filename)
+  bool PlotCanvas::addLayer(FeatureMapSharedPtrType map, const String& filename, const String& caption)
   {
     LayerDataFeatureUPtr new_layer(new LayerDataFeature);
     new_layer->getFeatureMap() = std::move(map);
 
-    setBaseLayerParameters(new_layer.get(), param_, filename);
+    setBaseLayerParameters(new_layer.get(), param_, filename, caption);
     layers_.addLayer(std::move(new_layer));
     return finishAdding_();
   }
 
-  bool PlotCanvas::addLayer(ConsensusMapSharedPtrType map, const String& filename)
+  bool PlotCanvas::addLayer(ConsensusMapSharedPtrType map, const String& filename, const String& caption)
   {
     LayerDataBaseUPtr new_layer(new LayerDataConsensus(map));
 
-    setBaseLayerParameters(new_layer.get(), param_, filename);
+    setBaseLayerParameters(new_layer.get(), param_, filename, caption);
     layers_.addLayer(std::move(new_layer));
     return finishAdding_();
   }
 
-  bool PlotCanvas::addLayer(vector<PeptideIdentification>& peptides, const String& filename)
+  bool PlotCanvas::addLayer(vector<PeptideIdentification>& peptides, const String& filename, const String& caption)
   {
     LayerDataIdent* new_layer(new LayerDataIdent); // ownership will be transferred to unique_ptr below; no need to delete
     new_layer->setPeptideIds(std::move(peptides));
-    setBaseLayerParameters(new_layer, param_, filename);
+    setBaseLayerParameters(new_layer, param_, filename, caption);
     layers_.addLayer(LayerDataBaseUPtr(new_layer));
     return finishAdding_();
   }
