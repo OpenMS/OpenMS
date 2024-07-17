@@ -187,7 +187,7 @@ namespace OpenMS
     emit layerActivated(this);
   }
 
-  void Plot1DCanvas::changeVisibleAreaCommon_(const UnitRange& new_area, bool repaint, bool add_to_stack)
+  void Plot1DCanvas::changeVisibleArea1D_(const UnitRange& new_area, bool repaint, bool add_to_stack)
   {
     auto corrected = correctGravityAxisOfVisibleArea_(new_area);
     PlotCanvas::changeVisibleArea_(visible_area_.cloneWith(corrected), repaint, add_to_stack);
@@ -195,15 +195,15 @@ namespace OpenMS
 
   void Plot1DCanvas::changeVisibleArea_(const AreaXYType& new_area, bool repaint, bool add_to_stack)
   {
-    changeVisibleAreaCommon_(visible_area_.cloneWith(new_area).getAreaUnit(), repaint, add_to_stack);
+    changeVisibleArea1D_(visible_area_.cloneWith(new_area).getAreaUnit(), repaint, add_to_stack);
   }
   void Plot1DCanvas::changeVisibleArea_(const UnitRange& new_area, bool repaint, bool add_to_stack)
   {
-    changeVisibleAreaCommon_(new_area, repaint, add_to_stack);
+    changeVisibleArea1D_(new_area, repaint, add_to_stack);
   }
   void Plot1DCanvas::changeVisibleArea_(VisibleArea new_area, bool repaint, bool add_to_stack)
   {
-    changeVisibleAreaCommon_(new_area.getAreaUnit(), repaint, add_to_stack);
+    changeVisibleArea1D_(new_area.getAreaUnit(), repaint, add_to_stack);
   }
 
   void Plot1DCanvas::dataToWidget(const DPosition<2>& xy_point, QPoint& point, bool flipped)

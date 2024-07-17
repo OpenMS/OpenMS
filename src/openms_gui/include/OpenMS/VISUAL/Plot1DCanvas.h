@@ -587,7 +587,7 @@ protected:
     void drawAlignment_(QPainter& painter);
 
     /// internal method, called before calling parent function PlotCanvas::changeVisibleArea_
-    void changeVisibleAreaCommon_(const UnitRange& new_area, bool repaint, bool add_to_stack);
+    void changeVisibleArea1D_(const UnitRange& new_area, bool repaint, bool add_to_stack);
 
     // Docu in base class
     void changeVisibleArea_(VisibleArea new_area, bool repaint = true, bool add_to_stack = false) override;
