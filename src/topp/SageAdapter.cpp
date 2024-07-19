@@ -107,8 +107,8 @@ public:
 
 struct modification{ //TODO: modify to allow for different masses/charges 
   double rate = 0; 
-  double mass = -1; 
-  double numcharges = 1; 
+  vector<double> mass; 
+  double numcharges = 0; 
 }; 
 
   class MetaProSIPInterpolation
@@ -527,7 +527,7 @@ for(auto& x : terms){
             modnames.push_back(mapped_val.second); 
             if(modifications.find(mapped_val.second) == modifications.end()){
             modification modi{}; 
-            modi.mass = mapped_val.first; 
+            modi.mass.push_back(mapped_val.first); 
             modi.rate = mit->second; 
             modi.numcharges = cit->second; 
             modifications[mapped_val.second] = modi; 
@@ -551,7 +551,8 @@ for(auto& x : terms){
 
             if(modifications.find(mod_mix_name) == modifications.end()){
             modification modi{}; 
-            modi.mass = mapped_val.first; 
+            modi.mass.push_back(mapped_val.first); 
+            modi.mass.push_back(mapped_val_high.first); 
             modi.rate = mit->second; 
             modi.numcharges = cit->second; 
             modifications[mod_mix_name] = modi; 
@@ -585,29 +586,30 @@ for(auto& x : terms){
     vector<AASequence>& all_modified_peptides, 
     bool keep_unmodified) */
 
-  vector<pair<double, pair<String, pair<double, double>>>> pairs_by_rate; 
+  vector<pair<double, pair<String, pair<double, vector<double>>>>> pairs_by_rate; 
 
   for (map<String, modification>::const_iterator modit = modifications.begin(); modit != modifications.end(); ++modit){
           //cout << "Modification: " << "Name: " << modit->first << " Rate: " << modit->second.rate << " Mass: " << modit->second.mass << std::endl; 
-          pair<double, double> Pair0; 
+          //Charge and mass(es) pair
+          pair<double, vector<double>> Pair0; 
           Pair0.first = modit->second.numcharges; 
-          Pair0.second = modit->second.mass; ; 
-
-          pair<String, pair<double, double>> Pair1; 
+          Pair0.second = modit->second.mass; 
+          
+          //Name + (charge and mass)
+          pair<String, pair<double, vector<double>>> Pair1; 
           Pair1.first = modit->first; 
           Pair1.second = Pair0; 
 
-          pair<double, pair<String, pair<double, double>>> Pair2; 
+          //Rare + (Name + (Charge + Mass))
+          pair<double, pair<String, pair<double, vector<double>>>> Pair2; 
           Pair2.first = modit->second.rate; 
           Pair2.second = Pair1; 
-
-
 
 
           pairs_by_rate.push_back(Pair2); 
       }
 
-sort(pairs_by_rate.begin(), pairs_by_rate.end(), [=](std::pair<double, pair<String, pair<double, double>>>& a, std::pair<double, pair<String, pair<double, double>>>& b)
+sort(pairs_by_rate.begin(), pairs_by_rate.end(), [=](std::pair<double, pair<String, pair<double, vector<double>>>>& a, std::pair<double, pair<String, pair<double, vector<double>>>>& b)
 {
     return a.second.second.first + a.first > b.second.second.first + b.first;
 }
@@ -615,7 +617,12 @@ sort(pairs_by_rate.begin(), pairs_by_rate.end(), [=](std::pair<double, pair<Stri
 
 for(auto& x : pairs_by_rate){
   if( x.first >= 0){
-  cout << "Rate: " << x.first << " Name: " << x.second.first << " Mass: " << x.second.second.second << std::endl; 
+    if(x.second.second.second.size() < 2){
+    cout << "Rate: " << x.first << " Name: " << x.second.first << " Mass: " << x.second.second.second.at(0) << std::endl; 
+    }
+    else{
+      cout << "Rate: " << x.first << " Name: " << x.second.first << " Mass 1: " << x.second.second.second.at(0) << " Mass 2: " << x.second.second.second.at(1) << std::endl; 
+    }
   }
 }
  //Add the modifications
@@ -661,8 +668,13 @@ for(auto& x : pairs_by_rate){
     outFile << "Name" << '\t' << "Mass" << '\t' << "Modified Peptides (incl. charge variants)" << '\t' << "Modified Peptides" << '\n'; 
     // Iterate over the data and write to the file
     for (const auto& x : pairs_by_rate) {
-                outFile <<  x.second.first << '\t' << x.second.second.second << '\t' << x.second.second.first +  x.first << '\t' << x.first  << '\n'; 
+      if(x.second.second.second.size() < 2){
+                outFile <<  x.second.first << '\t' << x.second.second.second.at(0) << '\t' << x.second.second.first +  x.first << '\t' << x.first  << '\n'; 
         }
+        else{
+                outFile <<  x.second.first << '\t' << x.second.second.second.at(0) << "/" << x.second.second.second.at(1) << '\t' << x.second.second.first +  x.first << '\t' << x.first  << '\n'; 
+        }
+    }
     
 
     // Close the file
