@@ -105,7 +105,7 @@ public:
   double deltamass = -1.;
 };
 
-struct modification{
+struct modification{ //TODO: modify to allow for different masses/charges 
   double rate = 0; 
   double mass = -1; 
   double numcharges = 1; 
@@ -543,8 +543,26 @@ for(auto& x : terms){
          
           }
           else{
+            //TODO: handle more than one mod 
             cout << "Low not mapped? " << mapped_val.first << " " << mass_of_mods[mapped_val.first] << " second:  " << mapped_val.second << std::endl; 
             cout << "High not mapped? " << mapped_val_high.first << " " << mass_of_mods[mapped_val_high.first] << " second:  " << mapped_val_high.second << std::endl; 
+            
+            String mod_mix_name = mapped_val.second + "/" + mapped_val_high.second; 
+
+            if(modifications.find(mod_mix_name) == modifications.end()){
+            modification modi{}; 
+            modi.mass = mapped_val.first; 
+            modi.rate = mit->second; 
+            modi.numcharges = cit->second; 
+            modifications[mod_mix_name] = modi; 
+          }
+
+
+            else{
+             //modifications[mapped_val.second].rate += mit->second;  
+             modifications[mod_mix_name].rate = max(mit->second, modifications[mod_mix_name].rate) ;  
+             modifications[mod_mix_name].numcharges = max(cit->second, modifications[mod_mix_name].numcharges);
+            }
             /* while(low_it++ != up_it){
               between.push_back(*low_it); 
             }
@@ -640,7 +658,7 @@ for(auto& x : pairs_by_rate){
         std::cerr << "Error opening file: " << "./OutputTable.tsv" << std::endl;
         return finalModifiedpeptides;
     }
-    outFile << "Name" << '\t' << "Mass" << '\t' << "Rate + Charge States" << '\t' << "Rate" << '\n'; 
+    outFile << "Name" << '\t' << "Mass" << '\t' << "Modified Peptides (incl. charge variants)" << '\t' << "Modified Peptides" << '\n'; 
     // Iterate over the data and write to the file
     for (const auto& x : pairs_by_rate) {
                 outFile <<  x.second.first << '\t' << x.second.second.second << '\t' << x.second.second.first +  x.first << '\t' << x.first  << '\n'; 
@@ -1004,6 +1022,7 @@ protected:
 
     // do this early, to see if Sage is installed
     String sage_executable = getStringOption_("sage_executable");
+    std::cout << sage_executable << " sage executable" << std::endl; 
     String proc_stdout, proc_stderr;
     TOPPBase::ExitCodes exit_code = runExternalProcess_(sage_executable.toQString(), QStringList() << "--help", proc_stdout, proc_stderr, "");
     auto major_minor_patch = getVersionNumber_(proc_stdout);
@@ -1053,6 +1072,7 @@ protected:
     exit_code = runExternalProcess_(sage_executable.toQString(), arguments);
     if (exit_code != EXECUTION_OK)
     {
+      std::cout << "Sage executable not found" << std::endl; 
       return exit_code;
     }
 
