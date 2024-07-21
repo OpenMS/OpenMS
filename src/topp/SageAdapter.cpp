@@ -210,9 +210,9 @@ public:
          cout << "CalcMass: " << calcval << std::endl; 
          } */
         //Alternatively: Increase size of bins, make them +- 0.01
-        if(count++ < 20){
+        /* if(count++ < 20){
            cout << "Charge: " << h.getCharge() << "\n"; 
-        } 
+        }  */
 
         if (hist.find(DeltaMass) == hist.end())
         {
@@ -336,7 +336,7 @@ public:
       deltaDense2[(double)i] = sum;
     } */
     //Try KDE by hand using delta_masses 
-    cout << "Delta_masses size: " << delta_masses.size() << std::endl; 
+    // cout << "Delta_masses size: " << delta_masses.size() << std::endl; 
 
     for(int i = ceil(lowb); i < ceil(upb); ++i){
       double sum = 0;
@@ -544,8 +544,8 @@ for(auto& x : terms){
           }
           else{
             //TODO: handle more than one mod 
-            cout << "Low not mapped? " << mapped_val.first << " " << mass_of_mods[mapped_val.first] << " second:  " << mapped_val.second << std::endl; 
-            cout << "High not mapped? " << mapped_val_high.first << " " << mass_of_mods[mapped_val_high.first] << " second:  " << mapped_val_high.second << std::endl; 
+            //cout << "Low not mapped? " << mapped_val.first << " " << mass_of_mods[mapped_val.first] << " second:  " << mapped_val.second << std::endl; 
+            //cout << "High not mapped? " << mapped_val_high.first << " " << mass_of_mods[mapped_val_high.first] << " second:  " << mapped_val_high.second << std::endl; 
             
             String mod_mix_name = mapped_val.second + "/" + mapped_val_high.second; 
 
@@ -615,16 +615,16 @@ sort(pairs_by_rate.begin(), pairs_by_rate.end(), [=](std::pair<double, pair<Stri
 }
 );
 
-for(auto& x : pairs_by_rate){
+/* for(auto& x : pairs_by_rate){
   if( x.first >= 0){
     if(x.second.second.second.size() < 2){
-    cout << "Rate: " << x.first << " Name: " << x.second.first << " Mass: " << x.second.second.second.at(0) << std::endl; 
+    //cout << "Rate: " << x.first << " Name: " << x.second.first << " Mass: " << x.second.second.second.at(0) << std::endl; 
     }
     else{
-      cout << "Rate: " << x.first << " Name: " << x.second.first << " Mass 1: " << x.second.second.second.at(0) << " Mass 2: " << x.second.second.second.at(1) << std::endl; 
+      //cout << "Rate: " << x.first << " Name: " << x.second.first << " Mass 1: " << x.second.second.second.at(0) << " Mass 2: " << x.second.second.second.at(1) << std::endl; 
     }
   }
-}
+} */
  //Add the modifications
   vector<PeptideIdentification> finalModifiedpeptides; 
   /* ModifiedPeptideGenerator::MapToResidueType mapRT  = ModifiedPeptideGenerator::getModifications(modnames); 
