@@ -17,7 +17,9 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 What's new:
-- Breaking change: Rename of parameters for FeatureFinderCentroided (debug->advanced), and PeakPickerWavelet/TOFCalibration (optimization -> optimization:type) (#7154)
+- Changes breaking backwards compatibility: 
+   - Rename of parameters for TOPP tool FeatureFinderCentroided (debug -> advanced), and PeakPickerWavelet/TOFCalibration (optimization -> optimization:type) (#7154)
+   - Rename of parameters for TOPP tool IDFilter (score:pep -> score:psm; score:prot -> score:protein; score:protgroup -> score:proteingroup) with 'nan' as new default (#7541)
 
 Library:
 - Extend FileHandler to support load and store operations for our major datastructures (spectra, features, identifications, etc.). Replaced file type specific code with the more generic FileHandler calls to decouple the IO code from other parts of the library.
@@ -37,6 +39,7 @@ Fixes:
 - FileConverter: more robust (#7176)
 - MSFragger: allow relative path to database (#7155)
 - MSGFPlusAdapter: allow concurrent creation of indexed database (#7272)
+- CometAdapter: work around bug in Comet 2024.01 rev. 0 to avoid empty results (#7540)
 - ParamEditor: fixed error for the subsection parameter (ParamNode) to go through store function (#7180)
 - TOPPView: fix crash when viewing certain Chromatograms (#7220)
 - TOPPView: in 2D view, show correct adjacent layers in context menu, if user clicked to the right of the last MS1 scan (now shows the 4 rightmost MS1 scans, used to show the 4 leftmost scans) (#7423)
