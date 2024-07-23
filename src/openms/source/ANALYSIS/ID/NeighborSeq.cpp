@@ -7,31 +7,17 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
-#include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/MATH/MathFunctions.h>
-#include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
-#include <regex>
 #include <OpenMS/ANALYSIS/ID/NeighborSeq.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <cmath>
-#include <set>
+
 
 
 using namespace OpenMS;
 using namespace std;
 
 
-// Function to calculate the mass of a peptide
-double NeighborSeq::calculateMass(const AASequence& peptide)
-{
-return peptide.getMonoWeight();
-}
 
 
 // Function to generate the theoretical spectrum for a given peptide sequence
@@ -51,87 +37,85 @@ return spectrum;
 }
 
 // Function to compare two spectra and determine if they are similar
-bool NeighborSeq::compareSpectra(const MSSpectrum& spec1, const MSSpectrum& spec2, const double& ion_tolerance, const string& resolution)
+bool NeighborSeq::compareSpectra(const MSSpectrum& spec1, const MSSpectrum& spec2, const double& min_shared_ion_fraction, const double& mz_bin_size)
 {
-// Determine the bin size based on resolution
-double bin_size;
-if (resolution == "high") { bin_size = 1.0005079; }
-else { bin_size = 0.05; }
+  std::map<int, int> bins1, bins2;
 
-// Maps to hold the binned spectra
-map<int, int> bins1, bins2;
-
-// Lambda function to bin a spectrum
-auto bin_spectrum = [&](const MSSpectrum& spec, map<int, int>& bins) {
+  // Lambda function to bin a spectrum into a map
+  auto bin_spectrum = [&](const MSSpectrum& spec, std::map<int, int>& bins) {
     for (const auto& peak : spec)
-    {
-    int bin = static_cast<int>(peak.getMZ() / bin_size);
-    bins[bin]++;
-    }
-};
+      bins[static_cast<int>(peak.getMZ() / mz_bin_size)]++;
+  };
 
-// Bin both spectra
-bin_spectrum(spec1, bins1);
-bin_spectrum(spec2, bins2);
+  // Bin both spectra
+  bin_spectrum(spec1, bins1);
+  bin_spectrum(spec2, bins2);
 
-// Calculate the size of the spectra and the number of shared bins
-int B1 = spec1.size();
-int B2 = spec2.size();
-int B12 = 0;
+  // Extract bin keys as vectors
+  std::vector<int> vec_bins1, vec_bins2;
+  for (const auto& bin : bins1)
+    vec_bins1.push_back(bin.first);
+  for (const auto& bin : bins2)
+    vec_bins2.push_back(bin.first);
 
-for (const auto& bin : bins1)
-{
-    if (bins2.find(bin.first) != bins2.end()) { B12 += min(bin.second, bins2[bin.first]); }
+  // Calculate the intersection of the bin vectors
+  std::vector<int> intersection;
+  std::set_intersection(vec_bins1.begin(), vec_bins1.end(), vec_bins2.begin(), vec_bins2.end(), std::back_inserter(intersection));
+
+  // Calculate the number of shared bins considering the bin frequencies
+  int B12 = 0;
+  for (int bin : intersection)
+    B12 += std::min(bins1[bin], bins2[bin]);
+
+  // Calculate the fraction of shared bins
+  double fraction_shared = static_cast<double>(2 * B12) / (spec1.size() + spec2.size());
+
+
+  return fraction_shared > min_shared_ion_fraction;
 }
 
-// Calculate the fraction of shared bins
-double fraction_shared = static_cast<double>(2 * B12) / (B1 + B2);
-// cout << fraction_shared << endl;
-return fraction_shared > ion_tolerance;
+map<double, vector<int>> NeighborSeq::createMassPositonMap(const vector<AASequence>& candidates)
+{
+  map<double, vector<int>> mass_position_map;
+
+  //Iterate through the vector of AASequence objects 
+  for (size_t i = 0; i < candidates.size(); ++i)
+  {
+    // Calculate the mono-isotopic mass of the sequence
+    double mass = candidates[i].getMonoWeight();
+    // Insert the mass and the position into the map
+    mass_position_map[mass].push_back(i);
+  }
+  return mass_position_map;
 }
 
 // Method to find neighbor peptides in a given FASTA file
-vector<FASTAFile::FASTAEntry> NeighborSeq::findNeighborPeptides(const AASequence& peptides,
-                                                                const vector<FASTAFile::FASTAEntry>& neighbor_file,
-                                                                const double& mass_tolerance,
-                                                                const double& ion_tolerance,
-                                                                const String& resolution)
+vector<int> NeighborSeq::findNeighborPeptides(const AASequence& peptides,
+                                                                const vector<AASequence>& neighbor_candidate,
+                                                                const vector<int>& candidate_position,
+                                                                const double& min_shared_ion_fraction,
+                                                                const double& mz_bin_size)
 
 {
-vector<FASTAFile::FASTAEntry> result_entries;
+    vector<int> result_entries;
+    String rel_sequence = peptides.toString();
+    MSSpectrum spec = generateSpectrum(rel_sequence);
+    for (size_t i = 0; i < candidate_position.size(); i++)
+    {
+          String neighbor_sequence = neighbor_candidate[candidate_position[i]].toString();
+          //cout << neighbor_sequence << endl;
+          // Check if the sequence contains an 'X'
+              if (neighbor_sequence.find('X') == String::npos)
+              {     
+                  MSSpectrum neighbor_spec = generateSpectrum(neighbor_sequence);
 
-// Calculate the mass and generate the spectrum for the input peptide
-size_t size = peptides.size();
-double mass = calculateMass(peptides);
-String peptide_sequence = peptides.toString();
-MSSpectrum spec = generateSpectrum(peptide_sequence);
-// Iterate through the neighbor file entries
-for (const auto& entry : neighbor_file)
-{
-    for (size_t offset = 0; offset + size <= entry.sequence.size(); ++offset)
-    {
-    String neighbor_sequence = entry.sequence.substr(offset, size);
-    // Check if the sequence contains an 'X'
-    if (neighbor_sequence.find('X') == String::npos)
-    {
-        double neighbor_mass = calculateMass(AASequence::fromString(neighbor_sequence));
-        double mass_diff = std::abs(mass - neighbor_mass) / ((mass + neighbor_mass) / 2);
-        // Check if the mass difference is within the tolerance
-        if (mass_diff <= mass_tolerance)
-        {
-        // cout << mass_diff << endl;
-        MSSpectrum neighbor_spec = generateSpectrum(neighbor_sequence);
-        // Compare the spectra and add to results if they are similar
-        if (compareSpectra(spec, neighbor_spec, ion_tolerance, resolution))
-        {
-            // Construct FASTAFile::FASTAEntry and add to results
-            FASTAFile::FASTAEntry neighbor_entry(entry.identifier, entry.description, neighbor_sequence);
-            result_entries.push_back(neighbor_entry);
-        }
-        }
+                  // Compare the spectra and add to results if they are similar
+                      if (compareSpectra(spec, neighbor_spec, min_shared_ion_fraction, mz_bin_size))
+                      {      
+                          result_entries.push_back(candidate_position[i]);
+                      }
+               }
     }
-    }
-}
 return result_entries;
 }
 
