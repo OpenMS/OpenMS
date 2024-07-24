@@ -75,5 +75,14 @@ namespace OpenMS
                                                    const std::vector<int>& candidate_position,
                                                    const double& min_shared_ion_fraction,
                                                    const double& mz_bin_size);
-    };
+
+       /**is only a test function for compareSpectra, it works the same way, only the common peaks are output.
+       * @brief Compares two spectra to determine if they share a sufficient number of ions.
+       * @param spec1 The first spectrum.
+       * @param spec2 The second spectrum.
+       * @param mz_bin_size The mz_bin_size setting for the comparison.
+       * @return True if the spectra share a sufficient number of ions, false otherwise.
+       */
+      static int compareSpectraTest(const MSSpectrum& spec1, const MSSpectrum& spec2, const double& mz_bin_size);
+    }; 
 }

@@ -111,10 +111,12 @@ protected:
     registerTOPPSubsection_("Neighbor_Search", "Parameters for neighbor peptide search");
     registerInputFile_("Neighbor_Search:neighbor_in", "<file>","", "neighbor peptides are searched for in the Fasta file entered for candiate ", false);
     setValidFormats_("Neighbor_Search:neighbor_in", {"fasta"});
-    registerOutputFile_("Neighbor_Search:out_neighbor", "<file>", "", "Output FASTA file where the neighbor peptide will be written to.");
+    registerOutputFile_("Neighbor_Search:out_neighbor", "<file>", "", "Output FASTA file where the neighbor peptide will be written to.",false);
     registerIntOption_("Neighbor_Search:missed_cleavages", "<int>", 0,"Number of missed cleavages",false);
     registerDoubleOption_("Neighbor_Search:mz_bin_size", "<num>", 0.05,"Sets the mz_bin_size of the neighbor peptide search.(the original study suggests high (0.05 Da) and low (1.0005079 Da) mz_bin_size)", false);
     registerDoubleOption_("Neighbor_Search:mass_tolerance", "<double>", 0.00001, "Tolerance of the mass of the neighbor peptide m1-m2 > tm", false, true);
+    //setValidStrings_("Neighbor_Search:fragment_unit_ppm", {"true", "false"});
+    //registerStringOption_("Neighbor_Search:fragment_unit_ppm", "<choice>", "true","calculates with dalton or ppm", false, true);
     registerDoubleOption_("Neighbor_Search:min_shared_ion_fraction", "<double>", 0.25, "Tolerance of the proportion of b and y ions shared by the neighbor peptide 2*B12/B1+B2 > ti", false, true);
   }
 
@@ -240,9 +242,11 @@ protected:
       vector<FASTAFile::FASTAEntry> neighbor_entries;
       neighbor_fasta.load(neighbor_file, neighbor_entries);
       vector<AASequence> digested_candidate_peptides;
+      vector<AASequence> temp_peptides;
       for (auto& entry : neighbor_entries)
       {
-        digestion_neighbor.digest(AASequence::fromString(entry.sequence), digested_candidate_peptides);       
+        digestion_neighbor.digest(AASequence::fromString(entry.sequence), temp_peptides);  
+        digested_candidate_peptides.insert(digested_candidate_peptides.end(), temp_peptides.begin(), temp_peptides.end());
       }
      // Creates a map of masses to positions from a vector
       map<double, vector<int>> mass_position_map = NeighborSeq::createMassPositionMap(digested_candidate_peptides);

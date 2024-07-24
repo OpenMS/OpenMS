@@ -126,7 +126,7 @@ START_SECTION(vector<int> findCandidatePositions(const map<double, vector<int>>&
 
   vector<int> expected_1 = {1, 2, 3, 4 , 5};
   vector<int> result_1 = NeighborSeq::findCandidatePositions(mass_position_map_1, mono_weight_1, mass_tolerance_1);
-  TEST_EQUAL(expected_1,result_1)
+  TEST_EQUAL(result_1,expected_1)
 
   map<double, vector<int>> mass_position_map_2 = {{100.0, {1, 2}}, {101.5, {3}}, {102.0, {4, 5}}};
   double mono_weight_2 = 100.5;
@@ -134,7 +134,7 @@ START_SECTION(vector<int> findCandidatePositions(const map<double, vector<int>>&
 
   vector<int> expected_2 = {1, 2, 3};
   vector<int> result_2 = NeighborSeq::findCandidatePositions(mass_position_map_2, mono_weight_2, mass_tolerance_2);
-  TEST_EQUAL(expected_2, result_2)
+  TEST_EQUAL(result_2,expected_2)
 
   map<double, vector<int>> mass_position_map_3 = {{100.0, {1, 2}}, {101.5, {3}}, {102.0, {4, 5}}};
   double mono_weight_3 = 105.0;
@@ -142,7 +142,7 @@ START_SECTION(vector<int> findCandidatePositions(const map<double, vector<int>>&
 
   vector<int> expected_3 = {};
   vector<int> result_3 = NeighborSeq::findCandidatePositions(mass_position_map_3, mono_weight_3, mass_tolerance_3);
-  TEST_EQUAL(expected_3, result_3)
+  TEST_EQUAL(result_3, expected_3)
 
   map<double, vector<int>> mass_position_map_4 = {{100.0, {1, 2}}, {101.5, {3}}, {102.0, {4, 5}}};
   double mono_weight_4 = 100.5;
@@ -150,7 +150,7 @@ START_SECTION(vector<int> findCandidatePositions(const map<double, vector<int>>&
 
   vector<int> expected_4 = {1, 2, 3};
   vector<int> result_4 = NeighborSeq::findCandidatePositions(mass_position_map_4, mono_weight_4, mass_tolerance_4);
-  TEST_EQUAL(expected_4, result_4)
+  TEST_EQUAL(result_4, expected_4)
 }
 END_SECTION
 
@@ -168,12 +168,12 @@ START_SECTION(map<double, vector<int>> NeighborSeq::createMassPositionMap(const 
   candidates_1.push_back(seq3); // 3 position
   map<double, vector<int>> expected_1 = {{728.371, {2}}, {799.349, {1}}, {837.270, {3}}};
   map<double, vector<int>> result_1 = NeighborSeq::createMassPositionMap(candidates_1);
-  TEST_EQUAL(expected_1, result_1)
+  TEST_EQUAL(result_1,expected_1)
 
   candidates_1.push_back(seq1); // 4 position
   map<double, vector<int>> expected_2 = {{728.371, {2}}, {799.349, {1,4}}, {837.270, {3}}};
   map<double, vector<int>> result_2 = NeighborSeq::createMassPositionMap(candidates_1);
-  TEST_EQUAL(expected_2, result_2)
+  TEST_EQUAL(result_2,expected_2)
 
 
 }
@@ -194,14 +194,19 @@ START_SECTION(vector<int> findNeighborPeptides(const AASequence& peptides,
   AASequence seq2 = AASequence::fromString("PPPPP");
   AASequence seq3 = AASequence::fromString("SEQUENCE");
   AASequence seq4 = AASequence::fromString("VGLPINQR");
+  AASequence seq5 = AASequence::fromString("A");
+  AASequence seq6 = AASequence::fromString("X");
   vector<AASequence> neighbor_candidate;
   neighbor_candidate.push_back(seq1);
   neighbor_candidate.push_back(seq2);
   neighbor_candidate.push_back(seq3);
+  neighbor_candidate.push_back(seq1);
   neighbor_candidate.push_back(seq4);
-  vector<int> candidate_position = {0, 1, 2, 3};
+  neighbor_candidate.push_back(seq5);
+  neighbor_candidate.push_back(seq6);
+  vector<int> candidate_position = {0, 1, 2, 3, 4, 5};
 
-  vector<int> expected = {0,3};
+  vector<int> expected = {0,3, 4};
   double min_shared_ion_fraction = 0.25;
   double mz_bin_size = 0.05;
 
@@ -212,5 +217,63 @@ START_SECTION(vector<int> findNeighborPeptides(const AASequence& peptides,
 }
 END_SECTION
 
+
+// Test section for the compareSpectra function
+START_SECTION(bool compareSpectraTest(const MSSpectrum& spec1, const MSSpectrum& spec2, const double& mz_bin_size))
+{
+  MSSpectrum spec1;
+  spec1.push_back(Peak1D(100.0, 1.0));
+  spec1.push_back(Peak1D(200.0, 1.0));
+  spec1.push_back(Peak1D(300.0, 1.0));
+
+  MSSpectrum spec2;
+  spec2.push_back(Peak1D(100.05, 1.0));
+  spec2.push_back(Peak1D(200.05, 1.0));
+  spec2.push_back(Peak1D(300.05, 1.0));
+
+  MSSpectrum spec3;
+  spec3.push_back(Peak1D(101.00, 1.0));
+  spec3.push_back(Peak1D(201.00, 1.0));
+  spec3.push_back(Peak1D(301.00, 1.0));
+
+  MSSpectrum spec4;
+  spec4.push_back(Peak1D(100.05, 1.0));
+  spec4.push_back(Peak1D(201.00, 1.0));
+  spec4.push_back(Peak1D(300.05, 1.0));
+  spec4.push_back(Peak1D(301.00, 1.0));
+
+
+  double min_shared_ion_fraction = 0.5;
+
+
+  // bin interval is from [a,b[
+  bool compare_1_2_low = NeighborSeq::compareSpectraTest(spec1, spec2, 1.0);
+  TEST_EQUAL(compare_1_2_low,3)
+  bool compare_1_3_low = NeighborSeq::compareSpectraTest(spec1, spec3, 1.0);
+  TEST_EQUAL(compare_1_3_low,0)
+  bool compare_1_4_low = NeighborSeq::compareSpectraTest(spec1, spec4, 1.0);
+  TEST_EQUAL(compare_1_4_low,2)
+  bool compare_2_3_low = NeighborSeq::compareSpectraTest(spec2, spec3, 1.0);
+  TEST_EQUAL(compare_2_3_low,0)
+  bool compare_2_4_low = NeighborSeq::compareSpectraTest(spec2, spec4, 1.0);
+  TEST_EQUAL(compare_2_4_low,3)
+  bool compare_3_4_low = NeighborSeq::compareSpectraTest(spec3, spec4, 1.0);
+  TEST_EQUAL(compare_3_4_low,2)
+
+  bool compare_1_2_high = NeighborSeq::compareSpectraTest(spec1, spec2, 0.05);
+  //TEST_EQUAL(compare_1_2_high,0)
+  bool compare_1_3_high = NeighborSeq::compareSpectraTest(spec1, spec3, 0.05);
+  TEST_EQUAL(compare_1_3_high,0)
+  bool compare_1_4_high = NeighborSeq::compareSpectraTest(spec1, spec4, 0.05);
+  //TEST_EQUAL(compare_1_4_high,0)
+  bool compare_2_3_high = NeighborSeq::compareSpectraTest(spec2, spec3, 0.05);
+  TEST_EQUAL(compare_2_3_high,0)
+  bool compare_2_4_high = NeighborSeq::compareSpectraTest(spec2, spec4, 0.05);
+  TEST_EQUAL(compare_2_4_high,2)
+  bool compare_3_4_high = NeighborSeq::compareSpectraTest(spec3, spec4, 0.05);
+  TEST_EQUAL(compare_3_4_high,2)
+  
+}
+END_SECTION
 
 END_TEST

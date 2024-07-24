@@ -117,11 +117,18 @@ map<double, vector<int>> NeighborSeq::createMassPositionMap(const vector<AASeque
   // Iterate through the vector of AASequence objects
   for (size_t i = 0; i < candidates.size(); ++i)
   {
-    // Calculate the mono-isotopic mass of the sequence
-    double mass = candidates[i].getMonoWeight();
+    if (candidates[i].toString().find('X') == String::npos)
+    {
+      // Calculate the mono-isotopic mass of the sequence
+      double mass = candidates[i].getMonoWeight();
 
-    // Insert the mass and the position into the map
-    mass_position_map[mass].push_back(i);
+      // Insert the mass and the position into the map
+      mass_position_map[mass].push_back(i);
+    }
+    else
+    {
+          //throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot get weight of sequence with unknown AA 'X' with unknown mass.", toString());
+    }
   }
   return mass_position_map;
 }
@@ -142,15 +149,52 @@ vector<int> NeighborSeq::findNeighborPeptides(const AASequence& peptide,
           // Check if the sequence contains an 'X'
               if (neighbor_sequence.find('X') == String::npos)
               {     
-                  MSSpectrum neighbor_spec = generateSpectrum(neighbor_sequence);
-
-                  // Compare the spectra and add to results if they are similar
-                      if (compareSpectra(spec, neighbor_spec, min_shared_ion_fraction, mz_bin_size))
-                      {      
-                          result_entries.push_back(candidates_position[i]);
-                      }
-               }
+                  MSSpectrum neighbor_spec = generateSpectrum(neighbor_candidates[candidates_position[i]].toString());
+               // Compare the spectra and add to results if they are similar
+                  if (compareSpectra(spec, neighbor_spec, min_shared_ion_fraction, mz_bin_size))
+                  {      
+                      result_entries.push_back(candidates_position[i]);
+                  }
+              }
+              else
+              {
+                //throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot get peaks of sequence with unknown AA 'X'.", toString());
+              }
     }
 return result_entries;
 }
 
+
+
+// is only a test function for compareSpectra, it works the same way, only the common peaks are output. 
+int NeighborSeq::compareSpectraTest(const MSSpectrum& spec1, const MSSpectrum& spec2, const double& mz_bin_size)
+{
+  std::map<int, int> bins1, bins2;
+
+  // Lambda function to bin a spectrum into a map
+  auto bin_spectrum = [&](const MSSpectrum& spec, std::map<int, int>& bins) {
+    for (const auto& peak : spec)
+      bins[static_cast<int>(peak.getMZ() / mz_bin_size)]++;
+  };
+
+  // Bin both spectra
+  bin_spectrum(spec1, bins1);
+  bin_spectrum(spec2, bins2);
+
+  // Extract bin keys as vectors
+  std::vector<int> vec_bins1, vec_bins2;
+  for (const auto& bin : bins1)
+    vec_bins1.push_back(bin.first);
+  for (const auto& bin : bins2)
+    vec_bins2.push_back(bin.first);
+
+  // Calculate the intersection of the bin vectors
+  std::vector<int> intersection;
+  std::set_intersection(vec_bins1.begin(), vec_bins1.end(), vec_bins2.begin(), vec_bins2.end(), std::back_inserter(intersection));
+  // Calculate the number of shared bins considering the bin frequencies
+  int shared_peaks = 0;
+  for (int bin : intersection)
+    shared_peaks += min(bins1[bin], bins2[bin]);
+
+  return shared_peaks;
+}
