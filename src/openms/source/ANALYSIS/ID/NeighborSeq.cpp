@@ -2,15 +2,15 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sven Nahnsen $
-// $Authors: Sven Nahnsen, Andreas Bertsch, Chris Bielow, Philipp Wang $
+// $Maintainer: Chris Bielow, Philipp Wang $
+// $Authors: Philipp Wang $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/ANALYSIS/ID/NeighborSeq.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <cmath>
+
 
 
 
@@ -70,19 +70,56 @@ bool NeighborSeq::compareSpectra(const MSSpectrum& spec1, const MSSpectrum& spec
   // Calculate the fraction of shared bins
   double fraction_shared = static_cast<double>(2 * B12) / (spec1.size() + spec2.size());
 
-
   return fraction_shared > min_shared_ion_fraction;
 }
 
-map<double, vector<int>> NeighborSeq::createMassPositonMap(const vector<AASequence>& candidates)
+//Finds candidate positions based on a given mono-isotopic weight and mass tolerance.
+vector<int> NeighborSeq::findCandidatePositions(const map<double, vector<int>>& mass_position_map,const double& mono_weight, const double& mass_tolerance)
 {
+  // Vector to store the candidate positions
+  vector<int> candidate_position;
+  // Calculate the lower and upper bounds for the mass tolerance range
+  double lower_bound_key = mono_weight;
+  double upper_bound_key = mono_weight;
+  if (mass_tolerance < 0) 
+  {
+     lower_bound_key += mass_tolerance;
+     upper_bound_key -= mass_tolerance;
+  }
+  else
+  {
+    lower_bound_key -= mass_tolerance;
+    upper_bound_key += mass_tolerance;
+  }
+ 
+  // Find the lower bound iterator in the map
+  auto lower = mass_position_map.lower_bound(lower_bound_key);
+
+  // Find the upper bound iterator in the map
+  auto upper = mass_position_map.upper_bound(upper_bound_key);
+
+  // Iterate through the map from the lower bound to the upper bound
+  for (auto it = lower; it != upper; ++it)
+  {
+    // Insert the positions from the current map entry into the candidate positions vector
+    candidate_position.insert(candidate_position.end(), it->second.begin(), it->second.end());
+  }
+  return candidate_position;
+}
+
+
+//Creates a map of masses to positions from a vector of peptides.(not protein)
+map<double, vector<int>> NeighborSeq::createMassPositionMap(const vector<AASequence>& candidates)
+{
+  // Map to store the mass and corresponding positions
   map<double, vector<int>> mass_position_map;
 
-  //Iterate through the vector of AASequence objects 
+  // Iterate through the vector of AASequence objects
   for (size_t i = 0; i < candidates.size(); ++i)
   {
     // Calculate the mono-isotopic mass of the sequence
     double mass = candidates[i].getMonoWeight();
+
     // Insert the mass and the position into the map
     mass_position_map[mass].push_back(i);
   }
@@ -90,20 +127,18 @@ map<double, vector<int>> NeighborSeq::createMassPositonMap(const vector<AASequen
 }
 
 // Method to find neighbor peptides in a given FASTA file
-vector<int> NeighborSeq::findNeighborPeptides(const AASequence& peptides,
-                                                                const vector<AASequence>& neighbor_candidate,
-                                                                const vector<int>& candidate_position,
+vector<int> NeighborSeq::findNeighborPeptides(const AASequence& peptide,
+                                                                const vector<AASequence>& neighbor_candidates,
+                                                                const vector<int>& candidates_position,
                                                                 const double& min_shared_ion_fraction,
                                                                 const double& mz_bin_size)
 
 {
     vector<int> result_entries;
-    String rel_sequence = peptides.toString();
-    MSSpectrum spec = generateSpectrum(rel_sequence);
-    for (size_t i = 0; i < candidate_position.size(); i++)
+    MSSpectrum spec = generateSpectrum(peptide.toString());
+    for (size_t i = 0; i < candidates_position.size(); i++)
     {
-          String neighbor_sequence = neighbor_candidate[candidate_position[i]].toString();
-          //cout << neighbor_sequence << endl;
+          String neighbor_sequence = neighbor_candidates[candidates_position[i]].toString();
           // Check if the sequence contains an 'X'
               if (neighbor_sequence.find('X') == String::npos)
               {     
@@ -112,7 +147,7 @@ vector<int> NeighborSeq::findNeighborPeptides(const AASequence& peptides,
                   // Compare the spectra and add to results if they are similar
                       if (compareSpectra(spec, neighbor_spec, min_shared_ion_fraction, mz_bin_size))
                       {      
-                          result_entries.push_back(candidate_position[i]);
+                          result_entries.push_back(candidates_position[i]);
                       }
                }
     }

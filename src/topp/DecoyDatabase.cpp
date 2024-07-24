@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Sven Nahnsen $
-// $Authors: Sven Nahnsen, Andreas Bertsch, Chris Bielow $
+// $Authors: Sven Nahnsen, Andreas Bertsch, Chris Bielow, Philipp Wang $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FASTAFile.h>
@@ -63,7 +63,7 @@ and terminates the program if decoys are found.
 The Neighbor Peptide functionality in the TOPPDecoyDatabase class is designed to find peptides from a given set of sequences (FASTA file) that are
 similar to a target peptide based on mass and spectral characteristics. This section will detail the methods and functionalities specifically related
 to the Neighbor Peptide search. 
-NeighborSeq class has more details look at *openms\source\ANALYSIS\ID\NeighborSeq.cpp
+NeighborSeq class has more details look at *OpenMS\src\openms\include\OpenMS\ANALYSIS\ID\NeighborSeq.h
 */
 
 // We do not want this class to show up in the docu:
@@ -84,7 +84,6 @@ protected:
     registerInputFileList_("in", "<file(s)>", ListUtils::create<String>(""), "Input FASTA file(s), each containing a database. It is recommended to include a contaminant database as well.");
     setValidFormats_("in", ListUtils::create<String>("fasta"));
     registerOutputFile_("out", "<file>", "", "Output FASTA file where the decoy database will be written to.");
-    registerOutputFile_("out_neighbor", "<file>", "", "Output FASTA file where the neighbor peptide will be written to.");
     setValidFormats_("out", ListUtils::create<String>("fasta"));
     registerStringOption_("decoy_string", "<string>", "DECOY_", "String that is combined with the accession of the protein identifier to indicate a decoy protein.", false);
     registerStringOption_("decoy_string_position", "<choice>", "prefix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?", false);
@@ -112,6 +111,7 @@ protected:
     registerTOPPSubsection_("Neighbor_Search", "Parameters for neighbor peptide search");
     registerInputFile_("Neighbor_Search:neighbor_in", "<file>","", "neighbor peptides are searched for in the Fasta file entered for candiate ", false);
     setValidFormats_("Neighbor_Search:neighbor_in", {"fasta"});
+    registerOutputFile_("Neighbor_Search:out_neighbor", "<file>", "", "Output FASTA file where the neighbor peptide will be written to.");
     registerIntOption_("Neighbor_Search:missed_cleavages", "<int>", 0,"Number of missed cleavages",false);
     registerDoubleOption_("Neighbor_Search:mz_bin_size", "<num>", 0.05,"Sets the mz_bin_size of the neighbor peptide search.(the original study suggests high (0.05 Da) and low (1.0005079 Da) mz_bin_size)", false);
     registerDoubleOption_("Neighbor_Search:mass_tolerance", "<double>", 0.00001, "Tolerance of the mass of the neighbor peptide m1-m2 > tm", false, true);
@@ -197,14 +197,27 @@ protected:
  // Check if the neighbor file option is provided
     if (! neighbor_file.empty())
     {
-      String out_neighbor = getStringOption_("out_neighbor");
+      if (input_type != SeqType::protein)
+      {
+        OPENMS_LOG_ERROR << "Parameter settings are invalid. When requesting neighbor peptides, the input type must be 'protein', not 'RNA'.\n";
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+      // Create a ProteaseDigestion object for neighbor peptide digestion
+      ProteaseDigestion digestion_neighbor;
+      String enzyme = getStringOption_("enzyme").trim();
+      if ((input_type == SeqType::protein) && ! enzyme.empty()) { digestion_neighbor.setEnzyme(enzyme); }
+      //-------------------------------------------------------------
+      // parsing neighbor parameters
+      //-------------------------------------------------------------
+      String out_neighbor = getStringOption_("Neighbor_Search:out_neighbor");
       FASTAFile neig;
       neig.writeStart(out_neighbor);
+
       double mz_bin_size = getDoubleOption_("Neighbor_Search:mz_bin_size");
       double min_shared_ion_fraction = getDoubleOption_("Neighbor_Search:min_shared_ion_fraction");
       double mass_tolerance = getDoubleOption_("Neighbor_Search:mass_tolerance");
       int missed_cleavages = getIntOption_("Neighbor_Search:missed_cleavages");
-      digestion.setMissedCleavages(missed_cleavages);
+      digestion_neighbor.setMissedCleavages(missed_cleavages);
  // Vector to hold all digested peptides from the input files
       vector<AASequence> all_peptides;
 
@@ -217,7 +230,7 @@ protected:
           // Vector to hold the peptides generated from digestion
           vector<AASequence> peptides;
           // Digest the current entry sequence into peptides
-          digestion.digest(AASequence::fromString(entry.sequence), peptides);
+          digestion_neighbor.digest(AASequence::fromString(entry.sequence), peptides);
           // Add the generated peptides to the all_peptides vector
           all_peptides.insert(all_peptides.end(), peptides.begin(), peptides.end());
         }
@@ -229,25 +242,18 @@ protected:
       vector<AASequence> digested_candidate_peptides;
       for (auto& entry : neighbor_entries)
       {
-        digestion.digest(AASequence::fromString(entry.sequence), digested_candidate_peptides);
+        digestion_neighbor.digest(AASequence::fromString(entry.sequence), digested_candidate_peptides);       
       }
-
-      map<double, vector<int>> mass_position_map = NeighborSeq::createMassPositonMap(digested_candidate_peptides);
+     // Creates a map of masses to positions from a vector
+      map<double, vector<int>> mass_position_map = NeighborSeq::createMassPositionMap(digested_candidate_peptides);
       
       for (auto i = all_peptides.begin(); i != all_peptides.end(); ++i)
       { 
-        double lower_bound_key = i->getMonoWeight() - mass_tolerance;
-        double upper_bound_key = i->getMonoWeight() + mass_tolerance;
-        auto lower = mass_position_map.lower_bound(lower_bound_key); 
-        auto upper = mass_position_map.upper_bound(upper_bound_key);
-        vector<int> candidate_position;
-        for (auto it = lower; it != upper; ++it)
-        {
-         candidate_position.insert(candidate_position.end(), it->second.begin(), it->second.end());
-        }
-
+        // Finde position of neighbor peptides candidates
+        vector<int> candiadate_position = NeighborSeq::findCandidatePositions(mass_position_map, i->getMonoWeight(), mass_tolerance);
+       
         // Find neighbor peptides for the current peptide
-        vector<int> result = NeighborSeq::findNeighborPeptides(*i, digested_candidate_peptides, candidate_position, min_shared_ion_fraction, mz_bin_size);
+        vector<int> result = NeighborSeq::findNeighborPeptides(*i, digested_candidate_peptides, candiadate_position, min_shared_ion_fraction, mz_bin_size);
         for (size_t j = 0; j < result.size(); ++j)
         {
           // Get the corresponding neighbor entry
