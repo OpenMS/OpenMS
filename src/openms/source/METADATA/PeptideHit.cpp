@@ -11,7 +11,7 @@
 #include <utility>
 
 using namespace std;
-
+ 
 namespace OpenMS
 {
   // default constructor

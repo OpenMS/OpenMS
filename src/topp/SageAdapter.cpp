@@ -535,8 +535,8 @@ for(auto& x : terms){
 
 
             else{
-             //modifications[mapped_val.second].rate += mit->second;  
-             modifications[mapped_val.second].rate = max(mit->second, modifications[mapped_val.second].rate) ;  
+             modifications[mapped_val.second].rate += mit->second;  
+             //modifications[mapped_val.second].rate = max(mit->second, modifications[mapped_val.second].rate) ;  
              modifications[mapped_val.second].numcharges = max(cit->second, modifications[mapped_val.second].numcharges);
             }
             
@@ -657,7 +657,7 @@ sort(pairs_by_rate.begin(), pairs_by_rate.end(), [=](std::pair<double, pair<Stri
     } 
     cout << "Original size of pips: " << pips.size() << std::endl; 
     cout << "Works without crashing, size of final peptide list: " << finalModifiedpeptides.size() << std::endl;  */
-
+  
     std::ofstream outFile("./OutputTable.tsv");
 
     // Check if the file was opened successfully
@@ -741,7 +741,7 @@ protected:
     },
     "max_variable_mods": ##max_variable_mods##,
     "generate_decoys": false,
-    "decoy_tag": "##decoy_tag##"
+    "decoy_tag": "##decoy_prefix##"
   },
   "precursor_tol": {
     "##precursor_tol_unit##": [
@@ -761,10 +761,10 @@ protected:
   "isotope_errors": [
     ##isotope_errors##
   ],
-  "deisotope": false,
-  "chimera": false,
+  "deisotope": ##deisotope##,
+  "chimera": ##chimera##,
   "wide_window": false,
-  "predict_rt": false,
+  "predict_rt": ##predict_rt##,
   "min_peaks": ##min_peaks##,
   "max_peaks": ##max_peaks##,
   "min_matched_peaks": ##min_matched_peaks##,
@@ -844,7 +844,13 @@ protected:
     config_file.substitute("##min_peaks##", String(getIntOption_("min_peaks")));
     config_file.substitute("##max_peaks##", String(getIntOption_("max_peaks")));
     config_file.substitute("##report_psms##", String(getIntOption_("report_psms")));
-    config_file.substitute("##decoy_tag##", String(getStringOption_("decoy_prefix")));
+    config_file.substitute("##deisotope##", getStringOption_("deisotope")); 
+    config_file.substitute("##chimera##", getStringOption_("chimera")); 
+    config_file.substitute("##predict_rt##", getStringOption_("predict_rt")); 
+    config_file.substitute("##decoy_prefix##", getStringOption_("decoy_prefix")); 
+
+    
+    //Look at decoy handling 
 
     String enzyme = getStringOption_("enzyme");
     String enzyme_details;
@@ -1005,6 +1011,7 @@ protected:
       "Can be negative. E.g. '-1,3' for considering '-1/0/1/2/3'", false, true);
     registerStringOption_("charges", "<start,end>", charges_if_not_annotated, "Range of precursor charges to consider if not annotated in the file."
       , false, true);
+    
 
     //Search Enzyme
     vector<String> all_enzymes;
@@ -1019,6 +1026,13 @@ protected:
     setValidStrings_("fixed_modifications", all_mods);
     registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
+
+    //FDR and misc 
+    registerDoubleOption_("FDR-Threshhold", "<double>", 0.01, "The FDR threshhold for filtering peptides", false, false); 
+    registerStringOption_("Annotate_matches", "<bool>", false, "If the matches should be annotated (default: false),", false, false); 
+    registerStringOption_("deisotope", "<bool>", false, "Sets deisotope option (true or false), default: false", false, false ); 
+    registerStringOption_("chimera", "<bool>", false, "Sets chimera option (true or false), default: false", false, false  ); 
+    registerStringOption_("predict_rt",  "<bool>", false, "Sets predict_rt option (true or false), default: false", false, false ); 
 
     // register peptide indexing parameter (with defaults for this search engine)
     registerPeptideIndexingParameter_(PeptideIndexing().getParameters());
@@ -1074,7 +1088,9 @@ protected:
     arguments << config_file.toQString() 
               << "-f" << fasta_file.toQString() 
               << "-o" << output_folder.toQString() 
-              << "--write-pin";
+              << "--annotate-matches"
+              << "--write-pin"; 
+
     if (batch >= 1) arguments << "--batch-size" << QString(batch);
     for (auto s : input_files) arguments << s.toQString();
 
@@ -1097,15 +1113,27 @@ protected:
     StringList filenames;
     StringList extra_scores = {"ln(-poisson)", "ln(delta_best)", "ln(delta_next)", 
       "ln(matched_intensity_pct)", "longest_b", "longest_y", 
-      "longest_y_pct", "matched_peaks", "scored_candidates", "CalcMass", "ExpMass" }; //Also charge and peptide! 
+      "longest_y_pct", "matched_peaks", "scored_candidates", "CalcMass", "ExpMass" }; 
+      //TODO: add ability to filter by spectrum_q 
+    double FDR_threshhold = getDoubleOption_("FDR-Threshhold"); 
+    cout << "FDR threshhold: " << FDR_threshhold << std::endl; 
+    
     vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load(
       output_folder + "/results.sage.pin",
       true,
       "ln(hyperscore)",
       extra_scores,
       filenames,
-      decoy_prefix);
+      decoy_prefix, 
+      FDR_threshhold);
     // rename SAGE subscores to have prefix "SAGE:"
+
+  int printcou = 0; 
+
+  //for()
+
+
+
     for (auto& id : peptide_identifications)
     {
       auto& hits = id.getHits();
@@ -1117,10 +1145,14 @@ protected:
           {
             h.setMetaValue("SAGE:" + meta, h.getMetaValue(meta));
             h.removeMetaValue(meta);      
+            
           }          
         }
+      
       }
     }
+
+    
 
 
   const pair<mapRatetoMass, map<double,double>> resultsClus =  SageClustering::getDeltaClusterCenter(peptide_identifications); 

@@ -62,12 +62,33 @@ namespace OpenMS
     const String& score_name,
     const StringList& extra_scores,
     StringList& filenames,
-    String decoy_prefix)
+    String decoy_prefix, 
+    double threshhold)
   {
     CsvFile csv(pin_file, '\t');
+
+      
+    String tsv_file_path = pin_file.substr(0, pin_file.size()-3);
+    tsv_file_path = tsv_file_path + "tsv"; 
+    CsvFile tsv(tsv_file_path, '\t'); 
+    //CsvFile csv("results.sage.tsv", '\t')
+
+
+
+    String temp_diff = "results.sage.pin"; 
+    String anno_file_path = pin_file.substr(0, pin_file.size()-temp_diff.length());
+    anno_file_path = anno_file_path + "matched_fragments.sage.tsv"; 
+    CsvFile annos(anno_file_path, '\t'); 
+
+  //map PSMID to vec of PeakAnnotation 
+
     StringList header;
+    StringList fullheader; 
+    StringList ann_header; 
     //TODO DANGEROUS! Our CSV reader does not support comment lines!!
     csv.getRow(0, header);
+    tsv.getRow(0, fullheader); 
+    annos.getRow(0, ann_header); 
 
     unordered_map<String, size_t> to_idx; // map column name to column index
     {
@@ -75,27 +96,52 @@ namespace OpenMS
       for (const auto& h : header) { to_idx[h] = idx++; }
     }
 
+    unordered_map<String, size_t> to_idx_t; // map column name to column index, for full .tsv file 
+    {
+      int idx_t{};
+      for (const auto& h : fullheader) { to_idx_t[h] = idx_t++; }
+    }
+
+    unordered_map<String, size_t> to_idx_a; // map column name to column index, for full .tsv file 
+    {
+      int idx_a{};
+      for (const auto& h : ann_header) { to_idx_a[h] = idx_a++; }
+    }
+
+
     int file_name_column_index{-1};
     if (auto it = std::find(header.begin(), header.end(), "FileName"); it != header.end())
     {
       file_name_column_index = it - header.begin();
     }
 
+
+    //Take meta value from .tsv file 
+
+
+    //For debugging: all colun names 
+    for(int i = 0; i < header.size(); ++i){
+      cout << "Pin header at " << i << " " <<   header.at(i) << std::endl;
+    }
+
+    for(int i = 0; i < fullheader.size(); ++i){
+      cout << "Full header at " << i << " " <<   fullheader.at(i) << std::endl;
+    }
+
     // get column indices of extra scores
 
 
-    
+    cout << "passed" << std::endl; 
    
     std::set<String> found_extra_scores; // additional (non-main) scores that should be stored in the PeptideHit, order important for comparable idXML
 
+    
      
     int cou = 0; 
     for (const String& s : extra_scores)
     {
-      //OPENMS_LOG_INFO <<  << std::endl;
       if (auto it = std::find(header.begin(), header.end(), s); it != header.end())
       {
-        //OPENMS_LOG_INFO <<  header.at(cou++) << std::endl;
         found_extra_scores.insert(s);
       }
       else
@@ -104,6 +150,56 @@ namespace OpenMS
       }
     }
 
+    
+    //Make a lookup table with PSMs -> Peakannotation vector
+
+    auto num_rows = annos.rowCount(); 
+    map<int, vector<PeptideHit::PeakAnnotation>> anno_mapping; 
+
+   for (size_t i = 1; i != num_rows; ++i)
+    {
+      StringList row;
+      annos.getRow(i, row);
+
+      //Check if mapping already has PSM, if it does add 
+      if(anno_mapping.find(row[to_idx_a.at("psm_id")].toInt()) == anno_mapping.end())
+      {                 
+         PeptideHit::PeakAnnotation peak_temp; 
+
+        peak_temp.annotation = row[to_idx_a.at("fragment_type")] + row[to_idx_a.at("fragment_ordinals")]; 
+        peak_temp.charge = row[to_idx_a.at("fragment_charge")].toInt(); 
+        peak_temp.intensity = row[to_idx_a.at("fragment_intensity")].toDouble(); 
+        peak_temp.mz = row[to_idx_a.at("fragment_mz_experimental")].toDouble(); 
+
+        anno_mapping[ row[to_idx_a.at("psm_id")].toInt() ].push_back(peak_temp); 
+      }
+      else
+      {
+        //Make a new vector of annotations 
+        PeptideHit::PeakAnnotation peak_temp; 
+
+        peak_temp.annotation = row[to_idx_a.at("fragment_type")] + row[to_idx_a.at("fragment_ordinals")]; 
+        peak_temp.charge = row[to_idx_a.at("fragment_charge")].toInt(); 
+        peak_temp.intensity = row[to_idx_a.at("fragment_intensity")].toDouble(); 
+        peak_temp.mz = row[to_idx_a.at("fragment_mz_experimental")].toDouble(); 
+
+        vector<PeptideHit::PeakAnnotation> temp_anno_vec; 
+        temp_anno_vec.push_back(peak_temp); 
+      anno_mapping[ row[to_idx_a.at("psm_id")].toInt() ] = temp_anno_vec; 
+      }
+    }  
+
+    int counter = 0; 
+    for (map<int, vector<PeptideHit::PeakAnnotation>>::const_iterator mit = anno_mapping.begin(); mit != anno_mapping.end(); ++mit){
+      if(++counter > 20) break; 
+      cout << "PSM: " << mit->first << " Annotation: " << mit->second.at(0).annotation << " Charge: " 
+      << mit->second.at(0).charge << " Intensity: " << mit->second.at(0).intensity << " MZ (exp): " << mit->second.at(0).mz << std::endl; 
+    }
+
+    /*if (hist.find(DeltaMass) == hist.end())
+        {
+        */
+      
     // charge columns are not standardized, so we check for the format and create hash to lookup column name to charge mapping
     std::regex charge_one_hot_pattern("^charge\\d+$");
     std::regex sage_one_hot_pattern("^z=\\d+$");
@@ -135,6 +231,9 @@ namespace OpenMS
 
     auto n_rows = csv.rowCount();
 
+
+    //TODO: make a lookup table psm_id -> hit for fster searching when annotating 
+
     vector<PeptideIdentification> pids;
     pids.reserve(n_rows);
     String spec_id;
@@ -145,6 +244,16 @@ namespace OpenMS
     {
       StringList row;
       csv.getRow(i, row);
+
+      StringList t_row; 
+      tsv.getRow(i, t_row); 
+
+      if( t_row[to_idx_t.at("spectrum_q")].toDouble() > threshhold)
+      {
+        if(i < 20) cout << t_row[to_idx_t.at("spectrum_q")].toDouble() << std::endl; 
+      }
+      else
+      {
 
       if (row.size() != header.size())
       {
@@ -170,6 +279,10 @@ namespace OpenMS
       //  so it writes the full ID as string
       String sScanNr = row[to_idx.at("ScanNr")];
 
+
+      vector<PeptideHit::PeakAnnotation> vecPointer = anno_mapping[sSpecId.toInt()]; 
+
+
       if (sSpecId != spec_id)
       {
         pids.resize(pids.size() + 1);
@@ -180,11 +293,50 @@ namespace OpenMS
         pids.back().setMetaValue("PinSpecId", sSpecId);
         pids.back().setMetaValue("CalcMass", row[to_idx.at("CalcMass")].toDouble());
         pids.back().setMetaValue("ExpMass", row[to_idx.at("ExpMass")].toDouble());
+        pids.back().setMetaValue("spectrum_q", t_row[to_idx_t.at("spectrum_q")].toDouble()); 
+       
         //pids.back().setMetaValue("Charge", row[to_idx.at("Charge")].toDouble());
         // Since ScanNr is the closest to help in identifying the spectrum in the file later on,
         // we use it as spectrum_reference. Since it can be integer only or the complete
         // vendor ID, you will need a lookup in case of number only later!!
         pids.back().setSpectrumReference(sScanNr);
+
+
+        // Adding annotation 
+
+        if(anno_mapping.find(sSpecId.toInt()) != anno_mapping.end())
+      {    
+        StringList annotation_list; 
+        DoubleList annotation_intensity_list; 
+        DoubleList annotation_mz_list; 
+        IntList annotation_charge_list; 
+
+        vector<String> annotation_vec; 
+        vector<double> annotation_intensity_vec; 
+        vector<double> annotation_mz_vec; 
+        vector<int> annotation_charge_vec; 
+
+
+
+        for(const PeptideHit::PeakAnnotation& pep : anno_mapping[sSpecId.toInt()]){
+          annotation_vec.push_back(pep.annotation); 
+          annotation_intensity_vec.push_back(pep.intensity); 
+          annotation_mz_vec.push_back(pep.mz); 
+          annotation_charge_vec.push_back(pep.charge); 
+        }
+
+        std::copy( annotation_vec.begin(), annotation_vec.end(), std::back_inserter( annotation_list ) );
+        std::copy( annotation_intensity_vec.begin(), annotation_intensity_vec.end(), std::back_inserter( annotation_intensity_list ) );
+        std::copy( annotation_mz_vec.begin(), annotation_mz_vec.end(), std::back_inserter( annotation_mz_list ) );
+        std::copy( annotation_charge_vec.begin(), annotation_charge_vec.end(), std::back_inserter( annotation_charge_list ) );
+
+         pids.back().setMetaValue("Annotation-Val", annotation_list); 
+         pids.back().setMetaValue("Annotation-Charge", annotation_intensity_list); 
+         pids.back().setMetaValue("Annotation-Intensity",annotation_mz_list ); 
+         pids.back().setMetaValue("Annotation-MZ", annotation_charge_list); 
+
+         
+        }
       }
 
       String sPeptide = row[to_idx.at("Peptide")];
@@ -265,13 +417,56 @@ namespace OpenMS
       }
       ph.setRank(rank);
 
+      //adding own meta values 
+      ph.setMetaValue("spectrum_q", t_row[to_idx_t.at("spectrum_q")].toDouble()); 
+      //Add Annotation meta values 
+       if(anno_mapping.find(sSpecId.toInt()) != anno_mapping.end())
+       {
+       StringList annotation_list; 
+        DoubleList annotation_intensity_list; 
+        DoubleList annotation_mz_list; 
+        IntList annotation_charge_list; 
+
+        vector<String> annotation_vec; 
+        vector<double> annotation_intensity_vec; 
+        vector<double> annotation_mz_vec; 
+        vector<int> annotation_charge_vec; 
+
+
+
+        for(const PeptideHit::PeakAnnotation& pep : anno_mapping[sSpecId.toInt()]){
+          annotation_vec.push_back(pep.annotation); 
+          annotation_intensity_vec.push_back(pep.intensity); 
+          annotation_mz_vec.push_back(pep.mz); 
+          annotation_charge_vec.push_back(pep.charge); 
+        }
+
+        std::copy( annotation_vec.begin(), annotation_vec.end(), std::back_inserter( annotation_list ) );
+        std::copy( annotation_intensity_vec.begin(), annotation_intensity_vec.end(), std::back_inserter( annotation_intensity_list ) );
+        std::copy( annotation_mz_vec.begin(), annotation_mz_vec.end(), std::back_inserter( annotation_mz_list ) );
+        std::copy( annotation_charge_vec.begin(), annotation_charge_vec.end(), std::back_inserter( annotation_charge_list ) );
+
+         pids.back().setMetaValue("Annotation-Val", annotation_list); 
+         pids.back().setMetaValue("Annotation-Charge", annotation_intensity_list); 
+         pids.back().setMetaValue("Annotation-Intensity",annotation_mz_list ); 
+         pids.back().setMetaValue("Annotation-MZ", annotation_charge_list); 
+       } 
       // add link to protein (we only know the accession but not start/end, aa_before/after in protein at this point)
       for (const String& accession : accessions)
       {
         ph.addPeptideEvidence(PeptideEvidence(accession));
       }
 
+    //peakAnnotations
+
+      //StringList p_row;
+      //tsv.getRow(i, p_row);
+
+
+      //ph.setPeakAnnotations(); 
+
       pids.back().insertHit(std::move(ph));
+      }
     }
     return pids;
   }
