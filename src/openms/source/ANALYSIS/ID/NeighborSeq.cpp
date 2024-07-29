@@ -39,33 +39,9 @@ return spectrum;
 // Function to compare two spectra and determine if they are similar
 bool NeighborSeq::compareSpectra(const MSSpectrum& spec1, const MSSpectrum& spec2, const double& min_shared_ion_fraction, const double& mz_bin_size)
 {
-  std::map<int, int> bins1, bins2;
-
-  // Lambda function to bin a spectrum into a map
-  auto bin_spectrum = [&](const MSSpectrum& spec, std::map<int, int>& bins) {
-    for (const auto& peak : spec)
-      bins[static_cast<int>(peak.getMZ() / mz_bin_size)]++;
-  };
-
-  // Bin both spectra
-  bin_spectrum(spec1, bins1);
-  bin_spectrum(spec2, bins2);
-
-  // Extract bin keys as vectors
-  std::vector<int> vec_bins1, vec_bins2;
-  for (const auto& bin : bins1)
-    vec_bins1.push_back(bin.first);
-  for (const auto& bin : bins2)
-    vec_bins2.push_back(bin.first);
-
-  // Calculate the intersection of the bin vectors
-  std::vector<int> intersection;
-  std::set_intersection(vec_bins1.begin(), vec_bins1.end(), vec_bins2.begin(), vec_bins2.end(), std::back_inserter(intersection));
 
   // Calculate the number of shared bins considering the bin frequencies
-  int B12 = 0;
-  for (int bin : intersection)
-    B12 += std::min(bins1[bin], bins2[bin]);
+  int B12 = compareShareSpectra(spec1,  spec2, mz_bin_size);
 
   // Calculate the fraction of shared bins
   double fraction_shared = static_cast<double>(2 * B12) / (spec1.size() + spec2.size());
@@ -125,29 +101,29 @@ map<double, vector<int>> NeighborSeq::createMassPositionMap(const vector<AASeque
       // Insert the mass and the position into the map
       mass_position_map[mass].push_back(i);
     }
-    else
-    {
+   // else
+   // {
           //throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot get weight of sequence with unknown AA 'X' with unknown mass.", toString());
-    }
+    //}
   }
   return mass_position_map;
 }
 
 // Method to find neighbor peptides in a given FASTA file
 vector<int> NeighborSeq::findNeighborPeptides(const AASequence& peptide,
-                                                                const vector<AASequence>& neighbor_candidates,
-                                                                const vector<int>& candidates_position,
-                                                                const double& min_shared_ion_fraction,
-                                                                const double& mz_bin_size)
+                                              const vector<AASequence>& neighbor_candidates,
+                                              const vector<int>& candidates_position,
+                                              const double& min_shared_ion_fraction,
+                                              const double& mz_bin_size)
 
 {
     vector<int> result_entries;
     MSSpectrum spec = generateSpectrum(peptide.toString());
     for (size_t i = 0; i < candidates_position.size(); i++)
     {
-          String neighbor_sequence = neighbor_candidates[candidates_position[i]].toString();
+          
           // Check if the sequence contains an 'X'
-              if (neighbor_sequence.find('X') == String::npos)
+          if (neighbor_candidates[candidates_position[i]].toString().find('X') == String::npos)
               {     
                   MSSpectrum neighbor_spec = generateSpectrum(neighbor_candidates[candidates_position[i]].toString());
                // Compare the spectra and add to results if they are similar
@@ -156,18 +132,18 @@ vector<int> NeighborSeq::findNeighborPeptides(const AASequence& peptide,
                       result_entries.push_back(candidates_position[i]);
                   }
               }
-              else
-              {
+             // else
+            //  {
                 //throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot get peaks of sequence with unknown AA 'X'.", toString());
-              }
+            //  }
     }
 return result_entries;
 }
 
 
 
-// is only a test function for compareSpectra, it works the same way, only the common peaks are output. 
-int NeighborSeq::compareSpectraTest(const MSSpectrum& spec1, const MSSpectrum& spec2, const double& mz_bin_size)
+
+int NeighborSeq::compareShareSpectra(const MSSpectrum& spec1, const MSSpectrum& spec2, const double& mz_bin_size)
 {
   std::map<int, int> bins1, bins2;
 

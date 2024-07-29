@@ -115,10 +115,12 @@ protected:
     registerIntOption_("Neighbor_Search:missed_cleavages", "<int>", 0,"Number of missed cleavages",false);
     registerDoubleOption_("Neighbor_Search:mz_bin_size", "<num>", 0.05,"Sets the mz_bin_size of the neighbor peptide search.(the original study suggests high (0.05 Da) and low (1.0005079 Da) mz_bin_size)", false);
     registerDoubleOption_("Neighbor_Search:mass_tolerance", "<double>", 0.00001, "Tolerance of the mass of the neighbor peptide m1-m2 > tm", false, true);
+    registerIntOption_("Neighbor_Search:min_peptide_length", "<int>", 5, "the minimum neighbor peptide length ", false);
     //setValidStrings_("Neighbor_Search:fragment_unit_ppm", {"true", "false"});
     //registerStringOption_("Neighbor_Search:fragment_unit_ppm", "<choice>", "true","calculates with dalton or ppm", false, true);
     registerDoubleOption_("Neighbor_Search:min_shared_ion_fraction", "<double>", 0.25, "Tolerance of the proportion of b and y ions shared by the neighbor peptide 2*B12/B1+B2 > ti", false, true);
   }
+
 
   Param getSubsectionDefaults_(const String& /* name */) const override
   {
@@ -219,6 +221,7 @@ protected:
       double min_shared_ion_fraction = getDoubleOption_("Neighbor_Search:min_shared_ion_fraction");
       double mass_tolerance = getDoubleOption_("Neighbor_Search:mass_tolerance");
       int missed_cleavages = getIntOption_("Neighbor_Search:missed_cleavages");
+      int min_peptide_length = getIntOption_("Neighbor_Search:min_peptide_length");
       digestion_neighbor.setMissedCleavages(missed_cleavages);
  // Vector to hold all digested peptides from the input files
       vector<AASequence> all_peptides;
@@ -248,26 +251,35 @@ protected:
         digestion_neighbor.digest(AASequence::fromString(entry.sequence), temp_peptides);  
         digested_candidate_peptides.insert(digested_candidate_peptides.end(), temp_peptides.begin(), temp_peptides.end());
       }
+
+      // Remove peptides shorter than min_peptide_length amino acids
+      digested_candidate_peptides.erase(remove_if(digested_candidate_peptides.begin(), digested_candidate_peptides.end(),
+                                                         [min_peptide_length](const AASequence& peptide) { return peptide.size() < min_peptide_length; })
+                                                        ,digested_candidate_peptides.end());
+
      // Creates a map of masses to positions from a vector
       map<double, vector<int>> mass_position_map = NeighborSeq::createMassPositionMap(digested_candidate_peptides);
-      
+
       for (auto i = all_peptides.begin(); i != all_peptides.end(); ++i)
-      { 
-        // Finde position of neighbor peptides candidates
-        vector<int> candiadate_position = NeighborSeq::findCandidatePositions(mass_position_map, i->getMonoWeight(), mass_tolerance);
-       
-        // Find neighbor peptides for the current peptide
-        vector<int> result = NeighborSeq::findNeighborPeptides(*i, digested_candidate_peptides, candiadate_position, min_shared_ion_fraction, mz_bin_size);
-        for (size_t j = 0; j < result.size(); ++j)
+      {
+        if (i->toString().find('X') == String::npos) 
         {
-          // Get the corresponding neighbor entry
-          const auto& neighbor_entry = neighbor_entries[result[j]];
-          // Create a new FASTAEntry with the neighbor peptide sequence
-          FASTAFile::FASTAEntry new_entry(entry.identifier, entry.description, digested_candidate_peptides[result[j]].toString());
-          // Write the neighbor peptide to the output file
-          neig.writeNext(new_entry);
-  
-        }    
+          // Finde position of neighbor peptides candidates
+          vector<int> candiadate_position = NeighborSeq::findCandidatePositions(mass_position_map, i->getMonoWeight(), mass_tolerance);
+
+          // Find neighbor peptides for the current peptide
+          vector<int> result
+            = NeighborSeq::findNeighborPeptides(*i, digested_candidate_peptides, candiadate_position, min_shared_ion_fraction, mz_bin_size);
+          for (size_t j = 0; j < result.size(); ++j)
+          {
+            // Get the corresponding neighbor entry
+            const auto& neighbor_entry = neighbor_entries[result[j]];
+            // Create a new FASTAEntry with the neighbor peptide sequence
+            FASTAFile::FASTAEntry new_entry(entry.identifier, entry.description, digested_candidate_peptides[result[j]].toString());
+            // Write the neighbor peptide to the output file
+            neig.writeNext(new_entry);
+          } 
+        }   
       }
       in.push_back(out_neighbor);
     }
