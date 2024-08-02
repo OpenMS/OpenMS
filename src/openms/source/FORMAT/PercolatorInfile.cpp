@@ -250,7 +250,7 @@ namespace OpenMS
 
       if( t_row[to_idx_t.at("spectrum_q")].toDouble() > threshhold)
       {
-        if(i < 20) cout << t_row[to_idx_t.at("spectrum_q")].toDouble() << std::endl; 
+        //if(i < 20) cout << t_row[to_idx_t.at("spectrum_q")].toDouble() << std::endl; 
       }
       else
       {

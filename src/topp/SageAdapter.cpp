@@ -657,8 +657,10 @@ sort(pairs_by_rate.begin(), pairs_by_rate.end(), [=](std::pair<double, pair<Stri
     } 
     cout << "Original size of pips: " << pips.size() << std::endl; 
     cout << "Works without crashing, size of final peptide list: " << finalModifiedpeptides.size() << std::endl;  */
-  
-    std::ofstream outFile("./OutputTable.tsv");
+    String out = getStringOption_("out"); 
+    out = out.substr(0, out.size()-5);
+    String output_tab = out + "_OutputTable.tsv"; 
+    std::ofstream outFile(output_tab);
 
     // Check if the file was opened successfully
     if (!outFile.is_open()) {
