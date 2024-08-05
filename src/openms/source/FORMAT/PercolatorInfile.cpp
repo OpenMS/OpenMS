@@ -190,11 +190,11 @@ namespace OpenMS
     }  
 
     int counter = 0; 
-    for (map<int, vector<PeptideHit::PeakAnnotation>>::const_iterator mit = anno_mapping.begin(); mit != anno_mapping.end(); ++mit){
+    /* for (map<int, vector<PeptideHit::PeakAnnotation>>::const_iterator mit = anno_mapping.begin(); mit != anno_mapping.end(); ++mit){
       if(++counter > 20) break; 
       cout << "PSM: " << mit->first << " Annotation: " << mit->second.at(0).annotation << " Charge: " 
       << mit->second.at(0).charge << " Intensity: " << mit->second.at(0).intensity << " MZ (exp): " << mit->second.at(0).mz << std::endl; 
-    }
+    } */
 
     /*if (hist.find(DeltaMass) == hist.end())
         {
@@ -330,10 +330,10 @@ namespace OpenMS
         std::copy( annotation_mz_vec.begin(), annotation_mz_vec.end(), std::back_inserter( annotation_mz_list ) );
         std::copy( annotation_charge_vec.begin(), annotation_charge_vec.end(), std::back_inserter( annotation_charge_list ) );
 
-         pids.back().setMetaValue("Annotation-Val", annotation_list); 
+         pids.back().setMetaValue("ions", annotation_list); 
          pids.back().setMetaValue("Annotation-Charge", annotation_intensity_list); 
-         pids.back().setMetaValue("Annotation-Intensity",annotation_mz_list ); 
-         pids.back().setMetaValue("Annotation-MZ", annotation_charge_list); 
+         pids.back().setMetaValue("intensities",annotation_mz_list ); 
+         pids.back().setMetaValue("mz_values", annotation_charge_list); 
 
          
         }
@@ -446,10 +446,11 @@ namespace OpenMS
         std::copy( annotation_mz_vec.begin(), annotation_mz_vec.end(), std::back_inserter( annotation_mz_list ) );
         std::copy( annotation_charge_vec.begin(), annotation_charge_vec.end(), std::back_inserter( annotation_charge_list ) );
 
-         pids.back().setMetaValue("Annotation-Val", annotation_list); 
+         pids.back().setMetaValue("ions", annotation_list); 
          pids.back().setMetaValue("Annotation-Charge", annotation_intensity_list); 
-         pids.back().setMetaValue("Annotation-Intensity",annotation_mz_list ); 
-         pids.back().setMetaValue("Annotation-MZ", annotation_charge_list); 
+         pids.back().setMetaValue("intensities",annotation_mz_list ); 
+         pids.back().setMetaValue("mz_values", annotation_charge_list); 
+
        } 
       // add link to protein (we only know the accession but not start/end, aa_before/after in protein at this point)
       for (const String& accession : accessions)
