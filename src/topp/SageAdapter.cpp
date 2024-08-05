@@ -456,7 +456,7 @@ public:
     return clusters;
   } //Problem currently: clusters upshifted by small amount (ranges from .01 to .4 or even .6)
  */
-  static vector<PeptideIdentification> mapDifftoMods(const mapRatetoMass hist, map<double, double> charge_hist, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 5, bool precursor_mass_tolerance_unit_ppm = true)
+  static vector<PeptideIdentification> mapDifftoMods(const mapRatetoMass hist, map<double, double> charge_hist, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 5, bool precursor_mass_tolerance_unit_ppm = true, String outfile = "")
   {
     
     vector<vector<PeptideIdentification>> clusters(hist.size(), vector<PeptideIdentification>());
@@ -657,14 +657,13 @@ sort(pairs_by_rate.begin(), pairs_by_rate.end(), [=](std::pair<double, pair<Stri
     } 
     cout << "Original size of pips: " << pips.size() << std::endl; 
     cout << "Works without crashing, size of final peptide list: " << finalModifiedpeptides.size() << std::endl;  */
-    String out = getStringOption_("out"); 
-    out = out.substr(0, out.size()-5);
-    String output_tab = out + "_OutputTable.tsv"; 
+   
+    String output_tab = outfile + "_OutputTable.tsv"; 
     std::ofstream outFile(output_tab);
 
     // Check if the file was opened successfully
     if (!outFile.is_open()) {
-        std::cerr << "Error opening file: " << "./OutputTable.tsv" << std::endl;
+        std::cerr << "Error opening file: " << output_tab << std::endl;
         return finalModifiedpeptides;
     }
     outFile << "Name" << '\t' << "Mass" << '\t' << "Modified Peptides (incl. charge variants)" << '\t' << "Modified Peptides" << '\n'; 
@@ -1159,7 +1158,7 @@ protected:
 
   const pair<mapRatetoMass, map<double,double>> resultsClus =  SageClustering::getDeltaClusterCenter(peptide_identifications); 
   //vector<vector<PeptideIdentification>> resultsClus2 = SageClustering::clusterPeptides(resultsClus, peptide_identifications);
-  vector<PeptideIdentification> mapD = SageClustering::mapDifftoMods(resultsClus.first, resultsClus.second, peptide_identifications); //peptide_identifications; 
+  vector<PeptideIdentification> mapD = SageClustering::mapDifftoMods(resultsClus.first, resultsClus.second, peptide_identifications, 5.0, true, output_file); //peptide_identifications; 
   //vector<PeptideIdentification> peptide_identifications =  peptide_identifications; 
 
   //while(j++ < resultsClus2.size()) cout << "Size of Clus at " << j-1 << " " <<  resultsClus2.at(j-1).size() << std::endl; 
