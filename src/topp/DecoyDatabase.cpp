@@ -192,6 +192,12 @@ protected:
 
     // create neighbor peptides for the relevant peptides?
     String in_relevant_proteins = getStringOption_("Neighbor_Search:in_relevant_proteins");
+    String out_neighbor = getStringOption_("Neighbor_Search:out_neighbor");
+    if (in_relevant_proteins.empty() ^ out_neighbor.empty())
+    {
+      OPENMS_LOG_ERROR << "Parameter settings are invalid. Both 'in_relevant_proteins' and 'out_neighbor' must be set or unset.\n";
+      return ILLEGAL_PARAMETERS;
+    }
     if (! in_relevant_proteins.empty())
     {
       if (input_type != SeqType::protein)
@@ -205,7 +211,7 @@ protected:
       //-------------------------------------------------------------
       // parsing neighbor parameters
       //-------------------------------------------------------------
-      String out_neighbor = getStringOption_("Neighbor_Search:out_neighbor");
+      
       FASTAFile fasta_neighbor_out;
       fasta_neighbor_out.writeStart(out_neighbor);
 
@@ -254,7 +260,6 @@ protected:
             // Find relevant peptides for the current neighbor peptide candidate
             bool is_neighbor_peptide = ns.isNeighborPeptide(peptide, mass_tolerance, mass_tolerance_unit_ppm, min_shared_ion_fraction, mz_bin_size);
             if (!is_neighbor_peptide) continue;
-            
             entry.sequence += peptide.toString();
           } // next candidate peptide
           if (! entry.sequence.empty())
@@ -268,9 +273,10 @@ protected:
 
       const auto stats = ns.getNeighborStats();
       OPENMS_LOG_INFO << "Neighbor peptide statistics for " << stats.total() << " reference peptides :\n"
-                      << " - " << stats.noNB() << " peptides had no neighbors\n"
-                      << " - " << stats.oneNB() << " peptides had exactly one neighbor\n"
-                      << " - " << stats.multiNB() << " peptides had multiple neighbors." << endl;
+                      << " - " << stats.unfindable() << " peptides contained an 'X' (unknown amino acid) and thus could not be searched for neighbors\n"
+                      << " - " << stats.noNB() << " peptides had 0 neighbors\n"
+                      << " - " << stats.oneNB() << " peptides had 1 neighbor\n"
+                      << " - " << stats.multiNB() << " peptides had >=1 neighbors." << endl;
     }
 
     set<String> identifiers; // spot duplicate identifiers  // std::unordered_set<string> has slightly more RAM, but slightly less CPU

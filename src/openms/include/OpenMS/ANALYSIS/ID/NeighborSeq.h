@@ -61,6 +61,9 @@ namespace OpenMS
 
       /**
        * @brief Finds neighbor peptides that are similar to a given peptide.
+       * 
+       * Also updates the internal statistics, which can be retrieved using getNeighborStats().
+       * 
        * @param neighbor_candidate The peptide sequence (from a neighbor protein) to compare against the internal relevant peptides (see constructor).
        * @param mass_tolerance_pc Maximal precursor mass difference (in Da or ppm; see 'mass_tolerance_pc_ppm') between neighbor and relevant peptide.
        * @param mass_tolerance_pc_ppm Is 'mass_tolerance_pc' in Da or ppm?
@@ -77,27 +80,34 @@ namespace OpenMS
       /// Statistics of how many neighbors were found per reference peptide
       struct NeighborStats
       {
-        int no_neighbors = 0; ///< how many peptides had no neighbors?
-        int one_neighbor = 0; ///< how many peptides had exactly one neighbor?
-        int multiple_neighbors = 0; ///< how many peptides had multiple neighbors?
+        int unfindable_peptides = 0; ///< how many ref-peptides contain an 'X' (unknown amino acid) and thus cannot be searched for neighbors
+        int findable_no_neighbors = 0; ///< how many peptides had no neighbors?
+        int findable_one_neighbor = 0; ///< how many peptides had exactly one neighbor?
+        int findable_multiple_neighbors = 0; ///< how many peptides had multiple neighbors?
         int total() const
         {
-          return no_neighbors + one_neighbor + multiple_neighbors;
+          return unfindable_peptides + findable_no_neighbors + findable_one_neighbor + findable_multiple_neighbors;
         }
+        /// Number of reference peptides that contain an 'X' (unknown amino acid), formatted as 'X (Y%)'
+        String unfindable() const
+        {
+          return String(unfindable_peptides) + " (" + unfindable_peptides * 100 / total() + "%)";
+        }
+
         /// Number of reference peptides that had no neighbors, formatted as 'X (Y%)'
         String noNB() const
         {
-          return String(no_neighbors) + " (" + no_neighbors * 100 / total() + "%)";
+          return String(findable_no_neighbors) + " (" + findable_no_neighbors * 100 / total() + "%)";
         }
         /// Number of reference peptides that had exactly one neighbor, formatted as 'X (Y%)'
         String oneNB() const
         {
-          return String(one_neighbor) + " (" + one_neighbor * 100 / total() + "%)";
+          return String(findable_one_neighbor) + " (" + findable_one_neighbor * 100 / total() + "%)";
         }
         /// Number of reference peptides that had multiple neighbors, formatted as 'X (Y%)'
         String multiNB() const
         {
-          return String(multiple_neighbors) + " (" + multiple_neighbors * 100 / total() + "%)";
+          return String(findable_multiple_neighbors) + " (" + findable_multiple_neighbors * 100 / total() + "%)";
         }
       };
 
@@ -109,7 +119,7 @@ namespace OpenMS
        * @brief Creates a map of masses to positions from the internal relevant peptides.
        * @return A map where the key is the mass and the value is a vector of positions.
        */
-      std::map<double, std::vector<int>> createMassLookup_() const;
+      std::map<double, std::vector<int>> createMassLookup_();
       
       /**
        * @brief Finds candidate positions based on a given mono-isotopic weight and mass tolerance.

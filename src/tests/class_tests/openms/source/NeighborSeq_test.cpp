@@ -59,161 +59,139 @@ START_SECTION(MSSpectrum generateSpectrum(const String& peptide_sequence))
 END_SECTION
 
 // Test section for the compareSpectra function
-START_SECTION(bool compareSpectra(const MSSpectrum& spec1, const MSSpectrum& spec2, const double& min_shared_ion_fraction, const double& mz_bin_size))
+START_SECTION(
+  static bool isNeighborSpectrum(const MSSpectrum& spec1, const MSSpectrum& spec2, const double min_shared_ion_fraction, const double mz_bin_size))
 {
-  MSSpectrum spec1({Peak1D(100.0, 1.0), Peak1D(200.0, 1.0), Peak1D(300.0, 1.0)});
+  MSSpectrum spec1({Peak1D(100.00, 1.0),
+                    Peak1D(200.00, 1.0),
+                    Peak1D(300.00, 1.0)});
 
-  MSSpectrum spec2;
-  spec2.push_back(Peak1D(100.05, 1.0));
-  spec2.push_back(Peak1D(200.05, 1.0));
-  spec2.push_back(Peak1D(300.05, 1.0));
+  MSSpectrum spec2({Peak1D(100.05, 1.0),
+                    Peak1D(200.05, 1.0),
+                    Peak1D(300.05, 1.0)});
 
-  MSSpectrum spec3;
-  spec3.push_back(Peak1D(101.00, 1.0));
-  spec3.push_back(Peak1D(201.00, 1.0));
-  spec3.push_back(Peak1D(301.00, 1.0));
+  MSSpectrum spec3({Peak1D(101.00, 1.0),
+                    Peak1D(201.00, 1.0),
+                    Peak1D(301.00, 1.0)});
 
-  MSSpectrum spec4;
-  spec4.push_back(Peak1D(100.05, 1.0));
-  spec4.push_back(Peak1D(201.00, 1.0));
-  spec4.push_back(Peak1D(300.05, 1.0));
-  spec4.push_back(Peak1D(301.00, 1.0));
-
+  MSSpectrum spec4({Peak1D(100.05, 1.0),
+                    Peak1D(201.00, 1.0),
+                    Peak1D(300.05, 1.0),
+                    Peak1D(301.00, 1.0)});
 
   double min_shared_ion_fraction = 0.5; 
   
-  NeighborSeq ns({AASequence::fromString("TEST")})
+  NeighborSeq ns({AASequence::fromString("TEST")});
 
-  //bin interval is from [a,b[
-    bool compare_1_2_low
-    = ns.computeSharedIonCount(spec1, spec2, min_shared_ion_fraction, 1.0);
-  TEST_TRUE(compare_1_2_low)
-  bool compare_1_3_low = ns.compareSpectra(spec1, spec3, min_shared_ion_fraction, 1.0);
-  TEST_FALSE(compare_1_3_low)
-  bool compare_1_4_low = ns.compareSpectra(spec1, spec4, min_shared_ion_fraction, 1.0);
-  TEST_TRUE(compare_1_4_low)
-  bool compare_2_3_low = ns.compareSpectra(spec2, spec3, min_shared_ion_fraction, 1.0);
-  TEST_FALSE(compare_2_3_low)
-  bool compare_2_4_low = ns.compareSpectra(spec2, spec4, min_shared_ion_fraction, 1.0);
-  TEST_TRUE(compare_2_4_low)
-  bool compare_3_4_low = ns.compareSpectra(spec3, spec4, min_shared_ion_fraction, 1.0);
-  TEST_TRUE(compare_3_4_low)
+  // bin interval is from [a,b[
+  TEST_TRUE (ns.isNeighborSpectrum(spec1, spec2, min_shared_ion_fraction, 1.0))
+  TEST_FALSE(ns.isNeighborSpectrum(spec1, spec3, min_shared_ion_fraction, 1.0))
+  TEST_TRUE (ns.isNeighborSpectrum(spec1, spec4, min_shared_ion_fraction, 1.0))
+  TEST_FALSE(ns.isNeighborSpectrum(spec2, spec3, min_shared_ion_fraction, 1.0))
+  TEST_TRUE (ns.isNeighborSpectrum(spec2, spec4, min_shared_ion_fraction, 1.0))
+  TEST_TRUE (ns.isNeighborSpectrum(spec3, spec4, min_shared_ion_fraction, 1.0))
 
-  bool compare_1_2_high = ns.compareSpectra(spec1, spec2, min_shared_ion_fraction, 0.05);
-  TEST_FALSE(compare_1_2_high)  
-  bool compare_1_3_high = ns.compareSpectra(spec1, spec3, min_shared_ion_fraction, 0.05);
-  TEST_FALSE(compare_1_3_high)
-  bool compare_1_4_high = ns.compareSpectra(spec1, spec4, min_shared_ion_fraction, 0.05);
-  TEST_FALSE(compare_1_4_high)
-  bool compare_2_3_high = ns.compareSpectra(spec2, spec3, min_shared_ion_fraction, 0.05);
-  TEST_FALSE(compare_2_3_high)
-  bool compare_2_4_high = ns.compareSpectra(spec2, spec4, min_shared_ion_fraction, 0.05);
-  TEST_TRUE(compare_2_4_high) 
-  bool compare_3_4_high = ns.compareSpectra(spec3, spec4, min_shared_ion_fraction, 0.05);
-  TEST_TRUE(compare_3_4_high)
+  TEST_FALSE(ns.isNeighborSpectrum(spec1, spec2, min_shared_ion_fraction, 0.05))
+  TEST_FALSE(ns.isNeighborSpectrum(spec1, spec3, min_shared_ion_fraction, 0.05))
+  TEST_FALSE(ns.isNeighborSpectrum(spec1, spec4, min_shared_ion_fraction, 0.05))
+  TEST_FALSE(ns.isNeighborSpectrum(spec2, spec3, min_shared_ion_fraction, 0.05))
+  TEST_TRUE(ns.isNeighborSpectrum(spec2, spec4, min_shared_ion_fraction, 0.05))
+  TEST_TRUE(ns.isNeighborSpectrum(spec3, spec4, min_shared_ion_fraction, 0.05))
 }
 END_SECTION
 
 
 // Test section for the findCandidatePositions function
-START_SECTION(vector<int> findCandidatePositions(const map<double, vector<int>>& mass_position_map,
-                                                 const double& mono_weight,
-                                                 const double& mass_tolerance))
+START_SECTION(static int computeSharedIonCount(const MSSpectrum& spec1, const MSSpectrum& spec2, const double& mz_bin_size))
 {
-  map<double, vector<int>> mass_position_map_1 = {{100.0, {1, 2}}, {101.5, {3}}, {102.0, {4, 5}}};
-  double mono_weight_1 = 101.0;
-  double mass_tolerance_1 = 1.0;
+  MSSpectrum spec1({Peak1D(100.00, 1.0),
+                    Peak1D(200.00, 1.0),
+                    Peak1D(300.00, 1.0)});
 
-  vector<int> expected_1 = {1, 2, 3, 4 , 5};
-  vector<int> result_1 = NeighborSeq::findCandidatePositions(mass_position_map_1, mono_weight_1, mass_tolerance_1);
-  TEST_EQUAL(result_1,expected_1)
+  MSSpectrum spec2({Peak1D(100.05, 1.0),
+                    Peak1D(200.05, 1.0),
+                    Peak1D(300.05, 1.0)});
 
-  map<double, vector<int>> mass_position_map_2 = {{100.0, {1, 2}}, {101.5, {3}}, {102.0, {4, 5}}};
-  double mono_weight_2 = 100.5;
-  double mass_tolerance_2 = 1.0;
+  MSSpectrum spec3({Peak1D(101.00, 1.0),
+                    Peak1D(201.00, 1.0),
+                    Peak1D(301.00, 1.0)});
 
-  vector<int> expected_2 = {1, 2, 3};
-  vector<int> result_2 = NeighborSeq::findCandidatePositions(mass_position_map_2, mono_weight_2, mass_tolerance_2);
-  TEST_EQUAL(result_2,expected_2)
+  MSSpectrum spec4({Peak1D(100.05, 1.0),
+                    Peak1D(201.00, 1.0),
+                    Peak1D(300.05, 1.0),
+                    Peak1D(301.00, 1.0)});
 
-  map<double, vector<int>> mass_position_map_3 = {{100.0, {1, 2}}, {101.5, {3}}, {102.0, {4, 5}}};
-  double mono_weight_3 = 105.0;
-  double mass_tolerance_3 = 1.0;
+  NeighborSeq ns({AASequence::fromString("TEST")});
 
-  vector<int> expected_3 = {};
-  vector<int> result_3 = NeighborSeq::findCandidatePositions(mass_position_map_3, mono_weight_3, mass_tolerance_3);
-  TEST_EQUAL(result_3, expected_3)
+  // bin interval is from [a,b[
+  TEST_EQUAL(ns.computeSharedIonCount(spec1, spec2, 2.0), 3)
+  TEST_EQUAL(ns.computeSharedIonCount(spec1, spec3, 2.0), 3)
+  TEST_EQUAL(ns.computeSharedIonCount(spec1, spec4, 2.0), 3)
+  TEST_EQUAL(ns.computeSharedIonCount(spec2, spec3, 2.0), 3)
+  TEST_EQUAL(ns.computeSharedIonCount(spec2, spec4, 2.0), 3)
+  TEST_EQUAL(ns.computeSharedIonCount(spec3, spec4, 2.0), 3)
 
-  map<double, vector<int>> mass_position_map_4 = {{100.0, {1, 2}}, {101.5, {3}}, {102.0, {4, 5}}};
-  double mono_weight_4 = 100.5;
-  double mass_tolerance_4 = -1.0;
+  TEST_EQUAL(ns.computeSharedIonCount(spec1, spec2, 1.0), 3)
+  TEST_EQUAL(ns.computeSharedIonCount(spec1, spec3, 1.0), 0)
+  TEST_EQUAL(ns.computeSharedIonCount(spec1, spec4, 1.0), 2)
+  TEST_EQUAL(ns.computeSharedIonCount(spec2, spec3, 1.0), 0)
+  TEST_EQUAL(ns.computeSharedIonCount(spec2, spec4, 1.0), 2)
+  TEST_EQUAL(ns.computeSharedIonCount(spec3, spec4, 1.0), 2)
 
-  vector<int> expected_4 = {1, 2, 3};
-  vector<int> result_4 = NeighborSeq::findCandidatePositions(mass_position_map_4, mono_weight_4, mass_tolerance_4);
-  TEST_EQUAL(result_4, expected_4)
+  TEST_EQUAL(ns.computeSharedIonCount(spec1, spec2, 0.1), 3)
+  TEST_EQUAL(ns.computeSharedIonCount(spec1, spec3, 0.1), 0)
+  TEST_EQUAL(ns.computeSharedIonCount(spec1, spec4, 0.1), 2)
+  TEST_EQUAL(ns.computeSharedIonCount(spec2, spec3, 0.1), 0)
+  TEST_EQUAL(ns.computeSharedIonCount(spec2, spec4, 0.1), 2)
+  TEST_EQUAL(ns.computeSharedIonCount(spec3, spec4, 0.1), 2)
 }
 END_SECTION
 
-/*
-START_SECTION(map<double, vector<int>> NeighborSeq::createMassPositionMap(const vector<AASequence>& candidates))
+START_SECTION(bool isNeighborPeptide(const AASequence& neighbor_candidate,
+                             const double mass_tolerance_pc,
+                             const bool mass_tolerance_pc_ppm,
+                             const double min_shared_ion_fraction,
+                             const double mz_bin_size))
 {
-  vector<AASequence> candidates_1;
-  AASequence seq1 = AASequence::fromString("PEPTIDE"); // 728.371 
-  AASequence seq2 = AASequence::fromString("PROTEIN"); // 799.349
-  AASequence seq3 = AASequence::fromString("SEQUENCE");// 837.270
+  const AASequence AA_VELQSK = AASequence::fromString("VELQSK");
+  const AASequence AA_VESQLK = AASequence::fromString("VESQLK");
+  std::vector<AASequence> seqs = {AASequence::fromString("VELQSK"), AASequence::fromString("SVQELK"), AASequence::fromString("TVDQLK"), AASequence::fromString("VGEFK")};
+  NeighborSeq ns(std::move(seqs));
+  // VELQSK has neighbor VESQLK
+  // SVQELK has neighbor VESQLK
+  // TVDQLK has neighbor VESQLK
+  // VGEFK  has neighbor GLDFK
+  // GIDFK  has neighbor GLDFK
 
+  const double pc_tolerance = 0.01;
+  const double mz_bin_size = 0.05;
+  TEST_TRUE(std::abs(AA_VELQSK.getMonoWeight() - AA_VESQLK.getMonoWeight()) < pc_tolerance)
+  TEST_TRUE(ns.computeSharedIonCount(ns.generateSpectrum(AA_VELQSK), ns.generateSpectrum(AA_VESQLK), mz_bin_size) == 5)
 
-  candidates_1.push_back(seq1); // 1 position
-  candidates_1.push_back(seq2); // 2 position
-  candidates_1.push_back(seq3); // 3 position
-  map<double, vector<int>> expected_1 = {{728.371, {2}}, {799.349, {1}}, {837.270, {3}}};
-  map<double, vector<int>> result_1 = NeighborSeq::createMassPositionMap(candidates_1);
- // TEST_EQUAL(result_1,expected_1)
+  TEST_TRUE(ns.isNeighborPeptide(AASequence::fromString("VESQLK"), pc_tolerance, false, 0.25, mz_bin_size))
+  TEST_FALSE(ns.isNeighborPeptide(AASequence::fromString("VESQLK"), pc_tolerance, false, 5*2.0/( (6-1)*2*2) + 0.1, mz_bin_size))
+  TEST_TRUE(ns.isNeighborPeptide(AASequence::fromString("GLDFK"), pc_tolerance, false, 0.25, mz_bin_size))
 
-  candidates_1.push_back(seq1); // 4 position
-  map<double, vector<int>> expected_2 = {{728.371, {2}}, {799.349, {1,4}}, {837.270, {3}}};
-  map<double, vector<int>> result_2 = NeighborSeq::createMassPositionMap(candidates_1);
-  //TEST_EQUAL(result_2,expected_2)
-  //TEST_TRY(result_2, expected_2);
-}
-END_SECTION
-*/
+  auto stats = ns.getNeighborStats();
+  TEST_EQUAL(stats.unfindable_peptides, 0)
+  TEST_EQUAL(stats.findable_no_neighbors, 0)
+  TEST_EQUAL(stats.findable_one_neighbor, 4)
+  TEST_EQUAL(stats.findable_multiple_neighbors, 0)
 
-
-// Test section for the findNeighborPeptides_ function
-// The spectra were generated via TOPPView
-START_SECTION(vector<int> findNeighborPeptides(const AASequence& peptides,
-                                               const vector<AASequence>& neighbor_candidate,
-                                               const vector<int>& candidate_position,
-                                               const double& min_shared_ion_fraction,
-                                               const double& mz_bin_size))
-{
-
-  AASequence seq1 = AASequence::fromString("RIPLANGR");
-  AASequence seq2 = AASequence::fromString("PPPPP");
-  AASequence seq3 = AASequence::fromString("SEQUENCE");
-  AASequence seq4 = AASequence::fromString("VGLPINQR");
-  AASequence seq5 = AASequence::fromString("A");
-  AASequence seq6 = AASequence::fromString("X");
-  vector<AASequence> neighbor_candidate;
-  neighbor_candidate.push_back(seq1);
-  neighbor_candidate.push_back(seq2);
-  neighbor_candidate.push_back(seq3);
-  neighbor_candidate.push_back(seq1);
-  neighbor_candidate.push_back(seq4);
-  neighbor_candidate.push_back(seq5);
-  neighbor_candidate.push_back(seq6);
-  vector<int> candidate_position = {0, 1, 2, 3, 4, 5};
-
-  vector<int> expected = {0,3, 4};
-  double min_shared_ion_fraction = 0.25;
-  double mz_bin_size = 0.05;
-
-  vector<int> result = NeighborSeq::findNeighborPeptides(seq1, neighbor_candidate, candidate_position, min_shared_ion_fraction, mz_bin_size);
-  
-   TEST_EQUAL(expected, result)
+  // test one neighbor again, which causes 3 candidates to have multiple neighbors
+  TEST_TRUE(ns.isNeighborPeptide(AASequence::fromString("VESQLK"), 0.01, false, 0.25, 0.05))
+  auto stats2 = ns.getNeighborStats();
+  TEST_EQUAL(stats2.unfindable_peptides, 0)
+  TEST_EQUAL(stats2.findable_no_neighbors, 0)
+  TEST_EQUAL(stats2.findable_one_neighbor, 1)
+  TEST_EQUAL(stats2.findable_multiple_neighbors, 3)
 }
 END_SECTION
 
+START_SECTION(NeighborStats getNeighborStats() const)
+{
+  NOT_TESTABLE // tested above
+}
+END_SECTION
 
 END_TEST

@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/ID/NeighborSeq.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <OpenMS/MATH/MathFunctions.h>
@@ -115,12 +116,10 @@ bool NeighborSeq::isNeighborPeptide(const AASequence& peptide,
   {
     for (int pep_index : it_rel_pep->second)
     {
-      // Check if the sequence contains an 'X'
-      if (digested_relevant_peptides_[pep_index].has(*x_residue_)) continue;
-
       MSSpectrum neighbor_spec = generateSpectrum(digested_relevant_peptides_[pep_index]);
       if (isNeighborSpectrum(spec, neighbor_spec, min_shared_ion_fraction, mz_bin_size))
       { 
+        std::cout << digested_relevant_peptides_[pep_index] << " has neighbor " << peptide << '\n';
         neighbor_stats_[pep_index]++;
         found = true;
       }
@@ -129,21 +128,29 @@ bool NeighborSeq::isNeighborPeptide(const AASequence& peptide,
   return found;
 }
 
-map<double, vector<int>> NeighborSeq::createMassLookup_() const
+map<double, vector<int>> NeighborSeq::createMassLookup_()
 {
   // Map to store the mass and corresponding positions
   map<double, vector<int>> mass_position_map;
 
+  int skipped{0};
   // Iterate through the vector of AASequence objects
   for (size_t i = 0; i < digested_relevant_peptides_.size(); ++i)
   {
-    if (digested_relevant_peptides_[i].has(*x_residue_)) continue;
+    if (digested_relevant_peptides_[i].has(*x_residue_))
+    {
+      neighbor_stats_[i] = -1; // mark as not findable
+      skipped++;
+      continue;
+    }
     // Calculate the mono-isotopic mass of the sequence
     double mass = digested_relevant_peptides_[i].getMonoWeight();
 
     // Insert the mass and the position into the map
     mass_position_map[mass].push_back(i);
   }
+  OPENMS_LOG_WARN << "Skipped " << skipped << "/" << digested_relevant_peptides_.size()
+                  << " peptides with unknown('X') amino acids." << endl;
   return mass_position_map;
 }
 
@@ -152,9 +159,14 @@ NeighborSeq::NeighborStats NeighborSeq::getNeighborStats() const
   NeighborStats stats;
   for (int count : neighbor_stats_)
   {
-    if (count == 0) stats.no_neighbors++;
-    else if (count == 1) stats.one_neighbor++;
-    else stats.multiple_neighbors++;
+    if (count == -1)
+      stats.unfindable_peptides++;
+    else if (count == 0)
+      stats.findable_no_neighbors++;
+    else if (count == 1)
+      stats.findable_one_neighbor++;
+    else
+      stats.findable_multiple_neighbors++;
   }
   return stats;
 }
