@@ -3,86 +3,133 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow, Philipp Wang $
-// $Authors: Philipp Wang $
+// $Authors: Chris Bielow, Philipp Wang $
 // --------------------------------------------------------------------------
 
 #pragma once
 
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+
+#include <vector>
+#include <map>
 
 
 
 namespace OpenMS
 {
     /**
-     * @brief The Neighbor Peptide functionality in the TOPPDecoyDatabase class is designed to find peptides from a given set of sequences (FASTA file)
-     * that are similar to a target peptide based on mass and spectral characteristics. This section will detail the methods and functionalities
-     * specifically related to the Neighbor Peptide search.
-     *
-     * The paper on subset neighbor search is www.ncbi.nlm.nih.gov/pmc/articles/PMC8489664/
-     * PMID: 34236864 PMCID: PMC8489664 DOI: 10.1021/acs.jproteome.1c00483
+       @brief The Neighbor Peptide functionalityis designed to find peptides (neighbors) in a given set of sequences (FASTA file) that are
+              similar to a target peptide (aka relevant peptide) based on mass and spectral characteristics. This provides more power
+              when searching complex samples, but only a subset of the peptides/proteins is of interest.
+     
+       The paper on subset neighbor search is www.ncbi.nlm.nih.gov/pmc/articles/PMC8489664/
+       DOI: 10.1021/acs.jproteome.1c00483
      */
     class OPENMS_DLLAPI NeighborSeq
     {
 
     public:
+      /// Constructor
+      /// @param digested_relevant_peptides A vector of digested relevant peptides
+      NeighborSeq(std::vector<AASequence>&& digested_relevant_peptides);
+
       /**
-       * @brief Generates a theoretical spectrum for a given peptide sequence.
+       * @brief Generates a theoretical spectrum for a given peptide sequence with b/y ions at charge 1.
        * @param peptide_sequence The peptide sequence for which to generate the spectrum.
        * @return The generated theoretical spectrum.
        */
-      static MSSpectrum generateSpectrum(const String& peptide_sequence);
+      MSSpectrum generateSpectrum(const AASequence& peptide_sequence);
 
       /**
        * @brief Compares two spectra to determine if they share a sufficient number of ions.
        * @param spec1 The first spectrum.
        * @param spec2 The second spectrum.
-       * @param min_shared_ion_fraction The tolerance for the proportion of shared ions.
-       * @param mz_bin_size The mz_bin_size setting for the comparison.
+       * @param min_shared_ion_fraction The minimal required proportion of shared ions in [0, 1]
+       * @param mz_bin_size Bin size for the m/z values, which determines if two peaks are considered to be the same (typically, 0.05 for high resolution and 1.0005079 for low resolution).
        * @return True if the spectra share a sufficient number of ions, false otherwise.
        */
-      static bool compareSpectra(const MSSpectrum& spec1, const MSSpectrum& spec2, const double& min_shared_ion_fraction, const double& mz_bin_size);
-
+      static bool isNeighborSpectrum(const MSSpectrum& spec1, const MSSpectrum& spec2, const double min_shared_ion_fraction, const double mz_bin_size);
       /**
-       * @brief Finds candidate positions based on a given mono-isotopic weight and mass tolerance.
-       * @param mass_position_map A map where the key is the mass and the value is a vector of positions.
-       * @param mono_weight The mono-isotopic weight to find candidates for.
-       * @param mass_tolerance The allowed tolerance for matching the mass.
-       * @return A vector of candidate positions within the specified mass tolerance range.
+       * @brief Compute the number of shared b/y ions between two spectra.
+       * @param spec1 The first spectrum.
+       * @param spec2 The second spectrum.
+       * @param mz_bin_size Bin size for the m/z values, which determines if two peaks are considered to be the same.
+       * @return The number of shared b/y ions
        */
-      static std::vector<int> findCandidatePositions(const std::map<double, std::vector<int>>& mass_position_map, const double& mono_weight, const double& mass_tolerance);
-
-      
-      /**
-       * @brief Creates a map of masses to positions from a vector of peptides. (not protein)
-       * @param candidates A vector of AASequence objects.
-       * @return A map where the key is the mass and the value is a vector of positions.
-       */
-      static std::map<double, std::vector<int>> NeighborSeq::createMassPositionMap(const std::vector<AASequence>& candidates);
+      static int computeSharedIonCount(const MSSpectrum& spec1, const MSSpectrum& spec2, const double& mz_bin_size);
 
       /**
        * @brief Finds neighbor peptides that are similar to a given peptide.
-       * @param peptide The peptide sequence (from a relevant protein) to find neighbors for.
-       * @param neighbor_candidate The list of neighbor sequences to search in.
-       * @param mass_tolerance The mass tolerance for neighbor peptides.
+       * @param neighbor_candidate The peptide sequence (from a neighbor protein) to compare against the internal relevant peptides (see constructor).
+       * @param mass_tolerance_pc Maximal precursor mass difference (in Da or ppm; see 'mass_tolerance_pc_ppm') between neighbor and relevant peptide.
+       * @param mass_tolerance_pc_ppm Is 'mass_tolerance_pc' in Da or ppm?
        * @param min_shared_ion_fraction The ion tolerance for neighbor peptides.
-       * @param mz_bin_size The mz_bin_size setting for the comparison is default 0.05 (the original study suggests ‘high’ (0.05 Da) and ‘low’ (1.0005079
-       * Da) mz_bin_size).
-       * @return A vector of FASTA entries that are considered neighbor peptides.
+       * @param mz_bin_size Bin size for spectra m/z comparison (the original study suggests 0.05 Th for high-res and 1.0005079 Th for low-res spectra).
+       * @return true if a neighbor peptide was found, false otherwise.
        */
-      static std::vector<int> findNeighborPeptides(const AASequence& peptides,
-                                                   const std::vector<AASequence>& neighbor_candidate,
-                                                   const std::vector<int>& candidate_position,
-                                                   const double& min_shared_ion_fraction,
-                                                   const double& mz_bin_size);
+      bool isNeighborPeptide(const AASequence& neighbor_candidate,
+                             const double mass_tolerance_pc,
+                             const bool mass_tolerance_pc_ppm,
+                             const double min_shared_ion_fraction,
+                             const double mz_bin_size);
 
-       /**
-       * @brief Compares two spectra to determine if they share a sufficient number of ions.
-       * @param spec1 The first spectrum.
-       * @param spec2 The second spectrum.
-       * @param mz_bin_size The mz_bin_size setting for the comparison.
-       * @return True if the spectra share a sufficient number of ions, false otherwise.
+      /// Statistics of how many neighbors were found per reference peptide
+      struct NeighborStats
+      {
+        int no_neighbors = 0; ///< how many peptides had no neighbors?
+        int one_neighbor = 0; ///< how many peptides had exactly one neighbor?
+        int multiple_neighbors = 0; ///< how many peptides had multiple neighbors?
+        int total() const
+        {
+          return no_neighbors + one_neighbor + multiple_neighbors;
+        }
+        /// Number of reference peptides that had no neighbors, formatted as 'X (Y%)'
+        String noNB() const
+        {
+          return String(no_neighbors) + " (" + no_neighbors * 100 / total() + "%)";
+        }
+        /// Number of reference peptides that had exactly one neighbor, formatted as 'X (Y%)'
+        String oneNB() const
+        {
+          return String(one_neighbor) + " (" + one_neighbor * 100 / total() + "%)";
+        }
+        /// Number of reference peptides that had multiple neighbors, formatted as 'X (Y%)'
+        String multiNB() const
+        {
+          return String(multiple_neighbors) + " (" + multiple_neighbors * 100 / total() + "%)";
+        }
+      };
+
+      /// after calling isNeighborPeptide() multiple times, this function returns the statistics of how many neighbors were found per reference peptide
+      NeighborStats getNeighborStats() const;
+
+    protected:
+      /**
+       * @brief Creates a map of masses to positions from the internal relevant peptides.
+       * @return A map where the key is the mass and the value is a vector of positions.
        */
-      static int compareShareSpectra(const MSSpectrum& spec1, const MSSpectrum& spec2, const double& mz_bin_size);
-    }; 
-}
+      std::map<double, std::vector<int>> createMassLookup_() const;
+      
+      /**
+       * @brief Finds candidate positions based on a given mono-isotopic weight and mass tolerance.
+       * @param mono_weight The mono-isotopic weight to find candidates for.
+       * @param mass_tolerance The allowed tolerance for matching the mass.
+       * @param mass_tolerance_pc_ppm Whether the mass tolerance is in ppm.
+       * @return A pair of begin/end iterators into mass_position_map_ for the candidate positions
+       */
+      auto findCandidatePositions_(const double mono_weight, double mass_tolerance, const bool mass_tolerance_pc_ppm);
+
+
+    private:
+      const std::vector<AASequence>& digested_relevant_peptides_; ///< digested relevant peptides
+      std::map<double, std::vector<int>> mass_position_map_; ///< map of masses to positions in digested_relevant_peptides_
+
+      TheoreticalSpectrumGenerator spec_gen_; ///< for b/y ions with charge 1
+      const Residue* x_residue_; ///< residue for unknown amino acid
+
+      std::vector<int> neighbor_stats_; ///< how many neighbors per reference peptide searched using isNeighborPeptide()?
+
+  }; // class NeighborSeq
+
+} // namespace OpenMS

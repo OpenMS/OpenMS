@@ -24,9 +24,10 @@ START_TEST(NeighborSeq, "$Id$")
 // The spectra were generated via TOPPView and contained b-and y-ion
 START_SECTION(MSSpectrum generateSpectrum(const String& peptide_sequence))
 {
-  MSSpectrum spec_1 = NeighborSeq::generateSpectrum("PEPT");
-  MSSpectrum spec_2 = NeighborSeq::generateSpectrum("AR");
-  MSSpectrum spec_3 = NeighborSeq::generateSpectrum("VGLPINQR");
+  NeighborSeq ns({AASequence::fromString("TEST")});
+  MSSpectrum spec_1 = ns.generateSpectrum(AASequence::fromString("PEPT"));
+  MSSpectrum spec_2 = ns.generateSpectrum(AASequence::fromString("AR"));
+  MSSpectrum spec_3 = ns.generateSpectrum(AASequence::fromString("VGLPINQR"));
 
   // Test "PEPT"
   TEST_REAL_SIMILAR(spec_1[0].getPosition()[0], 120.0655);
@@ -60,10 +61,7 @@ END_SECTION
 // Test section for the compareSpectra function
 START_SECTION(bool compareSpectra(const MSSpectrum& spec1, const MSSpectrum& spec2, const double& min_shared_ion_fraction, const double& mz_bin_size))
 {
-  MSSpectrum spec1;
-  spec1.push_back(Peak1D(100.0, 1.0));
-  spec1.push_back(Peak1D(200.0, 1.0));
-  spec1.push_back(Peak1D(300.0, 1.0));
+  MSSpectrum spec1({Peak1D(100.0, 1.0), Peak1D(200.0, 1.0), Peak1D(300.0, 1.0)});
 
   MSSpectrum spec2;
   spec2.push_back(Peak1D(100.05, 1.0));
@@ -84,32 +82,34 @@ START_SECTION(bool compareSpectra(const MSSpectrum& spec1, const MSSpectrum& spe
 
   double min_shared_ion_fraction = 0.5; 
   
+  NeighborSeq ns({AASequence::fromString("TEST")})
 
   //bin interval is from [a,b[
-  bool compare_1_2_low = NeighborSeq::compareSpectra(spec1, spec2, min_shared_ion_fraction, 1.0);
+    bool compare_1_2_low
+    = ns.computeSharedIonCount(spec1, spec2, min_shared_ion_fraction, 1.0);
   TEST_TRUE(compare_1_2_low)
-  bool compare_1_3_low = NeighborSeq::compareSpectra(spec1, spec3, min_shared_ion_fraction, 1.0);
+  bool compare_1_3_low = ns.compareSpectra(spec1, spec3, min_shared_ion_fraction, 1.0);
   TEST_FALSE(compare_1_3_low)
-  bool compare_1_4_low = NeighborSeq::compareSpectra(spec1, spec4, min_shared_ion_fraction, 1.0);
+  bool compare_1_4_low = ns.compareSpectra(spec1, spec4, min_shared_ion_fraction, 1.0);
   TEST_TRUE(compare_1_4_low)
-  bool compare_2_3_low = NeighborSeq::compareSpectra(spec2, spec3, min_shared_ion_fraction, 1.0);
+  bool compare_2_3_low = ns.compareSpectra(spec2, spec3, min_shared_ion_fraction, 1.0);
   TEST_FALSE(compare_2_3_low)
-  bool compare_2_4_low = NeighborSeq::compareSpectra(spec2, spec4, min_shared_ion_fraction, 1.0);
+  bool compare_2_4_low = ns.compareSpectra(spec2, spec4, min_shared_ion_fraction, 1.0);
   TEST_TRUE(compare_2_4_low)
-  bool compare_3_4_low = NeighborSeq::compareSpectra(spec3, spec4, min_shared_ion_fraction, 1.0);
+  bool compare_3_4_low = ns.compareSpectra(spec3, spec4, min_shared_ion_fraction, 1.0);
   TEST_TRUE(compare_3_4_low)
 
-  bool compare_1_2_high = NeighborSeq::compareSpectra(spec1, spec2, min_shared_ion_fraction, 0.05);
+  bool compare_1_2_high = ns.compareSpectra(spec1, spec2, min_shared_ion_fraction, 0.05);
   TEST_FALSE(compare_1_2_high)  
-  bool compare_1_3_high = NeighborSeq::compareSpectra(spec1, spec3, min_shared_ion_fraction, 0.05);
+  bool compare_1_3_high = ns.compareSpectra(spec1, spec3, min_shared_ion_fraction, 0.05);
   TEST_FALSE(compare_1_3_high)
-  bool compare_1_4_high = NeighborSeq::compareSpectra(spec1, spec4, min_shared_ion_fraction, 0.05);
+  bool compare_1_4_high = ns.compareSpectra(spec1, spec4, min_shared_ion_fraction, 0.05);
   TEST_FALSE(compare_1_4_high)
-  bool compare_2_3_high = NeighborSeq::compareSpectra(spec2, spec3, min_shared_ion_fraction, 0.05);
+  bool compare_2_3_high = ns.compareSpectra(spec2, spec3, min_shared_ion_fraction, 0.05);
   TEST_FALSE(compare_2_3_high)
-  bool compare_2_4_high = NeighborSeq::compareSpectra(spec2, spec4, min_shared_ion_fraction, 0.05);
+  bool compare_2_4_high = ns.compareSpectra(spec2, spec4, min_shared_ion_fraction, 0.05);
   TEST_TRUE(compare_2_4_high) 
-  bool compare_3_4_high = NeighborSeq::compareSpectra(spec3, spec4, min_shared_ion_fraction, 0.05);
+  bool compare_3_4_high = ns.compareSpectra(spec3, spec4, min_shared_ion_fraction, 0.05);
   TEST_TRUE(compare_3_4_high)
 }
 END_SECTION
@@ -215,63 +215,5 @@ START_SECTION(vector<int> findNeighborPeptides(const AASequence& peptides,
 }
 END_SECTION
 
-
-// Test section for the compareSpectra function
-START_SECTION(bool compareShareSpectra(const MSSpectrum& spec1, const MSSpectrum& spec2, const double& mz_bin_size))
-{
-  MSSpectrum spec1;
-  spec1.push_back(Peak1D(100.0, 1.0));
-  spec1.push_back(Peak1D(200.0, 1.0));
-  spec1.push_back(Peak1D(300.0, 1.0));
-
-  MSSpectrum spec2;
-  spec2.push_back(Peak1D(100.06, 1.0));
-  spec2.push_back(Peak1D(200.06, 1.0));
-  spec2.push_back(Peak1D(300.06, 1.0));
-
-  MSSpectrum spec3;
-  spec3.push_back(Peak1D(101.00, 1.0));
-  spec3.push_back(Peak1D(201.00, 1.0));
-  spec3.push_back(Peak1D(301.00, 1.0));
-
-  MSSpectrum spec4;
-  spec4.push_back(Peak1D(100.06, 1.0));
-  spec4.push_back(Peak1D(201.00, 1.0));
-  spec4.push_back(Peak1D(300.06, 1.0));
-  spec4.push_back(Peak1D(301.00, 1.0));
-
-
-  double min_shared_ion_fraction = 0.5;
-
-
-  // bin interval is from [a,b[
-  bool compare_1_2_low = NeighborSeq::compareShareSpectra(spec1, spec2, 1.0);
-  TEST_EQUAL(compare_1_2_low,3)
-  bool compare_1_3_low = NeighborSeq::compareShareSpectra(spec1, spec3, 1.0);
-  TEST_EQUAL(compare_1_3_low,0)
-  bool compare_1_4_low = NeighborSeq::compareShareSpectra(spec1, spec4, 1.0);
-  TEST_EQUAL(compare_1_4_low,2)
-  bool compare_2_3_low = NeighborSeq::compareShareSpectra(spec2, spec3, 1.0);
-  TEST_EQUAL(compare_2_3_low,0)
-  bool compare_2_4_low = NeighborSeq::compareShareSpectra(spec2, spec4, 1.0);
-  TEST_EQUAL(compare_2_4_low,3)
-  bool compare_3_4_low = NeighborSeq::compareShareSpectra(spec3, spec4, 1.0);
-  TEST_EQUAL(compare_3_4_low,2)
-
-  bool compare_1_2_high = NeighborSeq::compareShareSpectra(spec1, spec2, 0.05);
-  TEST_EQUAL(compare_1_2_high,0)
-  bool compare_1_3_high = NeighborSeq::compareShareSpectra(spec1, spec3, 0.05);
-  TEST_EQUAL(compare_1_3_high,0)
-  bool compare_1_4_high = NeighborSeq::compareShareSpectra(spec1, spec4, 0.05);
-  TEST_EQUAL(compare_1_4_high,0)
-  bool compare_2_3_high = NeighborSeq::compareShareSpectra(spec2, spec3, 0.05);
-  TEST_EQUAL(compare_2_3_high,0)
-  bool compare_2_4_high = NeighborSeq::compareShareSpectra(spec2, spec4, 0.05);
-  TEST_EQUAL(compare_2_4_high,2)
-  bool compare_3_4_high = NeighborSeq::compareShareSpectra(spec3, spec4, 0.05);
-  TEST_EQUAL(compare_3_4_high,2)
-  
-}
-END_SECTION
 
 END_TEST
