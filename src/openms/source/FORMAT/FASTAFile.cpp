@@ -255,7 +255,7 @@ namespace OpenMS
 
   void FASTAFile::writeNext(const FASTAEntry &protein)
   {
-    outfile_ << '>' << protein.identifier << ' ' << protein.description << "\n ";
+    outfile_ << '>' << protein.identifier << ' ' << protein.description << "\n";
     const String &tmp(protein.sequence);
 
     int chunks(tmp.size() / 80); // number of complete chunks
