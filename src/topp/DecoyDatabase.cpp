@@ -9,7 +9,6 @@
 #include <OpenMS/ANALYSIS/ID/NeighborSeq.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -19,8 +18,6 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <regex>
-
-
 
 
 using namespace OpenMS;
@@ -57,7 +54,7 @@ Also the tool automatically checks for decoys already in the input files (based 
 and terminates the program if decoys are found.
 
 Extra functionality:
-The Neighbor Peptide functionality (see subsection 'Neighbor_Search') is designed to find peptides (neighbors) in a given set of sequences (FASTA file) that are
+The Neighbor Peptide functionality (see subsection 'NeighborSearch') is designed to find peptides (neighbors) in a given set of sequences (FASTA file) that are
 similar to a target peptide (aka relevant peptide) based on mass and spectral characteristics. This provides more power
 when searching complex samples, but only a subset of the peptides/proteins is of interest.
 See www.ncbi.nlm.nih.gov/pmc/articles/PMC8489664/ and NeighborSeq for details.
@@ -111,17 +108,17 @@ protected:
     registerSubsection_("Decoy", "Decoy parameters section");
 
     // New options for neighbor peptide search
-    registerTOPPSubsection_("Neighbor_Search", "Parameters for neighbor peptide search ('in' holds the neighbor candidates)");
-    registerInputFile_("Neighbor_Search:in_relevant_proteins", "<file>","", "These are the relevant proteins, for which we seek neighbors", false);
-    setValidFormats_("Neighbor_Search:in_relevant_proteins", {"fasta"});
-    registerOutputFile_("Neighbor_Search:out_neighbor", "<file>", "", "Output FASTA file with neighbors of relevant peptides (given in 'in_relevant_proteins').",false);
-    registerIntOption_("Neighbor_Search:missed_cleavages", "<int>", 0, "Number of missed cleavages for relevant and neighbor peptides.",false);
-    registerDoubleOption_("Neighbor_Search:mz_bin_size", "<num>", 0.05,"Bin size for spectra m/z comparison (the original study suggests 0.05 Th for high-res and 1.0005079 Th for low-res spectra).", false);
-    registerDoubleOption_("Neighbor_Search:pc_mass_tolerance", "<double>", 0.01, "Maximal precursor mass difference (in Da or ppm; see 'pc_mass_tolerance_unit') between neighbor and relevant peptide.", false);
-    registerStringOption_("Neighbor_Search:pc_mass_tolerance_unit", "<choice>", "Da", "Is 'pc_mass_tolerance' in Da or ppm?", false);
-    setValidStrings_("Neighbor_Search:pc_mass_tolerance_unit", {"Da", "ppm"});
-    registerIntOption_("Neighbor_Search:min_peptide_length", "<int>", 5, "Minimum peptide length (relevant and neighbor peptides)", false);
-    registerDoubleOption_("Neighbor_Search:min_shared_ion_fraction", "<double>", 0.25,
+    registerTOPPSubsection_("NeighborSearch", "Parameters for neighbor peptide search ('in' holds the neighbor candidates)");
+    registerInputFile_("NeighborSearch:in_relevant_proteins", "<file>","", "These are the relevant proteins, for which we seek neighbors", false);
+    setValidFormats_("NeighborSearch:in_relevant_proteins", {"fasta"});
+    registerOutputFile_("NeighborSearch:out_neighbor", "<file>", "", "Output FASTA file with neighbors of relevant peptides (given in 'in_relevant_proteins').",false);
+    registerIntOption_("NeighborSearch:missed_cleavages", "<int>", 0, "Number of missed cleavages for relevant and neighbor peptides.",false);
+    registerDoubleOption_("NeighborSearch:mz_bin_size", "<num>", 0.05,"Bin size for spectra m/z comparison (the original study suggests 0.05 Th for high-res and 1.0005079 Th for low-res spectra).", false);
+    registerDoubleOption_("NeighborSearch:pc_mass_tolerance", "<double>", 0.01, "Maximal precursor mass difference (in Da or ppm; see 'pc_mass_tolerance_unit') between neighbor and relevant peptide.", false);
+    registerStringOption_("NeighborSearch:pc_mass_tolerance_unit", "<choice>", "Da", "Is 'pc_mass_tolerance' in Da or ppm?", false);
+    setValidStrings_("NeighborSearch:pc_mass_tolerance_unit", {"Da", "ppm"});
+    registerIntOption_("NeighborSearch:min_peptide_length", "<int>", 5, "Minimum peptide length (relevant and neighbor peptides)", false);
+    registerDoubleOption_("NeighborSearch:min_shared_ion_fraction", "<double>", 0.25,
                           "Minimal required overlap 't_i' of b/y ions shared between neighbor candidate and a relevant peptide (t_i <= 2*B12/(B1+B2)). Higher values result in fewer neighbors.", false);
   }
 
@@ -191,8 +188,8 @@ protected:
     }
 
     // create neighbor peptides for the relevant peptides?
-    String in_relevant_proteins = getStringOption_("Neighbor_Search:in_relevant_proteins");
-    String out_neighbor = getStringOption_("Neighbor_Search:out_neighbor");
+    String in_relevant_proteins = getStringOption_("NeighborSearch:in_relevant_proteins");
+    String out_neighbor = getStringOption_("NeighborSearch:out_neighbor");
     if (in_relevant_proteins.empty() ^ out_neighbor.empty())
     {
       OPENMS_LOG_ERROR << "Parameter settings are invalid. Both 'in_relevant_proteins' and 'out_neighbor' must be set or unset.\n";
@@ -215,12 +212,12 @@ protected:
       FASTAFile fasta_neighbor_out;
       fasta_neighbor_out.writeStart(out_neighbor);
 
-      double mz_bin_size = getDoubleOption_("Neighbor_Search:mz_bin_size");
-      double min_shared_ion_fraction = getDoubleOption_("Neighbor_Search:min_shared_ion_fraction");
-      double mass_tolerance = getDoubleOption_("Neighbor_Search:pc_mass_tolerance");
-      bool mass_tolerance_unit_ppm = getStringOption_("Neighbor_Search:pc_mass_tolerance_unit") == "ppm";
-      int missed_cleavages = getIntOption_("Neighbor_Search:missed_cleavages");
-      int min_peptide_length = getIntOption_("Neighbor_Search:min_peptide_length");
+      double mz_bin_size = getDoubleOption_("NeighborSearch:mz_bin_size");
+      double min_shared_ion_fraction = getDoubleOption_("NeighborSearch:min_shared_ion_fraction");
+      double mass_tolerance = getDoubleOption_("NeighborSearch:pc_mass_tolerance");
+      bool mass_tolerance_unit_ppm = getStringOption_("NeighborSearch:pc_mass_tolerance_unit") == "ppm";
+      int missed_cleavages = getIntOption_("NeighborSearch:missed_cleavages");
+      int min_peptide_length = getIntOption_("NeighborSearch:min_peptide_length");
       digestion_neighbor.setMissedCleavages(missed_cleavages);
 
       // Load the neighbor peptides candidates from the neighbor file
