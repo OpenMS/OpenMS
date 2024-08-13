@@ -23,6 +23,7 @@ NeighborSeq::NeighborSeq(std::vector<AASequence>&& digested_relevant_peptides)
   Param params;
   params.setValue("add_b_ions", "true");
   params.setValue("add_y_ions", "true");
+  params.setValue("add_first_prefix_ion", "true"); // do not skip b1 ion
   spec_gen_.setParameters(params);
 
   x_residue_ = ResidueDB::getInstance()->getResidue('X');
