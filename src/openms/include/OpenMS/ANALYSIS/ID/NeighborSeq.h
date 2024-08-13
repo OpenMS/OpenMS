@@ -19,9 +19,9 @@
 namespace OpenMS
 {
     /**
-       @brief The Neighbor Peptide functionalityis designed to find peptides (neighbors) in a given set of sequences (FASTA file) that are
+       @brief The Neighbor Peptide functionality is designed to find peptides (neighbors) in a given set of sequences (FASTA file) that are
               similar to a target peptide (aka relevant peptide) based on mass and spectral characteristics. This provides more power
-              when searching complex samples, but only a subset of the peptides/proteins is of interest.
+              when searching complex samples, when only a subset of the peptides/proteins is of interest.
      
        The paper on subset neighbor search is www.ncbi.nlm.nih.gov/pmc/articles/PMC8489664/
        DOI: 10.1021/acs.jproteome.1c00483
@@ -36,6 +36,9 @@ namespace OpenMS
 
       /**
        * @brief Generates a theoretical spectrum for a given peptide sequence with b/y ions at charge 1.
+       * 
+       * Includes all b and y ions with charge 1 (even the prefix ions, e.g. b1), but no internal ions.
+       * 
        * @param peptide_sequence The peptide sequence for which to generate the spectrum.
        * @return The generated theoretical spectrum.
        */
@@ -43,24 +46,30 @@ namespace OpenMS
 
       /**
        * @brief Compares two spectra to determine if they share a sufficient number of ions.
-       * @param spec1 The first spectrum.
-       * @param spec2 The second spectrum.
+       *
+       * All peaks are considered. Use generateSpectrum() to generate theoretical spectra with b/y ions.
+       *
+       * @param spec1 The first theoretical spectrum.
+       * @param spec2 The second theoretical spectrum.
        * @param min_shared_ion_fraction The minimal required proportion of shared ions in [0, 1]
        * @param mz_bin_size Bin size for the m/z values, which determines if two peaks are considered to be the same (typically, 0.05 for high resolution and 1.0005079 for low resolution).
        * @return True if the spectra share a sufficient number of ions, false otherwise.
        */
       static bool isNeighborSpectrum(const MSSpectrum& spec1, const MSSpectrum& spec2, const double min_shared_ion_fraction, const double mz_bin_size);
       /**
-       * @brief Compute the number of shared b/y ions between two spectra.
-       * @param spec1 The first spectrum.
-       * @param spec2 The second spectrum.
+       * @brief Compute the number of shared ions between two spectra 
+       *
+       * All peaks are considered. Use generateSpectrum() to generate theoretical spectra with b/y ions.
+       * 
+       * @param spec1 The first theoretical spectrum.
+       * @param spec2 The second theoretical spectrum.
        * @param mz_bin_size Bin size for the m/z values, which determines if two peaks are considered to be the same.
-       * @return The number of shared b/y ions
+       * @return The number of shared ions
        */
       static int computeSharedIonCount(const MSSpectrum& spec1, const MSSpectrum& spec2, const double& mz_bin_size);
 
       /**
-       * @brief Finds neighbor peptides that are similar to a given peptide.
+       * @brief Is this peptide a neighbor to one of the relevant peptides?
        * 
        * Also updates the internal statistics, which can be retrieved using getNeighborStats().
        * 
@@ -69,7 +78,7 @@ namespace OpenMS
        * @param mass_tolerance_pc_ppm Is 'mass_tolerance_pc' in Da or ppm?
        * @param min_shared_ion_fraction The ion tolerance for neighbor peptides.
        * @param mz_bin_size Bin size for spectra m/z comparison (the original study suggests 0.05 Th for high-res and 1.0005079 Th for low-res spectra).
-       * @return true if a neighbor peptide was found, false otherwise.
+       * @return true if @p neighbor_candidate is neighbor to one or more relevant peptides, false otherwise.
        */
       bool isNeighborPeptide(const AASequence& neighbor_candidate,
                              const double mass_tolerance_pc,
@@ -80,10 +89,17 @@ namespace OpenMS
       /// Statistics of how many neighbors were found per reference peptide
       struct NeighborStats
       {
+        /** @name NeigborStats_members
+         *  Mutually exclusive categories of how many neighbors were found per reference peptide
+         */
+        ///@{
         int unfindable_peptides = 0; ///< how many ref-peptides contain an 'X' (unknown amino acid) and thus cannot be searched for neighbors
         int findable_no_neighbors = 0; ///< how many peptides had no neighbors?
         int findable_one_neighbor = 0; ///< how many peptides had exactly one neighbor?
         int findable_multiple_neighbors = 0; ///< how many peptides had multiple neighbors?
+        ///@} 
+        
+        /// Sum of all 4 categories
         int total() const
         {
           return unfindable_peptides + findable_no_neighbors + findable_one_neighbor + findable_multiple_neighbors;
