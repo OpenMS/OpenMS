@@ -2859,6 +2859,7 @@ def testMSSpectrum():
     assert ii[0] == 200.0
     assert ii[1] == 400.0
 
+    spec.setMSLevel(2)
     spec.setNativeID('scan=1')
     prec = pyopenms.Precursor()
     prec.setMZ(100.0)
@@ -2877,15 +2878,23 @@ def testMSSpectrum():
     spec.setFloatDataArrays( f_da )
     spec.setDriftTimeUnit( pyopenms.DriftTimeUnit.MILLISECOND )
 
+    s_da = pyopenms.StringDataArray()
+    for s in ['b3+', 'y4+']:
+        s_da.push_back(s)
+    s_da.setName("IonNames")
+    spec.setStringDataArrays([s_da])
+
     df = spec.get_df()
-    assert df.shape == (2, 10)
+    assert df.shape == (2, 11)
     assert df.loc[0, 'mz'] == 1000.0
     assert df.loc[0, 'intensity'] == 200.0
     assert df.loc[0, 'ion_mobility'] == 5.0
     assert df.loc[0, 'ion_mobility_unit'] == 'ms'
+    assert df.loc[0, 'ms_level'] == 2
     assert df.loc[0, 'precursor_mz'] == 100.0
     assert df.loc[0, 'precursor_charge'] == 1
     assert df.loc[0, 'native_id'] == 'scan=1'
+    assert df.loc[0, 'ion_annotation'] == 'b3+'
     assert df.loc[0, 'sequence'] == 'A'
     assert df.loc[0, 'total ion current'] == 600
 

@@ -7,6 +7,11 @@ name: pyopenms-wheels-and-packages
 # events but only for the master branch
 on:
   workflow_dispatch:
+    inputs:
+      upload-to-pypi:
+        type: boolean
+        description: actually upload the release package to pypi.org
+        default: false
   push:
     tags:
       - 'Release*'
@@ -26,8 +31,12 @@ jobs:
       with:
         cmake-version: '3.25.x'
 
-    - name: Reduce PATH
-      run: echo "PATH=C:\hostedtoolcache\windows\Python\3.7.9\x64\Scripts;C:\hostedtoolcache\windows\Python\3.7.9\x64;C:\hostedtoolcache\windows\Ruby\2.5.8\x64\bin;C:\Program Files\Java\jdk8u265-b01\bin;C:\ProgramData\kind;C:\vcpkg;C:\cf-cli;C:\Program Files (x86)\NSIS;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0;C:\windows\System32\OpenSSH;C:\ProgramData\Chocolatey\bin;C:\Program Files\Docker;C:\Program Files\PowerShell\7;C:\Program Files\OpenSSL\bin;C:\Strawberry\c\bin;C:\Strawberry\perl\site\bin;C:\Strawberry\perl\bin;C:\Program Files\Git\cmd;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Program Files (x86)\Microsoft Visual Studio\2019\\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+    - name: Reduce PATH # This fixes a bug described in https://github.com/facebook/watchman/commit/59bcfbf91d2a24ab580b8a78e384f133cc202383
+      run: echo "DISTUTILS_USE_SDK=1"
+
+    - name: Get number of CPU cores
+      uses: SimenB/github-actions-cpu-cores@v2
+      id: cpu-cores
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
@@ -46,19 +55,25 @@ jobs:
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S //D=$HOME/miniconda3
 
+
+    - name: Download contrib build from archive (Windows)
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+          cd OpenMS/contrib
+          # Download the file using the URL fetched from GitHub
+          gh release download -R OpenMS/contrib --pattern 'contrib_build-Windows.tar.gz'
+          # Extract the archive
+          7z x -so contrib_build-Windows.tar.gz | 7z x -si -ttar
+          rm contrib_build-Windows.tar.gz
+          ls -la
+
     # https://github.com/marketplace/actions/visual-studio-shell
     - name: Set up Visual Studio shell
       uses: egor-tensin/vs-shell@v2
       with:
         arch: x64
-
-    - name: Load contrib build
-      run: |
-          mkdir contribbld
-          cd contribbld
-          curl -o contribbld.tar.gz https://abibuilder.cs.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-14.2/contrib_build.tar.gz
-          tar -xzf contribbld.tar.gz
-          rm contribbld.tar.gz
 
     - name: Setup conda paths
       shell: bash
@@ -74,7 +89,7 @@ jobs:
         pushd bld
         # TODO: set generator via variable, then we can share this step
         cmake --version
-        cmake -G "Visual Studio 17 2022" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
+        cmake -G "Visual Studio 17 2022" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/OpenMS/contrib" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
         # Note: multiple --targets only supported by CMake 3.15+
         cmake --build . --config Release --target OpenMS
       
@@ -103,14 +118,14 @@ jobs:
           pip install -U pip
           pip install -U autowrap
           pip install -U pytest
-          pip install -U numpy
+          pip install 'numpy<=1.26.4'
           pip install -U wheel
 
           echo $CURRENT_PYTHON_EXECUTABLE
 
           # build pyopenms distribution
           cmake --version
-          cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=4 .
+          cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} .
           cmake --build . --config Release --target pyopenms
 
           # copy to directory
@@ -138,6 +153,10 @@ jobs:
     - uses: actions/checkout@v4
       with:
         path: OpenMS
+
+    - name: Get number of CPU cores
+      uses: SimenB/github-actions-cpu-cores@v2
+      id: cpu-cores
 
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v2
@@ -187,7 +206,7 @@ jobs:
         pushd bld
         # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
         cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=12 -DBOOST_USE_STATIC=OFF ../OpenMS
-        make -j4 OpenMS
+        make -j${{ steps.cpu-cores.outputs.count }} OpenMS
 
         mkdir pyopenms_whls
 
@@ -205,13 +224,13 @@ jobs:
           pip install -U pip
           pip install -U autowrap
           pip install -U pytest
-          pip install -U numpy
+          pip install 'numpy<=1.26.4'
           pip install -U wheel
           pip install -U pandas
 
           # build pyopenms distribution (macOS)
-          cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=4 .
-          make -j4 pyopenms
+          cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} .
+          make -j${{ steps.cpu-cores.outputs.count }} pyopenms
 
           # copy to directory
           cp pyOpenMS/dist/*.whl pyopenms_whls/
@@ -248,6 +267,10 @@ jobs:
     - uses: actions/checkout@v4
       with:
         path: OpenMS
+
+    - name: Get number of CPU cores
+      uses: SimenB/github-actions-cpu-cores@v2
+      id: cpu-cores
 
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v2
@@ -297,7 +320,7 @@ jobs:
         pushd bld
         # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
         cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=12 -DBOOST_USE_STATIC=OFF ../OpenMS
-        make -j4 OpenMS
+        make -j${{ steps.cpu-cores.outputs.count }} OpenMS
 
         mkdir pyopenms_whls
 
@@ -315,13 +338,13 @@ jobs:
           pip install -U pip
           pip install -U autowrap
           pip install -U pytest
-          pip install -U numpy
+          pip install 'numpy<=1.26.4'
           pip install -U wheel
           pip install -U pandas
 
           # build pyopenms distribution (macOS)
-          cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=4 .
-          make -j4 pyopenms
+          cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} .
+          make -j${{ steps.cpu-cores.outputs.count }} pyopenms
 
           # copy to directory
           cp pyOpenMS/dist/*.whl pyopenms_whls/
@@ -357,6 +380,10 @@ jobs:
       with:
         path: OpenMS
 
+    - name: Get number of CPU cores
+      uses: SimenB/github-actions-cpu-cores@v2
+      id: cpu-cores
+
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v2
       with:
@@ -377,7 +404,7 @@ jobs:
         mkdir openms-build
         cd openms-build
         cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
-        make -j4 OpenMS
+        make -j${{ steps.cpu-cores.outputs.count }} OpenMS
 
         # compile and configure OpenMS
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
@@ -393,13 +420,13 @@ jobs:
           "$PYBIN/bin/pip" install -U Cython
           "$PYBIN/bin/pip" install -U setuptools
           "$PYBIN/bin/pip" install -U wheel
-          "$PYBIN/bin/pip" install -U numpy
+          "$PYBIN/bin/pip" install 'numpy<=1.26.4'
           "$PYBIN/bin/pip" install -U pytest
           "$PYBIN/bin/pip" install -U autowrap
 
           # configure (don't copy deps since we use auditwheel)
-          cmake -DNO_DEPENDENCIES=ON -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" -DPY_NUM_THREADS=4 $GITHUB_WORKSPACE/OpenMS
-          make -j4 pyopenms
+          cmake -DNO_DEPENDENCIES=ON -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} $GITHUB_WORKSPACE/OpenMS
+          make -j${{ steps.cpu-cores.outputs.count }} pyopenms
           
           # ensure auditwheel can find the libraries
           export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
@@ -551,18 +578,20 @@ jobs:
             ls -la wheels/
 
     - name: Publish package to nightly PyPI
-      if: "contains(github.ref, 'develop') || contains(github.ref, 'nightly')"
+        # Upload the wheels to our pypi server for develop, nightly and release branches (unless it's explictly stated to upload it to pypi.org)
+      if: contains(github.ref, 'develop') || contains(github.ref, 'nightly') || (contains(github.ref, 'Release') && inputs.upload-to-pypi == 'false')
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        repository_url: https://pypi.cs.uni-tuebingen.de/
+        repository-url: https://pypi.cs.uni-tuebingen.de/
         user: openms
         password: ${{ secrets.abiservices_pypi_pw }}
         packages-dir: ${{ github.workspace }}/wheels
 
     - name: Publish package to PyPI
-      if: "contains(github.ref, 'Release')"
+      if: contains(github.ref, 'Release') && inputs.upload-to-pypi
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
+        repository-url: https://test.pypi.org/
         password: ${{ secrets.pypi_api_token_release }}
         packages-dir: ${{ github.workspace }}/wheels

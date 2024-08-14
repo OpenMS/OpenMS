@@ -268,8 +268,8 @@ namespace OpenMS
         },
         {
           {"name", "Proteomics Standards Initiative Mass Spectrometry Ontology"},
-          {"uri", "https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"},
-          {"version", "4.1.56"}
+          {"uri", "http://purl.obolibrary.org/obo/ms/psi-ms.obo"},
+          {"version", "4.1.155"}
         }
     };
     os << out.dump(2);
