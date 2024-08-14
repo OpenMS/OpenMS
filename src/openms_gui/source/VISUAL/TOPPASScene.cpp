@@ -1020,6 +1020,13 @@ namespace OpenMS
       {
         TOPPASVertex* tv_1 = vertex_vector[index_1];
         TOPPASVertex* tv_2 = vertex_vector[index_2];
+        
+        // future TOPPAS files may contain new nodes, which may leave `vertex_vector[i]` empty
+        if (tv_1 == nullptr || tv_2 == nullptr)
+        {
+          std::cerr << "Invalid edge" << std::endl;
+          continue;
+        }
 
         TOPPASEdge* edge = new TOPPASEdge();
         edge->setSourceVertex(tv_1);
