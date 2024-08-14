@@ -13,7 +13,6 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h> // for operator<< on StringList
@@ -29,6 +28,8 @@
 // TODO: remove header after we get "Valid" support
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
+
+#include <OpenMS/Format/MzTabFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
@@ -38,7 +39,6 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
-#include <QtCore/QString>
 
 #include <unordered_map>
 #include <iomanip>
@@ -149,7 +149,7 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    StringList in_types = { "mzData", "mzXML", "mzML", "sqMass", "dta", "dta2d", "mgf", "featureXML", "consensusXML", "idXML", "pepXML", "fid", "mzid", "trafoXML", "fasta", "pqp" };
+    StringList in_types = { "mzData", "mzXML", "mzML", "sqMass", "dta", "dta2d", "mgf", "featureXML", "consensusXML", "idXML", "pepXML", "mzTab", "fid", "mzid", "trafoXML", "fasta", "pqp" };
     registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", in_types);
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
@@ -847,6 +847,21 @@ protected:
     {
       os << "\nFor pepXML files, only validation against the XML schema is implemented at this point."
          << '\n';
+    }
+    else if (in_type == FileTypes::MZTAB)
+    {
+      MzTab mztab;
+      MzTabFile().load(in, mztab);
+      os << "mzTab-version: " << mztab.getMetaData().mz_tab_version.get() << '\n'
+         << "mzTab-mode: " << mztab.getMetaData().mz_tab_mode.get() << '\n'
+         << "mzTab-type: " << mztab.getMetaData().mz_tab_type.get() << '\n'
+         << "number of PSMs: " << mztab.getPSMSectionRows().size() << '\n'
+         << "number of peptides: " << mztab.getPeptideSectionRows().size() << '\n'
+         << "number of proteins: " << mztab.getProteinSectionRows().size() << '\n'
+         << "number of oligonucleotides: " << mztab.getOligonucleotideSectionRows().size() << '\n'
+         << "number of OSMs: " << mztab.getOSMSectionRows().size() << '\n'
+         << "number of small molecules: " << mztab.getSmallMoleculeSectionRows().size() << '\n'
+         << "number of nucleic acids: " << mztab.getNucleicAcidSectionRows().size() << '\n';
     }
     else if (in_type == FileTypes::TRANSFORMATIONXML)
     {
