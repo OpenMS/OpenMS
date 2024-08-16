@@ -46,6 +46,7 @@ Fixes:
    - fix crash when viewing certain Chromatograms (#7220)
    - in 2D view, show correct adjacent layers in context menu, if user clicked to the right of the last MS1 scan (now shows the 4 rightmost MS1 scans, used to show the 4 leftmost scans) (#7423)
    - fix glitches in 1D view and layer names (#7549)
+   - Show prefix ions (e.g. b1) when generating theoretical spectra (#7567)
 - TOPPAS: open files in TOPPView (#7213)
 - pyOpenMS: Log warnings in pure Python code with warnings.warn instead of print (#7418)
 - more robust parsing of mzIdentML (#7153)
