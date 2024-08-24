@@ -724,12 +724,20 @@ protected:
 
     config_file.substitute("##enzyme_details##", enzyme_details);
 
+    //TODO: versioning is the problem 
+    //
+
     auto fixed_mods = getStringList_("fixed_modifications");
     set<String> fixed_unique(fixed_mods.begin(), fixed_mods.end());
     fixed_mods.assign(fixed_unique.begin(), fixed_unique.end());   
     ModifiedPeptideGenerator::MapToResidueType fixed_mod_map = ModifiedPeptideGenerator::getModifications(fixed_mods); // std::unordered_map<const ResidueModification*, const Residue*> val;
     String static_mods_details = getModDetailsString(fixed_mod_map);
-    config_file.substitute("##static_mods##", static_mods_details);
+
+    //static_mods_details = "[" + static_mods_details + "]"; 
+    //static_mods_details.split(":", static_mods_details_list); 
+    //String static_mods_details_new; 
+    //static_mods_details_new = static_mods_details_list.at(0) + ":[" + static_mods_details_list.erase(static_mods_details_list.begin()) + "]"; 
+    
 
     auto variable_mods = getStringList_("variable_modifications");
     set<String> variable_unique(variable_mods.begin(), variable_mods.end());
@@ -737,7 +745,75 @@ protected:
     ModifiedPeptideGenerator::MapToResidueType variable_mod_map = ModifiedPeptideGenerator::getModifications(variable_mods);
     String variable_mods_details = getModDetailsString(variable_mod_map);
 
-    config_file.substitute("##variable_mods##", variable_mods_details);
+    //variable_mods_details.split(":", variable_mods_details_list); 
+    //String variable_mods_details_new; 
+    //variable_mods_details_new = variable_mods_details_list.at(0) + ":[" + variable_mods_details_list.erase(variable_mods_details_list.begin()) + "]"; 
+    StringList static_mods_details_list; 
+    StringList variable_mods_details_list; 
+
+
+    String static_mods_details_split = static_mods_details; 
+    String variable_mods_details_split = variable_mods_details; 
+    static_mods_details_split.split(",", static_mods_details_list); 
+    variable_mods_details_split.split(",", variable_mods_details_list); 
+
+   /*  String temp_String_stat = ""; 
+    cout << static_mods_details_list.size() << std::endl; 
+    for(auto& x : static_mods_details_list){
+      //cout << x ; 
+      StringList temp_split; 
+      x.split(":", temp_split); 
+      
+      temp_split.insert(temp_split.begin()+1, ":["); 
+      temp_split.insert(temp_split.end(), "]"); 
+
+      String temp_split_Str = ""; 
+
+      for(auto& y : temp_split){
+        temp_split_Str = temp_split_Str + y; 
+      } 
+
+      cout << "temp split stat" << temp_split_Str << std::endl;  
+      temp_String_stat = temp_String_stat + "," + temp_split_Str ; 
+    } */
+
+  String temp_String_var; 
+   cout << variable_mods_details_list.size() << std::endl; 
+     for(auto& x : variable_mods_details_list){
+      //cout << x ; 
+      StringList temp_split; 
+      x.split(":", temp_split); 
+      
+      temp_split.insert(temp_split.begin()+1, ":["); 
+      temp_split.insert(temp_split.end(), "]"); 
+      String temp_split_Str = ""; 
+
+      for(auto& y : temp_split){
+        temp_split_Str = temp_split_Str + y; 
+      } 
+
+      cout << "temp split var" << temp_split_Str << std::endl;  
+      temp_String_var = temp_String_var + "," + temp_split_Str ; 
+    } 
+
+   //variable_mods_details_list.insert(variable_mods_details_list.begin(), "["); 
+   //variable_mods_details_list.insert(variable_mods_details_list.end(), "]"); 
+   /* for(auto& x : variable_mods_details_list){
+      temp_String_var = temp_String_var + "," + x; 
+   } */
+    //THIS WORKS!! 
+    String temp_String_var_Fin = temp_String_var.substr(1, temp_String_var.size()-1); //"[" + variable_mods_details + "]"; //
+    //String temp_String_stat_Fin = temp_String_stat.substr(1, temp_String_stat.size()-1); 
+
+    cout << "Fin string var " <<  temp_String_var_Fin << std::endl; 
+    //cout << "Fin string stat " <<  temp_String_stat_Fin << std::endl; 
+
+
+    cout << "var_mod_details" << variable_mods_details << std::endl; 
+    cout << "stat_mod_details" << static_mods_details << std::endl; 
+
+    config_file.substitute("##static_mods##", static_mods_details);
+    config_file.substitute("##variable_mods##", temp_String_var_Fin);
 
     return config_file;
   }
