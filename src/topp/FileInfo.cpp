@@ -855,7 +855,7 @@ protected:
       os << "mzTab-version: " << mztab.getMetaData().mz_tab_version.get() << '\n'
          << "mzTab-mode: " << mztab.getMetaData().mz_tab_mode.get() << '\n'
          << "mzTab-type: " << mztab.getMetaData().mz_tab_type.get() << '\n'
-         << "number of PSMs: " << mztab.getPSMSectionRows().size() << '\n'
+         << "number of PSMs: " << mztab.getNumberOfPSMs() << '\n'
          << "number of peptides: " << mztab.getPeptideSectionRows().size() << '\n'
          << "number of proteins: " << mztab.getProteinSectionRows().size() << '\n'
          << "number of oligonucleotides: " << mztab.getOligonucleotideSectionRows().size() << '\n'
