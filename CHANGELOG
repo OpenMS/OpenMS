@@ -26,8 +26,9 @@ Library:
 - SiriusAdapter reworked to SiriusExport: Instead of running SIRIUS directly, this reworked tool takes multiple mzML and feautureXML (optional) files exporting a single SIRIUS .ms input file as well as an input table with compound info from features for the new AssayGeneratorMetaboSirius tool. (#7234)
 - Splitting AssayGeneratorMetabo into two tools: In line with the changes to SiriusExport this tool has been split into two separate workflows. AssayGeneratorMetabo generates an assay library from mzML and feautreXML files using an heuristic approach picking the highest intensity MS2 peaks (like before). AssayGeneratorMetaboSirius takes an existing SIRIUS project directory as input to generate an assay library based on fragmentation trees. (#7234)
 - better documentation for all SpectraFilter... tools (#7183)
-- TOPPView: offer Ion mobility view from 2D spectra view (#7423)
-- TOPPView: view ion mobility frames, irrespective of its MS level (formerly only MS1 was supported) (#7427)
+- TOPPView: 
+  - offer Ion mobility view from 2D spectra view (#7423)
+  - view ion mobility frames, irrespective of its MS level (formerly only MS1 was supported) (#7427)
 - OpenSwath: Add output on peak shape metrics to .osw file (#7222)
 
 New Tools:
@@ -41,8 +42,11 @@ Fixes:
 - MSGFPlusAdapter: allow concurrent creation of indexed database (#7272)
 - CometAdapter: work around bug in Comet 2024.01 rev. 0 to avoid empty results (#7540)
 - ParamEditor: fixed error for the subsection parameter (ParamNode) to go through store function (#7180)
-- TOPPView: fix crash when viewing certain Chromatograms (#7220)
-- TOPPView: in 2D view, show correct adjacent layers in context menu, if user clicked to the right of the last MS1 scan (now shows the 4 rightmost MS1 scans, used to show the 4 leftmost scans) (#7423)
+- TOPPView:
+   - fix crash when viewing certain Chromatograms (#7220)
+   - in 2D view, show correct adjacent layers in context menu, if user clicked to the right of the last MS1 scan (now shows the 4 rightmost MS1 scans, used to show the 4 leftmost scans) (#7423)
+   - fix glitches in 1D view and layer names (#7549)
+   - Show prefix ions (e.g. b1) when generating theoretical spectra (#7567)
 - TOPPAS: open files in TOPPView (#7213)
 - pyOpenMS: Log warnings in pure Python code with warnings.warn instead of print (#7418)
 - more robust parsing of mzIdentML (#7153)
