@@ -77,8 +77,20 @@ because of limitations in OpenMS' data structures and file formats.
 /// @cond TOPPCLASSES
 
 
-/*
-*/
+
+
+#include <map>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+#include <numeric>
+
+// Gaussian function
+double gaussian(double x, double sigma) {
+    return exp(-(x*x) / (2 * sigma*sigma)) / (sigma * sqrt(2 * M_PI));
+}
+
+
 
 
 typedef map<double, double> mapRatetoMass;
@@ -104,8 +116,8 @@ public:
   double rate = -1.;
   double deltamass = -1.;
 };
-
-struct modification{ 
+//Think about adding experimental mass 
+struct modification{
   double rate = 0; 
   vector<double> mass; 
   double numcharges = 0; 
@@ -186,6 +198,74 @@ public:
 
   class SageClustering{
   public: 
+
+// Gaussian smoothing function for mass spectra
+  static std::map<double, double> smoothMassSpectrum(const std::map<double, double>& spectrum, double sigma = 0.1) {
+    std::map<double, double> smoothedSpectrum;
+    std::vector<double> mzValues, intensities;
+
+    // Extract m/z values and intensities
+    for (const auto& pair : spectrum) {
+        mzValues.push_back(pair.first);
+        intensities.push_back(pair.second);
+    }
+
+    // Apply Gaussian smoothing
+    for (size_t i = 0; i < mzValues.size(); ++i) {
+        double smoothedIntensity = 0.0;
+        double weightSum = 0.0;
+
+        for (size_t j = 0; j < mzValues.size(); ++j) {
+            double mzDiff = std::abs(mzValues[i] - mzValues[j]);
+            if (mzDiff > 3 * sigma) continue; // Ignore points too far away
+            double weight = gaussian(mzDiff, sigma);
+            smoothedIntensity += weight * intensities[j];
+            weightSum += weight;
+        }
+
+        smoothedSpectrum[mzValues[i]] = smoothedIntensity / weightSum;
+    }
+
+    return smoothedSpectrum;
+}
+
+// Peak detection function for mass spectra
+  static std::vector<std::pair<double, double>> findPeaks(const std::map<double, double>& spectrum, double intensityThreshold = 0.0, double snrThreshold = 3.0) {
+    std::vector<std::pair<double, double>> peaks;
+    
+    if (spectrum.size() < 3) {
+        return peaks;  // Not enough points to determine peaks
+    }
+
+    // Calculate noise level (e.g., median intensity)
+    std::vector<double> intensities;
+    for (const auto& pair : spectrum) {
+        intensities.push_back(pair.second);
+    }
+    size_t n = intensities.size() / 2;
+    std::nth_element(intensities.begin(), intensities.begin() + n, intensities.end());
+    double noiseLevel = intensities[n];
+
+    auto it = spectrum.begin();
+    auto prev = it++;
+    auto next = std::next(it);
+
+    while (next != spectrum.end()) {
+        if (it->second > prev->second && it->second > next->second && 
+            it->second > intensityThreshold && 
+            it->second / noiseLevel > snrThreshold) {
+            peaks.push_back(*it);
+        }
+        prev = it;
+        it = next;
+        ++next;
+    }
+
+    return peaks;
+}
+
+
+
   static pair<mapRatetoMass, map<double, double>>  getDeltaClusterCenter(const vector<PeptideIdentification>& pips, bool debug = false)
   {
     vector<double> cluster;
@@ -252,6 +332,25 @@ public:
     pair<mapRatetoMass, map<double,double>> results; 
     results.first = hist; 
     results.second = num_charges_at_mass; 
+
+
+  std::map<double, double> smoothed_hist =  smoothMassSpectrum(hist, 0.0001); 
+  cout << "Size of smoothed hist " <<  smoothed_hist.size() << std::endl ; 
+  for (auto& x : smoothed_hist){
+    if(x.first > 20) cout << "First val" << x.first << "Second val" << x.second << std::endl; 
+  }
+
+
+
+  std::vector<std::pair<double, double>> smoothedMaxes = findPeaks( smoothed_hist ); 
+
+
+
+  cout << "Size of smoothed maxes " << smoothedMaxes.size() << std::endl ; 
+  for (auto& x : smoothedMaxes){
+    cout << "First val" << x.first << "Second val" << x.second << std::endl; 
+  }
+
     return results ; 
 
 
@@ -778,7 +877,7 @@ protected:
     } */
 
   String temp_String_var; 
-   cout << variable_mods_details_list.size() << std::endl; 
+   //cout << variable_mods_details_list.size() << std::endl; 
      for(auto& x : variable_mods_details_list){
       //cout << x ; 
       StringList temp_split; 
@@ -792,7 +891,7 @@ protected:
         temp_split_Str = temp_split_Str + y; 
       } 
 
-      cout << "temp split var" << temp_split_Str << std::endl;  
+      //cout << "temp split var" << temp_split_Str << std::endl;  
       temp_String_var = temp_String_var + "," + temp_split_Str ; 
     } 
 
@@ -805,12 +904,12 @@ protected:
     String temp_String_var_Fin = temp_String_var.substr(1, temp_String_var.size()-1); //"[" + variable_mods_details + "]"; //
     //String temp_String_stat_Fin = temp_String_stat.substr(1, temp_String_stat.size()-1); 
 
-    cout << "Fin string var " <<  temp_String_var_Fin << std::endl; 
+    //cout << "Fin string var " <<  temp_String_var_Fin << std::endl; 
     //cout << "Fin string stat " <<  temp_String_stat_Fin << std::endl; 
 
 
-    cout << "var_mod_details" << variable_mods_details << std::endl; 
-    cout << "stat_mod_details" << static_mods_details << std::endl; 
+    //cout << "var_mod_details" << variable_mods_details << std::endl; 
+    //cout << "stat_mod_details" << static_mods_details << std::endl; 
 
     config_file.substitute("##static_mods##", static_mods_details);
     config_file.substitute("##variable_mods##", temp_String_var_Fin);
@@ -1040,9 +1139,9 @@ protected:
     
 
 
-  //const pair<mapRatetoMass, map<double,double>> resultsClus =  SageClustering::getDeltaClusterCenter(peptide_identifications); 
+  const pair<mapRatetoMass, map<double,double>> resultsClus =  SageClustering::getDeltaClusterCenter(peptide_identifications); 
 
-  //vector<PeptideIdentification> mapD = SageClustering::mapDifftoMods(resultsClus.first, resultsClus.second, peptide_identifications, 5.0, true, output_file); //peptide_identifications; 
+  vector<PeptideIdentification> mapD = SageClustering::mapDifftoMods(resultsClus.first, resultsClus.second, peptide_identifications, 5.0, true, output_file); //peptide_identifications; 
  
 
 
