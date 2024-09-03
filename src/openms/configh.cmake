@@ -39,6 +39,12 @@ set(CF_OPENMS_DOC_PATH ${OPENMS_HOST_DIRECTORY}/doc CACHE INTERNAL "Path to the 
 set(CF_OPENMS_INSTALL_DATA_PATH ${CMAKE_INSTALL_PREFIX}/${INSTALL_SHARE_DIR} CACHE INTERNAL "Path to the installed shared documents of OpenMS.")
 set(CF_OPENMS_INSTALL_DOC_PATH ${CMAKE_INSTALL_PREFIX}/${INSTALL_DOC_DIR} CACHE INTERNAL "Path to the installed documentation of OpenMS." )
 
+#------------------------------------------------------------------------------
+# At this point make a summary of where data and doc will be located:
+message(STATUS "Info: CF_OPENMS_DATA_PATH: ${CF_OPENMS_DATA_PATH}")
+message(STATUS "Info: CF_OPENMS_DOC_PATH: ${CF_OPENMS_DOC_PATH}")
+
+
 ## check for Microsoft Visual Studio compiler
 if (MSVC)
 	set(OPENMS_COMPILER_MSVC "1" CACHE INTERNAL "Do we use Microsoft Compiler?")
