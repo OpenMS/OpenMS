@@ -334,10 +334,10 @@ public:
     results.second = num_charges_at_mass; 
 
 
-  std::map<double, double> smoothed_hist =  smoothMassSpectrum(hist, 0.0001); 
+ /*  std::map<double, double> smoothed_hist =  smoothMassSpectrum(hist, 0.0001); 
   cout << "Size of smoothed hist " <<  smoothed_hist.size() << std::endl ; 
   for (auto& x : smoothed_hist){
-    if(x.first > 20) cout << "First val" << x.first << "Second val" << x.second << std::endl; 
+    //if(x.first > 20) cout << "First val" << x.first << "Second val" << x.second << std::endl; 
   }
 
 
@@ -348,9 +348,9 @@ public:
 
   cout << "Size of smoothed maxes " << smoothedMaxes.size() << std::endl ; 
   for (auto& x : smoothedMaxes){
-    cout << "First val" << x.first << "Second val" << x.second << std::endl; 
+    //cout << "First val" << x.first << "Second val" << x.second << std::endl; 
   }
-
+ */
     return results ; 
 
 
