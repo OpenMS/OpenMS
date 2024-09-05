@@ -397,11 +397,16 @@ namespace OpenMS
       @param map Shared pointer to input map. It can be performed in constant time and does not double the required memory.
       @param od_map Shared pointer to on disk data which potentially caches some data to save memory (the map can be empty, but do not pass nullptr).
       @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+      @param caption The caption of the layer (shown in the layer window)
       @param use_noise_cutoff Add a noise filter which removes low-intensity peaks
 
       @return If a new layer was created
     */
-    bool addPeakLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename = "", const bool use_noise_cutoff = false);
+    bool addPeakLayer(const ExperimentSharedPtrType& map,
+                      ODExperimentSharedPtrType od_map,
+                      const String& filename = "",
+                      const String& caption = "",
+                      const bool use_noise_cutoff = false);
 
     /**
       @brief Add a chrom data layer
@@ -409,10 +414,11 @@ namespace OpenMS
       @param map Shared pointer to input map. It can be performed in constant time and does not double the required memory.
       @param od_map Shared pointer to on disk data which potentially caches some data to save memory (the map can be empty, but do not pass nullptr).
       @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+      @param caption The caption of the layer (shown in the layer window)
 
       @return If a new layer was created
     */
-    bool addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename = "");
+    bool addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename = "", const String& caption = "");
 
 
     /**
@@ -420,32 +426,36 @@ namespace OpenMS
 
         @param map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
         @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+        @param caption The caption of the layer (shown in the layer window)
 
         @return If a new layer was created
     */
-    bool addLayer(FeatureMapSharedPtrType map, const String& filename = "");
+    bool addLayer(FeatureMapSharedPtrType map, const String& filename = "", const String& caption = "");
 
     /**
         @brief Add a consensus feature data layer
 
         @param map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
         @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+        @param caption The caption of the layer (shown in the layer window)
 
         @return If a new layer was created
     */
-    bool addLayer(ConsensusMapSharedPtrType map, const String& filename = "");
+    bool addLayer(ConsensusMapSharedPtrType map, const String& filename = "", const String& caption = "");
     //@}
 
     /**
         @brief Add an identification data layer
 
-        @param peptides Input list of peptides, which has to be mutable and will be empty after adding. Swapping is used to insert the data. It can be performed in constant time and does not double
-       the required memory.
+        @param peptides Input list of peptides, which has to be mutable and will be empty after adding. 
+               Swapping is used to insert the data. It can be performed in constant time and does not double
+               the required memory.
         @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+        @param caption The caption of the layer (shown in the layer window)
 
         @return If a new layer was created
     */
-    bool addLayer(std::vector<PeptideIdentification>& peptides, const String& filename = "");
+    bool addLayer(std::vector<PeptideIdentification>& peptides, const String& filename = "", const String& caption = "");
 
     /// Returns the minimum intensity of the active layer
     inline float getCurrentMinIntensity() const
@@ -489,7 +499,7 @@ namespace OpenMS
 
         @see overall_data_range_
     */
-    const RangeType& getDataRange() const;
+    virtual const RangeType& getDataRange() const;
 
     /**
         @brief Returns the first intensity scaling factor for 'snap to maximum intensity mode' (for the currently visible data range).

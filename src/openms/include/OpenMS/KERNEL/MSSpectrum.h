@@ -151,6 +151,9 @@ public:
     /// Constructor
     MSSpectrum();
 
+    /// Constructor from a list of Peak1D, e.g. MSSpectrum spec{ {mz1, int1}, {mz2, int2}, ... };
+    MSSpectrum(const std::initializer_list<Peak1D>& init);
+
     /// Copy constructor
     MSSpectrum(const MSSpectrum& source);
 
@@ -602,16 +605,16 @@ public:
 
 protected:
     /// Retention time
-    double retention_time_;
+    double retention_time_ = -1;
 
     /// Drift time
-    double drift_time_;
+    double drift_time_ = -1;
 
     /// Drift time unit
-    DriftTimeUnit drift_time_unit_;
+    DriftTimeUnit drift_time_unit_ = DriftTimeUnit::NONE;
 
     /// MS level
-    UInt ms_level_;
+    UInt ms_level_ = 1;
 
     /// Name
     String name_;

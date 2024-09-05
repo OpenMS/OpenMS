@@ -53,7 +53,7 @@
     </li>
     <li>
       For the complete feature set to be enabled, %OpenMS needs recent versions of
-      \b Boost (>= 1.48), \b Eigen3 (>= 3.3.2), \b libHDF5, \b libSVM (2.91 or higher but not 3.15),
+      \b Boost (>= 1.74), \b Eigen3 (>= 3.4.0), \b libHDF5, \b libSVM (2.91 or higher but not 3.15),
       \b glpk (>= 4.45) or \b CoinMP (>= 1.3.3), \b zlib, \b libbz2, and \b Xerces-C (>= 3.1.1).
       These should be built by our contrib build script in case they are not already installed via your package manager.
     </li>
