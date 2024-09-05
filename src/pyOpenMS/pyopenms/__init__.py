@@ -3,7 +3,7 @@
 """Python bindings to the OpenMS C++ library.
 
 The pyOpenMS package contains Python bindings for a large part of the OpenMS
-library (http://www.open-ms.de) for mass spectrometry based proteomics. It thus
+library (https://openms.de) for mass spectrometry based proteomics. It thus
 provides providing facile access to a feature-rich, open-source algorithm
 library for mass-spectrometry based proteomics analysis. These Python bindings
 allow raw access to the data-structures and algorithms implemented in OpenMS,
