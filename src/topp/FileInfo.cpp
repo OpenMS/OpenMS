@@ -11,34 +11,34 @@
 
 #include <OpenMS/config.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h> // for operator<< on StringList
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
-// TODO: remove header after we get "Valid" support
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
-
-#include <OpenMS/Format/MzTabFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
+
 
 #include <unordered_map>
 #include <iomanip>
