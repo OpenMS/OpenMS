@@ -2040,7 +2040,22 @@ protected:
     registerInputFile_("in_featureXML", "<file>", "", "Feature data annotated with identifications (IDMapper)");
     setValidFormats_("in_featureXML", ListUtils::create<String>("featureXML"));
 
-    registerInputFile_("r_executable", "<file>", "R", "Path to the R executable (default: 'R')", false, false, {"is_executable"});
+    static const bool is_required(false);
+    static const bool is_advanced_option(true);
+    // executable
+    registerInputFile_("r_executable", "<executable>",
+        // choose the default value according to the platform where it will be executed
+        #ifdef OPENMS_WINDOWSPLATFORM
+                       "R.exe",
+        #else
+                       "R",
+        #endif
+                       "The R executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", 
+                       is_required, 
+                       !is_advanced_option, 
+                       {"is_executable"}
+    );
+
 
     registerDoubleOption_("mz_tolerance_ppm", "<tol>", 10.0, "Tolerance in ppm", false, true);
 
