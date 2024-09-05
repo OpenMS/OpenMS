@@ -46,6 +46,9 @@
 		@image html TOPPAS_simple_example.png
 		@image latex TOPPAS_simple_example.png "" width=14cm
 		
+    You can play with existing example pipelines (see @ref TOPPAS_examples), which cover identification, 
+    quantification and some special use cases, such as SubsetNeighborSearch.
+    To open an 
 
 		To create a new TOPPAS file, you can either: 
 
@@ -246,9 +249,11 @@
 			
 	@page TOPPAS_examples Examples
 	
-		The following sections explain the example pipelines TOPPAS comes with. You can
-		open them by selecting @p File > @p Open @p example @p file. All input files and
-		parameters are already specified, so you can just hit @p Pipeline > @p Run (or press
+		The following sections explain the example pipelines TOPPAS comes with.
+    
+    You can @em open all examples pipelines by selecting @p File > @p Open @p example @p file in TOPPAS.
+    
+    All input files and parameters are already specified, so you can just hit @p Pipeline > @p Run (or press
 		@p F5) and see what happens.
 		
 		@section TOPPAS_peak_picking_example Profile data processing
@@ -318,6 +323,15 @@
 		@image html TOPPAS_BSA_results_3d.png 
 		@image latex TOPPAS_BSA_results_3d.png "" width=10cm 
 
+
+    @section TOPPAS_subsetneighborsearch_example Subset Neighbor Search
+    
+    We will use a special search strategy described by <a href="www.ncbi.nlm.nih.gov/pmc/articles/PMC8489664/">Lin et al.</a>.
+    It uses a mode of @ref TOPP_DecoyDatabase which allows to create a special "neighbor" database to control the FDR.
+    
+    The example pipeline is named @p FDR_NeighborSearch.toppas.
+        
+    
 		@section TOPPAS_merger_example Merger and Collect nodes
 		
 		The following example is actually not a useful workflow but is supposed

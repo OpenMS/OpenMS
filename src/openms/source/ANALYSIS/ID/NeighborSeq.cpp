@@ -120,7 +120,7 @@ bool NeighborSeq::isNeighborPeptide(const AASequence& peptide,
       MSSpectrum neighbor_spec = generateSpectrum(digested_relevant_peptides_[pep_index]);
       if (isNeighborSpectrum(spec, neighbor_spec, min_shared_ion_fraction, mz_bin_size))
       { 
-        std::cout << digested_relevant_peptides_[pep_index] << " has neighbor " << peptide << '\n';
+        //std::cout << digested_relevant_peptides_[pep_index] << " has neighbor " << peptide << '\n';
         neighbor_stats_[pep_index]++;
         found = true;
       }

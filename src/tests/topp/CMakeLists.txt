@@ -2702,11 +2702,13 @@ set_tests_properties("TOPP_DecoyDatabase_5" PROPERTIES WILL_FAIL 1)
 add_test("TOPP_DecoyDatabase_6" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_6.fasta -out DecoyDatabase_6.tmp.fasta)
 set_tests_properties("TOPP_DecoyDatabase_6" PROPERTIES WILL_FAIL 1)
 # ... with subset neighbor search
-add_test("TOPP_DecoyDatabase_7" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_7.fasta -out DecoyDatabase_7_all.tmp.fasta -NeighborSearch:in_relevant_proteins ${DATA_DIR_TOPP}/DecoyDatabase_7_relevant.fasta -NeighborSearch:out_neighbor DecoyDatabase_7_neighbors.tmp.fasta)
+add_test("TOPP_DecoyDatabase_7" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_7.fasta -out DecoyDatabase_7_all.tmp.fasta -NeighborSearch:in_relevant_proteins ${DATA_DIR_TOPP}/DecoyDatabase_7_relevant.fasta -NeighborSearch:out_neighbor DecoyDatabase_7_neighbors.tmp.fasta -NeighborSearch:out_relevant DecoyDatabase_7_relevant.tmp.fasta)
 add_test("TOPP_DecoyDatabase_7_out1" ${DIFF} -in1 DecoyDatabase_7_all.tmp.fasta -in2 ${DATA_DIR_TOPP}/DecoyDatabase_7_out_all.fasta )
 add_test("TOPP_DecoyDatabase_7_out2" ${DIFF} -in1 DecoyDatabase_7_neighbors.tmp.fasta -in2 ${DATA_DIR_TOPP}/DecoyDatabase_7_out_neighbors.fasta )
+add_test("TOPP_DecoyDatabase_7_out3" ${DIFF} -in1 DecoyDatabase_7_relevant.tmp.fasta -in2 ${DATA_DIR_TOPP}/DecoyDatabase_7_out_relevant.fasta )
 set_tests_properties("TOPP_DecoyDatabase_7_out1" PROPERTIES DEPENDS "TOPP_DecoyDatabase_7")
 set_tests_properties("TOPP_DecoyDatabase_7_out2" PROPERTIES DEPENDS "TOPP_DecoyDatabase_7")
+set_tests_properties("TOPP_DecoyDatabase_7_out3" PROPERTIES DEPENDS "TOPP_DecoyDatabase_7")
 
 
 # SimpleSearchEngine:
