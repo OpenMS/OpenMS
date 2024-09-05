@@ -258,10 +258,12 @@
 		
 		@section TOPPAS_peak_picking_example Profile data processing
 		
-		The file @p peakpicker_tutorial.toppas contains a simple pipeline representing a
+		The file @p peakpicker_tutorial.toppas can be inspect it in TOPPAS via `File -> Open Example File`.
+    It contains a simple pipeline representing a
 		common use case: starting with profile data, the noise is eliminated and the baseline
 		is subtracted. Then, PeakPickerHiRes is used to find all peaks in the noise-filtered
 		and baseline-reduced profile data. 
+    
 		
 		@image html TOPPAS_example_profile_data_processing.png
 		@image latex TOPPAS_example_profile_data_processing.png "" width=14cm
@@ -269,8 +271,8 @@
 		@section TOPPAS_id_example Identification of E. coli peptides
 		
 		This section describes an example identification pipeline contained in the 
-		example directory, @p Ecoli_Identification.toppas. It is shipped together
-		with a reduced example mzML file containing 139 MS2 spectra from an E. coli
+		example directory, @p Ecoli_Identification.toppas.  Inspect it in TOPPAS via `File -> Open Example File`.
+    It is shipped together with a reduced example mzML file containing 139 MS2 spectra from an E. coli
 		run on an Orbitrap instrument as well as an E. coli target-decoy database.
 
 		We use the search engine
@@ -298,7 +300,8 @@
 		@section TOPPAS_quant_example Quantitation of BSA runs
 
 		The simple pipeline described in this section (@p BSA_Quantitation.toppas) can be used to quantify peptides
-		that occur on different runs. The example dataset contains three different bovine serum albumin (BSA) runs.
+		that occur on different runs. Inspect it in TOPPAS via `File -> Open Example File`.
+    The example dataset contains three different bovine serum albumin (BSA) runs.
 		First, FeatureFinderCentroided is called since the dataset is centroided. The
 		results of the feature finding are then annotated with (existing) identification results.
 		For convenience, we provide these search results (as idXML files) with an FDR of 5% in the BSA directory.
@@ -326,17 +329,17 @@
 
     @section TOPPAS_subsetneighborsearch_example Subset Neighbor Search
     
-    We will use a special search strategy described by <a href="www.ncbi.nlm.nih.gov/pmc/articles/PMC8489664/">Lin et al.</a>.
+    We will use a special FDR search strategy described by <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8489664/">Lin et al.</a>.
     It uses a mode of @ref TOPP_DecoyDatabase which allows to create a special "neighbor" database to control the FDR.
     
-    The example pipeline is named @p FDR_NeighborSearch.toppas.
+    The example pipeline is named @p FDR_NeighborSearch.toppas. Inspect it in TOPPAS via `File -> Open Example File`. A description is provided within the TOPPAS workflow.
         
     
 		@section TOPPAS_merger_example Merger and Collect nodes
 		
 		The following example is actually not a useful workflow but is supposed
 		to demonstrate how merger and collector nodes can be used in a pipeline. Have a look at
-		@p merger_tutorial.toppas:
+		@p merger_tutorial.toppas. Inspect it in TOPPAS via `File -> Open Example File`.
 		
 		@image html TOPPAS_example_merger.png
 		@image latex TOPPAS_example_merger.png "" width=14cm
