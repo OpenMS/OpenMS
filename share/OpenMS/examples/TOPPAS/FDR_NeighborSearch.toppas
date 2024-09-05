@@ -9,6 +9,8 @@
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Arial&apos;; font-size:12pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt; &lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt; &lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt; &lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;We will use a special search strategy described by Lin et al. (see www.ncbi.nlm.nih.gov/pmc/articles/PMC8489664).&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;It uses a mode of TOPP_DecoyDatabase which allows to create a special &amp;quot;neighbor&amp;quot; database to control the FDR.&lt;/span&gt;&lt;/p&gt;
@@ -16,37 +18,42 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;The search engine (Comet) is given relevant peptides (the small subset of proteins in our sample that we are actually interested in) and its neighbor peptides (as selected by DecoyDatabase from the whole database given in &apos;in&apos; from Node #1).&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;All these come with their respective decoys.&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;After searching we drop all neighbors (target + decoy) and only keep relevant peptides (target + decoy) in the IDFilter (node #6) which are then subjected to a standard FDR (node #8).&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;After searching we drop all neighbors (target + decoy) and only keep relevant peptides (target + decoy) in the IDFilter (node #6) by using the relevant peptides (target+decoy) as given by the DecoyDatabase. &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Last but not least, these remaining relevant PSMs are then subjected to a standard FDR (node #8).&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;]]&gt;" type="string" description="" required="false" advanced="false" />
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Note: the example input files in this workflow are purely for demonstrational purposes. The &apos;relevant proteins&apos; from node #3 are actually way more than the sample (BSA) actually contains.&lt;br /&gt;A standard FDR strategy would find the exact same things.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;]]&gt;" type="string" description="" required="false" advanced="false" />
   </NODE>
   <NODE name="vertices" description="">
     <NODE name="0" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="input file list" type="string" description="" required="false" advanced="false" />
       <ITEMLIST name="file_names" type="string" description="" required="false" advanced="false">
+        <LISTITEM value="data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace.fasta"/>
       </ITEMLIST>
       <ITEM name="x_pos" value="-660.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="-220.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-300.0" type="double" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="1" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="input file list" type="string" description="" required="false" advanced="false" />
       <ITEMLIST name="file_names" type="string" description="" required="false" advanced="false">
+        <LISTITEM value="../BSA/BSA1.mzML"/>
       </ITEMLIST>
       <ITEM name="x_pos" value="-660.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="-20.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="60.0" type="double" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="2" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="input file list" type="string" description="" required="false" advanced="false" />
       <ITEMLIST name="file_names" type="string" description="" required="false" advanced="false">
+        <LISTITEM value="data/Identification/crap.fasta"/>
       </ITEMLIST>
       <ITEM name="x_pos" value="-660.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="-320.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-180.0" type="double" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="3" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="true" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_name" value="DecoyDatabase" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
@@ -95,7 +102,7 @@ p, li { white-space: pre-wrap; }
       <ITEM name="tool_name" value="CometAdapter" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <ITEM name="x_pos" value="-420.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="-20.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="60.0" type="double" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
         <ITEM name="in" value="" type="input-file" description="Input file" required="true" advanced="false" supported_formats="*.mzML" />
         <ITEM name="out" value="" type="output-file" description="Output file" required="true" advanced="false" supported_formats="*.idXML" />
@@ -183,7 +190,7 @@ p, li { white-space: pre-wrap; }
       <ITEM name="tool_name" value="IDFilter" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <ITEM name="x_pos" value="-200.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="-20.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="60.0" type="double" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
         <ITEM name="in" value="" type="input-file" description="input file " required="true" advanced="false" supported_formats="*.idXML,*.consensusXML" />
         <ITEM name="out" value="" type="output-file" description="output file " required="true" advanced="false" supported_formats="*.idXML,*.consensusXML" />
@@ -263,50 +270,16 @@ p, li { white-space: pre-wrap; }
     <NODE name="6" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
-      <ITEM name="tool_name" value="PeptideIndexer" type="string" description="" required="false" advanced="false" />
-      <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="0.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="-20.0" type="double" description="" required="false" advanced="false" />
-      <NODE name="parameters" description="">
-        <ITEM name="in" value="" type="input-file" description="Input idXML file containing the identifications." required="true" advanced="false" supported_formats="*.idXML" />
-        <ITEM name="fasta" value="" type="input-file" description="Input sequence database in FASTA format. Leave empty for using the same DB as used for the input idXML (this might fail). Non-existing relative filenames are looked up via &apos;OpenMS.ini:id_db_dir&apos;" required="false" advanced="false" supported_formats="*.fasta" />
-        <ITEM name="out" value="" type="output-file" description="Output idXML file." required="true" advanced="false" supported_formats="*.idXML" />
-        <ITEM name="decoy_string" value="" type="string" description="String that was appended (or prefixed - see &apos;decoy_string_position&apos; flag below) to the accessions in the protein database to indicate decoy proteins. If empty (default), it&apos;s determined automatically (checking for common terms, both as prefix and suffix)." required="false" advanced="false" />
-        <ITEM name="decoy_string_position" value="prefix" type="string" description="Is the &apos;decoy_string&apos; prepended (prefix) or appended (suffix) to the protein accession? (ignored if decoy_string is empty)" required="false" advanced="false" restrictions="prefix,suffix" />
-        <ITEM name="missing_decoy_action" value="error" type="string" description="Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): &apos;error&apos; (exit with error, no output), &apos;warn&apos; (exit with success, warning message), &apos;silent&apos; (no action is taken, not even a warning)" required="false" advanced="false" restrictions="error,warn,silent" />
-        <ITEM name="write_protein_sequence" value="false" type="bool" description="If set, the protein sequences are stored as well." required="false" advanced="false" />
-        <ITEM name="write_protein_description" value="false" type="bool" description="If set, the protein description is stored as well." required="false" advanced="false" />
-        <ITEM name="keep_unreferenced_proteins" value="false" type="bool" description="If set, protein hits which are not referenced by any peptide are kept." required="false" advanced="false" />
-        <ITEM name="unmatched_action" value="error" type="string" description="If peptide sequences cannot be matched to any protein: 1) raise an error; 2) warn (unmatched PepHits will miss target/decoy annotation with downstream problems); 3) remove the hit." required="false" advanced="false" restrictions="error,warn,remove" />
-        <ITEM name="aaa_max" value="3" type="int" description="Maximal number of ambiguous amino acids (AAAs) allowed when matching to a protein database with AAAs. AAAs are &apos;B&apos;, &apos;J&apos;, &apos;Z&apos; and &apos;X&apos;." required="false" advanced="false" restrictions="0:10" />
-        <ITEM name="mismatches_max" value="0" type="int" description="Maximal number of mismatched (mm) amino acids allowed when matching to a protein database. The required runtime is exponential in the number of mm&apos;s; apply with care. MM&apos;s are allowed in addition to AAA&apos;s." required="false" advanced="false" restrictions="0:10" />
-        <ITEM name="IL_equivalent" value="false" type="bool" description="Treat the isobaric amino acids isoleucine (&apos;I&apos;) and leucine (&apos;L&apos;) as equivalent (indistinguishable). Also occurrences of &apos;J&apos; will be treated as &apos;I&apos; thus avoiding ambiguous matching." required="false" advanced="false" />
-        <ITEM name="allow_nterm_protein_cleavage" value="true" type="string" description="Allow the protein N-terminus amino acid to clip." required="false" advanced="false" restrictions="true,false" />
-        <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
-        <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
-        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
-        <ITEM name="no_progress" value="true" type="string" description="Disables progress logging to command line" required="false" advanced="false" restrictions="true,false" />
-        <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
-        <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
-        <NODE name="enzyme" description="">
-          <ITEM name="name" value="auto" type="string" description="Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P). Default: deduce from input" required="false" advanced="false" restrictions="auto,Lys-N,V8-E,Chymotrypsin/P,proline endopeptidase,Lys-C,Lys-C/P,Asp-N/B,glutamyl endopeptidase,Alpha-lytic protease,Arg-C,Chymotrypsin,Arg-C/P,CNBr,PepsinA,Trypsin,Asp-N_ambic,leukocyte elastase,Asp-N,Formic_acid,TrypChymo,V8-DE,Trypsin/P,proline-endopeptidase/HKR,cyanogen-bromide,elastase-trypsin-chymotrypsin,2-iodobenzoate,PepsinA + P,Clostripain/P,unspecific cleavage,staphylococcal protease/D,iodosobenzoate,Glu-C+P,no cleavage" />
-          <ITEM name="specificity" value="auto" type="string" description="Specificity of the enzyme. Default: deduce from input.#br#  &apos;full&apos;: both internal cleavage sites must match.#br#  &apos;semi&apos;: one of two internal cleavage sites must match.#br#  &apos;none&apos;: allow all peptide hits no matter their context (enzyme is irrelevant)." required="false" advanced="false" restrictions="auto,full,semi,none" />
-        </NODE>
-      </NODE>
-    </NODE>
-    <NODE name="7" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
-      <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_name" value="FalseDiscoveryRate" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <ITEM name="x_pos" value="0.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="160.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="60.0" type="double" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
         <ITEM name="in" value="" type="input-file" description="Identifications from searching a target-decoy database." required="true" advanced="false" supported_formats="*.idXML" />
         <ITEM name="out" value="" type="output-file" description="Identifications with annotated FDR" required="true" advanced="false" supported_formats="*.idXML" />
         <ITEM name="PSM" value="true" type="string" description="Perform FDR calculation on PSM level" required="false" advanced="false" restrictions="true,false" />
         <ITEM name="peptide" value="false" type="bool" description="Perform FDR calculation on peptide level and annotates it as meta value#br#(Note: if set, also calculates FDR/q-value on PSM level.)" required="false" advanced="false" />
-        <ITEM name="protein" value="true" type="string" description="Perform FDR calculation on protein level" required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="protein" value="false" type="bool" description="Perform FDR calculation on protein level" required="false" advanced="false" />
         <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
@@ -314,7 +287,7 @@ p, li { white-space: pre-wrap; }
         <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
         <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
         <NODE name="FDR" description="FDR control">
-          <ITEM name="PSM" value="1.0" type="double" description="Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, disabled for 1)" required="false" advanced="false" restrictions="0.0:1.0" />
+          <ITEM name="PSM" value="0.01" type="double" description="Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, disabled for 1)" required="false" advanced="false" restrictions="0.0:1.0" />
           <ITEM name="protein" value="1.0" type="double" description="Filter proteins based on q-value (e.g., 0.05 = 5% FDR, disabled for 1)" required="false" advanced="false" restrictions="0.0:1.0" />
           <NODE name="cleanup" description="Cleanup references after FDR control">
             <ITEM name="remove_proteins_without_psms" value="true" type="string" description="Remove proteins without PSMs (due to being decoy or below PSM FDR threshold)." required="false" advanced="true" restrictions="true,false" />
@@ -333,11 +306,18 @@ p, li { white-space: pre-wrap; }
         </NODE>
       </NODE>
     </NODE>
+    <NODE name="7" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="output file list" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="200.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="60.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="output_folder_name" value="" type="string" description="" required="false" advanced="false" />
+    </NODE>
     <NODE name="8" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="output file list" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="0.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="320.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="200.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-240.0" type="double" description="" required="false" advanced="false" />
       <ITEM name="output_folder_name" value="" type="string" description="" required="false" advanced="false" />
     </NODE>
   </NODE>
@@ -366,49 +346,16 @@ p, li { white-space: pre-wrap; }
     </NODE>
     <NODE name="2" description="">
       <NODE name="source/target" description="">
-        <ITEM name="" value="5/6" type="string" description="" required="false" advanced="false" />
-      </NODE>
-      <NODE name="source_out_param" description="">
-        <ITEM name="" value="out" type="string" description="" required="false" advanced="false" />
-      </NODE>
-      <NODE name="target_in_param" description="">
-        <ITEM name="" value="in" type="string" description="" required="false" advanced="false" />
-      </NODE>
-    </NODE>
-    <NODE name="3" description="">
-      <NODE name="source/target" description="">
         <ITEM name="" value="6/7" type="string" description="" required="false" advanced="false" />
       </NODE>
       <NODE name="source_out_param" description="">
         <ITEM name="" value="out" type="string" description="" required="false" advanced="false" />
       </NODE>
       <NODE name="target_in_param" description="">
-        <ITEM name="" value="in" type="string" description="" required="false" advanced="false" />
-      </NODE>
-    </NODE>
-    <NODE name="4" description="">
-      <NODE name="source/target" description="">
-        <ITEM name="" value="7/8" type="string" description="" required="false" advanced="false" />
-      </NODE>
-      <NODE name="source_out_param" description="">
-        <ITEM name="" value="out" type="string" description="" required="false" advanced="false" />
-      </NODE>
-      <NODE name="target_in_param" description="">
         <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
       </NODE>
     </NODE>
-    <NODE name="5" description="">
-      <NODE name="source/target" description="">
-        <ITEM name="" value="2/3" type="string" description="" required="false" advanced="false" />
-      </NODE>
-      <NODE name="source_out_param" description="">
-        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
-      </NODE>
-      <NODE name="target_in_param" description="">
-        <ITEM name="" value="NeighborSearch:in_relevant_proteins" type="string" description="" required="false" advanced="false" />
-      </NODE>
-    </NODE>
-    <NODE name="6" description="">
+    <NODE name="3" description="">
       <NODE name="source/target" description="">
         <ITEM name="" value="3/4" type="string" description="" required="false" advanced="false" />
       </NODE>
@@ -419,7 +366,7 @@ p, li { white-space: pre-wrap; }
         <ITEM name="" value="database" type="string" description="" required="false" advanced="false" />
       </NODE>
     </NODE>
-    <NODE name="7" description="">
+    <NODE name="4" description="">
       <NODE name="source/target" description="">
         <ITEM name="" value="0/3" type="string" description="" required="false" advanced="false" />
       </NODE>
@@ -428,6 +375,39 @@ p, li { white-space: pre-wrap; }
       </NODE>
       <NODE name="target_in_param" description="">
         <ITEM name="" value="in" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+    <NODE name="5" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="3/8" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="NeighborSearch:out_neighbor" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+    <NODE name="6" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="5/6" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="out" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="in" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+    <NODE name="7" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="2/3" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="NeighborSearch:in_relevant_proteins" type="string" description="" required="false" advanced="false" />
       </NODE>
     </NODE>
     <NODE name="8" description="">

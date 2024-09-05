@@ -213,19 +213,39 @@ protected:
     if (in.size() == 1)
     {
       OPENMS_LOG_WARN << "Warning: Only one FASTA input file was provided, which might not contain contaminants. "
-               << "You probably want to have them! Just add the contaminant file to the input file list 'in'." << endl;
+                      << "You probably want to have them! Just add the contaminant file to the input file list 'in'." << endl;
     }
+
+    // do this first, before potentially entering neighbor mode (which modifies the 'in' list)
+    for (const auto& file_fasta : in)
+    {
+      // check input files for decoys
+      FASTAContainer<TFI_File> in_entries {file_fasta};
+      auto r = DecoyHelper::countDecoys(in_entries);
+      // if decoys found, terminates with exit code INCOMPATIBLE_INPUT_DATA
+      if (static_cast<double>(r.all_prefix_occur + r.all_suffix_occur) >= 0.4 * static_cast<double>(r.all_proteins_count))
+      {
+        OPENMS_LOG_FATAL_ERROR << "Invalid input in " + file_fasta + ": Input file already contains decoys." << '\n';
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+    }
+
 
     // create neighbor peptides for the relevant peptides?
     String in_relevant_proteins = getStringOption_("NeighborSearch:in_relevant_proteins");
-    String out_neighbor = getStringOption_("NeighborSearch:out_neighbor");
     String out_relevant = getStringOption_("NeighborSearch:out_relevant");
+    String out_neighbor = getStringOption_("NeighborSearch:out_neighbor");
     if (in_relevant_proteins.empty() ^ out_relevant.empty())
     {
       OPENMS_LOG_ERROR << "Parameter settings are invalid. Both 'in_relevant_proteins' and 'out_relevant' must be set or unset.\n";
       return ILLEGAL_PARAMETERS;
     }
     const bool neighbor_mode = ! in_relevant_proteins.empty();
+    if (!neighbor_mode && !out_neighbor.empty())
+    {
+      OPENMS_LOG_ERROR << "Parameter settings are invalid. You requested neighbor peptides via 'NeighborSearch:out_neighbor', but failed specify the required input ('NeighborSearch:in_relevant_proteins').\n";
+      return ILLEGAL_PARAMETERS;
+    }
     if (neighbor_mode)
     {
       if (input_type != SeqType::protein)
@@ -234,6 +254,11 @@ protected:
         return INCOMPATIBLE_INPUT_DATA;
       }
       
+      if (out_neighbor.empty())
+      { // make it a temp file, since we need to append its content to the final 'out' DB
+        out_neighbor = File::getTemporaryFile(out_neighbor);
+      }
+
       //-------------------------------------------------------------
       // parsing neighbor parameters
       //-------------------------------------------------------------
@@ -291,7 +316,7 @@ protected:
             if (!is_neighbor_peptide) continue;
             entry.sequence += peptide.toString();
           } // next candidate peptide
-          if (! entry.sequence.empty())
+          if (!entry.sequence.empty())
           {
             fasta_neighbor_out.writeNext(entry);
           }
@@ -330,16 +355,6 @@ protected:
     Math::RandomShuffler shuffler(seed);
     for (const auto& file_fasta : in)
     {
-      // check input files for decoys
-      FASTAContainer<TFI_File> in_entries {file_fasta};
-      auto r = DecoyHelper::countDecoys(in_entries);
-      // if decoys found, terminates with exit code INCOMPATIBLE_INPUT_DATA
-      if (static_cast<double>(r.all_prefix_occur + r.all_suffix_occur) >= 0.4 * static_cast<double>(r.all_proteins_count))
-      {
-        OPENMS_LOG_FATAL_ERROR << "Invalid input in " + file_fasta + ": Input file already contains decoys." << '\n';
-        return INCOMPATIBLE_INPUT_DATA;
-      }
-
       /// in neighbor-peptide mode: write relevant peptides to the output file
       const bool write_relevant = neighbor_mode && file_fasta == in_relevant_proteins;
 
