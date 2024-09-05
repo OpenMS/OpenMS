@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -42,7 +42,7 @@ START_SECTION((static VersionDetails getVersionStruct()))
 {
   VersionInfo::VersionDetails detail;
   detail.version_major = 3;
-  detail.version_minor = 1;
+  detail.version_minor = 2;
   detail.version_patch = 0;
   TEST_EQUAL(VersionInfo::getVersionStruct().version_major, detail.version_major);
   TEST_EQUAL(VersionInfo::getVersionStruct().version_minor, detail.version_minor);

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -26,9 +26,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_ProteinInference ProteinInference
+@page TOPP_ProteinInference ProteinInference
 
-    @brief Computes a protein identification score based on an aggregation of scores of identified peptides.
+@brief Computes a protein identification score based on an aggregation of scores of identified peptides.
 
 <CENTER>
     <table>
@@ -50,17 +50,16 @@ using namespace std;
     </table>
 </CENTER>
 
-    This tool counts and aggregates the scores of peptide sequences that match a protein accession. Only the top PSM for a peptide is used.
-    By default it also annotates the number of peptides used for the calculation (metavalue "nr_found_peptides") and
-    can be used for further filtering. 0 probability peptides are counted but ignored in aggregation method "multiplication".
+This tool counts and aggregates the scores of peptide sequences that match a protein accession. Only the top PSM for a peptide is used.
+By default it also annotates the number of peptides used for the calculation (metavalue "nr_found_peptides") and
+can be used for further filtering. 0 probability peptides are counted but ignored in aggregation method "multiplication".
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    @todo possibly integrate parsimony approach from @ref OpenMS::PSProteinInference class
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_ProteinInference.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_ProteinInference.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_ProteinInference.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_ProteinInference.html
 */
 
 // We do not want this class to show up in the docu:

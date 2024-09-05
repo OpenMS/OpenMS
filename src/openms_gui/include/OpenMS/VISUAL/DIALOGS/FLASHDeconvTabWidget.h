@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -77,6 +77,7 @@ namespace OpenMS
 
       /// append text to the log tab
       /// @param text The text to write
+      /// @param color Color for the text
       /// @param new_section Start a new block with a date and time
       void writeLog_(const QString& text, const QColor& color = "#000000", bool new_section = false);
       /// @brief convenient overload for String

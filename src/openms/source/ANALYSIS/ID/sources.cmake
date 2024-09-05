@@ -21,7 +21,6 @@ ConsensusMapMergerAlgorithm.cpp
 FalseDiscoveryRate.cpp
 FIAMSDataProcessor.cpp
 FIAMSScheduler.cpp
-HiddenMarkovModel.cpp
 HyperScore.cpp
 IDBoostGraph.cpp
 IDConflictResolverAlgorithm.cpp
@@ -39,10 +38,9 @@ PeptideProteinResolution.cpp
 PeptideIndexing.cpp
 PercolatorFeatureSetHelper.cpp
 PrecursorPurity.cpp
-ProtonDistributionModel.cpp
 PScore.cpp
 SimpleSearchEngineAlgorithm.cpp
-SiriusAdapterAlgorithm.cpp
+SiriusExportAlgorithm.cpp
 SiriusMSConverter.cpp
 )
 

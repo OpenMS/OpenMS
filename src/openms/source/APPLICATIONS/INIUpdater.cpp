@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -55,7 +55,6 @@ namespace OpenMS
       map_[TDE("MapAligner", ListUtils::create<String>("apply_given_trafo"))] = TDE("MapRTTransformer", ListUtils::create<String>(""));
       map_[TDE("MapAligner", ListUtils::create<String>("identification"))] = TDE("MapAlignerIdentification", ListUtils::create<String>(""));
       map_[TDE("MapAligner", ListUtils::create<String>("pose_clustering"))] = TDE("MapAlignerPoseClustering", ListUtils::create<String>(""));
-      map_[TDE("MapAligner", ListUtils::create<String>("spectrum_alignment"))] = TDE("MapAlignerSpectrum", ListUtils::create<String>(""));
 
       // SpectraFilter ...
 

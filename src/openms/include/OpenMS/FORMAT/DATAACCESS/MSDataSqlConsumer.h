@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -45,7 +45,7 @@ namespace OpenMS
 
         Opens the SQLite file and writes the tables.
 
-        @param filename The filename of the SQLite database
+        @param sql_filename The filename of the SQLite database
         @param run_id Unique identifier which links the sqMass and OSW file
         @param buffer_size How large the internal buffer size should be (defaults to 500 spectra / chromatograms)
         @param full_meta Whether to write the full meta-data in the SQLite header

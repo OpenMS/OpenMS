@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -62,7 +62,7 @@ public:
       virtual ~ProgressLoggerImpl() {}
 
       /// Factory requirements
-      static void registerChildren();
+  
 
     };
 
@@ -71,6 +71,10 @@ public:
 
     /// Returns the type of progress log being used.
     LogType getLogType() const;
+
+    /// @brief  Sets the logger to be used for progress logging
+    /// @param logger 
+    void setLogger(ProgressLoggerImpl* logger);
 
     /**
       @brief Initializes the progress display
@@ -100,12 +104,13 @@ protected:
     mutable time_t last_invoke_;
     static int recursion_depth_;
 
-    /// Return the name of the factory product used for this log type
-    static String logTypeToFactoryName_(LogType type);
-
     mutable ProgressLoggerImpl* current_logger_;
 
   };
+
+  // Function pointer for injecting the GUI progress logger implementation
+  typedef ProgressLogger::ProgressLoggerImpl* (*MakeGUIProgressLoggerFunc)();
+  extern OPENMS_DLLAPI MakeGUIProgressLoggerFunc make_gui_progress_logger;
 
 } // namespace OpenMS
 

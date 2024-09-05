@@ -3,19 +3,9 @@ set(directory include/OpenMS/MATH/MISC)
 
 ### list all header files of the directory here
 set(sources_list_h
-BilinearInterpolation.h
 BSpline2d.h
 CubicSpline2d.h
 EmgGradientDescent.h
-GridSearch.h
-LinearInterpolation.h
-MathFunctions.h
-NonNegativeLeastSquaresSolver.h
-MSNumpress.h
-RANSAC.h
-RANSACModel.h
-RANSACModelLinear.h
-RANSACModelQuadratic.h
 SplineBisection.h
 )
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -37,10 +37,10 @@ namespace OpenMS
 
     An example would be
     \code{.cpp}
-      Citation c = {"Rost HL, Sachsenberg T, Aiche S, Bielow C et al.",
-                    "OpenMS: a flexible open-source software platform for mass spectrometry data analysis",
-                    "Nat Meth. 2016; 13, 9: 741-748",
-                    "10.1038/nmeth.3959"};
+      Citation c = {"Pfeuffer J, Bielow C, Wein S, Jeong K, Netz E, Walter A, Alka O et al.",
+                    "OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data",
+                    "Nat Methods 21, 365–367 (2024)",
+                    "10.1038/s41592-024-02197-7"};
     \endcode
     Suggested format is AMA, e.g. https://www.lib.jmu.edu/citation/amaguide.pdf
   */
@@ -155,9 +155,9 @@ public:
       @param name Tool name.
       @param description Short description of the tool (one line).
       @param official If this is an official TOPP tool contained in the OpenMS/TOPP release.
-      If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
-
-      @param citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during --help
+             If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
+      @param citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during `--help`
+      @param toolhandler_test Check if this tool is registered with the ToolHandler (disable for unit tests only)
     */
     TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true);
 
@@ -185,7 +185,10 @@ public:
     */
     String getToolPrefix() const;
 
-private:
+    /// Returns a link to the documentation of the tool (accessible on our servers and only after inclusion in the nightly branch or a release).
+    String getDocumentationURL() const;
+
+  private:
     /// Tool name.  This is assigned once and for all in the constructor.
     String const tool_name_;
 
@@ -349,9 +352,6 @@ private:
       The subsection extends until the last colon (":"). If there is no subsection, the empty string is returned.
     */
     String getSubsection_(const String& name) const;
-
-    /// Returns a link to the documentation of the tool (accessible on our servers and only after inclusion in the nightly branch or a release).
-    String getDocumentationURL() const;
 
     /// Returns the default parameters
     Param getDefaultParameters_() const;

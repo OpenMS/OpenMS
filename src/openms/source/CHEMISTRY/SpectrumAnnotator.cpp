@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,8 +8,8 @@
 
 #include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 using namespace std;
 
@@ -111,7 +111,7 @@ namespace OpenMS
     PeakSpectrum::StringDataArray theo_annot = theoretical_spec.getStringDataArrays().front();
     PeakSpectrum::StringDataArray type_annotations = PeakSpectrum::StringDataArray();
     PeakSpectrum::FloatDataArray error_annotations = PeakSpectrum::FloatDataArray();
-    type_annotations.setName("IonName");
+    type_annotations.setName(Constants::UserParam::IonNames);
     error_annotations.setName("IonMatchError");
     type_annotations.resize(spec.size());
     error_annotations.resize(spec.size());
@@ -158,7 +158,7 @@ namespace OpenMS
         PeakSpectrum::FloatDataArray error_annotations = PeakSpectrum::FloatDataArray();
         for (PeakSpectrum::StringDataArrays::iterator it = spec.getStringDataArrays().begin(); it != spec.getStringDataArrays().end(); ++it)
         {
-          if (it->getName() == "IonName")
+          if (it->getName() == Constants::UserParam::IonNames)
             type_annotations = *it;
         }
         for (PeakSpectrum::FloatDataArrays::iterator it = spec.getFloatDataArrays().begin(); it != spec.getFloatDataArrays().end(); ++it)

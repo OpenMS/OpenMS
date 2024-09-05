@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -86,6 +86,7 @@ public:
       @note The values get converted by boost::lexical_cast so a valid conversion from String to T needs to be available.
 
       @param str The string that should be split and converted to a list.
+      @param splitter The separator to look for in @p str
       @return A vector containing the elements of the string converted into type T.
     */
     template <typename T>
@@ -163,9 +164,9 @@ public:
 
     @return True if @p elem is contained in @p container, false otherwise.
     */
-    static bool contains(const std::vector<String>& container, String elem, const CASE cs)
+    static bool contains(const std::vector<String>& container, String elem, const CASE case_sensitive)
     {
-      if (cs == CASE::SENSITIVE) return contains(container, elem);
+      if (case_sensitive == CASE::SENSITIVE) return contains(container, elem);
       // case insensitive ...
       elem.toLower();
       return find_if(container.begin(), container.end(), [&elem](String ce) {
@@ -188,7 +189,7 @@ public:
     /**
       @brief Concatenates all elements of the @p container and puts the @p glue string between elements.
 
-      @param container The container <T> to concatenate; must have begin() and end() iterator.
+      @param container The container to concatenate; must have begin() and end() iterator.
       @param glue The string to add in between elements.
     */
     template <typename T>

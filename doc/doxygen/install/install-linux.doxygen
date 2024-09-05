@@ -4,7 +4,7 @@
 
   This document describes how to build %OpenMS on a GNU/Linux system from source.
   If you encounter errors during configuring/compiling our software,
-  have a look at our @ref known_dev_bugs section and search in our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>,
+  search in our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>,
   maybe the error is already known.
   If not, please write to the <a href="https://lists.sourceforge.net/lists/listinfo/open-ms-general">mailing list</a>
   or report the error on our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>.
@@ -53,7 +53,7 @@
     </li>
     <li>
       For the complete feature set to be enabled, %OpenMS needs recent versions of
-      \b Boost (>= 1.48), \b Eigen3 (>= 3.3.2), \b libHDF5, \b libSVM (2.91 or higher but not 3.15),
+      \b Boost (>= 1.74), \b Eigen3 (>= 3.4.0), \b libHDF5, \b libSVM (2.91 or higher but not 3.15),
       \b glpk (>= 4.45) or \b CoinMP (>= 1.3.3), \b zlib, \b libbz2, and \b Xerces-C (>= 3.1.1).
       These should be built by our contrib build script in case they are not already installed via your package manager.
     </li>
@@ -233,7 +233,7 @@
   <tt>HAS_XSERVER=Off</tt>, especially as you may not have compiled Qt with
   OpenGL and you may not have an X server.
 
-  \includedoc "../doxygen/install/common-cmake-parameters.doxygen"
+  \include "../doxygen/install/common-cmake-parameters.doxygen"
 
   A full list of the CMake variables is shown when you execute
 

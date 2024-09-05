@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -268,8 +268,8 @@ namespace OpenMS
         },
         {
           {"name", "Proteomics Standards Initiative Mass Spectrometry Ontology"},
-          {"uri", "https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"},
-          {"version", "4.1.56"}
+          {"uri", "http://purl.obolibrary.org/obo/ms/psi-ms.obo"},
+          {"version", "4.1.155"}
         }
     };
     os << out.dump(2);

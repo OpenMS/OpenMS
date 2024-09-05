@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -100,9 +100,9 @@ public:
     //@}
 
      /**
-     @brief create EmpiricalFormular object by parsing an OpenMS string
+     @brief Create EmpiricalFormula object from a String
 
-     @param s Input string
+     @param rhs Input string
 
      @throws Exception::ParseError if the formula cannot be parsed
    */

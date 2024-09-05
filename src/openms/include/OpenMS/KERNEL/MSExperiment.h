@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
@@ -118,7 +117,7 @@ public:
     bool operator!=(const MSExperiment & rhs) const;
     
     /// The number of spectra
-    inline Size size() const
+    inline Size size() const noexcept
     {
       return spectra_.size();
     }
@@ -130,7 +129,7 @@ public:
     }
 
     /// Are there any spectra (does not consider chromatograms)
-    inline bool empty() const
+    inline bool empty() const noexcept
     {
       return spectra_.empty();
     }
@@ -153,14 +152,19 @@ public:
       return spectra_[n];
     }
 
-    inline Iterator begin()
+    inline Iterator begin() noexcept
     {
       return spectra_.begin();
     }
 
-    inline ConstIterator begin() const
+    inline ConstIterator begin() const noexcept
     {
-      return spectra_.begin();
+      return spectra_.cbegin();
+    }
+
+    inline ConstIterator cbegin() const noexcept
+    {
+      return spectra_.cbegin();
     }
 
     inline Iterator end()
@@ -168,9 +172,14 @@ public:
       return spectra_.end();
     }
 
-    inline ConstIterator end() const
+    inline ConstIterator end() const noexcept
     {
-      return spectra_.end();
+      return spectra_.cend();
+    }
+    
+    inline ConstIterator cend() const noexcept
+    {
+      return spectra_.cend();
     }
     //@}
 
@@ -269,12 +278,13 @@ public:
       Fill MSExperiment with data.
       Note that all data present (including meta-data) will be deleted prior to adding new data!
 
-      @param container An iterable type whose elements support getRT(), getMZ() and getIntensity()
-      @param add_mass_traces If true, each container element is searched for the metavalue
+      @tparam Container An iterable type whose elements support getRT(), getMZ() and getIntensity()
+      @tparam add_mass_traces If true, each container element is searched for the metavalue
                              "num_of_masstraces".
                              If found, "masstrace_intensity" (X>=0) meta values are added as data points (with 13C spacing).
                              This is useful for, e.g., FF-Metabo output.
                              Note that the actual feature will NOT be added if mass traces are found (since MT0 is usually identical)
+      @param container The input data with RT,m/z and intensity
 
       @exception Exception::Precondition is thrown if the container is not sorted according to
       retention time (in debug AND release mode) OR a "masstrace_intensity" value is expected but not found
@@ -501,18 +511,6 @@ public:
     */
     void updateRanges(Int ms_level);
 
-    /// returns the minimal m/z value
-    CoordinateType getMinMZ() const;
-
-    /// returns the maximal m/z value
-    CoordinateType getMaxMZ() const;
-
-    /// returns the minimal retention time value
-    CoordinateType getMinRT() const;
-
-    /// returns the maximal retention time value
-    CoordinateType getMaxRT() const;
-
     /// returns the total number of peaks
     UInt64 getSize() const;
 
@@ -603,6 +601,14 @@ public:
     /// returns the spectrum list (mutable)
     std::vector<MSSpectrum>& getSpectra();
 
+    /// Returns the closest(=nearest) spectrum in retention time to the given RT
+    ConstIterator getClosestSpectrumInRT(const double RT) const;
+    Iterator getClosestSpectrumInRT(const double RT);
+
+    /// Returns the closest(=nearest) spectrum in retention time to the given RT of a certain MS level
+    ConstIterator getClosestSpectrumInRT(const double RT, UInt ms_level) const;
+    Iterator getClosestSpectrumInRT(const double RT, UInt ms_level);
+
     /// sets the chromatogram list
     void setChromatograms(const std::vector<MSChromatogram>& chromatograms);
     void setChromatograms(std::vector<MSChromatogram>&& chromatograms);
@@ -638,7 +644,7 @@ public:
     By default, each MS spectrum's intensity just gets summed up. Regular RT bins can be obtained by specifying @p rt_bin_size.
     If a bin size in RT seconds greater than 0 is given resampling is used.
 
-    @param bin_size RT bin size in seconds (0 = no resampling)
+    @param rt_bin_size RT bin size in seconds (0 = no resampling)
     @param ms_level MS level of spectra for calculation (0 = all levels)
     @return TIC Chromatogram
     **/

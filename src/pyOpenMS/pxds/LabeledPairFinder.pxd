@@ -17,4 +17,4 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>" namespace "
         LabeledPairFinder(LabeledPairFinder &) except + nogil  # wrap-ignore
         void run(libcpp_vector[ ConsensusMap ] & input_maps, ConsensusMap & result_map) except + nogil  # wrap-doc:Runs the LabeledPairFinder algorithm
         # POINTER # BaseGroupFinder * create() except + nogil 
-        String getProductName() except + nogil  # wrap-doc:Returns the name of this module
+       

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,7 +10,7 @@
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
@@ -1343,12 +1343,9 @@ namespace OpenMS
       Size candidates_size = candidates.size();
       OPXLHelper::filterPrecursorsByTags(candidates, precursor_correction_positions, tags);
 
-#pragma omp critical (LOG_DEBUG_access)
-      {
-        OPENMS_LOG_DEBUG << "Number of sequence tags: " << tags.size() << std::endl;
-        OPENMS_LOG_DEBUG << "Candidate Peptide Pairs before sequence tag filtering: " << candidates_size << std::endl;
-        OPENMS_LOG_DEBUG << "Candidate Peptide Pairs  after sequence tag filtering: " << candidates.size() << std::endl;
-      }
+      OPENMS_LOG_DEBUG << "Number of sequence tags: " << tags.size() << std::endl;
+      OPENMS_LOG_DEBUG << "Candidate Peptide Pairs before sequence tag filtering: " << candidates_size << std::endl;
+      OPENMS_LOG_DEBUG << "Candidate Peptide Pairs  after sequence tag filtering: " << candidates.size() << std::endl;
     }
 
     vector< int > precursor_corrections;
@@ -1379,50 +1376,27 @@ namespace OpenMS
     return rel_error;
   }
 
-  void OPXLHelper::isoPeakMeans(OPXLDataStructs::CrossLinkSpectrumMatch& csm, DataArrays::IntegerDataArray& num_iso_peaks_array, std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta)
+  void OPXLHelper::isoPeakMeans(OPXLDataStructs::CrossLinkSpectrumMatch& csm,
+    const DataArrays::IntegerDataArray& num_iso_peaks_array,
+    const std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha,
+    const std::vector< std::pair< Size, Size > >& matched_spec_linear_beta,
+    const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha,
+    const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta)
   {
     csm.num_iso_peaks_mean = Math::mean(num_iso_peaks_array.begin(), num_iso_peaks_array.end());
 
-    vector< double > iso_peaks_linear_alpha;
-    vector< double > iso_peaks_linear_beta;
-    vector< double > iso_peaks_xlinks_alpha;
-    vector< double > iso_peaks_xlinks_beta;
-
-    if (!matched_spec_linear_alpha.empty())
+    auto addUp = [&](const auto& data) -> double
     {
-      for (const auto& match : matched_spec_linear_alpha)
-      {
-        iso_peaks_linear_alpha.push_back(num_iso_peaks_array[match.second]);
-      }
-      csm.num_iso_peaks_mean_linear_alpha = Math::mean(iso_peaks_linear_alpha.begin(), iso_peaks_linear_alpha.end());
-    }
+      double sum{};
+      if (data.empty()) return sum;
+      for (const auto& p : data) sum += num_iso_peaks_array[p.second];
+      return sum / data.size();
+    };
 
-    if (!matched_spec_linear_beta.empty())
-    {
-      for (const auto& match : matched_spec_linear_beta)
-      {
-        iso_peaks_linear_beta.push_back(num_iso_peaks_array[match.second]);
-      }
-      csm.num_iso_peaks_mean_linear_beta = Math::mean(iso_peaks_linear_beta.begin(), iso_peaks_linear_beta.end());
-    }
-
-    if (!matched_spec_xlinks_alpha.empty())
-    {
-      for (const auto& match : matched_spec_xlinks_alpha)
-      {
-        iso_peaks_xlinks_alpha.push_back(num_iso_peaks_array[match.second]);
-      }
-      csm.num_iso_peaks_mean_xlinks_alpha = Math::mean(iso_peaks_xlinks_alpha.begin(), iso_peaks_xlinks_alpha.end());
-    }
-
-    if (!matched_spec_xlinks_beta.empty())
-    {
-      for (const auto& match : matched_spec_xlinks_beta)
-      {
-        iso_peaks_xlinks_beta.push_back(num_iso_peaks_array[match.second]);
-      }
-      csm.num_iso_peaks_mean_xlinks_beta = Math::mean(iso_peaks_xlinks_beta.begin(), iso_peaks_xlinks_beta.end());
-    }
+    csm.num_iso_peaks_mean_linear_alpha = addUp(matched_spec_linear_alpha);
+    csm.num_iso_peaks_mean_linear_beta = addUp(matched_spec_linear_beta);
+    csm.num_iso_peaks_mean_xlinks_alpha = addUp(matched_spec_xlinks_alpha);
+    csm.num_iso_peaks_mean_xlinks_beta = addUp(matched_spec_xlinks_beta);
   }
 
   void OPXLHelper::filterPrecursorsByTags(std::vector <OPXLDataStructs::XLPrecursor>& candidates, std::vector< int >& precursor_correction_positions, const std::vector<std::string>& tags)

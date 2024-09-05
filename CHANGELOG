@@ -13,28 +13,52 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 #<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit e.g. https://github.com/OpenMS/OpenMS/pull/XXXX (replace XXXX with number of interest) for details
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.2     (in development)                   ----
+----                                OpenMS 3.2.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
 What's new:
-- Breaking change: Rename of parameters for FeatureFinderCentroided (debug->advanced), and PeakPickerWavelet/TOFCalibration (optimization -> optimization:type) (#7154)
+- Changes breaking backwards compatibility: 
+   - Rename of parameters for TOPP tool FeatureFinderCentroided (debug -> advanced), and PeakPickerWavelet/TOFCalibration (optimization -> optimization:type) (#7154)
+   - Rename of parameters for TOPP tool IDFilter (score:pep -> score:psm; score:prot -> score:protein; score:protgroup -> score:proteingroup) with 'nan' as new default (#7541)
+
 Library:
 - Extend FileHandler to support load and store operations for our major datastructures (spectra, features, identifications, etc.). Replaced file type specific code with the more generic FileHandler calls to decouple the IO code from other parts of the library.
+- SiriusAdapter reworked to SiriusExport: Instead of running SIRIUS directly, this reworked tool takes multiple mzML and feautureXML (optional) files exporting a single SIRIUS .ms input file as well as an input table with compound info from features for the new AssayGeneratorMetaboSirius tool. (#7234)
+- Splitting AssayGeneratorMetabo into two tools: In line with the changes to SiriusExport this tool has been split into two separate workflows. AssayGeneratorMetabo generates an assay library from mzML and feautreXML files using an heuristic approach picking the highest intensity MS2 peaks (like before). AssayGeneratorMetaboSirius takes an existing SIRIUS project directory as input to generate an assay library based on fragmentation trees. (#7234)
 - better documentation for all SpectraFilter... tools (#7183)
+- TOPPView: 
+  - offer Ion mobility view from 2D spectra view (#7423)
+  - view ion mobility frames, irrespective of its MS level (formerly only MS1 was supported) (#7427)
+- OpenSwath: Add output on peak shape metrics to .osw file (#7222)
+
+New Tools:
+- IonMobilityBinning - Merges spectra with similar IM values and creates @p N output mzML's by discretizing the IM range (#7459)
+- AssayGeneratorMetaboSirius -- Assay library generation from a SIRIUS project directory (Metabolomics)
+- SiriusExport -- Metabolite identification using single and tandem mass spectrometry
 
 Fixes:
-- TOPPView: fix crash when viewing certain Chromatograms (#7220)
-- more robust parsing of mzIdentML (#7153)
-- more robust FileConverter (#7176)
+- FileConverter: more robust (#7176)
 - MSFragger: allow relative path to database (#7155)
 - MSGFPlusAdapter: allow concurrent creation of indexed database (#7272)
+- CometAdapter: work around bug in Comet 2024.01 rev. 0 to avoid empty results (#7540)
 - ParamEditor: fixed error for the subsection parameter (ParamNode) to go through store function (#7180)
+- TOPPView:
+   - fix crash when viewing certain Chromatograms (#7220)
+   - in 2D view, show correct adjacent layers in context menu, if user clicked to the right of the last MS1 scan (now shows the 4 rightmost MS1 scans, used to show the 4 leftmost scans) (#7423)
+   - fix glitches in 1D view and layer names (#7549)
+   - Show prefix ions (e.g. b1) when generating theoretical spectra (#7567)
 - TOPPAS: open files in TOPPView (#7213)
+- pyOpenMS: Log warnings in pure Python code with warnings.warn instead of print (#7418)
+- more robust parsing of mzIdentML (#7153)
 
 Misc:
+- FileInfo: Report IM ranges (if any) (#7459)
 - OpenMSInfo reports the ILP solver (CoinOr or glpk) (#7156)
+- add citation information for OpenMS 3.0 (Nat. Methods) (#7383)
 - Add export for Common Workflow Language (CWL) (#6156)
 - Add tool description lib (TDL) dependency (#6156)
+
+Changed/new parameters: see CHANGELOG_PARAMS for details
 
 Note: The goal of our library is to provide useful, reusable code in a way that’s easy to understand and use.
 To make OpenMS simpler, more focused and more accessible we gradually remove potentially outdated tools and algorithms.
@@ -44,13 +68,25 @@ an alternative solution or reverse a particular decision for removal.
 Cleanup/Removal:
 
 - removed tools:
-  - Removed SpectraFilterMarkerMower TOPP tool (#7183)
-  - FeatureFinderIsotopeWavelet
-  - PeakPickerWavelet
-  - PrecursorMassCorrector
-  - TOFCalibration
-  - ERPairFinder
-  - RNPxlSearch
+  - SpectraFilterMarkerMower -- Applies thresholdfilter to peak spectra (#7183)
+  - FeatureFinderIsotopeWavelet -- Detects two-dimensional features in LC-MS data
+  - PeakPickerWavelet -- Finds mass spectrometric peaks in profile mass spectra
+  - PrecursorMassCorrector -- Corrects the precursor entries of MS/MS spectra, by using MS1 information
+  - TOFCalibration -- Applies time of flight calibration
+  - ERPairFinder -- Util which can be used to evaluate pair ratios on enhanced resolution (zoom) scans
+  - RNPxlSearch -- Annotate RNA/DNA-peptide cross-links in MS/MS spectra
+  - SpectraFilterSqrtMower -- Applies thresholdfilter to peak spectra
+  - FeatureFinderMRM -- Detects two-dimensional features in LC-MS data
+  - MapAlignerSpectrum -- Corrects retention time distortions between maps by spectrum alignment
+  - ProteinResolver -- protein inference
+  - SiriusAdapter -- Tool for metabolite identification using single and tandem mass spectrometry
+  - SpectraFilterBernNorm -- Applies thresholdfilter to peak spectra
+  - SpectraFilterScaler -- Applies thresholdfilter to peak spectra
+
+- removed library code:
+  - HiddenMarkovModel
+  - PeakPickerMaxima
+  - DeNovo related, old marker code
 
 - removed tutorials:
   - Tutorial_PeakPickerCWT
@@ -67,6 +103,9 @@ Cleanup/Removal:
   - OptimizePick_test
   - PeakPickerCWT_test
   - PeakShape_test
+
+- Deprecated (and likely removed in the next release)
+  - XTandemAdapter
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.1     (released 10/2023)                 ----
@@ -469,7 +508,7 @@ New tools:
   - OpenPepXL -- Tool for protein-protein cross-linking identification using labeled linkers (UTIL)
   - OpenPepXLLF -- Tool for protein-protein cross linking with label-free linkers (UTIL)
   - PSMFeatureExtractor -- Computes extra features for each input PSM (UTIL)
-  - SiriusAdapter -- Tool for metabolite identification using single and tandem mass spectrometry (UTIL)
+  - SiriusExport -- Tool for metabolite identification using single and tandem mass spectrometry (UTIL)
   - XFDR -- Calculates false discovery rate estimates on protein-protein-crosslink identifications (UTIL)
 
 Deprecated and removed tools:
@@ -2427,7 +2466,7 @@ Detailed list of changes to specific OpenMS classes:
   - KERNEL/FeatureHandle
   - KERNEL/MSExperimentExtern
   - KERNEL/PeakIndex
-  - TRANSFORMATIONS/RAW2PEAK/PeakShapeType
+  - TRANSFORMATIONS/CENTROIDING/PeakShapeType
 
 - New classes
   - CHEMISTRY/ModificationsDB which handles the PSI-MOD modifications

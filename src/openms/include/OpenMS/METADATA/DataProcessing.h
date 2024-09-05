@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -52,6 +52,7 @@ public:
       CONVERSION_MZXML,                       ///< Conversion to mzXML format
       CONVERSION_DTA,                 ///< Conversion to DTA format
       IDENTIFICATION,                 ///< Identification
+      ION_MOBILITY_BINNING,           ///< Ion mobility binning (merging of spectra with similar IM values)
       SIZE_OF_PROCESSINGACTION
     };
     /// Names of inlet types

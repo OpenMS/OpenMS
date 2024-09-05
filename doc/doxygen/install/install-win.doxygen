@@ -15,8 +15,10 @@
   This document especially considers the installation of several libraries which are required by %OpenMS.
   Most of these libraries are made available in our "contrib-package" (see below).
   <br>
-  If you encounter errors during configuring/compiling our software, have a look at our "Known Issues" section \ref known_dev_bugs "here",
-  maybe the error is already known. If not, please write to the <a href="open-ms-general@lists.sourceforge.net" target="_new">mailing list</a>.
+  If you encounter errors during configuring/compiling our software,
+  search in our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>,
+  already known. If not, please write to the mailing list (open-ms-general AT lists.sourceforge.net) or report the error
+  on our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>.
   <br>
   <br>
 
@@ -257,7 +259,7 @@
        
     </ol>
 
-    \includedoc "../doxygen/install/common-cmake-parameters.doxygen"
+    \include "../doxygen/install/common-cmake-parameters.doxygen"
 
 
     Now there should be a <tt>OpenMS_host.sln</tt> file in your build directory, which you can open using Visual Studio.

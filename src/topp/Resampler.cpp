@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,8 +11,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
+#include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 
 #include <QtGui/QImage>
 
@@ -24,31 +24,31 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_Resampler Resampler
+@page TOPP_Resampler Resampler
 
-  @brief Resampler can be used to transform an LC/MS map into a resampled map.
+@brief Resampler can be used to transform an LC/MS map into a resampled map.
 
-  <CENTER>
-  <table>
-  <tr>
-  <th ALIGN = "center"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> &rarr; Resampler &rarr;</td>
-  <th ALIGN = "center"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay  </td>
-  </tr>
-  </table>
-  </CENTER>
+<CENTER>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=2> &rarr; Resampler &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay  </td>
+</tr>
+</table>
+</CENTER>
 
-  When writing an peak file, all spectra are resampled with a new sampling
-  rate. The number of spectra does not change.
+When writing an peak file, all spectra are resampled with a new sampling
+rate. The number of spectra does not change.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_Resampler.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_Resampler.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_Resampler.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_Resampler.html
 */
 
 // We do not want this class to show up in the docu:
