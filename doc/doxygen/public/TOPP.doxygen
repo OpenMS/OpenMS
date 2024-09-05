@@ -20,6 +20,7 @@
   - @subpage TOPP_TOPPAS - An assistant for GUI-driven TOPP workflow design.
   - @subpage TOPP_INIFileEditor - An editor for %OpenMS configuration files.
   - @subpage TOPP_SwathWizard - A user-friendly step-by-step wizard for SWATH data analysis
+  - @subpage TOPP_FLASHDeconvWizard - A user-friendly step-by-step wizard for the @ref TOPP_FLASHDeconv tool
   
   <b>File Converter</b>
   - @subpage TOPP_FileConverter - Converts between different MS file formats.
@@ -43,6 +44,7 @@
   - @subpage TOPP_IDMerger -  Merges several protein/peptide identification files into one file.  
   - @subpage TOPP_IDRipper - Splits protein/peptide identifications according their file-origin.
   - @subpage TOPP_IDSplitter - Splits protein/peptide identifications off of annotated data files.
+  - @subpage TOPP_IonMobilityBinning - Merges spectra with similar IM values and creates @p N output mzML's by discretizing the IM range.
   - @subpage TOPP_MapStatistics - Extract extended statistics on the features of a map for quality control.
   - @subpage TOPP_MzMLSplitter - Splits an mzML file into multiple parts.
   
@@ -50,7 +52,6 @@
   <b>Spectrum processing: Centroiding</b>
   - @subpage TOPP_PeakPickerHiRes - Peak detection in high-resolution profile mass spectra.
   - @subpage TOPP_PeakPickerIterative - Peak detection in high-resolution profile TOF data (based on PeakPickerHiRes with some postprocessing) 
-  - @subpage TOPP_PeakPickerWavelet - Peak detection in low-resolution (ion trap) profile mass spectra.
   
 
   <b>Spectrum processing: peak smoothing / normalization</b>
@@ -58,15 +59,10 @@
   - @subpage TOPP_NoiseFilterGaussian - Removes noise from profile spectra using a Gaussian smoothing.
   - @subpage TOPP_NoiseFilterSGolay - Removes noise from profile spectra using Savitzky-Golay smoothing.
   - @subpage TOPP_MapNormalizer - Normalizes peak intensities in an MS run.
-  - @subpage TOPP_SpectraFilterBernNorm - Applies a filter to peak spectra.
-  - @subpage TOPP_SpectraFilterMarkerMower - Applies a filter to peak spectra.
-  - @subpage TOPP_SpectraFilterNLargest - Applies a filter to peak spectra.
-  - @subpage TOPP_SpectraFilterNormalizer - Applies a filter to peak spectra.
-  - @subpage TOPP_SpectraFilterParentPeakMower - Applies a filter to peak spectra.
-  - @subpage TOPP_SpectraFilterScaler - Applies a filter to peak spectra.
-  - @subpage TOPP_SpectraFilterSqrtMower - Applies a filter to peak spectra.
-  - @subpage TOPP_SpectraFilterThresholdMower - Applies a filter to peak spectra.
-  - @subpage TOPP_SpectraFilterWindowMower - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterNLargest - Keeps only the n largest peaks per spectrum.
+  - @subpage TOPP_SpectraFilterNormalizer - Scale intensities per spectrum to either sum to 1 or have a maximum of 1.
+  - @subpage TOPP_SpectraFilterThresholdMower - Removes all peaks below an intensity threshold.
+  - @subpage TOPP_SpectraFilterWindowMower - Retains the highest peaks in a sliding or jumping window.
   
 
   <b>Spectrum processing: Misc / Helpers</b>
@@ -79,20 +75,15 @@
   - @subpage TOPP_ExternalCalibration - Applies an external mass calibration.
   - @subpage TOPP_HighResPrecursorMassCorrector - Correct the precursor entries of tandem MS scans for high resolution data.
   - @subpage TOPP_IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards.
-  - @subpage TOPP_PrecursorMassCorrector - Correct the precursor m/z entries of tandem MS scans (low-res only).
-  - @subpage TOPP_TOFCalibration - Applies time of flight mass calibration.
 
   <b>Quantitation</b>
   - @subpage TOPP_ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).
   - @subpage TOPP_Decharger - Decharges and merges different feature charge variants of the same chemical entity.
   - @subpage TOPP_EICExtractor - Quantifies signals at given positions in (raw or picked) LC-MS maps.
-  - @subpage TOPP_ERPairFinder - Evaluates pair ratios on enhanced resolution (ER = zoom) scans.
   - @subpage TOPP_FeatureFinderCentroided - Detects two-dimensional features in centroided LC-MS data.
   - @subpage TOPP_FeatureFinderIdentification - Detects two-dimensional features in MS1 data based on peptide identifications.
-  - @subpage TOPP_FeatureFinderIsotopeWavelet - Detects two-dimensional features in uncentroided (=raw) LC-MS data (low-res).
   - @subpage TOPP_FeatureFinderMetabo - Detects two-dimensional features in centroided LC-MS data of metabolites.
   - @subpage TOPP_FeatureFinderMetaboIdent - Detects features in MS1 data corresponding to small molecule identifications.
-  - @subpage TOPP_FeatureFinderMRM - Quantifies features LC-MS/MS MRM data.
   - @subpage TOPP_FeatureFinderMultiplex - Identifies peptide multiplets (pairs, triplets etc., e.g. for SILAC or Dimethyl labeling) and determines their relative abundance.
   - @subpage TOPP_IsobaricAnalyzer - Extracts and normalizes TMT and iTRAQ information from an MS experiment.
   - @subpage TOPP_MassTraceExtractor - Annotates mass traces in centroided LC-MS maps.
@@ -100,7 +91,6 @@
   - @subpage TOPP_MetaProSIP - Detect labeled peptides from protein-SIP experiments.
   - @subpage TOPP_MultiplexResolver - Resolves conflicts between identifications and quantifications in multiplex data.
   - @subpage TOPP_ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps.
-  - @subpage TOPP_ProteinResolver - A peptide-centric algorithm for protein inference.
   - @subpage TOPP_ProteomicsLFQ - Perform label-free quantification in a single tool.
   - @subpage TOPP_SeedListGenerator - Generates seed lists for feature detection.
 
@@ -145,7 +135,6 @@
   <b>Map Alignment</b>
   - @subpage TOPP_MapAlignerIdentification - Corrects RT distortions between maps based on common peptide identifications using one map as reference.
   - @subpage TOPP_MapAlignerPoseClustering - Corrects RT distortions between maps using a pose clustering approach (not using pep-ids and a linear model).
-  - @subpage TOPP_MapAlignerSpectrum - Corrects RT distortions between maps by spectrum alignment.
   - @subpage TOPP_MapAlignerTreeGuided - Corrects RT distortions between maps based on common peptide identifications guided by a similarity tree.
   - @subpage TOPP_MapRTTransformer - Applies RT transformations to maps.
 
@@ -157,6 +146,7 @@
 
   <b>Targeted Experiments and OpenSWATH</b>
   - @subpage TOPP_AssayGeneratorMetabo - Generates an assay library using DDA data (Metabolomics).
+  - @subpage TOPP_AssayGeneratorMetaboSirius - Generates an assay library using SIRIUS project directory (Metabolomics).
   - @subpage TOPP_ClusterMassTracesByPrecursor - Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps.
   - @subpage TOPP_MRMMapper - MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML).
   - @subpage TOPP_MRMPairFinder - Evaluates labeled pair ratios on MRM features.
@@ -177,7 +167,6 @@
   <b>Cross-linking</b>
   - @subpage TOPP_OpenPepXL - Search for peptide pairs linked with a labeled cross-linker.
   - @subpage TOPP_OpenPepXLLF - Search for cross-linked peptide pairs in tandem MS spectra.
-  - @subpage TOPP_RNPxlSearch - Annotates RNA-to-peptide cross-links in MS/MS spectra.
   - @subpage TOPP_RNPxlXICFilter - Removes MS2 spectra from treatment based on the fold change between control and treatment for RNA-to-peptide cross-linking experiments.
   - @subpage TOPP_XFDR - Calculates false discovery rate estimates on cross-link identifications.
 
@@ -195,11 +184,10 @@
   - @subpage TOPP_QCMerger - Merges two qcML files together.
   - @subpage TOPP_QCShrinker - Removes extra verbose table attachments from a qcML file that are not needed anymore, e.g. for a final report.
 
-
   <b>Metabolite Identification</b>
   - @subpage TOPP_AccurateMassSearch - Finds potential HMDB IDs within the given mass error window.
   - @subpage TOPP_MetaboliteSpectralMatcher - Identifies small molecules from tandem MS spectra.
-  - @subpage TOPP_SiriusAdapter - De novo metabolite identification.
+  - @subpage TOPP_SiriusExport - Export for Sirius de novo metabolite identification.
 
   <b>RNA</b>
   - @subpage TOPP_NucleicAcidSearchEngine - Search MzML files for oligonucleotides and their modifications.

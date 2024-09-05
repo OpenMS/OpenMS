@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,7 +9,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
 
@@ -19,30 +19,30 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-  @page TOPP_SpectraFilterNormalizer SpectraFilterNormalizer
+@page TOPP_SpectraFilterNormalizer SpectraFilterNormalizer
 
-  @brief Normalizes intensity of peak spectra.
+@brief Scale intensities per spectrum to either sum to 1 or have a maximum of 1.
 
-  <CENTER>
-  <table>
-  <tr>
-  <th ALIGN = "center"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> &rarr; SpectraFilter &rarr;</td>
-  <th ALIGN = "center"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
-  </tr>
-  </table>
-  </CENTER>
+<CENTER>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=2> &rarr; SpectraFilter &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
+</tr>
+</table>
+</CENTER>
 
-  Normalization is performed for each spectrum independently.
+Normalization is performed for each spectrum independently.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_SpectraFilterNormalizer.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_SpectraFilterNormalizer.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_SpectraFilterNormalizer.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_SpectraFilterNormalizer.html
 */
 
 
@@ -54,7 +54,7 @@ class TOPPSpectraFilterNormalizer :
 {
 public:
   TOPPSpectraFilterNormalizer() :
-    TOPPBase("SpectraFilterNormalizer", "Normalizes intensity of peak spectra.")
+    TOPPBase("SpectraFilterNormalizer", "Scale intensities per spectrum to either sum to 1 or have a maximum of 1.")
   {
   }
 

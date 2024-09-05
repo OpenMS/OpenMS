@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,8 +11,8 @@
 
   @brief An assistant for FLASHDeconv execution.
 
-  The implementation of FLASHDeconvWizard is heavily inspired by the SwathWizard.
-  The Wizard helps the user to run FLASHDeconv for Top-down proteomics analysis. (@ref TOPP_FLASHDeconv tool)
+  The implementation of FLASHDeconvWizard is heavily inspired by the @ref TOPP_SwathWizard .
+  The Wizard helps the user to run @ref TOPP_FLASHDeconv for Top-down proteomics analysis.
 
   Users can enter the required input data (mzML MS/MS data) in dedicated fields, usually by drag'n'droping files from the
   operating systems' file explorer (Explorer, Nautilus, Finder...).

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
+#include <OpenMS/COMPARISON/SpectrumPrecursorComparator.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -77,18 +77,6 @@ START_SECTION(double operator () (const PeakSpectrum& a) const)
 
 	TEST_REAL_SIMILAR((*e_ptr)(spec1), 2.0)
 
-END_SECTION
-
-START_SECTION(static PeakSpectrumCompareFunctor* create())
-	PeakSpectrumCompareFunctor* cf = SpectrumPrecursorComparator::create();
-	SpectrumPrecursorComparator pre_comp;
-	TEST_EQUAL(cf->getName(), pre_comp.getName())
-	TEST_EQUAL(cf->getParameters(), pre_comp.getParameters())
-	delete cf;
-END_SECTION
-
-START_SECTION(static const String getProductName())
-	TEST_EQUAL(e_ptr->getProductName(), "SpectrumPrecursorComparator")
 END_SECTION
 
 delete e_ptr;

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -26,7 +26,7 @@ namespace OpenMS
     The class supports the absence of information within other columns.
 
     A reduced example of the expected format (fewer columns are shown here):
-    > component_name,component_group_name,TransitionGroupPicker:stop_after_feature,TransitionGroupPicker:PeakPickerMRM:sgolay_frame_length
+    > component_name,component_group_name,TransitionGroupPicker:stop_after_feature,TransitionGroupPicker:PeakPickerChromatogram:sgolay_frame_length
     > arg-L.arg-L_1.Heavy,arg-L,2,15
     > arg-L.arg-L_1.Light,arg-L,2,17
     > orn.orn_1.Heavy,orn,3,21

@@ -12,27 +12,16 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Matrix.h>" namespace "OpenMS":
         Matrix() except + nogil 
         Matrix(Matrix[ValueT]) except + nogil 
         Matrix(size_t rows, size_t cols, ValueT value) except + nogil 
-        # const_reference operator()(size_t i, size_t j) except + nogil 
-        # reference operator()(size_t i, size_t j) except + nogil 
-        # const_reference getValue(size_t i, size_t j) except + nogil 
         ValueT getValue(size_t i, size_t j) nogil
         void setValue(size_t i, size_t j, ValueT value) nogil
-        ## The following two lines introduce an odd bug:
-        # static PyObject *__pyx_convert_vector_to_py_double is declared twice by Cython:
-        # TODO look into Cython Bug
-        # libcpp_vector[ValueT] row(size_t i) except + nogil 
-        # libcpp_vector[ValueT] col(size_t i) except + nogil 
-        libcpp_vector[ValueT] asVector() except + nogil  # wrap-ignore
-        void clear() except + nogil 
-        void resize(size_t i, size_t j, ValueT value) except + nogil 
-        void resize(libcpp_pair[ size_t, size_t ] & size_pair, ValueT value) except + nogil 
         size_t rows() nogil
         size_t cols() nogil
-        libcpp_pair[ size_t, size_t ] sizePair() except + nogil 
-        size_t index(size_t row, size_t col) except + nogil 
-        libcpp_pair[ size_t, size_t ] indexPair(size_t index) except + nogil 
-        size_t colIndex(size_t index) except + nogil  # wrap-doc:Calculate the column from an index into the underlying vector. Note that Matrix uses the (row,column) lexicographic ordering for indexing
-        size_t rowIndex(size_t index) except + nogil  # wrap-doc:Calculate the row from an index into the underlying vector. Note that Matrix uses the (row,column) lexicographic ordering for indexing
+        size_t size() nogil
+        int innerStride() nogil # wrap-ignore
+        int outerStride() nogil # wrap-ignore
+        bool rowMajor() nogil # wrap-ignore
+        void resize(size_t rows, size_t cols) nogil
+        ValueT* data() nogil # wrap-ignore
         ## bool operator==(Matrix & rhs) except + nogil 
         ## bool operator<(Matrix & rhs) except + nogil 
         # TEMPLATE # void setMatrix(ValueType matrix) except + nogil 

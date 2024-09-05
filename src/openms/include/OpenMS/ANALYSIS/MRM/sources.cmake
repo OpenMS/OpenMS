@@ -3,7 +3,6 @@ set(directory include/OpenMS/ANALYSIS/MRM)
 
 ### list all header files of the directory here
 set(sources_list_h
-MRMFragmentSelection.h
 ReactionMonitoringTransition.h
 )
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -32,9 +32,6 @@ namespace OpenMS
     For protein groups, only the "group leader" (which is annotated with a
     probability and coverage) receives these attributes. All indistinguishable
     proteins of the same group only have an accession and score of -1.
-
-    @note This format will eventually be replaced by the HUPO-PSI (mzIdentML
-    and mzQuantML) formats.
 
     @todo Document which metavalues of Protein/PeptideHit are filled when reading ProtXML (Chris)
     @todo Writing of protXML is currently not supported

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -160,7 +160,7 @@ namespace OpenMS
     {
       String e_symbol(element_count.first->getSymbol());
       String tmp = element_count.second > 0 ? "+" : "-";
-      tmp += abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
+      tmp += std::abs(element_count.second) > 1 ? String(std::abs(element_count.second)) : "";
       tmp += e_symbol;
       sorted_elem_map[e_symbol] = std::move(tmp);
     }
@@ -169,7 +169,7 @@ namespace OpenMS
       s += sorted_e_cnt.second;
     }
     s += String("]");
-    s += abs(charge) > 1 ? String(abs(charge)) : "";
+    s += std::abs(charge) > 1 ? String(std::abs(charge)) : "";
     s += charge_sign;
 
     return s;

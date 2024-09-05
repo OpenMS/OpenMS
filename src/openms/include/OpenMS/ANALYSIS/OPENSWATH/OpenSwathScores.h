@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -43,6 +43,7 @@ namespace OpenMS
     bool use_uis_scores = true;
     bool use_ionseries_scores = true;
     bool use_ms2_isotope_scores = true;
+    bool use_peak_shape_metrics = false;
   };
 
   /** @brief A structure to hold the different scores computed by OpenSWATH
@@ -75,7 +76,7 @@ namespace OpenMS
     double weighted_coelution_score = 0;
     double weighted_xcorr_shape = 0;
     double weighted_massdev_score = 0;
-   
+
     double ms1_xcorr_coelution_score = -1;
     double ms1_xcorr_coelution_contrast_score = 0;
     double ms1_xcorr_coelution_combined_score = 0;
@@ -148,9 +149,9 @@ namespace OpenMS
     double calculate_lda_prescore(const OpenSwath_Scores& scores) const;
 
     /** @brief A scoring model for peak groups with a single transition
-     * 
+     *
      * Manually derived scoring model for single transition peakgroups, only
-     * uses norm_rt_score, log_sn_score, and elution_model_fit_score. 
+     * uses norm_rt_score, log_sn_score, and elution_model_fit_score.
      *
      * @returns A score which is better when more negative
      *
@@ -182,11 +183,28 @@ namespace OpenMS
     std::vector<double> ind_total_area_intensity;
     std::vector<double> ind_intensity_score;
     std::vector<double> ind_apex_intensity;
+    std::vector<double> ind_apex_position;
+    std::vector<double> ind_fwhm;
     std::vector<double> ind_total_mi;
     std::vector<double> ind_log_intensity;
     std::vector<double> ind_intensity_ratio;
     std::vector<double> ind_mi_ratio;
     std::vector<double> ind_mi_score;
+    
+    // peak shape metrics
+    std::vector<double> ind_start_position_at_5;
+    std::vector<double> ind_end_position_at_5;
+    std::vector<double> ind_start_position_at_10;
+    std::vector<double> ind_end_position_at_10;
+    std::vector<double> ind_start_position_at_50;
+    std::vector<double> ind_end_position_at_50;
+    std::vector<double> ind_total_width;
+    std::vector<double> ind_tailing_factor;
+    std::vector<double> ind_asymmetry_factor;
+    std::vector<double> ind_slope_of_baseline;
+    std::vector<double> ind_baseline_delta_2_height;
+    std::vector<double> ind_points_across_baseline;
+    std::vector<double> ind_points_across_half_height;
 
     OpenSwath_Ind_Scores() = default;
 

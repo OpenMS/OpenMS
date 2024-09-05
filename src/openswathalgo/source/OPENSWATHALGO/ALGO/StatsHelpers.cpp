@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -6,7 +6,7 @@
 // $Authors: Witold Wolski  $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h"
+#include <OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h>
 
 #include <algorithm>
 #include <numeric>

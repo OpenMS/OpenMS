@@ -17,8 +17,8 @@
   are required by %OpenMS. Most of these libraries are made available in our
   "contrib-package" (see below).
   <br>
-  If you encounter errors during configuring/compiling our software, have a
-  look at our @ref known_dev_bugs section, maybe the error is
+  If you encounter errors during configuring/compiling our software,
+  search in our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>,
   already known. If not, please write to the mailing list (open-ms-general AT lists.sourceforge.net) or report the error
   on our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>.
 
@@ -191,7 +191,7 @@
   </ol>
 
 
-  \includedoc "../doxygen/install/common-cmake-parameters.doxygen"
+  \include "../doxygen/install/common-cmake-parameters.doxygen"
 
   After CMake was executed, you can list the make targets by calling:
 

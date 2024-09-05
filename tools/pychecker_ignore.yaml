@@ -10,8 +10,6 @@ PyOpenMSChecker:
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-    OpenMS::PeakMarker:
-      - apply
     OpenMS::FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern:
       - peak
     OpenMS::SqMassFile:
@@ -185,17 +183,11 @@ PyOpenMSChecker:
         - findNext # iterator
     OpenMS::FeatureMap:
         - getAnnotationStatistics
-    OpenMS::PSProteinInference:
-        - getNumberOfProtIdsPeptideRule
-    OpenMS::FilterFunctor:
-        - apply
     OpenMS::ContinuousWaveletTransformNumIntegration:
         - transform
         - init
     OpenMS::SplineSpectrum:
         - getNavigator
-    OpenMS::ComplementMarker:
-        - getProductName
     OpenMS::TheoreticalSpectrumGenerator:
         - updateMembers_
     OpenMS::PeakPickerIterative:
@@ -263,23 +255,11 @@ PyOpenMSChecker:
         - secondary_types
         - static_intensities
         - conditional_prob
-    OpenMS::ProteinResolver::ISDGroup:
-        # STL pointer attributes / list
-        - proteins
-        - peptides
-        - msd_groups # TODO no converter for List
-    OpenMS::ProteinResolver::MSDGroup:
-        # STL pointer attributes / list
-        - proteins
-        - peptides
-        - isd_group # raw pointer
     OpenMS::PeptideAndProteinQuant::ProteinData:
         - ProteinData # constructor
         # STL attributes / map
         - abundances
         - total_abundances
-    OpenMS::ProteinResolver::PeptideEntry:
-        - proteins # std::list
     OpenMS::Base64:
         # unwrappable type (QByteArray)
         - decodeSingleString
@@ -341,12 +321,6 @@ PyOpenMSChecker:
     OpenMS::MapAlignmentEvaluationAlgorithm:
         - evaluate
         - isSameHandle
-    OpenMS::IsotopeMarker:
-        - getProductName
-    OpenMS::TwoDOptimization:
-        - getPenalties
-        - setPenalties
-        - optimize
     OpenMS_Matrix:
         - row
         - col
@@ -451,16 +425,10 @@ PyOpenMSChecker:
     # immutable types by reference
     OpenMS::SequestOutfile:
         - readOutHeader
-    OpenMS::ProteinResolver:
-        # pointers
-        - getPeptideIdentification
-        - getPeptideHit
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Not implemented = errors in OpenMS API
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    OpenMS::PeakPickerSH:
-        - pick
     OpenMS::XTandemInfile:
         - getNoiseSuppression
         - setNoiseSuppression
@@ -528,8 +496,6 @@ PyOpenMSChecker:
         - NamesOfSpectrumType
     OpenMS::Instrument:
         - NamesOfIonOpticsType
-    OpenMS::MSQuantifications:
-        - NamesOfQuantTypes
     OpenMS::IonDetector:
         - Type
         - AcquisitionMode
@@ -539,32 +505,16 @@ PyOpenMSChecker:
         - Type
         - getNextPrecursorsSeq # immutable types by reference
         - getPeptideProteinCounter # not implemented
-    OpenMS::PeakShape:
-        - Type
     OpenMS::LPWrapper:
         - Type
     OpenMS::ControlledVocabulary::CVTerm:
         - XRefType
-    OpenMS::ProteinResolver::ResolverResult:
-        - type
-        # attributes (raw ptrs)
-        - isds
-        - msds
-        - protein_entries
-        - peptide_entries
-        - reindexed_peptides
-        - reindexed_proteins
-        - input_type
-        - peptide_identification
-        - consensus_map
     OpenMS::ims::Weights:
         - Weights
     OpenMS::PeptideAndProteinQuant::Statistics:
         - Statistics # constructor
     OpenMS::ims::IMSIsotopeDistribution::Peak:
         - Peak # constructor
-    OpenMS::PeakShape:
-        - Type
 
     # Legacy functions only
     OpenMS::OnDiscMSExperiment:
@@ -639,11 +589,6 @@ PyOpenMSChecker:
         # others (pointer / multimap)
         - mergeFeatures
         - getClosedBoxes
-    OpenMS::PeakShape:
-        - getLeftEndpoint
-        - setLeftEndpoint
-        - getRightEndpoint
-        - setRightEndpoint
     OpenMS::MorphologicalFilter:
         - filterRange # requires iterator
     OpenMS::Param::ParamIterator:
@@ -805,9 +750,6 @@ PyOpenMSChecker:
 
     OpenMS::QTClusterFinder:
         - create
-    OpenMS::FeatureFinderAlgorithmIsotopeWavelet:
-        - createHRData
-        - create
     OpenMS::UnimodXMLFile:
         # TODO should now work ...
         - load
@@ -817,17 +759,6 @@ PyOpenMSChecker:
     OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace:
         - max_peak
         - peaks
-    OpenMS::HiddenMarkovModel:
-        - write # stream
-        - calculateEmissionProbabilities # ptr inside Map
-    OpenMS::MarkerMower:
-        - insertmarker
-    OpenMS::ProteinResolver::ProteinEntry:
-        - peptides
-        - fasta_entry
-        - indis
-        - type
-    # char pointer
     OpenMS::Peak2D:
         - shortDimensionName
         - shortDimensionNameRT
@@ -848,69 +779,6 @@ PyOpenMSChecker:
         - getPosition # position type
         - setPosition
 
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    #  Factory pattern / create methods
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    OpenMS::FeatureGroupingAlgorithmUnlabeled:
-        - create
-    OpenMS::SimplePairFinder:
-        - create
-    OpenMS::NeutralLossDiffFilter:
-        - create
-    OpenMS::FeatureGroupingAlgorithmIdentification:
-        - create
-    OpenMS::FeatureFinderAlgorithmPicked:
-        - create
-    OpenMS::MapAlignmentEvaluationAlgorithmPrecision:
-        - evaluate
-        - create
-    OpenMS::FeatureGroupingAlgorithmQT:
-        - create
-    OpenMS::MapAlignmentAlgorithmSpectrumAlignment:
-        - alignPeakMaps
-        - create
-    OpenMS::StablePairFinder:
-        - create
-    OpenMS::IsotopeDiffFilter:
-        - create
-    OpenMS::TICFilter:
-        - create
-    OpenMS::IsotopeModel:
-        - create
-    OpenMS::LabeledPairFinder:
-        - create
-    OpenMS::BiGaussModel:
-        - create
-    OpenMS::MapAlignmentAlgorithmPoseClustering:
-        - create
-    OpenMS::MapAlignmentEvaluationAlgorithmRecall:
-        - evaluate
-        - create
-    OpenMS::FeatureGroupingAlgorithmLabeled:
-        - create
-    OpenMS::SpectraSTSimilarityScore:
-        #- transform
-        #- dot_bias
-        - create
-    OpenMS::IntensityBalanceFilter:
-        - create
-    OpenMS::GoodDiffFilter:
-        - create
-    OpenMS::MapAlignmentAlgorithmIdentification:
-        - create
-    OpenMS::BiGaussFitter1D:
-        - fit1d # needs pointer
-        - create
-    OpenMS::IsotopeFitter1D:
-        - fit1d # needs pointer
-        - create
-    OpenMS::EmgFitter1D:
-        - fit1d # needs pointer
-        - create
-    OpenMS::AverageLinkage:
-        - create
-    OpenMS::ComplementFilter:
-        - create
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Base class problem :
@@ -931,8 +799,6 @@ PyOpenMSChecker:
     OpenMS::FeatureGroupingAlgorithm:
         - group
         - FeatureGroupingAlgorithm # abstract class
-    OpenMS::NeutralLossMarker:
-        - getProductName
     OpenMS::MetaInfoInterface:
         - getMetaValue
         - metaValueExists
@@ -1042,15 +908,12 @@ PyOpenMSChecker:
     ########################################################################
 
     # renamed classes (they exist but under a different name)
-    - OpenMS::PeakShape::Type
     - OpenMS::ResidueModification::Term_Specificity
     - OpenMS::ControlledVocabulary::CVTerm
     - OpenMS::MZTrafoModel::MODELTYPE
     - OpenMS::ControlledVocabulary::CVTerm::XRefType
-    - OpenMS::PeakShape
 
     # rarely used classes
-    - OpenMS::WeightWrapper
     - OpenMS::FileTypes # no need for them, the actual types are at OpenMS::FileTypes::Types
 
     # produces compile error
@@ -1136,11 +999,9 @@ PyOpenMSChecker:
     - OpenMS::StringListUtils
 
     # CONCEPT
-    - OpenMS::SingletonRegistry
     - OpenMS::StreamHandler
     - OpenMS::Factory
     - OpenMS::UniqueIdIndexer
-    - OpenMS::FactoryBase
 
     # METADATA
     - OpenMS::MetaInfoDescription
@@ -1168,7 +1029,6 @@ PyOpenMSChecker:
     - OpenMS::LmaGaussModel
     - OpenMS::FeatureFinderAlgorithm
     - OpenMS::FeatureFinderDefs::NoSuccessor
-    - OpenMS::ProductModel< 2 >
     - OpenMS::LmaGaussFitter1D
     - OpenMS::MaxLikeliFitter1D
     - OpenMS::LmaIsotopeFitter1D
@@ -1288,7 +1148,6 @@ PyOpenMSChecker:
     # Comperators
     - OpenMS::Peak2D::PositionLess
     - OpenMS::MSChromatogram::MZLess
-    - OpenMS::PeakShape::PositionLess
     - OpenMS::AASequence::Iterator
     - OpenMS::Peak1D::PositionLess
     - OpenMS::Peak2D::IntensityLess
@@ -1451,8 +1310,6 @@ PyOpenMSChecker:
     - OpenMS::Internal::MzMLHandlerHelper
     - OpenMS::Internal::MzMLHandlerHelper::BinaryData
     - OpenMS::Internal::MzMLValidator
-    - OpenMS::Internal::MzQuantMLHandler
-    - OpenMS::Internal::MzQuantMLValidator
     - OpenMS::Internal::MzXMLHandler
     - OpenMS::Internal::OpenMSOSInfo
     - OpenMS::Internal::OpenMSXMLFormatTarget
@@ -1490,8 +1347,6 @@ PyOpenMSChecker:
 
     # MATH - Python provides alternative functions for most
     - OpenMS::Math
-    - OpenMS::Math::AsymmetricStatistics
-    - OpenMS::Math::AveragePosition
     - OpenMS::Math::BasicStatistics
     - OpenMS::Math::BilinearInterpolation
     - OpenMS::Math::GammaDistributionFitter

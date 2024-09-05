@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -11,8 +11,12 @@
 
 ///////////////////////////
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
-#if COINOR_SOLVER==1
-  #include "coin/CoinModel.hpp"
+#if COINOR_SOLVER == 1
+  #if COIN_INCLUDE_SUBDIR_IS_COIN == 1
+    #include "coin/CoinModel.hpp"
+  #else
+    #include "coin-or/CoinModel.hpp"
+  #endif
 #endif
 ///////////////////////////
 

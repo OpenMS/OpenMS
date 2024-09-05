@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -242,7 +242,7 @@ START_SECTION((void writeCTDToStream(std::ostream *os_ptr, const Param &param) c
                    "http://www.openms.de/doxygen/nightly/html/TOPP_AccurateMassSearch.html",
                    "Utilities",
                    "Match MS signals to molecules from a database by mass.",
-                   {"10.1038/nmeth.3959"}};
+                   {"10.1038/s41592-024-02197-7"}};
   paramFile.writeCTDToStream(&s,p, info);
   s.close();
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("ParamCTDFile_test_writeCTDToStream.ctd"))

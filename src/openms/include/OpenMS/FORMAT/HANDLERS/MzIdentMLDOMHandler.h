@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,15 +8,15 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/CVTermList.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
@@ -27,20 +27,19 @@
 #include <xercesc/dom/DOMNodeIterator.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
 #include <xercesc/dom/DOMText.hpp>
-#include <xercesc/util/OutOfMemoryException.hpp>
-#include <xercesc/util/XMLString.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/framework/LocalFileFormatTarget.hpp>
-
-#include <xercesc/parsers/XercesDOMParser.hpp>
-#include <xercesc/util/XMLUni.hpp>
 #include <xercesc/framework/psvi/XSValue.hpp>
+#include <xercesc/parsers/XercesDOMParser.hpp>
+#include <xercesc/util/OutOfMemoryException.hpp>
+#include <xercesc/util/PlatformUtils.hpp>
+#include <xercesc/util/XMLString.hpp>
+#include <xercesc/util/XMLUni.hpp>
 
 #include <list>
-#include <string>
-#include <stdexcept>
-#include <vector>
 #include <map>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 // Error codes
 //enum {
@@ -97,14 +96,14 @@ protected:
       ControlledVocabulary unimod_;
 
       ///Internal +w Identification Item for proteins
-      std::vector<ProteinIdentification>* pro_id_;
+      std::vector<ProteinIdentification>* pro_id_ = nullptr;
       ///Internal +w Identification Item for peptides
-      std::vector<PeptideIdentification>* pep_id_;
+      std::vector<PeptideIdentification>* pep_id_ = nullptr;
 
       ///Internal -w Identification Item for proteins
-      const std::vector<ProteinIdentification>* cpro_id_;
+      const std::vector<ProteinIdentification>* cpro_id_ = nullptr;
       ///Internal -w Identification Item for peptides
-      const std::vector<PeptideIdentification>* cpep_id_;
+      const std::vector<PeptideIdentification>* cpep_id_ = nullptr;
 
       ///Internal version keeping
       const String schema_version_;
@@ -114,6 +113,8 @@ protected:
 
       /**@name Helper functions to build the internal id structures from the DOM tree */
       //@{
+
+      /// First: CVparams, Second: userParams (independent of each other)
       std::pair<CVTermList, std::map<String, DataValue> > parseParamGroup_(xercesc::DOMNodeList* paramGroup);
       CVTerm parseCvParam_(xercesc::DOMElement* param);
       std::pair<String, DataValue> parseUserParam_(xercesc::DOMElement* param);
@@ -221,6 +222,8 @@ private:
 
       xercesc::XercesDOMParser mzid_parser_;
 
+      std::unique_ptr<XMLHandler> xml_handler_ = nullptr;
+
       //from AnalysisSoftware
       String search_engine_;
       String search_engine_version_;
@@ -249,9 +252,9 @@ private:
       std::list<std::list<String> > hit_pev_; ///< writing help only
 
       bool xl_ms_search_; ///< is true when reading a file containing Cross-Linking MS search results
-      std::map<String, String> xl_id_donor_map_; ///< mapping Peptide id -> cross-link donor value
-      //std::map<String, String> xl_id_acceptor_map_; ///< mapping Peptide id -> cross-link acceptor value
-      std::map<String, String> xl_id_acceptor_map_; ///< mapping  peptide id of acceptor peptide -> cross-link acceptor value
+      std::map<String, String> xl_id_donor_map_; ///< mapping Peptide id -> crosslink donor value
+      //std::map<String, String> xl_id_acceptor_map_; ///< mapping Peptide id -> crosslink acceptor value
+      std::map<String, String> xl_id_acceptor_map_; ///< mapping  peptide id of acceptor peptide -> crosslink acceptor value
       std::map<String, SignedSize> xl_donor_pos_map_; ///< mapping donor value -> cross-link modification location
       std::map<String, SignedSize> xl_acceptor_pos_map_; ///< mapping acceptor value -> cross-link modification location
       std::map<String, double> xl_mass_map_; ///< mapping Peptide id -> cross-link mass

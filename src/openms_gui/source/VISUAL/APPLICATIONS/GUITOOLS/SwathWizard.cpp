@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -29,6 +29,9 @@
 
 
   Schematic of the internal data flow (all tools are called by SwathWizard in the background):
+*/
+#ifdef OPENMS_HASDOXYGENDOT
+/*
   @dot
     digraph wizard_workflow
     {
@@ -79,8 +82,9 @@
       sqMass -> topp_tv;
     }
   @enddot
-
-
+*/
+#endif
+/**
   A recommended test data for the Wizard is the
   <a href="https://db.systemsbiology.net/sbeams/cgi/PeptideAtlas/PASS_View?identifier=PASS00779" target="_blank">PASS00779</a>
   dataset.

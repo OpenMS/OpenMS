@@ -14,8 +14,8 @@ MTD	study_variable[1]-assay_refs	assay[1]
 MTD	study_variable[1]-description	study_variable_2012_02_03_PStd_10_1-50
 MTD	cv[1]-label	PSI-MS
 MTD	cv[1]-full_name	MS
-MTD	cv[1]-version	4.1.56
-MTD	cv[1]-uri	https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo
+MTD	cv[1]-version	4.1.155
+MTD	cv[1]-uri	http://purl.obolibrary.org/obo/ms/psi-ms.obo
 MTD	database[1]	[, , HMDB, ]
 MTD	database[1]-prefix	HMDB
 MTD	database[1]-version	3.5

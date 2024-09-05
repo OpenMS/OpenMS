@@ -563,7 +563,6 @@ foreach ($files_todo as $f)
     "Macros.h",
     "Benchmark.h",
     "Constants.h",
-    "IsotopeWaveletConstants.h",
     "openms_package_version.h",
   );
 
@@ -657,7 +656,6 @@ foreach ($files_todo as $f)
       "/FORMAT/HANDLERS/",
       "/VISUAL/",
       "/CONCEPT/Types.h",
-      "/CONCEPT/TypeAsString.h",
       "/CONCEPT/PrecisionWrapper.h",
       "/FORMAT/FileTypes.h",
       "/CONCEPT/Macros.h",
@@ -675,7 +673,6 @@ foreach ($files_todo as $f)
       "Serialization.h",
       "IsotopeCluster.h",
       "Param.h",
-      "IsotopeWaveletConstants.h",
       "include/OpenMS/openms_package_version.h",
       "include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
       "include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h",
@@ -1024,8 +1021,8 @@ foreach ($files_todo as $f)
       "src/openms/include/OpenMS/VISUAL/PlotCanvas.h",
       "src/openms/include/OpenMS/APPLICATIONS/TOPPViewBase.h",
       "src/openms/include/OpenMS/APPLICATIONS/TOPPASBase.h",
-      "src/openms/include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h",
-      "src/openms/include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h",
+      "src/openms/include/OpenMS/FEATUREFINDER/BaseModel.h",
+      "src/openms/include/OpenMS/FEATUREFINDER/LevMarqFitter1D.h",
     );
 
     $ignore = false;

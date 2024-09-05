@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -88,7 +88,7 @@ public:
 
     };
 
-    /// slim struct to feed the need for systematically storing of ratios ( @see MSQuantifications ).
+    /// slim struct to feed the need for systematically storing of ratios.
     struct Ratio
     {
       Ratio()
@@ -283,7 +283,7 @@ public:
     /**
       @brief Get the ratio vector.
     */
-    std::vector<Ratio> getRatios() const;
+    const std::vector<Ratio>& getRatios() const;
 
     /**
       @brief Get the ratio vector.

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -39,11 +39,11 @@ END_SECTION
 START_SECTION((static ToolListType getTOPPToolList(const bool includeGenericWrapper=false)))
 {
   ToolListType list = ToolHandler::getTOPPToolList();
-  TEST_TRUE(list.find("FeatureFinderMRM") != list.end())
+  TEST_TRUE(list.find("DecoyDatabase") != list.end())
   TEST_FALSE(list.find("GenericWrapper") != list.end())
   TEST_TRUE(list.size() > 30)  // assume we have over 30 tools in there
   list = ToolHandler::getTOPPToolList(true);
-  TEST_TRUE(list.find("FeatureFinderMRM") != list.end())
+  TEST_TRUE(list.find("DecoyDatabase") != list.end())
   TEST_TRUE(list.find("GenericWrapper") != list.end())
   TEST_TRUE(list.size() > 30) // assume we have over 30 tools in there
 #ifdef WITH_GUI

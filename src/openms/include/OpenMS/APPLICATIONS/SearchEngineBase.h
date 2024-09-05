@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "OpenMS/METADATA/ProteinIdentification.h"
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 
@@ -42,9 +42,9 @@ namespace OpenMS
       @param name Tool name.
       @param description Short description of the tool (one line).
       @param official If this is an official TOPP tool contained in the OpenMS/TOPP release.
-      If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
-
-      @param citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during --help
+             If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
+      @param citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during `--help`
+      @param toolhandler_test Check if this tool is registered with the ToolHandler (disable for unit tests only)
     */
     SearchEngineBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true);
 

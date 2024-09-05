@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -78,10 +78,10 @@ namespace OpenMS
     auto addMetric = [&cv, &quality_metrics](const String& accession, const auto& value) -> void
       {
         json qm;
-        qm["accession"] = accession;
+        qm["accession"] = accession.c_str();
         if (cv.exists(accession)) 
         {
-          qm["name"] = cv.getTerm(accession).name;
+          qm["name"] = cv.getTerm(accession).name.c_str();
         } 
         else
         {
@@ -186,21 +186,21 @@ namespace OpenMS
     json out;
     // required: creationDate, version
     DateTime currentTime = DateTime::now();
-    out["mzQC"]["creationDate"] = currentTime.toString();
+    out["mzQC"]["creationDate"] = currentTime.toString().c_str();
     out["mzQC"]["version"] = "1.0.0";
 
     // optional: contact_name, contact_address, description
     if (!contact_name.empty()) 
     {
-      out["mzQC"]["contactName"] = contact_name;
+      out["mzQC"]["contactName"] = contact_name.c_str();
     }
     if (!contact_address.empty()) 
     {
-      out["mzQC"]["contactAddress"] = contact_address;
+      out["mzQC"]["contactAddress"] = contact_address.c_str();
     }
     if (!description.empty()) 
     {
-      out["mzQC"]["description"] = description;
+      out["mzQC"]["description"] = description.c_str();
     }
     // get OpenMS version for runQualities
     VersionInfo::VersionDetails version = VersionInfo::getVersionStruct();
@@ -209,12 +209,12 @@ namespace OpenMS
       {
         {"metadata",
           {
-            {"label", label},
+            {"label", label.c_str()},
             {"inputFiles",
               {
                 {
-                  {"location", File::absolutePath(input_file)},
-                  {"name", File::basename(input_file)},
+                  {"location", File::absolutePath(input_file).c_str()},
+                  {"name", File::basename(input_file).c_str()},
                   {"fileFormat",
                     {
                       {"accession", "MS:10000584"},
@@ -226,17 +226,17 @@ namespace OpenMS
                       {
                         {"accession", "MS:1000747"},
                         {"name", "completion time"},
-                        {"value", String(exp.getDateTime().getDate() + "T" + exp.getDateTime().getTime())}
+                        {"value", String(exp.getDateTime().getDate() + "T" + exp.getDateTime().getTime()).c_str()}
                       },
                       {
                         {"accession", "MS:1000569"},
                         {"name", "SHA-1"},
-                        {"value", String(FileHandler::computeFileHash(input_file))}
+                        {"value", String(FileHandler::computeFileHash(input_file)).c_str()}
                       },
                       {
                         {"accession", "MS:1000031"},
                         {"name", "instrument model"},
-                        {"value", String(exp.getInstrument().getName())}
+                        {"value", String(exp.getInstrument().getName()).c_str()}
                       }
                     }
                   }
@@ -248,7 +248,7 @@ namespace OpenMS
                 {
                   {"accession", "MS:1009001" }, // create new qc-cv for QCCalculator: MS:1009001 quality control metrics generating software
                   {"name", "QCCalculator"},
-                  {"version", String(version.version_major)+"."+String(version.version_minor)+"."+String(version.version_patch)},
+                  {"version", (String(version.version_major)+"."+String(version.version_minor)+"."+String(version.version_patch)).c_str()},
                   {"uri", "https://www.openms.de"}
                 }
               }
@@ -268,8 +268,8 @@ namespace OpenMS
         },
         {
           {"name", "Proteomics Standards Initiative Mass Spectrometry Ontology"},
-          {"uri", "https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"},
-          {"version", "4.1.56"}
+          {"uri", "http://purl.obolibrary.org/obo/ms/psi-ms.obo"},
+          {"version", "4.1.155"}
         }
     };
     os << out.dump(2);
