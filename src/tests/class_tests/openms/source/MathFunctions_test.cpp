@@ -11,7 +11,7 @@
 
 // /////////////////////////
 
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <iostream>
 #include <vector>
 

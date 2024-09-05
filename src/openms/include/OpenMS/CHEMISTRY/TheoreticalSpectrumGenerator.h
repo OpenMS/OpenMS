@@ -22,7 +22,8 @@ namespace OpenMS
       @brief Generates theoretical spectra for peptides with various options
 
       If the tool parameter add_metainfo is set to true,
-      ion names like y8+ or [M-H2O+2H]++ are written as strings in a StringDataArray with the name "IonNames"
+      ion names like y8+ or [M-H2O+2H]++ are written as strings in a StringDataArray with the name 
+      corresponding to the constant Constants::UserParam::IonNames
       and charges are written as integers in an IntegerDataArray with the name "Charges"
       in the returned PeakSpectrum.
 

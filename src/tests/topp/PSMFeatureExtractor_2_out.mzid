@@ -6,7 +6,7 @@
 	id="OpenMS_10306100746905639127"
 	creationDate="2023-10-29T11:21:50">
 <cvList>
-	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
+	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="http://purl.obolibrary.org/obo/ms/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
 	<cv id="UO"     fullName="UNIT-ONTOLOGY" uri="https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/master/unit.obo"></cv>
 </cvList>
@@ -83,6 +83,7 @@
 			<userParam name="MSGFPlusAdapter:1:min_peptide_length" unitName="xsd:integer" value="6"/>
 			<userParam name="MSGFPlusAdapter:1:max_peptide_length" unitName="xsd:integer" value="40"/>
 			<userParam name="MSGFPlusAdapter:1:matches_per_spec" unitName="xsd:integer" value="1"/>
+			<userParam name="MSGFPlusAdapter:1:min_peaks" unitName="xsd:integer" value="10"/>
 			<userParam name="MSGFPlusAdapter:1:add_features" unitName="xsd:string" value="false"/>
 			<userParam name="MSGFPlusAdapter:1:max_mods" unitName="xsd:integer" value="2"/>
 			<userParam name="MSGFPlusAdapter:1:max_missed_cleavages" unitName="xsd:integer" value="-1"/>

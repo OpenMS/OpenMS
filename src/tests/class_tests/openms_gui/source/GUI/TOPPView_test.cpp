@@ -15,9 +15,7 @@
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
-
 
 using namespace OpenMS;
 
@@ -95,8 +93,9 @@ void TestTOPPView::simulateClick_()
 
 void TestTOPPView::testGui()
 {
-  // register a GUI logger
-  Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
+  // inject the GUIProgressLoggerImpl to be used by OpenMS lib via an extern variable
+  make_gui_progress_logger = 
+    []() -> ProgressLogger::ProgressLoggerImpl* { return new GUIProgressLoggerImpl(); };
 
   TOPPViewBase tv(TOPPViewBase::TOOL_SCAN::SKIP_SCAN);
   tv.show();

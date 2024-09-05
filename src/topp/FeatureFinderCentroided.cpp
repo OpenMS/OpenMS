@@ -9,11 +9,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/MzQuantMLFile.h>
-#include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <limits>
@@ -137,25 +134,23 @@ protected:
     registerInputFile_("seeds", "<file>", "", "User specified seed list", false);
     setValidFormats_("seeds", ListUtils::create<String>("featureXML"));
 
-    registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
-    setValidFormats_("out_mzq", ListUtils::create<String>("mzq"));
-
     addEmptyLine_();
 
     registerSubsection_("algorithm", "Algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const override
+
+  Param getSubsectionDefaults_(const String& ) const override
   {
-    return FeatureFinder().getParameters(FeatureFinderAlgorithmPicked::getProductName());
+    return FeatureFinderAlgorithmPicked().getDefaultParameters();
   }
+
 
   ExitCodes main_(int, const char**) override
   {
     //input file names
     String in = getStringOption_("in");
     String out = getStringOption_("out");
-    String out_mzq = getStringOption_("out_mzq");
 
     // prevent loading of fragment spectra
     PeakFileOptions options;
@@ -197,8 +192,8 @@ protected:
     }
 
     //setup of FeatureFinder
-    FeatureFinder ff;
-    ff.setLogType(log_type_);
+    FeatureFinderAlgorithmPicked ff;
+    //ff.setLogType(log_type_); TODO
 
     // A map for the resulting features
     FeatureMap features;
@@ -218,7 +213,7 @@ protected:
     writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 
     // Apply the feature finder
-    ff.run(FeatureFinderAlgorithmPicked::getProductName(), exp, features, feafi_param, seeds);
+    ff.run(exp, features, feafi_param, seeds);
     features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // DEBUG
@@ -266,19 +261,6 @@ protected:
     }
 
     map_file.storeFeatures(out, features, {FileTypes::FEATUREXML});
-
-    if (!out_mzq.trim().empty())
-    {
-      std::vector<DataProcessing> tmp;
-      for (Size i = 0; i < exp[0].getDataProcessing().size(); i++)
-      {
-        tmp.push_back(*exp[0].getDataProcessing()[i].get());
-      }
-      MSQuantifications msq(features, exp.getExperimentalSettings(), tmp );
-      msq.assignUIDs();
-      FileHandler file;
-      file.storeQuantifications(out_mzq, msq, {FileTypes::MZQUANTML});
-    }
 
     return EXECUTION_OK;
   }

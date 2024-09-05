@@ -105,7 +105,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 #------------------------------------------------------------------------------
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "3")
-set(OPENMS_PACKAGE_VERSION_MINOR "1")
+set(OPENMS_PACKAGE_VERSION_MINOR "2")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 set(OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
 
@@ -313,7 +313,8 @@ set(VALID_PACKAGE_TYPES "none" # the classical build type make/make install
                         "deb"  # deb package
                         "dmg"  # a drag&drop dmg package for macOS
                         "pkg"  # a productbuild installer for macOS
-                        "nsis") # an NSIS installer for Windows
+                        "nsis" # an NSIS installer for Windows
+                        "zip") # a portable version for Windows
 
 set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
 message(STATUS "Package type is '${PACKAGE_TYPE}'")
@@ -486,17 +487,21 @@ install_export_targets()
 # Installation and packaging:
 #------------------------------------------------------------------------------
 
-
-# packaging routines:
 if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
+
+  # packaging routines:
   include(cmake/package_general.cmake)
   if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. macOS dmg
+    set(CPACK_GENERATOR "DragNDrop")
     include(cmake/package_dragndrop_dmg.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "pkg") # .. macOS pkg
+    set(CPACK_GENERATOR "productbuild")
     include(cmake/package_mac_productbuild.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "rpm") # .. rpms
+    set(CPACK_GENERATOR "RPM")
     include(cmake/package_rpm.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "deb") # .. debs
+    set(CPACK_GENERATOR "DEB")
     include(cmake/package_deb.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "nsis") # .. Windows nsis
     # For now we use the old NSIS script AS IS
@@ -504,6 +509,16 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
     # will use everything from the usual build folder like before.
     # TODO automate more and let CMake generate install commands
     # in the script. Unfortunately we have a lot of specific code in the script.
+    set(CPACK_GENERATOR "NSIS")
+    include(cmake/package_nsis.cmake)
+  elseif("${PACKAGE_TYPE}" STREQUAL "zip")
+    if(NOT WIN32)
+      message(FATAL_ERROR "The package type ZIP is only supported for windows.")
+    endif()
+    set(CPACK_GENERATOR "ZIP")
+    # For now we use the package nsis script to ensure all dependencies
+    # are met for the portable version. 
+    # TODO refactor this to only execute the relevant processing steps
     include(cmake/package_nsis.cmake)
   endif()
   include(CPack)

@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
+#include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
 
 using namespace OpenMS;
 

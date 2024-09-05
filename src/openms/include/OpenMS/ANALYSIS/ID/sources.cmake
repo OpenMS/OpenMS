@@ -21,7 +21,6 @@ ConsensusMapMergerAlgorithm.h
 FalseDiscoveryRate.h
 FIAMSDataProcessor.h
 FIAMSScheduler.h
-HiddenMarkovModel.h
 HyperScore.h
 IDBoostGraph.h
 IDDecoyProbability.h
@@ -39,7 +38,6 @@ PeptideIndexing.h
 PeptideProteinResolution.h
 PercolatorFeatureSetHelper.h
 PrecursorPurity.h
-ProtonDistributionModel.h
 PScore.h
 SimpleSearchEngineAlgorithm.h
 SiriusExportAlgorithm.h

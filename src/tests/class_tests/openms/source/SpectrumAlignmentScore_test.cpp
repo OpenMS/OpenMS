@@ -13,8 +13,8 @@
 
 #include <iostream>
 
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/COMPARISON/SpectrumAlignmentScore.h>
+#include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
 ///////////////////////////
@@ -107,19 +107,6 @@ START_SECTION(double operator()(const PeakSpectrum &spec) const)
 	double score = (*ptr)(s1);
 	TEST_REAL_SIMILAR(score, 1.48268);
 	
-END_SECTION
-
-
-START_SECTION(static PeakSpectrumCompareFunctor* create())
-	PeakSpectrumCompareFunctor* pscf = SpectrumAlignmentScore::create();
-	SpectrumAlignmentScore sas;
-	TEST_EQUAL(pscf->getParameters(), sas.getParameters())
-	TEST_EQUAL(pscf->getName(), sas.getName())
-	delete pscf;
-END_SECTION
-
-START_SECTION(static const String getProductName())
-	TEST_STRING_EQUAL(SpectrumAlignmentScore::getProductName(), "SpectrumAlignmentScore")
 END_SECTION
 
 delete ptr;

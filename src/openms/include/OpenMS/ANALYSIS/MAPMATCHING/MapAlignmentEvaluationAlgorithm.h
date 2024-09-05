@@ -39,9 +39,6 @@ public:
     ///Decides if two features are the same, based on maximum allowed deviations for retention time, m/z and intensity.
     bool isSameHandle(const FeatureHandle & lhs, const FeatureHandle & rhs, const double & rt_dev, const double & mz_dev, const Peak2D::IntensityType & int_dev, const bool use_charge);
 
-    /// Register all derived classes in this method
-    static void registerChildren();
-
 private:
     ///Copy constructor is not implemented -> private
     MapAlignmentEvaluationAlgorithm(const MapAlignmentEvaluationAlgorithm &);

@@ -11,7 +11,7 @@
 #include <OpenMS/FORMAT/DTAFile.h>
 
 ///////////////////////////
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 ///////////////////////////
 
 using namespace OpenMS;

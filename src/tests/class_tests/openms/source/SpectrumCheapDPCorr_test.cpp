@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
+#include <OpenMS/COMPARISON/SpectrumCheapDPCorr.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
@@ -95,18 +95,6 @@ START_SECTION(double operator () (const PeakSpectrum& a) const)
 
   TEST_REAL_SIMILAR(score, 12295.5)
 
-END_SECTION
-
-START_SECTION(static PeakSpectrumCompareFunctor* create())
-	PeakSpectrumCompareFunctor* cf = SpectrumCheapDPCorr::create();
-	SpectrumCheapDPCorr corr;
-	TEST_EQUAL(cf->getParameters(), corr.getParameters())
-	TEST_EQUAL(cf->getName(), corr.getName())
-	delete cf;
-END_SECTION
-
-START_SECTION(static const String getProductName())
-	TEST_EQUAL(SpectrumCheapDPCorr::getProductName(), "SpectrumCheapDPCorr")
 END_SECTION
 
 START_SECTION(void setFactor(double f))

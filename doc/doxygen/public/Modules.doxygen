@@ -45,7 +45,7 @@
 
   @brief Various statistical functions
 
-	These functions are defined in OpenMS/MATH/STATISTICS/StatisticFunctions.h .
+	These functions are defined in OpenMS/MATH/StatisticFunctions.h .
 
 	@ingroup Math
 */
@@ -55,7 +55,7 @@
 
   @brief Math functions
 
-	These functions are defined in OpenMS/MATH/MISC/MathFunctions.h .
+	These functions are defined in OpenMS/MATH/MathFunctions.h .
 
 	@ingroup Math
 */
@@ -146,17 +146,6 @@
 	@defgroup SpectraFilter Spectra Filters
 
 	@brief Spectra filters report single values of spectra e.g. the TIC
-
-	@ingroup Filtering
-*/
-
-/**
-	@defgroup PeakMarker Peak Marker
-
-	@brief These classes mark peaks according to different criteria
-
-	For a detailed description of the available parameters and functions the details are documented
-	in the class documentation
 
 	@ingroup Filtering
 */

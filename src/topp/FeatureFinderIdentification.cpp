@@ -13,7 +13,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <cstdlib>  // for "rand"
 #include <ctime>    // for "time" (seeding of random number generator)
 #include <iterator> // for "inserter", "back_inserter"

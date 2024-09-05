@@ -10,7 +10,7 @@
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 //Standard library
@@ -84,9 +84,9 @@ namespace OpenMS
     else
     {
       correction_matrix_eigen.resize(correction_matrix.rows(), correction_matrix.cols());
-      for (size_t i = 0; i < correction_matrix.rows(); ++i)
+      for (long int i = 0; i < correction_matrix.rows(); ++i)
       {
-        for (size_t j = 0; j < correction_matrix.cols(); ++j)
+        for (long int j = 0; j < correction_matrix.cols(); ++j)
         {
           correction_matrix_eigen(i,j) = correction_matrix(i,j);
         }

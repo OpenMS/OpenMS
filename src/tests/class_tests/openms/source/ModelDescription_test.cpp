@@ -11,8 +11,8 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
+#include <OpenMS/FEATUREFINDER/ModelDescription.h>
+#include <OpenMS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 
@@ -35,12 +35,6 @@ END_SECTION
 
 START_SECTION((virtual ~ModelDescription()))
 	delete ptr;
-END_SECTION
-
-START_SECTION(BaseModel<D>* createModel())
-	BaseModel<2>* ptr = ModelDescription<2>().createModel();
-  BaseModel<2>* baseModel_nullPointer = nullptr;
-  TEST_EQUAL(ptr, baseModel_nullPointer)	// no name is set, should be zero pointer
 END_SECTION
 
 START_SECTION( virtual bool operator==(const ModelDescription &rhs) const )
@@ -96,17 +90,6 @@ START_SECTION((ModelDescription(const ModelDescription &source)))
   ModelDescription<2> tm2(tm1);
 
 	TEST_EQUAL(tm1==tm2,true)
-END_SECTION
-
-START_SECTION( ModelDescription(const BaseModel< D > *model) )
-	const BaseModel<1> * bm = new IsotopeModel();
-
-  ModelDescription<1> md(bm);
-	
-	BaseModel<1>* ptr = md.createModel();
-	TEST_EQUAL( *ptr == *bm, true)
-	delete bm;
-	delete ptr;
 END_SECTION
 
 START_SECTION((const String& getName() const ))

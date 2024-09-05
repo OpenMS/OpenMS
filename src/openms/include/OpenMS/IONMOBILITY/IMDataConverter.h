@@ -8,8 +8,12 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/CommonEnums.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/MATH/MathFunctions.h>
+
+#include <tuple>
 #include <vector>
 
 namespace OpenMS
@@ -31,13 +35,13 @@ namespace OpenMS
       /**
         @brief Splits a PeakMap into one PeakMap per FAIMS compensation voltage
 
-        This only works with a PeakMap that has a FAIMS compensation voltage
-        associated with each spectrum.
+        This only works with a PeakMap that has a FAIMS compensation voltage 
+        (obtained via 'spec.getDriftTime()') associated with each spectrum.
         The spectra from the original PeakMap are moved to new PeakMaps,
         so the original PeakMap is unusable afterwards.
 
         @param exp The PeakMap
-        @return Several maps, split by CVs
+        @return Several maps, one for each CV
         @throws Exception::MissingInformation if @p exp is not FAIMS data
       */
       static std::vector<PeakMap> splitByFAIMSCV(PeakMap&& exp);
@@ -48,27 +52,46 @@ namespace OpenMS
    
         The input @p im_frame must have a floatDataArray where IM values are annotated. If not, an exception is thrown.
 
-        To get some coarser binning, choose a smaller @p number_of_bins. The default creates a new bin (=spectrum in the output) for each distinct ion mobility value.
-      
-        @param im_frame Concatenated spectrum representing a frame
-        @param number_of_bins In how many bins should the ion mobility frame be sliced? Default(-1) assigns all peaks with identical ion-mobility values to a separate spectrum.
-        @return IM frame split into multiple bins (= 1 spectrum per bin)
+        For the output spectra, the IM value is annotated once in `spec.getDriftTime()` (there is no metadata array which contains IM values, since they are all the same).
+        
+        Output spectra are sorted by m/z. Ranges of the experiment are updated.
+
+        The reverse operation is `reshapeIMFrameToSingle()`.
+
+        @param im_frame Concatenated spectrum representing an IM frame
+        @return IM frame split into spectra (one per distinct IM value), sorted by m/z, with updated ranges
 
         @throws Exception::MissingInformation if @p im_frame does not have IM data in floatDataArrays
       */
-      static MSExperiment splitByIonMobility(MSSpectrum im_frame, UInt number_of_bins = -1);
+      static MSExperiment reshapeIMFrameToMany(MSSpectrum im_frame);
 
       /**
-         @brief Expands all (TimsTOF) ion mobility frames in the PeakMap (i.e. all IM spectra with an IM float data array) into separate spectra. Non-IM spectra are simply copied to the result.
- 
-         To get some coarser custom binning, choose a smaller @p number_of_bins. The default creates a new bin (=spectrum in the output) for each distinct ion mobility value.
-         For custom bins, the IM range is divided into equally spaced bins and the bin center is the new drift time.
+         @brief Bins the ion mobility range into discrete bins and creates a new MSExperiment for each IM bin.
+         
+         The IM range (of the whole @p in) is divided into equally spaced IM-bins and the bin center is the new drift time (see `spec.getDriftTime()`).
+         Usually multiple spectra from an IM frame (with close IM values) fall into the same bin. These spectra are merged using SpectraMerger's block-method.
+         When merging m/z peaks of two MS spectra with SpectraMerger, parameters `mz_binning_width` and `mz_binning_width_unit` and used  internally.
 
-         @param in The PeakMap containing IM-frame spectra
-         @param number_of_bins In how many bins should the ion mobility frame be sliced? Default(-1) assigns all peaks with identical ion-mobility values to a separate spectrum.
-         @return All IM frames split into multiple bins (= 1 spectrum per bin)
+         To avoid artifacts at the bin borders, each bin can be extended by `bin_extension_abs` on both sides. The actual overlap between adjacent bins is thus `2*bin_extension_abs`.
+
+         @note All MS levels are binned. If you want to bin only a specific MS level, you need to filter the input MSExperiment before calling this function.
+
+         @param in The PeakMap containing many 'wide' IM-frame spectra (where one spectrum contains multiple IM values).
+         @param number_of_IM_bins Into how many bins should the ion mobility range be sliced?
+         @param bin_extension_abs How much should each bin be extended at its borders? (in absolute IM units). The actual overlap between adjacent bins is thus `2*bin_extension_abs`.
+         @param mz_binning_width The width of the m/z binning window, when merging spectra of the same IM-bin (in Da or ppm, see @p mz_binning_width_unit)
+         @param mz_binning_width_unit The unit of the m/z binning window (Da or ppm)
+         @return One MSExperiment per IM-bin and the corresponding binning borders
+
+         @throws Exception::InvalidValue if any spectrum in @p in is missing an IM-float data array (see IMTypes::determineIMFormat(), or MSSpectrum::containsIMData())
+         @throws Exception::InvalidValue if number_of_IM_bins == 0
+         @throws Exception::InvalidValue if bin_extension_abs < 0
       */
-      static MSExperiment splitByIonMobility(MSExperiment&& in, UInt number_of_bins = -1);
+      static std::tuple < std::vector<MSExperiment>, Math::BinContainer> splitExperimentByIonMobility(MSExperiment&& in,
+                                                                                                      UInt number_of_IM_bins,
+                                                                                                      double bin_extension_abs,
+                                                                                                      double mz_binning_width,
+                                                                                                      MZ_UNITS mz_binning_width_unit);
 
       /**
         @brief Collapses multiple MS spectra (each with its own drift time) from the same IM-frame into a single MSSpectrum (with an IM-float data array)
@@ -85,9 +108,11 @@ namespace OpenMS
 
         @note This requires that spectra from the same frame have the same RT ("scan start time")
 
-        @throws Exception::InvalidValue if any spectrum has both a single drift time AND a IM-float data array (see IMTypes::determineIMFormat)
+        The reverse operation is `reshapeIMFrameToMany()`.
+
+        @throws Exception::InvalidValue if any spectrum has both a single drift time AND a IM-float data array (see IMTypes::determineIMFormat(), or MSSpectrum::containsIMData())
       */
-      static MSExperiment collapseFramesToSingle(const MSExperiment& in);
+      static MSExperiment reshapeIMFrameToSingle(const MSExperiment& in);
 
       /**
         @brief Convert from a Unit to a CV term and annotate is as the FDA's name. This is not very accurate (since we cannot decide if its 'raw' or 'binned' IM data),

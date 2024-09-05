@@ -418,6 +418,12 @@ public:
       return point;
     }
 
+    /// overload to call the 1D version (which has min-intensity of '0')
+    virtual const RangeType& getDataRange() const override
+    { 
+      return overall_data_range_1d_;
+    }
+
     /**
      * \brief Pushes a data point back into the valid data range of the current layer area. Useful for annotation items which were mouse-dragged outside the range by the user.
      * \tparam T A data point, e.g. Peak1D, which may be outside the data area
@@ -507,7 +513,7 @@ signals:
     /// Requests to display all spectra in 3D plot
     void showCurrentPeaksAs3D();
 
-    /// Requests to display all spectra in ion mobility plot
+    /// Requests to display this spectrum (=frame) in ion mobility plot
     void showCurrentPeaksAsIonMobility(const MSSpectrum& spec);
 
     /// Requests to display all spectra as DIA
@@ -581,7 +587,7 @@ protected:
     void drawAlignment_(QPainter& painter);
 
     /// internal method, called before calling parent function PlotCanvas::changeVisibleArea_
-    void changeVisibleAreaCommon_(const UnitRange& new_area, bool repaint, bool add_to_stack);
+    void changeVisibleArea1D_(const UnitRange& new_area, bool repaint, bool add_to_stack);
 
     // Docu in base class
     void changeVisibleArea_(VisibleArea new_area, bool repaint = true, bool add_to_stack = false) override;
