@@ -909,31 +909,30 @@ namespace OpenMS
     {
       if (data_type == LayerDataBase::DT_FEATURE) // features
       {
-        if (!target_window->canvas()->addLayer(feature_map, filename))
+        if (!target_window->canvas()->addLayer(feature_map, filename, caption))
         {
           return;
         }
       }
       else if (data_type == LayerDataBase::DT_CONSENSUS) // consensus features
       {
-        if (!target_window->canvas()->addLayer(consensus_map, filename))
+        if (! target_window->canvas()->addLayer(consensus_map, filename, caption))
           return;
       }
       else if (data_type == LayerDataBase::DT_IDENT)
       {
-        if (!target_window->canvas()->addLayer(peptides, filename))
+        if (! target_window->canvas()->addLayer(peptides, filename, caption))
           return;
       }
       else // peaks or chrom
       {
-        if (data_type == LayerDataBase::DT_PEAK &&
-            !target_window->canvas()->addPeakLayer(peak_map, on_disc_peak_map, filename, use_intensity_cutoff))
+        if (data_type == LayerDataBase::DT_PEAK && ! target_window->canvas()->addPeakLayer(peak_map, on_disc_peak_map, filename, caption, use_intensity_cutoff))
         {
           return;
         }
         
         if (data_type == LayerDataBase::DT_CHROMATOGRAM &&
-            !target_window->canvas()->addChromLayer(peak_map, on_disc_peak_map, filename))
+            !target_window->canvas()->addChromLayer(peak_map, on_disc_peak_map, filename, caption))
         {
           return;
         }
@@ -960,6 +959,8 @@ namespace OpenMS
       {
         canvas->mergeIntoLayer(merge_layer, peptides);
       }
+      // combine layer names
+      canvas->setLayerName(merge_layer, canvas->getLayerName(merge_layer) + " + " + caption);
     }
 
     if (as_new_window)
