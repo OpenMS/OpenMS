@@ -35,7 +35,6 @@ START_SECTION(testIsEqual)
 	TEST_EQUAL(map3.isEqual(map4), true);
 	TEST_EQUAL(map3.isEqual(map5), false);
 
-
 	// map 6,7 are different from map 3 different because of mz bounds
 	OpenSwath::SwathMap map6(1.0, 3.0, 2.0, false);
 	OpenSwath::SwathMap map7(2.0, 3.0, 2.5, false);
@@ -54,7 +53,6 @@ START_SECTION(testIsEqual)
 	OpenSwath::SwathMap map12(1.0, 2.0, 1.5, 1.0, 1.2, false);
 	TEST_EQUAL(map9.isEqual(map11), false);
 	TEST_EQUAL(map9.isEqual(map12), false);
-
 }
 END_SECTION
 
