@@ -52,6 +52,15 @@ namespace OpenSwath
         ms1(is_ms1)
     {}
 
+  bool isEqual(const SwathMap& other, double tolerance = 1e-6) const
+  {
+        return (std::fabs(lower - other.lower) < tolerance) &&
+              (std::fabs(upper - other.upper) < tolerance) &&
+              (std::fabs(center - other.center) < tolerance) &&
+              (std::fabs(imLower - other.imLower) < tolerance) &&
+              (std::fabs(imUpper - other.imUpper) < tolerance) &&
+              (ms1 == other.ms1);
+  }
 
   };
 
