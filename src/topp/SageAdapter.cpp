@@ -103,7 +103,7 @@ public:
   double rate = -1.;
   double deltamass = -1.;
 };
-//Think about adding experimental mass 
+
 struct modification{
   double rate = 0; 
   vector<double> mass; 
@@ -111,71 +111,82 @@ struct modification{
 }; 
 
   
-  class SageClustering{
-  public: 
 
-  static pair<mapRatetoMass, map<double, double>>  getDeltaClusterCenter(const vector<PeptideIdentification>& pips, bool debug = false)
+pair<mapRatetoMass, map<double, double>>  getDeltaClusterCenter(const vector<PeptideIdentification>& pips, bool debug = false)
   {
-    //Add bucketsize 
+    //Data structures to store the data from Sage 
     vector<double> cluster;
     vector<double> delta_masses; 
     mapRatetoMass hist;
     map<double, vector<double>> charge_states; 
     map<double, double> num_charges_at_mass; 
-    int count = 0; 
+
     for (auto& id : pips)
     {
-
       auto& hits = id.getHits();
+
       for (auto& h : hits)
       { 
-        //Build histogram of Deltamasses with charge states 
+        //Build histogram of deltamasses with charge states 
          double expval  =  std::stod(h.getMetaValue("SAGE:ExpMass")); 
          double calcval = std::stod(h.getMetaValue("SAGE:CalcMass"));
-         double DeltaMass = expval - calcval; 
-         delta_masses.push_back(DeltaMass); 
+         double deltamass = expval - calcval; 
+         delta_masses.push_back(deltamass); 
 
-        if (hist.find(DeltaMass) == hist.end())
+        if (hist.find(deltamass) == hist.end())
         {
           bool bucketcheck = true; 
           bool chargecheck = false; 
-          for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit){
-            if(DeltaMass <  mit->first+0.05 && DeltaMass >  mit->first-0.05 && bucketcheck && ((0.05 <  DeltaMass) || (-0.05 >  DeltaMass))){
+
+          for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit)
+          {
+            //Check with error tolerance in buckets if already present in histogram 
+            if(deltamass <  mit->first+0.05 && deltamass >  mit->first-0.05 && bucketcheck && ((0.05 <  deltamass) || (-0.05 >  deltamass)))
+            {
               hist[mit->first] += 1.0; 
               bucketcheck = false; 
 
-              for(auto& x : charge_states[mit->first]){
-                if(x == h.getCharge()) chargecheck = true; 
+              for (auto& x : charge_states[mit->first])
+              {
+                if (x == h.getCharge())
+                { 
+                  chargecheck = true; 
+                }
               }
-              if(!chargecheck){
+              if (!chargecheck)
+              {
                 num_charges_at_mass[mit->first] += 1.0; 
                 charge_states[mit->first].push_back(h.getCharge()); 
               }
-
             }
           }
-          if(bucketcheck && ((0.05 <  DeltaMass) || (-0.05 >  DeltaMass))){
-             hist[DeltaMass] += 1.0;
-             num_charges_at_mass[DeltaMass] += 1.0; 
-             charge_states[DeltaMass].push_back(h.getCharge()); 
+          if (bucketcheck && ((0.05 <  deltamass) || (-0.05 >  deltamass)))
+          {
+             hist[deltamass] += 1.0;
+             num_charges_at_mass[deltamass] += 1.0; 
+             charge_states[deltamass].push_back(h.getCharge()); 
           }
         }
 
         else
         {
-          hist[DeltaMass] += 1.0;
+          hist[deltamass] += 1.0;
           bool chargecheck = false; 
-          for(auto& x : charge_states[DeltaMass]){
-                if(x == h.getCharge()) chargecheck = true; 
-              }
-              if(!chargecheck)
-              {
-                num_charges_at_mass[DeltaMass] += 1.0; 
-                charge_states[DeltaMass].push_back(h.getCharge()); 
-              } 
+          for (auto& x : charge_states[deltamass])
+          {
+            if(x == h.getCharge())
+            {
+              chargecheck = true; 
+            }
+          }
+          if(!chargecheck)
+          {
+            num_charges_at_mass[deltamass] += 1.0; 
+            charge_states[deltamass].push_back(h.getCharge()); 
+          } 
         }
-       }
       }
+    }
       
 
     pair<mapRatetoMass, map<double,double>> results; 
@@ -183,40 +194,44 @@ struct modification{
     results.second = num_charges_at_mass; 
 
     return results ; 
+  }
 
-
-
-    }
-
-static vector<PeptideIdentification> mapDifftoMods(const mapRatetoMass hist, map<double, double> charge_hist, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 5, bool precursor_mass_tolerance_unit_ppm = true, String outfile = "")
-  {
+ vector<PeptideIdentification> mapDifftoMods(const mapRatetoMass hist, map<double, double> charge_hist, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 5, bool precursor_mass_tolerance_unit_ppm = true, String outfile = "")
+{
     
-    vector<vector<PeptideIdentification>> clusters(hist.size(), vector<PeptideIdentification>());
+  vector<vector<PeptideIdentification>> clusters(hist.size(), vector<PeptideIdentification>());
 
- // Accessing zhe .obo file 
- ControlledVocabulary unimod_; //Causes trace trap? 
-      try{
- unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
-    }
- catch(Exception::FileNotFound& e){
-   cout << "File could not be found! " << std::endl; 
- } 
+  // Accessing the .obo file 
+  ControlledVocabulary unimod_; 
+  try
+  {
+    unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
+  }
+  catch(Exception::FileNotFound& e)
+  {
+    cout << "File could not be found! " << std::endl; 
+  } 
 
  
- map<String, ControlledVocabulary::CVTerm> terms = unimod_.getTerms(); 
+  map<String, ControlledVocabulary::CVTerm> terms = unimod_.getTerms(); 
 
 
 
- int ii = 0; 
+
   map<double, String> mass_of_mods; 
   map<double, String> mass_of_mono_mods; 
- ControlledVocabulary::CVTerm zeroterm = terms.begin()->second; 
+  ControlledVocabulary::CVTerm zeroterm = terms.begin()->second; 
 
- cout << "Size of map " <<  terms.size() << std::endl; 
-for(auto& x : terms){
-    if(x.second.unparsed.size() != 0){
-      for(auto& y : x.second.unparsed){
-        if(y.hasSubstring("delta_avge_mass")){
+  //Parsing the .obo file for PTMs 
+  cout << "Size of map " <<  terms.size() << std::endl; 
+  for (auto& x : terms)
+  {
+    if (x.second.unparsed.size() != 0)
+    {
+      for (auto& y : x.second.unparsed)
+      {
+        if (y.hasSubstring("delta_avge_mass"))
+        {
            std::vector<String> substrings(3);  
            y.split(' ', substrings);
            String val = substrings.at(2); 
@@ -225,81 +240,84 @@ for(auto& x : terms){
            avge = std::stod(val); 
            mass_of_mods[avge] = x.second.name; 
         }
-        
       }
     }
- } 
-  map<double, String>::const_iterator low_it;
-  map<double, String>::const_iterator up_it;
-  map<double, double>::const_iterator cit = charge_hist.begin(); 
-  std::vector< map<double, String>> between; 
-  StringList modnames; 
-  map<String, modification> modifications; 
- //Mapping with tolerances 
- for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit){
-  double current_cluster_mass = mit->first; 
-  if (precursor_mass_tolerance_unit_ppm) //ppm  
-          {
-            low_it = mass_of_mods.lower_bound(current_cluster_mass - current_cluster_mass * precursor_mass_tolerance_ * 1e-6);
-            up_it = mass_of_mods.upper_bound(current_cluster_mass + current_cluster_mass * precursor_mass_tolerance_ * 1e-6);
-            
-          }
-          else // Dalton
-          {
-            low_it = mass_of_mods.lower_bound(current_cluster_mass - precursor_mass_tolerance_ );
-            up_it = mass_of_mods.upper_bound(current_cluster_mass + precursor_mass_tolerance_ );
-          }
+  } 
+
+    //Variables for going through the histogram 
+    map<double, String>::const_iterator low_it;
+    map<double, String>::const_iterator up_it;
+    map<double, double>::const_iterator cit = charge_hist.begin(); 
+    std::vector< map<double, String>> between; 
+    StringList modnames; 
+    map<String, modification> modifications; 
+
+  //Mapping with tolerances 
+  for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit)
+  {
+      double current_cluster_mass = mit->first; 
+      if (precursor_mass_tolerance_unit_ppm) //ppm  
+      {
+        low_it = mass_of_mods.lower_bound(current_cluster_mass - current_cluster_mass * precursor_mass_tolerance_ * 1e-6);
+        up_it = mass_of_mods.upper_bound(current_cluster_mass + current_cluster_mass * precursor_mass_tolerance_ * 1e-6);
+        
+      }
+      else // Dalton
+      {
+        low_it = mass_of_mods.lower_bound(current_cluster_mass - precursor_mass_tolerance_ );
+        up_it = mass_of_mods.upper_bound(current_cluster_mass + precursor_mass_tolerance_ );
+      }
 
 
-          auto mapped_val = *low_it; 
-          auto mapped_val_high = *up_it; 
+      auto mapped_val = *low_it; 
+      auto mapped_val_high = *up_it; 
 
-          if(low_it == up_it) //Only one mapping found
-          {
-            modnames.push_back(mapped_val.second); 
-            if(modifications.find(mapped_val.second) == modifications.end()) //Modification hasn't already been found
-            {
-              modification modi{}; 
-              modi.mass.push_back(mapped_val.first); 
-              modi.rate = mit->second; 
-              modi.numcharges = cit->second; 
-              modifications[mapped_val.second] = modi; 
-            }
-
-
-            else{
-             modifications[mapped_val.second].rate += mit->second;   
-             modifications[mapped_val.second].numcharges = max(cit->second, modifications[mapped_val.second].numcharges);
-            }
-            
-         
-          }
-          else //More than one mapping found 
-          {
-            String mod_mix_name = mapped_val.second + "/" + mapped_val_high.second; //
-
-            if(modifications.find(mod_mix_name) == modifications.end()) //Modification hasn't already been found
-            {
-              modification modi{}; 
-              modi.mass.push_back(mapped_val.first); 
-              modi.mass.push_back(mapped_val_high.first); 
-              modi.rate = mit->second; 
-              modi.numcharges = cit->second; 
-              modifications[mod_mix_name] = modi; 
-            }
+      if (low_it == up_it) //Only one mapping found
+      {
+        modnames.push_back(mapped_val.second); 
+        if (modifications.find(mapped_val.second) == modifications.end()) //Modification hasn't already been found
+        {
+          modification modi{}; 
+          modi.mass.push_back(mapped_val.first); 
+          modi.rate = mit->second; 
+          modi.numcharges = cit->second; 
+          modifications[mapped_val.second] = modi; 
+        }
 
 
-            else 
-            {
-             modifications[mod_mix_name].rate += mit->second;   
-             modifications[mod_mix_name].numcharges = max(cit->second, modifications[mod_mix_name].numcharges);
-            }
-            
+        else{
+          modifications[mapped_val.second].rate += mit->second;   
+          modifications[mapped_val.second].numcharges = max(cit->second, modifications[mapped_val.second].numcharges);
+        }
+        
+      
+      }
+      else //More than one mapping found 
+      {
+        String mod_mix_name = mapped_val.second + "/" + mapped_val_high.second; //
 
-          }
+        if (modifications.find(mod_mix_name) == modifications.end()) //Modification hasn't already been found
+        {
+          modification modi{}; 
+          modi.mass.push_back(mapped_val.first); 
+          modi.mass.push_back(mapped_val_high.first); 
+          modi.rate = mit->second; 
+          modi.numcharges = cit->second; 
+          modifications[mod_mix_name] = modi; 
+        }
 
-    ++cit; 
- }
+
+        else 
+        {
+          modifications[mod_mix_name].rate += mit->second;   
+          modifications[mod_mix_name].numcharges = max(cit->second, modifications[mod_mix_name].numcharges);
+        }
+        
+
+      }
+
+      ++cit; 
+  }
 
  
 
@@ -307,64 +325,68 @@ for(auto& x : terms){
 
   for (map<String, modification>::const_iterator modit = modifications.begin(); modit != modifications.end(); ++modit){
           //Charge and mass(es) pair
-          pair<double, vector<double>> Pair0; 
-          Pair0.first = modit->second.numcharges; 
-          Pair0.second = modit->second.mass; 
+          pair<double, vector<double>> pair0; 
+          pair0.first = modit->second.numcharges; 
+          pair0.second = modit->second.mass; 
           
           //Name + (charge and mass)
-          pair<String, pair<double, vector<double>>> Pair1; 
-          Pair1.first = modit->first; 
-          Pair1.second = Pair0; 
+          pair<String, pair<double, vector<double>>> pair1; 
+          pair1.first = modit->first; 
+          pair1.second = pair0; 
 
-          //Rare + (Name + (Charge + Mass))
-          pair<double, pair<String, pair<double, vector<double>>>> Pair2; 
-          Pair2.first = modit->second.rate; 
-          Pair2.second = Pair1; 
+          //Rate + (Name + (Charge + Mass))
+          pair<double, pair<String, pair<double, vector<double>>>> pair2; 
+          pair2.first = modit->second.rate; 
+          pair2.second = pair1; 
 
 
-          pairs_by_rate.push_back(Pair2); 
+          pairs_by_rate.push_back(pair2); 
       }
 
-sort(pairs_by_rate.begin(), pairs_by_rate.end(), [=](std::pair<double, pair<String, pair<double, vector<double>>>>& a, std::pair<double, pair<String, pair<double, vector<double>>>>& b)
-{
-    return a.second.second.first + a.first > b.second.second.first + b.first;
-}
-);
+  sort(pairs_by_rate.begin(), pairs_by_rate.end(), [=](std::pair<double, pair<String, pair<double, vector<double>>>>& a, std::pair<double, pair<String, pair<double, vector<double>>>>& b)
+  {
+      return a.second.second.first + a.first > b.second.second.first + b.first;
+  }
+  );
 
- //Add the modifications
-  vector<PeptideIdentification> finalModifiedpeptides; 
+  //Add the modifications
+  vector<PeptideIdentification> finalmodifiedpeptides; 
 
-     //Remove idxml from output file name and write table 
-    String output_tab = outfile.substr(0, outfile.size()-5) + "_OutputTable.tsv"; 
-    std::ofstream outFile(output_tab);
-
+    //Remove idxml from output file name and write table 
+  String output_tab = outfile.substr(0, outfile.size()-5) + "_OutputTable.tsv"; 
+  try
+  {
+    std::ofstream outfile(output_tab);
     // Check if the file was opened successfully
-    if (!outFile.is_open()) {
+    if (!outfile.is_open()) {
         std::cerr << "Error opening file: " << output_tab << std::endl;
-        return finalModifiedpeptides;
     }
-    outFile << "Name" << '\t' << "Mass" << '\t' << "Modified Peptides (incl. charge variants)" << '\t' << "Modified Peptides" << '\n'; 
+
+    outfile << "Name" << '\t' << "Mass" << '\t' << "Modified Peptides (incl. charge variants)" << '\t' << "Modified Peptides" << '\n'; 
     // Iterate over the data and write to the file
-    for (const auto& x : pairs_by_rate) { //Check if there is a pair of candidates or just one
-      if(x.second.second.second.size() < 2){
-                outFile <<  x.second.first << '\t' << x.second.second.second.at(0) << '\t' << x.second.second.first +  x.first << '\t' << x.first  << '\n'; 
-        }
-        else{
-                outFile <<  x.second.first << '\t' << x.second.second.second.at(0) << "/" << x.second.second.second.at(1) << '\t' << x.second.second.first +  x.first << '\t' << x.first  << '\n'; 
-        }
+    for (const auto& x : pairs_by_rate) 
+    { 
+      //Check if there is a pair of candidates or just one
+      if (x.second.second.second.size() < 2)
+      {
+        outfile <<  x.second.first << '\t' << x.second.second.second.at(0) << '\t' << x.second.second.first +  x.first << '\t' << x.first  << '\n'; 
+      }
+      else
+      {
+        outfile <<  x.second.first << '\t' << x.second.second.second.at(0) << "/" << x.second.second.second.at(1) << '\t' << x.second.second.first +  x.first << '\t' << x.first  << '\n'; 
+      }
     }
     // Close the file
-    outFile.close();
-
-    return finalModifiedpeptides; 
+    outfile.close();
+  }
+  catch(Exception::FileNotFound& e)
+  {
+    cout << "File could not be found! " << std::endl; 
   } 
 
+  return finalmodifiedpeptides; 
+} 
 
-
-}; 
-
-
- 
 
 protected:
   // create a template-based configuration file for sage
@@ -807,6 +829,7 @@ protected:
     OPENMS_LOG_INFO << "Sage command line: " << sage_executable << " " << arguments.join(' ').toStdString() << std::endl;
     
     //std::chrono lines for testing/writing purposes only! 
+
     //std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
     // Sage execution with the executable and the arguments StringList
@@ -859,36 +882,17 @@ protected:
           {
             h.setMetaValue("SAGE:" + meta, h.getMetaValue(meta));
             h.removeMetaValue(meta);    
-            /* if(printcou++ < 100)
-            {  
-            /* if(h.metaValueExists("ions")) cout << "Ions there" << std::endl; 
-            if(h.metaValueExists("Annotation-Charge")) cout << "Anno charge there" << std::endl; 
-            if(h.metaValueExists("intensities")) cout << "Intensities there" << std::endl; 
-            if(h.metaValueExists("mz_values")) cout << "mz_values there" << std::endl; */
-           /*  cout << h.getPeakAnnotations().size() << " is size of peak annotation " << std::endl; 
-            cout << h.getPeakAnnotations().at(0).annotation << " annotation "
-              << h.getPeakAnnotations().at(0).charge << " charge "
-              << h.getPeakAnnotations().at(0).intensity << " intensity "
-              <<  h.getPeakAnnotations().at(0).mz << " mz "
-              <<   std::endl; 
-            } 
-            if(h.getPeakAnnotations().size() > 1){
-                //cout << "There's something with more than one peak annotation!" << std::endl; 
-                quickcheck = false; 
-            }  
-          }      */     
+          }
         }
-      
       }
-    }
     }
 
     
 
 
-  const pair<mapRatetoMass, map<double,double>> resultsClus =  SageClustering::getDeltaClusterCenter(peptide_identifications); 
+  const pair<mapRatetoMass, map<double,double>> resultsClus =  getDeltaClusterCenter(peptide_identifications); 
 
-  vector<PeptideIdentification> mapD = SageClustering::mapDifftoMods(resultsClus.first, resultsClus.second, peptide_identifications, 5, true, output_file); //peptide_identifications; 
+  vector<PeptideIdentification> mapD = mapDifftoMods(resultsClus.first, resultsClus.second, peptide_identifications, 5, true, output_file); //peptide_identifications; 
  
 
 
