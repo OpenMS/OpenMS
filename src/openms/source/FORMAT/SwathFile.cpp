@@ -310,7 +310,7 @@ namespace OpenMS
   void SwathFile::countScansInSwath_(const std::vector<MSSpectrum>& exp,
                                      std::vector<int>& swath_counter, int& nr_ms1_spectra,
                                      std::vector<OpenSwath::SwathMap>& known_window_boundaries,
-                                     double TOLERANCE=1e-6)
+                                     double TOLERANCE)
   {
     int ms1_counter = 0;
     for (Size i = 0; i < exp.size(); i++)
@@ -340,7 +340,8 @@ namespace OpenMS
           }
           else
           {
-            imLower, imUpper = -1;
+            imLower = -1;
+            imUpper = -1;
           }
 
           const OpenSwath::SwathMap boundary(prec[0].getMZ() - prec[0].getIsolationWindowLowerOffset(), 

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <cmath>
 
 namespace OpenSwath
 {
@@ -39,7 +40,10 @@ namespace OpenSwath
       : lower(mz_start),
         upper(mz_end),
         center(mz_center),
+        imLower(-1),
+        imUpper(-1),
         ms1(is_ms1)
+
     {}
 
 
@@ -47,8 +51,8 @@ namespace OpenSwath
       : lower(mz_start),
         upper(mz_end),
         center(mz_center),
-	imLower(imLower),
-	imUpper(imUpper),
+        imLower(imLower),
+      	imUpper(imUpper),
         ms1(is_ms1)
     {}
 
