@@ -46,15 +46,18 @@
 		@image html TOPPAS_simple_example.png
 		@image latex TOPPAS_simple_example.png "" width=14cm
 		
-    You can play with existing example pipelines (see @ref TOPPAS_examples), which cover identification, 
+    You can play with existing @em example @em pipelines, which cover identification, 
     quantification and some special use cases, such as SubsetNeighborSearch.
-    To open an 
-
-		To create a new TOPPAS file, you can either: 
+    To open an existing example pipeline, select @p File > @p Open @p example @p file from the menu bar in TOPPAS.
+    See @ref TOPPAS_examples below for details.
+	
+		To create a new (empty) TOPPAS file, you can either: 
 
 			- open TOPPAS without providing any existing workflow - an empty workflow will be opened automatically
 			- in a running TOPPAS program choose: @p File @p > @p New
-			- create an empty file in your file browser (explorer) with the suffix @p \.toppas and double-click it (on Windows systems all @p \.toppas files are associated with TOPPAS automatically during installation of %OpenMS, on Linux and MacOS you might need to manually associate the extension)
+			- create an empty file with the suffix @p \.toppas 
+      
+    All @p \.toppas files are usually associated with TOPPAS automatically during installation of %OpenMS - at least on Windows. On Linux and MacOS you might need to manually associate the \.toppas extension.
 		
 	@page TOPPAS_interface User interface
 		
@@ -344,13 +347,17 @@
 		@image html TOPPAS_example_merger.png
 		@image latex TOPPAS_example_merger.png "" width=14cm
 		
-		As its name suggests, a merger merges its incoming file lists, i.e.,
-		files of all incoming edges are appended into new lists (which
-		have as many elements as the merger has incoming connections). All tools this merger has outgoing
-		connections to are called with these merged lists as input files. All incoming connections should
-		pass the same number of files (unless the corresponding preceding tool is in recycling mode).
+    In short: mergers require multiple input edges, whose data is combined bit by bit. 
+    Collectors on the other hand usually only have one input edge and combine all files from this single edge into a list in one go. The succeeding tool will be invoked only once, with a list of input files.
+    
+    In detail, a @em merger merges its incoming file lists, i.e.,
+		files of all incoming edges are combined into new lists. Each file list has an many elements as the merger has incoming connections.
+    And there are as many lists as there are files(rounds) from the the preceeding(=upstream) tool. The tool downstream of the merger is invoked with 
+    these merged lists as input files. 
+    All incoming connections should pass the same number of files (unless one of the upstream nodes is in "recycling mode"), such that all merged lists have the same number of files.
+    In other words, if you have K input edges with N files each, the merger will create N output lists, with K elements each.
 		
-		A collector node, on the other hand, waits for all rounds to finish before concatenating all files from all
+		A collector node, on the other hand, waits for all rounds to finish on its upstream side before concatenating all files from all
 		incoming connections into one single list. It then calls the next tool with this list of files as input.
 		This will happen exactly once during the entire pipeline run.
 		
