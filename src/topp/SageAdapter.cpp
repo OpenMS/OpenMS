@@ -77,13 +77,14 @@ because of limitations in OpenMS' data structures and file formats.
 /// @cond TOPPCLASSES
 
 
-
+#include <chrono>
 
 #include <map>
 #include <vector>
 #include <algorithm>
 #include <cmath>
 #include <numeric>
+
 
 // Gaussian function
 double gaussian(double x, double sigma) {
@@ -268,6 +269,7 @@ public:
 
   static pair<mapRatetoMass, map<double, double>>  getDeltaClusterCenter(const vector<PeptideIdentification>& pips, bool debug = false)
   {
+    //Add bucketsize 
     vector<double> cluster;
     vector<double> delta_masses; 
     mapRatetoMass hist;
@@ -291,7 +293,7 @@ public:
           bool bucketcheck = true; 
           bool chargecheck = false; 
           for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit){
-            if(DeltaMass <  mit->first+0.0005 && DeltaMass >  mit->first-0.0005 && bucketcheck){
+            if(DeltaMass <  mit->first+0.05 && DeltaMass >  mit->first-0.05 && bucketcheck && ((0.05 <  DeltaMass) || (-0.05 >  DeltaMass))){
               hist[mit->first] += 1.0; 
               bucketcheck = false; 
 
@@ -305,7 +307,7 @@ public:
 
             }
           }
-          if(bucketcheck){
+          if(bucketcheck && ((0.05 <  DeltaMass) || (-0.05 >  DeltaMass))){
              hist[DeltaMass] += 1.0;
              num_charges_at_mass[DeltaMass] += 1.0; 
              charge_states[DeltaMass].push_back(h.getCharge()); 
@@ -334,23 +336,23 @@ public:
     results.second = num_charges_at_mass; 
 
 
- /*  std::map<double, double> smoothed_hist =  smoothMassSpectrum(hist, 0.0001); 
+  s/* td::map<double, double> smoothed_hist =  smoothMassSpectrum(hist, 0.01); 
   cout << "Size of smoothed hist " <<  smoothed_hist.size() << std::endl ; 
-  for (auto& x : smoothed_hist){
-    //if(x.first > 20) cout << "First val" << x.first << "Second val" << x.second << std::endl; 
-  }
-
-
+  
 
   std::vector<std::pair<double, double>> smoothedMaxes = findPeaks( smoothed_hist ); 
+  std::vector<std::pair<double, double>> unsmoothedMaxes = findPeaks( hist ); 
 
 
-
-  cout << "Size of smoothed maxes " << smoothedMaxes.size() << std::endl ; 
-  for (auto& x : smoothedMaxes){
-    //cout << "First val" << x.first << "Second val" << x.second << std::endl; 
+  //cout << "Size of smoothed maxes " << smoothedMaxes.size() << std::endl ; 
+  //cout << "Size of unsmoothed maxes " << unsmoothedMaxes.size() << std::endl ; 
+   for (auto& x : smoothedMaxes){
+    cout << "First val" << x.first << "Second val" << x.second << std::endl; 
   }
- */
+  for (auto& x : unsmoothedMaxes){
+    cout << "First val (unsmoothed)" << x.first << "Second val" << x.second << std::endl; 
+  }  */
+
     return results ; 
 
 
@@ -358,7 +360,6 @@ public:
     }
 
 
-  //Maybe change to map with Clust weight and peptide Vec? 
   /* static vector<vector<PeptideIdentification>> clusterPeptides(const mapRatetoMass centers, vector<PeptideIdentification>& pips)
   {
     // one cluster for each cluster center
@@ -421,27 +422,23 @@ public:
 
  int ii = 0; 
   map<double, String> mass_of_mods; 
+  map<double, String> mass_of_mono_mods; 
  ControlledVocabulary::CVTerm zeroterm = terms.begin()->second; 
 
-//TODO: refactor/find a better solution 
-//Parses the unimod.obo file and extracts name + delta mass 
  cout << "Size of map " <<  terms.size() << std::endl; 
 for(auto& x : terms){
     if(x.second.unparsed.size() != 0){
       for(auto& y : x.second.unparsed){
-        //cout << x.second.name << std::endl; 
-        //cout << "Unparsed: " << y << std::endl; //this works 
         if(y.hasSubstring("delta_avge_mass")){
            std::vector<String> substrings(3);  
            y.split(' ', substrings);
            String val = substrings.at(2); 
-           //val.replace(substrings.at(2).find("."), sizeof(".") - 1, ",");
            val = val.substr(1, val.length()-2); 
-           //cout << "Delta avge mass: " << val << std::endl;
            double avge; 
            avge = std::stod(val); 
            mass_of_mods[avge] = x.second.name; 
         }
+        
       }
     }
  } 
@@ -823,20 +820,12 @@ protected:
 
     config_file.substitute("##enzyme_details##", enzyme_details);
 
-    //TODO: versioning is the problem 
-    //
-
+    
     auto fixed_mods = getStringList_("fixed_modifications");
     set<String> fixed_unique(fixed_mods.begin(), fixed_mods.end());
     fixed_mods.assign(fixed_unique.begin(), fixed_unique.end());   
     ModifiedPeptideGenerator::MapToResidueType fixed_mod_map = ModifiedPeptideGenerator::getModifications(fixed_mods); // std::unordered_map<const ResidueModification*, const Residue*> val;
     String static_mods_details = getModDetailsString(fixed_mod_map);
-
-    //static_mods_details = "[" + static_mods_details + "]"; 
-    //static_mods_details.split(":", static_mods_details_list); 
-    //String static_mods_details_new; 
-    //static_mods_details_new = static_mods_details_list.at(0) + ":[" + static_mods_details_list.erase(static_mods_details_list.begin()) + "]"; 
-    
 
     auto variable_mods = getStringList_("variable_modifications");
     set<String> variable_unique(variable_mods.begin(), variable_mods.end());
@@ -844,9 +833,8 @@ protected:
     ModifiedPeptideGenerator::MapToResidueType variable_mod_map = ModifiedPeptideGenerator::getModifications(variable_mods);
     String variable_mods_details = getModDetailsString(variable_mod_map);
 
-    //variable_mods_details.split(":", variable_mods_details_list); 
-    //String variable_mods_details_new; 
-    //variable_mods_details_new = variable_mods_details_list.at(0) + ":[" + variable_mods_details_list.erase(variable_mods_details_list.begin()) + "]"; 
+    //Treat variables as list for sage v0.15 and beyond 
+
     StringList static_mods_details_list; 
     StringList variable_mods_details_list; 
 
@@ -856,30 +844,10 @@ protected:
     static_mods_details_split.split(",", static_mods_details_list); 
     variable_mods_details_split.split(",", variable_mods_details_list); 
 
-   /*  String temp_String_stat = ""; 
-    cout << static_mods_details_list.size() << std::endl; 
-    for(auto& x : static_mods_details_list){
-      //cout << x ; 
-      StringList temp_split; 
-      x.split(":", temp_split); 
-      
-      temp_split.insert(temp_split.begin()+1, ":["); 
-      temp_split.insert(temp_split.end(), "]"); 
 
-      String temp_split_Str = ""; 
-
-      for(auto& y : temp_split){
-        temp_split_Str = temp_split_Str + y; 
-      } 
-
-      cout << "temp split stat" << temp_split_Str << std::endl;  
-      temp_String_stat = temp_String_stat + "," + temp_split_Str ; 
-    } */
 
   String temp_String_var; 
-   //cout << variable_mods_details_list.size() << std::endl; 
      for(auto& x : variable_mods_details_list){
-      //cout << x ; 
       StringList temp_split; 
       x.split(":", temp_split); 
       
@@ -890,27 +858,11 @@ protected:
       for(auto& y : temp_split){
         temp_split_Str = temp_split_Str + y; 
       } 
-
-      //cout << "temp split var" << temp_split_Str << std::endl;  
       temp_String_var = temp_String_var + "," + temp_split_Str ; 
     } 
 
-   //variable_mods_details_list.insert(variable_mods_details_list.begin(), "["); 
-   //variable_mods_details_list.insert(variable_mods_details_list.end(), "]"); 
-   /* for(auto& x : variable_mods_details_list){
-      temp_String_var = temp_String_var + "," + x; 
-   } */
-    //THIS WORKS!! 
-    String temp_String_var_Fin = temp_String_var.substr(1, temp_String_var.size()-1); //"[" + variable_mods_details + "]"; //
-    //String temp_String_stat_Fin = temp_String_stat.substr(1, temp_String_stat.size()-1); 
-
-    //cout << "Fin string var " <<  temp_String_var_Fin << std::endl; 
-    //cout << "Fin string stat " <<  temp_String_stat_Fin << std::endl; 
-
-
-    //cout << "var_mod_details" << variable_mods_details << std::endl; 
-    //cout << "stat_mod_details" << static_mods_details << std::endl; 
-
+  
+    String temp_String_var_Fin = temp_String_var.substr(1, temp_String_var.size()-1); 
     config_file.substitute("##static_mods##", static_mods_details);
     config_file.substitute("##variable_mods##", temp_String_var_Fin);
 
@@ -1003,6 +955,7 @@ protected:
     registerStringOption_("chimera", "<bool>", "false", "Sets chimera option (true or false), default: false", false, false  ); 
     registerStringOption_("predict_rt",  "<bool>", "false", "Sets predict_rt option (true or false), default: false", false, false ); 
     registerStringOption_("wide_window", "<bool>", "false", "Sets wide_window option (true or false), default: false", false, false); 
+    registerIntOption_("threads", "<int>", 1, "Amount of threads available to the program", false, false); 
 
     // register peptide indexing parameter (with defaults for this search engine)
     registerPeptideIndexingParameter_(PeptideIndexing().getParameters());
@@ -1065,9 +1018,16 @@ protected:
     for (auto s : input_files) arguments << s.toQString();
 
     OPENMS_LOG_INFO << "Sage command line: " << sage_executable << " " << arguments.join(' ').toStdString() << std::endl;
+    
+    //std::chrono lines for testing/writing purposes only! 
+    //std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
     // Sage execution with the executable and the arguments StringList
     exit_code = runExternalProcess_(sage_executable.toQString(), arguments);
+    //std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+    //std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
+
     if (exit_code != EXECUTION_OK)
     {
       std::cout << "Sage executable not found" << std::endl; 
@@ -1085,7 +1045,7 @@ protected:
       "ln(matched_intensity_pct)", "longest_b", "longest_y", 
       "longest_y_pct", "matched_peaks", "scored_candidates", "CalcMass", "ExpMass" }; 
     double FDR_threshhold = getDoubleOption_("FDR_Threshhold"); 
-    
+
     vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load(
       output_folder + "/results.sage.pin",
       true,
@@ -1095,7 +1055,7 @@ protected:
       decoy_prefix, 
       FDR_threshhold);
 
-
+  cout << getIntOption_("threads") << " is amount of threads" << std::endl; 
   int printcou = 0; 
   bool quickcheck = true; 
 
@@ -1141,7 +1101,7 @@ protected:
 
   const pair<mapRatetoMass, map<double,double>> resultsClus =  SageClustering::getDeltaClusterCenter(peptide_identifications); 
 
-  vector<PeptideIdentification> mapD = SageClustering::mapDifftoMods(resultsClus.first, resultsClus.second, peptide_identifications, 5.0, true, output_file); //peptide_identifications; 
+  vector<PeptideIdentification> mapD = SageClustering::mapDifftoMods(resultsClus.first, resultsClus.second, peptide_identifications, 5, true, output_file); //peptide_identifications; 
  
 
 

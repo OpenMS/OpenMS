@@ -162,7 +162,7 @@ namespace OpenMS
       }
       else
       {
-        
+        //Add values to exisiting vector 
         PeptideHit::PeakAnnotation peak_temp; 
 
         peak_temp.annotation = row[to_idx_a.at("fragment_type")] + row[to_idx_a.at("fragment_ordinals")]; 
@@ -281,40 +281,8 @@ namespace OpenMS
 
         // Adding annotation 
 
-        if(anno_mapping.find(sSpecId.toInt()) != anno_mapping.end())
-      {    
-       /*  StringList annotation_list; 
-        DoubleList annotation_intensity_list; 
-        DoubleList annotation_mz_list; 
-        IntList annotation_charge_list; 
-
-        vector<String> annotation_vec; 
-        vector<double> annotation_intensity_vec; 
-        vector<double> annotation_mz_vec; 
-        vector<int> annotation_charge_vec; 
-
-
-
-        for(const PeptideHit::PeakAnnotation& pep : anno_mapping[sSpecId.toInt()]){
-          annotation_vec.push_back(pep.annotation); 
-          annotation_intensity_vec.push_back(pep.intensity); 
-          annotation_mz_vec.push_back(pep.mz); 
-          annotation_charge_vec.push_back(pep.charge); 
-        }
-
-        std::copy( annotation_vec.begin(), annotation_vec.end(), std::back_inserter( annotation_list ) );
-        std::copy( annotation_intensity_vec.begin(), annotation_intensity_vec.end(), std::back_inserter( annotation_intensity_list ) );
-        std::copy( annotation_mz_vec.begin(), annotation_mz_vec.end(), std::back_inserter( annotation_mz_list ) );
-        std::copy( annotation_charge_vec.begin(), annotation_charge_vec.end(), std::back_inserter( annotation_charge_list ) ); */
-
-         //pids.back().setMetaValue("ions", annotation_list); 
-        // pids.back().setMetaValue("Annotation-Charge", annotation_intensity_list); 
-        // pids.back().setMetaValue("intensities",annotation_mz_list ); 
-        // pids.back().setMetaValue("mz_values", annotation_charge_list); 
-        
-      
          
-        }
+       
       }
 
       String sPeptide = row[to_idx.at("Peptide")];
@@ -398,11 +366,8 @@ namespace OpenMS
 
       //adding own meta values 
       ph.setMetaValue("spectrum_q", t_row[to_idx_t.at("spectrum_q")].toDouble()); 
-      //Add Annotation meta values 
-      //int counteroni = 0; 
        if(anno_mapping.find(sSpecId.toInt()) != anno_mapping.end())
        {
-        //if(counteroni++ < 5) cout << "Reached second meta station " << std::endl; 
        StringList annotation_list; 
         DoubleList annotation_intensity_list; 
         DoubleList annotation_mz_list; 
@@ -422,20 +387,11 @@ namespace OpenMS
           annotation_charge_vec.push_back(pep.charge); 
           
           pep_vec.push_back(pep) ; 
-          ph.setPeakAnnotations(pep_vec); // if this works remove metavalues and revert webapp code
+          ph.setPeakAnnotations(pep_vec); 
           
         }
 
-        //std::copy( annotation_vec.begin(), annotation_vec.end(), std::back_inserter( annotation_list ) );
-        //std::copy( annotation_intensity_vec.begin(), annotation_intensity_vec.end(), std::back_inserter( annotation_intensity_list ) );
-        //std::copy( annotation_mz_vec.begin(), annotation_mz_vec.end(), std::back_inserter( annotation_mz_list ) );
-        //std::copy( annotation_charge_vec.begin(), annotation_charge_vec.end(), std::back_inserter( annotation_charge_list ) );
-
-         //#ph.setMetaValue("ions", annotation_list); 
-         //ph.setMetaValue("Annotation-Charge", annotation_intensity_list); 
-         //ph.setMetaValue("intensities",annotation_mz_list ); 
-         //ph.setMetaValue("mz_values", annotation_charge_list); 
-          
+      
        } 
       // add link to protein (we only know the accession but not start/end, aa_before/after in protein at this point)
       for (const String& accession : accessions)
@@ -443,13 +399,6 @@ namespace OpenMS
         ph.addPeptideEvidence(PeptideEvidence(accession));
       }
 
-    //peakAnnotations
-
-      //StringList p_row;
-      //tsv.getRow(i, p_row);
-      
-
-      //ph.setPeakAnnotations(); 
 
       pids.back().insertHit(std::move(ph));
       }
