@@ -79,7 +79,7 @@ namespace OpenMS
     anno_file_path = anno_file_path + "matched_fragments.sage.tsv"; 
     CsvFile annos(anno_file_path, '\t'); 
 
-  //map PSMID to vec of PeakAnnotation 
+    //map PSMID to vec of PeakAnnotation 
 
     StringList header;
     StringList fullheader; 
@@ -146,7 +146,7 @@ namespace OpenMS
       annos.getRow(i, row);
 
       //Check if mapping already has PSM, if it does add 
-      if(anno_mapping.find(row[to_idx_a.at("psm_id")].toInt()) == anno_mapping.end())
+      if (anno_mapping.find(row[to_idx_a.at("psm_id")].toInt()) == anno_mapping.end())
       {                 
          //Make a new vector of annotations 
         PeptideHit::PeakAnnotation peak_temp; 
@@ -366,9 +366,9 @@ namespace OpenMS
 
       //adding own meta values 
       ph.setMetaValue("spectrum_q", t_row[to_idx_t.at("spectrum_q")].toDouble()); 
-       if(anno_mapping.find(sSpecId.toInt()) != anno_mapping.end())
+       if (anno_mapping.find(sSpecId.toInt()) != anno_mapping.end())
        {
-       StringList annotation_list; 
+        StringList annotation_list; 
         DoubleList annotation_intensity_list; 
         DoubleList annotation_mz_list; 
         IntList annotation_charge_list; 
@@ -380,7 +380,8 @@ namespace OpenMS
 
         vector<PeptideHit::PeakAnnotation> pep_vec;
         //add annotations to 
-        for(const PeptideHit::PeakAnnotation& pep : anno_mapping[sSpecId.toInt()]){
+        for (const PeptideHit::PeakAnnotation& pep : anno_mapping[sSpecId.toInt()])
+        {
           annotation_vec.push_back(pep.annotation); 
           annotation_intensity_vec.push_back(pep.intensity); 
           annotation_mz_vec.push_back(pep.mz); 
