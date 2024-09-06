@@ -79,20 +79,6 @@ because of limitations in OpenMS' data structures and file formats.
 
 #include <chrono>
 
-#include <map>
-#include <vector>
-#include <algorithm>
-#include <cmath>
-#include <numeric>
-
-
-// Gaussian function
-double gaussian(double x, double sigma) {
-    return exp(-(x*x) / (2 * sigma*sigma)) / (sigma * sqrt(2 * M_PI));
-}
-
-
-
 
 typedef map<double, double> mapRatetoMass;
 
@@ -124,148 +110,9 @@ struct modification{
   double numcharges = 0; 
 }; 
 
-  class MetaProSIPInterpolation
-{
-public:
-  ///< Determine score maxima from rate to score distribution using derivatives from spline interpolation
-  static vector<RateMassPair> getHighPoints(double threshold,  const mapRatetoMass& rate2score, double lowb, double upb, bool debug = false)
-  {
-    vector<RateMassPair> high_points;
-    vector<double> x, y;
-
-    // set proper boundaries (uniform spacing)
-    x.push_back(lowb);
-    y.push_back(0);
-
-    // copy data
-    for (mapRatetoMass::const_iterator it = rate2score.begin(); it != rate2score.end(); ++it)
-    {
-      x.push_back(it->first);
-      y.push_back(it->second);
-    }
-  //?? 
-    /*  if (rate2score.find(upb) == rate2score.end() && x[x.size() - 1] < upb)
-    {
-      x.push_back(upb);
-      y.push_back(0);
-    }  */
-    
-   
-    
-    const size_t n = x.size();
-
-    //gte::IntpAkimaNonuniform1<double> spline(x.size(), &x.front(), &y.front());
-    CubicSpline2d spline(x, y);
-
-    if (debug)
-    {
-      OPENMS_LOG_DEBUG << x[0] << " " << x[n - 1] << " " << n << endl;
-    }
-
-    double last_dxdy = 0;
-    for (double xi = x[0]; xi < x[n - 1]; xi += 0.01)
-    {
-      double dxdy = spline.derivatives(xi, 1);
-      double yi = spline.eval(xi);
-
-      if (debug)
-      {
-        cout << x[0] << " " << x[n - 1] << " " << xi << " " << yi << endl;
-      }
-        //Rate and deltamass are swapped currently 
-      if (last_dxdy > 0.0 && dxdy <= 0 && yi > threshold)
-      {
-        RateMassPair rsp{};
-        rsp.deltamass = xi;
-        rsp.rate = yi;
-        high_points.push_back(rsp);
-      }
-      last_dxdy = dxdy;
-    }
-
-    if (debug)
-    {
-      OPENMS_LOG_DEBUG << "Found: " << high_points.size() << " local maxima." << endl;
-      for (Size i = 0; i != high_points.size(); ++i)
-      {
-        OPENMS_LOG_DEBUG << high_points[i].rate << " " << high_points[i].deltamass << endl;
-      }
-    }
-
-    return high_points;
-  }
-
-};
-
+  
   class SageClustering{
   public: 
-
-// Gaussian smoothing function for mass spectra
-  static std::map<double, double> smoothMassSpectrum(const std::map<double, double>& spectrum, double sigma = 0.1) {
-    std::map<double, double> smoothedSpectrum;
-    std::vector<double> mzValues, intensities;
-
-    // Extract m/z values and intensities
-    for (const auto& pair : spectrum) {
-        mzValues.push_back(pair.first);
-        intensities.push_back(pair.second);
-    }
-
-    // Apply Gaussian smoothing
-    for (size_t i = 0; i < mzValues.size(); ++i) {
-        double smoothedIntensity = 0.0;
-        double weightSum = 0.0;
-
-        for (size_t j = 0; j < mzValues.size(); ++j) {
-            double mzDiff = std::abs(mzValues[i] - mzValues[j]);
-            if (mzDiff > 3 * sigma) continue; // Ignore points too far away
-            double weight = gaussian(mzDiff, sigma);
-            smoothedIntensity += weight * intensities[j];
-            weightSum += weight;
-        }
-
-        smoothedSpectrum[mzValues[i]] = smoothedIntensity / weightSum;
-    }
-
-    return smoothedSpectrum;
-}
-
-// Peak detection function for mass spectra
-  static std::vector<std::pair<double, double>> findPeaks(const std::map<double, double>& spectrum, double intensityThreshold = 0.0, double snrThreshold = 3.0) {
-    std::vector<std::pair<double, double>> peaks;
-    
-    if (spectrum.size() < 3) {
-        return peaks;  // Not enough points to determine peaks
-    }
-
-    // Calculate noise level (e.g., median intensity)
-    std::vector<double> intensities;
-    for (const auto& pair : spectrum) {
-        intensities.push_back(pair.second);
-    }
-    size_t n = intensities.size() / 2;
-    std::nth_element(intensities.begin(), intensities.begin() + n, intensities.end());
-    double noiseLevel = intensities[n];
-
-    auto it = spectrum.begin();
-    auto prev = it++;
-    auto next = std::next(it);
-
-    while (next != spectrum.end()) {
-        if (it->second > prev->second && it->second > next->second && 
-            it->second > intensityThreshold && 
-            it->second / noiseLevel > snrThreshold) {
-            peaks.push_back(*it);
-        }
-        prev = it;
-        it = next;
-        ++next;
-    }
-
-    return peaks;
-}
-
-
 
   static pair<mapRatetoMass, map<double, double>>  getDeltaClusterCenter(const vector<PeptideIdentification>& pips, bool debug = false)
   {
@@ -335,73 +182,13 @@ public:
     results.first = hist; 
     results.second = num_charges_at_mass; 
 
-
-  s/* td::map<double, double> smoothed_hist =  smoothMassSpectrum(hist, 0.01); 
-  cout << "Size of smoothed hist " <<  smoothed_hist.size() << std::endl ; 
-  
-
-  std::vector<std::pair<double, double>> smoothedMaxes = findPeaks( smoothed_hist ); 
-  std::vector<std::pair<double, double>> unsmoothedMaxes = findPeaks( hist ); 
-
-
-  //cout << "Size of smoothed maxes " << smoothedMaxes.size() << std::endl ; 
-  //cout << "Size of unsmoothed maxes " << unsmoothedMaxes.size() << std::endl ; 
-   for (auto& x : smoothedMaxes){
-    cout << "First val" << x.first << "Second val" << x.second << std::endl; 
-  }
-  for (auto& x : unsmoothedMaxes){
-    cout << "First val (unsmoothed)" << x.first << "Second val" << x.second << std::endl; 
-  }  */
-
     return results ; 
 
 
 
     }
 
-
-  /* static vector<vector<PeptideIdentification>> clusterPeptides(const mapRatetoMass centers, vector<PeptideIdentification>& pips)
-  {
-    // one cluster for each cluster center
-    vector<vector<PeptideIdentification>> clusters(centers.size(), vector<PeptideIdentification>());
-    for (auto& id : pips)
-    {
-      auto& hits = id.getHits();
-      for (auto& h : hits)
-      {
-         double expval  =  std::stod(h.getMetaValue("SAGE:ExpMass")); 
-         double calcval = std::stod(h.getMetaValue("SAGE:CalcMass"));
-         double DeltaMass = expval - calcval; 
-
-         Size closest_cluster_idx = 0;
-         double closest_cluster_dist = std::numeric_limits<double>::max();
-
-        for (Size i = 0; i != centers.size(); ++i)
-        {
-          double dist = std::fabs(centers[i] - DeltaMass);
-          if (dist < closest_cluster_dist){
-            closest_cluster_dist = dist;
-            closest_cluster_idx = i;
-          }
-        }
-
-        clusters[closest_cluster_idx].push_back(id);
-
-        } 
-      }
-    // assign sip peptide to cluster center with largest RIA
-
-    // rearrange SIP peptides to reflect new order
-    pips.clear();
-    for (vector<vector<PeptideIdentification> >::const_iterator sit = clusters.begin(); sit != clusters.end(); ++sit)
-    {
-      pips.insert(pips.end(), sit->begin(), sit->end());
-    }
-
-    return clusters;
-  } //Problem currently: clusters upshifted by small amount (ranges from .01 to .4 or even .6)
- */
-  static vector<PeptideIdentification> mapDifftoMods(const mapRatetoMass hist, map<double, double> charge_hist, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 5, bool precursor_mass_tolerance_unit_ppm = true, String outfile = "")
+static vector<PeptideIdentification> mapDifftoMods(const mapRatetoMass hist, map<double, double> charge_hist, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 5, bool precursor_mass_tolerance_unit_ppm = true, String outfile = "")
   {
     
     vector<vector<PeptideIdentification>> clusters(hist.size(), vector<PeptideIdentification>());
