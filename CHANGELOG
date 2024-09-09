@@ -51,6 +51,7 @@ Fixes:
 - TOPPAS: open files in TOPPView (#7213)
 - pyOpenMS: Log warnings in pure Python code with warnings.warn instead of print (#7418)
 - more robust parsing of mzIdentML (#7153)
+- OpenSwath: Fix bug in diaPASEF window determination (#7546)  
 
 Misc:
 - FileInfo: Report ion mobility ranges (if any) (#7459)
