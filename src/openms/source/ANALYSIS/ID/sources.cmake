@@ -21,7 +21,6 @@ ConsensusMapMergerAlgorithm.cpp
 FalseDiscoveryRate.cpp
 FIAMSDataProcessor.cpp
 FIAMSScheduler.cpp
-FragmentIndex3D.cpp
 FragmentIndex.cpp
 HiddenMarkovModel.cpp
 HyperScore.cpp
@@ -49,7 +48,6 @@ PScore.cpp
 SimpleSearchEngineAlgorithm.cpp
 SiriusAdapterAlgorithm.cpp
 SiriusMSConverter.cpp
-FragmentIndexTagGenerator.cpp
 )
 
 ### add path to the filenames
