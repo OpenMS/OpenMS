@@ -38,8 +38,6 @@ MorpheusScore.cpp
 NeighborSeq.cpp
 PeptideProteinResolution.cpp
 PeptideSearchEngineAlgorithm.cpp
-PrecursorPurity.cpp
-ProtonDistributionModel.cpp
 PeptideIndexing.cpp
 PercolatorFeatureSetHelper.cpp
 PrecursorPurity.cpp
