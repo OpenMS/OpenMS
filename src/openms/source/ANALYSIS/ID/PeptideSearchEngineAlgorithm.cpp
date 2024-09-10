@@ -20,7 +20,6 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
@@ -35,6 +34,7 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
+#include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 
 #include <algorithm>
 #include <map>
