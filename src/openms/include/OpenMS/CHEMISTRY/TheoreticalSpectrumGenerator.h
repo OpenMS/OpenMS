@@ -90,8 +90,6 @@ namespace OpenMS
     void updateMembers_() override;
     //@}
 
-
-
     protected:
 
     /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
@@ -114,9 +112,6 @@ namespace OpenMS
 
     /// helper for getPrefixAndSuffixIonsMZ. For given Ion-Type and charge calculates a peaks
     static void addPrefixAndSuffixIons_(std::vector< float >& spectrum, const AASequence& peptide, Residue::ResidueType res_type, int charge) ;
-
-
-
 
     bool add_b_ions_;
     bool add_y_ions_;

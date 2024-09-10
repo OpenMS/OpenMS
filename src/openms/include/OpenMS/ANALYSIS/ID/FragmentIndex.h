@@ -258,8 +258,6 @@ private:
     StringList modifications_variable_; ///< Variable Modification -> all possible comibnations are created
     size_t max_variable_mods_per_peptide_;
 
-
-
     // Search Related member variables
 
     uint16_t min_matched_peaks_;  ///< PSM with less hits are discarded

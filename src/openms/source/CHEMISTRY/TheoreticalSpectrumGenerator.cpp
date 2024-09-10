@@ -17,8 +17,6 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 
-
-
 using namespace std;
 
 namespace OpenMS
