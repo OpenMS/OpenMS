@@ -27,10 +27,6 @@ FileFilter
 FileInfo
 FileMerger
 FLASHDeconv
-FLASHIdent
-MultiDimFragmentIndexCandidates
-FragmentIndexCandidatesOnly
-PeptideSearchEngineEmptyRun
 GenericWrapper
 GNPSExport
 HighResPrecursorMassCorrector
