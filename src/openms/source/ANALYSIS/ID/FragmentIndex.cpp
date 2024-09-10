@@ -192,7 +192,7 @@ namespace OpenMS
       OPENMS_LOG_INFO << "Generating fragments..." << std::endl;
 
      #pragma omp parallel for private(mod_peptides, b_y_ions)
-      for(int peptide_idx = 0; peptide_idx < (int)fi_peptides_.size(); peptide_idx++)
+      for(SignedSize peptide_idx = 0; peptide_idx < (SignedSize)fi_peptides_.size(); peptide_idx++)
       {
         const Peptide& pep = fi_peptides_[peptide_idx];
         mod_peptides.clear();
@@ -234,7 +234,7 @@ namespace OpenMS
 
       /// 2.) next sort after precursor mass and save the min_mz of each bucket
       #pragma omp parallel for
-      for (int i = 0; i < (int)fi_fragments_.size(); i += bucketsize_)
+      for (SignedSize i = 0; i < (SignedSize)fi_fragments_.size(); i += bucketsize_)
       {
 
         #pragma omp critical
