@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -230,7 +230,7 @@ namespace OpenMS
         "There are less than 2 iRT normalization peptides, not enough for an RT correction.");
     }
 
-    // 7. Select the "correct" peaks for m/z correction (e.g. remove those not
+    // 7. Select the "correct" peaks for m/z (and IM) correction (e.g. remove those not
     // part of the linear regression)
     std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_final; // store all peaks above cutoff
     for (const auto& it : trgrmap_allpeaks)
@@ -252,9 +252,11 @@ namespace OpenMS
       }
     }
 
-    // 8. Correct m/z deviations using SwathMapMassCorrection
+    // 8. Correct m/z (and IM) deviations using SwathMapMassCorrection
+    // m/z correction is done with the -irt_im_extraction parameters
     SwathMapMassCorrection mc;
     mc.setParameters(calibration_param);
+
     mc.correctMZ(trgrmap_final, targeted_exp, swath_maps, pasef);
     mc.correctIM(trgrmap_final, targeted_exp, swath_maps, pasef, im_trafo);
 
@@ -501,10 +503,6 @@ namespace OpenMS
 
     // (i) Obtain precursor chromatograms (MS1) if precursor extraction is enabled
     ChromExtractParams ms1_cp(cp_ms1);
-    if (!use_ms1_ion_mobility_)
-    {
-      ms1_cp.im_extraction_window = -1;
-    }
 
     if (ms1_only && !use_ms1_traces_)
     {

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,9 +14,9 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
 #include <functional>
@@ -94,13 +94,13 @@ as well as RT delta (in [s]) and m/z delta (in ppm) from the expected position a
   area  - area of EIC (trapezoid integration)
  </pre>
 
-  Each input experiment gives rise to the two RT and mz columns plus additional five columns (starting from RTobs) for each input file.
+Each input experiment gives rise to the two RT and mz columns plus additional five columns (starting from RTobs) for each input file.
 
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_EICExtractor.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_EICExtractor.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_EICExtractor.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_EICExtractor.html
 
 */
 

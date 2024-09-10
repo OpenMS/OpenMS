@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -11,8 +11,8 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/COMPARISON/CLUSTERING/GridBasedClustering.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
+#include <OpenMS/ML/CLUSTERING/GridBasedClustering.h>
+#include <OpenMS/FEATUREFINDER/MultiplexClustering.h>
 
 using namespace OpenMS;
 

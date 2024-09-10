@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -119,9 +119,6 @@ namespace OpenSwath
            in low-intensity transitions should thus become less important.
         */
         double calcXcorrCoelutionWeightedScore(const std::vector<double>& normalized_library_intensity);
-
-        /// calculate the cross-correlation contrast score
-        double calcXcorrContrastCoelutionScore();
 
         /// calculate the separate cross-correlation contrast score
         std::vector<double> calcSeparateXcorrContrastCoelutionScore();
@@ -261,7 +258,7 @@ namespace OpenSwath
         //@}
 
         /// contains max Peaks from xcorr_contrast_matrix_
-        OpenMS::Matrix<double > xcorr_contrast_matrix_max_peak_sec_;
+        OpenMS::Matrix<double> xcorr_contrast_matrix_max_peak_sec_;
 
         /// the precomputed cross correlation matrix of the MS1 trace
         XCorrMatrixType xcorr_precursor_matrix_;

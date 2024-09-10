@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -118,6 +118,12 @@ namespace OpenMS
 
     IndexOverflow::IndexOverflow(const char* file, int line, const char* function, SignedSize index, Size size) noexcept :
       BaseException(file, line, function, "IndexOverflow", "the given index was too large: " + String(index) + " (size = " + String(size) + ")")
+    {
+      GlobalExceptionHandler::getInstance().setMessage(what());
+    }
+
+    NotSorted::NotSorted(const char* file, int line, const char* function, const std::string& message) noexcept:
+      BaseException(file, line, function, "NotSorted", message)
     {
       GlobalExceptionHandler::getInstance().setMessage(what());
     }

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
+#include <OpenMS/FEATUREFINDER/GaussModel.h>
 
 ///////////////////////////
 
@@ -35,18 +35,6 @@ END_SECTION
 
 // destructor
 START_SECTION((virtual ~GaussModel()))
-	delete ptr;
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(GaussModel::getProductName(),"GaussModel")
-	TEST_EQUAL(GaussModel().getProductName(),"GaussModel")
-END_SECTION
-
-START_SECTION(static BaseModel<1>* create())
-	BaseModel<1>* ptr = GaussModel::create();
-	TEST_EQUAL(ptr->getName(), "GaussModel")
-	TEST_NOT_EQUAL(ptr, nullPointer)
 	delete ptr;
 END_SECTION
 

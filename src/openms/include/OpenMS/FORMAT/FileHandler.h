@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,9 +14,10 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
-#include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+
 
 namespace OpenMS
 {
@@ -98,10 +99,10 @@ public:
       @brief Tries to find and remove a known file extension, and append the new one.
 
       Internally calls 'stripExtension()' and adds the new suffix to the result.
-      E.g. 'experiment.featureXML'+ FileTypes::TRAFOXML becomes 'experiment.trafoXML' and 'c:\\files\\data.mzML.gz' + FileTypes::FEATUREXML becomes 'c:\\files\\data.featureXML'
-      If the existing extension is unknown, the everything after the last '.' is removed, e.g. 'exp.tmp'+FileTypes::IDXML becomes 'exp.idXML'
+      E.g. 'experiment.featureXML'+ FileTypes::TRANSFORMATIONXML  becomes 'experiment.trafoXML' and 'c:\\files\\data.mzML.gz' + FileTypes::FEATUREXML becomes 'c:\\files\\data.featureXML'
+      If the existing extension is unknown, the everything after the last '.' is removed, e.g. 'exp.tmp' + FileTypes::IDXML becomes 'exp.idXML'
 
-      @param filename the original @p filename String
+      @param filename the original @p filename
       @param new_type the @p FileTypes::Types to use to set the new extension
 
       @return the updated string
@@ -158,7 +159,7 @@ public:
 
       @param filename The file name of the file to load.
       @param exp The experiment to load the data into.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
+      @param allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
       @param log Progress logging mode
       @param rewrite_source_file Set's the SourceFile name and path to the current file. Note that this looses the link to the primary MS run the file originated from.
       @param compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
@@ -177,7 +178,7 @@ public:
 
       @param filename The name of the file to store the data in.
       @param exp The experiment to store.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
+      @param allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
       @param log Progress logging mode
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
@@ -189,7 +190,7 @@ public:
 
       @param filename The file name of the file to load.
       @param spec The spectrum to load the data into.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
+      @param allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -201,7 +202,7 @@ public:
 
       @param filename The file name of the file to store.
       @param spec The spectrum to store the data from.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
+      @param allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
@@ -212,7 +213,9 @@ public:
 
       @param filename the file name of the file to load.
       @param map The FeatureMap to load the data into.
-
+      @param allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
+      @param log Progress logging mode
+      
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
@@ -223,7 +226,7 @@ public:
 
       @param filename the file name of the file to write.
       @param map The FeatureMap to store.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
+      @param allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
       @param log Progress logging mode
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
@@ -235,7 +238,7 @@ public:
 
       @param filename the file name of the file to load.
       @param map The ConsensusMap to load the data into.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
+      @param allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
       @param log Progress logging mode
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
@@ -248,7 +251,7 @@ public:
 
       @param filename the file name of the file to write.
       @param map The ConsensusMap to store.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
+      @param allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
       @param log Progress logging mode
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
@@ -261,7 +264,7 @@ public:
       @param filename the file name of the file to load.
       @param additional_proteins The proteinIdentification vector to load the data into.
       @param additional_peptides The peptideIdentification vector to load the data into.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
+      @param allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
       @param log Progress logging mode      
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
@@ -275,7 +278,7 @@ public:
       @param filename the file name of the file to write to.
       @param additional_proteins The proteinIdentification vector to load the data from.
       @param additional_peptides The peptideIdentification vector to load the data from.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
+      @param allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
       @param log Progress logging mode
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
@@ -286,8 +289,8 @@ public:
       @brief Load transitions of a spectral library
 
       @param filename the file name of the file to read.
-      @param map The TargetedExperiment to load.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
+      @param library The TargetedExperiment to load.
+      @param allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
       @param log Progress logging mode
       
       @exception Exception::FileNotFound is thrown if the file could not be opened
@@ -299,8 +302,8 @@ public:
       @brief Store transitions of a spectral library
 
       @param filename the file name of the file to write.
-      @param map The TargetedExperiment to store.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
+      @param library The TargetedExperiment to store.
+      @param allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
       @param log Progress logging mode
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
@@ -308,36 +311,12 @@ public:
     void storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
         /**
-      @brief Loads a file into MSQuantifications
-
-      @param filename the file name of the file to load.
-      @param msq The MSQuantification to load the data into.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
-
-      @exception Exception::FileNotFound is thrown if the file could not be opened
-      @exception Exception::ParseError is thrown if an error occurs during parsing
-    */
-
-    void loadQuantifications(const String& filename, MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
-
-    /**
-      @brief Store MSQuantifications
-
-      @param filename the file name of the file to write.
-      @param map The MSQuantifications to store.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
-
-      @exception Exception::UnableToCreateFile is thrown if the file could not be written
-    */
-    void storeQuantifications(const String& filename, const MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
-
-
-        /**
       @brief Loads a file into Transformations
 
       @param filename the file name of the file to load.
-      @param msq The Transformations to load the data into.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
+      @param[out] map The Transformations to load the data into.
+      @param fit_model Call fitModel() on the @p map before returning?
+      @param allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -350,7 +329,7 @@ public:
 
       @param filename the file name of the file to write.
       @param map The Transformations to store.
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
+      @param allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
@@ -372,7 +351,7 @@ public:
       @param description description and comments about the mzQC file contents
       @param label unique and informative label for the run
       @param remove_duplicate_features whether to remove duplicate features only for QCML for now
-      @param allowed_types a @p vector<FileTypes::Files> of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
+      @param allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */

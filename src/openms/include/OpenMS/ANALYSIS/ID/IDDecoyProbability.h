@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -20,11 +20,11 @@ namespace OpenMS
   /**
     @brief IDDecoyProbability calculates probabilities using decoy approach
 
-        This class calculates the probabilities using a target decoy approach. Like
-        in peptide prophet the forward distribution is modeled using a gaussian
-        distribution the reverse scores are modeled using a gamma distribution.
+    This class calculates the probabilities using a target decoy approach. Like
+    in peptide prophet the forward distribution is modeled using a gaussian
+    distribution the reverse scores are modeled using a gamma distribution.
 
-        @htmlinclude OpenMS_IDDecoyProbability.parameters
+    @htmlinclude OpenMS_IDDecoyProbability.parameters
 
     @ingroup Analysis_ID
   */

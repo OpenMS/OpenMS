@@ -22,7 +22,6 @@ FalseDiscoveryRate.cpp
 FIAMSDataProcessor.cpp
 FIAMSScheduler.cpp
 FragmentIndex.cpp
-HiddenMarkovModel.cpp
 HyperScore.cpp
 IDBoostGraph.cpp
 IDConflictResolverAlgorithm.cpp
@@ -36,6 +35,7 @@ IonIdentityMolecularNetworking.cpp
 MessagePasserFactory.cpp
 MetaboliteSpectralMatching.cpp
 MorpheusScore.cpp
+NeighborSeq.cpp
 PeptideProteinResolution.cpp
 PeptideSearchEngineAlgorithm.cpp
 PrecursorPurity.cpp
@@ -43,10 +43,9 @@ ProtonDistributionModel.cpp
 PeptideIndexing.cpp
 PercolatorFeatureSetHelper.cpp
 PrecursorPurity.cpp
-ProtonDistributionModel.cpp
 PScore.cpp
 SimpleSearchEngineAlgorithm.cpp
-SiriusAdapterAlgorithm.cpp
+SiriusExportAlgorithm.cpp
 SiriusMSConverter.cpp
 )
 

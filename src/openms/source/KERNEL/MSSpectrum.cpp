@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -339,6 +339,19 @@ namespace OpenMS
     return (max_intensity_it - this->begin());
   }
 
+  void MSSpectrum::sortByIonMobility()
+  {
+    // can throw if IM float data array is missing
+    const auto [im_data_index, im_unit] = getIMData();
+    // Capture IM array by Ref, because .getIMData() is expensive to call for every peak!
+    const auto& im_data = getFloatDataArrays()[im_data_index];
+
+    // check if data is sorted by IM... if not, sort
+    if (! std::is_sorted(im_data.begin(), im_data.end()))
+    { // sorts the spectrum (and its binary data arrays) according to IM
+      this->sort([&im_data](const Size i1, const Size i2) { return im_data[i1] < im_data[i2]; });
+    }
+  }
 
   void MSSpectrum::sortByPositionPresorted(const std::vector<Chunk>& chunks)
   {
@@ -448,6 +461,14 @@ namespace OpenMS
     return std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
   }
 
+  bool MSSpectrum::isSortedByIM() const
+  {
+    auto [im_data_index, D] = getIMData(); // may throw
+    const auto& im_data = getFloatDataArrays()[im_data_index];
+    // check if data is sorted by IM
+    return std::is_sorted(im_data.begin(), im_data.end());
+  }
+
   bool MSSpectrum::operator==(const MSSpectrum &rhs) const
   {
     //name_ can differ => it is not checked
@@ -489,19 +510,12 @@ namespace OpenMS
     return *this;
   }
 
-  MSSpectrum::MSSpectrum() :
-    ContainerType(),
-    RangeManagerContainerType(),
-    SpectrumSettings(),
-    retention_time_(-1),
-    drift_time_(-1),
-    drift_time_unit_(DriftTimeUnit::NONE),
-    ms_level_(1),
-    name_(),
-    float_data_arrays_(),
-    string_data_arrays_(),
-    integer_data_arrays_()
-  {}
+  MSSpectrum::MSSpectrum() = default;
+
+  MSSpectrum::MSSpectrum(const std::initializer_list<Peak1D>& init)
+    : ContainerType(init)
+  {
+  }
 
   MSSpectrum::MSSpectrum(const MSSpectrum &source) = default;
 
@@ -518,6 +532,21 @@ namespace OpenMS
     {
       extendMZ(peak.getMZ()); 
       extendIntensity(peak.getIntensity());
+    }
+    // IM
+    // if this is an ion mobility frame, consider the binary data array as well
+    if (this->containsIMData())
+    {
+      auto [im_array_index, im_unit] = getIMData();
+      const auto& im_data = getFloatDataArrays()[im_array_index];
+      for (const auto& im : im_data)
+      {
+        this->extendMobility(im);
+      }
+    }
+    else if (getDriftTime() != IMTypes::DRIFTTIME_NOT_SET) // != -1
+    { 
+      this->extendMobility(getDriftTime());
     }
   }
 

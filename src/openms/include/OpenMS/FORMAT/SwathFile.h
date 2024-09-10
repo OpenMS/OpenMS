@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -92,7 +92,8 @@ protected:
     /// Counts the number of scans in a full Swath file (e.g. concatenated non-split file)
     void countScansInSwath_(const std::vector<MSSpectrum>& exp,
                             std::vector<int>& swath_counter, int& nr_ms1_spectra, 
-                            std::vector<OpenSwath::SwathMap>& known_window_boundaries);
+                            std::vector<OpenSwath::SwathMap>& known_window_boundaries,
+                            double TOLERANCE=1e-6);
 
   };
 }

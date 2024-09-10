@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -16,18 +16,6 @@
 
 namespace OpenMS
 {
-  /// create new object (needed by Factory)
-  ProgressLogger::ProgressLoggerImpl* GUIProgressLoggerImpl::create()
-  {
-    return new GUIProgressLoggerImpl();
-  }
-
-  /// name of the model (needed by Factory)
-  const String GUIProgressLoggerImpl::getProductName()
-  {
-    return "GUI";
-  }
-
   GUIProgressLoggerImpl::GUIProgressLoggerImpl() :
     dlg_(nullptr),
     begin_(0),

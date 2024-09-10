@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -47,7 +47,6 @@ namespace OpenMS
       PEPXML,             ///< TPP pepXML file (.pepXML)
       PROTXML,            ///< TPP protXML file (.protXML)
       MZIDENTML,          ///< mzIdentML (HUPO PSI AnalysisXML followup format) (.mzid)
-      MZQUANTML,          ///< mzQuantML (HUPO PSI AnalysisXML followup format) (.mzq)
       QCML,               ///< qcML (will undergo standardisation maybe) (.qcml)
       MZQC,               ///< mzQC (HUPO PSI format) (.mzQC)
       GELML,              ///< GelML (HUPO PSI format) (.gelML)

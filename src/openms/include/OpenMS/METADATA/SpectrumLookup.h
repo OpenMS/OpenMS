@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -193,7 +193,7 @@ namespace OpenMS
        
        @param native_id RegEx string
    */
-    static std::string getRegExFromNativeID(const String& id);
+    static std::string getRegExFromNativeID(const String& native_id);
 
     /**
        @brief Simple prefix check if a spectrum identifier @p id is a nativeID from a vendor file.

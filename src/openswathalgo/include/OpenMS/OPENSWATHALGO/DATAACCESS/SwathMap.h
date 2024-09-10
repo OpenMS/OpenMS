@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <cmath>
 
 namespace OpenSwath
 {
@@ -39,7 +40,10 @@ namespace OpenSwath
       : lower(mz_start),
         upper(mz_end),
         center(mz_center),
+        imLower(-1),
+        imUpper(-1),
         ms1(is_ms1)
+
     {}
 
 
@@ -47,11 +51,20 @@ namespace OpenSwath
       : lower(mz_start),
         upper(mz_end),
         center(mz_center),
-	imLower(imLower),
-	imUpper(imUpper),
+        imLower(imLower),
+      	imUpper(imUpper),
         ms1(is_ms1)
     {}
 
+  bool isEqual(const SwathMap& other, double tolerance = 1e-6) const
+  {
+        return (std::fabs(lower - other.lower) < tolerance) &&
+              (std::fabs(upper - other.upper) < tolerance) &&
+              (std::fabs(center - other.center) < tolerance) &&
+              (std::fabs(imLower - other.imLower) < tolerance) &&
+              (std::fabs(imUpper - other.imUpper) < tolerance) &&
+              (ms1 == other.ms1);
+  }
 
   };
 

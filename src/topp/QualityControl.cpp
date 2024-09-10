@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -68,8 +68,6 @@ using namespace std;
 </tr>
 </table>
 </CENTER>
-
-See @ref TOPP_example_qualitycontrol for details.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_QualityControl.cli

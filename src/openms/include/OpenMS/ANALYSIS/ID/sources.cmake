@@ -22,7 +22,6 @@ FalseDiscoveryRate.h
 FIAMSDataProcessor.h
 FIAMSScheduler.h
 FragmentIndex.h
-HiddenMarkovModel.h
 HyperScore.h
 IDBoostGraph.h
 IDDecoyProbability.h
@@ -37,14 +36,14 @@ MessagePasserFactory.h
 MetaboliteSpectralMatching.h
 PeptideSearchEngineAlgorithm.h
 MorpheusScore.h
+NeighborSeq.h
 PeptideIndexing.h
 PeptideProteinResolution.h
 PercolatorFeatureSetHelper.h
 PrecursorPurity.h
-ProtonDistributionModel.h
 PScore.h
 SimpleSearchEngineAlgorithm.h
-SiriusAdapterAlgorithm.h
+SiriusExportAlgorithm.h
 SiriusMSConverter.h
 )
 

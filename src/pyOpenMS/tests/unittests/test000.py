@@ -461,100 +461,6 @@ def testEmpiricalFormula():
     assert ef.getNumberOfAtoms() == 7
 
 @report
-def testIdentificationHit():
-    """
-    @tests: IdentificationHit
-     IdentificationHit.__init__
-    """
-    f = pyopenms.IdentificationHit()
-    _testMetaInfoInterface(f)
-
-    assert pyopenms.IdentificationHit().setId is not None
-    assert pyopenms.IdentificationHit().getId is not None
-    assert pyopenms.IdentificationHit().setCharge is not None
-    assert pyopenms.IdentificationHit().getCharge is not None
-    assert pyopenms.IdentificationHit().setCalculatedMassToCharge is not None
-    assert pyopenms.IdentificationHit().getCalculatedMassToCharge is not None
-    assert pyopenms.IdentificationHit().setExperimentalMassToCharge is not None
-    assert pyopenms.IdentificationHit().getExperimentalMassToCharge is not None
-    assert pyopenms.IdentificationHit().setName is not None
-    assert pyopenms.IdentificationHit().getName is not None
-    assert pyopenms.IdentificationHit().setPassThreshold is not None
-    assert pyopenms.IdentificationHit().getPassThreshold is not None
-    assert pyopenms.IdentificationHit().setRank is not None
-    assert pyopenms.IdentificationHit().getRank is not None
-
-    f.setId("test_id")
-    assert f.getId() == "test_id"
-
-    f.setId("test_id")
-    assert f.getId() == "test_id"
-
-    f.setCharge(5)
-    assert f.getCharge() == 5
-
-    f.setCalculatedMassToCharge(5.0)
-    assert f.getCalculatedMassToCharge() == 5.0
-
-    f.setExperimentalMassToCharge(5.0)
-    assert f.getExperimentalMassToCharge() == 5.0
-
-    f.setName("test")
-    assert f.getName() == "test"
-
-    f.setPassThreshold(True)
-    assert f.getPassThreshold() == True
-
-    f.setRank(42)
-    assert f.getRank() == 42
-
-@report
-def testSpectrumIdentification():
-    """
-    @tests: SpectrumIdentification
-     SpectrumIdentification.__init__
-    """
-    f = pyopenms.SpectrumIdentification()
-    _testMetaInfoInterface(f)
-
-    assert pyopenms.SpectrumIdentification().setHits is not None
-    assert pyopenms.SpectrumIdentification().addHit is not None
-    assert pyopenms.SpectrumIdentification().getHits is not None
-
-    hit = pyopenms.IdentificationHit()
-    hit.setName("test1")
-    f.addHit(hit)
-    hit = pyopenms.IdentificationHit()
-    hit.setName("test2")
-    f.addHit(hit)
-    all_hits = f.getHits()
-    assert len(all_hits) == 2
-    assert "test1" in [h.getName() for h in all_hits]
-    assert "test2" in [h.getName() for h in all_hits]
-
-@report
-def testIdentification():
-    """
-    @tests: Identification
-     Identification.__init__
-    """
-    f = pyopenms.Identification()
-    _testMetaInfoInterface(f)
-
-    assert pyopenms.Identification().setCreationDate is not None
-    assert pyopenms.Identification().getCreationDate is not None
-    assert pyopenms.Identification().setSpectrumIdentifications is not None
-    assert pyopenms.Identification().addSpectrumIdentification is not None
-    assert pyopenms.Identification().getSpectrumIdentifications is not None
-
-    id1 = pyopenms.SpectrumIdentification()
-    f.addSpectrumIdentification(id1)
-    assert len(f.getSpectrumIdentifications()) == 1
-    id2 = pyopenms.SpectrumIdentification()
-    f.addSpectrumIdentification(id2)
-    assert len(f.getSpectrumIdentifications()) == 2
-
-@report
 def testModificationDefinitionsSet():
     """
     @tests: ModificationDefinitionsSet
@@ -1295,29 +1201,6 @@ def testFeature():
 
 
 @report
-def testFeatureFinder():
-    """
-    @tests: FeatureFinder
-     FeatureFinder.__init__
-     FeatureFinder.endProgress
-     FeatureFinder.getLogType
-     FeatureFinder.getParameters
-     FeatureFinder.run
-     FeatureFinder.setLogType
-     FeatureFinder.setProgress
-     FeatureFinder.startProgress
-    """
-    ff = pyopenms.FeatureFinder()
-    name = pyopenms.FeatureFinderAlgorithmPicked.getProductName()
-    ff.run(name, pyopenms.MSExperiment(), pyopenms.FeatureMap() ,
-            pyopenms.Param(), pyopenms.FeatureMap())
-
-    _testProgressLogger(ff)
-
-    p = ff.getParameters(name)
-    _testParam(p)
-
-@report
 def testFeatureFileOptions():
     """
     @tests: FeatureFileOptions
@@ -1366,6 +1249,7 @@ def _testParam(p):
      Param.setMinInt
      Param.setSectionDescription
      Param.setValidStrings
+     Param.getValidStrings
      Param.setValue
      Param.size
      Param.update
@@ -1444,6 +1328,7 @@ def _testParam(p):
     p1.update(dd)
 
     p.setValidStrings
+    p.getValidStrings
     p.setMinFloat
     p.setMaxFloat
     p.setMinInt
@@ -1484,8 +1369,7 @@ def testFeatureFinderAlgorithmPicked():
 
     _testParam(ff.getParameters())
 
-    assert ff.getName() == "FeatureFinderAlgorithm"
-    assert pyopenms.FeatureFinderAlgorithmPicked.getProductName() == "centroided"
+    assert ff.getName() == "FeatureFinderAlgorithmPicked"
 
     ff.setParameters(pyopenms.Param())
 
@@ -1617,19 +1501,6 @@ def testIDFilter():
     # assert pyopenms.IDFilter().apply is not None
 
 @report
-def testProteinResolver():
-    """
-    @tests: ProteinResolver
-     ProteinResolver.__init__
-    """
-    ff = pyopenms.ProteinResolver()
-
-    assert pyopenms.ProteinResolver().resolveConsensus is not None
-    assert pyopenms.ProteinResolver().resolveID is not None
-    assert pyopenms.ProteinResolver().setProteinData is not None
-    assert pyopenms.ProteinResolver().getResults is not None
-
-@report
 def testPosteriorErrorProbabilityModel():
     """
     @tests: PosteriorErrorProbabilityModel
@@ -1706,18 +1577,6 @@ def testConsensusMapNormalizerAlgorithmThreshold():
 
     assert pyopenms.ConsensusMapNormalizerAlgorithmThreshold().computeCorrelation is not None
     assert pyopenms.ConsensusMapNormalizerAlgorithmThreshold().normalizeMaps is not None
-
-
-@report
-def testFeatureFinderAlgorithmPicked():
-    """
-    @tests: FeatureFinderAlgorithmPicked
-     FeatureFinderAlgorithmPicked.__init__
-    """
-    ff = pyopenms.FeatureFinderAlgorithmPicked()
-
-    assert pyopenms.FeatureFinderAlgorithmPicked().setData is not None
-    assert pyopenms.FeatureFinderAlgorithmPicked().run is not None
 
 
 @report
@@ -2876,42 +2735,6 @@ def testMSExperiment():
     assert np.allclose(ms1_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS1_MassQL_ION.tsv'), sep='\t'))
 
 @report
-def testMSQuantifications():
-    """
-    @tests: MSQuantifications
-     MSQuantifications.__eq__
-     MSQuantifications.__ge__
-     MSQuantifications.__gt__
-     MSQuantifications.__init__
-     MSQuantifications.__le__
-     MSQuantifications.__lt__
-     MSQuantifications.__ne__
-     MSQuantifications.getConsensusMaps
-     MSQuantifications.setConsensusMaps
-     MSQuantifications.setDataProcessing
-     MSQuantifications.getDataProcessing
-     MSQuantifications.getAssays
-     MSQuantifications.getFeatureMaps
-     MSQuantifications.setAnalysisSummaryQuantType
-     MSQuantifications.getAnalysisSummary
-     MSQuantifications.addConsensusMap
-     MSQuantifications.assignUIDs
-    """
-    msq = pyopenms.MSQuantifications()
-    assert msq == msq
-    assert not msq != msq
-    msq.setConsensusMaps(msq.getConsensusMaps())
-
-    summary = msq.getAnalysisSummary()
-    msq.setDataProcessingList(msq.getDataProcessingList())
-    msq.getAssays()
-    msq.getFeatureMaps()
-    msq.setAnalysisSummaryQuantType(pyopenms.MSQuantifications.QUANT_TYPES.LABELFREE)
-
-    msq.addConsensusMap(pyopenms.ConsensusMap())
-    msq.assignUIDs()
-
-@report
 def testMSSpectrum():
     """
     @tests: MSSpectrum
@@ -3035,6 +2858,45 @@ def testMSSpectrum():
     assert mz[1] == 2000.0
     assert ii[0] == 200.0
     assert ii[1] == 400.0
+
+    spec.setMSLevel(2)
+    spec.setNativeID('scan=1')
+    prec = pyopenms.Precursor()
+    prec.setMZ(100.0)
+    prec.setCharge(1)
+    spec.setPrecursors([prec])
+    spec.setMetaValue('total ion current', 600)
+    pepid = pyopenms.PeptideIdentification()
+    hit = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString('A'))
+    pepid.setHits([hit])
+    spec.setPeptideIdentifications([pepid])
+
+    data = np.array( [5, 8] ).astype(np.float32)
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].set_data(data)
+    f_da[0].setName("Ion Mobility")
+    spec.setFloatDataArrays( f_da )
+    spec.setDriftTimeUnit( pyopenms.DriftTimeUnit.MILLISECOND )
+
+    s_da = pyopenms.StringDataArray()
+    for s in ['b3+', 'y4+']:
+        s_da.push_back(s)
+    s_da.setName("IonNames")
+    spec.setStringDataArrays([s_da])
+
+    df = spec.get_df()
+    assert df.shape == (2, 11)
+    assert df.loc[0, 'mz'] == 1000.0
+    assert df.loc[0, 'intensity'] == 200.0
+    assert df.loc[0, 'ion_mobility'] == 5.0
+    assert df.loc[0, 'ion_mobility_unit'] == 'ms'
+    assert df.loc[0, 'ms_level'] == 2
+    assert df.loc[0, 'precursor_mz'] == 100.0
+    assert df.loc[0, 'precursor_charge'] == 1
+    assert df.loc[0, 'native_id'] == 'scan=1'
+    assert df.loc[0, 'ion_annotation'] == 'b3+'
+    assert df.loc[0, 'sequence'] == 'A'
+    assert df.loc[0, 'total ion current'] == 600
 
     spec.clear(False)
     data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
@@ -3347,6 +3209,29 @@ def testMSChromatogram():
     assert ii[0] == 200.0
     assert ii[1] == 400.0
 
+    chrom.setNativeID('chrom_0')
+    chrom.setMetaValue('FWHM', 5.0)
+    prec = pyopenms.Precursor()
+    prec.setMZ(100.0)
+    prec.setCharge(1)
+    chrom.setPrecursor(prec)
+    prod = pyopenms.Product()
+    prod.setMZ(50.0)
+    chrom.setProduct(prod)
+    chrom.setComment('comment')
+
+    df = chrom.get_df()
+    assert df.shape == (2, 9)
+    assert df.loc[0, 'time'] == 1000.0
+    assert df.loc[1, 'intensity'] == 400
+    assert df.loc[0, 'chromatogram_type'] == 'MASS_CHROMATOGRAM'
+    assert df.loc[1, 'precursor_mz'] == 100.0
+    assert df.loc[0, 'precursor_charge'] == 1
+    assert df.loc[1, 'product_mz'] == 50.0
+    assert df.loc[0, 'comment'] == 'comment'
+    assert df.loc[1, 'native_id'] == 'chrom_0'
+    assert df.loc[0, 'FWHM'] == 5
+
     chrom.clear(False)
     data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
     data_i = np.array( [50.0, 80.0] ).astype(np.float32)
@@ -3487,6 +3372,41 @@ def testMRMTransitionGroup():
     assert len(mrmgroup.getTransitions()) == 0
     mrmgroup.addTransition(pyopenms.ReactionMonitoringTransition(), "tr1")
     assert len(mrmgroup.getTransitions()) == 1
+
+    # add data for testing df output
+    ## test chromatogram df
+    rt, intensity = [[1.0], [5]]
+    chrom = pyopenms.MSChromatogram()
+    chrom.set_peaks([rt, intensity])
+    chrom.setNativeID("tr1")
+    mrmgroup.addChromatogram(chrom, 'tr1')
+
+    df = mrmgroup.get_chromatogram_df()
+    assert df.shape == (1, 8)
+    assert df.loc[0, 'time'] == 1.0
+    assert df.loc[0, 'intensity'] == 5
+    assert df.loc[0, 'chromatogram_type'] == 'MASS_CHROMATOGRAM'
+    assert df.loc[0, 'native_id'] == 'tr1'
+
+    ## feature
+    f = pyopenms.MRMFeature()
+    f.setRT(1.0)
+    f.setMetaValue(b'leftWidth', 0.5)
+    f.setMetaValue(b'rightWidth', 1.5)
+    f.setMetaValue(b'peak_apices_sum', 10.0)
+    f.setOverallQuality(0.5)
+    f.setUniqueId(1)
+    f.setIntensity(20.0)
+
+    df = mrmgroup.get_feature_df(meta_values=[b'leftWidth', b'rightWidth', b'peak_apices_sum'])
+    assert df.shape == (1, 8)
+    assert df.loc[0, 'leftWidth'] == 0.5
+    assert df.loc[0, 'rightWidth'] == 1.5
+    assert df.loc[0, 'peak_apices_sum'] == 10.0
+    assert df.loc[0, 'intensity'] == 10.0
+    assert df.loc[0, 'quality'] == 0.5
+    assert df.loc[0, 'RT'] == 1.0
+    assert df.index[0] == 1
 
 @report
 def testReactionMonitoringTransition():
@@ -3631,9 +3551,22 @@ def testMatrixDouble():
      MapAlignmentAlgorithmIdentification.__init__
      """
 
-    m = pyopenms.MatrixDouble()
+    m = pyopenms.MatrixDouble(3, 2, 0.0)
+    for i in range(3):
+        for j in range(2):
+            m.setValue(i, j, i * 10.0 + j) 
+    print(m)
+
+    mv = m.get_matrix_as_view()
+    print(mv)
+
+    mc = m.get_matrix()
+    print(mc)
+
+    mat = m.get_matrix_as_view()
+
     N = 90
-    m.resize(N-1, N+2, 5.0)
+    m = pyopenms.MatrixDouble(N-1, N+2, 5.0)
 
     assert m.rows() == 89
     assert m.cols() == 92
@@ -3660,19 +3593,21 @@ def testMatrixDouble():
     assert sum(sum(matrix_view)) == (N-1)*(N+2)*5
 
 
-    # Column = 3 / Row = 5
+    # Column = 1 / Row = 2
     ## Now change a value:
 
-    assert m.getValue(3, 5) == 5.0
-    m.setValue(3, 5, 8.0)
-    assert m.getValue(3, 5) == 8.0
+    assert m.getValue(1, 2) == 5.0
+    m.setValue(1, 2, 8.0)
+    assert m.getValue(1, 2) == 8.0
 
+    print(m)
     mat = m.get_matrix_as_view()
-    assert mat[3, 5] == 8.0
+    print(mat)
+    assert mat[1, 2] == 8.0
 
     mat = m.get_matrix()
-    assert m.getValue(3, 5) == 8.0
-    assert mat[3, 5] == 8.0
+    assert m.getValue(1, 2) == 8.0
+    assert mat[1, 2] == 8.0
 
     # Whatever we change here gets changed in the raw data as well
     matrix_view = m.get_matrix_as_view()
@@ -3680,13 +3615,13 @@ def testMatrixDouble():
     assert m.getValue(1, 6) == 11.0
     assert matrix_view[1, 6] == 11.0
 
-    m.clear()
+    m = pyopenms.MatrixDouble()
     assert m.rows() == 0
     assert m.cols() == 0
 
     mat[3, 6] = 9.0
     m.set_matrix(mat)
-    assert m.getValue(3, 5) == 8.0
+    assert m.getValue(1, 2) == 8.0
     assert m.getValue(3, 6) == 9.0
 
 
@@ -3750,10 +3685,6 @@ def testMxxxFile():
      MzXMLFile.startProgress
      MzXMLFile.store
 
-     MzQuantMLFile.__init__
-     MzQuantMLFile.isSemanticallyValid
-     MzQuantMLFile.load
-     MzQuantMLFile.store
     """
     mse = pyopenms.MSExperiment()
     s = pyopenms.MSSpectrum()
@@ -3785,11 +3716,6 @@ def testMxxxFile():
     fh.store("test.mzXML", mse)
     fh.load("test.mzXML", mse)
     fh.setOptions(fh.getOptions())
-
-    fh = pyopenms.MzQuantMLFile()
-    fh.isSemanticallyValid
-    fh.load
-    fh.store
 
 
 
@@ -4806,22 +4732,6 @@ def testInspectInfile():
     mods = inst.getModifications()
     assert len(mods) == 0
 
-
-@report
-def testIsotopeMarker():
-    """
-    @tests: IsotopeMarker
-     IsotopeMarker.__init__
-    """
-    inst = pyopenms.IsotopeMarker()
-    ptr = inst.create()
-
-    assert ptr.apply is not None
-
-    res = {}
-    spec = pyopenms.MSSpectrum()
-    ptr.apply(res, spec)
-
 @report
 def testAttachment():
     """
@@ -5057,49 +4967,6 @@ def testPeptideProteinResolution():
 def testPercolatorOutfile():
     e = pyopenms.PercolatorOutfile()
     assert e
-
-
-
-@report
-def testHiddenMarkovModel():
-    hmm = pyopenms.HiddenMarkovModel()
-    assert hmm
-
-    assert hmm.getNumberOfStates() == 0
-
-    ss = s("testState")
-    hmm.addNewState(ss)
-
-    assert hmm.getNumberOfStates() == 1
-
-    e = pyopenms.HMMState()
-    # hmm.addNewState(e) # Segfault !
-
-    r = hmm.getState(s("testState"))
-    assert r
-    ## assert r == ss # requires ==
-
-@report
-def testHMMState():
-    e = pyopenms.HMMState()
-    assert e
-    e.setName(s("somename"))
-    assert e.getName() == "somename", e.getName()
-    e.setHidden(True)
-    assert e.isHidden()
-
-    pre = pyopenms.HMMState()
-    pre.setName(s("pre"))
-    suc = pyopenms.HMMState()
-    suc.setName(s("suc"))
-
-    e.addPredecessorState(pre)
-    e.addSuccessorState(suc)
-
-    assert e.getPredecessorStates()
-    assert e.getSuccessorStates()
-
-
 
 @report
 def testProteaseDB():

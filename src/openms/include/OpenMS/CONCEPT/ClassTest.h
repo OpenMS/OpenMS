@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -631,7 +631,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  */
 #define TEST_FILE_EQUAL(filename, templatename)                                           \
   {                                                                                       \
-    TEST::filesEqual(__LINE__, filename, templatename, #filename, #templatename);                                                                                    \
+    TEST::filesEqual(__LINE__, filename, templatename, #filename, #templatename);         \
   }
 
 /**	@brief Floating point similarity macro.
@@ -988,7 +988,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  its argument. The filename is created using the filename of the test and the
  line number where this macro is invoked, for example 'Matrix_test.cpp' might
  create a temporary file 'Matrix_test_268.tmp' if NEW_TMP_FILE is used in
- line 268.  All temporary files are deleted if #END_TEST is called.  @param
+ line 268.  All temporary files are deleted if #END_TEST is called.  @p
  filename string will contain the filename on completion of the macro.
 
  There is a version that defines the extension and one that uses tmp.

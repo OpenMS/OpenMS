@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -13,7 +13,7 @@
 
 #include <iostream>
 
-#include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
+#include <OpenMS/COMPARISON/SpectraSTSimilarityScore.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -200,20 +200,6 @@ START_SECTION(bool preprocess(PeakSpectrum &spec, float remove_peak_intensity_th
   //max_peaks
   ptr->preprocess(s3,1,10000,5,8);
   TEST_EQUAL(s3.size(),8)
-END_SECTION
-
-
-
-START_SECTION(static PeakSpectrumCompareFunctor* create())
-  PeakSpectrumCompareFunctor* psf = SpectraSTSimilarityScore::create();
-  SpectraSTSimilarityScore spectrast;
-  TEST_EQUAL(psf->getParameters(), spectrast.getParameters())
-  TEST_EQUAL(psf->getName(), spectrast.getName())
-  delete psf;
-END_SECTION
-
-START_SECTION(static const String getProductName())
-  TEST_EQUAL(ptr->getProductName(), "SpectraSTSimilarityScore")
 END_SECTION
 
 START_SECTION(double delta_D(double top_hit, double runner_up))

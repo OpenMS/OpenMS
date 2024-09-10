@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -13,8 +13,8 @@
 
 #include <iostream>
 
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/COMPARISON/SpectrumAlignment.h>
+#include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
 ///////////////////////////

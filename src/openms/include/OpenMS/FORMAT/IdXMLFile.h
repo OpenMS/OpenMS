@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -34,8 +34,6 @@ namespace OpenMS
     One file can contain several ProteinIdentification runs. Each run consists of peptide hits stored in
     PeptideIdentification and (optional) protein hits stored in Identification. Peptide and protein
     hits are connected via a string identifier. We use the search engine and the date as identifier.
-
-    @note This format will eventually be replaced by the HUPO-PSI (mzIdentML and mzQuantML)) AnalysisXML formats!
 
     @ingroup FileIO
   */
