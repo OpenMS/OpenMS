@@ -103,7 +103,7 @@ namespace OpenMS
         }
       }
 
-      // converting trags to tdl compatible tags
+      // converting OpenMS tags to tdl compatible tags
       std::set<std::string> tags;
       for (auto const& t : param_it->tags)
       {
