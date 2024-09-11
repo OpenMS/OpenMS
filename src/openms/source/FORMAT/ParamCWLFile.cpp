@@ -122,6 +122,11 @@ namespace OpenMS
           tags.insert("output");
           tags.insert("prefixed");
         }
+        else if (t == TOPPBase::TAG_OUTPUT_DIR)
+        {
+          tags.insert("directory");
+          tags.insert("output");
+        }
         else
         {
           tags.insert(t);
