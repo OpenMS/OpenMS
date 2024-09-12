@@ -431,7 +431,7 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid CV identifier!", id);
     }
-    return it->second; 
+    return it->second;
   }
 
   const std::map<String, ControlledVocabulary::CVTerm>& ControlledVocabulary::getTerms() const

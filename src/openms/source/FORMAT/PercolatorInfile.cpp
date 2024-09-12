@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, Johannes von Kleist $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/PercolatorInfile.h>
@@ -171,6 +171,7 @@ namespace OpenMS
         peak_temp.mz = row[to_idx_a.at("fragment_mz_experimental")].toDouble(); 
 
         anno_mapping[ row[to_idx_a.at("psm_id")].toInt() ].push_back(peak_temp); 
+        double frag_delta = row[to_idx_a.at("fragment_mz_experimental")].toDouble() - row[to_idx_a.at("fragment_mz_calculated")].toDouble(); 
         
       }
 
@@ -272,6 +273,7 @@ namespace OpenMS
         pids.back().setMetaValue("PinSpecId", sSpecId);
         pids.back().setMetaValue("CalcMass", row[to_idx.at("CalcMass")].toDouble());
         pids.back().setMetaValue("ExpMass", row[to_idx.at("ExpMass")].toDouble());
+        pids.back().setMetaValue("DeltaMass", row[to_idx.at("ExpMass") - row[to_idx.at("CalcMass")].toDouble()].toDouble());
         pids.back().setMetaValue("spectrum_q", t_row[to_idx_t.at("spectrum_q")].toDouble()); 
        
         // Since ScanNr is the closest to help in identifying the spectrum in the file later on,
@@ -366,6 +368,8 @@ namespace OpenMS
 
       //adding own meta values 
       ph.setMetaValue("spectrum_q", t_row[to_idx_t.at("spectrum_q")].toDouble()); 
+      ph.setMetaValue("DeltaMass", ( row[to_idx.at("ExpMass")].toDouble() - row[to_idx.at("CalcMass")].toDouble()) );
+
        if (anno_mapping.find(sSpecId.toInt()) != anno_mapping.end())
        {
         StringList annotation_list; 

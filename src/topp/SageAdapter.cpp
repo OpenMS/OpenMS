@@ -110,9 +110,85 @@ struct modification{
   double numcharges = 0; 
 }; 
 
+#include <map>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+#include <numeric>
+
+// Gaussian function
+static double gaussian(double x, double sigma) {
+    return exp(-(x*x) / (2 * sigma*sigma)) / (sigma * sqrt(2 * M_PI));
+}
+
+static std::map<double, double> smoothMassSpectrum(const std::map<double, double>& spectrum, double sigma = 0.1) {
+    std::map<double, double> smoothedSpectrum;
+    std::vector<double> mzValues, intensities;
+
+    // Extract m/z values and intensities
+    for (const auto& pair : spectrum) {
+        mzValues.push_back(pair.first);
+        intensities.push_back(pair.second);
+    }
+
+    // Apply Gaussian smoothing
+    for (size_t i = 0; i < mzValues.size(); ++i) {
+        double smoothedIntensity = 0.0;
+        double weightSum = 0.0;
+
+        for (size_t j = 0; j < mzValues.size(); ++j) {
+            double mzDiff = std::abs(mzValues[i] - mzValues[j]);
+            if (mzDiff > 3 * sigma) continue; // Ignore points too far away
+            double weight = gaussian(mzDiff, sigma);
+            smoothedIntensity += weight * intensities[j];
+            weightSum += weight;
+        }
+
+        smoothedSpectrum[mzValues[i]] = smoothedIntensity / weightSum;
+    }
+
+    return smoothedSpectrum;
+}
+
+  static std::map<double, double> findPeaks(const std::map<double, double>& spectrum, double intensityThreshold = 0.0, double snrThreshold = 2.0) {
+    std::vector<std::pair<double, double>> peaks;
+    std::map<double, double> smoothedPeaks;
+    if (spectrum.size() < 3) {
+        return spectrum;  // Not enough points to determine peaks
+    }
+
+    // Calculate noise level (e.g., median intensity)
+    std::vector<double> intensities;
+    for (const auto& pair : spectrum) {
+        intensities.push_back(pair.second);
+    }
+    size_t n = intensities.size() / 2;
+    std::nth_element(intensities.begin(), intensities.begin() + n, intensities.end());
+    double noiseLevel = intensities[n];
+
+    auto it = spectrum.begin();
+    auto prev = it++;
+    auto next = std::next(it);
+
+    while (next != spectrum.end()) {
+        if ( !(it->second < prev->second) && !(it->second < next->second) && 
+            it->second > intensityThreshold && 
+            it->second / noiseLevel > snrThreshold)
+        {
+            smoothedPeaks[it->first] = it->second; 
+        }
+        prev = it;
+        it = next;
+        ++next;
+    }
+
+    return smoothedPeaks;
+}
+
+
   
 
-pair<mapRatetoMass, map<double, double>>  getDeltaClusterCenter(const vector<PeptideIdentification>& pips, bool debug = false)
+pair<mapRatetoMass, map<double, double>>  getDeltaClusterCenter(const vector<PeptideIdentification>& pips, bool smoothing = false,  bool debug = false)
   {
     //Data structures to store the data from Sage 
     vector<double> cluster;
@@ -120,6 +196,70 @@ pair<mapRatetoMass, map<double, double>>  getDeltaClusterCenter(const vector<Pep
     mapRatetoMass hist;
     map<double, vector<double>> charge_states; 
     map<double, double> num_charges_at_mass; 
+
+    /*#include <algorithm>  // for std::lower_bound
+
+std::vector<double> sorted_keys;  // Vector to maintain sorted keys
+
+for (auto& id : pips)
+{
+    auto& hits = id.getHits();
+
+    for (auto& h : hits)
+    {
+        double expval = std::stod(h.getMetaValue("SAGE:ExpMass"));
+        double calcval = std::stod(h.getMetaValue("SAGE:CalcMass"));
+        double deltamass = expval - calcval;
+        int charge = h.getCharge();
+
+        delta_masses.push_back(deltamass);
+
+        auto hist_it = hist.find(deltamass);
+        if (hist_it == hist.end())
+        {
+            bool bucketcheck = true;
+            bool chargecheck = false;
+
+            // Perform binary search on the sorted keys
+            auto it = std::lower_bound(sorted_keys.begin(), sorted_keys.end(), deltamass);
+
+            if (it != sorted_keys.end() && std::abs(deltamass - *it) < 0.0005 && (deltamass > 0.05 || deltamass < -0.05))
+            {
+                hist[*it] += 1.0;
+                bucketcheck = false;
+
+                auto& charges = charge_states[*it];
+                if (std::find(charges.begin(), charges.end(), charge) == charges.end())
+                {
+                    num_charges_at_mass[*it] += 1.0;
+                    charges.push_back(charge);
+                }
+            }
+
+            if (bucketcheck && (deltamass > 0.05 || deltamass < -0.05))
+            {
+                // Insert new key in the sorted vector at the correct position
+                sorted_keys.insert(it, deltamass);
+
+                hist[deltamass] = 1.0;
+                num_charges_at_mass[deltamass] = 1.0;
+                charge_states[deltamass].push_back(charge);
+            }
+        }
+        else
+        {
+            hist_it->second += 1.0;
+
+            auto& charges = charge_states[deltamass];
+            if (std::find(charges.begin(), charges.end(), charge) == charges.end())
+            {
+                num_charges_at_mass[deltamass] += 1.0;
+                charges.push_back(charge);
+            }
+        }
+    }
+}
+*/
 
     for (auto& id : pips)
     {
@@ -141,7 +281,7 @@ pair<mapRatetoMass, map<double, double>>  getDeltaClusterCenter(const vector<Pep
           for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit)
           {
             //Check with error tolerance in buckets if already present in histogram 
-            if(deltamass <  mit->first+0.05 && deltamass >  mit->first-0.05 && bucketcheck && ((0.05 <  deltamass) || (-0.05 >  deltamass)))
+            if(deltamass <  mit->first+0.0005 && deltamass >  mit->first-0.0005 && bucketcheck && ((0.05 <  deltamass) || (-0.05 >  deltamass)))
             {
               hist[mit->first] += 1.0; 
               bucketcheck = false; 
@@ -189,10 +329,50 @@ pair<mapRatetoMass, map<double, double>>  getDeltaClusterCenter(const vector<Pep
     }
       
 
+  
+
     pair<mapRatetoMass, map<double,double>> results; 
     results.first = hist; 
     results.second = num_charges_at_mass; 
+    bool with_smoothing = smoothing; 
 
+    if (with_smoothing)
+    {
+      std::map<double, double> smoothed_hist =  smoothMassSpectrum(hist, 0.00001); 
+      cout << "Size of smoothed hist " <<  smoothed_hist.size() << std::endl ; 
+      /* for (auto& x : smoothed_hist)
+      {
+      if(x.second > 5) cout << "First val" << x.first << "Second val" << x.second << std::endl; 
+      } */
+
+
+
+      std::map<double, double> smoothedMaxes2 = findPeaks( smoothed_hist ); 
+      std::map<double, double> smoothedMaxes3 = findPeaks( smoothed_hist, 0.0, 3.0 ); 
+
+      mapRatetoMass num_charges_at_mass_smoothed; 
+
+      /* cout << "Size of smoothed maxes2 " << smoothedMaxes2.size() << std::endl ; 
+      for (auto& x : smoothedMaxes2)
+      {
+        cout << "First val" << x.first << "Second val" << x.second << std::endl; 
+      }
+ */
+      //cout << "Size of smoothed maxes3 " << smoothedMaxes2.size() << std::endl ; 
+      for (auto& x : smoothedMaxes3)
+      {
+        //cout << "First val" << x.first << "Second val" << x.second << "Charge: " <<  num_charges_at_mass[x.first] <<std::endl; 
+        num_charges_at_mass_smoothed[x.first] = num_charges_at_mass[x.first]; 
+      }
+
+      pair<mapRatetoMass, map<double,double>> results_smoothed; 
+      results_smoothed.first = smoothedMaxes3; 
+      results_smoothed.second = num_charges_at_mass_smoothed; 
+
+      return results_smoothed; 
+
+    }
+    
     return results ; 
   }
 
@@ -219,6 +399,7 @@ pair<mapRatetoMass, map<double, double>>  getDeltaClusterCenter(const vector<Pep
 
 
   map<double, String> mass_of_mods; 
+  vector<pair<double, String>> mass_of_mods_vec; 
   map<double, String> mass_of_mono_mods; 
   ControlledVocabulary::CVTerm zeroterm = terms.begin()->second; 
 
@@ -230,7 +411,7 @@ pair<mapRatetoMass, map<double, double>>  getDeltaClusterCenter(const vector<Pep
     {
       for (auto& y : x.second.unparsed)
       {
-        if (y.hasSubstring("delta_avge_mass"))
+        if (y.hasSubstring("delta_mono_mass")&& (x.second.name.find("->") == string::npos) )
         {
            std::vector<String> substrings(3);  
            y.split(' ', substrings);
@@ -239,10 +420,27 @@ pair<mapRatetoMass, map<double, double>>  getDeltaClusterCenter(const vector<Pep
            double avge; 
            avge = std::stod(val); 
            mass_of_mods[avge] = x.second.name; 
+
+           /* pair<double, String> temp_pair_mod; 
+           temp_pair_mod.first = avge; 
+           temp_pair_mod.second = x.second.name; 
+           mass_of_mods_vec.push_back(temp_pair_mod);   */
+
         }
       }
     }
   } 
+
+
+    map<double, String> combo_mods; 
+
+     /*  for (map<double, String>::const_iterator mit = mass_of_mods.begin(); mit != mass_of_mods.end(); ++mit)
+     {
+      for(map<double, String>::const_iterator mit2 = std::next(mit) ; mit2 != mass_of_mods.end(); ++mit2)
+      {
+        combo_mods[mit->first + mit2->first] = mit->second + "/" + mit2->second; 
+      }
+     }  */
 
     //Variables for going through the histogram 
     map<double, String>::const_iterator low_it;
@@ -256,63 +454,121 @@ pair<mapRatetoMass, map<double, double>>  getDeltaClusterCenter(const vector<Pep
   for (map<double, double>::const_iterator mit = hist.begin(); mit != hist.end(); ++mit)
   {
       double current_cluster_mass = mit->first; 
+      double lowerbound; 
+      double upperbound; 
       if (precursor_mass_tolerance_unit_ppm) //ppm  
       {
-        low_it = mass_of_mods.lower_bound(current_cluster_mass - current_cluster_mass * precursor_mass_tolerance_ * 1e-6);
-        up_it = mass_of_mods.upper_bound(current_cluster_mass + current_cluster_mass * precursor_mass_tolerance_ * 1e-6);
-        
+        lowerbound = current_cluster_mass - current_cluster_mass * precursor_mass_tolerance_ * 1e-6; 
+        upperbound = current_cluster_mass + current_cluster_mass * precursor_mass_tolerance_ * 1e-6; 
+        low_it = mass_of_mods.lower_bound(current_cluster_mass);
+        up_it = mass_of_mods.upper_bound(current_cluster_mass);
+         /* if(low_it != up_it){
+          low_it = combo_mods.lower_bound(current_cluster_mass);
+           up_it = combo_mods.upper_bound(current_cluster_mass);
+        } */
+         
       }
       else // Dalton
       {
-        low_it = mass_of_mods.lower_bound(current_cluster_mass - precursor_mass_tolerance_ );
-        up_it = mass_of_mods.upper_bound(current_cluster_mass + precursor_mass_tolerance_ );
+        lowerbound = current_cluster_mass - precursor_mass_tolerance_ ; 
+        upperbound = current_cluster_mass + precursor_mass_tolerance_ ; 
+        low_it = mass_of_mods.lower_bound(current_cluster_mass);
+        up_it = mass_of_mods.upper_bound( current_cluster_mass );
+         /* if(low_it != up_it){
+          low_it = combo_mods.lower_bound(current_cluster_mass);
+           up_it = combo_mods.upper_bound(current_cluster_mass);
+        }  */
       }
 
 
       auto mapped_val = *low_it; 
       auto mapped_val_high = *up_it; 
 
+      //cout << "Mapped mass: " << mapped_val.first << " Actual Mass: " << current_cluster_mass << std::endl; 
+
       if (low_it == up_it) //Only one mapping found
       {
-        modnames.push_back(mapped_val.second); 
-        if (modifications.find(mapped_val.second) == modifications.end()) //Modification hasn't already been found
+        if ( ((mapped_val.first >= lowerbound)  && (mapped_val.first <= upperbound)) )
         {
-          modification modi{}; 
-          modi.mass.push_back(mapped_val.first); 
-          modi.rate = mit->second; 
-          modi.numcharges = cit->second; 
-          modifications[mapped_val.second] = modi; 
+          modnames.push_back(mapped_val.second); 
+          if (modifications.find(mapped_val.second) == modifications.end()) //Modification hasn't already been found
+          {
+            modification modi{}; 
+            modi.mass.push_back(mapped_val.first); // current_cluster_mass
+            modi.rate = mit->second; 
+            modi.numcharges = cit->second; 
+            modifications[mapped_val.second] = modi; 
+          }
+
+
+          else{
+            modifications[mapped_val.second].rate += mit->second;   
+            modifications[mapped_val.second].numcharges = max(cit->second, modifications[mapped_val.second].numcharges);
+          }
         }
-
-
         else{
-          modifications[mapped_val.second].rate += mit->second;   
-          modifications[mapped_val.second].numcharges = max(cit->second, modifications[mapped_val.second].numcharges);
+          String unknownmod_name = "Unknown" + std::to_string(std::round(current_cluster_mass)); 
+           if (modifications.find(unknownmod_name ) == modifications.end()) //Modification hasn't already been found
+          {
+            modification modi{};  //current_cluster_mass
+            modi.mass.push_back(current_cluster_mass); 
+            modi.rate = mit->second; 
+            modi.numcharges = cit->second; 
+            modifications[unknownmod_name] = modi; 
+          }
+
+
+          else 
+          {
+            modifications[unknownmod_name].rate += mit->second;   
+            modifications[unknownmod_name].numcharges = max(cit->second, modifications[unknownmod_name].numcharges);
+          }
         }
-        
       
       }
-      else //More than one mapping found 
+      else //More than one mapping found //Check for throwing out unknown here 
       {
-        String mod_mix_name = mapped_val.second + "/" + mapped_val_high.second; //
-
-        if (modifications.find(mod_mix_name) == modifications.end()) //Modification hasn't already been found
+        if ( (mapped_val.first >= lowerbound  && mapped_val_high.first <= upperbound) )
         {
-          modification modi{}; 
-          modi.mass.push_back(mapped_val.first); 
-          modi.mass.push_back(mapped_val_high.first); 
-          modi.rate = mit->second; 
-          modi.numcharges = cit->second; 
-          modifications[mod_mix_name] = modi; 
+          String mod_mix_name = mapped_val.second + "/" + mapped_val_high.second; //
+
+          if (modifications.find(mod_mix_name) == modifications.end()) //Modification hasn't already been found
+          {
+            modification modi{}; 
+            modi.mass.push_back(mapped_val.first); //current_cluster_mass
+            modi.mass.push_back(mapped_val_high.first); 
+            modi.rate = mit->second; 
+            modi.numcharges = cit->second; 
+            modifications[mod_mix_name] = modi; 
+          }
+
+
+          else 
+          {
+            modifications[mod_mix_name].rate += mit->second;   
+            modifications[mod_mix_name].numcharges = max(cit->second, modifications[mod_mix_name].numcharges);
+          }
         }
-
-
-        else 
+        else
         {
-          modifications[mod_mix_name].rate += mit->second;   
-          modifications[mod_mix_name].numcharges = max(cit->second, modifications[mod_mix_name].numcharges);
+          String unknownmod_name = "Unknown" + std::to_string(std::round(current_cluster_mass)); 
+           if (modifications.find(unknownmod_name ) == modifications.end()) //Modification hasn't already been found
+          {
+            modification modi{}; 
+            modi.mass.push_back(current_cluster_mass); //current_cluster_mass
+            modi.mass.push_back(current_cluster_mass); 
+            modi.rate = mit->second; 
+            modi.numcharges = cit->second; 
+            modifications[unknownmod_name] = modi; 
+          }
+
+
+          else 
+          {
+            modifications[unknownmod_name].rate += mit->second;   
+            modifications[unknownmod_name].numcharges = max(cit->second, modifications[unknownmod_name].numcharges);
+          }
         }
-        
 
       }
 
@@ -763,7 +1019,8 @@ protected:
     registerStringOption_("deisotope", "<bool>", "false", "Sets deisotope option (true or false), default: false", false, false ); 
     registerStringOption_("chimera", "<bool>", "false", "Sets chimera option (true or false), default: false", false, false  ); 
     registerStringOption_("predict_rt",  "<bool>", "false", "Sets predict_rt option (true or false), default: false", false, false ); 
-    registerStringOption_("wide_window", "<bool>", "false", "Sets wide_window option (true or false), default: false", false, false); 
+    registerStringOption_("wide_window", "<bool>", "false", "Sets wide_window option (true or false), default: false", false, false);
+    registerStringOption_("smoothing", "<bool>", "false", "Should the intensities be smoothed and max peaks be picked. If false, uses raw data, default: false", false, false);  
     registerIntOption_("threads", "<int>", 1, "Amount of threads available to the program", false, false); 
 
     // register peptide indexing parameter (with defaults for this search engine)
@@ -889,10 +1146,12 @@ protected:
 
     
 
+  String smoothing_string = getStringOption_("smoothing"); 
+  bool smoothing = !(smoothing_string.compare("true")); 
 
-  const pair<mapRatetoMass, map<double,double>> resultsClus =  getDeltaClusterCenter(peptide_identifications); 
+  const pair<mapRatetoMass, map<double,double>> resultsClus =  getDeltaClusterCenter(peptide_identifications, smoothing, false); 
 
-  vector<PeptideIdentification> mapD = mapDifftoMods(resultsClus.first, resultsClus.second, peptide_identifications, 5, true, output_file); //peptide_identifications; 
+  vector<PeptideIdentification> mapD = mapDifftoMods(resultsClus.first, resultsClus.second, peptide_identifications, 0.05, false, output_file); //peptide_identifications; 
  
 
 
