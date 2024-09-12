@@ -13,9 +13,6 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#ifdef _OPENMP
-  #include <omp.h>
-#endif
 
 
 using namespace OpenMS;
@@ -103,8 +100,7 @@ class PeptideSearchEngine :
 
       PeptideSearchEngineAlgorithm sse;
       sse.setParameters(getParam_().copy("Search:", true));
-      //TODO ??? Why not use the TOPPBase ExitCodes?
-      // same for OpenPepXL etc. Otherwise please write a proper mapping.
+      // map algorithm exit code to application exit code
       PeptideSearchEngineAlgorithm::ExitCodes e = sse.search(in, database, protein_ids, peptide_ids);
       if (e != PeptideSearchEngineAlgorithm::ExitCodes::EXECUTION_OK)
       {
