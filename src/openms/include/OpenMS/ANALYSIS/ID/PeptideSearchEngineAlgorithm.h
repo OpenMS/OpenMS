@@ -73,10 +73,12 @@ class OPENMS_DLLAPI PeptideSearchEngineAlgorithm :
     void postProcessHits_(const PeakMap& exp, 
       std::vector<std::vector<PeptideSearchEngineAlgorithm::AnnotatedHit_> >& annotated_hits, 
       std::vector<ProteinIdentification>& protein_ids, 
-      std::vector<PeptideIdentification>& peptide_ids, 
+      std::vector<PeptideIdentification>& peptide_ids,
+      /* TODO check if ok if unused 
       Size top_hits,
       const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
       const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
+      */
       Size max_variable_mods_per_peptide,
       const StringList& modifications_fixed,
       const StringList& modifications_variable,
