@@ -6,15 +6,14 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
 
 using namespace OpenMS;
 using namespace std;
 
 int main(int argc, const char** argv)
 {
-  if (argc < 2) return 1;
-  // the path to the data should be given on the command line
-  String tutorial_data_path(argv[1]);
+  auto tutorial_data_path = OPENMS_DOC_PATH + String("/code_examples/");
   
   vector<FeatureMap > maps;
   maps.resize(2);

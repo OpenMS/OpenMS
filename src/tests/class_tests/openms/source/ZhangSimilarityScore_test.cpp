@@ -13,9 +13,9 @@
 
 #include <iostream>
 
-#include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
+#include <OpenMS/COMPARISON/ZhangSimilarityScore.h>
 #include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
 ///////////////////////////
 
@@ -91,18 +91,6 @@ START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum&
 
   normalizer.filterSpectrum(s2);
   TEST_REAL_SIMILAR(score, 0.328749)
-END_SECTION
-
-START_SECTION(static PeakSpectrumCompareFunctor* create())
-	PeakSpectrumCompareFunctor* psf = ZhangSimilarityScore::create();
-	ZhangSimilarityScore zhang;
-	TEST_EQUAL(psf->getParameters(), zhang.getParameters())
-	TEST_EQUAL(psf->getName(), zhang.getName())
-	delete psf;
-END_SECTION
-
-START_SECTION(static const String getProductName())
-	TEST_EQUAL(ptr->getProductName(), "ZhangSimilarityScore")
 END_SECTION
 
 delete ptr;

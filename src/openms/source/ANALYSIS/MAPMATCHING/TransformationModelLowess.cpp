@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
-#include <OpenMS/FILTERING/SMOOTHING/FastLowessSmoothing.h>
+#include <OpenMS/PROCESSING/SMOOTHING/FastLowessSmoothing.h>
 
 #include <algorithm>
 

@@ -111,6 +111,9 @@ signals:
     void showChromatogramsAsNew1D(std::vector<int, std::allocator<int> > indices);
     /// Requests to display all spectra as 1D
     void showCurrentPeaksAs3D();
+    /// Requests to display this spectrum (=frame) in ion mobility plot
+    void showCurrentPeaksAsIonMobility(const MSSpectrum& spec);
+
 
 protected:
     /// shows projections information

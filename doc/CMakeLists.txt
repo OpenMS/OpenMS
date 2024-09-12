@@ -122,7 +122,7 @@ if(ENABLE_DOCS)
     set(DOXYGEN_MIN_REQUIRED "1.8.13")
 
     if (DOXYGEN_VERSION VERSION_LESS DOXYGEN_MIN_REQUIRED )
-      message(STATUS "Warning: Doxygen ( vers. installed = ${DOXYGEN_VERSION} < ${DOXYGEN_MIN_REQUIRED}) does not correctly process \\includedoc commands in developer's installation instructions. This will make them incomplete. Upgrade Doxygen to fix.")
+      message(STATUS "Warning: Doxygen ( vers. installed = ${DOXYGEN_VERSION} < ${DOXYGEN_MIN_REQUIRED}) does not correctly process \\include commands in developer's installation instructions. This will make them incomplete. Upgrade Doxygen to fix.")
     endif()
     
     ## if not found, use empty string to avoid `warning: the dot tool could not be found as 'DOXYGEN_DOT_EXECUTABLE-NOTFOUND/dot.exe'` in doxygen-error.log
@@ -323,7 +323,7 @@ if(ENABLE_DOCS)
     #------------------------------------------------------------------------------
     # add virtual dependency of doc_minimal on TOPP
     # this is not necessary but defers the generation of doc_minimal to a later
-    # stage to avoid confusion if doc_minimal is build first
+    # stage to avoid confusion if doc_minimal is built first
     add_dependencies(doc_minimal TOPP)
 
     if (DOXYGEN_DOT_FOUND OR DOXYGEN_DOT_EXECUTABLE)
@@ -377,10 +377,15 @@ if(ENABLE_DOCS)
   #------------------------------------------------------------------------------
   # Examples / Tutorials
   #------------------------------------------------------------------------------
-  option(BUILD_EXAMPLES "Compile OpenMS code examples" ON)
+  option(BUILD_EXAMPLES "Compile OpenMS code examples (C++ tutorials)" ON)
+  message(STATUS "Build C++ tutorials: ${BUILD_EXAMPLES} (-DBUILD_EXAMPLES=ON/OFF);")
   if(BUILD_EXAMPLES AND "${PACKAGE_TYPE}" STREQUAL "none")
     add_subdirectory(code_examples)
-  endif(BUILD_EXAMPLES AND "${PACKAGE_TYPE}" STREQUAL "none")
+    message(STATUS " --> Tutorials in '${PROJECT_SOURCE_DIR}/code_examples' will be built!")
+  else()
+    message(STATUS " --> Tutorials in '${PROJECT_SOURCE_DIR}/code_examples' will NOT be built! (since PACKAGE_TYPE=${PACKAGE_TYPE}, but must be 'none')")
+  endif()
+
 
 else()
   message(STATUS "Documentation is not built (-D ENABLE_DOCS=Off).")

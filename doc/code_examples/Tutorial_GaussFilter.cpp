@@ -2,10 +2,12 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
+#include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
 #include <iostream>
 
 using namespace OpenMS;
@@ -13,13 +15,11 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
-  if (argc < 2) return 1;
-  // the path to the data should be given on the command line
-  String tutorial_data_path(argv[1]);
+  auto file_gauss = OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_GaussFilter.mzML");
 
   PeakMap exp;
 
-  FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_GaussFilter.mzML", exp, {FileTypes::MZML});
+  FileHandler().loadExperiment(file_gauss, exp, {FileTypes::MZML});
 
   GaussFilter g;
   Param param;

@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
 using namespace std;
 

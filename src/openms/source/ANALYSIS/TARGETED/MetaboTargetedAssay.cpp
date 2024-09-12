@@ -9,12 +9,12 @@
 #include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/KERNEL/BinnedSpectrum.h>
+#include <OpenMS/COMPARISON/BinnedSpectralContrastAngle.h>
+#include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <regex>
 
@@ -39,7 +39,7 @@ namespace OpenMS
     {
       adduct_suffix = "1" + adduct_suffix;
     }
-    else
+    else if (adduct_suffix != "1-" && adduct_suffix != "1+")
     {
       OpenMS_Log_warn << "The adduct had the suffix '" << adduct_suffix << "', but only singly positive or singly negative charged adducts are supported." << std::endl;
     }
@@ -424,8 +424,7 @@ namespace OpenMS
                                                                                                       const double& min_fragment_mz,
                                                                                                       const double& max_fragment_mz,
                                                                                                       const bool& use_exact_mass,
-                                                                                                      const bool& exclude_ms2_precursor,
-                                                                                                      const unsigned int& file_counter)
+                                                                                                      const bool& exclude_ms2_precursor)
   {
     int entry_counter = 0; // counts each entry - to ensure the same count for targets, decoys from the same sirius workspace
     vector <MetaboTargetedAssay> v_mta;
@@ -536,14 +535,13 @@ namespace OpenMS
         v_cmp_rt = {cmp_rt};
         cmp.rts = {v_cmp_rt};
         cmp.setChargeState(charge);
-        String identifier_suffix = adduct + "_" + int(feature_rt) + "_" + file_counter;
+        String identifier_suffix = adduct + "_" + int(feature_rt) + "_" + csp.compound_info.file_index;
 
         if (description == "UNKNOWN")
         {
           description = String(description + "_" + entry_counter);
         }
         // compoundID has to be unique over all the files
-        // file_counter unique per file
         // feature_rt if the same ID was detected twice at different retention times in the same file
         if (decoy == 0)
         {
@@ -657,7 +655,7 @@ namespace OpenMS
 
         mta.molecular_formula = sumformula;
         mta.compound_rt = feature_rt;
-        mta.compound_file = file_counter;
+        mta.compound_file = csp.compound_info.file_index;
 
         mta.potential_cmp = cmp;
         mta.potential_rmts = v_rmt;
@@ -684,24 +682,6 @@ namespace OpenMS
         if (cmp.m_ids_id == spectra.target.getName()) // the m_id is saved at MSSpectrum level as its name
         {
           v_cmp_spec.emplace_back(cmp, spectra);
-        }
-      }
-    }
-    return v_cmp_spec;
-  }
-
-  // method to pair compound information (SiriusMSFile) with the annotated target spectrum from Sirius based on the m_id (unique identifier)
-  std::vector< MetaboTargetedAssay::CompoundSpectrumPair > MetaboTargetedAssay::pairCompoundWithAnnotatedSpectra(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
-                                                                                                                  const std::vector<MSSpectrum>& annotated_spectra)
-  {
-    vector< MetaboTargetedAssay::CompoundSpectrumPair > v_cmp_spec;
-    for (const auto& cmp : v_cmpinfo)
-    {
-      for (const auto& spectrum : annotated_spectra)
-      {
-        if (cmp.m_ids_id == spectrum.getName()) // the m_id is saved at MSSpectrum level as its name
-        {
-          v_cmp_spec.emplace_back(cmp, spectrum);
         }
       }
     }

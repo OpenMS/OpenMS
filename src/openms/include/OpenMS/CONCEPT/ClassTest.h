@@ -631,7 +631,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  */
 #define TEST_FILE_EQUAL(filename, templatename)                                           \
   {                                                                                       \
-    TEST::filesEqual(__LINE__, filename, templatename, #filename, #templatename);                                                                                    \
+    TEST::filesEqual(__LINE__, filename, templatename, #filename, #templatename);         \
   }
 
 /**	@brief Floating point similarity macro.

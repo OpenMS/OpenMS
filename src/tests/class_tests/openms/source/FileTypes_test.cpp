@@ -127,9 +127,9 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
     std::vector<FileTypes::FileProperties> f;
     f.push_back(FileTypes::FileProperties::READABLE);
     FileTypeList g = FileTypeList::typesWithProperties(f);
-    TEST_EQUAL(g.getTypes().size(), 38);
+    TEST_EQUAL(g.getTypes().size(), 37);
     // Test that empty filter returns the full list
-    TEST_EQUAL(FileTypeList::typesWithProperties({}).size(), 61);
+    TEST_EQUAL(FileTypeList::typesWithProperties({}).size(), 60);
     // Test that the full list is equal to the list of known file types
     TEST_EQUAL(FileTypeList::typesWithProperties({}).size(),static_cast<size_t>(FileTypes::Type::SIZE_OF_TYPE));
     // Check that we don't have duplicate Types in our type_with_annotation__

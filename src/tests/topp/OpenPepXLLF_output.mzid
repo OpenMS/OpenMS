@@ -6,7 +6,7 @@
 	id="OpenMS_17447818880105247092"
 	creationDate="2023-03-22T15:52:24">
 <cvList>
-	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
+	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="http://purl.obolibrary.org/obo/ms/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
 	<cv id="UO"     fullName="UNIT-ONTOLOGY" uri="https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/master/unit.obo"></cv>
 	<cv id="XLMOD" fullName="PSI cross-link modifications" uri="https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo"></cv>
@@ -43,7 +43,7 @@
 		</Modification>
 		<Modification location="4" residues="K" monoisotopicMassDelta="138.068079600000004">
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
-			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15166508592180818156"/>
+			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="15166508592180818156"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_15050004366391181853" name="KK[284.173608765599965]SNSISVGEFYRDAVLQR">
@@ -76,7 +76,7 @@
  	<Peptide id="PEP_3823858840059792698" name="KNTEGTQKQK">
 		<PeptideSequence>KNTEGTQKQK</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="0">
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="15166508592180818156"/>
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink acceptor" value="15166508592180818156"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_6408859317243173796" name="LPDPVKEYGC[160.030648985200003]APWPMVEK[284.173608765599965]LIK">
@@ -110,7 +110,7 @@
 		</SearchType>
 		<AdditionalSearchParams>
 
-			<cvParam accession="MS:1002494" cvRef="PSI-MS" name="cross-linking search"/>
+			<cvParam accession="MS:1002494" cvRef="PSI-MS" name="crosslinking search"/>
 			<userParam name="input_mzML" unitName="xsd:string" value="/home/samuel/git/OpenMS/src/tests/topp/OpenPepXLLF_input.mzML"/>
 			<userParam name="input_decoys" unitName="xsd:string" value=""/>
 			<userParam name="out_xquest_specxml" unitName="xsd:string" value="OpenPepXLLF_output.tmp.spec.xml"/>
@@ -621,7 +621,7 @@
 						</IonType>
 					</Fragmentation>
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="0.215483692015237"/>
-					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="15166508592180818156"/>
+					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="15166508592180818156"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="115"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
@@ -673,7 +673,7 @@
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_3823858840059792698" calculatedMassToCharge="876.193926070296129" experimentalMassToCharge="876.445373535156023" chargeState="4" id="SII_14851350658635457156">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_893904610286969204"/>
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="0.215483692015237"/>
-					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="15166508592180818156"/>
+					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="15166508592180818156"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="115"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>

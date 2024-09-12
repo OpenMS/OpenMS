@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResampler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
 #include <iostream>
 
 using namespace OpenMS;
@@ -13,14 +14,12 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
-  if (argc < 2) return 1;
-  // the path to the data should be given on the command line
-  String tutorial_data_path(argv[1]);
+  auto file_dta = OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_SavitzkyGolayFilter.dta");
   
   // A DTA file always has exactly one Spectrum, so we get that
   MSSpectrum spectrum;
   // Load the dta file into the spectrum
-  FileHandler().loadSpectrum(tutorial_data_path + "/data/Tutorial_SavitzkyGolayFilter.dta", spectrum);
+  FileHandler().loadSpectrum(file_dta, spectrum);
 
   LinearResampler lr;
   Param param_lr;

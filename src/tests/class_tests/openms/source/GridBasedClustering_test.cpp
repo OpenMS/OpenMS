@@ -11,8 +11,8 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/COMPARISON/CLUSTERING/GridBasedClustering.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
+#include <OpenMS/ML/CLUSTERING/GridBasedClustering.h>
+#include <OpenMS/FEATUREFINDER/MultiplexClustering.h>
 
 using namespace OpenMS;
 

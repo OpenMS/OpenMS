@@ -1,7 +1,7 @@
 from Types cimport *
 from LinearResampler cimport *
 
-cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>" namespace "OpenMS":
     
     cdef cppclass LinearResamplerAlign(LinearResampler) :
         # wrap-inherits:

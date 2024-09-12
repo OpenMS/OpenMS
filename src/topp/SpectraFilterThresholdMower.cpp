@@ -9,7 +9,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+#include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
 

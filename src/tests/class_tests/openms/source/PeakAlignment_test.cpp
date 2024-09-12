@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
+#include <OpenMS/COMPARISON/PeakAlignment.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -104,22 +104,6 @@ START_SECTION((vector< pair<Size,Size> > getAlignmentTraceback(const PeakSpectru
 	{
 		TEST_EQUAL(tester.at(i).first,result.at(i).first)
 	}
-}
-END_SECTION
-
-START_SECTION((static PeakSpectrumCompareFunctor* create()))
-{
-	PeakSpectrumCompareFunctor* psf = PeakAlignment::create();
-	PeakAlignment pa;
-	TEST_EQUAL(psf->getParameters(), pa.getParameters())
-	TEST_EQUAL(psf->getName(), pa.getName())
-	delete psf;
-}
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-{
-	TEST_EQUAL(ptr->getProductName(), "PeakAlignment")
 }
 END_SECTION
 

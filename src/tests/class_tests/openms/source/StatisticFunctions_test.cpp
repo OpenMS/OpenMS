@@ -8,8 +8,8 @@
 
 ///////////////////////////
 // This one is going to be tested.
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <boost/math/special_functions/fpclassify.hpp>
 ///////////////////////////

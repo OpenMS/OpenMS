@@ -254,6 +254,13 @@ namespace OpenMS
       //  by this loosely defined format.
       const String& sSpecId = row[to_idx.at("SpecId")];
 
+      if (auto it = to_idx.find("ion_mobility"); it != to_idx.end())
+      {
+        const String& sIM = row[it->second];
+        const double IM = sIM.toDouble();  
+        pids.back().setMetaValue(Constants::UserParam::IM, IM);
+      }
+
       // In theory, this should be an integer, but Sage currently cannot extract the number from all vendor spectrum IDs,
       //  so it writes the full ID as string
       String sScanNr = row[to_idx.at("ScanNr")];

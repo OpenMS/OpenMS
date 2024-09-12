@@ -21,8 +21,8 @@
 #include <OpenMS/CHEMISTRY/Tagger.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 
 #include <iostream>
 
