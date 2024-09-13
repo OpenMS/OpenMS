@@ -222,6 +222,9 @@ protected:
   /// get regions in which peptide eludes (ideally only one) by clustering RT elution times
   void getRTRegions_(ChargeMap& peptide_data, std::vector<RTRegion>& rt_regions, bool clear_IDs = true) const;
 
+  /// get mean IM of a single RT region
+  double getRTRegionMeanIM_(const RTRegion& r);
+
   void annotateFeaturesFinalizeAssay_(
     FeatureMap& features,
     std::map<Size, std::vector<PeptideIdentification*> >& feat_ids,

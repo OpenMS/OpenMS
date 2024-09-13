@@ -14,6 +14,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ML/SVM/SimpleSVM.h>
@@ -55,6 +56,12 @@ namespace OpenMS
     defaults_.setMinInt("extract:batch_size", 1);
     defaults_.setValue("extract:mz_window", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)");
     defaults_.setMinFloat("extract:mz_window", 0.0);
+    defaults_.setValue(
+      "extract:IM_window", 
+      0.06, 
+      "Ion mobility window for chromatogram extraction (ignored if data does not contain IM information).");
+    defaults_.setMinFloat("extract:IM_window", 0.0);
+
     defaults_.setValue("extract:n_isotopes", 2, "Number of isotopes to include in each peptide assay.");
     defaults_.setMinInt("extract:n_isotopes", 2);
     defaults_.setValue(
@@ -399,6 +406,17 @@ namespace OpenMS
     //TODO for MS1 level scoring there is an additional parameter add_up_spectra with which we can add up spectra
     // around the apex, to complete isotopic envelopes (and therefore make this score more robust).
 
+    double IM_window = param_.getValue("extract:IM_window");
+    IMFormat im_format = IMTypes::determineIMFormat(ms_data_);
+    bool has_IM = false;
+    if (im_format == IMFormat::CONCATENATED)
+    {
+      has_IM = true;
+    } else if (im_format != IMFormat::NONE) // has IM but wrong format
+    {
+      OPENMS_LOG_ERROR << "Wrong IM format detected. Expecting in concatenated format (float data arrays)" << std::endl;
+    }
+    
     if ((elution_model_ != "none") || (!candidates_out_.empty()))
     {
       params.setValue("write_convex_hull", "true");
@@ -524,6 +542,7 @@ namespace OpenMS
     auto chunks = chunk_(peptide_map_.begin(), peptide_map_.end(), batch_size_);
 
     PeptideRefRTMap ref_rt_map;
+
     if (debug_level_ >= 668)
     {
       OPENMS_LOG_INFO << "Creating full assay library for debugging." << endl;
@@ -546,6 +565,7 @@ namespace OpenMS
     {
       //TODO since ref_rt_map is only used after chunking, we could create
       // maps per chunk and merge them in the end. Would help in parallelizing as well.
+      // fills library_ (TargetedExperiment)
       createAssayLibrary_(chunk.first, chunk.second, ref_rt_map);
       OPENMS_LOG_DEBUG << "#Transitions: " << library_.getTransitions().size() << endl;
 
@@ -558,9 +578,17 @@ namespace OpenMS
         extractor.prepare_coordinates(chrom_temp, coords, library_,
                                       numeric_limits<double>::quiet_NaN(), false);
 
+        if (has_IM)
+        {
+          extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
+                                        mz_window_ppm_, IM_window, "tophat");
+        }
+        else
+        {
+          extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
+                                        mz_window_ppm_, "tophat");
+        }
 
-        extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
-                                       mz_window_ppm_, "tophat");
         extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
                                       chrom_data_.getChromatograms(), false);
       }
@@ -824,7 +852,32 @@ namespace OpenMS
 
   }
 
-  void FeatureFinderIdentificationAlgorithm::createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map, bool clear_IDs)
+  double FeatureFinderIdentificationAlgorithm::getRTRegionMeanIM_(const RTRegion& r)
+  {
+    const ChargeMap& cm = r.ids;
+    double mean = -1.0;
+    Size count = 0;
+    for (const auto& e : cm)
+    {
+      //const int charge = e.first;
+      const RTMap& internal_ids = e.second.first; // internal
+      for (const auto& rt_pepidptr : internal_ids)
+      {
+        const PeptideIdentification& pep_id = *rt_pepidptr.second;
+        const double im = pep_id.getMetaValue(Constants::UserParam::IM, -1.0);
+        if (im == -1.0) { return -1.0; } // missing IM annotation? assume no IM present at all
+        mean += im;
+        ++count;
+      }
+    }
+    return mean / (double)count;
+  }
+
+  void FeatureFinderIdentificationAlgorithm::createAssayLibrary_(
+    const PeptideMap::iterator& begin, 
+    const PeptideMap::iterator& end, 
+    PeptideRefRTMap& ref_rt_map, 
+    bool clear_IDs)
   {
     std::set<String> protein_accessions;
 
@@ -910,13 +963,15 @@ namespace OpenMS
         peptide.sequence = seq.toString();
         // keep track of protein accessions:
         set<String> current_accessions;
-        // internal/external pair
-        const pair<RTMap, RTMap> &pair = pm_it->second.begin()->second;
+        
+        const pair<RTMap, RTMap> &pair = pm_it->second.begin()->second; // internal/external pair
+        const RTMap& internal_ids = pair.first;
+        const RTMap& external_ids = pair.second;
 
         // WARNING: This assumes that at least one hit is present.
-        const PeptideHit &hit = (pair.first.empty() ?
-                                 pair.second.begin()->second->getHits()[0] :
-                                 pair.first.begin()->second->getHits()[0]);
+        const PeptideHit &hit = (internal_ids.empty() ?
+                                 external_ids.begin()->second->getHits()[0] :
+                                 internal_ids.begin()->second->getHits()[0]);
         current_accessions = hit.extractProteinAccessionsSet();
         protein_accessions.insert(current_accessions.begin(),
                                   current_accessions.end());
@@ -928,9 +983,12 @@ namespace OpenMS
 
         peptide.protein_refs = vector<String>(current_accessions.begin(),
                                               current_accessions.end());
-        // get regions in which peptide eludes (ideally only one):
+        // get regions in RT which peptide eludes (ideally only one):
         std::vector<RTRegion> rt_regions;
         getRTRegions_(pm_it->second, rt_regions, clear_IDs);
+
+        // note: IM values are stored in the PeptideIdentifications* for the different
+        // peptides, charges, and regions
 
         // get isotope distribution for peptide:
         Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
@@ -979,6 +1037,16 @@ namespace OpenMS
               peptide.rts.clear();
               addPeptideRT_(peptide, reg.start);
               addPeptideRT_(peptide, reg.end);
+
+              // determine e.g. one IM value  
+              // for the peptide and current charge state in the region
+              // (Note: because it is the same peptide and charge state the IM should not differ that much)
+              double im_value = getRTRegionMeanIM_(reg);
+              if (im_value != -1)
+              {
+                peptide.setDriftTime(im_value);
+              }
+
               library_.addPeptide(peptide);
               generateTransitions_(peptide.id, mz, charge, iso_dist);
             }
@@ -999,12 +1067,13 @@ namespace OpenMS
     }
   }
 
+  // extract RT regions of identified peptides (from charge map)
   void FeatureFinderIdentificationAlgorithm::getRTRegions_(
     ChargeMap& peptide_data,
     std::vector<RTRegion>& rt_regions,
     bool clear_IDs) const
   {
-    // use RTs from all charge states here to get a more complete picture:
+    // use RTs from all charge states of a single peptide to get a more complete picture:
     std::vector<double> rts;
     for (auto& cm : peptide_data)
     {
@@ -1024,7 +1093,7 @@ namespace OpenMS
 
     for (auto& rt : rts)
     {
-      // create a new region?
+      // large gap between last RT of last region and current RT? then create a new region?
       if (rt_regions.empty() || (rt_regions.back().end < rt - rt_tolerance))
       {
         RTRegion region;
@@ -1040,15 +1109,20 @@ namespace OpenMS
     for (auto& cm : peptide_data)
     {
       // regions are sorted by RT, as are IDs, so just iterate linearly:
-      auto reg_it = rt_regions.begin();
+      std::vector<RTRegion>::iterator reg_it = rt_regions.begin();
+      int charge = cm.first;
+
       // "internal" IDs:
       for (auto& rt : cm.second.first)
       {
-        while (rt.first > reg_it->end)
+        // while RT larger than current region end: skip to next region (or end)
+        while (rt.first > reg_it->end) 
         {
           ++reg_it;
         }
-        reg_it->ids[cm.first].first.insert(rt);
+        RTMap& internal_ids = reg_it->ids[charge].first;
+         // insert RT and peptide id object into multimap (for current charge of the peptide)
+        internal_ids.insert(rt);
       }
       reg_it = rt_regions.begin(); // reset to start
       // "external" IDs:
@@ -1058,7 +1132,8 @@ namespace OpenMS
         {
           ++reg_it;
         }
-        reg_it->ids[cm.first].second.insert(rt);
+        RTMap& external_ids = reg_it->ids[charge].second;
+        external_ids.insert(rt);
       }
       if (clear_IDs)
       {
