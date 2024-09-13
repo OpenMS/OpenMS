@@ -2012,6 +2012,11 @@ add_test("TOPP_TextExporter_9" ${TOPP_BIN_PATH}/TextExporter -test -in ${DATA_DI
 add_test("TOPP_TextExporter_9_out1" ${DIFF} -in1 TextExporter_9_output.tmp.txt -in2 ${DATA_DIR_TOPP}/TextExporter_9_output.txt )
 set_tests_properties("TOPP_TextExporter_9_out1" PROPERTIES DEPENDS "TOPP_TextExporter_9")
 
+# peak annotations
+add_test("TOPP_TextExporter_10" ${TOPP_BIN_PATH}/TextExporter -test -in ${DATA_DIR_TOPP}/TextExporter_10_input.idXML -no_progress -out TextExporter_10_output.tmp -id:peak_annotations default)
+add_test("TOPP_TextExporter_10_out1" ${DIFF} -whitelist "RUN" -in1 TextExporter_10_output.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_10_output.txt )
+set_tests_properties("TOPP_TextExporter_10_out1" PROPERTIES DEPENDS "TOPP_TextExporter_10")
+
 #------------------------------------------------------------------------------
 # FeatureLinker tests
 # "labeled" algorithm:
