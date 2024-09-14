@@ -349,9 +349,9 @@ START_SECTION((template < typename ToType > void decodeIntegers(const String &in
 
   b64.decodeIntegers(src, Base64::BYTEORDER_LITTLEENDIAN,res,true);
   
-  for(Size i = 0 ; i < res.size();++i)
-  {
-    TEST_EQUAL(res[i], i)
+  Size index=0;
+  for(const auto& value:res){
+    TEST_EQUAL(value,index++);
   }
   
   src="eJwtxdciAgAAAMDMZBWyiUrZLdlkZJRC9l79/0f04O7lAoF/bW53hzvd5W4H3eOQe93nfg940GFHPORhjzjqUY953BOe9JSnPeNZxzznecedcNILTjntRS952Ste9ZrXnXHWOedd8IaL3vSWt73jXe953wc+dMlHPvaJT132mc994UtXXPWVa6772je+dcN3vveDH/3kZ7/41W9+94c//eVv//jXf266BcFVEvQ=";
