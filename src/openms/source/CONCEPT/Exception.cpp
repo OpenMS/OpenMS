@@ -122,6 +122,12 @@ namespace OpenMS
       GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
+    NotSorted::NotSorted(const char* file, int line, const char* function, const std::string& message) noexcept:
+      BaseException(file, line, function, "NotSorted", message)
+    {
+      GlobalExceptionHandler::getInstance().setMessage(what());
+    }
+
     FailedAPICall::FailedAPICall(const char* file, int line, const char* function, const std::string& message) noexcept :
       BaseException(file, line, function, "FailedAPICall", message)
     {

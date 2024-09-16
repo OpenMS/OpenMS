@@ -7,10 +7,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>
-#include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
+#include <OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
-#include <OpenMS/MATH/MISC/LinearInterpolation.h>
+#include <OpenMS/ML/INTERPOLATION/LinearInterpolation.h>
 
 // #define Debug_PoseClusteringShiftSuperimposer
 #ifdef Debug_PoseClusteringShiftSuperimposer
@@ -26,7 +26,7 @@ namespace OpenMS
   PoseClusteringShiftSuperimposer::PoseClusteringShiftSuperimposer() :
     BaseSuperimposer()
   {
-    setName(getProductName());
+    setName("PoseClusteringShiftSuperimposer");
 
     defaults_.setValue("mz_pair_max_distance", 0.5, "Maximum of m/z deviation of corresponding elements in different maps.  "
                                                     "This condition applies to the pairs considered in hashing.");

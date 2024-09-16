@@ -8,11 +8,10 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
-#include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
-#include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
-#include <OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>
+#include <OpenMS/ML/CLUSTERING/ClusterFunctor.h>
+#include <OpenMS/ML/CLUSTERING/SingleLinkage.h>
+#include <OpenMS/ML/CLUSTERING/CompleteLinkage.h>
+#include <OpenMS/ML/CLUSTERING/AverageLinkage.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -51,25 +50,6 @@ END_SECTION
 START_SECTION((virtual void operator()(DistanceMatrix< float > &original_distance, std::vector<BinaryTreeNode>& cluster_tree, const float threshold=1) const =0))
 {
   NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((static void registerChildren()))
-{
-  ClusterFunctor* cfp = Factory<ClusterFunctor>::create("AverageLinkage");
-  AverageLinkage* avl_nullPointer = nullptr;
-  TEST_NOT_EQUAL( dynamic_cast<AverageLinkage*>(cfp) , avl_nullPointer)
-  delete cfp;
-
-  cfp = Factory<ClusterFunctor>::create("SingleLinkage");
-  SingleLinkage* sl_nullPointer = nullptr;
-  TEST_NOT_EQUAL( dynamic_cast<SingleLinkage*>(cfp) , sl_nullPointer)
-  delete cfp;
-
-  cfp = Factory<ClusterFunctor>::create("CompleteLinkage");
-  CompleteLinkage* cl_nullPointer = nullptr;
-  TEST_NOT_EQUAL( dynamic_cast<CompleteLinkage*>(cfp) , cl_nullPointer)
-  delete cfp;
 }
 END_SECTION
 

@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
+#include <OpenMS/ML/REGRESSION/QuadraticRegression.h>
 ///////////////////////////
 
 using namespace OpenMS;

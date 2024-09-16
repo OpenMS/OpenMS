@@ -10,8 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor.h>
-#include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/COMPARISON/BinnedSpectrumCompareFunctor.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -56,26 +55,6 @@ END_SECTION
 START_SECTION((virtual double operator()(const BinnedSpectrum &spec) const =0))
 {
   NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((static void registerChildren()))
-{
-  BinnedSpectrumCompareFunctor* c1 = Factory<BinnedSpectrumCompareFunctor>::create("BinnedSharedPeakCount");
-  TEST_EQUAL(c1->getName(), "BinnedSharedPeakCount")
-  delete c1;
-  c1 = Factory<BinnedSpectrumCompareFunctor>::create("BinnedSpectralContrastAngle");
-  TEST_EQUAL(c1->getName(), "BinnedSpectralContrastAngle")
-  delete c1;
-  c1 = Factory<BinnedSpectrumCompareFunctor>::create("BinnedSumAgreeingIntensities");
-  TEST_EQUAL(c1->getName(), "BinnedSumAgreeingIntensities")
-  delete c1;
-}
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-{
-	TEST_EQUAL(BinnedSpectrumCompareFunctor::getProductName(), "BinnedSpectrumCompareFunctor")
 }
 END_SECTION
 

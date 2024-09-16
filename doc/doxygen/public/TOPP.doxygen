@@ -44,6 +44,7 @@
   - @subpage TOPP_IDMerger -  Merges several protein/peptide identification files into one file.  
   - @subpage TOPP_IDRipper - Splits protein/peptide identifications according their file-origin.
   - @subpage TOPP_IDSplitter - Splits protein/peptide identifications off of annotated data files.
+  - @subpage TOPP_IonMobilityBinning - Merges spectra with similar IM values and creates @p N output mzML's by discretizing the IM range.
   - @subpage TOPP_MapStatistics - Extract extended statistics on the features of a map for quality control.
   - @subpage TOPP_MzMLSplitter - Splits an mzML file into multiple parts.
   
@@ -58,12 +59,8 @@
   - @subpage TOPP_NoiseFilterGaussian - Removes noise from profile spectra using a Gaussian smoothing.
   - @subpage TOPP_NoiseFilterSGolay - Removes noise from profile spectra using Savitzky-Golay smoothing.
   - @subpage TOPP_MapNormalizer - Normalizes peak intensities in an MS run.
-  - @subpage TOPP_SpectraFilterBernNorm - Scales and filters spectra according to the Bern norm.
   - @subpage TOPP_SpectraFilterNLargest - Keeps only the n largest peaks per spectrum.
   - @subpage TOPP_SpectraFilterNormalizer - Scale intensities per spectrum to either sum to 1 or have a maximum of 1.
-  - @subpage TOPP_SpectraFilterParentPeakMower - Removes high peaks that could stem from unfragmented precursor ions.
-  - @subpage TOPP_SpectraFilterScaler - Assigns new intensity per spectrum according to intensity rank.
-  - @subpage TOPP_SpectraFilterSqrtMower - Scales the intensity of peaks to their sqrt.
   - @subpage TOPP_SpectraFilterThresholdMower - Removes all peaks below an intensity threshold.
   - @subpage TOPP_SpectraFilterWindowMower - Retains the highest peaks in a sliding or jumping window.
   
@@ -87,7 +84,6 @@
   - @subpage TOPP_FeatureFinderIdentification - Detects two-dimensional features in MS1 data based on peptide identifications.
   - @subpage TOPP_FeatureFinderMetabo - Detects two-dimensional features in centroided LC-MS data of metabolites.
   - @subpage TOPP_FeatureFinderMetaboIdent - Detects features in MS1 data corresponding to small molecule identifications.
-  - @subpage TOPP_FeatureFinderMRM - Quantifies features LC-MS/MS MRM data.
   - @subpage TOPP_FeatureFinderMultiplex - Identifies peptide multiplets (pairs, triplets etc., e.g. for SILAC or Dimethyl labeling) and determines their relative abundance.
   - @subpage TOPP_IsobaricAnalyzer - Extracts and normalizes TMT and iTRAQ information from an MS experiment.
   - @subpage TOPP_MassTraceExtractor - Annotates mass traces in centroided LC-MS maps.
@@ -95,7 +91,6 @@
   - @subpage TOPP_MetaProSIP - Detect labeled peptides from protein-SIP experiments.
   - @subpage TOPP_MultiplexResolver - Resolves conflicts between identifications and quantifications in multiplex data.
   - @subpage TOPP_ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps.
-  - @subpage TOPP_ProteinResolver - A peptide-centric algorithm for protein inference.
   - @subpage TOPP_ProteomicsLFQ - Perform label-free quantification in a single tool.
   - @subpage TOPP_SeedListGenerator - Generates seed lists for feature detection.
 
@@ -140,7 +135,6 @@
   <b>Map Alignment</b>
   - @subpage TOPP_MapAlignerIdentification - Corrects RT distortions between maps based on common peptide identifications using one map as reference.
   - @subpage TOPP_MapAlignerPoseClustering - Corrects RT distortions between maps using a pose clustering approach (not using pep-ids and a linear model).
-  - @subpage TOPP_MapAlignerSpectrum - Corrects RT distortions between maps by spectrum alignment.
   - @subpage TOPP_MapAlignerTreeGuided - Corrects RT distortions between maps based on common peptide identifications guided by a similarity tree.
   - @subpage TOPP_MapRTTransformer - Applies RT transformations to maps.
 
@@ -152,6 +146,7 @@
 
   <b>Targeted Experiments and OpenSWATH</b>
   - @subpage TOPP_AssayGeneratorMetabo - Generates an assay library using DDA data (Metabolomics).
+  - @subpage TOPP_AssayGeneratorMetaboSirius - Generates an assay library using SIRIUS project directory (Metabolomics).
   - @subpage TOPP_ClusterMassTracesByPrecursor - Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps.
   - @subpage TOPP_MRMMapper - MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML).
   - @subpage TOPP_MRMPairFinder - Evaluates labeled pair ratios on MRM features.
@@ -192,7 +187,7 @@
   <b>Metabolite Identification</b>
   - @subpage TOPP_AccurateMassSearch - Finds potential HMDB IDs within the given mass error window.
   - @subpage TOPP_MetaboliteSpectralMatcher - Identifies small molecules from tandem MS spectra.
-  - @subpage TOPP_SiriusAdapter - De novo metabolite identification.
+  - @subpage TOPP_SiriusExport - Export for Sirius de novo metabolite identification.
 
   <b>RNA</b>
   - @subpage TOPP_NucleicAcidSearchEngine - Search MzML files for oligonucleotides and their modifications.

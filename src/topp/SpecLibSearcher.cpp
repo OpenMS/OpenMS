@@ -10,15 +10,14 @@
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
-#include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
+#include <OpenMS/KERNEL/BinnedSpectrum.h>
+#include <OpenMS/COMPARISON/SpectraSTSimilarityScore.h>
+#include <OpenMS/COMPARISON/ZhangSimilarityScore.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 // TODO add ID support to Handler
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <ctime>
@@ -111,8 +110,7 @@ protected:
 //    setValidStrings_("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
 
     registerStringOption_("compare_function", "<string>", "ZhangSimilarityScore", "function for similarity comparison", false);
-    PeakSpectrumCompareFunctor::registerChildren();
-    setValidStrings_("compare_function", Factory<PeakSpectrumCompareFunctor>::registeredProducts());
+    setValidStrings_("compare_function", {"ZhangSimilarityScore", "SpectraSTSimilarityScore"});
 
     registerTOPPSubsection_("report", "Reporting Options");
     registerIntOption_("report:top_hits", "<num>", 10, "Maximum number of top scoring hits per spectrum that are reported.", false, true);
@@ -329,7 +327,20 @@ protected:
     OPENMS_LOG_INFO << "Time needed for preprocessing data: " << (end_build_time - start_build_time) << "\n";
 
     //compare function
-    std::unique_ptr<PeakSpectrumCompareFunctor> comparator(Factory<PeakSpectrumCompareFunctor>::create(compare_function));
+    std::unique_ptr<PeakSpectrumCompareFunctor> comparator;
+    if (compare_function == "SpectraSTSimilarityScore")
+    {
+      comparator.reset(new SpectraSTSimilarityScore());
+    }
+    else if (compare_function == "ZhangSimilarityScore")
+    {
+      comparator.reset(new ZhangSimilarityScore());
+    }
+    else 
+    {
+      writeLogError_("Unknown compare function");
+      return ILLEGAL_PARAMETERS;
+    }
  
    //-------------------------------------------------------------
     // calculations

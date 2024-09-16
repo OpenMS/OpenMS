@@ -10,8 +10,8 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
+#include <OpenMS/ML/CLUSTERING/CompleteLinkage.h>
+#include <OpenMS/ML/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <vector>
 ///////////////////////////
@@ -44,7 +44,6 @@ ptr = new CompleteLinkage();
 START_SECTION((CompleteLinkage(const CompleteLinkage &source)))
 {
   CompleteLinkage copy(*ptr);
-	TEST_EQUAL(copy.getProductName(), ptr->getProductName());
 }
 END_SECTION
 
@@ -52,7 +51,6 @@ START_SECTION((CompleteLinkage& operator=(const CompleteLinkage &source)))
 {
 	CompleteLinkage copy;
 	copy = *ptr;
-	TEST_EQUAL(copy.getProductName(), ptr->getProductName());
 }
 END_SECTION
 
@@ -118,20 +116,6 @@ START_SECTION((void operator()(DistanceMatrix< float > &original_distance, std::
 			TEST_EQUAL(tree[i].right_child, result[i].right_child);
 			TEST_REAL_SIMILAR(tree[i].distance, result[i].distance);
 	}
-}
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-{
-  TEST_EQUAL(ptr->getProductName(), "CompleteLinkage")
-}
-END_SECTION
-
-START_SECTION((static ClusterFunctor* create()))
-{
-	ClusterFunctor* cf = CompleteLinkage::create();
-  TEST_NOT_EQUAL( dynamic_cast<CompleteLinkage*>(cf) , nullPointer)
-  delete cf;
 }
 END_SECTION
 

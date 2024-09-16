@@ -56,7 +56,6 @@ can be used for further filtering. 0 probability peptides are counted but ignore
 
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-@todo possibly integrate parsimony approach from @ref OpenMS::PSProteinInference class
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_ProteinInference.cli
 <B>INI file documentation of this tool:</B>

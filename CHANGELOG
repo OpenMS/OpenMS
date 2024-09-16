@@ -56,6 +56,7 @@ Fixes:
 - pyOpenMS: Log warnings in pure Python code with warnings.warn instead of print (#7418)
 - more robust parsing of mzIdentML (#7153)
 - SageAdapter now works with sage v0.15.0 and beyond
+- OpenSwath: Fix bug in diaPASEF window determination (#7546)  
 
 Misc:
 - FileInfo: Report ion mobility ranges (if any) (#7459)

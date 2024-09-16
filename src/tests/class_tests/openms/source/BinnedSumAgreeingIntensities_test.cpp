@@ -10,8 +10,8 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSumAgreeingIntensities.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
+#include <OpenMS/COMPARISON/BinnedSumAgreeingIntensities.h>
+#include <OpenMS/KERNEL/BinnedSpectrum.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 ///////////////////////////
 
@@ -81,22 +81,6 @@ START_SECTION((double operator()(const BinnedSpectrum &spec) const ))
   BinnedSpectrum bs1(s1, 1.5, false, 2, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
   double score = (*ptr)(bs1);
   TEST_REAL_SIMILAR(score, 1);
-}
-END_SECTION
-
-START_SECTION((static BinnedSpectrumCompareFunctor* create()))
-{
-  BinnedSpectrumCompareFunctor* bsf = BinnedSumAgreeingIntensities::create();
-  BinnedSumAgreeingIntensities bsp;
-  TEST_EQUAL(bsf->getParameters(), bsp.getParameters())
-  TEST_EQUAL(bsf->getName(), bsp.getName())
-  delete bsf;
-}
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-{
-  TEST_EQUAL(ptr->getProductName(), "BinnedSumAgreeingIntensities")
 }
 END_SECTION
 

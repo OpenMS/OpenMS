@@ -88,7 +88,7 @@ public:
 
     };
 
-    /// slim struct to feed the need for systematically storing of ratios ( @see MSQuantifications ).
+    /// slim struct to feed the need for systematically storing of ratios.
     struct Ratio
     {
       Ratio()

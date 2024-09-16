@@ -9,12 +9,12 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 
 // calculate pearson distance
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 // create binary tree
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
-#include <OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>
+#include <OpenMS/ML/CLUSTERING/ClusterHierarchical.h>
+#include <OpenMS/ML/CLUSTERING/AverageLinkage.h>
 // align maps and generate output
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>

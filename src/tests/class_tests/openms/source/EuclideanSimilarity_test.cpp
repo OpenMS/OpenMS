@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/COMPARISON/CLUSTERING/EuclideanSimilarity.h>
+#include <OpenMS/ML/CLUSTERING/EuclideanSimilarity.h>
 #include <cmath>
 ///////////////////////////
 

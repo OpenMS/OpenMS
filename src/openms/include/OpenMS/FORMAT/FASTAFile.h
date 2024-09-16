@@ -102,6 +102,9 @@ namespace OpenMS
         */
         void readStart(const String& filename);
 
+        /// same as readStart(), but does internal progress logging whenever readNextWithProgress() is called
+        void readStartWithProgress(const String& filename, const String& progress_label);
+
         /**
         @brief Reads the next FASTA entry from file.
         If you want to read all entries in one go, use load().
@@ -111,7 +114,11 @@ namespace OpenMS
         */
         bool readNext(FASTAEntry& protein);
 
-        /// current stream position
+        /// same as readNext(), but does internal progress logging; use readStartWithProgress() to enable this
+        /// Calls progressEnd() when EOF is reached (i.e. when returning false)
+        bool readNextWithProgress(FASTAEntry& protein);
+
+        /// current stream position when reading a file
         std::streampos position();
 
         /// is stream at EOF?

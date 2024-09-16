@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
+#include <OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -50,14 +50,14 @@ START_SECTION((static Int solve(const Matrix< double > &A, const Matrix< double 
 	double x_1[4][1] = {{0.931153},{0.36833},{0},{0}};
 
 	Matrix<double> A,b,x;
-	A.setMatrix<3,4>(A_1);
-	b.setMatrix<3,1>(b_1);
-	x.resize(4,1);
+	A.setMatrix<double,3,4>(A_1);
+	b.setMatrix<double,3,1>(b_1);
+	x.getEigenMatrix().resize(4,1);
 	
 	TOLERANCE_ABSOLUTE(0.0005);
 	
 	NonNegativeLeastSquaresSolver::solve(A,b,x);
-	for (size_t i=0;i<x.rows();++i)
+	for (size_t i = 0;i < x.rows(); ++i)
 	{
 		TEST_REAL_SIMILAR(x(i,0), x_1[i][0]);
 	}	
@@ -75,9 +75,9 @@ START_SECTION((static Int solve(const Matrix< double > &A, const Matrix< double 
 	double b_2[4][1] = {{5},{45},{4},{31}};
 	double x_2[4][1] = {{4.3395},{48.4364},{0},{33.4945}};	
 	
-	A.setMatrix<4,4>(A_2);
-	b.setMatrix<4,1>(b_2);
-	x.resize(4,1);
+	A.setMatrix<double,4,4>(A_2);
+	b.setMatrix<double,4,1>(b_2);
+	x.getEigenMatrix().resize(4,1);
 	
 	NonNegativeLeastSquaresSolver::solve(A,b,x);
 	for (size_t i=0;i<x.rows();++i)
