@@ -67,7 +67,7 @@ namespace OpenMS
   {
     CsvFile csv(pin_file, '\t');
 
-      
+    
     String tsv_file_path = pin_file.substr(0, pin_file.size()-3);
     tsv_file_path = tsv_file_path + "tsv"; 
     CsvFile tsv(tsv_file_path, '\t'); 
