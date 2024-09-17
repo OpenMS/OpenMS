@@ -15,6 +15,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
+#include <OpenMS/KERNEL/Mobilogram.h>
 
 // scoring
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
@@ -151,7 +152,7 @@ namespace OpenMS
                               const RangeMobility & im_range,
                               double & im,
                               double & intensity,
-                              IonMobilogram& res,
+                              Mobilogram & res,
                               double eps);
 
 
@@ -159,7 +160,7 @@ namespace OpenMS
     /**
      * @brief helper function to computeIonMobilogram. Discretizes ion mobility values into a grid.
     **/
-    static std::vector<double> computeGrid_(const std::vector< IonMobilogram >& mobilograms, double eps);
+    static std::vector<double> computeGrid_(const std::vector< Mobilogram >& mobilograms, double eps);
 
 
     /*
