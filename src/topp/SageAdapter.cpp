@@ -335,6 +335,7 @@ pair< vector<double>, pair<mapRatetoMass, map<double, double>>>  getDeltaCluster
     mass_of_mods[res_monomass] = res_name; 
     if(i < 50){
       cout << "Name: " << res_name << " Mass: " << res_monomass << std::endl; 
+      cout << "Unimod accession: " << unimod_res << std::endl; 
     }
   } 
 
