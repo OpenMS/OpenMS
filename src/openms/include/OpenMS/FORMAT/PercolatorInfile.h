@@ -43,7 +43,7 @@ namespace OpenMS
         const StringList& extra_scores,
         StringList& filenames, 
         String decoy_prefix = "",
-        double threshhold = 0.01);
+        double threshold = 0.01);
 
       // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index
       static String getScanIdentifier(const PeptideIdentification& pid, size_t index);
