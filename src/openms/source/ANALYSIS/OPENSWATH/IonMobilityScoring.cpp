@@ -77,10 +77,11 @@ namespace OpenMS
    @param max_peak_idx The grid position of the maximum
 
   */
-  void IonMobilityScoring::alignToGrid_(const IonMobilogram& profile,
+  void IonMobilityScoring::alignToGrid_(const Mobilogram& profile,
                const std::vector<double>& im_grid,
                std::vector< double >& al_int_values,
                std::vector< double >& al_im_values,
+               Mobilogram & aligned_profile,
                double eps,
                Size & max_peak_idx)
   {
@@ -89,35 +90,73 @@ namespace OpenMS
     double max_int = 0;
     for (Size k = 0; k < im_grid.size(); k++)
     {
+      MobilityPeak1D mobi_peak;
       // In each iteration, the IM value of pr_it should be equal to or
       // larger than the master container. If it is equal, we add the current
       // data point, if it is larger we add zero and advance the counter k.
-      if (pr_it != profile.end() && fabs(pr_it->im - im_grid[k] ) < eps*10)
+      if (pr_it != profile.end() && fabs(pr_it->getMobility() - im_grid[k] ) < eps*10)
       {
-        al_int_values.push_back(pr_it->intensity);
-        al_im_values.push_back(pr_it->im);
+        al_int_values.push_back(pr_it->getIntensity());
+        al_im_values.push_back(pr_it->getMobility());
+
+        mobi_peak.setIntensity(pr_it->getIntensity());
+        mobi_peak.setMobility(pr_it->getMobility());
+
         ++pr_it;
       }
       else
       {
         al_int_values.push_back(0.0);
         al_im_values.push_back( im_grid[k] );
+
+        mobi_peak.setIntensity(0.0);
+        mobi_peak.setMobility(im_grid[k]);
       }
       // OPENMS_LOG_DEBUG << "grid position " << im_grid[k] << " profile position " << pr_it->first << std::endl;
 
       // check that we did not advance past
-      if (pr_it != profile.end() && (im_grid[k] - pr_it->im) > eps*10)
+      if (pr_it != profile.end() && (im_grid[k] - pr_it->getMobility()) > eps*10)
       {
-        std::cout << " This should never happen, pr_it has advanced past the master container: " << im_grid[k]  << "  / " <<  pr_it->im  << std::endl;
+        std::cout << " This should never happen, pr_it has advanced past the master container: " << im_grid[k]  << "  / " <<  pr_it->getMobility()  << std::endl;
         throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
 
       // collect maxima
-      if (pr_it != profile.end() && pr_it->intensity > max_int)
+      if (pr_it != profile.end() && pr_it->getIntensity() > max_int)
       {
-        max_int = pr_it->intensity;
+        max_int = pr_it->getIntensity();
         max_peak_idx = k;
       }
+
+      aligned_profile.push_back(mobi_peak);
+    }
+  }
+
+  /*
+   @brief Extracts intensity values from a vector of Mobilogram objects
+
+   This function takes a vector of Mobilogram objects and extracts the intensity
+   values from each Mobilogram, storing them in a 2D vector of doubles. The
+   resulting vector of intensity values is stored in the provided output parameter.
+
+   @param mobilograms [in] A const reference to a vector of Mobilogram objects
+                           from which to extract intensity values.
+   @param int_values [out] A reference to a vector of vector of doubles where
+                           the extracted intensity values will be stored. This
+                           vector will be cleared and resized as necessary.
+  */
+  void IonMobilityScoring::extractIntensities(const std::vector< Mobilogram >& mobilograms,
+                                              std::vector<std::vector<double>>& int_values)
+  {
+    int_values.clear();
+    int_values.reserve(mobilograms.size());
+
+    for (const auto& mobilogram : mobilograms)
+    {
+      std::vector<double> mobility_int;
+      mobility_int.reserve(mobilogram.size());
+      for (const auto & k : mobilogram) mobility_int.push_back(k.getIntensity());
+      int_values.emplace_back(std::move(mobility_int));
     }
   }
 
@@ -272,12 +311,15 @@ namespace OpenMS
 
     // Step 3: Align the IonMobilogram vectors to the grid
     std::vector< std::vector< double > > aligned_mobilograms;
-    for (const auto & mobilogram : mobilograms)
+    std::vector< OpenMS::Mobilogram > aligned_ms2_mobilograms;
+    for (const auto & mobilogram : ms2_mobilograms)
     {
+      Mobilogram aligned_mobilogram;
       std::vector< double > arrInt, arrIM;
       Size max_peak_idx = 0;
-      alignToGrid_(mobilogram, im_grid, arrInt, arrIM, eps, max_peak_idx);
+      alignToGrid_(mobilogram, im_grid, arrInt, arrIM, aligned_mobilogram, eps, max_peak_idx);
       aligned_mobilograms.push_back(arrInt);
+      aligned_ms2_mobilograms.push_back(aligned_mobilogram);
     }
 
     std::vector< double > ms1_int_values, ms1_im_values;
@@ -449,12 +491,15 @@ namespace OpenMS
     // Step 2: Align the IonMobilogram vectors to the grid
     std::vector<double> im_grid = computeGrid_(ms2_mobilograms, eps);
     std::vector< std::vector< double > > aligned_mobilograms;
-    for (const auto & mobilogram : mobilograms)
+    std::vector< OpenMS::Mobilogram > aligned_ms2_mobilograms;
+    for (const auto & mobilogram : ms2_mobilograms)
     {
+      Mobilogram aligned_mobilogram;
       std::vector< double > arr_int, arr_IM;
       Size max_peak_idx = 0;
-      alignToGrid_(mobilogram, im_grid, arr_int, arr_IM, eps, max_peak_idx);
+      alignToGrid_(mobilogram, im_grid, arr_int, arr_IM, aligned_mobilogram, eps, max_peak_idx);
       if (!arr_int.empty()) aligned_mobilograms.push_back(arr_int);
+      if (!aligned_mobilogram.empty()) aligned_ms2_mobilograms.push_back(aligned_mobilogram);
     }
 
     // Step 3: Compute cross-correlation scores based on ion mobilograms
@@ -465,9 +510,10 @@ namespace OpenMS
       return;
     }
 
-
+    std::vector< std::vector< double > > aligned_int_vec;
+    extractIntensities(aligned_ms2_mobilograms, aligned_int_vec);
     OpenSwath::MRMScoring mrmscore_;
-    mrmscore_.initializeXCorrMatrix(aligned_mobilograms);
+    mrmscore_.initializeXCorrMatrix(aligned_int_vec);
 
     double xcorr_coelution_score = mrmscore_.calcXcorrCoelutionScore();
     double xcorr_shape_score = mrmscore_.calcXcorrShapeScore(); // can be nan!

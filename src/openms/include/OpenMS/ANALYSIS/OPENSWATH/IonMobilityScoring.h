@@ -178,12 +178,29 @@ namespace OpenMS
      @param eps Epsilon used for computing the ion mobility grid
      @param max_peak_idx The grid position of the maximum
     */
-    static void alignToGrid_(const IonMobilogram& profile,
+    static void alignToGrid_(const Mobilogram& profile,
                  const std::vector<double>& im_grid,
                  std::vector< double >& al_int_values,
                  std::vector< double >& al_im_values,
+                 Mobilogram & aligned_profile,
                  double eps,
                  Size & max_peak_idx);
+
+    /*
+     @brief Extracts intensity values from a vector of Mobilogram objects
+
+     This function takes a vector of Mobilogram objects and extracts the intensity
+     values from each Mobilogram, storing them in a 2D vector of doubles. The
+     resulting vector of intensity values is stored in the provided output parameter.
+
+     @param mobilograms [in] A const reference to a vector of Mobilogram objects
+                             from which to extract intensity values.
+     @param int_values [out] A reference to a vector of vector of doubles where
+                             the extracted intensity values will be stored. This
+                             vector will be cleared and resized as necessary.
+     */
+    static void extractIntensities(const std::vector< Mobilogram >& mobilograms,
+                                   std::vector<std::vector<double>>& int_values);
 
   };
 }
