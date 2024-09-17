@@ -667,7 +667,7 @@ jobs:
           if [[ "${{ github.ref_name }}" == "nightly" ]]; then
             folder=nightly
           elif [[ "${{ github.ref_name }}" == release/* ]]; then
-            folder=release/${{ github.ref_name }}
+            folder=${{ github.ref_name }}
           else
             folder=experimental/${{ github.ref_name }}
           fi
@@ -873,7 +873,7 @@ jobs:
           if [[ "${{ github.ref_name }}" == "nightly" ]]; then
             folder=nightly
           elif [[ "${{ github.ref_name }}" == release/* ]]; then
-            folder=release/${{ github.ref_name }}
+            folder=${{ github.ref_name }}
           else
             folder=experimental/${{ github.ref_name }}
           fi
