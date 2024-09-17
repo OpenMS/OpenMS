@@ -173,15 +173,11 @@ namespace OpenMS
 
      @param profile The ion mobility data
      @param im_grid The grid to be used
-     @param al_int_values The intensity vector (y)
-     @param al_im_values The ion mobility vector (x)
      @param eps Epsilon used for computing the ion mobility grid
      @param max_peak_idx The grid position of the maximum
     */
     static void alignToGrid_(const Mobilogram& profile,
                  const std::vector<double>& im_grid,
-                 std::vector< double >& al_int_values,
-                 std::vector< double >& al_im_values,
                  Mobilogram & aligned_profile,
                  double eps,
                  Size & max_peak_idx);

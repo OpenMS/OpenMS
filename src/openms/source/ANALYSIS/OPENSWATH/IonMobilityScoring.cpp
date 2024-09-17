@@ -71,16 +71,12 @@ namespace OpenMS
 
    @param profile The ion mobility data
    @param im_grid The grid to be used
-   @param al_int_values The intensity vector (y)
-   @param al_im_values The ion mobility vector (x)
    @param eps Epsilon used for computing the ion mobility grid
    @param max_peak_idx The grid position of the maximum
 
   */
   void IonMobilityScoring::alignToGrid_(const Mobilogram& profile,
                const std::vector<double>& im_grid,
-               std::vector< double >& al_int_values,
-               std::vector< double >& al_im_values,
                Mobilogram & aligned_profile,
                double eps,
                Size & max_peak_idx)
@@ -96,9 +92,6 @@ namespace OpenMS
       // data point, if it is larger we add zero and advance the counter k.
       if (pr_it != profile.end() && fabs(pr_it->getMobility() - im_grid[k] ) < eps*10)
       {
-        al_int_values.push_back(pr_it->getIntensity());
-        al_im_values.push_back(pr_it->getMobility());
-
         mobi_peak.setIntensity(pr_it->getIntensity());
         mobi_peak.setMobility(pr_it->getMobility());
 
@@ -106,9 +99,6 @@ namespace OpenMS
       }
       else
       {
-        al_int_values.push_back(0.0);
-        al_im_values.push_back( im_grid[k] );
-
         mobi_peak.setIntensity(0.0);
         mobi_peak.setMobility(im_grid[k]);
       }
@@ -278,8 +268,6 @@ namespace OpenMS
     // extend IM range by drift_extra
     im_range.scaleBy(drift_extra * 2. + 1); // multiple by 2 because want drift extra to be extended by that amount on either side
 
-    std::vector< IonMobilogram > mobilograms;
-
     // Step 1: MS2 extraction
     std::vector< OpenMS::Mobilogram > ms2_mobilograms;
     for (std::size_t k = 0; k < transitions.size(); k++)
@@ -291,7 +279,6 @@ namespace OpenMS
       RangeMZ mz_range = DIAHelpers::createMZRangePPM(transition.getProductMZ(), dia_extract_window_, dia_extraction_ppm_);
 
       computeIonMobilogram(spectra, mz_range, im_range, im, intensity, res, eps);
-//      mobilograms.push_back( std::move(res) );
       ms2_mobilograms.push_back(std::move(res));
 
     }
@@ -303,37 +290,34 @@ namespace OpenMS
     RangeMZ mz_range = DIAHelpers::createMZRangePPM(transitions[0].getPrecursorMZ(), dia_extract_window_, dia_extraction_ppm_);
 
     computeIonMobilogram(ms1spectrum, mz_range, im_range, im, intensity, ms1_profile, eps); // TODO: aggregate over isotopes
-//    mobilograms.push_back(ms1_profile);
     ms2_mobilograms.push_back(ms1_profile);
 
     std::vector<double> im_grid = computeGrid_(ms2_mobilograms, eps); // ensure grid is based on all profiles!
     ms2_mobilograms.pop_back();
 
     // Step 3: Align the IonMobilogram vectors to the grid
-    std::vector< std::vector< double > > aligned_mobilograms;
     std::vector< OpenMS::Mobilogram > aligned_ms2_mobilograms;
     for (const auto & mobilogram : ms2_mobilograms)
     {
       Mobilogram aligned_mobilogram;
-      std::vector< double > arrInt, arrIM;
       Size max_peak_idx = 0;
-      alignToGrid_(mobilogram, im_grid, arrInt, arrIM, aligned_mobilogram, eps, max_peak_idx);
-      aligned_mobilograms.push_back(arrInt);
+      alignToGrid_(mobilogram, im_grid, aligned_mobilogram, eps, max_peak_idx);
       aligned_ms2_mobilograms.push_back(aligned_mobilogram);
     }
 
-    std::vector< double > ms1_int_values_tmp, ms1_im_values;
     Mobilogram aligned_ms1_mobilograms;
     Size max_peak_idx = 0;
-    alignToGrid_(ms1_profile, im_grid, ms1_int_values_tmp, ms1_im_values, aligned_ms1_mobilograms, eps, max_peak_idx);
+    alignToGrid_(ms1_profile, im_grid, aligned_ms1_mobilograms, eps, max_peak_idx);
     std::vector<double> ms1_int_values;
     ms1_int_values.reserve(aligned_ms1_mobilograms.size());
     for (const auto & k : aligned_ms1_mobilograms) ms1_int_values.push_back(k.getIntensity());
 
     // Step 4: MS1 contrast scores
+    std::vector< std::vector< double > > aligned_int_vec;
+    extractIntensities(aligned_ms2_mobilograms, aligned_int_vec);
     {
       OpenSwath::MRMScoring mrmscore_;
-      mrmscore_.initializeXCorrPrecursorContrastMatrix({ms1_int_values}, aligned_mobilograms);
+      mrmscore_.initializeXCorrPrecursorContrastMatrix({ms1_int_values}, aligned_int_vec);
       OPENMS_LOG_DEBUG << "all-all: Contrast Scores : coelution precursor : " << mrmscore_.calcXcorrPrecursorContrastCoelutionScore() << " / shape  precursor " <<
         mrmscore_.calcXcorrPrecursorContrastShapeScore() << std::endl;
       scores.im_ms1_contrast_coelution = mrmscore_.calcXcorrPrecursorContrastCoelutionScore();
@@ -341,8 +325,6 @@ namespace OpenMS
     }
 
     // Step 5: contrast precursor vs summed fragment ions
-    std::vector< std::vector< double > > aligned_int_vec;
-    extractIntensities(aligned_ms2_mobilograms, aligned_int_vec);
     std::vector<double> fragment_values;
     fragment_values.resize(ms1_int_values.size(), 0);
     for (Size k = 0; k < fragment_values.size(); k++)
@@ -428,9 +410,6 @@ namespace OpenMS
 
     double delta_drift = 0;
     double delta_drift_abs = 0;
-    // IonMobilogram: a data structure that holds points <im_value, intensity>
-    std::vector< IonMobilogram > mobilograms;
-    Mobilogram mobilograms_struct;
     double computed_im = 0;
     double computed_im_weighted = 0;
     double sum_intensity = 0;
@@ -491,15 +470,12 @@ namespace OpenMS
 
     // Step 2: Align the IonMobilogram vectors to the grid
     std::vector<double> im_grid = computeGrid_(ms2_mobilograms, eps);
-    std::vector< std::vector< double > > aligned_mobilograms;
     std::vector< OpenMS::Mobilogram > aligned_ms2_mobilograms;
     for (const auto & mobilogram : ms2_mobilograms)
     {
       Mobilogram aligned_mobilogram;
-      std::vector< double > arr_int, arr_IM;
       Size max_peak_idx = 0;
-      alignToGrid_(mobilogram, im_grid, arr_int, arr_IM, aligned_mobilogram, eps, max_peak_idx);
-      if (!arr_int.empty()) aligned_mobilograms.push_back(arr_int);
+      alignToGrid_(mobilogram, im_grid, aligned_mobilogram, eps, max_peak_idx);
       if (!aligned_mobilogram.empty()) aligned_ms2_mobilograms.push_back(aligned_mobilogram);
     }
 
