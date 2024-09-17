@@ -43,18 +43,6 @@ namespace OpenMS
     typedef OpenSwath::LightCompound CompoundType;
     typedef OpenSwath::LightTransition TransitionType;
 
-    struct MobilityPeak
-    {
-      double im;
-      double intensity;
-      MobilityPeak ();
-      MobilityPeak (double im_, double int_) :
-        im(im_),
-        intensity(int_)
-      {}
-    };
-    typedef std::vector< MobilityPeak > IonMobilogram;
-
   public:
 
     /// Constructor
