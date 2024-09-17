@@ -304,10 +304,10 @@ namespace OpenMS
 
     computeIonMobilogram(ms1spectrum, mz_range, im_range, im, intensity, ms1_profile, eps); // TODO: aggregate over isotopes
 //    mobilograms.push_back(ms1_profile);
-    ms1_mobilograms.push_back(ms1_profile);
+    ms2_mobilograms.push_back(ms1_profile);
 
     std::vector<double> im_grid = computeGrid_(ms2_mobilograms, eps); // ensure grid is based on all profiles!
-    mobilograms.pop_back();
+    ms2_mobilograms.pop_back();
 
     // Step 3: Align the IonMobilogram vectors to the grid
     std::vector< std::vector< double > > aligned_mobilograms;
@@ -322,9 +322,13 @@ namespace OpenMS
       aligned_ms2_mobilograms.push_back(aligned_mobilogram);
     }
 
-    std::vector< double > ms1_int_values, ms1_im_values;
+    std::vector< double > ms1_int_values_tmp, ms1_im_values;
+    Mobilogram aligned_ms1_mobilograms;
     Size max_peak_idx = 0;
-//    alignToGrid_(ms1_profile, im_grid, ms1_int_values, ms1_im_values, eps, max_peak_idx);
+    alignToGrid_(ms1_profile, im_grid, ms1_int_values_tmp, ms1_im_values, aligned_ms1_mobilograms, eps, max_peak_idx);
+    std::vector<double> ms1_int_values;
+    ms1_int_values.reserve(aligned_ms1_mobilograms.size());
+    for (const auto & k : aligned_ms1_mobilograms) ms1_int_values.push_back(k.getIntensity());
 
     // Step 4: MS1 contrast scores
     {
@@ -337,13 +341,15 @@ namespace OpenMS
     }
 
     // Step 5: contrast precursor vs summed fragment ions
+    std::vector< std::vector< double > > aligned_int_vec;
+    extractIntensities(aligned_ms2_mobilograms, aligned_int_vec);
     std::vector<double> fragment_values;
     fragment_values.resize(ms1_int_values.size(), 0);
     for (Size k = 0; k < fragment_values.size(); k++)
     {
-      for (Size i = 0; i < aligned_mobilograms.size(); i++)
+      for (Size i = 0; i < aligned_int_vec.size(); i++)
       {
-        fragment_values[k] += aligned_mobilograms[i][k];
+        fragment_values[k] += aligned_int_vec[i][k];
       }
     }
 
@@ -444,13 +450,8 @@ namespace OpenMS
       //double left(transition.getProductMZ()), right(transition.getProductMZ());
       //DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
       computeIonMobilogram(spectra, mz_range, im_range, im, intensity, res, eps);
-//      mobilograms.push_back(res);
       ms2_mobilograms.push_back(res);
 
-//      MobilityPeak1D mobi_peak;
-//      mobi_peak.setIntensity(intensity);
-//      mobi_peak.setMobility(im);
-//      mobilograms_struct.push_back(mobi_peak);
       // TODO what do to about those that have no signal ?
       if (intensity <= 0.0) {continue;} // note: im is -1 then
 
@@ -503,7 +504,7 @@ namespace OpenMS
     }
 
     // Step 3: Compute cross-correlation scores based on ion mobilograms
-    if (aligned_mobilograms.size() < 2)
+    if (aligned_ms2_mobilograms.size() < 2)
     {
       scores.im_xcorr_coelution_score = 0;
       scores.im_xcorr_shape_score = std::numeric_limits<double>::quiet_NaN();
