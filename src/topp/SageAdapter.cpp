@@ -325,13 +325,17 @@ pair< vector<double>, pair<mapRatetoMass, map<double, double>>>  getDeltaCluster
   //cout << "passes instance" ; 
   Size nummods = mod_db->getNumberOfModifications(); 
   cout << int(nummods) << std::endl; 
+  cout << mod_db->isInstantiated << std::endl; 
   for(Size i = 0; i < nummods; i++)
   {
     const ResidueModification* residue = mod_db->getModification(i); 
+    String unimod_res = residue->getUniModAccession(); 
     double res_monomass = residue->getMonoMass(); 
     String res_name = residue->getName(); 
     mass_of_mods[res_monomass] = res_name; 
-
+    if(i < 50){
+      cout << "Name: " << res_name << " Mass: " << res_monomass << std::endl; 
+    }
   } 
 
   //Parsing the .obo file for PTMs 
@@ -1130,7 +1134,7 @@ protected:
 
   const pair<vector<double>, pair<mapRatetoMass, map<double,double>>> resultsClus =  getDeltaClusterCenter(peptide_identifications, smoothing, false); 
 
-  vector<PeptideIdentification> mapD = mapDifftoMods(resultsClus.second.first, resultsClus.second.second, peptide_identifications, 0.02, false, output_file, resultsClus.first); //peptide_identifications; 
+  vector<PeptideIdentification> mapD = mapDifftoMods(resultsClus.second.first, resultsClus.second.second, peptide_identifications, 0.05, false, output_file, resultsClus.first); //peptide_identifications; 
  
 
     // remove hits without charge state assigned or charge outside of default range (fix for downstream bugs). TODO: remove if all charges annotated in sage
