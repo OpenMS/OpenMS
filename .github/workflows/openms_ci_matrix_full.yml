@@ -174,8 +174,8 @@ jobs:
           fi
           echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
           grep -ne "----[[:space:]]*OpenMS" ${{ github.workspace }}/OpenMS/CHANGELOG > index_changelog.txt 
-          START=$(cat index_changelog.txt | grep -A 1 -e " $VERSION_NUMBER " | cut -f1 -d: | head -1)
-          END=$(cat index_changelog.txt | grep -A 1 -e " $VERSION_NUMBER " | cut -f1 -d: | tail -1)
+          START=$(cat index_changelog.txt | grep -A 1 -E " $VERSION_NUMBER(\.0)? " | cut -f1 -d: | head -1)
+          END=$(cat index_changelog.txt | grep -A 1 -E " $VERSION_NUMBER(\.0)? " | cut -f1 -d: | tail -1)
           echo "Extracting between lines:"
           echo $START
           echo $END
