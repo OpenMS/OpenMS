@@ -13,13 +13,14 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 #<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit e.g. https://github.com/OpenMS/OpenMS/pull/XXXX (replace XXXX with number of interest) for details
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.2.0     (under development)              ----
+----                                OpenMS 3.2.0                                      ----
 ------------------------------------------------------------------------------------------
 
 What's new:
 - Changes breaking backwards compatibility: 
    - Rename of parameters for TOPP tool FeatureFinderCentroided (debug -> advanced), and PeakPickerWavelet/TOFCalibration (optimization -> optimization:type) (#7154)
    - Rename of parameters for TOPP tool IDFilter (score:pep -> score:psm; score:prot -> score:protein; score:protgroup -> score:proteingroup) with 'nan' as new default (#7541)
+   - 3.2.0 KNIME package requires KNIME 5.3 or later
 - Support for SubsetNeighborSearch (SNS) via DecoyDatabase (#7565)
 
 Library:
