@@ -6,8 +6,8 @@ jobs:
   test-knime:
     env:
       GH_TOKEN: ${{ github.token }}
-      KNIME_MAJOR_VERSION: 4
-      KNIME_MINOR_VERSION: 7
+      KNIME_MAJOR_VERSION: 5
+      KNIME_MINOR_VERSION: 3
       INSTALLATION_DIR: ${{ github.workspace }}
     runs-on: ubuntu-latest
     steps:
