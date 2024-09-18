@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -115,21 +116,20 @@ namespace OpenMS
     grid->addWidget(label, 0, 0);
 
     // text
-    QString text = QString("<BR>"
-      "<FONT size=+3>%1</font><BR>"
-      "<BR>"
-      "Version %2 %3"
-      "<BR>"
-      "OpenMS and TOPP is free software available under the<BR>"
-      "BSD 3-Clause License (BSD-new)<BR>"
-      "<BR>"
-      "<BR>"
-      "<BR>"
-      "<BR>"
-      "<BR>"
-      "Any published work based on TOPP and OpenMS shall cite these papers:<BR>"
-      "Roest, Sachsenberg, Aiche, Bielow, Weisser et al., Nat Methods (2016), 13(9):741-748<BR>"
-      "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>")
+    QString text = QString(("<BR>"
+                           "<FONT size=+3>%1</font><BR>"
+                           "<BR>"
+                           "Version %2 %3"
+                           "<BR>"
+                           "OpenMS and TOPP is free software available under the<BR>"
+                           "BSD 3-Clause License (BSD-new)<BR>"
+                           "<BR>"
+                           "<BR>"
+                           "<BR>"
+                           "<BR>"
+                           "<BR>"
+                           "Any published work based on TOPP and OpenMS shall cite:<BR>"
+                           + TOPPBase::cite_openms.toString()).c_str())
     .arg(toolname)
     .arg(VersionInfo::getVersion().toQString())
     .arg( // if we have a revision, embed it also into the shown version number
