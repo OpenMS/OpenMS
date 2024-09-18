@@ -51,8 +51,8 @@ To cite OpenMS:
    data. Nat Methods (2024). doi:10.1038/s41592-024-02197-7.
 
 << OpenMS Version >>
-Version      : 3.1.0
-Build time   : Mar  4 2024, 10:42:53
+Version      : 3.2.0
+Build time   : Sep  18 2024, 14:14:53
 Git sha1     : disabled
 Git branch   : disabled
 
