@@ -458,7 +458,7 @@ jobs:
         type: 'tar'
         directory: ${{ github.workspace }}
         path: OpenMS
-        exclusions: 'bld/* ./OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz THIRDPARTY/* .git/*'
+        exclusions: 'bld/* ./OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz ./THIRDPARTY/** .git/*'
         filename: 'OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz'
 
         
