@@ -116,7 +116,7 @@ namespace OpenMS
     grid->addWidget(label, 0, 0);
 
     // text
-    QString text = QString(("<BR>"
+    QString text = QString("<BR>"
                            "<FONT size=+3>%1</font><BR>"
                            "<BR>"
                            "Version %2 %3"
@@ -128,12 +128,12 @@ namespace OpenMS
                            "<BR>"
                            "<BR>"
                            "<BR>"
-                           "Any published work based on TOPP and OpenMS shall cite:<BR>"
-                           + TOPPBase::cite_openms.toString()).c_str())
+                           "Any published work based on TOPP and OpenMS shall cite:<BR>%4")
     .arg(toolname)
     .arg(VersionInfo::getVersion().toQString())
     .arg( // if we have a revision, embed it also into the shown version number
-      VersionInfo::getRevision().empty() ? "" : QString(" (") + VersionInfo::getRevision().toQString() + ")");
+      VersionInfo::getRevision().empty() ? "" : QString(" (") + VersionInfo::getRevision().toQString() + ")")
+    .arg((TOPPBase::cite_openms.title + "<BR>" + TOPPBase::cite_openms.when_where + "<BR>doi:" + TOPPBase::cite_openms.doi).c_str());
 
     label = new QLabel(text, dlg);
 
