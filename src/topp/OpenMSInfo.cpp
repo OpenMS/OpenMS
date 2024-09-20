@@ -111,7 +111,7 @@ protected:
        << underline(TOPPBase::getDocumentationURL()) << " " // the space is needed ...
        << '\n'
        << bright("To cite OpenMS:\n") << " + "
-       << is.indent(3) << cite_openms_.toString() << is.indent(0);
+       << is.indent(3) << cite_openms.toString() << is.indent(0);
 
     is << "\n\n"
        << green("<< OpenMS Version >>\n")
