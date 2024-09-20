@@ -328,17 +328,21 @@
 			
 	@page TOPPAS_examples Examples
 	
-		The following sections explain the example pipelines TOPPAS comes with. You can
-		open them by selecting @p File > @p Open @p example @p file. All input files and
-		parameters are already specified, so you can just hit @p Pipeline > @p Run (or press
+		The following sections explain the example pipelines TOPPAS comes with.
+    
+    You can @em open all examples pipelines by selecting @p File > @p Open @p example @p file in TOPPAS.
+    
+    All input files and parameters are already specified, so you can just hit @p Pipeline > @p Run (or press
 		@p F5) and see what happens.
 		
 		@section TOPPAS_peak_picking_example Profile data processing
 		
-		The file @p peakpicker_tutorial.toppas contains a simple pipeline representing a
+		The file @p peakpicker_tutorial.toppas can be inspect it in TOPPAS via `File -> Open Example File`.
+    It contains a simple pipeline representing a
 		common use case: starting with profile data, the noise is eliminated and the baseline
 		is subtracted. Then, PeakPickerHiRes is used to find all peaks in the noise-filtered
 		and baseline-reduced profile data. 
+    
 		
 		@image html TOPPAS_example_profile_data_processing.png
 		@image latex TOPPAS_example_profile_data_processing.png "" width=14cm
@@ -346,7 +350,7 @@
 		@section TOPPAS_id_example Identification of E. coli peptides
 		
 		This section describes an example identification pipeline contained in the 
-		example directory, @p Ecoli_Identification.toppas. It is shipped together
+		example directory, @p Ecoli_Identification.toppas. Inspect it in TOPPAS via `File -> Open Example File`. It is shipped together
 		with a reduced example mzML file containing 139 MS2 spectra from an E. coli
 		run on an Orbitrap instrument as well as an E. coli target-decoy database (which was created using @ref TOPP_DecoyDatabase).
 
@@ -375,7 +379,8 @@
 		@section TOPPAS_quant_example Quantitation of BSA runs
 
 		The simple pipeline described in this section (@p BSA_Quantitation.toppas) can be used to quantify peptides
-		that occur on different runs. The example dataset contains three different bovine serum albumin (BSA) runs.
+		that occur on different runs (you can inspect it in TOPPAS via `File -> Open Example File`).
+    The example dataset contains three different bovine serum albumin (BSA) runs.
 		First, @ref TOPP_FeatureFinderCentroided is called since the dataset is already centroided (i.e. peak picking took place already). The
 		results of the feature finding are then annotated with (existing) identification results.
 		For convenience, we provide these search results (as idXML files) with an FDR of 5% in the BSA directory.
@@ -419,16 +424,35 @@
     Most important is probably the output folder (node #25), which contains MaxQuant compatible output (@p evidence.txt and @p msms.txt).
     These .txt files can be used as input to external tools, such as <a href="https://github.com/cbielow/PTXQC" target="_blank">PTX-QC</a> to automatically obtain a comprehensive QC report.
 
-
+    @section TOPPAS_subsetneighborsearch_example Subset Neighbor Search
+    
+    We will use a special FDR search strategy described by <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8489664/">Lin et al.</a>.
+    It uses a mode of @ref TOPP_DecoyDatabase which allows to create a special "neighbor" database to control the FDR.
+    
+    The example pipeline is named @p FDR_NeighborSearch.toppas. Inspect it in TOPPAS via `File -> Open Example File`. A description is provided within the TOPPAS workflow.
 
 		@section TOPPAS_merger_example Merger and Collect nodes
 		
 		The following example is actually not a useful workflow but is supposed
 		to demonstrate how merger and collector nodes can be used in a pipeline. Have a look at
-		@p merger_tutorial.toppas:
+		@p merger_tutorial.toppas. Inspect it in TOPPAS via `File -> Open Example File`.
 		
 		@image html TOPPAS_example_merger.png
 		@image latex TOPPAS_example_merger.png "" width=14cm
+		
+    In short: mergers require multiple input edges, whose data is combined bit by bit. 
+    Collectors on the other hand usually only have one input edge and combine all files from this single edge into a list in one go. The succeeding tool will be invoked only once, with a list of input files.
+    
+    In detail, a @em merger merges its incoming file lists, i.e.,
+		files of all incoming edges are combined into new lists. Each file list has an many elements as the merger has incoming connections.
+    And there are as many lists as there are files(rounds) from the the preceeding(=upstream) tool. The tool downstream of the merger is invoked with 
+    these merged lists as input files. 
+    All incoming connections should pass the same number of files (unless one of the upstream nodes is in "recycling mode"), such that all merged lists have the same number of files.
+    In other words, if you have K input edges with N files each, the merger will create N output lists, with K elements each.
+		
+		A collector node, on the other hand, waits for all rounds to finish on its upstream side before concatenating all files from all
+		incoming connections into one single list. It then calls the next tool with this list of files as input.
+		This will happen exactly once during the entire pipeline run.
 		
 		In order to track what is happening, you can just open the example file and run it. When the
 		pipeline execution has finished, have a look at all input and output files (e.g., select
