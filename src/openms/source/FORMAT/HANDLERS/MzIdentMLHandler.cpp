@@ -26,27 +26,165 @@ using namespace std;
 namespace OpenMS::Internal
   {
 
-    MzIdentMLHandler::MzIdentMLHandler(const Identification& id, const String& filename, const String& version, const ProgressLogger& logger) :
-      XMLHandler(filename, version),
-      logger_(logger),
-      //~ ms_exp_(0),
-      id_(nullptr),
-      cid_(&id)
+    void IdentificationHit::setId(const std::string& id) noexcept 
     {
-      cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-      unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
+      id_ = id;
     }
 
-    MzIdentMLHandler::MzIdentMLHandler(Identification& id, const String& filename, const String& version, const ProgressLogger& logger) :
-      XMLHandler(filename, version),
-      logger_(logger),
-      //~ ms_exp_(0),
-      id_(&id),
-      cid_(nullptr)
+    const std::string& IdentificationHit::getId() const noexcept 
     {
-      cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-      unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
+      return id_;
     }
+
+    void IdentificationHit::setCharge(int charge) noexcept 
+    {
+      charge_ = charge;
+    }
+
+    int IdentificationHit::getCharge() const noexcept 
+    {
+      return charge_;
+    }
+
+    void IdentificationHit::setCalculatedMassToCharge(double mz) noexcept 
+    {
+      calculated_mass_to_charge_ = mz;
+    }
+
+    double IdentificationHit::getCalculatedMassToCharge() const noexcept 
+    {
+      return calculated_mass_to_charge_;
+    }
+
+    void IdentificationHit::setExperimentalMassToCharge(double mz) noexcept 
+    {
+      experimental_mass_to_charge_ = mz;
+    }
+
+    double IdentificationHit::getExperimentalMassToCharge() const noexcept 
+    {
+      return experimental_mass_to_charge_;
+    }
+
+    void IdentificationHit::setName(const std::string& name) noexcept 
+    {
+      name_ = name;
+    }
+
+    const std::string& IdentificationHit::getName() const noexcept 
+    {
+      return name_;
+    }
+
+    void IdentificationHit::setPassThreshold(bool pass) noexcept 
+    {
+      pass_threshold_ = pass;
+    }
+
+    bool IdentificationHit::getPassThreshold() const noexcept 
+    {
+      return pass_threshold_;
+    }
+
+    void IdentificationHit::setRank(int rank) noexcept 
+    {
+      rank_ = rank;
+    }
+
+    int IdentificationHit::getRank() const noexcept 
+    {
+      return rank_;
+    }
+
+    bool IdentificationHit::operator==(const IdentificationHit& rhs) const noexcept 
+    {
+      return MetaInfoInterface::operator==(rhs)
+          && id_ == rhs.id_
+          && charge_ == rhs.charge_
+          && calculated_mass_to_charge_ == rhs.calculated_mass_to_charge_
+          && experimental_mass_to_charge_ == rhs.experimental_mass_to_charge_
+          && name_ == rhs.name_
+          && pass_threshold_ == rhs.pass_threshold_
+          && rank_ == rhs.rank_;
+    }
+
+    bool IdentificationHit::operator!=(const IdentificationHit& rhs) const noexcept 
+    {
+      return !(*this == rhs);
+    }
+
+  SpectrumIdentification::~SpectrumIdentification() = default;
+
+  // Equality operator
+  bool SpectrumIdentification::operator==(const SpectrumIdentification & rhs) const
+  {
+    return MetaInfoInterface::operator==(rhs)
+           && id_ == rhs.id_
+           && hits_ == rhs.hits_;
+  }
+
+  // Inequality operator
+  bool SpectrumIdentification::operator!=(const SpectrumIdentification & rhs) const
+  {
+    return !(*this == rhs);
+  }
+
+  void SpectrumIdentification::setHits(const vector<IdentificationHit> & hits)
+  {
+    hits_ = hits;
+  }
+
+  void SpectrumIdentification::addHit(const IdentificationHit & hit)
+  {
+    hits_.push_back(hit);
+  }
+
+  const vector<IdentificationHit> & SpectrumIdentification::getHits() const
+  {
+    return hits_;
+  }
+
+  Identification::~Identification() = default;
+
+  // Equality operator
+  bool Identification::operator==(const Identification & rhs) const
+  {
+    return MetaInfoInterface::operator==(rhs)
+           && id_ == rhs.id_
+           && creation_date_ == rhs.creation_date_
+           && spectrum_identifications_ == rhs.spectrum_identifications_;
+  }
+
+  // Inequality operator
+  bool Identification::operator!=(const Identification & rhs) const
+  {
+    return !(*this == rhs);
+  }
+
+  void Identification::setCreationDate(const DateTime & date)
+  {
+    creation_date_ = date;
+  }
+
+  const DateTime & Identification::getCreationDate() const
+  {
+    return creation_date_;
+  }
+
+  void Identification::setSpectrumIdentifications(const vector<SpectrumIdentification> & ids)
+  {
+    spectrum_identifications_ = ids;
+  }
+
+  void Identification::addSpectrumIdentification(const SpectrumIdentification & id)
+  {
+    spectrum_identifications_.push_back(id);
+  }
+
+  const vector<SpectrumIdentification> & Identification::getSpectrumIdentifications() const
+  {
+    return spectrum_identifications_;
+  }
 
     MzIdentMLHandler::MzIdentMLHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
@@ -490,7 +628,7 @@ namespace OpenMS::Internal
         sip += "\t\t<AdditionalSearchParams>\n";
         if (is_ppxl)
         {
-          sip += "\n\t\t\t" + cv_.getTermByName("cross-linking search").toXMLString(cv_ns) + "\n";
+          sip += "\n\t\t\t" + cv_.getTermByName("crosslinking search").toXMLString(cv_ns) + "\n";
         }
         //remove MS:1001029 written if present in <SearchDatabase> as of SearchDatabase_may rule
         ProteinIdentification::SearchParameters search_params = it->getSearchParameters();
@@ -833,7 +971,7 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       os << "<cvList>\n"
          << "\t<cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\" "
-         << "uri=\"https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo\" "
+         << "uri=\"http://purl.obolibrary.org/obo/ms/psi-ms.obo\" "
          << "version=\"3.15.0\"></cv>\n "
          << "\t<cv id=\"UNIMOD\" fullName=\"UNIMOD\" uri=\"http://www.unimod.org/obo/unimod.obo\"></cv>\n"
          << "\t<cv id=\"UO\"     fullName=\"UNIT-ONTOLOGY\" "

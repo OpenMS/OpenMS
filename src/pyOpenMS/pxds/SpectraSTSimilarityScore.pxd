@@ -6,7 +6,7 @@ from String cimport *
 from MSSpectrum cimport *
 from Peak1D cimport *
 
-cdef extern from "<OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/COMPARISON/SpectraSTSimilarityScore.h>" namespace "OpenMS":
     
     cdef cppclass SpectraSTSimilarityScore:
         #  PeakSpectrumCompareFunctor inheritance

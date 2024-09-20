@@ -28,7 +28,6 @@ START_TEST(PoseClusteringAffineSuperimposer, "$Id$")
 
 PoseClusteringAffineSuperimposer* ptr = nullptr;
 PoseClusteringAffineSuperimposer* nullPointer = nullptr;
-BaseSuperimposer* base_nullPointer = nullptr;
 
 START_SECTION((PoseClusteringAffineSuperimposer()))
 {

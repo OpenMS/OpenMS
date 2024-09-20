@@ -37,10 +37,10 @@ namespace OpenMS
 
     An example would be
     \code{.cpp}
-      Citation c = {"Rost HL, Sachsenberg T, Aiche S, Bielow C et al.",
-                    "OpenMS: a flexible open-source software platform for mass spectrometry data analysis",
-                    "Nat Meth. 2016; 13, 9: 741-748",
-                    "10.1038/nmeth.3959"};
+      Citation c = {"Pfeuffer J, Bielow C, Wein S, Jeong K, Netz E, Walter A, Alka O et al.",
+                    "OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data",
+                    "Nat Methods 21, 365–367 (2024)",
+                    "10.1038/s41592-024-02197-7"};
     \endcode
     Suggested format is AMA, e.g. https://www.lib.jmu.edu/citation/amaguide.pdf
   */
@@ -187,6 +187,9 @@ public:
 
     /// Returns a link to the documentation of the tool (accessible on our servers and only after inclusion in the nightly branch or a release).
     String getDocumentationURL() const;
+
+    /// The latest and greatest OpenMS citation
+    static const Citation cite_openms;
 
   private:
     /// Tool name.  This is assigned once and for all in the constructor.
@@ -959,9 +962,6 @@ protected:
 
     /// .TOPP.ini file for storing system default parameters
     static String topp_ini_file_;
-
-    /// The OpenMS citation
-    static const Citation cite_openms_;
 
     /// Debug level set by -debug
     Int debug_level_;

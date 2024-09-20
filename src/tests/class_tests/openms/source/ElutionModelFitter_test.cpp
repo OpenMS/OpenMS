@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
+#include <OpenMS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 ///////////////////////////
 

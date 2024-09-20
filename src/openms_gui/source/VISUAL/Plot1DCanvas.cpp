@@ -21,9 +21,9 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/COMPARISON/SpectrumAlignmentScore.h>
+#include <OpenMS/COMPARISON/SpectrumAlignment.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/LayerData1DChrom.h>
@@ -187,29 +187,23 @@ namespace OpenMS
     emit layerActivated(this);
   }
 
-  void Plot1DCanvas::changeVisibleAreaCommon_(const UnitRange& new_area, bool repaint, bool add_to_stack)
+  void Plot1DCanvas::changeVisibleArea1D_(const UnitRange& new_area, bool repaint, bool add_to_stack)
   {
     auto corrected = correctGravityAxisOfVisibleArea_(new_area);
-    
-    if (intensity_mode_ != IM_PERCENTAGE) // not for Percentage mode, which is always [0,100]
-    { // make sure we stay inside the overall data range of the currently displayable 1D data
-      corrected.pushInto(overall_data_range_1d_);
-    }
-    
     PlotCanvas::changeVisibleArea_(visible_area_.cloneWith(corrected), repaint, add_to_stack);
   }
 
   void Plot1DCanvas::changeVisibleArea_(const AreaXYType& new_area, bool repaint, bool add_to_stack)
   {
-    changeVisibleAreaCommon_(visible_area_.cloneWith(new_area).getAreaUnit(), repaint, add_to_stack);
+    changeVisibleArea1D_(visible_area_.cloneWith(new_area).getAreaUnit(), repaint, add_to_stack);
   }
   void Plot1DCanvas::changeVisibleArea_(const UnitRange& new_area, bool repaint, bool add_to_stack)
   {
-    changeVisibleAreaCommon_(new_area, repaint, add_to_stack);
+    changeVisibleArea1D_(new_area, repaint, add_to_stack);
   }
   void Plot1DCanvas::changeVisibleArea_(VisibleArea new_area, bool repaint, bool add_to_stack)
   {
-    changeVisibleAreaCommon_(new_area.getAreaUnit(), repaint, add_to_stack);
+    changeVisibleArea1D_(new_area.getAreaUnit(), repaint, add_to_stack);
   }
 
   void Plot1DCanvas::dataToWidget(const DPosition<2>& xy_point, QPoint& point, bool flipped)

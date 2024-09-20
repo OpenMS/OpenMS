@@ -28,7 +28,6 @@ START_TEST(PoseClusteringShiftSuperimposer, "$Id$")
 
 PoseClusteringShiftSuperimposer* ptr = nullptr;
 PoseClusteringShiftSuperimposer* nullPointer = nullptr;
-BaseSuperimposer* base_nullPointer = nullptr;
 
 START_SECTION((PoseClusteringShiftSuperimposer()))
 	ptr = new PoseClusteringShiftSuperimposer();

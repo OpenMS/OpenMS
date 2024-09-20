@@ -21,7 +21,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
@@ -320,7 +320,21 @@ protected:
     {
       enzyme_details = 
    R"("cleave_at": "")";
-    }           
+    }
+    else if (enzyme == "glutamyl endopeptidase")
+    {
+      enzyme_details =
+   R"("cleave_at": "E",
+      "restrict": "E",
+      "c_terminal":true)";
+    }
+    else if (enzyme == "leukocyte elastase")
+    {
+      enzyme_details =
+   R"("cleave_at": "ALIV",
+      "restrict": null,
+      "c_terminal":true)";
+    }
 
     config_file.substitute("##enzyme_details##", enzyme_details);
 

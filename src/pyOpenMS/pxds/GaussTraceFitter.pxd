@@ -5,7 +5,7 @@ from libcpp.pair cimport pair as libcpp_pair
 from Peak1D cimport *
 from FeatureFinderAlgorithmPickedHelperStructs cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/GaussTraceFitter.h>" namespace "OpenMS":
 
     cdef cppclass GaussTraceFitter:
 
