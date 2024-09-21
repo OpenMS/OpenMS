@@ -265,6 +265,8 @@ namespace OpenMS
 
     defaults_.setValue("use_smoothed_intensities", "true", "Use LOWESS intensities instead of raw intensities.", {"advanced"});
     defaults_.setValidStrings("use_smoothed_intensities", {"false","true"});
+    defaults_.setValue("report_smoothed_intensities", "true", "Report smoothed intenstities (only if use_smoothed_intensities is true).", {"advanced"});
+    defaults_.setValidStrings("report_smoothed_intensities", {"false","true"});
     
     defaults_.setValue("report_convex_hulls", "false", "Augment each reported feature with the convex hull of the underlying mass traces (increases featureXML file size considerably).");
     defaults_.setValidStrings("report_convex_hulls", {"false","true"});
@@ -307,6 +309,7 @@ namespace OpenMS
     
     isotope_filtering_model_ = param_.getValue("isotope_filtering_model").toString();
     use_smoothed_intensities_ = param_.getValue("use_smoothed_intensities").toBool();
+    report_smoothed_intensities_ = use_smoothed_intensities_ && param_.getValue("report_smoothed_intensities").toBool();
 
     use_mz_scoring_C13_ = param_.getValue("mz_scoring_13C").toBool();
     report_convex_hulls_ = param_.getValue("report_convex_hulls").toBool();
@@ -1002,20 +1005,20 @@ namespace OpenMS
 
       if (report_summed_ints_)
       {
-        f.setIntensity(feat_hypos[hypo_idx].getSummedFeatureIntensity(use_smoothed_intensities_));
+        f.setIntensity(feat_hypos[hypo_idx].getSummedFeatureIntensity(report_smoothed_intensities_));
       }
       else
       {
-        f.setIntensity(feat_hypos[hypo_idx].getMonoisotopicFeatureIntensity(use_smoothed_intensities_));
+        f.setIntensity(feat_hypos[hypo_idx].getMonoisotopicFeatureIntensity(report_smoothed_intensities_));
       }
       
       f.setWidth(feat_hypos[hypo_idx].getFWHM());
       f.setCharge(feat_hypos[hypo_idx].getCharge());
       f.setMetaValue(3, feat_hypos[hypo_idx].getLabel());
-      f.setMetaValue("max_height", feat_hypos[hypo_idx].getMaxIntensity(use_smoothed_intensities_));
+      f.setMetaValue("max_height", feat_hypos[hypo_idx].getMaxIntensity(report_smoothed_intensities_));
 
       // store isotope intensities
-      std::vector<double> all_ints(feat_hypos[hypo_idx].getAllIntensities(use_smoothed_intensities_));
+      std::vector<double> all_ints(feat_hypos[hypo_idx].getAllIntensities(report_smoothed_intensities_));
       f.setMetaValue(Constants::UserParam::NUM_OF_MASSTRACES, all_ints.size());
       if (report_convex_hulls_) f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
       f.setOverallQuality(feat_hypos[hypo_idx].getScore());
