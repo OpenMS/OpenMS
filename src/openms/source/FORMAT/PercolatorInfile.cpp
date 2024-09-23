@@ -168,15 +168,13 @@ namespace OpenMS
         peak_temp.mz = row[to_idx_a.at("fragment_mz_experimental")].toDouble(); 
 
         anno_mapping[ row[to_idx_a.at("psm_id")].toInt() ].push_back(peak_temp); 
-        double frag_delta = row[to_idx_a.at("fragment_mz_experimental")].toDouble() - row[to_idx_a.at("fragment_mz_calculated")].toDouble();
         
       }
 
     }  
-
+    
     cout << anno_mapping.size() << " anno map size " << std::endl; 
 
-    int counter = 0; 
     
     // charge columns are not standardized, so we check for the format and create hash to lookup column name to charge mapping
     std::regex charge_one_hot_pattern("^charge\\d+$");

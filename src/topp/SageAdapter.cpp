@@ -33,6 +33,11 @@
 
 #include <QStringList>
 #include <chrono>
+#include <map>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+#include <numeric>
 
 
 
@@ -81,7 +86,7 @@ because of limitations in OpenMS' data structures and file formats.
 
 #define CHRONOSET
 
-typedef map<double, double> mapRatetoMass;
+
 
 class TOPPSageAdapter :
   public SearchEngineBase
@@ -98,7 +103,7 @@ public:
   {
   }
 
-//A struct for keeping track of PTMs, saves the mass difference in deltamass and the amount discovered in rate. 
+//A struct for keeping track of PTMs, saves the mass difference in deltamass and the amount discovered in rate. Also used for amount of charges instead of just rate. 
   struct RateMassPair
 {
   double rate = -1.;
@@ -113,25 +118,32 @@ struct modification
   double numcharges = 0; 
 }; 
 
-#include <map>
-#include <vector>
-#include <algorithm>
-#include <cmath>
-#include <numeric>
+struct DoubleComparator {
+        double epsilon;
+
+        DoubleComparator(double eps = 1e-9) : epsilon(eps) {}
+
+        bool operator()(const double& a, const double& b) const {
+            return std::fabs(a - b) >= epsilon && a < b;
+        }
+    };
+
+typedef map<double, double, DoubleComparator> mapRatetoMass;
+
 
 // Gaussian function
 static double gaussian(double x, double sigma) {
     return exp(-(x*x) / (2 * sigma*sigma)) / (sigma * sqrt(2 * M_PI));
 }
 
-// Smooths the PTM histogram before peak picking. Uses a Kernel Density Estimation. 
-static std::map<double, double> smoothPTMhist(const std::map<double, double>& spectrum, double sigma = 0.1) 
+// Smooths the PTM-mass histogram , uses a Kernel Density Estimation. 
+static std::map<double, double, DoubleComparator> smoothPTMhist(const std::map<double, double, DoubleComparator>& shiftspectrum, double sigma = 0.1) 
 {
-    std::map<double, double> smoothedSpectrum;
+    std::map<double, double, DoubleComparator> smoothedSpectrum(DoubleComparator(1e-9));
     std::vector<double> mzValues, intensities;
 
     // Extract m/z values and intensities
-    for (const auto& pair : spectrum) {
+    for (const auto& pair : shiftspectrum) {
         mzValues.push_back(pair.first);
         intensities.push_back(pair.second);
     }
@@ -154,29 +166,29 @@ static std::map<double, double> smoothPTMhist(const std::map<double, double>& sp
 
     return smoothedSpectrum;
 }
-
-  static std::map<double, double> findPeaks(const std::map<double, double>& spectrum, double intensityThreshold = 0.0, double snrThreshold = 2.0) 
+  //Picks the local maxima on the PTM-mass histogram 
+  static std::map<double, double, DoubleComparator> findPeaks(const mapRatetoMass& shiftspectrum, double intensityThreshold = 0.0, double snrThreshold = 2.0) 
   {
     std::vector<std::pair<double, double>> peaks;
-    std::map<double, double> smoothedPeaks;
-    if (spectrum.size() < 3) {
-        return spectrum;  // Not enough points to determine peaks
+    mapRatetoMass smoothedPeaks;
+    if (shiftspectrum.size() < 3) {
+        return shiftspectrum;  // Not enough points to determine peaks
     }
 
     // Calculate noise level (e.g., median intensity)
     std::vector<double> intensities;
-    for (const auto& pair : spectrum) {
+    for (const auto& pair : shiftspectrum) {
         intensities.push_back(pair.second);
     }
     size_t n = intensities.size() / 2;
     std::nth_element(intensities.begin(), intensities.begin() + n, intensities.end());
     double noiseLevel = intensities[n];
 
-    auto it = spectrum.begin();
+    auto it = shiftspectrum.begin();
     auto prev = it++;
     auto next = std::next(it);
 
-    while (next != spectrum.end()) {
+    while (next != shiftspectrum.end()) {
         if ( !(it->second < prev->second) && !(it->second < next->second) && 
             it->second > intensityThreshold && 
             it->second / noiseLevel > snrThreshold)
@@ -193,15 +205,15 @@ static std::map<double, double> smoothPTMhist(const std::map<double, double>& sp
 
 
   
-
-pair< vector<double>, pair<mapRatetoMass, map<double, double>>>  getDeltaClusterCenter(const vector<PeptideIdentification>& pips, bool smoothing = false,  bool debug = false)
+//Function that returns the maxima of a histogram out of the delta-masses of each peptide, takes a vector of peptide-ids 
+pair< vector<double>, pair<mapRatetoMass, mapRatetoMass>>  getDeltaClusterCenter(const vector<PeptideIdentification>& pips, bool smoothing = false,  bool debug = false)
 {
   //Data structures to store the data from Sage 
   vector<double> cluster;
   vector<double> delta_masses; 
-  mapRatetoMass hist;
-  map<double, vector<double>> charge_states; 
-  map<double, double> num_charges_at_mass; 
+  mapRatetoMass hist(DoubleComparator(1e-9));
+  map<double, vector<double>, DoubleComparator> charge_states(DoubleComparator(1e-9)); 
+  mapRatetoMass num_charges_at_mass(DoubleComparator(1e-9)); 
 
 
   std::vector<double> sorted_keys;  // Vector to maintain sorted keys
@@ -211,6 +223,7 @@ pair< vector<double>, pair<mapRatetoMass, map<double, double>>>  getDeltaCluster
     auto& hits = id.getHits();
     for (auto& h : hits)
     {
+      //Calculate mass shift 
       double expval = std::stod(h.getMetaValue("SAGE:ExpMass"));
       double calcval = std::stod(h.getMetaValue("SAGE:CalcMass"));
       double deltamass = expval - calcval;
@@ -218,15 +231,15 @@ pair< vector<double>, pair<mapRatetoMass, map<double, double>>>  getDeltaCluster
 
       delta_masses.push_back(deltamass);
 
+      //Bucket mass shift in histogram, either already present or add new entry 
       auto hist_it = hist.find(deltamass);
-      if (hist_it == hist.end())
+      if (hist_it == hist.end()) //Exact mass shift isn't already in histogram  
       {
           bool bucketcheck = true;
-          bool chargecheck = false;
 
           // Perform binary search on the sorted keys
           auto it = std::lower_bound(sorted_keys.begin(), sorted_keys.end(), deltamass);
-
+          //Search histogram with tolerance + if it should be bucketed in with 0 (no modification)
           if (it != sorted_keys.end() && std::abs(deltamass - *it) < 0.0005 && (deltamass > 0.05 || deltamass < -0.05))
           {
               hist[*it] += 1.0;
@@ -239,7 +252,7 @@ pair< vector<double>, pair<mapRatetoMass, map<double, double>>>  getDeltaCluster
                   charges.push_back(charge);
               }
           }
-
+          //Add new mass shift to histogram, with check if shift should be bucketed towards 0 
           if (bucketcheck && (deltamass > 0.05 || deltamass < -0.05))
           {
               // Insert new key in the sorted vector at the correct position
@@ -250,7 +263,7 @@ pair< vector<double>, pair<mapRatetoMass, map<double, double>>>  getDeltaCluster
               charge_states[deltamass].push_back(charge);
           }
       }
-      else
+      else //Mass shift is already in histogram  
       {
         hist_it->second += 1.0;
 
@@ -264,7 +277,8 @@ pair< vector<double>, pair<mapRatetoMass, map<double, double>>>  getDeltaCluster
     }
   }
 
-  pair< vector<double>, pair<mapRatetoMass, map<double, double>>> results; 
+  //Write out the results to a new data structure 
+  pair< vector<double>, pair<mapRatetoMass, mapRatetoMass>> results; 
   results.second.first = hist; 
   results.second.second = num_charges_at_mass; 
   results.first = sorted_keys; 
@@ -272,100 +286,57 @@ pair< vector<double>, pair<mapRatetoMass, map<double, double>>>  getDeltaCluster
 
   if (with_smoothing)
   {
-    std::map<double, double> smoothed_hist =  smoothPTMhist(hist, 0.00001);      
-    std::map<double, double> smoothedMaxes3 = findPeaks( smoothed_hist, 0.0, 3.0 ); 
+    mapRatetoMass smoothed_hist =  smoothPTMhist(hist, 0.0001);    //KDE on the histogram   
+    mapRatetoMass smoothedMaxes3 = findPeaks( smoothed_hist, 0.0, 3.0 ); //Pick local maxima as candidates 
     mapRatetoMass num_charges_at_mass_smoothed; 
 
     for (auto& x : smoothedMaxes3)
     {
-      num_charges_at_mass_smoothed[x.first] = num_charges_at_mass[x.first]; 
+      num_charges_at_mass_smoothed[x.first] = num_charges_at_mass[x.first]; //Add charges to new smoothed candidates 
     }
 
-    pair<vector <double>, pair<mapRatetoMass, map<double,double>>> results_smoothed; 
+    pair<vector <double>, pair<mapRatetoMass, mapRatetoMass>> results_smoothed; 
     results_smoothed.second.first = smoothedMaxes3; 
     results_smoothed.second.second = num_charges_at_mass_smoothed; 
     results_smoothed.first = sorted_keys; 
 
-    return results_smoothed; 
+    return results_smoothed; //Return the smoothed results 
   }
   
-  return results ; 
+  return results ; //Return the un-smoothed results 
 }
 
- vector<PeptideIdentification> mapDifftoMods( mapRatetoMass hist, map<double, double> charge_hist, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 5, bool precursor_mass_tolerance_unit_ppm = true, String outfile = "", vector<double> keys_sorted = {})
+//Fucntion that maps a selection of masses to certain PTMs and returns a summary of said PTMs. Also adds PTM for each petide without in-peptide localization. 
+ vector<PeptideIdentification> mapDifftoMods( mapRatetoMass hist, mapRatetoMass charge_hist, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 5, bool precursor_mass_tolerance_unit_ppm = true, String outfile = "", vector<double> keys_sorted = {})
 {
     
   vector<vector<PeptideIdentification>> clusters(hist.size(), vector<PeptideIdentification>());
-
-  // Accessing the .obo file 
-  /* ControlledVocabulary unimod_; 
-  try
-  {
-    unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
-  }
-  catch(Exception::FileNotFound& e)
-  {
-    cout << "File could not be found! " << std::endl; 
-  } 
-
- 
-  map<String, ControlledVocabulary::CVTerm> terms = unimod_.getTerms();  */
-
-
-
-
-  map<double, String> mass_of_mods; 
-  vector<pair<double, String>> mass_of_mods_vec; 
-  map<double, String> mass_of_mono_mods; 
-  //ControlledVocabulary::CVTerm zeroterm = terms.begin()->second; 
-
-  //Causes segfault 
   
+
+
+  //Variables for storing information from the modifications DB 
+  map<double, String, DoubleComparator> mass_of_mods(DoubleComparator(1e-9)); 
+  vector<pair<double, String>> mass_of_mods_vec; 
+
+  //Searches modifications 
+  vector<String> searchmodifications_names;
   ModificationsDB* mod_db = ModificationsDB::getInstance();
-  //cout << "passes instance" ; 
-  Size nummods = mod_db->getNumberOfModifications(); 
-  cout << int(nummods) << std::endl; 
-  cout << mod_db->isInstantiated << std::endl; 
-  for(Size i = 0; i < nummods; i++)
+  mod_db->getAllSearchModifications(searchmodifications_names); 
+  for (const String& m : searchmodifications_names)
   {
-    const ResidueModification* residue = mod_db->getModification(i); 
+    const ResidueModification* residue = mod_db->getModification(m); 
     String unimod_res = residue->getUniModAccession(); 
-    double res_monomass = residue->getMonoMass(); 
-    String res_name = residue->getName(); 
-    mass_of_mods[res_monomass] = res_name; 
-    if(i < 50){
-      cout << "Name: " << res_name << " Mass: " << res_monomass << std::endl; 
-      cout << "Unimod accession: " << unimod_res << std::endl; 
-    }
-  } 
+    double res_diffmonoMass = residue->getDiffMonoMass(); 
+    String res_name = residue->getFullName(); 
+    if((res_name.find("substitution") == string::npos) ) mass_of_mods[res_diffmonoMass] = res_name;  
+  }  
 
-  //Parsing the .obo file for PTMs 
-  /*  cout << "Size of map " <<  terms.size() << std::endl; 
-  for (auto& x : terms)
-  {
-    if (x.second.unparsed.size() != 0)
-    {
-      for (auto& y : x.second.unparsed)
-      {
-        if (y.hasSubstring("delta_mono_mass")&& (x.second.name.find("->") == string::npos) )
-        {
-           std::vector<String> substrings(3);  
-           y.split(' ', substrings);
-           String val = substrings.at(2); 
-           val = val.substr(1, val.length()-2); 
-           double avge; 
-           avge = std::stod(val); 
-           mass_of_mods[avge] = x.second.name; 
-        }
-      }
-    }
-  }   */
-
-    map<double, String> combo_mods; 
+    //Make a new map with combinations of mods 
+    map<double, String, DoubleComparator> combo_mods(DoubleComparator(1e-9)); 
 
     for (map<double, String>::const_iterator mit = mass_of_mods.begin(); mit != mass_of_mods.end(); ++mit)
     {
-      for(map<double, String>::const_iterator mit2 = std::next(mit) ; mit2 != mass_of_mods.end(); ++mit2)
+      for (map<double, String>::const_iterator mit2 = mit ; mit2 != mass_of_mods.end(); ++mit2)
       {
         combo_mods[mit->first + mit2->first] = mit->second + "++" + mit2->second; 
       }
@@ -373,7 +344,6 @@ pair< vector<double>, pair<mapRatetoMass, map<double, double>>>  getDeltaCluster
     //Variables for going through the histogram 
     map<double, String>::const_iterator low_it;
     map<double, String>::const_iterator up_it;
-    map<double, double>::const_iterator cit = charge_hist.begin(); 
     std::vector< map<double, String>> between; 
     StringList modnames; 
     map<String, modification> modifications; 
@@ -383,157 +353,207 @@ pair< vector<double>, pair<mapRatetoMass, map<double, double>>>  getDeltaCluster
   //Mapping with tolerances 
   for (double& key : keys_sorted)
   {
-      double rate = hist[key]; 
-      double current_cluster_mass = key; 
-      double lowerbound; 
-      double upperbound; 
-      if(rate <= 0)
+    if (hist.find(key) == hist.end()) continue;
+    double rate = hist[key];
+    double current_cluster_mass = key;
+    double lowerbound, upperbound;
+    const double epsilon = 1e-8;  // Define a small epsilon for float comparisons
+
+    if (precursor_mass_tolerance_unit_ppm) // ppm
+    {
+        lowerbound = current_cluster_mass - current_cluster_mass * precursor_mass_tolerance_ * 1e-6;
+        upperbound = current_cluster_mass + current_cluster_mass * precursor_mass_tolerance_ * 1e-6;
+        precursor_mass_tolerance_ = current_cluster_mass * precursor_mass_tolerance_ * 1e-6;
+    }
+    else // Dalton
+    {
+        lowerbound = current_cluster_mass - precursor_mass_tolerance_;
+        upperbound = current_cluster_mass + precursor_mass_tolerance_;
+    }
+
+    //Go through keys of found_hist, check if there is a found key within tolerance as quick pre-check 
+    bool contcheck = false; 
+    bool breakcheck = false; 
+    /* if ( !(hist_found.empty()))
+    { 
+      for (map<double, OpenMS::String>::const_iterator hit = hist_found.begin(); hit != hist_found.end(); ++hit)
       {
+        if (abs(hit->first - current_cluster_mass) < precursor_mass_tolerance_/2)
+        {
+          modifications[hit->second].rate += rate;   
+          modifications[hit->second].numcharges = max(charge_hist[key], modifications[hit->second].numcharges);
+          breakcheck = true; 
+          contcheck = true; 
+        }
+        if(breakcheck) break; 
       }
-      else{
-        if (precursor_mass_tolerance_unit_ppm) //ppm  
-        {
-          lowerbound = current_cluster_mass - current_cluster_mass * precursor_mass_tolerance_ * 1e-6; 
-          upperbound = current_cluster_mass + current_cluster_mass * precursor_mass_tolerance_ * 1e-6; 
-          low_it = mass_of_mods.lower_bound(current_cluster_mass);
-          up_it = mass_of_mods.upper_bound(current_cluster_mass);
-          auto low_val_check = *low_it; 
+    } */
+    if(contcheck) continue;  
 
-            if(!((low_val_check.first >= lowerbound)  && (low_val_check.first <= upperbound))){
-            low_it = combo_mods.lower_bound(current_cluster_mass);
-            up_it = combo_mods.upper_bound(current_cluster_mass);
-          }            
+    //Upper and lower bound search on the modification database 
+    auto low_it = mass_of_mods.lower_bound(current_cluster_mass);
+    auto up_it = mass_of_mods.upper_bound(current_cluster_mass);
+
+    auto mapped_val = *low_it; 
+    auto mapped_val_high = *up_it;   
+
+    if (mapped_val.first == mapped_val_high.first) //Only one mapping found 
+    {
+      if (((mapped_val.first >= lowerbound - epsilon)  && (mapped_val.first <= upperbound + epsilon))) //Mapping is within bounds
+      { 
+        modnames.push_back(mapped_val.second); 
+        if (modifications.find(mapped_val.second) == modifications.end()) //Modification hasn't already been found
+        {
+          modification modi{}; 
+          modi.mass.push_back(mapped_val.first); 
+          modi.rate = rate; 
+          modi.numcharges = charge_hist[key]; 
+          modifications[mapped_val.second] = modi; 
+          hist_found[mapped_val.first] = mapped_val.second; 
         }
-        else // Dalton
-        {
-          lowerbound = current_cluster_mass - precursor_mass_tolerance_ ; 
-          upperbound = current_cluster_mass + precursor_mass_tolerance_ ; 
-          low_it = mass_of_mods.lower_bound(current_cluster_mass);
-          up_it = mass_of_mods.upper_bound( current_cluster_mass );
-          auto low_val_check = *low_it; 
-
-          if(!((low_val_check.first >= lowerbound)  && (low_val_check.first <= upperbound))){
-            low_it = combo_mods.lower_bound(current_cluster_mass);
-            up_it = combo_mods.upper_bound(current_cluster_mass);
-          }  
-        }
-
-        auto mapped_val = *low_it; 
-        auto mapped_val_high = *up_it; 
-
-        if (low_it == up_it) //Only one mapping found
-        {
-          if ( ((mapped_val.first >= lowerbound)  && (mapped_val.first <= upperbound)) )
-          {
-            modnames.push_back(mapped_val.second); 
-            if (modifications.find(mapped_val.second) == modifications.end()) //Modification hasn't already been found
-            {
-              modification modi{}; 
-              modi.mass.push_back(mapped_val.first); // current_cluster_mass
-              modi.rate = rate; 
-              modi.numcharges = charge_hist[key]; 
-              modifications[mapped_val.second] = modi; 
-              hist_found[mapped_val.first] = mapped_val.second; 
-            }
-
-
-            else{
-              modifications[mapped_val.second].rate += rate;   
-              modifications[mapped_val.second].numcharges = max(charge_hist[key], modifications[mapped_val.second].numcharges);
-            }
-          }
-          else{ 
-            String unknownmod_name = "Unknown" + std::to_string(std::round(current_cluster_mass)); 
-            if (modifications.find(unknownmod_name ) == modifications.end()) //Modification hasn't already been found
-            {
-              modification modi{};  //current_cluster_mass
-              modi.mass.push_back(current_cluster_mass); 
-              modi.rate = rate; 
-              modi.numcharges = charge_hist[key]; 
-              modifications[unknownmod_name] = modi; 
-            }
-
-            else 
-            {
-              modifications[unknownmod_name].rate += rate;   
-              modifications[unknownmod_name].numcharges = max(charge_hist[key], modifications[unknownmod_name].numcharges);
-            }
-          }       
-        }
-        else //More than one mapping found 
-        {
-          if ( (mapped_val.first >= lowerbound  && mapped_val_high.first <= upperbound) )
-          {
-            String mod_mix_name = mapped_val.second + "/" + mapped_val_high.second; 
-
-            if (modifications.find(mod_mix_name) == modifications.end()) //Modification hasn't already been found
-            {
-              modification modi{}; 
-              modi.mass.push_back(mapped_val.first); //current_cluster_mass
-              modi.mass.push_back(mapped_val_high.first); 
-              modi.rate = rate; 
-              modi.numcharges = charge_hist[key]; 
-              modifications[mod_mix_name] = modi; 
-            }
-            else 
-            {
-              modifications[mod_mix_name].rate += rate;   
-              modifications[mod_mix_name].numcharges = max(charge_hist[key], modifications[mod_mix_name].numcharges);
-            }
-          }
-          else
-          {
-            String unknownmod_name = "Unknown" + std::to_string(std::round(current_cluster_mass)); 
-            if (modifications.find(unknownmod_name ) == modifications.end()) //Modification hasn't already been found
-            {
-              modification modi{}; 
-              modi.mass.push_back(current_cluster_mass); //current_cluster_mass
-              modi.mass.push_back(current_cluster_mass); 
-              modi.rate = rate; 
-              modi.numcharges = charge_hist[key]; 
-              modifications[unknownmod_name] = modi; 
-            }
-            else 
-            {
-              modifications[unknownmod_name].rate += rate;   
-              modifications[unknownmod_name].numcharges = max(charge_hist[key], modifications[unknownmod_name].numcharges);
-            }
-          }
+        else{ //If for some reason it wasn't found while looking through hist earlier 
+          modifications[mapped_val.second].rate += rate;   
+          modifications[mapped_val.second].numcharges = max(charge_hist[key], modifications[mapped_val.second].numcharges);
         }
       }
+      else //Mapping is out of bounds for one PTM, check combinations of PTMs, largely same code as above 
+      { 
+        //Change values to matching combinations of mods 
+        low_it = combo_mods.lower_bound(current_cluster_mass);
+        up_it = combo_mods.upper_bound(current_cluster_mass);
+        auto mapped_val_combo = *low_it; 
+        auto mapped_val_high_combo = *up_it; 
+
+        if (mapped_val_combo.first == mapped_val_high_combo.first) //Only one mapping found 
+        {
+          bool combocheck = true; 
+          if ( !(hist_found.empty())) //Check if the modification can be explained through an already discovered (single) modificatiion 
+          { 
+            for (map<double, OpenMS::String>::const_iterator hit = hist_found.begin(); hit != hist_found.end(); ++hit)
+            {
+              if (abs(hit->first - mapped_val_combo.first) < precursor_mass_tolerance_)
+              {
+                modifications[hit->second].rate += rate;   
+                modifications[hit->second].numcharges = max(charge_hist[key], modifications[hit->second].numcharges);
+                breakcheck = true; 
+                combocheck = false; 
+              }
+              if (breakcheck) break; 
+            }
+          }
+          //Perform a more stringent check on the combinations, due to the amount of combinations, more false positive matches possible 
+          if (((mapped_val_combo.first >= current_cluster_mass - precursor_mass_tolerance_/10)  && (mapped_val_combo.first <= current_cluster_mass + precursor_mass_tolerance_/10)) && combocheck )
+          { 
+            modnames.push_back(mapped_val_combo.second); 
+            if (modifications.find(mapped_val_combo.second) == modifications.end()) //Modification hasn't already been found
+            {
+              modification modi{}; 
+              modi.mass.push_back(mapped_val_combo.first);
+              modi.rate = rate; 
+              modi.numcharges = charge_hist[key]; 
+              modifications[mapped_val_combo.second] = modi; 
+            }
+            else
+            {
+              modifications[mapped_val_combo.second].rate += rate;   
+              modifications[mapped_val_combo.second].numcharges = max(charge_hist[key], modifications[mapped_val_combo.second].numcharges);
+            }
+          }
+        }
+
+        else //PTM is not explained by individual PTM or combination of two PTMs. 
+        {
+          String unknownmod_name = "Unknown" + std::to_string(std::round(current_cluster_mass)); 
+          if (modifications.find(unknownmod_name ) == modifications.end()) //Modification hasn't already been found
+          {
+            modification modi{};  //current_cluster_mass
+            modi.mass.push_back(current_cluster_mass); 
+            modi.rate = rate; 
+            modi.numcharges = charge_hist[key]; 
+            modifications[unknownmod_name] = modi; 
+          }
+
+          else 
+          {
+            modifications[unknownmod_name].rate += rate;   
+            modifications[unknownmod_name].numcharges = max(charge_hist[key], modifications[unknownmod_name].numcharges);
+          }
+        }
+      }  
+    }   
+    else //More than one mapping found 
+    {
+      if ( (mapped_val.first >= lowerbound  && mapped_val_high.first <= upperbound) )
+      {
+        String mod_mix_name = mapped_val.second + "/" + mapped_val_high.second; 
+
+        if (modifications.find(mod_mix_name) == modifications.end()) //Modification hasn't already been found
+        {
+          modification modi{}; 
+          modi.mass.push_back(mapped_val.first); //current_cluster_mass
+          modi.mass.push_back(mapped_val_high.first); 
+          modi.rate = rate; 
+          modi.numcharges = charge_hist[key]; 
+          modifications[mod_mix_name] = modi; 
+        }
+        else 
+        {
+          modifications[mod_mix_name].rate += rate;   
+          modifications[mod_mix_name].numcharges = max(charge_hist[key], modifications[mod_mix_name].numcharges);
+        }
+      }
+      else //No mapping found for mass shift 
+      {
+        String unknownmod_name = "Unknown" + std::to_string(std::round(current_cluster_mass)); 
+        if (modifications.find(unknownmod_name ) == modifications.end()) //Modification hasn't already been found
+        {
+          modification modi{}; 
+          modi.mass.push_back(current_cluster_mass); //current_cluster_mass
+          modi.mass.push_back(current_cluster_mass); 
+          modi.rate = rate; 
+          modi.numcharges = charge_hist[key]; 
+          modifications[unknownmod_name] = modi; 
+        }
+        else 
+        {
+          modifications[unknownmod_name].rate += rate;   
+          modifications[unknownmod_name].numcharges = max(charge_hist[key], modifications[unknownmod_name].numcharges);
+        }
+      }
+    }
   }
-
- 
 
   vector<pair<double, pair<String, pair<double, vector<double>>>>> pairs_by_rate; 
 
-  for (map<String, modification>::const_iterator modit = modifications.begin(); modit != modifications.end(); ++modit){
-          //Charge and mass(es) pair
-          pair<double, vector<double>> pair0; 
-          pair0.first = modit->second.numcharges; 
-          pair0.second = modit->second.mass; 
-          
-          //Name + (charge and mass)
-          pair<String, pair<double, vector<double>>> pair1; 
-          pair1.first = modit->first; 
-          pair1.second = pair0; 
+  //adds the various modification data to one structure 
+  for (map<String, modification>::const_iterator modit = modifications.begin(); modit != modifications.end(); ++modit)
+  {
+    //Charge and mass(es) pair
+    pair<double, vector<double>> pair0; 
+    pair0.first = modit->second.numcharges; 
+    pair0.second = modit->second.mass; 
+    
+    //Name + (charge and mass)
+    pair<String, pair<double, vector<double>>> pair1; 
+    pair1.first = modit->first; 
+    pair1.second = pair0; 
 
-          //Rate + (Name + (Charge + Mass))
-          pair<double, pair<String, pair<double, vector<double>>>> pair2; 
-          pair2.first = modit->second.rate; 
-          pair2.second = pair1; 
+    //Rate + (Name + (Charge + Mass))
+    pair<double, pair<String, pair<double, vector<double>>>> pair2; 
+    pair2.first = modit->second.rate; 
+    pair2.second = pair1; 
 
 
-          pairs_by_rate.push_back(pair2); 
-      }
+    pairs_by_rate.push_back(pair2); 
+  }
 
   sort(pairs_by_rate.begin(), pairs_by_rate.end(), [=](std::pair<double, pair<String, pair<double, vector<double>>>>& a, std::pair<double, pair<String, pair<double, vector<double>>>>& b)
   {
-      return a.second.second.first + a.first > b.second.second.first + b.first;
+    return a.second.second.first + a.first > b.second.second.first + b.first;
   }
   );
 
-  //Add the modifications
+  //Add the modifications to the output for each peptide 
   vector<PeptideIdentification> finalmodifiedpeptides; 
 
   for (auto& id : pips)
@@ -550,13 +570,14 @@ pair< vector<double>, pair<mapRatetoMass, map<double, double>>>  getDeltaCluster
       for (map<double, String>::const_iterator mit = hist_found.begin(); mit != hist_found.end(); ++mit)
           {    
             //Check with error tolerance in buckets if already present in histogram 
-            if(deltamass <  mit->first+0.05 && deltamass >  mit->first-0.05 && bucketcheck && ((0.05 <  deltamass) || (-0.05 >  deltamass)))
+            if(deltamass <  mit->first+0.01 && deltamass >  mit->first-0.01 && bucketcheck && ((0.05 <  deltamass) || (-0.05 >  deltamass)))
             {
               PTM = mit->second; 
               bucketcheck = false; 
             }
           }
-      if(bucketcheck){
+      if (bucketcheck)
+      {
         PTM = "Unknown" + String(deltamass); 
       }
       h.setMetaValue("PTM: ", PTM);
@@ -581,11 +602,11 @@ pair< vector<double>, pair<mapRatetoMass, map<double, double>>>  getDeltaCluster
       //Check if there is a pair of candidates or just one
       if (x.second.second.second.size() < 2)
       {
-        outfile <<  x.second.first << '\t' << x.second.second.second.at(0) << '\t' << x.second.second.first +  x.first << '\t' << x.first  << '\n'; 
+        outfile <<  x.second.first << '\t' << x.second.second.second.at(0) << '\t' << std::round(x.second.second.first +  x.first) << '\t' << std::round(x.first)  << '\n'; 
       }
       else
       {
-        outfile <<  x.second.first << '\t' << x.second.second.second.at(0) << "/" << x.second.second.second.at(1) << '\t' << x.second.second.first +  x.first << '\t' << x.first  << '\n'; 
+        outfile <<  x.second.first << '\t' << x.second.second.second.at(0) << "/" << x.second.second.second.at(1) << '\t' << std::round(x.second.second.first +  x.first) << '\t' << std::round(x.first)  << '\n'; 
       }
     }
     // Close the file
@@ -598,7 +619,7 @@ pair< vector<double>, pair<mapRatetoMass, map<double, double>>>  getDeltaCluster
 
 
 
-
+  //Return the peptides with the additional PTM column 
   return finalmodifiedpeptides; 
 } 
 
@@ -1032,15 +1053,11 @@ protected:
       debug_config_stream.close();     
     }
 
-    String annotation_check; 
-
-  
-
-    
+    String annotation_check;    
 
     QStringList arguments;
 
-  if( !(getStringOption_("annotate_matches").compare("true")))
+  if( (getStringOption_("annotate_matches").compare("true")) == 0)
   {
     arguments << config_file.toQString() 
               << "-f" << fasta_file.toQString() 
@@ -1106,12 +1123,6 @@ protected:
       decoy_prefix, 
       FDR_threshhold);
 
-  cout << getIntOption_("threads") << " is amount of threads" << std::endl; 
-  int printcou = 0; 
-  bool quickcheck = true; 
-
-
-
     for (auto& id : peptide_identifications)
     {
       auto& hits = id.getHits();
@@ -1128,15 +1139,12 @@ protected:
       }
     }
 
-    
+    String smoothing_string = getStringOption_("smoothing"); 
+    bool smoothing = !(smoothing_string.compare("true")); 
 
-  String smoothing_string = getStringOption_("smoothing"); 
-  bool smoothing = !(smoothing_string.compare("true")); 
+    const pair<vector<double>, pair<mapRatetoMass, mapRatetoMass>> resultsClus =  getDeltaClusterCenter(peptide_identifications, smoothing, false); 
 
-  const pair<vector<double>, pair<mapRatetoMass, map<double,double>>> resultsClus =  getDeltaClusterCenter(peptide_identifications, smoothing, false); 
-
-  vector<PeptideIdentification> mapD = mapDifftoMods(resultsClus.second.first, resultsClus.second.second, peptide_identifications, 0.05, false, output_file, resultsClus.first); //peptide_identifications; 
- 
+    vector<PeptideIdentification> mapD = mapDifftoMods(resultsClus.second.first, resultsClus.second.second, peptide_identifications, 0.01, false, output_file, resultsClus.first); //peptide_identifications; 
 
     // remove hits without charge state assigned or charge outside of default range (fix for downstream bugs). TODO: remove if all charges annotated in sage
     IDFilter::filterPeptidesByCharge(peptide_identifications, 2, numeric_limits<int>::max());
