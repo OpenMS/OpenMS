@@ -374,20 +374,6 @@ pair< vector<double>, pair<mapRatetoMass, mapRatetoMass>>  getDeltaClusterCenter
     //Go through keys of found_hist, check if there is a found key within tolerance as quick pre-check 
     bool contcheck = false; 
     bool breakcheck = false; 
-    /* if ( !(hist_found.empty()))
-    { 
-      for (map<double, OpenMS::String>::const_iterator hit = hist_found.begin(); hit != hist_found.end(); ++hit)
-      {
-        if (abs(hit->first - current_cluster_mass) < precursor_mass_tolerance_/2)
-        {
-          modifications[hit->second].rate += rate;   
-          modifications[hit->second].numcharges = max(charge_hist[key], modifications[hit->second].numcharges);
-          breakcheck = true; 
-          contcheck = true; 
-        }
-        if(breakcheck) break; 
-      }
-    } */
     if(contcheck) continue;  
 
     //Upper and lower bound search on the modification database 
