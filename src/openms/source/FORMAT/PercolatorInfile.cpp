@@ -170,11 +170,8 @@ namespace OpenMS
         anno_mapping[ row[to_idx_a.at("psm_id")].toInt() ].push_back(peak_temp); 
         
       }
-
-    }  
-    
+    }    
     cout << anno_mapping.size() << " anno map size " << std::endl; 
-
     
     // charge columns are not standardized, so we check for the format and create hash to lookup column name to charge mapping
     std::regex charge_one_hot_pattern("^charge\\d+$");
@@ -233,7 +230,6 @@ namespace OpenMS
         {
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: line " + String(i) + " of file '" + pin_file + "' does not have the same number of columns as the header!", String(i));
         }
-
         if (file_name_column_index >= 0)
         {
           raw_file_name = row[file_name_column_index];
@@ -282,7 +278,6 @@ namespace OpenMS
           // vendor ID, you will need a lookup in case of number only later!!
           pids.back().setSpectrumReference(sScanNr);     
         }
-
         String sPeptide = row[to_idx.at("Peptide")];
         const double score = row[to_idx.at(score_name)].toDouble();
         String target_decoy = row[to_idx.at("Label")].toInt() == 1 ? "target" : "decoy";
