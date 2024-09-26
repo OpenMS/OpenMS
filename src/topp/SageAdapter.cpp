@@ -29,8 +29,6 @@
 #include <fstream>
 #include <regex>
 
-#include <boost/math/distributions/normal.hpp>
-
 #include <QStringList>
 #include <chrono>
 #include <map>
@@ -39,7 +37,7 @@
 #include <cmath>
 #include <numeric>
 
-
+#include <boost/math/distributions/normal.hpp>
 
 using namespace OpenMS;
 using namespace std;
@@ -83,10 +81,7 @@ because of limitations in OpenMS' data structures and file formats.
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-
 #define CHRONOSET
-
-
 
 class TOPPSageAdapter :
   public SearchEngineBase
@@ -103,144 +98,185 @@ public:
   {
   }
 
-//A struct for keeping track of PTMs, saves the mass difference in deltamass and the amount discovered in rate. Also used for amount of charges instead of just rate. 
-  struct RateMassPair
-{
-  double rate = -1.;
-  double deltamass = -1.;
-};
+  // Saves details of PTMs as well, useful for if more than one PTM is mapped to a given mass 
+  struct modification
+  {
+    double rate = 0; 
+    vector<double> mass; 
+    double numcharges = 0; 
+  }; 
 
-//Saves details of PTMs as well, useful for if more than one PTM is mapped to a given mass 
-struct modification
-{
-  double rate = 0; 
-  vector<double> mass; 
-  double numcharges = 0; 
-}; 
+  // Comparator for approximate comparison of double values
+  struct FuzzyDoubleComparator {
+      double epsilon;
+      FuzzyDoubleComparator(double eps = 1e-9) : epsilon(eps) {}
+      bool operator()(const double& a, const double& b) const 
+      {
+          return std::fabs(a - b) >= epsilon && a < b;
+      }
+  };
 
-struct DoubleComparator {
-        double epsilon;
+// delta mass counts to delta masses
+//typedef map<double, double, FuzzyDoubleComparator> CountToDeltaMass;
 
-        DoubleComparator(double eps = 1e-9) : epsilon(eps) {}
-
-        bool operator()(const double& a, const double& b) const {
-            return std::fabs(a - b) >= epsilon && a < b;
-        }
-    };
-
-typedef map<double, double, DoubleComparator> mapRatetoMass;
-
+typedef map<double, double, FuzzyDoubleComparator> DeltaMassHistogram; // maps delta mass to count
 
 // Gaussian function
 static double gaussian(double x, double sigma) {
     return exp(-(x*x) / (2 * sigma*sigma)) / (sigma * sqrt(2 * M_PI));
 }
 
-// Smooths the PTM-mass histogram , uses a Kernel Density Estimation. 
-static std::map<double, double, DoubleComparator> smoothPTMhist(const std::map<double, double, DoubleComparator>& shiftspectrum, double sigma = 0.1) 
+// Smooths the delta mass histogram using a Kernel Density Estimation. 
+static DeltaMassHistogram smoothDeltaMassHist(const DeltaMassHistogram& hist, double sigma = 0.001) 
 {
-    std::map<double, double, DoubleComparator> smoothedSpectrum(DoubleComparator(1e-9));
-    std::vector<double> mzValues, intensities;
+    std::map<double, double, FuzzyDoubleComparator> smoothed_hist(FuzzyDoubleComparator(1e-9));
+    std::vector<double> delta, count;
 
-    // Extract m/z values and intensities
-    for (const auto& pair : shiftspectrum) {
-        mzValues.push_back(pair.first);
-        intensities.push_back(pair.second);
+    // Extract delta masses and counts
+    for (const auto& pair : hist) 
+    {
+      deltas.push_back(pair.first);
+      counts.push_back(pair.second);
     }
 
     // Apply Gaussian smoothing
-    for (size_t i = 0; i < mzValues.size(); ++i) {
-        double smoothedIntensity = 0.0;
-        double weightSum = 0.0;
+    for (size_t i = 0; i < deltas.size(); ++i) 
+    {
+      double smoothed_counts = 0.0;
+      double weightSum = 0.0;
 
-        for (size_t j = 0; j < mzValues.size(); ++j) {
-            double mzDiff = std::abs(mzValues[i] - mzValues[j]);
-            if (mzDiff > 3 * sigma) continue; // Ignore points too far away
-            double weight = gaussian(mzDiff, sigma);
-            smoothedIntensity += weight * intensities[j];
-            weightSum += weight;
-        }
+      for (size_t j = 0; j < delta.size(); ++j) 
+      {
+        double mzDiff = std::abs(deltas[i] - deltas[j]);
+        if (mzDiff > 3.0 * sigma) continue; // Ignore points too far away
+        double weight = gaussian(mzDiff, sigma);
+        smoothed_hist += weight * counts[j];
+        weightSum += weight;
+      }
 
-        smoothedSpectrum[mzValues[i]] = smoothedIntensity / weightSum;
+      smoothed_hist[deltas[i]] = smoothed_counts / weightSum;
     }
 
-    return smoothedSpectrum;
-}
-  //Picks the local maxima on the PTM-mass histogram 
-  static std::map<double, double, DoubleComparator> findPeaks(const mapRatetoMass& shiftspectrum, double intensityThreshold = 0.0, double snrThreshold = 2.0) 
-  {
-    std::vector<std::pair<double, double>> peaks;
-    mapRatetoMass smoothedPeaks;
-    if (shiftspectrum.size() < 3) {
-        return shiftspectrum;  // Not enough points to determine peaks
-    }
-
-    // Calculate noise level (e.g., median intensity)
-    std::vector<double> intensities;
-    for (const auto& pair : shiftspectrum) {
-        intensities.push_back(pair.second);
-    }
-    size_t n = intensities.size() / 2;
-    std::nth_element(intensities.begin(), intensities.begin() + n, intensities.end());
-    double noiseLevel = intensities[n];
-
-    auto it = shiftspectrum.begin();
-    auto prev = it++;
-    auto next = std::next(it);
-
-    while (next != shiftspectrum.end()) {
-        if ( !(it->second < prev->second) && !(it->second < next->second) && 
-            it->second > intensityThreshold && 
-            it->second / noiseLevel > snrThreshold)
-        {
-            smoothedPeaks[it->first] = it->second; 
-        }
-        prev = it;
-        it = next;
-        ++next;
-    }
-
-    return smoothedPeaks;
+    return smoothed_hist;
 }
 
-
-  
-//Function that returns the maxima of a histogram out of the delta-masses of each peptide, takes a vector of peptide-ids 
-pair< vector<double>, pair<mapRatetoMass, mapRatetoMass>>  getDeltaClusterCenter(const vector<PeptideIdentification>& pips, bool smoothing = false,  bool debug = false)
+// Picks local maxima in a PTM-mass histogram
+static DeltaMassHistogram findPeaksInDeltaMassHistogram(const DeltaMassHistogram& hist, double count_threshold = 0.0, double SNR = 2.0) 
 {
-  //Data structures to store the data from Sage 
-  vector<double> cluster;
-  vector<double> delta_masses; 
-  mapRatetoMass hist(DoubleComparator(1e-9));
-  map<double, vector<double>, DoubleComparator> charge_states(DoubleComparator(1e-9)); 
-  mapRatetoMass num_charges_at_mass(DoubleComparator(1e-9)); 
+  if (hist.size() < 3) 
+  {
+    return hist;  // not enough data points, return original histogram
+  }
 
+  DeltaMassHistogram smoothed_hist;
 
-  std::vector<double> sorted_keys;  // Vector to maintain sorted keys
+  // Calculate noise level (e.g., median count)
+  std::vector<double> counts;
+  for (const auto& pair : hist) 
+  {
+    counts.push_back(pair.second);
+  }
+
+  size_t n = counts.size() / 2;
+  std::nth_element(counts.begin(), counts.begin() + n, counts.end());
+  double noiseLevel = counts[n];
+
+  auto it = hist.begin();
+  auto prev = it++;
+  auto next = std::next(it);
+
+  while (next != hist.end()) 
+  {
+    // Check if current point is a local maximum
+    if ( !(it->second < prev->second) && !(it->second < next->second) && 
+      it->second > count_threshold &&
+      it->second / noiseLevel > SNR)   
+    {
+      smoothed_hist[it->first] = it->second; 
+    }
+    prev = it;
+    it = next;
+    ++next;
+  }
+
+  return smoothed_hist;
+}
+
+// Function that returns the maxima of a histogram out of the delta-masses of each peptide, takes a vector of peptide-ids 
+// TODO: create map from delta mass to charge states
+pair< vector<double>, pair<DeltaMassHistogram, DeltaMassToCharges>> getDeltaClusterCenter(const vector<PeptideIdentification>& pips, bool smoothing = false,  bool debug = false)
+{
+  // Data structures to store the data from Sage 
+  vector<int> delta_masses, charges;
+
+  std::vector<double> sorted_keys;  // vector to maintain sorted keys
 
   for (auto& id : pips)
   {
     auto& hits = id.getHits();
     for (auto& h : hits)
     {
-      //Calculate mass shift 
-      double expval = std::stod(h.getMetaValue("SAGE:ExpMass"));
-      double calcval = std::stod(h.getMetaValue("SAGE:CalcMass"));
-      double deltamass = expval - calcval;
       int charge = h.getCharge();
-
+      double deltamass = expval - calcval; // TODO: check with PercolatorInfile and read correct metavalue
       delta_masses.push_back(deltamass);
+      charges.push_back(charge);
+    }
+  }
 
-      //Bucket mass shift in histogram, either already present or add new entry 
-      auto hist_it = hist.find(deltamass);
-      if (hist_it == hist.end()) //Exact mass shift isn't already in histogram  
+
+
+      // Perform binary search on the sorted keys
+      auto it = std::lower_bound(sorted_keys.begin(), sorted_keys.end(), deltamass);
+
+      // border cases
+      if (it == sorted_keys.begin())
+      {
+        return 0; // index 0 
+      }
+      if (it == sorted_keys.end())
+      {
+        return sorted_keys.size()- 1; // index of last element
+      }
+
+      // the entry before or the current entry are closest
+      ConstIterator before = it;
+      --before;
+      if (std::fabs(it->first - deltamass) < std::fabs(before->first - deltamass))
+      {
+        return Size(it - ContainerType::begin()); // index of it
+      }
+      else
+      {
+        return Size(it2 - ContainerType::begin()); // index of before
+      }
+
+      const double found_deltamass = sorted_keys[found_index];
+      if (found_deltamass >= deltamass - tolerance && found_deltamass <= deltamass + tolerance)
+      { // Mass shift is already in histogram  
+        return static_cast<Int>(i); // index of found_index
+        hist_it->second += 1.0;
+
+        auto& charges = charge_states[deltamass];
+        if (std::find(charges.begin(), charges.end(), charge) == charges.end())
+        {
+          num_charges_at_mass[deltamass] += 1.0;
+          charges.push_back(charge);
+        }
+
+      }
+      else
+      {
+        // create new bucket
+      }      
+
+      if (hist_it == hist.end()) // exact mass shift isn't in histogram but maybe a similar one
       {
           bool bucketcheck = true;
 
-          // Perform binary search on the sorted keys
-          auto it = std::lower_bound(sorted_keys.begin(), sorted_keys.end(), deltamass);
-          //Search histogram with tolerance + if it should be bucketed in with 0 (no modification)
-          if (it != sorted_keys.end() && std::abs(deltamass - *it) < 0.0005 && (deltamass > 0.05 || deltamass < -0.05))
+          // Search histogram with tolerance + if it should be bucketed in with 0 (no modification)
+          if (it != sorted_keys.end() 
+            && std::abs(deltamass - *it) < 0.0005 // tolerance of 0.0005 Da
+            && (deltamass > 0.05 || deltamass < -0.05)) // exclude delta mass of approx. 0
           {
               hist[*it] += 1.0;
               bucketcheck = false;
@@ -252,7 +288,8 @@ pair< vector<double>, pair<mapRatetoMass, mapRatetoMass>>  getDeltaClusterCenter
                   charges.push_back(charge);
               }
           }
-          //Add new mass shift to histogram, with check if shift should be bucketed towards 0 
+
+          // Add new mass shift to histogram, with check if shift should be bucketed towards 0 
           if (bucketcheck && (deltamass > 0.05 || deltamass < -0.05))
           {
               // Insert new key in the sorted vector at the correct position
@@ -263,22 +300,12 @@ pair< vector<double>, pair<mapRatetoMass, mapRatetoMass>>  getDeltaClusterCenter
               charge_states[deltamass].push_back(charge);
           }
       }
-      else //Mass shift is already in histogram  
-      {
-        hist_it->second += 1.0;
 
-        auto& charges = charge_states[deltamass];
-        if (std::find(charges.begin(), charges.end(), charge) == charges.end())
-        {
-            num_charges_at_mass[deltamass] += 1.0;
-            charges.push_back(charge);
-        }
-      }
     }
   }
 
   //Write out the results to a new data structure 
-  pair< vector<double>, pair<mapRatetoMass, mapRatetoMass>> results; 
+  pair< vector<double>, pair<CountToDeltaMass, CountToDeltaMass>> results; 
   results.second.first = hist; 
   results.second.second = num_charges_at_mass; 
   results.first = sorted_keys; 
@@ -286,16 +313,16 @@ pair< vector<double>, pair<mapRatetoMass, mapRatetoMass>>  getDeltaClusterCenter
 
   if (with_smoothing)
   {
-    mapRatetoMass smoothed_hist =  smoothPTMhist(hist, 0.0001);    //KDE on the histogram   
-    mapRatetoMass smoothedMaxes3 = findPeaks( smoothed_hist, 0.0, 3.0 ); //Pick local maxima as candidates 
-    mapRatetoMass num_charges_at_mass_smoothed; 
+    CountToDeltaMass smoothed_hist =  smoothDeltaMassHist(hist, 0.001);    // KDE on the histogram   
+    CountToDeltaMass smoothedMaxes3 = findPeaksInDeltaMassHistogram( smoothed_hist, 0.0, 3.0 ); // Pick local maxima as candidates 
+    CountToDeltaMass num_charges_at_mass_smoothed; 
 
     for (auto& x : smoothedMaxes3)
     {
-      num_charges_at_mass_smoothed[x.first] = num_charges_at_mass[x.first]; //Add charges to new smoothed candidates 
+      num_charges_at_mass_smoothed[x.first] = num_charges_at_mass[x.first]; // Add charges to new smoothed candidates 
     }
 
-    pair<vector <double>, pair<mapRatetoMass, mapRatetoMass>> results_smoothed; 
+    pair<vector <double>, pair<CountToDeltaMass, CountToDeltaMass>> results_smoothed; 
     results_smoothed.second.first = smoothedMaxes3; 
     results_smoothed.second.second = num_charges_at_mass_smoothed; 
     results_smoothed.first = sorted_keys; 
@@ -307,7 +334,7 @@ pair< vector<double>, pair<mapRatetoMass, mapRatetoMass>>  getDeltaClusterCenter
 }
 
 //Fucntion that maps a selection of masses to certain PTMs and returns a summary of said PTMs. Also adds PTM for each petide without in-peptide localization. 
- vector<PeptideIdentification> mapDifftoMods( mapRatetoMass hist, mapRatetoMass charge_hist, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 5, bool precursor_mass_tolerance_unit_ppm = true, String outfile = "", vector<double> keys_sorted = {})
+ vector<PeptideIdentification> mapDifftoMods( CountToDeltaMass hist, CountToDeltaMass charge_hist, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 5, bool precursor_mass_tolerance_unit_ppm = true, String outfile = "", vector<double> keys_sorted = {})
 {
     
   vector<vector<PeptideIdentification>> clusters(hist.size(), vector<PeptideIdentification>());
@@ -315,7 +342,7 @@ pair< vector<double>, pair<mapRatetoMass, mapRatetoMass>>  getDeltaClusterCenter
 
 
   //Variables for storing information from the modifications DB 
-  map<double, String, DoubleComparator> mass_of_mods(DoubleComparator(1e-9)); 
+  map<double, String, FuzzyDoubleComparator> mass_of_mods(FuzzyDoubleComparator(1e-9)); 
   vector<pair<double, String>> mass_of_mods_vec; 
 
   //Searches modifications 
@@ -332,7 +359,7 @@ pair< vector<double>, pair<mapRatetoMass, mapRatetoMass>>  getDeltaClusterCenter
   }  
 
     //Make a new map with combinations of mods 
-    map<double, String, DoubleComparator> combo_mods(DoubleComparator(1e-9)); 
+    map<double, String, FuzzyDoubleComparator> combo_mods(FuzzyDoubleComparator(1e-9)); 
 
     for (map<double, String>::const_iterator mit = mass_of_mods.begin(); mit != mass_of_mods.end(); ++mit)
     {
@@ -1092,19 +1119,13 @@ protected:
 
     #ifdef CHRONOSET
       std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-      // Sage execution with the executable and the arguments StringList
-      exit_code = runExternalProcess_(sage_executable.toQString(), arguments);
+    #endif      
+    // Sage execution with the executable and the arguments StringList
+    exit_code = runExternalProcess_(sage_executable.toQString(), arguments);
+    #ifdef CHRONOSET
       std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
       std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
     #endif
-
-    #ifndef CHRONOSET
-    // Sage execution with the executable and the arguments StringList
-      exit_code = runExternalProcess_(sage_executable.toQString(), arguments);
-    #endif
-    
-
-    
 
     if (exit_code != EXECUTION_OK)
     {
@@ -1152,7 +1173,7 @@ protected:
     String smoothing_string = getStringOption_("smoothing"); 
     bool smoothing = !(smoothing_string.compare("true")); 
 
-    const pair<vector<double>, pair<mapRatetoMass, mapRatetoMass>> resultsClus =  getDeltaClusterCenter(peptide_identifications, smoothing, false); 
+    const pair<vector<double>, pair<CountToDeltaMass, CountToDeltaMass>> resultsClus =  getDeltaClusterCenter(peptide_identifications, smoothing, false); 
 
     vector<PeptideIdentification> mapD = mapDifftoMods(resultsClus.second.first, resultsClus.second.second, peptide_identifications, 0.01, false, output_file, resultsClus.first); //peptide_identifications; 
 
