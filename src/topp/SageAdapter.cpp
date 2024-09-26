@@ -1010,7 +1010,7 @@ protected:
     registerStringOption_("chimera", "<bool>", "false", "Sets chimera option (true or false), default: false", false, false  ); 
     registerStringOption_("predict_rt",  "<bool>", "false", "Sets predict_rt option (true or false), default: false", false, false ); 
     registerStringOption_("wide_window", "<bool>", "false", "Sets wide_window option (true or false), default: false", false, false);
-    registerStringOption_("smoothing", "<bool>", "false", "Should the intensities be smoothed and max peaks be picked. If false, uses raw data, default: false", false, false);  
+    registerStringOption_("smoothing", "<bool>", "false", "Should the PTM histogram be smoothed and local maxima be picked. If false, uses raw data, default: false", false, false);  
     registerIntOption_("threads", "<int>", 1, "Amount of threads available to the program", false, false); 
 
     // register peptide indexing parameter (with defaults for this search engine)
