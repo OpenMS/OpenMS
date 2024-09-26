@@ -66,7 +66,8 @@ namespace OpenMS
     double threshold)
   {
     CsvFile csv(pin_file, '\t');
-    
+
+    // TODO: make it work also without tsv file or sage result
     String tsv_file_path = pin_file.substr(0, pin_file.size()-3);
     tsv_file_path = tsv_file_path + "tsv"; 
     CsvFile tsv(tsv_file_path, '\t'); 
@@ -79,7 +80,7 @@ namespace OpenMS
     //map PSMID to vec of PeakAnnotation 
 
     StringList header;
-    StringList fullheader; 
+    StringList fullheader;
     StringList ann_header; 
     //TODO DANGEROUS! Our CSV reader does not support comment lines!!
     csv.getRow(0, header);
