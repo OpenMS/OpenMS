@@ -68,9 +68,7 @@ namespace OpenMS
   {
     CsvFile csv(pin_file, '\t');
 
-
-    //TODO: make it runnable without
-    
+    // TODO: make it work also without tsv file or sage result
     String tsv_file_path = pin_file.substr(0, pin_file.size()-3);
     tsv_file_path = tsv_file_path + "tsv"; 
     CsvFile tsv(tsv_file_path, '\t'); 
@@ -83,7 +81,7 @@ namespace OpenMS
     //map PSMID to vec of PeakAnnotation 
 
     StringList header;
-    StringList fullheader; 
+    StringList fullheader;
     StringList ann_header; 
     //TODO DANGEROUS! Our CSV reader does not support comment lines!!
     csv.getRow(0, header);
@@ -114,7 +112,6 @@ namespace OpenMS
     {
       file_name_column_index = it - header.begin();
     }
-
 
     //Take meta value from .tsv file 
    
