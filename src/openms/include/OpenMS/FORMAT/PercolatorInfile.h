@@ -30,13 +30,33 @@ namespace OpenMS
         int min_charge, 
         int max_charge);
 
-      /** @brief load pin file and convert to a vector of PeptideIdentification using the given score column @p score_name and orientation @p higher_score_better.
-          If a decoy prefix is provided, the decoy status is set from the protein accessions.
-          Otherwise, it assumes that the pin file already contains the correctly annotated decoy status.
-          If @p extra_scores is not empty, the scores are added to the PeptideHit as MetaValues.
-          If a filename column is encountered the set of @p filenames is filled in the order of appearance and PeptideIdentifications annotated with the id_merge_index meta value to link them to the filename (similar to a merged idXML file). 
-          TODO: implement something similar to PepXMLFile().setPreferredFixedModifications(getModifications_(fixed_modifications_names));
-          **/
+
+      /**
+      * @brief Loads peptide identifications from a Percolator input file.
+      * 
+      * This function reads a Percolator input file (`pin_file`) and returns a vector of `PeptideIdentification` objects. 
+      * It extracts relevantinformation such as peptide sequences, scores, charges, annotations, and protein accessions, applying
+      * specified thresholds and handling decoy targets as needed.
+      * Note: If a filename column is encountered the set of @p filenames is filled in the order of appearance and PeptideIdentifications annotated with the id_merge_index meta value to link them to the filename (similar to a merged idXML file). 
+      * 
+      * @param pin_file he path to the Percolator input file with a `.pin` extension.
+      * 
+      * @param higher_score_better A boolean flag indicating whether higher scores are considered better (`true`) or lower scores are better (`false`).
+      * 
+      * @param score_name The name of the primary score to be used for ranking peptide hits.
+      * 
+      * @param extra_scores A list of additional score names that should be extracted and stored in each `PeptideHit`.
+      * 
+      * @param filenames Will be populated with the unique raw file names extracted from the input data.
+      * 
+      * @param decoy_prefix The prefix used to identify decoy protein accessions. Proteins with accessions starting with this prefix are marked as decoys. Otherwise, it assumes that the pin file already contains the correctly annotated decoy status.
+      * @param threshold A double value representing the threshold for the `spectrum_q` value. Only spectra with `spectrum_q` below this threshold are processed.
+                         Implemented to allow prefiltering of Sage results.
+      * @return A `std::vector` of `PeptideIdentification` objects containing the peptide identifications.
+      
+      * @throws `Exception::ParseError` if any line in the input file does not have the expected number of columns.
+      * TODO: implement something similar to PepXMLFile().setPreferredFixedModifications(getModifications_(fixed_modifications_names));      
+      */
       static std::vector<PeptideIdentification> load(const String& pin_file, 
         bool higher_score_better, 
         const String& score_name, 
