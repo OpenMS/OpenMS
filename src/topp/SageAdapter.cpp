@@ -370,11 +370,7 @@ pair< vector<double>, pair<mapRatetoMass, mapRatetoMass>>  getDeltaClusterCenter
         lowerbound = current_cluster_mass - precursor_mass_tolerance_;
         upperbound = current_cluster_mass + precursor_mass_tolerance_;
     }
-
-    //Go through keys of found_hist, check if there is a found key within tolerance as quick pre-check 
-    bool contcheck = false; 
-    bool breakcheck = false; 
-    if(contcheck) continue;  
+    
 
     //Upper and lower bound search on the modification database 
     auto low_it = mass_of_mods.lower_bound(current_cluster_mass);
@@ -412,15 +408,29 @@ pair< vector<double>, pair<mapRatetoMass, mapRatetoMass>>  getDeltaClusterCenter
 
         if (mapped_val_combo.first == mapped_val_high_combo.first) //Only one mapping found 
         {
+          //Control-flow checks 
           bool combocheck = true; 
+          bool breakcheck = false; 
           if ( !(hist_found.empty())) //Check if the modification can be explained through an already discovered (single) modificatiion 
           { 
             for (map<double, OpenMS::String>::const_iterator hit = hist_found.begin(); hit != hist_found.end(); ++hit)
             {
-              if (abs(hit->first - mapped_val_combo.first) < precursor_mass_tolerance_)
+              if (abs(hit->first - current_cluster_mass) < precursor_mass_tolerance_ )
               {
                 modifications[hit->second].rate += rate;   
                 modifications[hit->second].numcharges = max(charge_hist[key], modifications[hit->second].numcharges);
+                breakcheck = true; 
+                combocheck = false; 
+              }
+              if (abs((hit->first + 1) - current_cluster_mass ) < precursor_mass_tolerance_ ) //Check if it can be explained by an isotope of a previous modification (+1Da)
+              {
+                modification modi{}; 
+                modi.mass.push_back(hit->first + 1); 
+                modi.rate = rate; 
+                modi.numcharges = charge_hist[key]; 
+                String mod_temp_name = hit->second + "+1Da"; 
+                modifications[mod_temp_name ] = modi; 
+                hist_found[hit->first + 1] = hit->second + "+1Da"; 
                 breakcheck = true; 
                 combocheck = false; 
               }
