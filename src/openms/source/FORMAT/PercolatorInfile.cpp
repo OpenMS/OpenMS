@@ -63,9 +63,13 @@ namespace OpenMS
     const StringList& extra_scores,
     StringList& filenames,
     String decoy_prefix, 
-    double threshold)
+    double threshold, 
+    bool SageAnnotation)
   {
     CsvFile csv(pin_file, '\t');
+
+
+    //TODO: make it runnable without
     
     String tsv_file_path = pin_file.substr(0, pin_file.size()-3);
     tsv_file_path = tsv_file_path + "tsv"; 
