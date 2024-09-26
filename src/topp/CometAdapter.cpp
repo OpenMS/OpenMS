@@ -129,7 +129,7 @@ protected:
     //registerIntOption_("mass_type_fragment", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
     //registerIntOption_("precursor_tolerance_type", "<num>", 0, "0=average masses, 1=monoisotopic masses", false, false);
     registerStringOption_(Constants::UserParam::ISOTOPE_ERROR, "<choice>", "off", "This parameter controls whether the peptide_mass_tolerance takes into account possible isotope errors in the precursor mass measurement. Use -8/-4/0/4/8 only for SILAC.", false, false);
-    setValidStrings_(Constants::UserParam::ISOTOPE_ERROR, ListUtils::create<String>("off,0/1,0/1/2,0/1/2/3,-8/-4/0/4/8,-1/0/1/2/3"));
+    setValidStrings_(Constants::UserParam::ISOTOPE_ERROR, ListUtils::create<String>("off,0/1,0/1/2,0/1/2/3,-1/0/1/2/3,-1/0/1"));
 
     //Fragment Ions
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.01,
@@ -209,6 +209,15 @@ protected:
     registerIntOption_("spectrum_batch_size", "<posnum>", 20000, "max. number of spectra to search at a time; use 0 to search the entire scan range in one batch", false, true);
     setMinInt_("spectrum_batch_size", 0);
     registerDoubleList_("mass_offsets", "<doubleoffset1, doubleoffset2,...>", {0.0}, "One or more mass offsets to search (values subtracted from deconvoluted precursor mass). Has to include 0.0 if you want the default mass to be searched.", false, true);
+    registerStringOption_("pinfile_protein_delimiter", "<delimiter>", "\t", "specify a different character or string for the protein column delimiter (default tab)",false, false);
+    
+    for (char residue = 'A'; residue <= 'Z'; ++residue)
+    {
+      std::string set_str = "set_";
+      set_str += residue;
+      set_str += "_residue";
+      registerDoubleOption_(set_str, "<mass>", 0.0, "Specify the base mass of any residue, it will apply to both the average and monoisotopic masses (default 0.0)", false,true);
+    }
 
     // spectral processing
     registerIntOption_("minimum_peaks", "<posnum>", 10, "Required minimum number of peaks in spectrum to search (default 10)", false, true);
@@ -282,8 +291,10 @@ protected:
     isotope_error["0/1"] = 1;
     isotope_error["0/1/2"] = 2;
     isotope_error["0/1/2/3"] = 3;
-    isotope_error["-8/-4/0/4/8"] = 4;
-    isotope_error["-1/0/1/2/3"] = 5;
+    isotope_error["-1/0/1/2/3"] = 4;
+    isotope_error["-1/0/1"] = 5;
+    isotope_error["-3/-2/-1/0/1/2/3"] = 6;
+    isotope_error["-8/-4/0/4/8"] = 7;
 
     // comet_version is something like "# comet_version 2017.01 rev. 1"
     QRegularExpression comet_version_regex("(\\d{4})\\.(\\d*)rev");
@@ -318,7 +329,8 @@ protected:
     os << "mass_type_parent = " << 1 << "\n";                    // 0=average masses, 1=monoisotopic masses
     os << "mass_type_fragment = " << 1 << "\n";                  // 0=average masses, 1=monoisotopic masses
     os << "precursor_tolerance_type = " << 1 << "\n";            // 0=MH+ (default), 1=precursor m/z; only valid for amu/mmu tolerances
-    os << "isotope_error = " << isotope_error[getStringOption_(Constants::UserParam::ISOTOPE_ERROR)] << "\n";                   // 0=off, 1=0/1 (C13 error), 2=0/1/2, 3=0/1/2/3, 4=-8/-4/0/4/8 (for +4/+8 labeling)
+    os << "isotope_error = " << isotope_error[getStringOption_(Constants::UserParam::ISOTOPE_ERROR)] << "\n";                   // 0=off, 1=0/1 (C13 error), 2=0/1/2, 3=0/1/2/3, 4=-1/0/1/2/3, 5=-1/0/1
+    os << "resolve_fullpaths = " << 1 << "\n";                   // 0=do not resolve the full paths, 1=will resolve the full paths (default)
 
     // search enzyme
 
@@ -532,6 +544,16 @@ protected:
     os << "output_suffix =\n";                                   // add a suffix to output base names i.e. suffix "-C" generates base-C.pep.xml from base.mzXML input
     os << "mass_offsets = " << ListUtils::concatenate(getDoubleList_("mass_offsets"), " ") << "\n"; // one or more mass offsets to search (values subtracted from deconvoluted precursor mass)
     os << "precursor_NL_ions =\n"; //  one or more precursor neutral loss masses, will be added to xcorr analysis 
+    os << "pinfile_protein_delimiter = " << getStringOption_("pinfile_protein_delimiter") << "\n";
+    os << "set_A_residue = " << getDoubleOption_("set_A_residue") << "\n";
+    for (char residue = 'A'; residue <= 'Z'; ++residue) {
+      std::string set_str = "set_";
+      set_str += residue;
+      set_str += "_residue";
+      if (getDoubleOption_(set_str)) { 
+        os << set_str << " = " << getDoubleOption_(set_str) << "\n";
+      }
+    }
 
     // spectral processing
     map<string,int> remove_precursor_peak;
