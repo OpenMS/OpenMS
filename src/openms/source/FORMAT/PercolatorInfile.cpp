@@ -246,9 +246,7 @@ namespace OpenMS
       //  so it writes the full ID as string
       String sScanNr = row[to_idx.at("ScanNr")];
 
-
       vector<PeptideHit::PeakAnnotation> vecPointer = anno_mapping[sSpecId.toInt()]; 
-
 
       if (sSpecId != spec_id)
       {
