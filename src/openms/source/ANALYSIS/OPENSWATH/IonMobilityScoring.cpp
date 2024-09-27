@@ -61,20 +61,6 @@ namespace OpenMS
     return im_grid;
   }
 
-  /*
-   @brief Extracts ion mobility values projected onto a grid
-
-   For a given ion mobility profile and a grid, compute an ion mobilogram
-   across the grid for each ion mobility data point. Returns two data arrays
-   for the ion mobilogram: intensity (y) and ion mobility (x). Zero values are
-   inserted if no data point was found for a given grid value.
-
-   @param profile The ion mobility data
-   @param im_grid The grid to be used
-   @param eps Epsilon used for computing the ion mobility grid
-   @param max_peak_idx The grid position of the maximum
-
-  */
   void IonMobilityScoring::alignToGrid_(const Mobilogram& profile,
                const std::vector<double>& im_grid,
                Mobilogram & aligned_profile,
