@@ -343,8 +343,9 @@ namespace OpenMS
       ph.setRank(rank);
 
       // adding own meta values 
-      if (SageAnnotation){
-        ph.setMetaValue("spectrum_q", t_row[to_idx_t.at("spectrum_q")].toDouble());  
+      if (SageAnnotation)
+      {
+        ph.setMetaValue("spectrum_q", t_row[to_idx_t.at("spectrum_q")].toDouble());  //TODO: check if column exists / SAGE specific treatment
       }
       ph.setMetaValue("DeltaMass", ( row[to_idx.at("ExpMass")].toDouble() - row[to_idx.at("CalcMass")].toDouble()) ); 
       // add annotations
