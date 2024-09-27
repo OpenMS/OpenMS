@@ -416,7 +416,7 @@ namespace OpenMS
       //double left(transition.getProductMZ()), right(transition.getProductMZ());
       //DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
       computeIonMobilogram(spectra, mz_range, im_range, im, intensity, res, eps);
-      ms2_mobilograms.push_back(res);
+      ms2_mobilograms.push_back(std::move(res));
 
       // TODO what do to about those that have no signal ?
       if (intensity <= 0.0) {continue;} // note: im is -1 then
@@ -463,7 +463,7 @@ namespace OpenMS
       Mobilogram aligned_mobilogram;
       Size max_peak_idx = 0;
       alignToGrid_(mobilogram, im_grid, aligned_mobilogram, eps, max_peak_idx);
-      if (!aligned_mobilogram.empty()) aligned_ms2_mobilograms.push_back(aligned_mobilogram);
+      if (!aligned_mobilogram.empty()) aligned_ms2_mobilograms.push_back(std::move(aligned_mobilogram));
     }
 
     // Step 3: Compute cross-correlation scores based on ion mobilograms
