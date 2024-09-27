@@ -144,6 +144,10 @@ static double gaussian(double x, double sigma) {
 // Smooths the PTM-mass histogram using Gaussian Kernel Density Estimation (KDE).
 static DeltaMassHistogram smoothDeltaMassHist(const DeltaMassHistogram& hist, double sigma = 0.001)
 {
+    if(hist.size() < 3)
+    {
+      return hist; //Not enough data points for smoothing 
+    }
     // Create a smoothed histogram with a fuzzy comparator for floating-point keys
     DeltaMassHistogram smoothed_hist(FuzzyDoubleComparator(1e-9));
 
@@ -163,7 +167,6 @@ static DeltaMassHistogram smoothDeltaMassHist(const DeltaMassHistogram& hist, do
     std::vector<double> smoothed_counts(n, 0.0);
 
     // Perform Gaussian smoothing
-    #pragma omp parallel for  // Parallelize the outer loop if OpenMP is available
     for (size_t i = 0; i < n; ++i)
     {
         double weight_sum = 0.0;
@@ -971,14 +974,14 @@ protected:
     setValidStrings_("variable_modifications", all_mods);
 
     //FDR and misc 
-    
-    registerDoubleOption_("q_value_threshold", "<double>", 0.01, "The FDR threshhold for filtering peptides", false, false); 
+
+    registerDoubleOption_("q_value_threshold", "<double>", 1, "The FDR threshhold for filtering peptides", false, false); 
     registerStringOption_("annotate_matches", "<bool>", "true", "If the matches should be annotated (default: false),", false, false); 
     registerStringOption_("deisotope", "<bool>", "false", "Sets deisotope option (true or false), default: false", false, false ); 
     registerStringOption_("chimera", "<bool>", "false", "Sets chimera option (true or false), default: false", false, false  ); 
     registerStringOption_("predict_rt",  "<bool>", "false", "Sets predict_rt option (true or false), default: false", false, false ); 
     registerStringOption_("wide_window", "<bool>", "false", "Sets wide_window option (true or false), default: false", false, false);
-    registerStringOption_("smoothing", "<bool>", "false", "Should the PTM histogram be smoothed and local maxima be picked. If false, uses raw data, default: false", false, false);  
+    registerStringOption_("smoothing", "<bool>", "true", "Should the PTM histogram be smoothed and local maxima be picked. If false, uses raw data, default: false", false, false);  
     registerIntOption_("threads", "<int>", 1, "Amount of threads available to the program", false, false); 
 
     // register peptide indexing parameter (with defaults for this search engine)
@@ -1117,13 +1120,12 @@ protected:
         }
       }
     }
-
+    
     String smoothing_string = getStringOption_("smoothing"); 
     bool smoothing = !(smoothing_string.compare("true")); 
 
     const  pair<DeltaMassHistogram, DeltaMasstoCharge> resultsClus =  getDeltaClusterCenter(peptide_identifications, smoothing, false); 
     vector<PeptideIdentification> mapD = mapDifftoMods(resultsClus.first, resultsClus.second, peptide_identifications, 0.01, false, output_file); //peptide_identifications; 
-
     // remove hits without charge state assigned or charge outside of default range (fix for downstream bugs). TODO: remove if all charges annotated in sage
     IDFilter::filterPeptidesByCharge(peptide_identifications, 2, numeric_limits<int>::max());
     

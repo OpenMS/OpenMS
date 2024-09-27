@@ -67,8 +67,7 @@ namespace OpenMS
     bool SageAnnotation)
   {
     CsvFile csv(pin_file, '\t');
-
-    // TODO: make it work also without tsv file or sage result
+    
     //Sage Variables, initialized in the following block if SageAnnotation is set 
     map<int, vector<PeptideHit::PeakAnnotation>> anno_mapping; 
     CsvFile tsv; 
@@ -85,8 +84,6 @@ namespace OpenMS
       String anno_file_path = pin_file.substr(0, pin_file.size()-temp_diff.length());
       anno_file_path = anno_file_path + "matched_fragments.sage.tsv"; 
       annos = CsvFile(anno_file_path, '\t'); 
-      
-
       //map PSMID to vec of PeakAnnotation 
       StringList sage_tsv_header;
       tsv.getRow(0, sage_tsv_header); 
@@ -231,6 +228,7 @@ namespace OpenMS
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: line " + String(i) + " of file '" + pin_file + "' does not have the same number of columns as the pin_header!", String(i));
       }
 
+
       if (file_name_column_index >= 0)
       {
         raw_file_name = row[file_name_column_index];
@@ -240,7 +238,6 @@ namespace OpenMS
           map_filename_to_idx[raw_file_name] = filenames.size() - 1;
         }
       }
-
       // NOTE: In our pin files that we WRITE, SpecID will be filename + vendor spectrum native ID
       // However, many search engines (e.g. Sage) choose arbitrary IDs, which is unfortunately allowed
       //  by this loosely defined format.
@@ -249,14 +246,12 @@ namespace OpenMS
       if (auto it = to_idx.find("ion_mobility"); it != to_idx.end())
       {
         const String& sIM = row[it->second];
-        const double IM = sIM.toDouble();  
-        pids.back().setMetaValue(Constants::UserParam::IM, IM);
+        const double IM = sIM.toDouble();   
+        if(!pids.empty())  pids.back().setMetaValue(Constants::UserParam::IM, IM);
       }
-
       // In theory, this should be an integer, but Sage currently cannot extract the number from all vendor spectrum IDs,
       //  so it writes the full ID as string
       String sScanNr = row[to_idx.at("ScanNr")];
-
       if (sSpecId != spec_id)
       {
         pids.resize(pids.size() + 1);
@@ -265,10 +260,6 @@ namespace OpenMS
         pids.back().setMetaValue(Constants::UserParam::ID_MERGE_INDEX, map_filename_to_idx.at(raw_file_name));
         pids.back().setRT(row[to_idx.at("retentiontime")].toDouble() * 60.0); // search engines typically write minutes (e.g., sage)
         pids.back().setMetaValue("PinSpecId", sSpecId);  
-        if(SageAnnotation)
-        {   
-          pids.back().setMetaValue("spectrum_q", t_row[to_idx_t.at("spectrum_q")].toDouble());  //TODO: check if column exists / SAGE specific treatment
-        }
         // Since ScanNr is the closest to help in identifying the spectrum in the file later on,
         // we use it as spectrum_reference. Since it can be integer only or the complete
         // vendor ID, you will need a lookup in case of number only later!!
@@ -358,7 +349,6 @@ namespace OpenMS
         ph.setMetaValue("spectrum_q", t_row[to_idx_t.at("spectrum_q")].toDouble());  //TODO: check if column exists / SAGE specific treatment
       }
       ph.setMetaValue("DeltaMass", ( row[to_idx.at("ExpMass")].toDouble() - row[to_idx.at("CalcMass")].toDouble()) ); //TODO: check if column exists / SAGE specific treatment
-
       // add annotations
       if(SageAnnotation)
       {
@@ -373,7 +363,6 @@ namespace OpenMS
           ph.setPeakAnnotations(pep_vec);        
         } 
       }
-
       // add link to protein (we only know the accession but not start/end, aa_before/after in protein at this point)
       for (const String& accession : accessions)
       {
