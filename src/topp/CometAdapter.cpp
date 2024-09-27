@@ -97,6 +97,14 @@ protected:
 
   map<string,int> num_enzyme_termini {{"semi",1},{"fully",2},{"C-term unspecific", 8},{"N-term unspecific",9}};
 
+  std::string generateSetString_(const char residue) const
+  {
+    std::string set_str = "set_";
+    set_str += residue;
+    set_str += "_residue";
+    return set_str;
+  }
+
   void registerOptionsAndFlags_() override
   {
 
@@ -129,7 +137,7 @@ protected:
     //registerIntOption_("mass_type_fragment", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
     //registerIntOption_("precursor_tolerance_type", "<num>", 0, "0=average masses, 1=monoisotopic masses", false, false);
     registerStringOption_(Constants::UserParam::ISOTOPE_ERROR, "<choice>", "off", "This parameter controls whether the peptide_mass_tolerance takes into account possible isotope errors in the precursor mass measurement. Use -8/-4/0/4/8 only for SILAC.", false, false);
-    setValidStrings_(Constants::UserParam::ISOTOPE_ERROR, ListUtils::create<String>("off,0/1,0/1/2,0/1/2/3,-1/0/1/2/3,-1/0/1"));
+    setValidStrings_(Constants::UserParam::ISOTOPE_ERROR, ListUtils::create<String>("off,0/1,0/1/2,0/1/2/3,-1/0/1/2/3,-1/0/1,-3/-2/-1/0/1/2/3,-8/-4/0/4/8"));
 
     //Fragment Ions
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.01,
@@ -209,14 +217,12 @@ protected:
     registerIntOption_("spectrum_batch_size", "<posnum>", 20000, "max. number of spectra to search at a time; use 0 to search the entire scan range in one batch", false, true);
     setMinInt_("spectrum_batch_size", 0);
     registerDoubleList_("mass_offsets", "<doubleoffset1, doubleoffset2,...>", {0.0}, "One or more mass offsets to search (values subtracted from deconvoluted precursor mass). Has to include 0.0 if you want the default mass to be searched.", false, true);
-    registerStringOption_("pinfile_protein_delimiter", "<delimiter>", "\t", "specify a different character or string for the protein column delimiter (default tab)",false, false);
+    registerStringOption_("pinfile_protein_delimiter", "<delimiter>", "\t", "specify a different character or string for the protein column delimiter (default tab)", false, true);
     
     for (char residue = 'A'; residue <= 'Z'; ++residue)
     {
-      std::string set_str = "set_";
-      set_str += residue;
-      set_str += "_residue";
-      registerDoubleOption_(set_str, "<mass>", 0.0, "Specify the base mass of any residue, it will apply to both the average and monoisotopic masses (default 0.0)", false,true);
+      std::string set_str = generateSetString_(residue);
+      registerDoubleOption_(set_str, "<mass>", 0.0, "Redefine the base mass of this residue; applies to both the average and monoisotopic mass (default of 0.0 will use Comet's default masses)", false, true);
     }
 
     // spectral processing
@@ -545,11 +551,8 @@ protected:
     os << "mass_offsets = " << ListUtils::concatenate(getDoubleList_("mass_offsets"), " ") << "\n"; // one or more mass offsets to search (values subtracted from deconvoluted precursor mass)
     os << "precursor_NL_ions =\n"; //  one or more precursor neutral loss masses, will be added to xcorr analysis 
     os << "pinfile_protein_delimiter = " << getStringOption_("pinfile_protein_delimiter") << "\n";
-    os << "set_A_residue = " << getDoubleOption_("set_A_residue") << "\n";
     for (char residue = 'A'; residue <= 'Z'; ++residue) {
-      std::string set_str = "set_";
-      set_str += residue;
-      set_str += "_residue";
+      std::string set_str = generateSetString_(residue);
       if (getDoubleOption_(set_str)) { 
         os << set_str << " = " << getDoubleOption_(set_str) << "\n";
       }
