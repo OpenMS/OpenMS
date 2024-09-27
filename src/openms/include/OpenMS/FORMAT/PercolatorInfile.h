@@ -52,6 +52,7 @@ namespace OpenMS
       * @param decoy_prefix The prefix used to identify decoy protein accessions. Proteins with accessions starting with this prefix are marked as decoys. Otherwise, it assumes that the pin file already contains the correctly annotated decoy status.
       * @param threshold A double value representing the threshold for the `spectrum_q` value. Only spectra with `spectrum_q` below this threshold are processed.
                          Implemented to allow prefiltering of Sage results.
+      * @param SageAnnotation A boolean value used to determine if the pin file is coming from Sage or not 
       * @return A `std::vector` of `PeptideIdentification` objects containing the peptide identifications.
       
       * @throws `Exception::ParseError` if any line in the input file does not have the expected number of columns.

@@ -971,6 +971,7 @@ protected:
     setValidStrings_("variable_modifications", all_mods);
 
     //FDR and misc 
+    
     registerDoubleOption_("q_value_threshold", "<double>", 0.01, "The FDR threshhold for filtering peptides", false, false); 
     registerStringOption_("annotate_matches", "<bool>", "true", "If the matches should be annotated (default: false),", false, false); 
     registerStringOption_("deisotope", "<bool>", "false", "Sets deisotope option (true or false), default: false", false, false ); 
