@@ -158,7 +158,6 @@ namespace OpenMS
  
     // determine extra scores and store column indices
     std::set<String> found_extra_scores; // additional (non-main) scores that should be stored in the PeptideHit, order important for comparable idXML  
-    int cou = 0; 
     for (const String& s : extra_scores)
     {
       if (auto it = std::find(pin_header.begin(), pin_header.end(), s); it != pin_header.end())
@@ -213,14 +212,13 @@ namespace OpenMS
       StringList row;
       csv.getRow(i, row);
 
-      //TODO: check if TSV exists (e.g., SAGE was run)
       StringList t_row; 
 
-      if(SageAnnotation)
+      if (SageAnnotation)
       {
         tsv.getRow(i, t_row); 
         // skip if spectrum_q is above threshold
-        if( t_row[to_idx_t.at("spectrum_q")].toDouble() > threshold ) continue;
+        if (t_row[to_idx_t.at("spectrum_q")].toDouble() > threshold ) continue;
       }
 
       if (row.size() != pin_header.size())
@@ -247,7 +245,7 @@ namespace OpenMS
       {
         const String& sIM = row[it->second];
         const double IM = sIM.toDouble();   
-        if(!pids.empty())  pids.back().setMetaValue(Constants::UserParam::IM, IM);
+        if (!pids.empty())  pids.back().setMetaValue(Constants::UserParam::IM, IM);
       }
       // In theory, this should be an integer, but Sage currently cannot extract the number from all vendor spectrum IDs,
       //  so it writes the full ID as string
@@ -345,12 +343,12 @@ namespace OpenMS
       ph.setRank(rank);
 
       // adding own meta values 
-      if(SageAnnotation){
-        ph.setMetaValue("spectrum_q", t_row[to_idx_t.at("spectrum_q")].toDouble());  //TODO: check if column exists / SAGE specific treatment
+      if (SageAnnotation){
+        ph.setMetaValue("spectrum_q", t_row[to_idx_t.at("spectrum_q")].toDouble());  
       }
-      ph.setMetaValue("DeltaMass", ( row[to_idx.at("ExpMass")].toDouble() - row[to_idx.at("CalcMass")].toDouble()) ); //TODO: check if column exists / SAGE specific treatment
+      ph.setMetaValue("DeltaMass", ( row[to_idx.at("ExpMass")].toDouble() - row[to_idx.at("CalcMass")].toDouble()) ); 
       // add annotations
-      if(SageAnnotation)
+      if (SageAnnotation)
       {
         if (anno_mapping.find(sSpecId.toInt()) != anno_mapping.end())
         {

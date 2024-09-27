@@ -139,12 +139,11 @@ static double gaussian(double x, double sigma) {
     return exp(-(x*x) / (2 * sigma*sigma)) / (sigma * sqrt(2 * M_PI));
 }
 
-
 // Smooths the PTM-mass histogram , uses a Kernel Density Estimation on top of the histogram. 
 // Smooths the PTM-mass histogram using Gaussian Kernel Density Estimation (KDE).
 static DeltaMassHistogram smoothDeltaMassHist(const DeltaMassHistogram& hist, double sigma = 0.001)
 {
-    if(hist.size() < 3)
+    if (hist.size() < 3)
     {
       return hist; //Not enough data points for smoothing 
     }
@@ -244,8 +243,6 @@ static DeltaMassHistogram findPeaksInDeltaMassHistogram(const DeltaMassHistogram
     return peaks;
 }
 
-
-
 // Returns the maxima of a histogram from the delta masses of each peptide.
 std::pair<DeltaMassHistogram, DeltaMasstoCharge> getDeltaClusterCenter(const std::vector<PeptideIdentification>& pips, bool smoothing = false, bool debug = false)
 {
@@ -292,8 +289,7 @@ std::pair<DeltaMassHistogram, DeltaMasstoCharge> getDeltaClusterCenter(const std
     }
 
     // Prepare results
-    std::pair<DeltaMassHistogram, DeltaMasstoCharge> results;
-    
+    std::pair<DeltaMassHistogram, DeltaMasstoCharge> results;   
     results = { hist, num_charges_at_mass };
 
     // Apply smoothing if requested
@@ -315,7 +311,6 @@ std::pair<DeltaMassHistogram, DeltaMasstoCharge> getDeltaClusterCenter(const std
 
     return results;
 }
-
 
 //Fucntion that maps a selection of masses to certain PTMs and returns a summary of said PTMs. Also adds PTM for each petide without in-peptide localization. 
 vector<PeptideIdentification> mapDifftoMods(DeltaMassHistogram hist, DeltaMasstoCharge charge_hist, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 5, bool precursor_mass_tolerance_unit_ppm = true, String outfile = "")
@@ -472,7 +467,7 @@ vector<PeptideIdentification> mapDifftoMods(DeltaMassHistogram hist, DeltaMassto
         }
       }
     }
-    if(fabs(mod_mass) <  precursor_mass_tolerance_) continue; //If the closest mod_mass is too close to 0, continue
+    if (fabs(mod_mass) <  precursor_mass_tolerance_) continue; //If the closest mod_mass is too close to 0, continue
 
     if (mapping_found)
     {
@@ -544,7 +539,6 @@ vector<PeptideIdentification> mapDifftoMods(DeltaMassHistogram hist, DeltaMassto
           h.setMetaValue("PTM", PTM);
       }
   }
-
   // Remove 'idxml' from output file name and write the table
   String output_tab = outfile.substr(0, outfile.size() - 5) + "_OutputTable.tsv";
   std::ofstream outfile_stream(output_tab);
@@ -581,9 +575,6 @@ vector<PeptideIdentification> mapDifftoMods(DeltaMassHistogram hist, DeltaMassto
 
   // Close the file
   outfile_stream.close();
-
-
-
 
   //Return the peptides with the additional PTM column 
   return pips; 
@@ -859,20 +850,17 @@ protected:
     String variable_mods_details = getModDetailsString(variable_mod_map);
 
     //Treat variables as list for sage v0.15 and beyond 
-
     StringList static_mods_details_list; 
     StringList variable_mods_details_list; 
-
 
     String static_mods_details_split = static_mods_details; 
     String variable_mods_details_split = variable_mods_details; 
     static_mods_details_split.split(",", static_mods_details_list); 
     variable_mods_details_split.split(",", variable_mods_details_list); 
 
-
-
-  String temp_String_var; 
-     for(auto& x : variable_mods_details_list){
+    String temp_String_var; 
+    for (auto& x : variable_mods_details_list)
+    {
       StringList temp_split; 
       x.split(":", temp_split); 
       
@@ -880,13 +868,12 @@ protected:
       temp_split.insert(temp_split.end(), "]"); 
       String temp_split_Str = ""; 
 
-      for(auto& y : temp_split){
+      for (auto& y : temp_split)
+      {
         temp_split_Str = temp_split_Str + y; 
       } 
       temp_String_var = temp_String_var + "," + temp_split_Str ; 
     } 
-
-  
     String temp_String_var_Fin = temp_String_var.substr(1, temp_String_var.size()-1); 
     config_file.substitute("##static_mods##", static_mods_details);
     config_file.substitute("##variable_mods##", temp_String_var_Fin);
@@ -989,7 +976,6 @@ protected:
   }
 
 
-
   ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
@@ -1038,7 +1024,7 @@ protected:
 
     QStringList arguments;
 
-  if( (getStringOption_("annotate_matches").compare("true")) == 0)
+  if ( (getStringOption_("annotate_matches").compare("true")) == 0)
   {
     arguments << config_file.toQString() 
               << "-f" << fasta_file.toQString() 
