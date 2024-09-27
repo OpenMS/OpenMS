@@ -309,7 +309,14 @@ namespace OpenMS
     
     isotope_filtering_model_ = param_.getValue("isotope_filtering_model").toString();
     use_smoothed_intensities_ = param_.getValue("use_smoothed_intensities").toBool();
-    report_smoothed_intensities_ = use_smoothed_intensities_ && param_.getValue("report_smoothed_intensities").toBool();
+    bool use_smoothed = param_.getValue("use_smoothed_intensities").toBool();
+    bool report_smoothed = param_.getValue("report_smoothed_intensities").toBool();
+    if (report_smoothed && !use_smoothed) {
+      OPENMS_LOG_WARN << "Warning: 'report_smoothed_intensities' is set to true, but 'use_smoothed_intensities' is false. Ignoring 'report_smoothed_intensities'." << std::endl;
+      report_smoothed = false;
+    }
+    use_smoothed_intensities_ = use_smoothed;
+    report_smoothed_intensities_ = report_smoothed;
 
     use_mz_scoring_C13_ = param_.getValue("mz_scoring_13C").toBool();
     report_convex_hulls_ = param_.getValue("report_convex_hulls").toBool();
