@@ -265,7 +265,7 @@ namespace OpenMS
 
     defaults_.setValue("use_smoothed_intensities", "true", "Use LOWESS intensities instead of raw intensities.", {"advanced"});
     defaults_.setValidStrings("use_smoothed_intensities", {"false","true"});
-    defaults_.setValue("report_smoothed_intensities", "true", "Report smoothed intenstities (only if use_smoothed_intensities is true).", {"advanced"});
+    defaults_.setValue("report_smoothed_intensities", "true", "Report smoothed intensities (only if use_smoothed_intensities is true).", {"advanced"});
     defaults_.setValidStrings("report_smoothed_intensities", {"false","true"});
     
     defaults_.setValue("report_convex_hulls", "false", "Augment each reported feature with the convex hull of the underlying mass traces (increases featureXML file size considerably).");
