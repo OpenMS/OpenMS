@@ -84,6 +84,10 @@ because of limitations in OpenMS' data structures and file formats.
 
 #define CHRONOSET
 
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
+
 
 
 class TOPPSageAdapter :
@@ -251,7 +255,7 @@ std::pair<DeltaMassHistogram, DeltaMasstoCharge> getDeltaClusterCenter(const std
     constexpr double delta_mass_zero_treshold = 0.05;
 
     // Lambda to round values to the specified tolerance
-    auto roundToTolerance = [](double value) {
+    auto roundToTolerance = [deltamass_tolerance](double value) {
         return std::round(value / deltamass_tolerance) * deltamass_tolerance;
     };
 
