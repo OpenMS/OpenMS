@@ -194,6 +194,9 @@ public:
     /// Returns a link to the documentation of the tool (accessible on our servers and only after inclusion in the nightly branch or a release).
     String getDocumentationURL() const;
 
+    /// The latest and greatest OpenMS citation
+    static const Citation cite_openms;
+
   private:
     /// Tool name.  This is assigned once and for all in the constructor.
     String const tool_name_;
@@ -990,9 +993,6 @@ protected:
 
     /// .TOPP.ini file for storing system default parameters
     static String topp_ini_file_;
-
-    /// The OpenMS citation
-    static const Citation cite_openms_;
 
     /// Debug level set by -debug
     Int debug_level_;

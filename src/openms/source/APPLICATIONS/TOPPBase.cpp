@@ -64,7 +64,7 @@ namespace OpenMS
   using namespace Exception;
 
   String TOPPBase::topp_ini_file_ = String(QDir::homePath()) + "/.TOPP.ini";
-  const Citation TOPPBase::cite_openms_
+  const Citation TOPPBase::cite_openms
     = {"Pfeuffer, J., Bielow, C., Wein, S. et al.", "OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data",
        "Nat Methods (2024)", "10.1038/s41592-024-02197-7"};
 
@@ -566,7 +566,7 @@ namespace OpenMS
        << bright("Full documentation: ") << underline(docurl)  // the space is needed, otherwise the remaining line will be underlined on Windows..
        << "\n"
        << bright("Version: ") << verboseVersion_ << "\n"
-       << bright("To cite OpenMS:\n") << " + " << is.indent(3) << cite_openms_.toString() 
+       << bright("To cite OpenMS:\n") << " + " << is.indent(3) << cite_openms.toString() 
        << is.indent(0) << "\n";
     if (!citations_.empty())
     {
@@ -2410,7 +2410,7 @@ namespace OpenMS
       // collect citation information
       std::vector<std::string> citation_dois;
       citation_dois.reserve(citations_.size() + 1);
-      citation_dois.push_back(cite_openms_.doi);
+      citation_dois.push_back(cite_openms.doi);
       for (auto& citation : citations_)
       {
         citation_dois.push_back(citation.doi);
