@@ -150,6 +150,7 @@
       <ITEM name="XTandemID" value="[K]|[X]" type="string" />
       <ITEM name="OMSSAID" value="6" type="int" />
       <ITEM name="MSGFID" value="3" type="int" />
+      <ITEM name="CometID" value="13" type="int" />
     </NODE>
     <NODE name="PepsinA">
       <ITEM name="Name" value="PepsinA" type="string" />
@@ -210,6 +211,7 @@
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIID" value="MS:1001915" type="string" />
       <ITEM name="XTandemID" value="[ALIV]|{P}" type="string" />
+      <ITEM name="CometID" value="14" type="int" />
     </NODE>
     <NODE name="proline endopeptidase">
       <ITEM name="Name" value="proline endopeptidase" type="string" />

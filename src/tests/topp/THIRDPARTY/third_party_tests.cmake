@@ -127,7 +127,7 @@ endif()
 if (NOT (${SAGE_BINARY} STREQUAL "SAGE_BINARY-NOTFOUND"))
   ### NOT needs to be added after the binarys have been included
   add_test("TOPP_SageAdapter_1" ${TOPP_BIN_PATH}/SageAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/SageAdapter_1.ini -database  ${DATA_DIR_TOPP}/THIRDPARTY/SageAdapter_1.fasta -in  ${DATA_DIR_TOPP}/THIRDPARTY/SageAdapter_1.mzML -out SageAdapter_1_out.tmp.idXML -sage_executable "${SAGE_BINARY}")
-  add_test("TOPP_SageAdapter_1_out1" ${DIFF} -in1 SageAdapter_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SageAdapter_1_out.idXML -whitelist "search_engine_version" "IdentificationRun date" "spectra_data" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"SageAdapter:1:in\" value=" "UserParam type=\"string\" name=\"SageAdapter:1:database\" value=" "UserParam type=\"string\" name=\"SageAdapter:1:sage_executable\" value=")
+  add_test("TOPP_SageAdapter_1_out1" ${DIFF} -in1 SageAdapter_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SageAdapter_1_out.idXML -whitelist "search_engine_version" "IdentificationRun date" "spectra_data" "SearchParameters id="SP_0" db=" "UserParam type="stringList" name="SageAdapter:1:in" value=" "UserParam type="string" name="SageAdapter:1:database" value=" "UserParam type="string" name="SageAdapter:1:sage_executable" value=" "fragment_annotation")
   set_tests_properties("TOPP_SageAdapter_1_out1" PROPERTIES DEPENDS "TOPP_SageAdapter_1")
 endif()
 

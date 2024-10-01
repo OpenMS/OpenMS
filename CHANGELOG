@@ -13,13 +13,26 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 #<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit e.g. https://github.com/OpenMS/OpenMS/pull/XXXX (replace XXXX with number of interest) for details
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.2.0     (under development)              ----
+----                                OpenMS 3.3.0     (under development)              ----
 ------------------------------------------------------------------------------------------
+
+- FileInfo:
+    - support MzTab files (#7568)
+
+
+------------------------------------------------------------------------------------------
+----                                OpenMS 3.2.0                                      ----
+------------------------------------------------------------------------------------------
+
+
 
 What's new:
 - Changes breaking backwards compatibility: 
    - Rename of parameters for TOPP tool FeatureFinderCentroided (debug -> advanced), and PeakPickerWavelet/TOFCalibration (optimization -> optimization:type) (#7154)
    - Rename of parameters for TOPP tool IDFilter (score:pep -> score:psm; score:prot -> score:protein; score:protgroup -> score:proteingroup) with 'nan' as new default (#7541)
+   - 3.2.0 KNIME package requires KNIME 5.3 or later
+- Support for SubsetNeighborSearch (SNS) via DecoyDatabase (#7565)
+- SageAdapter received large updates including added functionality for PTM discovery + enabling features such as chimera seach, RT prediction, filtering by q-value, etc. 
 
 Library:
 - Extend FileHandler to support load and store operations for our major datastructures (spectra, features, identifications, etc.). Replaced file type specific code with the more generic FileHandler calls to decouple the IO code from other parts of the library.
@@ -36,6 +49,7 @@ New Tools:
 - AssayGeneratorMetaboSirius -- Assay library generation from a SIRIUS project directory (Metabolomics)
 - SiriusExport -- Metabolite identification using single and tandem mass spectrometry
 
+
 Fixes:
 - FileConverter: more robust (#7176)
 - MSFragger: allow relative path to database (#7155)
@@ -50,11 +64,11 @@ Fixes:
 - TOPPAS: open files in TOPPView (#7213)
 - pyOpenMS: Log warnings in pure Python code with warnings.warn instead of print (#7418)
 - more robust parsing of mzIdentML (#7153)
+- SageAdapter now works with sage v0.15.0 and beyond
+- OpenSwath: Fix bug in diaPASEF window determination (#7546)  
 
 Misc:
-- FileInfo:
-    - Report IM ranges (if any) (#7459)
-    - support Mztab files (#7568)
+- FileInfo: Report ion mobility ranges (if any) (#7459)
 - OpenMSInfo reports the ILP solver (CoinOr or glpk) (#7156)
 - add citation information for OpenMS 3.0 (Nat. Methods) (#7383)
 - Add export for Common Workflow Language (CWL) (#6156)
