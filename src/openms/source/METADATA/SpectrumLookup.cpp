@@ -318,11 +318,18 @@ namespace OpenMS
       boost::sregex_token_iterator current_begin(native_id.begin(), native_id.end(), regexp, subgroups);
       boost::sregex_token_iterator current_end(native_id.end(), native_id.end(), regexp, subgroups);
       matches.insert(matches.end(), current_begin, current_end);
+
+      if (matches.size() < subgroups.size()) {
+          OPENMS_LOG_WARN << "native_id '" << native_id <<"' is invalid. Could not extract scan number." << std::endl;
+          return -1;
+      }
+
       if (subgroups.size() == 1) // default case: one native identifier
       {
         try
         {
-          String value = String(matches[0]);
+          // In case of merged spectra the last native id matches the scan number of the merged scan.
+          String value = String(matches[matches.size() - 1]);
           if (native_id_type_accession == "MS:1000774")
           {
             return value.toInt() + 1; // if the native ID is index=.., the scan number is usually considered index+1 (especially for pepXML)
@@ -334,7 +341,7 @@ namespace OpenMS
         }
         catch (Exception::ConversionError&)
         {
-          OPENMS_LOG_WARN << "Value: '" << String(matches[0]) << "' could not be converted to int in string. Native ID='" << native_id << "'" << std::endl;
+          OPENMS_LOG_WARN << "Value: '" << String(matches[matches.size() - 1]) << "' could not be converted to int in string. Native ID='" << native_id << "'" << std::endl;
           return -1;
         }
       }
@@ -342,19 +349,23 @@ namespace OpenMS
       {
         try
         {
-          if (String(matches[1]).toInt() < 1000) // checks if value of experiment is smaller than 1000 (cycle * 1000 + experiment)
+          // In case of merged spectra the last native id matches the scan number of the merged scan.
+          String cycle_str = matches[matches.size() - 2];
+          String experiment_str = matches[matches.size() - 1];
+
+          if (experiment_str.toInt() < 1000) // checks if value of experiment is smaller than 1000 (cycle * 1000 + experiment)
           {
-            int value = String(matches[0]).toInt() * 1000 + String(matches[1]).toInt();
+            int value = cycle_str.toInt() * 1000 + experiment_str.toInt();
             return value; 
           }
           else
           {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The value of experiment is too large and can not be handled properly.", String(matches[1]));
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The value of experiment is too large and can not be handled properly.", experiment_str);
           }
         }
         catch (Exception::ConversionError&)
         {
-          OPENMS_LOG_WARN << "Value: '" << String(matches[0]) << "' could not be converted to int in string. Native ID='" 
+          OPENMS_LOG_WARN << "Values: '" << matches[matches.size() - 2] << "', '" << matches[matches.size() - 1] << "' could not be converted to int in string. Native ID='" 
             << native_id << "' accession='" << native_id_type_accession << "'" << std::endl;
           return -1;
         }
