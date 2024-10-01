@@ -318,7 +318,7 @@ namespace OpenMS
       boost::sregex_token_iterator current_begin(native_id.begin(), native_id.end(), regexp, subgroups);
       boost::sregex_token_iterator current_end(native_id.end(), native_id.end(), regexp, subgroups);
       matches.insert(matches.end(), current_begin, current_end);
-      if (matches.size() == 1) // default case: one native identifier
+      if (subgroups.size() == 1) // default case: one native identifier
       {
         try
         {
@@ -338,7 +338,7 @@ namespace OpenMS
           return -1;
         }
       }
-      else if (matches.size() == 2) // special case: wiff file with two native identifiers
+      else if (subgroups.size() == 2) // special case: wiff file with two native identifiers
       {
         try
         {
