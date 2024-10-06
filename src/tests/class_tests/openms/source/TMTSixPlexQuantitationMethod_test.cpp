@@ -113,8 +113,8 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
   {
     for(size_t j = 0; j < m.cols(); ++j)
     {
-      if (i == j) { TEST_EQUAL(m(i,j) > 0.5) } // diagonal entries should be largest
-      else { TEST_EQUAL(m(i,j) < 0.5) }
+      if (i == j) { TEST_TRUE(m(i,j) > 0.5) } // diagonal entries should be largest
+      else { TEST_TRUE(m(i,j) < 0.5) }
     }
   }
 }
