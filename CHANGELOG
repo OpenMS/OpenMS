@@ -1,6 +1,3 @@
-
-
-
 Glossary:
 OpenMS - Name of the project and our C++ library
 TOPP - "The OpenMS PiPeline", collection of chainable tools for flexible HPLC/MS workflows. Formerly known as "The OpenMS Proteomics Pipeline"
@@ -16,16 +13,22 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ----                                OpenMS 3.3.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
+What's new:
+- Changes breaking backwards compatibility: 
+  - the QualityControl TOPP tool has some renamed parameters and supports output directories (#7497)
+
+Misc:
 - FileInfo:
     - support MzTab files (#7568)
+- TOPPAS 
+    - supports writing results to output directories  (for TOPP tools which have such parameters) (#7497)
+    - TOPPAS tutorial enhanced (#7497)
 - FeatureFinderMetabo
     - added report_smoothed_intensities parameter (#7594)
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.2.0                                      ----
+----                                OpenMS 3.2.0       (released 09/2024)             ----
 ------------------------------------------------------------------------------------------
-
-
 
 What's new:
 - Changes breaking backwards compatibility: 

@@ -22,6 +22,11 @@ namespace OpenMS
   {
   }
 
+  std::unique_ptr<TOPPASVertex> TOPPASMergerVertex::clone() const
+  {
+    return std::make_unique<TOPPASMergerVertex>(*this);
+  }
+
   String TOPPASMergerVertex::getName() const
   {
     return "MergerVertex";
