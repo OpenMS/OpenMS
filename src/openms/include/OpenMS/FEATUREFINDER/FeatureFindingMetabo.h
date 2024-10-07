@@ -306,7 +306,8 @@ private:
     bool enable_RT_filtering_;
     String isotope_filtering_model_;
     bool use_smoothed_intensities_;
-    
+    bool report_smoothed_intensities_;
+
     bool use_mz_scoring_C13_;
     bool use_mz_scoring_by_element_range_;
     bool report_convex_hulls_;

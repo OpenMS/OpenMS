@@ -18,7 +18,8 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 
 - FileInfo:
     - support MzTab files (#7568)
-
+- FeatureFinderMetabo
+    - added report_smoothed_intensities parameter (#7594)
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.2.0                                      ----
