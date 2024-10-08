@@ -1731,13 +1731,13 @@ namespace OpenMS
       //TODO: add CV for no variable modification searched when it is available
     }
 
-    if (!md.site.isNull())
+    if (!mod_md.site.isNull())
     {
       String s = "MTD\tvariable_mod[" + String(it->first) + String("]-site\t") + mod_md.site.toCellString();
       sl.push_back(s);
     }
 
-    if (!md.position.isNull())
+    if (!mod_md.position.isNull())
     {
       String s = "MTD\tvariable_mod[" + String(it->first) + String("]-position\t")+ mod_md.position.toCellString();
       sl.push_back(s);
