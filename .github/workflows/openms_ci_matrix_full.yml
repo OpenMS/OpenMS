@@ -458,7 +458,7 @@ jobs:
         type: 'tar'
         directory: ${{ github.workspace }}
         path: OpenMS
-        exclusions: 'bld/* ./OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz THIRDPARTY/* .git/*'
+        exclusions: 'bld/* ./OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz ./THIRDPARTY/** .git/*'
         filename: 'OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz'
 
         
@@ -909,7 +909,7 @@ jobs:
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
-          ln -s ../$folder latest  #create link to the release folder
+          ln -s ./$folder latest  #create link to the release folder
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/knime-plugin/updateSite/release"
 
   do-release:

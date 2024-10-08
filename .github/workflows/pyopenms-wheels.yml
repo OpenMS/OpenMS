@@ -596,6 +596,6 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
-        repository-url: https://test.pypi.org/
+        repository-url: https://pypi.org/
         password: ${{ secrets.pypi_api_token_release }}
         packages-dir: ${{ github.workspace }}/wheels
