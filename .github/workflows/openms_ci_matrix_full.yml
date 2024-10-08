@@ -587,7 +587,7 @@ jobs:
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
-          ln -s ./$folder latest  #create link to the release folder
+          ln -s ../$folder latest  #create link to the release folder
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/OpenMSInstaller/release"
 
       - name: create RELEASE_TEXT
