@@ -21,6 +21,7 @@ ConsensusMapMergerAlgorithm.cpp
 FalseDiscoveryRate.cpp
 FIAMSDataProcessor.cpp
 FIAMSScheduler.cpp
+FragmentIndex.cpp
 HyperScore.cpp
 IDBoostGraph.cpp
 IDConflictResolverAlgorithm.cpp
@@ -36,6 +37,7 @@ MetaboliteSpectralMatching.cpp
 MorpheusScore.cpp
 NeighborSeq.cpp
 PeptideProteinResolution.cpp
+PeptideSearchEngineAlgorithm.cpp
 PeptideIndexing.cpp
 PercolatorFeatureSetHelper.cpp
 PrecursorPurity.cpp

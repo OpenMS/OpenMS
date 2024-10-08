@@ -101,6 +101,7 @@ OpenSwathRTNormalizer
 PeakPickerHiRes
 PeakPickerIterative
 PeptideIndexer
+PeptideSearchEngine
 PercolatorAdapter
 PhosphoScoring
 ProteinInference

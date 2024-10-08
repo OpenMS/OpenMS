@@ -151,6 +151,7 @@ namespace OpenMS
     tools_map["PeakPickerHiRes"] = Internal::ToolDescription("PeakPickerHiRes", cat_centroiding);
     tools_map["PeakPickerIterative"] = Internal::ToolDescription("PeakPickerIterative", cat_centroiding);
     tools_map["PeptideIndexer"] = Internal::ToolDescription("PeptideIndexer", cat_ID_proc);
+    tools_map["PeptideSearchEngine"] = Internal::ToolDescription("PeptideSearchEngine", cat_ID_search);
     tools_map["PercolatorAdapter"] = Internal::ToolDescription("PercolatorAdapter", cat_ID_proc);
     tools_map["PhosphoScoring"] = Internal::ToolDescription("PhosphoScoring", cat_ID_proc);
     tools_map["ProteinInference"] = Internal::ToolDescription("ProteinInference", cat_ID_proc);
