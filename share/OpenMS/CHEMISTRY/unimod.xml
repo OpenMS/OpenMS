@@ -46143,7 +46143,50 @@ derivative" spec_group="5"/>
             <umod:element symbol="N" number="3"/>
          </umod:delta>
       </umod:mod>
-
+       <umod:mod title="PhosphoDecoy" full_name="Phosphorylation Decoy" username_of_poster="yperez"
+                 group_of_poster="admin"
+                 date_time_posted="2002-08-19 19:17:11"
+                 date_time_modified="2018-08-13 13:42:59"
+                 approved="0"
+                 record_id="99992">
+           <umod:specificity hidden="0" site="A" position="Anywhere" classification="Post-translational" spec_group="1">
+               <umod:NeutralLoss mono_mass="97.976896" avge_mass="97.9952" flag="false" composition="H(3) O(4) P">
+                   <umod:element symbol="H" number="3"/>
+                   <umod:element symbol="O" number="4"/>
+                   <umod:element symbol="P" number="1"/>
+               </umod:NeutralLoss>
+               <umod:NeutralLoss mono_mass="0" avge_mass="0" flag="false" composition="0"/>
+           </umod:specificity>
+           <umod:specificity hidden="0" site="L" position="Anywhere" classification="Post-translational" spec_group="1">
+               <umod:NeutralLoss mono_mass="0" avge_mass="0" flag="false" composition="0"/>
+               <umod:NeutralLoss mono_mass="97.976896" avge_mass="97.9952" flag="false"
+                                 composition="H(3) O(4) P">
+                   <umod:element symbol="H" number="3"/>
+                   <umod:element symbol="O" number="4"/>
+                   <umod:element symbol="P" number="1"/>
+               </umod:NeutralLoss>
+           </umod:specificity>
+           <umod:specificity hidden="0" site="G" position="Anywhere" classification="Post-translational" spec_group="1">
+               <umod:NeutralLoss mono_mass="0" avge_mass="0" flag="false" composition="0"/>
+               <umod:NeutralLoss mono_mass="97.976896" avge_mass="97.9952" flag="false"
+                                 composition="H(3) O(4) P">
+                   <umod:element symbol="H" number="3"/>
+                   <umod:element symbol="O" number="4"/>
+                   <umod:element symbol="P" number="1"/>
+               </umod:NeutralLoss>
+           </umod:specificity>
+           <umod:delta mono_mass="79.966331" avge_mass="79.9799" composition="H O(3) P">
+               <umod:element symbol="H" number="1"/>
+               <umod:element symbol="O" number="3"/>
+               <umod:element symbol="P" number="1"/>
+           </umod:delta>
+           <umod:xref>
+               <umod:text>Research Mansucript</umod:text>
+               <umod:source>Misc. URL</umod:source>
+               <umod:url>https://pubs.acs.org/doi/full/10.1021/acs.jproteome.1c00827</umod:url>
+           </umod:xref>
+           <umod:misc_notes>Phospho Decoy can be used to compute FLR in phospho proteomics experiments, the method is called pAla</umod:misc_notes>
+       </umod:mod>
    </umod:modifications>
    <umod:amino_acids>
       <umod:aa title="-" three_letter="" full_name="" mono_mass="0.0" avge_mass="0.0"/>
