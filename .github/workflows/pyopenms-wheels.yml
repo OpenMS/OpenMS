@@ -242,7 +242,7 @@ jobs:
           conda remove --name pyoms-bld-"${pynodot}" --all
 
           # clean previous pyopenms libs
-          find . -name "pyopenms*.so" -exec rm -rf {} \;
+          find . -name "_pyopenms*.so" -exec rm -rf {} \;
 
         done
 
@@ -358,7 +358,7 @@ jobs:
           conda remove --name pyoms-bld-"${pynodot}" --all
 
           # clean previous pyopenms libs
-          find . -name "pyopenms*.so" -exec rm -rf {} \;
+          find . -name "_pyopenms*.so" -exec rm -rf {} \;
 
         done
         
