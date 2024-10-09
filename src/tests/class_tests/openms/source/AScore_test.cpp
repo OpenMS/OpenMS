@@ -26,7 +26,7 @@ class AScoreTest : public AScore
       return computeSiteDeterminingIons_(th_spectra, candidates, site_determining_ions);
     }
 
-    std::vector<Size> getSitesTest_(String without_phospho) const {
+    std::vector<Size> getSitesTest_(String& without_phospho) const {
       return getSites_(without_phospho);
     }
 
