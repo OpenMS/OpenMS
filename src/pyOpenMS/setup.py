@@ -14,6 +14,20 @@ if isosx:
 import sys
 no_optimization = False
 
+def check_avx_support():
+    """Check if the CPU supports AVX instruction set."""
+    try:
+        from cpuinfo import get_cpu_info()
+        info = get_cpu_info()
+
+        # Check for AVX support
+        if 'avx' not in info['flags']:
+            sys.stderr.write("ERROR: The CPU (or virtualization environment) does not support AVX. AVX support is necessary for pyOpenMS.\n")
+            sys.exit(1)
+    except ImportError:
+        sys.stderr.write("ERROR: 'py-cpuinfo' is required to check AVX support.\n")
+        sys.exit(1)
+
 if "--no-optimization" in sys.argv:
     no_optimization = True
     sys.argv.remove("--no-optimization")
@@ -221,6 +235,9 @@ if not iswin:
 mnames = ["_pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
 ext = []
 
+## Check if the CPU support AVX and throw an error if it doesn't
+check_avx_support()
+
 ##WARNING debug
 libraries.extend("boost_regex-mt-x64")
 
@@ -256,7 +273,8 @@ setup(
 	install_requires=[
           'numpy<=1.26.4',
           'pandas',
-          'matplotlib>=3.5'
+          'matplotlib>=3.5',
+          'py-cpuinfo' ## Needed to check if our CPU supports AVX
     ],
 
     version=package_version,
