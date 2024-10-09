@@ -21,12 +21,12 @@ def check_avx_support():
         info = get_cpu_info()
 
         # Check for AVX support
-        if 'avx' not in info['flags']:
-            sys.stderr.write("ERROR: The CPU (or virtualization environment) does not support AVX. AVX support is necessary for pyOpenMS.\n")
-            sys.exit(1)
+    if 'flags' not in info:
+        raise RuntimeError("ERROR: Cannot determine if AVX is supported. Something is wrong with get_cpu_info.\n")
+    elif 'avx' not in info['flags']:
+        raise RuntimeError("ERROR: The CPU (or virtualization environment) does not support AVX. AVX support is necessary for pyOpenMS.\n")
     except ImportError:
-        sys.stderr.write("ERROR: 'py-cpuinfo' is required to check AVX support.\n")
-        sys.exit(1)
+        raise RuntimeError("ERROR: 'py-cpuinfo' is required to check AVX support.\n")
 
 if "--no-optimization" in sys.argv:
     no_optimization = True
