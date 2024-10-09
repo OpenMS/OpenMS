@@ -17,7 +17,7 @@ no_optimization = False
 def check_avx_support():
     """Check if the CPU supports AVX instruction set."""
     try:
-        from cpuinfo import get_cpu_info()
+        from cpuinfo import get_cpu_info
         info = get_cpu_info()
 
         # Check for AVX support
