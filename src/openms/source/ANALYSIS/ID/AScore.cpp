@@ -382,7 +382,7 @@ namespace OpenMS
            / 7.0;
   }
 
-  vector<Size> AScore::getSites_(String& unmodified) const
+  vector<Size> AScore::getSites_(const String& unmodified) const
   {
     vector<Size> tupel;
     for (Size i = 0; i < unmodified.size(); ++i)
