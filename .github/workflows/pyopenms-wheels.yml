@@ -118,7 +118,7 @@ jobs:
           pip install -U pip
           pip install -U autowrap
           pip install -U pytest
-          pip install -U numpy
+          pip install -U numpy >=1.23.5
           pip install -U wheel
 
           echo $CURRENT_PYTHON_EXECUTABLE
@@ -226,7 +226,7 @@ jobs:
           pip install -U pip
           pip install -U autowrap
           pip install -U pytest
-          pip install -U numpy
+          pip install -U numpy >=1.23.5
           pip install -U wheel
           pip install -U pandas
 
@@ -342,7 +342,7 @@ jobs:
           pip install -U pip
           pip install -U autowrap
           pip install -U pytest
-          pip install -U numpy
+          pip install -U numpy >=1.23.5
           pip install -U wheel
           pip install -U pandas
 
