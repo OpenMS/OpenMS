@@ -75,18 +75,21 @@ void TMTElevenPlexQuantitationMethod::setDefaultParams_()
     defaults_.setValue("reference_channel", "126", "The reference channel (126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131N, 131C).");
     defaults_.setValidStrings("reference_channel", TMTElevenPlexQuantitationMethod::channel_names_);
 
-    defaults_.setValue("correction_matrix", std::vector<std::string>{"0.0/0.0/0.0/0.0",
-                                                                              "0.0/0.0/0.0/0.0",
-                                                                              "0.0/0.0/0.0/0.0",
-                                                                              "0.0/0.0/0.0/0.0",
-                                                                              "0.0/0.0/0.0/0.0",
-                                                                              "0.0/0.0/0.0/0.0",
-                                                                              "0.0/0.0/0.0/0.0",
-                                                                              "0.0/0.0/0.0/0.0",
-                                                                              "0.0/0.0/0.0/0.0",
-                                                                              "0.0/0.0/0.0/0.0",
-                                                                              "0.0/0.0/0.0/0.0"},
-                       "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
+    // default: Product Number: A37725 Lot Number: ZF395505
+    defaults_.setValue("correction_matrix", std::vector<std::string>{
+        "0.0/0.0/8.6/0.3",
+        "0.0/0.1/7.8/0.1",
+        "0.0/0.8/6.9/0.1",
+        "0.0/7.4/7.4/0.0",
+        "0.0/1.5/6.2/0.2",
+        "0.0/1.5/5.7/0.1",
+        "0.0/2.6/4.8/0.0",
+        "0.0/2.2/4.6/0.0",
+        "0.0/2.8/4.5/0.1",
+        "0.1/2.9/3.8/0.0",
+        "0.0/3.9/2.8/0.0"
+        }, 
+        "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
 
     defaultsToParam_();
 }

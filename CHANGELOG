@@ -1,6 +1,4 @@
 
-
-
 Glossary:
 OpenMS - Name of the project and our C++ library
 TOPP - "The OpenMS PiPeline", collection of chainable tools for flexible HPLC/MS workflows. Formerly known as "The OpenMS Proteomics Pipeline"
@@ -13,19 +11,42 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 #<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit e.g. https://github.com/OpenMS/OpenMS/pull/XXXX (replace XXXX with number of interest) for details
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.2.0     (under development)              ----
+----                                OpenMS 3.3.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
 What's new:
-- Breaking change: Rename of parameters for FeatureFinderCentroided (debug->advanced), and PeakPickerWavelet/TOFCalibration (optimization -> optimization:type) (#7154)
+- Changes breaking backwards compatibility: 
+  - the QualityControl TOPP tool has some renamed parameters and supports output directories (#7497)
+
+Misc:
+- FileInfo:
+    - support MzTab files (#7568)
+- TOPPAS 
+    - supports writing results to output directories  (for TOPP tools which have such parameters) (#7497)
+    - TOPPAS tutorial enhanced (#7497)
+- FeatureFinderMetabo
+    - added report_smoothed_intensities parameter (#7594)
+
+------------------------------------------------------------------------------------------
+----                                OpenMS 3.2.0       (released 09/2024)             ----
+------------------------------------------------------------------------------------------
+
+What's new:
+- Changes breaking backwards compatibility: 
+   - Rename of parameters for TOPP tool FeatureFinderCentroided (debug -> advanced), and PeakPickerWavelet/TOFCalibration (optimization -> optimization:type) (#7154)
+   - Rename of parameters for TOPP tool IDFilter (score:pep -> score:psm; score:prot -> score:protein; score:protgroup -> score:proteingroup) with 'nan' as new default (#7541)
+   - 3.2.0 KNIME package requires KNIME 5.3 or later
+- Support for SubsetNeighborSearch (SNS) via DecoyDatabase (#7565)
+- SageAdapter received large updates including added functionality for PTM discovery + enabling features such as chimera seach, RT prediction, filtering by q-value, etc. 
 
 Library:
 - Extend FileHandler to support load and store operations for our major datastructures (spectra, features, identifications, etc.). Replaced file type specific code with the more generic FileHandler calls to decouple the IO code from other parts of the library.
 - SiriusAdapter reworked to SiriusExport: Instead of running SIRIUS directly, this reworked tool takes multiple mzML and feautureXML (optional) files exporting a single SIRIUS .ms input file as well as an input table with compound info from features for the new AssayGeneratorMetaboSirius tool. (#7234)
 - Splitting AssayGeneratorMetabo into two tools: In line with the changes to SiriusExport this tool has been split into two separate workflows. AssayGeneratorMetabo generates an assay library from mzML and feautreXML files using an heuristic approach picking the highest intensity MS2 peaks (like before). AssayGeneratorMetaboSirius takes an existing SIRIUS project directory as input to generate an assay library based on fragmentation trees. (#7234)
 - better documentation for all SpectraFilter... tools (#7183)
-- TOPPView: offer Ion mobility view from 2D spectra view (#7423)
-- TOPPView: view ion mobility frames, irrespective of its MS level (formerly only MS1 was supported) (#7427)
+- TOPPView: 
+  - offer Ion mobility view from 2D spectra view (#7423)
+  - view ion mobility frames, irrespective of its MS level (formerly only MS1 was supported) (#7427)
 - OpenSwath: Add output on peak shape metrics to .osw file (#7222)
 
 New Tools:
@@ -33,20 +54,26 @@ New Tools:
 - AssayGeneratorMetaboSirius -- Assay library generation from a SIRIUS project directory (Metabolomics)
 - SiriusExport -- Metabolite identification using single and tandem mass spectrometry
 
+
 Fixes:
 - FileConverter: more robust (#7176)
 - MSFragger: allow relative path to database (#7155)
 - MSGFPlusAdapter: allow concurrent creation of indexed database (#7272)
 - CometAdapter: work around bug in Comet 2024.01 rev. 0 to avoid empty results (#7540)
 - ParamEditor: fixed error for the subsection parameter (ParamNode) to go through store function (#7180)
-- TOPPView: fix crash when viewing certain Chromatograms (#7220)
-- TOPPView: in 2D view, show correct adjacent layers in context menu, if user clicked to the right of the last MS1 scan (now shows the 4 rightmost MS1 scans, used to show the 4 leftmost scans) (#7423)
+- TOPPView:
+   - fix crash when viewing certain Chromatograms (#7220)
+   - in 2D view, show correct adjacent layers in context menu, if user clicked to the right of the last MS1 scan (now shows the 4 rightmost MS1 scans, used to show the 4 leftmost scans) (#7423)
+   - fix glitches in 1D view and layer names (#7549)
+   - Show prefix ions (e.g. b1) when generating theoretical spectra (#7567)
 - TOPPAS: open files in TOPPView (#7213)
 - pyOpenMS: Log warnings in pure Python code with warnings.warn instead of print (#7418)
 - more robust parsing of mzIdentML (#7153)
+- SageAdapter now works with sage v0.15.0 and beyond
+- OpenSwath: Fix bug in diaPASEF window determination (#7546)  
 
 Misc:
-- FileInfo: Report IM ranges (if any) (#7459)
+- FileInfo: Report ion mobility ranges (if any) (#7459)
 - OpenMSInfo reports the ILP solver (CoinOr or glpk) (#7156)
 - add citation information for OpenMS 3.0 (Nat. Methods) (#7383)
 - Add export for Common Workflow Language (CWL) (#6156)
