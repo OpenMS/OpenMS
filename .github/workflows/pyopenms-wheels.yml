@@ -300,7 +300,7 @@ jobs:
         ## Update the package lists for Brew
         brew update
         ## Needed for Qt. Install before to overwrite the default softlinks on the GH runners
-        brew install python@3.13 --force --overwrite
+        brew install python@3.12 --force --overwrite
         brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
         brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@5 libomp
         echo "cmake_prefix=$(brew --prefix qt@5)/lib/cmake;$(brew --prefix qt@5)" >> $GITHUB_OUTPUT
