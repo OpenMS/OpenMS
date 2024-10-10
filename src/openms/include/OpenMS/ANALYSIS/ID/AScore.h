@@ -124,7 +124,7 @@ namespace OpenMS
     void computeSiteDeterminingIons_(const std::vector<PeakSpectrum>& th_spectra, const ProbablePhosphoSites& candidates, std::vector<PeakSpectrum>& site_determining_ions) const;
 
     /// return all phospho sites
-    std::vector<Size> getSites_(const AASequence& without_phospho) const;
+    std::vector<Size> getSites_(const String& unmodified_sequence) const;
 
     /// calculate all n_phosphorylation_events sized sets of phospho sites (all versions of the peptides with exactly n_phosphorylation_events)
     std::vector<std::vector<Size>> computePermutations_(const std::vector<Size>& sites, Int n_phosphorylation_events) const;
