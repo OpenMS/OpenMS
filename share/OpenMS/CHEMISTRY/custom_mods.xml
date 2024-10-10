@@ -11,51 +11,6 @@
              xsi:schemaLocation="http://www.unimod.org/xmlns/schema/unimod_2 http://www.unimod.org/xmlns/schema/unimod_2/unimod_2.xsd"
              majorVersion="2"
              minorVersion="0">
-	<umod:elements>
-		<umod:elem title="H" full_name="Hydrogen" avge_mass="1.00794" mono_mass="1.007825035"/>
-		<umod:elem title="2H" full_name="Deuterium" avge_mass="2.014101779"
-                 mono_mass="2.014101779"/>
-		<umod:elem title="Li" full_name="Lithium" avge_mass="6.941" mono_mass="7.016003"/>
-		<umod:elem title="C" full_name="Carbon" avge_mass="12.0107" mono_mass="12"/>
-		<umod:elem title="13C" full_name="Carbon13" avge_mass="13.00335483"
-                 mono_mass="13.00335483"/>
-		<umod:elem title="N" full_name="Nitrogen" avge_mass="14.0067" mono_mass="14.003074"/>
-		<umod:elem title="15N" full_name="Nitrogen15" avge_mass="15.00010897"
-                 mono_mass="15.00010897"/>
-		<umod:elem title="O" full_name="Oxygen" avge_mass="15.9994" mono_mass="15.99491463"/>
-		<umod:elem title="18O" full_name="Oxygen18" avge_mass="17.9991603" mono_mass="17.9991603"/>
-		<umod:elem title="F" full_name="Fluorine" avge_mass="18.9984032" mono_mass="18.99840322"/>
-		<umod:elem title="Na" full_name="Sodium" avge_mass="22.98977" mono_mass="22.9897677"/>
-		<umod:elem title="P" full_name="Phosphorous" avge_mass="30.973761" mono_mass="30.973762"/>
-		<umod:elem title="S" full_name="Sulfur" avge_mass="32.065" mono_mass="31.9720707"/>
-		<umod:elem title="Cl" full_name="Chlorine" avge_mass="35.453" mono_mass="34.96885272"/>
-		<umod:elem title="K" full_name="Potassium" avge_mass="39.0983" mono_mass="38.9637074"/>
-		<umod:elem title="Ca" full_name="Calcium" avge_mass="40.078" mono_mass="39.9625906"/>
-		<umod:elem title="Fe" full_name="Iron" avge_mass="55.845" mono_mass="55.9349393"/>
-		<umod:elem title="Ni" full_name="Nickel" avge_mass="58.6934" mono_mass="57.9353462"/>
-		<umod:elem title="Zn" full_name="Zinc" avge_mass="65.409" mono_mass="63.9291448"/>
-		<umod:elem title="Se" full_name="Selenium" avge_mass="78.96" mono_mass="79.9165196"/>
-		<umod:elem title="Br" full_name="Bromine" avge_mass="79.904" mono_mass="78.9183361"/>
-		<umod:elem title="Ag" full_name="Silver" avge_mass="107.8682" mono_mass="106.905092"/>
-		<umod:elem title="Hg" full_name="Mercury" avge_mass="200.59" mono_mass="201.970617"/>
-		<umod:elem title="Au" full_name="Gold" avge_mass="196.96655" mono_mass="196.966543"/>
-		<umod:elem title="I" full_name="Iodine" avge_mass="126.90447" mono_mass="126.904473"/>
-		<umod:elem title="Mo" full_name="Molybdenum" avge_mass="95.94" mono_mass="97.9054073"/>
-		<umod:elem title="Cu" full_name="Copper" avge_mass="63.546" mono_mass="62.9295989"/>
-		<umod:elem title="e" full_name="electron" avge_mass="0.000549" mono_mass="0.000549"/>
-		<umod:elem title="B" full_name="Boron" avge_mass="10.811" mono_mass="11.0093055"/>
-		<umod:elem title="As" full_name="Arsenic" avge_mass="74.9215942" mono_mass="74.9215942"/>
-		<umod:elem title="Cd" full_name="Cadmium" avge_mass="112.411" mono_mass="113.903357"/>
-		<umod:elem title="Cr" full_name="Chromium" avge_mass="51.9961" mono_mass="51.9405098"/>
-		<umod:elem title="Co" full_name="Cobalt" avge_mass="58.933195" mono_mass="58.9331976"/>
-		<umod:elem title="Mn" full_name="Manganese" avge_mass="54.938045" mono_mass="54.9380471"/>
-		<umod:elem title="Mg" full_name="Magnesium" avge_mass="24.305" mono_mass="23.9850423"/>
-		<umod:elem title="Pd" full_name="Palladium" avge_mass="106.42" mono_mass="105.903478"/>
-		<umod:elem title="Al" full_name="Aluminium" avge_mass="26.9815386" mono_mass="26.9815386"/>
-		<umod:elem title="Pt" full_name="Platinum" avge_mass="195.084" mono_mass="194.964766"/>
-		<umod:elem title="Ru" full_name="Ruthenium" avge_mass="101.07" mono_mass="101.9043485"/>
-		<umod:elem title="Si" full_name="Silicon" avge_mass="28.085" mono_mass="27.9769271"/>
-	</umod:elements>
 	<umod:modifications>
 		<umod:mod title="CUSTOM0"
         full_name="custom modification 0"
