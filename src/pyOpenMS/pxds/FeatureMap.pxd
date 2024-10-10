@@ -42,8 +42,8 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
 
         int size()  except + nogil 
         Feature & operator[](size_t)      except + nogil  #wrap-upper-limit:size()
-        void push_back(Feature spec) except + nogil 
-        void push_back(MRMFeature spec) except + nogil 
+        void push_back(Feature spec) except + nogil  # wrap-as:append_feature
+        void push_back(MRMFeature spec) except + nogil # wrap-as:append_mrmfeature
 
         void sortByIntensity() except + nogil  # wrap-doc:Sorts the peaks according to ascending intensity
         void sortByIntensity(bool reverse) except + nogil  # wrap-doc:Sorts the peaks according to ascending intensity. Order is reversed if argument is `true` ( reverse = true )
