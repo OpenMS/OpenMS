@@ -567,13 +567,10 @@ START_SECTION(calculateCumulativeBinominalProbabilityScore)
     {
       n_first += ptr_test->numberOfMatchedIonsTest_(site_determining_ions[0], windows_top10[depth], s_it->peak_depth);
     }
-    // check time to compute
-    double init_time = clock();
+
     double P_first = ptr_test->computeCumulativeScoreTest_(N, n_first, p);
     P_first = -10 * log10(P_first);
     TEST_REAL_SIMILAR(P_first, 53.5336889240929);
-    // print time took to compute
-    cout << "Time to compute: " << (clock() - init_time) / CLOCKS_PER_SEC << " seconds" << endl;
   }
 }
 END_SECTION
