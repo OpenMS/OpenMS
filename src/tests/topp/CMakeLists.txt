@@ -753,9 +753,43 @@ set_tests_properties("TOPP_FileMerger_11_out1" PROPERTIES DEPENDS "TOPP_FileMerg
 #------------------------------------------------------------------------------
 # FLASHDeconv tests
 add_test("TOPP_FLASHDeconv_1" ${TOPP_BIN_PATH}/FLASHDeconv -test -in ${DATA_DIR_TOPP}/FLASHDeconv_sample_input.mzML -out FLASHDeconv_1.tmp.tsv)
-# Currently just testing if the tool runs
-# We cannot currently test the correctness of the tsv output
-# FuzzyDiff cannot give out tolerances/whitelist for tabular format outputs (.tsv)
+add_test("TOPP_FLASHDeconv_1_out_1" ${DIFF} -in1 FLASHDeconv_1.tmp.tsv -in2 ${DATA_DIR_TOPP}/FLASHDeconv_1.tsv )
+set_tests_properties("TOPP_FLASHDeconv_1_out_1" PROPERTIES DEPENDS "TOPP_FLASHDeconv_1") 
+
+# test a mzML file with only MS2 and argument -out_spec: FLASHDeconv_2_spec1.tsv will only contain the header
+add_test("TOPP_FLASHDeconv_2" ${TOPP_BIN_PATH}/FLASHDeconv -test -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out FLASHDeconv_2.tmp.tsv -out_spec FLASHDeconv_2_spec1.tmp.tsv FLASHDeconv_2_spec2.tmp.tsv)
+add_test("TOPP_FLASHDeconv_2_out_1" ${DIFF} -in1 FLASHDeconv_2.tmp.tsv -in2 ${DATA_DIR_TOPP}/FLASHDeconv_2.tsv )
+set_tests_properties("TOPP_FLASHDeconv_2_out_1" PROPERTIES DEPENDS "TOPP_FLASHDeconv_2") 
+add_test("TOPP_FLASHDeconv_2_out_spec1" ${DIFF} -in1 FLASHDeconv_2_spec1.tmp.tsv -in2 ${DATA_DIR_TOPP}/FLASHDeconv_2_spec1.tsv )
+set_tests_properties("TOPP_FLASHDeconv_2_out_spec1" PROPERTIES DEPENDS "TOPP_FLASHDeconv_2") 
+add_test("TOPP_FLASHDeconv_2_out_spec2" ${DIFF} -in1 FLASHDeconv_2_spec2.tmp.tsv -in2 ${DATA_DIR_TOPP}/FLASHDeconv_2_spec2.tsv )
+set_tests_properties("TOPP_FLASHDeconv_2_out_spec2" PROPERTIES DEPENDS "TOPP_FLASHDeconv_2") 
+
+# test a mzML file with 3 levels and test -out_topFD, -out_topFD_feature 
+add_test("TOPP_FLASHDeconv_3" ${TOPP_BIN_PATH}/FLASHDeconv -test -in ${DATA_DIR_TOPP}/MS3_nonHierarchical.mzML -out FLASHDeconv_3.tmp.tsv -out_spec FLASHDeconv_3_spec1.tmp.csv FLASHDeconv_3_spec2.tmp.csv FLASHDeconv_3_spec3.tmp.csv -out_topFD FLASHDeconv_3_msalign1.tmp.txt FLASHDeconv_3_msalign2.tmp.txt FLASHDeconv_3_msalign3.tmp.txt -out_topFD_feature FLASHDeconv_3_feature1.tmp.txt FLASHDeconv_3_feature2.tmp.txt FLASHDeconv_3_feature3.tmp.txt)
+add_test("TOPP_FLASHDeconv_3_out_1" ${DIFF} -in1 FLASHDeconv_3.tmp.tsv -in2 ${DATA_DIR_TOPP}/FLASHDeconv_3.tsv )
+set_tests_properties("TOPP_FLASHDeconv_3_out_1" PROPERTIES DEPENDS "TOPP_FLASHDeconv_3") 
+
+add_test("TOPP_FLASHDeconv_3_out_spec1" ${DIFF} -in1 FLASHDeconv_3_spec1.tmp.tsv -in2 ${DATA_DIR_TOPP}/FLASHDeconv_3_spec1.tsv )
+set_tests_properties("TOPP_FLASHDeconv_3_out_spec1" PROPERTIES DEPENDS "TOPP_FLASHDeconv_3") 
+add_test("TOPP_FLASHDeconv_3_out_spec2" ${DIFF} -in1 FLASHDeconv_3_spec2.tmp.tsv -in2 ${DATA_DIR_TOPP}/FLASHDeconv_3_spec2.tsv )
+set_tests_properties("TOPP_FLASHDeconv_3_out_spec2" PROPERTIES DEPENDS "TOPP_FLASHDeconv_3") 
+add_test("TOPP_FLASHDeconv_3_out_spec3" ${DIFF} -in1 FLASHDeconv_3_spec3.tmp.tsv -in2 ${DATA_DIR_TOPP}/FLASHDeconv_3_spec3.tsv )
+set_tests_properties("TOPP_FLASHDeconv_3_out_spec3" PROPERTIES DEPENDS "TOPP_FLASHDeconv_3") 
+
+add_test("TOPP_FLASHDeconv_3_out_msalign1" ${DIFF} -in1 FLASHDeconv_3_msalign1.tmp.txt -in2 ${DATA_DIR_TOPP}/FLASHDeconv_3_msalign1.txt )
+set_tests_properties("TOPP_FLASHDeconv_3_out_msalign1" PROPERTIES DEPENDS "TOPP_FLASHDeconv_3") 
+add_test("TOPP_FLASHDeconv_3_out_msalign2" ${DIFF} -in1 FLASHDeconv_3_msalign2.tmp.txt -in2 ${DATA_DIR_TOPP}/FLASHDeconv_3_msalign2.txt )
+set_tests_properties("TOPP_FLASHDeconv_3_out_msalign2" PROPERTIES DEPENDS "TOPP_FLASHDeconv_3") 
+add_test("TOPP_FLASHDeconv_3_out_msalign3" ${DIFF} -in1 FLASHDeconv_3_msalign3.tmp.txt -in2 ${DATA_DIR_TOPP}/FLASHDeconv_3_msalign3.txt )
+set_tests_properties("TOPP_FLASHDeconv_3_out_msalign3" PROPERTIES DEPENDS "TOPP_FLASHDeconv_3") 
+
+add_test("TOPP_FLASHDeconv_3_out_feature1" ${DIFF} -in1 FLASHDeconv_3_feature1.tmp.txt -in2 ${DATA_DIR_TOPP}/FLASHDeconv_3_feature1.txt )
+set_tests_properties("TOPP_FLASHDeconv_3_out_feature1" PROPERTIES DEPENDS "TOPP_FLASHDeconv_3") 
+add_test("TOPP_FLASHDeconv_3_out_feature2" ${DIFF} -in1 FLASHDeconv_3_feature2.tmp.txt -in2 ${DATA_DIR_TOPP}/FLASHDeconv_3_feature2.txt )
+set_tests_properties("TOPP_FLASHDeconv_3_out_feature2" PROPERTIES DEPENDS "TOPP_FLASHDeconv_3") 
+add_test("TOPP_FLASHDeconv_3_out_feature3" ${DIFF} -in1 FLASHDeconv_3_feature3.tmp.txt -in2 ${DATA_DIR_TOPP}/FLASHDeconv_3_feature3.txt )
+set_tests_properties("TOPP_FLASHDeconv_3_out_feature3" PROPERTIES DEPENDS "TOPP_FLASHDeconv_3") 
 
 #------------------------------------------------------------------------------
 # GNPSExport tests
