@@ -72,6 +72,12 @@ namespace OpenMS
 
         MetaInfoDescription meta; ///< Meta data description
 
+        // mzMLb has an XML part for meta data and HDF5 data sets storing the binary data arrays
+        // during parsing of the XML part, these references to the HDF5 data is filled
+        std::string mzMLb_dataset;
+        Int64 mzMLb_offset{};
+        Int64 mzMLb_array_length{};
+
         /// Constructor
         BinaryData() :
           precision(PRE_NONE),

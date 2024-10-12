@@ -29,6 +29,10 @@ set(sources_list
   XQuestResultXMLHandler.cpp
 )
 
+if (WITH_HDF5)
+  list(APPEND sources_list_h MzMLbBinaryDataArrayLoader.cpp)
+endif()
+
 ### add path to the filenames
 set(sources)
 foreach(i ${sources_list})

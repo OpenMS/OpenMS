@@ -20,6 +20,10 @@
 
 #include <map>
 
+#ifdef WITH_HDF5
+#include <OpenMS/FORMAT/HANDLERS/MzMLbBinaryDataArrayLoader.h>
+#endif  
+
 namespace OpenMS::Internal
 {
 
@@ -54,10 +58,6 @@ namespace OpenMS::Internal
       }
       pg_outer = logger; // inherit the logtype etc
     }
-
-
-    /// Destructor
-    MzMLHandler::~MzMLHandler() = default;
 
     /// Set the peak file options
     void MzMLHandler::setOptions(const PeakFileOptions& opt)
@@ -294,6 +294,7 @@ namespace OpenMS::Internal
       }
     }
 
+    // decodes binary data arrays into MSSpectrum
     void MzMLHandler::populateSpectraWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
                                                Size& default_arr_length,
                                                const PeakFileOptions& peak_file_options,
@@ -301,8 +302,24 @@ namespace OpenMS::Internal
     {
       typedef SpectrumType::PeakType PeakType;
 
-      // decode all base64 arrays
-      MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
+      // mzMLb: here we need a customization point to either 
+      // - decode the spectra from Base64 (mzML)
+      // - or load them from the HDF5 dataset encoded in the binary data object (mzMLb)
+#ifdef WITH_HDF5       
+      if (!mzMLb_binary_data_array_loader_)
+#endif      
+      {
+        // decode all base64 arrays
+        MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
+      }
+      else // mzMLb mode
+      {
+#ifdef WITH_HDF5        
+        // loads and fill binary data arrays from HDF5 using the 
+        // dataset, offset and length stored in the BinaryData object 
+        mzMLb_binary_data_array_loader_->fill(input_data);
+#endif        
+      }
 
       //look up the precision and the index of the intensity and m/z array
       bool mz_precision_64 = true;
@@ -1239,6 +1256,7 @@ namespace OpenMS::Internal
           // append current spectral data to buffer
           spectrum_data_.push_back(std::move(tmp));
 
+          // buffer full? then decode data!
           if (spectrum_data_.size() >= options_.getMaxDataPoolSize())
           {
             populateSpectraWithData_();
@@ -1375,7 +1393,7 @@ namespace OpenMS::Internal
         }
 
         if (!MzMLHandlerHelper::handleBinaryDataArrayCVParam(bin_data_, accession, value, name, unit_accession))
-        {
+        {          
           if (!cv_.isChildOf(accession, "MS:1000513")) //other array names as string
           {
             warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
@@ -5321,7 +5339,6 @@ namespace OpenMS::Internal
         }
         writeBinaryDataArray_(os, pf_options_, data_to_encode, true, array_type);
       }
-
     }
 
     template <typename DataType>
@@ -5491,6 +5508,19 @@ namespace OpenMS::Internal
       os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
       os << "\t\t\t\t\t</binaryDataArray>\n";
     }
+
+#ifdef WITH_HDF5
+      /// set a custom binary data loader for mzMLb
+      void MzMLHandler::setBinaryDataArrayLoader(std::unique_ptr<OpenMS::HDF5::MzMLbBinaryDataArrayLoader>&& bdl)
+      {
+        mzMLb_binary_data_array_loader_ = std::move(bdl);
+      }
+#endif
+
+    /// Destructor (Note: needs to be defaulted in the implementation file *after* the unique_ptr above is introduced). 
+    /// Otherwise, the compiler only knows the partial type and can't generate the destructor code.
+    /// For additional information search for "pImpl and std::unique_ptr"
+    MzMLHandler::~MzMLHandler() = default;
 
     // We only ever need 2 instances for the following functions: one for Spectra / Chromatograms and one for floats / doubles
     template void MzMLHandler::writeContainerData_<SpectrumType>(std::ostream& os,

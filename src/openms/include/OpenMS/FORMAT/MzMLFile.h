@@ -18,9 +18,16 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
 #include <map>
+#include <memory>
 
 namespace OpenMS
 {
+  #ifdef WITH_HDF5
+    namespace HDF5 {
+      class MzMLbBinaryDataArrayLoader;
+    }
+  #endif
+
   /**
     @brief File adapter for MzML files
 
@@ -63,9 +70,12 @@ public:
 
       @param[in] buffer The buffer with the data (i.e. string with content of an mzML file)
       @param[out] map Is an MSExperiment
+      @param mzmlb_filename If set, will assume the buffer was extracted from the XML blob in an mzMLb 
+                            and use that mzMLb file to retrieve binaryDataArrays (e.g., spectra, chromatograms)
 
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
+    void loadBuffer(const std::string& buffer, PeakMap& map, std::unique_ptr<OpenMS::HDF5::MzMLbBinaryDataArrayLoader>&& bdal);
     void loadBuffer(const std::string& buffer, PeakMap& map);
 
     /**
@@ -197,7 +207,6 @@ protected:
     void safeParse_(const String & filename, Internal::XMLHandler * handler);
 
 private:
-
     /// Options for loading / storing
     PeakFileOptions options_;
 

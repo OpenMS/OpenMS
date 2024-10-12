@@ -372,6 +372,21 @@ namespace OpenMS::Internal
         data.back().unit_multiplier = 60.0;
       }
     }
+    else if (accession == "MS:1002841") // mzMLb accession="MS:1002841" name="external HDF5 dataset" value="spectrum_MS_1000515_double"
+    {
+      data.back().mzMLb_dataset = value;
+      // std::cout << "Found HDF5 dataset reference: " << value << std::endl;
+    }
+    else if (accession == "MS:1002842") // mzMLb accession="MS:1002842" name="external offset" value="304577"
+    {
+      data.back().mzMLb_offset = value.toInt64(); // TODO: check if UInt64 is needed
+      // std::cout << "Found HDF5 offset: " << value.toInt64() << std::endl;
+    }
+    else if (accession == "MS:1002843") // mzMLb accession="MS:1002843" name="external array length" value="636"
+    {
+      data.back().mzMLb_array_length = value.toInt64(); // TODO: check if UInt64 is needed
+      // std::cout << "Found HDF5 array length: " << value.toInt64() << std::endl;
+    }
     else
     {
       // CV term not identified

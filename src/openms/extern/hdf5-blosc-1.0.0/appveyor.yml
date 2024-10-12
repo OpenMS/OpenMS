@@ -1,0 +1,41 @@
+# AppVeyor CI build configuration for Blosc/hdf5-blosc
+# https://github.com/Blosc/hdf5-blosc
+
+init:
+    # Before cloning the repo, configure git to handle line endings correctly.
+    - git config --global core.autocrlf input
+
+    # TODO: Need to download, unpack the HDF5 binaries and headers
+    #       In the environment matrix below, make sure we also build against both HDF5 1.8 and 1.10
+    # TODO: Download, unpack, build c-blosc from sources.
+
+
+version: '{build}'
+
+environment:
+    CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\appveyor\\run_with_env.cmd"
+    VS150COMNTOOLS: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\Tools\\"
+
+    matrix:
+        - GENERATOR: "Visual Studio 10 2010"
+          CONFIG: Release
+
+        - GENERATOR: "Visual Studio 10 2010 Win64"
+          CONFIG: Release
+
+        - GENERATOR: "Visual Studio 12 2013"
+          CONFIG: Release
+
+        - GENERATOR: "Visual Studio 12 Win64"
+          CONFIG: Release
+
+        - GENERATOR: "Visual Studio 14 2015 Win64"
+          CONFIG: Release
+
+build_script:
+  - cmake "-G%GENERATOR%" -H. -B_builds
+  - cmake --build _builds --config "%CONFIG%"
+
+test_script:
+  - ps: cd _builds
+  - ctest -VV -C "%CONFIG%"
