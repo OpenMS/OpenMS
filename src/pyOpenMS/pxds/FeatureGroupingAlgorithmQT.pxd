@@ -28,5 +28,3 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>" na
         # Creates a new instance of this class (for Factory)
         # FeatureGroupingAlgorithm * create() except + nogil 
 
-        # Returns the product name (for the Factory)
-        String getProductName() except + nogil 

@@ -74,68 +74,66 @@ namespace OpenMS
     return mappings;
   }
 
-  void MetaboTargetedTargetDecoy::resolveOverlappingTargetDecoyMassesByIndividualMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add)
+  void MetaboTargetedTargetDecoy::resolveOverlappingTargetDecoyMassesByDecoyMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add, const double& mz_tol, const String& mz_tol_unit)
   {
-    // compare targets and decoy masses
-    for (auto &it : mappings)
-    {
-      std::vector<double> intersection;
-      std::vector<double> replace_intersection;
-      std::vector<double> target_product_masses = it.target_product_masses;
-      std::vector<double> decoy_product_masses = it.decoy_product_masses;
-      std::sort(target_product_masses.begin(), target_product_masses.end());
-      std::sort(decoy_product_masses.begin(), decoy_product_masses.end());
+    // Define a map to hold compound references and their corresponding sets of decoy m/z values.
+    std::map<String, std::set<double>> match_compound_refs_decoy_mz;
 
-      std::set_intersection(target_product_masses.begin(),
-                            target_product_masses.end(),
-                            decoy_product_masses.begin(),
-                            decoy_product_masses.end(),
-                            std::back_inserter(intersection));
+    // Iterate over each mapping in the provided mappings list.
+    for (const auto& map : mappings) {
+        // Create a set to store m/z values that match the criterion.
+        std::set<double> matched;
 
-      if (!intersection.empty())
-      {
-        std::transform(intersection.begin(),
-                       intersection.end(),
-                       std::back_inserter(replace_intersection),
-                       [mass_to_add](double d) -> double { return d + mass_to_add; });
+        // Iterate over each decoy m/z value in the current mapping.
+        for (double decoy_mz : map.decoy_product_masses) {
+            // Compare each decoy m/z value with each target m/z value.
+            for (double target_mz : map.target_product_masses) {
+                // Calculate the difference between decoy and target m/z values.
+                // The calculation differs based on whether the tolerance is in ppm or Da.
+                double difference = (mz_tol_unit == "ppm") ?
+                    std::abs(decoy_mz - target_mz) / target_mz * 1e6 :
+                    std::abs(decoy_mz - target_mz);
 
-        for (Size i = 0; i < replace_intersection.size(); ++i)
-        {
-          std::replace(it.decoy_product_masses.begin(),
-                       it.decoy_product_masses.end(),
-                       intersection[i],
-                       replace_intersection[i]);
+                // If the difference is small than mz_tol, the masses are too similar.
+                if (difference <= mz_tol) {
+                    // Add the decoy m/z to the matched set.
+                    matched.insert(decoy_mz);
+                    break; // Move to the next decoy m/z value after finding a match.
+                }
+            }
         }
-      }
+
+        // Associate the set of matched decoy m/z values with the compound reference in the map.
+        match_compound_refs_decoy_mz[map.decoy_compound_ref] = std::move(matched);
     }
 
-    std::map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap = MetaboTargetedTargetDecoy::constructTransitionsMap_(t_exp);
+    // Prepare a new vector to store updated ReactionMonitoringTransition objects.
+    std::vector<ReactionMonitoringTransition> v_rmt_new;
+    v_rmt_new.reserve(t_exp.getTransitions().size()); // Reserve space to optimize memory allocation.
 
-    // resolve mappings and add to current TargetedExperiment
-    std::vector<OpenMS::ReactionMonitoringTransition> transitions;
+    // Iterate over each transition in the experiment.
+    for (const auto& tr : t_exp.getTransitions()) {
+        // Look for the current transition's compound reference in the map.
+        auto found = match_compound_refs_decoy_mz.find(tr.getCompoundRef());
 
-    for (const auto& it: mappings)
-    {
-      if (!it.target_compound_ref.empty())
-      {
-        std::vector<OpenMS::ReactionMonitoringTransition> target_transitions = TransitionsMap[it.target_compound_ref];
-        transitions.insert(transitions.end(), target_transitions.begin(), target_transitions.end());
-      }
-      if (!it.decoy_compound_ref.empty())
-      {
-        std::vector<OpenMS::ReactionMonitoringTransition> current_decoy_transitions = TransitionsMap[it.decoy_compound_ref];
-        if (it.decoy_product_masses.size() == current_decoy_transitions.size())
-        {
-          for (size_t i = 0; i < it.decoy_product_masses.size(); ++i)
-          {
-            ReactionMonitoringTransition tr = current_decoy_transitions[i]; // old
-            tr.setProductMZ(it.decoy_product_masses[i]); // new
-            transitions.push_back(tr);
-          }
+        // Check if the compound reference is found and if the product m/z matches any in the set.
+        if (found != match_compound_refs_decoy_mz.end() && found->second.count(tr.getProductMZ()) > 0) {
+            // Create a new transition object based on the current transition.
+            ReactionMonitoringTransition new_tr = tr;
+
+            // Modify the product m/z of the new transition.
+            new_tr.setProductMZ(tr.getProductMZ() + mass_to_add);
+
+            // Add the updated transition to the new vector.
+            v_rmt_new.push_back(std::move(new_tr));
+        } else {
+            // If no match is found, add the original transition to the new vector.
+            v_rmt_new.push_back(tr);
         }
-      }
     }
-    t_exp.setTransitions(transitions);
+
+    // Update the experiment's transitions with the new vector of updated transitions.
+    t_exp.setTransitions(std::move(v_rmt_new));
   }
 
   void MetaboTargetedTargetDecoy::generateMissingDecoysByMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add)

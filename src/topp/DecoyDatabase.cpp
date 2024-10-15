@@ -3,19 +3,22 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Sven Nahnsen $
-// $Authors: Sven Nahnsen, Andreas Bertsch, Chris Bielow $
+// $Authors: Sven Nahnsen, Andreas Bertsch, Chris Bielow, Philipp Wang $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/ANALYSIS/ID/NeighborSeq.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
-#include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+
 #include <regex>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -50,10 +53,17 @@ The tool will keep track of all protein identifiers and report duplicates.
 Also the tool automatically checks for decoys already in the input files (based on most common pre-/suffixes)
 and terminates the program if decoys are found.
 
+Extra functionality:
+The Neighbor Peptide functionality (see subsection 'NeighborSearch') is designed to find peptides (neighbors) in a given set of sequences (FASTA file) that are
+similar to a target peptide (aka relevant peptide) based on mass and spectral characteristics. This provides more power
+when searching complex samples, but only a subset of the peptides/proteins is of interest.
+See www.ncbi.nlm.nih.gov/pmc/articles/PMC8489664/ and NeighborSeq for details.
+
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_DecoyDatabase.cli
 <B>INI file documentation of this tool:</B>
 @htmlinclude TOPP_DecoyDatabase.html
+
 */
 
 // We do not want this class to show up in the docu:
@@ -64,7 +74,7 @@ class TOPPDecoyDatabase :
 {
 public:
   TOPPDecoyDatabase() :
-    TOPPBase("DecoyDatabase", "Create decoy sequence database from forward sequence database.")
+    TOPPBase("DecoyDatabase", "Creates combined target+decoy sequence database from forward sequence database.")
   {
   }
 
@@ -72,23 +82,23 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file(s)>", ListUtils::create<String>(""), "Input FASTA file(s), each containing a database. It is recommended to include a contaminant database as well.");
-    setValidFormats_("in", ListUtils::create<String>("fasta"));
-    registerOutputFile_("out", "<file>", "", "Output FASTA file where the decoy database will be written to.");
-    setValidFormats_("out", ListUtils::create<String>("fasta"));
+    setValidFormats_("in", {"fasta"});
+    registerOutputFile_("out", "<file>", "", "Output FASTA file where the decoy database (target + decoy or only decoy, see 'only_decoy') will be written to.");
+    setValidFormats_("out", {"fasta"});
     registerStringOption_("decoy_string", "<string>", "DECOY_", "String that is combined with the accession of the protein identifier to indicate a decoy protein.", false);
     registerStringOption_("decoy_string_position", "<choice>", "prefix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?", false);
-    setValidStrings_("decoy_string_position", ListUtils::create<String>("prefix,suffix"));
+    setValidStrings_("decoy_string_position", {"prefix", "suffix"});
     registerFlag_("only_decoy", "Write only decoy proteins to the output database instead of a combined database.", false);
 
     registerStringOption_("type", "<choice>", "protein", "Type of sequence. RNA sequences may contain modification codes, which will be handled correctly if this is set to 'RNA'.", false);
-    setValidStrings_("type", ListUtils::create<String>("protein,RNA"));
+    setValidStrings_("type", {"protein", "RNA"});
 
     registerStringOption_("method", "<choice>", "reverse", "Method by which decoy sequences are generated from target sequences. Note that all sequences are shuffled using the same random seed, ensuring that identical sequences produce the same shuffled decoy sequences. Shuffled sequences that produce highly similar output sequences are shuffled again (see shuffle_sequence_identity_threshold).", false);
-    setValidStrings_("method", ListUtils::create<String>("reverse,shuffle"));
+    setValidStrings_("method", {"reverse", "shuffle"});
     registerIntOption_("shuffle_max_attempts", "<int>", 30, "shuffle: maximum attempts to lower the amino acid sequence identity between target and decoy for the shuffle algorithm", false, true);
     registerDoubleOption_("shuffle_sequence_identity_threshold", "<double>", 0.5, "shuffle: target-decoy amino acid sequence identity threshold for the shuffle algorithm. If the sequence identity is above this threshold, shuffling is repeated. In case of repeated failure, individual amino acids are 'mutated' to produce a different amino acid sequence.", false, true);
 
-    registerStringOption_("seed", "<int>", '1', "Random number seed (use 'time' for system time)", false, true);
+    registerStringOption_("seed", "<int/'time')>", '1', "Random number seed (use 'time' for system time)", false, true);
 
     StringList all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
@@ -96,7 +106,24 @@ protected:
     setValidStrings_("enzyme", all_enzymes);
 
     registerSubsection_("Decoy", "Decoy parameters section");
+
+    // New options for neighbor peptide search
+    registerTOPPSubsection_("NeighborSearch", "Parameters for neighbor peptide search ('in' holds the neighbor candidates)");
+    registerInputFile_("NeighborSearch:in_relevant_proteins", "<file>","", "These are the relevant proteins, for which we seek neighbors", false);
+    setValidFormats_("NeighborSearch:in_relevant_proteins", {"fasta"});
+    registerOutputFile_("NeighborSearch:out_neighbor", "<file>", "", "Output FASTA file with neighbors of relevant peptides (given in 'in_relevant_proteins').",false);
+    registerOutputFile_("NeighborSearch:out_relevant", "<file>", "",
+                        "Output FASTA file with target+decoy of relevant peptides (given in 'in_relevant_proteins'). Required for downstream filtering of search results via IDFilter and subsequent FDR.", false);
+    registerIntOption_("NeighborSearch:missed_cleavages", "<int>", 0, "Number of missed cleavages for relevant and neighbor peptides.", false);
+    registerDoubleOption_("NeighborSearch:mz_bin_size", "<num>", 0.05,"Bin size for spectra m/z comparison (the original study suggests 0.05 Th for high-res and 1.0005079 Th for low-res spectra).", false);
+    registerDoubleOption_("NeighborSearch:pc_mass_tolerance", "<double>", 0.01, "Maximal precursor mass difference (in Da or ppm; see 'pc_mass_tolerance_unit') between neighbor and relevant peptide.", false);
+    registerStringOption_("NeighborSearch:pc_mass_tolerance_unit", "<choice>", "Da", "Is 'pc_mass_tolerance' in Da or ppm?", false);
+    setValidStrings_("NeighborSearch:pc_mass_tolerance_unit", {"Da", "ppm"});
+    registerIntOption_("NeighborSearch:min_peptide_length", "<int>", 5, "Minimum peptide length (relevant and neighbor peptides)", false);
+    registerDoubleOption_("NeighborSearch:min_shared_ion_fraction", "<double>", 0.25,
+                          "Minimal required overlap 't_i' of b/y ions shared between neighbor candidate and a relevant peptide (t_i <= 2*B12/(B1+B2)). Higher values result in fewer neighbors.", false);
   }
+
 
   Param getSubsectionDefaults_(const String& /* name */) const override
   {
@@ -106,30 +133,55 @@ protected:
     return p;
   }
 
-  String getIdentifier_(const String& identifier, const String& decoy_string, const bool as_prefix)
+  String getDecoyIdentifier_(const String& identifier, const String& decoy_string, const bool as_prefix)
   {
     if (as_prefix) return decoy_string + identifier;
     else return identifier + decoy_string;
   }
+  
 
   ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    enum SeqType {protein, RNA};
+    enum class SeqType {protein, RNA};
     StringList in = getStringList_("in");
     String out = getStringOption_("out");
+
     bool append = !getFlag_("only_decoy");
     bool shuffle = (getStringOption_("method") == "shuffle");
     String decoy_string = getStringOption_("decoy_string");
     bool decoy_string_position_prefix =
       (getStringOption_("decoy_string_position") == "prefix");
-    SeqType input_type = SeqType::protein; //default to protein
-    if (getStringOption_("type") == "RNA")
+
+    // check if decoy_string is common decoy string (e.g. decoy, rev, ...)
+    String decoy_string_lower = decoy_string;
+    decoy_string_lower.toLower();
+    bool is_common = false;
+    for (const auto& a : DecoyHelper::affixes)
     {
-      input_type = SeqType::RNA;
+      if ((decoy_string_lower.hasPrefix(a) && decoy_string_position_prefix) || (decoy_string_lower.hasSuffix(a) && ! decoy_string_position_prefix))
+      {
+        is_common = true;
+      }
     }
+    // terminate, if decoy_string is not one of the allowed decoy strings (exit code 11)
+    if (! is_common)
+    {
+      if (getFlag_("force"))
+      {
+        OPENMS_LOG_WARN << "Force Flag is enabled, decoys with custom decoy string (not in DecoyHelper::affixes) will not be detected.\n";
+      }
+      else
+      {
+        OPENMS_LOG_FATAL_ERROR << "Given decoy string is not allowed. Please use one of the strings in DecoyHelper::affixes as either prefix or "
+                                  "suffix (case insensitive): \n";
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+    }
+
+    const SeqType input_type = getStringOption_("type") == "RNA" ? SeqType::RNA : SeqType::protein;
 
     Param decoy_param = getParam_().copy("Decoy:", true);
     bool keepN = decoy_param.getValue("keepPeptideNTerm").toBool();
@@ -144,10 +196,15 @@ protected:
     // every time (without keeping track of them explicitly). This
     // will ensure that the total number of unique tryptic peptides
     // is identical in both databases.
-    int seed;
+    ;
     String seed_option(getStringOption_("seed"));
-    if (seed_option == "time") seed = time(nullptr);
-    else seed = seed_option.toInt();
+    const int seed = (seed_option == "time") ? time(nullptr) : seed_option.toInt();
+        
+    // Configure Enzymatic digestion
+    // TODO: allow user-specified regex
+    ProteaseDigestion digestion;
+    String enzyme = getStringOption_("enzyme").trim();
+    if ((input_type == SeqType::protein) && ! enzyme.empty()) { digestion.setEnzyme(enzyme); }
 
     //-------------------------------------------------------------
     // reading input
@@ -156,65 +213,155 @@ protected:
     if (in.size() == 1)
     {
       OPENMS_LOG_WARN << "Warning: Only one FASTA input file was provided, which might not contain contaminants. "
-               << "You probably want to have them! Just add the contaminant file to the input file list 'in'." << endl;
+                      << "You probably want to have them! Just add the contaminant file to the input file list 'in'." << endl;
+    }
+
+    // do this first, before potentially entering neighbor mode (which modifies the 'in' list)
+    for (const auto& file_fasta : in)
+    {
+      // check input files for decoys
+      FASTAContainer<TFI_File> in_entries {file_fasta};
+      auto r = DecoyHelper::countDecoys(in_entries);
+      // if decoys found, terminates with exit code INCOMPATIBLE_INPUT_DATA
+      if (static_cast<double>(r.all_prefix_occur + r.all_suffix_occur) >= 0.4 * static_cast<double>(r.all_proteins_count))
+      {
+        OPENMS_LOG_FATAL_ERROR << "Invalid input in " + file_fasta + ": Input file already contains decoys." << '\n';
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+    }
+
+
+    // create neighbor peptides for the relevant peptides?
+    String in_relevant_proteins = getStringOption_("NeighborSearch:in_relevant_proteins");
+    String out_relevant = getStringOption_("NeighborSearch:out_relevant");
+    String out_neighbor = getStringOption_("NeighborSearch:out_neighbor");
+    if (in_relevant_proteins.empty() ^ out_relevant.empty())
+    {
+      OPENMS_LOG_ERROR << "Parameter settings are invalid. Both 'in_relevant_proteins' and 'out_relevant' must be set or unset.\n";
+      return ILLEGAL_PARAMETERS;
+    }
+    const bool neighbor_mode = ! in_relevant_proteins.empty();
+    if (!neighbor_mode && !out_neighbor.empty())
+    {
+      OPENMS_LOG_ERROR << "Parameter settings are invalid. You requested neighbor peptides via 'NeighborSearch:out_neighbor', but failed specify the required input ('NeighborSearch:in_relevant_proteins').\n";
+      return ILLEGAL_PARAMETERS;
+    }
+    if (neighbor_mode)
+    {
+      if (input_type != SeqType::protein)
+      {
+        OPENMS_LOG_ERROR << "Parameter settings are invalid. When requesting neighbor peptides, the input type must be 'protein', not 'RNA'.\n";
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+      
+      if (out_neighbor.empty())
+      { // make it a temp file, since we need to append its content to the final 'out' DB
+        out_neighbor = File::getTemporaryFile(out_neighbor);
+      }
+
+      //-------------------------------------------------------------
+      // parsing neighbor parameters
+      //-------------------------------------------------------------
+      
+      FASTAFile fasta_neighbor_out;
+      fasta_neighbor_out.writeStart(out_neighbor);
+
+      double mz_bin_size = getDoubleOption_("NeighborSearch:mz_bin_size");
+      double min_shared_ion_fraction = getDoubleOption_("NeighborSearch:min_shared_ion_fraction");
+      double mass_tolerance = getDoubleOption_("NeighborSearch:pc_mass_tolerance");
+      bool mass_tolerance_unit_ppm = getStringOption_("NeighborSearch:pc_mass_tolerance_unit") == "ppm";
+      int missed_cleavages = getIntOption_("NeighborSearch:missed_cleavages");
+      int min_peptide_length = getIntOption_("NeighborSearch:min_peptide_length");
+      // Create a ProteaseDigestion object for neighbor peptide digestion
+      // (it's not identical to the one used for creating decoys, because we need to consider missed cleavages)
+      ProteaseDigestion digestion_neighbor;
+      digestion_neighbor.setMissedCleavages(missed_cleavages);
+      if (! enzyme.empty()) { digestion_neighbor.setEnzyme(getStringOption_("enzyme").trim()); }
+      // Load the relevant proteins from 'NeighborSearch:in_relevant_proteins'
+      vector<FASTAFile::FASTAEntry> relevant_proteins;
+      FASTAFile().load(in_relevant_proteins, relevant_proteins);
+
+      vector<AASequence> digested_relevant_peptides;
+      vector<AASequence> temp_peptides;
+      for (const auto& entry : relevant_proteins)
+      {
+        digestion_neighbor.digest(AASequence::fromString(entry.sequence), temp_peptides, min_peptide_length);
+        digested_relevant_peptides.insert(digested_relevant_peptides.end(), make_move_iterator(temp_peptides.begin()), make_move_iterator(temp_peptides.end()));
+      }
+
+      NeighborSeq ns(std::move(digested_relevant_peptides));
+
+      // find neighbor peptides in 'in' for each relevant peptide in 'NeighborSearch:in_relevant_proteins'
+      for (Size i = 0; i < in.size(); ++i)
+      {
+        const auto x_residue = *ResidueDB::getInstance()->getResidue('X');
+        FASTAFile fasta_in;
+        fasta_in.setLogType(log_type_);
+        fasta_in.readStartWithProgress(in[i], "Finding Neighbors in '" + in[i] + "'");
+        FASTAFile::FASTAEntry entry;
+        vector<AASequence> digested_candidate_peptides;
+        while (fasta_in.readNextWithProgress(entry))
+        {
+          digestion_neighbor.digest(AASequence::fromString(entry.sequence), digested_candidate_peptides, min_peptide_length);
+          entry.sequence.clear(); // reset sequence; later append valid candidates (if any)
+          entry.identifier = "neighbor_" + entry.identifier;
+          for (auto& peptide : digested_candidate_peptides)
+          { 
+            if (peptide.has(x_residue))
+            { // 'X' in peptide prevents us from computing a PC mass and a spectrum
+              continue;
+            }
+            // Find relevant peptides for the current neighbor peptide candidate
+            bool is_neighbor_peptide = ns.isNeighborPeptide(peptide, mass_tolerance, mass_tolerance_unit_ppm, min_shared_ion_fraction, mz_bin_size);
+            if (!is_neighbor_peptide) continue;
+            entry.sequence += peptide.toString();
+          } // next candidate peptide
+          if (!entry.sequence.empty())
+          {
+            fasta_neighbor_out.writeNext(entry);
+          }
+        } // next candidate protein
+      } // next input file
+      
+      // we only need relevant and neighbor peptides in our final DB:
+      in.clear();
+      // add relevant proteins FASTA file to the input list (to also create decoys for them)
+      in.push_back(in_relevant_proteins);
+      // add neighbor peptides FASTA file to the input list (to also create decoys for them)
+      in.push_back(out_neighbor);
+
+      const auto stats = ns.getNeighborStats();
+      OPENMS_LOG_INFO << "Neighbor peptide statistics for " << stats.total() << " reference peptides :\n"
+                      << " - " << stats.unfindable() << " peptides contained an 'X' (unknown amino acid) and thus could not be searched for neighbors\n"
+                      << " - " << stats.noNB() << " peptides had 0 neighbors\n"
+                      << " - " << stats.oneNB() << " peptides had 1 neighbor\n"
+                      << " - " << stats.multiNB() << " peptides had >=1 neighbors." << endl;
     }
 
     set<String> identifiers; // spot duplicate identifiers  // std::unordered_set<string> has slightly more RAM, but slightly less CPU
 
     FASTAFile f;
     f.writeStart(out);
-    FASTAFile::FASTAEntry entry;
 
-    // Configure Enzymatic digestion
-    // TODO: allow user-specified regex
-    ProteaseDigestion digestion;
-    String enzyme = getStringOption_("enzyme").trim();
-    if ((input_type == SeqType::protein) && !enzyme.empty())
-    {
-      digestion.setEnzyme(enzyme);
-    }
-    // check if decoy_string is common decoy string (e.g. decoy, rev, ...)
-    String decoy_string_lower = decoy_string;
-    decoy_string_lower.toLower();
-    bool is_common = false;
-    for (const auto& a : DecoyHelper::affixes)
-    {
-      if ((decoy_string_lower.hasPrefix(a) && decoy_string_position_prefix) || (decoy_string_lower.hasSuffix(a) && !decoy_string_position_prefix))
-      {
-        is_common = true;
-      }
-    }
-    // terminate, if decoy_string is not one of the allowed decoy strings (exit code 11)
-    if (!is_common)
-    {
-      if (getFlag_("force"))
-      {
-        OPENMS_LOG_WARN << "Force Flag is enabled, decoys with custom decoy string (not in DecoyHelper::affixes) will not be detected.\n";
-      }
-      else
-      {
-        OPENMS_LOG_FATAL_ERROR << "Given decoy string is not allowed. Please use one of the strings in DecoyHelper::affixes as either prefix or suffix (case insensitive): \n";
-        return INCOMPATIBLE_INPUT_DATA;
-      }
+
+    FASTAFile fasta_out_relevant; /// in neighbor-peptide mode: write relevant peptides to the output file
+    if (neighbor_mode)
+    { 
+      fasta_out_relevant.writeStart(out_relevant);
     }
     MRMDecoy m;
     m.setParameters(decoy_param);
 
     Math::RandomShuffler shuffler(seed);
-    for (Size i = 0; i < in.size(); ++i)
+    for (const auto& file_fasta : in)
     {
-      // check input files for decoys
-      FASTAContainer<TFI_File> in_entries{in[i]};
-      auto r = DecoyHelper::countDecoys(in_entries);
-      // if decoys found, throw exception
-      if (static_cast<double>(r.all_prefix_occur + r.all_suffix_occur) >= 0.4 * static_cast<double>(r.all_proteins_count))
-      {
-        // if decoys found, program terminates with exit code 11
-        OPENMS_LOG_FATAL_ERROR << "Invalid input in " + in[i] + ": Input file already contains decoys." << '\n';
-        return INCOMPATIBLE_INPUT_DATA;
-      }
+      /// in neighbor-peptide mode: write relevant peptides to the output file
+      const bool write_relevant = neighbor_mode && file_fasta == in_relevant_proteins;
 
-      f.readStart(in[i]);
+      f.readStart(file_fasta);
+      FASTAFile::FASTAEntry entry;
+      OpenMS::TargetedExperiment::Peptide p;
+
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
@@ -229,25 +376,26 @@ protected:
         if (append)
         {
           f.writeNext(entry);
+          if (write_relevant)
+          {
+            fasta_out_relevant.writeNext(entry);
+          }
         }
 
-        // identifier
-        entry.identifier = getIdentifier_(entry.identifier, decoy_string, decoy_string_position_prefix);
+        // new decoy identifier
+        entry.identifier = getDecoyIdentifier_(entry.identifier, decoy_string, decoy_string_position_prefix);
 
-        // sequence
+        // new decoy sequence
         if (input_type == SeqType::RNA)
         {
           string quick_seq = entry.sequence;
           bool five_p = (entry.sequence.front() == 'p');
           bool three_p = (entry.sequence.back() == 'p');
-          if (five_p) //we don't want to reverse terminal phosphates
+          if (five_p) // we don't want to reverse terminal phosphates
           {
             quick_seq.erase(0, 1);
           }
-          if (three_p)
-          {
-            quick_seq.pop_back();
-          }
+          if (three_p) { quick_seq.pop_back(); }
 
           vector<String> tokenized;
           std::smatch m;
@@ -256,23 +404,20 @@ protected:
 
           while (std::regex_search(quick_seq, m, re))
           {
-              tokenized.emplace_back(m.str(0));
-              quick_seq = m.suffix();
+            tokenized.emplace_back(m.str(0));
+            quick_seq = m.suffix();
           }
 
-          if (shuffle)
+          if (shuffle) { shuffler.portable_random_shuffle(tokenized.begin(), tokenized.end()); }
+          else // reverse
           {
-            shuffler.portable_random_shuffle(tokenized.begin(), tokenized.end());
+            reverse(tokenized.begin(), tokenized.end()); // reverse the tokens
           }
-          else  // reverse
-          {
-            reverse(tokenized.begin(), tokenized.end()); //reverse the tokens
-          }
-          if (five_p)  //add back 5'
+          if (five_p) // add back 5'
           {
             tokenized.insert(tokenized.begin(), String("p"));
           }
-          if (three_p) //add back 3'
+          if (three_p) // add back 3'
           {
             tokenized.emplace_back("p");
           }
@@ -288,26 +433,16 @@ protected:
             String new_sequence = "";
             for (auto const& peptide : peptides)
             {
-              //TODO why are the functions from TargetedExperiment and MRMDecoy not anywhere more general?
-              // No soul would look there.
-              if (shuffle)
-              {
-                OpenMS::TargetedExperiment::Peptide p;
-                p.sequence = peptide.toString();
-                OpenMS::TargetedExperiment::Peptide decoy_p = m.shufflePeptide(p, identity_threshold, seed, max_attempts);
-                new_sequence += decoy_p.sequence;
-              }
-              else
-              {
-                OpenMS::TargetedExperiment::Peptide p;
-                p.sequence = peptide.toString();
-                OpenMS::TargetedExperiment::Peptide decoy_p = MRMDecoy::reversePeptide(p, keepN, keepC, keep_const_pattern);
-                new_sequence += decoy_p.sequence;
-              }
+              p.sequence = peptide.toString();
+              // TODO why are the functions from TargetedExperiment and MRMDecoy not anywhere more general?
+              //  No soul would look there.
+              auto decoy_p = shuffle ? m.shufflePeptide(p, identity_threshold, seed, max_attempts) 
+                                     : MRMDecoy::reversePeptide(p, keepN, keepC, keep_const_pattern);
+              new_sequence += decoy_p.sequence;
             }
             entry.sequence = new_sequence;
           }
-          else
+          else // no cleavage
           {
             // sequence
             if (shuffle)
@@ -320,18 +455,23 @@ protected:
               entry.sequence.reverse();
             }
           }
-        }
+        } // protein entry
 
         //-------------------------------------------------------------
         // writing output
         //-------------------------------------------------------------
         f.writeNext(entry);
-      } // next protein
-    } // input files
+        // optional: if in neighbor mode: T+D of relevant peptides (if requested)
+        if (write_relevant)
+        {
+          fasta_out_relevant.writeNext(entry);
+        }
 
+      } // next protein
+    }   // input files
+    
     return EXECUTION_OK;
   }
-
 };
 
 

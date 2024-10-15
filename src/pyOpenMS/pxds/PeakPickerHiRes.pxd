@@ -6,7 +6,7 @@ from Param cimport *
 from DefaultParamHandler cimport *
 from ProgressLogger cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>" namespace "OpenMS":
 
     cdef cppclass PeakPickerHiRes(DefaultParamHandler, ProgressLogger):
         # wrap-inherits:
@@ -43,7 +43,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>" namespace
                             bool check_spectrum_type
                            ) except + nogil 
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>" namespace "OpenMS::PeakPickerHiRes":
+cdef extern from "<OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>" namespace "OpenMS::PeakPickerHiRes":
     
     cdef cppclass PeakBoundary "OpenMS::PeakPickerHiRes::PeakBoundary":
         PeakBoundary() except + nogil  # compiler

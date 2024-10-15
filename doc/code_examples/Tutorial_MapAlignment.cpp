@@ -2,20 +2,18 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-#include <OpenMS/CONCEPT/Types.h>
-
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
 
 using namespace OpenMS;
 using namespace std;
 
 int main(int argc, const char** argv)
 {
-  if (argc < 2) return 1;
-  // the path to the data should be given on the command line
-  String tutorial_data_path(argv[1]);
-  
+  auto tutorial_data_path = OPENMS_DOC_PATH + String("/code_examples/");
+
   FeatureMap reference;
   FeatureMap toAlign;
 
@@ -25,7 +23,7 @@ int main(int argc, const char** argv)
 
   // create map alignment algorithm
   MapAlignmentAlgorithmPoseClustering algorithm;
-  
+
   // ... set parameters
   algorithm.setReference(reference);
 
@@ -38,6 +36,4 @@ int main(int argc, const char** argv)
   // store results
   xml_file.storeFeatures("Tutorial_MapAlignment_1.featureXML", reference);
   xml_file.storeFeatures("Tutorial_MapAlignment_2.featureXML", toAlign);
-
-  return 0;
-} //end of main
+} // end of main

@@ -16,18 +16,6 @@
 
 namespace OpenMS
 {
-  /// create new object (needed by Factory)
-  ProgressLogger::ProgressLoggerImpl* GUIProgressLoggerImpl::create()
-  {
-    return new GUIProgressLoggerImpl();
-  }
-
-  /// name of the model (needed by Factory)
-  const String GUIProgressLoggerImpl::getProductName()
-  {
-    return "GUI";
-  }
-
   GUIProgressLoggerImpl::GUIProgressLoggerImpl() :
     dlg_(nullptr),
     begin_(0),

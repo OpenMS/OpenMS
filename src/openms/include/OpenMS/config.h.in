@@ -102,23 +102,13 @@ static constexpr cstr past_last_slash(cstr str)
 // Define on 64 bit architectures
 #cmakedefine OPENMS_64BIT_ARCHITECTURE
 
-#define OPENMS_INT32_TYPE @CF_OPENMS_INT32_TYPE@
-#define OPENMS_INT64_TYPE @CF_OPENMS_INT64_TYPE@
-#define OPENMS_BYTE_TYPE @CF_OPENMS_BYTE_TYPE@
-#define OPENMS_UINT32_TYPE @CF_OPENMS_UINT32_TYPE@
-#define OPENMS_UINT64_TYPE @CF_OPENMS_UINT64_TYPE@
-//#define OPENMS_SIZE_T_SIGNED @CF_OPENMS_SIZE_T_SIGNED@
-
-// if you ever want to do abs() or floor() on this type in VC then use _abs64() and include <stdlib.h> (no kidding!)
-#define PointerSizeInt @CF_OPENMS_INT64_TYPE@
-#define PointerSizeUInt @CF_OPENMS_UINT64_TYPE@
+#define PointerSizeInt int64_t
+#define PointerSizeUInt uint64_t
 
 #cmakedefine OPENMS_HAS_UNISTD_H
 #cmakedefine OPENMS_HAS_PROCESS_H
-#cmakedefine OPENMS_HAS_STDINT_H
 
 #cmakedefine OPENMS_HAS_TIME_H
-#cmakedefine OPENMS_HAS_SYS_TYPES_H
 #cmakedefine OPENMS_HAS_SYS_TIMES_H
 #cmakedefine OPENMS_HAS_SYS_TIME_H
 #cmakedefine OPENMS_HAS_SYS_RESOURCE_H

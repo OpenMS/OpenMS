@@ -43,9 +43,9 @@ START_SECTION((static StringList getIsotopeMatrixAsStringList(const int itraq_ty
 {
 	ItraqConstants::IsotopeMatrices ic;
   ic.resize(3);
-	ic[0].setMatrix<4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
-	ic[1].setMatrix<8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
-  ic[2].setMatrix<6,4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
+	ic[0].setMatrix<double,4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
+	ic[1].setMatrix<double,8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
+  ic[2].setMatrix<double,6,4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
 
   {
 		StringList ics = ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::FOURPLEX, ic);
@@ -69,16 +69,16 @@ START_SECTION((static void updateIsotopeMatrixFromStringList(const int itraq_typ
 {
 	ItraqConstants::IsotopeMatrices ic;
   ic.resize(3);
-	ic[0].setMatrix<4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
-	ic[1].setMatrix<8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
-  ic[2].setMatrix<6,4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
+	ic[0].setMatrix<double,4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
+	ic[1].setMatrix<double,8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
+  ic[2].setMatrix<double,6,4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
 
 //StringList t_ics = ListUtils::create<String>("114:0/1/5.9/0.2,115:0/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/0.1"); // the default
 	StringList t_ics = ListUtils::create<String>("114:0/1/5.9/4.2,115:3/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/2");
 
-	ic[0].setValue(0,3,4.2);
-	ic[0].setValue(1,0,3);
-	ic[0].setValue(3,3,2);
+	ic[0](0,3) = 4.2;
+	ic[0](1,0) = 3;
+	ic[0](3,3) = 2;
 
 	ItraqConstants::IsotopeMatrices ic_new;
   ItraqConstants::updateIsotopeMatrixFromStringList(ItraqConstants::FOURPLEX, t_ics, ic_new);
@@ -90,10 +90,10 @@ START_SECTION((static void updateIsotopeMatrixFromStringList(const int itraq_typ
   }
 
   // reset previously updated and update TMT isotope corrections
-  ic[0].setMatrix<4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
-  ic[2].setValue(0,2,3.4);
-  ic[2].setValue(1,0,2.1);
-  ic[2].setValue(4,3,5.1);
+  ic[0].setMatrix<double,4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
+  ic[2](0,2) = 3.4;
+  ic[2](1,0) = 2.1;
+  ic[2](4,3) = 5.1;
 
   // StringList tmt_ics = ListUtils::create<String>("126:0/0/0/0,127:0/0/0/0,128:0/0/0/0,129:0/0/0/0,130:0/0/0/0,131:0/0/0/0"); // the original one
   StringList tmt_ics = ListUtils::create<String>("126:0/0/3.4/0,127:2.1/0/0/0,128:0/0/0/0,129:0/0/0/0,130:0/0/0/5.1,131:0/0/0/0");
@@ -175,15 +175,15 @@ START_SECTION((static Matrix<double> translateIsotopeMatrix(const int &itraq_typ
 {
   ItraqConstants::IsotopeMatrices ic;
   ic.resize(3);
-	ic[0].setMatrix<4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
-	ic[1].setMatrix<8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
-  ic[2].setMatrix<6,4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
+	ic[0].setMatrix<double,4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
+	ic[1].setMatrix<double,8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
+  ic[2].setMatrix<double,6,4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
 
   Matrix<double> channel_frequency = ItraqConstants::translateIsotopeMatrix(ItraqConstants::FOURPLEX, ic);
 
 	std::cout << "CF: \n" << channel_frequency << "\n";
-	TEST_REAL_SIMILAR(channel_frequency.getValue(0,0), 0.929)
-	TEST_REAL_SIMILAR(channel_frequency.getValue(3,0), 0)
+	TEST_REAL_SIMILAR(channel_frequency(0,0), 0.929)
+	TEST_REAL_SIMILAR(channel_frequency(3,0), 0)
 
   channel_frequency = ItraqConstants::translateIsotopeMatrix(ItraqConstants::EIGHTPLEX, ic);
 
@@ -200,16 +200,16 @@ START_SECTION((static Matrix<double> translateIsotopeMatrix(const int &itraq_typ
 
   */
   // test lower right triangle
-  TEST_REAL_SIMILAR(channel_frequency.getValue(6,7), 0.0027)
-  TEST_REAL_SIMILAR(channel_frequency.getValue(7,7), 0.9211)
-  TEST_REAL_SIMILAR(channel_frequency.getValue(7,6), 0.0000)
+  TEST_REAL_SIMILAR(channel_frequency(6,7), 0.0027)
+  TEST_REAL_SIMILAR(channel_frequency(7,7), 0.9211)
+  TEST_REAL_SIMILAR(channel_frequency(7,6), 0.0000)
 
   channel_frequency = ItraqConstants::translateIsotopeMatrix(ItraqConstants::TMT_SIXPLEX, ic);
   std::cout << "CF: \n" << channel_frequency << "\n";
-  TEST_REAL_SIMILAR(channel_frequency.getValue(0,0), 1.0)
-  TEST_REAL_SIMILAR(channel_frequency.getValue(1,0), 0.0)
-  TEST_REAL_SIMILAR(channel_frequency.getValue(0,1), 0.0)
-  TEST_REAL_SIMILAR(channel_frequency.getValue(3,3), 1.0)
+  TEST_REAL_SIMILAR(channel_frequency(0,0), 1.0)
+  TEST_REAL_SIMILAR(channel_frequency(1,0), 0.0)
+  TEST_REAL_SIMILAR(channel_frequency(0,1), 0.0)
+  TEST_REAL_SIMILAR(channel_frequency(3,3), 1.0)
 }
 END_SECTION
 

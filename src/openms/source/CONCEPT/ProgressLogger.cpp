@@ -9,7 +9,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/CONCEPT/Factory.h>
 
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
@@ -22,26 +21,17 @@ using namespace std;
 
 namespace OpenMS
 {
+
   class CMDProgressLoggerImpl :
     public ProgressLogger::ProgressLoggerImpl
   {
 public:
-    CMDProgressLoggerImpl() :
-      stop_watch_()
-      
-    {
-    }
+    CMDProgressLoggerImpl() = default;
 
     /// create new object (needed by Factory)
     static ProgressLogger::ProgressLoggerImpl* create()
     {
       return new CMDProgressLoggerImpl();
-    }
-
-    /// name of the model (needed by Factory)
-    static const String getProductName()
-    {
-      return "CMD";
     }
 
     void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int current_recursion_depth) const override
@@ -106,12 +96,6 @@ public:
       return new NoProgressLoggerImpl();
     }
 
-    /// name of the model (needed by Factory)
-    static const String getProductName()
-    {
-      return "NONE";
-    }
-
     void startProgress(const SignedSize /* begin */, const SignedSize /* end */, const String& /* label */, const int /* current_recursion_depth */) const override
     {
     }
@@ -131,56 +115,42 @@ public:
 
   };
 
-
-
-  void ProgressLogger::ProgressLoggerImpl::registerChildren()
-  {
-    Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(CMDProgressLoggerImpl::getProductName(), &CMDProgressLoggerImpl::create);
-    // this will only be registered by GUI base app in OpenMS_GUI
-    // Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
-    Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(NoProgressLoggerImpl::getProductName(), &NoProgressLoggerImpl::create);
-  }
+  // Simple runtime plugin system for GUI progress logger.
+  // An external library (e.g., OpenMS_GUI) can set this function to provide a GUI logger.
+  // As default, it just uses the NonProgressLoggerImpl.
+  MakeGUIProgressLoggerFunc make_gui_progress_logger = 
+    []() -> ProgressLogger::ProgressLoggerImpl* { return new NoProgressLoggerImpl(); };
 
   int ProgressLogger::recursion_depth_ = 0;
-
-  String ProgressLogger::logTypeToFactoryName_(ProgressLogger::LogType type)
-  {
-    switch (type)
-    {
-      case NONE:
-      {
-        return "NONE";
-      }
-      case CMD:
-      {
-        return "CMD";
-      }
-      case GUI:
-      {
-        return "GUI";
-      }
-    }
-
-// should never happen but gcc emits a warning/error
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunreachable-code-return"
-    return "";
-#pragma clang diagnostic pop
-  }
 
   ProgressLogger::ProgressLogger() :
     type_(NONE),
     last_invoke_()
   {
-    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName_(type_));
+    current_logger_ = new NoProgressLoggerImpl();
   }
 
   ProgressLogger::ProgressLogger(const ProgressLogger& other) :
     type_(other.type_),
     last_invoke_(other.last_invoke_)
   {
-    // recreate our logger
-    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName_(type_));
+    switch (type_)
+    {
+      case NONE:
+      {
+        current_logger_ = new NoProgressLoggerImpl();
+        break;
+      }
+      case CMD:
+      {
+        current_logger_ = new CMDProgressLoggerImpl();
+        break;
+      }
+      case GUI:
+      {
+        current_logger_ = make_gui_progress_logger();
+      }
+    }
   }
 
   ProgressLogger& ProgressLogger::operator=(const ProgressLogger& other)
@@ -197,7 +167,23 @@ public:
     delete current_logger_;
 
     // .. and get a new one
-    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName_(type_));
+    switch (type_)
+    {
+      case NONE:
+      {
+        current_logger_ = new NoProgressLoggerImpl();
+        break;
+      }
+      case CMD:
+      {
+        current_logger_ = new CMDProgressLoggerImpl();
+        break;
+      }
+      case GUI:
+      {
+        current_logger_ = make_gui_progress_logger();
+      }
+    }
 
     return *this;
   }
@@ -213,7 +199,29 @@ public:
     // remove the old logger
     delete current_logger_;
 
-    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName_(type_));
+    switch (type)
+    {
+      case NONE:
+      {
+        current_logger_ = new NoProgressLoggerImpl();
+        break;
+      }
+      case CMD:
+      {
+        current_logger_ = new CMDProgressLoggerImpl();
+        break;
+      }
+      case GUI:
+      {
+        current_logger_ = make_gui_progress_logger();
+      }
+    }
+  }
+
+  void ProgressLogger::setLogger(ProgressLoggerImpl* logger)
+  {
+    delete current_logger_;
+    current_logger_ = logger;
   }
 
   ProgressLogger::LogType ProgressLogger::getLogType() const
@@ -260,6 +268,5 @@ public:
     }
     current_logger_->endProgress(recursion_depth_, bytes_processed);
   }
-
 
 } //namespace OpenMS

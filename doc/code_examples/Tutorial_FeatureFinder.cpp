@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 
 using namespace OpenMS;
 using namespace std;
 
 Int main()
 {
-  FeatureFinder ff;
+  FeatureFinderAlgorithmPicked ff;
   // ... set parameters (e.g. from INI file)
   Param parameters;
   // ... set input data (e.g. from mzML file)
@@ -19,7 +19,6 @@ Int main()
   // ... set user-specified seeds, if needed
   FeatureMap seeds;
 
-  ff.run("simple", input, output, parameters, seeds);
+  ff.run(input, output, parameters, seeds);
 
-  return 0;
 } //end of main

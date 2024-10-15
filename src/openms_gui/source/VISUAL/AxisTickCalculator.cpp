@@ -14,7 +14,7 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/AxisTickCalculator.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 using namespace std;
 

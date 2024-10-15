@@ -6,7 +6,7 @@ from Param cimport *
 from DefaultParamHandler cimport *
 from ProgressLogger cimport *
 
-cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/RESAMPLING/LinearResampler.h>" namespace "OpenMS":
 
     cdef cppclass LinearResampler(DefaultParamHandler, ProgressLogger):
         # wrap-inherits:

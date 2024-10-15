@@ -5,6 +5,7 @@ set(directory source/APPLICATIONS/TOPP)
 set(TOPP_executables
 AccurateMassSearch
 AssayGeneratorMetabo
+AssayGeneratorMetaboSirius
 BaselineFilter
 ClusterMassTraces
 ClusterMassTracesByPrecursor
@@ -28,7 +29,6 @@ FeatureFinderCentroided
 FeatureFinderIdentification
 FeatureFinderMetabo
 FeatureFinderMetaboIdent
-FeatureFinderMRM
 FeatureFinderMultiplex
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled
@@ -57,6 +57,7 @@ IDRTCalibration
 IDScoreSwitcher
 IDSplitter
 InternalCalibration
+IonMobilityBinning
 IsobaricAnalyzer
 JSONExporter
 LuciphorAdapter
@@ -65,7 +66,6 @@ MascotAdapter
 MascotAdapterOnline
 MapAlignerIdentification
 MapAlignerPoseClustering
-MapAlignerSpectrum
 MapAlignerTreeGuided
 MapNormalizer
 MapRTTransformer
@@ -106,7 +106,6 @@ PercolatorAdapter
 PhosphoScoring
 ProteinInference
 ProteinQuantifier
-ProteinResolver
 ProteomicsLFQ
 PSMFeatureExtractor
 QCCalculator
@@ -125,15 +124,11 @@ SeedListGenerator
 SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
-SiriusAdapter
+SiriusExport
 SpecLibCreator
 SpecLibSearcher
-SpectraFilterBernNorm
 SpectraFilterNLargest
 SpectraFilterNormalizer
-SpectraFilterParentPeakMower
-SpectraFilterScaler
-SpectraFilterSqrtMower
 SpectraFilterThresholdMower
 SpectraFilterWindowMower
 SpectraMerger

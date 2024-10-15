@@ -15,7 +15,7 @@ from MSSpectrum cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
 
-cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/ID/IDFilter.h>" namespace "OpenMS":
 
     cdef cppclass IDFilter:
          # wrap-doc:
@@ -188,7 +188,7 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
         
         void keepHitsMatchingProteins(MSExperiment& experiment, libcpp_vector[FASTAEntry]& proteins) except + nogil 
 
-cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS::IDFilter":
+cdef extern from "<OpenMS/PROCESSING/ID/IDFilter.h>" namespace "OpenMS::IDFilter":
     
     cdef cppclass DigestionFilter "OpenMS::IDFilter::DigestionFilter":
         # wrap-attach:

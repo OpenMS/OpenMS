@@ -65,10 +65,6 @@ START_SECTION((virtual void run(const ConsensusMap& map_model, const ConsensusMa
 }
 END_SECTION
 
-START_SECTION((static void registerChildren()))
-  NOT_TESTABLE
-END_SECTION
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

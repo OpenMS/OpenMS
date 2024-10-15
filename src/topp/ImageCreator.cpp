@@ -8,11 +8,11 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResampler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/MATH/MISC/BilinearInterpolation.h>
+#include <OpenMS/ML/INTERPOLATION/BilinearInterpolation.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 
 
@@ -278,7 +278,8 @@ protected:
     //----------------------------------------------------------------
     //Do the actual resampling
     BilinearInterpolation<double, double> bilip;
-    bilip.getData().resize(rows, cols);
+    bilip.getData().getEigenMatrix().resize(rows, cols);
+    bilip.getData().getEigenMatrix().setZero();
 
     if (!getFlag_("transpose"))
     {
@@ -323,8 +324,8 @@ protected:
 
     //----------------------------------------------------------------
     //create and store image
-    int scans = (int) bilip.getData().sizePair().first;
-    int peaks = (int) bilip.getData().sizePair().second;
+    int scans = (int) bilip.getData().rows();
+    int peaks = (int) bilip.getData().cols();
 
     bool use_log = getFlag_("log_intensity");
 
@@ -358,7 +359,7 @@ protected:
     double factor = getDoubleOption_("max_intensity");
     if (factor == 0)
     {
-      factor = (*std::max_element(bilip.getData().begin(), bilip.getData().end()));
+      factor = bilip.getData().getEigenMatrix().maxCoeff();
     }
     // with a user-supplied gradient, we need to logarithmize explicitly;
     // by default, the gradient itself is adjusted to the log-scale:
@@ -370,7 +371,7 @@ protected:
     {
       for (int j = 0; j < peaks; ++j)
       {
-        double value = bilip.getData().getValue(i, j);
+        double value = bilip.getData()(i, j);
         if (use_log) value = std::log(value);
         if (value > 1e-4)
         {

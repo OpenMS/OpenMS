@@ -89,7 +89,7 @@ const MSSpectrum IMwithDrift = [&]() {
 const MSSpectrum IMwithFDA = [&]() {
   MSExperiment exp;
   exp.addSpectrum(IMwithDrift);
-  auto single = IMDataConverter::collapseFramesToSingle(exp);
+  auto single = IMDataConverter::reshapeIMFrameToSingle(exp);
   return single[0];
 }();
 

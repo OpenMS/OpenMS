@@ -71,17 +71,17 @@ OPENMS_LOG_INFO and
 OPENMS_LOG_DEBUG
 @endcode
 which should be used instead of the less descriptive `std::out` and `std::err` streams. 
-Furthermore, the OpenMS loggers insert console coloring for their output and have a deduplication cache build in, which prevents repetitive outputs by aggregating and counting their occurence.
+Furthermore, the %OpenMS loggers insert console coloring for their output and have a deduplication cache build in, which prevents repetitive outputs by aggregating and counting their occurence.
+See the OpenMS::LogStream class for details.
 
-If you are writing an %OpenMS tool, you can also use the ProgressLogger to indicate how many percent of the processing has already been performed:
+In a similar vein: If you are writing an %OpenMS tool, you can also use the ProgressLogger to indicate how many percent of the processing has already been performed:
 <br><br>
-<b>Example: Tutorial_Logger.cpp</b>
+<b>Example: openms/doc/code_examples/data/Tutorial_Logger.cpp</b>
 <br>
 Logging the Tool Progress
 
-\snippet Tutorial_Logger.cpp Logger
-
-Depending on how the user configures the ProgressLogger, this output is written to the command line or a log file.
+\snippet Tutorial_Logger.cpp doxygen_snippet_Logger
+Inspect the`Tutorial_Logger.cpp` for a full example.
 
 
 @section cpp_guide_input_output Input/Output
@@ -94,8 +94,8 @@ Write many digits to avoid unnecessary rounding errors. In particular, using sta
 
 @section cpp_guide_uint `UInt` vs. `Size`
 
-OpenMS uses some custom type definitions for simple arithmetic types, such as `UInt` (shorthand for `unsigned int`).
-When working with <code>STL</code> types (especially vectors), assign the return value of a <code>.size()</code> operation to the OpenMS type <code>Size</code>, which is defined as follows:
+%OpenMS uses some custom type definitions for simple arithmetic types, such as `UInt` (shorthand for `unsigned int`).
+When working with <code>STL</code> types (especially vectors), assign the return value of a <code>.size()</code> operation to the %OpenMS type <code>Size</code>, which is defined as follows:
 
 @code{.cpp}
 // OpenMS/include/CONCEPT/Types.h
@@ -158,6 +158,6 @@ namespace OpenMS
 }
 @endcode
 
-@note In OpenMS, Qt headers have to be included with the Qt-library prefix.
+@note In %OpenMS, Qt headers have to be included with the Qt-library prefix.
 
 */

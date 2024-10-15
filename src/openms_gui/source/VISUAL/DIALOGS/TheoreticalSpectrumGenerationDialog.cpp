@@ -242,6 +242,7 @@ namespace OpenMS
     {
       if (seq_type_ == SequenceType::PEPTIDE)
       {
+        p.setValue("add_first_prefix_ion", "true"); // do not skip b1 ion
         pep_generator.setParameters(p);
         pep_generator.getSpectrum(spec_, aa_sequence, charge, charge);
       }

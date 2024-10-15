@@ -10,8 +10,8 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
+#include <OpenMS/ML/CLUSTERING/AverageLinkage.h>
+#include <OpenMS/ML/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <vector>
 //#include <iostream>
@@ -44,7 +44,6 @@ START_SECTION((AverageLinkage(const AverageLinkage &source)))
 {
 	AverageLinkage al1;
 	AverageLinkage copy(al1);
-	TEST_EQUAL(copy.getProductName(), al1.getProductName());
 }
 END_SECTION
 
@@ -52,7 +51,6 @@ START_SECTION((AverageLinkage& operator=(const AverageLinkage &source)))
 {
 	AverageLinkage copy,al2;
 	copy = al2;
-	TEST_EQUAL(copy.getProductName(), al2.getProductName());
 }
 END_SECTION
 
@@ -117,21 +115,6 @@ START_SECTION((void operator()(DistanceMatrix< float > &original_distance, std::
 			TEST_REAL_SIMILAR(tree[i].distance, result[i].distance);
 	}
 
-}
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-{
-	AverageLinkage al5;
-	TEST_EQUAL(al5.getProductName(), "AverageLinkage")
-}
-END_SECTION
-
-START_SECTION((static ClusterFunctor* create()))
-{
-	ClusterFunctor* cf = AverageLinkage::create();
-  TEST_NOT_EQUAL( dynamic_cast<AverageLinkage*>(cf) , nullPointer)
-  delete cf;
 }
 END_SECTION
 

@@ -4,6 +4,8 @@
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
 #include <iostream>
 
 using namespace OpenMS;
@@ -15,17 +17,17 @@ class TICWritingConsumer : public MSDataWritingConsumer
   // they are written to disk (to "filename") using the processSpectrum_ and
   // processChromatogram_ functions.
 public:
-  double TIC;
-  int nr_spectra;
+  double TIC {};
+  int nr_spectra {};
 
-  // Create new consumer, set TIC to zero
-  TICWritingConsumer(String filename) : MSDataWritingConsumer(filename) 
-    { TIC = 0.0; nr_spectra = 0;}
+  // Create new consumer
+  TICWritingConsumer(const String& filename) : MSDataWritingConsumer(filename) 
+  {}
 
   // Add a data processing step for spectra before they are written to disk
   void processSpectrum_(MSDataWritingConsumer::SpectrumType & s) override
   {
-    for (Size i = 0; i < s.size(); i++) { TIC += s[i].getIntensity(); }
+    for (const auto& p : s) TIC += p.getIntensity();
     nr_spectra++;
   }
   // Empty chromatogram data processing
@@ -34,17 +36,13 @@ public:
 
 int main(int argc, const char** argv)
 {
-  if (argc < 2) return 1;
-  // the path to the data should be given on the command line
-  String tutorial_data_path(argv[1]);
+  auto file_mzXML = OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_FileIO_indexed.mzML");
   
   // Create the consumer, set output file name, transform
-  TICWritingConsumer * consumer = new TICWritingConsumer("Tutorial_FileIO_output.mzML");
-  MzMLFile().transform(tutorial_data_path + "/data/Tutorial_FileIO_indexed.mzML", consumer);
+  TICWritingConsumer consumer("Tutorial_FileIO_output.mzML");
+  MzMLFile().transform(file_mzXML, &consumer);
 
-  std::cout << "There are " << consumer->nr_spectra << " spectra in the input file." << std::endl;
-  std::cout << "The total ion current is " << consumer->TIC << std::endl;
-  delete consumer;
+  std::cout << "There are " << consumer.nr_spectra << " spectra in the input file.\n";
+  std::cout << "The total ion current is " << consumer.TIC << std::endl;
 
-  return 0;
 } //end of main

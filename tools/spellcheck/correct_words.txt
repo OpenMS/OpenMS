@@ -309,7 +309,6 @@ MIM
 MIS
 MSD
 MSDB
-MSQUANTIFICATIONS
 Marr
 NCCA
 NIST
@@ -322,7 +321,6 @@ PMF
 POSECLUSTERINGAFFINESUPERIMPOSER
 POSECLUSTERINGSHIFTSUPERIMPOSER
 PRECURSORIONSELECTION
-PROTEINRESOLVER
 PSB
 PSM
 PSMs
@@ -332,7 +330,6 @@ QA
 QIT
 QTCLUSTERFINDER
 QTOF
-QUANTITATIVEEXPERIMENTALDESIGN
 RANGEUTILS
 RBF
 RGB
@@ -1737,7 +1734,6 @@ Phenylalanin
 PlotWidgets
 Precomputing
 Proc
-ProductModels
 ProteinAccession
 ProteinIDRun
 ProteinIdentifications
@@ -3208,7 +3204,7 @@ Selenocysteine
 Ser
 Serine
 SimTandem
-SiriusAdapter
+SiriusExport
 SparseVectors
 Specqual
 Spectronaut
@@ -3295,7 +3291,7 @@ humanE
 humanF
 humanG
 iRprop
-includedoc
+include
 incrementing
 indexListOffset
 indexedmzML

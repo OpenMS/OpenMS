@@ -14,7 +14,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/MATH/STATISTICS/ROCCurve.h>
+#include <OpenMS/ML/ROCCURVE/ROCCurve.h>
 
 ///////////////////////////
 

@@ -668,21 +668,18 @@ namespace OpenMS
   {
     String lower = s;
     lower.toLower().trim();
-    if (lower == "null")
-    {
-      setNull(true);
-    }
-    else if (lower == "nan")
-    {
-      setNaN();
-    }
-    else if (lower == "inf")
-    {
-      setInf();
-    }
+    if (lower == "null") { setNull(true); }
+    else if (lower == "nan") { setNaN(); }
+    else if (lower == "inf") { setInf(); }
     else // default case
     {
-      set(lower.toInt());
+      // some mzTab files from external sources contain floating point numbers in integer columns
+      auto val = lower.toDouble();
+      if (val != (Int)val) // check if the value is actually an integer (e.g. 4.0)
+      {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert String '") + s + "' to MzTabInteger");
+      }
+      set((Int)val);
     }
   }
 

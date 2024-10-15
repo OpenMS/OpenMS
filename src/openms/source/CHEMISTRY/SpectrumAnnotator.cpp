@@ -8,8 +8,8 @@
 
 #include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 using namespace std;
 
@@ -105,11 +105,12 @@ namespace OpenMS
     if (!spec.isSorted()) { spec.sortByPosition(); }
     sa.getSpectrumAlignment(al, theoretical_spec, spec);  // peaks from theor. may be matched to none or one in spec!
 
-    PeakSpectrum::FloatDataArray error_annotations;
+    PeakSpectrum::StringDataArray type_annotations = theoretical_spec.getStringDataArrays().front();
+    PeakSpectrum::FloatDataArray error_annotations = PeakSpectrum::FloatDataArray();
+    type_annotations.setName(Constants::UserParam::IonNames);
     error_annotations.setName("IonMatchError");
     error_annotations.resize(spec.size());
 
-    PeakSpectrum::StringDataArray type_annotations;
     type_annotations.setName("IonNames");
     type_annotations.resize(spec.size());
 
@@ -191,6 +192,76 @@ namespace OpenMS
         if (charge_annotations.size() == type_annotations.size())
         {
           ion_name += String(charge_annotations[i], '+');
+        }
+
+        PeakSpectrum::StringDataArray type_annotations = PeakSpectrum::StringDataArray();
+        PeakSpectrum::FloatDataArray error_annotations = PeakSpectrum::FloatDataArray();
+        for (PeakSpectrum::StringDataArrays::iterator it = spec.getStringDataArrays().begin(); it != spec.getStringDataArrays().end(); ++it)
+        {
+          if (it->getName() == Constants::UserParam::IonNames)
+            type_annotations = *it;
+        }
+        for (PeakSpectrum::FloatDataArrays::iterator it = spec.getFloatDataArrays().begin(); it != spec.getFloatDataArrays().end(); ++it)
+        {
+          if (it->getName() == "IonMatchError")
+            error_annotations = *it;
+        }
+
+        for (size_t i = 0; i < spec.size(); ++i)
+        {
+          sum_intensity += spec[i].getIntensity();
+          if (!type_annotations.at(i).empty())  // implies error_annotations is set, too.
+          {
+            fragmenterrors.push_back(error_annotations.at(i));
+            intensities.push_back(spec[i].getIntensity());
+            match_intensity += spec[i].getIntensity();
+            mzs.push_back(spec[i].getMZ());
+            const String& ion_name = type_annotations.at(i);
+            {
+              ions.push_back(ion_name);
+              if (terminal_series_match_ratio_)
+              {
+                if (boost::regex_match(ion_name, nt_regex_))
+                {
+                  nint += spec[i].getIntensity();
+                }
+                else if (boost::regex_match(ion_name, ct_regex_))
+                {
+                  cint += spec[i].getIntensity();
+                }
+              }
+              if (max_series_)  // without loss max series is sometimes pretty crummy
+              {
+                const String& ion_type = ion_name.prefix(1);
+                boost::cmatch what;
+                if (boost::regex_match(ion_name.c_str(), what, seriesposition_regex_) &&
+                        ListUtils::contains(allowed_types, ion_type))
+                {
+                  // what[0] contains the whole string
+                  // what[1] contains the response code
+                  try
+                  {
+                    int i = std::atoi(what[1].first);
+                    ion_series[ion_type].at(i-1) = true;
+                  }
+                  catch (std::out_of_range&)
+                  {
+                    OPENMS_LOG_WARN << "Note: Ions of " << ion_type << ion_name.substr(1).remove('+').toInt()
+                             << " will be ignored for max_series " << ph->getSequence().toString() << endl;
+                    continue;
+                  }
+                }
+              }
+            }
+          }
+        }
+        if (basic_statistics_)
+        {
+          ph->setMetaValue("matched_ions", ListUtils::concatenate(ions, ","));
+          ph->setMetaValue("matched_intensity", match_intensity);
+          ph->setMetaValue("matched_ion_number", ions.size());
+          ph->setMetaValue("peak_number", spec.size());
+          ph->setMetaValue("sum_intensity", sum_intensity);
         }
 
         if (terminal_series_match_ratio_)

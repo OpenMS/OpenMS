@@ -314,7 +314,7 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrection(
     {0.8466, 0.0957, 0.0343, 0.0233},
     {0.8484, 0.0954, 0.0337, 0.0225}
   };
-  correction_matrix_tBDMS.setMatrix<4,4>(correction_matrix_tBDMS_);
+  correction_matrix_tBDMS.setMatrix<double,4,4>(correction_matrix_tBDMS_);
 
   // L1_norm_max, L1_peak_apex_int From CHO_190316_Flux.xlsx provided by Douglas McCloskey
   // L1_corrected self calculated
@@ -374,7 +374,7 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrections(
     {0.8466, 0.0957, 0.0343, 0.0233},
     {0.8484, 0.0954, 0.0337, 0.0225}
   };
-  correction_matrix_tBDMS.setMatrix<4,4>(correction_matrix_tBDMS_);
+  correction_matrix_tBDMS.setMatrix<double, 4, 4>(correction_matrix_tBDMS_);
 
   // L1_norm_max, L1_peak_apex_int From CHO_190316_Flux.xlsx provided by Douglas McCloskey
   // L1_corrected self calculated

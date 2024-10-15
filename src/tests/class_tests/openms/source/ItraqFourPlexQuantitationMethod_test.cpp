@@ -140,9 +140,9 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
     {0.002, 0.056, 0.924, 0.04},
     {0, 0.001, 0.045, 0.923}};
   
-  for(Matrix<double>::SizeType i = 0; i < m.rows(); ++i)
+  for (size_t i = 0; i < m.rows(); ++i)
   {
-    for(Matrix<double>::SizeType j = 0; j < m.cols(); ++j)
+    for (size_t j = 0; j < m.cols(); ++j)
     {
       TEST_REAL_SIMILAR(m(i,j), real_m[i][j])
     }

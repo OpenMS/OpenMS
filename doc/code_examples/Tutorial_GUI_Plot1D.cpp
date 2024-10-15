@@ -8,7 +8,7 @@
 #include <OpenMS/VISUAL/LayerDataBase.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/Plot2DWidget.h>
-#include <OpenMS/openms_data_path.h>
+#include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
 #include <QApplication>
 
 using namespace OpenMS;
@@ -17,10 +17,6 @@ using namespace std;
 Int main(int argc, const char** argv)
 {
   String tutorial_data_path(OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_Spectrum1D.dta"));
-  if (argc >= 2)
-  { // the path to the data can be given on the command line
-    tutorial_data_path = argv[1];
-  }
 
   QApplication app(argc, const_cast<char**>(argv));
 
@@ -32,9 +28,9 @@ Int main(int argc, const char** argv)
   exp.addSpectrum(spec);
   LayerDataBase::ExperimentSharedPtrType exp_sptr(new PeakMap(exp));
   LayerDataBase::ODExperimentSharedPtrType on_disc_exp_sptr(new OnDiscMSExperiment());
-  auto* widget = new Plot1DWidget(Param(), DIM::Y, nullptr);
-  widget->canvas()->addPeakLayer(exp_sptr, on_disc_exp_sptr);
-  widget->show();
+  Plot1DWidget widget(Param(), DIM::Y, nullptr);
+  widget.canvas()->addPeakLayer(exp_sptr, on_disc_exp_sptr);
+  widget.show();
 
   return app.exec();
 } // end of main

@@ -1,22 +1,33 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+<indexedmzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd">
 <mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession="OpenMS:" version="1.1.0">
-	<cvList count="2">
+	<cvList count="5">
 		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
 		<cv id="UO" fullName="Unit Ontology" URI="http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo"/>
+		<cv id="BTO" fullName="BrendaTissue545" version="unknown" URI="http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO"/>
+		<cv id="GO" fullName="Gene Ontology - Slim Versions" version="unknown" URI="http://www.geneontology.org/GO_slims/goslim_goa.obo"/>
+		<cv id="PATO" fullName="Quality ontology" version="unknown" URI="http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/quality.obo"/>
 	</cvList>
 	<fileDescription>
 		<fileContent>
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
+		<sourceFileList count="1">
+			<sourceFile id="sf_ru_0" name="Tutorial_GaussFilter.mzML" location="file:///C:/dev/openms/doc/code_examples/data">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="44f836f59c4bc1fb8121330d226d886edb77b964" />
+				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
+				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
+			</sourceFile>
+		</sourceFileList>
 	</fileDescription>
 	<sampleList count="1">
 		<sample id="sa_0" name="">
-			<cvParam cvRef="MS" accession="MS:1000004" name="sample mass" value="0"  unitAccession="UO:0000021" unitName="gram" unitCvRef="UO" />
+			<cvParam cvRef="MS" accession="MS:1000004" name="sample mass" value="0" unitAccession="UO:0000021" unitName="gram" unitCvRef="UO" />
 			<cvParam cvRef="MS" accession="MS:1000005" name="sample volume" value="0" unitAccession="UO:0000098" unitName="milliliter" unitCvRef="UO" />
 			<cvParam cvRef="MS" accession="MS:1000006" name="sample concentration" value="0" unitAccession="UO:0000175" unitName="gram per liter" unitCvRef="UO" />
 		</sample>
 	</sampleList>
-	<softwareList count="4">
+	<softwareList count="5">
 		<software id="so_in_0" version="" >
 			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
 		</software>
@@ -29,6 +40,9 @@
 		<software id="so_dp_sp_0_pm_1" version="1.4" >
 			<cvParam cvRef="MS" accession="MS:1000756" name="FileConverter" />
 		</software>
+		<software id="so_dp_sp_0_pm_2" version="3.1.0-pre-disabled-20231216" >
+			<cvParam cvRef="MS" accession="MS:1000756" name="FileConverter" />
+		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">
 		<instrumentConfiguration id="ic_0">
@@ -38,8 +52,12 @@
 					<cvParam cvRef="MS" accession="MS:1000008" name="ionization type" />
 				</source>
 				<analyzer order="1234">
-						<cvParam cvRef="MS" accession="MS:1000288" name="cyclotron" />
-					<userParam name="warning" type="xsd:string" value="invented mass analyzer, to fulfill mzML schema" />
+					<cvParam cvRef="MS" accession="MS:1000014" name="accuracy" value="0" unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000022" name="TOF Total Path Length" value="0" unitAccession="UO:0000008" unitName="meter" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000024" name="final MS exponent" value="0" />
+					<cvParam cvRef="MS" accession="MS:1000025" name="magnetic field strength" value="0" unitAccession="UO:0000228" unitName="tesla" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000288" name="cyclotron" />
+					<userParam name="warning" type="xsd:string" value="invented mass analyzer, to fulfill mzML schema"/>
 				</analyzer>
 				<detector order="0">
 					<cvParam cvRef="MS" accession="MS:1000028" name="detector resolution" value="0" />
@@ -50,7 +68,7 @@
 			<softwareRef ref="so_in_0" />
 		</instrumentConfiguration>
 	</instrumentConfigurationList>
-	<dataProcessingList count="2">
+	<dataProcessingList count="1">
 		<dataProcessing id="dp_sp_0">
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
 				<cvParam cvRef="MS" accession="MS:1000543" name="data processing action" />
@@ -61,9 +79,39 @@
 				<userParam name="parameter: in" type="xsd:string" value="Tutorial_GaussFilter.mzData"/>
 				<userParam name="parameter: out" type="xsd:string" value="Tutorial_GaussFilter.mzML"/>
 			</processingMethod>
+			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_2">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2024-02-09+15:04" />
+				<userParam name="parameter: in" type="xsd:string" value="Tutorial_GaussFilter.mzML"/>
+				<userParam name="parameter: out" type="xsd:string" value="Tutorial_GaussFilter.mzML"/>
+				<userParam name="parameter: in_type" type="xsd:string" value=""/>
+				<userParam name="parameter: UID_postprocessing" type="xsd:string" value="ensure"/>
+				<userParam name="parameter: out_type" type="xsd:string" value=""/>
+				<userParam name="parameter: TIC_DTA2D" type="xsd:string" value="false"/>
+				<userParam name="parameter: MGF_compact" type="xsd:string" value="false"/>
+				<userParam name="parameter: force_MaxQuant_compatibility" type="xsd:string" value="false"/>
+				<userParam name="parameter: force_TPP_compatibility" type="xsd:string" value="false"/>
+				<userParam name="parameter: convert_to_chromatograms" type="xsd:string" value="false"/>
+				<userParam name="parameter: change_im_format" type="xsd:string" value="none"/>
+				<userParam name="parameter: write_scan_index" type="xsd:string" value="true"/>
+				<userParam name="parameter: lossy_compression" type="xsd:string" value="false"/>
+				<userParam name="parameter: lossy_mass_accuracy" type="xsd:double" value="-1.0"/>
+				<userParam name="parameter: process_lowmemory" type="xsd:string" value="false"/>
+				<userParam name="parameter: NET_executable" type="xsd:string" value=""/>
+				<userParam name="parameter: ThermoRaw_executable" type="xsd:string" value="ThermoRawFileParser.exe"/>
+				<userParam name="parameter: no_peak_picking" type="xsd:string" value="false"/>
+				<userParam name="parameter: no_zlib_compression" type="xsd:string" value="false"/>
+				<userParam name="parameter: include_noise" type="xsd:string" value="false"/>
+				<userParam name="parameter: log" type="xsd:string" value=""/>
+				<userParam name="parameter: debug" type="xsd:integer" value="0"/>
+				<userParam name="parameter: threads" type="xsd:integer" value="1"/>
+				<userParam name="parameter: no_progress" type="xsd:string" value="false"/>
+				<userParam name="parameter: force" type="xsd:string" value="false"/>
+				<userParam name="parameter: test" type="xsd:string" value="false"/>
+			</processingMethod>
 		</dataProcessing>
 	</dataProcessingList>
-	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0">
+	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" defaultSourceFileRef="sf_ru_0">
 		<spectrumList count="2" defaultDataProcessingRef="dp_sp_0">
 			<spectrum id="spectrum=1" index="0" defaultArrayLength="66" dataProcessingRef="dp_sp_0">
 				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
@@ -71,7 +119,7 @@
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
-					<scan>
+					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="474.558" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
@@ -83,7 +131,7 @@
 						<binary>AAAAAAAgjUAAAACgmSGNQAAAAEAzI41AAAAAwMwkjUAAAABgZiaNQAAAAAAAKI1AAAAAoJkpjUAAAABAMyuNQAAAAMDMLI1AAAAAYGYujUAAAAAAADCNQAAAAKCZMY1AAAAAQDMzjUAAAADAzDSNQAAAAGBmNo1AAAAAAAA4jUAAAACgmTmNQAAAAEAzO41AAAAAwMw8jUAAAABgZj6NQAAAAAAAQI1AAAAAoJlBjUAAAABAM0ONQAAAAMDMRI1AAAAAYGZGjUAAAAAAAEiNQAAAAKCZSY1AAAAAQDNLjUAAAADAzEyNQAAAAGBmTo1AAAAAAABQjUAAAACgmVGNQAAAAEAzU41AAAAAwMxUjUAAAABgZlaNQAAAAAAAWI1AAAAAoJlZjUAAAABAM1uNQAAAAMDMXI1AAAAAYGZejUAAAAAAAGCNQAAAAKCZYY1AAAAAQDNjjUAAAADAzGSNQAAAAGBmZo1AAAAAAABojUAAAACgmWmNQAAAAEAza41AAAAAwMxsjUAAAABgZm6NQAAAAAAAcI1AAAAAoJlxjUAAAABAM3ONQAAAAMDMdI1AAAAAYGZ2jUAAAAAAAHiNQAAAAKCZeY1AAAAAQDN7jUAAAADAzHyNQAAAAGBmfo1AAAAAAACAjUAAAACgmYGNQAAAAEAzg41AAAAAwMyEjUAAAABgZoaNQAAAAAAAiI1A</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="352">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AAC4QgAAWEMAAJ5CAACWQwAAVUMAABxDAADCQgAAAAAAAGhDAAAAAAAAAAAAAAAAAACCQgAANEIAABJDAAAAAAAAJkMAABhEAAAXRAAAgkMAAAAAAADaQgAAOEIAAAAAAAAiRACwkUUA0oxGAMKFRgBwkUUAgGVEAGAgRQAkCkYAOKFFAIDdRAAAIUQAYAhFAMDhRQAwokUAgGhEAABPQwDAb0QAQPdEACCiRAAAdkMAAAAAAADmQgAAhkMAAA5EAAAgQwAAukIAgIxDAADyQwBAX0QAAOpCAAAAAAAAgkMAAARDAADYQwCAWkQAACNDAAAAAAAAfEMAAJxDAABUQgAAAAAAAAAA</binary>
@@ -96,7 +144,7 @@
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
-					<scan>
+					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="475.321" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
@@ -108,7 +156,7 @@
 						<binary>AAAAAAAgjUAAAACgmSGNQAAAAEAzI41AAAAAwMwkjUAAAABgZiaNQAAAAAAAKI1AAAAAoJkpjUAAAABAMyuNQAAAAMDMLI1AAAAAYGYujUAAAAAAADCNQAAAAKCZMY1AAAAAQDMzjUAAAADAzDSNQAAAAGBmNo1AAAAAAAA4jUAAAACgmTmNQAAAAEAzO41AAAAAwMw8jUAAAABgZj6NQAAAAAAAQI1AAAAAoJlBjUAAAABAM0ONQAAAAMDMRI1AAAAAYGZGjUAAAAAAAEiNQAAAAKCZSY1AAAAAQDNLjUAAAADAzEyNQAAAAGBmTo1AAAAAAABQjUAAAACgmVGNQAAAAEAzU41AAAAAwMxUjUAAAABgZlaNQAAAAAAAWI1AAAAAoJlZjUAAAABAM1uNQAAAAMDMXI1AAAAAYGZejUAAAAAAAGCNQAAAAKCZYY1AAAAAQDNjjUAAAADAzGSNQAAAAGBmZo1AAAAAAABojUAAAACgmWmNQAAAAEAza41AAAAAwMxsjUAAAABgZm6NQAAAAAAAcI1AAAAAoJlxjUAAAABAM3ONQAAAAMDMdI1AAAAAYGZ2jUAAAAAAAHiNQAAAAKCZeY1AAAAAQDN7jUAAAADAzHyNQAAAAGBmfo1AAAAAAACAjUAAAACgmYGNQAAAAEAzg41AAAAAwMyEjUAAAABgZoaNQAAAAAAAiI1A</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="352">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AAAAAAAAvkIAAKlDAAAsQgAAo0MAAD9DAABUQgAAvEIAAAAAAAAAAAAAAAAAABJDAAAAAAAAAAAAAAAAAAAAAAAAAAAAANBCAACOQgAAAAAAAAAAAACaQgAAfEMAAE1DAACVQwC4nEUAyGtGANgRRgDABEUAgB1EAOAYRQA490UAgHZFAABORAAAEkMAIKFEAIAyRQAA/kQAgMNDAMADRACAz0MAkA9FAGC2RACA9UMAABxCAIAgRADgzEQAgN9DAABIQgAAAAAAABBCAIAgRAAA7EMAAAJDAACgQwAAREMAAKhCAAAAAAAAAAAAANJCAAAAAAAAAAAAAF5DAAA0QgAAAAAAAAAA</binary>
@@ -118,3 +166,12 @@
 		</spectrumList>
 	</run>
 </mzML>
+<indexList count="1">
+	<index name="spectrum">
+		<offset idRef="spectrum=1">7949</offset>
+		<offset idRef="spectrum=2">10447</offset>
+	</index>
+</indexList>
+<indexListOffset>12947</indexListOffset>
+<fileChecksum>0</fileChecksum>
+</indexedmzML>

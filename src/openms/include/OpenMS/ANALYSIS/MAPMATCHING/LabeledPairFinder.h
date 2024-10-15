@@ -40,18 +40,6 @@ public:
     {
     }
 
-    /// Returns an instance of this class
-    static BaseGroupFinder * create()
-    {
-      return new LabeledPairFinder();
-    }
-
-    /// Returns the name of this module
-    static const String getProductName()
-    {
-      return "labeled_pair_finder";
-    }
-
     /**
       @brief Run the algorithm
 

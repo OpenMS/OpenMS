@@ -29,4 +29,13 @@ namespace OpenMS
   inline std::string_view DIM_NAMES[(int)DIM_UNIT::SIZE_OF_DIM_UNITS] = {"RT [s]", "m/z [Th]", "intensity", "IM [milliseconds]", "IM [vs / cm2]", "FAIMS CV"};
   inline std::string_view DIM_NAMES_SHORT[(int)DIM_UNIT::SIZE_OF_DIM_UNITS] = {"RT", "m/z", "int", "IM", "IM", "FCV"};
 
+
+  enum class MZ_UNITS
+  {
+    DA = 0, ///< Dalton
+    PPM,    ///< parts-per-million
+    SIZE_OF_MZ_UNITS
+  };
+  inline std::string_view MZ_UNIT_NAMES[(int)MZ_UNITS::SIZE_OF_MZ_UNITS] = {"Da", "ppm"};
+
 } // namespace OpenMS

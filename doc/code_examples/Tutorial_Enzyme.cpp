@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-//! [Enzyme]
+//! [doxygen_snippet_Enzyme]
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
@@ -28,28 +28,34 @@ int main()
 
   // digest C-terminally amidated peptide 
   vector<AASequence> products;
-  protease.digest(AASequence::fromString("ARCDRE.(Amidated)"), products);
+  auto aa_seq = AASequence::fromString("ARCDRE.(Amidated)");
+  protease.digest(aa_seq, products);
 
   // output digestion products
+  std::cout << "digesting " << aa_seq.toString() << " into:\n";
   for (const AASequence& p : products)
   {
-    cout << p.toString() << " ";
+    cout << "-->  " << p.toString() << "\n";
   }
   cout << endl;
 
   // allow many miss-cleavages
   protease.setMissedCleavages(10);
-  protease.digest(AASequence::fromString("ARCDRE.(Amidated)"), products);
+  protease.digest(aa_seq, products);
 
   // output digestion products
+  std::cout << "digesting " << aa_seq.toString() << " with 10 MCs into:\n";
   for (const AASequence& p : products)
   {
-    cout << p.toString() << " ";
+    cout << "-->  " << p.toString() << "\n";
   }
   cout << endl;
 
-  // ... many more
-  return 0;
+  // verify an infix of a protein is a digestion product:
+  String peptide = "FFFRAAA";
+  cout << "Is '" << peptide.prefix(4) << "' a valid digestion product of '" << peptide << "'? " 
+       << std::boolalpha << protease.isValidProduct(peptide, 0, 4); // yes it is!
+
 }
 
-//! [Enzyme]
+//! [doxygen_snippet_Enzyme]

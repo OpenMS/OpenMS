@@ -226,7 +226,9 @@ START_SECTION((void writeCTDToStream(std::ostream *os_ptr, const Param &param) c
   p.setValue("doublelist3", ListUtils::create<double>("1.4"));
   p.setValue("file_parameter", "", "This is a file parameter.");
   p.addTag("file_parameter", "input file");
-  p.setValidStrings("file_parameter", std::vector<std::string>{"*.mzML","*.mzXML"});
+  p.setValidStrings("file_parameter", std::vector<std::string> {"*.mzML", "*.mzXML"});
+  p.setValue("outdir_parameter", "", "This is a outdir parameter.");
+  p.addTag("outdir_parameter", "output dir");
   p.setValue("advanced_parameter", "", "This is an advanced parameter.", {"advanced"});
   p.setValue("flag", "false", "This is a flag i.e. in a command line input it does not need a value.");
   p.setValidStrings("flag",{"true","false"});
@@ -242,7 +244,7 @@ START_SECTION((void writeCTDToStream(std::ostream *os_ptr, const Param &param) c
                    "http://www.openms.de/doxygen/nightly/html/TOPP_AccurateMassSearch.html",
                    "Utilities",
                    "Match MS signals to molecules from a database by mass.",
-                   {"10.1038/nmeth.3959"}};
+                   {"10.1038/s41592-024-02197-7"}};
   paramFile.writeCTDToStream(&s,p, info);
   s.close();
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("ParamCTDFile_test_writeCTDToStream.ctd"))

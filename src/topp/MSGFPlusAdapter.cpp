@@ -174,6 +174,9 @@ protected:
     registerIntOption_("matches_per_spec", "<num>", 1, "Number of matches per spectrum to be reported (MS-GF+ parameter '-n')", false);
     setMinInt_("matches_per_spec", 1);
 
+    registerIntOption_("min_peaks", "<num>", 10, "Minimum number of ions a spectrum must have to be examined", false); 
+    setMinInt_("min_peaks", 10); 
+
     registerStringOption_("add_features", "<true/false>", "true", "Output additional features (MS-GF+ parameter '-addFeatures'). This is required by Percolator and hence by default enabled.", false, false);
     setValidStrings_("add_features", ListUtils::create<String>("true,false"));
     
@@ -575,6 +578,7 @@ protected:
                    << "-ntt" << QString::number(tryptic_code)
                    << "-minLength" << QString::number(getIntOption_("min_peptide_length"))
                    << "-maxLength" << QString::number(getIntOption_("max_peptide_length"))
+                   << "-minNumPeaks" << QString::number(getIntOption_("min_peaks"))
                    << "-minCharge" << QString::number(min_precursor_charge)
                    << "-maxCharge" << QString::number(max_precursor_charge)
                    << "-maxMissedCleavages" << QString::number(getIntOption_("max_missed_cleavages"))

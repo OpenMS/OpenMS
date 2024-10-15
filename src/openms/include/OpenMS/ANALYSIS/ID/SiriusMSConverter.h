@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Alka $
+// $Maintainer: Oliver Alka, Axel Walter $
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
@@ -56,36 +56,46 @@ public:
     String m_ids_id; ///< concatenated list of native ids and identifier for multiple possible identification via AMS ("|" separator) used for mapping of compounds and the annotated spectrum.
     std::vector<String> scan_indices; ///< index of the associated spectra
     std::vector<String> specrefs; ///< spectra reference for mztab-m
+    int file_index; ///< source file index >
   };
 
   /**
-    @brief Internal structure used in @ref TOPP_SiriusAdapter that is used
+    @brief Internal structure used in @ref TOPP_SiriusExport that is used
     for the conversion of a MzMlFile to an internal format.
 
     @ingroup Analysis_ID
 
-    Store .ms file.
-    Comments (see CompoundInfo) are written to SIRIUS .ms file and additionally stores in CompoundInfo struct.
+    Write content of one mzML/featureXML(optional) file pair to SIRIUS .ms file ofstream.
+    Comments (see CompoundInfo) are written to SIRIUS .ms file and additionally stored in CompoundInfo struct.
     If adduct information for a spectrum is missing, no adduct information is added. 
     In this case, SIRIUS assumes default adducts for the respective spectrum.
-        
-    @param spectra: Peakmap from input mzml.
-    @param msfile: Writes .ms file from sirius.
+
+    @param spectra: Peakmap from input mzML.
+    @param os: Write output for .ms file to ofstream.
     @param feature_mapping: Adducts and features (index).
     @param feature_only: Only use features.
     @param isotope_pattern_iterations: At which depth to stop isotope_pattern extraction (if possible).
-    @param no_mt_info Should isotope pattern be extracted (if not in feature)?
-    @param[out] v_cmpinfo: Vector of CompoundInfo.
+    @param no_masstrace_info_isotope_pattern: bool if isotope pattern should be extracted (if not in feature)
+    @param v_cmpinfo: Vector of CompoundInfo.
+    @param file_index: file index (to differentiate entries derived from different mzML files and resolve ambiguities)
     */
 
     static void store(const MSExperiment& spectra,
-                      const OpenMS::String& msfile,
+                      std::ofstream& os,
                       const FeatureMapping::FeatureToMs2Indices& feature_mapping,
                       const bool& feature_only,
                       const int& isotope_pattern_iterations,
-                      const bool no_mt_info,
-                      std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo);
+                      const bool no_masstrace_info_isotope_pattern,
+                      std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
+                      const size_t& file_index);
+    /**
+    @brief Store CompoundInfo objects in tsv file format
 
+    @param v_cmpinfo: Vector with CompoundInfo objects
+    @param filename: Filename for tsv file
+    */
+    static void saveFeatureCompoundInfoAsTSV(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
+                                      const std::string& filename);
 
   protected:
     /**
@@ -110,6 +120,7 @@ public:
     @param count_assume_mono: count number of features where mono charge was assumed
     @param count_no_ms1: count number of compounds without a valid ms1 spectrum
     @param v_cmpinfo: vector of CompoundInfo
+    @param file_index: file index (to differentiate entries derived from different mzML files and resolve ambiguities)
     */
 
     static void writeMsFile_(std::ofstream& os,
@@ -130,10 +141,8 @@ public:
                              int& count_skipped_spectra,
                              int& count_assume_mono,
                              int& count_no_ms1,
-                             std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo);
-
-
-
+                             std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
+                             const size_t& file_index);
     /**
     @brief Find highest intensity peak near target mz to test if within a margin of error
 

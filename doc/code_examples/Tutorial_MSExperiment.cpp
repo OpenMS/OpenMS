@@ -2,10 +2,12 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-//! [MSExperiment]
+//! [doxygen_snippet_MSExperiment]
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <iostream>
 
 using namespace OpenMS;
@@ -29,7 +31,7 @@ int main()
       peak.setMZ(mz + i);
       spectrum.push_back(peak);
     }
-    
+
     exp.addSpectrum(spectrum);
   }
 
@@ -39,7 +41,7 @@ int main()
     cout << it.getRT() << " - " << it->getMZ() << endl;
   }
 
-  // Iteration over all peaks in the experiment. 
+  // Iteration over all peaks in the experiment.
   // Output: RT, m/z, and intensity
   // Note that the retention time is stored in the spectrum (not in the peak object)
   for (auto s_it = exp.begin(); s_it != exp.end(); ++s_it)
@@ -50,17 +52,27 @@ int main()
     }
   }
 
-  // We could store the spectra to a mzML file with:
-  // FileHandler mzml;
-  // mzml.storeExperiment(filename, exp);
-  
+  // update the data ranges for all dimensions (RT, m/z, int, IM) and print them:
+  exp.updateRanges();
+  std::cout << "Data ranges:\n";
+  exp.printRange(std::cout);
+  std::cout << "\nGet maximum intensity on its own: " << exp.getMinMobility() << '\n';
+  exp.getMinRT();
+
+  // Store the spectra to a mzML file with:
+  FileHandler fh;
+  auto tmp_filename = File::getTemporaryFile();
+  fh.storeExperiment(tmp_filename, exp, {FileTypes::MZML});
+
   // And load it with
-  // mzml.loadExperiment(filename, exp);
+  fh.loadExperiment(tmp_filename, exp);
   // If we wanted to load only the MS2 spectra we could speed up reading by setting:
-  // mzml.getOptions().addMSLevel(2);
-  // before executing: mzml.loadExperiment(filename, exp);
+  fh.getOptions().setMSLevels({2});
+  // and then load from disk: 
+  fh.loadExperiment(tmp_filename, exp);
 
+  // note: the file in 'tmp_filename' will be automatically deleted
   return 0;
-} //end of main
+} // end of main
 
-//! [MSExperiment]
+//! [doxygen_snippet_MSExperiment]

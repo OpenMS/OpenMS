@@ -1,12 +1,14 @@
 // Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 
-//! [Precursor]
+//! [doxygen_snippet_Precursor]
 
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Precursor.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
+
 #include <iostream>
 
 using namespace OpenMS;
@@ -14,16 +16,12 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
-  
-  if (argc < 2) return 1;
-  
-  // the path to the data should be given on the command line
-  String tutorial_data_path(argv[1]);
+  auto file_mzML = OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_GaussFilter.mzML");
   
   MSExperiment spectra;
 
   // load mzML from code examples folder
-  FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_GaussFilter.mzML", spectra);
+  FileHandler().loadExperiment(file_mzML, spectra);
 
   // iterate over map and output MS2 precursor information
   for (auto s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
@@ -56,4 +54,4 @@ int main(int argc, const char** argv)
   return 0;
 } // end of main
 
-//! [Precursor]
+//! [doxygen_snippet_Precursor]

@@ -172,7 +172,7 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
   };
 
   Matrix<double> test_Matrix;
-	test_Matrix.setMatrix<16,16>(test_matrix);
+	test_Matrix.setMatrix<double, 16, 16>(test_matrix);
 
   TMTSixteenPlexQuantitationMethod quant_meth;
 
@@ -186,9 +186,9 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
   ABORT_IF(m.rows() != 16)
   ABORT_IF(m.cols() != 16)
 
-  for(Matrix<double>::SizeType i = 0; i < m.rows(); ++i)
+  for (size_t i = 0; i < m.rows(); ++i)
   {
-    for(Matrix<double>::SizeType j = 0; j < m.cols(); ++j)
+    for (size_t j = 0; j < m.cols(); ++j)
     {
       TEST_REAL_SIMILAR(m(i,j), test_Matrix(i,j))
     }

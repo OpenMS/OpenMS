@@ -20,9 +20,8 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
-#include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/COMPARISON/ZhangSimilarityScore.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -1381,7 +1380,7 @@ protected:
     const bool enable_rt_check = (rt_tol >= 0);
     const bool enable_sim_check = (sim_tol > -1);
 
-    std::unique_ptr<PeakSpectrumCompareFunctor> comp_function(Factory<PeakSpectrumCompareFunctor>::create("ZhangSimilarityScore"));
+    auto comp_function= std::unique_ptr<PeakSpectrumCompareFunctor>(new (ZhangSimilarityScore));
 
     set<Size> list_idx;
 

@@ -2,7 +2,7 @@ from libcpp.vector cimport vector as libcpp_vector
 from libcpp cimport bool
 from Types cimport *
 
-cdef extern from "<OpenMS/MATH/MISC/LinearInterpolation.h>" namespace "OpenMS::Math":
+cdef extern from "<OpenMS/ML/INTERPOLATION/LinearInterpolation.h>" namespace "OpenMS::Math":
     
     cdef cppclass LinearInterpolation[KeyType,ValueType]:
         # wrap-doc:

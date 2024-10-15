@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-//! [FeatureMap]
+//! [doxygen_snippet_FeatureMap]
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <iostream>
@@ -24,9 +24,9 @@ int main()
   map.push_back(feature); //append feature 2
 
   // Iteration over FeatureMap
-  for (auto it = map.begin(); it != map.end(); ++it)
+  for (auto& f : map)
   {
-    cout << it->getRT() << " - " << it->getMZ() << endl;
+    cout << f.getRT() << " - " << f.getMZ() << endl;
   }
 
   // Calculate and output the ranges
@@ -35,8 +35,6 @@ int main()
   cout << "RT:  " << map.getMinRT() << " - " << map.getMaxRT() << endl;
   cout << "m/z: " << map.getMinMZ() << " - " << map.getMaxMZ() << endl;
 
-  // ... and many more
-  return 0;
 } //end of main
 
-//! [FeatureMap]
+//! [doxygen_snippet_FeatureMap]

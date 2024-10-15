@@ -39,7 +39,7 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI MSSpectrum final :
     private std::vector<Peak1D>,
-    public RangeManagerContainer<RangeMZ, RangeIntensity>,
+    public RangeManagerContainer<RangeMZ, RangeIntensity, RangeMobility>,
     public SpectrumSettings
   {
 public:
@@ -89,8 +89,8 @@ public:
     /// Spectrum base type
     typedef std::vector<PeakType> ContainerType;
     /// RangeManager
-    typedef RangeManagerContainer<RangeMZ, RangeIntensity> RangeManagerContainerType;
-    typedef RangeManager<RangeMZ, RangeIntensity> RangeManagerType;
+    typedef RangeManagerContainer<RangeMZ, RangeIntensity, RangeMobility> RangeManagerContainerType;
+    typedef RangeManager<RangeMZ, RangeIntensity, RangeMobility> RangeManagerType;
     /// Float data array vector type
     typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
     typedef std::vector<FloatDataArray> FloatDataArrays;
@@ -151,6 +151,9 @@ public:
     /// Constructor
     MSSpectrum();
 
+    /// Constructor from a list of Peak1D, e.g. MSSpectrum spec{ {mz1, int1}, {mz2, int2}, ... };
+    MSSpectrum(const std::initializer_list<Peak1D>& init);
+
     /// Copy constructor
     MSSpectrum(const MSSpectrum& source);
 
@@ -190,7 +193,7 @@ public:
     void setRT(double rt);
 
     /**
-      @brief Returns the ion mobility drift time (MSSpectrum::DRIFTTIME_NOT_SET means it is not set)
+      @brief Returns the ion mobility drift time (IMTypes::DRIFTTIME_NOT_SET means it is not set)
 
       @note Drift times may be stored directly as an attribute of the spectrum
       (if they relate to the spectrum as a whole). In case of ion mobility
@@ -296,6 +299,15 @@ public:
     void sortByPosition();
 
     /**
+      @brief Sorts the m/z peaks by their ion mobility value (and the accociated IM data arrays accordingly).
+
+      Requires a binary data array which is a child of 'MS:1002893 ! ion mobility array' (see getIMData())
+      
+      @throws Exception::MissingInformation if containsIMData() returns false
+    */
+    void sortByIonMobility();
+
+    /**
       @brief Sort the spectrum, but uses the fact, that certain chunks are presorted
       @param chunks a Chunk is an object that contains the start and end of a sublist of peaks in the spectrum, that is or isn't sorted yet (is_sorted member)
     */
@@ -303,6 +315,12 @@ public:
 
     /// Checks if all peaks are sorted with respect to ascending m/z
     bool isSorted() const;
+
+    /// Checks if m/z peaks are sorted by their associated ion mobility value.
+    /// Requires a binary data array which is a child of 'MS:1002893 ! ion mobility array' (see getIMData())
+    ///
+    /// @throws Exception::MissingInformation if containsIMData() returns false
+    bool isSortedByIM() const;
 
     /// Checks if container is sorted by a certain user-defined property.
     /// You can pass any lambda function with <tt>[](Size index_1, Size index_2) --> bool</tt>
@@ -529,6 +547,7 @@ public:
       @brief Get the Ion mobility data array's @p index and its associated @p unit
 
       This only works for spectra which represent an IM-frame, i.e. they have a float metadata array which is a child of 'MS:1002893 ! ion mobility array'?
+      Check this first by using `containsIMData()`.
 
       @throws Exception::MissingInformation if IM data is not present
     */
@@ -586,16 +605,16 @@ public:
 
 protected:
     /// Retention time
-    double retention_time_;
+    double retention_time_ = -1;
 
     /// Drift time
-    double drift_time_;
+    double drift_time_ = -1;
 
     /// Drift time unit
-    DriftTimeUnit drift_time_unit_;
+    DriftTimeUnit drift_time_unit_ = DriftTimeUnit::NONE;
 
     /// MS level
-    UInt ms_level_;
+    UInt ms_level_ = 1;
 
     /// Name
     String name_;

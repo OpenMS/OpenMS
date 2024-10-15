@@ -9,7 +9,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 

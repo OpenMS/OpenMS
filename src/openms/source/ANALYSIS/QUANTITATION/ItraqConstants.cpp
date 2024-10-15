@@ -61,18 +61,18 @@ namespace OpenMS
     OPENMS_PRECONDITION(itraq_type < SIZE_OF_ITRAQ_TYPES && itraq_type >= 0, "Error while trying to access invalid isotope correction matrix.");
 
     StringList isotopes;
-    std::vector<Matrix<Int> > channel_names(3);
-    channel_names[0].setMatrix<4, 1>(CHANNELS_FOURPLEX);
-    channel_names[1].setMatrix<8, 1>(CHANNELS_EIGHTPLEX);
-    channel_names[2].setMatrix<6, 1>(CHANNELS_TMT_SIXPLEX);
+    std::vector<Matrix<Int>> channel_names(3);
+    channel_names[0].setMatrix<Int, 4, 1>(CHANNELS_FOURPLEX);
+    channel_names[1].setMatrix<Int, 8, 1>(CHANNELS_EIGHTPLEX);
+    channel_names[2].setMatrix<Int, 6, 1>(CHANNELS_TMT_SIXPLEX);
     for (Int i = 0; i < CHANNEL_COUNT[itraq_type]; ++i)
     {
-      String line = String(channel_names[itraq_type].getValue(i, 0)) + ":";
+      String line = String(channel_names[itraq_type](i, 0)) + ":";
       for (Int j = 0; j < 3; ++j)
       {
-        line += String(isotope_corrections[itraq_type].getValue(i, j)) + "/";
+        line += String(isotope_corrections[itraq_type](i, j)) + "/";
       }
-      line += String(isotope_corrections[itraq_type].getValue(i, 3));
+      line += String(isotope_corrections[itraq_type](i, 3));
       isotopes.push_back(line);
     }
 
@@ -83,9 +83,9 @@ namespace OpenMS
   {
     // TODO: make generic .. why do we need to initialize all matrices, we are only interested in itraq_type
     isotope_corrections.resize(SIZE_OF_ITRAQ_TYPES);
-    isotope_corrections[0].setMatrix<4, 4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
-    isotope_corrections[1].setMatrix<8, 4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
-    isotope_corrections[2].setMatrix<6, 4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
+    isotope_corrections[0].setMatrix<double, 4, 4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
+    isotope_corrections[1].setMatrix<double, 8, 4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
+    isotope_corrections[2].setMatrix<double, 6, 4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
 
     // split the channels key:name pairs apart
     for (StringList::const_iterator it = channels.begin(); it != channels.end(); ++it)
@@ -135,10 +135,10 @@ namespace OpenMS
       }
 
       // overwrite line in Matrix with custom values
-      isotope_corrections[itraq_type].setValue(line, 0, corrections[0].toDouble());
-      isotope_corrections[itraq_type].setValue(line, 1, corrections[1].toDouble());
-      isotope_corrections[itraq_type].setValue(line, 2, corrections[2].toDouble());
-      isotope_corrections[itraq_type].setValue(line, 3, corrections[3].toDouble());
+      isotope_corrections[itraq_type](line, 0) = corrections[0].toDouble();
+      isotope_corrections[itraq_type](line, 1) = corrections[1].toDouble();
+      isotope_corrections[itraq_type](line, 2) = corrections[2].toDouble();
+      isotope_corrections[itraq_type](line, 3) = corrections[3].toDouble();
 
 #ifdef ITRAQ_DEBUG
       std::cout << "Channel " << channel << " has values " << corrections << std::endl;
@@ -170,18 +170,18 @@ namespace OpenMS
       reporter_mass_exact[131] = 131.138176;
     }
     /// valid names for 4 and 8plex, i.e. 114,115,116,117 for 4plex
-    std::vector<Matrix<Int> > channel_names;
+    std::vector<Matrix<Int>> channel_names;
     channel_names.resize(3);
-    channel_names[0].setMatrix<4, 1>(CHANNELS_FOURPLEX);
-    channel_names[1].setMatrix<8, 1>(CHANNELS_EIGHTPLEX);
-    channel_names[2].setMatrix<6, 1>(CHANNELS_TMT_SIXPLEX);
+    channel_names[0].setMatrix<Int, 4, 1>(CHANNELS_FOURPLEX);
+    channel_names[1].setMatrix<Int, 8, 1>(CHANNELS_EIGHTPLEX);
+    channel_names[2].setMatrix<Int, 6, 1>(CHANNELS_TMT_SIXPLEX);
 
     map.clear();
-    for (Size i = 0; i < channel_names[itraq_type].rows(); ++i)
+    for (long int i = 0; i < channel_names[itraq_type].rows(); ++i)
     {
       ChannelInfo info;
       info.description = "";
-      info.name = channel_names[itraq_type].getValue(i, 0);
+      info.name = channel_names[itraq_type](i, 0);
       info.id = (Int)i;
       if (reporter_mass_exact.find(info.name) == reporter_mass_exact.end())
       {
@@ -250,9 +250,9 @@ namespace OpenMS
           // subtract all isotope deviations of row i
           for (Int col_idx = 0; col_idx < 4; ++col_idx)
           {
-            val += -isotope_corrections[itraq_type].getValue(i, col_idx) / 100;
+            val += -isotope_corrections[itraq_type](i, col_idx) / 100;
           }
-          channel_frequency.setValue(i, j, val);
+          channel_frequency(i, j) = val;
         }
         else      // from mass i to mass j (directly copy the deviation)
         {
@@ -260,22 +260,22 @@ namespace OpenMS
           {
             if (j < i && i <= j + 2)      // -2, -1 cases of row 'i'
             {
-              channel_frequency.setValue(j, i, isotope_corrections[itraq_type].getValue(i, j - i + 2) / 100);
+              channel_frequency(j, i) = isotope_corrections[itraq_type](i, j - i + 2) / 100;
             }
             else if (i < j && j <= i + 2)     // +1, +2 cases of row 'i'
             {
-              channel_frequency.setValue(j, i, isotope_corrections[itraq_type].getValue(i, j - i + 1) / 100);
+              channel_frequency(j, i) = isotope_corrections[itraq_type](i, j - i + 1) / 100;
             }
           }
           else // special case of ch-121 for 8plex
           { // make everything more 'extreme' by 1 index
             if (i == 7 && j == 6) // -2 case of ch-121
             {
-              channel_frequency.setValue(j, i, isotope_corrections[itraq_type].getValue(i, 0) / 100);
+              channel_frequency(j, i) = isotope_corrections[itraq_type](i, 0) / 100;
             }
             else if (i == 6 && j == 7) // +2 case of ch-121
             {
-              channel_frequency.setValue(j, i, isotope_corrections[itraq_type].getValue(i, 3) / 100);
+              channel_frequency(j, i) = isotope_corrections[itraq_type](i, 3) / 100.0;
             }
           }
         }

@@ -9,7 +9,7 @@
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 
 #include <OpenMS/FORMAT/Base64.h>
-#include <OpenMS/MATH/MISC/MSNumpress.h>
+#include <OpenMS/FORMAT/MSNUMPRESS/MSNumpress.h>
 #include <boost/math/special_functions/fpclassify.hpp> // std::isfinite
 // #define NUMPRESS_DEBUG
 

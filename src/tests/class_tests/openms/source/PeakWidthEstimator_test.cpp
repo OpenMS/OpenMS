@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
+#include <OpenMS/FEATUREFINDER/PeakWidthEstimator.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 

@@ -12,5 +12,5 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h
         FeatureGroupingAlgorithmLabeled(FeatureGroupingAlgorithmLabeled &) except + nogil  # wrap-ignore
         void group(libcpp_vector[ FeatureMap ] & maps, ConsensusMap & out) except + nogil 
         # POINTER # FeatureGroupingAlgorithm * create() except + nogil 
-        String getProductName() except + nogil 
+
 

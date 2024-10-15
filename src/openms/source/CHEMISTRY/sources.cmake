@@ -3,6 +3,7 @@ set(directory source/CHEMISTRY)
 
 ### list all filenames of the directory here
 set(sources_list
+AAIndex.cpp
 AASequence.cpp
 AdductInfo.cpp
 CrossLinksDB.cpp
@@ -36,7 +37,6 @@ SimpleTSGXLMS.cpp
 Tagger.cpp
 TheoreticalSpectrumGenerator.cpp
 TheoreticalSpectrumGeneratorXLMS.cpp
-WeightWrapper.cpp
 )
 
 ### add path to the filenames

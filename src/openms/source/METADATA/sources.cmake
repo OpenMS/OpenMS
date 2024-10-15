@@ -19,13 +19,10 @@ ExperimentalDesign.cpp
 ExperimentalSettings.cpp
 Gradient.cpp
 HPLC.cpp
-Identification.cpp
-IdentificationHit.cpp
 Instrument.cpp
 InstrumentSettings.cpp
 IonDetector.cpp
 IonSource.cpp
-MSQuantifications.cpp
 MassAnalyzer.cpp
 MetaInfo.cpp
 MetaInfoDescription.cpp
@@ -45,7 +42,6 @@ SampleTreatment.cpp
 ScanWindow.cpp
 Software.cpp
 SourceFile.cpp
-SpectrumIdentification.cpp
 SpectrumLookup.cpp
 SpectrumMetaDataLookup.cpp
 SpectrumSettings.cpp

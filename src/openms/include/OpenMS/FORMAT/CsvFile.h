@@ -86,7 +86,7 @@ public:
 
       @return  returns false if the given row could not be separated into items
     */
-    bool getRow(Size row, StringList& list);
+    bool getRow(Size row, StringList& list) const;
 
     /**
       @brief Returns the number of rows that were loaded from the file.

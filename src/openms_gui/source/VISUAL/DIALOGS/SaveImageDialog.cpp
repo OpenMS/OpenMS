@@ -12,7 +12,7 @@
 
 #include <OpenMS/VISUAL/DIALOGS/SaveImageDialog.h>
 
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 // Qt
 #include <QtWidgets/QLayout>

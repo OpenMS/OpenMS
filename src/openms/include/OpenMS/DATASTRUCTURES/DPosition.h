@@ -330,7 +330,7 @@ public:
     }
 
     /// Returns the number of dimensions
-    static Size size()
+    constexpr static Size size()
     {
       return D;
     }

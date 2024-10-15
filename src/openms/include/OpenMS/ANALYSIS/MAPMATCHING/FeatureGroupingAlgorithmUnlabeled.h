@@ -82,18 +82,6 @@ public:
     */
     void addToGroup(int map_id, const FeatureMap & feature_map);
 
-    /// Creates a new instance of this class (for Factory)
-    static FeatureGroupingAlgorithm * create()
-    {
-      return new FeatureGroupingAlgorithmUnlabeled();
-    }
-
-    /// Returns the product name (for the Factory)
-    static String getProductName()
-    {
-      return "unlabeled";
-    }
-
 private:
 
     // This vector should always have 2 elements

@@ -12,7 +12,7 @@
 #include <OpenMS/VISUAL/AxisTickCalculator.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <QMouseEvent>
 

@@ -52,6 +52,7 @@ public:
       CONVERSION_MZXML,                       ///< Conversion to mzXML format
       CONVERSION_DTA,                 ///< Conversion to DTA format
       IDENTIFICATION,                 ///< Identification
+      ION_MOBILITY_BINNING,           ///< Ion mobility binning (merging of spectra with similar IM values)
       SIZE_OF_PROCESSINGACTION
     };
     /// Names of inlet types

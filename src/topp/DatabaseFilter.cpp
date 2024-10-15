@@ -53,45 +53,47 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in", "<file>", "","Input FASTA file, containing a database.");
-    setValidFormats_("in", ListUtils::create<String>("fasta"));
+    registerInputFile_("in", "<file>", "", "Input FASTA file, containing a protein database.");
+    setValidFormats_("in", {"fasta"});
     registerInputFile_("id", "<file>", "", "Input file containing identified peptides and proteins.");
-    setValidFormats_("id", ListUtils::create<String>("idXML,mzid"));
-    registerStringOption_("method", "<choice>", "whitelist", "Switch between white-/blacklisting", false);
-    setValidStrings_("method", ListUtils::create<String>("whitelist,blacklist"));
+    setValidFormats_("id", {"idXML", "mzid"});
+    registerStringOption_("method", "<choice>", "whitelist", "Switch between white-/blacklisting of protein IDs", false);
+    setValidStrings_("method", {"whitelist", "blacklist"});
     registerOutputFile_("out", "<file>", "", "Output FASTA file where the reduced database will be written to.");
-    setValidFormats_("out", ListUtils::create<String>("fasta"));
+    setValidFormats_("out", {"fasta"});
   }
 
-  void filterByProteinAccessions_(const vector<FASTAFile::FASTAEntry>& db, const vector<PeptideIdentification>& peptide_identifications, bool whitelist, vector<FASTAFile::FASTAEntry>& db_new)
+  void filterByProteinAccessions_(const vector<FASTAFile::FASTAEntry>& db,
+                                  const vector<PeptideIdentification>& peptide_identifications,
+                                  bool whitelist,
+                                  vector<FASTAFile::FASTAEntry>& db_new)
   {
     set<String> id_accessions;
-    for (Size i = 0; i != peptide_identifications.size(); ++i)
+    for (const auto& pep_id : peptide_identifications)
     {
-      const PeptideIdentification& id = peptide_identifications[i];
-      const vector<PeptideHit>& hits = id.getHits();
-      for (Size k = 0; k != hits.size(); ++k)
+      for (const auto& hit : pep_id.getHits())
       {
-        const vector<PeptideEvidence>& evidences = hits[k].getPeptideEvidences();
-        for (Size m = 0; m != evidences.size(); ++m)
+        for (const auto& ev : hit.getPeptideEvidences())
         {
-          const String& id_accession = evidences[m].getProteinAccession();
+          const String& id_accession = ev.getProteinAccession();
           id_accessions.insert(id_accession);
         }
       }
     }
 
-    OPENMS_LOG_INFO << "Protein accessions: " << id_accessions.size() << endl;
+    OPENMS_LOG_INFO << "Number of Protein IDs: " << id_accessions.size() << endl;
 
-    for (Size i = 0; i != db.size() ; ++i)
+    for (const auto& entry : db)
     {
-      const String& fasta_accession = db[i].identifier;
+      const String& fasta_accession = entry.identifier;
       const bool found = id_accessions.find(fasta_accession) != id_accessions.end();
-      if ((found && whitelist) || (!found && !whitelist)) //either found in the whitelist or not found in the blacklist
+      if ((found && whitelist) || (! found && ! whitelist)) // either found in the whitelist or not found in the blacklist
       {
-        db_new.push_back(db[i]);
+        db_new.push_back(entry);
       }
     }
+
+    //! [doxygen_snippet_Functionality_2]
   }
 
   ExitCodes main_(int, const char **) override

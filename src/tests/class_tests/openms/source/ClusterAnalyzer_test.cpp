@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
+#include <OpenMS/ML/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <vector>
 ///////////////////////////

@@ -234,6 +234,16 @@ namespace OpenMS
 
     namespace UserParam
     {
+      /** User parameter name for general ion mobility values (e.g., if not further specified)
+              String
+      */
+      inline const std::string IM = "IM";
+
+      /** User parameter name for ion names (e.g., annotated by TheoreticalSpectrumGenerator)
+              String
+      */
+      inline const std::string IonNames = "IonNames";
+
       /** User parameter name for identifier of concatenated peptides
               String
       */
@@ -241,38 +251,38 @@ namespace OpenMS
 
       /** Metavalue to list unimod modifications used in site localization
       */    
-      inline const std::string   LOCALIZED_MODIFICATIONS_USERPARAM = "localized_modifications";
+      inline const std::string LOCALIZED_MODIFICATIONS_USERPARAM = "localized_modifications";
 
       /** User parameter name for the M/Z of other chromatograms which have been merged into this one
               String
        */
-      inline const std::string   MERGED_CHROMATOGRAM_MZS = "merged_chromatogram_mzs";
+      inline const std::string MERGED_CHROMATOGRAM_MZS = "merged_chromatogram_mzs";
 
       /** User parameter name for precursor mz error in ppm
               String
       */
-      inline const std::string   PRECURSOR_ERROR_PPM_USERPARAM = "precursor_mz_error_ppm";
+      inline const std::string PRECURSOR_ERROR_PPM_USERPARAM = "precursor_mz_error_ppm";
 
       /** User parameter name for median of fragment mz error in ppm
               String
       */
-      inline const std::string   FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM = "fragment_mz_error_median_ppm";
+      inline const std::string FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM = "fragment_mz_error_median_ppm";
 
 
       /** User parameter name for fragment mz error in ppm
               String
       */
-      inline const std::string   FRAGMENT_ERROR_PPM_USERPARAM = "fragment_mass_error_ppm";
+      inline const std::string FRAGMENT_ERROR_PPM_USERPARAM = "fragment_mass_error_ppm";
 
       /** User parameter name for fragment mz error in dalton
               String
       */
-      inline const std::string   FRAGMENT_ERROR_DA_USERPARAM = "fragment_mass_error_da";
+      inline const std::string FRAGMENT_ERROR_DA_USERPARAM = "fragment_mass_error_da";
 
       /** User parameter name for fragment annotations
               String
       */
-      inline const std::string   FRAGMENT_ANNOTATION_USERPARAM = "fragment_annotation";
+      inline const std::string FRAGMENT_ANNOTATION_USERPARAM = "fragment_annotation";
 
       /** User parameter name for annotation of PSMExlpainedIonCurrent
               String
@@ -427,8 +437,7 @@ namespace OpenMS
       */
       inline const std::string   OPENPEPXL_BETA_PEPEV_END = "BetaPepEv:end";
 
-      /** @name User parameters in/from Sirius annotated mzMLs
-        *  E.g., when running SiriusAdapter with annotation output
+      /** @name User parameters in spectra which have been annotated from subdirectories in SIRIUS workspace
        */
       ///@{
 
@@ -520,7 +529,7 @@ namespace OpenMS
       */
       inline const std::string   DC_CHARGE_ADDUCTS = "dc_charge_adducts";
 
-      /** User parameter name for the number of mass traces in a feature. (Required for SiriusAdapter)
+      /** User parameter name for the number of mass traces in a feature. (Required for SiriusExport)
               String
       */
       inline const std::string   NUM_OF_MASSTRACES = "num_of_masstraces";

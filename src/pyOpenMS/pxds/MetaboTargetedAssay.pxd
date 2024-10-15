@@ -37,7 +37,6 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>" namespace "O
                 #  :param max_fragment_mz: Maximum m/z a fragment ion has to have to be considered as a transition
                 #  :param method_consensus_spectrum: Boolean to use consensus spectrum method
                 #  :param exclude_ms2_precursor: Boolean to exclude MS2 precursor from MetaboTargetedAssay
-                #  :param file_counter: Count if multiple files are used
                 #  :return: Vector of MetaboTargetedAssay
 
        libcpp_vector[ MetaboTargetedAssay ] extractMetaboTargetedAssayFragmentAnnotation(libcpp_vector[ MetaboTargetedAssay_CompoundTargetDecoyPair ]& v_cmp_spec,
@@ -45,8 +44,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>" namespace "O
                                                                                          double& min_fragment_mz,
                                                                                          double& max_fragment_mz,
                                                                                          bool& use_exact_mass,
-                                                                                         bool& exclude_ms2_precursor,
-                                                                                         unsigned int& file_counter) except + nogil 
+                                                                                         bool& exclude_ms2_precursor) except + nogil 
             # wrap-doc:
                 #  Extract a vector of MetaboTargetedAssays using fragment 
                 #  

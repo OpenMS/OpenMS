@@ -19,7 +19,12 @@ namespace OpenMS
 
   TOPPASSplitterVertex::TOPPASSplitterVertex(const TOPPASSplitterVertex& rhs) = default;
 
-  TOPPASSplitterVertex & TOPPASSplitterVertex::operator=(const TOPPASSplitterVertex& rhs) = default;
+  TOPPASSplitterVertex& TOPPASSplitterVertex::operator=(const TOPPASSplitterVertex& rhs) = default;
+
+  std::unique_ptr<TOPPASVertex> TOPPASSplitterVertex::clone() const
+  {
+    return std::make_unique<TOPPASSplitterVertex>(*this);
+  }
 
   String TOPPASSplitterVertex::getName() const
   {

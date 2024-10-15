@@ -9,7 +9,6 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/KERNEL/StandardDeclarations.h>
 
 namespace OpenMS
 {

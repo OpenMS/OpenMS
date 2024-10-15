@@ -203,11 +203,11 @@ mean(xcorr_max) # shape score
 
           TEST_EQUAL(mrmscore.getXCorrMatrix().rows(), 2)
           TEST_EQUAL(mrmscore.getXCorrMatrix().cols(), 2)
-          TEST_EQUAL(mrmscore.getXCorrMatrix().getValue(0, 0).data.size(), 23)
+          TEST_EQUAL(mrmscore.getXCorrMatrix()(0, 0).data.size(), 23)
 
           // test auto-correlation = xcorrmatrix_0_0
           const OpenSwath::Scoring::XCorrArrayType auto_correlation =
-                  mrmscore.getXCorrMatrix().getValue(0, 0);
+                  mrmscore.getXCorrMatrix()(0, 0);
 
           TEST_EQUAL(auto_correlation.data[11].first, 0)
           TEST_EQUAL(auto_correlation.data[12].first, 1)
@@ -223,7 +223,7 @@ mean(xcorr_max) # shape score
 
           // test cross-correlation = xcorrmatrix_0_1
           const OpenSwath::Scoring::XCorrArrayType cross_correlation =
-                  mrmscore.getXCorrMatrix().getValue(0, 1);
+                  mrmscore.getXCorrMatrix()(0, 1);
 
           TEST_REAL_SIMILAR(cross_correlation.data[13].second, -0.31165141)   // find(2)->second,
           TEST_REAL_SIMILAR(cross_correlation.data[12].second, -0.35036919)   // find(1)->second,
@@ -252,16 +252,25 @@ mean(xcorr_max) # shape score
           TEST_EQUAL(mrmscore.getXCorrPrecursorContrastMatrix().cols(), 2)
 
           std::vector<double> sum_matrix;
-          for(auto e : mrmscore.getXCorrPrecursorContrastMatrix())
-          {
-            double sum{0};
-            for(size_t i = 0; i < e.data.size(); ++i)
-            {
-              sum += abs(e.data[i].second);
-            }
-            sum_matrix.push_back(sum);
-          }
 
+          const auto& cm = mrmscore.getXCorrPrecursorContrastMatrix();
+          // Note: the original code depens on col vs. row order and
+          // the old code: for (auto e : mrmscore.getXCorrPrecursorContrastMatrix()) fails with different data
+          for (size_t r = 0; r != cm.rows(); ++r) 
+            for (size_t c = 0; c != cm.cols(); ++c) 
+            {
+              double sum{0};
+              for (size_t i = 0; i < cm(r,c).data.size(); ++i)
+              {
+                sum += abs(cm(r,c).data[i].second);
+              }
+              sum_matrix.push_back(sum);
+            }
+/*
+          for (auto e : mrmscore.getXCorrPrecursorContrastMatrix())
+          {
+          }
+*/
           TEST_REAL_SIMILAR(sum_matrix[0], 3.40949220)
           TEST_REAL_SIMILAR(sum_matrix[1], 6.19794611)
           TEST_REAL_SIMILAR(sum_matrix[2], 3.68912454)
@@ -288,15 +297,20 @@ mean(xcorr_max) # shape score
           TEST_EQUAL(mrmscore.getXCorrPrecursorCombinedMatrix().cols(), 5)
 
           std::vector<double> sum_matrix;
-          for(auto e : mrmscore.getXCorrPrecursorCombinedMatrix())
-          {
-            double sum{0};
-            for(size_t i = 0; i < e.data.size(); ++i)
+
+          const auto& cm = mrmscore.getXCorrPrecursorCombinedMatrix();
+          // Note: the original code depens on col vs. row order and
+          // the old code: for (auto e : mrmscore.getXCorrPrecursorCombinedMatrix()) fails with different data
+          for (size_t r = 0; r != cm.rows(); ++r) 
+            for (size_t c = 0; c != cm.cols(); ++c) 
             {
-              sum += abs(e.data[i].second);
+              double sum{0};
+              for (size_t i = 0; i < cm(r,c).data.size(); ++i)
+              {
+                sum += abs(cm(r,c).data[i].second);
+              }
+              sum_matrix.push_back(sum);
             }
-            sum_matrix.push_back(sum);
-          }
 
           // Check upper triangular matrix 
           TEST_REAL_SIMILAR(sum_matrix[0], 5.86440677)
@@ -348,11 +362,11 @@ END_SECTION*/
 
           TEST_EQUAL(mrmscore.getXCorrContrastMatrix().rows(), 2)
           TEST_EQUAL(mrmscore.getXCorrContrastMatrix().cols(), 2)
-          TEST_EQUAL(mrmscore.getXCorrContrastMatrix().getValue(0, 0).data.size(), 23)
+          TEST_EQUAL(mrmscore.getXCorrContrastMatrix()(0, 0).data.size(), 23)
 
           // test auto-correlation = xcorrmatrix_0_0
           const OpenSwath::Scoring::XCorrArrayType auto_correlation =
-                  mrmscore.getXCorrContrastMatrix().getValue(0, 0);
+                  mrmscore.getXCorrContrastMatrix()(0, 0);
           TEST_REAL_SIMILAR(auto_correlation.data[11].second, 1)                     // find(0)->second,
           TEST_REAL_SIMILAR(auto_correlation.data[12].second, -0.227352707759245)    // find(1)->second,
           TEST_REAL_SIMILAR(auto_correlation.data[10].second,  -0.227352707759245)   // find(-1)->second,
@@ -361,7 +375,7 @@ END_SECTION*/
 
           // // test cross-correlation = xcorrmatrix_0_1
           const OpenSwath::Scoring::XCorrArrayType cross_correlation =
-                  mrmscore.getXCorrContrastMatrix().getValue(0, 1);
+                  mrmscore.getXCorrContrastMatrix()(0, 1);
           TEST_REAL_SIMILAR(cross_correlation.data[13].second, -0.31165141)   // find(2)->second,
           TEST_REAL_SIMILAR(cross_correlation.data[12].second, -0.35036919)   // find(1)->second,
           TEST_REAL_SIMILAR(cross_correlation.data[11].second, 0.03129565)    // find(0)->second,
@@ -698,10 +712,10 @@ mean(m4)
           TEST_EQUAL(mrmscore.getMIMatrix().rows(), 2)
           TEST_EQUAL(mrmscore.getMIMatrix().cols(), 2)
 
-          TEST_REAL_SIMILAR(mrmscore.getMIMatrix().getValue(0, 0), 3.2776)
-          TEST_REAL_SIMILAR(mrmscore.getMIMatrix().getValue(0, 1), 3.2776)
-          TEST_REAL_SIMILAR(mrmscore.getMIMatrix().getValue(1, 1), 3.4594)
-          TEST_REAL_SIMILAR(mrmscore.getMIMatrix().getValue(1, 0), 0) // value not initialized for lower diagonal half of matrix
+          TEST_REAL_SIMILAR(mrmscore.getMIMatrix()(0, 0), 3.2776)
+          TEST_REAL_SIMILAR(mrmscore.getMIMatrix()(0, 1), 3.2776)
+          TEST_REAL_SIMILAR(mrmscore.getMIMatrix()(1, 1), 3.4594)
+          TEST_REAL_SIMILAR(mrmscore.getMIMatrix()(1, 0), 0) // value not initialized for lower diagonal half of matrix
         }
     END_SECTION
 
@@ -720,11 +734,7 @@ mean(m4)
 
           TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix().rows(), 3)
           TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix().cols(), 2)
-          double sum{0};
-          for(auto e : mrmscore.getMIPrecursorContrastMatrix())
-          {
-            sum += e;
-          }
+          double sum = mrmscore.getMIPrecursorContrastMatrix().getEigenMatrix().sum();
           TEST_REAL_SIMILAR(sum, 12.01954465)
         }
     END_SECTION
@@ -745,11 +755,7 @@ mean(m4)
           TEST_EQUAL(mrmscore.getMIPrecursorCombinedMatrix().rows(), 5)
           TEST_EQUAL(mrmscore.getMIPrecursorCombinedMatrix().cols(), 5)
 
-          double sum{0};
-          for(auto e : mrmscore.getMIPrecursorCombinedMatrix())
-          {
-            sum += e;
-          }
+          double sum = mrmscore.getMIPrecursorCombinedMatrix().getEigenMatrix().sum();
           TEST_REAL_SIMILAR(sum, 48.98726953)
         }
     END_SECTION
@@ -770,10 +776,10 @@ mean(m4)
           mrmscore.initializeMIContrastMatrix(imrmfeature, native_ids1, native_ids2);
           delete imrmfeature;
 
-          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix().getValue(0, 0), 3.2776)
-          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix().getValue(0, 1), 3.2776)
-          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix().getValue(1, 1), 3.2776)
-          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix().getValue(1, 0), 3.4594)
+          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix()(0, 0), 3.2776)
+          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix()(0, 1), 3.2776)
+          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix()(1, 1), 3.2776)
+          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix()(1, 0), 3.4594)
         }
     END_SECTION
 

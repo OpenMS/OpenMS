@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
+#include <OpenMS/PROCESSING/MISC/SplinePackage.h>
 
 using namespace OpenMS;
 

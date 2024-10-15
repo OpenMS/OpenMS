@@ -31,7 +31,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
 
 //Math classes
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 //Standard library
 #include <cstddef> // for size_t & ptrdiff_t

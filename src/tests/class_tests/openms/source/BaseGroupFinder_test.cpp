@@ -46,9 +46,6 @@ START_SECTION((virtual ~BaseGroupFinder()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((static void registerChildren()))
-  NOT_TESTABLE
-END_SECTION
 
 START_SECTION((virtual void run(const std::vector< ConsensusMap > &input, ConsensusMap &result)=0))
 	NOT_TESTABLE

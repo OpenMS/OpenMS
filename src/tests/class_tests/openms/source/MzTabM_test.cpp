@@ -237,7 +237,7 @@ START_SECTION(Fill data structure)
   MzTabCVMetaData meta_cv;
   meta_cv.label = MzTabString("MS");
   meta_cv.full_name = MzTabString("PSI-MS controlled vocabulary");
-  meta_cv.version = MzTabString("4.1.56");
+  meta_cv.version = MzTabString("4.1.155");
   meta_cv.url = MzTabString("share/OpenMS/CV/psi-ms.obo");
   mztabm_meta.cv[0] = meta_cv;
 

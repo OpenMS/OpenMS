@@ -9,7 +9,7 @@
 ///////////////////////////
 
 // This one is going to be tested.
-#include <OpenMS/MATH/MISC/BilinearInterpolation.h>
+#include <OpenMS/ML/INTERPOLATION/BilinearInterpolation.h>
 
 ///////////////////////////
 
@@ -22,7 +22,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 ///////////////////////////
 
@@ -43,25 +43,6 @@ START_TEST( BilinearInterpolation, "$Id$" )
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-START_SECTION([EXTRA] typedefs )
-{
-	typedef BilinearInterpolation < float, double > BIFD;
-	BIFD::ValueType     * value;
-	BIFD::KeyType       * key;
-	BIFD::ContainerType * container;
-	BIFD::ContainerType::value_type * containerValue;
-	value = nullptr;
-	key = nullptr;
-	container = nullptr;
-	containerValue = nullptr;
-  // shut off warnings
-  (void)value;
-  (void)key;
-  (void)container;
-  (void)containerValue;
-	NOT_TESTABLE;
-}
-END_SECTION
 
 typedef BilinearInterpolation < float, double > BIFD;
 
@@ -85,7 +66,7 @@ END_SECTION
 START_SECTION(BilinearInterpolation& operator= ( BilinearInterpolation const & arg ))
 {
 	BIFD::ContainerType v;
-	v.resize(2,3);
+	v.getEigenMatrix().resize(2,3);
 	v(0,0) = 17;
 	v(0,1) = 18.9;
 	v(0,2) = 20.333;
@@ -120,7 +101,7 @@ END_SECTION
 START_SECTION(BilinearInterpolation( BilinearInterpolation const & arg ))
 {
 	BIFD::ContainerType v;
-	v.resize(2,3);
+	v.getEigenMatrix().resize(2,3);
 	v(0,0) = 17;
 	v(0,1) = 18.9;
 	v(0,2) = 20.333;
@@ -153,7 +134,7 @@ END_SECTION
 START_SECTION(ContainerType& getData())
 {
   BIFD bifd;
-	bifd.getData().resize(2,3);
+	bifd.getData().getEigenMatrix().resize(2,3);
 	bifd.getData()(1,2) = 10012;
 	bifd.getData()(0,0) = 10000;
 	bifd.getData()(1,0) = 10010;
@@ -175,7 +156,7 @@ END_SECTION
 START_SECTION(template< typename SourceContainer > void setData( SourceContainer const & data ))
 {
   BIFD bifd;
-	bifd.getData().resize(2,3);
+	bifd.getData().getEigenMatrix().resize(2,3);
 	bifd.getData()(1,2) = 10012;
 	bifd.getData()(0,0) = 10000;
 	bifd.getData()(1,0) = 10010;
@@ -188,7 +169,7 @@ START_SECTION(template< typename SourceContainer > void setData( SourceContainer
 	TEST_EQUAL(bifd.getData(),bifd2.getData());
 
 	BIFD bifd3;
-	bifd3.getData().resize(2,3);
+	bifd3.getData().getEigenMatrix().resize(2,3);
 	TEST_NOT_EQUAL(bifd.getData(),bifd3.getData());
 }
 END_SECTION
@@ -294,7 +275,7 @@ START_SECTION(KeyType supportMax_0() const)
 	bifd.setMapping_0(3,1,2);
 	bifd.setMapping_1(5,3,4);
 
-	bifd.getData().resize(2,3);
+	bifd.getData().getEigenMatrix().resize(2,3);
 
 	TEST_REAL_SIMILAR(bifd.index2key_0(0),-1);
 	TEST_REAL_SIMILAR(bifd.index2key_0(1),2);
@@ -417,7 +398,7 @@ START_SECTION(KeyType supportMax_1() const)
 	bifd.setMapping_1(3,1,2);
 	bifd.setMapping_0(5,3,4);
 
-	bifd.getData().resize(3,2);
+	bifd.getData().getEigenMatrix().resize(3,2);
 
 	TEST_REAL_SIMILAR(bifd.index2key_1(0),-1);
 	TEST_REAL_SIMILAR(bifd.index2key_1(1),2);
@@ -442,22 +423,20 @@ START_SECTION(bool empty() const)
 {
 	BIFD bifd;
 	TEST_EQUAL(bifd.empty(),true);
-	bifd.getData().resize(1,2);
+	bifd.getData().getEigenMatrix().resize(1,2);
 	TEST_EQUAL(bifd.empty(),false);
-	bifd.getData().resize(0,0);
+	bifd.getData().getEigenMatrix().resize(0,0);
 	TEST_EQUAL(bifd.empty(),true);
-	bifd.getData().resize(1,2);
+	bifd.getData().getEigenMatrix().resize(1,2);
 	TEST_EQUAL(bifd.empty(),false);
-	bifd.getData().resize(1,0);
+	bifd.getData().getEigenMatrix().resize(1,0);
 	TEST_EQUAL(bifd.empty(),true);
-	bifd.getData().resize(1,2);
+	bifd.getData().getEigenMatrix().resize(1,2);
 	TEST_EQUAL(bifd.empty(),false);
-	bifd.getData().resize(0,0);
+	bifd.getData().getEigenMatrix().resize(0,0);
 	TEST_EQUAL(bifd.empty(),true);
-	bifd.getData().resize(2,2);
+	bifd.getData().getEigenMatrix().resize(2,2);
 	TEST_EQUAL(bifd.empty(),false);
-	bifd.getData().clear();
-	TEST_EQUAL(bifd.empty(),true);
 }
 END_SECTION
 
@@ -484,29 +463,32 @@ START_SECTION((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType ar
 			verbose(STATUS("j: " << j));
 
 			BIFD bifd_small;
-			bifd_small.getData().resize(5,5,0);
+			bifd_small.getData().getEigenMatrix().resize(5,5);
+			bifd_small.getData().getEigenMatrix().setZero();
 			bifd_small.setMapping_0( 0, 0, 5, 5 );
 			bifd_small.setMapping_1( 0, 0, 5, 5 );
 			bifd_small.addValue( p, q, 100 );
-			for ( BIFD::ContainerType::iterator iter = bifd_small.getData().begin();
-						iter != bifd_small.getData().end();
-						++iter
-						) *iter = Math::round(*iter);
+			bifd_small.getData().getEigenMatrix() = 
+				bifd_small.getData().getEigenMatrix().unaryExpr([](double val) {
+					return Math::round(val);
+				});
 			verbose(STATUS("          " << bifd_small.getData()));
 
 			BIFD bifd_big;
-			bifd_big.getData().resize(15,15,0);
+			bifd_big.getData().getEigenMatrix().resize(15,15);
+			bifd_big.getData().getEigenMatrix().setZero();
 			bifd_big.setMapping_0( 5, 0, 10, 5 );
 			bifd_big.setMapping_1( 5, 0, 10, 5 );
 			bifd_big.addValue( p, q, 100 );
-			for ( BIFD::ContainerType::iterator iter = bifd_big.getData().begin();
-						iter != bifd_big.getData().end();
-						++iter
-						) *iter = Math::round(*iter);
+			// Round the entries of the matrix in place
+			bifd_big.getData().getEigenMatrix() = 
+				bifd_big.getData().getEigenMatrix().unaryExpr([](double val) {
+					return Math::round(val);
+				});
 			verbose(STATUS(bifd_big.getData()));
 
 			BIFD::ContainerType big_submatrix;
-			big_submatrix.resize(5,5);
+			big_submatrix.getEigenMatrix().resize(5,5);
 			for ( int m = 0; m < 5; ++m )
 				for ( int n = 0; n < 5; ++n )
 					big_submatrix(m,n)=bifd_big.getData()(m+5,n+5);
@@ -535,8 +517,10 @@ START_SECTION((ValueType value( KeyType arg_pos_0, KeyType arg_pos_1 ) const))
 	BIFD bifd_small;
 	BIFD bifd_big;
 
-	bifd_small.getData().resize(5,5,0);
-	bifd_big.getData().resize(15,15,0);
+	bifd_small.getData().getEigenMatrix().resize(5,5);
+	bifd_small.getData().getEigenMatrix().setZero();
+	bifd_big.getData().getEigenMatrix().resize(15,15);
+	bifd_big.getData().getEigenMatrix().setZero();
 	for ( int i = 0; i < 5; ++i )
 	{
 		for ( int j = 0; j < 5; ++j )

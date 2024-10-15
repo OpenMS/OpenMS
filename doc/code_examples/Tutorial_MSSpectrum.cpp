@@ -6,7 +6,7 @@
 // $Authors: Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
-//! [MSSpectrum]
+//! [doxygen_snippet_MSSpectrum]
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
@@ -40,4 +40,4 @@ int main()
   return 0;
 }
 
-//! [MSSpectrum]
+//! [doxygen_snippet_MSSpectrum]

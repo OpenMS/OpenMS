@@ -28,6 +28,7 @@ namespace OpenMS
       INPUT_FILE, ///< String parameter that denotes an input file
       OUTPUT_FILE, ///< String parameter that denotes an output file
       OUTPUT_PREFIX, ///< String parameter that denotes an output file prefix
+      OUTPUT_DIR, ///< String parameter that denotes an output directory
       DOUBLE, ///< Floating point number parameter
       INT, ///< Integer parameter
       STRINGLIST, ///< More than one String Parameter

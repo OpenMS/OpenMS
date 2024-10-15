@@ -11,7 +11,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SeedListGenerator.h>
+#include <OpenMS/FEATUREFINDER/SeedListGenerator.h>
 
 #include <map>
 

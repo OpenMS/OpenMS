@@ -1665,22 +1665,22 @@ namespace OpenMS
 
   for (map<Size, MzTabContactMetaData>::const_iterator it = md.contact.begin(); it != md.contact.end(); ++it)
   {
-    const MzTabContactMetaData & md = it->second;
-    if (!md.name.isNull())
+    const MzTabContactMetaData & mdc = it->second;
+    if (!mdc.name.isNull())
     {
-      String s = "MTD\tcontact[" + String(it->first) + "]-name\t" + md.name.toCellString();
+      String s = "MTD\tcontact[" + String(it->first) + "]-name\t" + mdc.name.toCellString();
       sl.push_back(s);
     }
 
-    if (!md.affiliation.isNull())
+    if (!mdc.affiliation.isNull())
     {
-      String s = "MTD\tcontact[" + String(it->first) + "]-affiliation\t" + md.affiliation.toCellString();
+      String s = "MTD\tcontact[" + String(it->first) + "]-affiliation\t" + mdc.affiliation.toCellString();
       sl.push_back(s);
     }
 
-    if (!md.email.isNull())
+    if (!mdc.email.isNull())
     {
-      String s = "MTD\tcontact[" + String(it->first) + "]-email\t" + md.email.toCellString();
+      String s = "MTD\tcontact[" + String(it->first) + "]-email\t" + mdc.email.toCellString();
       sl.push_back(s);
     }
   }
@@ -1694,10 +1694,10 @@ namespace OpenMS
 
   for (map<Size, MzTabModificationMetaData>::const_iterator it = md.fixed_mod.begin(); it != md.fixed_mod.end(); ++it)
   {
-    const MzTabModificationMetaData & md = it->second;
-    if (!md.modification.isNull())
+    const MzTabModificationMetaData & mod_md = it->second;
+    if (!mod_md.modification.isNull())
     {
-      String s = "MTD\tfixed_mod[" + String(it->first) + String("]\t")+ md.modification.toCellString();
+      String s = "MTD\tfixed_mod[" + String(it->first) + String("]\t")+ mod_md.modification.toCellString();
       sl.push_back(s);
     }
     else
@@ -1705,25 +1705,25 @@ namespace OpenMS
       //TODO: add CV for no fixed modification searched when it is available
     }
 
-    if (!md.site.isNull())
+    if (!mod_md.site.isNull())
     {
-      String s = "MTD\tfixed_mod[" + String(it->first) + String("]-site\t") + md.site.toCellString();
+      String s = "MTD\tfixed_mod[" + String(it->first) + String("]-site\t") + mod_md.site.toCellString();
       sl.push_back(s);
     }
 
-    if (!md.position.isNull())
+    if (!mod_md.position.isNull())
     {
-      String s = "MTD\tfixed_mod[" + String(it->first) + String("]-position\t") + md.position.toCellString();
+      String s = "MTD\tfixed_mod[" + String(it->first) + String("]-position\t") + mod_md.position.toCellString();
       sl.push_back(s);
     }
   }
 
   for (map<Size, MzTabModificationMetaData>::const_iterator it = md.variable_mod.begin(); it != md.variable_mod.end(); ++it)
   {
-    const MzTabModificationMetaData & md = it->second;
-    if (!md.modification.isNull())
+    const MzTabModificationMetaData & mod_md = it->second;
+    if (!mod_md.modification.isNull())
     {
-      String s = "MTD\tvariable_mod[" + String(it->first) + String("]\t")+ it->second.modification.toCellString();
+      String s = "MTD\tvariable_mod[" + String(it->first) + String("]\t") + mod_md.modification.toCellString();
       sl.push_back(s);
     }
     else
@@ -1731,15 +1731,15 @@ namespace OpenMS
       //TODO: add CV for no variable modification searched when it is available
     }
 
-    if (!md.site.isNull())
+    if (!mod_md.site.isNull())
     {
-      String s = "MTD\tvariable_mod[" + String(it->first) + String("]-site\t")+ it->second.site.toCellString();
+      String s = "MTD\tvariable_mod[" + String(it->first) + String("]-site\t") + mod_md.site.toCellString();
       sl.push_back(s);
     }
 
-    if (!md.position.isNull())
+    if (!mod_md.position.isNull())
     {
-      String s = "MTD\tvariable_mod[" + String(it->first) + String("]-position\t")+ it->second.position.toCellString();
+      String s = "MTD\tvariable_mod[" + String(it->first) + String("]-position\t")+ mod_md.position.toCellString();
       sl.push_back(s);
     }
   }

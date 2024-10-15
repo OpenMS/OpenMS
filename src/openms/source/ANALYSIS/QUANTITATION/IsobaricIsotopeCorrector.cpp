@@ -10,12 +10,11 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifierStatistics.h>
 
-#include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 // NNLS isotope correction
-#include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
+#include <OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h>
 
 #include <Eigen/Core>
 #include <Eigen/LU>
@@ -40,16 +39,17 @@ namespace OpenMS
 
     Matrix<double> correction_matrix = quant_method->getIsotopeCorrectionMatrix();
 
-    if (matrixIsIdentityMatrix(correction_matrix))
+    if (correction_matrix.getEigenMatrix().isIdentity(0.0))
     {
+      OPENMS_LOG_DEBUG << "Correction matrix is the identity matrix." << std::endl;
+      OPENMS_LOG_DEBUG << correction_matrix << std::endl;
+      
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "IsobaricIsotopeCorrector: The given isotope correction matrix is an identity matrix leading to no correction. "
-                                        "Please provide a valid isotope_correction matrix as it was provided with the sample kit!");
+                                          "IsobaricIsotopeCorrector: The given isotope correction matrix is an identity matrix leading to no correction. "
+                                          "Please provide a valid isotope_correction matrix as it was provided with the sample kit!");      
     }
-
-    // convert to Eigen matrix
-    EigenMatrixXdPtr m(convertOpenMSMatrix2EigenMatrixXd(correction_matrix));
-    Eigen::FullPivLU<Eigen::MatrixXd> ludecomp(*m);
+    
+    Eigen::FullPivLU<Eigen::MatrixXd> ludecomp(correction_matrix.getEigenMatrix());
     Eigen::VectorXd b;
     b.resize(quant_method->getNumberOfChannels());
     b.setZero();
@@ -79,7 +79,7 @@ namespace OpenMS
 
       //solve
       Eigen::MatrixXd e_mx = ludecomp.solve(b);
-      if (!((*m) * e_mx).isApprox(b))
+      if (!(correction_matrix.getEigenMatrix() * e_mx).isApprox(b))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricIsotopeCorrector: Cannot multiply!");
       }

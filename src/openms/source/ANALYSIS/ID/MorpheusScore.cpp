@@ -8,7 +8,7 @@
 
 #include <OpenMS/ANALYSIS/ID/MorpheusScore.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <cmath>
 
 namespace OpenMS

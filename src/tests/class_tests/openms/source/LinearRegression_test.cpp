@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
+#include <OpenMS/ML/REGRESSION/LinearRegression.h>
 
 ///////////////////////////
 

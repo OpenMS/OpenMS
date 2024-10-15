@@ -13,6 +13,7 @@
 
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/TOPPASOutputVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 
 #include <QtWidgets/QGraphicsScene>
@@ -191,7 +192,7 @@ public:
     ///Connects the signals to slots
     void connectToolVertexSignals(TOPPASToolVertex * ttv);
     ///Connects the signals to slots
-    void connectOutputVertexSignals(TOPPASOutputFileListVertex * oflv);
+    void connectOutputVertexSignals(TOPPASOutputVertex * oflv);
     ///Connects the signals to slots
     void connectMergerVertexSignals(TOPPASMergerVertex * tmv);
     ///Connects the signals to slots

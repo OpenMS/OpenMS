@@ -20,16 +20,16 @@
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
-#include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
+#include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 
 #include <OpenMS/ANALYSIS/ID/MorpheusScore.h>
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
 
-#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLReport.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLAnnotatedHit.h>
@@ -51,46 +51,46 @@
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 
 // preprocessing and filtering
-#include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
+#include <OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
+#include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
+#include <OpenMS/PROCESSING/FILTERING/NLargest.h>
+#include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
+#include <OpenMS/PROCESSING/SCALING/Normalizer.h>
+#include <OpenMS/PROCESSING/SCALING/SqrtScaler.h>
 
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
+#include <OpenMS/COMPARISON/BinnedSpectralContrastAngle.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/COMPARISON/SpectrumAlignment.h>
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <boost/regex.hpp>
 #include <boost/math/distributions/binomial.hpp>
 #include <boost/math/distributions/normal.hpp>
 #include <boost/math/distributions/beta.hpp>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
+#include <OpenMS/ML/SVM/SimpleSVM.h>
 
 #include <map>
 #include <algorithm>
 #include <iterator>
 
 #include <OpenMS/ANALYSIS/ID/AScore.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
+#include <OpenMS/KERNEL/BinnedSpectrum.h>
 
 #include <QtCore/QDir>
 
@@ -2850,7 +2850,6 @@ static void scoreXLIons_(
 
       // count how often a shift matches a residue + adduct mass (including mass 0 for unmodified residue)
       size_t aa_plus_adduct_in_mass_range(0);
-      size_t aa_plus_adduct_match(0);
       
       for (Size i = 0; i != mzs.size(); ++i)
       {
@@ -5338,7 +5337,7 @@ static void scoreXLIons_(
           
           DecoyGenerator dg; // important to create inside the loop with same seed. Otherwise same peptides end up creating different decoys -> much more decoys than targets
           dg.setSeed(4711);
-          for (Size i = 0; i < decoy_factor; ++i) // decoy_factor = how many decoys to generate per target
+          for (Size i = 0; i < (Size)decoy_factor; ++i) // decoy_factor = how many decoys to generate per target
           {
             e.sequence += dg.shufflePeptides(aas, enzyme).toUnmodifiedString();
           }            
@@ -6708,7 +6707,7 @@ static void scoreXLIons_(
           {
             TextFile csv_file;
             csv_file.addLine(NuXLReportRowHeader().getString("\t", meta_values_to_export));
-            for (const NuXLReportRow r : csv_rows_percolator)
+            for (const NuXLReportRow& r : csv_rows_percolator)
             {
               csv_file.addLine(r.getString("\t"));
             }

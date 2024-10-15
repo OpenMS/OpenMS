@@ -9,11 +9,10 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/CONCEPT/Factory.h>
 
 ///////////////////////////
 
-#include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
+#include <OpenMS/COMPARISON/PeakSpectrumCompareFunctor.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -49,25 +48,6 @@ END_SECTION
 START_SECTION(double operator () (const PeakSpectrum& a) const)
   NOT_TESTABLE
 END_SECTION
-
-START_SECTION(static void registerChildren())
-  PeakSpectrumCompareFunctor* c1 = Factory<PeakSpectrumCompareFunctor>::create("SpectrumCheapDPCorr");
-  delete c1;
-  c1 = Factory<PeakSpectrumCompareFunctor>::create("SpectrumPrecursorComparator");
-	TEST_EQUAL(c1->getName(), "SpectrumPrecursorComparator")
-	delete c1;
-	c1 = Factory<PeakSpectrumCompareFunctor>::create("ZhangSimilarityScore");
-	TEST_EQUAL(c1->getName(), "ZhangSimilarityScore")
-	delete c1;
-	c1 = Factory<PeakSpectrumCompareFunctor>::create("SteinScottImproveScore");
-	TEST_EQUAL(c1->getName(), "SteinScottImproveScore");
-	delete c1;
-END_SECTION
-
-START_SECTION(static const String getProductName())
-	TEST_EQUAL(PeakSpectrumCompareFunctor::getProductName(), "PeakSpectrumCompareFunctor")
-END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

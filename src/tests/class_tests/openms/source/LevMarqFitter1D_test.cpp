@@ -11,9 +11,9 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
+#include <OpenMS/FEATUREFINDER/InterpolationModel.h>
+#include <OpenMS/FEATUREFINDER/LevMarqFitter1D.h>
+#include <OpenMS/FEATUREFINDER/Fitter1D.h>
 
 ///////////////////////////
 
@@ -27,7 +27,7 @@ class TestModel : public LevMarqFitter1D
 {
   public: TestModel() : LevMarqFitter1D()
   {
-    setName(getProductName());
+    setName("TestModel");
     check_defaults_ = false;
     defaultsToParam_();
   }
@@ -68,12 +68,6 @@ class TestModel : public LevMarqFitter1D
   void optimize_()
   {
   }
-
-  static const String getProductName()
-  {
-    return "TestModel";
-  }
-
 };
 
 /////////////////////////////////////////////////////////////
@@ -95,9 +89,7 @@ END_SECTION
 
 START_SECTION((LevMarqFitter1D(const  LevMarqFitter1D &source)))
 	TestModel tm1;
-
   TestModel tm2(tm1);
-	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 END_SECTION
 
 START_SECTION((virtual ~LevMarqFitter1D()))
@@ -107,9 +99,7 @@ END_SECTION
 START_SECTION((virtual LevMarqFitter1D& operator=(const  LevMarqFitter1D &source)))
 	TestModel tm1;
   TestModel tm2;
-
   tm2 = tm1;
-	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 END_SECTION
 
 

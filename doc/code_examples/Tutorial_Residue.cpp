@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-//! [Residue]
+//! [doxygen_snippet_Residue]
 
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
@@ -44,4 +44,4 @@ int main()
   return 0;
 } //end of main
 
-//! [Residue]
+//! [doxygen_snippet_Residue]

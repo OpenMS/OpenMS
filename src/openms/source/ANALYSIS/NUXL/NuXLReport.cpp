@@ -8,7 +8,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLReport.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <boost/range/adaptor/reversed.hpp>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
 
@@ -410,7 +410,7 @@ Output format:
       const std::set<std::string> proteins = peptide2proteins.at(peptide_sequence_string);
       const bool is_unique = proteins.size() == 1;
 
-      for (const String& acc : proteins)
+      for (const auto& acc : proteins)
       {
         // add basic protein information first time we encounter a protein accession
         int protein_length{};

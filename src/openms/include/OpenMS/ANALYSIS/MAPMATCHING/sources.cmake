@@ -19,7 +19,6 @@ LabeledPairFinder.h
 MapAlignmentAlgorithmIdentification.h
 MapAlignmentAlgorithmKD.h
 MapAlignmentAlgorithmPoseClustering.h
-MapAlignmentAlgorithmSpectrumAlignment.h
 MapAlignmentAlgorithmTreeGuided.h
 MapAlignmentEvaluationAlgorithm.h
 MapAlignmentEvaluationAlgorithmPrecision.h
@@ -28,7 +27,6 @@ MapAlignmentTransformer.h
 PoseClusteringAffineSuperimposer.h
 PoseClusteringShiftSuperimposer.h
 QTClusterFinder.h
-SimplePairFinder.h
 StablePairFinder.h
 TransformationDescription.h
 TransformationModel.h

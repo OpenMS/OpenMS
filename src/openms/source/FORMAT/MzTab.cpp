@@ -18,7 +18,7 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
 
@@ -390,6 +390,16 @@ namespace OpenMS
   MzTabPSMSectionRows& MzTab::getPSMSectionRows()
   {
     return psm_data_;
+  }
+
+  size_t MzTab::getNumberOfPSMs() const
+  {
+    std::unordered_set<Int> psm_ids;
+    for (const auto& psm : psm_data_)
+    {
+      psm_ids.insert(psm.PSM_ID.get());
+    }
+    return psm_ids.size();
   }
 
   void MzTab::setPSMSectionRows(const MzTabPSMSectionRows& psd)
