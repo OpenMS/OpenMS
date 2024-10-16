@@ -510,19 +510,12 @@ namespace OpenMS
     return *this;
   }
 
-  MSSpectrum::MSSpectrum() :
-    ContainerType(),
-    RangeManagerContainerType(),
-    SpectrumSettings(),
-    retention_time_(-1),
-    drift_time_(-1),
-    drift_time_unit_(DriftTimeUnit::NONE),
-    ms_level_(1),
-    name_(),
-    float_data_arrays_(),
-    string_data_arrays_(),
-    integer_data_arrays_()
-  {}
+  MSSpectrum::MSSpectrum() = default;
+
+  MSSpectrum::MSSpectrum(const std::initializer_list<Peak1D>& init)
+    : ContainerType(init)
+  {
+  }
 
   MSSpectrum::MSSpectrum(const MSSpectrum &source) = default;
 

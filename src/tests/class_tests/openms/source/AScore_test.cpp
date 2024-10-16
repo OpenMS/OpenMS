@@ -26,7 +26,7 @@ class AScoreTest : public AScore
       return computeSiteDeterminingIons_(th_spectra, candidates, site_determining_ions);
     }
 
-    std::vector<Size> getSitesTest_(const AASequence& without_phospho) const {
+    std::vector<Size> getSitesTest_(String& without_phospho) const {
       return getSites_(without_phospho);
     }
 
@@ -434,7 +434,8 @@ END_SECTION
 START_SECTION(std::vector<Size> getSitesTest_(const AASequence& without_phospho))
 {
   AASequence phospho = AASequence::fromString("VTQSPSSP");
-  vector<Size> tupel(ptr_test->getSitesTest_(phospho));
+  String unmodified_sequence = phospho.toUniModString();
+  vector<Size> tupel(ptr_test->getSitesTest_(unmodified_sequence));
   TEST_EQUAL(4, tupel.size())
   TEST_EQUAL(1, tupel[0])
   TEST_EQUAL(3, tupel[1])
@@ -566,7 +567,7 @@ START_SECTION(calculateCumulativeBinominalProbabilityScore)
     {
       n_first += ptr_test->numberOfMatchedIonsTest_(site_determining_ions[0], windows_top10[depth], s_it->peak_depth);
     }
-    
+
     double P_first = ptr_test->computeCumulativeScoreTest_(N, n_first, p);
     P_first = -10 * log10(P_first);
     TEST_REAL_SIMILAR(P_first, 53.5336889240929);

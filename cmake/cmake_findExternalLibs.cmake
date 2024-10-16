@@ -200,12 +200,6 @@ ELSE()
 ENDIF()
 
 
-
-# see https://github.com/ethereum/solidity/issues/4124
-if("${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}" VERSION_LESS "1.59")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_VARIANT_USE_RELAXED_GET_BY_DEFAULT")
-endif()
-
 #------------------------------------------------------------------------------
 # PTHREAD
 #------------------------------------------------------------------------------

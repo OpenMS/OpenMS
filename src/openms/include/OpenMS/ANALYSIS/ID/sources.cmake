@@ -34,6 +34,7 @@ IonIdentityMolecularNetworking.h
 MessagePasserFactory.h
 MetaboliteSpectralMatching.h
 MorpheusScore.h
+NeighborSeq.h
 PeptideIndexing.h
 PeptideProteinResolution.h
 PercolatorFeatureSetHelper.h

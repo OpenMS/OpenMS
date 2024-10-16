@@ -29,35 +29,36 @@ namespace OpenMS
 
       @ingroup TOPPAS_elements
   */
-  class OPENMS_GUI_DLLAPI TOPPASMergerVertex :
-    public TOPPASVertex
-  {
-    Q_OBJECT
+class OPENMS_GUI_DLLAPI TOPPASMergerVertex : public TOPPASVertex
+{
+  Q_OBJECT
 
 public:
+  /// Default constructor
+  TOPPASMergerVertex() = default;
+  /// Constructor
+  TOPPASMergerVertex(bool round_based);
+  /// Copy constructor
+  TOPPASMergerVertex(const TOPPASMergerVertex& rhs) = default;
+  /// Destructor
+  ~TOPPASMergerVertex() override = default;
+  /// Assignment operator
+  TOPPASMergerVertex& operator=(const TOPPASMergerVertex& rhs) = default;
 
-    /// Default constructor
-    TOPPASMergerVertex() = default;
-    /// Constructor
-    TOPPASMergerVertex(bool round_based);
-    /// Copy constructor
-    TOPPASMergerVertex(const TOPPASMergerVertex& rhs) = default;
-    /// Destructor
-    ~TOPPASMergerVertex() override = default;
-    /// Assignment operator
-    TOPPASMergerVertex& operator=(const TOPPASMergerVertex& rhs) = default;
-    /// returns "MergerVertex"
-    String getName() const override;
-    /// check if upstream nodes are finished and call downstream nodes
-    void run() override;
-    /// Determines whether this merger is merging round based or merging all inputs into one list
-    bool roundBasedMode() const;
-    // documented in base class
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
-    // documented in base class
-    QRectF boundingRect() const override;
-    // documented in base class
-    void markUnreachable() override;
+  virtual std::unique_ptr<TOPPASVertex> clone() const override;
+
+  /// returns "MergerVertex"
+  String getName() const override;
+  /// check if upstream nodes are finished and call downstream nodes
+  void run() override;
+  /// Determines whether this merger is merging round based or merging all inputs into one list
+  bool roundBasedMode() const;
+  // documented in base class
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  // documented in base class
+  QRectF boundingRect() const override;
+  // documented in base class
+  void markUnreachable() override;
 
 public slots:
 

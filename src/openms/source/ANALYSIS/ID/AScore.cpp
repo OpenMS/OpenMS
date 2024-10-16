@@ -55,18 +55,19 @@ namespace OpenMS
     }
     
     String sequence_str = phospho.getSequence().toString();
+    String unmodified_sequence_str = phospho.getSequence().toUnmodifiedString();
     
     Size number_of_phosphorylation_events = numberOfPhosphoEvents_(sequence_str);
     AASequence seq_without_phospho = removePhosphositesFromSequence_(sequence_str);
 
-    if ((max_peptide_length_ > 0) && (seq_without_phospho.toUnmodifiedString().size() > max_peptide_length_))
+    if ((max_peptide_length_ > 0) && (unmodified_sequence_str.size() > max_peptide_length_))
     {
       OPENMS_LOG_DEBUG << "\tcalculation aborted: peptide too long: " << seq_without_phospho.toString() << std::endl;
       return phospho;
     }
 
     // determine all phospho sites
-    vector<Size> sites = getSites_(seq_without_phospho);
+    vector<Size> sites = getSites_(unmodified_sequence_str);
     Size number_of_STY = sites.size();
 
     if (number_of_phosphorylation_events == 0 || number_of_STY == 0)
@@ -215,7 +216,7 @@ namespace OpenMS
 
       double pow1 = pow((double)p, (int)k);
       double pow2 = pow(double(1 - p), double(N - k));
-      
+
       score += coeff * pow1 * pow2;
     }
 
@@ -381,10 +382,9 @@ namespace OpenMS
            / 7.0;
   }
 
-  vector<Size> AScore::getSites_(const AASequence& without_phospho) const
+  vector<Size> AScore::getSites_(const String& unmodified) const
   {
     vector<Size> tupel;
-    String unmodified = without_phospho.toUnmodifiedString();
     for (Size i = 0; i < unmodified.size(); ++i)
     {
       if (unmodified[i] == 'Y' || unmodified[i] == 'T' || unmodified[i] == 'S')
@@ -501,7 +501,7 @@ namespace OpenMS
     }
     return th_spectra;
   }
-    
+
   std::vector<PeakSpectrum> AScore::peakPickingPerWindowsInSpectrum_(PeakSpectrum& real_spectrum) const
   {
     vector<PeakSpectrum> windows_top10;
