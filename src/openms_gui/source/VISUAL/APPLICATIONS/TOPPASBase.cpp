@@ -74,6 +74,7 @@
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWhatsThis>
 #include <utility>
+#include <OpenMS/VISUAL/TOPPASOutputFolderVertex.h>
 
 
 using namespace std;
@@ -439,21 +440,19 @@ namespace OpenMS
     header_labels.append(QString("TOPP tools"));
     tools_tree_view->setHeaderLabels(header_labels);
 
-    QTreeWidgetItem* item = new QTreeWidgetItem((QTreeWidget*)nullptr);
-    item->setText(0, "<Input files>");
-    tools_tree_view->addTopLevelItem(item);
-    item = new QTreeWidgetItem((QTreeWidget*)nullptr);
-    item->setText(0, "<Output files>");
-    tools_tree_view->addTopLevelItem(item);
-    item = new QTreeWidgetItem((QTreeWidget*)nullptr);
-    item->setText(0, "<Merger>");
-    tools_tree_view->addTopLevelItem(item);
-    item = new QTreeWidgetItem((QTreeWidget*)nullptr);
-    item->setText(0, "<Collector>");
-    tools_tree_view->addTopLevelItem(item);
-    item = new QTreeWidgetItem((QTreeWidget*)nullptr);
-    item->setText(0, "<Splitter>");
-    tools_tree_view->addTopLevelItem(item);
+    auto add_list_item = [&tools_tree_view](const QString& node_name, const QString& tool_tip)
+      {
+      QTreeWidgetItem* item = new QTreeWidgetItem(tools_tree_view);
+      item->setText(0, node_name);
+      item->setToolTip(0, tool_tip);
+      tools_tree_view->addTopLevelItem(item);
+    };
+    add_list_item("<Input files>", "One or multiple input files, such as mzML or FASTA files from your local hard drive");
+    add_list_item("<Output files>", "Sink for one or more output files, which are produced by a TOPP tool and which you want to keep for later.");
+    add_list_item("<Output folder>", "Some TOPP tools write their output to a folder. Usually a fixed set of files, whose names cannot be set explicitly.");
+    add_list_item("<Merger>", "Concatenate files from multiple input edges to a list and forward that list.");
+    add_list_item("<Collector>", "Collect each single file from \na single input edge (for every time it runs)\nand then foward this list to the next tool (which is only invoked once)");
+    add_list_item("<Splitter>", "Opposite of a collector.");
 
     //Param category_param = param_.copy("tool_categories:", true);
 
@@ -477,24 +476,24 @@ namespace OpenMS
 
     std::map<QString, QTreeWidgetItem*> category_map;
 
-    foreach(const QString &category, category_list)
+    for (const QString &category : category_list)
     {
-      item = new QTreeWidgetItem((QTreeWidget*)nullptr);
+      auto item = new QTreeWidgetItem((QTreeWidget*)nullptr);
       item->setText(0, category);
       tools_tree_view->addTopLevelItem(item);
       category_map[category] = item;
     }
 
-    for (ToolListType::iterator it = tools_list.begin(); it != tools_list.end(); ++it)
+    for (const auto& tool : tools_list)
     {
-      item = new QTreeWidgetItem(category_map[it->second.category.toQString()]);
-      item->setText(0, it->first.toQString());
+      auto item = new QTreeWidgetItem(category_map[tool.second.category.toQString()]);
+      item->setText(0, tool.first.toQString());
       QTreeWidgetItem* parent_item = item;
-      StringList types = ToolHandler::getTypes(it->first);
-      for (StringList::iterator types_it = types.begin(); types_it != types.end(); ++types_it)
+      StringList types = ToolHandler::getTypes(tool.first);
+      for (const auto& type : types)
       {
         item = new QTreeWidgetItem(parent_item);
-        item->setText(0, types_it->toQString());
+        item->setText(0, type.toQString());
       }
     }
     tools_tree_view->resizeColumnToContents(0);
@@ -1208,8 +1207,15 @@ namespace OpenMS
     {
       tv = new TOPPASOutputFileListVertex();
       TOPPASOutputFileListVertex* oflv = dynamic_cast<TOPPASOutputFileListVertex*>(tv);
-      connect(oflv, SIGNAL(outputFileWritten(const String &)), this, SLOT(outputVertexFinished(const String &)));
-      scene->connectOutputVertexSignals(oflv);
+      connect(tv, SIGNAL(outputFileWritten(const String &)), this, SLOT(outputVertexFinished(const String &)));
+      scene->connectOutputVertexSignals((TOPPASOutputVertex*)oflv);
+    }
+    else if (tool_name == "<Output folder>")
+    {
+      tv = new TOPPASOutputFolderVertex();
+      TOPPASOutputFolderVertex* oflv = dynamic_cast<TOPPASOutputFolderVertex*>(tv);
+      connect(tv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
+      scene->connectOutputVertexSignals((TOPPASOutputVertex*)oflv);
     }
     else if (tool_name == "<Merger>")
     {
