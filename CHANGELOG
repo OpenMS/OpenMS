@@ -78,6 +78,7 @@ Misc:
 - add citation information for OpenMS 3.0 (Nat. Methods) (#7383)
 - Add export for Common Workflow Language (CWL) (#6156)
 - Add tool description lib (TDL) dependency (#6156)
+- Docker containers have been optimized (#7303)
 
 Changed/new parameters: see CHANGELOG_PARAMS for details
 

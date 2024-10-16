@@ -1,0 +1,44 @@
+# NOTE: paths are relative to the build context, which is the root of the repository
+.github
+dockerfiles/*
+# NOTE: often the .git folder is added to .dockerignore, but we actually need it in this
+# case because the build uses the git commit hash, and we also init submodules. It isn't
+# included in the final build anyway, since we use a multi-stage build.
+
+# replicating contents of .gitignore here
+# we want to avoid copying in build artifacts since the build happens
+# inside the docker container. We also want to avoid invalidating the
+# build cache just because we've run a build locally.
+qrc_resources.cxx
+DartConfiguration.tcl
+.cache/*
+/**/*.canno
+Testing
+CMakeCache.txt
+CMakeFiles
+Makefile
+lib
+bin
+build
+*.user
+*.pyc
+moc_*.cxx*
+.idea
+OpenMS.config
+OpenMS.creator
+OpenMS.files
+OpenMS.includes
+**/.DS_Store
+.vscode
+contrib-build
+contrib_build
+openms-build
+openms_build
+*.swp
+cmake-build-debug
+cmake-build-release
+cmake-build-*
+cmake-*-build
+*.code-workspace
+.vs
+.clion.*
