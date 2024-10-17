@@ -453,7 +453,7 @@ private:
   /// Macro for general debugging information
 #define OPENMS_LOG_DEBUG \
   OPENMS_THREAD_CRITICAL(LOGSTREAM) \
-  OpenMS_Log_debug << [](){ constexpr const char* x = (past_last_slash(__FILE__)); return x; }() << "(" << __LINE__ << "): "
+  OpenMS_Log_debug << past_last_slash(__FILE__) << "(" << __LINE__ << "): "
 
   /// Macro for general debugging information (without information on file)
 #define OPENMS_LOG_DEBUG_NOFILE \

@@ -188,7 +188,7 @@ namespace OpenMS
       if (invert_text_direction)
       {
         QFontMetrics fm(painter->fontMetrics());
-        int text_width=fm.width(str);
+        int text_width = fm.horizontalAdvance(str);
         painter->drawText(QPoint(-text_width, y_text), str);
       }
       else
@@ -208,7 +208,7 @@ namespace OpenMS
       painter->translate(point);
       painter->rotate(text_angle);
       QFontMetrics fm(painter->fontMetrics());
-      int text_width = fm.width(str); // replace with QFontMetrics::horizontalAdvance if Qt >= 5.11: CONTRIB_UPDATE_Qt_5.11
+      int text_width = fm.horizontalAdvance(str);
       int text_height = fm.height();  // shift text below the edge by its own height
       if (invert_text_direction)
       {

@@ -175,7 +175,7 @@ namespace OpenMS
 
   }
 
-  void TOPPASWidget::enterEvent(QEvent * /*e*/)
+  void TOPPASWidget::enterEvent(QEnterEvent* /*e*/)
   {
 #ifndef Q_WS_MAC
     setFocus();

@@ -42,7 +42,6 @@
 #include <QNetworkProxyFactory>
 #include <QNetworkReply>
 #include <QSvgGenerator>
-#include <QTextCodec>
 #include <QTextStream>
 #include <QtCore/QDir>
 #include <QtCore/QFile>
@@ -51,7 +50,6 @@
 #include <QtCore/QSettings>
 #include <QtCore/QUrl>
 #include <QtWidgets/QCheckBox>
-#include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QInputDialog>
@@ -101,11 +99,11 @@ namespace OpenMS
 
     // center main window
     setGeometry(
-      (int)(0.1 * QApplication::desktop()->width()),
-      (int)(0.1 * QApplication::desktop()->height()),
-      (int)(0.8 * QApplication::desktop()->width()),
-      (int)(0.8 * QApplication::desktop()->height())
-      );
+      (int)(0.1 * QGuiApplication::primaryScreen()->geometry().width()),
+      (int)(0.1 * QGuiApplication::primaryScreen()->geometry().height()),
+      (int)(0.8 * QGuiApplication::primaryScreen()->geometry().width()),
+      (int)(0.8 * QGuiApplication::primaryScreen()->geometry().height())
+    );
 
     // create dummy widget (to be able to have a layout), Tab bar and workspace
     QWidget* dummy = new QWidget(this);
@@ -131,16 +129,16 @@ namespace OpenMS
     // File menu
     QMenu* file = new QMenu("&File", this);
     menuBar()->addMenu(file);
-    file->addAction("&New", this, SLOT(newPipeline()), Qt::CTRL + Qt::Key_N);
+    file->addAction("&New", this, SLOT(newPipeline()), Qt::CTRL | Qt::Key_N);
     file->addAction("&Open", this, SLOT(openFilesByDialog()), Qt::CTRL + Qt::Key_O);
     file->addAction("Open &example file", this, SLOT(openExampleDialog()), Qt::CTRL + Qt::Key_E);
     file->addAction("&Include", this, SLOT(includePipeline()), Qt::CTRL + Qt::Key_I);
     //file->addAction("Online &Repository", this, SLOT(openOnlinePipelineRepository()), Qt::CTRL + Qt::Key_R);
     file->addAction("&Save", this, SLOT(savePipeline()), Qt::CTRL + Qt::Key_S);
-    file->addAction("Save &As", this, SLOT(saveCurrentPipelineAs()), Qt::CTRL + Qt::SHIFT + Qt::Key_S);
+    file->addAction("Save &As", this, SLOT(saveCurrentPipelineAs()), Qt::CTRL | Qt::SHIFT | Qt::Key_S);
     file->addAction("E&xport as image", this, SLOT(exportAsImage()));
-    file->addAction("Refresh &parameters", this, SLOT(refreshParameters()), Qt::CTRL + Qt::SHIFT + Qt::Key_P);
-    file->addAction("&Close pipeline", this, SLOT(closeFile()), Qt::CTRL + Qt::Key_W);
+    file->addAction("Refresh &parameters", this, SLOT(refreshParameters()), Qt::CTRL | Qt::SHIFT | Qt::Key_P);
+    file->addAction("&Close pipeline", this, SLOT(closeFile()), Qt::CTRL | Qt::Key_W);
 
     file->addSeparator();
     // Recent files
@@ -1505,15 +1503,8 @@ namespace OpenMS
       int ret = msgBox.exec();
       if (ret == QMessageBox::Cancel) return; // Escape was pressed
       if (ret == QMessageBox::Yes)
-      {
-        /*
-         * Suppressed warning QSTring::SkipEmptyParts and QString::SplitBehaviour is deprecated
-         * QT::SkipEmptyParts and QT::SplitBehaviour is added or modified at Qt 5.14
-         */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        files = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", QString::SkipEmptyParts);
-#pragma GCC diagnostic pop
+      { // put a '+' in between the files (TOPPView's command line will interpret this as overlay)
+        files = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", Qt::SkipEmptyParts);
       }
     }
     

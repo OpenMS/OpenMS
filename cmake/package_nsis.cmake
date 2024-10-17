@@ -56,13 +56,6 @@ if("${CPACK_GENERATOR}" STREQUAL "NSIS")
 endif()
                 
 
-## check if we are packaging at least Qt 5.15 (5.14 may also work but is untested), which is "-relocatable", i.e. can find ./bin/plugins/platforms/qwindows.dll without a qt.conf (which we do not ship anymore)
-message(STATUS "Packaging: Checking Qt version ... found: ${Qt5Core_VERSION}")
-if (Qt5Core_VERSION VERSION_LESS 5.15.0)
-  message(FATAL_ERROR "Minimum supported Qt5 version is 5.15!")
-endif()
-
-
 ## With VS2019 the architecture HAS TO BE specified with the "–A" option or CMAKE_GENERATOR_PLATFORM var.
 ## Therefore the legacy way of adding a suffix to the Generator is not valid anymore.
 ## Read value of CMAKE_VS_PLATFORM_NAME instead

@@ -20,7 +20,6 @@
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QLineEdit>
-#include <QtWidgets/QShortcut>
 #include <QtWidgets/QMenu>
 #include <QItemSelection>
 #include <QtCore/QStringList>
@@ -380,31 +379,7 @@ namespace OpenMS
       // default: will call commit(), if the event was handled (e.g. a press of 'Enter')
       return QItemDelegate::eventFilter(editor, event);
     }
-
-    bool ParamEditorDelegate::exists_(const QString& name, QModelIndex index) const
-    {
-      UInt current_index = 0;
-      while (index.parent().child(current_index, 0).isValid())
-      {
-        if (
-          current_index != (UInt)(index.row())
-           &&
-          index.parent().child(current_index, 0).data(Qt::DisplayRole).toString() == name
-           &&
-          (
-            (index.data(Qt::UserRole).toInt() == 0 && index.parent().child(current_index, 0).data(Qt::UserRole).toInt() == 0)
-          ||
-            (index.data(Qt::UserRole).toInt() != 0 && index.parent().child(current_index, 0).data(Qt::UserRole).toInt() != 0)
-          )
-          )
-        {
-          return true;
-        }
-        ++current_index;
-      }
-      return false;
-    }
-
+    
     void ParamEditorDelegate::commitAndCloseEditor_()
     {
       QWidget* editor = qobject_cast<QWidget*>(sender());

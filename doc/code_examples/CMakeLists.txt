@@ -59,7 +59,9 @@ foreach(i ${EXAMPLES_executables})
 endforeach(i)
 ## expect "Tutorial_Template"" to fail, since its a proper TOPP tool invoked without arguments
 ## i.e. TOPPBase will print a usage() and return an error code
-set_tests_properties(Tutorial_Template PROPERTIES WILL_FAIL TRUE)
+if(NOT ENABLE_STYLE_TESTING)
+  set_tests_properties(Tutorial_Template PROPERTIES WILL_FAIL TRUE)
+endif()
 
 # add collection target
 add_custom_target(Tutorials_build)

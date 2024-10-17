@@ -12,7 +12,7 @@
 
 #include <QtCore/QString>
 
-class QStringList;
+#include <QtCore/qcontainerfwd.h> // for QStringList
 
 namespace OpenMS
 {

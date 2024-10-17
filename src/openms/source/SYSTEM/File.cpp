@@ -94,7 +94,7 @@ namespace OpenMS
 
 #ifdef OPENMS_WINDOWSPLATFORM
         int size = sizeof(path);
-        if (GetModuleFileName(NULL, path, size))
+        if (GetModuleFileNameA(NULL, path, size))
 #elif  defined(__APPLE__)
         uint size = sizeof(path);
         if (_NSGetExecutablePath(path, &size) == 0)
