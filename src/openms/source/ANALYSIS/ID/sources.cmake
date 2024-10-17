@@ -34,6 +34,7 @@ IonIdentityMolecularNetworking.cpp
 MessagePasserFactory.cpp
 MetaboliteSpectralMatching.cpp
 MorpheusScore.cpp
+NeighborSeq.cpp
 PeptideProteinResolution.cpp
 PeptideIndexing.cpp
 PercolatorFeatureSetHelper.cpp

@@ -26,6 +26,7 @@
 #include <fstream>
 
 #include <QStringList>
+#include <QRegularExpression>
 
 using namespace OpenMS;
 using namespace std;
@@ -57,11 +58,13 @@ using namespace std;
 
 @warning We recommend to use Comet 2019.01 rev. 5 or later, due to a serious "empty result" bug in earlier versions (which occurs frequently on Windows; Linux seems not/less affected).
 
+@warning Skip over 'Comet v2024.01.0', since it contains several bugs (see https://github.com/UWPR/Comet/issues/63).
+
 Comet settings not exposed by this adapter can be directly adjusted using a param file, which can be generated using comet -p.
 By default, All (!) parameters available explicitly via this param file will take precedence over the wrapper parameters.
 
 Parameter names have been changed to match names found in other search engine adapters, however some are Comet specific.
-For a detailed description of all available parameters check the Comet documentation at http://comet-ms.sourceforge.net/parameters/parameters_201601/
+For a detailed description of all available parameters check the Comet documentation at https://uwpr.github.io/Comet/parameters/
 The default parameters are set for a high resolution instrument.
 
 @note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
@@ -283,7 +286,35 @@ protected:
     isotope_error["-8/-4/0/4/8"] = 4;
     isotope_error["-1/0/1/2/3"] = 5;
 
-    os << "peptide_mass_tolerance = " << getDoubleOption_("precursor_mass_tolerance") << "\n";
+    // comet_version is something like "# comet_version 2017.01 rev. 1"
+    QRegularExpression comet_version_regex("(\\d{4})\\.(\\d*)rev");
+    if (auto match = comet_version_regex.match(comet_version.toQString().remove(' ')); match.hasMatch())
+    {
+      const int comet_year = match.captured(1).toInt();
+      if (comet_version.hasSubstring("2024.01 rev. 0"))
+      {
+        OPENMS_LOG_WARN << "Comet v2024.01.0 is known to have several bugs (see https://github.com/UWPR/Comet/issues/63). Please use a different version if possible." << std::endl;
+      }
+      // Comet v2024.01.0 introduces "peptide_mass_tolerance_lower" and "peptide_mass_tolerance_upper" parameters
+      // and deprecates "peptide_mass_tolerance" (which is buggy in this version, see https://github.com/UWPR/Comet/issues/59)
+      // We need to use the new parameters from this version onwards
+      double precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
+      if (comet_year >= 2024)
+      {
+        os << "peptide_mass_tolerance_lower = " << -precursor_mass_tolerance << "\n";
+        os << "peptide_mass_tolerance_upper = " << precursor_mass_tolerance << "\n";
+      }
+      else
+      { // for Comet versions before 2024, we use the old parameter
+        os << "peptide_mass_tolerance = " << precursor_mass_tolerance << "\n";
+      }
+    }
+    else
+    { 
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                               "Error: Could not extract year from Comet version string: " + comet_version + ". Please report this to the OpenMS team.");
+    }
+
     os << "peptide_mass_units = " << precursor_error_units[getStringOption_("precursor_error_units")] << "\n";                  // 0=amu, 1=mmu, 2=ppm
     os << "mass_type_parent = " << 1 << "\n";                    // 0=average masses, 1=monoisotopic masses
     os << "mass_type_fragment = " << 1 << "\n";                  // 0=average masses, 1=monoisotopic masses
@@ -499,7 +530,7 @@ protected:
     os << "spectrum_batch_size = " << getIntOption_("spectrum_batch_size") << "\n";                 // max. // of spectra to search at a time; 0 to search the entire scan range in one loop
     os << "max_duplicate_proteins = 20\n";                       // maximum number of protein names to report for each peptide identification; -1 reports all duplicates
     os << "equal_I_and_L = 1\n";
-    os << "output_suffix = " << "" << "\n";                      // add a suffix to output base names i.e. suffix "-C" generates base-C.pep.xml from base.mzXML input
+    os << "output_suffix =\n";                                   // add a suffix to output base names i.e. suffix "-C" generates base-C.pep.xml from base.mzXML input
     os << "mass_offsets = " << ListUtils::concatenate(getDoubleList_("mass_offsets"), " ") << "\n"; // one or more mass offsets to search (values subtracted from deconvoluted precursor mass)
     os << "precursor_NL_ions =\n"; //  one or more precursor neutral loss masses, will be added to xcorr analysis 
 
@@ -579,6 +610,8 @@ protected:
     os << "10. Chymotrypsin           1      FWYL        P" << "\n";
     os << "11. No_cut                 1      @           @" << "\n";
     os << "12. Arg-C/P                1.     R           _" << "\n";
+    os << "13. Lys-C/P                1      K           -" << "\n";
+    os << "14. Leukocyte_elastase     1      ALIV        -" << "\n";
 
     return ExitCodes::EXECUTION_OK;
   }

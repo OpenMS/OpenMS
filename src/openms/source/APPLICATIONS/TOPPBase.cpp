@@ -29,8 +29,6 @@
 #include <OpenMS/FORMAT/ParamCWLFile.h>
 #include <OpenMS/FORMAT/ParamJSONFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
-#include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
-
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -43,9 +41,6 @@
 #include <OpenMS/SYSTEM/UpdateCheck.h>
 
 #include <QtCore/QDir>
-#include <QtCore/QStringList>
-
-#include <boost/math/special_functions/fpclassify.hpp>
 
 #include <iostream>
 
@@ -69,7 +64,7 @@ namespace OpenMS
   using namespace Exception;
 
   String TOPPBase::topp_ini_file_ = String(QDir::homePath()) + "/.TOPP.ini";
-  const Citation TOPPBase::cite_openms_
+  const Citation TOPPBase::cite_openms
     = {"Pfeuffer, J., Bielow, C., Wein, S. et al.", "OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data",
        "Nat Methods (2024)", "10.1038/s41592-024-02197-7"};
 
@@ -571,7 +566,7 @@ namespace OpenMS
        << bright("Full documentation: ") << underline(docurl)  // the space is needed, otherwise the remaining line will be underlined on Windows..
        << "\n"
        << bright("Version: ") << verboseVersion_ << "\n"
-       << bright("To cite OpenMS:\n") << " + " << is.indent(3) << cite_openms_.toString() 
+       << bright("To cite OpenMS:\n") << " + " << is.indent(3) << cite_openms.toString() 
        << is.indent(0) << "\n";
     if (!citations_.empty())
     {
@@ -702,27 +697,28 @@ namespace OpenMS
       case ParameterInformation::INPUT_FILE:
       case ParameterInformation::OUTPUT_FILE:
       case ParameterInformation::OUTPUT_PREFIX:
+      case ParameterInformation::OUTPUT_DIR:
       case ParameterInformation::STRINGLIST:
       case ParameterInformation::INPUT_FILE_LIST:
       case ParameterInformation::OUTPUT_FILE_LIST:
         if (!it->valid_strings.empty())
         {
           StringList copy = it->valid_strings;
-          for (StringList::iterator str_it = copy.begin();
-               str_it != copy.end(); ++str_it)
+          for (auto& str : copy)
           {
-            str_it->quote('\'');
+            str.quote('\'');
           }
 
           String add = "";
           if (it->type == ParameterInformation::INPUT_FILE
             || it->type == ParameterInformation::OUTPUT_FILE
             || it->type == ParameterInformation::OUTPUT_PREFIX
+            || it->type == ParameterInformation::OUTPUT_DIR
             || it->type == ParameterInformation::INPUT_FILE_LIST
             || it->type == ParameterInformation::OUTPUT_FILE_LIST)
             add = " formats";
 
-          restrictions.push_back(String("valid") + add + ": " + ListUtils::concatenate(copy, ", ")); // concatenate restrictions by comma
+          restrictions.push_back("valid" + add + ": " + ListUtils::concatenate(copy, ", ")); // concatenate restrictions by comma
         }
         break;
 
@@ -830,13 +826,11 @@ namespace OpenMS
       return ParameterInformation(name, ParameterInformation::FLAG, "", "", entry.description, false, advanced);
     }
 
-    bool input_file = entry.tags.count("input file");
-    bool output_file = entry.tags.count("output file");
-    bool output_prefix = entry.tags.count("output prefix");
-    if (input_file && output_file)
-    {
-      throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Parameter '" + full_name + "' marked as both input and output file");
-    }
+    const bool input_file = entry.tags.count(TAG_INPUT_FILE);
+    const bool output_file = entry.tags.count(TAG_OUTPUT_FILE);
+    const bool output_prefix = entry.tags.count(TAG_OUTPUT_PREFIX);
+    const bool output_dir = entry.tags.count(TAG_OUTPUT_DIR);
+    assert(input_file + output_file + output_prefix + output_dir <= 1); // at most one of these should be true (or none)
     enum ParameterInformation::ParameterTypes type = ParameterInformation::NONE;
     switch (entry.value.valueType())
     {
@@ -847,6 +841,8 @@ namespace OpenMS
         type = ParameterInformation::OUTPUT_FILE;
       else if (output_prefix)
         type = ParameterInformation::OUTPUT_PREFIX;
+      else if (output_dir)
+        type = ParameterInformation::OUTPUT_DIR;
       else
         type = ParameterInformation::STRING;
       break;
@@ -1035,7 +1031,7 @@ namespace OpenMS
 
   void TOPPBase::setValidFormats_(const String& name, const std::vector<String>& formats, const bool force_OpenMS_format)
   {
-    //check if formats are known
+    // check if formats are known
     if (force_OpenMS_format)
     {
       for (const auto& f : formats)
@@ -1053,14 +1049,15 @@ namespace OpenMS
 
     ParameterInformation& p = getParameterByName_(name);
 
-    //check if the type matches
+    // check if the type matches
     if (p.type != ParameterInformation::INPUT_FILE
        && p.type != ParameterInformation::OUTPUT_FILE
        && p.type != ParameterInformation::INPUT_FILE_LIST
        && p.type != ParameterInformation::OUTPUT_FILE_LIST
        && p.type != ParameterInformation::OUTPUT_PREFIX)
+      // && p.type != ParameterInformation::OUTPUT_DIR ) // output dir is not a file format, hence does not support restricting the format
     {
-      throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
+      throw Exception::WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
 
     if (!p.valid_strings.empty())
@@ -1074,7 +1071,7 @@ namespace OpenMS
   {
     ParameterInformation& p = getParameterByName_(name);
 
-    //check if the type matches
+    // check if the type matches
     if (p.type != ParameterInformation::INT && p.type != ParameterInformation::INTLIST)
     {
       throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
@@ -1191,6 +1188,13 @@ namespace OpenMS
     if (required && !default_value.empty())
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required OutputPrefix param (" + name + ") with a non-empty default is forbidden!", default_value);
     parameters_.emplace_back(name, ParameterInformation::OUTPUT_PREFIX, argument, default_value, description, required, advanced);
+  }
+  
+  void TOPPBase::registerOutputDir_(const String& name, const String& argument, const String& default_value, const String& description, bool required, bool advanced)
+  {
+    if (required && !default_value.empty())
+      throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required OutputDir param (" + name + ") with a non-empty default is forbidden!", default_value);
+    parameters_.emplace_back(name, ParameterInformation::OUTPUT_DIR, argument, default_value, description, required, advanced);
   }
 
   void TOPPBase::registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description, bool required, bool advanced)
@@ -1311,6 +1315,28 @@ namespace OpenMS
     {
       fileParamValidityCheck_(tmp, name, p);
     }
+
+    return tmp;
+  }
+
+  String TOPPBase::getOutputDirOption(const String& name) const
+  {
+    const ParameterInformation& p = findEntry_(name);
+    if (p.type != ParameterInformation::OUTPUT_DIR)
+    {
+      throw WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
+    }
+    if (p.required && (getParam_(name).isEmpty() || getParam_(name) == ""))
+    {
+      String message = "'" + name + "'";
+      if (! p.valid_strings.empty()) { message += " [valid: " + ListUtils::concatenate(p.valid_strings, ", ") + "]"; }
+      throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
+    }
+    String tmp = getParamAsString_(name, p.default_value.toString());
+    writeDebug_(String("Value of string(outdir) option '") + name + "': " + tmp, 1);
+
+    // create directory if it does not exist
+    File::makeDir(tmp);
 
     return tmp;
   }
@@ -2074,7 +2100,7 @@ namespace OpenMS
 
       if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::INPUT_FILE_LIST)
       {
-        tags.emplace_back("input file");
+        tags.emplace_back(TAG_INPUT_FILE);
       }
 
       if (it->type == ParameterInformation::INPUT_FILE && std::find(it->tags.begin(), it->tags.end(), "is_executable") != it->tags.end())
@@ -2082,15 +2108,9 @@ namespace OpenMS
         tags.emplace_back("is_executable");
       }
 
-      if (it->type == ParameterInformation::OUTPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE_LIST)
-      {
-        tags.emplace_back("output file");
-      }
-
-      if (it->type == ParameterInformation::OUTPUT_PREFIX)
-      {
-        tags.emplace_back("output prefix");
-      }
+      if (it->type == ParameterInformation::OUTPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE_LIST) { tags.emplace_back(TAG_OUTPUT_FILE); }
+      if (it->type == ParameterInformation::OUTPUT_PREFIX) { tags.emplace_back(TAG_OUTPUT_PREFIX); }
+      if (it->type == ParameterInformation::OUTPUT_DIR) { tags.emplace_back(TAG_OUTPUT_DIR); }
 
       switch (it->type)
       {
@@ -2105,41 +2125,29 @@ namespace OpenMS
       case ParameterInformation::INPUT_FILE:
       case ParameterInformation::OUTPUT_FILE:
       case ParameterInformation::OUTPUT_PREFIX:
+      case ParameterInformation::OUTPUT_DIR:
         tmp.setValue(name, (String)it->default_value.toString(), it->description, tags);
         if (!it->valid_strings.empty())
         {
           StringList vss_tmp = it->valid_strings;
-          std::vector<std::string> vss;
-          foreach(std::string vs, vss_tmp)
+          for (auto& vs : vss_tmp)
           {
-            vss.push_back("*." + vs);
+            vs = "*." + vs;
           }
-          tmp.setValidStrings(name, vss);
+          tmp.setValidStrings(name, ListUtils::create<std::string>(vss_tmp));
         }
         break;
 
       case ParameterInformation::DOUBLE:
         tmp.setValue(name, it->default_value, it->description, tags);
-        if (it->min_float != -std::numeric_limits<double>::max())
-        {
-          tmp.setMinFloat(name, it->min_float);
-        }
-        if (it->max_float != std::numeric_limits<double>::max())
-        {
-          tmp.setMaxFloat(name, it->max_float);
-        }
+        tmp.setMinFloat(name, it->min_float);
+        tmp.setMaxFloat(name, it->max_float);
         break;
 
       case ParameterInformation::INT:
         tmp.setValue(name, (Int)it->default_value, it->description, tags);
-        if (it->min_int != -std::numeric_limits<Int>::max())
-        {
-          tmp.setMinInt(name, it->min_int);
-        }
-        if (it->max_int != std::numeric_limits<Int>::max())
-        {
-          tmp.setMaxInt(name, it->max_int);
-        }
+        tmp.setMinInt(name, it->min_int);
+        tmp.setMaxInt(name, it->max_int);
         break;
 
       case ParameterInformation::FLAG:
@@ -2402,7 +2410,7 @@ namespace OpenMS
       // collect citation information
       std::vector<std::string> citation_dois;
       citation_dois.reserve(citations_.size() + 1);
-      citation_dois.push_back(cite_openms_.doi);
+      citation_dois.push_back(cite_openms.doi);
       for (auto& citation : citations_)
       {
         citation_dois.push_back(citation.doi);
@@ -2494,6 +2502,7 @@ namespace OpenMS
             case ParameterInformation::INPUT_FILE:
             case ParameterInformation::OUTPUT_FILE:
             case ParameterInformation::OUTPUT_PREFIX:
+            case ParameterInformation::OUTPUT_DIR:
               if (queue.empty())
                 value = std::string();
               else

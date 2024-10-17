@@ -174,8 +174,8 @@ jobs:
           fi
           echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
           grep -ne "----[[:space:]]*OpenMS" ${{ github.workspace }}/OpenMS/CHANGELOG > index_changelog.txt 
-          START=$(cat index_changelog.txt | grep -A 1 -e " $VERSION_NUMBER " | cut -f1 -d: | head -1)
-          END=$(cat index_changelog.txt | grep -A 1 -e " $VERSION_NUMBER " | cut -f1 -d: | tail -1)
+          START=$(cat index_changelog.txt | grep -A 1 -E " $VERSION_NUMBER(\.0)? " | cut -f1 -d: | head -1)
+          END=$(cat index_changelog.txt | grep -A 1 -E " $VERSION_NUMBER(\.0)? " | cut -f1 -d: | tail -1)
           echo "Extracting between lines:"
           echo $START
           echo $END
@@ -266,8 +266,10 @@ jobs:
         fi
 
         if [[ "${{ matrix.os }}" == macos-* ]];      then
+          ## Update the package lists for Brew
+          brew update
           ## Needed for Qt. Install before to overwrite the default softlinks on the GH runners
-          brew install python3 --force --overwrite
+          brew install python@3.13 --force --overwrite
           brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
           brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@5
           echo "cmake_prefix=$(brew --prefix qt@5)/lib/cmake;$(brew --prefix qt@5)" >> $GITHUB_OUTPUT
@@ -456,8 +458,8 @@ jobs:
         type: 'tar'
         directory: ${{ github.workspace }}
         path: OpenMS
-        exclusions: 'bld/* ./source.tar.gz THIRDPARTY/* .git/*'
-        filename: 'source.tar.gz'
+        exclusions: 'bld/* ./OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz ./THIRDPARTY/** .git/*'
+        filename: 'OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz'
 
         
 
@@ -466,9 +468,9 @@ jobs:
       if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
       uses: actions/upload-artifact@v4
       with:
-        name: source.tar.gz
+        name: OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
         path: |
-          ${{ github.workspace }}/source.tar.gz
+          ${{ github.workspace }}/OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
 
 
     # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
@@ -537,7 +539,7 @@ jobs:
       - name: Download source archive as artifact
         uses: actions/download-artifact@v4
         with:
-          name: source.tar.gz
+          name: OpenMS-${{ needs.build-and-test.outputs.version_number }}.tar.gz
 
       - name: Download changelog as artifact
         if: inputs.do_release
@@ -585,7 +587,7 @@ jobs:
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
-          ln -s ./$folder latest  #create link to the release folder
+          ln -s ../$folder latest  #create link to the release folder
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/OpenMSInstaller/release"
 
       - name: create RELEASE_TEXT
@@ -665,7 +667,7 @@ jobs:
           if [[ "${{ github.ref_name }}" == "nightly" ]]; then
             folder=nightly
           elif [[ "${{ github.ref_name }}" == release/* ]]; then
-            folder=release/${{ github.ref_name }}
+            folder=${{ github.ref_name }}
           else
             folder=experimental/${{ github.ref_name }}
           fi
@@ -696,7 +698,7 @@ jobs:
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
           ln -s ./$folder latest  #we can use the same link from above.
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/Documentation/release
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/Documentation/release"
       
         # TODO create softlinks to latest nightly
         # TODO create and upload file hashes, at least for release candidate
@@ -704,7 +706,7 @@ jobs:
         
   build-deploy-knime-updatesite:
     env:
-      KNIME: 5.1
+      KNIME: 5.3
       JAVA_VER: 17
       PLUGIN_BUILD: ${{ github.workspace }}/plugin-build
       PLUGIN_SOURCE: ${{ github.workspace }}/plugin-source
@@ -871,7 +873,7 @@ jobs:
           if [[ "${{ github.ref_name }}" == "nightly" ]]; then
             folder=nightly
           elif [[ "${{ github.ref_name }}" == release/* ]]; then
-            folder=release/${{ github.ref_name }}
+            folder=${{ github.ref_name }}
           else
             folder=experimental/${{ github.ref_name }}
           fi
@@ -908,7 +910,7 @@ jobs:
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
           ln -s ./$folder latest  #create link to the release folder
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/knime-plugin/updateSite/release
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/knime-plugin/updateSite/release"
 
   do-release:
     if: inputs.do_release

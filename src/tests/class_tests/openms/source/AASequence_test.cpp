@@ -272,7 +272,9 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
     TEST_STRING_EQUAL(seq4.getCTerminalModification()->getFullId(), "Lys-loss (Protein C-term K)");
     // no terminal dot
     seq4 = AASequence::fromString("PEPTIDEK(UniMod:313)");
-    TEST_STRING_EQUAL(seq4.getCTerminalModification()->getFullId(), "Lys-loss (Protein C-term K)");
+    TEST_EQUAL(seq4[7].isModified(), true);
+    TEST_STRING_EQUAL(seq4[7].getModificationName(), "Lys-loss");
+    TEST_STRING_EQUAL(seq4.getResidue(7).getModification()->getFullId(), "Lys-loss (K)");
   }
 
   // test with Selenocysteine

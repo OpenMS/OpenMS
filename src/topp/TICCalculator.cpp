@@ -129,7 +129,9 @@ class TOPPTICCalculator :
 {
 public:
   TOPPTICCalculator() :
-    TOPPBase("TICCalculator", "Calculates the TIC from a mass spectrometric raw file (useful for benchmarking).", false)
+    TOPPBase("TICCalculator", 
+    "Calculates the TIC from a mass spectrometric raw file (useful for benchmarking).", 
+    true)
   {
   }
 
