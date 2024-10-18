@@ -6,6 +6,7 @@
 // $Authors: Lukas Zimmermann, Leon Bichmann $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -889,10 +890,13 @@ protected:
     // if "reindex" parameter is set to true will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
+    // add percolator features
+    StringList feature_set;
+    PercolatorFeatureSetHelper::addMSFRAGGERFeatures(feature_set);
+    protein_identifications.front().getSearchParameters().setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
     FileHandler().storeIdentifications(output_file, protein_identifications, peptide_identifications, {FileTypes::IDXML});
 
     // remove the msfragger pepXML output from the user location
-
     if (optional_output_file.empty())
     {
       File::remove(pepxmlfile);
