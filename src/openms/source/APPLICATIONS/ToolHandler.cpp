@@ -19,24 +19,24 @@ namespace OpenMS
   ToolListType ToolHandler::getTOPPToolList(const bool includeGenericWrapper)
   {
     ToolListType tools_map;
-    
+    // Note: don't use special characters like slashes in category names (leads to subcategories in KNIME) 
     const auto cat_calibration = "Mass Correction and Calibration";
     const auto cat_centroiding = "Spectrum processing: Centroiding";
     const auto cat_crosslinking = "Cross-Linking";
     const auto cat_dev = "[for Developers]";
     const auto cat_file_converter = "File Converter";
-    const auto cat_file_filter_extract_merge = "File Filtering / Extraction / Merging";
+    const auto cat_file_filter_extract_merge = "File Filtering, Extraction and Merging";
     const auto cat_ID_MTX = "Metabolite Identification";
     const auto cat_ID_proc = "Identification Processing";
-    const auto cat_ID_search = "Identification of Proteins/Peptides (SearchEngines)";
+    const auto cat_ID_search = "Identification of Proteins and Peptides (SearchEngines)";
     const auto cat_linking = "Feature Linking";
     const auto cat_map_align = "Map Alignment";
-    const auto cat_misc = "Misc / Helpers";
+    const auto cat_misc = "Misc";
     const auto cat_QC = "Quality Control";
     const auto cat_quant = "Quantitation";
     const auto cat_rna = "RNA";
-    const auto cat_signal_proc_misc = "Spectrum processing: Misc / Helpers";
-    const auto cat_signal_proc_smooth_normalize = "Spectrum processing: peak smoothing / normalization";
+    const auto cat_signal_proc_misc = "Spectrum processing: Misc";
+    const auto cat_signal_proc_smooth_normalize = "Spectrum Processing: Peak Smoothing and Normalization";
     const auto cat_targeted = "Targeted Experiments and OpenSWATH";
     const auto cat_topdown = "Top-Down";
 
