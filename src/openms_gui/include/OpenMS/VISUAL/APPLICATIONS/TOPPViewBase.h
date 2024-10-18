@@ -31,7 +31,7 @@
 //QT
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QActionGroup>
+#include <QActionGroup>
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
 #include <QElapsedTimer>

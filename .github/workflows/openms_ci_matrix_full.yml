@@ -216,11 +216,10 @@ jobs:
 
     - name: Install Qt (Windows)
       if: startsWith(matrix.os, 'windows')
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       with:
-        version: '5.15.2' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715, > 5.15.2 is not available on official archives (https://github.com/miurahr/aqtinstall/issues/636)
+        version: '6.7.2'
         cache: 'false'
-        aqtversion: '==3.1.*'
         archives: 'qtsvg qtimageformats qtbase'
 
     - name: Setup build tools (and system contrib on Linux and Mac)
@@ -234,7 +233,7 @@ jobs:
           sudo add-apt-repository universe
           sudo apt update   
           sudo apt-get -qq install -y build-essential cmake autoconf patch libtool git automake ninja-build xvfb ccache
-          sudo apt-get -qq install -y qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
+          sudo apt-get -qq install -y qt6-base-dev libqt6svg6-dev libqt6opengl6-dev libqt6openglwidgets6 libgl-dev
           sudo apt-get -qq install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev \
            libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
@@ -246,8 +245,8 @@ jobs:
         fi
         
         if [[ "${{ matrix.os }}" == windows-* ]]; then
-          # Qt5_DIR set by Install Qt5 step
-          echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
+          # QT_ROOT_DIR set by Install Qt step
+          echo "cmake_prefix=$QT_ROOT_DIR/lib/cmake;$QT_ROOT_DIR" >> $GITHUB_OUTPUT
           choco install ccache ninja cmake -y --no-progress
           ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
           # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
@@ -271,9 +270,8 @@ jobs:
           ## Needed for Qt. Install before to overwrite the default softlinks on the GH runners
           brew install python@3.13 --force --overwrite
           brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
-          brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@5
-          echo "cmake_prefix=$(brew --prefix qt@5)/lib/cmake;$(brew --prefix qt@5)" >> $GITHUB_OUTPUT
-          echo "Qt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5" >> $GITHUB_ENV
+          brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt
+          echo "cmake_prefix=$(brew --prefix qt)/lib/cmake;$(brew --prefix qt)" >> $GITHUB_OUTPUT
           brew install --quiet doxygen ghostscript graphviz
         fi
 

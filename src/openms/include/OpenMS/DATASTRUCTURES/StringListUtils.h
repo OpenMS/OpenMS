@@ -12,7 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/OpenMSConfig.h>
 
-class QStringList;
+#include <QtCore/qcontainerfwd.h> // for QStringList
 
 namespace OpenMS
 {

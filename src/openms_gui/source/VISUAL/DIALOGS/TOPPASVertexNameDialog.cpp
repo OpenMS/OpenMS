@@ -10,7 +10,8 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPASVertexNameDialog.h>
 #include <ui_TOPPASVertexNameDialog.h>
 
-#include <QRegExpValidator> 
+#include <QRegularExpressionValidator>
+#include <QRegularExpression>
 
 #include <iostream>
 
@@ -20,12 +21,11 @@ namespace OpenMS
     : ui_(new Ui::TOPPASVertexNameDialogTemplate)
   {
     ui_->setupUi(this);
-    
+
     if (!input_regex.isEmpty())
     {
-      QRegExp rx(input_regex);
-      QRegExpValidator* v = new QRegExpValidator(rx, ui_->line_edit);
-      ui_->line_edit->setValidator(v);
+      QRegularExpression rx(input_regex);
+      ui_->line_edit->setValidator(new QRegularExpressionValidator(rx, ui_->line_edit));
     }
 
     ui_->line_edit->setText(name);
@@ -40,7 +40,6 @@ namespace OpenMS
 
   QString TOPPASVertexNameDialog::getName()
   {
-    
     return ui_->line_edit->text();
   }
 

@@ -72,7 +72,7 @@ protected:
     void keyPressEvent(QKeyEvent * e) override;
     void keyReleaseEvent(QKeyEvent * e) override;
     void leaveEvent(QEvent * e) override;
-    void enterEvent(QEvent * e) override;
+    void enterEvent(QEnterEvent * e) override;
     void dragEnterEvent(QDragEnterEvent * event) override;
     void dragMoveEvent(QDragMoveEvent * event) override;
     void dropEvent(QDropEvent * event) override;

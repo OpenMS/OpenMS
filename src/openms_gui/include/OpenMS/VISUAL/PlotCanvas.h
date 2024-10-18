@@ -718,7 +718,7 @@ protected:
     void keyReleaseEvent(QKeyEvent * e) override;
     void focusOutEvent(QFocusEvent * e) override;
     void leaveEvent(QEvent * e) override;
-    void enterEvent(QEvent * e) override;
+    void enterEvent(QEnterEvent * e) override;
     //@}
 
     /// This method is called whenever the intensity mode changes. Reimplement if you need to react on such changes.

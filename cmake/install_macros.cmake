@@ -1,31 +1,5 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
 #
 # --------------------------------------------------------------------------
 # $Maintainer: Julianus Pfeuffer $
@@ -160,7 +134,7 @@ endmacro()
 # Installs Qt plugins. Prefix can be the usual CMAKE_INSTALL_PREFIX or
 # if you install to a bundle, the app folder
 # Fills _qt_plugins_var with paths to be used e.g. with fixup_bundle at INSTALL time.
-macro(install_qt5_plugin_installdir _qt_plugin_name _qt_plugins_var _targetpath _component)
+macro(install_qt6_plugin_installdir _qt_plugin_name _qt_plugins_var _targetpath _component)
   get_target_property(_qt_plugin_path "${_qt_plugin_name}" LOCATION)
   if(EXISTS "${_qt_plugin_path}")
     get_filename_component(_qt_plugin_file "${_qt_plugin_path}" NAME)
@@ -181,7 +155,7 @@ endmacro()
 # Installs Qt plugins. Prefix can be the usual CMAKE_INSTALL_PREFIX or
 # if you install to a bundle, the app folder
 # Fills _qt_plugins_var with paths to be used e.g. with fixup_bundle at BUILD time.
-macro(install_qt5_plugin_builddir _qt_plugin_name _qt_plugins_var _targetpath _component)
+macro(install_qt6_plugin_builddir _qt_plugin_name _qt_plugins_var _targetpath _component)
   get_target_property(_qt_plugin_path "${_qt_plugin_name}" LOCATION)
   if(EXISTS "${_qt_plugin_path}")
     get_filename_component(_qt_plugin_file "${_qt_plugin_path}" NAME)
@@ -199,10 +173,10 @@ macro(install_qt5_plugin_builddir _qt_plugin_name _qt_plugins_var _targetpath _c
 endmacro()
 
 #------------------------------------------------------------------------------
-# Installs QT5 libraries to CMAKE_INSTALL_PREFIX based on given components
-macro(install_qt5_libs _qt_components _targetpath _install_component)
+# Installs QT6 libraries to CMAKE_INSTALL_PREFIX based on given components
+macro(install_qt6_libs _qt_components _targetpath _install_component)
   foreach (_qt_component ${_qt_components})
-    get_target_property(_qt_lib_path "Qt5::${_qt_component}" LOCATION)
+    get_target_property(_qt_lib_path "Qt6::${_qt_component}" LOCATION)
     if(_qt_lib_path MATCHES "^.*\\/.*${_qt_component}\\.framework\\/.*$")
     ## we could use if Mac but this is more general
       get_filename_component(_qt_lib_path "${_qt_lib_path}" PATH)
