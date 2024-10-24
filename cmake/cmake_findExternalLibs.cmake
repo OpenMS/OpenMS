@@ -186,17 +186,17 @@ endif()
 #------------------------------------------------------------------------------
 # QT
 #------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "5.6.0")
+SET(QT_MIN_VERSION "6.1.0")
 
 # find qt
 set(OpenMS_QT_COMPONENTS Core Network CACHE INTERNAL "QT components for core lib")
-find_package(Qt5 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
+find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
-IF (NOT Qt5Core_FOUND)
-  message(STATUS "Qt5Core not found!")
-  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
+IF (NOT Qt6Core_FOUND)
+  message(STATUS "Qt6Core not found!")
+  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt6Libs>' <src-dir>")
 ELSE()
-  message(STATUS "Found Qt ${Qt5Core_VERSION}")
+  message(STATUS "Found Qt ${Qt6Core_VERSION}")
 ENDIF()
 
 
@@ -214,7 +214,7 @@ if (WITH_GUI)
   # --------------------------------------------------------------------------
   # Find additional Qt libs
   #---------------------------------------------------------------------------
-  set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Svg)
+  set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Svg OpenGLWidgets)
 
   # On macOS the platform plugin of QT requires PrintSupport. We link
   # so it's packaged via the bundling/dependency tools/scripts
@@ -228,53 +228,40 @@ if (WITH_GUI)
     set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
   endif()
 
-  find_package(Qt5 REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
+  find_package(Qt6 REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
 
-  IF (NOT Qt5Widgets_FOUND OR NOT Qt5Gui_FOUND OR NOT Qt5Svg_FOUND)
-    message(STATUS "Qt5Widgets not found!")
-    message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
+  IF (NOT Qt6Widgets_FOUND OR NOT Qt6Gui_FOUND OR NOT Qt6Svg_FOUND)
+    message(STATUS "Qt6Widgets not found!")
+    message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt6Libs>' <src-dir>")
   ENDIF()
 
   ## QuickWidgets is a runtime-only dependency that we need to copy and install when WebEngine is found.
   # https://gitlab.kitware.com/cmake/cmake/-/issues/16462
   # https://bugreports.qt.io/browse/QTBUG-110118
-  find_package(Qt5 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT} QuickWidgets)
+  find_package(Qt6 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT} QuickWidgets)
 
   # TODO only works if WebEngineWidgets is the only optional component
   set(OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
-  if(Qt5WebEngineWidgets_FOUND)
+  if(Qt6WebEngineWidgets_FOUND)
     list(APPEND OpenMS_GUI_QT_FOUND_COMPONENTS_OPT "WebEngineWidgets")
     # we assume that it is available for now. They should have dependencies when installing Qt.
-    install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::QuickWidgets"
+    install(IMPORTED_RUNTIME_ARTIFACTS "Qt6::QuickWidgets"
             DESTINATION "${INSTALL_LIB_DIR}"
             RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
             COMPONENT Dependencies)
   else()
-    message(WARNING "Qt5WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
+    message(WARNING "Qt6WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
   endif()
 
-  # The following can be checked since Qt 5.12 https://github.com/qtwebkit/qtwebkit/issues/846
-  # evaluates to False if it does not exist
-  # TODO check what needs to be done for other values
-  if (${Qt5Gui_OPENGL_IMPLEMENTATION} STREQUAL GLESv2)
-      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::Gui_EGL"
-            DESTINATION "${INSTALL_LIB_DIR}"
-            RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
-            COMPONENT Dependencies)
-      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::Gui_GLESv2"
-            DESTINATION "${INSTALL_LIB_DIR}"
-            RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
-            COMPONENT Dependencies)
-  endif()
 
   set(OpenMS_GUI_DEP_LIBRARIES "OpenMS")
 
   foreach(COMP IN LISTS OpenMS_GUI_QT_COMPONENTS)
-    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt5::${COMP}")
+    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt6::${COMP}")
   endforeach()
 
   foreach(COMP IN LISTS OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
-    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt5::${COMP}")
+    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt6::${COMP}")
   endforeach()
 
 endif()

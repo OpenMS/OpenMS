@@ -43,6 +43,10 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
+#ifdef OPENMS_WINDOWSPLATFORM
+  qputenv("QT_QPA_PLATFORM", "windows:darkmode=0"); // disable dark mode on Windows, since our buttons etc are not designed for it
+#endif
+
   std::map<std::string, std::string> options, flags, option_lists;
   options["-print"] = "print";
   flags["--help"] = "help";

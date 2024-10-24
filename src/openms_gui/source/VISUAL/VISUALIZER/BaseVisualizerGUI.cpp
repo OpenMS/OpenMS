@@ -30,7 +30,7 @@ namespace OpenMS
     editable_(editable)
   {
     mainlayout_ = new QGridLayout(this);
-    mainlayout_->setMargin(0);
+    mainlayout_->setContentsMargins(0, 0, 0, 0);
   }
 
   bool BaseVisualizerGUI::isEditable() const

@@ -72,6 +72,10 @@ void print_usage(Logger::LogStream& stream = OpenMS_Log_info)
 
 int main(int argc, const char** argv)
 {
+#ifdef OPENMS_WINDOWSPLATFORM
+  qputenv("QT_QPA_PLATFORM", "windows:darkmode=0"); // disable dark mode on Windows, since our buttons etc are not designed for it
+#endif
+
   // list of all the valid options
   std::map<std::string, std::string> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";

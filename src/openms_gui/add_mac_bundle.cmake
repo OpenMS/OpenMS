@@ -86,14 +86,14 @@ macro(add_mac_app_bundle _name)
 		#  libs, install them into the bundle and only fix their loading
 		if("${PACKAGE_TYPE}" STREQUAL "dmg")
 			set (APP_FOLDER "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_name}.app")
-			## Install qt5 plugins needed on mac and save them in a var for fixing their dependencies later
+			## Install Qt6 plugins needed on mac and save them in a var for fixing their dependencies later
 			set (PLUGIN_VAR_NAME QT_PLUGINS_APPS_${_name})
-			install_qt5_plugin_builddir("Qt5::QCocoaIntegrationPlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" Applications)
-			install_qt5_plugin_builddir("Qt5::QMacStylePlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" Applications)
+			install_qt6_plugin_builddir("Qt6::QCocoaIntegrationPlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" Applications)
+			install_qt6_plugin_builddir("Qt6::QMacStylePlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" Applications)
 			
 			set (QT_PLUGINS_TO_FIX ${${PLUGIN_VAR_NAME}})
 			## Find Qt library folder
-			get_target_property(QT_LIBRARY_DIR Qt5::Core LOCATION)
+			get_target_property(QT_LIBRARY_DIR Qt6::Core LOCATION)
 			get_filename_component(QT_LIBRARY_DIR ${QT_LIBRARY_DIR} PATH)
 			get_filename_component(QT_LIBRARY_DIR "${QT_LIBRARY_DIR}/.." ABSOLUTE)
 			## Fix up the dependencies in the bundle and make them rel. to their location in the bundle
@@ -120,11 +120,11 @@ macro(add_mac_app_bundle _name)
 							DESTINATION "${_name}.app/Contents/Resources/"
 							RENAME "qt.conf"
 							COMPONENT Applications)
-      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::QCocoaIntegrationPlugin"
+      install(IMPORTED_RUNTIME_ARTIFACTS "Qt6::QCocoaIntegrationPlugin"
               DESTINATION "${INSTALL_PLUGIN_DIR}/platforms"
               RUNTIME_DEPENDENCY_SET OPENMS_DEPS
               COMPONENT Dependencies)
-			install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::QMacStylePlugin"
+			install(IMPORTED_RUNTIME_ARTIFACTS "Qt6::QMacStylePlugin"
 							DESTINATION "${INSTALL_PLUGIN_DIR}/styles"
 							RUNTIME_DEPENDENCY_SET OPENMS_DEPS
 							COMPONENT Dependencies)

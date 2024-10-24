@@ -1,31 +1,5 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
 #
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche, Chris Bielow $
@@ -35,7 +9,7 @@
 project("OpenMS_GUI")
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
-set(CMAKE_AUTOUIC OFF) # leave off since this is broken, see qt5_wrap_ui below
+set(CMAKE_AUTOUIC ON) # convert .ui files to ui_....h files using CMake + Qt's UIC
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -47,14 +21,6 @@ include(add_mac_bundle.cmake)
 # --------------------------------------------------------------------------
 # big include file for headers and cpp files
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
-
-# --------------------------------------------------------------------------
-
-# manually extract .ui files and track them (trigger rebuild of ui_CLASS.h upon changing CLASS.ui)
-# see https://gitlab.kitware.com/cmake/cmake/issues/18741
-set(UI_SOURCES ${OpenMSVisual_sources}) # copy list of .cpp + .ui files
-list(FILTER UI_SOURCES INCLUDE REGEX "\\.ui$")
-qt5_wrap_ui(UI_SOURCES2 ${UI_SOURCES}) # transform .ui to ui_....h files and add them to OpenMSVisual_sources_h
 
 #------------------------------------------------------------------------------
 # add the library
@@ -77,6 +43,19 @@ if (MSVC)
   set (GUI_lnk_flags "/FORCE:MULTIPLE /INCREMENTAL:NO /ignore:4006 /ignore:4088")
   set_property(TARGET OpenMS_GUI APPEND PROPERTY LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
 endif()
+
+
+# --------------------------------------------------------------------------
+# some targets using OpenMS_GUI (e.g. in the GUI tests) need the ui_..h files, so add them to OpenMS_GUI's interface.
+get_property(_isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(_isMultiConfig)
+  set(AUTOGEN_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/OpenMS_GUI_autogen/include_$<CONFIG>)
+else()
+  set(AUTOGEN_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/OpenMS_GUI_autogen/include)
+endif()
+# add include-directories for UIC'd files (CMake does not do that automatically)
+target_include_directories(OpenMS_GUI INTERFACE $<BUILD_INTERFACE:${AUTOGEN_INCLUDE_DIR}>)
+
 
 #------------------------------------------------------------------------------
 # register relevant paths for the doxygen doc generation
@@ -113,7 +92,7 @@ endforeach(i)
 
   ## install platform plugins. On Mac this is handled for every GUI app inside its app bundle.
   if(WIN32)
-      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::QWindowsIntegrationPlugin"
+      install(IMPORTED_RUNTIME_ARTIFACTS "Qt6::QWindowsIntegrationPlugin"
               DESTINATION "${INSTALL_PLUGIN_DIR}/platforms"
               RUNTIME_DEPENDENCY_SET OPENMS_DEPS
               COMPONENT Dependencies)

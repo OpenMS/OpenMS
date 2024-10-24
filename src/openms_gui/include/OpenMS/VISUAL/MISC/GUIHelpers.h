@@ -15,13 +15,13 @@
 // declare Qt classes OUTSIDE of namespace OpenMS!
 class QPainter;
 class QPoint;
+class QPointF;
 class QRectF;
-class QString; 
-class QStringList;
 class QWidget;
 
 #include <QColor>
 #include <QFont>
+#include <QtCore/qcontainerfwd.h> // for QStringList
 
 #include <array>
 

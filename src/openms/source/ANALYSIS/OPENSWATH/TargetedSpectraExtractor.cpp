@@ -214,7 +214,8 @@ namespace OpenMS
 
       // Lambda to create the feature
       auto construct_feature = [checkRtAndMzTol, spectrum_rt, spectrum_mz, &ms2_features, &annotated_spectra, &spectrum](
-        const OpenMS::Feature& feature, const double& mz_tol, const double& rt_win) {
+        const OpenMS::Feature& feature, const double& mz_tol, const double& rt_win)
+      {
         const auto& peptide_ref_s = feature.getMetaValue("PeptideRef");
         const auto& native_id_s = feature.getMetaValue("native_id");
         // check for null annotations resulting from unnanotated features

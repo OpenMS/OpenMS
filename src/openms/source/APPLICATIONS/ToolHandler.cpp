@@ -11,7 +11,7 @@
 #include <OpenMS/FORMAT/ToolDescriptionFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtCore/QStringList>
+#include <QStringList>
 #include <QtCore/QDir>
 
 namespace OpenMS

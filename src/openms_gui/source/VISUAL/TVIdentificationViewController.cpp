@@ -1039,7 +1039,7 @@ namespace OpenMS
           AASequence aa_subsequence = aa_sequence.getSubsequence(0, ion_number);
           QString aa_ss = aa_subsequence.toString().toQString();
           // shorten modifications "(MODNAME)" to "*"
-          aa_ss.replace(QRegExp("[(].*[)]"), "*");
+          aa_ss.replace(QRegularExpression("[(].*[)]"), "*");
           // append to label
           s.append(aa_ss);
           Annotation1DItem* item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::darkGreen);
@@ -1169,14 +1169,7 @@ namespace OpenMS
 #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "Adding annotation item based on fragment annotations: " << label << endl;
 #endif
-        /*
-         * Suppressed warning QSTring::SkipEmptyParts and QString::SplitBehaviour is deprecated
-         * QT::SkipEmptyParts and QT::SplitBehaviour is added or modified at Qt 5.14
-         */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-      QStringList lines = label.toQString().split(QRegExp("[\r\n]"), QString::SkipEmptyParts);
-#pragma GCC diagnostic pop
+      QStringList lines = label.toQString().split(QRegularExpression("[\r\n]"), Qt::SkipEmptyParts);
       if (lines.size() > 1)
       {
         label = String(lines[0]);
