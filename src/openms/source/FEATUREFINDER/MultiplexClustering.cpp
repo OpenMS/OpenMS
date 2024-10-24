@@ -86,9 +86,10 @@ namespace OpenMS
     double rt_min = exp.getMinRT();
     double rt_max = exp.getMaxRT();
 
-    if (mz_min < 0.0 || mz_max < mz_min || mz_max > 1.0e12)
+    if (mz_min < 0.0 || mz_max < mz_min || mz_max > 1.0e12 || 
+ rt_max < rt_min || rt_max > 1.0e12) // check ranges (but allow negative RTs which can happen because of chrom. alignment)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MinMZ,MaxMZ values outside of sensible value ranges. Are they uninitialized? (" + String(mz_min) + "/" + String(mz_max));
+throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MinMZ,MaxMZ,MinRT,MaxRT values outside of sensible value ranges. Are they uninitialized? (" + String(mz_min) + "/" + String(mz_max) + "/" + String(rt_min) + "/" + String(rt_max));
     }
 
     // extend the grid by a small absolute margin
