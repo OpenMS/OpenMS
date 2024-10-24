@@ -50,7 +50,9 @@ Library:
 - TOPPView: 
   - offer Ion mobility view from 2D spectra view (#7423)
   - view ion mobility frames, irrespective of its MS level (formerly only MS1 was supported) (#7427)
-- OpenSwath: Add output on peak shape metrics to .osw file (#7222)
+- OpenSwath: 
+  - Add output on peak shape metrics to .osw file (#7222)
+  - Update IonMobilityScoring to use Mobilogram Kernel datastructure (#7587)
 
 New Tools:
 - IonMobilityBinning - Merges spectra with similar IM values and creates @p N output mzML's by discretizing the IM range (#7459)
