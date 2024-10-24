@@ -56,10 +56,10 @@ find_path(COIN_SYS_INCLUDE_DIR coin/CoinUtilsConfig.h coinutils/coin/CoinUtilsCo
 
 if (COIN_SYS_INCLUDE_DIR)
   set(COIN_INCLUDE_DIR ${COIN_SYS_INCLUDE_DIR})
-  set(CF_COIN_INCLUDE_SUBDIR_IS_COIN 1 CACHE BOOL "If the subdir for including coin-or headers is coin (1) or coin-or (0).")
+  set(OPENMS_HAS_COIN_INCLUDE_SUBDIR_IS_COIN 1 CACHE BOOL "If the subdir for including coin-or headers is 'coin' (1) or 'coin-or' (undefined).")
 elseif (COIN_VCPKG_INCLUDE_DIR)
   set(COIN_INCLUDE_DIR ${COIN_VCPKG_INCLUDE_DIR})
-  set(CF_COIN_INCLUDE_SUBDIR_IS_COIN 0 CACHE BOOL "If the subdir for including coin-or headers is coin (1) or coin-or (0).")
+  unset(OPENMS_HAS_COIN_INCLUDE_SUBDIR_IS_COIN)
 endif() # find_package_handle_standard_args will handle missingness
 
 # helper macro to find specific coin sub-libraries
