@@ -2606,7 +2606,7 @@ state0:
     {
       new_size += consensus_map.getUnassignedPeptideIdentifications().size();
     }
-    peptide_ids_.reserve(peptide_ids_.size() + new_size);
+    peptide_ids_.reserve(new_size);
 
  
     // extract mapped IDs
