@@ -120,6 +120,7 @@ jobs:
           pip install -U pytest
           pip install 'numpy<=1.26.4'
           pip install -U wheel
+          pip install -U py-cpuinfo
 
           echo $CURRENT_PYTHON_EXECUTABLE
 
@@ -229,6 +230,8 @@ jobs:
           pip install 'numpy<=1.26.4'
           pip install -U wheel
           pip install -U pandas
+          pip install -U py-cpuinfo
+
 
           # build pyopenms distribution (macOS)
           cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} .
@@ -345,6 +348,7 @@ jobs:
           pip install 'numpy<=1.26.4'
           pip install -U wheel
           pip install -U pandas
+          pip install -U py-cpuinfo
 
           # build pyopenms distribution (macOS)
           cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} .
