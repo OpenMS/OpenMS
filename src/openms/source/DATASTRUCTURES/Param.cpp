@@ -325,6 +325,17 @@ namespace OpenMS
       prefix2 = prefix2.substr(local_name.size() + 1);
     }
 
+    // check if the node exists as ParamEntry
+    EntryIterator entry_it = insert_node->findEntry(prefix2);
+    if (entry_it != insert_node->entries.end()) {
+      std::string message = "Duplicate option \""
+                            + prefix
+                            + "\" into \""
+                            + name
+                            + "\", should not be added as ParamNode and ParamEntry at the same time (1).";
+      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
+    }
+
     //check if the node already exists
     NodeIterator it = insert_node->findNode(prefix2);
     if (it != insert_node->nodes.end()) //append nodes and entries
@@ -377,6 +388,18 @@ namespace OpenMS
       //remove prefix
       prefix2 = prefix2.substr(local_name.size() + 1);
       //std::cerr << " - new prefix: " << prefix2 << std::endl;
+    }
+
+    // check if the entry exists as ParamNode
+    NodeIterator node_it = insert_node->findNode(prefix2);
+    if (node_it != insert_node->nodes.end())
+    {
+      std::string message = "Duplicate option \""
+                            + prefix
+                            + "\" into \""
+                            + name
+                            + "\", should not be added as ParamNode and ParamEntry at the same time (2).";
+      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
     }
 
     //check if the entry already exists
