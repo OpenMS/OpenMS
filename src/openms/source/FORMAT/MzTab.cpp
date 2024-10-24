@@ -2601,7 +2601,7 @@ state0:
 
     // pre-reserve to prevent reallocations
     size_t new_size = peptide_ids_.size();
-    for (Size i = 0; i < consensus_map.size(); ++i) new_size += consensus_map[i].getPeptideIdentifications().size();
+    for (const auto& elem : consensus_map) new_size += elem.getPeptideIdentifications().size();
     if (export_unassigned_ids)
     {
       new_size += consensus_map.getUnassignedPeptideIdentifications().size();
