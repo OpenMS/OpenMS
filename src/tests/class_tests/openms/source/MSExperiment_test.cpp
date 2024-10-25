@@ -1213,6 +1213,136 @@ START_SECTION((int getPrecursorSpectrum(int zero_based_index) const))
 }
 END_SECTION
 
+START_SECTION((ConstIterator getFirstProductSpectrum(ConstIterator iterator) const))
+{
+  PeakMap exp;
+  exp.resize(5);
+
+  // Set MS levels
+  exp[0].setMSLevel(1);
+  exp[1].setMSLevel(2);
+  exp[2].setMSLevel(1);
+  exp[3].setMSLevel(2);
+  exp[4].setMSLevel(2);
+
+  // Set NativeIDs
+  exp[0].setNativeID("scan=1");
+  exp[1].setNativeID("scan=2");
+  exp[2].setNativeID("scan=3");
+  exp[3].setNativeID("scan=4");
+  exp[4].setNativeID("scan=5");
+
+  // Set up the 'spectrum_ref' in the precursors of the product spectra
+  Precursor precursor1;
+  precursor1.setMetaValue("spectrum_ref", "scan=1"); // Reference to exp[0]
+  exp[1].getPrecursors().push_back(precursor1);
+
+  Precursor precursor2;
+  precursor2.setMetaValue("spectrum_ref", "scan=3"); // Reference to exp[2]
+  exp[3].getPrecursors().push_back(precursor2);
+
+  Precursor precursor3;
+  precursor3.setMetaValue("spectrum_ref", "scan=3"); // Another reference to exp[2]
+  exp[4].getPrecursors().push_back(precursor3);
+
+  // Test getFirstProductSpectrum
+
+  // From exp[0], expect to get exp[1] as the first product spectrum
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin()) == exp.begin() + 1, true)
+
+  // From exp[1], expect to get spectra_.end() since there is no higher MS level
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin() + 1) == exp.end(), true)
+
+  // From exp[2], expect to get exp[3] as the first product spectrum
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin() + 2) == exp.begin() + 3, true)
+
+  // From exp[3], expect to get spectra_.end() since there is no higher MS level
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin() + 3) == exp.end(), true)
+
+  // From exp[4], expect to get spectra_.end()
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin() + 4) == exp.end(), true)
+
+  // Test when iterator is spectra_.end()
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.end()) == exp.end(), true)
+
+  // Now change the MS levels to only MS1 spectra
+  for (Size i = 0; i < exp.size(); ++i)
+  {
+    exp[i].setMSLevel(1);
+  }
+
+  // Test again with only MS1 spectra
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin()) == exp.end(), true)
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin() + 1) == exp.end(), true)
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin() + 2) == exp.end(), true)
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin() + 3) == exp.end(), true)
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin() + 4) == exp.end(), true)
+}
+END_SECTION
+
+START_SECTION((int getFirstProductSpectrum(int zero_based_index) const))
+{
+  PeakMap exp;
+  exp.resize(5);
+
+  // Set MS levels
+  exp[0].setMSLevel(1);
+  exp[1].setMSLevel(2);
+  exp[2].setMSLevel(1);
+  exp[3].setMSLevel(2);
+  exp[4].setMSLevel(2);
+
+  // Set NativeIDs
+  exp[0].setNativeID("scan=1");
+  exp[1].setNativeID("scan=2");
+  exp[2].setNativeID("scan=3");
+  exp[3].setNativeID("scan=4");
+  exp[4].setNativeID("scan=5");
+
+  // Set up the 'spectrum_ref' in the precursors of the product spectra
+  Precursor precursor1;
+  precursor1.setMetaValue("spectrum_ref", "scan=1"); // Reference to exp[0]
+  exp[1].getPrecursors().push_back(precursor1);
+
+  Precursor precursor2;
+  precursor2.setMetaValue("spectrum_ref", "scan=3"); // Reference to exp[2]
+  exp[3].getPrecursors().push_back(precursor2);
+
+  Precursor precursor3;
+  precursor3.setMetaValue("spectrum_ref", "scan=3"); // Another reference to exp[2]
+  exp[4].getPrecursors().push_back(precursor3);
+
+  // Test getFirstProductSpectrum
+
+  // From index 0, expect to get index 1
+  TEST_EQUAL(exp.getFirstProductSpectrum(0) == 1, true)
+
+  // From index 1, expect to get -1 (no higher MS level with reference)
+  TEST_EQUAL(exp.getFirstProductSpectrum(1) == -1, true)
+
+  // From index 2, expect to get index 3
+  TEST_EQUAL(exp.getFirstProductSpectrum(2) == 3, true)
+
+  // From index 3, expect to get -1
+  TEST_EQUAL(exp.getFirstProductSpectrum(3) == -1, true)
+
+  // From index 4, expect to get -1
+  TEST_EQUAL(exp.getFirstProductSpectrum(4) == -1, true)
+
+  // Now change the MS levels to only MS1 spectra
+  for (Size i = 0; i < exp.size(); ++i)
+  {
+    exp[i].setMSLevel(1);
+  }
+
+  // Test again with only MS1 spectra
+  TEST_EQUAL(exp.getFirstProductSpectrum(0) == -1, true)
+  TEST_EQUAL(exp.getFirstProductSpectrum(1) == -1, true)
+  TEST_EQUAL(exp.getFirstProductSpectrum(2) == -1, true)
+  TEST_EQUAL(exp.getFirstProductSpectrum(3) == -1, true)
+  TEST_EQUAL(exp.getFirstProductSpectrum(4) == -1, true)
+}
+END_SECTION
 
 START_SECTION((bool clearMetaDataArrays()))
 {
