@@ -27,6 +27,9 @@ Misc:
 - FeatureFinderMetabo
     - added report_smoothed_intensities parameter (#7594)
 
+Fixes:
+- OpenMS does not compile when using GLPK (instead of COINOR) (#7626)
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.2.0       (released 09/2024)             ----
 ------------------------------------------------------------------------------------------
