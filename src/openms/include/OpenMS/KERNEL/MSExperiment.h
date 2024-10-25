@@ -322,9 +322,10 @@ public:
     ///@name Iterating ranges and areas
     //@{
     /// Returns an area iterator for @p area
-    AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt  ms_level = 1);
+    AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, 
+      CoordinateType min_mz, CoordinateType max_mz, UInt ms_level = 1);
 
-    /// Returns a area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
+    /// Returns an area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
     AreaIterator areaBegin(const RangeManagerType& range, UInt ms_level = 1);
 
     /// Returns an invalid area iterator marking the end of an area
@@ -336,10 +337,10 @@ public:
     /// Returns a non-mutable area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
     ConstAreaIterator areaBeginConst(const RangeManagerType& range, UInt ms_level = 1) const;
 
-    /// Returns an non-mutable invalid area iterator marking the end of an area
+    /// Returns a non-mutable invalid area iterator marking the end of an area
     ConstAreaIterator areaEndConst() const;
 
-    // for fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity]]
+    /// for fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity]]
     void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
       std::vector<float>& rt, 
       std::vector<std::vector<float>>& mz, 
@@ -358,40 +359,156 @@ public:
       }
     }
 
-    // for fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity, ion mobility]]
-    void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
+    /* @brief Retrieves the peak data in the given mz-rt range and store data spectrum-wise in separate arrays.
+     * 
+     * For fast pyOpenMS access to peak data in format: [rt, [mz, intensity]]
+     * 
+     * @param min_rt The minimum retention time.
+     * @param max_rt The maximum retention time.
+     * @param min_mz The minimum m/z value.
+     * @param max_mz The maximum m/z value.
+     * @param ms_level The MS level of the spectra to consider.
+     * @param rt The vector to store the retention times in.
+     * @param mz The vector to store the m/z values in.
+     * @param intensity The vector to store the intensities in.
+     */
+    void get2DPeakDataPerSpectrum(
+      CoordinateType min_rt, 
+      CoordinateType max_rt, 
+      CoordinateType min_mz, 
+      CoordinateType max_mz,
+      Size ms_level,
       std::vector<float>& rt, 
-      std::vector<std::vector<float>>& mz,
-      std::vector<std::vector<float>>& intensity, 
-      std::vector<std::vector<float>>& ion_mobility) const
+      std::vector<std::vector<float>>& mz, 
+      std::vector<std::vector<float>>& intensity) const
     {
       float t = -1.0;
-      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
       {
-        if (it.getRT() != t)
+        if (it.getRT() != t) 
         {
           t = (float)it.getRT();
           rt.push_back(t);
         }
-        
-        const MSSpectrum& spectrum = it.getSpectrum();
-        bool has_IM = spectrum.containsIMData();
-        float peak_IM{-1.0f};
-        if (has_IM)
-        {
-          const auto& im_data = spectrum.getIMData();
-          const Size peak_index = it.getPeakIndex().peak;
-          if (spectrum.getFloatDataArrays()[im_data.first].size() == spectrum.size())
-          {
-            peak_IM = spectrum.getFloatDataArrays()[im_data.first][peak_index];
-          }          
-        }
-        ion_mobility.back().push_back(peak_IM);
         mz.back().push_back((float)it->getMZ());
         intensity.back().push_back(it->getIntensity());
       }
     }
 
+    /* @brief Retrieves the peak data in the given mz-rt range and store data spectrum-wise in separate arrays.
+     * 
+     * For fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity, ion mobility]]
+     * 
+     * @param min_rt The minimum retention time.
+     * @param max_rt The maximum retention time.
+     * @param min_mz The minimum m/z value.
+     * @param max_mz The maximum m/z value.
+     * @param ms_level The MS level of the spectra to consider.
+     * @param rt The vector to store the retention times in.
+     * @param mz The vector to store the m/z values in.
+     * @param intensity The vector to store the intensities in.
+    */
+    void get2DPeakDataIMPerSpectrum(
+      CoordinateType min_rt, 
+      CoordinateType max_rt, 
+      CoordinateType min_mz, 
+      CoordinateType max_mz,      
+      std::vector<float>& rt, 
+      Size ms_level,
+      std::vector<std::vector<float>>& mz,
+      std::vector<std::vector<float>>& intensity, 
+      std::vector<std::vector<float>>& ion_mobility) const
+    {
+      DriftTimeUnit unit;
+      std::vector<float> im;
+      float t = -1.0;
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
+      {
+        if (it.getRT() != t)
+        {
+          t = (float)it.getRT();
+          rt.push_back(t);
+          std::tie(unit, im) = it.getSpectrum().maybeGetIMData();
+        }
+        const Size peak_index = it.getPeakIndex().peak;
+        ion_mobility.back().push_back(im[peak_index]);
+        mz.back().push_back((float)it->getMZ());
+        intensity.back().push_back(it->getIntensity());
+      }
+    }
+
+    /* @brief Retrieves the peak data in the given mz-rt range and store in separate arrays.
+     * 
+     * For fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity]
+     * 
+     * @param min_rt The minimum retention time.
+     * @param max_rt The maximum retention time.
+     * @param min_mz The minimum m/z value.
+     * @param max_mz The maximum m/z value.
+     * @param ms_level The MS level of the spectra to consider.
+     * @param rt The vector to store the retention times in.
+     * @param mz The vector to store the m/z values in.
+     * @param intensity The vector to store the intensities in.
+    */    
+    void get2DPeakData(
+      CoordinateType min_rt,
+      CoordinateType max_rt,
+      CoordinateType min_mz,
+      CoordinateType max_mz,
+      std::vector<float>& rt,
+      std::vector<float>& mz,
+      std::vector<float>& intensity) const
+    {
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
+      {
+        rt.push_back((float)it.getRT());
+        mz.push_back((float)it->getMZ());
+        intensity.push_back(it->getIntensity());
+      }
+    }
+
+
+    /* @brief Retrieves the peak data in the given mz-rt range and store in separate arrays.
+     * 
+     * For fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity, ion mobility]
+     * 
+     * @param min_rt The minimum retention time.
+     * @param max_rt The maximum retention time.
+     * @param min_mz The minimum m/z value.
+     * @param max_mz The maximum m/z value.
+     * @param ms_level The MS level of the spectra to consider.
+     * @param rt The vector to store the retention times in.
+     * @param mz The vector to store the m/z values in.
+     * @param intensity The vector to store the intensities in.
+    */
+    void get2DPeakDataIM(
+      CoordinateType min_rt,
+      CoordinateType max_rt,
+      CoordinateType min_mz,
+      CoordinateType max_mz,
+      Size ms_level,
+      std::vector<float>& rt,
+      std::vector<float>& mz,
+      std::vector<float>& intensity,
+      std::vector<float>& ion_mobility) const
+    {
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
+      {
+        DriftTimeUnit unit;
+        std::vector<float> im;
+        float t = -1.0;
+        if (it.getRT() != t)
+        {
+          t = (float)it.getRT();
+          std::tie(unit, im) = it.getSpectrum().maybeGetIMData();
+        }
+        rt.push_back((float)it.getRT());
+        mz.push_back((float)it->getMZ());
+        intensity.push_back(it->getIntensity());
+        const Size peak_index = it.getPeakIndex().peak;
+        ion_mobility.push_back(im[peak_index]);
+      }
+    }
 
   /**
    * @brief Calculates the sum of intensities for a range of elements.
@@ -776,57 +893,6 @@ std::vector<MSChromatogram> extractXICs(
     }
   }
   */
-
-    // for fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity]
-    void get2DPeakData(
-      CoordinateType min_rt,
-      CoordinateType max_rt,
-      CoordinateType min_mz,
-      CoordinateType max_mz,
-      std::vector<float>& rt,
-      std::vector<float>& mz,
-      std::vector<float>& intensity) const
-    {
-      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
-      {
-        rt.push_back((float)it.getRT());
-        mz.push_back((float)it->getMZ());
-        intensity.push_back(it->getIntensity());
-      }
-    }
-
-    // for fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity, ion mobility]
-    void get2DPeakDataIon(
-      CoordinateType min_rt,
-      CoordinateType max_rt,
-      CoordinateType min_mz,
-      CoordinateType max_mz,
-      std::vector<float>& rt,
-      std::vector<float>& mz,
-      std::vector<float>& intensity,
-      std::vector<float>& ion_mobility) const
-    {
-      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
-      {
-        rt.push_back((float)it.getRT());
-        mz.push_back((float)it->getMZ());
-        intensity.push_back(it->getIntensity());
-
-        const MSSpectrum& spectrum = it.getSpectrum();
-        bool has_IM = spectrum.containsIMData();
-        float peak_IM = -1.0;
-        if (has_IM)
-        {
-          const auto& im_data = spectrum.getIMData();
-          const Size& peak_index = it.getPeakIndex().peak;
-          if (spectrum.getFloatDataArrays()[im_data.first].size() == spectrum.size())
-          {
-            peak_IM = spectrum.getFloatDataArrays()[im_data.first][peak_index];
-          }          
-        }        
-        ion_mobility.push_back(peak_IM);
-      }
-    }
 
     /**
       @brief Fast search for spectrum range begin
