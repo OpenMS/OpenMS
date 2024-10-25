@@ -340,25 +340,6 @@ public:
     /// Returns a non-mutable invalid area iterator marking the end of an area
     ConstAreaIterator areaEndConst() const;
 
-    /// for fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity]]
-    void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
-      std::vector<float>& rt, 
-      std::vector<std::vector<float>>& mz, 
-      std::vector<std::vector<float>>& intensity) const
-    {
-      float t = -1.0;
-      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
-      {
-        if (it.getRT() != t) 
-        {
-          t = (float)it.getRT();
-          rt.push_back(t);
-        }
-        mz.back().push_back((float)it->getMZ());
-        intensity.back().push_back(it->getIntensity());
-      }
-    }
-
     /* @brief Retrieves the peak data in the given mz-rt range and store data spectrum-wise in separate arrays.
      * 
      * For fast pyOpenMS access to peak data in format: [rt, [mz, intensity]]
