@@ -406,13 +406,14 @@ public:
 struct SumIntensityReduction {
 
   template <typename Iterator>
-  double operator()(Iterator begin, Iterator end) const {
+  auto operator()(Iterator begin, Iterator end) const {
     // Static assert to verify iterator type has intensity accessor
     using ValueType = typename std::iterator_traits<Iterator>::value_type;
+    using IntensityType = decltype(std::declval<ValueType>().getIntensity());
     static_assert(std::is_member_function_pointer_v<decltype(&ValueType::getIntensity)>,
            "Iterator value type must have getIntensity() member function");
 
-    double sum = 0.0;
+    IntensityType sum{};
     for (auto it = begin; it != end; ++it) {
       sum += it->getIntensity();
     }
@@ -974,7 +975,7 @@ std::vector<MSChromatogram> extractXICs(
     /**
       @brief Returns the index of the precursor spectrum for spectrum at index @p zero_based_index
 
-      If there is no precursor scan -1 is returned. Wraps @ref getPrecursorSpectrum(ConstIterator).
+      If there is no precursor scan -1 is returned. 
     */
     int getPrecursorSpectrum(int zero_based_index) const;
 
@@ -1010,8 +1011,6 @@ std::vector<MSChromatogram> extractXICs(
       @param zero_based_index The index of the current spectrum.
 
       @return Index of the first product spectrum or -1 if not found.
-      
-      \overload ConstIterator getFirstProductSpectrum(ConstIterator iterator) const
     */
     int getFirstProductSpectrum(int zero_based_index) const;
 
