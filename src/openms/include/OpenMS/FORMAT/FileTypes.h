@@ -47,7 +47,6 @@ namespace OpenMS
       PEPXML,             ///< TPP pepXML file (.pepXML)
       PROTXML,            ///< TPP protXML file (.protXML)
       MZIDENTML,          ///< mzIdentML (HUPO PSI AnalysisXML followup format) (.mzid)
-      MZQUANTML,          ///< mzQuantML (HUPO PSI AnalysisXML followup format) (.mzq)
       QCML,               ///< qcML (will undergo standardisation maybe) (.qcml)
       MZQC,               ///< mzQC (HUPO PSI format) (.mzQC)
       GELML,              ///< GelML (HUPO PSI format) (.gelML)

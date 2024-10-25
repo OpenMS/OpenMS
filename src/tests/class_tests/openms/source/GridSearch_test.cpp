@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/MATH/MISC/GridSearch.h>
+#include <OpenMS/ML/GRIDSEARCH/GridSearch.h>
 
 using namespace OpenMS;
 using namespace std;

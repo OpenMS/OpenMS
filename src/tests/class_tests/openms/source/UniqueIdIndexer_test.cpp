@@ -12,7 +12,7 @@
 ///////////////////////////
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
 #include <OpenMS/DATASTRUCTURES/ExposedVector.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <vector>
 

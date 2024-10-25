@@ -5,6 +5,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
 #include <iostream>
 
 using namespace OpenMS;
@@ -35,20 +36,11 @@ public:
 
 int main(int argc, const char** argv)
 {
-  // path to the data should be given on the command line
-  if (argc != 2)
-  {
-    std::cerr << "usage: " << argv[0] << " <path to tutorial .cpp's, e.g. c:/dev/OpenMS/doc/code_examples/>\n\n";
-    return 1;
-  }
-  String tutorial_data_path(argv[1]);
-  auto file_mzXML = tutorial_data_path + "/data/Tutorial_FileIO.mzXML";
-
-  if (! File::exists(file_mzXML)) { std::cerr << "The file " << file_mzXML << " was not found. Did you provide the correct path?\n"; }
+  auto file_mzXML = OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_FileIO_indexed.mzML");
   
   // Create the consumer, set output file name, transform
   TICWritingConsumer consumer("Tutorial_FileIO_output.mzML");
-  MzMLFile().transform(tutorial_data_path + "/data/Tutorial_FileIO_indexed.mzML", &consumer);
+  MzMLFile().transform(file_mzXML, &consumer);
 
   std::cout << "There are " << consumer.nr_spectra << " spectra in the input file.\n";
   std::cout << "The total ion current is " << consumer.TIC << std::endl;

@@ -19,13 +19,10 @@ ExperimentalDesign.h
 ExperimentalSettings.h
 Gradient.h
 HPLC.h
-Identification.h
-IdentificationHit.h
 Instrument.h
 InstrumentSettings.h
 IonDetector.h
 IonSource.h
-MSQuantifications.h
 MassAnalyzer.h
 MetaInfo.h
 MetaInfoDescription.h
@@ -45,7 +42,6 @@ SampleTreatment.h
 ScanWindow.h
 Software.h
 SourceFile.h
-SpectrumIdentification.h
 SpectrumLookup.h
 SpectrumMetaDataLookup.h
 SpectrumSettings.h

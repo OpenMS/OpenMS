@@ -7,10 +7,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ParamCTDFile.h>
+
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+
 #include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <limits>
+
 
 namespace OpenMS
 {
@@ -44,7 +48,7 @@ namespace OpenMS
 
     // write ctd specific stuff
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-    os << R"(<tool ctdVersion="1.7" version=")" << tool_info.version_ << R"(" name=")" << tool_info.name_ << R"(" docurl=")" << tool_info.docurl_ << R"(" category=")" << tool_info.category_
+    os << R"(<tool ctdVersion="1.8" version=")" << tool_info.version_ << R"(" name=")" << tool_info.name_ << R"(" docurl=")" << tool_info.docurl_ << R"(" category=")" << tool_info.category_
        << "\" >\n";
     os << "<description><![CDATA[" << tool_info.description_ << "]]></description>\n";
     os << "<manual><![CDATA[" << tool_info.description_ << "]]></manual>\n";
@@ -107,20 +111,25 @@ namespace OpenMS
             os << param_it->value.toString() << R"(" type="double")";
             break;
           case ParamValue::STRING_VALUE:
-            if (tag_list.find("input file") != tag_list.end())
+            if (tag_list.find(TOPPBase::TAG_INPUT_FILE) != tag_list.end())
             {
               os << escapeXML(param_it->value.toString()) << R"(" type="input-file")";
-              tag_list.erase("input file");
+              tag_list.erase(TOPPBase::TAG_INPUT_FILE);
             }
-            else if (tag_list.find("output file") != tag_list.end())
+            else if (tag_list.find(TOPPBase::TAG_OUTPUT_FILE) != tag_list.end())
             {
               os << escapeXML(param_it->value.toString()) << R"(" type="output-file")";
-              tag_list.erase("output file");
+              tag_list.erase(TOPPBase::TAG_OUTPUT_FILE);
             }
-            else if (tag_list.find("output prefix") != tag_list.end())
+            else if (tag_list.find(TOPPBase::TAG_OUTPUT_DIR) != tag_list.end())
+            {
+              os << escapeXML(param_it->value.toString()) << R"(" type="output-dir")";
+              tag_list.erase(TOPPBase::TAG_OUTPUT_DIR);
+            }
+            else if (tag_list.find(TOPPBase::TAG_OUTPUT_PREFIX) != tag_list.end())
             {
               os << escapeXML(param_it->value.toString()) << R"(" type="output-prefix")";
-              tag_list.erase("output prefix");
+              tag_list.erase(TOPPBase::TAG_OUTPUT_PREFIX);
             }
             else if (param_it->valid_strings.size() == 2 && param_it->valid_strings[0] == "true" && param_it->valid_strings[1] == "false" && param_it->value == "false")
             {
@@ -138,15 +147,15 @@ namespace OpenMS
             }
             break;
           case ParamValue::STRING_LIST:
-            if (tag_list.find("input file") != tag_list.end())
+            if (tag_list.find(TOPPBase::TAG_INPUT_FILE) != tag_list.end())
             {
               os << R"(" type="input-file")";
-              tag_list.erase("input file");
+              tag_list.erase(TOPPBase::TAG_INPUT_FILE);
             }
-            else if (tag_list.find("output file") != tag_list.end())
+            else if (tag_list.find(TOPPBase::TAG_OUTPUT_FILE) != tag_list.end())
             {
               os << R"(" type="output-file")";
-              tag_list.erase("output file");
+              tag_list.erase(TOPPBase::TAG_OUTPUT_FILE);
             }
             else
             {

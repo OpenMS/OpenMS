@@ -9,11 +9,13 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {
+  class MSSpectrum;
+  class MSChromatogram;
+  class ExperimentalSettings;
 
 namespace Interfaces
 {

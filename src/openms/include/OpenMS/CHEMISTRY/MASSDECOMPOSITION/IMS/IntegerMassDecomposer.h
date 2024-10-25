@@ -15,7 +15,7 @@
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/MassDecomposer.h>
 
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 namespace OpenMS
 {

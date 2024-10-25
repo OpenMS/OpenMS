@@ -8,14 +8,10 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/FORMAT/CachedMzML.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 // TODO add handler support for other accss
 #include <OpenMS/FORMAT/DTA2DFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
@@ -26,9 +22,6 @@
 // TODO: remove MZXML header after we get cached and Transform working
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/IONMOBILITY/IMTypes.h>
-#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
@@ -166,21 +159,20 @@ protected:
     registerFlag_("force_TPP_compatibility", "[mzML output only] Make sure that TPP parsers can read the mzML and the precursor ion m/z in the file (otherwise it will be set to zero by the TPP).", true);
     registerFlag_("convert_to_chromatograms", "[mzML output only] Assumes that the provided spectra represent data in SRM mode or targeted MS1 mode and converts them to chromatogram data.", true);
 
-    registerStringOption_("change_im_format", "<toggle>", "none", "[mzML output only] How to store ion mobility scans (none: no change in format; multiple_spectra: store each IM frame as multiple scans (one per drift time value); concatenated: store whole frame as single scan with IM values in a FloatDataArray", false, true);
-    setValidStrings_("change_im_format", NamesOfIMFormat, (int)IMFormat::SIZE_OF_IMFORMAT);
-
     registerStringOption_("write_scan_index", "<toggle>", "true", "Append an index when writing mzML or mzXML files. Some external tools might rely on it.", false, true);
     setValidStrings_("write_scan_index", ListUtils::create<String>("true,false"));
     registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size using linear compression for m/z domain and slof for intensity and float data arrays (attention: may cause small loss of precision; only for mzML data).", true);
     registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
     registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
-    registerInputFile_("NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac.", false, true, {"is_executable"});
-    registerInputFile_("ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, {"is_executable"});
-    setValidFormats_("ThermoRaw_executable", {"exe"});
-    registerFlag_("no_peak_picking", "Disables vendor peak picking for raw files.", true);
-    registerFlag_("no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem.", true);
-    registerFlag_("include_noise", "Include noise data in mzML output.", true);
+    
+    registerTOPPSubsection_("RawToMzML", "Options for converting raw files to mzML (uses ThermoRawFileParser)");
+    registerInputFile_("RawToMzML:NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac.", false, true, {"is_executable"});
+    registerInputFile_("RawToMzML:ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, {"is_executable"});
+    setValidFormats_("RawToMzML:ThermoRaw_executable", {"exe"});
+    registerFlag_("RawToMzML:no_peak_picking", "Disables vendor peak picking for raw files.", true);
+    registerFlag_("RawToMzML:no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem.", true);
+    registerFlag_("RawToMzML:include_noise", "Include noise data in mzML output.", true);
   }
 
   ExitCodes main_(int, const char**) override
@@ -192,15 +184,11 @@ protected:
     //input file names
     String in = getStringOption_("in");
     bool write_scan_index = getStringOption_("write_scan_index") == "true" ? true : false;
-    IMFormat change_im_format = toIMFormat(getStringOption_("change_im_format"));
     bool force_MaxQuant_compatibility = getFlag_("force_MaxQuant_compatibility");
     bool force_TPP_compatibility = getFlag_("force_TPP_compatibility");
     bool convert_to_chromatograms = getFlag_("convert_to_chromatograms");
     bool lossy_compression = getFlag_("lossy_compression");
     double mass_acc = getDoubleOption_("lossy_mass_accuracy");
-    bool no_peak_picking = getFlag_("no_peak_picking");
-    bool no_zlib_compression = getFlag_("no_zlib_compression");
-    bool include_noise = getFlag_("include_noise");
 
     // prepare data structures for lossy compression (note that we compress any float data arrays the same as intensity arrays)
     MSNumpressCoder::NumpressConfig npconfig_mz, npconfig_int, npconfig_fda;
@@ -234,7 +222,7 @@ protected:
     FileTypes::Type out_type = FileHandler::getConsistentOutputfileType(out, getStringOption_("out_type"));
     if (out_type == FileTypes::UNKNOWN)
     {
-      writeLogError_("Error: Could not determine output file type!");
+      writeLogError_("Error: Could not determine output file type! Please adjust the 'out_type' parameter of this tool.");
       return PARSE_ERROR;
     }
 
@@ -278,22 +266,25 @@ protected:
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Only conversion to mzML supported at this point.");
       }
+      bool no_peak_picking = getFlag_("RawToMzML:no_peak_picking");
+      bool no_zlib_compression = getFlag_("RawToMzML:no_zlib_compression");
+      bool include_noise = getFlag_("RawToMzML:include_noise");
       writeLogInfo_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
-      String net_executable = getStringOption_("NET_executable");
+      String net_executable = getStringOption_("RawToMzML:NET_executable");
       QStringList arguments;
 #ifdef OPENMS_WINDOWSPLATFORM
       if (net_executable.empty())
       { // default on Windows: if NO mono executable is set use the "native" .NET one
-        net_executable = getStringOption_("ThermoRaw_executable");
+        net_executable = getStringOption_("RawToMzML:ThermoRaw_executable");
       }
       else
       { // use e.g., mono
-        arguments << getStringOption_("ThermoRaw_executable").toQString();
+        arguments << getStringOption_("RawToMzML:ThermoRaw_executable").toQString();
       }
 #else
       // default on Mac, Linux: use mono
       net_executable = net_executable.empty() ? "mono" : net_executable;
-      arguments << getStringOption_("ThermoRaw_executable").toQString();
+      arguments << getStringOption_("RawToMzML:ThermoRaw_executable").toQString();
 #endif
       arguments << ("-i=" + in).c_str()
                 << ("--output_file=" + out).c_str()
@@ -387,12 +378,6 @@ protected:
       // We can transform the complete experiment directly without first
       // loading the complete data into memory. PlainMSDataWritingConsumer will
       // write out mzML to disk as they are read from the input.
-
-      if (change_im_format != IMFormat::NONE)
-      {
-        std::cout << "Converting IM formats is currently not implemented for low-memory processing" << std::endl;
-        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-      }
 
       if ((in_type == FileTypes::MZXML || in_type == FileTypes::MZML) && out_type == FileTypes::MZML)
       {
@@ -492,35 +477,6 @@ protected:
         }
       }
 
-      if (change_im_format != IMFormat::NONE)
-      {
-        IMFormat itype = IMTypes::determineIMFormat(exp);
-
-        if (itype == IMFormat::NONE)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Requested conversion to different ion mobility format, but no ion mobility data is present.");
-        }
-        else if (change_im_format == itype && itype == IMFormat::MULTIPLE_SPECTRA)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Requested conversion to 'multiple' ion mobility format, but data is already in this format.");
-        }
-        else if (change_im_format == itype && itype == IMFormat::CONCATENATED)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Requested conversion to 'single' ion mobility format, but data is already in this format.");
-        }
-
-        if (change_im_format == IMFormat::MULTIPLE_SPECTRA && itype == IMFormat::CONCATENATED)
-        {
-          exp = IMDataConverter::splitByIonMobility(std::move(exp));
-        }
-        else if (change_im_format == IMFormat::CONCATENATED && itype == IMFormat::MULTIPLE_SPECTRA)
-        {
-          exp = IMDataConverter::collapseFramesToSingle(exp);
-        }
-      }
       ChromatogramTools().convertSpectraToChromatograms(exp, true, convert_to_chromatograms);
       mzmlFile.storeExperiment(out, exp, {FileTypes::MZML});
     }

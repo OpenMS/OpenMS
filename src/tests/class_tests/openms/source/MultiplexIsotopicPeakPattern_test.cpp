@@ -9,8 +9,8 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
+#include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
+#include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 
 using namespace OpenMS;
 

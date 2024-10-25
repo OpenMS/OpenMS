@@ -16,7 +16,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmPrecision.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRecall.h>
 
-#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/KERNEL/Feature.h>
 
 using namespace OpenMS;
@@ -94,14 +93,6 @@ START_SECTION((bool isSameHandle(const FeatureHandle &lhs, const FeatureHandle &
 	TEST_EQUAL(maea.isSameHandle(a, b2, 2, 1.5, 1000, false), true);
 	TEST_EQUAL(maea.isSameHandle(a, b2, 2, 1.5, 1000, true), true);
 
-}
-END_SECTION
-
-START_SECTION((static void registerChildren()))
-{
-	TEST_STRING_EQUAL(Factory<MapAlignmentEvaluationAlgorithm>::registeredProducts()[0],MapAlignmentEvaluationAlgorithmPrecision::getProductName());
-	TEST_STRING_EQUAL(Factory<MapAlignmentEvaluationAlgorithm>::registeredProducts()[1],MapAlignmentEvaluationAlgorithmRecall::getProductName());
-	TEST_EQUAL(Factory<MapAlignmentEvaluationAlgorithm>::registeredProducts().size(),2)
 }
 END_SECTION
 

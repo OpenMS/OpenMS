@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/ChromatogramSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>

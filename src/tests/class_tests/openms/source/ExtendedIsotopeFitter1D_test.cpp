@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
+#include <OpenMS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
 
 ///////////////////////////
 
@@ -85,19 +85,6 @@ START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationMo
 	// dummy subtest TODO
 	TEST_EQUAL(1,1)
 END_SECTION
-
-START_SECTION((Fitter1D* create()))
-  Fitter1D* ptr = ExtendedIsotopeFitter1D::create();
-  TEST_EQUAL(ptr->getName(), "ExtendedIsotopeFitter1D")
-	TEST_NOT_EQUAL(ptr, nullPointer)
-	delete ptr;
-END_SECTION
-
-START_SECTION((const String getProductName()))
-  TEST_EQUAL(ExtendedIsotopeFitter1D::getProductName(),"ExtendedIsotopeFitter1D")
-  TEST_EQUAL(ExtendedIsotopeFitter1D().getName(),"ExtendedIsotopeFitter1D")
-END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

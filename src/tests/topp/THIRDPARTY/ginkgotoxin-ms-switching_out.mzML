@@ -2,7 +2,7 @@
 <indexedmzML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.2_idx.xsd" xmlns="http://psi.hupo.org/ms/mzml">
   <mzML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" version="1.1.0" id="ginkgotoxin-ms-switching">
     <cvList count="2">
-      <cv id="MS" fullName="Mass spectrometry ontology" version="4.1.79" URI="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" />
+      <cv id="MS" fullName="Mass spectrometry ontology" version="4.1.79" URI="http://purl.obolibrary.org/obo/ms/psi-ms.obo" />
       <cv id="UO" fullName="Unit Ontology" version="09:04:2014" URI="https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/master/unit.obo" />
     </cvList>
     <fileDescription>

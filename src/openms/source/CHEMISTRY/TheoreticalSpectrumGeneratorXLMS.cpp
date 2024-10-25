@@ -154,7 +154,7 @@ namespace OpenMS
       {
         ion_names = spectrum.getStringDataArrays()[0];
       }
-      ion_names.setName("IonNames");
+      ion_names.setName(Constants::UserParam::IonNames);
     }
 
     std::vector< LossIndex > forward_losses;
@@ -349,7 +349,7 @@ namespace OpenMS
       {
         ion_names = spectrum.getStringDataArrays()[0];
       }
-      ion_names.setName("IonNames");
+      ion_names.setName(Constants::UserParam::IonNames);
     }
 
     std::vector< LossIndex > forward_losses;
@@ -848,7 +848,7 @@ namespace OpenMS
       {
         ion_names = spectrum.getStringDataArrays()[0];
       }
-      ion_names.setName("IonNames");
+      ion_names.setName(Constants::UserParam::IonNames);
     }
 
     std::vector< LossIndex > forward_losses;

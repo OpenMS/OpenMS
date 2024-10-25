@@ -13,9 +13,9 @@
 
 #include <iostream>
 
-#include <OpenMS/COMPARISON/SPECTRA/SteinScottImproveScore.h>
+#include <OpenMS/COMPARISON/SteinScottImproveScore.h>
 #include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
 ///////////////////////////
 
@@ -93,18 +93,6 @@ START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum&
   double score = (*ptr)(spectrum1, spectrum2);
 	if(score >0.99) score =1;
   TEST_REAL_SIMILAR(score, 1.0)
-END_SECTION
-
-START_SECTION(static PeakSpectrumCompareFunctor* create())
-	PeakSpectrumCompareFunctor* psf = SteinScottImproveScore::create();
-	SteinScottImproveScore stein;
-	TEST_EQUAL(psf->getParameters(), stein.getParameters())
-	TEST_EQUAL(psf->getName(), stein.getName())
-	delete psf;
-END_SECTION
-
-START_SECTION(static const String getProductName())
-	TEST_EQUAL(ptr->getProductName(), "SteinScottImproveScore")
 END_SECTION
 
 delete ptr;

@@ -11,8 +11,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
@@ -20,7 +19,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h> // getPPM
+#include <OpenMS/MATH/MathFunctions.h> // getPPM
 
 #include <numeric>
 #include <algorithm>
@@ -132,11 +131,11 @@ namespace OpenMS
       // about the mass difference if no signal is present.
       if (!signalFound)
       {
+        diff_ppm.push_back(-1); // if no signal is found than we set the ppm to -1
         continue;
       }
 
       double ppm = Math::getPPM(mz, transition.getProductMZ());
-      diff_ppm.push_back(transition.getProductMZ());
       diff_ppm.push_back(ppm);
       ppm_score += std::fabs(ppm);
       ppm_score_weighted += std::fabs(ppm) * normalized_library_intensity[k];

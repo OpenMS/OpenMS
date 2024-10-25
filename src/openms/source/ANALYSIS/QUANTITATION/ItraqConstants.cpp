@@ -177,7 +177,7 @@ namespace OpenMS
     channel_names[2].setMatrix<Int, 6, 1>(CHANNELS_TMT_SIXPLEX);
 
     map.clear();
-    for (Size i = 0; i < channel_names[itraq_type].rows(); ++i)
+    for (long int i = 0; i < channel_names[itraq_type].rows(); ++i)
     {
       ChannelInfo info;
       info.description = "";

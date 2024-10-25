@@ -6,7 +6,6 @@ from PeptideIdentification cimport *
 
 from String cimport *
 from ProgressLogger cimport *
-from Identification cimport *
 
 cdef extern from "<OpenMS/FORMAT/MzIdentMLFile.h>" namespace "OpenMS":
 

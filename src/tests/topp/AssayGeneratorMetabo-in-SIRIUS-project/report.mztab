@@ -5,7 +5,7 @@ MTD	software[1]	[, , SIRIUS, 4.13.1]
 MTD	ms_run[1]-location	/home/axel/dev/OpenMS/src/tests/topp/SiriusExport_2_output.ms
 MTD	ms_run[1]-scan_polarity[1]	[MS, MS:1000130, positive scan, ]
 MTD	cv[1]-label	MS
-MTD	cv[1]-uri	URL:https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo
+MTD	cv[1]-uri	http://purl.obolibrary.org/obo/ms/psi-ms.obo
 MTD	cv[1]-version	4.1.16
 MTD	cv[1]-full_name	PSI-MS controlled vocabulary
 MTD	small_molecule-identification_reliability	[MS, MS:1002955, hr-ms compound identification confidence level, ]

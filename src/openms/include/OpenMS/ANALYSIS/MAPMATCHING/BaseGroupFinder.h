@@ -50,8 +50,7 @@ public:
     */
     virtual void run(const std::vector<ConsensusMap> & input, ConsensusMap & result) = 0;
 
-    /// Register all derived classes here
-    static void registerChildren();
+
 
 protected:
 

@@ -187,7 +187,7 @@ public:
 
 private:
   #ifdef OPENMS_WINDOWSPLATFORM
-    typedef OPENMS_UINT64_TYPE TimeType; ///< do not use clock_t on Windows, since its not big enough for larger time intervals
+    typedef UInt64 TimeType; ///< do not use clock_t on Windows, since its not big enough for larger time intervals
     static const long long SecondsTo100Nano_;  ///< 10 million; convert from 100 nanosecond ticks to seconds (factor of 1 billion/100 = 10 million)
   #else
     typedef clock_t TimeType;

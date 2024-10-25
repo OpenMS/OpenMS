@@ -761,6 +761,15 @@ namespace OpenMS
       return *dims_[(int)d];
     }
 
+    bool hasUnit(DIM_UNIT unit) const
+    {
+      for (int i = 0; i < N_DIM; ++i)
+      {
+        if (dims_[i]->getUnit() == unit) return true;
+      }
+      return false;
+    }
+
   protected:
     /// a minimal factory
     static std::unique_ptr<const DimBase> create_(DIM_UNIT u)

@@ -9,8 +9,8 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringCentroided.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteringCentroided.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 

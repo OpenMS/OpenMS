@@ -199,7 +199,7 @@ START_SECTION((virtual void test_dia_scores()))
   TEST_REAL_SIMILAR(ppm_score, 1.76388919944981 / 3)
   TEST_REAL_SIMILAR(ppm_score_weighted, 0.484116946070573)
 
-  double ppm_expected[] = {618.30999999999995, 0.17257858483247876, 628.43499999999995, 0.79565530730866774, 628.43499999999995, 0.79565530730866774};
+  double ppm_expected[] = {0.17257858483247876, 0.79565530730866774, 0.79565530730866774};
   for (size_t i = 0; i < ppm_errors.size(); ++i)
   {
     TEST_REAL_SIMILAR(ppm_errors[i], ppm_expected[i]);

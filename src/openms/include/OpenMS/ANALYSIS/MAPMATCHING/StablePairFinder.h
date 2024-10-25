@@ -96,18 +96,6 @@ public:
     {
     }
 
-    /// Returns an instance of this class
-    static BaseGroupFinder* create()
-    {
-      return new StablePairFinder();
-    }
-
-    /// Returns the name of this module
-    static const String getProductName()
-    {
-      return "stable";
-    }
-
     /**
       @brief Run the algorithm
 

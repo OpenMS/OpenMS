@@ -27,7 +27,7 @@ namespace OpenMS
     Base()
   {
     //set the name for DefaultParamHandler error messages
-    Base::setName(getProductName());
+    Base::setName("StablePairFinder");
 
     defaults_.setValue("second_nearest_gap", 2.0, "Only link features whose distance to the second nearest neighbors (for both sides) is larger by 'second_nearest_gap' than the distance between the matched pair itself.");
     defaults_.setMinFloat("second_nearest_gap", 1.0);

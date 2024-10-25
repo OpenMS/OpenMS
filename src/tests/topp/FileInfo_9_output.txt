@@ -15,7 +15,8 @@ Number of spectra: 4
 Ranges:
   retention time: 5.10 .. 5.40 sec (0.0 min)
   mass-to-charge: 0.00 .. 18.00
-  intensity:      1.00 .. 20.00
+    ion mobility:  <none>
+       intensity: 1.00 .. 20.00
 
 Number of spectra per MS level:
   level 1: 3

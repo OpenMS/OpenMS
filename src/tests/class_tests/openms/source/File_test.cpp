@@ -20,6 +20,7 @@
 #include <QDir>
 
 #include <fstream>
+#include <filesystem>
 
 using namespace OpenMS;
 using namespace std;
@@ -197,10 +198,29 @@ END_SECTION
 START_SECTION(static bool removeDirRecursively(const String &dir_name))
   QDir d;
   String dirname = File::getTempDirectory() + "/" + File::getUniqueName() + "/" + File::getUniqueName() + "/";
-  TEST_EQUAL(d.mkpath(dirname.toQString()), true);
+  TEST_TRUE(d.mkpath(dirname.toQString()));
   TextFile tf;
   tf.store(dirname + "test.txt");
   TEST_EQUAL(File::removeDirRecursively(dirname), true)
+  END_SECTION
+
+START_SECTION(static bool makeDir(const String& dir_name))
+  File::TempDir tdir;
+  String dirname = tdir.getPath() + "/" + File::getUniqueName() + "/" + File::getUniqueName() + "/";
+  // absolute path
+  TEST_FALSE(File::isDirectory(dirname))
+  TEST_TRUE(File::makeDir(dirname))
+  TEST_TRUE(File::isDirectory(dirname))
+  // a relative path
+  auto current_path = std::filesystem::current_path(); // get current path
+  filesystem::current_path(std::filesystem::path(dirname.c_str())); // set current path to dirname
+  TEST_TRUE(File::makeDir("subdir/333"))
+  TEST_TRUE(File::isDirectory("./subdir/333/"))
+  // try create something which should be forbidden
+#if defined(OPENMS_WINDOWSPLATFORM)
+  TEST_FALSE(File::makeDir("c:\\te:st")) // ':' is not allowed in path on Windows; Unix pretty much allows everything
+#endif
+  std::filesystem::current_path(current_path); // reset current path (enable deletion of dirname)
 END_SECTION
 
 START_SECTION(static String getTempDirectory())

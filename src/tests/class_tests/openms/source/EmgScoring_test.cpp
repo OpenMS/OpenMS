@@ -13,7 +13,7 @@
 
 #include "OpenSwathTestHelper.h"
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>
+#include <OpenMS/FEATUREFINDER/EmgScoring.h>
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>

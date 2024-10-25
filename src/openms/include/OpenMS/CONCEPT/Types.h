@@ -14,11 +14,7 @@
 #include <cstddef> // for size_t & ptrdiff_t
 #include <limits>
 
-// If possible use the ISO C99-compliant header stdint.h
-// to define the portable integer types.
-#ifdef OPENMS_HAS_STDINT_H
-#include <cstdint>
-#endif
+#include <cstdint> // since C++11
 
 namespace OpenMS
 {
@@ -27,28 +23,28 @@ namespace OpenMS
 
     @ingroup Concept
   */
-  typedef OPENMS_INT32_TYPE Int32;
+  typedef int32_t Int32;
 
   /**
     @brief Unsigned integer type (32bit)
 
     @ingroup Concept
   */
-  typedef OPENMS_UINT32_TYPE UInt32;
+  typedef uint32_t UInt32;
 
   /**
     @brief Signed integer type (64bit)
 
     @ingroup Concept
   */
-  typedef OPENMS_INT64_TYPE Int64;
+  typedef int64_t Int64;
 
   /**
     @brief Unsigned integer type (64bit)
 
     @ingroup Concept
   */
-  typedef OPENMS_UINT64_TYPE UInt64;
+  typedef uint64_t UInt64;
 
   /**
     @brief Time type
@@ -82,7 +78,7 @@ namespace OpenMS
 
     @ingroup Concept
   */
-  typedef OPENMS_BYTE_TYPE Byte;
+  typedef uint8_t Byte;
 
   /**
     @brief A unique object ID (as unsigned 64bit type).
@@ -91,7 +87,7 @@ namespace OpenMS
 
     @ingroup Concept
   */
-  typedef OPENMS_UINT64_TYPE UID;
+  typedef uint64_t UID;
 
   /**
     @brief Size type e.g. used as variable which can hold result of size()

@@ -15,13 +15,13 @@ cdef extern from "<OpenMS/config.h>":
 
 cdef extern from "<OpenMS/CONCEPT/Types.h>" namespace "OpenMS":
 
-    ctypedef int32_t Int32     "OPENMS_INT32_TYPE"
-    ctypedef int64_t Int64    "OPENMS_INT64_TYPE"
-    ctypedef uint32_t UInt32  "OPENMS_UINT32_TYPE"
-    ctypedef uint64_t UInt64 "OPENMS_UINT64_TYPE"
+    ctypedef int32_t Int32
+    ctypedef int64_t Int64
+    ctypedef uint32_t UInt32
+    ctypedef uint64_t UInt64
     ctypedef time_t   Time
     ctypedef unsigned int UInt
     ctypedef int      Int
-    ctypedef uint64_t UID "OPENMS_UINT64_TYPE"
+    ctypedef uint64_t UID
     ctypedef size_t    Size
     ctypedef ptrdiff_t SignedSize

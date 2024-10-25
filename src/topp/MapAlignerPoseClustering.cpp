@@ -66,7 +66,7 @@ step.  This algorithm can be applied to features (featureXML) and peaks
 details and algorithm-specific parameters (set in the INI file) see "Detailed
 Description" in the @ref OpenMS::MapAlignmentAlgorithmPoseClustering "algorithm documentation".
 
-@see @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapAlignerSpectrum @ref TOPP_MapRTTransformer
+@see @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapRTTransformer
 
 This algorithm uses an affine transformation model.
 

@@ -37,19 +37,6 @@ START_SECTION((virtual ~StablePairFinder()))
 	delete ptr;
 END_SECTION
 
-BaseGroupFinder* base_nullPointer = nullptr;
-START_SECTION((static BaseGroupFinder* create()))
-	BaseGroupFinder* base_ptr = StablePairFinder::create();
-  TEST_NOT_EQUAL(base_ptr, base_nullPointer)
-  delete base_ptr;
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-	StablePairFinder spf;
-
-  TEST_EQUAL(spf.getName() == "stable", true)
-END_SECTION
-
 START_SECTION((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map)))
 {
   std::vector<ConsensusMap> input(2);

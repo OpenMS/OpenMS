@@ -32,7 +32,6 @@
 #include <OpenMS/QC/MQEvidenceExporter.h>
 #include <OpenMS/QC/MQMsmsExporter.h>
 #include <OpenMS/QC/MQExporterHelper.h>
-#include <cstdio>
 
 #include <map>
 
@@ -115,8 +114,11 @@ protected:
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
     registerFlag_("MS2_id_rate:assume_all_target", "Forces the metric to run even if target/decoy annotation is missing (accepts all pep_ids as target hits).", false);
-    registerStringOption_("out_evd", "<Path>", "", "If a Path is given, a MQEvidence txt-file will be created in this directory. If the directory does not exist, it will be created as well.", false);
-    registerStringOption_("out_msms", "<Path>", "", "If a Path is given, a MQMsms txt-file will be created in this directory. If the directory does not exist, it will be created as well.", false);
+    // MaxQuant-compatible output
+    registerTOPPSubsection_("out_txt", "Write MaxQuant-compatible .txt files");
+    registerOutputDir_("out_txt:directory", "<Path>", "", "If a Path is given, '.txt' files compatible with MaxQuant will be created in this directory. If the directory does not exist, it will be created.", false);
+    registerFlag_("out_txt:omit_mq_evidence", "Do NOT write the evidence.txt into 'out_txt:directory'?", false);
+    registerFlag_("out_txt:omit_mq_msms", "Do NOT write the msms.txt into 'out_txt:directory'?", false);
 
     //TODO get ProteinQuantifier output for PRT section
   }
@@ -178,6 +180,8 @@ protected:
       }
       else // unlabeled == LFQ mode
       {
+        OPENMS_LOG_INFO << "Unlabeled data detected in ConsensusXML detected! This functionality is currently only supported if you also provide the featureXML files!"
+                        << std::endl;
         throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         // currently missing:
         // - invert RT of all features+their PepIDs to allow RTmetric to work (if TrafoXMLs are provided) -- or even better: delegate this to the RTMetric
@@ -257,11 +261,11 @@ protected:
     vector<PeptideIdentification> all_new_upep_ids;
 
 
-    String out_evidence = getStringOption_("out_evd");
-    MQEvidence export_evidence(out_evidence);
-
-    String out_msms = getStringOption_("out_msms");
-    MQMsms export_msms(out_msms);
+    String out_txt_dir = getOutputDirOption("out_txt:directory");
+    const bool write_mq_evidence = !getFlag_("out_txt:omit_mq_evidence");
+    const bool write_mq_msms = !getFlag_("out_txt:omit_mq_msms");
+    MQEvidence export_evidence(write_mq_evidence ? out_txt_dir : "");
+    MQMsms export_msms(write_mq_msms ? out_txt_dir : "");
 
     vector<TIC::Result> tic_results;
     for (Size i = 0; i < number_exps; ++i)
@@ -398,7 +402,7 @@ protected:
         addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath, cmap);
       }
 
-      if (MQExporterHelper::isValid(out_evidence) || MQExporterHelper::isValid(out_msms))
+      if (MQExporterHelper::isValid(out_txt_dir))
       {
         //if the user provided no fastafile, we can try this as a last resort
         const auto& cmap_prot_ids = cmap.getProteinIdentifications();
@@ -416,12 +420,12 @@ protected:
         indexFasta(prot_description, fasta_map);
 
 
-        if (MQExporterHelper::isValid(out_evidence))
+        if (write_mq_evidence)
         {
           OPENMS_LOG_INFO << "Exporting FeatureMap for evidence..." << std::endl;
           export_evidence.exportFeatureMap(*fmap,cmap,exp,fasta_map);
         }
-        if (MQExporterHelper::isValid(out_msms))
+        if (write_mq_msms)
         {
           OPENMS_LOG_INFO << "Exporting FeatureMap for msms..." << std::endl;
           export_msms.exportFeatureMap(*fmap,cmap,exp,fasta_map);

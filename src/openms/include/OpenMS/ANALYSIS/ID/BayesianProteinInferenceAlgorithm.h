@@ -12,7 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/MATH/MISC/GridSearch.h>
+#include <OpenMS/ML/GRIDSEARCH/GridSearch.h>
 
 #include <vector>
 #include <functional>

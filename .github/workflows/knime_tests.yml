@@ -1,13 +1,17 @@
 name: 'Test KNIME workflows'
 on:
   workflow_dispatch:
-
+    inputs:      
+      updateURL:
+        type: string
+        description: use a specific location for the knime update site
+        default: https://abibuilder.cs.uni-tuebingen.de/archive/openms/knime-plugin/updateSite/nightly/
 jobs:
   test-knime:
     env:
       GH_TOKEN: ${{ github.token }}
-      KNIME_MAJOR_VERSION: 4
-      KNIME_MINOR_VERSION: 7
+      KNIME_MAJOR_VERSION: 5
+      KNIME_MINOR_VERSION: 3
       INSTALLATION_DIR: ${{ github.workspace }}
     runs-on: ubuntu-latest
     steps:
@@ -37,7 +41,7 @@ jobs:
       - name: Install OpenMS plugin
         run: |
           "$KNIME_DIR/knime" -application org.eclipse.equinox.p2.director \
-            -r "http://update.knime.com/analytics-platform/${KNIME_VERSION},https://abibuilder.cs.uni-tuebingen.de/archive/openms/knime-plugin/updateSite/nightly/" \
+            -r "http://update.knime.com/analytics-platform/${KNIME_VERSION},${{ inputs.updateURL }}" \
             -p2.arch x86_64 \
             -profileProperties org.eclipse.update.install.features=true \
             -i "de.openms.feature.feature.group,com.genericworkflownodes.knime.feature.feature.group,de.openms.thirdparty.feature.feature.group" \

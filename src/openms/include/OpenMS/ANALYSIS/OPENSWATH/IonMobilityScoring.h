@@ -23,8 +23,8 @@
 namespace OpenMS
 {
 
-  class RangeMobility;
-  class RangeMZ;
+  struct RangeMobility;
+  struct RangeMZ;
 
   /** @brief A class that calls the ion mobility scoring routines
    *

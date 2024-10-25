@@ -14,9 +14,10 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
-#include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+
 
 namespace OpenMS
 {
@@ -308,33 +309,6 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
     void storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
-
-        /**
-      @brief Loads a file into MSQuantifications
-
-      @param filename the file name of the file to load.
-      @param map The MSQuantification to load the data into.
-      @param allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
-      @param log Progress logging mode
-      
-      @exception Exception::FileNotFound is thrown if the file could not be opened
-      @exception Exception::ParseError is thrown if an error occurs during parsing
-    */
-
-    void loadQuantifications(const String& filename, MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
-
-    /**
-      @brief Store MSQuantifications
-
-      @param filename the file name of the file to write.
-      @param map The MSQuantifications to store.
-      @param allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
-      @param log Progress logging mode
-      
-      @exception Exception::UnableToCreateFile is thrown if the file could not be written
-    */
-    void storeQuantifications(const String& filename, const MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
-
 
         /**
       @brief Loads a file into Transformations

@@ -8,8 +8,8 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
+#include <OpenMS/FEATUREFINDER/Fitter1D.h>
+#include <OpenMS/FEATUREFINDER/InterpolationModel.h>
 
 
 using namespace OpenMS;
@@ -21,7 +21,7 @@ class TestModel : public Fitter1D
   TestModel()
     : Fitter1D()
   {
-    setName(getProductName());
+    setName("TestModel");
 
     check_defaults_ = false;
 
@@ -60,11 +60,6 @@ class TestModel : public Fitter1D
     return 1.0;
   }
 
-  static const String getProductName()
-  {
-    return "TestModel";
-  }
-
 };
 
 
@@ -89,23 +84,8 @@ START_SECTION(Fitter1D())
 }
 END_SECTION
 
-START_SECTION((Fitter1D(const  Fitter1D &source)))
-	TestModel tm1;
-
-  TestModel tm2(tm1);
-	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
-END_SECTION
-
 START_SECTION((virtual ~Fitter1D()))
   delete ptr;
-END_SECTION
-
-START_SECTION((virtual Fitter1D& operator=(const  Fitter1D &source)))
-	TestModel tm1;
-  TestModel tm2;
-
-  tm2 = tm1;
-	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 END_SECTION
 
 START_SECTION((virtual QualityType fit1d(const  RawDataArrayType &, InterpolationModel *&)))
@@ -113,11 +93,6 @@ START_SECTION((virtual QualityType fit1d(const  RawDataArrayType &, Interpolatio
   Fitter1D::RawDataArrayType rft;
   std::unique_ptr<InterpolationModel> ipm;
 	TEST_EXCEPTION(Exception::NotImplemented,f1d.fit1d(rft,ipm));
-END_SECTION
-
-START_SECTION((void registerChildren()))
-	// dummy subtest
-	TEST_EQUAL(1,1)
 END_SECTION
 
 

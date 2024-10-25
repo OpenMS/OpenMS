@@ -20,43 +20,44 @@ namespace OpenMS
 
       @ingroup TOPPAS_elements
   */
-  class OPENMS_GUI_DLLAPI TOPPASInputFileListVertex :
-    public TOPPASVertex
-  {
-    Q_OBJECT
+class OPENMS_GUI_DLLAPI TOPPASInputFileListVertex : public TOPPASVertex
+{
+  Q_OBJECT
 
 public:
+  /// Default constructor
+  TOPPASInputFileListVertex() = default;
+  /// Constructor
+  TOPPASInputFileListVertex(const QStringList& files);
+  /// Copy constructor
+  TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs) = default;
+  /// Destructor
+  ~TOPPASInputFileListVertex() override = default;
+  /// Assignment operator
+  TOPPASInputFileListVertex& operator=(const TOPPASInputFileListVertex& rhs) = default;
 
-    /// Default constructor
-    TOPPASInputFileListVertex() = default;
-    /// Constructor
-    TOPPASInputFileListVertex(const QStringList& files);
-    /// Copy constructor
-    TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs) = default;
-    /// Destructor
-    ~TOPPASInputFileListVertex() override = default;
-    /// Assignment operator
-    TOPPASInputFileListVertex & operator=(const TOPPASInputFileListVertex & rhs) = default;
-    /// returns "InputVertex"
-    String getName() const override;
-    /// Sets the list of files
-    void setFilenames(const QStringList & files);
-    /// Starts all tools below this node
-    void run() override;
-    // documented in base class
-    void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) override;
-    // documented in base class
-    QRectF boundingRect() const override;
-    /// Checks if the given list of file names is valid
-    bool fileNamesValid();
-    /// Shows the dialog for editing the files
-    void showFilesDialog();
-    /// Opens the folders of the input files
-    void openContainingFolder();
-    /// Returns the key (for applying resources from a resource file)
-    const QString & getKey();
-    /// Sets the key (for applying resources from a resource file)
-    void setKey(const QString & key);
+  virtual std::unique_ptr<TOPPASVertex> clone() const override;
+
+  /// returns "InputVertex"
+  String getName() const override;
+  /// Sets the list of files
+  void setFilenames(const QStringList & files);
+  /// Starts all tools below this node
+  void run() override;
+  // documented in base class
+  void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) override;
+  // documented in base class
+  QRectF boundingRect() const override;
+  /// Checks if the given list of file names is valid
+  bool fileNamesValid();
+  /// Shows the dialog for editing the files
+  void showFilesDialog();
+  /// Opens the folders of the input files
+  void openContainingFolder();
+  /// Returns the key (for applying resources from a resource file)
+  const QString & getKey();
+  /// Sets the key (for applying resources from a resource file)
+  void setKey(const QString & key);
 
 public slots:
     /// Called by an outgoing edge when it has changed

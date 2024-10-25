@@ -11,7 +11,8 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
+#include <OpenMS/FEATUREFINDER/BaseModel.h>
+#include <OpenMS/FEATUREFINDER/BaseModel_impl.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 ///////////////////////////
@@ -19,34 +20,32 @@
 using namespace OpenMS;
 using std::stringstream;
 
-class TestModel : public BaseModel<2>
+START_TEST(BaseModel, "$Id$")
+
+class TestModel : public BaseModel
 {
   public:
 	TestModel()
-		: BaseModel<2>()
+		: BaseModel()
 	{
-		setName(getProductName());
-
+		setName("TestModel");
 		check_defaults_ = false;
-
 		defaultsToParam_();
 	}
 
 	TestModel(const TestModel& source)
-		: BaseModel<2>(source)
+		: BaseModel(source)
 	{
 		updateMembers_();
 	}
 
-	~TestModel() override
-	{
-	}
+	~TestModel() override	{}
 
 	virtual TestModel& operator = (const TestModel& source)
 	{
 		if (&source == this) return *this;
 
-		BaseModel<2>::operator = (source);
+		BaseModel::operator = (source);
 		updateMembers_();
 
 		return *this;
@@ -54,12 +53,12 @@ class TestModel : public BaseModel<2>
 
 	void updateMembers_() override
 	{
-		BaseModel<2>::updateMembers_();
+		BaseModel::updateMembers_();
 	}
 
 	IntensityType getIntensity(const PositionType& pos) const override
 	{
-		return pos[0]+pos[1];
+		return pos[0];
 	}
 
 	bool isContained(const PositionType& pos) const override
@@ -71,14 +70,8 @@ class TestModel : public BaseModel<2>
 	{
 	}
 
-	static const String getProductName()
-	{
-		return "TestModel";
-	}
-
 };
 
-START_TEST(BaseModel, "$Id$")
 
 // default ctor
 TestModel* ptr = nullptr;
@@ -95,12 +88,12 @@ END_SECTION
 
 // assignment operator
 START_SECTION((virtual BaseModel& operator=(const BaseModel &source)))
-	TestModel tm1;
+  TestModel tm1;
   TestModel tm2;
 
   tm1.setCutOff(3.3);
   tm2 = tm1;
-	TEST_REAL_SIMILAR(tm1.getCutOff(),tm2.getCutOff())
+  TEST_REAL_SIMILAR(tm1.getCutOff(),tm2.getCutOff())
 END_SECTION
 
 // copy constructor
@@ -124,38 +117,35 @@ START_SECTION((virtual void setCutOff(IntensityType cut_off)))
 END_SECTION
 
 START_SECTION(([EXTRA]const String& getName() const))
-	TestModel s;
+  TestModel s;
   TEST_EQUAL(s.getName(), "TestModel")
 END_SECTION
 
 START_SECTION((virtual IntensityType getIntensity(const PositionType &pos) const =0))
 {
-	const TestModel s;
+  const TestModel s;
   TestModel::PositionType pos;
   pos[0]=0.1;
-  pos[1]=0.2;
-	TEST_REAL_SIMILAR(s.getIntensity(pos), 0.3);
+  TEST_REAL_SIMILAR(s.getIntensity(pos), 0.1);
 }
 END_SECTION
 
 START_SECTION((virtual bool isContained(const PositionType &pos) const))
-	TestModel s;
+  TestModel s;
   s.setCutOff(0.9);
   TestModel::PositionType pos;
   pos[0]=0.1;
-  pos[1]=0.2;
   const TestModel& t = s;
   TEST_EQUAL(t.isContained(pos), false)
 END_SECTION
 
 START_SECTION((template <typename PeakType> void fillIntensity(PeakType &peak) const))
-	const TestModel t;
+  const TestModel t;
   TestModel::PeakType p;
   p.getPosition()[0]=0.1;
-  p.getPosition()[1]=0.2;
   p.setIntensity(0.1f);
   t.fillIntensity(p);
-  TEST_REAL_SIMILAR(p.getIntensity(), 0.3)
+  TEST_REAL_SIMILAR(p.getIntensity(), 0.1)
 END_SECTION
 
 START_SECTION((template <class PeakIterator> void fillIntensities(PeakIterator begin, PeakIterator end) const))
@@ -163,9 +153,9 @@ START_SECTION((template <class PeakIterator> void fillIntensities(PeakIterator b
   std::vector< TestModel::PeakType > vec(4);
   for (Size i=0; i<4; ++i)
   {
-		vec[i].setIntensity(-0.5);
-		vec[i].getPosition()[0] = i;
-	}
+	vec[i].setIntensity(-0.5);
+	vec[i].getPosition()[0] = i;
+  }
   t.fillIntensities(vec.begin()+1, vec.end()-1);
   TEST_EQUAL(vec[0].getIntensity(), -0.5)
   TEST_EQUAL(vec[1].getIntensity(), 1.0)
@@ -181,10 +171,6 @@ START_SECTION([EXTRA] DefaultParmHandler::setParameters(...))
 	TEST_REAL_SIMILAR(m.getParameters().getValue("cutoff"), 17.0)
 END_SECTION
 
-START_SECTION((static void registerChildren()))
-	// TODO
-END_SECTION
-
 START_SECTION((virtual IntensityType getCutOff() const))
 	TestModel s;
 	s.setCutOff(4.4);
@@ -197,12 +183,6 @@ END_SECTION
 
 START_SECTION((virtual void getSamples(std::ostream &os)))
   NOT_TESTABLE;
-END_SECTION
-
-START_SECTION((template <class PeakIterator> void registerChildren()))
-{
-  NOT_TESTABLE;
-}
 END_SECTION
 
 
