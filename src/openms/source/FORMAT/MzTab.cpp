@@ -2598,13 +2598,22 @@ state0:
     {
       prot_ids_.push_back(&i);
     }
+
+    // pre-reserve to prevent reallocations
+    size_t new_size = peptide_ids_.size();
+    for (const auto& elem : consensus_map) new_size += elem.getPeptideIdentifications().size();
+    if (export_unassigned_ids)
+    {
+      new_size += consensus_map.getUnassignedPeptideIdentifications().size();
+    }
+    peptide_ids_.reserve(new_size);
+
  
     // extract mapped IDs
     for (Size i = 0; i < consensus_map.size(); ++i)
     {
       const ConsensusFeature& c = consensus_map[i];
       const vector<PeptideIdentification>& p = c.getPeptideIdentifications();
-      peptide_ids_.reserve(peptide_ids_.size() + p.size());
       for (const PeptideIdentification& pi : p) { peptide_ids_.push_back(&pi); }
     }
 
@@ -2612,7 +2621,6 @@ state0:
     if (export_unassigned_ids)
     {
       const vector<PeptideIdentification>& up = consensus_map.getUnassignedPeptideIdentifications();
-      peptide_ids_.reserve(peptide_ids_.size() + up.size());
       for (const PeptideIdentification& pi : up) { peptide_ids_.push_back(&pi); }
     }
 
