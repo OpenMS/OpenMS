@@ -288,7 +288,7 @@ struct OPENMS_DLLAPI RangeRT : public RangeBase
 
   // Rule of 0!
   using RangeBase::RangeBase; // inherit C'tors from base
-  using RangeBase::operator=; // inherit assignment operator from base
+  //using RangeBase::operator=; // inherit assignment operator from base
 
   /** @name Accessors for min and max
 

@@ -1798,6 +1798,476 @@ START_SECTION((template<class MzReductionFunctionType> std::vector<std::vector<M
 }
 END_SECTION
 
+START_SECTION((void get2DPeakDataPerSpectrum(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, Size ms_level, std::vector<float>& rt, std::vector<std::vector<float>>& mz, std::vector<std::vector<float>>& intensity) const))
+{
+  MSExperiment exp;
+  
+  // Create test spectra using initializer lists
+  MSSpectrum s1{
+    {100.0, 1000.0},
+    {200.0, 2000.0}
+  };
+  s1.setRT(1.0);
+  s1.setMSLevel(1);
+  
+  MSSpectrum s2{
+    {150.0, 1500.0},
+    {250.0, 2500.0}
+  };
+  s2.setRT(2.0);
+  s2.setMSLevel(1);
+  
+  MSSpectrum s3{
+    {175.0, 1750.0}
+  };
+  s3.setRT(3.0);
+  s3.setMSLevel(2);
+  
+  exp.addSpectrum(s1);
+  exp.addSpectrum(s2);
+  exp.addSpectrum(s3);
+  
+  // Test 1: Full range, MS level 1
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity;
+    exp.get2DPeakDataPerSpectrum(0.0, 4.0, 0.0, 300.0, 1, rt, mz, intensity);
+    
+    TEST_EQUAL(rt.size(), 2)
+    TEST_EQUAL(mz.size(), 2)
+    TEST_EQUAL(intensity.size(), 2)
+    
+    // Check first spectrum
+    TEST_REAL_SIMILAR(rt[0], 1.0)
+    TEST_EQUAL(mz[0].size(), 2)
+    TEST_REAL_SIMILAR(mz[0][0], 100.0)
+    TEST_REAL_SIMILAR(mz[0][1], 200.0)
+    TEST_REAL_SIMILAR(intensity[0][0], 1000.0)
+    TEST_REAL_SIMILAR(intensity[0][1], 2000.0)
+    
+    // Check second spectrum
+    TEST_REAL_SIMILAR(rt[1], 2.0)
+    TEST_EQUAL(mz[1].size(), 2)
+    TEST_REAL_SIMILAR(mz[1][0], 150.0)
+    TEST_REAL_SIMILAR(mz[1][1], 250.0)
+    TEST_REAL_SIMILAR(intensity[1][0], 1500.0)
+    TEST_REAL_SIMILAR(intensity[1][1], 2500.0)
+  }
+  
+  // Test 2: Limited RT range
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity;
+    exp.get2DPeakDataPerSpectrum(1.5, 2.5, 0.0, 300.0, 1, rt, mz, intensity);
+    
+    TEST_EQUAL(rt.size(), 1)
+    TEST_EQUAL(mz.size(), 1)
+    TEST_EQUAL(intensity.size(), 1)
+    TEST_REAL_SIMILAR(rt[0], 2.0)
+  }
+  
+  // Test 3: Limited MZ range
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity;
+    exp.get2DPeakDataPerSpectrum(0.0, 4.0, 120.0, 180.0, 1, rt, mz, intensity);
+    
+    TEST_EQUAL(rt.size(), 1)
+    TEST_EQUAL(mz.size(), 1)
+    TEST_EQUAL(intensity.size(), 1)
+    TEST_REAL_SIMILAR(rt[0], 2.0)
+    TEST_EQUAL(mz[0].size(), 1)
+    TEST_REAL_SIMILAR(mz[0][0], 150.0)
+  }
+  
+  // Test 4: MS level 2
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity;
+    exp.get2DPeakDataPerSpectrum(0.0, 4.0, 0.0, 300.0, 2, rt, mz, intensity);
+    
+    TEST_EQUAL(rt.size(), 1)
+    TEST_EQUAL(mz.size(), 1)
+    TEST_EQUAL(intensity.size(), 1)
+    TEST_REAL_SIMILAR(rt[0], 3.0)
+    TEST_EQUAL(mz[0].size(), 1)
+    TEST_REAL_SIMILAR(mz[0][0], 175.0)
+    TEST_REAL_SIMILAR(intensity[0][0], 1750.0)
+  }
+  
+  // Test 5: Empty range
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity;
+    exp.get2DPeakDataPerSpectrum(5.0, 6.0, 0.0, 300.0, 1, rt, mz, intensity);
+    
+    TEST_EQUAL(rt.empty(), true)
+    TEST_EQUAL(mz.empty(), true)
+    TEST_EQUAL(intensity.empty(), true)
+  }
+}
+END_SECTION
+
+START_SECTION((void get2DPeakDataIMPerSpectrum(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, std::vector<float>& rt, Size ms_level, std::vector<std::vector<float>>& mz, std::vector<std::vector<float>>& intensity, std::vector<std::vector<float>>& ion_mobility) const))
+{
+  MSExperiment exp;
+  
+  // Create test spectra with ion mobility data
+  MSSpectrum s1{
+    {100.0, 1000.0},
+    {200.0, 2000.0}
+  };
+  s1.setRT(1.0);
+  s1.setMSLevel(1);
+  DataArrays::FloatDataArray im1;
+  im1.setName("Ion Mobility");
+  im1.push_back(0.8f);  // IM value for first peak
+  im1.push_back(1.2f);  // IM value for second peak
+  im1.setMetaValue("unit", "millisecond");
+  s1.getFloatDataArrays().push_back(im1);
+  
+  MSSpectrum s2{
+    {150.0, 1500.0},
+    {250.0, 2500.0}
+  };
+  s2.setRT(2.0);
+  s2.setMSLevel(1);
+  DataArrays::FloatDataArray im2;
+  im2.setName("Ion Mobility");
+  im2.push_back(1.5f);  // IM value for first peak
+  im2.push_back(2.0f);  // IM value for second peak
+  im2.setMetaValue("unit", "millisecond");
+  s2.getFloatDataArrays().push_back(im2);
+  
+  MSSpectrum s3{
+    {175.0, 1750.0}
+  };
+  s3.setRT(3.0);
+  s3.setMSLevel(2);
+  DataArrays::FloatDataArray im3;
+  im3.setName("Ion Mobility");
+  im3.push_back(1.8f);  // IM value for single peak
+  im3.setMetaValue("unit", "millisecond");
+  s3.getFloatDataArrays().push_back(im3);
+  
+  exp.addSpectrum(s1);
+  exp.addSpectrum(s2);
+  exp.addSpectrum(s3);
+  
+  // Test 1: Full range, MS level 1
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity, ion_mobility;
+    exp.get2DPeakDataIMPerSpectrum(0.0, 4.0, 0.0, 300.0, rt, 1, mz, intensity, ion_mobility);
+    
+    TEST_EQUAL(rt.size(), 2)
+    TEST_EQUAL(mz.size(), 2)
+    TEST_EQUAL(intensity.size(), 2)
+    TEST_EQUAL(ion_mobility.size(), 2)
+    
+    // Check first spectrum
+    TEST_REAL_SIMILAR(rt[0], 1.0)
+    TEST_EQUAL(mz[0].size(), 2)
+    TEST_REAL_SIMILAR(mz[0][0], 100.0)
+    TEST_REAL_SIMILAR(mz[0][1], 200.0)
+    TEST_REAL_SIMILAR(intensity[0][0], 1000.0)
+    TEST_REAL_SIMILAR(intensity[0][1], 2000.0)
+    TEST_REAL_SIMILAR(ion_mobility[0][0], 0.8)
+    TEST_REAL_SIMILAR(ion_mobility[0][1], 1.2)
+    
+    // Check second spectrum
+    TEST_REAL_SIMILAR(rt[1], 2.0)
+    TEST_EQUAL(mz[1].size(), 2)
+    TEST_REAL_SIMILAR(mz[1][0], 150.0)
+    TEST_REAL_SIMILAR(mz[1][1], 250.0)
+    TEST_REAL_SIMILAR(intensity[1][0], 1500.0)
+    TEST_REAL_SIMILAR(intensity[1][1], 2500.0)
+    TEST_REAL_SIMILAR(ion_mobility[1][0], 1.5)
+    TEST_REAL_SIMILAR(ion_mobility[1][1], 2.0)
+  }
+  
+  // Test 2: Limited RT range
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity, ion_mobility;
+    exp.get2DPeakDataIMPerSpectrum(1.5, 2.5, 0.0, 300.0, rt, 1, mz, intensity, ion_mobility);
+    
+    TEST_EQUAL(rt.size(), 1)
+    TEST_EQUAL(mz.size(), 1)
+    TEST_EQUAL(intensity.size(), 1)
+    TEST_EQUAL(ion_mobility.size(), 1)
+    TEST_REAL_SIMILAR(rt[0], 2.0)
+    TEST_EQUAL(ion_mobility[0].size(), 2)
+    TEST_REAL_SIMILAR(ion_mobility[0][0], 1.5)
+    TEST_REAL_SIMILAR(ion_mobility[0][1], 2.0)
+  }
+  
+  // Test 3: Limited MZ range
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity, ion_mobility;
+    exp.get2DPeakDataIMPerSpectrum(0.0, 4.0, 120.0, 180.0, rt, 1, mz, intensity, ion_mobility);
+    
+    TEST_EQUAL(rt.size(), 1)
+    TEST_EQUAL(mz.size(), 1)
+    TEST_EQUAL(intensity.size(), 1)
+    TEST_EQUAL(ion_mobility.size(), 1)
+    TEST_REAL_SIMILAR(rt[0], 2.0)
+    TEST_EQUAL(mz[0].size(), 1)
+    TEST_REAL_SIMILAR(mz[0][0], 150.0)
+    TEST_REAL_SIMILAR(ion_mobility[0][0], 1.5)
+  }
+  
+  // Test 4: MS level 2
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity, ion_mobility;
+    exp.get2DPeakDataIMPerSpectrum(0.0, 4.0, 0.0, 300.0, rt, 2, mz, intensity, ion_mobility);
+    
+    TEST_EQUAL(rt.size(), 1)
+    TEST_EQUAL(mz.size(), 1)
+    TEST_EQUAL(intensity.size(), 1)
+    TEST_EQUAL(ion_mobility.size(), 1)
+    TEST_REAL_SIMILAR(rt[0], 3.0)
+    TEST_EQUAL(mz[0].size(), 1)
+    TEST_REAL_SIMILAR(mz[0][0], 175.0)
+    TEST_REAL_SIMILAR(intensity[0][0], 1750.0)
+    TEST_REAL_SIMILAR(ion_mobility[0][0], 1.8)
+  }
+  
+  // Test 5: Empty range
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity, ion_mobility;
+    exp.get2DPeakDataIMPerSpectrum(5.0, 6.0, 0.0, 300.0, rt, 1, mz, intensity, ion_mobility);
+    
+    TEST_EQUAL(rt.empty(), true)
+    TEST_EQUAL(mz.empty(), true)
+    TEST_EQUAL(intensity.empty(), true)
+    TEST_EQUAL(ion_mobility.empty(), true)
+  }
+
+  // Test 6: Spectrum without ion mobility data
+  {
+    MSExperiment exp_no_im;
+    MSSpectrum s_no_im{
+      {100.0, 1000.0},
+      {200.0, 2000.0}
+    };
+    s_no_im.setRT(1.0);
+    s_no_im.setMSLevel(1);
+    exp_no_im.addSpectrum(s_no_im);
+    
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity, ion_mobility;
+    exp_no_im.get2DPeakDataIMPerSpectrum(0.0, 4.0, 0.0, 300.0, rt, 1, mz, intensity, ion_mobility);
+    
+    TEST_EQUAL(rt.size(), 1)
+    TEST_EQUAL(mz.size(), 1)
+    TEST_EQUAL(intensity.size(), 1)
+    TEST_EQUAL(ion_mobility.size(), 1)
+    TEST_EQUAL(ion_mobility[0].size(), 2)
+    TEST_REAL_SIMILAR(ion_mobility[0][0], -1.0)  // Should return -1.0 for missing IM data
+    TEST_REAL_SIMILAR(ion_mobility[0][1], -1.0)
+  }
+}
+END_SECTION
+
+START_SECTION((void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, std::vector<float>& rt, std::vector<float>& mz, std::vector<float>& intensity) const))
+{
+  MSExperiment exp;
+  
+  // Create test spectra
+  MSSpectrum s1{
+    {100.0, 1000.0},
+    {200.0, 2000.0}
+  };
+  s1.setRT(1.0);
+  s1.setMSLevel(1);
+  
+  MSSpectrum s2{
+    {150.0, 1500.0},
+    {250.0, 2500.0}
+  };
+  s2.setRT(2.0);
+  s2.setMSLevel(1);
+  
+  exp.addSpectrum(s1);
+  exp.addSpectrum(s2);
+  
+  // Test 1: Full range
+  {
+    std::vector<float> rt, mz, intensity;
+    exp.get2DPeakData(0.0, 4.0, 0.0, 300.0, rt, mz, intensity);
+    
+    TEST_EQUAL(rt.size(), 4)
+    TEST_EQUAL(mz.size(), 4)
+    TEST_EQUAL(intensity.size(), 4)
+    
+    // Check all peaks in order
+    TEST_REAL_SIMILAR(rt[0], 1.0)
+    TEST_REAL_SIMILAR(mz[0], 100.0)
+    TEST_REAL_SIMILAR(intensity[0], 1000.0)
+    
+    TEST_REAL_SIMILAR(rt[1], 1.0)
+    TEST_REAL_SIMILAR(mz[1], 200.0)
+    TEST_REAL_SIMILAR(intensity[1], 2000.0)
+    
+    TEST_REAL_SIMILAR(rt[2], 2.0)
+    TEST_REAL_SIMILAR(mz[2], 150.0)
+    TEST_REAL_SIMILAR(intensity[2], 1500.0)
+    
+    TEST_REAL_SIMILAR(rt[3], 2.0)
+    TEST_REAL_SIMILAR(mz[3], 250.0)
+    TEST_REAL_SIMILAR(intensity[3], 2500.0)
+  }
+  
+  // Test 2: Limited RT range
+  {
+    std::vector<float> rt, mz, intensity;
+    exp.get2DPeakData(1.5, 2.5, 0.0, 300.0, rt, mz, intensity);
+    
+    TEST_EQUAL(rt.size(), 2)
+    TEST_EQUAL(mz.size(), 2)
+    TEST_EQUAL(intensity.size(), 2)
+    
+    TEST_REAL_SIMILAR(rt[0], 2.0)
+    TEST_REAL_SIMILAR(mz[0], 150.0)
+    TEST_REAL_SIMILAR(intensity[0], 1500.0)
+  }
+  
+  // Test 3: Limited MZ range
+  {
+    std::vector<float> rt, mz, intensity;
+    exp.get2DPeakData(0.0, 4.0, 120.0, 180.0, rt, mz, intensity);
+    
+    TEST_EQUAL(rt.size(), 1)
+    TEST_EQUAL(mz.size(), 1)
+    TEST_EQUAL(intensity.size(), 1)
+    
+    TEST_REAL_SIMILAR(rt[0], 2.0)
+    TEST_REAL_SIMILAR(mz[0], 150.0)
+    TEST_REAL_SIMILAR(intensity[0], 1500.0)
+  }
+  
+  // Test 4: Empty range
+  {
+    std::vector<float> rt, mz, intensity;
+    exp.get2DPeakData(5.0, 6.0, 0.0, 300.0, rt, mz, intensity);
+    
+    TEST_EQUAL(rt.empty(), true)
+    TEST_EQUAL(mz.empty(), true)
+    TEST_EQUAL(intensity.empty(), true)
+  }
+}
+END_SECTION
+
+START_SECTION((void get2DPeakDataIM(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, Size ms_level, std::vector<float>& rt, std::vector<float>& mz, std::vector<float>& intensity, std::vector<float>& ion_mobility) const))
+{
+  MSExperiment exp;
+  
+  // Create test spectra with ion mobility data
+  MSSpectrum s1{
+    {100.0, 1000.0},
+    {200.0, 2000.0}
+  };
+  s1.setRT(1.0);
+  s1.setMSLevel(1);
+  DataArrays::FloatDataArray im1;
+  im1.setName("Ion Mobility");
+  im1.push_back(0.8f);
+  im1.push_back(1.2f);
+  im1.setMetaValue("unit", "millisecond");
+  s1.getFloatDataArrays().push_back(im1);
+  
+  MSSpectrum s2{
+    {150.0, 1500.0},
+    {250.0, 2500.0}
+  };
+  s2.setRT(2.0);
+  s2.setMSLevel(1);
+  DataArrays::FloatDataArray im2;
+  im2.setName("Ion Mobility");
+  im2.push_back(1.5f);
+  im2.push_back(2.0f);
+  im2.setMetaValue("unit", "millisecond");
+  s2.getFloatDataArrays().push_back(im2);
+  
+  exp.addSpectrum(s1);
+  exp.addSpectrum(s2);
+  
+  // Test 1: Full range, MS level 1
+  {
+    std::vector<float> rt, mz, intensity, ion_mobility;
+    exp.get2DPeakDataIM(0.0, 4.0, 0.0, 300.0, 1, rt, mz, intensity, ion_mobility);
+    
+    TEST_EQUAL(rt.size(), 4)
+    TEST_EQUAL(mz.size(), 4)
+    TEST_EQUAL(intensity.size(), 4)
+    TEST_EQUAL(ion_mobility.size(), 4)
+    
+    // Check all peaks in order
+    TEST_REAL_SIMILAR(rt[0], 1.0)
+    TEST_REAL_SIMILAR(mz[0], 100.0)
+    TEST_REAL_SIMILAR(intensity[0], 1000.0)
+    TEST_REAL_SIMILAR(ion_mobility[0], 0.8)
+    
+    TEST_REAL_SIMILAR(rt[1], 1.0)
+    TEST_REAL_SIMILAR(mz[1], 200.0)
+    TEST_REAL_SIMILAR(intensity[1], 2000.0)
+    TEST_REAL_SIMILAR(ion_mobility[1], 1.2)
+    
+    TEST_REAL_SIMILAR(rt[2], 2.0)
+    TEST_REAL_SIMILAR(mz[2], 150.0)
+    TEST_REAL_SIMILAR(intensity[2], 1500.0)
+    TEST_REAL_SIMILAR(ion_mobility[2], 1.5)
+    
+    TEST_REAL_SIMILAR(rt[3], 2.0)
+    TEST_REAL_SIMILAR(mz[3], 250.0)
+    TEST_REAL_SIMILAR(intensity[3], 2500.0)
+    TEST_REAL_SIMILAR(ion_mobility[3], 2.0)
+  }
+  
+  // Test 2: Limited RT range
+  {
+    std::vector<float> rt, mz, intensity, ion_mobility;
+    exp.get2DPeakDataIM(1.5, 2.5, 0.0, 300.0, 1, rt, mz, intensity, ion_mobility);
+    
+    TEST_EQUAL(rt.size(), 2)
+    TEST_EQUAL(mz.size(), 2)
+    TEST_EQUAL(intensity.size(), 2)
+    TEST_EQUAL(ion_mobility.size(), 2)
+    
+    TEST_REAL_SIMILAR(rt[0], 2.0)
+    TEST_REAL_SIMILAR(mz[0], 150.0)
+    TEST_REAL_SIMILAR(intensity[0], 1500.0)
+    TEST_REAL_SIMILAR(ion_mobility[0], 1.5)
+  }
+  
+  // Test 3: Spectrum without ion mobility data
+  {
+    MSExperiment exp_no_im;
+    MSSpectrum s_no_im{
+      {100.0, 1000.0},
+      {200.0, 2000.0}
+    };
+    s_no_im.setRT(1.0);
+    s_no_im.setMSLevel(1);
+    exp_no_im.addSpectrum(s_no_im);
+    
+    std::vector<float> rt, mz, intensity, ion_mobility;
+    exp_no_im.get2DPeakDataIM(0.0, 4.0, 0.0, 300.0, 1, rt, mz, intensity, ion_mobility);
+    
+    TEST_EQUAL(rt.size(), 2)
+    TEST_EQUAL(mz.size(), 2)
+    TEST_EQUAL(intensity.size(), 2)
+    TEST_EQUAL(ion_mobility.size(), 2)
+    TEST_REAL_SIMILAR(ion_mobility[0], -1.0)  // Should return -1.0 for missing IM data
+    TEST_REAL_SIMILAR(ion_mobility[1], -1.0)
+  }
+}
+END_SECTION
+
 START_SECTION((template<class MzReductionFunctionType> std::vector<MSChromatogram> extractXICs(const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges, unsigned int ms_level, MzReductionFunctionType func_mz_reduction = SumIntensityReduction()) const))
 {
     // Create test experiment with known data

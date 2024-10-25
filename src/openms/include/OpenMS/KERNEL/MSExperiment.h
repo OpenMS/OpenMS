@@ -370,6 +370,8 @@ public:
         {
           t = (float)it.getRT();
           rt.push_back(t);
+          mz.push_back(std::vector<float>());
+          intensity.push_back(std::vector<float>());
         }
         mz.back().push_back((float)it->getMZ());
         intensity.back().push_back(it->getIntensity());
@@ -388,6 +390,7 @@ public:
      * @param rt The vector to store the retention times in.
      * @param mz The vector to store the m/z values in.
      * @param intensity The vector to store the intensities in.
+     * @param ion_mobility The vector to store the ion mobility values in.
     */
     void get2DPeakDataIMPerSpectrum(
       CoordinateType min_rt, 
@@ -410,9 +413,20 @@ public:
           t = (float)it.getRT();
           rt.push_back(t);
           std::tie(unit, im) = it.getSpectrum().maybeGetIMData();
+          mz.push_back(std::vector<float>());
+          intensity.push_back(std::vector<float>());
+          ion_mobility.push_back(std::vector<float>());
         }
-        const Size peak_index = it.getPeakIndex().peak;
-        ion_mobility.back().push_back(im[peak_index]);
+
+        if (unit != DriftTimeUnit::NONE)
+        {
+          const Size peak_index = it.getPeakIndex().peak;
+          ion_mobility.back().push_back(im[peak_index]);
+        }
+        else
+        {
+          ion_mobility.back().push_back(-1.0);
+        }
         mz.back().push_back((float)it->getMZ());
         intensity.back().push_back(it->getIntensity());
       }
@@ -486,8 +500,15 @@ public:
         rt.push_back((float)it.getRT());
         mz.push_back((float)it->getMZ());
         intensity.push_back(it->getIntensity());
-        const Size peak_index = it.getPeakIndex().peak;
-        ion_mobility.push_back(im[peak_index]);
+        if (unit != DriftTimeUnit::NONE)
+        {
+          const Size peak_index = it.getPeakIndex().peak;
+          ion_mobility.push_back(im[peak_index]);
+        }
+        else
+        {
+          ion_mobility.push_back(-1.0);
+        }
       }
     }
 
