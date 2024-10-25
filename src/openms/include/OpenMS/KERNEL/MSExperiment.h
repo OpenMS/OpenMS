@@ -405,7 +405,7 @@ public:
    */
 struct SumIntensityReduction {
 
-  template<typename Iterator>
+  template <typename Iterator>
   double operator()(Iterator begin, Iterator end) const {
     // Static assert to verify iterator type has intensity accessor
     using ValueType = typename std::iterator_traits<Iterator>::value_type;
@@ -490,7 +490,7 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
           {
             return a.first.getMinMZ() < b.first.getMinMZ();
           }
-          return -a.first.getMaxMZ() < -b.first.getMaxMZ();
+          return a.first.getMaxMZ() > b.first.getMaxMZ();
         });
 
     // Create a view of the spectra with given MS level
@@ -559,8 +559,8 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
    for (Int64 i = 0; i < (Int64)spec_idx_to_range_idx.size(); ++i) // OpenMP on windows still requires signed loop variable
    {
       const auto& spec = spectra_view[i].get();
-      MSSpectrum::ConstIterator spec_begin = spec.cbegin();
-      MSSpectrum::ConstIterator spec_end = spec.cend();
+      auto spec_begin = spec.cbegin();
+      auto spec_end = spec.cend();
 
       for (size_t range_idx : spec_idx_to_range_idx[i]) {
         const auto& mz_range = mz_rt_ranges[range_idx].first;
@@ -623,7 +623,7 @@ std::vector<MSChromatogram> extractXICs(
           {
             return a.first.getMinMZ() < b.first.getMinMZ();
           }
-          return -a.first.getMaxMZ() < -b.first.getMaxMZ();
+          return a.first.getMaxMZ() > b.first.getMaxMZ();
         });
 
     // Create a view of the spectra with given MS level
@@ -685,7 +685,7 @@ std::vector<MSChromatogram> extractXICs(
           (mz_rt_ranges[i].first.getMinMZ() + mz_rt_ranges[i].first.getMaxMZ()) / 2.0);
         for (size_t j = start; j < stop; ++j) 
         {
-            spec_idx_to_range_idx[j].push_back(i);
+          spec_idx_to_range_idx[j].push_back(i);
         }
     }
 
@@ -737,12 +737,7 @@ std::vector<MSChromatogram> extractXICs(
   {
     if (mz_agg == "sum")
     {
-      return aggregate(rt_start, rt_end, mz_start, mz_end, ms_level, 
-        [](auto begin_it, auto end_it) // peaks in m/z range 
-        { 
-          return std::accumulate(begin_it, end_it, 0.0, 
-            [](double a, const Peak1D& b) { return a + b.getIntensity(); });
-        };
+      return aggregate(rt_start, rt_end, mz_start, mz_end, ms_level);       
     }
     else if (mz_agg == "max")
     {
@@ -992,7 +987,6 @@ std::vector<MSChromatogram> extractXICs(
       and comes before the next scan that is of a level that is lower than
       the current one.
 \verbatim
-\verbatim
       Example:
       MS1 - ix: 0
         MS2 - ix: 1, prec: 0
@@ -1004,7 +998,6 @@ std::vector<MSChromatogram> extractXICs(
       MS1 - ix: 7
         ...  <-- Not searched anymore. Returns end of experiment iterator if not found until here.
 \endverbatim
-\endverbatim
       Uses the native spectrum ID from the @em first precursor entry of the potential product scans
       for comparisons -> Works for multiple precursor ranges from the same precursor scan
       but not for multiple precursor ranges from different precursor scans.
@@ -1012,8 +1005,13 @@ std::vector<MSChromatogram> extractXICs(
     ConstIterator getFirstProductSpectrum(ConstIterator iterator) const;
 
     /**
-      @brief Returns the index of the first product spectrum for spectrum at index @p zero_based_index
-      If there is no precursor scan -1 is returned. Wraps @ref getFirstProductSpectrum(ConstIterator).
+      @brief Returns the index of the first product spectrum given an index.
+
+      @param zero_based_index The index of the current spectrum.
+
+      @return Index of the first product spectrum or -1 if not found.
+      
+      \overload ConstIterator getFirstProductSpectrum(ConstIterator iterator) const
     */
     int getFirstProductSpectrum(int zero_based_index) const;
 

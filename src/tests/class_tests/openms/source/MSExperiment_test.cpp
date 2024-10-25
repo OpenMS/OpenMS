@@ -1677,34 +1677,41 @@ START_SECTION((template<class MzReductionFunctionType> std::vector<std::vector<M
     // Create test experiment with known data
     PeakMap exp;
     exp.resize(4);
-    Peak1D p;
 
     // First spectrum (MS1) at RT=1.0
+    exp[0] = MSSpectrum{
+        {100.0, 1000.0},
+        {200.0, 2000.0},
+        {300.0, 3000.0}
+    };    
     exp[0].setRT(1.0);
     exp[0].setMSLevel(1);
-    p.setMZ(100.0); p.setIntensity(1000.0); exp[0].push_back(p);
-    p.setMZ(200.0); p.setIntensity(2000.0); exp[0].push_back(p);
-    p.setMZ(300.0); p.setIntensity(3000.0); exp[0].push_back(p);
 
     // Second spectrum (MS2) at RT=2.0
+    exp[1] = MSSpectrum{
+      {150.0, 1500.0},
+      {250.0, 2500.0}
+    };
     exp[1].setRT(2.0);
     exp[1].setMSLevel(2);
-    p.setMZ(150.0); p.setIntensity(1500.0); exp[1].push_back(p);
-    p.setMZ(250.0); p.setIntensity(2500.0); exp[1].push_back(p);
 
     // Third spectrum (MS1) at RT=3.0
+    exp[2] = MSSpectrum{
+        {100.0, 1100.0},
+        {200.0, 2100.0},
+        {300.0, 3100.0}
+    };
     exp[2].setRT(3.0);
     exp[2].setMSLevel(1);
-    p.setMZ(100.0); p.setIntensity(1100.0); exp[2].push_back(p);
-    p.setMZ(200.0); p.setIntensity(2100.0); exp[2].push_back(p);
-    p.setMZ(300.0); p.setIntensity(3100.0); exp[2].push_back(p);
 
     // Fourth spectrum (MS1) at RT=4.0
+    exp[3] = MSSpectrum{
+        {100.0, 1200.0},
+        {200.0, 2200.0},
+        {300.0, 3200.0}
+    };
     exp[3].setRT(4.0);
     exp[3].setMSLevel(1);
-    p.setMZ(100.0); p.setIntensity(1200.0); exp[3].push_back(p);
-    p.setMZ(200.0); p.setIntensity(2200.0); exp[3].push_back(p);
-    p.setMZ(300.0); p.setIntensity(3200.0); exp[3].push_back(p);
 
     exp.updateRanges();
 
@@ -1796,35 +1803,43 @@ START_SECTION((template<class MzReductionFunctionType> std::vector<MSChromatogra
     // Create test experiment with known data
     PeakMap exp;
     exp.resize(4);
-    Peak1D p;
 
     // First spectrum (MS1) at RT=1.0
+    exp[0] = MSSpectrum{
+        {100.0, 1000.0},
+        {200.0, 2000.0},
+        {300.0, 3000.0}
+    };
     exp[0].setRT(1.0);
     exp[0].setMSLevel(1);
-    p.setMZ(100.0); p.setIntensity(1000.0); exp[0].push_back(p);
-    p.setMZ(200.0); p.setIntensity(2000.0); exp[0].push_back(p);
-    p.setMZ(300.0); p.setIntensity(3000.0); exp[0].push_back(p);
 
     // Second spectrum (MS2) at RT=2.0
+    exp[1] = MSSpectrum{
+        {150.0, 1500.0},
+        {250.0, 2500.0}
+    };
     exp[1].setRT(2.0);
     exp[1].setMSLevel(2);
-    p.setMZ(150.0); p.setIntensity(1500.0); exp[1].push_back(p);
-    p.setMZ(250.0); p.setIntensity(2500.0); exp[1].push_back(p);
 
     // Third spectrum (MS1) at RT=3.0
+    exp[2] = MSSpectrum{
+        {100.0, 1100.0},
+        {200.0, 2100.0},
+        {300.0, 3100.0}
+    };
     exp[2].setRT(3.0);
     exp[2].setMSLevel(1);
-    p.setMZ(100.0); p.setIntensity(1100.0); exp[2].push_back(p);
-    p.setMZ(200.0); p.setIntensity(2100.0); exp[2].push_back(p);
-    p.setMZ(300.0); p.setIntensity(3100.0); exp[2].push_back(p);
 
     // Fourth spectrum (MS1) at RT=4.0
+    exp[3] = MSSpectrum{
+        {100.0, 1200.0},
+        {200.0, 2200.0},
+        {300.0, 3200.0}
+    };
     exp[3].setRT(4.0);
     exp[3].setMSLevel(1);
-    p.setMZ(100.0); p.setIntensity(1200.0); exp[3].push_back(p);
-    p.setMZ(200.0); p.setIntensity(2200.0); exp[3].push_back(p);
-    p.setMZ(300.0); p.setIntensity(3200.0); exp[3].push_back(p);
 
+    // Update the ranges of the experiment
     exp.updateRanges();
 
     // Test 1: Normal case - MS1 spectra using default reduction function
