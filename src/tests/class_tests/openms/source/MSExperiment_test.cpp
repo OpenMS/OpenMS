@@ -1661,6 +1661,147 @@ START_SECTION((template<class MzReductionFunctionType> std::vector<std::vector<M
 }
 END_SECTION
 
+START_SECTION((template<class MzReductionFunctionType> std::vector<MSChromatogram> extractXICs(const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges, unsigned int ms_level, MzReductionFunctionType func_mz_reduction = SumIntensityReduction()) const))
+{
+    // Create test experiment with known data
+    PeakMap exp;
+    exp.resize(4);
+    Peak1D p;
+
+    // First spectrum (MS1) at RT=1.0
+    exp[0].setRT(1.0);
+    exp[0].setMSLevel(1);
+    p.setMZ(100.0); p.setIntensity(1000.0); exp[0].push_back(p);
+    p.setMZ(200.0); p.setIntensity(2000.0); exp[0].push_back(p);
+    p.setMZ(300.0); p.setIntensity(3000.0); exp[0].push_back(p);
+
+    // Second spectrum (MS2) at RT=2.0
+    exp[1].setRT(2.0);
+    exp[1].setMSLevel(2);
+    p.setMZ(150.0); p.setIntensity(1500.0); exp[1].push_back(p);
+    p.setMZ(250.0); p.setIntensity(2500.0); exp[1].push_back(p);
+
+    // Third spectrum (MS1) at RT=3.0
+    exp[2].setRT(3.0);
+    exp[2].setMSLevel(1);
+    p.setMZ(100.0); p.setIntensity(1100.0); exp[2].push_back(p);
+    p.setMZ(200.0); p.setIntensity(2100.0); exp[2].push_back(p);
+    p.setMZ(300.0); p.setIntensity(3100.0); exp[2].push_back(p);
+
+    // Fourth spectrum (MS1) at RT=4.0
+    exp[3].setRT(4.0);
+    exp[3].setMSLevel(1);
+    p.setMZ(100.0); p.setIntensity(1200.0); exp[3].push_back(p);
+    p.setMZ(200.0); p.setIntensity(2200.0); exp[3].push_back(p);
+    p.setMZ(300.0); p.setIntensity(3200.0); exp[3].push_back(p);
+
+    exp.updateRanges();
+
+    // Test 1: Normal case - MS1 spectra using default reduction function
+    {
+        std::vector<std::pair<RangeMZ, RangeRT>> ranges;
+        // Range 1: covers first peak of all MS1 spectra
+        ranges.push_back(std::make_pair(
+            RangeMZ(90.0, 110.0),
+            RangeRT(0.0, 5.0)
+        ));
+        // Range 2: covers second peak of all MS1 spectra
+        ranges.push_back(std::make_pair(
+            RangeMZ(190.0, 210.0),
+            RangeRT(0.0, 5.0)
+        ));
+
+        // Use default reduction function (SumIntensityReduction)
+        auto chromatograms = exp.extractXICs(ranges, 1);
+
+        // Check results
+        TEST_EQUAL(chromatograms.size(), 2);
+
+        // Check Range 1 chromatogram
+        TEST_EQUAL(chromatograms[0].size(), 3); // Should cover 3 spectra
+        TEST_REAL_SIMILAR(chromatograms[0][0].getRT(), 1.0);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 1000.0);
+
+        TEST_REAL_SIMILAR(chromatograms[0][1].getRT(), 3.0);
+        TEST_REAL_SIMILAR(chromatograms[0][1].getIntensity(), 1100.0);
+
+        TEST_REAL_SIMILAR(chromatograms[0][2].getRT(), 4.0);
+        TEST_REAL_SIMILAR(chromatograms[0][2].getIntensity(), 1200.0);
+
+        // Check m/z value of the chromatogram
+        TEST_REAL_SIMILAR(chromatograms[0].getProduct().getMZ(), (90.0 + 110.0) / 2.0);
+
+        // Check Range 2 chromatogram
+        TEST_EQUAL(chromatograms[1].size(), 3); // Should cover 3 spectra
+        TEST_REAL_SIMILAR(chromatograms[1][0].getRT(), 1.0);
+        TEST_REAL_SIMILAR(chromatograms[1][0].getIntensity(), 2000.0);
+
+        TEST_REAL_SIMILAR(chromatograms[1][1].getRT(), 3.0);
+        TEST_REAL_SIMILAR(chromatograms[1][1].getIntensity(), 2100.0);
+
+        TEST_REAL_SIMILAR(chromatograms[1][2].getRT(), 4.0);
+        TEST_REAL_SIMILAR(chromatograms[1][2].getIntensity(), 2200.0);
+
+        // Check m/z value of the chromatogram
+        TEST_REAL_SIMILAR(chromatograms[1].getProduct().getMZ(), (190.0 + 210.0) / 2.0);
+    }
+
+    // Test 2: MS2 spectra
+    {
+        std::vector<std::pair<RangeMZ, RangeRT>> ranges;
+        ranges.push_back(std::make_pair(
+            RangeMZ(140.0, 160.0),
+            RangeRT(1.5, 2.5)
+        ));
+
+        auto chromatograms = exp.extractXICs(ranges, 2);
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 1);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getRT(), 2.0);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 1500.0);
+
+        // Check m/z value of the chromatogram
+        TEST_REAL_SIMILAR(chromatograms[0].getProduct().getMZ(), (140.0 + 160.0) / 2.0);
+    }
+
+    // Test 3: Custom reduction function (average intensity)
+    {
+        std::vector<std::pair<RangeMZ, RangeRT>> ranges;
+        ranges.push_back(std::make_pair(
+            RangeMZ(90.0, 310.0),  // Covers all peaks
+            RangeRT(0.0, 5.0)      // Covers all spectra
+        ));
+
+        // Mean intensity in m/z range
+        auto chromatograms = exp.extractXICs(ranges, 1,
+            [](MSSpectrum::ConstIterator begin_it, MSSpectrum::ConstIterator end_it) -> double
+            {
+                if (begin_it == end_it) return 0.0;
+
+                double acc = std::accumulate(begin_it, end_it, 0.0,
+                    [](double a, const Peak1D& b) { return a + b.getIntensity(); });
+                return acc / static_cast<double>(std::distance(begin_it, end_it));
+            });
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 3);
+
+        TEST_REAL_SIMILAR(chromatograms[0][0].getRT(), 1.0);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 2000.0); // Average of [1000, 2000, 3000]
+
+        TEST_REAL_SIMILAR(chromatograms[0][1].getRT(), 3.0);
+        TEST_REAL_SIMILAR(chromatograms[0][1].getIntensity(), 2100.0); // Average of [1100, 2100, 3100]
+
+        TEST_REAL_SIMILAR(chromatograms[0][2].getRT(), 4.0);
+        TEST_REAL_SIMILAR(chromatograms[0][2].getIntensity(), 2200.0); // Average of [1200, 2200, 3200]
+
+        // Check m/z value of the chromatogram
+        TEST_REAL_SIMILAR(chromatograms[0].getProduct().getMZ(), (90.0 + 310.0) / 2.0);
+    }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

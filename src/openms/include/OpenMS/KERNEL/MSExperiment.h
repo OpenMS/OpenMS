@@ -393,6 +393,33 @@ public:
     }
 
 
+  /**
+   * @brief Calculates the sum of intensities for a range of elements.
+   * 
+   * @tparam Iterator The iterator type.
+   * @param begin The iterator pointing to the beginning of the range.
+   * @param end The iterator pointing to the end of the range.
+   * @return The sum of intensities.
+   * 
+   * @throws static assert fails if the iterator value type does not have a `getIntensity()` member function.
+   */
+struct SumIntensityReduction {
+
+  template<typename Iterator>
+  double operator()(Iterator begin, Iterator end) const {
+    // Static assert to verify iterator type has intensity accessor
+    using ValueType = typename std::iterator_traits<Iterator>::value_type;
+    static_assert(std::is_member_function_pointer_v<decltype(&ValueType::getIntensity)>,
+           "Iterator value type must have getIntensity() member function");
+
+    double sum = 0.0;
+    for (auto it = begin; it != end; ++it) {
+      sum += it->getIntensity();
+    }
+    return sum;
+  }
+};
+
 /**
  * @brief Aggregates data over specified m/z and RT ranges at a given MS level using a custom reduction function.
  *
@@ -487,7 +514,6 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
         std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges) 
         ->  std::vector<std::pair<size_t, size_t>>
       {
-        const auto zero = spectra_view.begin();
         std::vector<std::pair<size_t, size_t>> res;
         res.reserve(mz_rt_ranges.size());
         for (const auto & mz_rt : mz_rt_ranges) 
@@ -555,6 +581,152 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
     }
     return result;
   }
+
+// Overload without func_mz_reduction parameter (default to SumIntensityReduction). Needed because of template deduction issues
+std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
+    std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
+    unsigned int ms_level) const
+{
+  return aggregate(mz_rt_ranges, ms_level, SumIntensityReduction());
+}
+
+/**
+ * @brief Extracts extracted ion chromatograms (XICs) from the MSExperiment.
+ *
+ * This function takes a vector of mz_rt_ranges, an ms_level, and a MzReductionFunctionType
+ * and extracts the XICs from the MSExperiment based on the given parameters.
+ *
+ * @param mz_rt_ranges A vector of pairs of RangeMZ and RangeRT representing the m/z and retention time ranges.
+ * @param ms_level The MS level of the spectra to consider.
+ * @param func_mz_reduction The MzReductionFunctionType used to reduce the m/z values.
+ *
+ * @return A vector of MSChromatogram objects representing the extracted XICs.
+ */
+template<class MzReductionFunctionType>
+std::vector<MSChromatogram> extractXICs(
+    std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
+    unsigned int ms_level,
+    MzReductionFunctionType func_mz_reduction) const
+{
+    // Early exit if there are no ranges
+    if (mz_rt_ranges.empty()) 
+    {
+      // likely an error, but we return an empty vector instead of throwing an exception for now
+      return {};
+    }
+
+    // Sort mz_rt_ranges by ascending MinMZ and descending MaxMZ
+    std::sort(mz_rt_ranges.begin(), mz_rt_ranges.end(), 
+        [](const auto& a, const auto& b) 
+        {
+          if (a.first.getMinMZ() != b.first.getMinMZ()) 
+          {
+            return a.first.getMinMZ() < b.first.getMinMZ();
+          }
+          return -a.first.getMaxMZ() < -b.first.getMaxMZ();
+        });
+
+    // Create a view of the spectra with given MS level
+    std::vector<std::reference_wrapper<const MSSpectrum>> spectra_view;
+    spectra_view.reserve(spectra_.size());
+    std::copy_if(spectra_.begin(), spectra_.end(), 
+                 std::back_inserter(spectra_view),
+                 [ms_level](const auto& spec) { 
+                     return spec.getMSLevel() == ms_level; 
+                 });
+
+    // Early exit if there are no spectra with the given MS level
+    if (spectra_view.empty()) { // could be valid use or an error -> we return an empty vector
+      return {};
+    }
+
+    // Get the indices of the spectra covered by the RT ranges by considering the MS level
+    // If start and stop are the same, the range is empty
+    auto getCoveredSpectra = [](
+        const std::vector<std::reference_wrapper<const MSSpectrum>>& spectra_view, 
+        std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges) 
+        ->  std::vector<std::pair<size_t, size_t>>
+      {
+        std::vector<std::pair<size_t, size_t>> res;
+        res.reserve(mz_rt_ranges.size());
+        for (const auto & mz_rt : mz_rt_ranges) 
+        {
+          auto start_it = std::lower_bound(spectra_view.begin(), spectra_view.end(), mz_rt.second.getMin(), 
+            [](const auto& spec, double rt) 
+            { return spec.get().getRT() < rt; });
+
+          auto stop_it = std::upper_bound(spectra_view.begin(), spectra_view.end(), mz_rt.second.getMax(), 
+            [](double rt, const auto& spec) 
+            { return rt < spec.get().getRT(); });
+
+            res.emplace_back(
+                std::distance(spectra_view.begin(), start_it),
+                std::distance(spectra_view.begin(), stop_it)
+            );
+        }
+        return res;
+      };
+
+    // For each range, gets (spectrum start index, spectrum stop index). The spectra covered by each RT range.
+    const std::vector<std::pair<size_t, size_t>> rt_ranges_idcs = getCoveredSpectra(spectra_view, mz_rt_ranges);
+
+    // Initialize result vector
+    std::vector<MSChromatogram> result(mz_rt_ranges.size());
+
+    // Initialize counts per spectrum index and total mappings
+    std::vector<std::vector<size_t>> spec_idx_to_range_idx(spectra_view.size());
+
+    // Build spectrum to range index mapping
+    for (size_t i = 0; i < rt_ranges_idcs.size(); ++i) 
+    {
+        const auto& [start, stop] = rt_ranges_idcs[i];
+        result[i].resize(stop - start);
+        result[i].getProduct().setMZ(
+          (mz_rt_ranges[i].first.getMinMZ() + mz_rt_ranges[i].first.getMaxMZ()) / 2.0);
+        for (size_t j = start; j < stop; ++j) 
+        {
+            spec_idx_to_range_idx[j].push_back(i);
+        }
+    }
+
+   #pragma omp parallel for schedule(dynamic)
+   for (size_t i = 0; i < spec_idx_to_range_idx.size(); ++i) 
+   {
+      const auto& spec = spectra_view[i].get();
+      const double rt = spec.getRT();
+      MSSpectrum::ConstIterator spec_begin = spec.cbegin();
+      MSSpectrum::ConstIterator spec_end = spec.cend();
+
+      for (size_t range_idx : spec_idx_to_range_idx[i]) {
+        const auto& mz_range = mz_rt_ranges[range_idx].first;
+        
+        // Find data points within MZ range
+        auto start_it = spec.PosBegin(spec_begin, mz_range.getMinMZ(), spec_end);
+        auto end_it = start_it;
+        
+        while (end_it != spec_end && end_it->getPosition() < mz_range.getMaxMZ()) 
+        {
+          ++end_it;
+        }
+
+        // Calculate result using provided reduction function
+        result[range_idx][i - rt_ranges_idcs[range_idx].first] = 
+            ChromatogramPeak(rt, func_mz_reduction(start_it, end_it));
+      }
+    }
+
+    for (auto& r : result) r.updateRanges(); // TODO: prob.. faster to look at first and last peaks as range is sorted
+
+    return result;
+  }
+
+// Overload without func_mz_reduction parameter (needed because of template deduction issue)
+std::vector<MSChromatogram> extractXICs(
+    std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
+    unsigned int ms_level) const
+{
+    return extractXICs(mz_rt_ranges, ms_level, SumIntensityReduction());
+}
 
   // for python wrapper
   /*

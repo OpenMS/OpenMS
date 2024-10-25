@@ -392,7 +392,7 @@ namespace OpenMS
     return psm_data_;
   }
 
-  const size_t MzTab::getNumberOfPSMs() const
+  size_t MzTab::getNumberOfPSMs() const
   {
     std::unordered_set<Int> psm_ids;
     for (const auto& psm : psm_data_)
