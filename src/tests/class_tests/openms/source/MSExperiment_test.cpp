@@ -39,7 +39,7 @@ MSExperiment createPeakMapWithRTs(std::vector<double> RTs)
 
 MSExperiment setMSLevel(MSExperiment exp, std::vector<int> ms_levels)
 {
-  for (int i = 0; i < ms_levels.size(); ++i)
+  for (size_t i = 0; i < ms_levels.size(); ++i)
   {
     exp[i].setMSLevel(ms_levels[i]);
   }
@@ -1539,6 +1539,125 @@ START_SECTION( std::ostream& operator<<(std::ostream& os, const MSExperiment& ch
   TEST_EQUAL(String(os.str()).hasSubstring("MSCHROMATOGRAM BEGIN"), true);
   TEST_EQUAL(String(os.str()).hasSubstring("47.11"), true);
   TEST_EQUAL(String(os.str()).hasSubstring("10.77"), true);
+}
+END_SECTION
+
+START_SECTION((template<class MzReductionFunctionType> std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges, unsigned int ms_level, MzReductionFunctionType func_mz_reduction) const))
+{
+    // Create test experiment with known data
+    PeakMap exp;
+    exp.resize(4);
+    Peak1D p;
+
+    // First spectrum (MS1) at RT=1.0
+    exp[0].setRT(1.0);
+    exp[0].setMSLevel(1);
+    p.setMZ(100.0); p.setIntensity(1000.0); exp[0].push_back(p);
+    p.setMZ(200.0); p.setIntensity(2000.0); exp[0].push_back(p);
+    p.setMZ(300.0); p.setIntensity(3000.0); exp[0].push_back(p);
+
+    // Second spectrum (MS2) at RT=2.0
+    exp[1].setRT(2.0);
+    exp[1].setMSLevel(2);
+    p.setMZ(150.0); p.setIntensity(1500.0); exp[1].push_back(p);
+    p.setMZ(250.0); p.setIntensity(2500.0); exp[1].push_back(p);
+
+    // Third spectrum (MS1) at RT=3.0
+    exp[2].setRT(3.0);
+    exp[2].setMSLevel(1);
+    p.setMZ(100.0); p.setIntensity(1100.0); exp[2].push_back(p);
+    p.setMZ(200.0); p.setIntensity(2100.0); exp[2].push_back(p);
+    p.setMZ(300.0); p.setIntensity(3100.0); exp[2].push_back(p);
+
+    // Fourth spectrum (MS1) at RT=4.0
+    exp[3].setRT(4.0);
+    exp[3].setMSLevel(1);
+    p.setMZ(100.0); p.setIntensity(1200.0); exp[3].push_back(p);
+    p.setMZ(200.0); p.setIntensity(2200.0); exp[3].push_back(p);
+    p.setMZ(300.0); p.setIntensity(3200.0); exp[3].push_back(p);
+
+    exp.updateRanges();
+
+    // Test: Normal case - MS1 spectra
+    {
+        std::vector<std::pair<RangeMZ, RangeRT>> ranges;
+        // Range 1: covers first peak of first and third spectrum
+        ranges.push_back(std::make_pair(
+            RangeMZ(90.0, 110.0),
+            RangeRT(0.0, 3.5)
+        ));
+        // Range 2: covers second peak of all MS1 spectra
+        ranges.push_back(std::make_pair(
+            RangeMZ(190.0, 210.0),
+            RangeRT(0.0, 5.0)
+        ));
+
+        // Simple intensity reduction function
+        auto result = exp.aggregate(ranges, 1, 
+          [](MSSpectrum::ConstIterator begin_it, MSSpectrum::ConstIterator /*end_it*/)->double // return first intensity of peaks in m/z range 
+          { 
+            return begin_it->getIntensity();
+          });
+
+        // Check results
+        TEST_EQUAL(result.size(), 2);
+        
+        // Check Range 1 results
+        TEST_EQUAL(result[0].size(), 2);  // Should cover 2 spectra
+        TEST_EQUAL(result[0][0], 1000.0); // First spectrum intensity
+        TEST_EQUAL(result[0][1], 1100.0); // Third spectrum intensity
+        
+        // Check Range 2 results
+        TEST_EQUAL(result[1].size(), 3);   // Should cover 3 spectra
+        TEST_EQUAL(result[1][0], 2000.0);  // First spectrum intensity
+        TEST_EQUAL(result[1][1], 2100.0);  // Third spectrum intensity
+        TEST_EQUAL(result[1][2], 2200.0);  // Fourth spectrum intensity
+    }
+
+    // Test 4: MS2 spectra
+    {
+        std::vector<std::pair<RangeMZ, RangeRT>> ranges;
+        ranges.push_back(std::make_pair(
+            RangeMZ(140.0, 160.0),
+            RangeRT(1.5, 2.5)
+        ));
+
+        auto result = exp.aggregate(ranges, 2, 
+          [](const MSSpectrum::ConstIterator begin_it, const MSSpectrum::ConstIterator /*end_it*/)->double // return first intensity of peaks in m/z range 
+          { 
+            return begin_it->getIntensity();
+          });
+
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 1);
+        TEST_EQUAL(result[0][0], 1500.0);
+    }
+
+    // Test 5: Complex reduction function (average intensity)
+    {
+        std::vector<std::pair<RangeMZ, RangeRT>> ranges;
+        ranges.push_back(std::make_pair(
+            RangeMZ(90.0, 310.0),  // Covers all peaks
+            RangeRT(0.0, 5.0)      // Covers all spectra
+        ));
+
+        // mean intensity in m/z range
+        auto result = exp.aggregate(ranges, 1, 
+            [](const MSSpectrum::ConstIterator begin_it, const MSSpectrum::ConstIterator end_it) 
+            { 
+                if (begin_it == end_it) return 0.0; // Check for empty range before accumulation
+
+                double acc = std::accumulate(begin_it, end_it, 0.0, 
+                    [](double a, const Peak1D& b) { return a + b.getIntensity(); });
+
+                return acc / static_cast<double>(std::distance(begin_it, end_it));
+            });
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 3);
+        TEST_REAL_SIMILAR(result[0][0], 2000.0);  // Average of first spectrum
+        TEST_REAL_SIMILAR(result[0][1], 2100.0);  // Average of third spectrum
+        TEST_REAL_SIMILAR(result[0][2], 2200.0);  // Average of fourth spectrum
+    }
 }
 END_SECTION
 
