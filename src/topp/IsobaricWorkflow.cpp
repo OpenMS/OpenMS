@@ -20,15 +20,16 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
-#include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
+#include <OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h>
+#include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -185,13 +186,14 @@ protected:
     setValidFormats_("in", {"mzML"});
     registerInputFileList_("in_id", "<file>", {}, "corresponding input PSMs");
     setValidFormats_("in_id", {"idXML"});
-    // TODO we probably need the design for mzTab export
-    //registerInputFile_("exp_design", "<file>", "", "experimental design file (optional). If not given, the design is assumed to be unfractionated.", false);
-    //setValidFormats_("exp_design", {"tsv"});
-    registerOutputFile_("out", "<file>", "", "output consensusXML file with quantitative information");
+    registerInputFile_("exp_design", "<file>", "", "experimental design file (optional). If not given, the design is assumed to be unfractionated.", false);
+    setValidFormats_("exp_design", {"tsv"});
+    registerOutputFile_("out", "<file>", "", "output consensusXML or mzTab file with quantitative information");
     setValidFormats_("out", {"consensusXML","mzTab"});
     registerFlag_("calculate_id_purity", "Calculate the purity of the precursor ion based on the MS1 spectrum. Only used for MS3, otherwise it is the same as the quant. precursor purity.");
     registerIntOption_("max_parallel_files", "<num>", 1, "Maximum number of files to load in parallel.", false);
+    registerFlag_("protein_inference", "Infer and group proteins");
+    registerFlag_("protein_quant", "Quantify proteins from the peptide quantification. Implies protein inference.");
 
     registerSubsection_("extraction", "Parameters for the channel extraction.");
     registerSubsection_("quantification", "Parameters for the peptide quantification.");
@@ -310,7 +312,7 @@ protected:
    * @param file_idx index of the file in the input list
    * @param spec_idx index of the spectrum over all files
    */
-  void inline fillConsensusFeature_(ConsensusFeature& cf, PeptideIdentification& pep,
+  void inline fillConsensusFeature_(ConsensusFeature & cf, PeptideIdentification& pep,
    const MSExperiment& exp, Size id_spec_idx, Size quant_spec_idx, const std::vector<double>& itys,
    const std::unique_ptr<IsobaricQuantitationMethod>& quant_method, double quant_purity, double id_purity,
    double min_reporter_intensity, Size file_idx)
@@ -393,6 +395,9 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
     String out = getStringOption_("out");
+    String exp_design = getStringOption_("exp_design");
+    bool infer_proteins = getFlag_("protein_inference");
+    bool quant_proteins = getFlag_("protein_quant");
 
     //-------------------------------------------------------------
     // init quant method and extractor
@@ -569,6 +574,11 @@ protected:
         cmap.reserve(cmap.size() + cur_cmap.size());
         cmap.insert(cmap.end(), std::make_move_iterator(cur_cmap.begin()), std::make_move_iterator(cur_cmap.end()));
       }
+
+      // TODO If we do the parquet export, we can export the feature file here already. Then, if prot. inference and quant are disabled,
+      //  the tool could be run on a single file and distributed over multiple nodes. We could use a parquet partitioned over raw_files
+      // If we then implement an inference and quant tool that can read parquet, we can do inference and quant after that parallelized step.
+      // Potentially even with pyopenms??
     }
 
     /*cmap.reserve(std::accumulate(all_cmaps.begin(), all_cmaps.end(), 0, [](Size s, const ConsensusMap& c){return s + c.size();}));
@@ -584,6 +594,7 @@ protected:
     //annotate output with data processing info
     // TODO we should not write parameters from other quant_methods, only the selected ones!
     // Maybe just remove the subsections from the parameters before calling this?
+    
     addDataProcessing_(cmap, getProcessingInfo_(DataProcessing::QUANTITATION));
 
     // remove empty features (TODO based on some other filtering settings?)
@@ -598,7 +609,12 @@ protected:
     cmap.setProteinIdentifications(merged_prot_ids);
 
     ExperimentalDesign design = ExperimentalDesign::fromConsensusMap(cmap);
-    // TODO do protein inference and quantificatoin
+    if (exp_design != "")
+    {
+      design = ExperimentalDesignFile::load(exp_design, true);
+    }
+    
+    // TODO allow choosing Bayesian
     BasicProteinInferenceAlgorithm prot_inference;
     prot_inference.run(cmap, cmap.getProteinIdentifications()[0], false);
     PeptideAndProteinQuant prot_quantifier;
@@ -623,6 +639,11 @@ protected:
     {
      OPENMS_LOG_WARN << "Warning: No proteins were quantified." << endl;
     }
+
+    // Annotate quants to protein(groups) for easier export in mzTab
+    // Note: we keep protein groups that have not been quantified
+    prot_quantifier.annotateQuantificationsToProteins(
+      protein_quants, inferred_proteins, true);
 
     // TODO also allow storing mzTab and even better, parquet
     FileHandler().storeConsensusFeatures(out, cmap);
