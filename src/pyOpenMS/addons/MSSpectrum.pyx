@@ -24,8 +24,8 @@
         return mzs
 
 
-    def get_ity_array(MSSpectrum self):
-        """Cython signature: numpy_vector get_ity_array()
+    def get_intensity_array(MSSpectrum self):
+        """Cython signature: numpy_vector get_intensity_array()
         
         Will return a numpy array corresponding
         to the intensity values in the MSSpectrum.

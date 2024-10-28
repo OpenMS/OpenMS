@@ -46,7 +46,7 @@
         for i in range(0, n):
             rt[i]  = self[i].getRT()
             mz[i]  = self[i].get_mz_array()
-            ity[i] = self[i].get_ity_array()
+            ity[i] = self[i].get_intensity_array()
 
         return rt, mz, ity
 
