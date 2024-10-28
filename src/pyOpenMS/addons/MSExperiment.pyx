@@ -1,13 +1,60 @@
 
 
-    def get2DPeakDataIM(MSExperiment self, float min_rt, float max_rt, float min_mz, float max_mz):
-        """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty, np.array[float] ion_mobility] get2DPeakDataLongIon(float min_rt, float max_rt, float min_mz, float max_mz)"""
+    def get2DPeakData(MSExperiment self, float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level):
+        """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty] get2DPeakData(float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level)"""        
+
+        cdef _MSExperiment * exp_ = self.inst.get()
+        cdef libcpp_vector[float] rt
+        cdef libcpp_vector[libcpp_vector[float]] mz
+        cdef libcpp_vector[libcpp_vector[float]] inty
+        exp_.get2DPeakDataPerSpectrum(min_rt, max_rt, min_mz, max_mz, ms_level, rt, mz, inty)
+
+        cdef ArrayWrapperFloat rt_wrap = ArrayWrapperFloat()
+        rt_wrap.set_data(rt)
+
+        cdef np.ndarray all_mz = np.empty(rt.size(), dtype=object)
+        cdef np.ndarray all_inty = np.empty(rt.size(), dtype=object)
+        cdef ArrayWrapperFloat mz_wrap
+        cdef ArrayWrapperFloat inty_wrap
+
+        cdef unsigned int i
+        for i in range(0, mz.size()):
+            mz_wrap = ArrayWrapperFloat()
+            inty_wrap = ArrayWrapperFloat()
+            mz_wrap.set_data(mz[i])
+            inty_wrap.set_data(inty[i])
+            all_mz[i] = np.frombuffer(mz_wrap)
+            all_inty[i] = np.frombuffer(inty_wrap)
+
+        return (np.frombuffer(rt_wrap), all_mz, all_inty)
+
+
+
+    def get2DPeakDataLong(MSExperiment self, float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level):
+        """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty] get2DPeakDataLong(float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level)"""
+        cdef _MSExperiment * exp_ = self.inst.get()
+        cdef libcpp_vector[float] rt
+        cdef libcpp_vector[float] mz
+        cdef libcpp_vector[float] inty
+        exp_.get2DPeakData(min_rt, max_rt, min_mz, max_mz, ms_level, rt, mz, inty)
+       
+        cdef ArrayWrapperFloat rt_wrap = ArrayWrapperFloat()
+        cdef ArrayWrapperFloat mz_wrap = ArrayWrapperFloat()
+        cdef ArrayWrapperFloat inty_wrap = ArrayWrapperFloat()
+        rt_wrap.set_data(rt)
+        mz_wrap.set_data(mz)
+        inty_wrap.set_data(inty)
+
+        return (np.asarray(rt_wrap), np.asarray(mz_wrap), np.asarray(inty_wrap))
+    
+    def get2DPeakDataIM(MSExperiment self, float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level):
+        """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty, np.array[float] ion_mobility] get2DPeakDataIM(float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level)"""
         cdef _MSExperiment * exp_ = self.inst.get()
         cdef libcpp_vector[float] rt
         cdef libcpp_vector[libcpp_vector[float]] mz
         cdef libcpp_vector[libcpp_vector[float]] inty
         cdef libcpp_vector[libcpp_vector[float]] ion_mobility
-        exp_.get2DPeakDataIMPerSpectrum(min_rt, max_rt, min_mz, max_mz, rt, mz, inty, ion_mobility)
+        exp_.get2DPeakDataIMPerSpectrum(min_rt, max_rt, min_mz, max_mz,  ms_level, rt, mz, inty, ion_mobility)
 
         cdef ArrayWrapperFloat rt_wrap = ArrayWrapperFloat()
         rt_wrap.set_data(rt)
@@ -33,48 +80,14 @@
 
         return (np.frombuffer(rt_wrap), all_mz, all_inty, all_ion)
 
-    def get2DPeakDataAll(MSExperiment self):
-        """Cython signature: tuple[np.array[float] rt, np.array[np.array[float]] mz, np.array[np.array[float]] inty] get2DPeakData()"""
-        cdef unsigned int n = self.size()
-        cdef np.ndarray[np.float64_t, ndim=1, mode="c"] rt = np.empty(n, dtype=np.float64)
-        cdef np.ndarray mz = np.empty(n, dtype=object)
-        cdef np.ndarray ity = np.empty(n, dtype=object)
-
-        cdef np.ndarray[np.float64_t, ndim=1, mode="c"] mz_array
-        cdef np.ndarray[np.float64_t, ndim=1, mode="c"] ity_array
-        cdef unsigned int i
-        for i in range(0, n):
-            rt[i]  = self[i].getRT()
-            mz[i]  = self[i].get_mz_array()
-            ity[i] = self[i].get_intensity_array()
-
-        return rt, mz, ity
-
-    def get2DPeakDataLong(MSExperiment self, float min_rt, float max_rt, float min_mz, float max_mz):
-        """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty] get2DPeakDataLong(float min_rt, float max_rt, float min_mz, float max_mz)"""
-        cdef _MSExperiment * exp_ = self.inst.get()
-        cdef libcpp_vector[float] rt
-        cdef libcpp_vector[float] mz
-        cdef libcpp_vector[float] inty
-        exp_.get2DPeakData(min_rt, max_rt, min_mz, max_mz, rt, mz, inty)
-       
-        cdef ArrayWrapperFloat rt_wrap = ArrayWrapperFloat()
-        cdef ArrayWrapperFloat mz_wrap = ArrayWrapperFloat()
-        cdef ArrayWrapperFloat inty_wrap = ArrayWrapperFloat()
-        rt_wrap.set_data(rt)
-        mz_wrap.set_data(mz)
-        inty_wrap.set_data(inty)
-
-        return (np.asarray(rt_wrap), np.asarray(mz_wrap), np.asarray(inty_wrap))
-    
-    def get2DPeakDataLongIM(MSExperiment self, float min_rt, float max_rt, float min_mz, float max_mz):
-        """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty, np.array[float] ion_mobility] get2DPeakDataLongIon(float min_rt, float max_rt, float min_mz, float max_mz)"""
+    def get2DPeakDataIMLong(MSExperiment self, float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level):
+        """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty, np.array[float] ion_mobility] get2DPeakDataIMLong(float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level)"""
         cdef _MSExperiment * exp_ = self.inst.get()
         cdef libcpp_vector[float] rt
         cdef libcpp_vector[float] mz
         cdef libcpp_vector[float] inty
         cdef libcpp_vector[float] ion_mobility
-        exp_.get2DPeakDataIM(min_rt, max_rt, min_mz, max_mz, rt, mz, inty, ion_mobility)
+        exp_.get2DPeakDataIM(min_rt, max_rt, min_mz, max_mz, ms_level, rt, mz, inty, ion_mobility)
        
         cdef ArrayWrapperFloat rt_wrap = ArrayWrapperFloat()
         cdef ArrayWrapperFloat mz_wrap = ArrayWrapperFloat()

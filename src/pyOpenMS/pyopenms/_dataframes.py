@@ -330,7 +330,7 @@ class _MSExperimentDF(_MSExperiment):
         if long:
             cols = ["RT", "mz", "inty"]
             self.updateRanges()
-            spectraarrs2d = self.get2DPeakDataLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ())
+            spectraarrs2d = self.get2DPeakDataLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ(), 1)
             return _pd.DataFrame(dict(zip(cols, spectraarrs2d)))
 
         cols = ["RT", "mzarray", "intarray"]
@@ -346,7 +346,7 @@ class _MSExperimentDF(_MSExperiment):
         
         cols = ["RT", "mz", "inty", "IM"]
         self.updateRanges()
-        spectraarrs2d = self.get2DPeakDataLongIon(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ())
+        spectraarrs2d = self.get2DPeakDataIMLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ(), 1)
         return _pd.DataFrame(dict(zip(cols, spectraarrs2d)))
 
     def get_massql_df(self, ion_mobility=False):

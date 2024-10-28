@@ -397,9 +397,9 @@ public:
       CoordinateType min_rt, 
       CoordinateType max_rt, 
       CoordinateType min_mz, 
-      CoordinateType max_mz,      
+      CoordinateType max_mz,
+      Size ms_level,     
       std::vector<float>& rt, 
-      Size ms_level,
       std::vector<std::vector<float>>& mz,
       std::vector<std::vector<float>>& intensity, 
       std::vector<std::vector<float>>& ion_mobility) const
@@ -451,11 +451,13 @@ public:
       CoordinateType max_rt,
       CoordinateType min_mz,
       CoordinateType max_mz,
+      Size ms_level,
       std::vector<float>& rt,
       std::vector<float>& mz,
-      std::vector<float>& intensity) const
+      std::vector<float>& intensity) 
+      const
     {
-      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
       {
         rt.push_back((float)it.getRT());
         mz.push_back((float)it->getMZ());
