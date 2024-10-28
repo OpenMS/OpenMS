@@ -2162,6 +2162,238 @@ START_SECTION((void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, 
 }
 END_SECTION
 
+START_SECTION((std::vector<std::vector<MSExperiment::CoordinateType>> aggregateFromMatrix(const Matrix<double>& ranges, unsigned int ms_level, const std::string& mz_agg) const))
+{
+    // Create test experiment with known data
+    MSExperiment exp;
+    exp.resize(4);
+
+    // First spectrum (MS1) at RT=1.0
+    exp[0] = MSSpectrum{
+        {100.0, 1000.0},
+        {200.0, 2000.0},
+        {300.0, 3000.0}
+    };    
+    exp[0].setRT(1.0);
+    exp[0].setMSLevel(1);
+
+    // Second spectrum (MS2) at RT=2.0
+    exp[1] = MSSpectrum{
+      {150.0, 1500.0},
+      {250.0, 2500.0}
+    };
+    exp[1].setRT(2.0);
+    exp[1].setMSLevel(2);
+
+    // Third spectrum (MS1) at RT=3.0
+    exp[2] = MSSpectrum{
+        {100.0, 1100.0},
+        {200.0, 2100.0},
+        {300.0, 3100.0}
+    };
+    exp[2].setRT(3.0);
+    exp[2].setMSLevel(1);
+
+    // Fourth spectrum (MS1) at RT=4.0
+    exp[3] = MSSpectrum{
+        {100.0, 1200.0},
+        {200.0, 2200.0},
+        {300.0, 3200.0}
+    };
+    exp[3].setRT(4.0);
+    exp[3].setMSLevel(1);
+
+    exp.updateRanges();
+
+    // Test 1: Sum aggregation for MS1 spectra
+    {
+        Matrix<double> ranges(2, 4); // two rt-mz ranges, four columns with min_mz, max_mz, min_rt, max_rt
+        // Range 1: m/z 90-110, RT 0-3.5 (covers first and third spectra)
+        ranges(0, 0) = 90.0;  ranges(0, 1) = 110.0;
+        ranges(0, 2) = 0.0;   ranges(0, 3) = 3.5;
+
+        // Range 2: m/z 190-210, RT 0-5.0 (covers first, third, and fourth spectra)
+        ranges(1, 0) = 190.0; ranges(1, 1) = 210.0;
+        ranges(1, 2) = 0.0;   ranges(1, 3) = 5.0;
+
+        auto result = exp.aggregateFromMatrix(ranges, 1, "sum");
+
+        // Check results
+        TEST_EQUAL(result.size(), 2);
+
+        // Check Range 1 results
+        TEST_EQUAL(result[0].size(), 2);  // Should cover 2 spectra (1 and 3)
+        TEST_EQUAL(result[0][0], 1000.0); // First spectrum intensity RT = 1.0
+        TEST_EQUAL(result[0][1], 1100.0); // Third spectrum intensity RT = 3.0
+
+        // Check Range 2 results
+        TEST_EQUAL(result[1].size(), 3);   // Should cover 3 spectra (1, 3, and 4)
+        TEST_EQUAL(result[1][0], 2000.0);  // First spectrum intensity
+        TEST_EQUAL(result[1][1], 2100.0);  // Third spectrum intensity
+        TEST_EQUAL(result[1][2], 2200.0);  // Fourth spectrum intensity
+    }
+
+    // Test 2: Max aggregation for MS1 spectra
+    {
+        Matrix<double> ranges(1, 4);
+        // Range: m/z 100-300, RT 1-4 (covers first, third, and fourth spectra)
+        ranges(0,0) = 100.0; ranges(0,1) = 300.0;
+        ranges(0,2) = 1.0;   ranges(0,3) = 4.0;
+
+        auto result = exp.aggregateFromMatrix(ranges, 1, "max");
+
+        // Check results
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 3);
+        TEST_EQUAL(result[0][0], 3000.0); // First spectrum max intensity in range
+        TEST_EQUAL(result[0][1], 3100.0); // Third spectrum max intensity in range
+        TEST_EQUAL(result[0][2], 3200.0); // Fourth spectrum max intensity in range
+    }
+
+    // Test 3: Min aggregation for MS1 spectra
+    {
+        Matrix<double> ranges(1, 4);
+        // Range: m/z 100-300, RT 1-4 (covers first, third, and fourth spectra)
+        ranges(0,0) = 100.0; ranges(0,1) = 300.0;
+        ranges(0,2) = 1.0;   ranges(0,3) = 4.0;
+        auto result = exp.aggregateFromMatrix(ranges, 1, "min");
+
+        // Check results
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 3);
+        TEST_EQUAL(result[0][0], 1000.0); // First spectrum min intensity in range
+        TEST_EQUAL(result[0][1], 1100.0); // Third spectrum min intensity in range
+        TEST_EQUAL(result[0][2], 1200.0); // Fourth spectrum min intensity in range
+    }
+
+    // Test 4: Mean aggregation for MS1 spectra
+    {
+        Matrix<double> ranges(1, 4);
+        // Range: m/z 100-300, RT 0-5 (covers all MS1 spectra)
+        ranges(0,0) = 100.0; ranges(0,1) = 300.0;
+        ranges(0,2) = 0.0;   ranges(0,3) = 5.0;
+        auto result = exp.aggregateFromMatrix(ranges, 1, "mean");
+
+        // Check results
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 3);
+        TEST_REAL_SIMILAR(result[0][0], 2000.0); // First spectrum mean intensity
+        TEST_REAL_SIMILAR(result[0][1], 2100.0); // Third spectrum mean intensity
+        TEST_REAL_SIMILAR(result[0][2], 2200.0); // Fourth spectrum mean intensity
+    }
+
+    // Test 5: Invalid aggregation function
+    {
+        Matrix<double> ranges(1, 4);
+        ranges(0,0) = 100.0; ranges(0,1) = 200.0;
+        ranges(0,2) = 1.0;   ranges(0,3) = 2.0;
+        TEST_EXCEPTION(Exception::InvalidValue, exp.aggregateFromMatrix(ranges, 1, "invalid_agg"));
+    }
+
+    // Test 6: Invalid matrix dimensions (not 4 columns)
+    {
+        Matrix<double> ranges(1, 3);
+        ranges(0,0) = 100.0; ranges(0,1) = 200.0; ranges(0,2) = 1.0;
+        TEST_EXCEPTION(Exception::InvalidParameter, exp.aggregateFromMatrix(ranges, 1, "sum"));
+    }
+
+    // Test 7: Empty ranges matrix
+    {
+        Matrix<double> ranges(0, 4); // 0 rows, 4 columns
+        auto result = exp.aggregateFromMatrix(ranges, 1, "sum");
+        TEST_EQUAL(result.size(), 0);         // Expect an empty result
+    }
+
+    // Test 8: No matching spectra for given ms_level
+    {
+        Matrix<double> ranges(1, 4);
+        ranges(0,0) = 100.0; ranges(0,1) = 300.0;
+        ranges(0,2) = 0.0;   ranges(0,3) = 5.0;
+        auto result = exp.aggregateFromMatrix(ranges, 3, "sum"); // No spectra with MS level 3
+
+        // Failed to extract anything -> empty vector
+        TEST_EQUAL(result.size(), 0);
+    }
+
+}
+END_SECTION
+
+START_SECTION((std::vector<MSChromatogram> extractXICsFromMatrix(const Matrix<double>& ranges, unsigned int ms_level, const std::string& mz_agg) const))
+{
+    // Create test experiment with known data
+    MSExperiment exp;
+    exp.resize(4);
+
+     // First spectrum (MS1) at RT=1.0
+    exp[0] = MSSpectrum{
+        {100.0, 1000.0},
+        {200.0, 2000.0},
+        {300.0, 3000.0}
+    };    
+    exp[0].setRT(1.0);
+    exp[0].setMSLevel(1);
+
+    // Second spectrum (MS2) at RT=2.0
+    exp[1] = MSSpectrum{
+      {150.0, 1500.0},
+      {250.0, 2500.0}
+    };
+    exp[1].setRT(2.0);
+    exp[1].setMSLevel(2);
+
+    // Third spectrum (MS1) at RT=3.0
+    exp[2] = MSSpectrum{
+        {100.0, 1100.0},
+        {200.0, 2100.0},
+        {300.0, 3100.0}
+    };
+    exp[2].setRT(3.0);
+    exp[2].setMSLevel(1);
+
+    // Fourth spectrum (MS1) at RT=4.0
+    exp[3] = MSSpectrum{
+        {100.0, 1200.0},
+        {200.0, 2200.0},
+        {300.0, 3200.0}
+    };
+    exp[3].setRT(4.0);
+    exp[3].setMSLevel(1);
+
+    exp.updateRanges();
+
+    // Test 1: Sum aggregation for MS1 spectra
+    {
+        Matrix<double> ranges(2, 4);
+        // Range 1: m/z 90-110, RT 0-3.5 (covers first and third spectra)
+        ranges(0,0) = 90.0;  ranges(0,1) = 110.0;
+        ranges(0,2) = 0.0;   ranges(0,3) = 3.5;
+        // Range 2: m/z 190-210, RT 0-5.0 (covers first, third, and fourth spectra)
+        ranges(1,0) = 190.0; ranges(1,1) = 210.0;
+        ranges(1,2) = 0.0;   ranges(1,3) = 5.0;
+
+        unsigned int ms_level = 1;
+        std::string mz_agg = "sum";
+
+        auto result = exp.extractXICsFromMatrix(ranges, ms_level, mz_agg);
+
+        // Check results
+        TEST_EQUAL(result.size(), 2);
+
+        // Check Range 1 results
+        TEST_EQUAL(result[0].size(), 2);  // Should cover 2 spectra
+        TEST_REAL_SIMILAR(result[0][0].getIntensity(), 1000.0); // First spectrum intensity
+        TEST_REAL_SIMILAR(result[0][1].getIntensity(), 1100.0); // Third spectrum intensity
+
+        // Check Range 2 results
+        TEST_EQUAL(result[1].size(), 3);   // Should cover 3 spectra
+        TEST_REAL_SIMILAR(result[1][0].getIntensity(), 2000.0);  // First spectrum intensity
+        TEST_REAL_SIMILAR(result[1][1].getIntensity(), 2100.0);  // Third spectrum intensity
+        TEST_REAL_SIMILAR(result[1][2].getIntensity(), 2200.0);  // Fourth spectrum intensity
+    }
+
+}
+END_SECTION
+
 START_SECTION((void get2DPeakDataIM(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, Size ms_level, std::vector<float>& rt, std::vector<float>& mz, std::vector<float>& intensity, std::vector<float>& ion_mobility) const))
 {
   MSExperiment exp;

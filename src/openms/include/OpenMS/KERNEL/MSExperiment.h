@@ -13,6 +13,7 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
+#include <OpenMS/DATASTRUCTURES/Matrix.h>
 
 #include <vector>
 
@@ -689,7 +690,7 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
         auto start_it = spec.PosBegin(spec_begin, mz_range.getMinMZ(), spec_end);
         auto end_it = start_it;
         
-        while (end_it != spec_end && end_it->getPosition() < mz_range.getMaxMZ()) 
+        while (end_it != spec_end && end_it->getPosition() <= mz_range.getMaxMZ()) 
         {
           ++end_it;
         }
@@ -824,7 +825,7 @@ std::vector<MSChromatogram> extractXICs(
         auto start_it = spec.PosBegin(spec_begin, mz_range.getMinMZ(), spec_end);
         auto end_it = start_it;
         
-        while (end_it != spec_end && end_it->getPosition() < mz_range.getMaxMZ()) 
+        while (end_it != spec_end && end_it->getPosition() <= mz_range.getMaxMZ()) 
         {
           ++end_it;
         }
@@ -848,53 +849,169 @@ std::vector<MSChromatogram> extractXICs(
     return extractXICs(mz_rt_ranges, ms_level, SumIntensityReduction());
 }
 
-  // for python wrapper
-  /*
-  std::vector<MSExperiment::CoordinateType> aggregate(
-    ??? Matrix of mz_rt_ranges ???
-    unsigned int ms_level, 
-    const std::string& mz_agg) const // how intensity values should be accumulated in each mz range
+  /**
+   * @brief Wrapper for aggregate function that takes a matrix of m/z and RT ranges
+   * 
+   * @param ranges Matrix where each row contains [mz_min, mz_max, rt_min, rt_max]
+   * @param ms_level MS level to process
+   * @param mz_agg Aggregation function for m/z values ("sum", "max", "min", "mean")
+   * @return Vector of vectors containing aggregated intensity values for each range
+   */
+  std::vector<std::vector<MSExperiment::CoordinateType>> aggregateFromMatrix(
+      const Matrix<double>& ranges,
+      unsigned int ms_level,
+      const std::string& mz_agg) const
   {
-    if (mz_agg == "sum")
-    {
-      return aggregate(rt_start, rt_end, mz_start, mz_end, ms_level);       
-    }
-    else if (mz_agg == "max")
-    {
-      return aggregate(rt_start, rt_end, mz_start, mz_end, ms_level, 
-        [](auto begin_it, auto end_it) // peaks in m/z range 
-        { 
-          return std::accumulate(begin_it, end_it, 0.0, 
-            [](double a, const Peak1D& b) { return std::max(a, b.getIntensity())});
-        };
-    }
-    else if (mz_agg == "min")
-    {
-      return aggregate(rt_start, rt_end, mz_start, mz_end, ms_level, 
-        [](auto begin_it, auto end_it) // peaks in m/z range 
-        { 
-          return std::accumulate(begin_it, end_it, 0.0, 
-            [](double a, const Peak1D& b) { return std::min(a, b.getIntensity())});
-        });
-    }
-    else if (mz_agg == "mean")
-    {
-      return aggregate(rt_start, rt_end, mz_start, mz_end, ms_level, 
-        [](auto begin_it, auto end_it) // peaks in m/z range 
-        { 
-          double acc = std::accumulate(begin_it, end_it, 0.0, 
-            [](double a, const Peak1D& b) { return a + b.getIntensity(); });
+      // Check matrix dimensions
+      if (ranges.cols() != 4)
+      {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Range matrix must have 4 columns [mz_min, mz_max, rt_min, rt_max]");
+      }
 
-          if (begin_it == end_it) return 0.0;
-          return acc / (double)std::distance(begin_it, end_it);
-        });
-    }
-    else
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid aggregation function", mz_agg);
-    }
+      // Convert matrix rows to vector of pairs
+      std::vector<std::pair<RangeMZ, RangeRT>> mz_rt_ranges;
+      mz_rt_ranges.reserve((Size)ranges.rows());
+      
+      for (Size i = 0; i < (Size)ranges.rows(); ++i)
+      {
+          mz_rt_ranges.emplace_back(
+              RangeMZ(ranges(i, 0), ranges(i, 1)), // min max mz
+              RangeRT(ranges(i, 2), ranges(i, 3))  // min max rt
+          );
+      }
+
+      // Call appropriate aggregation function based on mz_agg parameter
+      if (mz_agg == "sum")
+      {
+          return aggregate(mz_rt_ranges, ms_level,
+              [](auto begin_it, auto end_it)
+              {
+                  return std::accumulate(begin_it, end_it, 0.0,
+                      [](double a, const Peak1D& b) { return a + b.getIntensity(); });
+              });
+      }
+      else if (mz_agg == "max")
+      {
+          return aggregate(mz_rt_ranges, ms_level,
+              [](auto begin_it, auto end_it)->double
+              {
+                  if (begin_it == end_it) return 0.0;
+                  return std::max_element(begin_it, end_it,
+                      [](const Peak1D& a, const Peak1D& b) { return a.getIntensity() < b.getIntensity(); }
+                  )->getIntensity();
+              });
+      }
+      else if (mz_agg == "min")
+      {
+          return aggregate(mz_rt_ranges, ms_level,
+              [](auto begin_it, auto end_it)->double
+              {
+                  if (begin_it == end_it) return 0.0;
+                  return std::min_element(begin_it, end_it,
+                      [](const Peak1D& a, const Peak1D& b) { return a.getIntensity() < b.getIntensity(); }
+                  )->getIntensity();
+              });
+      }
+      else if (mz_agg == "mean")
+      {
+          return aggregate(mz_rt_ranges, ms_level,
+              [](auto begin_it, auto end_it)
+              {
+                  if (begin_it == end_it) return 0.0;
+                  double sum = std::accumulate(begin_it, end_it, 0.0,
+                      [](double a, const Peak1D& b) { return a + b.getIntensity(); });
+                  return sum / static_cast<double>(std::distance(begin_it, end_it));
+              });
+      }
+      else
+      {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Invalid aggregation function", mz_agg);
+      }
   }
-  */
+
+  /**
+   * @brief Wrapper for extractXICs function that takes a matrix of m/z and RT ranges
+   * 
+   * @param ranges Matrix where each row contains [mz_min, mz_max, rt_min, rt_max]
+   * @param ms_level MS level to process
+   * @param mz_agg Aggregation function for m/z values ("sum", "max", "min", "mean")
+   * @return Vector of MSChromatogram objects, one for each range
+   */
+  std::vector<MSChromatogram> extractXICsFromMatrix(
+      const Matrix<double>& ranges,
+      unsigned int ms_level,
+      const std::string& mz_agg) const
+  {
+      // Check matrix dimensions
+      if (ranges.cols() != 4)
+      {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Range matrix must have 4 columns [mz_min, mz_max, rt_min, rt_max]");
+      }
+
+      // Convert matrix rows to vector of pairs
+      std::vector<std::pair<RangeMZ, RangeRT>> mz_rt_ranges;
+      mz_rt_ranges.reserve((Size)ranges.rows());
+      
+      for (Size i = 0; i < (Size)ranges.rows(); ++i)
+      {
+          mz_rt_ranges.emplace_back(
+              RangeMZ(ranges(i, 0), ranges(i, 1)),
+              RangeRT(ranges(i, 2), ranges(i, 3))
+          );
+      }
+
+      // Call appropriate extractXICs function based on mz_agg parameter
+      if (mz_agg == "sum")
+      {
+          return extractXICs(mz_rt_ranges, ms_level,
+              [](auto begin_it, auto end_it)
+              {
+                  return std::accumulate(begin_it, end_it, 0.0,
+                      [](double a, const Peak1D& b) { return a + b.getIntensity(); });
+              });
+      }
+      else if (mz_agg == "max")
+      {
+          return extractXICs(mz_rt_ranges, ms_level,
+              [](auto begin_it, auto end_it)->double
+              {
+                  if (begin_it == end_it) return 0.0;
+                  return std::max_element(begin_it, end_it,
+                      [](const Peak1D& a, const Peak1D& b) { return a.getIntensity() < b.getIntensity(); }
+                  )->getIntensity();
+              });
+      }
+      else if (mz_agg == "min")
+      {
+          return extractXICs(mz_rt_ranges, ms_level,
+              [](auto begin_it, auto end_it)->double
+              {
+                  if (begin_it == end_it) return 0.0;
+                  return std::min_element(begin_it, end_it,
+                      [](const Peak1D& a, const Peak1D& b) { return a.getIntensity() < b.getIntensity(); }
+                  )->getIntensity();
+              });
+      }
+      else if (mz_agg == "mean")
+      {
+          return extractXICs(mz_rt_ranges, ms_level,
+              [](auto begin_it, auto end_it)
+              {
+                  if (begin_it == end_it) return 0.0;
+                  double sum = std::accumulate(begin_it, end_it, 0.0,
+                      [](double a, const Peak1D& b) { return a + b.getIntensity(); });
+                  return sum / static_cast<double>(std::distance(begin_it, end_it));
+              });
+      }
+      else
+      {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Invalid aggregation function", mz_agg);
+      }
+  }
 
     /**
       @brief Fast search for spectrum range begin
