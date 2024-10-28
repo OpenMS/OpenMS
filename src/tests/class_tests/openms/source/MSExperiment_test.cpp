@@ -2098,7 +2098,7 @@ START_SECTION((void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, 
   // Test 1: Full range
   {
     std::vector<float> rt, mz, intensity;
-    exp.get2DPeakData(0.0, 4.0, 0.0, 300.0, rt, mz, intensity, 1);
+    exp.get2DPeakData(0.0, 4.0, 0.0, 300.0, 1, rt, mz, intensity);
     
     TEST_EQUAL(rt.size(), 4)
     TEST_EQUAL(mz.size(), 4)
@@ -2125,7 +2125,7 @@ START_SECTION((void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, 
   // Test 2: Limited RT range
   {
     std::vector<float> rt, mz, intensity;
-    exp.get2DPeakData(1.5, 2.5, 0.0, 300.0, rt, mz, intensity, 1);
+    exp.get2DPeakData(1.5, 2.5, 0.0, 300.0, 1, rt, mz, intensity);
     
     TEST_EQUAL(rt.size(), 2)
     TEST_EQUAL(mz.size(), 2)
@@ -2139,7 +2139,7 @@ START_SECTION((void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, 
   // Test 3: Limited MZ range
   {
     std::vector<float> rt, mz, intensity;
-    exp.get2DPeakData(0.0, 4.0, 120.0, 180.0, rt, mz, intensity, 1);
+    exp.get2DPeakData(0.0, 4.0, 120.0, 180.0, 1, rt, mz, intensity);
     
     TEST_EQUAL(rt.size(), 1)
     TEST_EQUAL(mz.size(), 1)
@@ -2153,7 +2153,7 @@ START_SECTION((void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, 
   // Test 4: Empty range
   {
     std::vector<float> rt, mz, intensity;
-    exp.get2DPeakData(5.0, 6.0, 0.0, 300.0, rt, mz, intensity, 1);
+    exp.get2DPeakData(5.0, 6.0, 0.0, 300.0, 1, rt, mz, intensity);
     
     TEST_EQUAL(rt.empty(), true)
     TEST_EQUAL(mz.empty(), true)
