@@ -2685,7 +2685,7 @@ def testMSExperiment():
     assert mse[0] is not None
 
     mse.updateRanges()
-    rt, mz, inty = mse.get2DPeakDataLong(mse.getMinRT(), mse.getMaxRT(), mse.getMinMZ(), mse.getMaxMZ())
+    rt, mz, inty = mse.get2DPeakDataLong(mse.getMinRT(), mse.getMaxRT(), mse.getMinMZ(), mse.getMaxMZ(), 1)
     assert rt.shape[0] == 2
     assert mz.shape[0] == 2
     assert inty.shape[0] == 2
