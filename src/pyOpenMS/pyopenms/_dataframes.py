@@ -13,6 +13,7 @@ from . import ControlledVocabulary as _ControlledVocabulary
 from . import File as _File
 from . import IonSource as _IonSource
 from . import MSSpectrum as _MSSpectrum
+from . import PeakSpectrum as _PeakSpectrum
 from . import MSChromatogram as _MSChromatogram
 from . import MRMTransitionGroupCP as _MRMTransitionGroupCP
 
@@ -719,6 +720,10 @@ class _MSSpectrumDF(_MSSpectrum):
 MSSpectrum = _MSSpectrumDF
 MSSpectrum.__module__ = _MSSpectrum.__module__
 MSSpectrum.__name__ = 'MSSpectrum'
+
+PeakSpectrum = _MSSpectrumDF
+PeakSpectrum.__module__ = _PeakSpectrum.__module__
+PeakSpectrum.__name__ = 'PeakSpectrum'
 
 class _ChromatogramType(_Enum):
     MASS_CHROMATOGRAM = 0
