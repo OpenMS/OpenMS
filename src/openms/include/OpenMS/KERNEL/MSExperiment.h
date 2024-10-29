@@ -594,7 +594,7 @@ struct SumIntensityReduction {
  */
 template<class MzReductionFunctionType>
 std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
-    std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
+    const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
     unsigned int ms_level,
     MzReductionFunctionType func_mz_reduction) const
 {
@@ -604,17 +604,6 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
       // likely an error, but we return an empty vector instead of throwing an exception for now
       return {};
     }
-
-    // Sort mz_rt_ranges by ascending MinMZ and descending MaxMZ
-    std::sort(mz_rt_ranges.begin(), mz_rt_ranges.end(), 
-        [](const auto& a, const auto& b) 
-        {
-          if (a.first.getMinMZ() != b.first.getMinMZ()) 
-          {
-            return a.first.getMinMZ() < b.first.getMinMZ();
-          }
-          return a.first.getMaxMZ() > b.first.getMaxMZ();
-        });
 
     // Create a view of the spectra with given MS level
     std::vector<std::reference_wrapper<const MSSpectrum>> spectra_view;
@@ -634,13 +623,16 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
     // If start and stop are the same, the range is empty
     auto getCoveredSpectra = [](
         const std::vector<std::reference_wrapper<const MSSpectrum>>& spectra_view, 
-        std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges) 
+        const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges) 
         ->  std::vector<std::pair<size_t, size_t>>
       {
         std::vector<std::pair<size_t, size_t>> res;
         res.reserve(mz_rt_ranges.size());
+        
         for (const auto & mz_rt : mz_rt_ranges) 
         {
+          // std::cout << "rt range: " << mz_rt.second.getMin() << " - " << mz_rt.second.getMax() << std::endl;
+          // std::cout << "specs start:" << spectra_view[0].get().getRT() << " specs end:" << spectra_view[spectra_view.size() - 1].get().getRT() << std::endl;
           auto start_it = std::lower_bound(spectra_view.begin(), spectra_view.end(), mz_rt.second.getMin(), 
             [](const auto& spec, double rt) 
             { return spec.get().getRT() < rt; });
@@ -653,6 +645,7 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
                 std::distance(spectra_view.begin(), start_it),
                 std::distance(spectra_view.begin(), stop_it)
             );
+            // std::cout << "start: " << std::distance(spectra_view.begin(), start_it) << " stop: " << std::distance(spectra_view.begin(), stop_it) << std::endl;
         }
         return res;
       };
@@ -671,7 +664,7 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
     {
         const auto& [start, stop] = rt_ranges_idcs[i];
         result[i].resize(stop - start);
-        
+        // std::cout << "start: " << start << " stop: " << stop << std::endl;
         for (size_t j = start; j < stop; ++j) 
         {
             spec_idx_to_range_idx[j].push_back(i);
@@ -697,6 +690,8 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
           ++end_it;
         }
 
+        // std::cout << "calculating reduction on range: " << range_idx << " for spectrum: " << i << " and peaks " << std::distance(spec.begin(), start_it) << " - " << std::distance(spec.begin(), end_it) << std::endl;
+
         // Calculate result using provided reduction function
         result[range_idx][i - rt_ranges_idcs[range_idx].first] = 
             func_mz_reduction(start_it, end_it);
@@ -707,7 +702,7 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
 
 // Overload without func_mz_reduction parameter (default to SumIntensityReduction). Needed because of template deduction issues
 std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
-    std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
+    const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
     unsigned int ms_level) const
 {
   return aggregate(mz_rt_ranges, ms_level, SumIntensityReduction());
@@ -727,7 +722,7 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
  */
 template<class MzReductionFunctionType>
 std::vector<MSChromatogram> extractXICs(
-    std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
+    const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
     unsigned int ms_level,
     MzReductionFunctionType func_mz_reduction) const
 {
@@ -737,17 +732,6 @@ std::vector<MSChromatogram> extractXICs(
       // likely an error, but we return an empty vector instead of throwing an exception for now
       return {};
     }
-
-    // Sort mz_rt_ranges by ascending MinMZ and descending MaxMZ
-    std::sort(mz_rt_ranges.begin(), mz_rt_ranges.end(), 
-        [](const auto& a, const auto& b) 
-        {
-          if (a.first.getMinMZ() != b.first.getMinMZ()) 
-          {
-            return a.first.getMinMZ() < b.first.getMinMZ();
-          }
-          return a.first.getMaxMZ() > b.first.getMaxMZ();
-        });
 
     // Create a view of the spectra with given MS level
     std::vector<std::reference_wrapper<const MSSpectrum>> spectra_view;
@@ -767,7 +751,7 @@ std::vector<MSChromatogram> extractXICs(
     // If start and stop are the same, the range is empty
     auto getCoveredSpectra = [](
         const std::vector<std::reference_wrapper<const MSSpectrum>>& spectra_view, 
-        std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges) 
+        const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges) 
         ->  std::vector<std::pair<size_t, size_t>>
       {
         std::vector<std::pair<size_t, size_t>> res;
@@ -845,7 +829,7 @@ std::vector<MSChromatogram> extractXICs(
 
 // Overload without func_mz_reduction parameter (needed because of template deduction issue)
 std::vector<MSChromatogram> extractXICs(
-    std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
+    const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
     unsigned int ms_level) const
 {
     return extractXICs(mz_rt_ranges, ms_level, SumIntensityReduction());
@@ -881,6 +865,7 @@ std::vector<MSChromatogram> extractXICs(
               RangeMZ(ranges(i, 0), ranges(i, 1)), // min max mz
               RangeRT(ranges(i, 2), ranges(i, 3))  // min max rt
           );
+          // std::cout << "mz: " << ranges(i, 0) << " - " << ranges(i, 1) << " rt: " << ranges(i, 2) << " - " << ranges(i, 3) << std::endl;
       }
 
       // Call appropriate aggregation function based on mz_agg parameter

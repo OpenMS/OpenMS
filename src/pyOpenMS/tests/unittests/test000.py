@@ -2733,6 +2733,60 @@ def testMSExperiment():
     assert ms1_df.shape == (332620, 8)
     assert np.allclose(ms1_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS1_MassQL_ION.tsv'), sep='\t'))
 
+    # test fast aggregation using ranges
+    pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)
+
+    # eluting peptide feature at these coordinates
+    rt_min = 1730.0
+    rt_max = 1770.0
+    iso1_mz = 443.711 # monoisotopic peak
+    iso2_mz = 444.212 # first isotopic peak
+    iso3_mz = 444.713 # second isotopic peak
+
+    no_iso1_mz = 444.000 # no peaks in this area
+    no_iso2_mz = 444.403 # some noise peaks in this area
+
+
+    # Create ranges matrix with structure:
+    # [[mz_min, mz_max, rt_min, rt_max], ...]
+    ranges_matrix = pyopenms.MatrixDouble.fromNdArray(
+         np.array([
+        # Expected isotope peaks
+        [iso1_mz - 0.1, iso1_mz + 0.1, rt_min, rt_max],
+        [iso2_mz - 0.1, iso2_mz + 0.1, rt_min, rt_max],
+        [iso3_mz - 0.1, iso3_mz + 0.1, rt_min, rt_max],
+        # Regions where we don't expect peaks
+        [no_iso1_mz - 0.1, no_iso1_mz + 0.1, rt_min, rt_max],
+        [no_iso2_mz - 0.1, no_iso2_mz + 0.1, rt_min, rt_max]
+    ])
+    )
+    
+    print (ranges_matrix.get_matrix())
+
+    agg_result = exp.aggregateFromMatrix(ranges_matrix, 1, b"sum")    
+    agg_result_array = np.array(agg_result)    # Convert result to numpy array for easier testing
+    print(agg_result)
+
+    xic_result = exp.extractXICsFromMatrix(ranges_matrix, 1, b"sum")
+    for chrom in xic_result:
+        print(chrom.getProduct().getMZ())
+        print(chrom.size())
+    
+    # Basic shape checks
+    assert len(result) == ranges_matrix.rows(), f"Expected {ranges_matrix.rows()} results, got {len(result)}"
+    
+    # Check that regions with expected peaks have higher values
+    isotope_intensities = result_array[:3]  # First three rows are isotope peaks
+    no_peak_intensities = result_array[3:]  # Last two rows are regions without peaks
+    
+    print(isotope_intensities)
+    print(no_peak_intensities)
+
+    assert np.mean(isotope_intensities) > np.mean(no_peak_intensities), \
+        f"Expected higher intensities in isotope regions using sum aggregation, got {np.mean(isotope_intensities)} vs {np.mean(no_peak_intensities)}"
+    
+    print(result)
+
 @report
 def testMSSpectrum():
     """
