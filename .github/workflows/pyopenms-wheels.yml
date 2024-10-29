@@ -137,11 +137,21 @@ jobs:
 
         done
       env: 
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CMAKE_GENERATOR: "Visual Studio 17 2022"
           CMAKE_GENERATOR_PLATFORM: "x64"
           OPENMS_CONTRIB_LIBS: "$GITHUB_WORKSPACE/OpenMS/contrib"
           #CMAKE_PREFIX_PATH: "$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" #TODO move this to env
           BUILD_TYPE: "Release"
+          BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}" #TODO make this more expressive
+          BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
+          CI_PROVIDER: "GitHub-Actions"
+          CMAKE_CCACHE_EXE: "ccache"
+          CCACHE_BASEDIR: ${{ github.workspace }}
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
+          CCACHE_COMPRESS: true
+          CCACHE_COMPRESSLEVEL: 12
+          CCACHE_MAXSIZE: 400M
 
 
     - name: Test
@@ -211,19 +221,24 @@ jobs:
     - name: Build
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
-        export CC=clang
-        export CXX=clang++
-        export MACOSX_DEPLOYMENT_TARGET=12
+        # export CC=clang
+        # export CXX=clang++
+        # export MACOSX_DEPLOYMENT_TARGET=12
         # Unfortunately, on macOS due to the inofficial way of enabling OpenMP on AppleClang, passing the following
         # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
         export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
         export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
 
         mkdir bld
-        pushd bld
+        # pushd bld
         # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
-        cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=12 -DBOOST_USE_STATIC=OFF ../OpenMS
-        make -j${{ steps.cpu-cores.outputs.count }} OpenMS
+
+        export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}"
+
+        ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
+
+        #cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=12 -DBOOST_USE_STATIC=OFF ../OpenMS
+        #make -j${{ steps.cpu-cores.outputs.count }} OpenMS
 
         mkdir pyopenms_whls
 
@@ -255,6 +270,26 @@ jobs:
           find . -name "_pyopenms*.so" -exec rm -rf {} \;
 
         done
+
+      env:
+          CC: "clang"
+          CXX: "clang++"
+          MACOSX_DEPLOYMENT_TARGET: "12"
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          CMAKE_GENERATOR: "Ninja"
+          #CMAKE_GENERATOR_PLATFORM: "x64"
+          OPENMS_CONTRIB_LIBS: "$GITHUB_WORKSPACE/OpenMS/contrib"
+          #CMAKE_PREFIX_PATH: "$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" #TODO move this to env
+          BUILD_TYPE: "Release"
+          BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}" #TODO make this more expressive
+          BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
+          CI_PROVIDER: "GitHub-Actions"
+          CMAKE_CCACHE_EXE: "ccache"
+          CCACHE_BASEDIR: ${{ github.workspace }}
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
+          CCACHE_COMPRESS: true
+          CCACHE_COMPRESSLEVEL: 12
+          CCACHE_MAXSIZE: 400M
 
     - name: Test
       shell: bash
