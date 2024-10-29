@@ -134,6 +134,16 @@ jobs:
 
         done
 
+    - name: Test
+      shell: bash
+      run: |
+           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
+      env:
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          CI_PROVIDER: "GitHub-Actions"
+          BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
+          # The rest of the vars should be saved in the CMakeCache
+
     - uses: actions/upload-artifact@v4
       name: Upload artifacts
       with:
@@ -235,6 +245,16 @@ jobs:
           find . -name "_pyopenms*.so" -exec rm -rf {} \;
 
         done
+
+    - name: Test
+      shell: bash
+      run: |
+            ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
+      env:
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          CI_PROVIDER: "GitHub-Actions"
+          BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
+          # The rest of the vars should be saved in the CMakeCache
 
     - uses: actions/upload-artifact@v4
       name: Upload artifacts
@@ -346,6 +366,16 @@ jobs:
           find . -name "_pyopenms*.so" -exec rm -rf {} \;
 
         done
+
+    - name: Test
+      shell: bash
+      run: |
+            ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
+      env:
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          CI_PROVIDER: "GitHub-Actions"
+          BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
+          # The rest of the vars should be saved in the CMakeCache
         
     - uses: actions/upload-artifact@v4
       name: Upload wheels
@@ -435,6 +465,16 @@ jobs:
           # deactivate the venv
           deactivate
         done
+
+    - name: Test
+      shell: bash
+      run: |
+            ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
+      env:
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          CI_PROVIDER: "GitHub-Actions"
+          BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
+          # The rest of the vars should be saved in the CMakeCache
 
     - uses: actions/upload-artifact@v4
       name: Upload artifacts
