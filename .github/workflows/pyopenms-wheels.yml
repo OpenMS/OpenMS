@@ -506,7 +506,7 @@ jobs:
           strip --strip-all OpenMS/bld/lib/libOpenMS.so
           strip --strip-all OpenMS/bld/lib/libOpenSwathAlgo.so
 
-          pushd pyOpenMS
+          pushd OpenMS/bld/pyOpenMS
             # Bundle stripped plus external shared libraries into the wheels
             for whl in dist/pyopenms*.whl; do
               auditwheel repair "$whl" -w wheelhouse/
@@ -530,7 +530,7 @@ jobs:
           BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
           NO_DEPENDENCIES: "ON"
           Python_FIND_STRATEGY: "LOCATION"
-          PYOPENMS: "On"
+          PYOPENMS: "ON"
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_CXX_COMPILER: "g++"
