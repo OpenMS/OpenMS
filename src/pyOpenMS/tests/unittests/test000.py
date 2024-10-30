@@ -2068,7 +2068,7 @@ def test_peptide_identifications_to_df():
 
     # update from dataframe
     df = pyopenms.peptide_identifications_to_df(peps)
-    df["ScoreType"][0] = 10.0
+    df.loc[0, "ScoreType"] = 10.0
     peps = pyopenms.update_scores_from_df(peps, df, "ScoreType")
     assert peps[0].getHits()[0].getScore() == 10.0
 
@@ -2783,10 +2783,11 @@ def testMSExperiment():
     assert mse2 == mse
 
     exp = pyopenms.MSExperiment()
-    for i in range(3):
+
+    for i in range(5):
         s = pyopenms.MSSpectrum()
         s.setRT(i)
-        s.setMSLevel(1)
+        s.setMSLevel(1 if i % 2 == 0 else 2)
 
         for mz in (500, 600):
             p = pyopenms.Peak1D()
@@ -2796,7 +2797,13 @@ def testMSExperiment():
 
         exp.addSpectrum(s)
 
-    assert exp.get_df().shape == (3,3)
+    assert exp.get_df().shape == (5, 4)
+    assert exp.get_df(ms_levels=[1]).shape == (3, 4)
+    assert exp.get_df(ms_levels=[2]).shape == (2, 4)
+
+    assert exp.get_df(long=True).shape == (10, 4)
+    assert exp.get_df(long = True, ms_levels=[1]).shape == (6, 4)
+    assert exp.get_df(long=True, ms_levels=[2]).shape == (4, 4)
 
     pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)
 
