@@ -462,8 +462,8 @@ jobs:
         yum install -y ninja-build # Install Ninja for build files
         cmake --version
 
-        mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
-        mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
+        #mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
+        #mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
 
         LD_OLD_LIBRARY_PATH=$LD_LIBRARY_PATH
 
@@ -503,8 +503,22 @@ jobs:
           export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
 
           # strip the libraries before repairing
-          strip --strip-all ${{ github.workspace }}/OpenMS/bld/lib/libOpenMS.so #TODO unhardcode this
-          strip --strip-all ${{ github.workspace }}/OpenMS/bld/lib/libOpenSwathAlgo.so
+          LIB_OPENMS=$(find . -name "libOpenMS.so")
+          LIB_OPENSWATHALGO=$(find . -name "libOpenSwathAlgo.so")
+
+          if [ -z "$LIB_OPENMS" ]; then
+            echo "libOpenMS.so not found"
+          else
+            echo "libOpenMS.so found at: $LIB_OPENMS"
+            strip --strip-all "$LIB_OPENMS" #TODO unhardcode this
+          fi
+
+          if [ -z "$LIB_OPENSWATHALGO" ]; then
+            echo "libOpenSwathAlgo.so not found"
+          else
+            echo "libOpenSwathAlgo.so found at: $LIB_OPENSWATHALGO"
+            strip --strip-all "$LIB_OPENSWATHALGO"
+          fi
 
           pushd pyOpenMS
             # Bundle stripped plus external shared libraries into the wheels
