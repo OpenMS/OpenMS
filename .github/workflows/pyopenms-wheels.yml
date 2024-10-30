@@ -527,12 +527,12 @@ jobs:
           CMAKE_CXX_COMPILER: "g++"
           CMAKE_PREFIX_PATH: "/contrib-build/"
           ENABLE_DOCS: "OFF"
-          #CMAKE_CCACHE_EXE: "ccache"
-          #CCACHE_BASEDIR: ${{ github.workspace }}
-          #CCACHE_DIR: ${{ github.workspace }}/.ccache
-          #CCACHE_COMPRESS: true
-          #CCACHE_COMPRESSLEVEL: 12
-          #CCACHE_MAXSIZE: 400M
+          CMAKE_CCACHE_EXE: "ccache"
+          CCACHE_BASEDIR: ${{ github.workspace }}
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
+          CCACHE_COMPRESS: true
+          CCACHE_COMPRESSLEVEL: 12
+          CCACHE_MAXSIZE: 400M
 
     - name: Test
       shell: bash
