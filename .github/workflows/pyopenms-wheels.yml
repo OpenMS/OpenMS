@@ -467,8 +467,11 @@ jobs:
 
         mkdir openms-build
         cd openms-build
-        cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
-        make -j${{ steps.cpu-cores.outputs.count }} OpenMS
+
+        ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
+
+        # cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
+        # make -j${{ steps.cpu-cores.outputs.count }} OpenMS
 
         # compile and configure OpenMS
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
@@ -485,7 +488,7 @@ jobs:
           "$PYBIN/bin/pip" install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
 
           # configure (don't copy deps since we use auditwheel)
-          cmake -DNO_DEPENDENCIES=ON -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} $GITHUB_WORKSPACE/OpenMS
+          cmake -DNO_DEPENDENCIES=ON -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} $GITHUB_WORKSPACE/OpenMS
           make -j${{ steps.cpu-cores.outputs.count }} pyopenms
           
           # ensure auditwheel can find the libraries
@@ -510,6 +513,23 @@ jobs:
           # deactivate the venv
           deactivate
         done
+      env: 
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          CMAKE_GENERATOR: "Ninja"
+          CMAKE_GENERATOR_PLATFORM: "x64"
+          OPENMS_CONTRIB_LIBS: "/contrib-build/"
+          #CMAKE_PREFIX_PATH: "$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" #TODO move this to env
+          BUILD_TYPE: "Release"
+          BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}" #TODO make this more expressive
+          BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
+          CI_PROVIDER: "GitHub-Actions"
+          CMAKE_CCACHE_EXE: "ccache"
+          CMAKE_PREFIX_PATH: "/contrib-build/"
+          CCACHE_BASEDIR: ${{ github.workspace }}
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
+          CCACHE_COMPRESS: true
+          CCACHE_COMPRESSLEVEL: 12
+          CCACHE_MAXSIZE: 400M
 
     - name: Test
       shell: bash
