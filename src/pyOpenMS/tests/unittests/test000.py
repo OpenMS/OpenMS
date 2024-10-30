@@ -5,6 +5,7 @@ from __future__ import print_function
 import pyopenms
 import copy
 import os
+import logging
 
 from pyopenms import String as s
 import numpy as np
@@ -2612,6 +2613,84 @@ def testLogType():
     assert isinstance(pyopenms.LogType.GUI, int)
     assert isinstance(pyopenms.LogType.NONE, int)
 
+# performance measurement helper for XIC and peak extraction
+import time
+import random
+from typing import Tuple, List
+
+def generate_random_ranges(exp: pyopenms.MSExperiment, 
+                         n_ranges: int,
+                         rt_width: float,
+                         mz_width: float) -> np.ndarray:
+    """
+    Generate random ranges within the experiment bounds.
+    
+    Args:
+        exp: MSExperiment object
+        n_ranges: Number of ranges to generate
+        rt_width: Width of RT window
+        mz_width: Width of m/z window
+        
+    Returns:
+        numpy array of shape (n_ranges, 4) with [mz_min, mz_max, rt_min, rt_max]
+    """
+
+    # Set the seed
+    np.random.seed(4711)
+    
+    min_mz = exp.getMinMZ()
+    max_mz = exp.getMaxMZ()
+    min_rt = exp.getMinRT()
+    max_rt = exp.getMaxRT()    
+    print(f"spectra min_mz: {min_mz}, max_mz: {max_mz}, min_rt: {min_rt}, max_rt: {max_rt}")
+
+    # Generate random centers
+    mz_centers = np.random.uniform(min_mz + mz_width/2, max_mz - mz_width/2, n_ranges)
+    rt_centers = np.random.uniform(min_rt + rt_width/2, max_rt - rt_width/2, n_ranges)
+    
+    # Create ranges array
+    ranges = np.zeros((n_ranges, 4))
+    ranges[:, 0] = mz_centers - mz_width/2  # mz_min
+    ranges[:, 1] = mz_centers + mz_width/2  # mz_max
+    ranges[:, 2] = rt_centers - rt_width/2  # rt_min
+    ranges[:, 3] = rt_centers + rt_width/2  # rt_max
+    
+    return ranges
+
+def extraction_performance_test(exp: pyopenms.MSExperiment) -> Tuple[float, float]:
+    """
+    Run performance test for both aggregateFromMatrix and extractXICsFromMatrix
+    
+    Args:
+        exp: MSExperiment object
+        
+    Returns:
+        Tuple of (aggregate_time, xic_time)
+    """
+    # Generate 1_000,000 random ranges
+    print("\nGenerating random ranges...")
+    ranges = generate_random_ranges(exp, 
+                                  n_ranges=1_000_000,
+                                  rt_width=60.0,
+                                  mz_width=0.01)
+    
+    # Convert to MatrixDouble
+    ranges_matrix = pyopenms.MatrixDouble.fromNdArray(ranges)
+    
+    # Time aggregateFromMatrix
+    print("Running aggregateFromMatrix...")
+    start_time = time.time()
+    _ = exp.aggregateFromMatrix(ranges_matrix, 1, b"sum")
+    aggregate_time = time.time() - start_time
+    
+    # Time extractXICsFromMatrix
+    print("Running extractXICsFromMatrix...")
+    start_time = time.time()
+    _ = exp.extractXICsFromMatrix(ranges_matrix, 1, b"sum")
+    xic_time = time.time() - start_time
+    
+    return aggregate_time, xic_time
+
 @report
 def testMSExperiment():
     """
@@ -2736,7 +2815,7 @@ def testMSExperiment():
     #####################################################################################
     # test fast aggregation and XIC extraction using ranges
     pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)
-
+    exp.updateRanges();
     # eluting peptide feature at these coordinates
     rt_min = 1730.0
     rt_max = 1770.0
@@ -2864,6 +2943,15 @@ def testMSExperiment():
             assert rt_min <= details['rt_range'][1] <= rt_max, \
                 f"XIC {i+1}: End RT {details['rt_range'][1]} outside expected range [{rt_min}, {rt_max}]"
 
+    ############################################################################
+    # Uncomment to run performance tests
+    # print("\nStarting performance tests...")
+    # aggregate_time, xic_time = extraction_performance_test(exp)    
+    # print("\nPerformance Results:")
+    # print(f"aggregateFromMatrix time for 1M ranges: {aggregate_time:.2f} seconds")
+    # print(f"extractXICsFromMatrix time for 1M ranges: {xic_time:.2f} seconds")
+    # print(f"Ratio (XIC/aggregate): {xic_time/aggregate_time:.2f}")
+    # assert false
 
 @report
 def testMSSpectrum():

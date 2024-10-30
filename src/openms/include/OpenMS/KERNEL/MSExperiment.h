@@ -674,11 +674,14 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
    #pragma omp parallel for schedule(dynamic)
    for (Int64 i = 0; i < (Int64)spec_idx_to_range_idx.size(); ++i) // OpenMP on windows still requires signed loop variable
    {
+      if (spec_idx_to_range_idx[i].empty()) continue; // no ranges for this spectrum? skip it
+
       const auto& spec = spectra_view[i].get();
       auto spec_begin = spec.cbegin();
       auto spec_end = spec.cend();
 
-      for (size_t range_idx : spec_idx_to_range_idx[i]) {
+      for (size_t range_idx : spec_idx_to_range_idx[i]) 
+      {
         const auto& mz_range = mz_rt_ranges[range_idx].first;
         
         // Find data points within MZ range
@@ -785,7 +788,7 @@ std::vector<MSChromatogram> extractXICs(
 
     // Build spectrum to range index mapping
     for (size_t i = 0; i < rt_ranges_idcs.size(); ++i) 
-    {
+    {        
         const auto& [start, stop] = rt_ranges_idcs[i];
         result[i].resize(stop - start);
         result[i].getProduct().setMZ(
@@ -799,12 +802,14 @@ std::vector<MSChromatogram> extractXICs(
    #pragma omp parallel for schedule(dynamic)
    for (Int64 i = 0; i < (Int64)spec_idx_to_range_idx.size(); ++i) // OpenMP on windows still requires signed loop variable
    {
+      if (spec_idx_to_range_idx[i].empty()) continue; // no ranges for this spectrum? skip it
       const auto& spec = spectra_view[i].get();
       const double rt = spec.getRT();
       MSSpectrum::ConstIterator spec_begin = spec.cbegin();
       MSSpectrum::ConstIterator spec_end = spec.cend();
 
-      for (size_t range_idx : spec_idx_to_range_idx[i]) {
+      for (size_t range_idx : spec_idx_to_range_idx[i]) 
+      {
         const auto& mz_range = mz_rt_ranges[range_idx].first;
         
         // Find data points within MZ range
