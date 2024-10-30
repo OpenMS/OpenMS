@@ -517,7 +517,7 @@ jobs:
           export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH
           
           # clean previous pyopenms libs
-          rm pyOpenMS/pyopenms/_pyopenms*.so
+          rm OpenMS/bld/pyOpenMS/pyopenms/_pyopenms*.so
           # deactivate the venv
           deactivate
         done
