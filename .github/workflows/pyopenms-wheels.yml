@@ -503,8 +503,8 @@ jobs:
           export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
 
           # strip the libraries before repairing
-          strip --strip-all lib/libOpenMS.so
-          strip --strip-all lib/libOpenSwathAlgo.so
+          strip --strip-all ${{ github.workspace }}/OpenMS/bld/lib/libOpenMS.so #TODO unhardcode this
+          strip --strip-all ${{ github.workspace }}/OpenMS/bld/lib/libOpenSwathAlgo.so
 
           pushd pyOpenMS
             # Bundle stripped plus external shared libraries into the wheels
@@ -534,6 +534,7 @@ jobs:
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_CXX_COMPILER: "g++"
           CMAKE_PREFIX_PATH: "/contrib-build/"
+          ENABLE_TUTORIALS: "OFF"
           ENABLE_DOCS: "OFF"
           ENABLE_STYLE_TESTING: "OFF"
 
