@@ -477,6 +477,10 @@ jobs:
 
         # compile and configure OpenMS
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
+
+          # clean previous pyopenms libs, do at the top so that we leave the final libraries for testing
+          rm OpenMS/bld/pyOpenMS/pyopenms/_pyopenms*.so
+        
           py=$(echo "$py" | tr -d " \n")
           pynodot=$(echo "$py" | tr -d ".")
           PYBIN=$(echo /opt/python/cp*${pynodot})
@@ -516,8 +520,6 @@ jobs:
           popd
           export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH
           
-          # clean previous pyopenms libs
-          rm OpenMS/bld/pyOpenMS/pyopenms/_pyopenms*.so
           # deactivate the venv
           deactivate
         done
