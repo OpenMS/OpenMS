@@ -469,6 +469,9 @@ jobs:
         rm -rf openms-build && mkdir openms-build # Clobber any old builds
         cd openms-build
 
+        echo $LD_OLD_LIBRARY_PATH
+        echo $CMAKE_GENERATOR_PLATFORM
+        echo $CMAKE_CXX_COMPILER
         ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
 
         # cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
@@ -525,8 +528,8 @@ jobs:
           BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_CXX_COMPILER: "g++"
-          #CMAKE_CCACHE_EXE: "ccache"
           CMAKE_PREFIX_PATH: "/contrib-build/"
+          #CMAKE_CCACHE_EXE: "ccache"
           #CCACHE_BASEDIR: ${{ github.workspace }}
           #CCACHE_DIR: ${{ github.workspace }}/.ccache
           #CCACHE_COMPRESS: true
