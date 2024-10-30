@@ -503,8 +503,8 @@ jobs:
           export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
 
           # strip the libraries before repairing
-          LIB_OPENMS=$(find . -name "libOpenMS.so")
-          LIB_OPENSWATHALGO=$(find . -name "libOpenSwathAlgo.so")
+          LIB_OPENMS=$(find / -name "libOpenMS.so")
+          LIB_OPENSWATHALGO=$(find / -name "libOpenSwathAlgo.so")
 
           if [ -z "$LIB_OPENMS" ]; then
             echo "libOpenMS.so not found"
