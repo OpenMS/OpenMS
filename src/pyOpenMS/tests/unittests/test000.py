@@ -2657,7 +2657,7 @@ def generate_random_ranges(exp: pyopenms.MSExperiment,
     
     return ranges
 
-def extraction_performance_test(exp: pyopenms.MSExperiment) -> Tuple[float, float]:
+def extraction_performance_test(exp: pyopenms.MSExperiment, ms_level: int) -> Tuple[float, float]:
     """
     Run performance test for both aggregateFromMatrix and extractXICsFromMatrix
     
@@ -2680,13 +2680,13 @@ def extraction_performance_test(exp: pyopenms.MSExperiment) -> Tuple[float, floa
     # Time aggregateFromMatrix
     print("Running aggregateFromMatrix...")
     start_time = time.time()
-    _ = exp.aggregateFromMatrix(ranges_matrix, 1, b"sum")
+    _ = exp.aggregateFromMatrix(ranges_matrix, ms_level, b"sum")
     aggregate_time = time.time() - start_time
     
     # Time extractXICsFromMatrix
     print("Running extractXICsFromMatrix...")
     start_time = time.time()
-    _ = exp.extractXICsFromMatrix(ranges_matrix, 1, b"sum")
+    _ = exp.extractXICsFromMatrix(ranges_matrix, ms_level, b"sum")
     xic_time = time.time() - start_time
     
     return aggregate_time, xic_time
@@ -2814,8 +2814,26 @@ def testMSExperiment():
 
     #####################################################################################
     # test fast aggregation and XIC extraction using ranges
-    pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)
+    pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)    
     exp.updateRanges();
+
+    ############################################################################
+    # Uncomment to run performance tests
+    # print("\nStarting performance tests MS1...")
+    # aggregate_time, xic_time = extraction_performance_test(exp, 1) # Run performance tests on MS level 1   
+    # print("\nPerformance Results:")
+    # print(f"aggregateFromMatrix time for 1M ranges: {aggregate_time:.2f} seconds")
+    # print(f"extractXICsFromMatrix time for 1M ranges: {xic_time:.2f} seconds")
+    # print(f"Ratio (XIC/aggregate): {xic_time/aggregate_time:.2f}")
+
+    # print("\nStarting performance tests MS2...")
+    # aggregate_time, xic_time = extraction_performance_test(exp, 2) # Run performance tests on MS level 1   
+    # print("\nPerformance Results:")
+    # print(f"aggregateFromMatrix time for 1M ranges: {aggregate_time:.2f} seconds")
+    # print(f"extractXICsFromMatrix time for 1M ranges: {xic_time:.2f} seconds")
+    # print(f"Ratio (XIC/aggregate): {xic_time/aggregate_time:.2f}")
+    # assert false # needed to output the results
+
     # eluting peptide feature at these coordinates
     rt_min = 1730.0
     rt_max = 1770.0
@@ -2943,15 +2961,6 @@ def testMSExperiment():
             assert rt_min <= details['rt_range'][1] <= rt_max, \
                 f"XIC {i+1}: End RT {details['rt_range'][1]} outside expected range [{rt_min}, {rt_max}]"
 
-    ############################################################################
-    # Uncomment to run performance tests
-    # print("\nStarting performance tests...")
-    # aggregate_time, xic_time = extraction_performance_test(exp)    
-    # print("\nPerformance Results:")
-    # print(f"aggregateFromMatrix time for 1M ranges: {aggregate_time:.2f} seconds")
-    # print(f"extractXICsFromMatrix time for 1M ranges: {xic_time:.2f} seconds")
-    # print(f"Ratio (XIC/aggregate): {xic_time/aggregate_time:.2f}")
-    # assert false
 
 @report
 def testMSSpectrum():

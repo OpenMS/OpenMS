@@ -759,6 +759,7 @@ std::vector<MSChromatogram> extractXICs(
       {
         std::vector<std::pair<size_t, size_t>> res;
         res.reserve(mz_rt_ranges.size());
+
         for (const auto & mz_rt : mz_rt_ranges) 
         {
           auto start_it = std::lower_bound(spectra_view.begin(), spectra_view.end(), mz_rt.second.getMin(), 
@@ -802,11 +803,12 @@ std::vector<MSChromatogram> extractXICs(
    #pragma omp parallel for schedule(dynamic)
    for (Int64 i = 0; i < (Int64)spec_idx_to_range_idx.size(); ++i) // OpenMP on windows still requires signed loop variable
    {
-      if (spec_idx_to_range_idx[i].empty()) continue; // no ranges for this spectrum? skip it
+      if (spec_idx_to_range_idx[i].empty()) continue; // no ranges for this spectrum? skip 
+      
       const auto& spec = spectra_view[i].get();
       const double rt = spec.getRT();
-      MSSpectrum::ConstIterator spec_begin = spec.cbegin();
-      MSSpectrum::ConstIterator spec_end = spec.cend();
+      auto spec_begin = spec.cbegin();
+      auto spec_end = spec.cend();
 
       for (size_t range_idx : spec_idx_to_range_idx[i]) 
       {
