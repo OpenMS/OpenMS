@@ -490,7 +490,7 @@ jobs:
           "$PYBIN/bin/pip" install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
 
           # configure (don't copy deps since we use auditwheel)
-          cmake -DNO_DEPENDENCIES=ON -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} $GITHUB_WORKSPACE/OpenMS
+          cmake -DNO_DEPENDENCIES=ON -DPYOPENMS=On -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} $GITHUB_WORKSPACE/OpenMS
           ninja-build -j${{ steps.cpu-cores.outputs.count }} pyopenms
           
           # ensure auditwheel can find the libraries
