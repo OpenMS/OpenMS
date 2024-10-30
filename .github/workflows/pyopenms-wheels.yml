@@ -524,7 +524,7 @@ jobs:
           BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}" #TODO make this more expressive
           BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
           CI_PROVIDER: "GitHub-Actions"
-          CMAKE_CXX_COMPILER: "clang++"
+          CMAKE_CXX_COMPILER: "g++"
           CMAKE_CCACHE_EXE: "ccache"
           CMAKE_PREFIX_PATH: "/contrib-build/"
           CCACHE_BASEDIR: ${{ github.workspace }}
