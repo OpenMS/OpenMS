@@ -538,6 +538,8 @@ jobs:
           ENABLE_TUTORIALS: "OFF"
           ENABLE_DOCS: "OFF"
           ENABLE_STYLE_TESTING: "OFF"
+          ENABLE_TOPP_TESTING: "OFF"
+          ENABLE_CLASS_TESTING: "OFF"
 
     - name: Test
       shell: bash
