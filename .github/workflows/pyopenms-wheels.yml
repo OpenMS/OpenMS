@@ -479,7 +479,9 @@ jobs:
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
 
           # clean previous pyopenms libs, do at the top so that we leave the final libraries for testing
-          rm OpenMS/bld/pyOpenMS/pyopenms/_pyopenms*.so
+          if [ -d "OpenMS/bld/pyOpenMS/pyopenms" ]; then
+            rm OpenMS/bld/pyOpenMS/pyopenms/_pyopenms*.so
+          fi
         
           py=$(echo "$py" | tr -d " \n")
           pynodot=$(echo "$py" | tr -d ".")
