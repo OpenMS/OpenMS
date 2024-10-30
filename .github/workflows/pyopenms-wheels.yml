@@ -528,12 +528,6 @@ jobs:
           CMAKE_PREFIX_PATH: "/contrib-build/"
           ENABLE_DOCS: "OFF"
           ENABLE_STYLE_TESTING: "OFF"
-          CMAKE_CCACHE_EXE: "ccache"
-          CCACHE_BASEDIR: ${{ github.workspace }}
-          CCACHE_DIR: ${{ github.workspace }}/.ccache
-          CCACHE_COMPRESS: true
-          CCACHE_COMPRESSLEVEL: 12
-          CCACHE_MAXSIZE: 400M
 
     - name: Test
       shell: bash
