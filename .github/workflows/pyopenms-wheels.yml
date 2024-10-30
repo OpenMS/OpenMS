@@ -491,7 +491,7 @@ jobs:
 
           # configure (don't copy deps since we use auditwheel)
           cmake -DNO_DEPENDENCIES=ON -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} $GITHUB_WORKSPACE/OpenMS
-          make -j${{ steps.cpu-cores.outputs.count }} pyopenms
+          ninja-build -j${{ steps.cpu-cores.outputs.count }} pyopenms
           
           # ensure auditwheel can find the libraries
           export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
@@ -526,6 +526,7 @@ jobs:
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_CXX_COMPILER: "g++"
           CMAKE_PREFIX_PATH: "/contrib-build/"
+          ENABLE_DOCS: "OFF"
           #CMAKE_CCACHE_EXE: "ccache"
           #CCACHE_BASEDIR: ${{ github.workspace }}
           #CCACHE_DIR: ${{ github.workspace }}/.ccache
