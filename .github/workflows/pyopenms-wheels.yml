@@ -500,7 +500,7 @@ jobs:
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
           
           # ensure auditwheel can find the libraries
-          export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
+          export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/OpenMS/bld/lib
 
           # strip the libraries before repairing
           strip --strip-all OpenMS/bld/lib/libOpenMS.so
