@@ -470,7 +470,7 @@ jobs:
         rm -rf openms-build && mkdir openms-build # Clobber any old builds
         cd openms-build
 
-        ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
+        # ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
 
         # cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
         # make -j${{ steps.cpu-cores.outputs.count }} OpenMS
@@ -490,8 +490,13 @@ jobs:
           "$PYBIN/bin/pip" install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
 
           # configure (don't copy deps since we use auditwheel)
-          cmake -DNO_DEPENDENCIES=ON -DPYOPENMS=On -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} $GITHUB_WORKSPACE/OpenMS
-          ninja-build -j${{ steps.cpu-cores.outputs.count }} pyopenms
+
+          export Python_ROOT_DIR=$PYBIN
+
+          #cmake -DNO_DEPENDENCIES=ON -DPYOPENMS=On -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} $GITHUB_WORKSPACE/OpenMS
+          #ninja-build -j${{ steps.cpu-cores.outputs.count }} pyopenms
+
+          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
           
           # ensure auditwheel can find the libraries
           export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
@@ -523,6 +528,9 @@ jobs:
           BUILD_TYPE: "Release"
           BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}" #TODO make this more expressive
           BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
+          NO_DEPENDENCIES: "ON"
+          Python_FIND_STRATEGY: "LOCATION"
+          PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_CXX_COMPILER: "g++"
           CMAKE_PREFIX_PATH: "/contrib-build/"
