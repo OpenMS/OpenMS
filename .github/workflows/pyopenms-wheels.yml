@@ -429,7 +429,7 @@ jobs:
         path: bld/pyopenms_whls
 
   build-lnx:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-latest]
     container: ghcr.io/openms/contrib_manylinux_2_28:latest
 
     steps:
