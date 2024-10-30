@@ -462,13 +462,13 @@ jobs:
         yum install -y ninja-build # Install Ninja for build files
         cmake --version
 
-        #mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
-        #mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
+        mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
+        mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
 
         LD_OLD_LIBRARY_PATH=$LD_LIBRARY_PATH
 
-        rm -rf openms-build && mkdir openms-build # Clobber any old builds
-        cd openms-build
+        #rm -rf openms-build && mkdir openms-build # Clobber any old builds
+        #cd openms-build
 
         # ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
 
