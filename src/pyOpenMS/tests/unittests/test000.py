@@ -2733,7 +2733,8 @@ def testMSExperiment():
     assert ms1_df.shape == (332620, 8)
     assert np.allclose(ms1_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS1_MassQL_ION.tsv'), sep='\t'))
 
-    # test fast aggregation using ranges
+    #####################################################################################
+    # test fast aggregation and XIC extraction using ranges
     pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)
 
     # eluting peptide feature at these coordinates
@@ -2761,31 +2762,110 @@ def testMSExperiment():
     ])
     )
     
+    # Print ranges matrix for verification
+    print("Ranges Matrix:")
     print (ranges_matrix.get_matrix())
 
     agg_result = exp.aggregateFromMatrix(ranges_matrix, 1, b"sum")    
     agg_result_array = np.array(agg_result)    # Convert result to numpy array for easier testing
+
+    print("\nAggregation Results:")
     print(agg_result)
 
-    xic_result = exp.extractXICsFromMatrix(ranges_matrix, 1, b"sum")
-    for chrom in xic_result:
-        print(chrom.getProduct().getMZ())
-        print(chrom.size())
-    
     # Basic shape checks
-    assert len(result) == ranges_matrix.rows(), f"Expected {ranges_matrix.rows()} results, got {len(result)}"
+    assert len(agg_result_array) == ranges_matrix.rows(), f"Expected {ranges_matrix.rows()} results, got {len(agg_result_array)}"
     
     # Check that regions with expected peaks have higher values
-    isotope_intensities = result_array[:3]  # First three rows are isotope peaks
-    no_peak_intensities = result_array[3:]  # Last two rows are regions without peaks
+    isotope_intensities = agg_result_array[:3]  # First three rows are isotope peaks
+    no_peak_intensities = agg_result_array[3:]  # Last two rows are regions without peaks
     
     print(isotope_intensities)
     print(no_peak_intensities)
-
-    assert np.mean(isotope_intensities) > np.mean(no_peak_intensities), \
-        f"Expected higher intensities in isotope regions using sum aggregation, got {np.mean(isotope_intensities)} vs {np.mean(no_peak_intensities)}"
+ 
+    print("\nIsotope Peak Arrays and Their Sums:")
+    isotope_sums = []
+    for i, intensity_array in enumerate(isotope_intensities):
+        array_sum = np.sum(intensity_array)
+        isotope_sums.append(array_sum)
+        print(f"Isotope {i+1} array: {intensity_array}")
+        print(f"Isotope {i+1} sum: {array_sum}")
     
-    print(result)
+    print("\nNo-Peak Region Arrays and Their Sums:")
+    no_peak_sums = []
+    for i, intensity_array in enumerate(no_peak_intensities):
+        array_sum = np.sum(intensity_array)
+        no_peak_sums.append(array_sum)
+        print(f"No-peak region {i+1} array: {intensity_array}")
+        print(f"No-peak region {i+1} sum: {array_sum}")
+
+    # Placeholder assertions for expected values
+    # Replace these values with the actual expected sums
+    EXPECTED_ISO_SUMS = [24680058.50, 11043987.94, 3141677.76]  # Replace with expected sums for each isotope array
+    EXPECTED_NO_PEAK_SUMS = [0.0, 12322.06]  # Replace with expected sums for each no-peak array
+    
+    # Test each isotope array sum
+    for i, (actual_sum, expected_sum) in enumerate(zip(isotope_sums, EXPECTED_ISO_SUMS)):
+        assert np.isclose(actual_sum, expected_sum, rtol=1e-5), \
+            f"Expected isotope {i+1} sum {expected_sum}, got {actual_sum}"
+    
+    # Test each no-peak array sum
+    for i, (actual_sum, expected_sum) in enumerate(zip(no_peak_sums, EXPECTED_NO_PEAK_SUMS)):
+        assert np.isclose(actual_sum, expected_sum, rtol=1e-5), \
+            f"Expected no-peak region {i+1} sum {expected_sum}, got {actual_sum}"
+
+
+    xic_result = exp.extractXICsFromMatrix(ranges_matrix, 1, b"sum")
+    print("\nXIC Results:")
+    for chrom in xic_result:
+        print(f"m/z: {chrom.getProduct().getMZ()}")
+        print(f"Size: {chrom.size()}")
+
+    xic_details = []
+    for i, chrom in enumerate(xic_result):
+        # Get basic XIC information
+        mz = chrom.getProduct().getMZ()
+        size = chrom.size()
+        
+        # Get intensity values from the chromatogram
+        intensities = [point.getIntensity() for point in chrom]
+        rt_values = [point.getRT() for point in chrom]
+        total_intensity = sum(intensities)
+        
+        details = {
+            'mz': mz,
+            'size': size,
+            'total_intensity': total_intensity,
+            'rt_range': (min(rt_values), max(rt_values)) if rt_values else (None, None)
+        }
+        xic_details.append(details)
+        
+        print(f"\nXIC {i+1}:")
+        print(f"m/z: {mz}")
+        print(f"Number of points: {size}")
+        print(f"Total intensity: {total_intensity}")
+        print(f"RT range: {details['rt_range']}")
+
+    # XIC expectations
+    EXPECTED_XIC_SIZES = [24, 24, 24, 24, 24]  # Expected number of points in each XIC
+    EXPECTED_XIC_TOTAL_INTENSITIES = [24680058.50, 11043987.94, 3141677.76, 0.0, 12322.06]  # Expected total intensity for each XIC
+    
+    # Test XIC results
+    for i, (details, exp_size, exp_total) in enumerate(zip(
+            xic_details, EXPECTED_XIC_SIZES, EXPECTED_XIC_TOTAL_INTENSITIES)):
+        
+        assert details['size'] == exp_size, \
+            f"XIC {i+1}: Expected {exp_size} points, got {details['size']}"
+        
+        assert np.isclose(details['total_intensity'], exp_total, rtol=1e-5), \
+            f"XIC {i+1}: Expected total intensity {exp_total}, got {details['total_intensity']}"
+                
+        # Verify RT range falls within expected bounds
+        if details['rt_range'][0] is not None:
+            assert rt_min <= details['rt_range'][0] <= rt_max, \
+                f"XIC {i+1}: Start RT {details['rt_range'][0]} outside expected range [{rt_min}, {rt_max}]"
+            assert rt_min <= details['rt_range'][1] <= rt_max, \
+                f"XIC {i+1}: End RT {details['rt_range'][1]} outside expected range [{rt_min}, {rt_max}]"
+
 
 @report
 def testMSSpectrum():
