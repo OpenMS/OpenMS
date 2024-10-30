@@ -459,6 +459,7 @@ jobs:
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         yum install -y jq
+        yum install -y ninja-build # Install Ninja for build files
         cmake --version
 
         mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
@@ -469,9 +470,6 @@ jobs:
         rm -rf openms-build && mkdir openms-build # Clobber any old builds
         cd openms-build
 
-        echo $LD_OLD_LIBRARY_PATH
-        echo $CMAKE_GENERATOR_PLATFORM
-        echo $CMAKE_CXX_COMPILER
         ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
 
         # cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
@@ -520,7 +518,6 @@ jobs:
       env: 
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CMAKE_GENERATOR: "Ninja"
-          CMAKE_GENERATOR_PLATFORM: "x64"
           OPENMS_CONTRIB_LIBS: "/contrib-build/"
           #CMAKE_PREFIX_PATH: "$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" #TODO move this to env
           BUILD_TYPE: "Release"
