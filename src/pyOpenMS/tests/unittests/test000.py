@@ -2798,10 +2798,8 @@ def testMSExperiment():
         print(f"No-peak region {i+1} array: {intensity_array}")
         print(f"No-peak region {i+1} sum: {array_sum}")
 
-    # Placeholder assertions for expected values
-    # Replace these values with the actual expected sums
-    EXPECTED_ISO_SUMS = [24680058.50, 11043987.94, 3141677.76]  # Replace with expected sums for each isotope array
-    EXPECTED_NO_PEAK_SUMS = [0.0, 12322.06]  # Replace with expected sums for each no-peak array
+    EXPECTED_ISO_SUMS = [24680058.50, 11043987.94, 3141677.76] 
+    EXPECTED_NO_PEAK_SUMS = [0.0, 12322.06]  
     
     # Test each isotope array sum
     for i, (actual_sum, expected_sum) in enumerate(zip(isotope_sums, EXPECTED_ISO_SUMS)):
