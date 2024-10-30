@@ -496,6 +496,7 @@ jobs:
 
           #cmake -DNO_DEPENDENCIES=ON -DPYOPENMS=On -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} $GITHUB_WORKSPACE/OpenMS
           #ninja-build -j${{ steps.cpu-cores.outputs.count }} pyopenms
+          echo "current directory is: `pwd`"
 
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
           
@@ -519,7 +520,7 @@ jobs:
             echo "libOpenSwathAlgo.so found at: $LIB_OPENSWATHALGO"
             strip --strip-all "$LIB_OPENSWATHALGO"
           fi
-
+          echo "current directory is: `pwd`"
           pushd pyOpenMS
             # Bundle stripped plus external shared libraries into the wheels
             for whl in dist/pyopenms*.whl; do
