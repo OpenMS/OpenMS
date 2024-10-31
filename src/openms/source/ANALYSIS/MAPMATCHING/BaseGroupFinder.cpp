@@ -7,10 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
 
 namespace OpenMS
 {

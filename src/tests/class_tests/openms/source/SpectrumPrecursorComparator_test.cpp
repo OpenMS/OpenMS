@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
+#include <OpenMS/COMPARISON/SpectrumPrecursorComparator.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/MSSpectrum.h>

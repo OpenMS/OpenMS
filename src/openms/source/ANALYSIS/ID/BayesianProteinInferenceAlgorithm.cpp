@@ -18,7 +18,7 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <set>

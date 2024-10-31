@@ -1,7 +1,7 @@
 from Types cimport *
 from MultiplexDeltaMasses cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>" namespace "OpenMS":
     
     cdef cppclass MultiplexIsotopicPeakPattern "OpenMS::MultiplexIsotopicPeakPattern":
 

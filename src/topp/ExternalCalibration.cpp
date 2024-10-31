@@ -8,7 +8,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
+#include <OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>

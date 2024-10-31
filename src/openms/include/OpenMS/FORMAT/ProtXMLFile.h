@@ -33,9 +33,6 @@ namespace OpenMS
     probability and coverage) receives these attributes. All indistinguishable
     proteins of the same group only have an accession and score of -1.
 
-    @note This format will eventually be replaced by the HUPO-PSI (mzIdentML
-    and mzQuantML) formats.
-
     @todo Document which metavalues of Protein/PeptideHit are filled when reading ProtXML (Chris)
     @todo Writing of protXML is currently not supported
 

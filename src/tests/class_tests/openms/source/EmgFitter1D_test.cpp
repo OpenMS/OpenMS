@@ -11,8 +11,8 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
+#include <OpenMS/FEATUREFINDER/EmgFitter1D.h>
+#include <OpenMS/FEATUREFINDER/EmgModel.h>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <algorithm>

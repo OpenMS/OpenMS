@@ -22,7 +22,6 @@ ProgressLogger.h
 RAIICleanup.h
 StreamHandler.h
 Types.h
-TypeAsString.h
 UniqueIdGenerator.h
 UniqueIdIndexer.h
 UniqueIdInterface.h

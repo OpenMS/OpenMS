@@ -244,6 +244,11 @@ namespace OpenMS
     return true;
   }
 
+  bool File::copy(const String& from, const String& to)
+  {
+    return QFile::copy(from.toQString(), to.toQString());
+  }
+
   bool File::remove(const String& file)
   {
     if (!exists(file))
@@ -282,6 +287,12 @@ namespace OpenMS
       result = dir.rmdir(dir_name);
     }
     return result;
+  }
+
+  bool File::makeDir(const String& dir_name)
+  {
+    QDir dir;
+    return dir.mkpath(dir_name.toQString());
   }
 
   bool File::removeDirRecursively(const String& dir_name)

@@ -45,17 +45,16 @@ namespace OpenMS
     defaults_.setMinInt("reference_channel", 126);
     defaults_.setMaxInt("reference_channel", 131);
 
-    //    {0.0, 1.0, 5.9, 0.2},   //114
-    //    {0.0, 2.0, 5.6, 0.1},
-    //    {0.0, 3.0, 4.5, 0.1},
-    //    {0.1, 4.0, 3.5, 0.1}    //117
-    defaults_.setValue("correction_matrix", std::vector<std::string>{"0.0/0.0/0.0/0.0",
-                                                               "0.0/0.0/0.0/0.0",
-                                                               "0.0/0.0/0.0/0.0",
-                                                               "0.0/0.0/0.0/0.0",
-                                                               "0.0/0.0/0.0/0.0",
-                                                               "0.0/0.0/0.0/0.0"},
-                       "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
+    // default: Product Number: 90061 Lot Number: ZE386964
+    defaults_.setValue("correction_matrix", std::vector<std::string>{
+      "0.0/0.0/8.6/0.3",
+      "0.0/0.1/7.8/0.1",
+      "0.0/1.5/6.2/0.2",
+      "0.0/1.5/5.7/0.1",
+      "0.0/3.1/3.6/0.0",
+      "0.1/2.9/3.8/0.0"
+      },
+      "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
 
     defaultsToParam_();
   }

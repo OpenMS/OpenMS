@@ -56,6 +56,7 @@ namespace OpenMS
     // delegate signals from canvas
     connect(canvas(), &Plot2DCanvas::showSpectrumAsNew1D, this, &Plot2DWidget::showSpectrumAsNew1D);
     connect(canvas(), &Plot2DCanvas::showChromatogramsAsNew1D, this, &Plot2DWidget::showChromatogramsAsNew1D);
+    connect(canvas(), &Plot2DCanvas::showCurrentPeaksAsIonMobility, this, &Plot2DWidget::showCurrentPeaksAsIonMobility);
     connect(canvas(), &Plot2DCanvas::showCurrentPeaksAs3D, this, &Plot2DWidget::showCurrentPeaksAs3D);
     // add projections box
     projection_box_ = new QGroupBox("Projections", this);

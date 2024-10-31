@@ -16,7 +16,7 @@ jobs:
     runs-on: macos-latest
     steps:
       # Getting files (OpenMS)
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # Update files with new package version numbers
       - name: update files
@@ -40,6 +40,9 @@ jobs:
 
           # update test write ini out:
           sed -i '' "s#<ITEM name=\"version\" value=\".*\" type=\"string\"#<ITEM name=\"version\" value=\"$package_version\" type=\"string\"#g" ./src/tests/topp/WRITE_INI_OUT.ini
+          # update INIUpdater version
+          sed -i '' "s#<ITEM name=\"version\" value=\".*\" type=\"string\"#<ITEM name=\"version\" value=\"$package_version\" type=\"string\"#g" ./src/tests/topp/INIUpdater_1_noupdate.toppas
+
 
           # update INIs in tests topp:
           find ./src/tests/topp/ -type f -name '*.ini' -exec grep -q "<ITEM name=\"version\" value=\".*\" type=\"string\"" {} \; -exec sed -i '' "s#<ITEM name=\"version\" value=\".*\" type=\"string\"#<ITEM name=\"version\" value=\"$package_version\" type=\"string\"#g" {} \;
@@ -76,7 +79,7 @@ jobs:
       # Commit and PR updated files
       - name: Commit and PR updated files
         if: env.changes_exist
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v7
         with:
           commit-message: 'Updated OpenMS package version number'
           committer: GitHub <noreply@github.com>

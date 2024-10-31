@@ -8,8 +8,8 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
+#include <OpenMS/FEATUREFINDER/Fitter1D.h>
+#include <OpenMS/FEATUREFINDER/InterpolationModel.h>
 
 
 using namespace OpenMS;

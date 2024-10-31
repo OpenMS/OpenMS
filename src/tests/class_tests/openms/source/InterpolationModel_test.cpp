@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
+#include <OpenMS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 

@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusteringGrid.h>
+#include <OpenMS/ML/CLUSTERING/ClusteringGrid.h>
 
 #include <limits>
 #include <iostream>

@@ -13,6 +13,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QSvgRenderer>
@@ -200,8 +201,8 @@ namespace OpenMS
     // recycling status
     if (this->allow_output_recycling_)
     {
-      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), nullptr);
-      svg_renderer->render(painter, QRectF(-7, boundingRect().y() + 9.0, 14, 14));
+      QSvgRenderer svg_renderer(QString(":/Recycling_symbol.svg"), nullptr);
+      svg_renderer.render(painter, QRectF(-7, boundingRect().y() + 9.0, 14, 14));
     }
   }
 
@@ -221,8 +222,6 @@ namespace OpenMS
       {
         // some tool that we depend on has not finished execution yet --> do not start yet
         debugOut_("Not run (parent not finished)");
-
-        __DEBUG_END_METHOD__
         return false;
       }
     }
@@ -635,4 +634,4 @@ namespace OpenMS
     return reachable_;
   }
 
-}
+} // namespace OpenMS

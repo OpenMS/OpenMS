@@ -7,8 +7,8 @@
 // --------------------------------------------------------------------------
  
 #pragma once
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabM.h>
 #include <OpenMS/FORMAT/MzTabFile.h>

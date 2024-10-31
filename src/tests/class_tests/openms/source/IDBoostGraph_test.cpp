@@ -8,7 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/test_config.h>
 

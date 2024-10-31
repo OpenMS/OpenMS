@@ -39,11 +39,11 @@ END_SECTION
 START_SECTION((static ToolListType getTOPPToolList(const bool includeGenericWrapper=false)))
 {
   ToolListType list = ToolHandler::getTOPPToolList();
-  TEST_TRUE(list.find("FeatureFinderMRM") != list.end())
+  TEST_TRUE(list.find("DecoyDatabase") != list.end())
   TEST_FALSE(list.find("GenericWrapper") != list.end())
   TEST_TRUE(list.size() > 30)  // assume we have over 30 tools in there
   list = ToolHandler::getTOPPToolList(true);
-  TEST_TRUE(list.find("FeatureFinderMRM") != list.end())
+  TEST_TRUE(list.find("DecoyDatabase") != list.end())
   TEST_TRUE(list.find("GenericWrapper") != list.end())
   TEST_TRUE(list.size() > 30) // assume we have over 30 tools in there
 #ifdef WITH_GUI
@@ -75,15 +75,11 @@ END_SECTION
 
 START_SECTION((static String getCategory(const String &toolname)))
 {
-  TEST_EQUAL(ToolHandler::getCategory("IDFilter"), "File Filtering / Extraction / Merging")
+  TEST_EQUAL(ToolHandler::getCategory("IDFilter"), "File Filtering, Extraction and Merging")
   TEST_EQUAL(ToolHandler::getCategory("DOESNOTEXIST"), "")
 }
 END_SECTION
 
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-

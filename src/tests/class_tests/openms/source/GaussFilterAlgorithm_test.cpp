@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilterAlgorithm.h>
+#include <OpenMS/PROCESSING/SMOOTHING/GaussFilterAlgorithm.h>
 
 ///////////////////////////
 

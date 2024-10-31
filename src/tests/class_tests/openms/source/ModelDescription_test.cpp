@@ -11,8 +11,8 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
+#include <OpenMS/FEATUREFINDER/ModelDescription.h>
+#include <OpenMS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 

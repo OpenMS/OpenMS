@@ -13,9 +13,9 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
+#include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
 
 #include <fstream>
 #include <iostream>
@@ -65,7 +65,7 @@ See the corresponding parameter subsection for details.
 
 /// @cond TOPPCLASSES
 
-#include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
+#include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
 
 class TOPPHiResPrecursorMassCorrector :
     public TOPPBase

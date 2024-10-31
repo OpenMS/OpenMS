@@ -20,6 +20,7 @@ namespace OpenMS
       public MetaInfoDescription,
       public std::vector<float>
     {
+      using std::vector<float>::vector; // to allow for aggregate initialization of FloatDataArray
     };
 
     /// Integer data array class
@@ -27,6 +28,7 @@ namespace OpenMS
       public MetaInfoDescription,
       public std::vector<Int>
     {
+      using std::vector<int>::vector; // to allow for aggregate initialization of IntegerDataArray
     };
 
     /// String data array class
@@ -34,6 +36,7 @@ namespace OpenMS
       public MetaInfoDescription,
       public std::vector<String>
     {
+      using std::vector<String>::vector; // to allow for aggregate initialization of StringDataArray
     };
 
   }

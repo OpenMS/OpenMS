@@ -9,7 +9,7 @@
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
 #include <OpenMS/FORMAT/Base64.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <fstream>
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 

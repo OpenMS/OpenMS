@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
+#include <OpenMS/FEATUREFINDER/MaxLikeliFitter1D.h>
 ///////////////////////////
 
 ///////////////////////////

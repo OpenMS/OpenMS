@@ -10,7 +10,7 @@
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h> // to print newick tree on cml
+#include <OpenMS/ML/CLUSTERING/ClusterAnalyzer.h> // to print newick tree on cml
 
 
 using namespace OpenMS;

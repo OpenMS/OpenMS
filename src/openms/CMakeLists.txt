@@ -71,11 +71,6 @@ add_subdirectory(extern)
 #include(${PROJECT_SOURCE_DIR}/cmake_findExternalLibs.cmake)
 
 #------------------------------------------------------------------------------
-# At this point make a summary of where data and doc will be located:
-message(STATUS "Info: CF_OPENMS_DATA_PATH: ${CF_OPENMS_DATA_PATH}")
-message(STATUS "Info: CF_OPENMS_DOC_PATH: ${CF_OPENMS_DOC_PATH}")
-
-#------------------------------------------------------------------------------
 # configure config.h
 #------------------------------------------------------------------------------
 include(${PROJECT_SOURCE_DIR}/configh.cmake)

@@ -12,12 +12,12 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/QC/FragmentMassError.h>
 #include <cassert>
 #include <string>

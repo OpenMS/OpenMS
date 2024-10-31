@@ -39,6 +39,7 @@ public:
     ~TOPPASSplitterVertex() override = default;
     /// Assignment operator
     TOPPASSplitterVertex& operator=(const TOPPASSplitterVertex& rhs);
+    virtual std::unique_ptr<TOPPASVertex> clone() const override;
     /// returns "SplitterVertex"
     String getName() const override;
     /// check if upstream nodes are finished and call downstream nodes

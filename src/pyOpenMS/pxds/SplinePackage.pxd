@@ -1,6 +1,6 @@
 from Types cimport *
 
-cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/MISC/SplinePackage.h>" namespace "OpenMS":
     
     cdef cppclass SplinePackage "OpenMS::SplinePackage":
 

@@ -62,3 +62,17 @@ jobs:
         gh workflow run openms-ci-full --ref nightly
       env:
         GH_TOKEN: ${{ github.token }}
+
+    - name: Build Develop for cache
+      if: steps.compare_branches.outputs.behind == 'true' || inputs.force
+      run: |
+        gh workflow run openms-ci-full --ref develop
+      env:
+        GH_TOKEN: ${{ github.token }}
+        
+    - name: Build wheels
+      if: steps.compare_branches.outputs.behind == 'true' || inputs.force
+      run: |
+        gh workflow run pyopenms-wheels-and-packages --ref nightly
+      env:
+        GH_TOKEN: ${{ github.token }}

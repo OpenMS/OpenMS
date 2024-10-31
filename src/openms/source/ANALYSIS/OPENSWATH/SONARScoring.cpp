@@ -12,8 +12,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h>
 
-#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/ML/REGRESSION/LinearRegression.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 

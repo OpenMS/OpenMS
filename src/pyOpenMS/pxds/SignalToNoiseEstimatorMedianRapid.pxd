@@ -2,7 +2,7 @@ from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
 from InterfaceDataStructures cimport *
 
-cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>" namespace "OpenMS":
     
     cdef cppclass SignalToNoiseEstimatorMedianRapid "OpenMS::SignalToNoiseEstimatorMedianRapid":
 
@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian
         NoiseEstimator estimateNoise(shared_ptr[Chromatogram]) except + nogil 
         NoiseEstimator estimateNoise(libcpp_vector[ double ] mz_array, libcpp_vector[ double ] int_array) except + nogil 
 
-cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>" namespace "OpenMS::SignalToNoiseEstimatorMedianRapid":
+cdef extern from "<OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>" namespace "OpenMS::SignalToNoiseEstimatorMedianRapid":
     
     cdef cppclass NoiseEstimator "OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator":
 

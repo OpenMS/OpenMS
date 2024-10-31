@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
+#include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>

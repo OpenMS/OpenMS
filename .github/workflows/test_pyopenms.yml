@@ -1,9 +1,9 @@
-name: Test nightly pyOpenMS on different platforms
+name: Test pyOpenMS on different platforms
 
 on:
   workflow_dispatch: # Trigger manually
-  workflow_run:
-    workflows: [ pyopenms-wheels ]
+  workflow_run: # Trigger on pyopenms-wheels
+    workflows: ["pyopenms-wheels-and-packages"]
     types:
       - completed
 
@@ -15,11 +15,11 @@ jobs:
       matrix: ${{ steps.python_versions.outputs.content }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Read python_versions.json
         id: python_versions
-        uses: juliangruber/read-file-action@v1
+        uses: juliangruber/read-file-action@v1.1.7
         with:
           path: .github/workflows/python_versions.json
 
@@ -35,7 +35,7 @@ jobs:
         python-version: ${{ fromJson(needs.read-python-versions.outputs.matrix) }}
     steps:
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////home/sachsenb/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.7" id="cm_13440783915218733453" experiment_type="labeled_MS2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" id="cm_13440783915218733453" experiment_type="labeled_MS2" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<UserParam type="int" name="isoquant:scans_noquant" value="0"/>
 	<UserParam type="int" name="isoquant:scans_total" value="6"/>
-	<UserParam type="int" name="isoquant:quantifyable_ch126" value="3"/>
+	<UserParam type="int" name="isoquant:quantifyable_ch126" value="4"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch127N" value="4"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch127C" value="3"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch128N" value="4"/>
@@ -20,186 +20,186 @@
 		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<mapList count="11">
-		<map id="0" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_126" size="6">
+		<map id="0" name="/beegfs/HPCscratch/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_126" size="6">
 			<UserParam type="string" name="channel_name" value="126"/>
 			<UserParam type="int" name="channel_id" value="0"/>
 			<UserParam type="string" name="channel_description" value=""/>
-			<UserParam type="float" name="channel_center" value="126.127726"/>
+			<UserParam type="float" name="channel_center" value="126.127725999999996"/>
 		</map>
-		<map id="1" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_127N" size="6">
+		<map id="1" name="/beegfs/HPCscratch/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_127N" size="6">
 			<UserParam type="string" name="channel_name" value="127N"/>
 			<UserParam type="int" name="channel_id" value="1"/>
 			<UserParam type="string" name="channel_description" value=""/>
-			<UserParam type="float" name="channel_center" value="127.124761"/>
+			<UserParam type="float" name="channel_center" value="127.124761000000007"/>
 		</map>
-		<map id="2" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_127C" size="6">
+		<map id="2" name="/beegfs/HPCscratch/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_127C" size="6">
 			<UserParam type="string" name="channel_name" value="127C"/>
 			<UserParam type="int" name="channel_id" value="2"/>
 			<UserParam type="string" name="channel_description" value=""/>
-			<UserParam type="float" name="channel_center" value="127.131081"/>
+			<UserParam type="float" name="channel_center" value="127.131080999999995"/>
 		</map>
-		<map id="3" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_128N" size="6">
+		<map id="3" name="/beegfs/HPCscratch/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_128N" size="6">
 			<UserParam type="string" name="channel_name" value="128N"/>
 			<UserParam type="int" name="channel_id" value="3"/>
 			<UserParam type="string" name="channel_description" value=""/>
-			<UserParam type="float" name="channel_center" value="128.128116"/>
+			<UserParam type="float" name="channel_center" value="128.128116000000006"/>
 		</map>
-		<map id="4" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_128C" size="6">
+		<map id="4" name="/beegfs/HPCscratch/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_128C" size="6">
 			<UserParam type="string" name="channel_name" value="128C"/>
 			<UserParam type="int" name="channel_id" value="4"/>
 			<UserParam type="string" name="channel_description" value=""/>
-			<UserParam type="float" name="channel_center" value="128.134436"/>
+			<UserParam type="float" name="channel_center" value="128.134435999999994"/>
 		</map>
-		<map id="5" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_129N" size="6">
+		<map id="5" name="/beegfs/HPCscratch/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_129N" size="6">
 			<UserParam type="string" name="channel_name" value="129N"/>
 			<UserParam type="int" name="channel_id" value="5"/>
 			<UserParam type="string" name="channel_description" value=""/>
-			<UserParam type="float" name="channel_center" value="129.131471"/>
+			<UserParam type="float" name="channel_center" value="129.131471000000005"/>
 		</map>
-		<map id="6" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_129C" size="6">
+		<map id="6" name="/beegfs/HPCscratch/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_129C" size="6">
 			<UserParam type="string" name="channel_name" value="129C"/>
 			<UserParam type="int" name="channel_id" value="6"/>
 			<UserParam type="string" name="channel_description" value=""/>
-			<UserParam type="float" name="channel_center" value="129.13779"/>
+			<UserParam type="float" name="channel_center" value="129.137789999999995"/>
 		</map>
-		<map id="7" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_130N" size="6">
+		<map id="7" name="/beegfs/HPCscratch/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_130N" size="6">
 			<UserParam type="string" name="channel_name" value="130N"/>
 			<UserParam type="int" name="channel_id" value="7"/>
 			<UserParam type="string" name="channel_description" value=""/>
-			<UserParam type="float" name="channel_center" value="130.134825"/>
+			<UserParam type="float" name="channel_center" value="130.134825000000006"/>
 		</map>
-		<map id="8" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_130C" size="6">
+		<map id="8" name="/beegfs/HPCscratch/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_130C" size="6">
 			<UserParam type="string" name="channel_name" value="130C"/>
 			<UserParam type="int" name="channel_id" value="8"/>
 			<UserParam type="string" name="channel_description" value=""/>
-			<UserParam type="float" name="channel_center" value="130.141145"/>
+			<UserParam type="float" name="channel_center" value="130.141144999999995"/>
 		</map>
-		<map id="9" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_131N" size="6">
+		<map id="9" name="/beegfs/HPCscratch/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_131N" size="6">
 			<UserParam type="string" name="channel_name" value="131N"/>
 			<UserParam type="int" name="channel_id" value="9"/>
 			<UserParam type="string" name="channel_description" value=""/>
-			<UserParam type="float" name="channel_center" value="131.13818"/>
+			<UserParam type="float" name="channel_center" value="131.138180000000006"/>
 		</map>
-		<map id="10" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_131C" size="6">
+		<map id="10" name="/beegfs/HPCscratch/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_131C" size="6">
 			<UserParam type="string" name="channel_name" value="131C"/>
 			<UserParam type="int" name="channel_id" value="10"/>
 			<UserParam type="string" name="channel_description" value=""/>
-			<UserParam type="float" name="channel_center" value="131.1445"/>
+			<UserParam type="float" name="channel_center" value="131.144499999999994"/>
 		</map>
 	</mapList>
 	<consensusElementList>
-		<consensusElement id="e_5233264595117471314" quality="0" charge="2">
-			<centroid rt="4880.15802" mz="567.827" it="1660.35"/>
+		<consensusElement id="e_5233264595117471314" quality="0.0" charge="2">
+			<centroid rt="4880.158019999999851" mz="567.826999999999998" it="1786.822632"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="4880.15802" mz="126.127726" it="0"/>
-				<element map="1" id="0" rt="4880.15802" mz="127.124761" it="0"/>
-				<element map="2" id="0" rt="4880.15802" mz="127.131081" it="0"/>
-				<element map="3" id="0" rt="4880.15802" mz="128.128116" it="0"/>
-				<element map="4" id="0" rt="4880.15802" mz="128.134436" it="0"/>
-				<element map="5" id="0" rt="4880.15802" mz="129.131471" it="0"/>
-				<element map="6" id="0" rt="4880.15802" mz="129.13779" it="1660.35"/>
-				<element map="7" id="0" rt="4880.15802" mz="130.134825" it="0"/>
-				<element map="8" id="0" rt="4880.15802" mz="130.141145" it="0"/>
-				<element map="9" id="0" rt="4880.15802" mz="131.13818" it="0"/>
-				<element map="10" id="0" rt="4880.15802" mz="131.1445" it="0"/>
+				<element map="0" id="0" rt="4880.158019999999851" mz="126.127725999999996" it="0.0"/>
+				<element map="1" id="0" rt="4880.158019999999851" mz="127.124761000000007" it="0.0"/>
+				<element map="2" id="0" rt="4880.158019999999851" mz="127.131080999999995" it="0.0"/>
+				<element map="3" id="0" rt="4880.158019999999851" mz="128.128116000000006" it="0.0"/>
+				<element map="4" id="0" rt="4880.158019999999851" mz="128.134435999999994" it="0.0"/>
+				<element map="5" id="0" rt="4880.158019999999851" mz="129.131471000000005" it="0.0"/>
+				<element map="6" id="0" rt="4880.158019999999851" mz="129.137789999999995" it="1786.822632"/>
+				<element map="7" id="0" rt="4880.158019999999851" mz="130.134825000000006" it="0.0"/>
+				<element map="8" id="0" rt="4880.158019999999851" mz="130.141144999999995" it="0.0"/>
+				<element map="9" id="0" rt="4880.158019999999851" mz="131.138180000000006" it="0.0"/>
+				<element map="10" id="0" rt="4880.158019999999851" mz="131.144499999999994" it="0.0"/>
 			</groupedElementList>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=24215"/>
-			<UserParam type="float" name="precursor_intensity" value="281914.84375"/>
+			<UserParam type="float" name="precursor_intensity" value="2.8191484375e05"/>
 		</consensusElement>
-		<consensusElement id="e_4835329514588776807" quality="0" charge="2">
-			<centroid rt="4880.56854" mz="768.950003899738" it="161837"/>
+		<consensusElement id="e_4835329514588776807" quality="0.0" charge="2">
+			<centroid rt="4880.568540000000212" mz="768.950003899738022" it="1.632548e05"/>
 			<groupedElementList>
-				<element map="0" id="1" rt="4880.56854" mz="126.127726" it="18905.5"/>
-				<element map="1" id="1" rt="4880.56854" mz="127.124761" it="17415.8"/>
-				<element map="2" id="1" rt="4880.56854" mz="127.131081" it="15076.3"/>
-				<element map="3" id="1" rt="4880.56854" mz="128.128116" it="14571.9"/>
-				<element map="4" id="1" rt="4880.56854" mz="128.134436" it="11723.5"/>
-				<element map="5" id="1" rt="4880.56854" mz="129.131471" it="16455.2"/>
-				<element map="6" id="1" rt="4880.56854" mz="129.13779" it="17909.6"/>
-				<element map="7" id="1" rt="4880.56854" mz="130.134825" it="16679.6"/>
-				<element map="8" id="1" rt="4880.56854" mz="130.141145" it="18962.8"/>
-				<element map="9" id="1" rt="4880.56854" mz="131.13818" it="14136.6"/>
-				<element map="10" id="1" rt="4880.56854" mz="131.1445" it="0"/>
+				<element map="0" id="1" rt="4880.568540000000212" mz="126.127725999999996" it="2.062735e04"/>
+				<element map="1" id="1" rt="4880.568540000000212" mz="127.124761000000007" it="1.770772e04"/>
+				<element map="2" id="1" rt="4880.568540000000212" mz="127.131080999999995" it="1.424733e04"/>
+				<element map="3" id="1" rt="4880.568540000000212" mz="128.128116000000006" it="1.519838e04"/>
+				<element map="4" id="1" rt="4880.568540000000212" mz="128.134435999999994" it="1.108641e04"/>
+				<element map="5" id="1" rt="4880.568540000000212" mz="129.131471000000005" it="1.611249e04"/>
+				<element map="6" id="1" rt="4880.568540000000212" mz="129.137789999999995" it="1.799664e04"/>
+				<element map="7" id="1" rt="4880.568540000000212" mz="130.134825000000006" it="1.646502e04"/>
+				<element map="8" id="1" rt="4880.568540000000212" mz="130.141144999999995" it="1.947535e04"/>
+				<element map="9" id="1" rt="4880.568540000000212" mz="131.138180000000006" it="1.433813e04"/>
+				<element map="10" id="1" rt="4880.568540000000212" mz="131.144499999999994" it="0.0"/>
 			</groupedElementList>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=24217"/>
-			<UserParam type="float" name="precursor_intensity" value="2657188.5"/>
-			<UserParam type="float" name="precursor_purity" value="1"/>
+			<UserParam type="float" name="precursor_intensity" value="2.6571885e06"/>
+			<UserParam type="float" name="precursor_purity" value="1.0"/>
 		</consensusElement>
-		<consensusElement id="e_17749660155506638460" quality="0" charge="2">
-			<centroid rt="4880.80014" mz="544.813" it="9151.78"/>
+		<consensusElement id="e_17749660155506638460" quality="0.0" charge="2">
+			<centroid rt="4880.800140000000283" mz="544.812999999999988" it="9606.560547"/>
 			<groupedElementList>
-				<element map="0" id="2" rt="4880.80014" mz="126.127726" it="0"/>
-				<element map="1" id="2" rt="4880.80014" mz="127.124761" it="2933.03"/>
-				<element map="2" id="2" rt="4880.80014" mz="127.131081" it="0"/>
-				<element map="3" id="2" rt="4880.80014" mz="128.128116" it="2117.54"/>
-				<element map="4" id="2" rt="4880.80014" mz="128.134436" it="2051.44"/>
-				<element map="5" id="2" rt="4880.80014" mz="129.131471" it="0"/>
-				<element map="6" id="2" rt="4880.80014" mz="129.13779" it="0"/>
-				<element map="7" id="2" rt="4880.80014" mz="130.134825" it="2049.77"/>
-				<element map="8" id="2" rt="4880.80014" mz="130.141145" it="0"/>
-				<element map="9" id="2" rt="4880.80014" mz="131.13818" it="0"/>
-				<element map="10" id="2" rt="4880.80014" mz="131.1445" it="0"/>
+				<element map="0" id="2" rt="4880.800140000000283" mz="126.127725999999996" it="0.0"/>
+				<element map="1" id="2" rt="4880.800140000000283" mz="127.124761000000007" it="3013.574707"/>
+				<element map="2" id="2" rt="4880.800140000000283" mz="127.131080999999995" it="0.0"/>
+				<element map="3" id="2" rt="4880.800140000000283" mz="128.128116000000006" it="2187.631836"/>
+				<element map="4" id="2" rt="4880.800140000000283" mz="128.134435999999994" it="2216.761719"/>
+				<element map="5" id="2" rt="4880.800140000000283" mz="129.131471000000005" it="0.0"/>
+				<element map="6" id="2" rt="4880.800140000000283" mz="129.137789999999995" it="0.0"/>
+				<element map="7" id="2" rt="4880.800140000000283" mz="130.134825000000006" it="2188.592285"/>
+				<element map="8" id="2" rt="4880.800140000000283" mz="130.141144999999995" it="0.0"/>
+				<element map="9" id="2" rt="4880.800140000000283" mz="131.138180000000006" it="0.0"/>
+				<element map="10" id="2" rt="4880.800140000000283" mz="131.144499999999994" it="0.0"/>
 			</groupedElementList>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=24218"/>
-			<UserParam type="float" name="precursor_intensity" value="260765.953125"/>
-			<UserParam type="float" name="precursor_purity" value="1"/>
+			<UserParam type="float" name="precursor_intensity" value="2.60765953125e05"/>
+			<UserParam type="float" name="precursor_purity" value="1.0"/>
 		</consensusElement>
-		<consensusElement id="e_7804704400743266335" quality="0" charge="2">
-			<centroid rt="4881.03162" mz="489.278535890617" it="122884"/>
+		<consensusElement id="e_7804704400743266335" quality="0.0" charge="2">
+			<centroid rt="4881.031619999999748" mz="489.278535890616979" it="1.240603e05"/>
 			<groupedElementList>
-				<element map="0" id="3" rt="4881.03162" mz="126.127726" it="16465.7"/>
-				<element map="1" id="3" rt="4881.03162" mz="127.124761" it="11231.6"/>
-				<element map="2" id="3" rt="4881.03162" mz="127.131081" it="9040.25"/>
-				<element map="3" id="3" rt="4881.03162" mz="128.128116" it="10707.6"/>
-				<element map="4" id="3" rt="4881.03162" mz="128.134436" it="16399.8"/>
-				<element map="5" id="3" rt="4881.03162" mz="129.131471" it="13170.4"/>
-				<element map="6" id="3" rt="4881.03162" mz="129.13779" it="11161.5"/>
-				<element map="7" id="3" rt="4881.03162" mz="130.134825" it="7647.08"/>
-				<element map="8" id="3" rt="4881.03162" mz="130.141145" it="15367.4"/>
-				<element map="9" id="3" rt="4881.03162" mz="131.13818" it="11692.8"/>
-				<element map="10" id="3" rt="4881.03162" mz="131.1445" it="0"/>
+				<element map="0" id="3" rt="4881.031619999999748" mz="126.127725999999996" it="1.80054e04"/>
+				<element map="1" id="3" rt="4881.031619999999748" mz="127.124761000000007" it="1.129911e04"/>
+				<element map="2" id="3" rt="4881.031619999999748" mz="127.131080999999995" it="7851.20752"/>
+				<element map="3" id="3" rt="4881.031619999999748" mz="128.128116000000006" it="1.130231e04"/>
+				<element map="4" id="3" rt="4881.031619999999748" mz="128.134435999999994" it="1.686507e04"/>
+				<element map="5" id="3" rt="4881.031619999999748" mz="129.131471000000005" it="1.311324e04"/>
+				<element map="6" id="3" rt="4881.031619999999748" mz="129.137789999999995" it="1.043455e04"/>
+				<element map="7" id="3" rt="4881.031619999999748" mz="130.134825000000006" it="7023.875488"/>
+				<element map="8" id="3" rt="4881.031619999999748" mz="130.141144999999995" it="1.598036e04"/>
+				<element map="9" id="3" rt="4881.031619999999748" mz="131.138180000000006" it="1.218517e04"/>
+				<element map="10" id="3" rt="4881.031619999999748" mz="131.144499999999994" it="0.0"/>
 			</groupedElementList>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=24219"/>
-			<UserParam type="float" name="precursor_intensity" value="510807.5625"/>
-			<UserParam type="float" name="precursor_purity" value="1"/>
+			<UserParam type="float" name="precursor_intensity" value="5.108075625e05"/>
+			<UserParam type="float" name="precursor_purity" value="1.0"/>
 		</consensusElement>
-		<consensusElement id="e_15004869347769368353" quality="0" charge="2">
-			<centroid rt="4881.26316" mz="479.744303406726" it="3420.46"/>
+		<consensusElement id="e_15004869347769368353" quality="0.0" charge="2">
+			<centroid rt="4881.263160000000426" mz="479.744303406725976" it="3678.572754"/>
 			<groupedElementList>
-				<element map="0" id="4" rt="4881.26316" mz="126.127726" it="0"/>
-				<element map="1" id="4" rt="4881.26316" mz="127.124761" it="0"/>
-				<element map="2" id="4" rt="4881.26316" mz="127.131081" it="0"/>
-				<element map="3" id="4" rt="4881.26316" mz="128.128116" it="0"/>
-				<element map="4" id="4" rt="4881.26316" mz="128.134436" it="0"/>
-				<element map="5" id="4" rt="4881.26316" mz="129.131471" it="1595.72"/>
-				<element map="6" id="4" rt="4881.26316" mz="129.13779" it="0"/>
-				<element map="7" id="4" rt="4881.26316" mz="130.134825" it="0"/>
-				<element map="8" id="4" rt="4881.26316" mz="130.141145" it="1824.74"/>
-				<element map="9" id="4" rt="4881.26316" mz="131.13818" it="0"/>
-				<element map="10" id="4" rt="4881.26316" mz="131.1445" it="0"/>
+				<element map="0" id="4" rt="4881.263160000000426" mz="126.127725999999996" it="8.273708e-14"/>
+				<element map="1" id="4" rt="4881.263160000000426" mz="127.124761000000007" it="0.0"/>
+				<element map="2" id="4" rt="4881.263160000000426" mz="127.131080999999995" it="0.0"/>
+				<element map="3" id="4" rt="4881.263160000000426" mz="128.128116000000006" it="0.0"/>
+				<element map="4" id="4" rt="4881.263160000000426" mz="128.134435999999994" it="0.0"/>
+				<element map="5" id="4" rt="4881.263160000000426" mz="129.131471000000005" it="1714.44751"/>
+				<element map="6" id="4" rt="4881.263160000000426" mz="129.137789999999995" it="0.0"/>
+				<element map="7" id="4" rt="4881.263160000000426" mz="130.134825000000006" it="0.0"/>
+				<element map="8" id="4" rt="4881.263160000000426" mz="130.141144999999995" it="1964.125122"/>
+				<element map="9" id="4" rt="4881.263160000000426" mz="131.138180000000006" it="0.0"/>
+				<element map="10" id="4" rt="4881.263160000000426" mz="131.144499999999994" it="0.0"/>
 			</groupedElementList>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=24220"/>
-			<UserParam type="float" name="precursor_intensity" value="443698.28125"/>
-			<UserParam type="float" name="precursor_purity" value="1"/>
+			<UserParam type="float" name="precursor_intensity" value="4.4369828125e05"/>
+			<UserParam type="float" name="precursor_purity" value="1.0"/>
 		</consensusElement>
-		<consensusElement id="e_3332699010107892018" quality="0" charge="2">
-			<centroid rt="4881.49476" mz="436.7035" it="98256.7"/>
+		<consensusElement id="e_3332699010107892018" quality="0.0" charge="2">
+			<centroid rt="4881.494759999999587" mz="436.70350000000002" it="9.912639e04"/>
 			<groupedElementList>
-				<element map="0" id="5" rt="4881.49476" mz="126.127726" it="11277.5"/>
-				<element map="1" id="5" rt="4881.49476" mz="127.124761" it="11701.4"/>
-				<element map="2" id="5" rt="4881.49476" mz="127.131081" it="9675.11"/>
-				<element map="3" id="5" rt="4881.49476" mz="128.128116" it="9005.53"/>
-				<element map="4" id="5" rt="4881.49476" mz="128.134436" it="10957.2"/>
-				<element map="5" id="5" rt="4881.49476" mz="129.131471" it="9135.64"/>
-				<element map="6" id="5" rt="4881.49476" mz="129.13779" it="6798.11"/>
-				<element map="7" id="5" rt="4881.49476" mz="130.134825" it="9232.16"/>
-				<element map="8" id="5" rt="4881.49476" mz="130.141145" it="8484.78"/>
-				<element map="9" id="5" rt="4881.49476" mz="131.13818" it="11989.3"/>
-				<element map="10" id="5" rt="4881.49476" mz="131.1445" it="0"/>
+				<element map="0" id="5" rt="4881.494759999999587" mz="126.127725999999996" it="1.229878e04"/>
+				<element map="1" id="5" rt="4881.494759999999587" mz="127.124761000000007" it="1.196943e04"/>
+				<element map="2" id="5" rt="4881.494759999999587" mz="127.131080999999995" it="9167.619141"/>
+				<element map="3" id="5" rt="4881.494759999999587" mz="128.128116000000006" it="9317.885742"/>
+				<element map="4" id="5" rt="4881.494759999999587" mz="128.134435999999994" it="1.099141e04"/>
+				<element map="5" id="5" rt="4881.494759999999587" mz="129.131471000000005" it="8871.895508"/>
+				<element map="6" id="5" rt="4881.494759999999587" mz="129.137789999999995" it="6330.833008"/>
+				<element map="7" id="5" rt="4881.494759999999587" mz="130.134825000000006" it="8976.962891"/>
+				<element map="8" id="5" rt="4881.494759999999587" mz="130.141144999999995" it="8790.136719"/>
+				<element map="9" id="5" rt="4881.494759999999587" mz="131.138180000000006" it="1.241144e04"/>
+				<element map="10" id="5" rt="4881.494759999999587" mz="131.144499999999994" it="0.0"/>
 			</groupedElementList>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=24221"/>
-			<UserParam type="float" name="precursor_intensity" value="347328.15625"/>
-			<UserParam type="float" name="precursor_purity" value="1"/>
+			<UserParam type="float" name="precursor_intensity" value="3.4732815625e05"/>
+			<UserParam type="float" name="precursor_purity" value="1.0"/>
 		</consensusElement>
 	</consensusElementList>
 </consensusXML>

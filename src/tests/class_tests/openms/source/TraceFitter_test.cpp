@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
+#include <OpenMS/FEATUREFINDER/TraceFitter.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/Peak1D.h>

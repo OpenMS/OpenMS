@@ -14,9 +14,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 ///////////////////////////
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 
 #include <sstream>
 
@@ -27,6 +25,39 @@ static_assert(OpenMS::Test::fulfills_rule_of_5<MSSpectrum>(), "Must fulfill rule
 static_assert(OpenMS::Test::fulfills_rule_of_6<MSSpectrum>(), "Must fulfill rule of 6");
 static_assert(OpenMS::Test::fulfills_fast_vector<MSSpectrum>(), "Must have fast vector semantics");
 static_assert(std::is_nothrow_move_constructible_v<MSSpectrum>, "Must have nothrow move constructible");
+
+/// A spec with RT, m/z, intensity, and meta data arrays, marked as an IM spectrum (i.e. spec.containsIMData() == true)
+MSSpectrum getPrefilledSpec()
+{
+  MSSpectrum ds;
+  MSSpectrum::FloatDataArray float_array {56.0, 201.0, 31, 31, 31, 37, 29, 34, 60, 29};
+  MSSpectrum::StringDataArray string_array {"56", "201", "31", "31", "31", "37", "29", "34", "60", "29"};
+  MSSpectrum::IntegerDataArray int_array {56, 201, 31, 31, 31, 37, 29, 34, 60, 29};
+  std::vector<double> mzs {423.269, 420.130, 419.113, 418.232, 416.293, 415.287, 414.301, 413.800, 412.824, 412.321};
+  std::vector<double> intensities {56, 201, 31, 31, 31, 37, 29, 34, 60, 29};
+
+  for (Size i = 0; i < mzs.size(); ++i)
+  {
+    ds.emplace_back(mzs[i], intensities[i]);
+  }
+  ds.getFloatDataArrays() = std::vector<MSSpectrum::FloatDataArray>(3, float_array);
+  ds.getFloatDataArrays()[0].setName("f1");
+  ds.getFloatDataArrays()[1].setName("f2");
+  ds.getFloatDataArrays()[2].setName("f3");
+
+  IMDataConverter::setIMUnit(ds.getFloatDataArrays()[1], DriftTimeUnit::MILLISECOND);
+  TEST_TRUE(ds.containsIMData())
+
+  ds.getStringDataArrays() = std::vector<MSSpectrum::StringDataArray>(2, string_array);
+  ds.getStringDataArrays()[0].setName("s1");
+  ds.getStringDataArrays()[1].setName("s2");
+
+  ds.getIntegerDataArrays() = std::vector<MSSpectrum::IntegerDataArray>(2, int_array);
+  ds.getIntegerDataArrays()[0].setName("i1");
+  
+  ds.setRT(5.0);
+  return ds;
+}
 
 START_TEST(MSSpectrum, "$Id$")
 
@@ -71,6 +102,17 @@ START_SECTION(([EXTRA] MSSpectrum()))
   tmp.push_back(peak);
   TEST_EQUAL(tmp.size(),1);
   TEST_REAL_SIMILAR(tmp[0].getMZ(), 47.11);
+}
+END_SECTION
+
+START_SECTION((MSSpectrum(const std::initializer_list<Peak1D>& init)))
+{
+  MSSpectrum tmp {{47.11, 2}, {500.0, 3}};
+  TEST_EQUAL(tmp.size(), 2);
+  TEST_REAL_SIMILAR(tmp[0].getMZ(), 47.11);
+  TEST_REAL_SIMILAR(tmp[1].getMZ(), 500.0);
+  TEST_REAL_SIMILAR(tmp[0].getIntensity(), 2)
+  TEST_REAL_SIMILAR(tmp[1].getIntensity(), 3)
 }
 END_SECTION
 
@@ -215,13 +257,9 @@ START_SECTION((MSSpectrum& select(const std::vector<Size>& indices)))
   s.push_back(p3);
   s.push_back(p2);
 
-  MSSpectrum::IntegerDataArray aia;
-  aia.assign({1, 2, 3, 4, 5});
-  MSSpectrum::FloatDataArray afa;
-  afa.assign({1.0, 2.0, 3.0, 4.0, 5.0});
-  MSSpectrum::StringDataArray asa;
-  asa.assign({"1", "2", "3", "4", "5"});
-  //MSSpectrum::IntegerDataArray
+  MSSpectrum::IntegerDataArray aia{1, 2, 3, 4, 5};
+  MSSpectrum::FloatDataArray afa{1.0, 2.0, 3.0, 4.0, 5.0};
+  MSSpectrum::StringDataArray asa{"1", "2", "3", "4", "5"};
   s.getFloatDataArrays().push_back(afa);
   s.getIntegerDataArrays().push_back(aia);
   s.getStringDataArrays().push_back(asa);
@@ -282,28 +320,28 @@ END_SECTION
 
 START_SECTION((virtual void updateRanges()))
 {
-  MSSpectrum s;
-  s.push_back(p1);
-  s.push_back(p2);
-  s.push_back(p1);
+  MSSpectrum s = getPrefilledSpec();
 
-  s.updateRanges();
-  s.updateRanges(); //second time to check the initialization
-
-  TEST_REAL_SIMILAR(s.getMaxIntensity(), 2)
-  TEST_REAL_SIMILAR(s.getMinIntensity(), 1)
-  TEST_REAL_SIMILAR(s.getMaxMZ(),10)
-  TEST_REAL_SIMILAR(s.getMinMZ(),2)
+  for (int i = 0; i < 2; ++i) // second time to check the initialization
+  {
+    s.updateRanges();
+    TEST_REAL_SIMILAR(s.getMinIntensity(), 29)
+    TEST_REAL_SIMILAR(s.getMaxIntensity(), 201)
+    TEST_REAL_SIMILAR(s.getMinMZ(), 412.321)
+    TEST_REAL_SIMILAR(s.getMaxMZ(), 423.269)
+    TEST_REAL_SIMILAR(s.getMinMobility(), 29)
+    TEST_REAL_SIMILAR(s.getMaxMobility(), 201)
+  }
 
   //test with only one peak
-
-  s.clear(true);
+  s = MSSpectrum{};
   s.push_back(p1);
   s.updateRanges();
   TEST_REAL_SIMILAR(s.getMaxIntensity(), 1)
   TEST_REAL_SIMILAR(s.getMinIntensity(), 1)
-  TEST_REAL_SIMILAR(s.getMaxMZ(),2)
-  TEST_REAL_SIMILAR(s.getMinMZ(),2)
+  TEST_REAL_SIMILAR(s.getMaxMZ(), 2)
+  TEST_REAL_SIMILAR(s.getMinMZ(), 2)
+  TEST_TRUE(s.RangeMobility::isEmpty())
 }
 END_SECTION
 
@@ -427,7 +465,7 @@ END_SECTION
 
 START_SECTION((MSSpectrum& operator= (const MSSpectrum&& source)))
 {
-  MSSpectrum tmp;
+  MSSpectrum tmp {{47.11, 0}, {48.11, 0}};
   tmp.setRT(9.0);
   tmp.setDriftTime(5.0);
   tmp.setDriftTimeUnit(DriftTimeUnit::VSSC);
@@ -435,12 +473,6 @@ START_SECTION((MSSpectrum& operator= (const MSSpectrum&& source)))
   tmp.setName("bla2");
   tmp.setMetaValue("label2",5.0);
   tmp.getInstrumentSettings().getScanWindows().resize(2);
-  //peaks
-  MSSpectrum::PeakType peak;
-  peak.getPosition()[0] = 47.11;
-  tmp.push_back(peak);
-  peak.getPosition()[0] = 48.11;
-  tmp.push_back(peak);
 
   //copy tmp so we can move one of them
   MSSpectrum orig = tmp;
@@ -478,7 +510,7 @@ START_SECTION((MSSpectrum& operator= (const MSSpectrum&& source)))
 #pragma clang diagnostic pop
 #endif
   TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),0);
-  TEST_EQUAL(tmp2.metaValueExists("label"), false)
+  TEST_FALSE(tmp2.metaValueExists("label"))
   TEST_EQUAL(tmp2.getMSLevel(),1)
   TEST_REAL_SIMILAR(tmp2.getRT(), -1.0)
   TEST_REAL_SIMILAR(tmp2.getDriftTime(), -1.0)
@@ -492,47 +524,47 @@ START_SECTION((bool operator== (const MSSpectrum& rhs) const))
 {
   MSSpectrum edit, empty;
   
-  TEST_EQUAL(edit==empty,true);
+  TEST_TRUE(edit==empty);
 
   edit = empty;
   edit.getInstrumentSettings().getScanWindows().resize(1);
-  TEST_EQUAL(edit==empty,false);
+  TEST_FALSE(edit==empty);
 
   edit = empty;
   edit.resize(1);
-  TEST_EQUAL(edit==empty,false);
+  TEST_FALSE(edit == empty);
 
   edit = empty;
   edit.setMetaValue("label",String("bla"));
-  TEST_EQUAL(empty==edit, false);
+  TEST_FALSE(empty == edit);
 
   edit = empty;
   edit.setDriftTime(5);
-  TEST_EQUAL(empty==edit, false);
+  TEST_FALSE(empty == edit);
 
   edit = empty;
   edit.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
-  TEST_EQUAL(empty==edit, false);
+  TEST_FALSE(empty == edit);
 
   edit = empty;
   edit.setRT(5);
-  TEST_EQUAL(empty==edit, false);
+  TEST_FALSE(empty == edit);
 
   edit = empty;
   edit.setMSLevel(5);
-  TEST_EQUAL(empty==edit, false);
+  TEST_FALSE(empty == edit);
 
   edit = empty;
   edit.getFloatDataArrays().resize(5);
-  TEST_EQUAL(empty==edit, false);
+  TEST_FALSE(empty == edit);
 
   edit = empty;
   edit.getStringDataArrays().resize(5);
-  TEST_EQUAL(empty==edit, false);
+  TEST_FALSE(empty == edit);
 
   edit = empty;
   edit.getIntegerDataArrays().resize(5);
-  TEST_EQUAL(empty==edit, false);
+  TEST_FALSE(empty == edit);
 
   //name is not checked => no change
   edit = empty;
@@ -552,59 +584,59 @@ START_SECTION((bool operator!= (const MSSpectrum& rhs) const))
 {
   MSSpectrum edit, empty;
   
-  TEST_EQUAL(edit!=empty,false);
+  TEST_FALSE(edit != empty);
 
   edit = empty;
   edit.getInstrumentSettings().getScanWindows().resize(1);
-  TEST_EQUAL(edit!=empty,true);
+  TEST_TRUE(edit != empty);
 
   edit = empty;
   edit.resize(1);
-  TEST_EQUAL(edit!=empty,true);
+  TEST_TRUE(edit != empty);
 
   edit = empty;
   edit.setMetaValue("label",String("bla"));
-  TEST_EQUAL(edit!=empty,true);
+  TEST_TRUE(edit != empty);
 
   edit = empty;
   edit.setDriftTime(5);
-  TEST_EQUAL(edit!=empty,true);
+  TEST_TRUE(edit != empty);
 
   edit = empty;
   edit.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
-  TEST_EQUAL(edit!=empty,true);
+  TEST_TRUE(edit != empty);
 
   edit = empty;
   edit.setRT(5);
-  TEST_EQUAL(edit!=empty,true);
+  TEST_TRUE(edit != empty);
 
   edit = empty;
   edit.setMSLevel(5);
-  TEST_EQUAL(edit!=empty,true);
+  TEST_TRUE(edit != empty);
 
   edit = empty;
   edit.getFloatDataArrays().resize(5);
-  TEST_EQUAL(edit!=empty,true);
+  TEST_TRUE(edit != empty);
 
   edit = empty;
   edit.getIntegerDataArrays().resize(5);
-  TEST_EQUAL(edit!=empty,true);
+  TEST_TRUE(edit != empty);
 
   edit = empty;
   edit.getStringDataArrays().resize(5);
-  TEST_EQUAL(edit!=empty,true);
+  TEST_TRUE(edit != empty);
 
   //name is not checked => no change
   edit = empty;
   edit.setName("bla");
-  TEST_EQUAL(edit!=empty,false);
+  TEST_FALSE(edit != empty);
 
   edit = empty;
   edit.push_back(p1);
   edit.push_back(p2);
   edit.updateRanges();
   edit.clear(false);
-  TEST_EQUAL(edit == empty,true);
+  TEST_TRUE(edit == empty);
 }
 END_SECTION
 
@@ -616,21 +648,11 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
 {
   MSSpectrum ds;
   Peak1D p;
-  MSSpectrum::FloatDataArray float_array;
-  MSSpectrum::StringDataArray string_array;
-  MSSpectrum::IntegerDataArray int_array;
-  std::vector<double> mzs, intensities;
-  MSSpectrum::IntegerDataArray in_array;
-  intensities.push_back(201); mzs.push_back(420.130); float_array.push_back(420.130f); string_array.push_back("420.13"); int_array.push_back(420);
-  intensities.push_back(60);  mzs.push_back(412.824); float_array.push_back(412.824f); string_array.push_back("412.82"); int_array.push_back(412);
-  intensities.push_back(56);  mzs.push_back(423.269); float_array.push_back(423.269f); string_array.push_back("423.27"); int_array.push_back(423);
-  intensities.push_back(37);  mzs.push_back(415.287); float_array.push_back(415.287f); string_array.push_back("415.29"); int_array.push_back(415);
-  intensities.push_back(34);  mzs.push_back(413.800); float_array.push_back(413.800f); string_array.push_back("413.80"); int_array.push_back(413);
-  intensities.push_back(31);  mzs.push_back(419.113); float_array.push_back(419.113f); string_array.push_back("419.11"); int_array.push_back(419);
-  intensities.push_back(31);  mzs.push_back(416.293); float_array.push_back(416.293f); string_array.push_back("416.29"); int_array.push_back(416);
-  intensities.push_back(31);  mzs.push_back(418.232); float_array.push_back(418.232f); string_array.push_back("418.23"); int_array.push_back(418);
-  intensities.push_back(29);  mzs.push_back(414.301); float_array.push_back(414.301f); string_array.push_back("414.30"); int_array.push_back(414);
-  intensities.push_back(29);  mzs.push_back(412.321); float_array.push_back(412.321f); string_array.push_back("412.32"); int_array.push_back(412);
+  MSSpectrum::FloatDataArray float_array { 420.13f, 412.824f, 423.269f, 415.287f, 413.8f, 419.113f, 416.293f, 418.232f, 414.301f, 412.321f };
+  MSSpectrum::StringDataArray string_array {"420.13", "412.82", "423.27", "415.29", "413.80", "419.11", "416.29", "418.23", "414.30", "412.32"};
+  MSSpectrum::IntegerDataArray int_array {420, 412, 423, 415, 413, 419, 416, 418, 414, 412};
+  std::vector<double> mzs {420.130, 412.824, 423.269, 415.287, 413.800, 419.113, 416.293, 418.232, 414.301, 412.321};
+  std::vector<double> intensities {201, 60, 56, 37, 34, 31, 31, 31, 29, 29};
 
   for (Size i = 0; i < mzs.size(); ++i)
   {
@@ -704,15 +726,14 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
 }
 END_SECTION
 
+
+
 START_SECTION((void sortByPosition()))
 {
   MSSpectrum ds;
-  MSSpectrum::FloatDataArray float_array;
-  MSSpectrum::StringDataArray string_array;
-  MSSpectrum::IntegerDataArray int_array;
-  float_array.assign({56, 201, 31, 31, 31, 37, 29, 34, 60, 29});
-  string_array.assign({"56", "201", "31", "31", "31", "37", "29", "34", "60", "29"});
-  int_array.assign({56, 201, 31, 31, 31, 37, 29, 34, 60, 29});
+  MSSpectrum::FloatDataArray float_array {56.0, 201.0, 31, 31, 31, 37, 29, 34, 60, 29};
+  MSSpectrum::StringDataArray string_array {"56", "201", "31", "31", "31", "37", "29", "34", "60", "29"};
+  MSSpectrum::IntegerDataArray int_array {56, 201, 31, 31, 31, 37, 29, 34, 60, 29};
   std::vector<double> mzs {423.269, 420.130, 419.113, 418.232, 416.293, 415.287, 414.301, 413.800, 412.824, 412.321};
   std::vector<double> intensities {56, 201, 31, 31, 31, 37, 29, 34, 60, 29};
 
@@ -783,16 +804,32 @@ START_SECTION((void sortByPosition()))
 }
 END_SECTION
 
+START_SECTION(void sortByIonMobility())
+{
+  auto ds = getPrefilledSpec();
+
+  TEST_FALSE(ds.isSortedByIM())
+  ds.sortByIonMobility();
+  TEST_TRUE(ds.isSortedByIM())
+  auto [idx, unit] = ds.getIMData();
+  TEST_EQUAL(idx, 1)
+  const auto& im = ds.getFloatDataArrays()[idx];
+  TEST_TRUE(std::is_sorted(im.begin(), im.end())) 
+}
+END_SECTION
+
+START_SECTION(void isSortedByIM() const)
+{
+  NOT_TESTABLE // tested above
+}
+END_SECTION
 
 START_SECTION((void sortByPositionPresorted()))
 {
   MSSpectrum ds;
-  MSSpectrum::FloatDataArray float_array;
-  MSSpectrum::StringDataArray string_array ;
-  MSSpectrum::IntegerDataArray int_array ;
-  float_array.assign({19, 20, 23, 15, 16, 18, 13, 14, 12, 12});
-  string_array.assign({"19", "20", "23", "15", "16", "18", "13", "14", "12", "12"});
-  int_array.assign({19, 20, 23, 15, 16, 18, 13, 14, 12, 12});
+  MSSpectrum::FloatDataArray float_array {19, 20, 23, 15, 16, 18, 13, 14, 12, 12};
+  MSSpectrum::StringDataArray string_array {"19", "20", "23", "15", "16", "18", "13", "14", "12", "12"};
+  MSSpectrum::IntegerDataArray int_array {19, 20, 23, 15, 16, 18, 13, 14, 12, 12};
   std::vector<double> mzs {419.113, 420.130, 423.269, 415.287, 416.293, 418.232, 413.800, 414.301, 412.824, 412.321};
   std::vector<double> intensities {19, 20, 23, 15, 16, 18, 13, 14, 12, 12};
 
@@ -854,19 +891,7 @@ END_SECTION
 START_SECTION(bool isSorted() const)
 {
   //make test dataset
-  MSSpectrum spec;
-  Peak1D p;
-  p.setIntensity(1.0);
-  p.setMZ(1000.0);
-  spec.push_back(p);
-
-  p.setIntensity(1.0);
-  p.setMZ(1001.0);
-  spec.push_back(p);
-
-  p.setIntensity(1.0);
-  p.setMZ(1002.0);
-  spec.push_back(p);
+  MSSpectrum spec {{1000.0, 3}, {1001, 5}, {1002, 1}};
 
   TEST_EQUAL(spec.isSorted(),true)
 
@@ -879,12 +904,9 @@ START_SECTION(template<class Predicate>
               bool isSorted(const Predicate& lamdba) const)
 {
   MSSpectrum ds;
-  MSSpectrum::FloatDataArray float_array;
-  MSSpectrum::StringDataArray string_array;
-  MSSpectrum::IntegerDataArray int_array;
-  float_array.assign({56, 201, 31, 31, 31, 37, 29, 34, 60, 29});
-  string_array.assign({"56", "201", "31", "31", "31", "37", "29", "34", "60", "29"});
-  int_array.assign({56, 201, 31, 31, 31, 37, 29, 34, 60, 29});
+  MSSpectrum::FloatDataArray float_array {56, 201, 31, 31, 31, 37, 29, 34, 60, 29};
+  MSSpectrum::StringDataArray string_array {"56", "201", "31", "31", "31", "37", "29", "34", "60", "29"};
+  MSSpectrum::IntegerDataArray int_array {56, 201, 31, 31, 31, 37, 29, 34, 60, 29};
   std::vector<double> mzs{423.269, 420.130, 419.113, 418.232, 416.293, 415.287, 414.301, 413.800, 412.824, 412.321};
   std::vector<double> intensities{56, 201, 31, 31, 31, 37, 29, 34, 60, 29};
 
@@ -936,16 +958,7 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 // Finding peaks or peak ranges
 
-const MSSpectrum spec_find = []() {
-  MSSpectrum spec;
-  spec.push_back({1.0, 29.0f});
-  spec.push_back({2.0, 60.0f});
-  spec.push_back({3.0, 34.0f});
-  spec.push_back({4.0, 29.0f});
-  spec.push_back({5.0, 37.0f});
-  spec.push_back({6.0, 31.0f});
-  return spec;
-}();
+const MSSpectrum spec_find{{1.0, 29.0f}, {2.0, 60.0f}, {3.0, 34.0f}, {4.0, 29.0f}, {5.0, 37.0f}, {6.0, 31.0f}};
 
 START_SECTION((Iterator MZEnd(CoordinateType mz)))
 {
@@ -1161,31 +1174,44 @@ START_SECTION((ConstIterator PosEnd(ConstIterator begin, CoordinateType mz, Cons
 }
 END_SECTION
 
-const MSSpectrum spec_test = [](){ 
-  MSSpectrum spec_test;
-  spec_test.push_back({412.321, 29.0f});
-  spec_test.push_back({412.824, 60.0f});
-  spec_test.push_back({413.8, 34.0f});
-  spec_test.push_back({414.301, 29.0f});
-  spec_test.push_back({415.287, 37.0f});
-  spec_test.push_back({416.293, 31.0f});
-  spec_test.push_back({418.232, 31.0f});
-  spec_test.push_back({419.113, 31.0f});
-  spec_test.push_back({420.13, 201.0f});
-  spec_test.push_back({423.269, 56.0f});
-  spec_test.push_back({426.292, 34.0f});
-  spec_test.push_back({427.28, 82.0f});
-  spec_test.push_back({428.322, 87.0f});
-  spec_test.push_back({430.269, 30.0f});
-  spec_test.push_back({431.246, 29.0f});
-  spec_test.push_back({432.289, 42.0f});
-  spec_test.push_back({436.161, 32.0f});
-  spec_test.push_back({437.219, 54.0f});
-  spec_test.push_back({439.186, 40.0f});
-  spec_test.push_back({440.27, 40});
-  spec_test.push_back({441.224, 23.0f});
-  return spec_test;
-}();
+START_SECTION(bool containsIMData() const)
+{
+  auto ds = getPrefilledSpec();
+  TEST_TRUE(ds.containsIMData())
+}
+END_SECTION
+
+START_SECTION((std::pair<Size,DriftTimeUnit> getIMData() const))
+{
+  auto ds = getPrefilledSpec();
+  auto [im_data_index, unit] = ds.getIMData();
+  TEST_EQUAL(im_data_index, 1)
+  TEST_TRUE(unit == DriftTimeUnit::MILLISECOND)
+}
+END_SECTION
+
+const MSSpectrum spec_test {
+  {412.321, 29.0f},
+  {412.824, 60.0f},
+  {413.8, 34.0f},
+  {414.301, 29.0f},
+  {415.287, 37.0f},
+  {416.293, 31.0f},
+  {418.232, 31.0f},
+  {419.113, 31.0f},
+  {420.13, 201.0f},
+  {423.269, 56.0f},
+  {426.292, 34.0f},
+  {427.28, 82.0f},
+  {428.322, 87.0f},
+  {430.269, 30.0f},
+  {431.246, 29.0f},
+  {432.289, 42.0f},
+  {436.161, 32.0f},
+  {437.219, 54.0f},
+  {439.186, 40.0f},
+  {440.27, 40},
+  {441.224, 23.0f}};
 
 START_SECTION((Size findNearest(CoordinateType mz) const))
 {
@@ -1425,24 +1451,80 @@ START_SECTION(([MSSpectrum::RTLess] bool operator()(const MSSpectrum &a, const M
 }
 END_SECTION
 
+START_SECTION((std::pair<DriftTimeUnit, std::vector<float>> maybeGetIMData() const))
+{
+  // Test successful retrieval of ion mobility data
+  MSSpectrum spec;
+  
+  // Create a float data array with ion mobility data
+  DataArrays::FloatDataArray im_array;
+  im_array.setName("Ion Mobility");
+  im_array.resize(3);
+  im_array[0] = 1.0f;
+  im_array[1] = 2.0f;
+  im_array[2] = 3.0f;
+  im_array.setMetaValue("unit", "millisecond");
+  
+  // Add the array to spectrum's float data arrays
+  std::vector<DataArrays::FloatDataArray> fda;
+  fda.push_back(im_array);
+  spec.setFloatDataArrays(fda);
+  
+  // Test successful case
+  std::pair<DriftTimeUnit, std::vector<float>> result = spec.maybeGetIMData();
+  TEST_TRUE(result.first == DriftTimeUnit::MILLISECOND)
+  TEST_EQUAL(result.second.size(), 3)
+  TEST_REAL_SIMILAR(result.second[0], 1.0)
+  TEST_REAL_SIMILAR(result.second[1], 2.0)
+  TEST_REAL_SIMILAR(result.second[2], 3.0)
+  
+  // Test case with missing ion mobility data
+  MSSpectrum spec_no_im;
+  result = spec_no_im.maybeGetIMData();
+  TEST_TRUE(result.first == DriftTimeUnit::NONE)
+  TEST_EQUAL(result.second.empty(), true)
+  
+  // Test case with empty float arrays
+  MSSpectrum spec_empty;
+  spec_empty.getFloatDataArrays().clear();
+  result = spec_empty.maybeGetIMData();
+  TEST_TRUE(result.first == DriftTimeUnit::NONE)
+  TEST_EQUAL(result.second.empty(), true)
+  
+  // Test case with wrong array name
+  MSSpectrum spec_wrong_name;
+  DataArrays::FloatDataArray wrong_array;
+  wrong_array.setName("Wrong Name");
+  wrong_array.resize(2);
+  wrong_array[0] = 4.0f;
+  wrong_array[1] = 5.0f;
+  fda.clear();
+  fda.push_back(wrong_array);
+  spec_wrong_name.setFloatDataArrays(fda);
+  result = spec_wrong_name.maybeGetIMData();
+  TEST_TRUE(result.first == DriftTimeUnit::NONE)
+  TEST_EQUAL(result.second.empty(), true)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] std::ostream& operator << (std::ostream& os, const MSSpectrum& spec)))
 {
-  MSSpectrum spec;
-  Peak1D p;
-  p.setIntensity(29.0f); p.setMZ(412.321); spec.push_back(p); //0
-  p.setIntensity(60.0f); p.setMZ(412.824); spec.push_back(p); //1
-  p.setIntensity(34.0f); p.setMZ(413.8);   spec.push_back(p); //2
-  p.setIntensity(29.0f); p.setMZ(414.301); spec.push_back(p); //3
-  p.setIntensity(37.0f); p.setMZ(415.287); spec.push_back(p); //4
-  p.setIntensity(31.0f); p.setMZ(416.293); spec.push_back(p); //5
-  p.setIntensity(31.0f); p.setMZ(418.232); spec.push_back(p); //6
-  p.setIntensity(31.0f); p.setMZ(419.113); spec.push_back(p); //7
-  p.setIntensity(201.0f); p.setMZ(420.13); spec.push_back(p); //8
-  p.setIntensity(56.0f); p.setMZ(423.269); spec.push_back(p); //9
-  p.setIntensity(34.0f); p.setMZ(426.292); spec.push_back(p); //10
+  MSSpectrum spec
+  { {412.321, 29.0f}, //0
+    {412.824, 60.0f}, //1
+    {413.8, 34.0f},   //2
+    {414.301, 29.0f}, //3
+    {415.287, 37.0f}, //4
+    {416.293, 31.0f}, //5
+    {418.232, 31.0f}, //6
+    {419.113, 31.0f}, //7
+    {420.13, 201.0f}, //8
+    {423.269, 56.0f}, //9
+    {426.292, 34.0f}  //10
+  };
 
   spec.getInstrumentSettings().getScanWindows().resize(1);
-  spec.setMetaValue("label",5.0);
+  spec.setMetaValue("label", 5.0);
   spec.setMSLevel(17);
   spec.setRT(7.0);
   spec.setName("bla");
@@ -1465,7 +1547,6 @@ START_SECTION(([EXTRA] std::ostream& operator << (std::ostream& os, const MSSpec
                                 "POS: 423.269 INT: 56\n"
                                 "POS: 426.292 INT: 34\n"
                                 "-- MSSPECTRUM END --\n")
-
 }
 END_SECTION
 

@@ -236,7 +236,7 @@ for module in mnames:
         extra_compile_args=extra_compile_args,
         extra_objects=objects,
         extra_link_args=extra_link_args,
-		define_macros=[('BOOST_ALL_NO_LIB', None)] ## Deactivates boost autolink (esp. on win).
+		define_macros=[('BOOST_ALL_NO_LIB', None), ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")] ## Deactivates boost autolink (esp. on win). Shuts up the damn "deprecated NumPy API" warning spam (https://docs.cython.org/en/latest/src/userguide/numpy_tutorial.html#numpy-compilation)
 		## Alternative is to specify the boost naming scheme (--layout param; easy if built from contrib)
 		## TODO just take over compile definitions from OpenMS (CMake)
     ))
@@ -254,7 +254,7 @@ setup(
         'pyopenms': ['py.typed', '*.pyi']
     },
 	install_requires=[
-          'numpy',
+          'numpy>=1.25.0',
           'pandas',
           'matplotlib>=3.5'
     ],
@@ -285,8 +285,8 @@ setup(
         "Documentation Source": "https://github.com/OpenMS/pyopenms-docs",
     },
 
-    author="Uwe Schmitt and the OpenMS team",
-    author_email="uschmitt@mineway.de",
+    author="OpenMS team",
+    author_email="webmaster@openms.de",
 
     ext_modules=ext,
     include_package_data=True  # see MANIFEST.in

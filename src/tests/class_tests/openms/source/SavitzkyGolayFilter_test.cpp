@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 
 ///////////////////////////

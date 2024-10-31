@@ -4,6 +4,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
 #include <iostream>

@@ -9,9 +9,9 @@
 //
 
 #include <OpenMS/FORMAT/GNPSMGFFile.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
+#include <OpenMS/COMPARISON/BinnedSpectralContrastAngle.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>

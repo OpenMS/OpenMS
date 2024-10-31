@@ -4,7 +4,7 @@ from MSChromatogram cimport *
 from SplinePackage cimport *
 from Peak1D cimport *
 
-cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/MISC/SplineInterpolatedPeaks.h>" namespace "OpenMS":
     
     cdef cppclass SplineInterpolatedPeaks "OpenMS::SplineInterpolatedPeaks":
 
@@ -28,7 +28,7 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>" na
         SplineSpectrum_Navigator getNavigator(double scaling) except + nogil 
 
 
-cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>" namespace "OpenMS::SplineInterpolatedPeaks":
+cdef extern from "<OpenMS/PROCESSING/MISC/SplineInterpolatedPeaks.h>" namespace "OpenMS::SplineInterpolatedPeaks":
     
     cdef cppclass SplineSpectrum_Navigator "OpenMS::SplineInterpolatedPeaks::Navigator":
         

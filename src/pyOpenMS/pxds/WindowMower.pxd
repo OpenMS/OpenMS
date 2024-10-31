@@ -5,7 +5,7 @@ from ChromatogramPeak cimport *
 from Peak1D cimport *
 from DefaultParamHandler cimport *
 
-cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/FILTERING/WindowMower.h>" namespace "OpenMS":
 
     cdef cppclass WindowMower(DefaultParamHandler):
         # wrap-inherits:

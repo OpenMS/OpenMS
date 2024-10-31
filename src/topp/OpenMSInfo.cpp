@@ -51,8 +51,8 @@ To cite OpenMS:
    data. Nat Methods (2024). doi:10.1038/s41592-024-02197-7.
 
 << OpenMS Version >>
-Version      : 3.1.0
-Build time   : Mar  4 2024, 10:42:53
+Version      : 3.2.0
+Build time   : Sep  18 2024, 14:14:53
 Git sha1     : disabled
 Git branch   : disabled
 
@@ -111,7 +111,7 @@ protected:
        << underline(TOPPBase::getDocumentationURL()) << " " // the space is needed ...
        << '\n'
        << bright("To cite OpenMS:\n") << " + "
-       << is.indent(3) << cite_openms_.toString() << is.indent(0);
+       << is.indent(3) << cite_openms.toString() << is.indent(0);
 
     is << "\n\n"
        << green("<< OpenMS Version >>\n")
@@ -130,7 +130,7 @@ protected:
        << "Binary path  : " << OPENMS_BINARY_PATH << "\n"
        << "Binary arch  : " << Internal::OpenMSOSInfo::getBinaryArchitecture() << "\n"
        << "Build type   : " << Internal::OpenMSBuildInfo::getBuildType() << "\n";
-#if COINOR_SOLVER == 1
+#ifdef OPENMS_HAS_COINOR
     is << "LP-Solver    : COIN-OR\n";
 #else
     cout << "LP-Solver    : GLPK\n";

@@ -2,13 +2,13 @@ from libcpp cimport bool
 from Types cimport *
 from MSSpectrum cimport *
 
-cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>" namespace "OpenMS":
     cdef cppclass Deisotoper:
         Deisotoper() except + nogil  # compiler
         Deisotoper(Deisotoper &) except + nogil  # compiler
 
 # COMMENT: wrap static methods
-cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>" namespace "OpenMS::Deisotoper":
+cdef extern from "<OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>" namespace "OpenMS::Deisotoper":
         void deisotopeAndSingleCharge(MSSpectrum & spectra,
                 double fragment_tolerance,
                 bool fragment_unit_ppm,

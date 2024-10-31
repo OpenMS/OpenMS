@@ -15,7 +15,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 
 using namespace OpenMS;
 

@@ -11,7 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/COMPARISON/SpectrumAlignment.h>
 
 #include <OpenMS/KERNEL/Peak1D.h>
 

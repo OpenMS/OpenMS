@@ -12,7 +12,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/QC/MzCalibration.h>
 

@@ -9,8 +9,8 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteringProfile.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 using namespace OpenMS;

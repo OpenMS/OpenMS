@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/MATH/MISC/MSNumpress.h>
+#include <OpenMS/FORMAT/MSNUMPRESS/MSNumpress.h>
 ///////////////////////////
 
 using namespace OpenMS;

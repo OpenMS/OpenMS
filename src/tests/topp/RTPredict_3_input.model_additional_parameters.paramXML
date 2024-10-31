@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
-<PARAMETERS version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <ITEM name="kernel_type" value="19" type="int" description="" advanced="false" />
-  <ITEM name="sigma_0" value="0.2311777" type="float" description="" advanced="false" />
-  <ITEM name="sigma_max" value="1.13" type="float" description="" advanced="false" />
-  <ITEM name="border_length" value="22" type="int" description="" advanced="false" />
-  <ITEM name="k_mer_length" value="1" type="int" description="" advanced="false" />
-  <ITEM name="sigma" value="5" type="float" description="" advanced="false" />
-</PARAMETERS>

@@ -30,7 +30,6 @@ START_TEST(QTClusterFinder, "$Id$")
 
 QTClusterFinder* ptr = nullptr;
 QTClusterFinder* nullPointer = nullptr;
-BaseGroupFinder* base_nullPointer = nullptr;
 
 START_SECTION((QTClusterFinder()))
 {

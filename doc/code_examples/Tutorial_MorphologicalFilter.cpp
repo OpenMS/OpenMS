@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-#include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
+#include <OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data

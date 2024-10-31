@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResampler.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>

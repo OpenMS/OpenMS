@@ -4,7 +4,7 @@ from String cimport *
 # TODO: support multiset
 # typedef std::multiset<String> LabelSet;
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>" namespace "OpenMS":
     
     cdef cppclass MultiplexDeltaMasses "OpenMS::MultiplexDeltaMasses":
         # wrap-doc:
@@ -30,7 +30,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>"
 
         # String labelSetToString(LabelSet ls) except + nogil 
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>" namespace "OpenMS::MultiplexDeltaMasses":
+cdef extern from "<OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>" namespace "OpenMS::MultiplexDeltaMasses":
     
     cdef cppclass MultiplexDeltaMasses_DeltaMass "OpenMS::MultiplexDeltaMasses::DeltaMass":
 

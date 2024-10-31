@@ -3,7 +3,7 @@ from ProgressLogger cimport *
 # from DistanceMatrix cimport *
 # from ClusterFunctor cimport *
 
-cdef extern from "<OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/ML/CLUSTERING/AverageLinkage.h>" namespace "OpenMS":
     
     cdef cppclass AverageLinkage "OpenMS::AverageLinkage":
         AverageLinkage() except + nogil 

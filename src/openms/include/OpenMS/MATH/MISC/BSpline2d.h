@@ -11,7 +11,6 @@
 #include <vector>
 
 #include <OpenMS/config.h>
-#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Macros.h>

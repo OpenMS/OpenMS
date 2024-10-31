@@ -5,7 +5,7 @@ from MSSpectrum cimport *
 from ConsensusMap cimport *
 from FeatureMap cimport *
 
-cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/MISC/DataFilters.h>" namespace "OpenMS":
 
     cdef cppclass DataFilters "OpenMS::DataFilters":
         DataFilters() except + nogil  # compiler
@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "Ope
         bool passes(ConsensusFeature & consensus_feature) except + nogil 
         bool passes(MSSpectrum & spectrum, Size peak_index) except + nogil 
 
-cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "OpenMS::DataFilters":
+cdef extern from "<OpenMS/PROCESSING/MISC/DataFilters.h>" namespace "OpenMS::DataFilters":
 
     cdef cppclass DataFilter "OpenMS::DataFilters::DataFilter":
         DataFilter() except + nogil  # compiler
@@ -39,7 +39,7 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "Ope
         bool operator!=(DataFilter & rhs) except + nogil 
 
 
-cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "OpenMS::DataFilters":
+cdef extern from "<OpenMS/PROCESSING/MISC/DataFilters.h>" namespace "OpenMS::DataFilters":
     cdef enum FilterType "OpenMS::DataFilters::FilterType":
         #wrap-attach:
         #   DataFilters
@@ -49,7 +49,7 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "Ope
         SIZE
         META_DATA
 
-cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "OpenMS::DataFilters":
+cdef extern from "<OpenMS/PROCESSING/MISC/DataFilters.h>" namespace "OpenMS::DataFilters":
     cdef enum FilterOperation "OpenMS::DataFilters::FilterOperation":
         #wrap-attach:
         #   DataFilters

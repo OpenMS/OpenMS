@@ -14,11 +14,11 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
 
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 
 #ifdef WITH_CRAWDAD
 #include <CrawdadWrapper.h>

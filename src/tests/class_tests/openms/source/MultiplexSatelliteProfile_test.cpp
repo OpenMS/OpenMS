@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatelliteProfile.h>
+#include <OpenMS/FEATUREFINDER/MultiplexSatelliteProfile.h>
 
 using namespace OpenMS;
 

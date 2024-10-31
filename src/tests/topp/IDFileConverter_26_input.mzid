@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <MzIdentML xmlns="http://psidev.info/psi/pi/mzIdentML/1.1" id="MS-GF+" version="1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.1 http://www.psidev.info/files/mzIdentML1.1.0.xsd" creationDate="2018-06-20T12:19:45">
 <cvList xmlns="http://psidev.info/psi/pi/mzIdentML/1.1">
-  <cv fullName="PSI-MS" version="3.30.0" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" id="PSI-MS"/>
+  <cv fullName="PSI-MS" version="3.30.0" uri="http://purl.obolibrary.org/obo/ms/psi-ms.obo" id="PSI-MS"/>
   <cv fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo" id="UNIMOD"/>
   <cv fullName="UNIT-ONTOLOGY" uri="https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/master/unit.obo" id="UO"/>
 </cvList>

@@ -9,11 +9,11 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
-#include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
+#include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
+#include <OpenMS/PROCESSING/SMOOTHING/LowessSmoothing.h>
 
 ///////////////////////////
-#include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
+#include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
 ///////////////////////////
 
 using namespace OpenMS;

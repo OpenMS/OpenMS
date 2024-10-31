@@ -208,10 +208,15 @@ namespace OpenMS
     using IntType = MSExperiment::ConstAreaIterator::PeakType::IntensityType;
     auto max_int = numeric_limits<IntType>::lowest();
     PeakIndex max_pi;
-    for (ExperimentType::ConstAreaIterator i = getPeakData()->areaBeginConst(area); i != getPeakData()->areaEndConst(); ++i)
+    
+    const auto map = *getPeakData();
+    // for IM data, use whatever is there. For RT/mz data, use MSlevel 1
+    const UInt MS_LEVEL = (! map.empty() && map.isIMFrame()) ? map[0].getMSLevel() : 1;
+
+    for (ExperimentType::ConstAreaIterator i = map.areaBeginConst(area, MS_LEVEL); i != map.areaEndConst(); ++i)
     {
       PeakIndex pi = i.getPeakIndex();
-      if (i->getIntensity() > max_int && filters.passes((*getPeakData())[pi.spectrum], pi.peak))
+      if (i->getIntensity() > max_int && filters.passes((map)[pi.spectrum], pi.peak))
       {
         max_int = i->getIntensity();
         max_pi = pi;

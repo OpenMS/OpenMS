@@ -10,19 +10,20 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
 #include <ui_TOPPASIOMappingDialog.h>
 
-#include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
-#include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
-#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
-#include <OpenMS/VISUAL/TOPPASSplitterVertex.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
+#include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
+#include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASSplitterVertex.h>
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 #include <QtWidgets/QMessageBox>
 
 #include <iostream>
 #include <sstream>
+#include <OpenMS/VISUAL/TOPPASOutputFolderVertex.h>
 
 namespace OpenMS
 {
@@ -53,6 +54,12 @@ namespace OpenMS
     {
       ui_->target_combo->setCurrentIndex(1);
     }
+    // if the target is an output folder and there is no output parameter in the input tool, the egde is invalid
+    TOPPASOutputFolderVertex* target_dir = qobject_cast<TOPPASOutputFolderVertex*>(edge_->getTargetVertex());
+    if (target_dir && ui_->source_combo->count() == 0)
+    {
+      return QDialog::Rejected;
+    }
 
     // is there only 1 possible mapping? -> do not show dialog
     if ((ui_->source_combo->count() == 2 || ui_->source_combo->count() == 0) &&
@@ -69,8 +76,6 @@ namespace OpenMS
 
   void TOPPASIOMappingDialog::fillComboBoxes_()
   {
-    target_input_param_indices_.clear();
-
     TOPPASVertex* source = edge_->getSourceVertex();
     TOPPASVertex* target = edge_->getTargetVertex();
 
@@ -82,12 +87,33 @@ namespace OpenMS
     TOPPASSplitterVertex* target_splitter = qobject_cast<TOPPASSplitterVertex*>(target);
     TOPPASInputFileListVertex* source_list = qobject_cast<TOPPASInputFileListVertex*>(source);
     TOPPASOutputFileListVertex* target_list = qobject_cast<TOPPASOutputFileListVertex*>(target);
+    TOPPASOutputFolderVertex* target_dir = qobject_cast<TOPPASOutputFolderVertex*>(target);
 
-
-    if (source_tool)
+    // an output folder can only be connected to a tool
+    if (target_dir)
     {
-      QVector<TOPPASToolVertex::IOInfo> source_output_files;
-      source_tool->getOutputParameters(source_output_files);
+      if (!source_tool)
+      { // bad news: no source tool, hence no connection possible
+        return;
+      }
+      const auto source_output_dirs = source_tool->getOutputParameters();
+      ui_->source_combo->addItem("<select>");
+      for (const auto& info : source_output_dirs)
+      {
+        if (info.type != TOPPASToolVertex::IOInfo::IOT_DIR) continue;
+
+        String item_name = "Directory: " + info.param_name + " ";
+        ui_->source_combo->addItem(item_name.toQString(), source_output_dirs.indexOf(info));
+      }
+      if (ui_->source_combo->count() == 1) // no directories found; return empty to signal invalid edge
+      {
+        ui_->source_combo->clear();
+        return;
+      }
+    }
+    else if (source_tool)
+    {
+      QVector<TOPPASToolVertex::IOInfo> source_output_files = source_tool->getOutputParameters();
       ui_->source_label->setText(source_tool->getName().toQString());
       if (!source_tool->getType().empty())
       {
@@ -98,8 +124,9 @@ namespace OpenMS
         ui_->source_type_label->setVisible(false);
       }
       ui_->source_combo->addItem("<select>");
-      foreach(TOPPASToolVertex::IOInfo info, source_output_files)
+      for (TOPPASToolVertex::IOInfo info : source_output_files)
       {
+        if (info.type == TOPPASToolVertex::IOInfo::IOT_DIR) continue;
         String item_name;
         if (info.type == TOPPASToolVertex::IOInfo::IOT_FILE)
         {
@@ -115,11 +142,7 @@ namespace OpenMS
         ss << info.valid_types;
         item_name += ss.str();
 
-        ui_->source_combo->addItem(item_name.toQString());
-      }
-      if (ui_->source_combo->count() == 2) // only 1 parameter
-      {
-        ui_->source_combo->setCurrentIndex(1);
+        ui_->source_combo->addItem(item_name.toQString(), source_output_files.indexOf(info));
       }
     }
     else if (source_list || source_merger || source_splitter)
@@ -143,8 +166,7 @@ namespace OpenMS
 
     if (target_tool)
     {
-      QVector<TOPPASToolVertex::IOInfo> target_input_files;
-      target_tool->getInputParameters(target_input_files);
+      QVector<TOPPASToolVertex::IOInfo> target_input_files = target_tool->getInputParameters();
       ui_->target_label->setText(target_tool->getName().toQString());
       if (!target_tool->getType().empty())
       {
@@ -155,10 +177,8 @@ namespace OpenMS
         ui_->target_type_label->setVisible(false);
       }
       ui_->target_combo->addItem("<select>");
-      int param_counter = -1;
-      foreach(TOPPASToolVertex::IOInfo info, target_input_files)
+      for (TOPPASToolVertex::IOInfo info : target_input_files)
       {
-        ++param_counter;
         // check if parameter occupied by another edge already
         bool occupied = false;
         for (TOPPASVertex::ConstEdgeIterator it = target->inEdgesBegin(); it != target->inEdgesEnd(); ++it)
@@ -193,19 +213,18 @@ namespace OpenMS
         ss << info.valid_types;
         item_name += ss.str();
 
-        ui_->target_combo->addItem(item_name.toQString());
-        target_input_param_indices_.push_back(param_counter);
-      }
-      if (ui_->target_combo->count() == 2) // only 1 parameter
-      {
-        ui_->target_combo->setCurrentIndex(1);
+        ui_->target_combo->addItem(item_name.toQString(), target_input_files.indexOf(info));
       }
     }
-    else if (target_list || target_merger || target_splitter)
+    else if (target_list || target_dir || target_merger || target_splitter)
     {
       if (target_list)
       {
         ui_->target_label->setText("List");
+      }
+      else if (target_dir)
+      {
+        ui_->target_label->setText("Directory");
       }
       else if (target_merger)
       {
@@ -220,18 +239,23 @@ namespace OpenMS
       ui_->target_parameter_label->setVisible(false);
     }
 
-    int source_out = edge_->getSourceOutParam();
-    int target_in = edge_->getTargetInParam();
-    int combo_index = target_input_param_indices_.indexOf(target_in) + 1;
-    if (source_out != -1)
-    {
-      ui_->source_combo->setCurrentIndex(source_out + 1);
-    }
-    if (combo_index != 0)
-    {
-      ui_->target_combo->setCurrentIndex(combo_index);
-    }
-
+    // pre-select the current mapping for existing edges
+    // note: for new edges, @p edge_index is -1
+    auto find_index = [](QComboBox* combo, int edge_index) -> int {
+      for (int i = 1; i < combo->count(); ++i)
+      {
+        if (combo->itemData(i).toInt() == edge_index) return i;
+      }
+      // no mapping found
+      if (combo->count() == 2) // only 1 parameter (+ <select>)
+      {
+        return 1; // pre-select the only parameter
+      }
+      return 0; // use '<select>'
+    };
+    ui_->source_combo->setCurrentIndex(find_index(ui_->source_combo, edge_->getSourceOutParam()));
+    ui_->target_combo->setCurrentIndex(find_index(ui_->target_combo, edge_->getTargetInParam()));
+    
     resize(width(), 0);
   }
 
@@ -258,22 +282,11 @@ namespace OpenMS
 
     if (source_tool)
     {
-      edge_->setSourceOutParam(ui_->source_combo->currentIndex() - 1);
+      edge_->setSourceOutParam(ui_->source_combo->currentData().toInt());
     }
     if (target_tool)
     {
-      int target_index;
-      int tci = ui_->target_combo->currentIndex() - 1;
-      if (0 <= tci && tci < target_input_param_indices_.size())
-      {
-        target_index = target_input_param_indices_[tci];
-      }
-      else
-      {
-        std::cerr << "Parameter index out of bounds!" << std::endl;
-        return;
-      }
-      edge_->setTargetInParam(target_index);
+      edge_->setTargetInParam(ui_->target_combo->currentData().toInt());
     }
     edge_->updateColor();
 

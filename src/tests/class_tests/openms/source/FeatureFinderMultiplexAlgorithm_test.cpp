@@ -14,7 +14,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 
 using namespace OpenMS;
 using namespace std;

@@ -46,6 +46,7 @@ set(openswath_algo_tests
   Datastructures_test
   TestConvert
   DiaHelpers_test
+  SwathMap_test
 )
 
 #------------------------------------------------------------------------------

@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
+#include <OpenMS/FEATUREFINDER/BiGaussModel.h>
 
 
 ///////////////////////////

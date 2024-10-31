@@ -11,7 +11,7 @@ from MSChromatogram cimport *
 from DefaultParamHandler cimport *
 from ProgressLogger cimport *
 
-cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/FeatureFindingMetabo.h>" namespace "OpenMS":
 
     cdef cppclass FeatureFindingMetabo(ProgressLogger, DefaultParamHandler):
         # wrap-inherits:

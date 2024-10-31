@@ -6,7 +6,7 @@
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 #include <queue>
 #include <unordered_set>

@@ -13,7 +13,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
+#include <OpenMS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <sstream>
 
