@@ -461,6 +461,7 @@ jobs:
         SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
         CMAKE_GENERATOR: "Ninja"
         OPENMS_CONTRIB_LIBS: "$GITHUB_WORKSPACE/OpenMS/contrib"
+        BOOST_USE_STATIC: "OFF"
         BUILD_TYPE: "Release"
         BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}" #TODO make this more expressive
         BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
