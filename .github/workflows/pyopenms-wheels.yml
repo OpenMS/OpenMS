@@ -105,7 +105,6 @@ jobs:
 
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
 
-
           # clean previous pyopenms libs
           find . -name "_pyopenms*.pyd" -exec rm -rf {} \;
 
@@ -125,15 +124,13 @@ jobs:
           # pip install all the stuff
           ${CURRENT_PYTHON_EXECUTABLE} -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
           
-          echo $CURRENT_PYTHON_EXECUTABLE
+          # Get the Python root directory
+          export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
+          echo "Python root directory: $Python_ROOT_DIR"
 
           # build pyopenms distribution
-          #cmake --version
-          #cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} .
-          ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE
+          ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
 
-
-          #cmake --build . --config Release --target pyopenms
           echo "Current dir is `pwd`"
           echo "wheels are in `find . | grep whl`"
           # copy to directory
@@ -142,6 +139,7 @@ jobs:
           conda deactivate
           conda remove --name "pyoms-bld-${pynodot}" --all
         done
+        
       env: 
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CMAKE_GENERATOR: "Visual Studio 17 2022"
@@ -159,11 +157,6 @@ jobs:
           CCACHE_MAXSIZE: 400M
           PYOPENMS: "ON"
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
-          ENABLE_TUTORIALS: "OFF"
-          ENABLE_DOCS: "OFF"
-          ENABLE_STYLE_TESTING: "OFF"
-          ENABLE_TOPP_TESTING: "OFF"
-          ENABLE_CLASS_TESTING: "OFF"
 
 
     - name: Test
