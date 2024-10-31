@@ -151,7 +151,6 @@ jobs:
           #CMAKE_PREFIX_PATH: "$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" #TODO move this to env
           BUILD_TYPE: "Release"
           BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}" #TODO make this more expressive
-          BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_CCACHE_EXE: "ccache"
           CCACHE_BASEDIR: ${{ github.workspace }}
