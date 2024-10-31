@@ -291,10 +291,24 @@ if(WHEEL_MISSING)
 endif()
 
 #------------------------------------------------------------------------------
+# Check for pandas which is required to run pyopenms tests
+execute_process(
+     COMMAND
+     ${Python_EXECUTABLE} -c "import pandas"
+     RESULT_VARIABLE PANDAS_MISSING
+     ERROR_QUIET
+     OUTPUT_QUIET
+)
+
+if(PANDAS_MISSING)
+  message(FATAL_ERROR "Looking for pandas - not found")
+endif()
+
+#------------------------------------------------------------------------------
 # Handle missing libraries (this should never be reached, as the individual
 #  parts should fire FATAL_ERRORs if something is missing)
 if(NUMPY_MISSING OR CYTHON_MODULE_NOTFOUND OR NOT CYTHON_MODULE_VERSION_CHECK_OK OR NOT AUTOWRAP_VERSION_OK
-   OR SETUPTOOLS_MISSING OR WHEEL_MISSING)
+   OR SETUPTOOLS_MISSING OR WHEEL_MISSING OR PANDAS_MISSING)
   message(FATAL_ERROR "Required Python modules not found or out of date")
 endif()
     

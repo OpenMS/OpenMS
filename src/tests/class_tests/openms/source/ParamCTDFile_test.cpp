@@ -15,6 +15,7 @@
 
 #include <OpenMS/FORMAT/ParamCTDFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
@@ -207,6 +208,22 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	TEST_REAL_SIMILAR(p6.getEntry("doublelist3").max_float, 4.45)
 	TEST_REAL_SIMILAR(p6.getEntry("doublelist4").min_float, 0.1)
 	TEST_REAL_SIMILAR(p6.getEntry("doublelist4").max_float, 5.8)
+
+  // NaN for float/double
+  Param p_nan;
+  p_nan.setValue("float_nan", std::numeric_limits<float>::quiet_NaN());
+  p_nan.setValue("double_nan", std::numeric_limits<double>::quiet_NaN());
+  NEW_TMP_FILE(filename);
+  paramFile.store(filename, p_nan, info);
+  Param p_nan2;
+  paramXML.load(filename, p_nan2);
+  TEST_TRUE(std::isnan((double)p_nan2.getValue("float_nan")))
+  TEST_TRUE(std::isnan((double)p_nan2.getValue("double_nan")))
+  // ... test the actual values written to INI (should be 'NaN', not 'nan', for compatibility with downstream tools, like Java's double)
+  TextFile tf;
+  tf.load(filename);
+  TEST_TRUE((tf.begin() + 7)->hasSubstring("value=\"NaN\""))
+  TEST_TRUE((tf.begin() + 8)->hasSubstring("value=\"NaN\""))
 
 END_SECTION
 

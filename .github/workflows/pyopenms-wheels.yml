@@ -114,12 +114,7 @@ jobs:
 
           ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip
           # pip install all the stuff
-          pip install -U setuptools
-          pip install -U pip
-          pip install -U autowrap
-          pip install -U pytest
-          pip install 'numpy<=1.26.4'
-          pip install -U wheel
+          ${CURRENT_PYTHON_EXECUTABLE} -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
 
           echo $CURRENT_PYTHON_EXECUTABLE
 
@@ -220,15 +215,10 @@ jobs:
 
           # set current python executable
           CURRENT_PYTHON_EXECUTABLE=$(which python)
-
+          
+          ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip
           # pip install all the stuff
-          pip install -U setuptools
-          pip install -U pip
-          pip install -U autowrap
-          pip install -U pytest
-          pip install 'numpy<=1.26.4'
-          pip install -U wheel
-          pip install -U pandas
+          ${CURRENT_PYTHON_EXECUTABLE} -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
 
           # build pyopenms distribution (macOS)
           cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} .
@@ -337,14 +327,9 @@ jobs:
           # set current python executable
           CURRENT_PYTHON_EXECUTABLE=$(which python)
 
+          ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip
           # pip install all the stuff
-          pip install -U setuptools
-          pip install -U pip
-          pip install -U autowrap
-          pip install -U pytest
-          pip install 'numpy<=1.26.4'
-          pip install -U wheel
-          pip install -U pandas
+          ${CURRENT_PYTHON_EXECUTABLE} -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
 
           # build pyopenms distribution (macOS)
           cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} .
@@ -420,13 +405,9 @@ jobs:
           "$PYBIN/bin/python" -m venv $pynodot
           source $pynodot/bin/activate
           
-          "$PYBIN/bin/pip" install -U pip
-          "$PYBIN/bin/pip" install -U Cython
-          "$PYBIN/bin/pip" install -U setuptools
-          "$PYBIN/bin/pip" install -U wheel
-          "$PYBIN/bin/pip" install 'numpy<=1.26.4'
-          "$PYBIN/bin/pip" install -U pytest
-          "$PYBIN/bin/pip" install -U autowrap
+          "$PYBIN/bin/pip" install --upgrade pip
+          # pip install all the stuff
+          "$PYBIN/bin/pip" install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
 
           # configure (don't copy deps since we use auditwheel)
           cmake -DNO_DEPENDENCIES=ON -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} $GITHUB_WORKSPACE/OpenMS

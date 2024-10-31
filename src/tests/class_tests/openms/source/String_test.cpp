@@ -15,6 +15,9 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 
 #include <algorithm>
+#include <cmath>
+
+#include <limits>
 #include <iostream>
 #include <iomanip>
 #include <random>
@@ -184,9 +187,9 @@ START_SECTION((String(short unsigned int i)))
 END_SECTION
 
 START_SECTION((String(float f, bool full_precision = true)))
-  String s(float(17.0123));
-  TEST_EQUAL(s,"17.0123")
-  String s2(float(17.0123), false);
+  String s(17.0123456f);
+  TEST_EQUAL(s,"17.012346")
+  String s2(17.0123f, false);
   TEST_EQUAL(s2, "17.012")
 END_SECTION
 
@@ -197,6 +200,20 @@ START_SECTION((String(float f)))
   TEST_EQUAL(s,"5.02542e04")
   String s2(d);
   TEST_EQUAL(s2, "5.025419921875e04")
+
+  // test denormals
+  constexpr float denorm = std::numeric_limits<float>::min() / 10;
+  //assert(std::fpclassify(denorm) == FP_SUBNORMAL);
+  TEST_EQUAL(String(denorm, true), "1.175495e-39")
+  TEST_EQUAL(String(denorm, false), "1.175e-39")
+
+  // we need this special 'NaN' since the default 'nan' is not recognized by downstream tools
+  // such as any Java-based tool (e.g. KNIME) trying to parse our output files
+  constexpr float nan = std::numeric_limits<float>::quiet_NaN();
+  assert(std::isnan(nan));
+  TEST_EQUAL(String(nan, true), "NaN")
+  TEST_EQUAL(String(nan, false), "NaN")
+
 END_SECTION
 
 START_SECTION((String(double d, bool full_precision = true)))
@@ -204,6 +221,19 @@ START_SECTION((String(double d, bool full_precision = true)))
   TEST_EQUAL(s,"17.012345")
   String s2(double(17.012345), false);
   TEST_EQUAL(s2, "17.012")
+  // test denormals
+  constexpr double denorm = std::numeric_limits<double>::min() / 10;
+  assert(std::fpclassify(denorm) == FP_SUBNORMAL);
+  TEST_EQUAL(String(denorm, true), "2.225073858507203e-309")
+  TEST_EQUAL(String(denorm, false), "2.225e-309")
+
+  // we need this special 'NaN' since the default 'nan' is not recognized by downstream tools 
+  // such as any Java-based tool (e.g. KNIME) trying to parse our output files
+  constexpr double nan = std::numeric_limits<double>::quiet_NaN();
+  assert(std::isnan(nan));
+  TEST_EQUAL(String(nan, true), "NaN")
+  TEST_EQUAL(String(nan, false), "NaN")
+
 END_SECTION
 
 START_SECTION((String(long double ld, bool full_precision = true)))
@@ -211,6 +241,19 @@ START_SECTION((String(long double ld, bool full_precision = true)))
   TEST_EQUAL(s,"17.012345")
   String s2(17.012345L, false); // suffix L indicates long double
   TEST_EQUAL(s2, "17.012")
+  // test denormals
+  long double denorm = std::numeric_limits<long double>::min() / 10;
+  assert(std::fpclassify(denorm) == FP_SUBNORMAL);
+  // we cannot test `long double` since it's size is very platform dependent
+  // TEST_EQUAL(String(denorm, true), "9.999888671826829e-321")
+  //TEST_EQUAL(String(denorm, false), "1.0e-320")
+  
+  // we need this special 'NaN' since the default 'nan' is not recognized by downstream tools
+  // such as any Java-based tool (e.g. KNIME) trying to parse our output files
+  constexpr long double nan = std::numeric_limits<long double>::quiet_NaN();
+  assert(std::isnan(nan));
+  TEST_EQUAL(String(nan, true), "NaN")
+  TEST_EQUAL(String(nan, false), "NaN")
 END_SECTION
 
 START_SECTION((String(const DataValue& d, bool full_precision = true)))
@@ -578,9 +621,9 @@ START_SECTION((double toDouble() const))
   s = "47218.890000001";
   TEST_EQUAL(String(s.toDouble()),"4.7218890000001e04");
   s = "nan";
-  TEST_EQUAL(std::isnan(s.toDouble()),true);
-  s = "NaN";
-  TEST_EQUAL(std::isnan(s.toDouble()),true);
+  TEST_TRUE(std::isnan(s.toDouble()));
+  s = "NaN"; // used in INI files, for Java compatibility
+  TEST_TRUE(std::isnan(s.toDouble()));
   s = "not a number";
   TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toDouble(), String("Could not convert string '") + s + "' to a double value")
 END_SECTION

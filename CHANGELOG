@@ -29,6 +29,9 @@ Misc:
 - Write out percolator features in search engine adapters (by default, no PSMFeatureExtractor is needed)
 
 
+Fixes:
+- OpenMS does not compile when using GLPK (instead of COINOR) (#7626)
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.2.0       (released 09/2024)             ----
 ------------------------------------------------------------------------------------------

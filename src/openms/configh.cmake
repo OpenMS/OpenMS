@@ -127,7 +127,6 @@ file (GENERATE
 add_custom_command (
 		COMMAND ${CMAKE_COMMAND} "-E" "copy_if_different" "${CONFIGURED_BUILD_CONFIG_H}" "${CONFIGURED_BUILD_CONFIG_CURRENT_H}"
 		VERBATIM
-		PRE_BUILD
 		DEPENDS  "${CONFIGURED_BUILD_CONFIG_H}"
 		OUTPUT   "${CONFIGURED_BUILD_CONFIG_CURRENT_H}"
 		COMMENT  "creating build_config.h file ({event: PRE_BUILD}, {filename: build_config.h})"

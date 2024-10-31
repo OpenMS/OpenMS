@@ -135,6 +135,7 @@ public:
     using ContainerType::insert;
     using ContainerType::erase;
     using ContainerType::swap;
+    using ContainerType::data;
 
     using typename ContainerType::iterator;
     using typename ContainerType::const_iterator;
@@ -552,6 +553,14 @@ public:
       @throws Exception::MissingInformation if IM data is not present
     */
     std::pair<Size, DriftTimeUnit> getIMData() const;
+    
+
+    /**
+      @brief Get the spectrum's ion mobility data (if exists) and its associated unit as a pair of {unit, data}
+      This only works for spectra which represent an IM-frame, i.e. they have a float metadata array which is a child of 'MS:1002893 ! ion mobility array'.
+      If this is not present, this returns {DriftTimeUnit::NONE, {}}
+    */
+    std::pair<DriftTimeUnit, std::vector<float>> maybeGetIMData() const;
     
     //@}
 

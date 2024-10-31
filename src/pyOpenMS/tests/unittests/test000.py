@@ -5,6 +5,7 @@ from __future__ import print_function
 import pyopenms
 import copy
 import os
+import logging
 
 from pyopenms import String as s
 import numpy as np
@@ -2067,7 +2068,7 @@ def test_peptide_identifications_to_df():
 
     # update from dataframe
     df = pyopenms.peptide_identifications_to_df(peps)
-    df["ScoreType"][0] = 10.0
+    df.loc[0, "ScoreType"] = 10.0
     peps = pyopenms.update_scores_from_df(peps, df, "ScoreType")
     assert peps[0].getHits()[0].getScore() == 10.0
 
@@ -2612,6 +2613,84 @@ def testLogType():
     assert isinstance(pyopenms.LogType.GUI, int)
     assert isinstance(pyopenms.LogType.NONE, int)
 
+# performance measurement helper for XIC and peak extraction
+import time
+import random
+from typing import Tuple, List
+
+def generate_random_ranges(exp: pyopenms.MSExperiment, 
+                         n_ranges: int,
+                         rt_width: float,
+                         mz_width: float) -> np.ndarray:
+    """
+    Generate random ranges within the experiment bounds.
+    
+    Args:
+        exp: MSExperiment object
+        n_ranges: Number of ranges to generate
+        rt_width: Width of RT window
+        mz_width: Width of m/z window
+        
+    Returns:
+        numpy array of shape (n_ranges, 4) with [mz_min, mz_max, rt_min, rt_max]
+    """
+
+    # Set the seed
+    np.random.seed(4711)
+    
+    min_mz = exp.getMinMZ()
+    max_mz = exp.getMaxMZ()
+    min_rt = exp.getMinRT()
+    max_rt = exp.getMaxRT()    
+    print(f"spectra min_mz: {min_mz}, max_mz: {max_mz}, min_rt: {min_rt}, max_rt: {max_rt}")
+
+    # Generate random centers
+    mz_centers = np.random.uniform(min_mz + mz_width/2, max_mz - mz_width/2, n_ranges)
+    rt_centers = np.random.uniform(min_rt + rt_width/2, max_rt - rt_width/2, n_ranges)
+    
+    # Create ranges array
+    ranges = np.zeros((n_ranges, 4))
+    ranges[:, 0] = mz_centers - mz_width/2  # mz_min
+    ranges[:, 1] = mz_centers + mz_width/2  # mz_max
+    ranges[:, 2] = rt_centers - rt_width/2  # rt_min
+    ranges[:, 3] = rt_centers + rt_width/2  # rt_max
+    
+    return ranges
+
+def extraction_performance_test(exp: pyopenms.MSExperiment, ms_level: int) -> Tuple[float, float]:
+    """
+    Run performance test for both aggregateFromMatrix and extractXICsFromMatrix
+    
+    Args:
+        exp: MSExperiment object
+        
+    Returns:
+        Tuple of (aggregate_time, xic_time)
+    """
+    # Generate 1_000,000 random ranges
+    print("\nGenerating random ranges...")
+    ranges = generate_random_ranges(exp, 
+                                  n_ranges=1_000_000,
+                                  rt_width=60.0,
+                                  mz_width=0.01)
+    
+    # Convert to MatrixDouble
+    ranges_matrix = pyopenms.MatrixDouble.fromNdArray(ranges)
+    
+    # Time aggregateFromMatrix
+    print("Running aggregateFromMatrix...")
+    start_time = time.time()
+    _ = exp.aggregateFromMatrix(ranges_matrix, ms_level, b"sum")
+    aggregate_time = time.time() - start_time
+    
+    # Time extractXICsFromMatrix
+    print("Running extractXICsFromMatrix...")
+    start_time = time.time()
+    _ = exp.extractXICsFromMatrix(ranges_matrix, ms_level, b"sum")
+    xic_time = time.time() - start_time
+    
+    return aggregate_time, xic_time
+
 @report
 def testMSExperiment():
     """
@@ -2685,11 +2764,10 @@ def testMSExperiment():
     assert mse[0] is not None
 
     mse.updateRanges()
-    rt, mz, inty = mse.get2DPeakDataLong(mse.getMinRT(),mse.getMaxRT(),mse.getMinMZ(),mse.getMaxMZ())
+    rt, mz, inty = mse.get2DPeakDataLong(mse.getMinRT(), mse.getMaxRT(), mse.getMinMZ(), mse.getMaxMZ(), 1)
     assert rt.shape[0] == 2
     assert mz.shape[0] == 2
     assert inty.shape[0] == 2
-
 
     assert isinstance(list(mse), list)
 
@@ -2705,10 +2783,11 @@ def testMSExperiment():
     assert mse2 == mse
 
     exp = pyopenms.MSExperiment()
-    for i in range(3):
+
+    for i in range(5):
         s = pyopenms.MSSpectrum()
         s.setRT(i)
-        s.setMSLevel(1)
+        s.setMSLevel(1 if i % 2 == 0 else 2)
 
         for mz in (500, 600):
             p = pyopenms.Peak1D()
@@ -2718,7 +2797,13 @@ def testMSExperiment():
 
         exp.addSpectrum(s)
 
-    assert exp.get_df().shape == (3,3)
+    assert exp.get_df().shape == (5, 4)
+    assert exp.get_df(ms_levels=[1]).shape == (3, 4)
+    assert exp.get_df(ms_levels=[2]).shape == (2, 4)
+
+    assert exp.get_df(long=True).shape == (10, 4)
+    assert exp.get_df(long = True, ms_levels=[1]).shape == (6, 4)
+    assert exp.get_df(long=True, ms_levels=[2]).shape == (4, 4)
 
     pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)
 
@@ -2733,6 +2818,156 @@ def testMSExperiment():
     ms1_df, ms2_df = exp.get_massql_df(ion_mobility=True)
     assert ms1_df.shape == (332620, 8)
     assert np.allclose(ms1_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS1_MassQL_ION.tsv'), sep='\t'))
+
+    #####################################################################################
+    # test fast aggregation and XIC extraction using ranges
+    pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)    
+    exp.updateRanges();
+
+    ############################################################################
+    # Uncomment to run performance tests
+    # print("\nStarting performance tests MS1...")
+    # aggregate_time, xic_time = extraction_performance_test(exp, 1) # Run performance tests on MS level 1   
+    # print("\nPerformance Results:")
+    # print(f"aggregateFromMatrix time for 1M ranges: {aggregate_time:.2f} seconds")
+    # print(f"extractXICsFromMatrix time for 1M ranges: {xic_time:.2f} seconds")
+    # print(f"Ratio (XIC/aggregate): {xic_time/aggregate_time:.2f}")
+
+    # print("\nStarting performance tests MS2...")
+    # aggregate_time, xic_time = extraction_performance_test(exp, 2) # Run performance tests on MS level 1   
+    # print("\nPerformance Results:")
+    # print(f"aggregateFromMatrix time for 1M ranges: {aggregate_time:.2f} seconds")
+    # print(f"extractXICsFromMatrix time for 1M ranges: {xic_time:.2f} seconds")
+    # print(f"Ratio (XIC/aggregate): {xic_time/aggregate_time:.2f}")
+    # assert false # needed to output the results
+
+    # eluting peptide feature at these coordinates
+    rt_min = 1730.0
+    rt_max = 1770.0
+    iso1_mz = 443.711 # monoisotopic peak
+    iso2_mz = 444.212 # first isotopic peak
+    iso3_mz = 444.713 # second isotopic peak
+
+    no_iso1_mz = 444.000 # no peaks in this area
+    no_iso2_mz = 444.403 # some noise peaks in this area
+
+
+    # Create ranges matrix with structure:
+    # [[mz_min, mz_max, rt_min, rt_max], ...]
+    ranges_matrix = pyopenms.MatrixDouble.fromNdArray(
+         np.array([
+        # Expected isotope peaks
+        [iso1_mz - 0.1, iso1_mz + 0.1, rt_min, rt_max],
+        [iso2_mz - 0.1, iso2_mz + 0.1, rt_min, rt_max],
+        [iso3_mz - 0.1, iso3_mz + 0.1, rt_min, rt_max],
+        # Regions where we don't expect peaks
+        [no_iso1_mz - 0.1, no_iso1_mz + 0.1, rt_min, rt_max],
+        [no_iso2_mz - 0.1, no_iso2_mz + 0.1, rt_min, rt_max]
+    ])
+    )
+    
+    # Print ranges matrix for verification
+    print("Ranges Matrix:")
+    print (ranges_matrix.get_matrix())
+
+    agg_result = exp.aggregateFromMatrix(ranges_matrix, 1, b"sum")    
+    agg_result_array = np.array(agg_result)    # Convert result to numpy array for easier testing
+
+    print("\nAggregation Results:")
+    print(agg_result)
+
+    # Basic shape checks
+    assert len(agg_result_array) == ranges_matrix.rows(), f"Expected {ranges_matrix.rows()} results, got {len(agg_result_array)}"
+    
+    # Check that regions with expected peaks have higher values
+    isotope_intensities = agg_result_array[:3]  # First three rows are isotope peaks
+    no_peak_intensities = agg_result_array[3:]  # Last two rows are regions without peaks
+    
+    print(isotope_intensities)
+    print(no_peak_intensities)
+ 
+    print("\nIsotope Peak Arrays and Their Sums:")
+    isotope_sums = []
+    for i, intensity_array in enumerate(isotope_intensities):
+        array_sum = np.sum(intensity_array)
+        isotope_sums.append(array_sum)
+        print(f"Isotope {i+1} array: {intensity_array}")
+        print(f"Isotope {i+1} sum: {array_sum}")
+    
+    print("\nNo-Peak Region Arrays and Their Sums:")
+    no_peak_sums = []
+    for i, intensity_array in enumerate(no_peak_intensities):
+        array_sum = np.sum(intensity_array)
+        no_peak_sums.append(array_sum)
+        print(f"No-peak region {i+1} array: {intensity_array}")
+        print(f"No-peak region {i+1} sum: {array_sum}")
+
+    EXPECTED_ISO_SUMS = [24680058.50, 11043987.94, 3141677.76] 
+    EXPECTED_NO_PEAK_SUMS = [0.0, 12322.06]  
+    
+    # Test each isotope array sum
+    for i, (actual_sum, expected_sum) in enumerate(zip(isotope_sums, EXPECTED_ISO_SUMS)):
+        assert np.isclose(actual_sum, expected_sum, rtol=1e-5), \
+            f"Expected isotope {i+1} sum {expected_sum}, got {actual_sum}"
+    
+    # Test each no-peak array sum
+    for i, (actual_sum, expected_sum) in enumerate(zip(no_peak_sums, EXPECTED_NO_PEAK_SUMS)):
+        assert np.isclose(actual_sum, expected_sum, rtol=1e-5), \
+            f"Expected no-peak region {i+1} sum {expected_sum}, got {actual_sum}"
+
+
+    xic_result = exp.extractXICsFromMatrix(ranges_matrix, 1, b"sum")
+    print("\nXIC Results:")
+    for chrom in xic_result:
+        print(f"m/z: {chrom.getProduct().getMZ()}")
+        print(f"Size: {chrom.size()}")
+
+    xic_details = []
+    for i, chrom in enumerate(xic_result):
+        # Get basic XIC information
+        mz = chrom.getProduct().getMZ()
+        size = chrom.size()
+        
+        # Get intensity values from the chromatogram
+        intensities = [point.getIntensity() for point in chrom]
+        rt_values = [point.getRT() for point in chrom]
+        total_intensity = sum(intensities)
+        
+        details = {
+            'mz': mz,
+            'size': size,
+            'total_intensity': total_intensity,
+            'rt_range': (min(rt_values), max(rt_values)) if rt_values else (None, None)
+        }
+        xic_details.append(details)
+        
+        print(f"\nXIC {i+1}:")
+        print(f"m/z: {mz}")
+        print(f"Number of points: {size}")
+        print(f"Total intensity: {total_intensity}")
+        print(f"RT range: {details['rt_range']}")
+
+    # XIC expectations
+    EXPECTED_XIC_SIZES = [24, 24, 24, 24, 24]  # Expected number of points in each XIC
+    EXPECTED_XIC_TOTAL_INTENSITIES = [24680058.50, 11043987.94, 3141677.76, 0.0, 12322.06]  # Expected total intensity for each XIC
+    
+    # Test XIC results
+    for i, (details, exp_size, exp_total) in enumerate(zip(
+            xic_details, EXPECTED_XIC_SIZES, EXPECTED_XIC_TOTAL_INTENSITIES)):
+        
+        assert details['size'] == exp_size, \
+            f"XIC {i+1}: Expected {exp_size} points, got {details['size']}"
+        
+        assert np.isclose(details['total_intensity'], exp_total, rtol=1e-5), \
+            f"XIC {i+1}: Expected total intensity {exp_total}, got {details['total_intensity']}"
+                
+        # Verify RT range falls within expected bounds
+        if details['rt_range'][0] is not None:
+            assert rt_min <= details['rt_range'][0] <= rt_max, \
+                f"XIC {i+1}: Start RT {details['rt_range'][0]} outside expected range [{rt_min}, {rt_max}]"
+            assert rt_min <= details['rt_range'][1] <= rt_max, \
+                f"XIC {i+1}: End RT {details['rt_range'][1]} outside expected range [{rt_min}, {rt_max}]"
+
 
 @report
 def testMSSpectrum():

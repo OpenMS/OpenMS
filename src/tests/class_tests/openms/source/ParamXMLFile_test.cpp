@@ -15,6 +15,8 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <OpenMS/FORMAT/TextFile.h>
+
 ///////////////////////////
 
 #include <fstream>
@@ -93,7 +95,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	TEST_EQUAL(p3.hasTag("test2:a:a1","advanced"),false)
 	TEST_EQUAL(ParamXMLFile().isValid(filename, std::cerr),true)
 
-	//advanced
+	// advanced
 	NEW_TMP_FILE(filename);
 	Param p7;
 	p7.setValue("true",5,"",{"advanced"});
@@ -168,52 +170,68 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 
 
 	TEST_EQUAL(p6.getEntry("int").min_int, -numeric_limits<Int>::max())
-	TEST_EQUAL(p6.getEntry("int").max_int, numeric_limits<Int>::max())
-	TEST_EQUAL(p6.getEntry("int_min").min_int, 4)
-	TEST_EQUAL(p6.getEntry("int_min").max_int, numeric_limits<Int>::max())
-	TEST_EQUAL(p6.getEntry("int_max").min_int, -numeric_limits<Int>::max())
-	TEST_EQUAL(p6.getEntry("int_max").max_int, 6)
-	TEST_EQUAL(p6.getEntry("int_min_max").min_int, 0)
-	TEST_EQUAL(p6.getEntry("int_min_max").max_int, 10)
+  TEST_EQUAL(p6.getEntry("int").max_int, numeric_limits<Int>::max())
+  TEST_EQUAL(p6.getEntry("int_min").min_int, 4)
+  TEST_EQUAL(p6.getEntry("int_min").max_int, numeric_limits<Int>::max())
+  TEST_EQUAL(p6.getEntry("int_max").min_int, -numeric_limits<Int>::max())
+  TEST_EQUAL(p6.getEntry("int_max").max_int, 6)
+  TEST_EQUAL(p6.getEntry("int_min_max").min_int, 0)
+  TEST_EQUAL(p6.getEntry("int_min_max").max_int, 10)
 
-	TEST_REAL_SIMILAR(p6.getEntry("float").min_float, -numeric_limits<double>::max())
-	TEST_REAL_SIMILAR(p6.getEntry("float").max_float, numeric_limits<double>::max())
-	TEST_REAL_SIMILAR(p6.getEntry("float_min").min_float, 4.1)
-	TEST_REAL_SIMILAR(p6.getEntry("float_min").max_float, numeric_limits<double>::max())
-	TEST_REAL_SIMILAR(p6.getEntry("float_max").min_float, -numeric_limits<double>::max())
-	TEST_REAL_SIMILAR(p6.getEntry("float_max").max_float, 6.1)
-	TEST_REAL_SIMILAR(p6.getEntry("float_min_max").min_float, 0.1)
-	TEST_REAL_SIMILAR(p6.getEntry("float_min_max").max_float, 10.1)
+  TEST_REAL_SIMILAR(p6.getEntry("float").min_float, -numeric_limits<double>::max())
+  TEST_REAL_SIMILAR(p6.getEntry("float").max_float, numeric_limits<double>::max())
+  TEST_REAL_SIMILAR(p6.getEntry("float_min").min_float, 4.1)
+  TEST_REAL_SIMILAR(p6.getEntry("float_min").max_float, numeric_limits<double>::max())
+  TEST_REAL_SIMILAR(p6.getEntry("float_max").min_float, -numeric_limits<double>::max())
+  TEST_REAL_SIMILAR(p6.getEntry("float_max").max_float, 6.1)
+  TEST_REAL_SIMILAR(p6.getEntry("float_min_max").min_float, 0.1)
+  TEST_REAL_SIMILAR(p6.getEntry("float_min_max").max_float, 10.1)
 
-	TEST_EQUAL(p6.getEntry("string").valid_strings.size(),0)
-	TEST_EQUAL(p6.getEntry("string_2").valid_strings.size(),2)
-	TEST_EQUAL(p6.getEntry("string_2").valid_strings[0],"bla")
-	TEST_EQUAL(p6.getEntry("string_2").valid_strings[1],"bluff")
+  TEST_EQUAL(p6.getEntry("string").valid_strings.size(), 0)
+  TEST_EQUAL(p6.getEntry("string_2").valid_strings.size(), 2)
+  TEST_EQUAL(p6.getEntry("string_2").valid_strings[0], "bla")
+  TEST_EQUAL(p6.getEntry("string_2").valid_strings[1], "bluff")
 
 
+  TEST_EQUAL(p6.getEntry("stringlist").valid_strings.size(), 0)
+  TEST_EQUAL(p6.getEntry("stringlist2").valid_strings.size(), 2)
+  TEST_EQUAL(p6.getEntry("stringlist2").valid_strings[0], "xml")
+  TEST_EQUAL(p6.getEntry("stringlist2").valid_strings[1], "txt")
 
-	TEST_EQUAL(p6.getEntry("stringlist").valid_strings.size(),0)
-	TEST_EQUAL(p6.getEntry("stringlist2").valid_strings.size(),2)
-	TEST_EQUAL(p6.getEntry("stringlist2").valid_strings[0],"xml")
-	TEST_EQUAL(p6.getEntry("stringlist2").valid_strings[1],"txt")
+  TEST_EQUAL(p6.getEntry("intlist").min_int, -numeric_limits<Int>::max())
+  TEST_EQUAL(p6.getEntry("intlist").max_int, numeric_limits<Int>::max())
+  TEST_EQUAL(p6.getEntry("intlist2").min_int, 1)
+  TEST_EQUAL(p6.getEntry("intlist2").max_int, numeric_limits<Int>::max())
+  TEST_EQUAL(p6.getEntry("intlist3").min_int, -numeric_limits<Int>::max())
+  TEST_EQUAL(p6.getEntry("intlist3").max_int, 11)
+  TEST_EQUAL(p6.getEntry("intlist4").min_int, 0)
+  TEST_EQUAL(p6.getEntry("intlist4").max_int, 15)
 
-	TEST_EQUAL(p6.getEntry("intlist").min_int, -numeric_limits<Int>::max())
-	TEST_EQUAL(p6.getEntry("intlist").max_int, numeric_limits<Int>::max())
-	TEST_EQUAL(p6.getEntry("intlist2").min_int, 1)
-	TEST_EQUAL(p6.getEntry("intlist2").max_int, numeric_limits<Int>::max())
-	TEST_EQUAL(p6.getEntry("intlist3").min_int, -numeric_limits<Int>::max())
-	TEST_EQUAL(p6.getEntry("intlist3").max_int, 11)
-	TEST_EQUAL(p6.getEntry("intlist4").min_int, 0)
-	TEST_EQUAL(p6.getEntry("intlist4").max_int, 15)
+  TEST_REAL_SIMILAR(p6.getEntry("doublelist").min_float, -numeric_limits<double>::max())
+  TEST_REAL_SIMILAR(p6.getEntry("doublelist").max_float, numeric_limits<double>::max())
+  TEST_REAL_SIMILAR(p6.getEntry("doublelist2").min_float, 1.1)
+  TEST_REAL_SIMILAR(p6.getEntry("doublelist2").max_float, numeric_limits<double>::max())
+  TEST_REAL_SIMILAR(p6.getEntry("doublelist3").min_float, -numeric_limits<double>::max())
+  TEST_REAL_SIMILAR(p6.getEntry("doublelist3").max_float, 4.45)
+  TEST_REAL_SIMILAR(p6.getEntry("doublelist4").min_float, 0.1)
+  TEST_REAL_SIMILAR(p6.getEntry("doublelist4").max_float, 5.8)
 
-	TEST_REAL_SIMILAR(p6.getEntry("doublelist").min_float, -numeric_limits<double>::max())
-	TEST_REAL_SIMILAR(p6.getEntry("doublelist").max_float, numeric_limits<double>::max())
-	TEST_REAL_SIMILAR(p6.getEntry("doublelist2").min_float, 1.1)
-	TEST_REAL_SIMILAR(p6.getEntry("doublelist2").max_float, numeric_limits<double>::max())
-	TEST_REAL_SIMILAR(p6.getEntry("doublelist3").min_float, -numeric_limits<double>::max())
-	TEST_REAL_SIMILAR(p6.getEntry("doublelist3").max_float, 4.45)
-	TEST_REAL_SIMILAR(p6.getEntry("doublelist4").min_float, 0.1)
-	TEST_REAL_SIMILAR(p6.getEntry("doublelist4").max_float, 5.8)
+  // NaN for float/double
+  Param p_nan;
+  p_nan.setValue("float_nan", std::numeric_limits<float>::quiet_NaN());
+  p_nan.setValue("double_nan", std::numeric_limits<double>::quiet_NaN());
+  NEW_TMP_FILE(filename);
+  paramFile.store(filename, p_nan);
+  Param p_nan2;
+  paramFile.load(filename, p_nan2);
+  TEST_TRUE(std::isnan((double)p_nan2.getValue("float_nan")))
+  TEST_TRUE(std::isnan((double)p_nan2.getValue("double_nan")))
+  // ... test the actual values written to INI (should be 'NaN', not 'nan', for compatibility with downstream tools, like Java's double)
+  TextFile tf;
+  tf.load(filename);
+  TEST_TRUE((tf.begin() + 2)->hasSubstring("value=\"NaN\""))
+  TEST_TRUE((tf.begin() + 3)->hasSubstring("value=\"NaN\""))
+
 	//Test if an empty Param written to a file validates against the schema
 	NEW_TMP_FILE(filename);
 	Param p4;

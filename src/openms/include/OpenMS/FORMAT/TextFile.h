@@ -54,7 +54,9 @@ public:
     TextFile(const String& filename, bool trim_lines = false, Int first_n = -1, bool skip_empty_lines = false, const String& comment_symbol = "");
 
     /**
-      @brief Loads data from a text file.
+      @brief Loads data from a text file into the internal buffer.
+
+      Retrieve the data using begin() and end().
 
       @param filename The input file name
       @param trim_lines Whether or not the lines are trimmed when reading them from file
