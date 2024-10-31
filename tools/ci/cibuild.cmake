@@ -72,6 +72,8 @@ endif()
 
 set(VARS_TO_LOAD
   "ADDRESS_SANITIZER"
+  "CC"
+  "CXX"
   "CFLAGS"
   "CXXFLAGS"
   "CMAKE_PREFIX_PATH"
