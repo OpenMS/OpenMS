@@ -139,7 +139,7 @@ jobs:
           conda deactivate
           conda remove --name "pyoms-bld-${pynodot}" --all
         done
-        
+
       env: 
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CMAKE_GENERATOR: "Visual Studio 17 2022"
@@ -157,6 +157,11 @@ jobs:
           CCACHE_MAXSIZE: 400M
           PYOPENMS: "ON"
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
+          ENABLE_TUTORIALS: "OFF"
+          ENABLE_DOCS: "OFF"
+          ENABLE_STYLE_TESTING: "OFF"
+          ENABLE_TOPP_TESTING: "OFF"
+          ENABLE_CLASS_TESTING: "OFF"
 
 
     - name: Test
