@@ -102,7 +102,7 @@
 				<UserParam type="float" name="y_score" value="12.1"/>
 				<UserParam type="int" name="y_ions" value="13"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="string" name="protein_references" value="unique"/>			
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
