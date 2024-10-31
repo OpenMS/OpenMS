@@ -17,7 +17,7 @@
 				<UserParam type="string" name="XTandem:precursor_mass_tolerance_unit" value="ppm"/>
 				<UserParam type="string" name="XTandem:digestion_enzyme" value="unspecific cleavage"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
-				<UserParam type="string" name="extra_features" value="XTANDEM:frac_ion_b,XTANDEM:frac_ion_y,XTANDEM:hyperscore,XTANDEM:deltascore"/>
+				<UserParam type="string" name="extra_features" value="XTANDEM:frac_ion_b,XTANDEM:frac_ion_y,XTANDEM:deltascore"/>
 	</SearchParameters>
 	<IdentificationRun date="2017-03-25T18:39:12" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
