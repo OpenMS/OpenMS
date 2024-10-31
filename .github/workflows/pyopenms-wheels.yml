@@ -128,6 +128,8 @@ jobs:
           export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
           echo "Python root directory: $Python_ROOT_DIR"
 
+          export BUILD_NAME="pyopenms-wheels-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
+
           # build pyopenms distribution
           ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
 
@@ -148,7 +150,6 @@ jobs:
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           #CMAKE_PREFIX_PATH: "$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" #TODO move this to env
           BUILD_TYPE: "Release"
-          BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}" #TODO make this more expressive
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_CCACHE_EXE: "ccache"
           CCACHE_BASEDIR: ${{ github.workspace }}
@@ -246,7 +247,7 @@ jobs:
 
         export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}"
 
-        ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
+        #ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
 
         #cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=12 -DBOOST_USE_STATIC=OFF ../OpenMS
         #make -j${{ steps.cpu-cores.outputs.count }} OpenMS
@@ -266,9 +267,21 @@ jobs:
           # pip install all the stuff
           ${CURRENT_PYTHON_EXECUTABLE} -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
 
+          # Get the Python root directory
+          export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
+          echo "Python root directory: $Python_ROOT_DIR"
+
+          export BUILD_NAME="pyopenms-wheels-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
+
           # build pyopenms distribution (macOS)
-          cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} .
-          make -j${{ steps.cpu-cores.outputs.count }} pyopenms
+          ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
+          # TODO REMOVE DEBUGGING
+          echo "Current dir is `pwd`"
+          echo "wheels are in `find . | grep whl`"
+          echo "current ls is `ls -la`"
+
+          # cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} .
+          # make -j${{ steps.cpu-cores.outputs.count }} pyopenms
 
           # copy to directory
           cp pyOpenMS/dist/*.whl pyopenms_whls/
@@ -288,9 +301,7 @@ jobs:
           MACOSX_DEPLOYMENT_TARGET: "12"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CMAKE_GENERATOR: "Ninja"
-          #CMAKE_GENERATOR_PLATFORM: "x64"
           OPENMS_CONTRIB_LIBS: "$GITHUB_WORKSPACE/OpenMS/contrib"
-          #CMAKE_PREFIX_PATH: "$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" #TODO move this to env
           BUILD_TYPE: "Release"
           BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}" #TODO make this more expressive
           BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
@@ -301,6 +312,13 @@ jobs:
           CCACHE_COMPRESS: true
           CCACHE_COMPRESSLEVEL: 12
           CCACHE_MAXSIZE: 400M
+          PYOPENMS: "ON"
+          PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
+          ENABLE_TUTORIALS: "OFF"
+          ENABLE_DOCS: "OFF"
+          ENABLE_STYLE_TESTING: "OFF"
+          ENABLE_TOPP_TESTING: "OFF"
+          ENABLE_CLASS_TESTING: "OFF"
 
     - name: Test
       shell: bash
