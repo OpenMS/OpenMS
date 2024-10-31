@@ -133,6 +133,7 @@ jobs:
 
           echo "Current dir is `pwd`"
           echo "wheels are in `find . | grep whl`"
+          echo "current ls is `ls -la`"
           # copy to directory
           cp pyOpenMS/dist/*.whl pyopenms_whls/
           # clean up
