@@ -81,7 +81,7 @@ jobs:
         echo "$HOME/miniconda3/bin" >> $GITHUB_PATH
         echo "$HOME/miniconda3/Scripts" >> $GITHUB_PATH
 
-    - name: Build
+    - name: Build on Windows
       shell: bash
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
@@ -94,7 +94,7 @@ jobs:
         # Note: multiple --targets only supported by CMake 3.15+
         # cmake --build . --config Release --target OpenMS
         
-        ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
+        ctest --progress --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
 
       
         mkdir pyopenms_whls
