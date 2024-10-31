@@ -125,7 +125,7 @@ jobs:
           # pip install all the stuff
           ${CURRENT_PYTHON_EXECUTABLE} -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
           
-          export PYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE
+          export PYTHON_EXECUTABLE=$CURRENT_PYTHON_EXECUTABLE
           echo $PYTHON_EXECUTABLE
 
           # build pyopenms distribution
