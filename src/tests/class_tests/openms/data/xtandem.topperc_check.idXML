@@ -55,7 +55,6 @@
 				<UserParam type="float" name="y_score" value="11.6"/>
 				<UserParam type="int" name="y_ions" value="6"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
-				<UserParam type="float" name="XTANDEM:hyperscore" value="28.2"/>
 				<UserParam type="float" name="XTANDEM:deltascore" value="0.899999999999999"/>
 				<UserParam type="float" name="XTANDEM:frac_ion_b" value="0.538461538461538"/>
 				<UserParam type="float" name="XTANDEM:frac_ion_y" value="0.461538461538462"/>
@@ -74,7 +73,6 @@
 				<UserParam type="float" name="y_score" value="13.3"/>
 				<UserParam type="int" name="y_ions" value="7"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="XTANDEM:hyperscore" value="37.4"/>
 				<UserParam type="float" name="XTANDEM:deltascore" value="4.1"/>
 				<UserParam type="float" name="XTANDEM:frac_ion_b" value="0.5"/>
 				<UserParam type="float" name="XTANDEM:frac_ion_y" value="0.5"/>
@@ -93,7 +91,6 @@
 				<UserParam type="float" name="y_score" value="8.8"/>
 				<UserParam type="int" name="y_ions" value="5"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="XTANDEM:hyperscore" value="31.2"/>
 				<UserParam type="float" name="XTANDEM:deltascore" value="1.7"/>
 				<UserParam type="float" name="XTANDEM:frac_ion_b" value="0.35"/>
 				<UserParam type="float" name="XTANDEM:frac_ion_y" value="0.25"/>
