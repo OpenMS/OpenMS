@@ -94,8 +94,8 @@ protected:
     setValidStrings_("PSM_peptide_base_score_orientation", ListUtils::create<String>("higher_better, lower_better"));
     registerStringOption_("protein", "<FDR level>", "true", "Perform FDR calculation on protein level", false);
     setValidStrings_("protein", ListUtils::create<String>("true,false"));
-    registerStringOption_("protein_group", "<FDR level>", "false", "Perform FDR calculation on (indist.) protein group level, too. Currently, this will enable protein FDR automatically (since internals need to be in-sync) but will affect the level at which it filters (if enabled).", false);
-    setValidStrings_("protein_group", ListUtils::create<String>("true,false"));
+    registerStringOption_("proteingroup", "<FDR level>", "false", "Perform FDR calculation on (indist.) protein group level, too. Currently, this will enable protein FDR automatically (since internals need to be in-sync) but will affect the level at which it filters (if enabled).", false);
+    setValidStrings_("proteingroup", ListUtils::create<String>("true,false"));
 
     registerStringOption_("protein_score", "<type>", "", "The protein score used to calculate the protein FDR. If empty, the main score is used.", false, true);
     auto ids = IDScoreSwitcherAlgorithm();
@@ -165,7 +165,7 @@ protected:
 
     try
     {
-      bool groups = getStringOption_("protein_group") == "true";
+      bool groups = getStringOption_("proteingroup") == "true";
       if (getStringOption_("protein") == "true" || groups)
       {
         String protein_score = getStringOption_("protein_score");
