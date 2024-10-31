@@ -70,6 +70,7 @@
 				<UserParam type="int" name="y_ions" value="10"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTANDEM:deltascore" value="69.9"/>				
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0.0" MZ="775.38720703125" RT="4923.77734375" spectrum_reference="spectrum=2" >
@@ -85,6 +86,7 @@
 				<UserParam type="int" name="y_ions" value="13"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTANDEM:deltascore" value="78.6"/>				
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
