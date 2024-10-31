@@ -443,7 +443,7 @@ jobs:
         path: bld/pyopenms_whls
 
   build-lnx:
-    runs-on: [self-hosted, ubuntu-latest]
+    runs-on: [ubuntu-latest]
     container: ghcr.io/openms/contrib_manylinux_2_28:latest
 
     steps:
