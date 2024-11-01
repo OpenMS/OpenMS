@@ -138,7 +138,7 @@
 				<UserParam type="int" name="y_ions" value="10"/>
 				<UserParam type="float" name="XTANDEM:deltascore" value="69.900000000000006"/>
 				<UserParam type="float" name="XTANDEM:frac_ion_b" value="0.571428571428571"/>
-				<UserParam type="float" name="XTANDEM:frac_ion_y" value="0.111"/>
+				<UserParam type="float" name="XTANDEM:frac_ion_y" value="0.357142857142857"/>
 				<UserParam type="float" name="MS:1001331" value="77.900000000000006"/>
 				<UserParam type="float" name="MS:1001330" value="1.4e-15"/>
 				<UserParam type="int" name="MULTI:numHits" value="2"/>
