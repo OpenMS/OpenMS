@@ -71,7 +71,7 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="XTANDEM:deltascore" value="69.9"/>
-				<UserParam type="float" name="XTANDEM:frac_ion_b" value="0.142857142857143"/>
+				<UserParam type="float" name="XTANDEM:frac_ion_b" value="0.571428571428571"/>
 				<UserParam type="float" name="XTANDEM:frac_ion_y" value="1.285714285714286"/>
 			</PeptideHit>
 		</PeptideIdentification>
