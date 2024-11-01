@@ -1137,7 +1137,7 @@ protected:
     for (auto & pid : peptide_identifications) 
     { 
       pid.setIdentifier(identifier);
-      pid.setScoreType("hyperscore");
+      pid.setScoreType("ln(hyperscore)");
       pid.setHigherScoreBetter(true);
     }
 
