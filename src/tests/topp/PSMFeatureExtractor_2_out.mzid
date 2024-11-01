@@ -232,7 +232,7 @@
 					<userParam name="y_ions" unitName="xsd:integer" value="10"/>
 					<userParam name="XTANDEM:deltascore" unitName="xsd:double" value="69.900000000000006"/>
 					<userParam name="XTANDEM:frac_ion_b" unitName="xsd:double" value="0.571428571428571"/>
-					<userParam name="XTANDEM:frac_ion_y" unitName="xsd:double" value="0.357142857142857"/>					
+					<userParam name="XTANDEM:frac_ion_y" unitName="xsd:double" value="0.357142857142857"/>
 					<cvParam accession="MS:1001331" cvRef="PSI-MS" name="X\!Tandem:hyperscore" value="77.900000000000006"/>
 					<cvParam accession="MS:1001330" cvRef="PSI-MS" name="X\!Tandem:expect" value="1.4e-15"/>
 					<userParam name="MULTI:numHits" unitName="xsd:integer" value="2"/>
