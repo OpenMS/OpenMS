@@ -139,8 +139,8 @@ jobs:
           # copy to directory
           cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
           # clean up
-          conda deactivate
-          conda remove --name "pyoms-bld-${pynodot}" --all
+          #conda deactivate
+          #conda remove --name "pyoms-bld-${pynodot}" --all
         done
 
       env: 
@@ -166,7 +166,7 @@ jobs:
           ENABLE_CLASS_TESTING: "OFF"
 
 
-    - name: Test
+    - name: Run Unit Tests
       shell: bash
       run: |
            ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
@@ -175,6 +175,14 @@ jobs:
           CI_PROVIDER: "GitHub-Actions"
           BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
           # The rest of the vars should be saved in the CMakeCache
+
+    - name: Cleanup Conda
+      shell: bash
+      run: |
+          conda env list | Select-String "pyoms-bld-" | ForEach-Object {
+            $envName = $_ -replace '\s+.*', ''  # Extract the environment name
+            conda remove --name $envName --all -y
+          }
 
     - uses: actions/upload-artifact@v4
       name: Upload artifacts
@@ -255,6 +263,11 @@ jobs:
         mkdir pyopenms_whls
 
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
+
+          # clean previous pyopenms libs
+          # do at the top of the python version loop so that we leave the final libraries for testing
+          find . -name "_pyopenms*.so" -exec rm -rf {} \;
+
           py=$(echo "$py" | tr -d " \n")
           pynodot=$(echo "$py" | tr -d ".")
           conda create -n pyoms-bld-"${pynodot}" python="${py}"
@@ -287,11 +300,8 @@ jobs:
           cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
 
           # clean up
-          conda deactivate
-          conda remove --name pyoms-bld-"${pynodot}" --all
-
-          # clean previous pyopenms libs
-          find . -name "_pyopenms*.so" -exec rm -rf {} \;
+          # conda deactivate
+          # conda remove --name pyoms-bld-"${pynodot}" --all
 
         done
 
@@ -321,7 +331,7 @@ jobs:
           ENABLE_TOPP_TESTING: "OFF"
           ENABLE_CLASS_TESTING: "OFF"
 
-    - name: Test
+    - name: Run Unit Tests
       shell: bash
       run: |
             ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
@@ -330,6 +340,14 @@ jobs:
           CI_PROVIDER: "GitHub-Actions"
           BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
           # The rest of the vars should be saved in the CMakeCache
+
+    - name: Cleanup Conda
+      shell: bash
+      run: |
+            conda deactivate
+            for env in $(conda env list | grep "pyoms-bld-" | awk '{print $1}'); do
+              conda remove --name "$env" --all -y
+            done
 
     - uses: actions/upload-artifact@v4
       name: Upload artifacts
@@ -415,6 +433,11 @@ jobs:
         mkdir pyopenms_whls
 
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
+
+          # clean previous pyopenms libs
+          # do at the top of the python version loop so that we leave the final libraries for testing
+          find . -name "_pyopenms*.so" -exec rm -rf {} \;
+
           py=$(echo "$py" | tr -d " \n")
           pynodot=$(echo "$py" | tr -d ".")
           conda create -n pyoms-bld-"${pynodot}" python="${py}"
@@ -446,11 +469,11 @@ jobs:
           cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
 
           # clean up
-          conda deactivate
-          conda remove --name pyoms-bld-"${pynodot}" --all
+          #conda deactivate
+          #conda remove --name pyoms-bld-"${pynodot}" --all
 
           # clean previous pyopenms libs
-          find . -name "_pyopenms*.so" -exec rm -rf {} \;
+          #find . -name "_pyopenms*.so" -exec rm -rf {} \;
 
         done
 
@@ -489,6 +512,15 @@ jobs:
           CI_PROVIDER: "GitHub-Actions"
           BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
           # The rest of the vars should be saved in the CMakeCache
+
+    - name: Cleanup Conda
+      shell: bash
+      run: |
+          conda deactivate
+          for env in $(conda env list | grep "pyoms-bld-" | awk '{print $1}'); do
+            conda remove --name "$env" --all -y
+          done
+    
         
     - uses: actions/upload-artifact@v4
       name: Upload wheels
@@ -537,7 +569,10 @@ jobs:
         # compile and configure OpenMS
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
 
-          # clean previous pyopenms libs, do at the top so that we leave the final libraries for testing
+          # Check if there is already and existing build,
+          # if so: clean previous pyopenms libs,
+          # do at the top of the python version loop so that we leave the final libraries for testing
+
           if [ -d "OpenMS/bld/pyOpenMS/pyopenms" ]; then
             rm OpenMS/bld/pyOpenMS/pyopenms/_pyopenms*.so
           fi
