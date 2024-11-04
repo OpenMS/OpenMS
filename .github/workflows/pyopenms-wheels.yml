@@ -161,6 +161,7 @@ jobs:
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
           ENABLE_TUTORIALS: "OFF"
           ENABLE_DOCS: "OFF"
+          ENABLE_PIPELINE_TESTING: "OFF"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "OFF"
           ENABLE_CLASS_TESTING: "OFF"
@@ -328,6 +329,7 @@ jobs:
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
           ENABLE_TUTORIALS: "OFF"
           ENABLE_DOCS: "OFF"
+          ENABLE_PIPELINE_TESTING: "OFF"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "OFF"
           ENABLE_CLASS_TESTING: "OFF"
@@ -502,6 +504,7 @@ jobs:
         ENABLE_TUTORIALS: "OFF"
         ENABLE_DOCS: "OFF"
         ENABLE_STYLE_TESTING: "OFF"
+        ENABLE_PIPELINE_TESTING: "OFF"
         ENABLE_TOPP_TESTING: "OFF"
         ENABLE_CLASS_TESTING: "OFF"
 
@@ -634,6 +637,7 @@ jobs:
           ENABLE_TUTORIALS: "OFF"
           ENABLE_DOCS: "OFF"
           ENABLE_STYLE_TESTING: "OFF"
+          ENABLE_PIPELINE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "OFF"
           ENABLE_CLASS_TESTING: "OFF"
 
