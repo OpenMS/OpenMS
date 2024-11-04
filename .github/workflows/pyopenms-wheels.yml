@@ -323,6 +323,7 @@ jobs:
           CCACHE_COMPRESS: true
           CCACHE_COMPRESSLEVEL: 12
           CCACHE_MAXSIZE: 400M
+          OPENMP: "ON"
           PYOPENMS: "ON"
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
           ENABLE_TUTORIALS: "OFF"
@@ -495,6 +496,7 @@ jobs:
         CCACHE_COMPRESS: true
         CCACHE_COMPRESSLEVEL: 12
         CCACHE_MAXSIZE: 400M
+        OPENMP: "ON"
         PYOPENMS: "ON"
         PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
         ENABLE_TUTORIALS: "OFF"
