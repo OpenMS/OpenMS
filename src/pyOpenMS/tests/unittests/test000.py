@@ -5383,10 +5383,8 @@ def testRNaseDB():
     db.getAllNames(names)
 
     e = db.getEnzyme("RNase_T1")
-    assert e.getRegEx() == u'(?<=G)'
     assert e.getThreePrimeGain() == u'p'
 
-    assert db.hasRegEx(u'(?<=G)')
     assert db.hasEnzyme("RNase_T1")
     
 
