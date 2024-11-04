@@ -254,6 +254,7 @@ jobs:
         # pushd bld
         # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
 
+        export OpenMP_ROOT="$(brew --prefix libomp)"
         export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_DIR)/lib/cmake;${Qt5_DIR}"
 
         #ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
