@@ -151,6 +151,7 @@ jobs:
           #CMAKE_PREFIX_PATH: "$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" #TODO move this to env
           BUILD_TYPE: "Release"
           CI_PROVIDER: "GitHub-Actions"
+          CONFIG: "Release"
           CMAKE_CCACHE_EXE: "ccache"
           CCACHE_BASEDIR: ${{ github.workspace }}
           CCACHE_DIR: ${{ github.workspace }}/.ccache
