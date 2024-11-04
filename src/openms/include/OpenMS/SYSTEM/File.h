@@ -287,27 +287,33 @@ public:
     */
     static String getTemporaryFile(const String& alternative_file = "");
 
+
+    enum class MatchingFileListsStatus 
+    {
+        MATCH = 0,           // Everything matches perfectly
+        ORDER_MISMATCH = 1,  // Same set of files but in wrong order
+        SET_MISMATCH = 2     // Different sets of files (including size mismatch)
+    };
+
     /**
       @brief Helper function to test if filenames provided in two StringLists match.
 
       Passing several InputFilesLists is error-prone as users may provide files in a different order.
-      To check for common mistakes this helper function checks:
-      - if both file lists have the same length (returns false otherwise)
-      - if the content is the same and provided in exactly the same order (returns false otherwise)
-
-      Note: Because workflow systems may assign file names randomly a non-strict comparison mode is enabled by default.      
-      Instead of the strict comparison (which returns false if there is a single mismatch), the non-strict comparison mode 
-      only returns false if the unique set of filenames match but some positions differ, i.e., only the order has been mixed up.
+      This helper function performs validation and returns one of three states:
+      - MATCH (0): Files match perfectly (considering basename/extension settings)
+      - ORDER_MISMATCH (1): Same set of files but in different order
+      - SET_MISMATCH (2): Different sets of files (including different counts)
 
       @param sl1 First StringList with filenames
       @param sl2 Second StringList with filenames
       @param basename If set to true, only basenames are compared
       @param ignore_extension If set to true, extensions are ignored (e.g., useful to compare spectra filenames to ID filenames)
-      @param strict If set to true, no mismatches (respecting basename and ignore_extension parameter) are allowed. 
-                    If set to false, only the order is compared if both share the same filenames.
-      @return False, if both StringLists are different (respecting the parameters)
+      @return MatchingFileListsStatus indicating the validation result
     */
-    static bool validateMatchingFileNames(const StringList& sl1, const StringList& sl2, bool basename = true, bool ignore_extension = true, bool strict = false);
+    static MatchingFileListsStatus validateMatchingFileNames(const StringList& sl1, 
+                                                       const StringList& sl2, 
+                                                       bool basename = true, 
+                                                       bool ignore_extension = true);
 
     /**
       @brief Download file from given URL into a download folder. Returns when done.

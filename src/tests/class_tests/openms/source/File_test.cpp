@@ -350,6 +350,79 @@ START_SECTION(File::download(std::string url, std::string filename))
 }
 END_SECTION
 
+START_SECTION(static File::MatchingFileListsStatus validateMatchingFileNames(const StringList& sl1, const StringList& sl2, bool basename, bool ignore_extension))
+{
+  // Test exact match
+  {
+    StringList list1 = {"file1.txt", "file2.txt"};
+    StringList list2 = {"file1.txt", "file2.txt"};
+    TEST_TRUE(File::validateMatchingFileNames(list1, list2) ==  File::MatchingFileListsStatus::MATCH)
+  }
+
+  // Test order mismatch
+  {
+    StringList list1 = {"file1.txt", "file2.txt"};
+    StringList list2 = {"file2.txt", "file1.txt"};
+    TEST_TRUE(File::validateMatchingFileNames(list1, list2) == File::MatchingFileListsStatus::ORDER_MISMATCH)
+  }
+
+  // Test different sets
+  {
+    StringList list1 = {"file1.txt", "file2.txt"};
+    StringList list2 = {"file1.txt", "file3.txt"};
+    TEST_TRUE(File::validateMatchingFileNames(list1, list2) == File::MatchingFileListsStatus::SET_MISMATCH)
+  }
+
+  // Test different counts
+  {
+    StringList list1 = {"file1.txt", "file2.txt"};
+    StringList list2 = {"file1.txt"};
+    TEST_TRUE(File::validateMatchingFileNames(list1, list2) ==  File::MatchingFileListsStatus::SET_MISMATCH)
+  }
+
+  // Test basename comparison
+  {
+    StringList list1 = {"/path/to/file1.txt", "/different/path/file2.txt"};
+    StringList list2 = {"/other/path/file1.txt", "/somewhere/file2.txt"};
+    TEST_TRUE(File::validateMatchingFileNames(list1, list2, true, false) ==  File::MatchingFileListsStatus::MATCH)
+  }
+
+  // Test basename with order mismatch
+  {
+    StringList list1 = {"/path/to/file1.txt", "/different/path/file2.txt"};
+    StringList list2 = {"/somewhere/file2.txt", "/other/path/file1.txt"};
+    TEST_TRUE(File::validateMatchingFileNames(list1, list2, true, false) ==  File::MatchingFileListsStatus::ORDER_MISMATCH)
+  }
+
+  // Test ignore extension
+  {
+    StringList list1 = {"file1.txt", "file2.mzML"};
+    StringList list2 = {"file1.mzML", "file2.txt"};
+    TEST_TRUE(File::validateMatchingFileNames(list1, list2, false, true) == File::MatchingFileListsStatus::MATCH)
+  }
+
+  // Test ignore extension with different basenames
+  {
+    StringList list1 = {"file1.txt", "file2.mzML"};
+    StringList list2 = {"file1.mzML", "file3.txt"};
+    TEST_TRUE(File::validateMatchingFileNames(list1, list2, false, true) ==  File::MatchingFileListsStatus::SET_MISMATCH)
+  }
+
+  // Test with both basename and ignore extension
+  {
+    StringList list1 = {"/path/to/file1.txt", "/different/path/file2.mzML"};
+    StringList list2 = {"/other/path/file1.mzML", "/somewhere/file2.txt"};
+    TEST_TRUE(File::validateMatchingFileNames(list1, list2, true, true) == File::MatchingFileListsStatus::MATCH)
+  }
+
+  // Test with empty lists
+  {
+    StringList list1, list2;
+    TEST_TRUE(File::validateMatchingFileNames(list1, list2) == File::MatchingFileListsStatus::MATCH)
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
