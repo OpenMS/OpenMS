@@ -159,8 +159,8 @@ common_meta_value_types = {
     b'masstrace_intensity': 'f', # TODO this is actually a DoubleList. Think about what to do here. For _np.fromiter we would need to set the length of the array.
     b'Group': 'U50',
     b'is_ungrouped_monoisotopic': 'i', # TODO this sounds very boolean to me
-    b'left_width': 'f',
-    b'right_width': 'f',
+    b'leftWidth': 'f',
+    b'rightWidth': 'f',
     b'total_xic': 'f',
     b'PeptideRef': 'U100',
     b'peak_apices_sum': 'f'
@@ -843,20 +843,6 @@ class _MRMTransitionGroupCPDF(_MRMTransitionGroupCP):
         Returns:
             pd.DataFrame: DataFrame representation of the Features stored in MRMTransitionGroupCP.
         """
-        # get all possible meta value keys in a set
-        if meta_values == 'all':
-            meta_values = set()
-            for f in self:
-                mvs = []
-                f.getKeys(mvs)
-                for m in mvs:
-                    meta_values.add(m)
-
-        elif not meta_values: # if None, set to empty list
-            meta_values = []
-
-        features = self.getFeatures()
-        
         def gen(features: List[_MRMFeature], fun):
             for f in features:
                 yield from fun(f)
@@ -878,16 +864,25 @@ class _MRMTransitionGroupCPDF(_MRMTransitionGroupCP):
             
             yield tuple((f.getUniqueId(), f.getRT(), f.getIntensity(), f.getOverallQuality(), *vals))
 
+        # get all possible meta value keys in a set
         features = self.getFeatures()
-
-
         mddtypes = [('feature_id', _np.dtype('uint64')), ('RT', 'f'), ('intensity', 'f'), ('quality', 'f')]
+        if meta_values is not None:
+            # Add all possible meta values to meta_value array if 'all' is passed
+            if meta_values == 'all':
+                meta_values = set()
+                for f in features:
+                    mvs = []
+                    f.getKeys(mvs)
+                    for m in mvs:
+                        meta_values.add(m)
 
-        for meta_value in meta_values:
-            if meta_value in common_meta_value_types:
-                mddtypes.append((meta_value.decode(), common_meta_value_types[meta_value]))
-            else:
-                mddtypes.append((meta_value.decode(), 'U50'))
+            # Add meta_values to mddtypes
+            for meta_value in meta_values:
+                if meta_value in common_meta_value_types:
+                    mddtypes.append((meta_value.decode(), common_meta_value_types[meta_value]))
+                else:
+                    mddtypes.append((meta_value.decode(), 'U50'))
 
         mdarr = _np.fromiter(iter=gen(features, extract_meta_data), dtype=mddtypes, count=len(features))
 

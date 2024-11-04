@@ -28,9 +28,11 @@ Misc:
     - added report_smoothed_intensities parameter (#7594)
 - Write out percolator features in search engine adapters (by default, no PSMFeatureExtractor is needed)
 
-
 Fixes:
 - OpenMS does not compile when using GLPK (instead of COINOR) (#7626)
+- PyopenMS
+	- get_feature_df() in MRMTransitionGroupCP, output is now as expected (#7646)
+
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.2.0       (released 09/2024)             ----
