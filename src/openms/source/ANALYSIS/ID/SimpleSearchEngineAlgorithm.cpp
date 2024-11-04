@@ -270,7 +270,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         PeptideIdentification pi{};
         pi.setSpectrumReference( spec.getNativeID());
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
-        pi.setScoreType("hyperscore");
+        pi.setScoreType("ln(hyperscore)");
         pi.setHigherScoreBetter(true);
         double mz = spec.getPrecursors()[0].getMZ();
         pi.setRT(spec.getRT());

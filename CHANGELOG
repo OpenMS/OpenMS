@@ -26,6 +26,8 @@ Misc:
     - TOPPAS tutorial enhanced (#7497)
 - FeatureFinderMetabo
     - added report_smoothed_intensities parameter (#7594)
+- Write out percolator features in search engine adapters (by default, no PSMFeatureExtractor is needed)
+
 
 Fixes:
 - OpenMS does not compile when using GLPK (instead of COINOR) (#7626)
@@ -47,9 +49,8 @@ Library:
 - SiriusAdapter reworked to SiriusExport: Instead of running SIRIUS directly, this reworked tool takes multiple mzML and feautureXML (optional) files exporting a single SIRIUS .ms input file as well as an input table with compound info from features for the new AssayGeneratorMetaboSirius tool. (#7234)
 - Splitting AssayGeneratorMetabo into two tools: In line with the changes to SiriusExport this tool has been split into two separate workflows. AssayGeneratorMetabo generates an assay library from mzML and feautreXML files using an heuristic approach picking the highest intensity MS2 peaks (like before). AssayGeneratorMetaboSirius takes an existing SIRIUS project directory as input to generate an assay library based on fragmentation trees. (#7234)
 - better documentation for all SpectraFilter... tools (#7183)
-- TOPPView: 
-  - offer Ion mobility view from 2D spectra view (#7423)
-  - view ion mobility frames, irrespective of its MS level (formerly only MS1 was supported) (#7427)
+- TOPPView: offer Ion mobility view from 2D spectra view (#7423)
+- TOPPView: view ion mobility frames, irrespective of its MS level (formerly only MS1 was supported) (#7427)
 - OpenSwath: Add output on peak shape metrics to .osw file (#7222)
 
 New Tools:

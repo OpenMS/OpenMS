@@ -937,7 +937,7 @@ namespace OpenMS::Math
       }
       else if (engine == "SAGE")
       {
-        return getScore_({"hyperscore"}, hit, current_score_type);
+        return getScore_({"hyperscore", "ln(hyperscore)"}, hit, current_score_type); // support hyperscore for backwards compatibility (same as ln(hyperscore))
       }
       else if (engine == "MSFRAGGER")
       {

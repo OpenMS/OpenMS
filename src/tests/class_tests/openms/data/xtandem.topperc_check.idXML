@@ -17,7 +17,7 @@
 				<UserParam type="string" name="XTandem:precursor_mass_tolerance_unit" value="ppm"/>
 				<UserParam type="string" name="XTandem:digestion_enzyme" value="unspecific cleavage"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
-				<UserParam type="string" name="extra_features" value="XTANDEM:frac_ion_b,XTANDEM:frac_ion_y,XTANDEM:hyperscore,XTANDEM:deltascore"/>
+				<UserParam type="string" name="extra_features" value="XTANDEM:frac_ion_b,XTANDEM:frac_ion_y,XTANDEM:deltascore"/>
 	</SearchParameters>
 	<IdentificationRun date="2017-03-25T18:39:12" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
@@ -55,7 +55,6 @@
 				<UserParam type="float" name="y_score" value="11.6"/>
 				<UserParam type="int" name="y_ions" value="6"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
-				<UserParam type="float" name="XTANDEM:hyperscore" value="28.2"/>
 				<UserParam type="float" name="XTANDEM:deltascore" value="0.899999999999999"/>
 				<UserParam type="float" name="XTANDEM:frac_ion_b" value="0.538461538461538"/>
 				<UserParam type="float" name="XTANDEM:frac_ion_y" value="0.461538461538462"/>
@@ -74,7 +73,6 @@
 				<UserParam type="float" name="y_score" value="13.3"/>
 				<UserParam type="int" name="y_ions" value="7"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="XTANDEM:hyperscore" value="37.4"/>
 				<UserParam type="float" name="XTANDEM:deltascore" value="4.1"/>
 				<UserParam type="float" name="XTANDEM:frac_ion_b" value="0.5"/>
 				<UserParam type="float" name="XTANDEM:frac_ion_y" value="0.5"/>
@@ -93,7 +91,6 @@
 				<UserParam type="float" name="y_score" value="8.8"/>
 				<UserParam type="int" name="y_ions" value="5"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="XTANDEM:hyperscore" value="31.2"/>
 				<UserParam type="float" name="XTANDEM:deltascore" value="1.7"/>
 				<UserParam type="float" name="XTANDEM:frac_ion_b" value="0.35"/>
 				<UserParam type="float" name="XTANDEM:frac_ion_y" value="0.25"/>

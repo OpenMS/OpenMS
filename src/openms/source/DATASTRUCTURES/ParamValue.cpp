@@ -7,7 +7,8 @@
 
 #include <OpenMS/DATASTRUCTURES/ParamValue.h>
 
-//#include <ostream>
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <OpenMS/CONCEPT/Exception.h>
 #include <sstream>
 #include <cmath>
@@ -814,53 +815,7 @@ namespace OpenMS
 
   std::string ParamValue::doubleToString(double value, bool full_precision)
   {
-    std::ostringstream os;
-    std::string s;
-    if (full_precision)
-    {
-      os.precision(15);
-    }
-    else
-    {
-      os.precision(3);
-    }
-    if (value != 0 &&
-        (std::abs(value) >= 10000.0 ||
-         std::abs(value) < 0.001 ||
-         (full_precision && std::abs(value) < 0.01)))
-    {
-      os << std::scientific << value;
-      s = os.str();
-      size_t cutoff_end = s.find_last_of('e');
-      size_t cutoff_start = s.substr(0, cutoff_end).find_last_not_of('0');
-      if (s.at(cutoff_end + 1) == '+')
-      {
-        s.erase(cutoff_end + 1, 1);
-      }
-      if (cutoff_start != cutoff_end)
-      {
-        if (s.find_first_of('.') == cutoff_start)
-        {
-          ++cutoff_start;
-        }
-        s.erase(cutoff_start + 1, cutoff_end - cutoff_start - 1);
-      }
-    }
-    else
-    {
-      os << std::fixed << value;
-      s = os.str();
-      size_t cutoff = s.find_last_not_of('0');
-      if (cutoff != std::string::npos)
-      {
-        if (s.find_first_of('.') == cutoff)
-        {
-          ++cutoff;
-        }
-        s.erase(cutoff + 1);
-      }
-    }
-    return s;
+    return String(value, full_precision);
   }
 
 } //namespace

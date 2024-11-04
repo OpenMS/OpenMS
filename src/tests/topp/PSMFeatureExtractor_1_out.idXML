@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="C:\dev\openms\src\tests\topp\THIRDPARTY\proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="1-3" enzyme="trypsin/p" missed_cleavages="1000" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="1-3" enzyme="trypsin/p" missed_cleavages="1000" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		<VariableModification name="Oxidation (M)" />
 				<UserParam type="string" name="MS:1001211" value=""/>
 				<UserParam type="string" name="MS:1001256" value=""/>
@@ -16,11 +16,11 @@
 				<UserParam type="string" name="NumMatchesPerSpec" value="1"/>
 				<UserParam type="string" name="Protocol" value="Standard"/>
 				<UserParam type="string" name="TargetDecoyApproach" value="false"/>
-				<UserParam type="string" name="MSGFPlusAdapter:1:in" value="C:/dev/openms/src/tests/topp/THIRDPARTY/spectra.mzML"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:in" value="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:out" value="MSGFPlusAdapter_1_out1.tmp.idXML"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:mzid_out" value="MSGFPlusAdapter_1_out2.tmp.mzid"/>
-				<UserParam type="string" name="MSGFPlusAdapter:1:executable" value="C:/dev/THIRDPARTY_flat/MSGFPlus/MSGFPlus.jar"/>
-				<UserParam type="string" name="MSGFPlusAdapter:1:database" value="C:/dev/openms/src/tests/topp/THIRDPARTY/proteins.fasta"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:executable" value="/home/sachsenb/Development/OpenMS/THIRDPARTY/MSGFPlus.jar"/>
+				<UserParam type="string" name="MSGFPlusAdapter:1:database" value="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
 				<UserParam type="float" name="MSGFPlusAdapter:1:precursor_mass_tolerance" value="10.0"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:precursor_error_units" value="ppm"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:isotope_error_range" value="0,1"/>
@@ -66,9 +66,10 @@
 				<UserParam type="string" name="MSGFPlusAdapter:1:allow_nterm_protein_cleavage" value="true"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:name" value="auto"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:specificity" value="auto"/>
+				<UserParam type="string" name="extra_features" value="MS:1002049,MS:1002053,MS:1001331,MS:1001330"/>
 				<UserParam type="string" name="EnzymeTermSpecificity" value="full"/>
 				<UserParam type="string" name="SE:MS-GF+" value="Release (v2023.01.12)"/>
-				<UserParam type="string" name="MS-GF+:db" value="C:\dev\openms\src\tests\topp\THIRDPARTY\proteins.fasta"/>
+				<UserParam type="string" name="MS-GF+:db" value="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
 				<UserParam type="string" name="MS-GF+:db_version" value=""/>
 				<UserParam type="string" name="MS-GF+:taxonomy" value=""/>
 				<UserParam type="string" name="MS-GF+:charges" value="1-3"/>
@@ -96,10 +97,9 @@
 				<UserParam type="string" name="XTandem:digestion_enzyme" value="Trypsin"/>
 				<UserParam type="int" name="XTandem:enzyme_term_specificity" value="3"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
-				<UserParam type="string" name="extra_features" value="MS:1002049,MS:1002053,MS:1001331,MS:1001330"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2023-10-29T11:22:16" search_engine="multiple" search_engine_version="" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2024-10-31T17:41:52" search_engine="multiple" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="BSA2" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -110,7 +110,7 @@
 			<ProteinHit id="PH_2" accession="test2_rev" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[C:\dev\openms\src\tests\topp\THIRDPARTY\spectra.mzML,/workspace/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML,/workspace/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="multiple" higher_score_better="false" significance_threshold="0.0" MZ="1063.2098388671875" RT="4587.668999999999869" spectrum_reference="spectrum=1" >
 			<PeptideHit score="2.0" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="[" aa_after="E" start="0" end="27" protein_refs="PH_0" >
@@ -136,6 +136,9 @@
 				<UserParam type="int" name="b_ions" value="16"/>
 				<UserParam type="float" name="y_score" value="11.1"/>
 				<UserParam type="int" name="y_ions" value="10"/>
+				<UserParam type="float" name="XTANDEM:deltascore" value="69.900000000000006"/>
+				<UserParam type="float" name="XTANDEM:frac_ion_b" value="0.571428571428571"/>
+				<UserParam type="float" name="XTANDEM:frac_ion_y" value="0.357142857142857"/>
 				<UserParam type="float" name="MS:1001331" value="77.900000000000006"/>
 				<UserParam type="float" name="MS:1001330" value="1.4e-15"/>
 				<UserParam type="int" name="MULTI:numHits" value="2"/>

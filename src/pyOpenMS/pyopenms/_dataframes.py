@@ -13,6 +13,7 @@ from . import ControlledVocabulary as _ControlledVocabulary
 from . import File as _File
 from . import IonSource as _IonSource
 from . import MSSpectrum as _MSSpectrum
+from . import PeakSpectrum as _PeakSpectrum
 from . import MSChromatogram as _MSChromatogram
 from . import MRMTransitionGroupCP as _MRMTransitionGroupCP
 
@@ -317,25 +318,33 @@ class _MSExperimentDF(_MSExperiment):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def get_df(self, long : bool = False):
+    def get_df(self, ms_levels: List[int] = [], long : bool = False):
         """Generates a pandas DataFrame with all peaks in the MSExperiment
 
         Parameters:
-        long: set to True if you want to have a long/expanded/melted dataframe with one row per peak. Faster but
+        ms_levels (List[int]): Get only spectra with the given MS levels. Default is an empty list, which means all MS levels will be included.
+        long (bool): set to True if you want to have a long/expanded/melted dataframe with one row per peak. Faster but
             replicated RT information. If False, returns rows in the style: rt, _np.array(mz), _np.array(int)
         
         Returns:
         pandas.DataFrame: feature information stored in a DataFrame
         """
+        self.updateRanges()
+        if not ms_levels:
+            ms_levels = self.getMSLevels()
         if long:
             cols = ["RT", "mz", "inty"]
-            self.updateRanges()
-            spectraarrs2d = self.get2DPeakDataLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ())
-            return _pd.DataFrame(dict(zip(cols, spectraarrs2d)))
+            dfs = []
+            for ms_level in ms_levels:
+                spectraarrs2d = self.get2DPeakDataLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ(), ms_level)
+                df = _pd.DataFrame(dict(zip(cols, spectraarrs2d)))
+                df["ms_level"] = ms_level
+                dfs.append(df)
+            return _pd.concat(dfs, ignore_index=True)
 
-        cols = ["RT", "mzarray", "intarray"]
+        cols = ["RT", "ms_level", "mzarray", "intarray"]
 
-        return _pd.DataFrame(data=((spec.getRT(), *spec.get_peaks()) for spec in self), columns=cols)
+        return _pd.DataFrame(data=((spec.getRT(), spec.getMSLevel(), *spec.get_peaks()) for spec in self if spec.getMSLevel() in ms_levels), columns=cols)
 
     def get_ion_df(self):
         """Generates a pandas DataFrame with all peaks and the ionic mobility in the MSExperiment
@@ -346,7 +355,7 @@ class _MSExperimentDF(_MSExperiment):
         
         cols = ["RT", "mz", "inty", "IM"]
         self.updateRanges()
-        spectraarrs2d = self.get2DPeakDataLongIon(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ())
+        spectraarrs2d = self.get2DPeakDataIMLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ(), 1)
         return _pd.DataFrame(dict(zip(cols, spectraarrs2d)))
 
     def get_massql_df(self, ion_mobility=False):
@@ -719,6 +728,10 @@ class _MSSpectrumDF(_MSSpectrum):
 MSSpectrum = _MSSpectrumDF
 MSSpectrum.__module__ = _MSSpectrum.__module__
 MSSpectrum.__name__ = 'MSSpectrum'
+
+PeakSpectrum = _MSSpectrumDF
+PeakSpectrum.__module__ = _PeakSpectrum.__module__
+PeakSpectrum.__name__ = 'PeakSpectrum'
 
 class _ChromatogramType(_Enum):
     MASS_CHROMATOGRAM = 0
