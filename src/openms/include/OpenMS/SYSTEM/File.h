@@ -304,8 +304,6 @@ public:
       - ORDER_MISMATCH (1): Same set of files but in different order
       - SET_MISMATCH (2): Different sets of files (including different counts)
 
-      Note: Because workflow systems may assign file names randomly, this function 
-      focuses on detecting order mismatches rather than exact content differences.
 
       @param sl1 First StringList with filenames
       @param sl2 Second StringList with filenames
