@@ -280,34 +280,48 @@ protected:
   {
     // validate file lists (use only basename and ignore extension)
     auto validation_result = File::validateMatchingFileNames(in, in_ids, true, true);
-    switch(validation_result)
+    // we try to fail early (without parsing files) if the input is obviously wrong
+    // check for two major mistakes:
+    //  1. different number of files (-> certainly wrong)
+    //  2. same number of files but different order (-> certainly wrong)
+    // If some files differ in names, we can't be sure at this point and skip this test for now.
+    // We need to look into the ID files to infer the spectra filenames later to be sure a mistake was made.
+    switch (validation_result)
     {
       case File::MatchingFileListsStatus::SET_MISMATCH:
-        OPENMS_LOG_ERROR << "ID and spectra file lists differ. Please provide the same files in the same order."
-          "File in spectra file list: " << endl;
-        for (const auto& f : in)
+        if (in.size() != in_ids.size())
         {
-          OPENMS_LOG_ERROR << f << endl;
+          OPENMS_LOG_FATAL_ERROR << "ID and spectra file lists differ in size. Please provide the same number of files for spectra and ID." << endl;
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "ID and spectra file lists differ in size. Please provide the same number of files for spectra and ID.");          
         }
-        OPENMS_LOG_ERROR << "File in ID file list: " << endl;
-        for (const auto& f : in_ids)
-        {
-          OPENMS_LOG_ERROR << f << endl;
+        else
+        { // same number of files but filenames differ (we will try to read the spectra filenames from the id files later)
+          writeDebug_("ID and spectra file lists differ. Please provide the same files in the same order.", 1);
+          writeDebug_("File in spectra file list:", 1);
+          for (const auto& f : in)
+          {
+            writeDebug_(f + '\n', 1);
+          }
+          writeDebug_("File in ID file list:", 1);
+          for (const auto& f : in_ids)
+          {
+            writeDebug_(f, 1);
+          }
+          writeDebug_("Will try to infere spectra filenames from id files later.", 1);
         }
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Set of ID and spectra file lists differ.");
         break;
       case File::MatchingFileListsStatus::ORDER_MISMATCH:
-        OPENMS_LOG_ERROR << "ID and spectra file match but order of file names seem to differ. Please provide the same files in the same order." << std::endl;
-        OPENMS_LOG_ERROR << "File in spectra file list: " << endl;
+        writeDebug_("ID and spectra file match but order of file names seem to differ. Please provide the same files in the same order.", 1);
+        writeDebug_("File in spectra file list:", 1);
         for (const auto& f : in)
         {
-          OPENMS_LOG_ERROR << f << endl;
+          writeDebug_(f, 1);
         }
-        OPENMS_LOG_ERROR << "File in ID file list: " << endl;
+        OPENMS_LOG_WARN << "File in ID file list: " << endl;
         for (const auto& f : in_ids)
         {
-          OPENMS_LOG_ERROR << f << endl;
+          writeDebug_(f, 1);
         }
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "ID and spectra file match but order of file names seem to differ. They need to be provided in the same order.");
