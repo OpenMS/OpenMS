@@ -283,10 +283,32 @@ protected:
     switch(validation_result)
     {
       case File::MatchingFileListsStatus::SET_MISMATCH:
+        OPENMS_LOG_ERROR << "ID and spectra file lists differ. Please provide the same files in the same order."
+          "File in spectra file list: " << endl;
+        for (const auto& f : in)
+        {
+          OPENMS_LOG_ERROR << f << endl;
+        }
+        OPENMS_LOG_ERROR << "File in ID file list: " << endl;
+        for (const auto& f : in_ids)
+        {
+          OPENMS_LOG_ERROR << f << endl;
+        }
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Set of ID and spectra file lists differ.");
         break;
       case File::MatchingFileListsStatus::ORDER_MISMATCH:
+        OPENMS_LOG_ERROR << "ID and spectra file match but order of file names seem to differ. Please provide the same files in the same order." << std::endl;
+        OPENMS_LOG_ERROR << "File in spectra file list: " << endl;
+        for (const auto& f : in)
+        {
+          OPENMS_LOG_ERROR << f << endl;
+        }
+        OPENMS_LOG_ERROR << "File in ID file list: " << endl;
+        for (const auto& f : in_ids)
+        {
+          OPENMS_LOG_ERROR << f << endl;
+        }
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "ID and spectra file match but order of file names seem to differ. They need to be provided in the same order.");
         break;
