@@ -398,7 +398,7 @@ START_SECTION(static File::MatchingFileListsStatus validateMatchingFileNames(con
   {
     StringList list1 = {"file1.txt", "file2.mzML"};
     StringList list2 = {"file1.mzML", "file2.txt"};
-    TEST_TRUE(File::validateMatchingFileNames(list1, list2, false, true) == File::MatchingFileListsStatus::ORDER_MISMATCH)
+    TEST_TRUE(File::validateMatchingFileNames(list1, list2, false, true) == File::MatchingFileListsStatus::MATCH)
   }
 
   // Test ignore extension with different basenames
