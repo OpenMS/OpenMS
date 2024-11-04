@@ -278,12 +278,21 @@ protected:
   // Warn if the primaryMSRun indicates that files were provided in the wrong order.
   map<String, String> mapMzML2Ids_(StringList & in, StringList & in_ids)
   {
-    // Detect the common case that ID files have same names as spectra files
-    if (!File::validateMatchingFileNames(in, in_ids, true, true, false)) // only basenames, without extension, only order
+    // validate file lists (use only basename and ignore extension)
+    auto validation_result = File::validateMatchingFileNames(in, in_ids, true, true);
+    switch(validation_result)
     {
-      // Spectra and id files have the same set of basenames but appear in different order. -> this is most likely an error
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "ID and spectra file match but order of file names seem to differ. They need to be provided in the same order.");
+      case MatchingFileListsStatus::SET_MISMATCH:
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Set of ID and spectra file lists differ.");
+        break;
+      case MatchingFileListsStatus::ORDER_MISMATCH:
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "ID and spectra file match but order of file names seem to differ. They need to be provided in the same order.");
+        break;
+      default MatchingFileListsStatus::MATCH:
+        writeLog_("Info: ID files have the same names as spectra files.");
+        break;
     }
 
     map<String, String> mzfile2idfile;
@@ -1277,7 +1286,8 @@ protected:
 
     // Check for common mistake that order of input files have been switched.
     // This is the case if basenames are identical but the order does not match.
-    if (!File::validateMatchingFileNames(in_MS_run, id_MS_run_ref, true, true, false)) // only basenames, without extension, only order
+    if (File::validateMatchingFileNames(in_MS_run, id_MS_run_ref, true, true) ==
+          == MatchingFileListsStatus::ORDER_MISMATCH) // only basenames, without extension, only order
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__,
         OPENMS_PRETTY_FUNCTION, "MS run path reference in ID files and spectra filenames match but order differs.");
