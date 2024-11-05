@@ -5,6 +5,7 @@
 // $Authors: Simon Gene Gottlieb $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ParamCWLFile.h>
 #include <fstream>
@@ -103,23 +104,28 @@ namespace OpenMS
         }
       }
 
-      // converting trags to tdl compatible tags
+      // converting OpenMS tags to tdl compatible tags
       std::set<std::string> tags;
       for (auto const& t : param_it->tags)
       {
-        if (t == "input file")
+        if (t == TOPPBase::TAG_INPUT_FILE)
         {
           tags.insert("file");
         }
-        else if (t == "output file")
+        else if (t == TOPPBase::TAG_OUTPUT_FILE)
         {
           tags.insert("file");
           tags.insert("output");
         }
-        else if (t == "output prefix")
+        else if (t == TOPPBase::TAG_OUTPUT_PREFIX)
         {
           tags.insert("output");
           tags.insert("prefixed");
+        }
+        else if (t == TOPPBase::TAG_OUTPUT_DIR)
+        {
+          tags.insert("directory");
+          tags.insert("output");
         }
         else
         {

@@ -547,6 +547,58 @@ namespace OpenMS
     return pc_spec - spectra_.cbegin(); 
   }
 
+  MSExperiment::ConstIterator MSExperiment::getFirstProductSpectrum(ConstIterator iterator) const
+  {
+    // if we are after the end we can't go "down"
+    if (iterator == spectra_.end())
+    {
+      return spectra_.end();
+    }
+    UInt ms_level = iterator->getMSLevel();
+
+    auto tmp_spec_iter = iterator; // such that we can reiterate later
+    do
+    {
+      ++tmp_spec_iter;
+      if ((tmp_spec_iter->getMSLevel() - ms_level) == 1)
+      {
+        if (!tmp_spec_iter->getPrecursors().empty())
+        {
+          // Warn if there are multiple precursors
+          if (tmp_spec_iter->getPrecursors().size() > 1)
+          {
+              OPENMS_LOG_WARN << "Spectrum at index " << std::distance(spectra_.begin(), tmp_spec_iter)
+                        << " has multiple precursors. Only the first precursor will be considered."
+                        << std::endl;
+          }
+
+          const auto precursor = tmp_spec_iter->getPrecursors()[0];
+          String ref = precursor.getMetaValue("spectrum_ref", "");  
+          if (!ref.empty() && ref == iterator->getNativeID())
+          {
+            return tmp_spec_iter;
+          }
+        }
+      }
+      else if (tmp_spec_iter->getMSLevel() < ms_level)
+      {
+        return spectra_.end();
+      }
+    } while (tmp_spec_iter != spectra_.end());
+
+    return spectra_.end();
+  }
+
+  // same as above but easier to wrap in python
+  int MSExperiment::getFirstProductSpectrum(int zero_based_index) const
+  {
+    auto spec = spectra_.cbegin();
+    spec += zero_based_index;
+    auto pc_spec = getFirstProductSpectrum(spec);
+    if (pc_spec == spectra_.cend()) return -1;
+    return pc_spec - spectra_.cbegin();
+  }
+
   /// Swaps the content of this map with the content of @p from
   void MSExperiment::swap(MSExperiment & from)
   {

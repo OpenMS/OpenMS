@@ -76,7 +76,7 @@ void print_usage(Logger::LogStream& stream = OpenMS_Log_info)
          << tool_name << " -- An assistant for GUI-driven TOPP workflow design." << "\n"
          << "\n"
          << "Usage:" << "\n"
-         << " " << tool_name << " [options] [files]" << "\n"
+         << " " << tool_name << " [options] [.toppas files]" << "\n"
          << "\n"
          << "Options are:" << "\n"
          << "  --help           Shows this help" << "\n"
