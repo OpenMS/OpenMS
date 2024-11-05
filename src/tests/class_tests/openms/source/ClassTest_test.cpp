@@ -115,13 +115,13 @@ START_SECTION("TEST_EQUAL()")
   TEST_EQUAL(2.0f, 2);
   TEST_EQUAL(2.0f, 2.0);
   enum Enum1 { A, B, C };
-  enum Enum2 { A, B, C };
+  enum Enum2 { AA, BB, CC };
   TEST_EQUAL(Enum1::A, Enum1::A);
   TEST_EQUAL(Enum1::A, Enum1::B); FAILURE_IS_SUCCESS;
   TEST_EQUAL(Enum1::A, Enum1::C); FAILURE_IS_SUCCESS;
-  TEST_EQUAL(Enum1::A, Enum2::A);
-  TEST_EQUAL(Enum1::A, Enum2::B); FAILURE_IS_SUCCESS;
-  TEST_EQUAL(Enum1::A, Enum2::C); FAILURE_IS_SUCCESS;  
+  TEST_EQUAL(Enum1::A, Enum2::AA);
+  TEST_EQUAL(Enum1::A, Enum2::BB); FAILURE_IS_SUCCESS;
+  TEST_EQUAL(Enum1::A, Enum2::CC); FAILURE_IS_SUCCESS;  
 }
 END_SECTION
 
