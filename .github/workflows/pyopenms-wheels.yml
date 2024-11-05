@@ -175,15 +175,8 @@ jobs:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CI_PROVIDER: "GitHub-Actions"
           BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
+          BUILD_TYPE: "Release"
           # The rest of the vars should be saved in the CMakeCache
-
-    - name: Cleanup Conda
-      shell: bash
-      run: |
-          conda env list | Select-String "pyoms-bld-" | ForEach-Object {
-            $envName = $_ -replace '\s+.*', ''  # Extract the environment name
-            conda remove --name $envName --all -y
-          }
 
     - uses: actions/upload-artifact@v4
       name: Upload artifacts
@@ -345,14 +338,6 @@ jobs:
           BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
           # The rest of the vars should be saved in the CMakeCache
 
-    - name: Cleanup Conda
-      shell: bash
-      run: |
-            conda deactivate
-            for env in $(conda env list | grep "pyoms-bld-" | awk '{print $1}'); do
-              conda remove --name "$env" --all -y
-            done
-
     - uses: actions/upload-artifact@v4
       name: Upload artifacts
       if: always()
@@ -426,6 +411,7 @@ jobs:
         # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
         export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
         export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
+        export OpenMP_ROOT="$(brew --prefix libomp)"
         export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}"
 
         #mkdir bld
@@ -518,15 +504,6 @@ jobs:
           CI_PROVIDER: "GitHub-Actions"
           BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
           # The rest of the vars should be saved in the CMakeCache
-
-    - name: Cleanup Conda
-      shell: bash
-      run: |
-          conda deactivate
-          for env in $(conda env list | grep "pyoms-bld-" | awk '{print $1}'); do
-            conda remove --name "$env" --all -y
-          done
-    
         
     - uses: actions/upload-artifact@v4
       name: Upload wheels
@@ -543,7 +520,8 @@ jobs:
     - uses: rokroskar/workflow-run-cleanup-action@master
       env:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-      if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
+      # Disable warning for this line
+      if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'" # noqa
 
     - uses: actions/checkout@v4
       name: Checkout sources
