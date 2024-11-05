@@ -275,7 +275,9 @@ namespace OpenMS
       {
         ++test_count;
         test_line = line;
-        this_test = bool(expression_1 == T1(expression_2));
+        // cast to underlying type to be able to compare enums
+        this_test = bool(static_cast<std::underlying_type_t<T1>>(expression_1) ==
+                 static_cast<std::underlying_type_t<T2>>(expression_2));
         test = test && this_test;
         {
           initialNewline();
