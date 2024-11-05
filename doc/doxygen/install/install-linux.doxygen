@@ -186,7 +186,12 @@
   In addition, you may have to compile Qt yourself which you can get from <a
   href="http://download.qt.io/official_releases/qt">http://download.qt.io/official_releases/qt</a>
   (use version >6.2), if it is not provided on your server or the version on
-  your environment is too old. Then you can use the traditional
+  your environment is too old. 
+  
+  @note Anaconda packages (especially related to ICU) can cause compile errors due to missing symbols.
+  Deactivate conda environments before compiling.
+  
+  To compile use the traditional:
   
   @code
   tar xvf qt-everywhere-src-6.5.3.tar.xz
@@ -194,8 +199,8 @@
   ./configure --prefix=.   -skip qtdoc -skip qttranslations -skip qttools
   cmake --build . --parallel
   cmake --install .
+  @endcode
   
-  @endcode 
   to compile and install Qt (note that you should set the <tt>--prefix=/path</tt> to a local directory assuming
   you don't have root privileges).
 
@@ -238,6 +243,11 @@
   -D Qt6_DIR=/PATH/TO/qt/lib/cmake/Qt6/
   \endcode
   to the CMake options, where <tt>/PATH/TO/qt/lib/cmake/Qt6/</tt> depends on your system settings and Qt version.
+
+  A full configure step might look like this:
+  \code
+  cmake -DCMAKE_BUILD_TYPE=Release -DOPENMS_CONTRIB_LIBS="/PATH/TO/contrib-build" -DBOOST_USE_STATIC=ON -DQt6_DIR="/PATH/TO/qt/lib/cmake/Qt6" ../openms
+  \endcode
 
   When configuring %OpenMS using CMake, consider setting <tt>-D WITH_GUI=Off</tt> and
   <tt>-D HAS_XSERVER=Off</tt>, especially as you may not have compiled Qt with
