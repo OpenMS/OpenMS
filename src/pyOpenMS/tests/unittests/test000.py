@@ -3597,7 +3597,7 @@ def testMRMDecoy():
 def testMRMTransitionGroup():
     """
     @tests: MRMTransitionGroup
-     """
+    """
     mrmgroup = pyopenms.MRMTransitionGroupCP()
     assert mrmgroup is not None
 
@@ -3623,25 +3623,58 @@ def testMRMTransitionGroup():
     assert df.loc[0, 'chromatogram_type'] == 'MASS_CHROMATOGRAM'
     assert df.loc[0, 'native_id'] == 'tr1'
 
-    ## feature
-    f = pyopenms.MRMFeature()
-    f.setRT(1.0)
-    f.setMetaValue(b'leftWidth', 0.5)
-    f.setMetaValue(b'rightWidth', 1.5)
-    f.setMetaValue(b'peak_apices_sum', 10.0)
-    f.setOverallQuality(0.5)
-    f.setUniqueId(1)
-    f.setIntensity(20.0)
+    ## feature 1
+    f1 = pyopenms.MRMFeature()
+    f1.setRT(1.0)
+    f1.setMetaValue(b'leftWidth', 0.5)
+    f1.setMetaValue(b'rightWidth', 1.5)
+    f1.setMetaValue(b'peak_apices_sum', 10.0)
+    f1.setOverallQuality(0.5)
+    f1.setUniqueId(1)
+    f1.setIntensity(20.0)
+    mrmgroup.addFeature(f1)
+
+    # feature 2
+    f2 = pyopenms.MRMFeature()
+    f2.setRT(2.0)
+    f2.setMetaValue(b'peak_apices_sum', 20.0)
+    f2.setOverallQuality(1.0)
+    f2.setUniqueId(2)
+    f2.setIntensity(40.0)
+    mrmgroup.addFeature(f2)
 
     df = mrmgroup.get_feature_df(meta_values=[b'leftWidth', b'rightWidth', b'peak_apices_sum'])
-    assert df.shape == (1, 8)
-    assert df.loc[0, 'leftWidth'] == 0.5
-    assert df.loc[0, 'rightWidth'] == 1.5
-    assert df.loc[0, 'peak_apices_sum'] == 10.0
-    assert df.loc[0, 'intensity'] == 10.0
-    assert df.loc[0, 'quality'] == 0.5
-    assert df.loc[0, 'RT'] == 1.0
-    assert df.index[0] == 1
+    assert df.shape == (2, 6)
+    assert df.loc[1, 'leftWidth'] == 0.5
+    assert df.loc[1, 'rightWidth'] == 1.5
+    assert df.loc[1, 'peak_apices_sum'] == 10.0
+    assert df.loc[1, 'intensity'] == 20.0
+    assert df.loc[1, 'quality'] == 0.5
+    assert df.loc[1, 'RT'] == 1.0
+
+    assert np.isnan(df.loc[2, 'leftWidth'])
+    assert np.isnan(df.loc[2, 'rightWidth'])
+    assert df.loc[2, 'peak_apices_sum'] == 20.0
+    assert df.loc[2, 'intensity'] == 40.0
+    assert df.loc[2, 'quality'] == 1.0
+    assert df.loc[2, 'RT'] == 2.0
+
+    # If get "all" meta values should get the same result
+    df = mrmgroup.get_feature_df(meta_values='all')
+    assert df.shape == (2, 6)
+    assert df.loc[1, 'leftWidth'] == 0.5
+    assert df.loc[1, 'rightWidth'] == 1.5
+    assert df.loc[1, 'peak_apices_sum'] == 10.0
+    assert df.loc[1, 'intensity'] == 20.0
+    assert df.loc[1, 'quality'] == 0.5
+    assert df.loc[1, 'RT'] == 1.0
+
+    assert np.isnan(df.loc[2, 'leftWidth'])
+    assert np.isnan(df.loc[2, 'rightWidth'])
+    assert df.loc[2, 'peak_apices_sum'] == 20.0
+    assert df.loc[2, 'intensity'] == 40.0
+    assert df.loc[2, 'quality'] == 1.0
+    assert df.loc[2, 'RT'] == 2.0
 
 @report
 def testReactionMonitoringTransition():
