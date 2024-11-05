@@ -331,6 +331,7 @@ jobs:
     - name: Run Unit Tests
       shell: bash
       run: |
+            export OpenMP_ROOT="$(brew --prefix libomp)"
             ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
@@ -498,6 +499,7 @@ jobs:
     - name: Test
       shell: bash
       run: |
+            export OpenMP_ROOT="$(brew --prefix libomp)"
             ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
