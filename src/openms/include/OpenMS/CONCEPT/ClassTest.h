@@ -276,15 +276,16 @@ namespace OpenMS
         ++test_count;
         test_line = line;
         // cast to underlying type to be able to compare enums
-        if constexpr (std::is_enum<T1>::value && std::is_enum<T2>::value) {
-            this_test = bool(
-                static_cast<typename std::underlying_type<T1>::type>(expression_1) ==
-                static_cast<typename std::underlying_type<T2>::type>(expression_2)
-            );
+        if constexpr (std::is_enum<T1>::value && std::is_enum<T2>::value) 
+        {
+          this_test = bool(
+              static_cast<typename std::underlying_type<T1>::type>(expression_1) ==
+              static_cast<typename std::underlying_type<T2>::type>(expression_2)
+          );
         } 
         else 
         {
-            this_test = bool(expression_1 == expression_2);
+          this_test = bool(expression_1 == T1(expression_2)) ;
         }
         test = test && this_test;
         {
