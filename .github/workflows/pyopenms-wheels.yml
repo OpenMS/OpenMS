@@ -185,7 +185,7 @@ jobs:
         path: pyopenms_whls
         
   build-macos-arm:
-    runs-on: [macos-latest, self-hosted]
+    runs-on: macos-latest
     env:
       SYSTEM_VERSION_COMPAT: 0 # workaround for mac see https://github.com/actions/setup-python/issues/469 for details.
     steps:
@@ -247,7 +247,7 @@ jobs:
         # pushd bld
         # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
 
-        export OpenMP_ROOT="$(brew --prefix libomp)"
+        # export OpenMP_ROOT="$(brew --prefix libomp)"
         export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_DIR)/lib/cmake;${Qt5_DIR}"
 
         #ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
@@ -318,7 +318,7 @@ jobs:
           CCACHE_COMPRESS: true
           CCACHE_COMPRESSLEVEL: 12
           CCACHE_MAXSIZE: 400M
-          MT_ENABLE_OPENMP: "ON"
+          # MT_ENABLE_OPENMP: "ON"
           PYOPENMS: "ON"
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
           ENABLE_TUTORIALS: "OFF"
@@ -331,7 +331,6 @@ jobs:
     - name: Run Unit Tests
       shell: bash
       run: |
-            export OpenMP_ROOT="$(brew --prefix libomp)"
             ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
@@ -412,7 +411,7 @@ jobs:
         # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
         export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
         export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
-        export OpenMP_ROOT="$(brew --prefix libomp)"
+        # export OpenMP_ROOT="$(brew --prefix libomp)"
         export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}"
 
         #mkdir bld
@@ -486,7 +485,7 @@ jobs:
         CCACHE_COMPRESS: true
         CCACHE_COMPRESSLEVEL: 12
         CCACHE_MAXSIZE: 400M
-        MT_ENABLE_OPENMP: "ON"
+        #MT_ENABLE_OPENMP: "ON"
         PYOPENMS: "ON"
         PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
         ENABLE_TUTORIALS: "OFF"
@@ -499,7 +498,6 @@ jobs:
     - name: Test
       shell: bash
       run: |
-            export OpenMP_ROOT="$(brew --prefix libomp)"
             ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
