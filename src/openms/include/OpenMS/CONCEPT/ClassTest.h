@@ -274,38 +274,49 @@ namespace OpenMS
                 const char* expression_2_stringified)
       {
         ++test_count;
-        test_line = line;
-        // cast to underlying type to be able to compare enums
-        if constexpr (std::is_enum<T1>::value && std::is_enum<T2>::value) 
-        {
-          this_test = bool(
-              static_cast<typename std::underlying_type<T1>::type>(expression_1) ==
-              static_cast<typename std::underlying_type<T2>::type>(expression_2)
-          );
-        } 
-        else 
-        {
-          this_test = bool(expression_1 == T1(expression_2)) ;
-        }
+        test_line = line;        
+
+        this_test = bool(expression_1 == T1(expression_2)) ;
+
         test = test && this_test;
         {
           initialNewline();
           if (this_test)
           {
             if (verbose > 1)
-            {
-              stdcout << " +  line " << line << ":  TEST_EQUAL("
+            {              
+              if constexpr(std::is_enum<T1>::value && std::is_enum<T2>::value) 
+              {
+                stdcout << " +  line " << line << ":  TEST_EQUAL("
                         << expression_1_stringified << ','
-                        << expression_2_stringified << "): got '" << expression_1
-                        << "', expected '" << expression_2 << "'\n";
+                        << expression_2_stringified << "): got '" << static_cast<int>(expression_1)
+                        << "', expected '" << static_cast<int>(expression_2) << "'\n";
+              }
+              else
+              {
+                stdcout << " +  line " << line << ":  TEST_EQUAL("
+                      << expression_1_stringified << ','
+                      << expression_2_stringified << "): got '" << expression_1
+                      << "', expected '" << expression_2 << "'\n";
+              }
             }
           }
           else
           {
-            stdcout << " -  line " << line << ":  TEST_EQUAL("
+            if constexpr(std::is_enum<T1>::value && std::is_enum<T2>::value) 
+            {
+              stdcout << " -  line " << line << ":  TEST_EQUAL("
+                      << expression_1_stringified << ','
+                      << expression_2_stringified << "): got '" << static_cast<int>(expression_1)
+                      << "', expected '" << static_cast<int>(expression_2) << "'\n";
+            }
+            else
+            {
+              stdcout << " -  line " << line << ":  TEST_EQUAL("
                       << expression_1_stringified << ','
                       << expression_2_stringified << "): got '" << expression_1
                       << "', expected '" << expression_2 << "'\n";
+            }
             failed_lines_list.push_back(line);
           }
         }
