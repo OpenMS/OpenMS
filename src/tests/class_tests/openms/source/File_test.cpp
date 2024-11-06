@@ -93,6 +93,7 @@ START_SECTION((static String find(const String &filename, StringList directories
   TEST_EXCEPTION(Exception::FileNotFound, File::find(""))
 END_SECTION
 
+#ifdef ENABLE_DOCS
 START_SECTION((static String findDoc(const String& filename)))
   TEST_EXCEPTION(Exception::FileNotFound,File::findDoc("non-existing-documentation"))
   // should exist in every valid source tree (we cannot test for Doxyfile since doxygen might not be installed)
@@ -100,6 +101,7 @@ START_SECTION((static String findDoc(const String& filename)))
   // a file from the build tree
   TEST_EQUAL(File::findDoc("code_examples/cmake_install.cmake").hasSuffix("cmake_install.cmake"), true)
 END_SECTION
+#endif
 
 START_SECTION((static String absolutePath(const String &file)))
   NOT_TESTABLE

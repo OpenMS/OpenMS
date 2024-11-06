@@ -23,7 +23,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
+#include <type_traits>
 // Empty declaration to avoid problems in case the namespace is not
 // yet defined (e.g. TEST/ClassTest_test.cpp)
 
@@ -274,27 +274,49 @@ namespace OpenMS
                 const char* expression_2_stringified)
       {
         ++test_count;
-        test_line = line;
-        this_test = bool(expression_1 == T1(expression_2));
+        test_line = line;        
+
+        this_test = bool(expression_1 == T1(expression_2)) ;
+
         test = test && this_test;
         {
           initialNewline();
           if (this_test)
           {
             if (verbose > 1)
-            {
-              stdcout << " +  line " << line << ":  TEST_EQUAL("
+            {              
+              if constexpr(std::is_enum<T1>::value && std::is_enum<T2>::value) 
+              {
+                stdcout << " +  line " << line << ":  TEST_EQUAL("
                         << expression_1_stringified << ','
-                        << expression_2_stringified << "): got '" << expression_1
-                        << "', expected '" << expression_2 << "'\n";
+                        << expression_2_stringified << "): got '" << static_cast<int>(expression_1)
+                        << "', expected '" << static_cast<int>(expression_2) << "'\n";
+              }
+              else
+              {
+                stdcout << " +  line " << line << ":  TEST_EQUAL("
+                      << expression_1_stringified << ','
+                      << expression_2_stringified << "): got '" << expression_1
+                      << "', expected '" << expression_2 << "'\n";
+              }
             }
           }
           else
           {
-            stdcout << " -  line " << line << ":  TEST_EQUAL("
+            if constexpr(std::is_enum<T1>::value && std::is_enum<T2>::value) 
+            {
+              stdcout << " -  line " << line << ":  TEST_EQUAL("
+                      << expression_1_stringified << ','
+                      << expression_2_stringified << "): got '" << static_cast<int>(expression_1)
+                      << "', expected '" << static_cast<int>(expression_2) << "'\n";
+            }
+            else
+            {
+              stdcout << " -  line " << line << ":  TEST_EQUAL("
                       << expression_1_stringified << ','
                       << expression_2_stringified << "): got '" << expression_1
                       << "', expected '" << expression_2 << "'\n";
+            }
             failed_lines_list.push_back(line);
           }
         }

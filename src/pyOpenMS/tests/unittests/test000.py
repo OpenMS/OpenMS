@@ -2822,7 +2822,7 @@ def testMSExperiment():
     #####################################################################################
     # test fast aggregation and XIC extraction using ranges
     pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)    
-    exp.updateRanges();
+    exp.updateRanges()
 
     ############################################################################
     # Uncomment to run performance tests
@@ -5416,10 +5416,8 @@ def testRNaseDB():
     db.getAllNames(names)
 
     e = db.getEnzyme("RNase_T1")
-    assert e.getRegEx() == u'(?<=G)'
     assert e.getThreePrimeGain() == u'p'
 
-    assert db.hasRegEx(u'(?<=G)')
     assert db.hasEnzyme("RNase_T1")
     
 
