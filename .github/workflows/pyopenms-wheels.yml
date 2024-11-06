@@ -182,7 +182,7 @@ jobs:
       name: Upload artifacts
       with:
         name: ${{ runner.os }}-${{ runner.arch }}-wheels
-        path: bld/pyopenms_whls
+        path: pyopenms_whls
         
   build-macos-arm:
     runs-on: macos-latest
@@ -352,7 +352,7 @@ jobs:
       name: Upload wheels
       with:
         name: ${{ runner.os }}-${{ runner.arch }}-wheels
-        path: bld/pyopenms_whls
+        path: pyopenms_whls
         
   build-macos:
     runs-on: macos-13
@@ -511,7 +511,7 @@ jobs:
       name: Upload wheels
       with:
         name: ${{ runner.os }}-${{ runner.arch }}-wheels
-        path: bld/pyopenms_whls
+        path: pyopenms_whls
 
   build-lnx:
     runs-on: [ubuntu-latest]
