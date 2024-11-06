@@ -62,7 +62,7 @@ macro(find_boost)
     "1.75.1" "1.75.0" "1.75"
     "1.74.1" "1.74.0" "1.74")
 
-  find_package(Boost 1.74.0 COMPONENTS ${ARGN} REQUIRED)
+  find_package(Boost 1.74.0 COMPONENTS ${ARGN} REQUIRED CONFIG)
 
 endmacro(find_boost)
 

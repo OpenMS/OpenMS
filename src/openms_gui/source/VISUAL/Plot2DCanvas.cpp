@@ -981,7 +981,7 @@ namespace OpenMS
         // risk of iterating through *all* the scans.
         check_area.RangeMZ::extend((RangeMZ)visible_area_.getAreaUnit());
         const auto& specs = lp->getPeakData()->getSpectra();
-        check_area.RangeRT::operator=({specs[indices.back()].getRT(), specs[indices.front()].getRT()});
+        check_area.RangeRT::operator=(RangeRT(specs[indices.back()].getRT(), specs[indices.front()].getRT()));
         item_added = collectFragmentScansInArea_(check_area, a, msn_scans, msn_meta);
 
         if (!item_added)

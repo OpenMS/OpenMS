@@ -770,5 +770,18 @@ namespace OpenMS
 
     return {index, unit };
   }
+
+  std::pair<DriftTimeUnit, std::vector<float>> MSSpectrum::maybeGetIMData() const
+  {
+    Size index;
+    DriftTimeUnit unit = DriftTimeUnit::NONE;
+    bool has_IM = getIonMobilityArray__(this->getFloatDataArrays(), index, unit);
+
+    if (!has_IM)
+    {
+      return {unit, {}}; // empty vector
+    }
+    return {unit, this->getFloatDataArrays()[index]};
+  }
   
 } // namespace OpenMS
