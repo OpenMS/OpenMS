@@ -6,6 +6,7 @@ on:
       - nightly
     tags:
       - "Release*"
+      - "Release/*"
 
 jobs:
   DeployDocker:
@@ -31,18 +32,18 @@ jobs:
         run: echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
         id: downcase_repo
       - name: Checkout repository because we need to build contrib
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
         if: startsWith(steps.extract_branch.outputs.branch, 'release/')
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}        
       - name: Build contrib container using the correct submodule hash
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
           push: true
           context: contrib
@@ -61,7 +62,7 @@ jobs:
               git checkout ${{ steps.extract_branch.outputs.branch }} || git checkout master
             fi
       - name: Build and Push Docker Library Image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
           push: true # Will only build if this is not here
           context: dockerfiles/library
@@ -71,7 +72,7 @@ jobs:
           tags: |
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library:${{ steps.tag_name.outputs.tag }}
       - name: Build and Push Docker Tools Image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
           push: true # Will only build if this is not here
           context: dockerfiles/executables
@@ -105,18 +106,18 @@ jobs:
         run: echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
         id: downcase_repo
       - name: Checkout repository because we need to build contrib
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
         if: startsWith(steps.extract_branch.outputs.branch, 'release/')
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}        
       - name: Build contrib container using the correct submodule hash
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
           push: true
           context: contrib

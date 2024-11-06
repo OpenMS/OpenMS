@@ -66,6 +66,7 @@
 				<UserParam type="string" name="MSGFPlusAdapter:1:allow_nterm_protein_cleavage" value="true"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:name" value="auto"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:specificity" value="auto"/>
+				<UserParam type="string" name="extra_features" value="MS:1002049,MS:1002050,MSGF:ScoreRatio,MSGF:Energy,MSGF:lnEValue,isotope_error,MSGF:lnExplainedIonCurrentRatio,MSGF:lnNTermIonCurrentRatio,MSGF:lnCTermIonCurrentRatio,MSGF:lnMS2IonCurrent,MSGF:MeanErrorTop7,MSGF:sqMeanErrorTop7,MSGF:StdevErrorTop7"/>
 				<UserParam type="string" name="EnzymeTermSpecificity" value="full"/>
 				<UserParam type="string" name="SE:MS-GF+" value="Release (v2023.01.12)"/>
 				<UserParam type="string" name="MS-GF+:db" value="C:\dev\openms\src\tests\topp\THIRDPARTY\proteins.fasta"/>
@@ -82,7 +83,6 @@
 				<UserParam type="string" name="MS-GF+:digestion_enzyme" value="Trypsin/P"/>
 				<UserParam type="int" name="MS-GF+:enzyme_term_specificity" value="2"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
-				<UserParam type="string" name="extra_features" value="MS:1002049,MS:1002050,MSGF:ScoreRatio,MSGF:Energy,MSGF:lnEValue,isotope_error,MSGF:lnExplainedIonCurrentRatio,MSGF:lnNTermIonCurrentRatio,MSGF:lnCTermIonCurrentRatio,MSGF:lnMS2IonCurrent,MSGF:MeanErrorTop7,MSGF:sqMeanErrorTop7,MSGF:StdevErrorTop7"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
 	<IdentificationRun date="2023-10-29T11:20:40" search_engine="MS-GF+" search_engine_version="" search_parameters_ref="SP_0" >
