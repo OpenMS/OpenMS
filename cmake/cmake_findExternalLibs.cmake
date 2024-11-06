@@ -175,6 +175,14 @@ if (WITH_HDF5)
 endif()
 
 #------------------------------------------------------------------------------
+# Apache Arrow Parquet
+# creates Arrow::arrow_shared and Arrow::parquet_shared targets
+if (WITH_PARQUET)
+  find_package(Arrow CONFIG REQUIRED)
+  find_package(Parquet CONFIG REQUIRED)
+endif()
+
+#------------------------------------------------------------------------------
 # Done finding contrib libraries
 #------------------------------------------------------------------------------
 
