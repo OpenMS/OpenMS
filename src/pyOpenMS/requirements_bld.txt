@@ -1,0 +1,8 @@
+setuptools
+pip
+autowrap
+pytest
+numpy >= 2.0
+Cython
+wheel
+pandas

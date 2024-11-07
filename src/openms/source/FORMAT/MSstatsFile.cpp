@@ -108,6 +108,7 @@ void MSstatsFile::constructFile_(const String& retention_time_summarization_meth
                                          LineType& peptideseq_to_prefix_to_intensities) const
 
 {
+
   for (const auto &peptideseq : peptideseq_quantifyable)
   {
     for (const auto &line :
@@ -130,7 +131,6 @@ void MSstatsFile::constructFile_(const String& retention_time_summarization_meth
           intensities.insert(get<0>(p));
         }
       }
-
       tuple<String, String, String> tpl = make_tuple(
           line.first.sequence(), line.first.precursor_charge(), line.first.run());
 

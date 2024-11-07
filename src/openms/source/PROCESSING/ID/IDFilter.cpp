@@ -298,7 +298,7 @@ namespace OpenMS
     }
   }
 
-  // TODO write version where you look up in a specific run (e.g. first inference run
+  // TODO write version where you look up in a specific run (e.g. first inference run)
   void IDFilter::updateProteinReferences(ConsensusMap& cmap, bool remove_peptides_without_reference)
   {
     vector<ProteinIdentification>& proteins = cmap.getProteinIdentifications();
@@ -732,7 +732,7 @@ namespace OpenMS
       }
     }
 
-    // there might be less spectra identified than n -> adapt
+    // there might be fewer spectra identified than n -> adapt
     n = std::min(n, peptides.size());
 
     auto has_better_peptidehit = [](const PeptideIdentification& l, const PeptideIdentification& r) {

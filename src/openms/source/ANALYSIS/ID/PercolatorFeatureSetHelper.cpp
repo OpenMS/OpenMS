@@ -115,14 +115,13 @@ namespace OpenMS
           ion_types_found.push_back(*ion);
         }
       }
-      feature_set.push_back("XTANDEM:hyperscore");
+
       feature_set.push_back("XTANDEM:deltascore");
       
       for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
       {
         double hyper_score = it->getHits().front().getScore();
         double delta_score = hyper_score - it->getHits().front().getMetaValue("nextscore").toString().toDouble();
-        it->getHits().front().setMetaValue("XTANDEM:hyperscore", hyper_score);
         it->getHits().front().setMetaValue("XTANDEM:deltascore", delta_score);
         
         String sequence = it->getHits().front().getSequence().toUnmodifiedString();

@@ -168,6 +168,7 @@ namespace OpenMS
       
       MSExperiment frame_melt = IMDataConverter::reshapeIMFrameToMany(std::move(frame));
       for (size_t i = 0; i < bins.size(); ++i)
+
       {
         binned_spectra.clear(false);
         // check if spectrum goes into this bin
