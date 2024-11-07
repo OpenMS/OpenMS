@@ -87,7 +87,6 @@ namespace OpenMS
       //map PSMID to vec of PeakAnnotation 
       StringList sage_tsv_header;
       tsv.getRow(0, sage_tsv_header); 
-      to_idx_t; // map column name to column index, for full .tsv file 
       {
         int idx_t{};
         for (const auto& h : sage_tsv_header) { to_idx_t[h] = idx_t++; }
