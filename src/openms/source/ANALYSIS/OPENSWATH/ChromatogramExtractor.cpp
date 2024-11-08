@@ -280,7 +280,7 @@ namespace OpenMS
       coord.ion_mobility = pep->getDriftTime();
       coordinates.push_back(coord);
 
-      if (ms1 && ms1_isotopes > 0 && false)
+      if (ms1 && ms1_isotopes > 0)
       {
         for (int k = 1; k <= ms1_isotopes; k++)
         {
