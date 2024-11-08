@@ -1,0 +1,4 @@
+{
+    "name": "OpenMS Dev Container",
+    "image": "ghcr.io/openms/contrib_manylinux_2_28:latest"
+}
