@@ -9,7 +9,8 @@ OpenMS
 [![Install with conda](https://img.shields.io/conda/v/openms/pyopenms?color=44A833&label=Install%20with%20conda%3A%3Aopenms&logo=Anaconda&style=flat-square)](https://anaconda.org/openms)
 [![Documentation](https://img.shields.io/static/v1?style=flat-square&message=ReadTheDocs&color=2C4AA8&logo=ReadTheDocs&logoColor=FFFFFF&label=Documentation)](https://openms.readthedocs.io)
 [![API docs](https://img.shields.io/static/v1?style=flat-square&message=Doxygen&color=2C4AA8&logo=ReadTheDocs&logoColor=FFFFFF&label=API%20docs)](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html)
-[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?style=flat-square&logo=gitpod)](https://gitpod.io/#https://github.com/OpenMS/OpenMS) 
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?style=flat-square&logo=gitpod)](https://gitpod.io/#https://github.com/OpenMS/OpenMS)
+[![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/vscode-remote-try-java)
 
 [OpenMS](http://www.openms.org/)
 is an open-source software C++ library for LC-MS data management and
