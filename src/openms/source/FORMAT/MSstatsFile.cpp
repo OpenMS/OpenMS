@@ -111,7 +111,6 @@ void MSstatsFile::constructFile_(const String& retention_time_summarization_meth
   // sanity check that the triples (peptide_sequence, precursor_charge, run) only appears once
   set<tuple<String, String, String> > peptideseq_precursor_charge_run;
 
-  int count_similar = 0;
   for (const auto &peptideseq : peptideseq_quantifyable)
   {
     for (const auto &line :
@@ -134,16 +133,7 @@ void MSstatsFile::constructFile_(const String& retention_time_summarization_meth
           intensities.insert(get<0>(p));
         }
       }
-
-      tuple<String, String, String> tpl = make_tuple(
-          line.first.sequence(), line.first.precursor_charge(), line.first.run());
-
-      if (peptideseq_precursor_charge_run.find(tpl) != peptideseq_precursor_charge_run.end())
-      {
-        //TODO What is this doing here??
-        count_similar += 1;
-      }
-      peptideseq_precursor_charge_run.insert(tpl);
+      peptideseq_precursor_charge_run.emplace(line.first.sequence(), line.first.precursor_charge(), line.first.run());
 
       // If the rt summarization method is set to manual, we simply output all it,rt pairs
       if (rt_summarization_manual)

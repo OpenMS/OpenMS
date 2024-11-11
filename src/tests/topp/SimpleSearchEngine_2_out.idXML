@@ -21,7 +21,7 @@
 			<UserParam type="stringList" name="spectra_data_raw" value="[file://./KKramer_150612_yeastTAP_4_120min.raw]"/>
 			<UserParam type="stringList" name="spectra_data" value="[file://SimpleSearchEngine_1.mzML]"/>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="520.262817382812045" RT="2655.095703125" spectrum_reference="spectrum=0" >
+		<PeptideIdentification score_type="ln(hyperscore)" higher_score_better="true" significance_threshold="0.0" MZ="520.262817382812045" RT="2655.095703125" spectrum_reference="spectrum=0" >
 			<PeptideHit score="16.841633986596268" sequence="DFASSGGYVLHLHR" charge="3" aa_before="[" aa_after="E" start="0" end="13" protein_refs="PH_0" >
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.731785331544976"/>
@@ -33,10 +33,16 @@
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="0"/>
 		</PeptideIdentification>
+<<<<<<< HEAD
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="1063.209838867190001" RT="4587.6689453125" spectrum_reference="spectrum=1" >
 			<PeptideHit score="44.899828116909198" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="[" aa_after="E" start="0" end="27" protein_refs="PH_1" >
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.433841324564761"/>
+=======
+		<PeptideIdentification score_type="ln(hyperscore)" higher_score_better="true" significance_threshold="0.0" MZ="1063.209838867190001" RT="4587.6689453125" spectrum_reference="spectrum=1" >
+			<PeptideHit score="42.21834054663703" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="[" aa_after="E" start="0" end="27" protein_refs="PH_1" >
+				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.303180368382511"/>
+>>>>>>> origin/develop
 				<UserParam type="float" name="precursor_mz_error_ppm" value="0.532776127422444"/>
 				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.392857142857143"/>
 				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.5"/>
@@ -45,7 +51,7 @@
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="1"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="775.38720703125" RT="4923.77734375" spectrum_reference="spectrum=2" >
+		<PeptideIdentification score_type="ln(hyperscore)" higher_score_better="true" significance_threshold="0.0" MZ="775.38720703125" RT="4923.77734375" spectrum_reference="spectrum=2" >
 			<PeptideHit score="34.936662112839578" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_before="[" aa_after="A" start="0" end="22" protein_refs="PH_2" >
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.389253520212976"/>

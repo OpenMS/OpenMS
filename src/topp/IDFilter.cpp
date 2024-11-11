@@ -14,6 +14,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
+#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -65,7 +66,7 @@ All active filters are applied in order.
 Most filtering options should be straight-forward - see the documentation of the different parameters.
 For some filters that warrent further discussion, see below.
 
-<b>Score filters</b> (@p score:pep, @p score:prot):
+<b>Score filters</b> (@p score:peptide, @p score:protein):
 
 Peptide or protein hits with scores at least as good as the given cut-off are retained by the filter; hits with worse scores are removed.
 Whether scores should be higher or lower than the cut-off depends on the type/orientation of the score.
@@ -127,9 +128,18 @@ protected:
     registerStringOption_("precursor:charge", "[min]:[max]", ":", "Keep only peptide hits with charge states in this range.", false);
 
     registerTOPPSubsection_("score", "Filtering by peptide/protein score.");
+    auto ids = IDScoreSwitcherAlgorithm();
     registerDoubleOption_("score:psm", "<score>", NAN, "The score which should be reached by a peptide hit to be kept. (use 'NAN' to disable this filter)", false);
+    registerDoubleOption_("score:peptide", "<score>", NAN, "The score which should be reached by a peptide hit to be kept.  (use 'NAN' to disable this filter)", false);
+    registerStringOption_("score:type_peptide", "<type>", "", "Score used for filtering. If empty, the main score is used.", false, true);
+    setValidStrings_("score:type_peptide", ids.getScoreTypeNames());
+
     registerDoubleOption_("score:protein", "<score>", NAN, "The score which should be reached by a protein hit to be kept. All proteins are filtered based on their singleton scores irrespective of grouping. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides. (use 'NAN' to disable this filter)", false);
+    registerStringOption_("score:type_protein", "<type>", "", "The type of the score which should be reached by a protein hit to be kept. If empty, the most recently set score is used.", false, true);
+    setValidStrings_("score:type_protein", ids.getScoreTypeNames());
+
     registerDoubleOption_("score:proteingroup", "<score>", NAN, "The score which should be reached by a protein group to be kept. Performs group level score filtering (including groups of single proteins). Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides. (use 'NAN' to disable this filter)", false);
+
     registerTOPPSubsection_("whitelist", "Filtering by whitelisting (only peptides/proteins from a given set can pass)");
     registerInputFile_("whitelist:proteins", "<file>", "", "Filename of a FASTA file containing protein sequences.\n"
                                                            "All peptides that are not referencing a protein in this file are removed.\n"
@@ -560,6 +570,29 @@ protected:
       OPENMS_LOG_INFO << "No 'score:psm' threshold set. Not filtering by peptide score." << endl;
     }
 
+    double pep_score = getDoubleOption_("score:peptide");
+    String score_type = getStringOption_("score:type_peptide");
+
+    if (!std::isnan(pep_score))
+    {
+      OPENMS_LOG_INFO << "Filtering by peptide score (better than " << pep_score << ")..." << endl;
+
+      if (!score_type.empty())
+      {
+        IDScoreSwitcherAlgorithm::ScoreType score_type_enum = IDScoreSwitcherAlgorithm::getScoreType(score_type);
+        IDFilter::filterHitsByScore(proteins, pep_score, score_type_enum);
+      }
+      else
+      {
+        IDFilter::filterHitsByScore(peptides, pep_score);
+      }
+    }
+    else
+    {
+      OPENMS_LOG_INFO << "No 'score:peptide' threshold set. Not filtering by peptide score." << endl;
+    }
+
+
     Int min_charge = numeric_limits<Int>::min(), max_charge =
       numeric_limits<Int>::max();
     if (parseRange_(getStringOption_("precursor:charge"), min_charge, max_charge))
@@ -625,10 +658,20 @@ protected:
 
     // Filtering protein identifications according to set criteria
     double prot_score = getDoubleOption_("score:protein");
+    String score_type_prot = getStringOption_("score:type_protein");
+
     if (!std::isnan(prot_score))
     {
       OPENMS_LOG_INFO << "Filtering by protein score  (better than " << prot_score << ") ..." << endl;
-      IDFilter::filterHitsByScore(proteins, prot_score);
+      if (!score_type_prot.empty())
+      {
+        IDScoreSwitcherAlgorithm::ScoreType score_type_prot_enum = IDScoreSwitcherAlgorithm::getScoreType(score_type_prot);
+        IDFilter::filterHitsByScore(proteins, prot_score, score_type_prot_enum);
+      }
+      else
+      {
+        IDFilter::filterHitsByScore(proteins, prot_score);
+      }
     }
     else
     {

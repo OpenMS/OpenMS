@@ -59,9 +59,6 @@ namespace OpenMS
     bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
     bool split_charge_variants = param_.getValue("split_charge_variants").toBool();
     bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
-#ifdef FALSE_DISCOVERY_RATE_DEBUG
-    cerr << "Parameters: no_qvalues=" << !q_value << ", use_all_hits=" << use_all_hits << ", treat_runs_separately=" << treat_runs_separately << ", split_charge_variants=" << split_charge_variants << endl;
-#endif
 
     if (ids.empty())
     {
