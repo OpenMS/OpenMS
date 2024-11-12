@@ -240,7 +240,7 @@ namespace OpenMS
       //  by this loosely defined format.
       const String& sSpecId = row[to_idx.at("SpecId")];
 
-      double IM = -1.0;
+      double IM = 0.0;
       if (auto it = to_idx.find("ion_mobility"); it != to_idx.end())
       {
         const String& sIM = row[it->second]; // read IM from e.g. Sage output
@@ -257,7 +257,7 @@ namespace OpenMS
         pids.back().setMetaValue(Constants::UserParam::ID_MERGE_INDEX, map_filename_to_idx.at(raw_file_name));
         pids.back().setRT(row[to_idx.at("retentiontime")].toDouble() * 60.0); // search engines typically write minutes (e.g., sage)
         pids.back().setMetaValue("PinSpecId", sSpecId);
-        if (IM != -1.0) 
+        if (IM > 0.0) // Sage might annotate 0.0 if no IM is present
         {
           pids.back().setMetaValue(Constants::UserParam::IM, IM);
         }
