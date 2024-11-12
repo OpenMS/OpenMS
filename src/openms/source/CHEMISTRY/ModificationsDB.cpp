@@ -59,7 +59,7 @@ namespace OpenMS
     return db_;
   }
 
-  ModificationsDB* ModificationsDB::initializeModificationsDB(OpenMS::String unimod_file, OpenMS::String psimod_file, OpenMS::String xlmod_file)
+  ModificationsDB* ModificationsDB::initializeModificationsDB(OpenMS::String unimod_file, OpenMS::String custommod_file, OpenMS::String psimod_file, OpenMS::String xlmod_file)
   {
     // Currently its not possible to check for double initialization since getInstance() also calls this function.
     // if (is_instantiated_)
@@ -67,15 +67,20 @@ namespace OpenMS
     //   throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot initialize ModificationsDB twice");
     // }
 
-    static ModificationsDB* db_ = new ModificationsDB(std::move(unimod_file), std::move(psimod_file), std::move(xlmod_file));
+    static ModificationsDB* db_ = new ModificationsDB(std::move(unimod_file), std::move(custommod_file), std::move(psimod_file), std::move(xlmod_file));
     return db_;
   }
 
-  ModificationsDB::ModificationsDB(const OpenMS::String& unimod_file, const OpenMS::String& psimod_file, const OpenMS::String& xlmod_file)
+  ModificationsDB::ModificationsDB(const OpenMS::String& unimod_file, const OpenMS::String& custommod_file, const OpenMS::String& psimod_file, const OpenMS::String& xlmod_file)
   {
     if (!unimod_file.empty())
     {
       readFromUnimodXMLFile(unimod_file);
+    }
+
+    if(!custommod_file.empty())
+    {
+      readFromUnimodXMLFile(custommod_file); 
     }
 
     if (!psimod_file.empty())

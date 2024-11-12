@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm, Clemens Groepl $
+// $Authors: Marc Sturm, Clemens Groepl, Chris Bielow, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -99,8 +99,8 @@ namespace OpenMS::Internal::ClassTest
 
         if (TEST::infile.good() && TEST::templatefile.good())
         {
-          std::string TEST_FILE__template_line;
-          std::string TEST_FILE__line;
+          String TEST_FILE__template_line;
+          String TEST_FILE__line;
 
           while (TEST::infile.good() && TEST::templatefile.good())
           {
@@ -108,14 +108,15 @@ namespace OpenMS::Internal::ClassTest
             TEST_FILE__template_line = TEST::line_buffer;
             TEST::infile.getline(TEST::line_buffer, 65535);
             TEST_FILE__line = TEST::line_buffer;
-
-            TEST::equal_files &= (TEST_FILE__template_line == TEST_FILE__line);
+            TEST_FILE__template_line.trim(); // remove leading and trailing whitespaces (ignore CR/LF line endings on Unix)
+            TEST_FILE__line.trim();          // remove leading and trailing whitespaces (ignore CR/LF line endings on Unix)
             if (TEST_FILE__template_line != TEST_FILE__line)
             {
-                TEST::initialNewline();
-                stdcout << "   TEST_FILE_EQUAL: line mismatch:\n    got:      '"
-                        << TEST_FILE__line << "'\n    expected: '"
-                        << TEST_FILE__template_line << "'\n";
+              TEST::equal_files = false;
+              TEST::initialNewline();
+              stdcout << "   TEST_FILE_EQUAL: line mismatch:\n    got:      '"
+                      << TEST_FILE__line << "'\n    expected: '"
+                      << TEST_FILE__template_line << "'\n";
             }
           }
         }

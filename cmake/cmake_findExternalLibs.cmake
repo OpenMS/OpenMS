@@ -117,7 +117,7 @@ endif()
 # Our find module creates an imported CoinOR::CoinOR target
 find_package(COIN)
 if (COIN_FOUND)
-  set(CF_USECOINOR 1)
+  set(OPENMS_HAS_COINOR 1)
   set(LPTARGET "CoinOR::CoinOR")
 else()
   #------------------------------------------------------------------------------
@@ -199,12 +199,6 @@ ELSE()
   message(STATUS "Found Qt ${Qt5Core_VERSION}")
 ENDIF()
 
-
-
-# see https://github.com/ethereum/solidity/issues/4124
-if("${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}" VERSION_LESS "1.59")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_VARIANT_USE_RELAXED_GET_BY_DEFAULT")
-endif()
 
 #------------------------------------------------------------------------------
 # PTHREAD

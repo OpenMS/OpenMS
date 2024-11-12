@@ -11,8 +11,8 @@
 
 ///////////////////////////
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
-#if COINOR_SOLVER == 1
-  #if COIN_INCLUDE_SUBDIR_IS_COIN == 1
+#ifdef OPENMS_HAS_COINOR
+  #ifdef OPENMS_HAS_COIN_INCLUDE_SUBDIR_IS_COIN
     #include "coin/CoinModel.hpp"
   #else
     #include "coin-or/CoinModel.hpp"
@@ -214,7 +214,7 @@ START_SECTION((void deleteRow(Int index)))
     {
       TEST_EQUAL(lp.getNumberOfRows(),2)
     }
-#if COINOR_SOLVER==1
+#ifdef OPENMS_HAS_COINOR
   else
     {
       // CoinOr doesn't delete the column, but sets all entries to zero and deletes the bounds, names, objective coeff etc.
@@ -282,7 +282,7 @@ START_SECTION((void readProblem(String filename, String format)))
       TEST_EQUAL(lp.getElement(2,0),3)
       TEST_EQUAL(lp.getElement(2,1),2) 
     }
-#if COINOR_SOLVER==1
+#ifdef OPENMS_HAS_COINOR
   else  if (lp.getSolver()==LPWrapper::SOLVER_COINOR)
     {
       lp.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.mps"),"MPS");
@@ -308,7 +308,7 @@ END_SECTION
 
 START_SECTION((void writeProblem(const String &filename, const WriteFormat format) const ))
 {
-#if COINOR_SOLVER==1
+#ifdef OPENMS_HAS_COINOR
     String tmp_filename;
     NEW_TMP_FILE(tmp_filename);
     lp.writeProblem(tmp_filename,LPWrapper::FORMAT_MPS);
@@ -389,7 +389,7 @@ START_SECTION((SolverStatus getStatus()))
     {
       TEST_EQUAL(lp4.getStatus(),LPWrapper::OPTIMAL)
     }
-#if COINOR_SOLVER==1
+#ifdef OPENMS_HAS_COINOR
   else
   {
     TEST_EQUAL(lp4.getStatus(),LPWrapper::UNDEFINED)
@@ -435,7 +435,7 @@ END_SECTION
 START_SECTION((SOLVER getSolver() const ))
 {
 
-#if COINOR_SOLVER==1
+#ifdef OPENMS_HAS_COINOR
   TEST_EQUAL(lp4.getSolver(),LPWrapper::SOLVER_COINOR)
 #else
   TEST_EQUAL(lp4.getSolver(), LPWrapper::SOLVER_GLPK)

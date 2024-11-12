@@ -38,7 +38,6 @@
 ## Or reduce the set of components to package
 #set(CPACK_COMPONENTS_ALL Applications Dependencies zzz-fixing-dependencies)
 
-set(CPACK_GENERATOR "DragNDrop")
 
 ## We want to package the whole top-level dir so a user can drag'n'drop it via the image.
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 0) ## dmg seems to be component-aware and makes an ALL-IN-ONE package
@@ -61,7 +60,11 @@ else ()
   message(WARNING "Couldn't determine MACOS_TARGET_ARCHS.")
 endif()
 
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-macOS-${ARCH_SUFFIX}")
+if((DEFINED ENV{CPACK_PACKAGE_FILE_NAME}) AND (NOT "$ENV{CPACK_PACKAGE_FILE_NAME}" STREQUAL ""))
+  set(CPACK_PACKAGE_FILE_NAME "$ENV{CPACK_PACKAGE_FILE_NAME}")
+else()
+  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-macOS-${ARCH_SUFFIX}")
+endif()
 
 ## Note: That the mac app bundles (TOPPView) take care of themselves
 ##       when installed as dmg (see src/openms_gui/add_mac_bundle.cmake)

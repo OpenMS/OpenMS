@@ -153,12 +153,9 @@ namespace OpenMS
     // get the score of the first two decoy hits
     double decoy_1 = DBL_MAX;
     double decoy_2 = DBL_MAX;
-    UInt curr_hit = 0;
 
     for (const auto& hit : pep_id.getHits())
     {
-      ++curr_hit;
-
       if (!hit.metaValueExists("target_decoy"))
       {
         throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));

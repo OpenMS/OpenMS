@@ -50,7 +50,7 @@ namespace OpenMS
         continue;
       }
       // skip due to comment line
-      if ( (!comment_symbol.empty()) & str.hasPrefix(comment_symbol))
+      if ( (!comment_symbol.empty()) && str.hasPrefix(comment_symbol))
       {
         continue;
       }

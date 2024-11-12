@@ -135,6 +135,7 @@ public:
     using ContainerType::insert;
     using ContainerType::erase;
     using ContainerType::swap;
+    using ContainerType::data;
 
     using typename ContainerType::iterator;
     using typename ContainerType::const_iterator;
@@ -150,6 +151,9 @@ public:
 
     /// Constructor
     MSSpectrum();
+
+    /// Constructor from a list of Peak1D, e.g. MSSpectrum spec{ {mz1, int1}, {mz2, int2}, ... };
+    MSSpectrum(const std::initializer_list<Peak1D>& init);
 
     /// Copy constructor
     MSSpectrum(const MSSpectrum& source);
@@ -550,6 +554,14 @@ public:
     */
     std::pair<Size, DriftTimeUnit> getIMData() const;
     
+
+    /**
+      @brief Get the spectrum's ion mobility data (if exists) and its associated unit as a pair of {unit, data}
+      This only works for spectra which represent an IM-frame, i.e. they have a float metadata array which is a child of 'MS:1002893 ! ion mobility array'.
+      If this is not present, this returns {DriftTimeUnit::NONE, {}}
+    */
+    std::pair<DriftTimeUnit, std::vector<float>> maybeGetIMData() const;
+    
     //@}
 
 
@@ -602,16 +614,16 @@ public:
 
 protected:
     /// Retention time
-    double retention_time_;
+    double retention_time_ = -1;
 
     /// Drift time
-    double drift_time_;
+    double drift_time_ = -1;
 
     /// Drift time unit
-    DriftTimeUnit drift_time_unit_;
+    DriftTimeUnit drift_time_unit_ = DriftTimeUnit::NONE;
 
     /// MS level
-    UInt ms_level_;
+    UInt ms_level_ = 1;
 
     /// Name
     String name_;

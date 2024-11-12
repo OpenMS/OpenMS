@@ -38,7 +38,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
-#include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
@@ -430,7 +429,6 @@ int main(int argc, char** argv)
   DOCME(ZhangSimilarityScore);
   DOCME(MorphologicalFilter);
   DOCME(MassDecompositionAlgorithm);
-  DOCME(MRMFragmentSelection);
   DOCME(MascotRemoteQuery);
   DOCME(MascotGenericFile);
   DOCME(Fitter1D);  

@@ -92,8 +92,6 @@ namespace OpenMS
     String input_filename_;
     OpenMS::UInt64 run_id_;
     bool doWrite_;
-    bool use_ms1_traces_;
-    bool sonar_;
     bool enable_uis_scoring_;
 
   public:
@@ -101,8 +99,6 @@ namespace OpenMS
     OpenSwathOSWWriter(const String& output_filename,
                        const UInt64 run_id,
                        const String& input_filename = "inputfile",
-                       bool ms1_scores = false,
-                       bool sonar = false,
                        bool uis_scores = false);
 
     bool isActive() const;

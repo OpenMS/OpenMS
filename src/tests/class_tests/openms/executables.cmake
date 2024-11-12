@@ -484,7 +484,6 @@ set(analysis_executables_list
   TargetedExperiment_test
   TargetedExperimentHelper_test
   MRMFeaturePicker_test
-  MRMFragmentSelection_test
   MRMMapping_test
   MRMScoring_test
   MapAlignmentAlgorithmIdentification_test
@@ -502,6 +501,7 @@ set(analysis_executables_list
   MetaboliteSpectralMatching_test
   ModifiedPeptideGenerator_test
   NeedlemanWunsch_test
+  NeighborSeq_test
   PeptideIndexing_test
   PeptideAndProteinQuant_test
   PeptideProteinResolution_test

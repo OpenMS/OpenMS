@@ -11,8 +11,6 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/TOPPASToolVertex.h>
-
 #include <QtCore/QVector>
 #include <QtWidgets/QDialog>
 
@@ -58,9 +56,6 @@ protected:
 
     /// The edge we are configuring
     TOPPASEdge * edge_;
-
-    /// Vector storing the mapping of the target input combobox indices to param indices of edges
-    QVector<int> target_input_param_indices_;
 
 protected slots:
 

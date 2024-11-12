@@ -162,7 +162,7 @@ namespace OpenMS
     {
       ion_names = &(spectrum.getStringDataArrays()[0]);
     }
-    ion_names->setName("IonNames");
+    ion_names->setName(Constants::UserParam::IonNames);
     charges->setName("Charges");
 
     for (Int z = min_charge; z <= max_charge; ++z)

@@ -126,7 +126,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[100.0, 0.0, 200.0, 0.0, 300.0, 0.0, 400.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="-1.577141985329234"/>
 			<UserParam type="float" name="assay_rt" value="11.577141508492076"/>
 			<UserParam type="float" name="norm_RT" value="-1.395111171146491"/>
@@ -270,7 +270,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="11"/>
 			<UserParam type="float" name="initialPeakQuality" value="0.974974762227991"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[360.0, 0.0, 460.0, 0.0, 560.0, 0.0, 570.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="-1.192315339529387"/>
 			<UserParam type="float" name="assay_rt" value="210.192315816366545"/>
 			<UserParam type="float" name="norm_RT" value="198.44247994117319"/>
@@ -414,7 +414,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[350.0, 0.0, 450.0, 0.0, 550.0, 0.0, 650.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="-11.404037820139223"/>
 			<UserParam type="float" name="assay_rt" value="36.404038296976381"/>
 			<UserParam type="float" name="norm_RT" value="13.668024722820581"/>
@@ -558,7 +558,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[380.0, 0.0, 480.0, 0.0, 580.0, 0.0, 680.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="5.942168602892153"/>
 			<UserParam type="float" name="assay_rt" value="86.057831873945005"/>
 			<UserParam type="float" name="norm_RT" value="80.950027438198973"/>
@@ -702,7 +702,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[110.0, 0.0, 210.0, 0.0, 310.0, 0.0, 410.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="-3.999608066517837"/>
 			<UserParam type="float" name="assay_rt" value="36.404038296976381"/>
 			<UserParam type="float" name="norm_RT" value="21.10361968982032"/>
@@ -846,7 +846,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.246576130522643"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[370.0, 0.0, 470.0, 0.0, 570.0, 0.0, 670.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="0.141017993803615"/>
 			<UserParam type="float" name="assay_rt" value="210.192315816366545"/>
 			<UserParam type="float" name="norm_RT" value="199.781425268842071"/>
@@ -990,7 +990,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="44"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[380.0, 0.0, 480.0, 0.0, 580.0, 0.0, 680.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="-5.37829164074347"/>
 			<UserParam type="float" name="assay_rt" value="135.71162545091363"/>
 			<UserParam type="float" name="norm_RT" value="119.44470560868875"/>
@@ -1134,7 +1134,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[381.0, 0.0, 481.0, 0.0, 581.0, 0.0, 681.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="-6.070704486805923"/>
 			<UserParam type="float" name="assay_rt" value="36.404038296976381"/>
 			<UserParam type="float" name="norm_RT" value="19.023806033497436"/>
@@ -1278,7 +1278,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[382.0, 0.0, 482.0, 0.0, 582.0, 0.0, 682.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="-5.724498063774547"/>
 			<UserParam type="float" name="assay_rt" value="86.057831873945005"/>
 			<UserParam type="float" name="norm_RT" value="69.234255821093242"/>
@@ -1422,7 +1422,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="56"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[383.0, 0.0, 483.0, 0.0, 583.0, 0.0, 683.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="9.44860514774085"/>
 			<UserParam type="float" name="assay_rt" value="110.884728662429311"/>
 			<UserParam type="float" name="norm_RT" value="109.402615651169597"/>
@@ -1566,7 +1566,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[384.0, 0.0, 484.0, 0.0, 584.0, 0.0, 684.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="-0.205188429227775"/>
 			<UserParam type="float" name="assay_rt" value="160.538522239397935"/>
 			<UserParam type="float" name="norm_RT" value="149.570975481246251"/>
@@ -1710,7 +1710,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[385.0, 0.0, 485.0, 0.0, 585.0, 0.0, 685.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="4.96791478228792"/>
 			<UserParam type="float" name="assay_rt" value="185.36541902788224"/>
 			<UserParam type="float" name="norm_RT" value="179.697245353803737"/>
@@ -1854,7 +1854,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[100.0, 0.0, 200.0, 0.0, 300.0, 0.0, 400.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="0.756191348004066"/>
 			<UserParam type="float" name="assay_rt" value="11.577141508492076"/>
 			<UserParam type="float" name="norm_RT" value="0.948043152274613"/>
@@ -1998,7 +1998,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[110.0, 0.0, 210.0, 0.0, 310.0, 0.0, 410.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="-3.999608066517837"/>
 			<UserParam type="float" name="assay_rt" value="36.404038296976381"/>
 			<UserParam type="float" name="norm_RT" value="21.10361968982032"/>
@@ -2142,7 +2142,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[350.0, 0.0, 450.0, 0.0, 550.0, 0.0, 650.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="-9.070704486805923"/>
 			<UserParam type="float" name="assay_rt" value="36.404038296976381"/>
 			<UserParam type="float" name="norm_RT" value="16.011179046241686"/>
@@ -2286,7 +2286,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.248398128979176"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[360.0, 0.0, 460.0, 0.0, 560.0, 0.0, 570.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="3.756192301678382"/>
 			<UserParam type="float" name="assay_rt" value="11.577141508492076"/>
 			<UserParam type="float" name="norm_RT" value="3.96067109721869"/>
@@ -2430,7 +2430,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[100.0, 0.0, 200.0, 0.0, 300.0, 0.0, 400.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="4.089525635011782"/>
 			<UserParam type="float" name="assay_rt" value="11.577141508492076"/>
 			<UserParam type="float" name="norm_RT" value="4.295407429136063"/>
@@ -2574,7 +2574,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="76"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[350.0, 0.0, 450.0, 0.0, 550.0, 0.0, 650.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="-4.044958307409473"/>
 			<UserParam type="float" name="assay_rt" value="135.71162545091363"/>
 			<UserParam type="float" name="norm_RT" value="120.783650936358654"/>
@@ -2718,7 +2718,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="83"/>
 			<UserParam type="float" name="initialPeakQuality" value="-0.10610670029955"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[360.0, 0.0, 460.0, 0.0, 560.0, 0.0, 570.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="11.703701901179827"/>
 			<UserParam type="float" name="assay_rt" value="110.884728662429311"/>
 			<UserParam type="float" name="norm_RT" value="111.667204097263962"/>
@@ -2862,7 +2862,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[380.0, 0.0, 480.0, 0.0, 580.0, 0.0, 680.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="4.608835269558853"/>
 			<UserParam type="float" name="assay_rt" value="86.057831873945005"/>
 			<UserParam type="float" name="norm_RT" value="79.611082110529779"/>
@@ -3006,7 +3006,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[381.0, 0.0, 481.0, 0.0, 581.0, 0.0, 681.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="-5.737371153472523"/>
 			<UserParam type="float" name="assay_rt" value="36.404038296976381"/>
 			<UserParam type="float" name="norm_RT" value="19.358542365414806"/>
@@ -3150,7 +3150,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[382.0, 0.0, 482.0, 0.0, 582.0, 0.0, 682.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="13.608835269559009"/>
 			<UserParam type="float" name="assay_rt" value="86.057831873945005"/>
 			<UserParam type="float" name="norm_RT" value="88.648963072297178"/>
@@ -3294,7 +3294,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[383.0, 0.0, 483.0, 0.0, 583.0, 0.0, 683.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="-10.218061518925296"/>
 			<UserParam type="float" name="assay_rt" value="110.884728662429311"/>
 			<UserParam type="float" name="norm_RT" value="89.653172068049102"/>
@@ -3438,7 +3438,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[384.0, 0.0, 484.0, 0.0, 584.0, 0.0, 684.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="10.128144904106222"/>
 			<UserParam type="float" name="assay_rt" value="160.538522239397935"/>
 			<UserParam type="float" name="norm_RT" value="159.947801770683384"/>
@@ -3582,7 +3582,7 @@
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="potentialOutlier" value="108"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[385.0, 0.0, 485.0, 0.0, 585.0, 0.0, 685.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 0.0, 0.0]"/>
 			<UserParam type="float" name="delta_rt" value="-8.698751884378083"/>
 			<UserParam type="float" name="assay_rt" value="185.36541902788224"/>
 			<UserParam type="float" name="norm_RT" value="165.973055745194898"/>

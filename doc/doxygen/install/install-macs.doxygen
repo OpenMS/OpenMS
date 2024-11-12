@@ -191,7 +191,7 @@
   </ol>
 
 
-  \includedoc "../doxygen/install/common-cmake-parameters.doxygen"
+  \include "../doxygen/install/common-cmake-parameters.doxygen"
 
   After CMake was executed, you can list the make targets by calling:
 

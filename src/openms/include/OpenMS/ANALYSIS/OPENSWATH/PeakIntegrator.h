@@ -772,11 +772,22 @@ protected:
       psm.width_at_50 = psm.end_position_at_50 - psm.start_position_at_50;
       psm.total_width = (p.PosEnd(right) - 1)->getPos() - p.PosBegin(left)->getPos();
       psm.slope_of_baseline = (p.PosEnd(right) - 1)->getIntensity() - p.PosBegin(left)->getIntensity();
-      psm.baseline_delta_2_height = psm.slope_of_baseline / peak_height;
+      if (peak_height != 0.0) // avoid division by zero
+      {
+        psm.baseline_delta_2_height = psm.slope_of_baseline / peak_height;
+      }
       // Source of tailing_factor and asymmetry_factor formulas:
       // USP 40 - NF 35 The United States Pharmacopeia and National Formulary - Supplementary
-      psm.tailing_factor = psm.width_at_5 / (2*(peak_apex_pos - psm.start_position_at_5));
-      psm.asymmetry_factor = (psm.end_position_at_10 - peak_apex_pos) / (peak_apex_pos - psm.start_position_at_10);
+
+      // Can only compute if start and peak apex are different 
+      if (psm.start_position_at_5 != peak_apex_pos)
+      {
+        psm.tailing_factor = psm.width_at_5 / (2*(peak_apex_pos - psm.start_position_at_5));
+      }
+      if (psm.start_position_at_10 != peak_apex_pos)
+      {
+        psm.asymmetry_factor = (psm.end_position_at_10 - peak_apex_pos) / (peak_apex_pos - psm.start_position_at_10);
+      }
       return psm;
     }
 

@@ -239,6 +239,11 @@ namespace OpenMS
       */
       inline const std::string IM = "IM";
 
+      /** User parameter name for ion names (e.g., annotated by TheoreticalSpectrumGenerator)
+              String
+      */
+      inline const std::string IonNames = "IonNames";
+
       /** User parameter name for identifier of concatenated peptides
               String
       */

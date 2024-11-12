@@ -187,10 +187,10 @@ public:
       @param data_type Type of the data
       @param show_as_1d Force dataset to be opened in 1D mode (even if it contains several spectra)
       @param show_options If the options dialog should be shown (otherwise the defaults are used)
-      @param as_new_window Open the layer in a new window within TOPPView
+      @param as_new_window Open the layer in a new window within TOPPView (ignored if 'window_id' is set)
       @param filename source file name (if the data came from a file)
       @param caption Sets the layer name and window caption of the data. If unset the file name is used. If set, the file is not monitored for changes.
-      @param window_id in which window the file is opened if opened as a new layer (0 or default equals current
+      @param window_id in which window the file is opened if opened as a new layer (0 will open a new window).
       @param spectrum_id determines the spectrum to show in 1D view.
     */
     void addData(const FeatureMapSharedPtrType& feature_map,
