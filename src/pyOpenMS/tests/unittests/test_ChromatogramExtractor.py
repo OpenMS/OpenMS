@@ -31,7 +31,6 @@ class TestChromatogramExtractor(unittest.TestCase):
 
         # Create input map
         input_map = pyopenms.SpectrumAccessOpenMS(exp)
-        tmp_out = pyopenms.MSExperiment()
 
         # Extract chromatograms
         extractor = pyopenms.ChromatogramExtractor()
