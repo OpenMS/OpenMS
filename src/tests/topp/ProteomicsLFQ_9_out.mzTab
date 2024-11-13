@@ -6,8 +6,8 @@ MTD	description	OpenMS export from consensusXML
 MTD	protein_search_engine_score[1]	[MS, MS:1003117, OpenMS:Target-decoy protein q-value, ]
 MTD	peptide_search_engine_score[1]	[MS, MS:1003114, OpenMS:Best PSM Score, ]
 MTD	psm_search_engine_score[1]	[MS, MS:1003115, OpenMS:Target-decoy PSM q-value, ]
-MTD	software[1]	[MS, MS:1000752, TOPP software, 3.0.0-pre-ffid-empty-id-or-missing-features-2023-04-11]
-MTD	software[2]	[MS, MS:1002203, TOPP ProteinInference, 3.0.0-pre-ffid-empty-id-or-missing-features-2023-04-11]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 3.1.0-pre-jpfeuffer-patch-7-2023-11-08]
+MTD	software[2]	[MS, MS:1002203, TOPP ProteinInference, 3.1.0-pre-jpfeuffer-patch-7-2023-11-08]
 MTD	software[3]	[, , OMSSA, 2.1.4]
 MTD	software[3]-setting[1]	db:18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
 MTD	software[3]-setting[2]	db_version:null
@@ -31,7 +31,7 @@ MTD	quantification_method	[MS, MS:1001834, LC-MS label-free quantitation analysi
 MTD	protein-quantification_unit	[, , Abundance, ]
 MTD	peptide-quantification_unit	[, , Abundance, ]
 MTD	ms_run[1]-format	[MS, MS:1000584, mzML file, ]
-MTD	ms_run[1]-location	file:///workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML
+MTD	ms_run[1]-location	file:///beegfs/HPCscratch/sachsenb/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML
 MTD	ms_run[1]-id_format	[MS, MS:1000777, spectrum identifier nativeID format, ]
 MTD	assay[1]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
 MTD	assay[1]-ms_run_ref	ms_run[1]
@@ -51,18 +51,18 @@ PRT	O76015|KRT38_HUMAN	Keratin, type I cuticular Ha8 - Homo sapiens (Human).	nul
 PRT	O76014|KRT37_HUMAN	Keratin, type I cuticular Ha7 - Homo sapiens (Human).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.083333333333333	null	null	0.015590200445434	null	null	null	null	null	1	0	protein_details
 PRT	O76013|KRT36_HUMAN	Keratin, type I cuticular Ha6 - Homo sapiens (Human).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.083333333333333	null	null	0.014989293361884	null	null	null	null	null	1	0	protein_details
 PRT	P02769|ALBU_BOVIN	Serum albumin - Bos taurus (Bovine).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.166666666666667	P02769|ALBU_BOVIN	590-UNIMOD:4	0.121911037891269	1.5465968e08	1.5465968e08	null	null	null	null	null	single_protein
-PRT	P00761|TRYP_PIG	Trypsin - Sus scrofa (Pig).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.166666666666667	P00761|TRYP_PIG	null	0.034632034632035	2.0622056e07	2.0622056e07	null	null	null	null	null	single_protein
+PRT	P00761|TRYP_PIG	Trypsin - Sus scrofa (Pig).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.166666666666667	P00761|TRYP_PIG	null	0.034632034632035	2.0622054e07	2.0622054e07	null	null	null	null	null	single_protein
 PRT	tr|A9FUD7|A9FUD7_SORC5	Putative membrane protein OS=Sorangium cellulosum (strain So ce56) GN=sce8452 PE=4 SV=1	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.166666666666667	tr|A9FUD7|A9FUD7_SORC5	null	4.040404040404041e-03	null	null	null	null	null	null	null	single_protein
-PRT	tr|A9G0B6|A9G0B6_SORC5	Putative uncharacterized protein OS=Sorangium cellulosum (strain So ce56) GN=sce8672 PE=4 SV=1	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.166666666666667	tr|A9G0B6|A9G0B6_SORC5	null	0.112676056338028	7625.7255859375	7625.7255859375	null	null	null	null	null	single_protein
+PRT	tr|A9G0B6|A9G0B6_SORC5	Putative uncharacterized protein OS=Sorangium cellulosum (strain So ce56) GN=sce8672 PE=4 SV=1	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.166666666666667	tr|A9G0B6|A9G0B6_SORC5	null	0.112676056338028	8306.2734375	8306.2734375	null	null	null	null	null	single_protein
 PRT	Q92764|KRT35_HUMAN	Keratin, type I cuticular Ha5 - Homo sapiens (Human).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.166666666666667	O76013|KRT36_HUMAN,O76014|KRT37_HUMAN,O76015|KRT38_HUMAN,Q14525|KT33B_HUMAN,Q14532|K1H2_HUMAN,Q15323|K1H1_HUMAN,Q92764|KRT35_HUMAN	null	0.016025659283684	null	null	null	null	null	null	null	indistinguishable_protein_group
 
 PEH	sequence	accession	unique	database	database_version	search_engine	best_search_engine_score[1]	search_engine_score[1]_ms_run[1]	modifications	retention_time	retention_time_window	charge	mass_to_charge	spectra_ref	peptide_abundance_study_variable[1]	peptide_abundance_stdev_study_variable[1]	peptide_abundance_std_error_study_variable[1]	opt_global_feature_id	opt_global_cv_MS:1002217_decoy_peptide	opt_global_cv_MS:1000889_peptidoform_sequence
 PEP	AEFVEVTK	P02769|ALBU_BOVIN	1	null	null	null	0.047619047619048	0.047619047619048	null	2023.952880356795049	null	2	461.747653035420967	ms_run[1]:spectrum=2950	1.5465968e08	null	null	4979826240700198304	0	AEFVEVTK
-PEP	AGAFSLPK	tr|A9G0B6|A9G0B6_SORC5	1	null	null	null	0.047619047619048	0.047619047619048	null	2072.094747027906124	null	2	395.726522907820936	ms_run[1]:spectrum=3077	7625.7255859375	null	null	11199236071933705614	0	AGAFSLPK
+PEP	AGAFSLPK	tr|A9G0B6|A9G0B6_SORC5	1	null	null	null	0.047619047619048	0.047619047619048	null	2072.094747027906124	null	2	395.726522907820936	ms_run[1]:spectrum=3077	8306.2734375	null	null	11199236071933705614	0	AGAFSLPK
 PEP	EACFAVEGPK	P02769|ALBU_BOVIN	1	null	null	null	0.047619047619048	0.047619047619048	3-UNIMOD:4	2074.443092404270828	null	2	554.26060201207099	ms_run[1]:spectrum=3097	3.1740196e07	null	null	11951074431693044320	0	EAC(Carbamidomethyl)FAVEGPK
-PEP	VATVSLPR	P00761|TRYP_PIG	1	null	null	null	0.047619047619048	0.047619047619048	null	2089.596569519389959	null	2	421.758354535420949	ms_run[1]:spectrum=3087	2.0622056e07	null	null	10708745507622811418	0	VATVSLPR
+PEP	VATVSLPR	P00761|TRYP_PIG	1	null	null	null	0.047619047619048	0.047619047619048	null	2089.596569519389959	null	2	421.758354535420949	ms_run[1]:spectrum=3087	2.0622054e07	null	null	10708745507622811418	0	VATVSLPR
 PEP	HLVDEPQNLIK	P02769|ALBU_BOVIN	1	null	null	null	0.047619047619048	0.047619047619048	null	2298.172555172493048	null	3	435.910228820904251	ms_run[1]:spectrum=3307	2.26054890625e05	null	null	4042725457641046628	0	HLVDEPQNLIK
-PEP	YLYEIAR	P02769|ALBU_BOVIN	1	null	null	null	0.047619047619048	0.047619047619048	null	2334.721364663681015	null	2	464.250362519471025	ms_run[1]:spectrum=3328	2.37856e08	null	null	9750677956154114661	0	YLYEIAR
+PEP	YLYEIAR	P02769|ALBU_BOVIN	1	null	null	null	0.047619047619048	0.047619047619048	null	2334.721364663681015	null	2	464.250362519471025	ms_run[1]:spectrum=3328	2.74135808e08	null	null	9750677956154114661	0	YLYEIAR
 PEP	LVVSTQTALA	P02769|ALBU_BOVIN	1	null	null	null	0.047619047619048	0.047619047619048	null	2391.725498473171683	null	2	501.795134726820947	ms_run[1]:spectrum=3482	7.7023216e07	null	null	535894999922013045	0	LVVSTQTALA
 
 PSH	sequence	PSM_ID	accession	unique	database	database_version	search_engine	search_engine_score[1]	modifications	retention_time	charge	exp_mass_to_charge	calc_mass_to_charge	spectra_ref	pre	post	start	end	opt_global_OMSSA_score	opt_global_Posterior_Error_Probability_score	opt_global_cv_MS:1002217_decoy_peptide	opt_global_cv_MS:1000889_peptidoform_sequence
