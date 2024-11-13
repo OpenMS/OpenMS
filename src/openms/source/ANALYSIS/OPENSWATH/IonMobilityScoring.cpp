@@ -191,11 +191,7 @@ namespace OpenMS
     res.reserve(res.size() + im_chrom.size());
     for (const auto& k : im_chrom)
     {
-      MobilityPeak1D mobi_peak;
-      mobi_peak.setIntensity(k.second);
-      mobi_peak.setMobility(k.first / IM_IDX_MULT);
-      res.push_back(mobi_peak);
-//      res.emplace_back(k.first / IM_IDX_MULT, k.second );
+      res.emplace_back(k.first / IM_IDX_MULT, k.second ); // add MobilityPeak1D(mobility, intensity)
     }
   }
 
