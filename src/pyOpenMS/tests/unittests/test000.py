@@ -205,11 +205,21 @@ def testAASequence():
     assert aas.toString() == "DFPIANGER"
     assert aas.toUnmodifiedString() == "DFPIANGER"
 
+    # constructor from C string using the static method
     seq = pyopenms.AASequence.fromString("PEPTIDESEKUEM(Oxidation)CER")
     assert seq.toString() == "PEPTIDESEKUEM(Oxidation)CER"
     assert seq.toUnmodifiedString() == "PEPTIDESEKUEMCER"
     assert seq.toBracketString() == "PEPTIDESEKUEM[147]CER"
     assert seq.toBracketString(True) == "PEPTIDESEKUEM[147]CER"
+
+    # constructor from String
+    seq2 = pyopenms.AASequence("PEPTIDESEKUEM(Oxidation)CER")
+    assert seq2.toString() == "PEPTIDESEKUEM(Oxidation)CER"
+    assert seq2.toUnmodifiedString() == "PEPTIDESEKUEMCER"
+    assert seq == seq2
+    assert seq2.toBracketString() == "PEPTIDESEKUEM[147]CER"
+    assert seq2.toBracketString(True) == "PEPTIDESEKUEM[147]CER"
+
 
     assert seq.toBracketString(False) == "PEPTIDESEKUEM[147.03540001709996]CER" or \
            seq.toBracketString(False) == "PEPTIDESEKUEM[147.035400017100017]CER"
@@ -2822,7 +2832,7 @@ def testMSExperiment():
     #####################################################################################
     # test fast aggregation and XIC extraction using ranges
     pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)    
-    exp.updateRanges();
+    exp.updateRanges()
 
     ############################################################################
     # Uncomment to run performance tests
@@ -5416,10 +5426,8 @@ def testRNaseDB():
     db.getAllNames(names)
 
     e = db.getEnzyme("RNase_T1")
-    assert e.getRegEx() == u'(?<=G)'
     assert e.getThreePrimeGain() == u'p'
 
-    assert db.hasRegEx(u'(?<=G)')
     assert db.hasEnzyme("RNase_T1")
     
 

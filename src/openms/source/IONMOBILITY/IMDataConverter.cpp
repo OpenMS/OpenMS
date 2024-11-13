@@ -16,6 +16,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 
+#include <cstddef>
 #include <map>
 #include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 
@@ -166,7 +167,8 @@ namespace OpenMS
       }
       
       MSExperiment frame_melt = IMDataConverter::reshapeIMFrameToMany(std::move(frame));
-      for (int i = 0; i < (int)bins.size(); ++i)
+      for (size_t i = 0; i < bins.size(); ++i)
+
       {
         binned_spectra.clear(false);
         // check if spectrum goes into this bin

@@ -18,10 +18,16 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         #  instance primarily contains a sequence of residues. 
 
         AASequence() except + nogil 
-        AASequence(AASequence &) except + nogil 
+        AASequence(AASequence &) except + nogil
+    
+        AASequence(const String&) except + nogil # wrap-doc:Constructor from amino acid sequence (e.g. "PEPTM(Oxidatio)IDE")
+        AASequence(const String&, bool permissive) except + nogil # wrap-doc:Constructor from amino acid sequence (e.g. "PEPTM(Oxidatio)IDE"), permissive allows for '+', '*', and '#' in the sequence
 
         AASequence operator+(AASequence) except + nogil 
         AASequence iadd(AASequence) except + nogil  # wrap-as:operator+=
+
+        bool operator==(AASequence &rhs) except + nogil
+        bool operator!=(AASequence &rhs) except + nogil
 
         # Note that this is a const-ref, so we cannot easily set residues
         Residue operator[](size_t) except + nogil  # wrap-upper-limit:size()
@@ -131,7 +137,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS::AASequence":
         
         # static members
-        AASequence fromString(String s, bool permissive) except + nogil   # wrap-attach:AASequence wrap-as:fromStringPermissive
+        AASequence fromString(String s, bool permissive) except + nogil   # wrap-attach:AASequence wrap-as:fromStringPermissive wrap-doc:deprecated. Use AASequence(String) instead.
         
         # static members
-        AASequence fromString(String s) except + nogil   # wrap-attach:AASequence
+        AASequence fromString(String s) except + nogil   # wrap-attach:AASequence wrap-doc:deprecated. Use AASequence(String) instead.
