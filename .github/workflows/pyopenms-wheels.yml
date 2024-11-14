@@ -86,17 +86,7 @@ jobs:
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         CMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}"
-        #mkdir bld
-        #pushd bld
-        # TODO: set generator via variable, then we can share this step
-        # cmake --version
-        # cmake -G "Visual Studio 17 2022" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/OpenMS/contrib" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
-        # Note: multiple --targets only supported by CMake 3.15+
-        # cmake --build . --config Release --target OpenMS
         
-        #ctest --progress --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
-
-      
         mkdir pyopenms_whls
 
         # The growing PATH leads to a failure in the last iteration of the pyopenms build process.
@@ -235,25 +225,11 @@ jobs:
     - name: Build on macos arm
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
-        # export CC=clang
-        # export CXX=clang++
-        # export MACOSX_DEPLOYMENT_TARGET=12
         # Unfortunately, on macOS due to the inofficial way of enabling OpenMP on AppleClang, passing the following
         # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
         export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
         export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
-
-        # mkdir bld
-        # pushd bld
-        # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
-
-        # export OpenMP_ROOT="$(brew --prefix libomp)"
         export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_DIR)/lib/cmake;${Qt5_DIR}"
-
-        #ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
-
-        #cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=12 -DBOOST_USE_STATIC=OFF ../OpenMS
-        #make -j${{ steps.cpu-cores.outputs.count }} OpenMS
 
         mkdir pyopenms_whls
 
@@ -283,27 +259,15 @@ jobs:
 
           # build pyopenms distribution (macOS)
           ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
-          # TODO REMOVE DEBUGGING
-          echo "Current dir is `pwd`"
-          echo "wheels are in `find . | grep whl`"
-          echo "current ls is `ls -la`"
-
-          # cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} .
-          # make -j${{ steps.cpu-cores.outputs.count }} pyopenms
 
           # copy to directory
           cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
-
-          # clean up
-          # conda deactivate
-          # conda remove --name pyoms-bld-"${pynodot}" --all
-
         done
 
       env:
           CC: "clang"
           CXX: "clang++"
-          BOOST_USE_STATIC: "OFF" #TODO check if necessary?
+          BOOST_USE_STATIC: "OFF" 
           MACOSX_DEPLOYMENT_TARGET: "12"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CMAKE_GENERATOR: "Ninja"
@@ -411,14 +375,7 @@ jobs:
         # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
         export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
         export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
-        # export OpenMP_ROOT="$(brew --prefix libomp)"
         export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}"
-
-        #mkdir bld
-        #pushd bld
-        # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
-        #cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=12 -DBOOST_USE_STATIC=OFF ../OpenMS
-        #make -j${{ steps.cpu-cores.outputs.count }} OpenMS
 
         mkdir pyopenms_whls
 
@@ -448,22 +405,9 @@ jobs:
 
           # build pyopenms distribution (macOS)
           ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
-          # TODO REMOVE DEBUGGING
-          echo "Current dir is `pwd`"
-          echo "wheels are in `find . | grep whl`"
-          echo "current ls is `ls -la`"
-          # cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON -DPY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }} .
-          # make -j${{ steps.cpu-cores.outputs.count }} pyopenms
 
           # copy to directory
           cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
-
-          # clean up
-          #conda deactivate
-          #conda remove --name pyoms-bld-"${pynodot}" --all
-
-          # clean previous pyopenms libs
-          #find . -name "_pyopenms*.so" -exec rm -rf {} \;
 
         done
 
@@ -553,14 +497,11 @@ jobs:
         # compile and configure OpenMS
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
 
-          # Check if there is already and existing build,
-          # if so: clean previous pyopenms libs,
+          # clean previous pyopenms libs,
           # do at the top of the python version loop so that we leave the final libraries for testing
 
-          if [ -d "OpenMS/bld/pyOpenMS/pyopenms" ]; then
-            rm OpenMS/bld/pyOpenMS/pyopenms/_pyopenms*.so
-          fi
-        
+          find . -name "_pyopenms*.so" -exec rm -rf {} \;
+
           py=$(echo "$py" | tr -d " \n")
           pynodot=$(echo "$py" | tr -d ".")
           PYBIN=$(echo /opt/python/cp*${pynodot})
@@ -700,9 +641,7 @@ jobs:
           echo "Testing python version $CURRENT_VERSION"
           CURRENT_WHL=$(find $GITHUB_WORKSPACE -name "*cp$CURRENT_VERSION*.whl") # Probably $GITHUB_WORKSPACE
           if [[ "$CURRENT_WHL" == '' ]]; then
-
             continue
-
           fi
           echo "Found wheel $CURRENT_WHL : Testing.."
 
