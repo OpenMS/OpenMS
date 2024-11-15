@@ -287,7 +287,7 @@ protected:
       arguments << getStringOption_("RawToMzML:ThermoRaw_executable").toQString();
 #endif
       arguments << ("--input=" + in).c_str()
-                << ("--output_file=" + out).c_str()
+                << ("--output=" + out).c_str()
                 << "-f=2" // indexedMzML
                 << "-e"; // ignore instrument errors
       if (no_peak_picking)
