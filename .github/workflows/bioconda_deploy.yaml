@@ -34,8 +34,9 @@ jobs:
           git clone https://github.com/OpenMS/bioconda-recipes.git bioconda-recipes
           cd bioconda-recipes
           git remote add bioconda https://github.com/bioconda/bioconda-recipes.git
-          git fetch bioconda master:master
-          git rebase master
+          git fetch bioconda master
+          git checkout -b temp-branch
+          git rebase bioconda/master
 
       - name: Update bioconda-utils
         run: mamba install -y bioconda-utils
