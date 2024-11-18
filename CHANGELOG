@@ -17,7 +17,7 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 What's new:
 - Changes breaking backwards compatibility: 
   - the QualityControl TOPP tool has some renamed parameters and supports output directories (#7497)
-- Fast peak extraction from MSExperiments (#7628)
+- Low-level  peak extraction helper for MSExperiments (#7628)
 - Now use Numpy 2 (#7539)
 - Docker files are now part of the main OpenMS repo (#7303)
 - Added new functionality to SageAdapter + compatibility with new Sage versions (#7577)
