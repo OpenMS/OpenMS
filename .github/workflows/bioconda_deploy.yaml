@@ -1,0 +1,72 @@
+name: Deploy to Bioconda
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to deploy from"
+        required: true
+        default: "nightly"
+  push:
+    branches:
+      - nightly
+
+jobs:
+  bioconda-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: bioconda
+          auto-update-conda: true
+          use-mamba: true
+          #environment-file: environment.yml # Replace with your Conda environment file if necessary
+          python-version: 3.7 # Replace with the appropriate version
+          
+      - name: Prepare output directory
+        run: |
+          mkdir -p output/noarch
+          touch output/noarch/repodata.json
+
+      - name: Clone Bioconda recipes repository
+        run: |
+          git clone https://github.com/OpenMS/bioconda-recipes.git bioconda-recipes
+          cd bioconda-recipes
+          git remote add bioconda https://github.com/bioconda/bioconda-recipes.git
+          git fetch bioconda master:master
+          git rebase master
+
+      - name: Update bioconda-utils
+        run: mamba install -y bioconda-utils
+
+      - name: Lint Bioconda packages
+        run: bioconda-utils lint --packages pyopenms openms-meta
+
+      - name: Build openms-meta package
+        run: |
+          bioconda-utils build --docker --pkg_dir output --packages openms-meta
+        env:
+          WORKSPACE: ${{ github.workspace }}
+
+      - name: Index Conda output
+        run: conda index output
+
+      - name: Build pyopenms package
+        run: |
+          bioconda-utils build --docker --mulled-test --pkg_dir output --packages pyopenms
+        env:
+          WORKSPACE: ${{ github.workspace }}
+
+      - name: Upload Conda packages
+        run: |
+          anaconda -v -t ${{ secrets.ANACONDA_TOKEN }} upload -u openms --no-progress --force output/linux-64/*.tar.bz2
+        env:
+          WORKSPACE: ${{ github.workspace }}
+
+      - name: Check upload status
+        run: |
+          if [[ $? -ne 0 ]]; then
+            echo "Upload failed!"
+            exit 1
+          fi
