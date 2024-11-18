@@ -31,3 +31,8 @@ cmake-*-build
 *.code-workspace
 .vs
 .clion.*
+_CPack_Packages
+_deps
+Modules
+src/openms_gui/OpenMS_GUI_autogen
+src/openms/OpenMS_autogen
