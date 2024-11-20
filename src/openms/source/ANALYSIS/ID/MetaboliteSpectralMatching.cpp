@@ -14,6 +14,7 @@
 
 #include <numeric>
 #include <boost/math/special_functions/factorials.hpp>
+#include <boost/math/distributions/poisson.hpp>
 
 #include <boost/dynamic_bitset.hpp>
 
@@ -407,6 +408,113 @@ namespace OpenMS
     if (hyperscore < 0) hyperscore = 0;
 
     return hyperscore;
+  }
+
+
+  double MetaboliteSpectralMatching::computePoissonScore_(double fragment_mass_error,
+                                                          bool fragment_mass_tolerance_unit_ppm,
+                                                          const MSSpectrum& exp_spectrum,
+                                                          const MSSpectrum& db_spectrum,
+                                                          std::vector<PeptideHit::PeakAnnotation>* annotations,
+                                                          double mz_lower_bound)
+  {
+    if (exp_spectrum.empty()) return 0;
+
+    // define m/z range to consider:
+    double min_exp_mz = exp_spectrum[0].getMZ(); // lowest experimental m/z
+    double mz_offset = fragment_mass_error;
+    if (fragment_mass_tolerance_unit_ppm)
+    {
+      mz_offset = min_exp_mz * fragment_mass_error * 1e-6;
+    }
+    mz_lower_bound = max(mz_lower_bound, min_exp_mz - mz_offset);
+    double max_exp_mz = exp_spectrum.back().getMZ(); // highest experimental m/z
+    if (fragment_mass_tolerance_unit_ppm)
+    {
+      mz_offset = max_exp_mz * fragment_mass_error * 1e-6;
+    }
+    double mz_upper_bound = max_exp_mz + mz_offset;
+
+    // for every DB (theoretical) peak in the valid m/z range, find the closest
+    // matching experimental (observed) peak within the allowed tolerance;
+    // in principle, multiple DB peaks can match to the same exp. peak:
+    map<Size, vector<MSSpectrum::ConstIterator>> peak_matches;
+    for (auto db_it = db_spectrum.MZBegin(mz_lower_bound);
+         db_it != db_spectrum.MZEnd(mz_upper_bound); ++db_it)
+    {
+      double db_mz = db_it->getMZ();
+
+      if (fragment_mass_tolerance_unit_ppm)
+      {
+        mz_offset = db_mz * fragment_mass_error * 1e-6;
+      }
+
+      Int index = exp_spectrum.findNearest(db_mz, mz_offset);
+      if (index >= 0) peak_matches[index].push_back(db_it);
+    }
+
+    // return annotations for matching peaks?
+    if ((annotations != nullptr) &&
+        !db_spectrum.getStringDataArrays().empty() &&
+        !db_spectrum.getIntegerDataArrays().empty())
+    {
+      for (const auto& match : peak_matches)
+      {
+        const auto& exp_peak = exp_spectrum[match.first];
+        // potentially add several annotations for the same peak if there are
+        // multiple matches for that peak:
+        for (const auto& db_it : match.second)
+        {
+          PeptideHit::PeakAnnotation ann;
+          Size index = db_it - db_spectrum.begin();
+          ann.annotation = db_spectrum.getStringDataArrays()[0].at(index);
+          ann.charge = db_spectrum.getIntegerDataArrays()[0].at(index);
+          ann.mz = exp_peak.getMZ();
+          ann.intensity = exp_peak.getIntensity();
+          annotations->push_back(ann);
+        }
+      }
+    }
+
+    // Calculate the number of bins
+    double n_bins = std::floor(std::log(max_exp_mz / min_exp_mz) / std::log(1 + fragment_mass_error));
+
+    // Calculate mu
+    double mu = (db_spectrum.size() * exp_spectrum.size()) / n_bins;
+
+    Size matched_ions_count = peak_matches.size(); // count obs. peaks only once
+    
+    // Calculate the Poisson survival function (1 - CDF) in log scale
+    boost::math::poisson_distribution<> poisson(mu);
+    double cdf = boost::math::cdf(poisson, matched_ions_count);
+    double prob_pois_logsf = std::log(1-cdf);
+
+    // Calculate the Poisson score
+    return -prob_pois_logsf;
+  }
+
+
+  double MetaboliteSpectralMatching::computePoissonScore(double fragment_mass_error,
+                                                         bool fragment_mass_tolerance_unit_ppm,
+                                                         const MSSpectrum& exp_spectrum,
+                                                         const MSSpectrum& db_spectrum,
+                                                         std::vector<PeptideHit::PeakAnnotation>& annotations,
+                                                         double mz_lower_bound)
+  {
+    return computePoissonScore_(fragment_mass_error,
+                              fragment_mass_tolerance_unit_ppm, exp_spectrum,
+                              db_spectrum, &annotations, mz_lower_bound);
+  }
+
+  double MetaboliteSpectralMatching::computePoissoncore(double fragment_mass_error,
+                                                        bool fragment_mass_tolerance_unit_ppm,
+                                                        const MSSpectrum& exp_spectrum,
+                                                        const MSSpectrum& db_spectrum,
+                                                        double mz_lower_bound)
+  {
+    return computePoissonScore_(fragment_mass_error,
+                              fragment_mass_tolerance_unit_ppm, exp_spectrum,
+                              db_spectrum, nullptr, mz_lower_bound);  
   }
 
 

@@ -151,6 +151,23 @@ namespace OpenMS
       std::vector<PeptideHit::PeakAnnotation>& annotations,
       double mz_lower_bound = 0.0);
 
+    /// poisson score computation
+    static double computePoissoncore(
+      double fragment_mass_error,
+      bool fragment_mass_tolerance_unit_ppm,
+      const MSSpectrum& exp_spectrum,
+      const MSSpectrum& db_spectrum,
+      double mz_lower_bound = 0.0);
+
+    /// poisson score computation (with output of peak annotations)
+    static double computePoissonScore(
+      double fragment_mass_error,
+      bool fragment_mass_tolerance_unit_ppm,
+      const MSSpectrum& exp_spectrum,
+      const MSSpectrum& db_spectrum,
+      std::vector<PeptideHit::PeakAnnotation>& annotations,
+      double mz_lower_bound = 0.0);
+
     /// main method of MetaboliteSpectralMatching
     void run(PeakMap &, PeakMap &, MzTab &, String &);
 
@@ -160,6 +177,16 @@ namespace OpenMS
     // we have to use a pointer for "annotations" because mutable
     // references can't have temporary default values:
     static double computeHyperScore_(
+      double fragment_mass_error,
+      bool fragment_mass_tolerance_unit_ppm,
+      const MSSpectrum& exp_spectrum,
+      const MSSpectrum& db_spectrum,
+      std::vector<PeptideHit::PeakAnnotation>* annotations = 0,
+      double mz_lower_bound = 0.0);
+
+    // we have to use a pointer for "annotations" because mutable
+    // references can't have temporary default values:
+    static double computePoissonScore_(
       double fragment_mass_error,
       bool fragment_mass_tolerance_unit_ppm,
       const MSSpectrum& exp_spectrum,

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
+// $Maintainer: Samuel Wein. Timo Sachsenberg $
 // $Authors: Timo Sachsenberg, Samuel Wein, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
