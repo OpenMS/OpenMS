@@ -1127,7 +1127,7 @@ namespace OpenMS
       proteins_->push_back(protein);
       if (!ms_run_path.empty())
       {
-        protein.setPrimaryMSRunPaths(StringList(1, ms_run_path));
+        protein.setPrimaryMSRunPath(StringList(1, ms_run_path));
       }
       current_proteins_.clear();
       current_proteins_.push_back(--proteins_->end());
