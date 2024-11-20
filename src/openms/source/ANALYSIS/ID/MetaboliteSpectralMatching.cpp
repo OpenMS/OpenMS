@@ -411,6 +411,36 @@ namespace OpenMS
   }
 
 
+double log_factorial_(int n) {
+    double result = 0.0;
+    for (int i = 2; i <= n; ++i) {
+        result += std::log(i);
+    }
+    return result;
+}
+
+// Log survival function (log-SF) for Poisson distribution
+double log_poisson_sf_(int x, double lambda) {
+    // Start with a very small number in log space (-∞ equivalent)
+    double log_sf = -std::numeric_limits<double>::infinity();
+
+    // Iterate over k = x + 1 to infinity
+    for (int k = x + 1; ; ++k) {
+        double log_pmf = k * std::log(lambda) - lambda - log_factorial_(k);
+
+        // Use log-sum-exp trick to accumulate the log of the sum
+        log_sf = (log_sf > log_pmf)
+            ? log_sf + std::log(1.0 + std::exp(log_pmf - log_sf))
+            : log_pmf + std::log(1.0 + std::exp(log_sf - log_pmf));
+
+        // Stop when terms are negligible (precision threshold)
+        if (log_pmf < -700) {  // log(1e-300) ~ -700
+            break;
+        }
+    }
+    return log_sf;
+}
+
   double MetaboliteSpectralMatching::computePoissonScore_(double fragment_mass_error,
                                                           bool fragment_mass_tolerance_unit_ppm,
                                                           const MSSpectrum& exp_spectrum,
@@ -477,21 +507,16 @@ namespace OpenMS
     }
 
     // Calculate the number of bins
-    double n_bins = std::floor(std::log(max_exp_mz / min_exp_mz) / std::log(1 + fragment_mass_error));
+    double n_bins = std::floor(std::log(max_exp_mz / min_exp_mz) / std::log(1 + 2 * (fragment_mass_error * 1e-6) ));
 
     // Calculate mu
     double mu = (db_spectrum.size() * exp_spectrum.size()) / n_bins;
 
     Size matched_ions_count = peak_matches.size(); // count obs. peaks only once
-    
-    // Calculate the Poisson survival function (1 - CDF) in log scale
-    boost::math::poisson_distribution<> poisson(mu);
-    double cdf = boost::math::cdf(poisson, matched_ions_count);
-    double prob_pois_logsf = std::log(1-cdf);
 
-    // Calculate the Poisson score
-    return -prob_pois_logsf;
+    return -1 * log_poisson_sf_(matched_ions_count, mu);
   }
+
 
 
   double MetaboliteSpectralMatching::computePoissonScore(double fragment_mass_error,

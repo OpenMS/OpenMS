@@ -162,6 +162,8 @@ protected:
 
     registerFlag_("decharge_ms2", "Decharge the MS2 spectra for scoring", true);
 
+    registerFlag_("use_poisson_score", "Calculate fit scores based on poisson probability score", true);
+
     registerTOPPSubsection_("precursor", "Precursor (parent ion) options");
     registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance (+/- around uncharged precursor mass)", false);
 
@@ -775,7 +777,16 @@ protected:
 
   void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits)
   {
-    IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType("hyperscore");
+    String score_t;
+    if (getFlag_("use_poisson_score"))
+    {
+      score_t = "poisson_score";
+    }
+    else
+    {
+      score_t = "hyperscore";
+    }
+    IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType(score_t);
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
     fdr_params.setValue("use_all_hits", only_top_hits ? "true" : "false");
@@ -887,6 +898,7 @@ protected:
     String theo_ms2_out = getStringOption_("theo_ms2_out");
     String exp_ms2_out = getStringOption_("exp_ms2_out");
     bool use_avg_mass = getFlag_("precursor:use_avg_mass");
+    bool use_poisson_score = getFlag_("use_poisson_score");
     Int min_charge = getIntOption_("precursor:min_charge");
     Int max_charge = getIntOption_("precursor:max_charge");
 
@@ -985,8 +997,17 @@ protected:
     IdentificationData::InputFileRef file_ref =
       id_data.registerInputFile(input);
     // processing software meta data:
-    IdentificationData::ScoreType score("hyperscore", true);
-    IdentificationData::ScoreTypeRef hyperscore_ref =
+    String score_t;
+    if (!use_poisson_score)
+    {
+      score_t = "hyperscore";
+    }
+    else
+    {
+      score_t = "poisson_score";
+    }
+    IdentificationData::ScoreType score(score_t, true);
+    IdentificationData::ScoreTypeRef search_score_ref =
       id_data.registerScoreType(score);
     CVTerm qvalue("MS:1002354", "PSM-level q-value", "MS");
     score = IdentificationData::ScoreType(qvalue, false);
@@ -996,7 +1017,7 @@ protected:
     // in test mode just overwrite with a generic version:
     if (test_mode_) software.setVersion("test");
     // @TODO: which should be the "primary" (first) score?
-    software.assigned_scores.push_back(hyperscore_ref);
+    software.assigned_scores.push_back(search_score_ref);
     software.assigned_scores.push_back(qvalue_ref);
     IdentificationData::ProcessingSoftwareRef software_ref =
       id_data.registerProcessingSoftware(software);
@@ -1274,11 +1295,21 @@ protected:
             Size scan_index = prec_it->second.scan_index;
             const MSSpectrum& exp_spectrum = spectra[scan_index];
             vector<PeptideHit::PeakAnnotation> annotations;
-            double score = MetaboliteSpectralMatching::computeHyperScore(
+            double score;
+            if (!use_poisson_score)
+            {
+              score = MetaboliteSpectralMatching::computeHyperScore(
               search_param.fragment_mass_tolerance,
               search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
               annotations);
-
+            }
+            else
+            {
+              score = MetaboliteSpectralMatching::computePoissonScore(
+              search_param.fragment_mass_tolerance,
+              search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
+              annotations);
+            }
             if (!exp_ms2_out.empty())
             {
 #pragma omp critical (exp_ms2_out)
