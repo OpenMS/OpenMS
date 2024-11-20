@@ -48,10 +48,7 @@ jobs:
 
 
           # update INIs in tests topp:
-          find $TOOL_DIR_PATH -type f -iname '*.ini' \
-            -exec grep -q '<ITEM name="version".*Version of the tool' {} \; \
-            -exec sed -i '' -e "s/name=\"version\" value=\".*\" type=\"string\"/name=\"version\" value=\"$package_version\" type=\"string\"/g" {} \;
-
+          find ./src/tests/topp/ -type f -name '*.ini' -exec grep -q "<ITEM name=\"version\" value=\".*\" type=\"string\"" {} \; -exec sed -i '' "s#<ITEM name=\"version\" value=\".*\" type=\"string\"#<ITEM name=\"version\" value=\"$package_version\" type=\"string\"#g" {} \;
           # Update Changelog
           # Define the new section using a here-doc
           section_header=$(cat <<EOF
