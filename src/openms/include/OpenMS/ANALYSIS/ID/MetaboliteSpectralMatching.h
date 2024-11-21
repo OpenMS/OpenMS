@@ -152,7 +152,7 @@ namespace OpenMS
       double mz_lower_bound = 0.0);
 
     /// poisson score computation
-    static double computePoissoncore(
+    static double computePoissonScore(
       double fragment_mass_error,
       bool fragment_mass_tolerance_unit_ppm,
       const MSSpectrum& exp_spectrum,
