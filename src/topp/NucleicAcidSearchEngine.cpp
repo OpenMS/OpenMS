@@ -162,7 +162,7 @@ protected:
 
     registerFlag_("decharge_ms2", "Decharge the MS2 spectra for scoring", true);
 
-    registerFlag_("use_poisson_score", "Calculate fit scores based on poisson probability score", true);
+    registerFlag_("use_poisson_score", "Calculate scores based on poisson probability score", true);
 
     registerTOPPSubsection_("precursor", "Precursor (parent ion) options");
     registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance (+/- around uncharged precursor mass)", false);

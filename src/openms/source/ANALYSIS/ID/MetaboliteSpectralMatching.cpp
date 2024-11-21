@@ -420,12 +420,12 @@ double log_factorial_(int n) {
 }
 
 // Log survival function (log-SF) for Poisson distribution
-double log_poisson_sf_(int x, double lambda) {
+double log_poisson_sf_(int x, double lambda, int max_possible) {
     // Start with a very small number in log space (-∞ equivalent)
     double log_sf = -std::numeric_limits<double>::infinity();
 
     // Iterate over k = x + 1 to infinity
-    for (int k = x + 1; ; ++k) {
+    for (int k = x + 1; k <= max_possible ; ++k) {
         double log_pmf = k * std::log(lambda) - lambda - log_factorial_(k);
 
         // Use log-sum-exp trick to accumulate the log of the sum
@@ -514,7 +514,8 @@ double log_poisson_sf_(int x, double lambda) {
 
     Size matched_ions_count = peak_matches.size(); // count obs. peaks only once
 
-    return -1 * log_poisson_sf_(matched_ions_count, mu);
+    // Use the max possible ions as the upper bound for the Poisson distribution calcuation
+    return -1 * log_poisson_sf_(matched_ions_count, mu, db_spectrum.size());
   }
 
 
@@ -531,7 +532,7 @@ double log_poisson_sf_(int x, double lambda) {
                               db_spectrum, &annotations, mz_lower_bound);
   }
 
-  double MetaboliteSpectralMatching::computePoissoncore(double fragment_mass_error,
+  double MetaboliteSpectralMatching::computePoissonScore(double fragment_mass_error,
                                                         bool fragment_mass_tolerance_unit_ppm,
                                                         const MSSpectrum& exp_spectrum,
                                                         const MSSpectrum& db_spectrum,
