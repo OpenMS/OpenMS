@@ -3132,6 +3132,8 @@ set_tests_properties("TOPP_NucleicAcidSearchEngine_22_out" PROPERTIES DEPENDS "T
 add_test("TOPP_NucleicAcidSearchEngine_3" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_3.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out NucleicAcidSearchEngine_31_out.tmp.idXML -out NucleicAcidSearchEngine_32_out.tmp.mzTab -db_out NucleicAcidSearchEngine_33_out.tmp.oms -digest_out NucleicAcidSearchEngine_3_digest.oms -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta)
 add_test("TOPP_NucleicAcidSearchEngine_31_out" ${DIFF} -in1 NucleicAcidSearchEngine_31_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_31_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
 add_test("TOPP_NucleicAcidSearchEngine_32_out" ${DIFF} -in1 NucleicAcidSearchEngine_32_out.tmp.mzTab -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_32_out.mzTab -whitelist "ms_run[1]-location")
+set_tests_properties("TOPP_NucleicAcidSearchEngine_31_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_3")
+set_tests_properties("TOPP_NucleicAcidSearchEngine_32_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_3")
 
 
 #------------------------------------------------------------------------------
