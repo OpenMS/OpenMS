@@ -1,5 +1,4 @@
 name: Deploy to Bioconda
-
 on:
   workflow_dispatch:
     inputs:
@@ -13,26 +12,33 @@ on:
 
 jobs:
   bioconda-deploy:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            platform: linux-64
+          - os: windows-latest
+            platform: win-64
+    runs-on: ${{ matrix.os }}
     defaults:
       run:
-        shell: bash -le {0}  # Important! Use login shell for proper conda initialization
-        
+        shell: bash -le {0}  # Use login shell for conda initialization
+
     steps:
       - name: Set up Conda
         uses: conda-incubator/setup-miniconda@v3
         with:
           activate-environment: bioconda_env
           auto-update-conda: true
-          #environment-file: environment.yml # Replace with your Conda environment file if necessary
           python-version: 3.9
           channels: conda-forge,bioconda,defaults
           channel-priority: true
 
       - name: Prepare output directory
-        run: |       
-          mkdir -p $GITHUB_WORKSPACE/output/noarch
-          touch $GITHUB_WORKSPACE/output/noarch/repodata.json
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/output/${{ matrix.platform }}
+          touch $GITHUB_WORKSPACE/output/${{ matrix.platform }}/repodata.json
           conda install bioconda-utils -y
           conda index $GITHUB_WORKSPACE/output
           ls -l
@@ -42,38 +48,44 @@ jobs:
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          
-      - name: Clone Bioconda recipes repository and add our changes (e.g., version with 'dev') on top of it
+
+      - name: Clone Bioconda recipes repository
         run: |
           git clone https://github.com/OpenMS/bioconda-recipes.git bioconda-recipes
           cd bioconda-recipes
           git checkout -b nightly origin/nightly
           git remote add bioconda https://github.com/bioconda/bioconda-recipes.git
           git fetch bioconda master
-          git rebase bioconda/master         
+          git rebase bioconda/master
 
       - name: Lint and build OpenMS Bioconda packages
         run: |
           cd bioconda-recipes
           bioconda-utils lint --packages pyopenms openms-meta
-          bioconda-utils build --docker --pkg_dir $GITHUB_WORKSPACE/output --packages openms-meta || true
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            # Windows-specific build command (may need adjustments)
+            bioconda-utils build --pkg_dir $GITHUB_WORKSPACE/output --packages openms-meta || true
+          else
+            # Linux build command with Docker
+            bioconda-utils build --docker --pkg_dir $GITHUB_WORKSPACE/output --packages openms-meta || true
+          fi
           conda index $GITHUB_WORKSPACE/output
-          
+
       - name: Build pyopenms package
         run: |
           cd bioconda-recipes
-          bioconda-utils build --docker --mulled-test --pkg_dir $GITHUB_WORKSPACE/output --packages pyopenms || true
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            # Windows-specific build command
+            bioconda-utils build --pkg_dir $GITHUB_WORKSPACE/output --packages pyopenms || true
+          else
+            # Linux build command with Docker and mulled-test
+            bioconda-utils build --docker --mulled-test --pkg_dir $GITHUB_WORKSPACE/output --packages pyopenms || true
+          fi
           conda index $GITHUB_WORKSPACE/output
 
       - name: Upload Conda packages
         run: |
           cd bioconda-recipes
           ls -l $GITHUB_WORKSPACE/output
-          anaconda -v -t ${{ secrets.ANACONDA_TOKEN }} upload -u openms --no-progress --force $GITHUB_WORKSPACE/output/linux-64/*.tar.bz2
-
-      - name: Check upload status
-        run: |
-          if [[ $? -ne 0 ]]; then
-            echo "Upload failed!"
-            exit 1
-          fi
+          # Upload packages for the specific platform
+          anaconda -v -t ${{ secrets.ANACONDA_TOKEN }} upload -u openms --no-progress --force $GITHUB_WORKSPACE/output/${{ matrix.platform }}/*.tar.bz2
