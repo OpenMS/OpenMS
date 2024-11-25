@@ -726,6 +726,23 @@ START_SECTION((static String getResidueTypeName(const ResidueType res_type)))
   TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::XIon), "x-ion")
   TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::YIon), "y-ion")
   TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::ZIon), "z-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::Zp1Ion), "z+1-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::Zp2Ion), "z+2-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::Precursor), "precursor-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::BIonMinusH20), "b-H2O-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::YIonMinusH20), "y-H2O-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::BIonMinusNH3), "b-NH3-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::YIonMinusNH3), "y-NH3-ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::NonIdentified), "Non-identified ion")
+  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::Unannotated), "unannotated")
+
+
+  TEST_EQUAL(Residue::SizeOfResidueType, Residue::names_of_residuetype.size());
+  // test that no entries in array are empty (the initializer of std::array<> can have less values than the std::array<>)
+  for (int i = 0; i < Residue::names_of_residuetype.size(); ++i)
+  {
+    TEST_FALSE(Residue::getResidueTypeName(static_cast<Residue::ResidueType>(i)).empty());
+  }
 }
 END_SECTION
 
