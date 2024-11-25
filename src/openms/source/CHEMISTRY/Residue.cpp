@@ -129,6 +129,12 @@ namespace OpenMS
     case Residue::YIonMinusNH3:
       return "y-NH3-ion";
 
+    case Residue::Zp1Ion:
+      return "z+1-ion";
+      
+    case Residue::Zp2Ion:
+      return "z+2-ion";      
+
     case Residue::NonIdentified:
       return "Non-identified ion";
 
