@@ -37,9 +37,11 @@ Misc:
 - Improve file list comparison (#7645)
 - pyOpenMS: Add more convenient constructor for AASequence (#7650)
 - Add annotate_features param in Deisotoper.cpp (#7643)
+- internal enhancements (#7652)
 
 Fixes:
 - OpenMS does not compile when using GLPK (instead of COINOR) (#7626)
+- fix MassCalculator error ('residue type has no name') (#7698)
 - pyOpenMS
   - get_feature_df() in MRMTransitionGroupCP, output is now as expected (#7646)
 - Fix scan number extraction for merged spectra (#7599)
