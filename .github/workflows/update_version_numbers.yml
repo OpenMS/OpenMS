@@ -39,7 +39,7 @@ jobs:
           sed -i '' "s#detail.version_patch =.*#detail.version_patch = $package_version_patch;#" ./src/tests/class_tests/openms/source/VersionInfo_test.cpp
 
           # update vcpkg.json
-          sed -i "s/\"version-string\": \".*\"/\"version-string\": \"$package_version\"/" vcpkg.json
+          sed -i '' "s/\"version-string\": \".*\"/\"version-string\": \"$package_version\"/" vcpkg.json
 
           # update test write ini out:
           sed -i '' "s#<ITEM name=\"version\" value=\".*\" type=\"string\"#<ITEM name=\"version\" value=\"$package_version\" type=\"string\"#g" ./src/tests/topp/WRITE_INI_OUT.ini
