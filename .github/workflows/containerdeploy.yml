@@ -1,4 +1,4 @@
-name: deploy-container-images
+name: Deploy container images
 on:
   workflow_dispatch:
   push:

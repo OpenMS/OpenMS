@@ -95,7 +95,7 @@ jobs:
         # cmake --build . --config Release --target OpenMS
         
         #ctest --progress --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
-
+        export CXXFLAGS="-D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR $CXXFLAGS"
       
         mkdir pyopenms_whls
 
