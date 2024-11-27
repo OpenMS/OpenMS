@@ -26,6 +26,11 @@ namespace OpenMS
     setFilenames(files);
   }
 
+  std::unique_ptr<TOPPASVertex> TOPPASInputFileListVertex::clone() const
+  {
+    return std::make_unique<TOPPASInputFileListVertex>(*this);
+  }
+
   String TOPPASInputFileListVertex::getName() const
   {
     return "InputVertex";

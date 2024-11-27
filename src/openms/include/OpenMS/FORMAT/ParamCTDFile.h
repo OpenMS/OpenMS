@@ -79,7 +79,7 @@ namespace OpenMS
      */
     static void replace(std::string& replace_in, char to_replace, const std::string& replace_with);
 
-    const std::string schema_location_ = "/SCHEMAS/Param_1_7_0.xsd";
-    const std::string schema_version_ = "1.7.0";
+    const std::string schema_location_ = "/SCHEMAS/Param_1_8_0.xsd";
+    const std::string schema_version_ = "1.8.0";
   };
 }

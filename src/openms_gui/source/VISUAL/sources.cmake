@@ -64,7 +64,9 @@ TableView.cpp
 TOPPASEdge.cpp
 TOPPASInputFileListVertex.cpp
 TOPPASMergerVertex.cpp
+TOPPASOutputVertex.cpp
 TOPPASOutputFileListVertex.cpp
+TOPPASOutputFolderVertex.cpp
 TOPPASResource.cpp
 TOPPASResources.cpp
 TOPPASScene.cpp

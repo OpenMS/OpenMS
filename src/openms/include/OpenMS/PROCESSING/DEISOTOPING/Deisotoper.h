@@ -88,7 +88,8 @@ class OPENMS_DLLAPI Deisotoper
     an additional IntegerDataArray "charge" will be appended. If
     @p annotate_iso_peak_count is true, an additional IntegerDataArray
     "iso_peak_count" containing the number of isotopic peaks will be
-    appended.
+    appended. If @p annotate_features is true, an addtional IntegerData Array
+    "feature_number" containing the feature index will be appended.
     Existing DataArrays are kept and shrunken to the peaks which
     remain in the spectrum.
 
@@ -109,6 +110,7 @@ class OPENMS_DLLAPI Deisotoper
                                     3 will allow the monoisotopic and the second peak to be less intense than the third, etc.
                                     A number higher than max_isopeaks will effectively disable use_decreasing_model completely.
    * @param [add_up_intensity] Sum up the total intensity of each isotopic pattern into the intensity of the reported monoisotopic peak
+   * @param [annotate_features] Annotates the feature index in the IntegerDataArray: "feature_number".
    *
    * Note: If @p make_single_charged is selected, the original charge (>=1) gets annotated.
    */
@@ -125,7 +127,8 @@ class OPENMS_DLLAPI Deisotoper
                                          bool annotate_iso_peak_count = false,
                                          bool use_decreasing_model = true,
                                          unsigned int start_intensity_check = 2,
-                                         bool add_up_intensity = false);
+                                         bool add_up_intensity = false,
+                                         bool annotate_features = false);
 };
 
 }

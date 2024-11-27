@@ -130,7 +130,7 @@ protected:
        << "Binary path  : " << OPENMS_BINARY_PATH << "\n"
        << "Binary arch  : " << Internal::OpenMSOSInfo::getBinaryArchitecture() << "\n"
        << "Build type   : " << Internal::OpenMSBuildInfo::getBuildType() << "\n";
-#if COINOR_SOLVER == 1
+#ifdef OPENMS_HAS_COINOR
     is << "LP-Solver    : COIN-OR\n";
 #else
     cout << "LP-Solver    : GLPK\n";

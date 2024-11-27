@@ -21,23 +21,35 @@ namespace OpenMS
 {
 
   /**
-   * @brief The ChromatogramExtractor extracts chromatograms from a spectra file.
+   * @brief The ChromatogramExtractor extracts chromatograms (intensity vs retention time) from mass spectrometry data.
    *
-   * It will take as input a set of transitions coordinates and will extract
-   * the signal of the provided map at the product ion m/z and retention time
-   * (rt) values specified by the extraction coordinates. There are two
-   * interfaces, the old interface will take a full TargetedExperiment and
-   * assume that one wants to extract at the m/z of the transitions present in
-   * the TargetedExperiment. The new interface (see also the
-   * ChromatogramExtractorAlgorithm class) only expects a set of coordinates
-   * which are up to the user to fill but a convenient prepare_coordinates
-   * function is provided to create the coordinates for the most common case of
-   * an MS2 and MS1 extraction.
+   * This class provides functionality to extract chromatographic traces from mass spectrometry data
+   * based on specified coordinates (m/z, retention time, and optionally ion mobility values).
    * 
-   * In the case of MS2 extraction, the map is assumed to originate from a SWATH
-   * (data-independent acquisition or DIA) experiment.
+   * The extractor supports two main interfaces:
+   * 1. Legacy interface: Takes a TargetedExperiment object containing transitions and extracts 
+   *    chromatograms at the m/z values specified in those transitions.
+   * 2. Modern interface: Takes a set of ExtractionCoordinates that specify the exact coordinates 
+   *    for extraction. This provides more flexibility and control over the extraction process.
+   *    The prepare_coordinates() helper function can generate these coordinates for common 
+   *    MS1 and MS2 extraction scenarios.
    *
-  */
+   * Key features:
+   * - Supports both MS1 and MS2 level extractions
+   * - Configurable extraction window sizes in m/z dimension (absolute or ppm)
+   * - Multiple filter types available (Bartlett, tophat) for signal processing
+   * - Handles ion mobility data when available
+   * - Optimized for SWATH/DIA (Data Independent Acquisition) experiments
+   * - Progress logging capabilities through ProgressLogger base class
+   *
+   * For MS2 extractions, the input data is expected to come from a SWATH/DIA experiment
+   * where precursor ions are fragmented in wide isolation windows, allowing for extraction
+   * of fragment ion chromatograms.
+   *
+   * @see ChromatogramExtractorAlgorithm For the underlying extraction algorithm implementation
+   * @see ExtractionCoordinates For the coordinate specification format
+   */
+
   class OPENMS_DLLAPI ChromatogramExtractor :
     public ProgressLogger
   {
@@ -46,106 +58,6 @@ public:
 
     typedef ChromatogramExtractorAlgorithm::ExtractionCoordinates ExtractionCoordinates;
 
-    /**
-     * @brief Extract chromatograms defined by the TargetedExperiment from the input map and write them to the output map.
-     *
-     * @param input The input spectra from which to extract chromatograms
-     * @param output The output vector in which to store the chromatograms
-     * @param transition_exp The extraction coordinates (m/z, RT, ion mobility)
-     * @param mz_extraction_window Extracts a window of this size in m/z
-     *                             dimension (e.g. a window of 50 ppm means an
-     *                             extraction of 25 ppm on either side)
-     * @param ppm Whether mz windows in in ppm
-     * @param trafo A transformation description for RT space
-     * @param rt_extraction_window Extracts a window of this size in RT
-     *                             dimension (e.g. a window of 600 seconds
-     *                             means an extraction of 300 seconds on either
-     *                             side)
-     * @param filter Which filter to use (bartlett or tophat)
-     *
-     * @note: it will replace chromatograms in the output map, not append to them!
-     * @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
-    */
-    template <typename ExperimentT>
-    void extractChromatograms(const ExperimentT& input,
-                              ExperimentT& output,
-                              OpenMS::TargetedExperiment& transition_exp,
-                              double mz_extraction_window,
-                              bool ppm, TransformationDescription trafo,
-                              double rt_extraction_window,
-                              const String& filter)
-    {
-      // invert the trafo because we want to transform nRT values to "real" RT values
-      trafo.invert();
-
-      Size input_size = input.size();
-      if (input_size < 1)
-      {
-        return;
-      }
-
-      int used_filter = getFilterNr_(filter);
-      populatePeptideRTMap_(transition_exp, rt_extraction_window);
-
-      // sort the transition experiment by product mass
-      // this is essential because the algorithm assumes sorted transitions!
-      transition_exp.sortTransitionsByProductMZ();
-
-      // prepare all the spectra (but leave them empty)
-      SpectrumSettings settings = input[0];
-      std::vector<typename ExperimentT::ChromatogramType> chromatograms;
-      prepareSpectra_(settings, chromatograms, transition_exp);
-
-      //go through all spectra
-      startProgress(0, input_size, "Extracting chromatograms");
-      for (Size scan_idx = 0; scan_idx < input_size; ++scan_idx)
-      {
-        setProgress(scan_idx);
-
-        if (input[scan_idx].size() == 0)
-          continue;
-
-        Size peak_idx = 0;
-
-        double mz;
-        double integrated_intensity = 0;
-
-        // go through all transitions / chromatograms which are sorted by
-        // ProductMZ. We can use this to step through the spectrum and at the
-        // same time step through the transitions. We increase the peak counter
-        // until we hit the next transition and then extract the signal.
-        for (Size k = 0; k < chromatograms.size(); ++k)
-        {
-
-          double current_rt = input[scan_idx].getRT();
-          if (outsideExtractionWindow_(transition_exp.getTransitions()[k], current_rt, trafo, rt_extraction_window))
-          {
-            continue;
-          }
-
-          typename ExperimentT::ChromatogramType::PeakType p;
-          mz = transition_exp.getTransitions()[k].getProductMZ();
-
-          if (used_filter == 1)
-          {
-            extract_value_tophat(input[scan_idx], mz, peak_idx, integrated_intensity, mz_extraction_window, ppm);
-          }
-          else if (used_filter == 2)
-          {
-            extract_value_bartlett(input[scan_idx], mz, peak_idx, integrated_intensity, mz_extraction_window, ppm);
-          }
-
-
-          p.setRT(current_rt);
-          p.setIntensity(integrated_intensity);
-          chromatograms[k].push_back(p);
-        }
-      }
-      endProgress();
-
-      // add all the chromatograms to the output
-      output.setChromatograms(chromatograms);
-    }
 
     /**
      * @brief Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates.
@@ -161,7 +73,6 @@ public:
      * @param ppm Whether mz windows in in ppm
      * @param filter Which filter to use (bartlett or tophat)
      *
-     * @note: whenever possible, please use this ChromatogramExtractorAlgorithm implementation
      *
     */
     void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, 
@@ -359,174 +270,6 @@ public:
       }
     }
 
-     /// @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
-    template <typename SpectrumT>
-    void extract_value_tophat(const SpectrumT& input,
-                              const double mz,
-                              Size& peak_idx,
-                              double& integrated_intensity,
-                              const double extract_window,
-                              const bool ppm)
-    {
-      integrated_intensity = 0;
-      if (input.size() == 0)
-      {
-        return;
-      }
-
-      // calculate extraction window
-      double left, right;
-      if (ppm)
-      {
-        left  = mz - mz * extract_window / 2.0 * 1.0e-6;
-        right = mz + mz * extract_window / 2.0 * 1.0e-6;
-      }
-      else
-      {
-        left  = mz - extract_window / 2.0;
-        right = mz + extract_window / 2.0;
-      }
-
-      Size walker;
-
-      // advance the peak_idx until we hit the m/z value of the next transition
-      while (peak_idx < input.size() && input[peak_idx].getMZ() < mz)
-      {
-        peak_idx++;
-      }
-
-      // walk right and left and add to our intensity
-      walker = peak_idx;
-      // if we moved past the end of the spectrum, we need to try the last peak
-      // of the spectrum (it could still be within the window)
-      if (peak_idx >= input.size())
-      {
-        walker = input.size() - 1;
-      }
-
-      // add the current peak if it is between right and left
-      if (input[walker].getMZ() > left && input[walker].getMZ() < right)
-      {
-        integrated_intensity += input[walker].getIntensity();
-      }
-
-      // (i) Walk to the left one step and then keep walking left until we go
-      // outside the window. Note for the first step to the left we have to
-      // check for the walker becoming zero.
-      walker = peak_idx;
-      if (walker > 0)
-      {
-        walker--;
-        // special case: walker is now zero
-        if (walker == 0 && input[walker].getMZ() > left && input[walker].getMZ() < right)
-        {
-          integrated_intensity += input[walker].getIntensity();
-        }
-      }
-      while (walker > 0 && input[walker].getMZ() > left && input[walker].getMZ() < right)
-      {
-        integrated_intensity += input[walker].getIntensity(); walker--;
-      }
-
-      // (ii) Walk to the right one step and then keep walking right until we
-      // are outside the window
-      walker = peak_idx;
-      if (walker < input.size() )
-      {
-        walker++;
-      }
-      while (walker < input.size() && input[walker].getMZ() > left &&  input[walker].getMZ() < right)
-      {
-        integrated_intensity += input[walker].getIntensity(); walker++;
-      }
-    }
-
-     /// @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
-    template <typename SpectrumT>
-    void extract_value_bartlett(const SpectrumT& input,
-                                const double mz,
-                                Size& peak_idx,
-                                double& integrated_intensity,
-                                const double extract_window,
-                                const bool ppm)
-    {
-      integrated_intensity = 0;
-      if (input.size() == 0)
-      {
-        return;
-      }
-
-      // calculate extraction window
-      double left, right, half_window_size, weight;
-      if (ppm)
-      {
-        half_window_size = mz * extract_window / 2.0 * 1.0e-6;
-        left  = mz - mz * extract_window / 2.0 * 1.0e-6;
-        right = mz + mz * extract_window / 2.0 * 1.0e-6;
-      }
-      else
-      {
-        half_window_size = extract_window / 2.0;
-        left  = mz - extract_window / 2.0;
-        right = mz + extract_window / 2.0;
-      }
-
-      Size walker;
-
-      // advance the peak_idx until we hit the m/z value of the next transition
-      while (peak_idx < input.size() && input[peak_idx].getMZ() < mz)
-      {
-        peak_idx++;
-      }
-
-      // walk right and left and add to our intensity
-      walker = peak_idx;
-      // if we moved past the end of the spectrum, we need to try the last peak
-      // of the spectrum (it could still be within the window)
-      if (peak_idx >= input.size())
-      {
-        walker = input.size() - 1;
-      }
-
-      // add the current peak if it is between right and left
-      if (input[walker].getMZ() > left && input[walker].getMZ() < right)
-      {
-        weight =  1 - fabs(input[walker].getMZ() - mz) / half_window_size;
-        integrated_intensity += input[walker].getIntensity() * weight;
-      }
-
-      // (i) Walk to the left one step and then keep walking left until we go
-      // outside the window. Note for the first step to the left we have to
-      // check for the walker becoming zero.
-      walker = peak_idx;
-      if (walker > 0)
-      {
-        walker--;
-        // special case: walker is now zero
-        if (walker == 0 && input[walker].getMZ() > left && input[walker].getMZ() < right)
-        {
-          integrated_intensity += input[walker].getIntensity();
-        }
-      }
-      while (walker > 0 && input[walker].getMZ() > left && input[walker].getMZ() < right)
-      {
-        weight =  1 - fabs(input[walker].getMZ() - mz) / half_window_size;
-        integrated_intensity += input[walker].getIntensity() * weight; walker--;
-      }
-
-      // (ii) Walk to the right one step and then keep walking right until we
-      // are outside the window
-      walker = peak_idx;
-      if (walker < input.size() )
-      {
-        walker++;
-      }
-      while (walker<input.size() && input[walker].getMZ()> left &&  input[walker].getMZ() < right)
-      {
-        weight = 1 - fabs(input[walker].getMZ() - mz) / half_window_size;
-        integrated_intensity += input[walker].getIntensity() * weight; walker++;
-      }
-    }
 
 private:
     /**

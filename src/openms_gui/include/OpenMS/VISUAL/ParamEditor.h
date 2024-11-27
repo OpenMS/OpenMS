@@ -110,6 +110,8 @@ private:
       ParamEditorDelegate();
       /// used to modify value of output and input files( not for output and input lists)
       mutable QString fileName_;
+      /// holds a directory name (for output directories)
+      mutable QString dirName_;
       /// true if a QLineEdit is still open and has not committed its data yet (so storing the current param is a bad idea)
       mutable bool has_uncommited_data_;
     };
@@ -121,13 +123,13 @@ private:
       Q_OBJECT
 
 public:
-      ///Constructor
+      /// Constructor
       ParamTree(QWidget * parent);
       /// Overloaded edit method to activate F2 use
       bool edit(const QModelIndex & index, EditTrigger trigger, QEvent * event) override;
 
 signals:
-      ///Signal that is emitted when a new item is selected
+      /// Signal that is emitted when a new item is selected
       void selected(const QModelIndex & index);
 
 protected slots:
