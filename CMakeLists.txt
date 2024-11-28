@@ -421,6 +421,8 @@ if(UNIX)
       else()
         SET(CMAKE_INSTALL_RPATH "@executable_path/${INSTALL_LIB_PATH_REL_TO_BIN}/")
       endif()
+    elseif(NOT "${PACKAGE_TYPE}" STREQUAL "deb")
+      SET(CMAKE_SKIP_INSTALL_RPATH FALSE)
     else() # linux and variants
       SET(CMAKE_INSTALL_RPATH "$ORIGIN/${INSTALL_LIB_PATH_REL_TO_BIN}/")
     endif()
