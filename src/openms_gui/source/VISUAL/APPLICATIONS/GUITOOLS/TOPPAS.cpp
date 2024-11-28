@@ -139,10 +139,10 @@ int main(int argc, const char** argv)
     QApplicationTOPP a(argc, const_cast<char**>(argv));
     a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
 
-    TOPPASBase* mw = new TOPPASBase();
-    mw->show();
+    TOPPASBase mw;
+    mw.show();
 
-    a.connect(&a, SIGNAL(fileOpen(QString)), mw, SLOT(openToppasFile(QString)));
+    a.connect(&a, &QApplicationTOPP::fileOpen, &mw, &TOPPASBase::openToppasFile);
 
     // Create the splashscreen that is displayed while the application loads (version is drawn dynamically)
     QPixmap qpm(":/TOPPAS_Splashscreen.png");
@@ -160,16 +160,16 @@ int main(int argc, const char** argv)
 
     if (param.exists("ini"))
     {
-      mw->loadPreferences(param.getValue("ini").toString());
+      mw.loadPreferences(param.getValue("ini").toString());
     }
 
     if (param.exists("misc"))
     {
-      mw->loadFiles(ListUtils::toStringList<std::string>(param.getValue("misc")), &splash_screen);
+      mw.loadFiles(ListUtils::toStringList<std::string>(param.getValue("misc")), &splash_screen);
     }
     else 
     {
-      mw->newPipeline();
+      mw.newPipeline();
     }
 
     // We are about to show the application.
@@ -186,7 +186,6 @@ int main(int argc, const char** argv)
 #endif
 
     int result = a.exec();
-    delete(mw);
     return result;
   }
   //######################## ERROR HANDLING #################################
