@@ -165,7 +165,7 @@ int main(int argc, const char** argv)
     pt_ver.drawText(5, 5 + 15, VersionInfo::getVersion().toQString());
     QSplashScreen splash_screen(qpm);
     splash_screen.show();
-
+    
     QApplication::processEvents();
     StopWatch stop_watch;
     stop_watch.start();
@@ -182,8 +182,8 @@ int main(int argc, const char** argv)
     }
 
     // We are about to show the application.
-    // Proper time to remove the splashscreen, if at least 1.5 seconds have passed...
-    while (stop_watch.getClockTime() < 1.5) /*wait*/
+    // Proper time to remove the splashscreen, if at least 3 seconds have passed...
+    while (stop_watch.getClockTime() < 3.0) /*wait*/
     {
     }
     stop_watch.stop();
