@@ -33,6 +33,7 @@ Misc:
 - TOPPAS 
     - supports writing results to output directories  (for TOPP tools that have such parameters) (#7497)
     - TOPPAS tutorial enhanced (#7497)
+- TOPPAS & TOPPView: new splash screen with new OpenMS logo (#7712)
 - FeatureFinderMetabo
     - added report_smoothed_intensities parameter (#7594)
 - Write out percolator features in search engine adapters (by default, no PSMFeatureExtractor is needed)
