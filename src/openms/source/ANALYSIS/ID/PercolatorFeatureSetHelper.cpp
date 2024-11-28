@@ -38,6 +38,21 @@ namespace OpenMS
       {
         for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
         {
+          if (!hit->metaValueExists("NumMatchedMainIons")) 
+          {
+            hit->setMetaValue("NumMatchedMainIons", 0);
+            hit->setMetaValue("MeanErrorAll", "0.0");
+            hit->setMetaValue("StdevErrorAll", "0.0");
+            hit->setMetaValue("MeanErrorTop7", "0.0");
+            hit->setMetaValue("StdevErrorTop7", "0.0");
+            hit->setMetaValue("MeanRelErrorAll", "0.0");
+            hit->setMetaValue("StdevRelErrorAll", "0.0");
+            hit->setMetaValue("MeanRelErrorTop7", "0.0");
+            hit->setMetaValue("StdevRelErrorTop7", "0.0");
+
+            OPENMS_LOG_WARN << "MS-GF+ PSM with missing meta values. Imputing dummy values for subscores." << endl;
+          }
+
           // Some Hits have no NumMatchedMainIons, and MeanError, etc. values. Have to ignore them!
           if (hit->metaValueExists("NumMatchedMainIons"))
           {
@@ -95,7 +110,6 @@ namespace OpenMS
               hit->setMetaValue("MSGF:StdevErrorTop7", stdev_error_top7);
             }
           }
-          else OPENMS_LOG_WARN << "MS-GF+ PSM with missing NumMatchedMainIons skipped." << endl;
         }
       }
     }
