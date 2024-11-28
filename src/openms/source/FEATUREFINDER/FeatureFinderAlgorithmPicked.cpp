@@ -225,7 +225,7 @@ namespace OpenMS
       }
     }
 
-    debug_ = param_.getValue("debug").toBool();
+    debug_ = param_.getValue("write_debug").toBool();
     //clean up / create folders for debug information
     if (debug_)
     {
