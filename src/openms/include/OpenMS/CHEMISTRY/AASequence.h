@@ -350,7 +350,7 @@ protected:
     AASequence& operator=(const AASequence&) = default;
 
     /// Move assignment operator
-    AASequence& operator=(AASequence&&) noexcept = default;
+    AASequence& operator=(AASequence&&) = default;
 
     /// check if sequence is empty
     bool empty() const;
