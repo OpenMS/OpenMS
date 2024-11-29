@@ -220,6 +220,13 @@ def testAASequence():
     assert seq2.toBracketString() == "PEPTIDESEKUEM[147]CER"
     assert seq2.toBracketString(True) == "PEPTIDESEKUEM[147]CER"
 
+    # constructor from String (Permissive)
+    seq3 = pyopenms.AASequence("PEPTIDE#SEKUEM(Oxidation)CER", True)
+    assert seq3.toString() == "PEPTIDEXSEKUEM(Oxidation)CER"
+    assert seq3.toUnmodifiedString() == "PEPTIDEXSEKUEMCER"
+    assert seq == seq3
+    assert seq3.toBracketString() == "PEPTIDEXSEKUEM[147]CER"
+    assert seq3.toBracketString(True) == "PEPTIDEXSEKUEM[147]CER"
 
     assert seq.toBracketString(False) == "PEPTIDESEKUEM[147.03540001709996]CER" or \
            seq.toBracketString(False) == "PEPTIDESEKUEM[147.035400017100017]CER"
