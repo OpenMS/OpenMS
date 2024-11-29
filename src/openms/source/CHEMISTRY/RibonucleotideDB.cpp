@@ -49,11 +49,7 @@ namespace OpenMS
 
   RibonucleotideDB* RibonucleotideDB::getInstance()
   {
-    static RibonucleotideDB* db_ = nullptr;
-    if (db_ == nullptr)
-    {
-      db_ = new RibonucleotideDB;
-    }
+    static RibonucleotideDB* db_ = new RibonucleotideDB(); // Meyers' singleton -> thread safe
     return db_;
   }
 

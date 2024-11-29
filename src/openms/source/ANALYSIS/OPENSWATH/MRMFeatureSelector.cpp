@@ -124,8 +124,6 @@ namespace OpenMS
     std::set<String> variables;
     LPWrapper problem;
     problem.setObjectiveSense(LPWrapper::MIN);
-    Size n_constraints = 0;
-    Size n_variables = 0;
     for (Int cnt1 = 0; static_cast<Size>(cnt1) < time_to_name.size(); ++cnt1)
     {
       const Size start_iter = std::max(cnt1 - parameters.nn_threshold, 0);
@@ -141,7 +139,6 @@ namespace OpenMS
         {
           constraints.push_back(addVariable_(problem, name1, true, 0, parameters.variable_type));
           variables.insert(name1);
-          ++n_variables;
         }
         else
         {
@@ -178,7 +175,6 @@ namespace OpenMS
             {
               addVariable_(problem, name2, true, 0, parameters.variable_type);
               variables.insert(name2);
-              ++n_variables;
             }
 
             const String var_qp_name = time_to_name[cnt1].second + "_" + String(i) + "-" + time_to_name[cnt2].second + "_" + String(j);
@@ -203,16 +199,12 @@ namespace OpenMS
             std::vector<Int> indices_abs = {index_var_abs, index_var_qp};
             addConstraint_(problem, indices_abs, {-1.0, score}, var_qp_name + "-obj+", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
             addConstraint_(problem, indices_abs, {-1.0, -score}, var_qp_name + "-obj-", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
-
-            n_constraints += 5;
-            n_variables += 2;
           }
         }
       }
       std::vector<double> constraints_values(constraints.size(), 1.0);
       addConstraint_(problem, constraints, constraints_values, time_to_name[cnt1].second + "_constraint", 1.0, 1.0, LPWrapper::DOUBLE_BOUNDED);
       // addConstraint_(problem, constraints, constraints_values, time_to_name[cnt1].second + "_constraint", 1.0, 1.0, LPWrapper::FIXED); // glpk
-      ++n_constraints;
     }
     LPWrapper::SolverParam param;
     problem.solve(param);

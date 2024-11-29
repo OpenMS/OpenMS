@@ -205,11 +205,21 @@ def testAASequence():
     assert aas.toString() == "DFPIANGER"
     assert aas.toUnmodifiedString() == "DFPIANGER"
 
+    # constructor from C string using the static method
     seq = pyopenms.AASequence.fromString("PEPTIDESEKUEM(Oxidation)CER")
     assert seq.toString() == "PEPTIDESEKUEM(Oxidation)CER"
     assert seq.toUnmodifiedString() == "PEPTIDESEKUEMCER"
     assert seq.toBracketString() == "PEPTIDESEKUEM[147]CER"
     assert seq.toBracketString(True) == "PEPTIDESEKUEM[147]CER"
+
+    # constructor from String
+    seq2 = pyopenms.AASequence("PEPTIDESEKUEM(Oxidation)CER")
+    assert seq2.toString() == "PEPTIDESEKUEM(Oxidation)CER"
+    assert seq2.toUnmodifiedString() == "PEPTIDESEKUEMCER"
+    assert seq == seq2
+    assert seq2.toBracketString() == "PEPTIDESEKUEM[147]CER"
+    assert seq2.toBracketString(True) == "PEPTIDESEKUEM[147]CER"
+
 
     assert seq.toBracketString(False) == "PEPTIDESEKUEM[147.03540001709996]CER" or \
            seq.toBracketString(False) == "PEPTIDESEKUEM[147.035400017100017]CER"

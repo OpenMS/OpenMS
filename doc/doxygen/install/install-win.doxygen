@@ -220,10 +220,8 @@
         \endcode
 
     </ol>
-
-    @htmlinclude "../doxygen/install/common-cmake-parameters.doxygen"
-    @latexinclude  "../doxygen/install/common-cmake-parameters.doxygen"
-
+    
+    \include{doc} "../doxygen/install/common-cmake-parameters.doxygen"
 
     Now there should be a <tt>OpenMS_host.sln</tt> file in your build directory, which you can open using Visual Studio.
     If you want to work on only a subset of %OpenMS (e.g., OpenMS_GUI) you can open the specific solution that you will find in the `src/` folder of your

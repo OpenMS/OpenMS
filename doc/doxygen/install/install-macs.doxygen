@@ -190,9 +190,7 @@
     </li>
   </ol>
 
-
-  @htmlinclude "../doxygen/install/common-cmake-parameters.doxygen"
-  @latexinclude  "../doxygen/install/common-cmake-parameters.doxygen"
+  \include{doc} "../doxygen/install/common-cmake-parameters.doxygen"
 
   After CMake was executed, you can list the make targets by calling:
 

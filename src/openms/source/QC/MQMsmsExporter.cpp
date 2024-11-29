@@ -134,22 +134,10 @@ void MQMsms::exportRowFromFeature_(
   const PeptideHit* ptr_best_hit = nullptr; // the best hit referring to score
   const PeptideIdentification* ptr_best_id = nullptr;
   const ConsensusFeature& cf = cmap[c_feature_number];
-  Size pep_ids_size = 0;
+
   String type;
   if (MQExporterHelper::hasValidPepID_(f, c_feature_number, UIDs, mp_f))
   {
-    for (Size i = 1; i < f.getPeptideIdentifications().size(); ++i) // for msms-count
-    {
-      if (!f.getPeptideIdentifications()[i].getHits().empty())
-      {
-        if (f.getPeptideIdentifications()[i].getHits()[0].getSequence() == f.getPeptideIdentifications()[0].getHits()[0].getSequence())
-        {
-          ++pep_ids_size;
-        }
-        else
-          break;
-      }
-    }
     type = "MULTI-MSMS";
     ptr_best_hit = &f.getPeptideIdentifications()[0].getHits()[0];
     ptr_best_id = &f.getPeptideIdentifications()[0];
