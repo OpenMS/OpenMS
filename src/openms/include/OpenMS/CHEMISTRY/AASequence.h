@@ -343,7 +343,7 @@ protected:
     AASequence(AASequence&&) noexcept = default;
 
     /// Destructor
-    virtual ~AASequence() = default;
+    virtual ~AASequence();
     //@}
 
     /// Assignment operator

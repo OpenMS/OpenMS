@@ -1702,4 +1702,10 @@ namespace OpenMS
     return aas;
   }
 
+  AASequence::~AASequence()
+  {
+    delete n_term_mod_;
+    delete c_term_mod_;
+  }
+
 }
