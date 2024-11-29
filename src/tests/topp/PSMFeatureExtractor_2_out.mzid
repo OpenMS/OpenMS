@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.1"
 	version="1.1.0"
 	id="OpenMS_10306100746905639127"
-	creationDate="2024-10-31T17:41:18">
+	creationDate="2024-11-28T14:53:58">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="http://purl.obolibrary.org/obo/ms/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -16,7 +16,7 @@
 			<cvParam accession="MS:1001456" cvRef="PSI-MS" name="analysis software"/>
 		</SoftwareName>
 	</AnalysisSoftware>
-	<AnalysisSoftware version="OpenMS TOPP v3.3.0-pre-feature-PSMFeature-incorp-2024-10-31" name="TOPP software" id="SOF_12524258085768770586">
+	<AnalysisSoftware version="OpenMS TOPP v3.4.0-pre-fix-msgf-2024-11-28" name="TOPP software" id="SOF_12524258085768770586">
 		<SoftwareName>
 			<cvParam accession="MS:1000752" cvRef="PSI-MS" name="TOPP software"/>
 		</SoftwareName>
@@ -41,7 +41,7 @@
  	<PeptideEvidence id="PEV_2927519776102075938" peptide_ref="PEP_17413765565443951891" dBSequence_ref="PROT_15157403601844400700" post="E" pre="-" start="1" end="28" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_TopPerc_2024-10-31" spectrumIdentificationProtocol_ref="SIP_15004869347769368353" spectrumIdentificationList_ref="SIL_7804704400743266335" activityDate="2024-10-31T17:41:18">
+	<SpectrumIdentification id="SI_TopPerc_2024-11-28" spectrumIdentificationProtocol_ref="SIP_15004869347769368353" spectrumIdentificationList_ref="SIL_7804704400743266335" activityDate="2024-11-28T14:53:58">
 		<InputSpectra spectraData_ref="SDAT_13440783915218733453"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_15916652588957785155"/>
 	</SpectrumIdentification>
@@ -65,11 +65,11 @@
 			<userParam name="NumMatchesPerSpec" unitName="xsd:string" value="1"/>
 			<userParam name="Protocol" unitName="xsd:string" value="Standard"/>
 			<userParam name="TargetDecoyApproach" unitName="xsd:string" value="false"/>
-			<userParam name="MSGFPlusAdapter:1:in" unitName="xsd:string" value="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML"/>
+			<userParam name="MSGFPlusAdapter:1:in" unitName="xsd:string" value="/beegfs/HPCscratch/sachsenb/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML"/>
 			<userParam name="MSGFPlusAdapter:1:out" unitName="xsd:string" value="MSGFPlusAdapter_1_out1.tmp.idXML"/>
 			<userParam name="MSGFPlusAdapter:1:mzid_out" unitName="xsd:string" value="MSGFPlusAdapter_1_out2.tmp.mzid"/>
-			<userParam name="MSGFPlusAdapter:1:executable" unitName="xsd:string" value="/home/sachsenb/Development/OpenMS/THIRDPARTY/MSGFPlus.jar"/>
-			<userParam name="MSGFPlusAdapter:1:database" unitName="xsd:string" value="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
+			<userParam name="MSGFPlusAdapter:1:executable" unitName="xsd:string" value="/beegfs/HPCscratch/sachsenb/OpenMS/THIRDPARTY/MSGFPlus.jar"/>
+			<userParam name="MSGFPlusAdapter:1:database" unitName="xsd:string" value="/beegfs/HPCscratch/sachsenb/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
 			<userParam name="MSGFPlusAdapter:1:precursor_mass_tolerance" unitName="xsd:double" value="10.0"/>
 			<userParam name="MSGFPlusAdapter:1:precursor_error_units" unitName="xsd:string" value="ppm"/>
 			<userParam name="MSGFPlusAdapter:1:isotope_error_range" unitName="xsd:string" value="0,1"/>
@@ -118,7 +118,7 @@
 			<userParam name="extra_features" unitName="xsd:string" value="MS:1002049,MS:1002053,MS:1001331,MS:1001330"/>
 			<userParam name="EnzymeTermSpecificity" unitName="xsd:string" value="full"/>
 			<userParam name="SE:MS-GF+" unitName="xsd:string" value="Release (v2023.01.12)"/>
-			<userParam name="MS-GF+:db" unitName="xsd:string" value="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
+			<userParam name="MS-GF+:db" unitName="xsd:string" value="/beegfs/HPCscratch/sachsenb/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
 			<userParam name="MS-GF+:db_version" unitName="xsd:string" value=""/>
 			<userParam name="MS-GF+:taxonomy" unitName="xsd:string" value=""/>
 			<userParam name="MS-GF+:charges" unitName="xsd:string" value="1-3"/>
@@ -175,15 +175,15 @@
 </AnalysisProtocolCollection>
 <DataCollection>
 	<Inputs>
-		<SearchDatabase location="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta" id="SDB_15916652588957785155">
+		<SearchDatabase location="/beegfs/HPCscratch/sachsenb/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta" id="SDB_15916652588957785155">
 			<FileFormat>
 				<cvParam accession="MS:1001348" cvRef="PSI-MS" name="FASTA format"/>
 			</FileFormat>
 			<DatabaseName>
-				<userParam name="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
+				<userParam name="/beegfs/HPCscratch/sachsenb/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
 			</DatabaseName>
 		</SearchDatabase>
-		<SpectraData location="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML, /workspace/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML" id="SDAT_13440783915218733453">
+		<SpectraData location="/beegfs/HPCscratch/sachsenb/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML, /workspace/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML" id="SDAT_13440783915218733453">
 			<FileFormat>
 				<cvParam accession="MS:1000584" cvRef="PSI-MS" name="mzML format"/>
 			</FileFormat>
@@ -220,6 +220,15 @@
 					<userParam name="end" unitName="xsd:integer" value="28"/>
 					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="protein_references" unitName="xsd:string" value="unique"/>
+					<userParam name="NumMatchedMainIons" unitName="xsd:integer" value="0"/>
+					<userParam name="MeanErrorAll" unitName="xsd:double" value="0.0"/>
+					<userParam name="StdevErrorAll" unitName="xsd:double" value="0.0"/>
+					<userParam name="MeanErrorTop7" unitName="xsd:double" value="0.0"/>
+					<userParam name="StdevErrorTop7" unitName="xsd:double" value="0.0"/>
+					<userParam name="MeanRelErrorAll" unitName="xsd:double" value="0.0"/>
+					<userParam name="StdevRelErrorAll" unitName="xsd:double" value="0.0"/>
+					<userParam name="MeanRelErrorTop7" unitName="xsd:double" value="0.0"/>
+					<userParam name="StdevRelErrorTop7" unitName="xsd:double" value="0.0"/>
 					<userParam name="SpecEValue" unitName="xsd:double" value="2.3492372e-26"/>
 					<userParam name="nextscore" unitName="xsd:double" value="8.0"/>
 					<userParam name="delta" unitName="xsd:double" value="1.7e-03"/>

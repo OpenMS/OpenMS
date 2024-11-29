@@ -160,11 +160,12 @@ int main(int argc, const char** argv)
     QPixmap qpm(":/TOPPView_Splashscreen.png");
     QPainter pt_ver(&qpm);
     pt_ver.setFont(QFont("Helvetica [Cronyx]", 15, 2, true));
-    pt_ver.setPen(QColor(44, 50, 152));
-    pt_ver.drawText(490, 94, VersionInfo::getVersion().toQString());
+    pt_ver.setPen(Qt::black);
+    // draw version number dynamcially on top left corner
+    pt_ver.drawText(5, 5 + 15, VersionInfo::getVersion().toQString());
     QSplashScreen splash_screen(qpm);
     splash_screen.show();
-
+    
     QApplication::processEvents();
     StopWatch stop_watch;
     stop_watch.start();
@@ -181,8 +182,8 @@ int main(int argc, const char** argv)
     }
 
     // We are about to show the application.
-    // Proper time to remove the splashscreen, if at least 1.5 seconds have passed...
-    while (stop_watch.getClockTime() < 1.5) /*wait*/
+    // Proper time to remove the splashscreen, if at least 3 seconds have passed...
+    while (stop_watch.getClockTime() < 3.0) /*wait*/
     {
     }
     stop_watch.stop();

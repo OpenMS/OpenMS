@@ -139,40 +139,43 @@ int main(int argc, const char** argv)
     QApplicationTOPP a(argc, const_cast<char**>(argv));
     a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
 
-    TOPPASBase* mw = new TOPPASBase();
-    mw->show();
+    TOPPASBase mw;
+    mw.show();
 
-    a.connect(&a, SIGNAL(fileOpen(QString)), mw, SLOT(openToppasFile(QString)));
+    a.connect(&a, &QApplicationTOPP::fileOpen, &mw, &TOPPASBase::openToppasFile);
 
     // Create the splashscreen that is displayed while the application loads (version is drawn dynamically)
     QPixmap qpm(":/TOPPAS_Splashscreen.png");
     QPainter pt_ver(&qpm);
     pt_ver.setFont(QFont("Helvetica [Cronyx]", 15, 2, true));
-    pt_ver.setPen(QColor(44, 50, 152));
-    pt_ver.drawText(490, 84, VersionInfo::getVersion().toQString());
+    pt_ver.setPen(Qt::black);
+    // draw version number dynamcially on top left corner
+    pt_ver.drawText(5, 5+15, VersionInfo::getVersion().toQString());
     QSplashScreen splash_screen(qpm);
     splash_screen.show();
+    
     QApplication::processEvents();
     StopWatch stop_watch;
     stop_watch.start();
 
     if (param.exists("ini"))
     {
-      mw->loadPreferences(param.getValue("ini").toString());
+      mw.loadPreferences(param.getValue("ini").toString());
     }
 
     if (param.exists("misc"))
     {
-      mw->loadFiles(ListUtils::toStringList<std::string>(param.getValue("misc")), &splash_screen);
+      mw.loadFiles(ListUtils::toStringList<std::string>(param.getValue("misc")), &splash_screen);
     }
     else 
     {
-      mw->newPipeline();
+      mw.newPipeline();
     }
 
     // We are about to show the application.
-    // Proper time to  remove the splash screen, if at least 1.5 seconds have passed...
-    while (stop_watch.getClockTime() < 1.5) /*wait*/
+    // Proper time to remove the splashscreen, if at least 3 seconds have passed...
+    while (stop_watch.getClockTime() < 3.0) /*wait*/
+
     {
     }
     stop_watch.stop();
@@ -184,7 +187,6 @@ int main(int argc, const char** argv)
 #endif
 
     int result = a.exec();
-    delete(mw);
     return result;
   }
   //######################## ERROR HANDLING #################################
