@@ -36,7 +36,10 @@ namespace OpenMS
     for (const auto & im_profile : mobilograms)
     {
       mobilityValues.reserve(mobilityValues.size() + im_profile.size());
-      for (const auto & k : im_profile) mobilityValues.push_back(k.getMobility());
+      for (const auto & k : im_profile)
+        {
+          mobilityValues.push_back(k.getMobility());
+        }
     }
 
     // sort all extracted values
@@ -118,7 +121,10 @@ namespace OpenMS
     {
       std::vector<double> mobility_int;
       mobility_int.reserve(mobilogram.size());
-      for (const auto & k : mobilogram) mobility_int.push_back(k.getIntensity());
+      for (const auto & k : mobilogram)
+        {
+          mobility_int.push_back(k.getIntensity());
+        }
       int_values.emplace_back(std::move(mobility_int));
     }
   }
@@ -279,8 +285,10 @@ namespace OpenMS
     alignToGrid_(ms1_profile, im_grid, aligned_ms1_mobilograms, eps, max_peak_idx);
     std::vector<double> ms1_int_values;
     ms1_int_values.reserve(aligned_ms1_mobilograms.size());
-    for (const auto & k : aligned_ms1_mobilograms) ms1_int_values.push_back(k.getIntensity());
-
+    for (const auto & k : aligned_ms1_mobilograms) 
+      {
+        ms1_int_values.push_back(k.getIntensity());
+      }
     // Step 4: MS1 contrast scores
     std::vector< std::vector< double > > aligned_int_vec;
     extractIntensities(aligned_ms2_mobilograms, aligned_int_vec);
