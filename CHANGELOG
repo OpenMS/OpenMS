@@ -27,6 +27,14 @@ What's new:
 - Docker files are now part of the main OpenMS repo (#7303)
 - Added new functionality to SageAdapter + compatibility with new Sage versions (#7577)
 
+Library:
+- TOPPView: 
+  - offer Ion mobility view from 2D spectra view (#7423)
+  - view ion mobility frames, irrespective of its MS level (formerly only MS1 was supported) (#7427)
+- OpenSwath: 
+  - Add output on peak shape metrics to .osw file (#7222)
+  - Update IonMobilityScoring to use Mobilogram Kernel datastructure (#7587)
+
 Misc:
 - FileInfo:
     - support MzTab files (#7568)
