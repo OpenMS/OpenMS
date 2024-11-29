@@ -6,6 +6,14 @@ from numpy.lib.stride_tricks import as_strided
 # continue with extra code if needed
             
 
+    
+    @staticmethod
+    def fromNdArray(np.ndarray[double, ndim=2] data not None):
+        """Creates a new Matrix from a numpy ndarray."""
+        cdef MatrixDouble mat = MatrixDouble()
+        mat.set_matrix(data)
+        return mat
+
     def get_matrix_as_view(self):
         """get_matrix(self) -> np.ndarray[double, ndim=2]
 

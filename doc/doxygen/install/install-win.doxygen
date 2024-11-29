@@ -259,7 +259,7 @@
        
     </ol>
 
-    \include "../doxygen/install/common-cmake-parameters.doxygen"
+    \include{doc} "../doxygen/install/common-cmake-parameters.doxygen"
 
 
     Now there should be a <tt>OpenMS_host.sln</tt> file in your build directory, which you can open using Visual Studio.

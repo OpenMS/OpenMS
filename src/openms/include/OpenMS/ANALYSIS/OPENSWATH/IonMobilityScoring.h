@@ -15,6 +15,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
+#include <OpenMS/KERNEL/Mobilogram.h>
 
 // scoring
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
@@ -41,18 +42,6 @@ namespace OpenMS
   {
     typedef OpenSwath::LightCompound CompoundType;
     typedef OpenSwath::LightTransition TransitionType;
-
-    struct MobilityPeak
-    {
-      double im;
-      double intensity;
-      MobilityPeak ();
-      MobilityPeak (double im_, double int_) :
-        im(im_),
-        intensity(int_)
-      {}
-    };
-    typedef std::vector< MobilityPeak > IonMobilogram;
 
   public:
 
@@ -151,7 +140,7 @@ namespace OpenMS
                               const RangeMobility & im_range,
                               double & im,
                               double & intensity,
-                              IonMobilogram& res,
+                              Mobilogram & res,
                               double eps);
 
 
@@ -159,7 +148,7 @@ namespace OpenMS
     /**
      * @brief helper function to computeIonMobilogram. Discretizes ion mobility values into a grid.
     **/
-    static std::vector<double> computeGrid_(const std::vector< IonMobilogram >& mobilograms, double eps);
+    static std::vector<double> computeGrid_(const std::vector< Mobilogram >& mobilograms, double eps);
 
 
     /*
@@ -172,17 +161,30 @@ namespace OpenMS
 
      @param profile The ion mobility data
      @param im_grid The grid to be used
-     @param al_int_values The intensity vector (y)
-     @param al_im_values The ion mobility vector (x)
      @param eps Epsilon used for computing the ion mobility grid
      @param max_peak_idx The grid position of the maximum
     */
-    static void alignToGrid_(const IonMobilogram& profile,
+    static void alignToGrid_(const Mobilogram& profile,
                  const std::vector<double>& im_grid,
-                 std::vector< double >& al_int_values,
-                 std::vector< double >& al_im_values,
+                 Mobilogram & aligned_profile,
                  double eps,
                  Size & max_peak_idx);
+
+    /*
+    @brief Extracts intensity values from a vector of Mobilogram objects
+
+    This function takes a vector of Mobilogram objects and extracts the intensity
+    values from each Mobilogram, storing them in a 2D vector of doubles. The
+    resulting vector of intensity values is stored in the provided output parameter.
+
+    @param[in] mobilograms A const reference to a vector of Mobilogram objects
+                            from which to extract intensity values.
+    @param[out] int_values A reference to a vector of vector of doubles where
+                            the extracted intensity values will be stored. This
+                            vector will be cleared and resized as necessary.
+    */
+    static void extractIntensities(const std::vector< Mobilogram >& mobilograms,
+                                   std::vector<std::vector<double>>& int_values);
 
   };
 }

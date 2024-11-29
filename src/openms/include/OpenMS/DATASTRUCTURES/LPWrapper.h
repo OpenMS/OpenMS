@@ -22,7 +22,7 @@
 class CoinModel;
 
 // if GLPK was found:
-#ifndef COINOR_SOLVER
+#ifndef OPENMS_HAS_COINOR
   #ifndef GLP_PROB_DEFINED
     #define GLP_PROB_DEFINED
     // depending on the glpk version
@@ -107,7 +107,7 @@ public:
     enum SOLVER
     {
       SOLVER_GLPK = 0
-#if COINOR_SOLVER == 1
+#ifdef OPENMS_HAS_COINOR
       , SOLVER_COINOR
 #endif
     };
@@ -285,7 +285,7 @@ public:
     SOLVER getSolver() const;
 
 protected:
-#if COINOR_SOLVER == 1
+#ifdef OPENMS_HAS_COINOR
     CoinModel * model_ = nullptr;
     std::vector<double> solution_;
 #else

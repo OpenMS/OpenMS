@@ -837,7 +837,6 @@ namespace OpenMS
 
     // map all unidentified precursor to features
     Size spectrum_matches_none(0);
-    Size spectrum_matches(0);
     Size spectrum_matches_single(0);
     Size spectrum_matches_multi(0);
 
@@ -919,7 +918,6 @@ namespace OpenMS
               // only one m/z value to check, which was already incorporated
               // into the overall bounding box -> success!
               feat.getPeptideIdentifications().push_back(precursor_empty_id);
-              ++spectrum_matches;
               break; // "mz_it" loop
             }
             // else: check all the mass traces

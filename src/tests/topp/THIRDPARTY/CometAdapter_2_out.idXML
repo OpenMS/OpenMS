@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/home/sachsenb/OMS/OpenMS/src/tests/topp/THIRDPARTY/CometAdapter_2_in.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="0:0" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="3" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.50025" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/CometAdapter_2_in.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="0:0" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="3" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.50025" peak_mass_tolerance_ppm="false" >
 				<UserParam type="string" name="CometAdapter:1:in" value="CometAdapter_2_prepared.mzML"/>
-  			<UserParam type="string" name="CometAdapter:1:out" value="CometAdapter_2_out1.tmp.idXML"/>
-				<UserParam type="string" name="CometAdapter:1:database" value="/workspace/OpenMS/src/tests/topp/THIRDPARTY/CometAdapter_2_in.fasta"/>
-				<UserParam type="string" name="CometAdapter:1:comet_executable" value="/workspace/OpenMS/THIRDPARTY/Linux/64bit/Comet/comet.exe"/>
+				<UserParam type="string" name="CometAdapter:1:out" value="CometAdapter_2_out1.tmp.idXML"/>
+				<UserParam type="string" name="CometAdapter:1:database" value="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/CometAdapter_2_in.fasta"/>
+				<UserParam type="string" name="CometAdapter:1:comet_executable" value="/home/sachsenb/Development/OpenMS/THIRDPARTY/comet.exe"/>
 				<UserParam type="string" name="CometAdapter:1:pin_out" value="CometAdapter_2_out2.tmp.tsv"/>
 				<UserParam type="string" name="CometAdapter:1:default_params_file" value=""/>
 				<UserParam type="float" name="CometAdapter:1:precursor_mass_tolerance" value="3.0"/>
@@ -69,9 +69,10 @@
 				<UserParam type="string" name="CometAdapter:1:allow_nterm_protein_cleavage" value="true"/>
 				<UserParam type="string" name="CometAdapter:1:name" value="auto"/>
 				<UserParam type="string" name="CometAdapter:1:specificity" value="auto"/>
+				<UserParam type="string" name="extra_features" value="isotope_error,COMET:deltaCn,COMET:deltaLCn,COMET:lnExpect,MS:1002252,MS:1002255,COMET:lnNumSP,COMET:lnRankSP,COMET:IonFrac"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2023-04-04T10:45:06" search_engine="Comet" search_engine_version="# comet_version 2023.01 rev. 2 (7c9150d)" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2024-01-31T00:34:20" search_engine="Comet" search_engine_version="# comet_version 2023.01 rev. 2 (7c9150d)" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="prot1" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -114,7 +115,7 @@
 				<UserParam type="float" name="Comet:lnrSp" value="0.0"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:deltaLCn" value="0.6411"/>
-				<UserParam type="float" name="COMET:lnExpect" value="0.2924"/>
+				<UserParam type="float" name="COMET:lnExpect" value="0.29266961396282"/>
 				<UserParam type="float" name="Comet:IonFrac" value="1.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="1.0"/>
 				<UserParam type="float" name="COMET:lnNumSP" value="1.6094"/>
@@ -138,7 +139,7 @@
 				<UserParam type="float" name="Comet:lnrSp" value="0.6931"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.6931"/>
 				<UserParam type="float" name="COMET:deltaLCn" value="0.3282"/>
-				<UserParam type="float" name="COMET:lnExpect" value="3.74"/>
+				<UserParam type="float" name="COMET:lnExpect" value="3.740047740688336"/>
 				<UserParam type="float" name="Comet:IonFrac" value="0.4"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.4"/>
 				<UserParam type="float" name="COMET:lnNumSP" value="1.6094"/>
@@ -162,7 +163,7 @@
 				<UserParam type="float" name="Comet:lnrSp" value="1.3863"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.3863"/>
 				<UserParam type="float" name="COMET:deltaLCn" value="0.3066"/>
-				<UserParam type="float" name="COMET:lnExpect" value="3.8633"/>
+				<UserParam type="float" name="COMET:lnExpect" value="3.862832761237375"/>
 				<UserParam type="float" name="Comet:IonFrac" value="0.4"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.4"/>
 				<UserParam type="float" name="COMET:lnNumSP" value="1.6094"/>
@@ -186,7 +187,7 @@
 				<UserParam type="float" name="Comet:lnrSp" value="1.0986"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.0986"/>
 				<UserParam type="float" name="COMET:deltaLCn" value="0.2509"/>
-				<UserParam type="float" name="COMET:lnExpect" value="4.1483"/>
+				<UserParam type="float" name="COMET:lnExpect" value="4.147885329150131"/>
 				<UserParam type="float" name="Comet:IonFrac" value="0.5"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.5"/>
 				<UserParam type="float" name="COMET:lnNumSP" value="1.6094"/>
@@ -210,7 +211,7 @@
 				<UserParam type="float" name="Comet:lnrSp" value="1.6094"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.6094"/>
 				<UserParam type="float" name="COMET:deltaLCn" value="0.0"/>
-				<UserParam type="float" name="COMET:lnExpect" value="5.0382"/>
+				<UserParam type="float" name="COMET:lnExpect" value="5.03695260241363"/>
 				<UserParam type="float" name="Comet:IonFrac" value="0.3333"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.3333"/>
 				<UserParam type="float" name="COMET:lnNumSP" value="1.6094"/>
@@ -236,7 +237,7 @@
 				<UserParam type="float" name="Comet:lnrSp" value="0.0"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:deltaLCn" value="0.226"/>
-				<UserParam type="float" name="COMET:lnExpect" value="0.1751"/>
+				<UserParam type="float" name="COMET:lnExpect" value="0.173953307123438"/>
 				<UserParam type="float" name="Comet:IonFrac" value="0.3125"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.3125"/>
 				<UserParam type="float" name="COMET:lnNumSP" value="0.6931"/>
@@ -260,7 +261,7 @@
 				<UserParam type="float" name="Comet:lnrSp" value="0.6931"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.6931"/>
 				<UserParam type="float" name="COMET:deltaLCn" value="0.0"/>
-				<UserParam type="float" name="COMET:lnExpect" value="2.2976"/>
+				<UserParam type="float" name="COMET:lnExpect" value="2.297572551170501"/>
 				<UserParam type="float" name="Comet:IonFrac" value="0.2812"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.2812"/>
 				<UserParam type="float" name="COMET:lnNumSP" value="0.6931"/>

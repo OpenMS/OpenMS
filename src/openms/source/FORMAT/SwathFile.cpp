@@ -309,7 +309,8 @@ namespace OpenMS
   /// Counts the number of scans in a full Swath file (e.g. concatenated non-split file)
   void SwathFile::countScansInSwath_(const std::vector<MSSpectrum>& exp,
                                      std::vector<int>& swath_counter, int& nr_ms1_spectra,
-                                     std::vector<OpenSwath::SwathMap>& known_window_boundaries)
+                                     std::vector<OpenSwath::SwathMap>& known_window_boundaries,
+                                     double TOLERANCE)
   {
     int ms1_counter = 0;
     for (Size i = 0; i < exp.size(); i++)
@@ -328,28 +329,32 @@ namespace OpenMS
               "Found SWATH scan (MS level 2 scan) without a precursor. Cannot determine SWATH window.");
           }
           const std::vector<Precursor> prec = s.getPrecursors();
-          double center = prec[0].getMZ();
 
-
-          // check if ion mobility is present
-          double lowerIm = -1;
-          double upperIm = -1; // these initial values assume ion mobility is not present
-
+          // set ion mobility if exists, otherwise will take default value of -1
+          double imLower, imUpper;
           if (s.metaValueExists("ion mobility lower limit"))
           {
-            lowerIm = s.getMetaValue("ion mobility lower limit"); // want this to be -1  if no ion mobility
-            upperIm = s.getMetaValue("ion mobility upper limit");
+            imLower = s.getMetaValue("ion mobility lower limit"); // want this to be -1 if no ion mobility
+            imUpper = s.getMetaValue("ion mobility upper limit");
 
           }
+          else
+          {
+            imLower = -1;
+            imUpper = -1;
+          }
 
+          const OpenSwath::SwathMap boundary(prec[0].getMZ() - prec[0].getIsolationWindowLowerOffset(), 
+                                          prec[0].getMZ() + prec[0].getIsolationWindowUpperOffset(), 
+                                          prec[0].getMZ(),
+                                          imLower,
+                                          imUpper,
+                                          false);
           bool found = false;
-
           for (Size j = 0; j < known_window_boundaries.size(); j++)
           {
-            // We group by the precursor mz (center of the window) since this
-            // should be present
-            // for ion mobility, since the center value is not present in the raw data (it is computed) we use the imLower and upper bounds
-            if ((std::fabs(center - known_window_boundaries[j].center) < 1e-6) && (std::fabs(lowerIm - known_window_boundaries[j].imLower) < 1e-6) && (std::fabs(upperIm - known_window_boundaries[j].imUpper < 1e-6)))
+            // Check if the current scan is within the known window boundaries
+            if (known_window_boundaries[j].isEqual(boundary, TOLERANCE))
             {
               found = true;
               swath_counter[j]++;
@@ -359,23 +364,11 @@ namespace OpenMS
           {
             // we found a new SWATH scan
             swath_counter.push_back(1);
-            double lower = prec[0].getMZ() - prec[0].getIsolationWindowLowerOffset();
-            double upper = prec[0].getMZ() + prec[0].getIsolationWindowUpperOffset();
-
-            OpenSwath::SwathMap boundary;
-            boundary.lower = lower;
-            boundary.upper = upper;
-            boundary.center = center;
-
-            // set IM boundaries (if present)
-            boundary.imLower = lowerIm;
-            boundary.imUpper = upperIm;
-
             known_window_boundaries.push_back(boundary);
 
-            OPENMS_LOG_DEBUG << "Adding Swath centered at " << center
-              << " m/z with an isolation window of " << lower << " to " << upper
-              << " m/z and start of " << lowerIm << " and IM end of " << upperIm << std::endl;
+            OPENMS_LOG_DEBUG << "Adding Swath centered at " << boundary.center
+              << " m/z with an isolation window of " << boundary.lower << " to " << boundary.upper
+              << " m/z and IM start of " << boundary.imLower << " and IM end of " << boundary.imUpper << std::endl;
           }
         }
       }

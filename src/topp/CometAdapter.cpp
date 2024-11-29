@@ -8,6 +8,7 @@
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
+#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 // TODO remove this once we have handler transform support
@@ -294,8 +295,8 @@ protected:
       {
         OPENMS_LOG_WARN << "Comet v2024.01.0 is known to have several bugs (see https://github.com/UWPR/Comet/issues/63). Please use a different version if possible." << std::endl;
       }
-      // Comet v2024.01.0 introduces “peptide_mass_tolerance_lower” and “peptide_mass_tolerance_upper” parameters
-      // and deprecates “peptide_mass_tolerance” (which is buggy in this version, see https://github.com/UWPR/Comet/issues/59)
+      // Comet v2024.01.0 introduces "peptide_mass_tolerance_lower" and "peptide_mass_tolerance_upper" parameters
+      // and deprecates "peptide_mass_tolerance" (which is buggy in this version, see https://github.com/UWPR/Comet/issues/59)
       // We need to use the new parameters from this version onwards
       double precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
       if (comet_year >= 2024)
@@ -609,6 +610,8 @@ protected:
     os << "10. Chymotrypsin           1      FWYL        P" << "\n";
     os << "11. No_cut                 1      @           @" << "\n";
     os << "12. Arg-C/P                1.     R           _" << "\n";
+    os << "13. Lys-C/P                1      K           -" << "\n";
+    os << "14. Leukocyte_elastase     1      ALIV        -" << "\n";
 
     return ExitCodes::EXECUTION_OK;
   }
@@ -747,6 +750,11 @@ protected:
 
     // if "reindex" parameter is set to true will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
+
+    // add percolator features
+    StringList feature_set;
+    PercolatorFeatureSetHelper::addCOMETFeatures(peptide_identifications, feature_set);
+    protein_identifications.front().getSearchParameters().setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
 
     FileHandler().storeIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDXML});
 
