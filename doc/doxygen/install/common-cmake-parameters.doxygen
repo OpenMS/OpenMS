@@ -26,7 +26,7 @@ The most important CMake variables are:
   </tr>
   <tr>
     <th valign="top">Qt6_DIR</td>
-    <td>Additional search path for the Qt6 CMake files. Use <code>/PATH/TO/QT_INSTALLATION/lib/cmake/Qt6</code> as value, e.g. <code>C:\dev\qt6\6.7.1\msvc2019_64\lib\cmake\Qt6</code></td>
+    <td>Additional search path for the Qt6 CMake files. Use <code>/PATH/TO/QT_INSTALLATION/lib/cmake/Qt6</code> as value, e.g. <code>C:\\dev\\qt6\\6.7.1\\msvc2019_64\\lib\\cmake\\Qt6</code></td>
   </tr>
   <tr>
     <th valign="top">HAS_XSERVER=On/Off</td>
