@@ -542,6 +542,9 @@ namespace OpenMS
 
   bool Residue::operator==(const Residue& residue) const
   {
+    // usually, its the same address (from ResidueDB)
+    if (this == &residue) return true;
+    // otherwise compare members
     return name_ == residue.name_ &&
            synonyms_ == residue.synonyms_ &&
            three_letter_code_ == residue.three_letter_code_ &&
