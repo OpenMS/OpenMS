@@ -468,10 +468,6 @@ protected:
 
     std::vector<EmpiricalFormula> NTerm_loss_formulas_;
 
-    double loss_average_weight_;
-
-    double loss_mono_weight_;
-
     /// low mass markers like immonium ions
     std::vector<EmpiricalFormula> low_mass_ions_;
 
