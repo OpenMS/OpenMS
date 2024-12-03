@@ -34,7 +34,8 @@ namespace OpenMS
   }
 
   // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index
-  String PercolatorInfile::getScanIdentifier(const PeptideIdentification& pid, size_t index)
+  String PercolatorInfile::getScanIdentifier(
+    const PeptideIdentification& pid, size_t index)
   {
     // MSGF+ uses this field, is empty if not specified
     String scan_identifier = pid.getSpectrumReference();
