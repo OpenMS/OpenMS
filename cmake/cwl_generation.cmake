@@ -19,7 +19,7 @@ add_custom_target(generate_cwl_files DEPENDS TOPP)
 
 # Create output folder (if not existing)
 add_custom_command(TARGET generate_cwl_files POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/workflow/cwl
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${OPENMS_SHARE_DIR}/commonwl
 )
 
 # Walk through all tools and generate a CWL file
@@ -27,6 +27,6 @@ foreach(TOOL ${executables})
   # Add CWL generation
   add_custom_command(
     TARGET  generate_cwl_files POST_BUILD
-    COMMAND ${OPENMS_BINARY_DIR}/${TOOL} -write_cwl ${CMAKE_CURRENT_SOURCE_DIR}/workflow/cwl
+    COMMAND ${OPENMS_BINARY_DIR}/${TOOL} -write_cwl ${OPENMS_SHARE_DIR}/commonwl
   )
 endforeach()
