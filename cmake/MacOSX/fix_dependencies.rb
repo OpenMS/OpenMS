@@ -107,13 +107,13 @@ end
 ###############################################################################
 def fixLoadPath(oldpath,libpath,target)
   debug "#{$install_name_tool} -change #{oldpath} #{$executableId}#{libpath} #{target}"
-  `#{$install_name_tool} -change #{oldpath} #{$executableId}#{libpath} #{target}`
+  `#{$install_name_tool} -change #{oldpath} #{$executableId}#{libpath} #{target} 2>/dev/null`
 end
 
 ###############################################################################
 def fixId(target, libname)
   debug "#{$install_name_tool} -id #{$executableId}#{libname} #{target}"
-  `#{$install_name_tool} -id #{$executableId}#{libname} #{target}`
+  `#{$install_name_tool} -id #{$executableId}#{libname} #{target} 2>/dev/null`
 end
 
 ###############################################################################

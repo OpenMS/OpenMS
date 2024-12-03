@@ -68,7 +68,7 @@ macro(add_mac_app_bundle _name)
 		MACOSX_BUNDLE_BUNDLE_NAME ${_name}
 		MACOSX_BUNDLE_SHORT_VERSION_STRING ${CF_OPENMS_PACKAGE_VERSION}
 		MACOSX_BUNDLE_BUNDLE_VERSION ${CF_OPENMS_PACKAGE_VERSION}
-		MACOSX_BUNDLE_COPYRIGHT "Copyright ${MY_YEAR}, The OpenMS Team. All Rights Reserved."
+		MACOSX_BUNDLE_COPYRIGHT "Copyright ${MY_YEAR}, OpenMS Inc. All Rights Reserved."
 	)
 
 	set_source_files_properties(${ICON_FILE_PATH} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
@@ -120,7 +120,7 @@ macro(add_mac_app_bundle _name)
 							DESTINATION "${_name}.app/Contents/Resources/"
 							RENAME "qt.conf"
 							COMPONENT Applications)
-      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::QCocoaIntegrationPlugin"
+      		install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::QCocoaIntegrationPlugin"
               DESTINATION "${INSTALL_PLUGIN_DIR}/platforms"
               RUNTIME_DEPENDENCY_SET OPENMS_DEPS
               COMPONENT Dependencies)
@@ -129,13 +129,13 @@ macro(add_mac_app_bundle _name)
 							RUNTIME_DEPENDENCY_SET OPENMS_DEPS
 							COMPONENT Dependencies)
 			# Instead of softlinking, it is recommended by Apple to use RPATHs
-      #install(CODE "execute_process(COMMAND ln -fs ../../${INSTALL_LIB_DIR} \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/Frameworks)"
+      		#install(CODE "execute_process(COMMAND ln -fs ../../${INSTALL_LIB_DIR} \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/Frameworks)"
 			#				COMPONENT Applications)
-      #install(CODE "execute_process(COMMAND ln -fs ../../${INSTALL_PLUGIN_DIR} \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/PlugIns)"
-		  # 			COMPONENT Applications)
+      		#install(CODE "execute_process(COMMAND ln -fs ../../${INSTALL_PLUGIN_DIR} \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/PlugIns)"
+		  	# 			COMPONENT Applications)
 			install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/MacOS/ -e @rpath/ -n -c)"
 							COMPONENT Applications)
-    else() # dmg
+    		else() # dmg
     		## Write a qt.conf file with a ref to the plugin dir in app bundles = PlugIns
 				file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/macappqt.conf"
 						 "[Paths]\nPlugins = PlugIns\n")
@@ -154,23 +154,23 @@ macro(add_mac_app_bundle _name)
 				## TODO allow choosing keychain
 				## Note: Signing identity has to be unique, and present in any of the keychains in search list
 				## which needs to be unlocked. Play around with keychain argument otherwise.
-				 install(CODE "
-execute_process(COMMAND codesign --deep --force --options runtime --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" -i de.openms.${_name} \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_out ERROR_VARIABLE sign_out)
-message('\${sign_out}')" COMPONENT Applications)
+				install(CODE "
+					execute_process(COMMAND codesign --deep --force --options runtime --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" -i de.openms.${_name} \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_out ERROR_VARIABLE sign_out)
+					message('\${sign_out}')" COMPONENT Applications)
 
-				 install(CODE "
-execute_process(COMMAND codesign -dv \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_check_out ERROR_VARIABLE sign_check_out)
-message('\${sign_check_out}')" COMPONENT Applications)
+				install(CODE "
+					execute_process(COMMAND codesign -dv \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_check_out ERROR_VARIABLE sign_check_out)
+					message('\${sign_check_out}')" COMPONENT Applications)
 
 				if("${PACKAGE_TYPE}" STREQUAL "dmg")
-				 install(CODE "
-execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize_app.sh \${CMAKE_INSTALL_PREFIX}/${_name}.app de.openms.${_name} ${SIGNING_EMAIL} CODESIGNPW ${OPENMS_HOST_BINARY_DIRECTORY} OUTPUT_VARIABLE notarize_out ERROR_VARIABLE notarize_out)
-message('\${notarize_out}')" COMPONENT Applications)
+					install(CODE "
+						execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize_app.sh \${CMAKE_INSTALL_PREFIX}/${_name}.app de.openms.${_name} ${SIGNING_EMAIL} CODESIGNPW ${OPENMS_HOST_BINARY_DIRECTORY} OUTPUT_VARIABLE notarize_out ERROR_VARIABLE notarize_out)
+						message('\${notarize_out}')" COMPONENT Applications)
 
-				 install(CODE "
-execute_process(COMMAND spctl -a -v \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE verify_out ERROR_VARIABLE verify_out)
-message('\${verify_out}')" COMPONENT Applications)
-   			endif()
+					install(CODE "
+						execute_process(COMMAND spctl -a -v \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE verify_out ERROR_VARIABLE verify_out)
+						message('\${verify_out}')" COMPONENT Applications)
+   				endif()
 			endif(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
 		endif()
 	else()
