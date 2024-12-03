@@ -17,6 +17,7 @@
 #include <boost/random/uniform_int.hpp>
 #include <cmath>
 #include <utility> // for std::pair
+#include <vector>
 
 namespace OpenMS
 {

@@ -17,7 +17,7 @@
 
 class QProcess; // forward declare to avoid header include
 class QString;
-class QStringList;
+#include <QtCore/qcontainerfwd.h> // for QStringList
 
 namespace OpenMS
 {

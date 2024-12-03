@@ -12,12 +12,8 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
-#include <QtWidgets/QCompleter>
-#include <QtWidgets/QDirModel>
 #include <QtCore/QDir>
-#include <QtCore/QFileInfo>
 
 
 namespace OpenMS

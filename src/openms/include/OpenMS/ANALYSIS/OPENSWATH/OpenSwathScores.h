@@ -35,7 +35,6 @@ namespace OpenMS
     bool use_sn_score_ = true;
     bool use_mi_score_ = true;
     bool use_dia_scores_ = true;
-    bool use_sonar_scores = true;
     bool use_im_scores = true;
     bool use_ms1_correlation = true;
     bool use_ms1_fullscan = true;
@@ -89,13 +88,6 @@ namespace OpenMS
     double ms1_mi_score = -1;
     double ms1_mi_contrast_score = 0;
     double ms1_mi_combined_score = 0;
-
-    double sonar_sn = 0;
-    double sonar_diff = 0;
-    double sonar_trend = 0;
-    double sonar_rsq = 0;
-    double sonar_shape = 0;
-    double sonar_lag = 0;
 
     double im_xcorr_coelution_score = 0;
     double im_xcorr_shape_score = 0;

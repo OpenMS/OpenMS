@@ -446,7 +446,6 @@ protected:
 
     // misc options
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the upper edge of a Swath window to still consider a precursor, in Thomson", false, true);
-    registerFlag_("sonar", "data is scanning SWATH data");
     registerFlag_("pasef", "data is PASEF data");
 
     // RT, mz and IM windows
@@ -655,7 +654,6 @@ protected:
     bool split_file = getFlag_("split_file_input");
     bool use_emg_score = getFlag_("use_elution_model_score");
     bool force = getFlag_("force");
-    bool sonar = getFlag_("sonar");
     bool pasef = getFlag_("pasef");
     bool sort_swath_maps = getFlag_("sort_swath_maps");
     bool use_ms1_traces = getStringOption_("enable_ms1") == "true";
@@ -827,7 +825,7 @@ protected:
       qc_consumer.setExperimentalSettingsFunc(qc.getExpSettingsFunc());
       if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions,
                           swath_windows_file, min_upper_edge_dist, force,
-                          sort_swath_maps, sonar, prm, pasef, &qc_consumer))
+                          sort_swath_maps, prm, pasef, &qc_consumer))
       {
         return PARSE_ERROR;
       }
@@ -837,7 +835,7 @@ protected:
     {
       if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions,
                           swath_windows_file, min_upper_edge_dist, force,
-                          sort_swath_maps, sonar, prm, pasef))
+                          sort_swath_maps, prm, pasef))
       {
         return PARSE_ERROR;
       }
@@ -861,7 +859,7 @@ protected:
       trafo_rtnorm = performCalibration(trafo_in, irt_tr_file, swath_maps,
                                         min_rsq, min_coverage, feature_finder_param,
                                         cp_irt, irt_detection_param, calibration_param,
-                                        debug_level, sonar, pasef, load_into_memory,
+                                        debug_level, pasef, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
     }
     else
@@ -877,7 +875,7 @@ protected:
       trafo_rtnorm = performCalibration(trafo_in, irt_tr_file, swath_maps,
                                         min_rsq, min_coverage, feature_finder_param,
                                         cp_irt, linear_irt, no_calibration,
-                                        debug_level, sonar, pasef, load_into_memory,
+                                        debug_level, pasef, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
 
       cp_irt.rt_extraction_window = 900; // extract some substantial part of the RT range (should be covered by linear correction)
@@ -893,7 +891,7 @@ protected:
       OpenSwathCalibrationWorkflow wf;
       wf.setLogType(log_type_);
       wf.simpleExtractChromatograms_(swath_maps, transition_exp_nl, chromatograms,
-                                    trafo_rtnorm, cp_irt, sonar, pasef, load_into_memory);
+                                    trafo_rtnorm, cp_irt, pasef, load_into_memory);
 
       // always use estimateBestPeptides for the nonlinear approach
       Param nonlinear_irt = irt_detection_param;
@@ -927,26 +925,13 @@ protected:
     // Set up peakgroup file output (.tsv or .osw file)
     ///////////////////////////////////
     FeatureMap out_featureFile;
-    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, sonar); // only active if filename not empty
+    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces); // only active if filename not empty
     OpenSwathOSWWriter oswwriter(out_osw, run_id, file_list[0], enable_uis_scoring); // only active if filename not empty
 
-    ///////////////////////////////////
-    // Extract and score
-    ///////////////////////////////////
-    if (sonar)
-    {
-      OpenSwathWorkflowSonar wf(use_ms1_traces);
-      wf.setLogType(log_type_);
-      wf.performExtractionSonar(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
-          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, load_into_memory);
-    }
-    else
-    {
-      OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, outer_loop_threads);
-      wf.setLogType(log_type_);
-      wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
-          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory);
-    }
+    OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, outer_loop_threads);
+    wf.setLogType(log_type_);
+    wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
+        out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory);
 
     if (!out.empty())
     {

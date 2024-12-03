@@ -120,8 +120,6 @@ namespace OpenMS
     scores_to_use.setValidStrings("use_dia_scores", {"true","false"});
     scores_to_use.setValue("use_ms1_correlation", "false", "Use the correlation scores with the MS1 elution profiles", {"advanced"});
     scores_to_use.setValidStrings("use_ms1_correlation", {"true","false"});
-    scores_to_use.setValue("use_sonar_scores", "false", "Use the scores for SONAR scans (scanning swath)", {"advanced"});
-    scores_to_use.setValidStrings("use_sonar_scores", {"true","false"});
     scores_to_use.setValue("use_ion_mobility_scores", "false", "Use the scores for Ion Mobility scans", {"advanced"});
     scores_to_use.setValidStrings("use_ion_mobility_scores", {"true","false"});
     scores_to_use.setValue("use_ms1_fullscan", "false", "Use the full MS1 scan at the peak apex for scoring (ppm accuracy of precursor and isotopic pattern)", {"advanced"});
@@ -583,7 +581,6 @@ namespace OpenMS
                                          " has no chromatograms.");
       }
       bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
-      bool sonar_present = (swath_maps.size() > 1);
       double xx_lda_prescore;
       double precursor_mz(-1);
 
@@ -696,7 +693,7 @@ namespace OpenMS
         scorer.calculateLibraryScores(imrmfeature, transition_group_detection.getTransitions(), *pep, normalized_experimental_rt, scores);
 
         ///////////////////////////////////
-        // DIA and SONAR scores
+        // DIA scores
         if (swath_present && su_.use_dia_scores_)
         {
           std::vector<double> masserror_ppm;
@@ -706,11 +703,7 @@ namespace OpenMS
                                     drift_target, im_range);
           mrmfeature.setMetaValue("masserror_ppm", masserror_ppm);
         }
-        if (sonar_present && su_.use_sonar_scores)
-        {
-          sonarscoring_.computeSonarScores(imrmfeature, transition_group_detection.getTransitions(), swath_maps, scores);
-        }
-
+        
         double det_intensity_ratio_score = 0;
         if ((double)mrmfeature.getMetaValue("total_xic") > 0)
         {
@@ -840,7 +833,7 @@ namespace OpenMS
         mrmfeature.setOverallQuality(xx_lda_prescore);
         mrmfeature.addScore("xx_lda_prelim_score", xx_lda_prescore);
 
-        // Add the DIA / SWATH scores, ion mobility scores and SONAR scores
+        // Add the DIA scores and ion mobility scores 
         if (swath_present && su_.use_dia_scores_)
         {
           if (su_.use_ms2_isotope_scores)
@@ -915,24 +908,6 @@ namespace OpenMS
 
         precursor_mz = transition_group_detection.getTransitions()[0].getPrecursorMZ();
 
-        if (sonar_present && su_.use_sonar_scores)
-        {
-
-          // set all scores less than 1 to zero (do not over-punish large negative scores)
-          double log_sn = 0;
-          if (scores.sonar_sn > 1) log_sn = std::log(scores.sonar_sn);
-          double log_trend = 0;
-          if (scores.sonar_trend > 1) log_trend = std::log(scores.sonar_trend);
-          double log_diff = 0;
-          if (scores.sonar_diff > 1) log_diff = std::log(scores.sonar_diff);
-
-          mrmfeature.addScore("var_sonar_lag", scores.sonar_lag);
-          mrmfeature.addScore("var_sonar_shape", scores.sonar_shape);
-          mrmfeature.addScore("var_sonar_log_sn", log_sn);
-          mrmfeature.addScore("var_sonar_log_diff", log_diff);
-          mrmfeature.addScore("var_sonar_log_trend", log_trend);
-          mrmfeature.addScore("var_sonar_rsq", scores.sonar_rsq);
-        }
       }
 
       ///////////////////////////////////////////////////////////////////////////
@@ -1050,12 +1025,6 @@ namespace OpenMS
     sn_bin_count_ = (unsigned int)param_.getValue("TransitionGroupPicker:PeakPickerChromatogram:sn_bin_count");
     write_log_messages_ = (bool)param_.getValue("TransitionGroupPicker:PeakPickerChromatogram:write_sn_log_messages").toBool();
 
-    // set SONAR values
-    Param p = sonarscoring_.getDefaults();
-    p.setValue("dia_extraction_window", param_.getValue("DIAScoring:dia_extraction_window"));
-    p.setValue("dia_centroided", param_.getValue("DIAScoring:dia_centroided"));
-    sonarscoring_.setParameters(p);
-
     diascoring_.setParameters(param_.copy("DIAScoring:", true));
 
     emgscoring_.setFitterParam(param_.copy("EMGScoring:", true));
@@ -1075,7 +1044,6 @@ namespace OpenMS
     su_.use_mi_score_            = param_.getValue("Scores:use_mi_score").toBool();
 
     su_.use_dia_scores_          = param_.getValue("Scores:use_dia_scores").toBool();
-    su_.use_sonar_scores         = param_.getValue("Scores:use_sonar_scores").toBool();
     su_.use_im_scores            = param_.getValue("Scores:use_ion_mobility_scores").toBool();
     su_.use_ms1_correlation      = param_.getValue("Scores:use_ms1_correlation").toBool();
     su_.use_ms1_fullscan         = param_.getValue("Scores:use_ms1_fullscan").toBool();

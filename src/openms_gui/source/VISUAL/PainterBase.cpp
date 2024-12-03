@@ -15,6 +15,7 @@
 
 #include <QPainter>
 #include <QPen>
+#include <QTransform>
 
 using namespace std;
 
@@ -143,7 +144,7 @@ namespace OpenMS
     {
       //painter->translate(start);
       //painter->rotate(angle);
-      QMatrix rotationMatrix;
+      QTransform rotationMatrix;
       rotationMatrix.translate(start.x(), start.y());
       rotationMatrix.rotate(angle);
       QPainterPath path = rotationMatrix.map(arrow_start);
@@ -153,7 +154,7 @@ namespace OpenMS
     }
     if (!arrow_end.isEmpty())
     {
-      QMatrix rotationMatrix;
+      QTransform rotationMatrix;
       rotationMatrix.translate(end.x(), end.y());
       rotationMatrix.rotate(angle + 180);
       QPainterPath path = rotationMatrix.map(arrow_end);

@@ -15,7 +15,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/IonMobilityScoring.h>
 
 // auxiliary
@@ -84,30 +83,11 @@ namespace OpenMS
     OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
     OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
 
-    // Identify corresponding SONAR maps (if more than one map is used)
-    std::vector<OpenSwath::SwathMap> used_swath_maps;
-    if (swath_maps.size() > 1 || transitions.empty())
-    {
-      double precursor_mz = transitions[0].getPrecursorMZ();
-      for (size_t i = 0; i < swath_maps.size(); ++i)
-      {
-        if (swath_maps[i].ms1) {continue;} // skip MS1
-        if (precursor_mz > swath_maps[i].lower && precursor_mz < swath_maps[i].upper)
-        {
-          used_swath_maps.push_back(swath_maps[i]);
-        }
-      }
-    }
-    else
-    {
-      used_swath_maps = swath_maps;
-    }
-
     std::vector<double> normalized_library_intensity;
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
     // find spectrum that is closest to the apex of the peak using binary search
-    std::vector<OpenSwath::SpectrumPtr> spectra = fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_, im_range);
+    std::vector<OpenSwath::SpectrumPtr> spectra = fetchSpectrumSwath(swath_maps, imrmfeature->getRT(), add_up_spectra_, im_range);
 
     // set the DIA parameters
     // TODO Cache these parameters

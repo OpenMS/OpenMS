@@ -71,7 +71,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
         bool use_sn_score_
         bool use_mi_score_
         bool use_dia_scores_
-        bool use_sonar_scores
         bool use_ms1_correlation
         bool use_ms1_fullscan
         bool use_ms1_mi
@@ -124,13 +123,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
         double ms1_mi_score
         double ms1_mi_contrast_score
         double ms1_mi_combined_score
-
-        double sonar_sn 
-        double sonar_diff
-        double sonar_trend
-        double sonar_rsq
-        double sonar_shape
-        double sonar_lag
 
         double library_manhattan
         double library_dotprod

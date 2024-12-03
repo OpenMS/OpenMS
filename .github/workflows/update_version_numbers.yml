@@ -38,6 +38,9 @@ jobs:
           sed -i '' "s#detail.version_minor =.*#detail.version_minor = $package_version_minor;#" ./src/tests/class_tests/openms/source/VersionInfo_test.cpp
           sed -i '' "s#detail.version_patch =.*#detail.version_patch = $package_version_patch;#" ./src/tests/class_tests/openms/source/VersionInfo_test.cpp
 
+          # update vcpkg.json
+          sed -i '' "s/\"version-string\": \".*\"/\"version-string\": \"$package_version\"/" vcpkg.json
+
           # update test write ini out:
           sed -i '' "s#<ITEM name=\"version\" value=\".*\" type=\"string\"#<ITEM name=\"version\" value=\"$package_version\" type=\"string\"#g" ./src/tests/topp/WRITE_INI_OUT.ini
           # update INIUpdater version
@@ -46,7 +49,6 @@ jobs:
 
           # update INIs in tests topp:
           find ./src/tests/topp/ -type f -name '*.ini' -exec grep -q "<ITEM name=\"version\" value=\".*\" type=\"string\"" {} \; -exec sed -i '' "s#<ITEM name=\"version\" value=\".*\" type=\"string\"#<ITEM name=\"version\" value=\"$package_version\" type=\"string\"#g" {} \;
-
           # Update Changelog
           # Define the new section using a here-doc
           section_header=$(cat <<EOF

@@ -25,7 +25,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
-#include <QtCore/QRegExp>
+#include <QtCore/QRegularExpression>
 
 #include <QSvgRenderer>
 #include <map>
@@ -393,17 +393,10 @@ namespace OpenMS
   QString TOPPASToolVertex::toolnameWithWhitespacesForFancyWordWrapping_(QPainter* painter, const QString& str)
   {
     qreal max_width = 130;
-/*
-         * Suppressed warning QSTring::SkipEmptyParts and QString::SplitBehaviour is deprecated
-         * QT::SkipEmptyParts and QT::SplitBehaviour is added or modified at Qt 5.14
-         */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    QStringList parts = str.split(QRegExp("\\s+"), QString::SkipEmptyParts);
-#pragma GCC diagnostic pop
+    QStringList parts = str.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
     QStringList new_parts;
 
-    foreach(QString part, parts)
+    for(const QString& part : parts)
     {
       QRectF text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter | Qt::TextWordWrap, part);
       if (text_boundings.width() <= max_width)
@@ -419,7 +412,7 @@ namespace OpenMS
         {
           QString tmp_str = part.left(i);
           //remember position of last capital letter
-          if (QRegExp("[A-Z]").exactMatch(tmp_str.at(i - 1)))
+          if (tmp_str.at(i - 1).isUpper())
           {
             last_capital_index = i;
           }
@@ -1030,13 +1023,13 @@ namespace OpenMS
           }
           else if (list_to_single)
           {
-            if (fn.contains(QRegExp(".*_to_.*_mrgd")))
+            if (fn.contains(QRegularExpression(".*_to_.*_mrgd")))
             {
               fn = fn.left(fn.indexOf("_to_"));
               OPENMS_LOG_DEBUG << "  first merge in merge: " << fn.toStdString() << "\n";
             }
             QString fn_last = QFileInfo(per_round_basenames[round].last()).fileName();
-            if (fn_last.contains(QRegExp(".*_to_.*_mrgd")))
+            if (fn_last.contains(QRegularExpression(".*_to_.*_mrgd")))
             {
               int i_start = fn_last.indexOf("_to_") + 4;
               fn_last = fn_last.mid(i_start, fn_last.indexOf("_mrgd", i_start) - i_start);

@@ -1044,7 +1044,8 @@ protected:
               << "--write-pin"; 
   }
 
-    if (batch >= 1) arguments << "--batch-size" << QString(batch);
+    if (batch >= 1) arguments << "--batch-size" << String(batch).toQString();
+    
     for (auto s : input_files) arguments << s.toQString();
 
     OPENMS_LOG_INFO << "Sage command line: " << sage_executable << " " << arguments.join(' ').toStdString() << std::endl;

@@ -15,11 +15,12 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+
 #include <QtCore/QProcess>
 #include <QFileInfo>
 #include <QDir>
+#include <QRegularExpression>
 
 #include <typeinfo>
 
@@ -248,37 +249,36 @@ protected:
 
     // %DIR% replace
     {
-      QRegExp rx(R"(%DIR\[(.*)\])");
-      rx.setMinimal(true);
-      int pos = 0;
+      QRegularExpression rx(R"(%DIR\[(.*)\])");
+      rx.setPatternOptions(QRegularExpression::InvertedGreedinessOption);
       QString t_tmp = fragment.toQString();
       //std::cout << "fragment is:" << fragment << std::endl;
-      while ((pos = rx.indexIn(t_tmp, pos)) != -1)
+      for (const QRegularExpressionMatch& match : rx.globalMatch(fragment.toQString())) 
       {
-        String value = rx.cap(1);   // param name (hopefully)
+        String value = match.captured(1);   // param name (hopefully)
         // replace in fragment:
         QFileInfo qfi(value.toQString());
         //std::cout << "match @ " << pos << " " << value << " --> " << qfi.canonicalPath() << "\n";
-        t_tmp = t_tmp.replace(String("%DIR[" + value + "]").toQString(), qfi.canonicalPath());
+        t_tmp.replace(String("%DIR[" + value + "]").toQString(), qfi.canonicalPath());
       }
-      fragment = String(t_tmp);
+      fragment = t_tmp;
       //std::cout << "NEW fragment is:" << fragment << std::endl;
     }
 
     // %BASENAME% replace
     {
-      QRegExp rx(R"(%BASENAME\[(.*)\])");
-      rx.setMinimal(true);
-      int pos = 0, count = 0;
+      QRegularExpression rx(R"(%BASENAME\[(.*)\])");
+      rx.setPatternOptions(QRegularExpression::InvertedGreedinessOption);
+      int count = 0;
       QString t_tmp = fragment.toQString();
-      while ((pos = rx.indexIn(t_tmp, pos)) != -1)
+      for (const QRegularExpressionMatch& match : rx.globalMatch(fragment.toQString())) 
       {
         //std::cout << "match @ " << pos << "\n";
-        String value = rx.cap(1);   // param name (hopefully)
+        String value = match.captured(1); // param name (hopefully)
         // replace in fragment:
         QFileInfo qfi(value.toQString());
         //std::cout << "match @ " << pos << " " << value << " --> " << qfi.completeBaseName() << "\n";
-        t_tmp = t_tmp.replace(String("%BASENAME[" + value + "]").toQString(), qfi.completeBaseName());
+        t_tmp.replace(String("%BASENAME[" + value + "]").toQString(), qfi.completeBaseName());
         ++count;
       }
       // update expected count of valid '%'

@@ -50,9 +50,9 @@ namespace OpenMS
 
     m_file->addAction( // we explicitly pass an empty Path here using a Lambda, since using the default `..., parent, &TOPPViewBase::openFilesByDialog, ...`)
                        // passes a "0" as argument (Qt bug?)
-      "&Open file", parent, [parent]() { parent->openFilesByDialog(""); }, Qt::CTRL + Qt::Key_O);
-    m_file->addAction("Open &example file", parent, [parent]() { parent->openFilesByDialog(File::getOpenMSDataPath() + "/examples/"); }, Qt::CTRL + Qt::Key_E);
-    addAction_(m_file->addAction("&Close tab", parent, &TOPPViewBase::closeTab, Qt::CTRL + Qt::Key_W),
+      "&Open file", parent, [parent]() { parent->openFilesByDialog(""); }, Qt::CTRL | Qt::Key_O);
+    m_file->addAction("Open &example file", parent, [parent]() { parent->openFilesByDialog(File::getOpenMSDataPath() + "/examples/"); }, Qt::CTRL | Qt::Key_E);
+    addAction_(m_file->addAction("&Close tab", parent, &TOPPViewBase::closeTab, Qt::CTRL | Qt::Key_W),
                TV_STATUS::HAS_CANVAS);
     m_file->addSeparator();
 
@@ -83,32 +83,32 @@ namespace OpenMS
     QMenu* m_tools = new QMenu("&Tools", parent);
     m_tools->setToolTipsVisible(true);
     parent->menuBar()->addMenu(m_tools);
-    addAction_(m_tools->addAction("&Select data range", parent, &TOPPViewBase::showGoToDialog, Qt::CTRL + Qt::Key_G),
+    addAction_(m_tools->addAction("&Select data range", parent, &TOPPViewBase::showGoToDialog, Qt::CTRL | Qt::Key_G),
       TV_STATUS::HAS_LAYER);
-    addAction_(m_tools->addAction("&Edit meta data", parent, &TOPPViewBase::editMetadata, Qt::CTRL + Qt::Key_M),
+    addAction_(m_tools->addAction("&Edit meta data", parent, &TOPPViewBase::editMetadata, Qt::CTRL | Qt::Key_M),
       TV_STATUS::HAS_LAYER);
     addAction_(m_tools->addAction("&Statistics", parent, &TOPPViewBase::layerStatistics),
       TV_STATUS::HAS_LAYER);
     m_tools->addSeparator();
-    action = addAction_(m_tools->addAction("Apply TOPP tool (whole layer)", parent, &TOPPViewBase::showTOPPDialog, Qt::CTRL + Qt::Key_T),
+    action = addAction_(m_tools->addAction("Apply TOPP tool (whole layer)", parent, &TOPPViewBase::showTOPPDialog, Qt::CTRL | Qt::Key_T),
         TV_STATUS::HAS_LAYER + TV_STATUS::TOPP_IDLE);
     action->setData(false);
-    action = addAction_(m_tools->addAction("Apply TOPP tool (visible layer data)", parent, &TOPPViewBase::showTOPPDialog, Qt::CTRL + Qt::SHIFT + Qt::Key_T),
+    action = addAction_(m_tools->addAction("Apply TOPP tool (visible layer data)", parent, &TOPPViewBase::showTOPPDialog, Qt::CTRL | Qt::SHIFT | Qt::Key_T),
       TV_STATUS::HAS_LAYER + TV_STATUS::TOPP_IDLE);
     action->setData(true);
     addAction_(m_tools->addAction("Rerun TOPP tool", parent, &TOPPViewBase::rerunTOPPTool, Qt::Key_F4),
       TV_STATUS::HAS_LAYER + TV_STATUS::TOPP_IDLE);
     m_tools->addSeparator();
     
-    action = addAction_(m_tools->addAction("&Annotate with AccurateMassSearch results", parent, &TOPPViewBase::annotateWithAMS, Qt::CTRL + Qt::Key_A),
+    action = addAction_(m_tools->addAction("&Annotate with AccurateMassSearch results", parent, &TOPPViewBase::annotateWithAMS, Qt::CTRL | Qt::Key_A),
       TV_STATUS::HAS_LAYER, FS_LAYER(LayerDataBase::DT_PEAK));
     action->setToolTip("Annotate Peak layer with a featureXML from the AccurateMassSearch tool");
     
-    action = addAction_(m_tools->addAction("&Annotate with peptide identifications", parent, &TOPPViewBase::annotateWithID, Qt::CTRL + Qt::Key_I),
+    action = addAction_(m_tools->addAction("&Annotate with peptide identifications", parent, &TOPPViewBase::annotateWithID, Qt::CTRL | Qt::Key_I),
       TV_STATUS::HAS_LAYER, LayerDataBase::DT_PEAK + LayerDataBase::DT_FEATURE + LayerDataBase::DT_CONSENSUS);
     action->setToolTip("Annotate a Peak or Feature or Consensus layer with peptide identifications");
 
-    action = addAction_(m_tools->addAction("&Annotate with OpenSwath transitions", parent, &TOPPViewBase::annotateWithOSW, Qt::CTRL + Qt::Key_P),
+    action = addAction_(m_tools->addAction("&Annotate with OpenSwath transitions", parent, &TOPPViewBase::annotateWithOSW, Qt::CTRL | Qt::Key_P),
       TV_STATUS::HAS_LAYER, FS_LAYER(LayerDataBase::DT_CHROMATOGRAM));
     action->setToolTip("Annotate Chromatogram layer with OSW transition id data from OpenSwathWorkflow or pyProphet");
     
@@ -122,14 +122,14 @@ namespace OpenMS
     QMenu* m_layer = new QMenu("&Layer", parent);
     m_layer->setToolTipsVisible(true);
     parent->menuBar()->addMenu(m_layer);
-    addAction_(m_layer->addAction("Save all data", parent, &TOPPViewBase::saveLayerAll, Qt::CTRL + Qt::Key_S),
+    addAction_(m_layer->addAction("Save all data", parent, &TOPPViewBase::saveLayerAll, Qt::CTRL | Qt::Key_S),
       TV_STATUS::HAS_LAYER);
-    addAction_(m_layer->addAction("Save visible data", parent, &TOPPViewBase::saveLayerVisible, Qt::CTRL + Qt::SHIFT + Qt::Key_S),
+    addAction_(m_layer->addAction("Save visible data", parent, &TOPPViewBase::saveLayerVisible, Qt::CTRL | Qt::SHIFT | Qt::Key_S),
       TV_STATUS::HAS_LAYER);
     m_layer->addSeparator();
-    addAction_(m_layer->addAction("Show/hide grid lines", parent, &TOPPViewBase::toggleGridLines, Qt::CTRL + Qt::Key_R),
+    addAction_(m_layer->addAction("Show/hide grid lines", parent, &TOPPViewBase::toggleGridLines, Qt::CTRL | Qt::Key_R),
       TV_STATUS::HAS_LAYER);
-    addAction_(m_layer->addAction("Show/hide axis legends", parent, &TOPPViewBase::toggleAxisLegends, Qt::CTRL + Qt::Key_L),
+    addAction_(m_layer->addAction("Show/hide axis legends", parent, &TOPPViewBase::toggleAxisLegends, Qt::CTRL | Qt::Key_L),
       TV_STATUS::HAS_CANVAS);
     action = addAction_(m_layer->addAction("Show/hide automated m/z annotations", parent, &TOPPViewBase::toggleInterestingMZs),
       TV_STATUS::IS_1D_VIEW);

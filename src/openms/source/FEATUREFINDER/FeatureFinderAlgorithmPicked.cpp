@@ -35,8 +35,8 @@ namespace OpenMS
     DefaultParamHandler("FeatureFinderAlgorithmPicked")
   {
     //debugging
-    defaults_.setValue("debug", "false", "When debug mode is activated, several files with intermediate results are written to the folder 'debug' (do not use in parallel mode).");
-    defaults_.setValidStrings("debug", {"true","false"});
+    defaults_.setValue("write_debug", "false", "When debug mode is activated, several files with intermediate results are written to the folder 'debug' (do not use in parallel mode).");
+    defaults_.setValidStrings("write_debug", {"true","false"});
     //intensity
     defaults_.setValue("intensity:bins", 10, "Number of bins per dimension (RT and m/z). The higher this value, the more local the intensity significance score is.\nThis parameter should be decreased, if the algorithm is used on small regions of a map.");
     defaults_.setMinInt("intensity:bins", 1);
@@ -225,7 +225,7 @@ namespace OpenMS
       }
     }
 
-    debug_ = param_.getValue("debug").toBool();
+    debug_ = param_.getValue("write_debug").toBool();
     //clean up / create folders for debug information
     if (debug_)
     {
