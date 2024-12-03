@@ -395,15 +395,10 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   param.setValue("add_abundant_immonium_ions", "true");
   ptr->setParameters(param);
   spec.clear(true);
-  AASequence aas = AASequence::fromString("HFYLWCP");
-  for (const auto& aa : aas)
-  {
-    std::cout << aa << std::endl;
-  }
-  ptr->getSpectrum(spec, aas, 1, 1);
+  ptr->getSpectrum(spec, AASequence::fromString("HFYLWCP"), 1, 1);
   TEST_EQUAL(spec.size(), 7)
-  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 70.0656) // ImP
-  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 76.0221) // ImC
+  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 70.0656)
+  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 76.0221)
   TEST_REAL_SIMILAR(spec[2].getPosition()[0], 86.09698)
   TEST_REAL_SIMILAR(spec[3].getPosition()[0], 110.0718)
   TEST_REAL_SIMILAR(spec[4].getPosition()[0], 120.0813)
