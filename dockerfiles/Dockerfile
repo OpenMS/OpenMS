@@ -20,30 +20,36 @@ RUN apt-get update \
     && add-apt-repository universe \
     && apt-get update \
     && apt-get install -y --no-install-recommends --no-install-suggests \
-    build-essential \
-    cmake \
-    autoconf \
-    patch \
-    libtool \
+    g++ \
+    make \
     git \
-    automake \
-    qt6-base-dev \
-    libqt6opengl6-dev \
-    libsvm3 \
+    cmake \
+    ca-certificates \
+    build-essential \
+    # OpenMS build dependencies
     libsvm-dev \
+    libsvm3 \
+    libglpk-dev \
+    libzip-dev \
+    zlib1g-dev \
     libzip4 \
     zlib1g \
-    libbz2-1.0 \
-    libgomp1 \
-    libqt6svg6-dev \
-    libxerces-c3.2 \
     libxerces-c-dev \
-    coinor-libcoinmp1v5 \
-    libboost-date-time1.74-dev  \
+    libxerces-c3.2 \
+    libbz2-dev \
+    libbz2-1.0 \
+    libomp-dev \
+    libgomp1 \
+    libhdf5-dev\
+    libboost-date-time1.74-dev \
     libboost-iostreams1.74-dev \
     libboost-regex1.74-dev \
     libboost-math1.74-dev \
     libboost-random1.74-dev \
+    qt6-base-dev \
+    libqt6opengl6-dev \
+    libqt6svg6-dev \
+    coinor-libcoinmp1v5 \
   && rm -rf /var/lib/apt/lists/*
 
 # The main reason we're pulling this in is to make sure that the metadata
