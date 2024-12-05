@@ -36,6 +36,7 @@ RUN apt-get update \
     libgomp1 \
     libqt6svg6-dev \
     libxerces-c3.2 \
+    libxerces-c-dev \
     coinor-libcoinmp1v5 \
     libboost-date-time1.74-dev  \
     libboost-iostreams1.74-dev \
