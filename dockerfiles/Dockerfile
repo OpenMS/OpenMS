@@ -28,19 +28,16 @@ RUN apt-get update \
     build-essential \
     # OpenMS build dependencies
     libsvm-dev \
-    libsvm3 \
     libglpk-dev \
     libzip-dev \
     zlib1g-dev \
     libzip4 \
     zlib1g \
     libxerces-c-dev \
-    libxerces-c3.2 \
     libbz2-dev \
-    libbz2-1.0 \
     libomp-dev \
-    libgomp1 \
     libhdf5-dev\
+    coinor-libcoinmp-dev \
     libboost-date-time1.74-dev \
     libboost-iostreams1.74-dev \
     libboost-regex1.74-dev \
@@ -49,7 +46,6 @@ RUN apt-get update \
     qt6-base-dev \
     libqt6opengl6-dev \
     libqt6svg6-dev \
-    coinor-libcoinmp1v5 \
   && rm -rf /var/lib/apt/lists/*
 
 # The main reason we're pulling this in is to make sure that the metadata
