@@ -116,6 +116,7 @@ ARG INSTALL_DIR
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends --no-install-suggests \
+    qt6-base \
     libqt6opengl6 \
     libsvm3 \
     libzip4 \
