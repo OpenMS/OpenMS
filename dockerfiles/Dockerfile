@@ -48,7 +48,7 @@ RUN apt-get update \
     libgl1-mesa-dev \
     libqt6opengl6-dev \
     libqt6svg6-dev \   
-  && rm -rf /var/lib/apt/lists/*
+  && rm -rf /var/lib/apt/lists/* \
   && update-ca-certificates
 
 # installing cmake
