@@ -45,8 +45,10 @@ RUN apt-get update \
     libboost-math1.74-dev \
     libboost-random1.74-dev \
     qt6-base-dev \
+    libglx-dev \
+    libgl1-mesa-dev \
     libqt6opengl6-dev \
-    libqt6svg6-dev \
+    libqt6svg6-dev \   
   && rm -rf /var/lib/apt/lists/*
 
 # The main reason we're pulling this in is to make sure that the metadata
