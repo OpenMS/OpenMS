@@ -114,6 +114,24 @@ RUN make install/strip
 FROM ubuntu:22.04 AS library
 ARG INSTALL_DIR
 
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends --no-install-suggests \
+    libqt6opengl6 \
+    libsvm3 \
+    libzip4 \
+    zlib1g \
+    libbz2-1.0 \
+    libgomp1 \
+    libqt6svg6 \
+    libxerces-c3.2 \
+    coinor-libcoinmp1v5 \
+    libboost-date-time1.74-dev  \
+    libboost-iostreams1.74-dev \
+    libboost-regex1.74-dev \
+    libboost-math1.74-dev \
+    libboost-random1.74-dev \
+  && rm -rf /var/lib/apt/lists/*
+
 COPY --from=build ${INSTALL_DIR}/lib ${INSTALL_DIR}/lib
 COPY --from=build ${INSTALL_DIR}/include ${INSTALL_DIR}/include
 COPY --from=build ${INSTALL_DIR}/share ${INSTALL_DIR}/share
