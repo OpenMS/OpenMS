@@ -8,12 +8,12 @@ ARG INSTALL_DIR="/opt/OpenMS"
 ARG THIRDPARTY_DIR="/opt/OpenMS/thirdparty"
 ARG NUM_BUILD_CORES=8
 ARG MAKEFLAGS="-j${NUM_BUILD_CORES}"
-ARG CMAKE_VERSION=3.28.1
 
 
 ### OpenMS base ###
 FROM ubuntu:22.04 AS base
 ARG OPENMS_VERSION_TAG
+ARG CMAKE_VERSION=3.28.1
 
 RUN apt-get update \
     && apt-get install -y software-properties-common \
