@@ -30,6 +30,7 @@ RUN apt-get update \
     qt6-base-dev \
     libqt6opengl6-dev \
     libsvm3 \
+    libsvm-dev \
     libzip4 \
     zlib1g \
     libbz2-1.0 \
