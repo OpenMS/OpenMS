@@ -376,8 +376,6 @@ jobs:
           ENABLE_CLASS_TESTING: "ON"
           ENABLE_DOCS: ${{ steps.set-vars.outputs.enable_docs }}
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
-          SIGNING_IDENTITY:  ${{ steps.set-vars.outputs.signing_identity }}
-          SIGNING_EMAIL: "info@openms.de"
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
           ADDRESS_SANITIZER: "Off"
@@ -428,6 +426,8 @@ jobs:
           exit $retVal
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          SIGNING_IDENTITY:  ${{ steps.set-vars.outputs.signing_identity }}
+          SIGNING_EMAIL: "info@openms.de"
           PACKAGE_TYPE: ${{ steps.set-vars.outputs.pkg_type }}
           SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/_thirdparty"
           CI_PROVIDER: "GitHub-Actions"
