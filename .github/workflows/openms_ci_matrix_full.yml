@@ -113,6 +113,7 @@ jobs:
             echo "pkg_type=none" >> $GITHUB_OUTPUT
           fi
           echo "cxx_compiler=${{ matrix.compiler }}-${{ matrix.compiler_ver }}" >> $GITHUB_OUTPUT
+          echo signing_identity = '' >> $GITHUB_OUTPUT
         fi
         
         if [[ "${{ matrix.os }}" == windows-* ]]; then
@@ -130,6 +131,7 @@ jobs:
             echo "enable_docs=OFF" >> $GITHUB_OUTPUT
           fi
           echo "cxx_compiler=${{ matrix.compiler }}" >> $GITHUB_OUTPUT
+          echo signing_identity = '' >> $GITHUB_OUTPUT
         fi
 
         if [[ "${{ matrix.os }}" == macos-* ]]; then
@@ -156,6 +158,7 @@ jobs:
             echo "Unsupported compiler"
             exit 1
           fi
+          echo signing_identity = '-' >> $GITHUB_OUTPUT
         fi
       shell: bash
 
@@ -373,6 +376,7 @@ jobs:
           ENABLE_CLASS_TESTING: "ON"
           ENABLE_DOCS: ${{ steps.set-vars.outputs.enable_docs }}
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
+          SIGNING_IDENTITY:  ${{ steps.set-vars.outputs.signing_identity }}
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
           ADDRESS_SANITIZER: "Off"
