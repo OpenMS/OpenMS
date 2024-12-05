@@ -23,7 +23,6 @@ RUN apt-get update \
     g++ \
     make \
     git \
-    cmake \
     ca-certificates \
     build-essential \
     # OpenMS build dependencies
@@ -50,6 +49,18 @@ RUN apt-get update \
     libqt6opengl6-dev \
     libqt6svg6-dev \   
   && rm -rf /var/lib/apt/lists/*
+
+# installing cmake
+WORKDIR /tmp
+ADD https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh cmake.sh
+RUN <<-EOF
+    set -eux
+    mkdir -p /opt/cmake
+    sh cmake.sh --skip-license --prefix=/opt/cmake
+    ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
+    ln -s /opt/cmake/bin/ctest /usr/local/bin/ctest
+    rm -rf /tmp/*
+EOF
 
 # The main reason we're pulling this in is to make sure that the metadata
 # below is consistently formatted for releases irrespective of the base image
