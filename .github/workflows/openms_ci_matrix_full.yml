@@ -377,6 +377,7 @@ jobs:
           ENABLE_DOCS: ${{ steps.set-vars.outputs.enable_docs }}
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
           SIGNING_IDENTITY:  ${{ steps.set-vars.outputs.signing_identity }}
+          SIGNING_EMAIL: "info@openms.de"
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
           ADDRESS_SANITIZER: "Off"
