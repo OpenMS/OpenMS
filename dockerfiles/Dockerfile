@@ -5,11 +5,6 @@ ARG OPENMS_VERSION_TAG=latest
 ARG SOURCE_DIR="/tmp/OpenMS"
 ARG BUILD_DIR="${SOURCE_DIR}/bld"
 ARG INSTALL_DIR="/opt/OpenMS"
-# the contrib image is the collection of dependencies needed to build OpenMS
-ARG CONTRIB_IMAGE_TAG=latest
-ARG CONTRIB_BASE_IMAGE=ghcr.io/openms/contrib:${CONTRIB_IMAGE_TAG}
-# this directory is where any dependencies that are built from source go
-ARG CONTRIB_BUILD_DIR="/contrib-build"
 ARG THIRDPARTY_DIR="/opt/OpenMS/thirdparty"
 ARG NUM_BUILD_CORES=8
 ARG MAKEFLAGS="-j${NUM_BUILD_CORES}"
@@ -17,15 +12,21 @@ ARG CMAKE_VERSION="3.28.1"
 
 
 ### OpenMS base ###
-FROM ${CONTRIB_BASE_IMAGE} AS base
+FROM ubuntu:22.04 AS base
 ARG OPENMS_VERSION_TAG
-ARG CONTRIB_BUILD_DIR
 
 RUN apt-get update \
     && apt-get install -y software-properties-common \
     && add-apt-repository universe \
     && apt-get update \
     && apt-get install -y --no-install-recommends --no-install-suggests \
+    build-essential \
+    cmake \
+    autoconf \
+    patch \
+    libtool \
+    git \
+    automake \
     qt6-base-dev \
     libqt6opengl6-dev \
     libsvm3 \
@@ -43,13 +44,7 @@ RUN apt-get update \
     libboost-random1.74-dev \
   && rm -rf /var/lib/apt/lists/*
 
-# if the contrib image builds anything from source it will place the binaries
-# in the CONTRIB_BUILD_DIR. If it doesn't (ie. because they are installed from
-# the package manager) then we need to create the directory anyway since other
-# stages attempt to copy from it
-RUN mkdir -p ${CONTRIB_BUILD_DIR}/bin
-
-# the main reason we're pulling this in is to make sure that the metadata
+# The main reason we're pulling this in is to make sure that the metadata
 # below is consistently formatted for releases irrespective of the base image
 LABEL version="${OPENMS_VERSION_TAG}"
 LABEL software.version="${OPENMS_VERSION_TAG}-Ubuntu22.04"
@@ -61,7 +56,6 @@ FROM base AS build
 ARG SOURCE_DIR
 ARG BUILD_DIR
 ARG INSTALL_DIR
-ARG CONTRIB_BUILD_DIR
 ARG THIRDPARTY_DIR
 ARG MAKEFLAGS
 ENV MAKEFLAGS="${MAKEFLAGS}"
@@ -86,7 +80,7 @@ ENV PATH="${THIRDPARTY_DIR}/LuciPHOr2:${THIRDPARTY_DIR}/MSGFPlus:${THIRDPARTY_DI
 RUN cmake \
     -DQt6_DIR="/usr/lib/x86_64-linux-gnu/cmake/Qt6" \
     -DCMAKE_BUILD_TYPE='Release' \
-    -DCMAKE_PREFIX_PATH="${CONTRIB_BUILD_DIR}/;/usr/;/usr/local" \
+    -DCMAKE_PREFIX_PATH="/usr/;/usr/local" \
     -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
     -DBOOST_USE_STATIC=OFF \
     -S ${SOURCE_DIR} \
@@ -100,9 +94,7 @@ RUN make install/strip
 ### OpenMS library ###
 FROM ubuntu:22.04 AS library
 ARG INSTALL_DIR
-ARG CONTRIB_BUILD_DIR
 
-COPY --from=build ${CONTRIB_BUILD_DIR}/bin ${CONTRIB_BUILD_DIR}/bin
 COPY --from=build ${INSTALL_DIR}/lib ${INSTALL_DIR}/lib
 COPY --from=build ${INSTALL_DIR}/include ${INSTALL_DIR}/include
 COPY --from=build ${INSTALL_DIR}/share ${INSTALL_DIR}/share
