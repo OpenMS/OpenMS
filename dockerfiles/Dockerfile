@@ -38,6 +38,7 @@ RUN apt-get update \
     libomp-dev \
     libhdf5-dev\
     coinor-libcoinmp-dev \
+    libeigen3-dev \
     libboost-date-time1.74-dev \
     libboost-iostreams1.74-dev \
     libboost-regex1.74-dev \
