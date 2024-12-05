@@ -8,7 +8,7 @@ ARG INSTALL_DIR="/opt/OpenMS"
 ARG THIRDPARTY_DIR="/opt/OpenMS/thirdparty"
 ARG NUM_BUILD_CORES=8
 ARG MAKEFLAGS="-j${NUM_BUILD_CORES}"
-ARG CMAKE_VERSION="3.28.1"
+ARG CMAKE_VERSION=3.28.1
 
 
 ### OpenMS base ###
@@ -49,6 +49,7 @@ RUN apt-get update \
     libqt6opengl6-dev \
     libqt6svg6-dev \   
   && rm -rf /var/lib/apt/lists/*
+  && update-ca-certificates
 
 # installing cmake
 WORKDIR /tmp
@@ -163,8 +164,8 @@ LABEL software="OpenMS (tools + thirdparty)"
 FROM tools-thirdparty AS test
 ARG SOURCE_DIR
 ARG BUILD_DIR
-ARG CMAKE_VERSION
-ARG NUM_BUILD_CORES
+ARG NUM_BUILD_CORES=8
+ARG CMAKE_VERSION=3.28.1
 
 RUN apt-get update \ 
     && apt-get install -y --no-install-recommends --no-install-suggests \
