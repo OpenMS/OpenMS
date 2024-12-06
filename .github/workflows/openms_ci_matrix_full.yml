@@ -349,7 +349,7 @@ jobs:
           if [ ${{steps.set-vars.outputs.pkg_type }} != "none" ]; then
             python -m venv openms-cwl
             source openms-cwl/bin/activate
-            pip install cwltool
+            pip install -q cwltool
             export ENABLE_CWL=ON
           fi
 

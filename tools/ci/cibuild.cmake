@@ -166,16 +166,15 @@ ctest_update()
 ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" OPTIONS "${OWN_OPTIONS}" RETURN_VALUE _configure_ret)
 ctest_submit(PARTS Update Configure)
 
-# Generate and valdiate the CWL files if "ENABLE_CWL" is set
-if ("$ENV{ENABLE_CWL}" STREQUAL "ON")
-  ctest_configure(OPTIONS "-DENABLE_CWL=ON" RETURN_VALUE _reconfig_cwl_ret_val)
-  ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "generate_cwl_files" NUMBER_ERRORS _build_errors)
-endif()
+
 
 # we only build when we do non-style testing and we may have special targets like pyopenms
 if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
   if("$ENV{PYOPENMS}" STREQUAL "ON")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "pyopenms" NUMBER_ERRORS _build_errors)
+    # Generate and valdiate the CWL files if "ENABLE_CWL" is set
+  elseif("$ENV{ENABLE_CWL}" STREQUAL "ON")
+    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "generate_cwl_files" NUMBER_ERRORS _build_errors)
   else()
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
   endif()
@@ -189,7 +188,7 @@ string(REPLACE "+" "%2B" BUILD_NAME_SAFE ${CTEST_BUILD_NAME})
 string(REPLACE "." "%2E" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
 string(REPLACE "/" "%2F" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
 
-if (_build_errors)
+if (_build_errors OR _build_errors)
   message(FATAL_ERROR "There were errors: Please check the build results at: https://cdash.openms.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
 else()
   message("Build successful: Please check the build results at: https://cdash.openms.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
