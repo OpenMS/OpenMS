@@ -270,7 +270,7 @@ private:
     int add_up_spectra_;
     String spectrum_addition_method_ ;
     double spacing_for_spectra_resampling_;
-    double use_percent_peak_width_;
+    double merge_spectra_by_peak_width_fraction_;
     double uis_threshold_sn_;
     double uis_threshold_peak_area_;
 

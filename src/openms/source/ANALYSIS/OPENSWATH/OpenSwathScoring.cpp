@@ -43,7 +43,7 @@ namespace OpenMS
   void OpenSwathScoring::initialize(double rt_normalization_factor,
                                     int add_up_spectra,
                                     double spacing_for_spectra_resampling,
-                                    double use_percent_peak_width,
+                                    double merge_spectra_by_peak_width_fraction,
                                     const double drift_extra,
                                     const OpenSwath_Scores_Usage & su,
                                     const std::string& spectrum_addition_method,
@@ -66,7 +66,7 @@ namespace OpenMS
 
     this->im_drift_extra_pcnt_ = drift_extra;
     this->spacing_for_spectra_resampling_ = spacing_for_spectra_resampling;
-    this->use_percent_peak_width_ = use_percent_peak_width;
+    this->merge_spectra_by_peak_width_fraction_ = merge_spectra_by_peak_width_fraction;
     this->su_ = su;
     this->use_ms1_ion_mobility_ = use_ms1_ion_mobility;
   }
@@ -95,7 +95,7 @@ namespace OpenMS
         double leftWidth = imrmfeature->getMetaValue("leftWidth");
         double rightWidth = imrmfeature->getMetaValue("rightWidth");
         double peakWidth = rightWidth - leftWidth;
-        add_up_spectra_ = std::ceil(peakWidth * use_percent_peak_width_);
+        add_up_spectra_ = std::ceil(peakWidth * merge_spectra_by_peak_width_fraction_);
         
         // Ensure add_up_spectra_ is odd
         if (static_cast<int>(add_up_spectra_) % 2 == 0) {
@@ -112,7 +112,7 @@ namespace OpenMS
             << " rightWidth: " << rightWidth 
             << " peakWidth: " << peakWidth 
             << " add_up_spectra_: " << add_up_spectra_ 
-            << " use_percent_peak_width_: " << use_percent_peak_width_ 
+            << " merge_spectra_by_peak_width_fraction_: " << merge_spectra_by_peak_width_fraction_ 
             << std::endl;
     }
     
@@ -288,7 +288,7 @@ namespace OpenMS
         double leftWidth = imrmfeature->getMetaValue("leftWidth");
         double rightWidth = imrmfeature->getMetaValue("rightWidth");
         double peakWidth = rightWidth - leftWidth;
-        add_up_spectra_ = std::ceil(peakWidth * use_percent_peak_width_);
+        add_up_spectra_ = std::ceil(peakWidth * merge_spectra_by_peak_width_fraction_);
         
         // Ensure add_up_spectra_ is odd
         if (static_cast<int>(add_up_spectra_) % 2 == 0) {
@@ -305,7 +305,7 @@ namespace OpenMS
             << " rightWidth: " << rightWidth 
             << " peakWidth: " << peakWidth 
             << " add_up_spectra_: " << add_up_spectra_ 
-            << " use_percent_peak_width_: " << use_percent_peak_width_ 
+            << " merge_spectra_by_peak_width_fraction_: " << merge_spectra_by_peak_width_fraction_ 
             << std::endl;
     }
 
