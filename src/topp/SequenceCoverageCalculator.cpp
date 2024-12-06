@@ -12,7 +12,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <map>
+#include <unordered_map>
 #include <numeric>
 
 using namespace OpenMS;
@@ -104,9 +104,9 @@ protected:
     vector<PeptideHit> temp_hits;
     vector<Size> coverage;
     Size spectrum_count = 0;
-    map<String, Size> unique_peptides;
-    map<String, Size> temp_unique_peptides;
-    map<String, Size> temp_modified_unique_peptides;
+    unordered_map<String, Size> unique_peptides;
+    unordered_map<String, Size> temp_unique_peptides;
+    unordered_map<String, Size> temp_modified_unique_peptides;
 
     protein_identifications.push_back(ProteinIdentification());
     //-------------------------------------------------------------
@@ -129,7 +129,7 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    map<String, CoverageInfo> prot2cov;
+    unordered_map<String, CoverageInfo> prot2cov;
     os << "proteinID\tcoverage (%)\tunique hits\n";
     for (Size j = 0; j < proteins.size(); ++j)
     {
