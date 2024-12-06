@@ -281,7 +281,34 @@ namespace OpenMS
     {
       im_range.clear();
     }
-    
+
+    // If add_up_spectra_ is -1, we automatically compute the amount of spectra to add by setting add_up_spectra_ to the ceiling value of N percent of the retention time peak width
+    if (add_up_spectra_ == -1)
+    {
+        double leftWidth = imrmfeature->getMetaValue("leftWidth");
+        double rightWidth = imrmfeature->getMetaValue("rightWidth");
+        double peakWidth = rightWidth - leftWidth;
+        add_up_spectra_ = std::ceil(peakWidth * use_percent_peak_width_);
+        
+        // Ensure add_up_spectra_ is odd
+        if (static_cast<int>(add_up_spectra_) % 2 == 0) {
+            add_up_spectra_ -= 1;
+        }
+        
+        // Ensure add_up_spectra_ is at least 1 if it was set to <= 0 based on the peak width
+        if (add_up_spectra_ <= 0) {
+            add_up_spectra_ = 1;
+        }
+        
+        OPENMS_LOG_DEBUG 
+            << "Fetching Spectra between leftWidth: " << leftWidth 
+            << " rightWidth: " << rightWidth 
+            << " peakWidth: " << peakWidth 
+            << " add_up_spectra_: " << add_up_spectra_ 
+            << " use_percent_peak_width_: " << use_percent_peak_width_ 
+            << std::endl;
+    }
+
     // find spectrum that is closest to the apex of the peak using binary search
     std::vector<OpenSwath::SpectrumPtr> spectrum = fetchSpectrumSwath(swath_maps, imrmfeature->getRT(), add_up_spectra_, im_range);
 
