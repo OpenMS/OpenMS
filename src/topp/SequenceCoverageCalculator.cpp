@@ -12,7 +12,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <map>
+#include <unordered_map>
 #include <numeric>
 
 using namespace OpenMS;
@@ -43,9 +43,8 @@ class TOPPSequenceCoverageCalculator :
 {
 public:
   TOPPSequenceCoverageCalculator() :
-    TOPPBase("SequenceCoverageCalculator", "Prints information about idXML files.")
+    TOPPBase("SequenceCoverageCalculator", "Annotates coverage information to idXML files.")
   {
-
   }
 
 protected:
@@ -56,7 +55,7 @@ protected:
     registerInputFile_("in_peptides", "<file>", "", "input file containing the identified peptides");
     setValidFormats_("in_peptides", ListUtils::create<String>("idXML"), true);
     registerOutputFile_("out", "<file>", "", "Optional text output file. If left out, the output is written to the command line.", false);
-    setValidFormats_("out", ListUtils::create<String>("txt"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"), true);
   }
 
   void getStartAndEndIndex(const String& sequence, const String& substring, pair<Size, Size>& indices)
@@ -87,7 +86,14 @@ protected:
     }
   }
 
-  ExitCodes outputTo_(ostream& os)
+  struct CoverageInfo
+  {
+    double coverage{};  // fraction of sequence covered by peptides
+    Size count{};       // number of unique peptides
+    Size mod_count{};   // number of unique modified peptides
+  };
+
+  ExitCodes outputTo_(ostream& os, String out)
   {
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;
@@ -98,9 +104,9 @@ protected:
     vector<PeptideHit> temp_hits;
     vector<Size> coverage;
     Size spectrum_count = 0;
-    map<String, Size> unique_peptides;
-    map<String, Size> temp_unique_peptides;
-    map<String, Size> temp_modified_unique_peptides;
+    unordered_map<String, Size> unique_peptides;
+    unordered_map<String, Size> temp_unique_peptides;
+    unordered_map<String, Size> temp_modified_unique_peptides;
 
     protein_identifications.push_back(ProteinIdentification());
     //-------------------------------------------------------------
@@ -123,7 +129,7 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-
+    unordered_map<String, CoverageInfo> prot2cov;
     os << "proteinID\tcoverage (%)\tunique hits\n";
     for (Size j = 0; j < proteins.size(); ++j)
     {
@@ -191,6 +197,7 @@ protected:
       // details for this protein
       if (counts[j] > 0)
       {
+        prot2cov[proteins[j].identifier] = { statistics[j], counts[j], mod_counts[j] };
         os << proteins[j].identifier << "\t" << statistics[j] * 100 << "\t" << counts[j] << "\n";
       }
 
@@ -198,6 +205,22 @@ protected:
     }
 
 // os << "Sum of coverage is " << accumulate(statistics.begin(), statistics.end(), 0.) << endl;
+
+    // update meta values in protein_identifications
+    for (auto& prot_id : protein_identifications)
+    {
+      for (auto& prot_hit : prot_id.getHits())
+      {
+        if (prot2cov.find(prot_hit.getAccession()) != prot2cov.end())
+        {
+          prot_hit.setMetaValue("coverage", prot2cov[prot_hit.getAccession()].coverage);
+          prot_hit.setMetaValue("unique_peptides", prot2cov[prot_hit.getAccession()].count);
+          prot_hit.setMetaValue("unique_modified_peptides", prot2cov[prot_hit.getAccession()].mod_count);
+        }
+      }
+    }
+    FileHandler().storeIdentifications(out, protein_identifications, identifications, {FileTypes::IDXML});
+
     os << "Average coverage per protein is " << (accumulate(statistics.begin(), statistics.end(), 0.) / statistics.size()) << endl;
     os << "Average number of peptides per protein is " << (((double) accumulate(counts.begin(), counts.end(), 0.)) / counts.size()) << endl;
     os << "Average number of un/modified peptides per protein is " << (((double) accumulate(mod_counts.begin(), mod_counts.end(), 0.)) / mod_counts.size()) << endl;
@@ -232,21 +255,7 @@ protected:
   ExitCodes main_(int, const char**) override
   {
     String out = getStringOption_("out");
-
-    TOPPBase::ExitCodes ret;
-    if (!out.empty())
-    {
-      ofstream os(out.c_str());
-      ret = outputTo_(os);
-      os.close();
-    }
-    else
-    {
-      // directly use Log_info (no need for protecting output stream in non-parallel section)
-      ret = outputTo_(OpenMS_Log_info);
-    }
-
-    return ret;
+    return outputTo_(OpenMS_Log_info, out);
   }
 
 };

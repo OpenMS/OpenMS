@@ -14,6 +14,8 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ----                                OpenMS 3.4.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
+Misc:
+- pyOpenMS: improve developer experience (installation/compilation) (#7735)
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.3.0     (under development)              ----

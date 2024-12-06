@@ -56,22 +56,17 @@ endif()
 # See https://wiki.python.org/moin/WindowsCompilers
 # Windows support requires that the correct Python version is matched to the
 # correct MSVS version:
-# * Python 2.[67] needs to be compiled with MSVS 2008
-# * Python 3.[34] needs to be compiled with MSVS 2010
-# * Python 3.[5678] needs to be compiled with MSVS 2015
+# * VS 14.x  --> CPython 3.5 - 3.12+ 
+# Since OpenMS requires VS 2017 and later, we should be fine.
 if(WIN32)
     if(SKIP_WIN_COMPILERCHECK)
         message(STATUS "Skipping MS Visual C++ compiler check (not recommended)")
-    elseif(MSVC90 AND (${Python_VERSION} STREQUAL "2.6" OR ${Python_VERSION} STREQUAL "2.7" ))
-        message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions -- ok")
-    elseif(MSVC10 AND (${Python_VERSION} STREQUAL "3.3" OR ${Python_VERSION} STREQUAL "3.4" ))
-        message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions -- ok")
     elseif(MSVC14 AND (${Python_VERSION} VERSION_GREATER_EQUAL "3.5" ))
-        message(STATUS "Need Visual C++ 2015/2017/2019 compiler for building Python 3.5+ extensions -- ok")
+        message(STATUS "Need Visual C++ 2015 or later compiler for building Python 3.5+ extensions -- ok")
     else()
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions")
         message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions")
-        message(STATUS "Need Visual C++ 2015/2017/2019 compiler for building Python 3.5+ extensions")
+        message(STATUS "Need Visual C++ 2015 or later compiler for building Python 3.5+ extensions")
         message(STATUS "To skip this check, please configure with -DSKIP_WIN_COMPILERCHECK=On")
         message(FATAL_ERROR "Either reconfigure with the correct Visual Studio generator, select a different Python version with -DPython_EXECUTABLE:FILEPATH=/path/to/python or disable pyOpenMS.")
     endif()
@@ -92,229 +87,57 @@ if(WIN32)
 endif(WIN32)
 
 #------------------------------------------------------------------------------
-# Find Cython as module
+# Check if all python packages are correctly installed
+set(PY_REQUIREMENTS_TXT "requirements_bld.txt")
 execute_process(
   COMMAND
-  ${Python_EXECUTABLE} -c "import Cython"
-  RESULT_VARIABLE CYTHON_MODULE_NOTFOUND
-  ERROR_QUIET
-  OUTPUT_QUIET
+  ${Python_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}./requirements_check.py" "${CMAKE_CURRENT_SOURCE_DIR}/${PY_REQUIREMENTS_TXT}"
+  RESULT_VARIABLE CHECK_PY_PACKAGES
 )
-
-if (CYTHON_MODULE_NOTFOUND)
-    message(FATAL_ERROR "Cython import failed for the given Python executable.")
-    set(CYTHON_MODULE_VERSION_CHECK_OK 0)
-else()
-    # Working versions (tested manually) are 0.25.2+
-    execute_process(
-      COMMAND
-      ${Python_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[0]) >= 3 or int(Cython.__version__.split('.')[1]) > 25 or (int(Cython.__version__.split('.')[1]) == 25 and int(Cython.__version__.split('.')[2]) >= 2))"
-      RESULT_VARIABLE CYTHON_MODULE_VERSION_CHECK_OK
-      ERROR_QUIET
-      OUTPUT_QUIET
-    )
-
-    if(CYTHON_MODULE_VERSION_CHECK_OK)
-        execute_process(
-          COMMAND
-          ${Python_EXECUTABLE} -c "from __future__ import print_function; import Cython; print (Cython.__version__)"
-          OUTPUT_VARIABLE CYTHON_VERSION
-          OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
-        message(STATUS "Looking for Cython - found Cython version ${CYTHON_VERSION}. Version ok")
-    else()
-        message(STATUS "Looking for Cython - found Cython version ${CYTHON_VERSION}. The version is too old (>= 0.25.2 is required)")
-        message(FATAL_ERROR "Please upgrade Cython or disable pyOpenMS.")
-    endif()
+if (CHECK_PY_PACKAGES)
+  message(FATAL_ERROR "Some Python modules (using ${Python_EXECUTABLE}) are missing or have the wrong version. See ${PY_REQUIREMENTS_TXT} and Readme.md for details.")
 endif()
 
 #------------------------------------------------------------------------------
-# Check for autowrap
-execute_process(
-     COMMAND
-     ${Python_EXECUTABLE} -c "import autowrap"
-     RESULT_VARIABLE AUTOWRAP_MISSING
-     ERROR_QUIET
-     OUTPUT_QUIET
-)
-
-set(AUTOWRAP_VERSION_OK FALSE)
-if(AUTOWRAP_MISSING)
-	message(STATUS "Looking for autowrap - not found")
-else()
-    execute_process(
-        COMMAND
-        ${Python_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 11))"
-        RESULT_VARIABLE _AUTOWRAP_VERSION_OK
-        ERROR_QUIET
-        OUTPUT_QUIET
-    )
-    execute_process(
-        COMMAND
-        ${Python_EXECUTABLE} -c "from __future__ import print_function; import autowrap; print ('%d.%d.%d' % (autowrap.version))"
-        OUTPUT_VARIABLE AUTOWRAP_VERSION
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    execute_process(
-        COMMAND
-        ${Python_EXECUTABLE} -c "from __future__ import print_function; import autowrap; print (''.join([autowrap.__path__[0],'/data_files/autowrap/']))"
-        OUTPUT_VARIABLE AUTOWRAP_INCLUDES
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    if(_AUTOWRAP_VERSION_OK)
-        message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
-        set(AUTOWRAP_VERSION_OK TRUE)
-    else()
-        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.22.11 is required)")
-        message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
-    endif()
-endif()
-
-
-#------------------------------------------------------------------------------
-# Check for pytest Test Framework
-execute_process(
-     COMMAND
-     ${Python_EXECUTABLE} -c "import pytest"
-     RESULT_VARIABLE _PYTEST_MISSING
-     ERROR_QUIET
-     OUTPUT_QUIET
-)
-
-set(PYTEST_MISSING TRUE)
-if( _PYTEST_MISSING EQUAL 0)
-    set(PYTEST_MISSING FALSE)
-endif()
-if(PYTEST_MISSING)
-	message(WARNING "Looking for pytest testing framework - not found. Testing pyopenms will not work.")
-else()
-	message(STATUS "Looking for pytest testing framework - found")
-endif()
-
-#------------------------------------------------------------------------------
-# Check for Numpy (TODO since CMake 3.17 this can be done in the same call with the FindPython module)
-execute_process(
-     COMMAND
-     ${Python_EXECUTABLE} -c "import numpy"
-     RESULT_VARIABLE _NUMPY_MISSING
-     ERROR_QUIET
-     OUTPUT_QUIET
-)
-
-set(NUMPY_MISSING TRUE)
-if( _NUMPY_MISSING EQUAL 0)
-  set(NUMPY_MISSING FALSE)
-endif()
-if(NUMPY_MISSING)
-	message(FATAL_ERROR "Looking for numpy - not found")
-else()
-	message(STATUS "Looking for numpy - found")
-endif()
-
-
-#------------------------------------------------------------------------------
-# Check for setuptools
-
-execute_process(
-     COMMAND
-     ${Python_EXECUTABLE} -c "import setuptools"
-     RESULT_VARIABLE SETUPTOOLS_MISSING
-     ERROR_QUIET
-     OUTPUT_QUIET
-)
-
-set(SETUPTOOLS_VERSION_OK FALSE)
-
-if(SETUPTOOLS_MISSING)
-	message(STATUS "Looking for setuptools - not found")
-else()
-    execute_process(
-        COMMAND
-        ${Python_EXECUTABLE} -c "import setuptools; exit(int(setuptools.__version__.split('.')[0]) >= 12)"
-        RESULT_VARIABLE _SETUPTOOLS_VERSION_OK
-        ERROR_QUIET
-        OUTPUT_QUIET
-    )
-    execute_process(
-        COMMAND
-        ${Python_EXECUTABLE} -c "from __future__ import print_function;import setuptools; print(setuptools.__version__)"
-        OUTPUT_VARIABLE SETUPTOOLS_VERSION
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    if(_SETUPTOOLS_VERSION_OK)
-        message(STATUS "Looking for setuptools - found setuptools ${SETUPTOOLS_VERSION}, version ok")
-        set(SETUPTOOLS_VERSION_OK TRUE)
-    else()
-        message(STATUS "Found setuptools version ${SETUPTOOLS_VERSION}. The version is too old (>= 12.0 is required)")
-        message(FATAL_ERROR "Please upgrade setuptools or disable pyOpenMS.")
-    endif()
-endif()
-
-#------------------------------------------------------------------------------
-# Check for python wheel
-execute_process(
-     COMMAND
-     ${Python_EXECUTABLE} -c "import wheel"
-     RESULT_VARIABLE WHEEL_MISSING
-     ERROR_QUIET
-     OUTPUT_QUIET
-)
-
-if(WHEEL_MISSING)
-  message(FATAL_ERROR "Looking for python wheel - not found")
-endif()
-
-#------------------------------------------------------------------------------
-# Check for pandas which is required to run pyopenms tests
-execute_process(
-     COMMAND
-     ${Python_EXECUTABLE} -c "import pandas"
-     RESULT_VARIABLE PANDAS_MISSING
-     ERROR_QUIET
-     OUTPUT_QUIET
-)
-
-if(PANDAS_MISSING)
-  message(FATAL_ERROR "Looking for pandas - not found")
-endif()
-
-#------------------------------------------------------------------------------
-# Handle missing libraries (this should never be reached, as the individual
-#  parts should fire FATAL_ERRORs if something is missing)
-if(NUMPY_MISSING OR CYTHON_MODULE_NOTFOUND OR NOT CYTHON_MODULE_VERSION_CHECK_OK OR NOT AUTOWRAP_VERSION_OK
-   OR SETUPTOOLS_MISSING OR WHEEL_MISSING OR PANDAS_MISSING)
-  message(FATAL_ERROR "Required Python modules not found or out of date")
-endif()
-    
 # Find NumPy headers
-exec_program(${Python_EXECUTABLE}
-    ARGS "-c \"import numpy; print(numpy.get_include())\""
+execute_process(
+    COMMAND ${Python_EXECUTABLE} -c "import numpy; print(numpy.get_include())"
     OUTPUT_VARIABLE NUMPY_INCLUDE_DIR
-    RETURN_VALUE NUMPY_NOT_FOUND
-    )
-if(NUMPY_NOT_FOUND)
-    message(FATAL_ERROR "NumPy headers not found")
+    ERROR_VARIABLE NUMPY_ERROR
+    RESULT_VARIABLE NUMPY_INCLUDE_DIR_NOT_FOUND
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+if (NUMPY_INCLUDE_DIR_NOT_FOUND)
+    message(FATAL_ERROR "Failed to find numpy include directory: ${NUMPY_ERROR}")
 endif()
+
 
 # Find Python headers
-exec_program(${Python_EXECUTABLE}
-    ARGS "-c \"import sysconfig; print(sysconfig.get_paths()['include'])\""
+execute_process(
+    COMMAND ${Python_EXECUTABLE} -c "import sysconfig; print(sysconfig.get_paths()['include'])"
     OUTPUT_VARIABLE PYTHON_INCLUDE_DIRS
-    RETURN_VALUE PYTHON_INCLUDE_DIRS_NOT_FOUND
-    )
-if(PYTHON_INCLUDE_DIRS_NOT_FOUND)
-    message(FATAL_ERROR "Python headers not found")
+    ERROR_VARIABLE PYTHON_INCLUDE_DIRS_ERROR
+    RESULT_VARIABLE PYTHON_INCLUDE_DIRS_NOT_FOUND
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+if (PYTHON_INCLUDE_DIRS_NOT_FOUND)
+    message(FATAL_ERROR "Python headers not found: ${PYTHON_INCLUDE_DIRS_ERROR}")
 endif()
 
 
 # Get suffix for python C(++) extensions
-exec_program(${Python_EXECUTABLE}
-    ARGS "-c \"import sysconfig; print(sysconfig.get_config_var('EXT_SUFFIX'))\""
+execute_process(
+    COMMAND ${Python_EXECUTABLE} -c "import sysconfig; print(sysconfig.get_config_var('EXT_SUFFIX'))"
     OUTPUT_VARIABLE PYTHON_EXT_SUFFIX
-    RETURN_VALUE PYTHON_EXT_SUFFIX_NOT_FOUND
-    )
+    ERROR_VARIABLE PYTHON_EXT_SUFFIX_ERROR
+    RESULT_VARIABLE PYTHON_EXT_SUFFIX_NOT_FOUND
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
 if(PYTHON_EXT_SUFFIX_NOT_FOUND)
-    message(FATAL_ERROR "Could not determine suffix for Python C extensions.")
+    message(FATAL_ERROR "Could not determine suffix for Python C extensions: ${PYTHON_EXT_SUFFIX_ERROR}")
 endif()
 
 
@@ -479,15 +302,14 @@ endif()
 #------------------------------------------------------------------------------
 # collection of include dirs that is necessary to compile pyOpenMS
 
-# Find Qt5 includes for pyOpenMS
-find_package(Qt5 COMPONENTS Core Network REQUIRED)
-get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
-exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_HEADERS" OUTPUT_VARIABLE QTHEADERS)
+# Find Qt6 includes for pyOpenMS
+find_package(Qt6 COMPONENTS Core Network REQUIRED)
+get_target_property(QT_QMAKE_EXECUTABLE Qt6::qmake IMPORTED_LOCATION)
+execute_process(COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_HEADERS  OUTPUT_VARIABLE QTHEADERS OUTPUT_STRIP_TRAILING_WHITESPACE)
 set(QT_INCLUDE_DIR ${QTHEADERS} CACHE INTERNAL "" FORCE)
-exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-v" OUTPUT_VARIABLE QT_QMAKE_VERSION_INFO)
-exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_LIBS" OUTPUT_VARIABLE QT_INSTALL_LIBS)
-exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_BINS" OUTPUT_VARIABLE QT_INSTALL_BINS)
-
+execute_process(COMMAND ${QT_QMAKE_EXECUTABLE} -v OUTPUT_VARIABLE QT_QMAKE_VERSION_INFO OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_LIBS OUTPUT_VARIABLE QT_INSTALL_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_BINS OUTPUT_VARIABLE QT_INSTALL_BINS OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 set(PYOPENMS_INCLUDE_DIRS
   ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
