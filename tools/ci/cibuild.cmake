@@ -170,6 +170,7 @@ ctest_submit(PARTS Update Configure)
 if ("$ENV{ENABLE_CWL}" STREQUAL "ON")
   ctest_configure(OPTIONS "-DENABLE_CWL=ON" RETURN_VALUE _reconfig_cwl_ret_val)
   ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "generate_cwl_files" NUMBER_ERRORS _build_errors)
+endif()
 
 # we only build when we do non-style testing and we may have special targets like pyopenms
 if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
