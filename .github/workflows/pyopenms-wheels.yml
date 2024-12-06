@@ -513,7 +513,7 @@ jobs:
 
   build-lnx:
     runs-on: [ubuntu-latest]
-    container: ghcr.io/openms/contrib_manylinux_2_28:latest
+    container: ghcr.io/openms/contrib_manylinux_2_34:latest
 
     steps:
     # Cancels older builds if still running
@@ -537,7 +537,7 @@ jobs:
       with:
         cmake-version: '3.25.x'
 
-    - name: Build on manylinux2014
+    - name: Build on manylinux for broad compatibility
       shell: bash
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
