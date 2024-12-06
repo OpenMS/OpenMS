@@ -36,7 +36,8 @@ foreach(TOOL ${executables})
   )
   add_custom_command(
     TARGET generate_cwl_files POST_BUILD
-    COMMAND ${CWLTOOL_EXECUTABLE} --validate ${OPENMS_SHARE_DIR}/commonwl/${TOOL}.cwl
+    #TODO: remove the no-warning flag
+    COMMAND ${CWLTOOL_EXECUTABLE} --no-warning --validate ${OPENMS_SHARE_DIR}/commonwl/${TOOL}.cwl
     COMMENT "Validating ${CWL_FILE}"
   )
 
