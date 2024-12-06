@@ -1,8 +1,8 @@
-setuptools
+setuptools >= 12.0
 pip
-autowrap
+autowrap >= 0.22.11
 pytest
 numpy >= 2.0
-Cython
+Cython >= 3.0.11
 wheel
 pandas

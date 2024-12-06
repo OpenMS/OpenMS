@@ -40,18 +40,6 @@ jobs:
             ## Remove release/ from release branch name (or keep the non-release name)
             echo "tag=${BRANCH#release/}" >> $GITHUB_OUTPUT
         id: tag_name
-      - name: Define contrib image tag
-        id: contrib_tag
-        shell: bash
-        run: |
-            # the contrib image tag is the same as the main image tag for release branches
-            # for non-release branches, we use the latest contrib image
-            if [[ "${{ steps.extract_branch.outputs.branch }}" == "release/"* ]]
-            then
-              echo "contrib_tag=${{ steps.tag_name.outputs.tag }}" >> $GITHUB_OUTPUT
-            else
-              echo "contrib_tag=latest" >> $GITHUB_OUTPUT
-            fi
       - name: Downcase REPO
         run: echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
         id: downcase_repo
@@ -67,22 +55,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Checkout contrib submodule repository
-        run: git submodule update --init contrib
-        # we only need the contrib submodule if we're on a release branch
-        # otherwise, we use the latest contrib image built in the OpenMS/contrib
-        if: startsWith(steps.extract_branch.outputs.branch, 'release/')
-      - name: Build contrib container using the correct submodule hash
-        uses: docker/build-push-action@v6
-        with:
-          push: true
-          context: contrib
-          file: contrib/dockerfiles/Dockerfile
-          tags: |
-            ghcr.io/openms/contrib:${{ steps.tag_name.outputs.tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-        if: startsWith(steps.extract_branch.outputs.branch, 'release/')
       - name: Test docker build in runtime base
         uses: docker/build-push-action@v5
         with:
@@ -93,9 +65,8 @@ jobs:
             NUM_BUILD_CORES=4
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
             OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
-            CONTRIB_IMAGE_TAG=${{ steps.contrib_tag.outputs.contrib_tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
       - name: Build and push library image
         uses: docker/build-push-action@v5
         with:
@@ -106,11 +77,10 @@ jobs:
             NUM_BUILD_CORES=4
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
             OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
-            CONTRIB_IMAGE_TAG=${{ steps.contrib_tag.outputs.contrib_tag }}
           tags: |
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library:${{ steps.tag_name.outputs.tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
       - name: Build and push tools image
         uses: docker/build-push-action@v6
         with:
@@ -121,12 +91,11 @@ jobs:
             NUM_BUILD_CORES=4
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
             OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
-            CONTRIB_IMAGE_TAG=${{ steps.contrib_tag.outputs.contrib_tag }}
           tags: |
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-executables:${{ steps.tag_name.outputs.tag }}
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools:${{ steps.tag_name.outputs.tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
       - name: Build and push tools + thirdparty image
         uses: docker/build-push-action@v5
         with:
@@ -137,11 +106,10 @@ jobs:
             NUM_BUILD_CORES=4
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
             OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
-            CONTRIB_IMAGE_TAG=${{ steps.contrib_tag.outputs.contrib_tag }}
           tags: |
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools-thirdparty:${{ steps.tag_name.outputs.tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
   deploy-singularity:
     runs-on: ubuntu-latest
     needs: deploy-docker
