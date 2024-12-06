@@ -75,6 +75,8 @@ public:
 
     double getRT() const override;
 
+    double getMetaValue(std::string name) const;
+
     size_t size() const override;
 
 private:
