@@ -346,7 +346,7 @@ jobs:
           set +e
 
           # Generate the CWL descriptors if we are going to build a package
-          if [${{steps.set-vars.outputs.pkg_type }} != "none"]; then
+          if [ ${{steps.set-vars.outputs.pkg_type }} != "none" ]; then
             python -m venv openms-cwl
             source openms-cwl/bin/activate
             pip install cwltool
