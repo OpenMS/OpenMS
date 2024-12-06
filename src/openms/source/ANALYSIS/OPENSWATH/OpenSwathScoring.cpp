@@ -9,6 +9,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 // scoring
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h>
@@ -42,6 +43,7 @@ namespace OpenMS
   void OpenSwathScoring::initialize(double rt_normalization_factor,
                                     int add_up_spectra,
                                     double spacing_for_spectra_resampling,
+                                    double use_percent_peak_width,
                                     const double drift_extra,
                                     const OpenSwath_Scores_Usage & su,
                                     const std::string& spectrum_addition_method,
@@ -64,6 +66,7 @@ namespace OpenMS
 
     this->im_drift_extra_pcnt_ = drift_extra;
     this->spacing_for_spectra_resampling_ = spacing_for_spectra_resampling;
+    this->use_percent_peak_width_ = use_percent_peak_width;
     this->su_ = su;
     this->use_ms1_ion_mobility_ = use_ms1_ion_mobility;
   }
@@ -86,6 +89,33 @@ namespace OpenMS
     std::vector<double> normalized_library_intensity;
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
+    // If add_up_spectra_ is -1, we automatically compute the amount of spectra to add by setting add_up_spectra_ to the ceiling value of N percent of the retention time peak width
+    if (add_up_spectra_ == -1)
+    {
+        double leftWidth = imrmfeature->getMetaValue("leftWidth");
+        double rightWidth = imrmfeature->getMetaValue("rightWidth");
+        double peakWidth = rightWidth - leftWidth;
+        add_up_spectra_ = std::ceil(peakWidth * use_percent_peak_width_);
+        
+        // Ensure add_up_spectra_ is odd
+        if (static_cast<int>(add_up_spectra_) % 2 == 0) {
+            add_up_spectra_ -= 1;
+        }
+        
+        // Ensure add_up_spectra_ is at least 1 if it was set to <= 0 based on the peak width
+        if (add_up_spectra_ <= 0) {
+            add_up_spectra_ = 1;
+        }
+        
+        OPENMS_LOG_DEBUG 
+            << "Fetching Spectra between leftWidth: " << leftWidth 
+            << " rightWidth: " << rightWidth 
+            << " peakWidth: " << peakWidth 
+            << " add_up_spectra_: " << add_up_spectra_ 
+            << " use_percent_peak_width_: " << use_percent_peak_width_ 
+            << std::endl;
+    }
+    
     // find spectrum that is closest to the apex of the peak using binary search
     std::vector<OpenSwath::SpectrumPtr> spectra = fetchSpectrumSwath(swath_maps, imrmfeature->getRT(), add_up_spectra_, im_range);
 
@@ -251,28 +281,9 @@ namespace OpenMS
     {
       im_range.clear();
     }
-
-    // Identify corresponding SONAR maps (if more than one map is used)
-    std::vector<OpenSwath::SwathMap> used_swath_maps;
-    if (swath_maps.size() > 1)
-    {
-      double precursor_mz = transition.getPrecursorMZ();
-      for (size_t i = 0; i < swath_maps.size(); ++i)
-      {
-        if (swath_maps[i].ms1) {continue;} // skip MS1
-        if (precursor_mz > swath_maps[i].lower && precursor_mz < swath_maps[i].upper)
-        {
-          used_swath_maps.push_back(swath_maps[i]);
-        }
-      }
-    }
-    else
-    {
-      used_swath_maps = swath_maps;
-    }
-
+    
     // find spectrum that is closest to the apex of the peak using binary search
-    std::vector<OpenSwath::SpectrumPtr> spectrum = fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_, im_range);
+    std::vector<OpenSwath::SpectrumPtr> spectrum = fetchSpectrumSwath(swath_maps, imrmfeature->getRT(), add_up_spectra_, im_range);
 
     // If no charge is given, we assume it to be 1
     int putative_product_charge = 1;
