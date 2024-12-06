@@ -39,9 +39,9 @@ jobs:
       id: cpu-cores
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       with:
-        version: '5.12.6' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715
+        version: '6.*'
         host: 'windows' # default: win64_msvc2017_64
         target: 'desktop'
         install-deps: 'true'
@@ -85,12 +85,12 @@ jobs:
       shell: bash
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
-        CMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}"
+        CMAKE_PREFIX_PATH="$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}"
         #mkdir bld
         #pushd bld
         # TODO: set generator via variable, then we can share this step
         # cmake --version
-        # cmake -G "Visual Studio 17 2022" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/OpenMS/contrib" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
+        # cmake -G "Visual Studio 17 2022" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/OpenMS/contrib" -DCMAKE_PREFIX_PATH="$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}" ../OpenMS
         # Note: multiple --targets only supported by CMake 3.15+
         # cmake --build . --config Release --target OpenMS
         
@@ -148,7 +148,7 @@ jobs:
           CMAKE_GENERATOR: "Visual Studio 17 2022"
           CMAKE_GENERATOR_PLATFORM: "x64"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
-          #CMAKE_PREFIX_PATH: "$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" #TODO move this to env
+          #CMAKE_PREFIX_PATH: "$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}" #TODO move this to env
           BUILD_TYPE: "Release"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_CCACHE_EXE: "ccache"
@@ -227,7 +227,7 @@ jobs:
         brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
         brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@5 libomp
         echo "cmake_prefix=$(brew --prefix qt@5)/lib/cmake;$(brew --prefix qt@5)" >> $GITHUB_OUTPUT
-        echo "Qt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5" >> $GITHUB_ENV
+        echo "Qt6_DIR=$(brew --prefix qt@6)/lib/cmake/Qt6" >> $GITHUB_ENV
         if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
           brew install --quiet doxygen ghostscript graphviz
         fi
@@ -248,11 +248,11 @@ jobs:
         # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
 
         # export OpenMP_ROOT="$(brew --prefix libomp)"
-        export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_DIR)/lib/cmake;${Qt5_DIR}"
+        export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt6_DIR)/lib/cmake;${Qt6_DIR}"
 
         #ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
 
-        #cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=12 -DBOOST_USE_STATIC=OFF ../OpenMS
+        #cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=12 -DBOOST_USE_STATIC=OFF ../OpenMS
         #make -j${{ steps.cpu-cores.outputs.count }} OpenMS
 
         mkdir pyopenms_whls
@@ -396,7 +396,7 @@ jobs:
         brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
         brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@5 libomp
         echo "cmake_prefix=$(brew --prefix qt@5)/lib/cmake;$(brew --prefix qt@5)" >> $GITHUB_OUTPUT
-        echo "Qt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5" >> $GITHUB_ENV
+        echo "Qt6_DIR=$(brew --prefix qt@5)/lib/cmake/Qt6" >> $GITHUB_ENV
         if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
           brew install --quiet doxygen ghostscript graphviz
         fi
@@ -412,12 +412,12 @@ jobs:
         export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
         export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
         # export OpenMP_ROOT="$(brew --prefix libomp)"
-        export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}"
+        export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}"
 
         #mkdir bld
         #pushd bld
         # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
-        #cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=12 -DBOOST_USE_STATIC=OFF ../OpenMS
+        #cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=12 -DBOOST_USE_STATIC=OFF ../OpenMS
         #make -j${{ steps.cpu-cores.outputs.count }} OpenMS
 
         mkdir pyopenms_whls
