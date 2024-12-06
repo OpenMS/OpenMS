@@ -33,6 +33,7 @@ namespace OpenMS
     spacing_for_spectra_resampling_(0.005),
     add_up_spectra_(1),
     spectra_addition_method_(SpectrumAdditionMethod::ADDITION),
+    spectra_merge_method_type_(SpectrumMergeMethodType::FIXED),
     im_drift_extra_pcnt_(0.0)
   {
   }
@@ -47,6 +48,7 @@ namespace OpenMS
                                     const double drift_extra,
                                     const OpenSwath_Scores_Usage & su,
                                     const std::string& spectrum_addition_method,
+                                    const std::string& spectrum_merge_method_type,
                                     bool use_ms1_ion_mobility)
   {
     this->rt_normalization_factor_ = rt_normalization_factor;
@@ -62,6 +64,19 @@ namespace OpenMS
     else
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "spectrum_addition_method must be simple or resample", spectrum_addition_method);
+    }
+
+    if (spectrum_merge_method_type == "fixed")
+    {
+      this->spectra_merge_method_type_ = SpectrumMergeMethodType::FIXED;
+    }
+    else if (spectrum_merge_method_type == "dynamic")
+    {
+      this->spectra_merge_method_type_ = SpectrumMergeMethodType::DYNAMIC;
+    }
+    else
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "spectrum_merge_method_type must be fixed or dynamic", spectrum_merge_method_type);
     }
 
     this->im_drift_extra_pcnt_ = drift_extra;
@@ -89,35 +104,28 @@ namespace OpenMS
     std::vector<double> normalized_library_intensity;
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
-    // If add_up_spectra_ is -1, we automatically compute the amount of spectra to add by setting add_up_spectra_ to the ceiling value of N percent of the retention time peak width
-    if (add_up_spectra_ == -1)
+    // automatically compute the amount of spectra to add based on the fraction of the retention time peak width, or add a fixed number of spectra
+    int n_merge_spectra = 1;
+    if (spectra_merge_method_type_ == SpectrumMergeMethodType::DYNAMIC)
     {
         double leftWidth = imrmfeature->getMetaValue("leftWidth");
         double rightWidth = imrmfeature->getMetaValue("rightWidth");
         double peakWidth = rightWidth - leftWidth;
-        add_up_spectra_ = std::ceil(peakWidth * merge_spectra_by_peak_width_fraction_);
-        
-        // Ensure add_up_spectra_ is odd
-        if (static_cast<int>(add_up_spectra_) % 2 == 0) {
-            add_up_spectra_ -= 1;
-        }
-        
-        // Ensure add_up_spectra_ is at least 1 if it was set to <= 0 based on the peak width
-        if (add_up_spectra_ <= 0) {
-            add_up_spectra_ = 1;
-        }
+        n_merge_spectra = std::max(1, static_cast<int>(std::ceil(peakWidth * merge_spectra_by_peak_width_fraction_)) | 1);
         
         OPENMS_LOG_DEBUG 
-            << "Fetching Spectra between leftWidth: " << leftWidth 
-            << " rightWidth: " << rightWidth 
-            << " peakWidth: " << peakWidth 
-            << " add_up_spectra_: " << add_up_spectra_ 
-            << " merge_spectra_by_peak_width_fraction_: " << merge_spectra_by_peak_width_fraction_ 
-            << std::endl;
+            << "Merging " << n_merge_spectra 
+            << " spectra between RT peak (" << leftWidth << " - " << rightWidth 
+            << ") using " << merge_spectra_by_peak_width_fraction_ 
+            << " fraction of peak width (" << peakWidth << ")." << std::endl;
+    }
+    else // (spectra_merge_method_type == SpectrumMergeMethodType::FIXED)
+    {
+        n_merge_spectra = add_up_spectra_;
     }
     
     // find spectrum that is closest to the apex of the peak using binary search
-    std::vector<OpenSwath::SpectrumPtr> spectra = fetchSpectrumSwath(swath_maps, imrmfeature->getRT(), add_up_spectra_, im_range);
+    std::vector<OpenSwath::SpectrumPtr> spectra = fetchSpectrumSwath(swath_maps, imrmfeature->getRT(), n_merge_spectra, im_range);
 
     // set the DIA parameters
     // TODO Cache these parameters
@@ -190,7 +198,7 @@ namespace OpenMS
         bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
         double rt = imrmfeature->getRT();
 
-        std::vector<OpenSwath::SpectrumPtr> ms1_spectrum = fetchSpectrumSwath(ms1_map, rt, add_up_spectra_, im_range_ms1);
+        std::vector<OpenSwath::SpectrumPtr> ms1_spectrum = fetchSpectrumSwath(ms1_map, rt, n_merge_spectra, im_range_ms1);
         IonMobilityScoring::driftScoringMS1(ms1_spectrum,
             transitions, scores, drift_target, im_range_ms1, dia_extract_window_, dia_extraction_ppm_, false, im_drift_extra_pcnt_);
 
@@ -282,35 +290,28 @@ namespace OpenMS
       im_range.clear();
     }
 
-    // If add_up_spectra_ is -1, we automatically compute the amount of spectra to add by setting add_up_spectra_ to the ceiling value of N percent of the retention time peak width
-    if (add_up_spectra_ == -1)
+    // automatically compute the amount of spectra to add based on the fraction of the retention time peak width, or add a fixed number of spectra
+    int n_merge_spectra = 1;
+    if (spectra_merge_method_type_ == SpectrumMergeMethodType::DYNAMIC)
     {
         double leftWidth = imrmfeature->getMetaValue("leftWidth");
         double rightWidth = imrmfeature->getMetaValue("rightWidth");
         double peakWidth = rightWidth - leftWidth;
-        add_up_spectra_ = std::ceil(peakWidth * merge_spectra_by_peak_width_fraction_);
-        
-        // Ensure add_up_spectra_ is odd
-        if (static_cast<int>(add_up_spectra_) % 2 == 0) {
-            add_up_spectra_ -= 1;
-        }
-        
-        // Ensure add_up_spectra_ is at least 1 if it was set to <= 0 based on the peak width
-        if (add_up_spectra_ <= 0) {
-            add_up_spectra_ = 1;
-        }
+        n_merge_spectra = std::max(1, static_cast<int>(std::ceil(peakWidth * merge_spectra_by_peak_width_fraction_)) | 1);
         
         OPENMS_LOG_DEBUG 
-            << "Fetching Spectra between leftWidth: " << leftWidth 
-            << " rightWidth: " << rightWidth 
-            << " peakWidth: " << peakWidth 
-            << " add_up_spectra_: " << add_up_spectra_ 
-            << " merge_spectra_by_peak_width_fraction_: " << merge_spectra_by_peak_width_fraction_ 
-            << std::endl;
+            << "Merging " << n_merge_spectra 
+            << " spectra between RT peak (" << leftWidth << " - " << rightWidth 
+            << ") using " << merge_spectra_by_peak_width_fraction_ 
+            << " fraction of peak width (" << peakWidth << ")." << std::endl;
+    }
+    else // (spectra_merge_method_type == SpectrumMergeMethodType::FIXED)
+    {
+        n_merge_spectra = add_up_spectra_;
     }
 
     // find spectrum that is closest to the apex of the peak using binary search
-    std::vector<OpenSwath::SpectrumPtr> spectrum = fetchSpectrumSwath(swath_maps, imrmfeature->getRT(), add_up_spectra_, im_range);
+    std::vector<OpenSwath::SpectrumPtr> spectrum = fetchSpectrumSwath(swath_maps, imrmfeature->getRT(), n_merge_spectra, im_range);
 
     // If no charge is given, we assume it to be 1
     int putative_product_charge = 1;

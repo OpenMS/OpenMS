@@ -72,11 +72,13 @@ namespace OpenMS
     defaults_.setValidStrings("write_convex_hull", {"true","false"});
     defaults_.setValue("spectrum_addition_method", "simple", "For spectrum addition, either use simple concatenation or use peak resampling", {"advanced"});
     defaults_.setValidStrings("spectrum_addition_method", {"simple", "resample"});
-    defaults_.setValue("add_up_spectra", 1, "Add up spectra around the peak apex (needs to be a non-even integer). If set to -1, it will automatically select the number of spectra to add up around the peak apex according to merge_spectra_by_peak_width_fraction.", {"advanced"});
-    defaults_.setMinInt("add_up_spectra", -1);
+    defaults_.setValue("spectrum_merge_method_type", "fixed", "For spectrum addition, either use a fixed number of spectra or dynamically select the number of spectra to add around the peak apex based on the merge_spectra_by_peak_width_fraction.", {"advanced"});
+    defaults_.setValidStrings("spectrum_merge_method_type", {"fixed", "dynamic"});
+    defaults_.setValue("add_up_spectra", 1, "Add up spectra around the peak apex (needs to be a non-even integer).", {"advanced"});
+    defaults_.setMinInt("add_up_spectra", 1);
     defaults_.setValue("spacing_for_spectra_resampling", 0.005, "If spectra are to be added, use this spacing to add them up", {"advanced"});
     defaults_.setMinFloat("spacing_for_spectra_resampling", 0.0);
-    defaults_.setValue("merge_spectra_by_peak_width_fraction", 0.15, "If spectra are to be added based on the peak width of peak, constrict number of spectra to be added based on N percent of number of points of peak width.", {"advanced"});
+    defaults_.setValue("merge_spectra_by_peak_width_fraction", 0.15, "If spectra are to be added based on the peak width of peak, construct number of spectra to be added based on N percent of number of points of peak width.", {"advanced"});
     defaults_.setMinFloat("merge_spectra_by_peak_width_fraction", 0.0001);
     defaults_.setMaxFloat("merge_spectra_by_peak_width_fraction", 1.0);
     defaults_.setValue("uis_threshold_sn", -1, "S/N threshold to consider identification transition (set to -1 to consider all)");
@@ -553,6 +555,7 @@ namespace OpenMS
                       im_extra_drift_,
                       su_,
                       spectrum_addition_method_,
+                      spectrum_merge_method_type_,
                       use_ms1_ion_mobility_);
 
     ProteaseDigestion pd;
@@ -1019,6 +1022,7 @@ namespace OpenMS
     write_convex_hull_ = param_.getValue("write_convex_hull").toBool();
     add_up_spectra_ = param_.getValue("add_up_spectra");
     spectrum_addition_method_ = param_.getValue("spectrum_addition_method").toString();
+    spectrum_merge_method_type_ = param_.getValue("spectrum_merge_method_type").toString();
     spacing_for_spectra_resampling_ = param_.getValue("spacing_for_spectra_resampling");
     merge_spectra_by_peak_width_fraction_ = param_.getValue("merge_spectra_by_peak_width_fraction");
     im_extra_drift_ = (double)param_.getValue("im_extra_drift");

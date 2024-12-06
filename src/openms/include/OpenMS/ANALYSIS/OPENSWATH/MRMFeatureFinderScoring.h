@@ -269,6 +269,7 @@ private:
     double rt_normalization_factor_;
     int add_up_spectra_;
     String spectrum_addition_method_ ;
+    String spectrum_merge_method_type_;
     double spacing_for_spectra_resampling_;
     double merge_spectra_by_peak_width_fraction_;
     double uis_threshold_sn_;
