@@ -36,7 +36,7 @@ foreach(TOOL ${executables})
   )
   add_custom_command(
     TARGET generate_cwl_files POST_BUILD
-    COMMAND ${CWLTOOL_EXECUTABLE} --validate ${CWL_FILE}
+    COMMAND ${CWLTOOL_EXECUTABLE} --validate ${OPENMS_SHARE_DIR}/commonwl/${TOOL}.cwl
     COMMENT "Validating ${CWL_FILE}"
   )
 
