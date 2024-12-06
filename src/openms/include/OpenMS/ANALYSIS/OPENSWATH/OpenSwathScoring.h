@@ -72,7 +72,7 @@ namespace OpenMS
      * @param rt_normalization_factor Specifies the range of the normalized retention time space
      * @param add_up_spectra How many spectra to add up (default 1)
      * @param spacing_for_spectra_resampling Spacing factor for spectra addition
-     * @param use_percent_peak_width Percent to constrict the number of spectra to add based on peak width
+     * @param use_percent_peak_width Percent to construct the number of spectra to add based on peak width
      * @param drift_extra Extend the extraction window to gain a larger field of view beyond drift_upper - drift_lower (in percent)
      * @param su Which scores to actually compute
      * @param spectrum_addition_method Method to use for spectrum addition (valid: "simple", "resample")
