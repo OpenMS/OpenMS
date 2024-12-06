@@ -72,7 +72,7 @@ namespace OpenMS
     defaults_.setValidStrings("write_convex_hull", {"true","false"});
     defaults_.setValue("spectrum_addition_method", "simple", "For spectrum addition, either use simple concatenation or use peak resampling", {"advanced"});
     defaults_.setValidStrings("spectrum_addition_method", {"simple", "resample"});
-    defaults_.setValue("add_up_spectra", 1, "Add up spectra around the peak apex (needs to be a non-even integer). If set to -1, it will automatically select the number of spectra to add up around the peak apex.", {"advanced"});
+    defaults_.setValue("add_up_spectra", 1, "Add up spectra around the peak apex (needs to be a non-even integer). If set to -1, it will automatically select the number of spectra to add up around the peak apex according to use_percent_peak_width.", {"advanced"});
     defaults_.setMinInt("add_up_spectra", -1);
     defaults_.setValue("spacing_for_spectra_resampling", 0.005, "If spectra are to be added, use this spacing to add them up", {"advanced"});
     defaults_.setMinFloat("spacing_for_spectra_resampling", 0.0);
