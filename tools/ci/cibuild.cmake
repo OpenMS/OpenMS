@@ -166,17 +166,23 @@ ctest_update()
 ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" OPTIONS "${OWN_OPTIONS}" RETURN_VALUE _configure_ret)
 ctest_submit(PARTS Update Configure)
 
+# Generate and valdiate the CWL files if "ENABLE_CWL" is set
+if ("$ENV{ENABLE_CWL}" STREQUAL "ON")
+  ctest_configure(OPTIONS "-DENABLE_CWL=ON" RETURN_VALUE _reconfig_cwl_ret_val)
+  ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "generate_cwl_files" NUMBER_ERRORS _build_errors)
+
 # we only build when we do non-style testing and we may have special targets like pyopenms
 if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
   if("$ENV{PYOPENMS}" STREQUAL "ON")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "pyopenms" NUMBER_ERRORS _build_errors)
   else()
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
-    ctest_submit(PARTS Build)
   endif()
 else()
   set(_build_errors 0)
 endif()
+ctest_submit(PARTS Build)
+
 
 string(REPLACE "+" "%2B" BUILD_NAME_SAFE ${CTEST_BUILD_NAME})
 string(REPLACE "." "%2E" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
