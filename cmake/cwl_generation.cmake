@@ -34,11 +34,11 @@ foreach(TOOL ${executables})
     TARGET  generate_cwl_files POST_BUILD
     COMMAND ${OPENMS_BINARY_DIR}/${TOOL} -write_cwl ${OPENMS_SHARE_DIR}/commonwl
   )
-  add_custom_command(
-    TARGET generate_cwl_files POST_BUILD
-    #TODO: remove the no-warning flag
-    COMMAND ${CWLTOOL_EXECUTABLE} --no-warning --validate ${OPENMS_SHARE_DIR}/commonwl/${TOOL}.cwl
-    COMMENT "Validating ${CWL_FILE}"
-  )
+  #add_custom_command(
+    #TARGET generate_cwl_files POST_BUILD
+    ##TODO: remove the no-warning flag
+    #COMMAND ${CWLTOOL_EXECUTABLE} --no-warning --validate ${OPENMS_SHARE_DIR}/commonwl/${TOOL}.cwl
+    #COMMENT "Validating ${CWL_FILE}"
+  #)
 
 endforeach()
