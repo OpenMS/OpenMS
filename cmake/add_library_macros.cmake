@@ -235,6 +235,18 @@ function(openms_add_library)
     set(has_dll_dep
             $<BOOL:$<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}>>
             )
+ ## QuickWidgets is a runtime-only dependency that we need to copy and install when WebEngine is found.
+  find_package(Qt6 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT} QuickWidgets)
+
+  # TODO only works if WebEngineWidgets is the only optional component
+  set(OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
+  if(Qt6WebEngineWidgets_FOUND)
+    list(APPEND OpenMS_GUI_QT_FOUND_COMPONENTS_OPT "WebEngineWidgets")
+  else()
+    message(WARNING "Qt6WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
+  endif()
+
+
     set(none_command
             ${CMAKE_COMMAND} -E echo
             )
