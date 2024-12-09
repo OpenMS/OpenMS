@@ -1279,7 +1279,7 @@ namespace OpenMS
 
       case TOPPASVertex::TV_UNFINISHED_INBRANCH:
         setPipelineRunning(false);
-        emit pipelineErrorSlot("Resume cannot continue due to missing subtree.");
+        emit pipelineErrorSlot(-1, "Resume cannot continue due to missing subtree.");
         break;
       }
     }
@@ -1298,13 +1298,13 @@ namespace OpenMS
     emit entirePipelineFinished();
   }
 
-  void TOPPASScene::pipelineErrorSlot(const QString& msg)
+  void TOPPASScene::pipelineErrorSlot(int return_code, const QString& msg)
   {
     logTOPPOutput(msg); // print to log window or console
     error_occured_ = true;
     setPipelineRunning(false);
     abortPipeline();
-    emit pipelineExecutionFailed();
+    emit pipelineExecutionFailed(return_code);
   }
 
   void TOPPASScene::writeToLogFile_(const QString& text)
@@ -2208,15 +2208,15 @@ namespace OpenMS
 
   void TOPPASScene::connectToolVertexSignals(TOPPASToolVertex* ttv)
   {
-    connect(ttv, SIGNAL(toppOutputReady(const QString &)), this, SLOT(logTOPPOutput(const QString &)));
-    connect(ttv, SIGNAL(toolStarted()), this, SLOT(logToolStarted()));
-    connect(ttv, SIGNAL(toolFinished()), this, SLOT(logToolFinished()));
-    connect(ttv, SIGNAL(toolFailed()), this, SLOT(logToolFailed()));
-    connect(ttv, SIGNAL(toolCrashed()), this, SLOT(logToolCrashed()));
+    connect(ttv, &TOPPASToolVertex::toppOutputReady, this, &TOPPASScene::logTOPPOutput);
+    connect(ttv, &TOPPASToolVertex::toolStarted,  this, &TOPPASScene::logToolStarted);
+    connect(ttv, &TOPPASToolVertex::toolFinished, this, &TOPPASScene::logToolFinished);
+    connect(ttv, &TOPPASToolVertex::toolFailed,   this, &TOPPASScene::logToolFailed);
+    connect(ttv, &TOPPASToolVertex::toolCrashed,  this, &TOPPASScene::logToolCrashed);
 
-    connect(ttv, SIGNAL(toolFailed(const QString &)), this, SLOT(pipelineErrorSlot(QString)));
-    connect(ttv, SIGNAL(toolCrashed()), this, SLOT(pipelineErrorSlot()));
-    connect(ttv, SIGNAL(somethingHasChanged()), this, SLOT(abortPipeline()));
+    connect(ttv, &TOPPASToolVertex::toolFailed,          this, &TOPPASScene::pipelineErrorSlot);
+    connect(ttv, &TOPPASToolVertex::toolCrashed, [&]() { this->pipelineErrorSlot(); });
+    connect(ttv, &TOPPASToolVertex::somethingHasChanged, this, &TOPPASScene::abortPipeline);
   }
 
   void TOPPASScene::connectMergerVertexSignals(TOPPASMergerVertex* tmv)
@@ -2362,9 +2362,9 @@ namespace OpenMS
     return dry_run_;
   }
   
-  void TOPPASScene::quitWithError()
+  void TOPPASScene::quitWithError(int exit_code)
   {
-    exit(1);
+    exit(exit_code);
   }
 
   TOPPASEdge* TOPPASScene::getHoveringEdge()

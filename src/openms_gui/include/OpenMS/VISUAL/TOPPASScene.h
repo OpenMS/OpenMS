@@ -238,7 +238,7 @@ public slots:
     /// Called when the new edge is being "released"
     void finishHoveringEdge();
     /// Called by vertices at which an error occurred during pipeline execution
-    void pipelineErrorSlot(const QString& msg = "");
+    void pipelineErrorSlot(int return_code = -1, const QString& msg = "");
     /// Moves all selected items by dx, dy
     void moveSelectedItems(qreal dx, qreal dy);
     /// Makes all vertices snap to the grid
@@ -253,7 +253,7 @@ public slots:
     /// Called by a finished QProcess to indicate that we are free to start a new one
     void processFinished();
     /// dirty solution: when using ExecutePipeline this slot is called when the pipeline crashes. This will quit the app
-    void quitWithError();
+    void quitWithError(int exit_code);
 
 
     ///@name Slots for printing log/error output when no GUI is available
@@ -277,7 +277,7 @@ signals:
     /// Emitted when the entire pipeline execution is finished
     void entirePipelineFinished();
     /// Emitted when the pipeline execution has failed
-    void pipelineExecutionFailed();
+    void pipelineExecutionFailed(int return_code = -1);
     /// Emitted when the pipeline should be saved (showing a save as file dialog and so on)
     void saveMe();
     /// Kills all connected TOPP processes
