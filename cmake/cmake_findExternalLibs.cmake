@@ -234,6 +234,7 @@ if (WITH_GUI)
     message(STATUS "Qt6Widgets not found!")
     message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt6Libs>' <src-dir>")
   ENDIF()
+  find_package(Qt6 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
 
   # TODO only works if WebEngineWidgets is the only optional component
   set(OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
