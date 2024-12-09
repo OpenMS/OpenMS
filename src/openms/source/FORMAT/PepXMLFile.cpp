@@ -1902,6 +1902,9 @@ namespace OpenMS
     else if (element == "sample_enzyme") // parent: "msms_run_summary"
     { // special case: search parameter that occurs *before* "search_summary"!
       enzyme_ = attributeAsString_(attributes, "name");
+
+      if (enzyme_ == "stricttrypsin") enzyme_ = "Trypsin/P"; // MSFragger synonyme
+
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_.toLower()))
       {
         params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
@@ -1921,7 +1924,9 @@ namespace OpenMS
       //TODO we should not overwrite the enzyme here! Luckily in most files it is the same
       // enzyme as in sample_enzyme or something useless like "default".
       ///<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
-      enzyme_ = attributeAsString_(attributes, "enzyme");
+      enzyme_ = attributeAsString_(attributes, "enzyme");    
+      if (enzyme_ == "stricttrypsin") enzyme_ = "Trypsin/P"; // MSFragger synonyme
+
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
         DigestionEnzymeProtein enzyme_to_set = *(ProteaseDB::getInstance()->getEnzyme(enzyme_.toLower()));
