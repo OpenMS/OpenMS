@@ -169,6 +169,13 @@ namespace OpenMS
       GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
+    ExternalExecutableNotFound::ExternalExecutableNotFound(const char* file, int line, const char* function, const std::string& filename) noexcept:
+        BaseException(file, line, function, "ExternalExecutableNotFound", "the executable '" + filename + "' could not be found")
+    {
+      GlobalExceptionHandler::getInstance().setMessage(what());
+    }
+    
+
     FileNotReadable::FileNotReadable(const char* file, int line, const char* function, const std::string& filename) noexcept :
       BaseException(file, line, function, "FileNotReadable", "the file '" + filename + "' is not readable for the current user")
     {

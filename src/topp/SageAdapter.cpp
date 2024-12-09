@@ -991,6 +991,11 @@ protected:
     std::cout << sage_executable << " sage executable" << std::endl; 
     String proc_stdout, proc_stderr;
     TOPPBase::ExitCodes exit_code = runExternalProcess_(sage_executable.toQString(), QStringList() << "--help", proc_stdout, proc_stderr, "");
+    if (exit_code != EXECUTION_OK)
+    {
+      return exit_code;
+    }
+
     auto major_minor_patch = getVersionNumber_(proc_stdout);
     String sage_version = std::get<0>(major_minor_patch) + "." + std::get<1>(major_minor_patch) + "." + std::get<2>(major_minor_patch);
     
@@ -1052,25 +1057,16 @@ protected:
     
     //std::chrono lines for testing/writing purposes only! 
 
-    #ifdef CHRONOSET
-      std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-      // Sage execution with the executable and the arguments StringList
-      exit_code = runExternalProcess_(sage_executable.toQString(), arguments);
-      std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-      std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
-    #endif
-
-    #ifndef CHRONOSET
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     // Sage execution with the executable and the arguments StringList
-      exit_code = runExternalProcess_(sage_executable.toQString(), arguments);
+    exit_code = runExternalProcess_(sage_executable.toQString(), arguments);
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    #ifdef CHRONOSET
+    std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
     #endif
-    
-
-    
 
     if (exit_code != EXECUTION_OK)
     {
-      std::cout << "Sage executable not found" << std::endl; 
       return exit_code;
     }
 

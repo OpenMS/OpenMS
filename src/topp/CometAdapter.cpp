@@ -631,7 +631,7 @@ protected:
     TOPPBase::ExitCodes exit_code = runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.getPath().toQString());
     if (exit_code != EXECUTION_OK)
     {
-      return EXTERNAL_PROGRAM_ERROR;
+      return exit_code; // will do the right thing, since it's correctly mapping TOPPBase exit codes
     }
     // the first line of 'comet.params.new' contains a string like: "# comet_version 2017.01 rev. 1"
     String comet_version; 
