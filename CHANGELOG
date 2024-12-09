@@ -16,6 +16,8 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 
 Misc:
 - pyOpenMS: improve developer experience (installation/compilation) (#7735)
+- TOPP tools and TOPPAS/ExecutePipeline return exit code 14 when external third-party tools (such as Comet or Sage) are not found (#7758)
+
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.3.0     (under development)              ----
