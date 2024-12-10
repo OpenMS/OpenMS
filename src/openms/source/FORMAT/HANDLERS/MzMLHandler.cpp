@@ -5296,7 +5296,7 @@ namespace OpenMS::Internal
         {
           for (Size p = 0; p < container.size(); ++p)
           {
-            data_to_encode[p] = container[p].getMZ();
+            data_to_encode[p] = container[p].getPos();
           }
         }
         writeBinaryDataArray_(os, pf_options_, data_to_encode, false, array_type);
@@ -5316,7 +5316,7 @@ namespace OpenMS::Internal
         {
           for (Size p = 0; p < container.size(); ++p)
           {
-            data_to_encode[p] = container[p].getMZ();
+            data_to_encode[p] = container[p].getPos();
           }
         }
         writeBinaryDataArray_(os, pf_options_, data_to_encode, true, array_type);

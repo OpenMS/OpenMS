@@ -171,13 +171,13 @@ public:
         iter--;
       }
 
-      typename ContainerT::const_iterator prev = iter;
-      if (prev != chromatogram_.begin() ) 
+      auto prev = iter;
+      if (prev != chromatogram_.begin()) 
       {
         prev--;
       }
 
-      if (std::fabs(prev->getMZ() - RT) < std::fabs(iter->getMZ() - RT) )
+      if (std::fabs(prev->getPos() - RT) < std::fabs(iter->getPos() - RT) )
       {
         // prev is closer to the apex
         return sn_.getSignalToNoise((Size) distance(chromatogram_.begin(),prev));

@@ -286,7 +286,7 @@ protected:
       {
 
         // erase all elements from histogram that will leave the window on the LEFT side
-        while ((*window_pos_borderleft).getMZ() <  (*window_pos_center).getMZ() - window_half_size)
+        while ((*window_pos_borderleft).getPos() < (*window_pos_center).getPos() - window_half_size)
         {
           to_bin = std::max(std::min<int>((int)((*window_pos_borderleft).getIntensity() / bin_size), bin_count_minus_1), 0);
           --histogram[to_bin];
@@ -296,7 +296,7 @@ protected:
 
         // add all elements to histogram that will enter the window on the RIGHT side
         while ((window_pos_borderright != scan_last_)
-              && ((*window_pos_borderright).getMZ() <= (*window_pos_center).getMZ() + window_half_size))
+              && ((*window_pos_borderright).getPos() <= (*window_pos_center).getPos() + window_half_size))
         {
           //std::cerr << (*window_pos_borderright).getIntensity() << " " << bin_size << " " << bin_count_minus_1 << std::endl;
           to_bin = std::max(std::min<int>((int)((*window_pos_borderright).getIntensity() / bin_size), bin_count_minus_1), 0);
