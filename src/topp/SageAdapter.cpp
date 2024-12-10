@@ -1156,8 +1156,8 @@ protected:
     search_parameters.fixed_modifications = getStringList_("fixed_modifications");
     search_parameters.variable_modifications = getStringList_("variable_modifications");
     search_parameters.missed_cleavages = getIntOption_("missed_cleavages");
-    search_parameters.fragment_mass_tolerance = (getDoubleOption_("fragment_tol_left") + getDoubleOption_("fragment_tol_right")) * 0.5;
-    search_parameters.precursor_mass_tolerance = (getDoubleOption_("precursor_tol_left") + getDoubleOption_("precursor_tol_right")) * 0.5;
+    search_parameters.fragment_mass_tolerance = (std::fabs(getDoubleOption_("fragment_tol_left")) + std::fabs(getDoubleOption_("fragment_tol_right"))) * 0.5;
+    search_parameters.precursor_mass_tolerance = (std::fabs(getDoubleOption_("precursor_tol_left")) + std::fabs(getDoubleOption_("precursor_tol_right"))) * 0.5;
     search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_tol_unit") == "ppm";
     search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment_tol_unit") == "ppm";
 
