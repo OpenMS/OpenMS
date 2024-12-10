@@ -14,13 +14,11 @@ namespace OpenMS
 
   OpenSwathTSVWriter::OpenSwathTSVWriter(const String& output_filename,
                                          const String& input_filename,
-                                         bool ms1_scores,
-                                         bool sonar) :
+                                         bool ms1_scores) :
     ofs(output_filename.c_str()),
     input_filename_(input_filename),
     doWrite_(!output_filename.empty()),
-    use_ms1_traces_(ms1_scores),
-    sonar_(sonar)
+    use_ms1_traces_(ms1_scores)
     {
     }
 
@@ -65,10 +63,6 @@ namespace OpenMS
         ofs << "\tvar_ms1_ppm_diff\tvar_ms1_isotope_corr\tvar_ms1_isotope_overlap\tvar_ms1_xcorr_coelution\tvar_ms1_xcorr_shape";
       }
       ofs << "\txx_lda_prelim_score\txx_swath_prelim_score";
-      if (sonar_)
-      {
-        ofs << "\tvar_sonar_lag\tvar_sonar_shape\tvar_sonar_log_sn\tvar_sonar_log_diff\tvar_sonar_log_trend\tvar_sonar_rsq";
-      }
       if (use_ms1_traces_)
       {
         ofs << "\taggr_prec_Peak_Area\taggr_prec_Peak_Apex\taggr_prec_Annotation";
@@ -235,16 +229,6 @@ namespace OpenMS
 
             line += "\t" + (String)feature_it->getMetaValue("xx_lda_prelim_score")
             + "\t" + (String)feature_it->getMetaValue("xx_swath_prelim_score");
-            if (sonar_)
-            {
-              line += "\t" + (String)feature_it->getMetaValue("var_sonar_lag")
-              + "\t" + (String)feature_it->getMetaValue("var_sonar_shape")
-              + "\t" + (String)feature_it->getMetaValue("var_sonar_log_sn")
-              + "\t" + (String)feature_it->getMetaValue("var_sonar_log_diff")
-              + "\t" + (String)feature_it->getMetaValue("var_sonar_log_trend")
-              + "\t" + (String)feature_it->getMetaValue("var_sonar_rsq");
-
-            }
             if (use_ms1_traces_)
             {
               line += "\t" + ListUtils::concatenate(aggr_prec_Peak_Area, ";") + "\t" + ListUtils::concatenate(aggr_prec_Peak_Apex, ";") + "\t" + ListUtils::concatenate(aggr_prec_Fragment_Annotation, ";");

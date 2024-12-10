@@ -477,6 +477,19 @@ namespace OpenMS
     };
 
     /**
+      @brief External executable (e.g. comet.exe) not found exception.
+
+      A given file could not be found. Usually used in Adapters for external tools.
+
+      @ingroup Exceptions
+    */
+    class OPENMS_DLLAPI ExternalExecutableNotFound : public BaseException
+    {
+    public:
+      ExternalExecutableNotFound(const char* file, int line, const char* function, const std::string& filename) noexcept;
+    };
+
+    /**
       @brief File not readable exception.
 
       A given file is not readable for the current user.

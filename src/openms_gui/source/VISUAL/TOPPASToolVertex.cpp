@@ -480,14 +480,14 @@ namespace OpenMS
     if (!success)
     {
       OPENMS_LOG_ERROR << "Could not retrieve input files from upstream nodes...\n";
-      emit toolFailed(error_msg.toQString());
+      emit toolFailed(-1, error_msg.toQString());
       return;
     }
 
     // all inputs are ready --> GO!
     if (!updateCurrentOutputFileNames(pkg, error_msg)) // based on input, we prepare output names
     {
-      emit toolFailed(error_msg.toQString());
+      emit toolFailed(-1, error_msg.toQString());
       return;
     }
 
@@ -695,7 +695,7 @@ namespace OpenMS
     }
     else if (ec != 0)
     {
-      emit toolFailed();
+      emit toolFailed(ec);
     }
     else
     {

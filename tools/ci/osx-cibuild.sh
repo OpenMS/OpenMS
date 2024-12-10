@@ -75,7 +75,7 @@ export OS_PREFIX_PATH=/usr/local
 ctest --output-on-failure -V -S tools/travis/cibuild.cmake
 
 # tell the user where he can find the results
-echo "Please check the build results at: http://cdash.openms.de/index.php?project=OpenMS&date="$(date +"%y-%m-%d")"#Continuous"
+echo "Please check the build results at: http://cdash.seqan.de/index.php?project=OpenMS&date="$(date +"%y-%m-%d")"#Continuous"
 echo "This build has the name: ${BUILD_NAME}"
 
 # we indicate build failures if CTest experienced any errors

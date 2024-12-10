@@ -1092,6 +1092,7 @@ namespace OpenMS
 
     if (element == "msms_run_summary") // parent: "msms_pipeline_analysis"
     {
+      String ms_run_path;
       if (!exp_name_.empty())
       {
         String base_name = attributeAsString_(attributes, "base_name");
@@ -1108,6 +1109,11 @@ namespace OpenMS
           wrong_experiment_ = false;
           checked_base_name_ = false;
         }
+        String raw_data = attributeAsString_(attributes, "raw_data");
+        if (!base_name.empty() && !raw_data.empty())
+        {
+          ms_run_path = base_name + "." + raw_data;
+        }
       }
       if (wrong_experiment_) return;
 
@@ -1119,6 +1125,10 @@ namespace OpenMS
       // "prot_id_" will be overwritten if elem. "search_summary" is present
       protein.setIdentifier(prot_id_);
       proteins_->push_back(protein);
+      if (!ms_run_path.empty())
+      {
+        protein.setPrimaryMSRunPath(StringList(1, ms_run_path));
+      }
       current_proteins_.clear();
       current_proteins_.push_back(--proteins_->end());
     }
