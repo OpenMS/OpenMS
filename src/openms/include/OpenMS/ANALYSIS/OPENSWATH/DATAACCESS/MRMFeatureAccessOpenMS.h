@@ -163,7 +163,7 @@ public:
 
       // Note that MZBegin does not seem to return the same iterator on
       // different setups, see https://github.com/OpenMS/OpenMS/issues/1163
-      typename ContainerT::const_iterator iter = chromatogram_.MZEnd(RT);
+      auto iter = chromatogram_.PosEnd(RT);
 
       // ensure that iter is valid
       if (iter == chromatogram_.end()) 

@@ -130,12 +130,12 @@ namespace OpenMS
     else
     {
       // copy the new data into the spectrum
-      auto mz_it = rt_out.begin();
+      auto pos_it = rt_out.begin();
       auto int_it = int_out.begin();
-      for (Size p = 0; mz_it != rt_out.end(); mz_it++, int_it++, p++)
+      for (Size p = 0; pos_it != rt_out.end(); pos_it++, int_it++, p++)
       {
         chromatogram[p].setIntensity(*int_it);
-        chromatogram[p].setMZ(*mz_it);
+        chromatogram[p].setRT(*pos_it);
       }
     }
   }

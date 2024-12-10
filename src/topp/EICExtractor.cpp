@@ -175,15 +175,12 @@ public:
     setValidFormats_("out", ListUtils::create<String>("csv"));
   }
 
-  MSChromatogram toChromatogram(const MSSpectrum& in)
+  MSChromatogram toChromatogram(const MSSpectrum& in) // for debugging
   {
     MSChromatogram out;
-    for (Size ic = 0; ic < in.size(); ++ic)
+    for (const auto& peak : in)
     {
-      ChromatogramPeak peak;
-      peak.setMZ(in[ic].getMZ());
-      peak.setIntensity(in[ic].getIntensity());
-      out.push_back(peak);
+      out.emplace_back(peak.getMZ(), peak.getIntensity());
     }
     out.setChromatogramType(ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM);
 
@@ -324,7 +321,7 @@ public:
           for (Size is = 0; is < tics.size(); ++is)
           {
             Peak1D peak;
-            peak.setMZ(tic[is].getMZ());
+            peak.setMZ(tic[is].getPos());
             peak.setIntensity(snt.getSignalToNoise(is));
             tics_sn.push_back(peak);
           }

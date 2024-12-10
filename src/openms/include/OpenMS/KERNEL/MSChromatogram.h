@@ -295,8 +295,6 @@ public:
     */
     ConstIterator RTEnd(CoordinateType rt) const;
 
-    ConstIterator MZEnd(CoordinateType rt) const;
-
     /**
       @brief Binary search for peak range end (returns the past-the-end iterator)
 
