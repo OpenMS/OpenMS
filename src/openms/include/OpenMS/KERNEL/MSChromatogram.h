@@ -31,7 +31,7 @@ namespace OpenMS
 
 public:
 
-    /// Comparator for the retention time.
+    /// Comparator for the precursor m/z time.
     struct OPENMS_DLLAPI MZLess
     {
       bool operator()(const MSChromatogram& a, const MSChromatogram& b) const;
@@ -82,6 +82,7 @@ public:
     using ContainerType::resize;
     using ContainerType::size;
     using ContainerType::push_back;
+    using ContainerType::emplace_back;
     using ContainerType::pop_back;
     using ContainerType::empty;
     using ContainerType::front;
