@@ -71,7 +71,7 @@ set(CPACK_COMPONENTS_ALL applications doc library share ${THIRDPARTY_COMPONENT_G
 ## Autogeneration with SHLIBDEPS will add to this variable. For now we include most things statically and require the standard Qt package and libc6 only.
 ## (only available in Ubuntu >=17.10). For older Ubuntu, dependencies can be installed from a thirdparty repo.
 set(CPACK_DEBIAN_PACKAGE_DEPENDS 
-  "qtbase5-dev (>= 5.7.0) | qt57base | qt58base | qt59base | qt510base | qt511base, libqt5svg5 (>= 5.7.0) | qt57svg | qt58svg | qt59svg | qt510svg | qt511svg, libc6 (>= 2.28)")
+  "qtbase5-dev (>= 5.15.3), libqt5svg5 (>= 5.15.3), libc6 (>= 2.28), libqt5widgets5 (>= 5.15.3), libqt5gui5 (>= 5.15.3), libqt5core5 (>= 5.15.3) | libqt5core5t64 (>= 5.15.3)")
 
 SET(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
 SET(CPACK_DEBIAN_PACKAGE_SECTION "science")
