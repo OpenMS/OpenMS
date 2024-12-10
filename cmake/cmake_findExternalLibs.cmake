@@ -234,25 +234,15 @@ if (WITH_GUI)
     message(STATUS "Qt6Widgets not found!")
     message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt6Libs>' <src-dir>")
   ENDIF()
-
-  ## QuickWidgets is a runtime-only dependency that we need to copy and install when WebEngine is found.
-  # https://gitlab.kitware.com/cmake/cmake/-/issues/16462
-  # https://bugreports.qt.io/browse/QTBUG-110118
-  find_package(Qt6 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT} QuickWidgets)
+  find_package(Qt6 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
 
   # TODO only works if WebEngineWidgets is the only optional component
   set(OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
   if(Qt6WebEngineWidgets_FOUND)
     list(APPEND OpenMS_GUI_QT_FOUND_COMPONENTS_OPT "WebEngineWidgets")
-    # we assume that it is available for now. They should have dependencies when installing Qt.
-    install(IMPORTED_RUNTIME_ARTIFACTS "Qt6::QuickWidgets"
-            DESTINATION "${INSTALL_LIB_DIR}"
-            RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
-            COMPONENT Dependencies)
   else()
     message(WARNING "Qt6WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
   endif()
-
 
   set(OpenMS_GUI_DEP_LIBRARIES "OpenMS")
 

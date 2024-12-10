@@ -492,7 +492,7 @@ public:
     {
       for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
       {
-        DriftTimeUnit unit;
+        DriftTimeUnit unit = DriftTimeUnit::NONE;
         std::vector<float> im;
         float t = -1.0;
         if (it.getRT() != t)

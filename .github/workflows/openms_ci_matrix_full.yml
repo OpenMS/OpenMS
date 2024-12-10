@@ -236,7 +236,6 @@ jobs:
           sudo apt-get -qq install -y qt6-base-dev libqt6svg6-dev libqt6opengl6-dev libqt6openglwidgets6 libgl-dev
           sudo apt-get -qq install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev \
            libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
-
           echo "cmake_prefix=" >> $GITHUB_OUTPUT
           ## always run doxygen on Ubuntu to detect Doxygen errors
           sudo apt-get -qq install -y doxygen ghostscript graphviz
@@ -247,7 +246,8 @@ jobs:
         if [[ "${{ matrix.os }}" == windows-* ]]; then
           # QT_ROOT_DIR set by Install Qt step
           echo "cmake_prefix=$QT_ROOT_DIR/lib/cmake;$QT_ROOT_DIR" >> $GITHUB_OUTPUT
-          choco install ccache ninja cmake -y --no-progress
+          choco install ccache ninja -y --no-progress
+          choco install cmake --version=3.31.1 -y --no-progress
           ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
           # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
           echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
@@ -345,6 +345,15 @@ jobs:
       run: |
           # do not fail immediately
           set +e
+
+          # Generate the CWL descriptors if we are going to build a package
+          if [ ${{steps.set-vars.outputs.pkg_type }} != "none" ]; then
+            python -m venv openms-cwl
+            source openms-cwl/bin/activate
+            pip install -q cwltool
+            export ENABLE_CWL=ON
+          fi
+
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
           retVal=$?

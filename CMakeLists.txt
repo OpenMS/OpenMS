@@ -83,6 +83,7 @@ option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." ON)
 option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
+option(ENABLE_CWL "Build and validate the CWL description files for all TOPP tools." OFF)
 
 if(MSVC)
   option(MT_ENABLE_NESTED_OPENMP "Enable nested parallelism." OFF)
@@ -325,7 +326,8 @@ is_valid_package(${PACKAGE_TYPE})
 if("${PACKAGE_TYPE}" STREQUAL "dmg" OR "${PACKAGE_TYPE}" STREQUAL "pkg")
   if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "" OR NOT DEFINED SIGNING_EMAIL OR "${SIGNING_EMAIL}" STREQUAL "")
     message(WARNING "Trying to create macOS package/image without SIGNING_IDENTITY and SIGNING_EMAIL being set. "
-                    "This disables notarization and might lead to problems with macOS' Gatekeeper on target machines.")
+                    "Using ad hoc (https://developer.apple.com/documentation/security/seccodesignatureflags/adhoc) identity.")
+    set(CPACK_BUNDLE_APPLE_CERT_APP "-")
   else()
     ## CPack has a special variable for the identity
     set(CPACK_BUNDLE_APPLE_CERT_APP "${SIGNING_IDENTITY}")
@@ -474,9 +476,11 @@ if (ENABLE_PREPARE_KNIME_PACKAGE)
 endif()
 
 #------------------------------------------------------------------------------
-# CWL generation (updates openms/workflow/cwl/*.cwl files for all TOPP tools)
+# CWL generation (updates openms/share/commonwl/*.cwl files for all TOPP tools)
 #------------------------------------------------------------------------------
-include(${OPENMS_HOST_DIRECTORY}/cmake/cwl_generation.cmake)
+if (ENABLE_CWL)
+  include(${OPENMS_HOST_DIRECTORY}/cmake/cwl_generation.cmake)
+endif()
 
 #------------------------------------------------------------------------------
 # Handle export of targets and install them
