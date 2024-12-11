@@ -112,7 +112,21 @@ if (NUMPY_INCLUDE_DIR_NOT_FOUND)
     message(FATAL_ERROR "Failed to find numpy include directory: ${NUMPY_ERROR}")
 endif()
 
+#------------------------------------------------------------------------------
+# Find Autowrap headers
+execute_process(
+    COMMAND ${Python_EXECUTABLE} -c "from __future__ import print_function; import autowrap; print (''.join([autowrap.__path__[0],'/data_files/autowrap/']))"
+    OUTPUT_VARIABLE AUTOWRAP_INCLUDE_DIR
+    ERROR_VARIABLE AUTOWRAP_ERROR
+    RESULT_VARIABLE AUTOWRAP_INCLUDE_DIR_NOT_FOUND
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
 
+if (AUTOWRAP_INCLUDE_DIR_NOT_FOUND)
+    message(FATAL_ERROR "Failed to find numpy include directory: ${AUTOWRAP_ERROR}")
+endif()
+
+#------------------------------------------------------------------------------
 # Find Python headers
 execute_process(
     COMMAND ${Python_EXECUTABLE} -c "import sysconfig; print(sysconfig.get_paths()['include'])"
@@ -430,7 +444,7 @@ if ("${PY_NUM_MODULES}" GREATER "1")
       Python_add_library(pyopenms_${nr} MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_pyopenms_${nr}.cpp" )
       target_link_libraries(pyopenms_${nr} PRIVATE OpenMS)
       target_compile_definitions(pyopenms_${nr} PRIVATE NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION)
-      target_include_directories(pyopenms_${nr} SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDES})
+      target_include_directories(pyopenms_${nr} SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDE_DIR})
       target_compile_options(pyopenms_${nr} PRIVATE ${EXTRA_WARNINGS})
       set_target_properties(pyopenms_${nr} PROPERTIES
         OUTPUT_NAME _pyopenms_${nr}
@@ -462,7 +476,7 @@ else()
     Python_add_library(pyopenms_compile MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_pyopenms.cpp" )
     target_link_libraries(pyopenms_compile PRIVATE OpenMS)
     target_compile_definitions(pyopenms_compile PRIVATE NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION)
-    target_include_directories(pyopenms_compile SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDES})
+    target_include_directories(pyopenms_compile SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDE_DIR})
     target_compile_options(pyopenms_compile PRIVATE ${EXTRA_WARNINGS})
     set_target_properties(pyopenms_compile PROPERTIES
         OUTPUT_NAME _pyopenms
