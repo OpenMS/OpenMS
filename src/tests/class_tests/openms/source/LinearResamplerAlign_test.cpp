@@ -89,26 +89,26 @@ END_SECTION
 // it should also work with chromatograms
 START_SECTION([EXTRA] test_linear_res_chromat)
 {
-  MSChromatogram spec;
-  spec.resize(5);
-  spec[0].setMZ(0);
-  spec[0].setIntensity(3.0f);
-  spec[1].setMZ(0.5);
-  spec[1].setIntensity(6.0f);
-  spec[2].setMZ(1.);
-  spec[2].setIntensity(8.0f);
-  spec[3].setMZ(1.6);
-  spec[3].setIntensity(2.0f);
-  spec[4].setMZ(1.8);
-  spec[4].setIntensity(1.0f);
+  MSChromatogram chrom;
+  chrom.resize(5);
+  chrom[0].setRT(0);
+  chrom[0].setIntensity(3.0f);
+  chrom[1].setRT(0.5);
+  chrom[1].setIntensity(6.0f);
+  chrom[2].setRT(1.);
+  chrom[2].setIntensity(8.0f);
+  chrom[3].setRT(1.6);
+  chrom[3].setIntensity(2.0f);
+  chrom[4].setRT(1.8);
+  chrom[4].setIntensity(1.0f);
 
   LinearResamplerAlign lr;
   Param param;
-  param.setValue("spacing",default_spacing);
+  param.setValue("spacing", default_spacing);
   lr.setParameters(param);
-  lr.raster(spec);
+  lr.raster(chrom);
 
-  check_results(spec);
+  check_results(chrom);
 }
 END_SECTION
 

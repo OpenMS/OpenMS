@@ -109,6 +109,10 @@ if (NOT (${XTANDEM_BINARY} STREQUAL "XTANDEM_BINARY-NOTFOUND") AND xtandem_valid
   add_test("TOPP_XTandemAdapter_PROFILE" ${TOPP_BIN_PATH}/XTandemAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteinslong.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/MS2_profile.mzML -out XTandemAdapter_4_out.tmp.idXML -xtandem_executable "${XTANDEM_BINARY}")
   set_tests_properties("TOPP_XTandemAdapter_PROFILE" PROPERTIES WILL_FAIL 1) 
 endif()
+## test returncode when XTandem not found:
+add_test("TOPP_XTandemAdapter_missing" ${TOPP_BIN_PATH}/XTandemAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out XTandemAdapter_1_out.tmp.idXML -xtandem_executable "/does/not/exists/path.exe")
+set_tests_properties("TOPP_XTandemAdapter_missing" PROPERTIES SKIP_RETURN_CODE 14) ## EXTERNAL_PROGRAM_NOTFOUND
+
 
 #------------------------------------------------------------------------------
 if (NOT (${MSGFPLUS_BINARY} STREQUAL "MSGFPLUS_BINARY-NOTFOUND"))
@@ -122,6 +126,10 @@ if (NOT (${MSGFPLUS_BINARY} STREQUAL "MSGFPLUS_BINARY-NOTFOUND"))
   add_test("TOPP_MSGFPlusAdapter_PROFILE" ${TOPP_BIN_PATH}/MSGFPlusAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteinslong.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/MS2_profile.mzML -out MSGFPlusAdapter_3_out.tmp.idXML -executable "${MSGFPLUS_BINARY}")
   set_tests_properties("TOPP_MSGFPlusAdapter_PROFILE" PROPERTIES WILL_FAIL 1) 
 endif()
+## test returncode when MSGFPlus not found:
+add_test("TOPP_MSGFPlusAdapter_missing" ${TOPP_BIN_PATH}/MSGFPlusAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out MSGFPlusAdapter_1_out.tmp.idXML -executable "/does/not/exists/path.exe")
+set_tests_properties("TOPP_MSGFPlusAdapter_missing" PROPERTIES SKIP_RETURN_CODE 14) ## EXTERNAL_PROGRAM_NOTFOUND
+
 
 #------------------------------------------------------------------------------
 if (NOT (${SAGE_BINARY} STREQUAL "SAGE_BINARY-NOTFOUND"))
@@ -135,6 +143,9 @@ if (NOT (${SAGE_BINARY} STREQUAL "SAGE_BINARY-NOTFOUND"))
       "SageAdapter:1:sage_executable")
   set_tests_properties("TOPP_SageAdapter_1_out1" PROPERTIES DEPENDS "TOPP_SageAdapter_1")
 endif()
+## test returncode when Sage not found:
+add_test("TOPP_SageAdapter_missing" ${TOPP_BIN_PATH}/SageAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out Sage_1_out.tmp.idXML -sage_executable "/does/not/exists/path.exe")
+set_tests_properties("TOPP_SageAdapter_missing" PROPERTIES SKIP_RETURN_CODE 14) ## EXTERNAL_PROGRAM_NOTFOUND
 
 #------------------------------------------------------------------------------
 if (NOT (${COMET_BINARY} STREQUAL "COMET_BINARY-NOTFOUND"))
@@ -178,6 +189,10 @@ if (NOT (${COMET_BINARY} STREQUAL "COMET_BINARY-NOTFOUND"))
     set_tests_properties("TOPP_DatabaseSuitability_3_out" PROPERTIES DEPENDS "TOPP_DatabaseSuitability_3")
   endif()
 endif()
+## test returncode when Comet not found:
+add_test("TOPP_CometAdapter_missing" ${TOPP_BIN_PATH}/CometAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out Comet_1_out.tmp.idXML -comet_executable "/does/not/exists/path.exe")
+set_tests_properties("TOPP_CometAdapter_missing" PROPERTIES SKIP_RETURN_CODE 14) ## EXTERNAL_PROGRAM_NOTFOUND
+
 
 #------------------------------------------------------------------------------
 if (NOT (${MARACLUSTER_BINARY} STREQUAL "MARACLUSTER_BINARY-NOTFOUND"))
@@ -206,6 +221,9 @@ if (NOT (${PERCOLATOR_BINARY} STREQUAL "PERCOLATOR_BINARY-NOTFOUND"))
   ### TOPP_PercolatorAdapter_2-4 do not validate output, but checks whether OSW files can be read and written to.
   ### same for TOPP_PercolatorAdapter_5 which tests if pin file can be written
 endif()
+## test returncode when Percolator not found:
+add_test("TOPP_PercolatorAdapter_missing" ${TOPP_BIN_PATH}/PercolatorAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out Percolator_1_out.tmp.idXML -percolator_executable "/does/not/exists/path.exe")
+set_tests_properties("TOPP_PercolatorAdapter_missing" PROPERTIES SKIP_RETURN_CODE 14) ## EXTERNAL_PROGRAM_NOTFOUND
 
 #------------------------------------------------------------------------------
 option(WITH_MASCOT_TEST "Runs the Mascot Online test (do not turn this on unless you know what you are doing)" OFF)
@@ -240,6 +258,11 @@ if (WITH_MSFRAGGER_TEST)
     set_tests_properties("TOPP_MSFraggerAdapter_8_out" PROPERTIES DEPENDS "TOPP_MSFraggerAdapter_8")
   endif()
 endif()
+## test returncode when MSFragger not found:
+add_test("TOPP_MSFraggerAdapter_missing" ${TOPP_BIN_PATH}/MSFraggerAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out MSFragger_1_out.tmp.idXML -executable "/does/not/exists/path.exe" -license yes)
+set_tests_properties("TOPP_MSFraggerAdapter_missing" PROPERTIES SKIP_RETURN_CODE 14) ## EXTERNAL_PROGRAM_NOTFOUND
+
+
 
 #------------------------------------------------------------------------------
 # RAW file conversion

@@ -70,16 +70,14 @@ if(WITH_GUI) # ExecutePipeline requires Qt/GUI internally
   file(GLOB TOPPAS_EXAMPLE_PIPELINES ${CF_OPENMS_DATA_PATH}/examples/TOPPAS/*.toppas)
   foreach(I_PIPELINE_PATH ${TOPPAS_EXAMPLE_PIPELINES})
     get_filename_component(I_FILE "${I_PIPELINE_PATH}" NAME)
-    if(I_FILE MATCHES "GenericWrapper_") 
+    if(I_FILE MATCHES "GenericWrapper_") # requires rscript as dependency...
       message(STATUS "Skipping  ${I_FILE}")
-      continue()
-    endif()
-    if (I_FILE MATCHES "Ecoli_Identification" AND NOT COMET_BINARY)
-      message(STATUS "Skipping  ${I_FILE} (Comet.exe is required but missing)")
       continue()
     endif()
     message(STATUS "Adding TOPPAS example pipeline for testing: ${I_FILE} [WITH_GUI + ENABLE_PIPELINE_TESTING]")
     add_test("TOPP_ExecutePipeline_${I_FILE}" ${TOPP_BIN_PATH}/ExecutePipeline -test -in "${I_PIPELINE_PATH}" -out_dir .  -num_jobs 4)
+    ## allow failure if search engines (comet.exe etc) are not found
+    set_tests_properties("TOPP_ExecutePipeline_${I_FILE}" PROPERTIES SKIP_RETURN_CODE 14) ## EXTERNAL_PROGRAM_NOTFOUND
   endforeach()
   
   

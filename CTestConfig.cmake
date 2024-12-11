@@ -6,4 +6,4 @@
 ##   INCLUDE(CTest)
 set(CTEST_PROJECT_NAME "OpenMS")
 set(CTEST_NIGHTLY_START_TIME "23:59:59 UTC")
-set(CTEST_SUBMIT_URL "https://cdash.openms.de/submit.php?project=OpenMS")
+set(CTEST_SUBMIT_URL "https://cdash.seqan.de/submit.php?project=OpenMS")

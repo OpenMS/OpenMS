@@ -50,20 +50,20 @@ public:
 
         @param container The container to be resampled
     */
-    template <class SpecT>
-    void raster(SpecT& container)
+    template <class PeakContainerT>
+    void raster(PeakContainerT& container)
     {
       //return if nothing to do
       if (container.empty()) return;
 
-      typename SpecT::iterator first = container.begin();
-      typename SpecT::iterator last = container.end();
+      auto first = container.begin();
+      auto last = container.end();
 
-      double end_pos = (last - 1)->getMZ();
-      double start_pos = first->getMZ();
+      double end_pos = (last - 1)->getPos();
+      double start_pos = first->getPos();
       int number_resampled_points = (int)(ceil((end_pos - start_pos) / spacing_ + 1));
 
-      std::vector<typename SpecT::PeakType> resampled_peak_container;
+      std::vector<typename PeakContainerT::PeakType> resampled_peak_container;
       populate_raster_(resampled_peak_container, start_pos, end_pos, number_resampled_points);
 
       raster(container.begin(), container.end(), resampled_peak_container.begin(), resampled_peak_container.end());
@@ -86,29 +86,29 @@ public:
         @param start_pos The start position to be used for resampling
         @param end_pos The end position to be used for resampling
     */
-    template <typename SpecT>
-    void raster_align(SpecT& container, double start_pos, double end_pos)
+    template <typename PeakContainerT>
+    void raster_align(PeakContainerT& container, double start_pos, double end_pos)
     {
       //return if nothing to do
       if (container.empty()) return;
 
       if (end_pos < start_pos)
       {
-        std::vector<typename SpecT::PeakType> empty;
+        std::vector<typename PeakContainerT::PeakType> empty;
         container.swap(empty);
         return;
       }
 
-      typename SpecT::iterator first = container.begin();
-      typename SpecT::iterator last = container.end();
+      auto first = container.begin();
+      auto last = container.end();
 
       // get the iterators just before / after the two points start_pos / end_pos
-      while (first != container.end() && (first)->getMZ() < start_pos) {++first;}
-      while (last != first && (last - 1)->getMZ() > end_pos) {--last;}
+      while (first != container.end() && (first)->getPos() < start_pos) {++first;}
+      while (last != first && (last - 1)->getPos() > end_pos) {--last;}
 
       int number_resampled_points = (int)(ceil((end_pos - start_pos) / spacing_ + 1));
 
-      std::vector<typename SpecT::PeakType> resampled_peak_container;
+      std::vector<typename PeakContainerT::PeakType> resampled_peak_container;
       populate_raster_(resampled_peak_container, start_pos, end_pos, number_resampled_points);
 
       raster(first, last, resampled_peak_container.begin(), resampled_peak_container.end());
@@ -146,7 +146,7 @@ public:
       PeakTypeIterator resample_start = resampled_begin;
 
       // need to get the raw iterator between two resampled iterators of the raw data
-      while (raw_it != raw_end && raw_it->getMZ() < resampled_begin->getMZ())
+      while (raw_it != raw_end && raw_it->getPos() < resampled_begin->getPos())
       {
         resampled_begin->setIntensity(resampled_begin->getIntensity() + raw_it->getIntensity());
         raw_it++;
@@ -155,14 +155,14 @@ public:
       while (raw_it != raw_end)
       {
         //advance the resample iterator until our raw point is between two resampled iterators
-        while (resampled_begin != resampled_end && resampled_begin->getMZ() < raw_it->getMZ()) {resampled_begin++;}
+        while (resampled_begin != resampled_end && resampled_begin->getPos() < raw_it->getPos()) {resampled_begin++;}
         if (resampled_begin != resample_start) {resampled_begin--;}
 
         // if we have the last datapoint we break
         if ((resampled_begin + 1) == resampled_end) {break;}
 
-        double dist_left =  fabs(raw_it->getMZ() - resampled_begin->getMZ());
-        double dist_right = fabs(raw_it->getMZ() - (resampled_begin + 1)->getMZ());
+        double dist_left =  fabs(raw_it->getPos() - resampled_begin->getPos());
+        double dist_right = fabs(raw_it->getPos() - (resampled_begin + 1)->getPos());
 
         // distribute the intensity of the raw point according to the distance to resample_it and resample_it+1
         resampled_begin->setIntensity(resampled_begin->getIntensity() + raw_it->getIntensity() * dist_right / (dist_left + dist_right));
@@ -290,20 +290,20 @@ public:
       PeakTypeIterator raw_start = raw_it;
 
       // need to get the resampled iterator between two iterators of the raw data
-      while (resampled_start != resampled_end && resampled_start->getMZ() < raw_it->getMZ()) {resampled_start++;}
+      while (resampled_start != resampled_end && resampled_start->getPos() < raw_it->getPos()) {resampled_start++;}
 
       while (resampled_start != resampled_end)
       {
         //advance the raw_iterator until our current point we want to interpolate is between them
-        while (raw_it != raw_end && raw_it->getMZ() < resampled_start->getMZ()) {raw_it++;}
+        while (raw_it != raw_end && raw_it->getPos() < resampled_start->getPos()) {raw_it++;}
         if (raw_it != raw_start) {raw_it--;}
 
         // if we have the last datapoint we break
         if ((raw_it + 1) == raw_end) {break;}
 
         // use a linear interpolation between raw_it and raw_it+1
-        double m = ((raw_it + 1)->getIntensity() - raw_it->getIntensity()) / ((raw_it + 1)->getMZ() - raw_it->getMZ());
-        resampled_start->setIntensity(raw_it->getIntensity() + (resampled_start->getMZ() - raw_it->getMZ()) * m);
+        double m = ((raw_it + 1)->getIntensity() - raw_it->getIntensity()) / ((raw_it + 1)->getPos() - raw_it->getPos());
+        resampled_start->setIntensity(raw_it->getIntensity() + (resampled_start->getPos() - raw_it->getPos()) * m);
         resampled_start++;
       }
 
@@ -332,7 +332,7 @@ protected:
         typename std::vector<PeakType>::iterator it = resampled_peak_container.begin();
         for (int i = 0; i < number_resampled_points; ++i)
         {
-          it->setMZ(start_pos + i * spacing_);
+          it->setPos(start_pos + i * spacing_);
           ++it;
         }
       }
@@ -344,7 +344,7 @@ protected:
         {
           PeakType p;
           p.setIntensity(0);
-          p.setMZ(current_mz);
+          p.setPos(current_mz);
           resampled_peak_container.push_back(p);
 
           // increment current_mz

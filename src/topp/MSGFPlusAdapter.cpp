@@ -505,7 +505,7 @@ protected:
       if (!JavaInfo::canRun(java_executable))
       {
         writeLogError_("Fatal error: Java is needed to run MS-GF+!");
-        return EXTERNAL_PROGRAM_ERROR;
+        return EXTERNAL_PROGRAM_NOTFOUND;
       }
     }
     else

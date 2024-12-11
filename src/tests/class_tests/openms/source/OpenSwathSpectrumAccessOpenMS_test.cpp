@@ -264,7 +264,7 @@ START_SECTION(OpenSwath::ChromatogramPtr getChromatogramById(int id))
     MSChromatogram chrom;
 
     ChromatogramPeak p;
-    p.setMZ(20.0);
+    p.setRT(20.0);
     p.setIntensity(22.0);
     chrom.push_back(p);
 
