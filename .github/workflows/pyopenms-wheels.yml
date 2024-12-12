@@ -215,13 +215,13 @@ jobs:
         echo "$HOME/miniconda3/bin" >> $GITHUB_PATH
         echo "$HOME/miniconda3/Scripts" >> $GITHUB_PATH
 
-        
-    - name: Clean up before Homebrew install
+    - name: Force update all brew python
       run: |
-        brew cleanup -s
-        find /usr/local/bin -type l -exec rm -f {} \;
-        brew update
-        brew upgrade --overwrite
+        # GHA messes with links https://github.com/actions/setup-python/issues/577 so we just force replace their installs' with brew's
+        for pkg in $(brew list --formula | grep -E '^python(@[0-9]+\.[0-9]+)?$'); do
+            brew upgrade --force --overwrite "$pkg"
+        done
+        brew cleanup
 
     - name: Install build tools
       run: brew install --force --overwrite autoconf automake libtool
@@ -389,12 +389,13 @@ jobs:
         echo "$HOME/miniconda3/bin" >> $GITHUB_PATH
         echo "$HOME/miniconda3/Scripts" >> $GITHUB_PATH
       
-    - name: Clean up before Homebrew install
+    - name: Force update all brew python
       run: |
-        brew cleanup -s
-        find /usr/local/bin -type l -exec rm -f {} \;
-        brew update
-        brew upgrade --overwrite
+        # GHA messes with links https://github.com/actions/setup-python/issues/577 so we just force replace their installs' with brew's
+        for pkg in $(brew list --formula | grep -E '^python(@[0-9]+\.[0-9]+)?$'); do
+            brew upgrade --force --overwrite "$pkg"
+        done
+        brew cleanup
 
     - name: Install build tools
       run: brew install --force --overwrite autoconf automake libtool
