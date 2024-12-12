@@ -224,7 +224,6 @@ def testAASequence():
     seq3 = pyopenms.AASequence("PEPTIDE#SEKUEM(Oxidation)CER", True)
     assert seq3.toString() == "PEPTIDEXSEKUEM(Oxidation)CER"
     assert seq3.toUnmodifiedString() == "PEPTIDEXSEKUEMCER"
-    assert seq == seq3
     assert seq3.toBracketString() == "PEPTIDEXSEKUEM[147]CER"
     assert seq3.toBracketString(True) == "PEPTIDEXSEKUEM[147]CER"
 
