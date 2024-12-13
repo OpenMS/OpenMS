@@ -429,6 +429,33 @@ namespace OpenMS
     }
     
     /**
+     * @brief Switches the scores of peptide identifications.
+     *
+     * This function iterates over all peptide identifications
+     * and switches their scores using the switchScores function. It also increments the
+     * provided counter for each peptide identification processed. Score names are
+     * taken from the algorithm's parameters. If the requested score is already set as the
+     * main score, the function returns without making any changes.
+     *
+     * @param pep_ids The peptide identifications whose scores need to be switched.
+     * @param counter A reference to a counter that will be incremented for each peptide identification processed.     
+     */
+    void switchScores(std::vector<PeptideIdentification>& pep_ids, Size& counter)
+    {
+      if (pep_ids.empty()) return;
+
+      if (new_score_ == pep_ids[0].getScoreType()) // correct score already set
+      {
+        return;
+      }
+      
+      for (auto& id : pep_ids)
+      {
+        switchScores(id, counter);
+      }
+    }
+
+    /**
      * @brief Searches for a specified score type within an identification object and its meta values.
      *
      * This method attempts to find a given score type in the main score type of an identification object (`id`)

@@ -123,7 +123,7 @@ namespace OpenMS
 
     // determine current main score and orientation
     String original_score_name;
-    bool original_score_higher_better;
+    bool original_score_higher_better = true;
     IDScoreSwitcherAlgorithm::determineScoreTypeAndOrientation(cmap, original_score_name, original_score_higher_better, include_unassigned);
 
     // switch to requested score if provided by user and if it is different from current main score
@@ -277,6 +277,38 @@ namespace OpenMS
     std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
     std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
 
+   // determine current main score and orientation
+    String original_score_name;
+    bool original_score_higher_better = true;
+    IDScoreSwitcherAlgorithm::determineScoreTypeAndOrientation(pep_ids, original_score_name, original_score_higher_better);
+
+    // switch to requested score if provided by user and if it is different from current main score
+    String requested_score_name = param_.getValue("score").toString();
+    bool requested_score_higher_better = param_.getValue("score_orientation").toString() == "higher_better" ? true : false;
+
+    bool switched_main_score = false;
+
+    if (requested_score_name.empty() || requested_score_name == original_score_name)
+    { // user requests the main score
+      requested_score_name = original_score_name;
+      requested_score_higher_better = original_score_higher_better;
+    }
+    else
+    { // user requests a different score
+      IDScoreSwitcherAlgorithm idsa;
+      auto param = idsa.getDefaults();
+      param.setValue("new_score", requested_score_name);
+      param.setValue("new_score_orientation", requested_score_higher_better ? "higher_better" : "lower_better");
+      param.setValue("proteins", "false");
+      param.setValue("old_score", ""); // use default name generated for old score
+      idsa.setParameters(param);
+      Size counter = 0;
+      idsa.switchScores(pep_ids, counter);
+      OPENMS_LOG_DEBUG << "Switched scores for " << counter << " PSMs." << std::endl;
+      switched_main_score = true;
+    } 
+
+
     for (auto &prot_run : prot_ids)
     {
       processRun_(
@@ -291,6 +323,21 @@ namespace OpenMS
     {
       IDFilter::updateProteinReferences(pep_ids, prot_ids, true); //TODO allow keeping PSMs without evidence?
     }
+
+    if (switched_main_score)
+    {
+      // switch back to original score
+      IDScoreSwitcherAlgorithm idsa;
+      auto param = idsa.getDefaults();
+      param.setValue("new_score", original_score_name);
+      param.setValue("new_score_orientation", original_score_higher_better ? "higher_better" : "lower_better");
+      param.setValue("proteins", "false");
+      param.setValue("old_score", ""); // use default name generated for old score
+      idsa.setParameters(param);
+      Size counter = 0;
+      idsa.switchScores(pep_ids, counter);
+      OPENMS_LOG_DEBUG << "Switched scores back for " << counter << " PSMs." << std::endl;
+    }    
   }
 
   void BasicProteinInferenceAlgorithm::aggregatePeptideScores_(
