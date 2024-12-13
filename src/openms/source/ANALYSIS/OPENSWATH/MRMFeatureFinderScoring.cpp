@@ -74,7 +74,7 @@ namespace OpenMS
     defaults_.setValidStrings("spectrum_addition_method", {"simple", "resample"});
     defaults_.setValue("spectrum_merge_method_type", "fixed", "For spectrum addition, either use a fixed number of spectra or dynamically select the number of spectra to add around the peak apex based on the merge_spectra_by_peak_width_fraction.", {"advanced"});
     defaults_.setValidStrings("spectrum_merge_method_type", {"fixed", "dynamic"});
-    defaults_.setValue("add_up_spectra", 1, "Add up spectra around the peak apex (needs to be a non-even integer).", {"advanced"});
+    defaults_.setValue("add_up_spectra", 1, "Add up spectra on the left and right around the retention time peak apex.", {"advanced"});
     defaults_.setMinInt("add_up_spectra", 1);
     defaults_.setValue("spacing_for_spectra_resampling", 0.005, "If spectra are to be added, use this spacing to add them up", {"advanced"});
     defaults_.setMinFloat("spacing_for_spectra_resampling", 0.0);
