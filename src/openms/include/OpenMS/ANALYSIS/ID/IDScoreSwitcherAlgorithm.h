@@ -20,27 +20,56 @@
 namespace OpenMS
 {
 
-  class OPENMS_DLLAPI IDScoreSwitcherAlgorithm:
+  /**
+    @brief This class is used to switch identification scores within identification or consensus feature maps.
+
+    This class provides functionality to switch the main scoring type used in peptide or protein identification data.
+    It supports switching between different score types, such as raw scores, E-values, posterior probabilities,
+    posterior error probabilities, FDR, and q-values. The class also handles the direction of the score (whether a higher
+    score is better) and can store the original scores as meta values to prevent data loss.
+
+    The score switching process is configurable through parameters that specify the score types,
+    as well as the desired score direction and how old scores are annotated in the meta information.
+
+    The class can operate on individual identification objects or
+    ConsensusMaps, updating the main scores of all hits based on the specified criteria.
+
+  */
+  class OPENMS_DLLAPI IDScoreSwitcherAlgorithm :
     public DefaultParamHandler
   {
   public:
-    IDScoreSwitcherAlgorithm ();
+    /// Default constructor. Initializes the parameter handler with default values.
+    IDScoreSwitcherAlgorithm();
 
-    /// This is a rough hierarchy of possible score types in MS
-    /// In an ideal case this should be reimplemented to follow
-    /// ontology hierarchies as soon as e.g. MS-OBO is complete
-    /// and we switched the Metavalues to CV terms.
+    /**
+      @brief This is a rough hierarchy of possible score types in MS.
+
+      In an ideal case, this should be reimplemented to follow
+      ontology hierarchies as soon as e.g. MS-OBO is complete
+      and we switched the Metavalues to CV terms.
+    */
     enum class ScoreType
     {
-      RAW,
-      RAW_EVAL,
-      PP,
-      PEP,
-      FDR,
-      QVAL,
+      RAW,      ///< Raw score, e.g., search engine specific scores like hyperscore.
+      RAW_EVAL, ///< Raw score with E-value, e.g., search engine specific scores like expect score.
+      PP,       ///< Posterior probability.
+      PEP,      ///< Posterior error probability.
+      FDR,      ///< False discovery rate.
+      QVAL,     ///< Q-value.
     };
 
-    /// Checks if the given @p score_name is of ScoreType @p type
+    /**
+      @brief Checks if the given score name corresponds to a specific score type.
+
+      This method determines if a given score name, typically derived from an identification object or meta value,
+      matches a specified ScoreType. It performs a case-insensitive comparison and optionally removes the "_score"
+      suffix if present.
+
+      @param score_name The name of the score to check.
+      @param type The ScoreType to compare against.
+      @return True if the score name matches the given ScoreType, false otherwise.
+    */
     bool isScoreType(const String& score_name, const ScoreType& type)
     {
       String chopped = score_name;
@@ -52,7 +81,18 @@ namespace OpenMS
       return possible_types.find(chopped) != possible_types.end();
     }
 
-    /// Gets a @p ScoreType enum from a given score name @p score_name
+    /**
+      @brief Converts a string representation of a score type to a ScoreType enum.
+
+      This static method attempts to map a given string, representing a score type, to the corresponding
+      ScoreType enum value. It handles various common representations of score types, including those
+      with or without the "_score" suffix, and ignores case and special characters like '-', '_', and ' '.
+
+      @param score_type The string representation of the score type.
+      @return The corresponding ScoreType enum value.
+      @throws Exception::MissingInformation If the provided score_type string does not match any known
+                                            score type.
+    */
     static ScoreType getScoreType(String score_type)
     {
       if (score_type.hasSuffix("_score"))
@@ -89,20 +129,20 @@ namespace OpenMS
     }
 
     /**
-     * @brief Determines whether a higher score type is better given a ScoreType enum.
-     * 
-     * @param score_type The score type to check.
-     * @return True if a higher score type is better, false otherwise.
-     */
+      @brief Determines whether a higher score type is better given a ScoreType enum.
+
+      @param score_type The score type to check.
+      @return True if a higher score type is better, false otherwise.
+    */
     bool isScoreTypeHigherBetter(ScoreType score_type)
     {
       return type_to_better_[score_type];
     }
 
-    /*
-      * @brief Gets a vector of all score names that are used in OpenMS.
-      *
-      * @return A vector of all score names that are used in OpenMS (e.g., "q-value", "ln(hyperscore)").
+    /**
+      @brief Gets a vector of all score names that are used in OpenMS.
+
+      @return A vector of all score names that are used in OpenMS (e.g., "q-value", "ln(hyperscore)").
     */
     std::vector<String> getScoreTypeNames();
 
@@ -231,9 +271,19 @@ namespace OpenMS
       }
     }
 
-    /// Looks at the first Hit of the given @p id and according to the given @p type ,
-    /// deduces a fitting score and score direction to be switched to.
-    /// Then tries to switch all hits.
+    /**
+      @brief Switches the score type of a ConsensusMap to a general score type.
+
+      Looks at the first Hit of the given ConsensusMap and according to the given score type,
+      deduces a fitting score and score direction to be switched to.
+      Then tries to switch all hits.
+
+      @param cmap The ConsensusMap containing peptide identifications whose scores need to be switched.
+      @param type The desired general score type to switch to.
+      @param counter A reference to a counter that will be incremented for each peptide identification processed.
+      @param unassigned_peptides_too A boolean flag indicating whether to include unassigned peptides in the score switching process. Default is true.
+      @throws Exception::MissingInformation If the first encountered ID does not have the requested score type.
+    */
     void switchToGeneralScoreType(ConsensusMap& cmap, ScoreType type, Size& counter, bool unassigned_peptides_too = true)
     {
       String new_type = "";
@@ -281,10 +331,18 @@ namespace OpenMS
       cmap.applyFunctionOnPeptideIDs(switchScoresSingle, unassigned_peptides_too);
     }
 
-  /// @brief determines the score type and orientation of the main score
-  /// @param pep_ids 
-  /// @param overall_score_type 
-  /// @param higher_better 
+  /**
+   @brief Determines the score type and orientation of the main score for a set of peptide identifications.
+
+   This static method inspects a vector of PeptideIdentification objects to determine the overall score type and
+   whether a higher score is considered better. It uses the first PeptideIdentification in the vector to make this
+   determination, assuming that all identifications in the vector have the same score type and orientation.
+
+   @param pep_ids The vector of PeptideIdentification objects to inspect.
+   @param overall_score_type Output parameter to store the determined overall score type.
+   @param higher_better Output parameter to store whether a higher score is considered better.
+   @note This method assumes that all PeptideIdentification objects in the input vector have the same score type and orientation.
+  */
   static void determineScoreTypeAndOrientation(const std::vector<PeptideIdentification>& pep_ids, String& overall_score_type, bool& higher_better)
   {
     //TODO check all pep IDs? this assumes equality
@@ -295,11 +353,19 @@ namespace OpenMS
     }
   }
 
-  /// @brief determine score type and orientation of main score
-  /// @param cmap 
-  /// @param overall_score_type 
-  /// @param higher_better 
-  /// @param include_unassigned 
+  /**
+   @brief Determines the score type and orientation of the main score in a ConsensusMap.
+
+   This static method inspects a ConsensusMap to determine the overall score type and whether a higher score is
+   considered better. It iterates through the ConsensusMap's features and uses the first PeptideIdentification found
+   to determine the score type and orientation. If no assigned peptide identifications are found, it optionally
+   considers unassigned peptide identifications.
+
+   @param cmap The ConsensusMap to inspect.
+   @param overall_score_type Output parameter to store the determined overall score type.
+   @param higher_better Output parameter to store whether a higher score is considered better.
+   @param include_unassigned If true, unassigned peptide identifications are considered if no assigned ones are found. Default is true.
+  */
   static void determineScoreTypeAndOrientation(const ConsensusMap& cmap, String& overall_score_type, bool& higher_better, bool include_unassigned = true)
   {
     overall_score_type = "";
@@ -421,7 +487,8 @@ namespace OpenMS
     }
 
   private:
-    void updateMembers_() override;
+
+    void updateMembers_() override; ///< documented in base class
 
     /// relative tolerance for score comparisons:
     const double tolerance_ = 1e-6;
