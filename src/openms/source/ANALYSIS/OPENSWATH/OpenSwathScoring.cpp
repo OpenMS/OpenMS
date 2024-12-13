@@ -111,7 +111,7 @@ namespace OpenMS
         double leftWidth = imrmfeature->getMetaValue("leftWidth");
         double rightWidth = imrmfeature->getMetaValue("rightWidth");
         double peakWidth = rightWidth - leftWidth;
-        n_merge_spectra = std::max(1, static_cast<int>(std::ceil(peakWidth * merge_spectra_by_peak_width_fraction_)) | 1);
+        n_merge_spectra = std::max(1, static_cast<int>(std::ceil(peakWidth * merge_spectra_by_peak_width_fraction_)));
         
         OPENMS_LOG_DEBUG 
             << "Merging " << n_merge_spectra 
@@ -297,7 +297,7 @@ namespace OpenMS
         double leftWidth = imrmfeature->getMetaValue("leftWidth");
         double rightWidth = imrmfeature->getMetaValue("rightWidth");
         double peakWidth = rightWidth - leftWidth;
-        n_merge_spectra = std::max(1, static_cast<int>(std::ceil(peakWidth * merge_spectra_by_peak_width_fraction_)) | 1);
+        n_merge_spectra = std::max(1, static_cast<int>(std::ceil(peakWidth * merge_spectra_by_peak_width_fraction_)));
         
         OPENMS_LOG_DEBUG 
             << "Merging " << n_merge_spectra 
