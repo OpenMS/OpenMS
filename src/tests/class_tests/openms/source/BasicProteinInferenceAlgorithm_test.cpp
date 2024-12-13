@@ -151,30 +151,31 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       p.setValue("min_peptides_per_protein", 0);
       p.setValue("annotate_indistinguishable_groups", "true");
       p.setValue("greedy_group_resolution", "true");
-      p.setValue("score", "XTandem_score");  // run on XTandem score meta value
-      p.setValue("score_orientation", "higher_better");
-      p.setValue("old_score", "");
+      p.setValue("score_type", "RAW");  // should use the XTandem score meta value
       bpia.setParameters(p);
 
       TEST_EQUAL(peps[0].getScoreType(), "Posterior Error Probability"); // check if main score is PEP
       bpia.run(peps, prots);
       TEST_EQUAL(peps[0].getScoreType(), "Posterior Error Probability"); // check if main score has been reset again to PEP
 
-      TEST_EQUAL(prots[0].getHits().size(), 4)
-      TEST_EQUAL(prots[0].getHits()[0].getScore(), 2)  // 2 is the highest XTandem score
-      TEST_EQUAL(prots[0].getHits()[1].getScore(), 2)  // 2 is the highest XTandem score
-      TEST_EQUAL(prots[0].getHits()[2].getScore(), 5)  // 5 is the highest XTandem score
-      TEST_EQUAL(prots[0].getHits()[3].getScore(), 20) // 20 is the highest XTandem score
+      TEST_EQUAL(prots[0].getHits().size(), 5)
+      TEST_EQUAL(prots[0].getHits()[0].getScore(), 2)
+      TEST_EQUAL(prots[0].getHits()[1].getScore(), 2)
+      TEST_EQUAL(prots[0].getHits()[2].getScore(), 3) 
+      TEST_EQUAL(prots[0].getHits()[3].getScore(), 5)
+      TEST_EQUAL(prots[0].getHits()[4].getScore(), 20)
 
       TEST_EQUAL(prots[0].getHits()[0].getMetaValue("nr_found_peptides"), 1)
       TEST_EQUAL(prots[0].getHits()[1].getMetaValue("nr_found_peptides"), 1)
       TEST_EQUAL(prots[0].getHits()[2].getMetaValue("nr_found_peptides"), 2)
       TEST_EQUAL(prots[0].getHits()[3].getMetaValue("nr_found_peptides"), 1)
+      TEST_EQUAL(prots[0].getHits()[4].getMetaValue("nr_found_peptides"), 1)
 
-      TEST_EQUAL(prots[0].getIndistinguishableProteins().size(), 3);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins().size(), 4);
       TEST_EQUAL(prots[0].getIndistinguishableProteins()[0].probability, 20);
       TEST_EQUAL(prots[0].getIndistinguishableProteins()[1].probability, 5);
-      TEST_EQUAL(prots[0].getIndistinguishableProteins()[2].probability, 2);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins()[2].probability, 3);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins()[3].probability, 2);
     }
     END_SECTION
 

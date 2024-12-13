@@ -93,7 +93,7 @@ namespace OpenMS
       @throws Exception::MissingInformation If the provided score_type string does not match any known
                                             score type.
     */
-    static ScoreType getScoreType(String score_type)
+    static ScoreType toScoreTypeEnum(String score_type)
     {
       if (score_type.hasSuffix("_score"))
       {
@@ -124,7 +124,7 @@ namespace OpenMS
       else
       {
         throw Exception::MissingInformation(__FILE__, __LINE__,
-                                            OPENMS_PRETTY_FUNCTION, String("Unknown score type ") + score_type);
+                                            OPENMS_PRETTY_FUNCTION, String("Unknown score type '") + score_type + "'.");
       }
     }
 
@@ -144,7 +144,7 @@ namespace OpenMS
 
       @return A vector of all score names that are used in OpenMS (e.g., "q-value", "ln(hyperscore)").
     */
-    std::vector<String> getScoreTypeNames();
+    std::vector<String> getScoreNames();
 
     /**
      * @brief Switches the main scores of all hits in an identification object based on the new scoring settings.
@@ -343,13 +343,29 @@ namespace OpenMS
    @param higher_better Output parameter to store whether a higher score is considered better.
    @note This method assumes that all PeptideIdentification objects in the input vector have the same score type and orientation.
   */
-  static void determineScoreTypeAndOrientation(const std::vector<PeptideIdentification>& pep_ids, String& overall_score_type, bool& higher_better)
+  void determineScoreNameOrientationAndType(
+    const std::vector<PeptideIdentification>& pep_ids, 
+    String& name, 
+    bool& higher_better,
+    ScoreType& score_type)
   {
     //TODO check all pep IDs? this assumes equality
     if (!pep_ids.empty())
     {
-      overall_score_type = pep_ids[0].getScoreType();
+      name = pep_ids[0].getScoreType(); // The name of the score. Typically a name like "XTandem" or "Percolator_qvalue"
       higher_better = pep_ids[0].isHigherScoreBetter();
+      
+      // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
+      for (auto& [scoretype, names] : type_to_str_)
+      {
+        if (names.find(name) != names.end())
+        {
+          score_type = scoretype;
+          OPENMS_LOG_INFO << "Found score type " << name << " to be of type " 
+            << static_cast<std::underlying_type<ScoreType>::type>(scoretype) << std::endl;
+          return;
+        }
+      }
     }
   }
 
@@ -366,9 +382,13 @@ namespace OpenMS
    @param higher_better Output parameter to store whether a higher score is considered better.
    @param include_unassigned If true, unassigned peptide identifications are considered if no assigned ones are found. Default is true.
   */
-  static void determineScoreTypeAndOrientation(const ConsensusMap& cmap, String& overall_score_type, bool& higher_better, bool include_unassigned = true)
+  void determineScoreNameOrientationAndType(const ConsensusMap& cmap, 
+    String& name,
+    bool& higher_better,
+    ScoreType& score_type,
+    bool include_unassigned = true)
   {
-    overall_score_type = "";
+    name = "";
     higher_better = true;
 
     // TODO: check all pep IDs? this assumes equality to first encountered
@@ -377,18 +397,37 @@ namespace OpenMS
       const auto& pep_ids = cf.getPeptideIdentifications();
       if (!pep_ids.empty())
       {
-        overall_score_type = pep_ids[0].getScoreType();
+        name = pep_ids[0].getScoreType();
         higher_better = pep_ids[0].isHigherScoreBetter();
-        return;
+
+        // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
+        for (auto& [scoretype, names] : type_to_str_)
+        {
+          if (names.find(name) != names.end())
+          {
+            score_type = scoretype;
+            return;
+          }
+        }
       }
     }
 
-    if (overall_score_type.empty() && include_unassigned)
+    if (name.empty() && include_unassigned)
     {
       for (const auto& id : cmap.getUnassignedPeptideIdentifications())
       {
-        overall_score_type = id.getScoreType();
+        name = id.getScoreType();
         higher_better = id.isHigherScoreBetter();
+
+         // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
+        for (auto& [scoretype, names] : type_to_str_)
+        {
+          if (names.find(name) != names.end())
+          {
+            score_type = scoretype;
+            return;
+          }
+        }        
         return;
       }
     }    
@@ -414,7 +453,7 @@ namespace OpenMS
         const auto& ids = f.getPeptideIdentifications();
         if (!ids.empty())
         {
-          if (new_score_ == ids[0].getScoreType()) // correct score already set
+          if (new_score_ == ids[0].getScoreType()) // correct score or category already set
           {
             return;
           }
