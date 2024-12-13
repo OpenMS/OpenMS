@@ -281,6 +281,86 @@ namespace OpenMS
       cmap.applyFunctionOnPeptideIDs(switchScoresSingle, unassigned_peptides_too);
     }
 
+  /// @brief determines the score type and orientation of the main score
+  /// @param pep_ids 
+  /// @param overall_score_type 
+  /// @param higher_better 
+  static void determineScoreTypeAndOrientation(const std::vector<PeptideIdentification>& pep_ids, String& overall_score_type, bool& higher_better)
+  {
+    //TODO check all pep IDs? this assumes equality
+    if (!pep_ids.empty())
+    {
+      overall_score_type = pep_ids[0].getScoreType();
+      higher_better = pep_ids[0].isHigherScoreBetter();
+    }
+  }
+
+  /// @brief determine score type and orientation of main score
+  /// @param cmap 
+  /// @param overall_score_type 
+  /// @param higher_better 
+  /// @param include_unassigned 
+  static void determineScoreTypeAndOrientation(const ConsensusMap& cmap, String& overall_score_type, bool& higher_better, bool include_unassigned = true)
+  {
+    overall_score_type = "";
+    higher_better = true;
+
+    // TODO: check all pep IDs? this assumes equality to first encountered
+    for (const auto& cf : cmap)
+    {
+      const auto& pep_ids = cf.getPeptideIdentifications();
+      if (!pep_ids.empty())
+      {
+        overall_score_type = pep_ids[0].getScoreType();
+        higher_better = pep_ids[0].isHigherScoreBetter();
+        return;
+      }
+    }
+
+    if (overall_score_type.empty() && include_unassigned)
+    {
+      for (const auto& id : cmap.getUnassignedPeptideIdentifications())
+      {
+        overall_score_type = id.getScoreType();
+        higher_better = id.isHigherScoreBetter();
+        return;
+      }
+    }    
+  }
+
+    /**
+     * @brief Switches the scores of peptide identifications in a ConsensusMap.
+     *
+     * This function iterates over all peptide identifications in the given ConsensusMap
+     * and switches their scores using the switchScores function. It also increments the
+     * provided counter for each peptide identification processed. Score names are
+     * taken from the algorithm's parameters. If the requested score is already set as the
+     * main score, the function returns without making any changes.
+     *
+     * @param cmap The ConsensusMap containing peptide identifications whose scores need to be switched.
+     * @param counter A reference to a counter that will be incremented for each peptide identification processed.
+     * @param unassigned_peptides_too A boolean flag indicating whether to include unassigned peptides in the score switching process. Default is true.
+     */
+    void switchScores(ConsensusMap& cmap, Size& counter, bool unassigned_peptides_too = true)
+    {
+      for (const auto& f : cmap)
+      {
+        const auto& ids = f.getPeptideIdentifications();
+        if (!ids.empty())
+        {
+          if (new_score_ == ids[0].getScoreType()) // correct score already set
+          {
+            return;
+          }
+          else
+          {
+            break;
+          }
+        }
+      }      
+      const auto switchScoresSingle = [&counter,this](PeptideIdentification& id){switchScores(id,counter);};
+      cmap.applyFunctionOnPeptideIDs(switchScoresSingle, unassigned_peptides_too);
+    }
     
     /**
      * @brief Searches for a specified score type within an identification object and its meta values.
