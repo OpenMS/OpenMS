@@ -61,8 +61,6 @@ namespace OpenMS
     defaults_.setValue("score_type", "", "PSM score type to use for inference. (default: empty = main score)");
     defaults_.setValidStrings("score_type", {"", "PEP", "q-value", "RAW"});
 
-    defaults_.setValidStrings("greedy_group_resolution", {"true","false"});
-
     defaultsToParam_();
   }
 
