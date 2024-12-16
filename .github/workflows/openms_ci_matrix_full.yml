@@ -247,7 +247,7 @@ jobs:
           # QT_ROOT_DIR set by Install Qt step
           echo "cmake_prefix=$QT_ROOT_DIR/lib/cmake;$QT_ROOT_DIR" >> $GITHUB_OUTPUT
           choco install ccache ninja -y --no-progress
-          choco install cmake --version=3.31.1 -y --no-progress
+          choco install cmake -y --no-progress
           ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
           # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
           echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
