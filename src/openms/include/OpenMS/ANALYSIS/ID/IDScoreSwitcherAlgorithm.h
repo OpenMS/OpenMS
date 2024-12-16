@@ -341,6 +341,7 @@ namespace OpenMS
    @param pep_ids The vector of PeptideIdentification objects to inspect.
    @param name Output parameter to store the determined overall score type.
    @param higher_better Output parameter to store whether a higher score is considered better.
+   @param score_type Output parameter to store the determined score type.
    @note This method assumes that all PeptideIdentification objects in the input vector have the same score type and orientation.
   */
   void determineScoreNameOrientationAndType(
@@ -380,6 +381,7 @@ namespace OpenMS
    @param cmap The ConsensusMap to inspect.
    @param name Output parameter to store the determined overall score type.
    @param higher_better Output parameter to store whether a higher score is considered better.
+   @param score_type Output parameter to store the determined score type.
    @param include_unassigned If true, unassigned peptide identifications are considered if no assigned ones are found. Default is true.
   */
   void determineScoreNameOrientationAndType(const ConsensusMap& cmap, 
@@ -558,42 +560,20 @@ namespace OpenMS
    * This structure contains both the original and requested score details, including
    * score names, their orientation (whether higher scores are better), and score types
    * before and after the switch. It also includes a flag to indicate if the main score
-   * has been switched. Used to switch back to the original score if needed.
-   *
-   * @var original_score_name
-   *     The name of the original score used before the switch.
-   *
-   * @var original_score_higher_better
-   *     Indicates if a higher original score is considered better. Defaults to true.
-   *
-   * @var original_score_type
-   *     The type of the original score before the switch. Defaults to IDScoreSwitcherAlgorithm::ScoreType::RAW.
-   *
-   * @var requested_score_higher_better
-   *     Indicates if a higher requested score is considered better. Initialized to original_score_higher_better.
-   *
-   * @var requested_score_type
-   *     The type of the requested score after the switch. Initialized to original_score_type.
-   *
-   * @var requested_score_name
-   *     The name of the requested score, which can be a search engine score name (e.g., "X!Tandem_score") 
-   *     or a score category (e.g., "PEP").
-   *
-   * @var score_switched
-   *     Flag indicating whether the main score has been switched. Defaults to false.
+   * has been switched. Used to switch back to the original score if needed.   
    */
   struct IDSwitchResult
   {
     // the score name, orientation and type used before the switch
-    String original_score_name;
-    bool original_score_higher_better = true;
-    IDScoreSwitcherAlgorithm::ScoreType original_score_type = IDScoreSwitcherAlgorithm::ScoreType::RAW;
+    String original_score_name; /// The name of the original score used before the switch.
+    bool original_score_higher_better = true; /// whether a higher original score is better
+    IDScoreSwitcherAlgorithm::ScoreType original_score_type = IDScoreSwitcherAlgorithm::ScoreType::RAW; /// the type of the original score
     // the score name, orientation and type used after the switch
-    bool requested_score_higher_better = original_score_higher_better;    
-    IDScoreSwitcherAlgorithm::ScoreType requested_score_type = original_score_type;      
+    bool requested_score_higher_better = original_score_higher_better; /// whether a higher requested score is better
+    IDScoreSwitcherAlgorithm::ScoreType requested_score_type = original_score_type; /// the type of the requested score
     String requested_score_name; // the search engine score name (e.g. "X!Tandem_score" or score category (e.g. "PEP")
     // wheter the main score was switched
-    bool score_switched = false;
+    bool score_switched = false; /// flag indicating whether the main score was switched
   };
 
   /**
