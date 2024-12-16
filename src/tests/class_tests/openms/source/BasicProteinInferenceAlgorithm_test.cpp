@@ -157,18 +157,18 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       bpia.run(peps, prots);
       TEST_EQUAL(peps[0].getScoreType(), "Posterior Error Probability"); // check if main score has been reset again to PEP
       
-      TEST_EQUAL(prots[0].getHits()[0].getScore(), 0.6)
-      TEST_EQUAL(prots[0].getHits()[1].getScore(), 0.6)
-      TEST_EQUAL(prots[0].getHits()[2].getScore(), -std::numeric_limits<double>::infinity())  // TODO: +inf?
-      TEST_EQUAL(prots[0].getHits()[3].getScore(), 0.8)
-      TEST_EQUAL(prots[0].getHits()[4].getScore(), 0.6)
-      TEST_EQUAL(prots[0].getHits()[5].getScore(), 0.9)
+      TEST_EQUAL(prots[0].getHits()[0].getScore(), 2.5)
+      TEST_EQUAL(prots[0].getHits()[1].getScore(), 2.5)
+      TEST_EQUAL(prots[0].getHits()[2].getScore(), -std::numeric_limits<double>::infinity())
+      TEST_EQUAL(prots[0].getHits()[3].getScore(), 5.0)
+      TEST_EQUAL(prots[0].getHits()[4].getScore(), 2.5)
+      TEST_EQUAL(prots[0].getHits()[5].getScore(), 10.0)
 
       TEST_EQUAL(prots[0].getIndistinguishableProteins().size(), 4);
-      TEST_EQUAL(prots[0].getIndistinguishableProteins()[0].probability, 0.9);
-      TEST_EQUAL(prots[0].getIndistinguishableProteins()[1].probability, 0.8);
-      TEST_EQUAL(prots[0].getIndistinguishableProteins()[2].probability, 0.6);
-      TEST_EQUAL(prots[0].getIndistinguishableProteins()[3].probability, 0.6);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins()[0].probability, 10.9);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins()[1].probability, 5.0);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins()[2].probability, 2.5);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins()[3].probability, 2.5);
 
       TEST_EQUAL(prots[0].getHits()[0].getMetaValue("nr_found_peptides"), 1)
       TEST_EQUAL(prots[0].getHits()[1].getMetaValue("nr_found_peptides"), 1)
@@ -200,7 +200,7 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       TEST_EQUAL(prots[0].getHits().size(), 4)
       TEST_EQUAL(prots[0].getHits().at(0).getScore(), 2.5)
       TEST_EQUAL(prots[0].getHits().at(1).getScore(), 2.5)
-      TEST_EQUAL(prots[0].getHits().at(2).getScore(), 2.5) 
+      TEST_EQUAL(prots[0].getHits().at(2).getScore(), 5.0) 
       TEST_EQUAL(prots[0].getHits().at(3).getScore(), 10.0)
 
       TEST_EQUAL(prots[0].getHits().at(0).getMetaValue("nr_found_peptides"), 1)
@@ -211,7 +211,7 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       TEST_EQUAL(prots[0].getIndistinguishableProteins().size(), 3);
       TEST_EQUAL(prots[0].getIndistinguishableProteins().at(0).probability, 10);
       TEST_EQUAL(prots[0].getIndistinguishableProteins().at(1).probability, 2.5);
-      TEST_EQUAL(prots[0].getIndistinguishableProteins().at(2).probability, 2.5);      
+      TEST_EQUAL(prots[0].getIndistinguishableProteins().at(2).probability, 5.0);      
     }
     END_SECTION
 

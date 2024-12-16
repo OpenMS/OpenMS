@@ -260,9 +260,9 @@ namespace OpenMS
       }
       new_score_ = t;
 
-      if (type != ScoreType::RAW && higher_better_ != type_to_better_[type])
+      if (higher_better_ != type_to_better_[type])
       {
-        OPENMS_LOG_WARN << "Requested non-raw score type does not match the expected score direction. Correcting!\n";
+        OPENMS_LOG_WARN << "Requested score type does not match the expected score direction. Correcting!\n";
         higher_better_ = type_to_better_[type];
       }
       for (auto& i : id)
@@ -321,9 +321,9 @@ namespace OpenMS
       }
       new_score_ = new_type;
 
-      if (type != ScoreType::RAW && higher_better_ != type_to_better_[type])
+      if (higher_better_ != type_to_better_[type])
       {
-        OPENMS_LOG_WARN << "Requested non-raw score type does not match the expected score direction. Correcting!\n";
+        OPENMS_LOG_WARN << "Requested score type does not match the expected score direction. Correcting!\n";
         higher_better_ = type_to_better_[type];
       }
 
@@ -637,6 +637,13 @@ namespace OpenMS
     { // user requests a different score type than the main score
       result.requested_score_higher_better = IDScoreSwitcherAlgorithm().isScoreTypeHigherBetter(result.requested_score_type);
       IDScoreSwitcherAlgorithm idsa;
+      auto param = idsa.getDefaults();
+      param.setValue("new_score", result.original_score_name);
+      param.setValue("new_score_orientation", result.original_score_higher_better ? "higher_better" : "lower_better");
+      param.setValue("proteins", "false");
+      param.setValue("old_score", ""); // use default name generated for old score
+      idsa.setParameters(param);            
+
       Size counter = 0; 
       idsa.switchToGeneralScoreType(cmap, result.requested_score_type, counter, include_unassigned);
       OPENMS_LOG_DEBUG << "Switched scores for " << counter << " IDs." << std::endl;
@@ -695,9 +702,16 @@ namespace OpenMS
     { // user requests a different score type than the main score
       result.requested_score_higher_better = IDScoreSwitcherAlgorithm().isScoreTypeHigherBetter(result.requested_score_type);
       IDScoreSwitcherAlgorithm idsa;
-      Size counter = 0; 
+      auto param = idsa.getDefaults();
+      param.setValue("new_score", result.original_score_name);
+      param.setValue("new_score_orientation", result.original_score_higher_better ? "higher_better" : "lower_better");
+      param.setValue("proteins", "false");
+      param.setValue("old_score", ""); // use default name generated for old score
+      idsa.setParameters(param);            
+      Size counter = 0;       
       idsa.switchToGeneralScoreType(pep_ids, result.requested_score_type, counter);
       OPENMS_LOG_DEBUG << "Switched scores for " << counter << " IDs." << std::endl;
+
       result.score_switched = true;
     }
 
